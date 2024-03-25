@@ -49,7 +49,7 @@ class BigQueryClient:
         )
         return r
 
-    def append_rows(self, *, table: bigquery.Table, rows: Sequence[Mapping[str, Any]]):
+    def append_rows(self, *, table: bigquery.Table, rows: Sequence[Mapping[str, Any]]) -> None:
         self._bq_client.insert_rows(
             table=table,
             rows=rows,

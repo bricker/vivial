@@ -8,7 +8,7 @@ L = TypeVar("L", bound=Sized)
 
 
 def validate_at_least_one_of(*fields: str) -> Any:
-    def validate(cls, values: dict[str, Any]) -> dict[str, Any]:
+    def validate(cls: Any, values: dict[str, Any]) -> dict[str, Any]:
         assert any(values.get(f) is not None for f in fields), f"At least one must be specified: {fields}"
         return values
 
@@ -16,7 +16,7 @@ def validate_at_least_one_of(*fields: str) -> Any:
 
 
 def validate_xnor(*fields: str) -> Any:
-    def validate(cls, values: dict[str, Any]) -> dict[str, Any]:
+    def validate(cls: Any, values: dict[str, Any]) -> dict[str, Any]:
         assert all(values.get(f) is None for f in fields) or all(values.get(f) is not None for f in fields)
         return values
 

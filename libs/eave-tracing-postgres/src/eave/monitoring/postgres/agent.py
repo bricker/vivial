@@ -23,7 +23,7 @@ with open(os.path.join(_thisdir, "triggers.sql"), encoding="utf-8") as f:
 #    > maybe only needs to be running on the master replica
 
 
-async def start_agent(conninfo: str, team_id: str):
+async def start_agent(conninfo: str, team_id: str) -> None:
     """
     listen and poll for notifications for a postgresql database (requires pg version 12+)
 

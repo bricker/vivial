@@ -17,13 +17,13 @@ schema_client = SchemaServiceClient()
 
 
 class DuplicateSchemaIdError(Exception):
-    def __init__(self, schema_id: str):
+    def __init__(self, schema_id: str) -> None:
         msg = f"Duplicate schema ID: {schema_id}"
         super().__init__(msg)
 
 
 class SchemaDiscrepancyError(Exception):
-    def __init__(self, schema_id: str):
+    def __init__(self, schema_id: str) -> None:
         msg = (
             f"Schema {schema_id} already exists in remote and does not match local schema. "
             "Schemas cannot be changed once published! "

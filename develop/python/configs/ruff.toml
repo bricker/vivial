@@ -20,8 +20,8 @@ select = [
   "N", # https://docs.astral.sh/ruff/rules/#pep8-naming-n
   # "D", # https://docs.astral.sh/ruff/rules/#pydocstyle-d
   "UP", # https://docs.astral.sh/ruff/rules/#pyupgrade-up
-  # "ANN", # https://docs.astral.sh/ruff/rules/#flake8-annotations-ann
-  # "ASYNC", # https://docs.astral.sh/ruff/rules/#flake8-async-async
+  "ANN", # https://docs.astral.sh/ruff/rules/#flake8-annotations-ann
+  "ASYNC", # https://docs.astral.sh/ruff/rules/#flake8-async-async
   # "S", # https://docs.astral.sh/ruff/rules/#flake8-bandit-s
   # "BLE", # https://docs.astral.sh/ruff/rules/#flake8-blind-except-ble
   # "FBT", # https://docs.astral.sh/ruff/rules/#flake8-boolean-trap-fbt
@@ -60,8 +60,8 @@ select = [
   # "NPY", # https://docs.astral.sh/ruff/rules/#numpy-specific-rules-npy
   # "PERF", # https://docs.astral.sh/ruff/rules/#perflint-perf
   # "FURB", # https://docs.astral.sh/ruff/rules/#refurb-furb
-  # "LOG", # https://docs.astral.sh/ruff/rules/#flake8-logging-log
-  # "RUF", # https://docs.astral.sh/ruff/rules/#ruff-specific-rules-ruf
+  "LOG", # https://docs.astral.sh/ruff/rules/#flake8-logging-log
+  "RUF", # https://docs.astral.sh/ruff/rules/#ruff-specific-rules-ruf
 ]
 
 ignore = [
@@ -75,12 +75,17 @@ ignore = [
   "BLE001", # https://docs.astral.sh/ruff/rules/blind-except/ - too common in current codebase
   "UP032", # https://docs.astral.sh/ruff/rules/f-string/ - format() is sometimes better for readability
   "COM812", # https://docs.astral.sh/ruff/rules/missing-trailing-comma/ - conflicts with ruff formatter
+  "ANN401", # https://docs.astral.sh/ruff/rules/any-type/ - Any is useful
+  "ANN002", # https://docs.astral.sh/ruff/rules/missing-type-args/ - too common in current codebase
+  "ANN003", # https://docs.astral.sh/ruff/rules/missing-type-kwargs/ - too common in current codebase
 ]
 
 [lint.extend-per-file-ignores]
-"__init__.py" = ["PLC0414"]
-"tests/*" = ["S"] # Disable security checks in test files
-
+"__init__.py" = ["PLC0414"] # https://docs.astral.sh/ruff/rules/useless-import-alias/
+"tests/*" = [
+  "S", # Disable security checks in test files
+  "ANN", # Tests have lots of functions without return types, Any, etc.
+]
 [lint.flake8-annotations]
 allow-star-arg-any = true
 

@@ -78,7 +78,7 @@ def _connection_handler(conn: Connection) -> None:
         q.put(msg, block=False)
 
 
-def start_controller():
+def start_controller() -> None:
     running = True
     listener = Listener(address=_sockaddr, family="AF_UNIX")
 

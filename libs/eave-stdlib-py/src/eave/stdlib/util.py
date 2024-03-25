@@ -7,7 +7,7 @@ import re
 from typing import Any, Awaitable, Callable, Literal, Optional, ParamSpec, Type, TypeVar
 import uuid
 
-from eave.stdlib.typing import JsonObject
+from eave.stdlib.typing import JsonObject, JsonValue
 
 from eave.stdlib.exceptions import UnexpectedMissingValueError
 
@@ -134,43 +134,43 @@ def ensure_str(data: str | bytes | int | uuid.UUID | dict) -> str:
         return str(data)
 
 
-def compact_json(data: Any, **kwargs) -> str:
+def compact_json(data: object, **kwargs: Any) -> str:
     """
     kwargs is forwarded to json.dumps
     """
     return json.dumps(data, indent=None, separators=(",", ":"), **kwargs)
 
 
-def compact_deterministic_json(data: Any, **kwargs) -> str:
+def compact_deterministic_json(data: object, **kwargs: Any) -> str:
     """
     kwargs is forwarded to json.dumps
     """
     return json.dumps(data, indent=None, separators=(",", ":"), sort_keys=True, **kwargs)
 
 
-def pretty_deterministic_json(data: Any, **kwargs) -> str:
+def pretty_deterministic_json(data: object, **kwargs: Any) -> str:
     """
     kwargs is forwarded to json.dumps
     """
     return json.dumps(data, sort_keys=True, **kwargs)
 
 
-def nand(a: Any, b: Any) -> bool:
+def nand(a: object, b: object) -> bool:
     """Neither or one"""
     return not (bool(a) and bool(b))
 
 
-def nor(a: Any, b: Any) -> bool:
+def nor(a: object, b: object) -> bool:
     """Exactly neither"""
     return not (bool(a) or bool(b))
 
 
-def xor(a: Any, b: Any) -> bool:
+def xor(a: object, b: object) -> bool:
     """Exactly one"""
     return bool(a) ^ bool(b)
 
 
-def xnor(a: Any, b: Any) -> bool:
+def xnor(a: object, b: object) -> bool:
     """Neither or both"""
     return not xor(a, b)
 
@@ -232,7 +232,7 @@ def redact(string: str | None) -> str | None:
     return f"{string[:4]}[redacted {strlen - 8} chars]{string[-4:]}"
 
 
-def erasetype(data: JsonObject, key: str, default: Optional[Any] = None) -> Any:
+def erasetype(data: JsonObject, key: str, default: Optional[JsonValue] = None) -> Any:
     if v := data.get(key, default):
         return v
     else:

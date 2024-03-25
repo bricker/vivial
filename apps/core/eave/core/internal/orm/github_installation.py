@@ -69,7 +69,7 @@ class GithubInstallationOrm(Base):
         id: Optional[uuid.UUID] = None
         github_install_id: Optional[str] = None
 
-        def validate_or_exception(self):
+        def validate_or_exception(self) -> None:
             assert self.team_id or self.id or self.github_install_id, "At least one query parameter must be given"
 
     @classmethod

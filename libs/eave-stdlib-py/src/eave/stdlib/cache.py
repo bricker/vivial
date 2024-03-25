@@ -46,7 +46,10 @@ class _CacheEntry:
 
 
 class EphemeralCache(CacheInterface):
-    _store: dict[str, _CacheEntry] = {}
+    _store: dict[str, _CacheEntry]
+
+    def __init__(self) -> None:
+        self._store = {}
 
     async def get(self, name: str) -> str | None:
         e = self._store.get(name)

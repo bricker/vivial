@@ -15,9 +15,9 @@ import importlib  # noqa
 import sqlalchemy  # noqa
 import uuid  # noqa
 
-import eave.core.internal.database  # noqa
+import eave.core.internal.database
 import eave.core.internal.orm as orm  # noqa
-import eave.core.internal.orm.base  # noqa
+import eave.core.internal.orm.base
 from eave.core.internal import CORE_API_APP_CONFIG  # noqa
 from eave.stdlib.config import SHARED_CONFIG  # noqa
 from eave.stdlib.logging import eaveLogger  # noqa
@@ -25,7 +25,7 @@ import eave.stdlib.analytics as analytics  # noqa
 
 eave.core.internal.orm.base._load_all()
 
-db_session = eave.core.internal.database.async_session()  # noqa
+db_session = eave.core.internal.database.async_session()
 
 print("Ready to go.")
 

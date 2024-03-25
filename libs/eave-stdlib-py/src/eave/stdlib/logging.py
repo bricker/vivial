@@ -30,14 +30,6 @@ class CustomFormatter(logging.Formatter):
     reset = "\x1b[0m"
     formatstr = "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)\n"
 
-    FORMATS = {
-        logging.DEBUG: purple + formatstr + reset,
-        logging.INFO: cyan + formatstr + reset,
-        logging.WARNING: yellow + formatstr + reset,
-        logging.ERROR: red + formatstr + reset,
-        logging.CRITICAL: bold_red + formatstr + reset,
-    }
-
     @classmethod
     def get_formatstr(cls, levelno: int, message: str) -> str:
         match levelno:
@@ -54,27 +46,25 @@ class CustomFormatter(logging.Formatter):
             case _:
                 return message
 
-    IGNORE_KEYS = set(
-        [
-            "asctime",
-            "created",
-            "exc_info",
-            "exc_text",
-            "filename",
-            "levelname",
-            "levelno",
-            "message",
-            "module",
-            "msecs",
-            "msg",
-            "name",
-            "process",
-            "processName",
-            "relativeCreated",
-            "stack_info",
-            "thread",
-            "threadName",
-        ]
+    IGNORE_KEYS = (
+        "asctime",
+        "created",
+        "exc_info",
+        "exc_text",
+        "filename",
+        "levelname",
+        "levelno",
+        "message",
+        "module",
+        "msecs",
+        "msg",
+        "name",
+        "process",
+        "processName",
+        "relativeCreated",
+        "stack_info",
+        "thread",
+        "threadName",
     )
 
     def format(self, record: logging.LogRecord) -> str:
@@ -82,16 +72,16 @@ class CustomFormatter(logging.Formatter):
         formatter = logging.Formatter(log_fmt)
         string = formatter.format(record)
 
-        extra = {k: v for k, v in record.__dict__.items() if k not in self.IGNORE_KEYS}
+        extra = {k: v for k, v in record.__dict__.items() if k not in CustomFormatter.IGNORE_KEYS}
         string += f"{self.dimgrey}{extra}{self.reset}"
         return string
 
 
 class CustomFilter(logging.Filter):
-    _whitelist_records = [
+    _whitelist_records = (
         "eave",
         "werkzeug",
-    ]
+    )
 
     def filter(self, record: LogRecord) -> bool:
         log = super().filter(record)

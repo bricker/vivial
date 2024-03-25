@@ -260,7 +260,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
             assert (await self.count(s, AccountOrm)) == 0
             assert (await self.count(s, TeamOrm)) == 0
 
-    async def test_urls(self):
+    async def test_urls(self) -> None:
         assert eave.core.internal.oauth.google.GOOGLE_OAUTH_AUTHORIZE_PATH == "/oauth/google/authorize"
         assert eave.core.internal.oauth.google.GOOGLE_OAUTH_CALLBACK_PATH == "/oauth/google/callback"
         assert (

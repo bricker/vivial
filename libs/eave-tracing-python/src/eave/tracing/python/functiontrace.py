@@ -19,7 +19,7 @@ exec $(which {python}) -m functiontrace "$@"
 """
 
 
-def setup_dependencies():
+def setup_dependencies() -> None:
     # We need the functiontrace-server installed and locatable in order to
     # trace anything.
     if shutil.which("functiontrace-server") is None:
@@ -47,7 +47,7 @@ def setup_dependencies():
             os.chmod(f.name, 0o755)
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Trace a script's execution.")
     parser.add_argument(
         "--trace-memory",
@@ -111,7 +111,7 @@ def main():
     exec(code, mod.__dict__)
 
 
-def trace():
+def trace() -> None:
     # Make sure we're set up to work properly, then begin tracing.
     setup_dependencies()
     _functiontrace.begin_tracing(os.getcwd())

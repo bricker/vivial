@@ -91,7 +91,7 @@ async def chat_completion(
     top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
     top_p: Optional[float] | NotGiven = NOT_GIVEN,
     user: str | NotGiven = NOT_GIVEN,
-    **kwargs,
+    **kwargs: Any,
 ) -> str:
     """
     Makes a request to OpenAI chat completion API, return string response.

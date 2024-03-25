@@ -25,7 +25,7 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
 
     endpoint_config: EndpointConfiguration
 
-    def __init__(self, app: starlette.types.ASGIApp, endpoint_config: EndpointConfiguration):
+    def __init__(self, app: starlette.types.ASGIApp, endpoint_config: EndpointConfiguration) -> None:
         super().__init__(app=app)
         self.endpoint_config = endpoint_config
 

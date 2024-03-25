@@ -7,7 +7,7 @@ load_standard_dotenv_files()
 import asyncio
 from logging.config import fileConfig
 
-import eave.stdlib.time  # noqa: E402
+import eave.stdlib.time
 from alembic import context
 from sqlalchemy import Connection
 

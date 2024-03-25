@@ -19,13 +19,19 @@ M = TypeVar("M", bound=unittest.mock.Mock)
 
 
 class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
-    testdata: dict[str, Any] = {}
-    active_mocks: dict[str, unittest.mock.Mock] = {}
-    _active_patches: dict[str, unittest.mock._patch] = {}
-    _active_patched_dicts: dict[str, unittest.mock._patch_dict] = {}
+    testdata: dict[str, Any]
+    active_mocks: dict[str, unittest.mock.Mock]
+    _active_patches: dict[str, unittest.mock._patch]
+    _active_patched_dicts: dict[str, unittest.mock._patch_dict]
 
-    def __init__(self, methodName="runTest") -> None:  # type: ignore[no-untyped-def]
+    def __init__(self, methodName: str = "runTest") -> None:  # type: ignore[no-untyped-def]
         super().__init__(methodName)
+
+        self.testdata = {}
+        self.active_mocks = {}
+        self._active_patches = {}
+        self._active_patched_dicts = {}
+
         self.addAsyncCleanup(self.cleanup)
 
     async def asyncSetUp(self) -> None:
@@ -301,7 +307,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         #     return v
 
         def _access_secret_version(
-            request: Optional[AccessSecretVersionRequest | dict] = None, *, name: Optional[str] = None, **kwargs
+            request: Optional[AccessSecretVersionRequest | dict] = None, *, name: Optional[str] = None, **kwargs: Any
         ) -> AccessSecretVersionResponse:
             if isinstance(request, AccessSecretVersionRequest):
                 resolved_name = request.name
