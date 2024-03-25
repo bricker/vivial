@@ -274,5 +274,6 @@ class EaveLogger:
             **kwargs,
         }
 
+
 # Should be eave_logger to conform to pep8, but this is already used heavily throughout this project.
-eaveLogger = EaveLogger() # noqa: N816
+eaveLogger = EaveLogger()  # noqa: N816
