@@ -1,4 +1,4 @@
-line-length = 150 # line length lint violations are suppressed by this configuration, but setting this line length informs the formatter.
+line-length = 120 # line length lint violations are suppressed by this configuration, but setting this line length informs the formatter.
 extend-exclude = [
   "generated",
   "__pycache__",
