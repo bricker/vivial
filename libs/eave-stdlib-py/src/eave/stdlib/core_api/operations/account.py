@@ -1,10 +1,12 @@
-from typing import Unpack
 import uuid
+from typing import Unpack
+
 from eave.stdlib.core_api.models.account import AuthenticatedAccount
 from eave.stdlib.core_api.models.team import Team
-from . import BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
+from eave.stdlib.endpoints import BaseResponseBody
 
 from ... import requests
+from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
 class GetAuthenticatedAccount(CoreApiEndpoint):

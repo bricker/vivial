@@ -1,9 +1,11 @@
-from typing import Optional, Unpack
 import uuid
+from typing import Optional, Unpack
+
 from eave.stdlib.core_api.models.virtual_event import VirtualEvent, VirtualEventQueryInput
-from . import BaseRequestBody, BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
+from eave.stdlib.endpoints import BaseRequestBody, BaseResponseBody
 
 from ... import requests
+from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
 class GetVirtualEventsRequest(CoreApiEndpoint):

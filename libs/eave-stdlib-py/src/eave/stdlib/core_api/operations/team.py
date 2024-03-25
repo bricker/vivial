@@ -1,8 +1,11 @@
-from typing import Optional, Unpack
 import uuid
-from ... import requests
+from typing import Optional, Unpack
+
 from eave.stdlib.core_api.models.team import Team
-from . import BaseResponseBody, CoreApiEndpoint, CoreApiEndpointConfiguration
+from eave.stdlib.endpoints import BaseResponseBody
+
+from ... import requests
+from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
 class GetTeamRequest(CoreApiEndpoint):

@@ -1,6 +1,7 @@
 from typing import Unpack
+
 from eave.stdlib import requests
-from eave.stdlib.core_api.operations import BaseRequestBody, BaseResponseBody
+from eave.stdlib.endpoints import BaseRequestBody, BaseResponseBody
 from eave.stdlib.github_api.operations import GithubAppEndpoint, GithubAppEndpointConfiguration
 
 
