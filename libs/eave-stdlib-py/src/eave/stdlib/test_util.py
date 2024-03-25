@@ -1,4 +1,4 @@
-# ruff: noqa: FBT001, FBT002, FBT003
+# ruff: noqa: FBT001, FBT002, FBT003, S311
 
 import base64
 from datetime import datetime, timedelta

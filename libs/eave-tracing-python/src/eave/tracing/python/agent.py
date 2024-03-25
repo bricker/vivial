@@ -8,7 +8,7 @@ import sys
 from types import FrameType
 from typing import Any, cast
 
-_sockaddr = "/tmp/eaveagent.sock"
+_sockaddr = "/tmp/eaveagent.sock"  # noqa: S108
 _endmsg = "EOF"
 
 _buffer_maxsize = 1000

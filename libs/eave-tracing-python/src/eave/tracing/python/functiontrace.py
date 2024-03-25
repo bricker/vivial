@@ -44,7 +44,7 @@ def setup_dependencies() -> None:
     for python in wrap_pythons:
         with open(os.path.join(tempdir, python), "w") as f:
             f.write(PYTHON_TEMPLATE.format(python=python))
-            os.chmod(f.name, 0o755)
+            os.chmod(f.name, 0o755)  # noqa: S103
 
 
 def main() -> None:
@@ -108,7 +108,7 @@ def main() -> None:
 
     # Run their code now that we're tracing.  This must be done in the context
     # of the __main__ module we've created.
-    exec(code, mod.__dict__)
+    exec(code, mod.__dict__)  # noqa: S102
 
 
 def trace() -> None:

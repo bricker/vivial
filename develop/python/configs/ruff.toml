@@ -25,7 +25,7 @@ select = [
   "UP", # https://docs.astral.sh/ruff/rules/#pyupgrade-up
   "ANN", # https://docs.astral.sh/ruff/rules/#flake8-annotations-ann
   "ASYNC", # https://docs.astral.sh/ruff/rules/#flake8-async-async
-  # "S", # https://docs.astral.sh/ruff/rules/#flake8-bandit-s
+  "S", # https://docs.astral.sh/ruff/rules/#flake8-bandit-s
   # "BLE", # https://docs.astral.sh/ruff/rules/#flake8-blind-except-ble
   "FBT", # https://docs.astral.sh/ruff/rules/#flake8-boolean-trap-fbt
   # "B", # https://docs.astral.sh/ruff/rules/#flake8-bugbear-b

@@ -265,7 +265,7 @@ def get_secret(name: str) -> str:
     fqname = secrets_client.secret_version_path(
         project=SHARED_CONFIG.google_cloud_project,
         secret=name,
-        secret_version="latest",
+        secret_version="latest",  # noqa: S106
     )
     response = secrets_client.access_secret_version(request={"name": fqname})
     data = response.payload.data

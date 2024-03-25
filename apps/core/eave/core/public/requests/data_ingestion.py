@@ -8,7 +8,7 @@ from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, Clie
 from eave.tracing.core.datastructures import DataIngestRequestBody, EventType
 from eave.stdlib.api_util import get_header_value_or_exception
 from eave.stdlib.exceptions import ForbiddenError, UnauthorizedError
-from eave.stdlib.headers import EAVE_CLIENT_ID, EAVE_CLIENT_SECRET
+from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.util import ensure_uuid
 from starlette.requests import Request
@@ -23,8 +23,8 @@ class DataIngestionEndpoint(HTTPEndpoint):
         http_scope = cast(HTTPScope, request.scope)
 
         # TODO: Move client credentials validation into middleware
-        client_id = get_header_value_or_exception(scope=http_scope, name=EAVE_CLIENT_ID)
-        client_secret = get_header_value_or_exception(scope=http_scope, name=EAVE_CLIENT_SECRET)
+        client_id = get_header_value_or_exception(scope=http_scope, name=EAVE_CLIENT_ID_HEADER)
+        client_secret = get_header_value_or_exception(scope=http_scope, name=EAVE_CLIENT_SECRET_HEADER)
 
         async with database.async_session.begin() as db_session:
             creds = (
