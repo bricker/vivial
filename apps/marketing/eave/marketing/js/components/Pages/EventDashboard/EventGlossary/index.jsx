@@ -146,6 +146,7 @@ const EventGlossary = () => {
   const [searchValue, setSearchValue] = useState("");
   /** @type {[Types.VirtualEvent, React.Dispatch<React.SetStateAction<Types.VirtualEvent>>]} */
   const [selectedEvent, setSelectedEvent] = useState({
+    id: "",
     readable_name: "",
     description: "",
     fields: [],
@@ -326,7 +327,7 @@ const EventGlossary = () => {
         <h1 className={classes.panelTitle}>{selectedEvent.readable_name}</h1>
         <p>{selectedEvent.description}</p>
         <div>
-          {selectedEvent.fields.map((field) => {
+          {selectedEvent.fields?.map((field) => {
             return <p key={field}>{field}</p>;
           })}
         </div>

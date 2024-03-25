@@ -38,6 +38,9 @@ async def start_agent(conninfo: str, team_id: str):
 
     signal.signal(signal.SIGINT, _sighandler)
 
+    queue_params = QueueParams(event_type=EventType.dbchange, maxsize=100, maxage_seconds=30)
+    q = BatchWriteQueue(queue_params=queue_params)
+
     try:
         async with conn.cursor() as curs:
             # **IMPORTANT**
@@ -53,10 +56,6 @@ async def start_agent(conninfo: str, team_id: str):
             )
 
         print("Eave PostgreSQL agent started (Ctrl-C to stop)")
-
-        queue_params = QueueParams(event_type=EventType.dbchange, maxsize=100, maxage_seconds=30)
-
-        q = BatchWriteQueue(queue_params=queue_params)
         q.start_autoflush()
 
         gen = conn.notifies()

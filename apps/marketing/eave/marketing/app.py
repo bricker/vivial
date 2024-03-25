@@ -7,14 +7,13 @@ from aiohttp import ClientResponseError
 from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
 from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
 from eave.stdlib.core_api.models.virtual_event import VirtualEventQueryInput
-from eave.stdlib.core_api.operations import BaseResponseBody
 import eave.stdlib.core_api.operations.account as account
 import eave.stdlib.core_api.operations.virtual_event as virtual_event
 import eave.stdlib.core_api.operations.team as team
 from eave.stdlib.headers import MIME_TYPE_JSON
 from eave.stdlib.util import ensure_uuid, unwrap
 
-from eave.stdlib.endpoints import status_payload
+from eave.stdlib.endpoints import BaseResponseBody, status_payload
 import eave.stdlib.requests
 import eave.stdlib.logging
 import eave.stdlib.time
