@@ -1,6 +1,4 @@
 from typing import cast
-from eave.stdlib import analytics, utm_cookies
-from eave.stdlib.core_api.models.account import AuthProvider
 
 import google.oauth2.credentials
 import google.oauth2.id_token
@@ -9,9 +7,12 @@ from starlette.responses import RedirectResponse, Response
 
 import eave.core.internal.oauth.google
 from eave.core.internal.oauth import state_cookies as oauth_cookies
+from eave.stdlib import analytics, utm_cookies
+from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.logging import LogContext
+
 from . import base, shared
 
 _AUTH_PROVIDER = AuthProvider.google

@@ -1,9 +1,10 @@
 import json
 from typing import Any, Mapping, Sequence
-from google.cloud import bigquery
-from google.oauth2 import service_account as _service_account
-from google.cloud.bigquery.table import RowIterator
+
 import google.api_core.exceptions
+from google.cloud import bigquery
+from google.cloud.bigquery.table import RowIterator
+from google.oauth2 import service_account as _service_account
 
 
 class BigQueryClient:

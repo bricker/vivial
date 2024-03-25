@@ -5,24 +5,25 @@ import urllib.parse
 import uuid
 from http import HTTPStatus
 from typing import Any
-import aiohttp
 
+import aiohttp
 import google.oauth2.credentials
 import google.oauth2.id_token
-from eave.core.internal.orm.account import AccountOrm
-from eave.core.internal.orm.team import TeamOrm
 
-from eave.stdlib.config import SHARED_CONFIG
 import eave.core.internal
 import eave.core.internal.oauth.google
 from eave.core.internal.oauth.state_cookies import EAVE_OAUTH_STATE_COOKIE_PREFIX
+from eave.core.internal.orm.account import AccountOrm
+from eave.core.internal.orm.team import TeamOrm
 from eave.core.public.requests.oauth.shared import DEFAULT_REDIRECT_LOCATION, DEFAULT_TEAM_NAME
-from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.auth_cookies import (
-    EAVE_ACCOUNT_ID_COOKIE_NAME,
     EAVE_ACCESS_TOKEN_COOKIE_NAME,
+    EAVE_ACCOUNT_ID_COOKIE_NAME,
 )
+from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.utm_cookies import EAVE_COOKIE_PREFIX_UTM
+
 from .base import BaseTestCase
 
 

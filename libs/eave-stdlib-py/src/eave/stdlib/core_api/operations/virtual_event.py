@@ -4,8 +4,8 @@ from typing import Optional, Unpack
 from eave.stdlib.core_api.models.virtual_event import VirtualEvent, VirtualEventQueryInput
 from eave.stdlib.endpoints import BaseRequestBody, BaseResponseBody
 
-from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 from ... import requests_util
+from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
 class GetVirtualEventsRequest(CoreApiEndpoint):

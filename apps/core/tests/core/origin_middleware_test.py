@@ -1,11 +1,10 @@
-from http import HTTPStatus
 import http
-from eave.stdlib.core_api.models.error import ErrorResponse
+from http import HTTPStatus
 
+from eave.stdlib.core_api.models.error import ErrorResponse
 from eave.stdlib.core_api.operations.status import Status
 from eave.stdlib.core_api.operations.team import GetTeamRequest
 from eave.stdlib.headers import EAVE_ORIGIN_HEADER
-
 
 from .base import BaseTestCase
 

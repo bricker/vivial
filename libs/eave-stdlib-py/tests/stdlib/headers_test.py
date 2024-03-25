@@ -1,5 +1,5 @@
-from eave.stdlib.testing_util import UtilityBaseTestCase
 import eave.stdlib.headers as headers
+from eave.stdlib.testing_util import UtilityBaseTestCase
 
 
 class HeadersTest(UtilityBaseTestCase):

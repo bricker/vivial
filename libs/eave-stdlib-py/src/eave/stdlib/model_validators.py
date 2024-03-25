@@ -2,7 +2,6 @@ from typing import Any, Sized, TypeVar
 
 import pydantic
 
-
 T = TypeVar("T")
 L = TypeVar("L", bound=Sized)
 

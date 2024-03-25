@@ -1,14 +1,15 @@
 from http import HTTPStatus
+
 from starlette.requests import Request
 from starlette.responses import Response
 
 import eave.core.internal.database as eave_db
+import eave.stdlib.api_util as eave_api_util
 from eave.core.internal.orm.github_installation import GithubInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
-from eave.stdlib.http_endpoint import HTTPEndpoint
-import eave.stdlib.api_util as eave_api_util
-from eave.stdlib.core_api.operations.github_installation import QueryGithubInstallation, DeleteGithubInstallation
+from eave.stdlib.core_api.operations.github_installation import DeleteGithubInstallation, QueryGithubInstallation
 from eave.stdlib.exceptions import NotFoundError
+from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import ensure_uuid, ensure_uuid_or_none
 

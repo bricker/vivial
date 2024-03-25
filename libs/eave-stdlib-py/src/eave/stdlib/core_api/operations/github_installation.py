@@ -5,8 +5,8 @@ from eave.stdlib.core_api.models.github_installation import GithubInstallation, 
 from eave.stdlib.core_api.models.team import Team, TeamQueryInput
 from eave.stdlib.endpoints import BaseRequestBody, BaseResponseBody
 
-from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 from ... import requests_util
+from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
 class QueryGithubInstallation(CoreApiEndpoint):

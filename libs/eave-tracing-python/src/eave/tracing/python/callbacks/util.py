@@ -1,5 +1,5 @@
 import sys
-from datetime import datetime, date
+from datetime import date, datetime
 
 DISABLE = sys.monitoring.DISABLE
 

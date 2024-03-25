@@ -1,4 +1,5 @@
 import os
+
 from google.api_core.exceptions import AlreadyExists
 from google.cloud.pubsub import SchemaServiceClient
 from google.pubsub_v1.types import Schema

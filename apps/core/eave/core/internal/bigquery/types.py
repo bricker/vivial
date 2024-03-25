@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import StrEnum
 from uuid import UUID
+
 from google.cloud.bigquery import SchemaField
 
 from eave.core.internal.bigquery import bq_client

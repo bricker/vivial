@@ -1,5 +1,4 @@
 import aiohttp
-
 from eave.stdlib.endpoints import BaseResponseBody
 
 from . import CoreApiEndpoint, CoreApiEndpointConfiguration

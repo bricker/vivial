@@ -1,6 +1,6 @@
+import eave.stdlib.util
 from eave.stdlib.exceptions import UnexpectedMissingValueError
 from eave.stdlib.testing_util import UtilityBaseTestCase
-import eave.stdlib.util
 
 mut = eave.stdlib.util
 

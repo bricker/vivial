@@ -1,12 +1,11 @@
 import asyncio
-from dataclasses import dataclass
 import json
+from dataclasses import dataclass
 from typing import Any, Coroutine, Optional, TypeVar
+
 import aiohttp
-from google.cloud import tasks
-from starlette.requests import Request
-from eave.stdlib import cache
 import eave.stdlib.signing as signing
+from eave.stdlib import cache
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.headers import (
     EAVE_ACCOUNT_ID_HEADER,
@@ -21,10 +20,12 @@ from eave.stdlib.headers import (
 )
 from eave.stdlib.time import ONE_DAY_IN_MS
 from eave.stdlib.util import compact_deterministic_json, ensure_bytes, ensure_str
+from google.cloud import tasks
+from starlette.requests import Request
 
-from .typing import JsonObject
 from .config import SHARED_CONFIG
 from .logging import LogContext, eaveLogger
+from .typing import JsonObject
 
 T = TypeVar("T")
 

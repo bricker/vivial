@@ -1,11 +1,11 @@
-import pydantic
-from typing import NotRequired, Optional, Required, TypedDict, Unpack
 import uuid
+from typing import NotRequired, Optional, Required, TypedDict, Unpack
+
 import aiohttp
+import pydantic
 from eave.stdlib.core_api.operations import EndpointConfiguration
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.typing import JsonObject
-
 from eave.stdlib.util import ensure_str_or_none, redact
 
 from . import headers as eave_headers
@@ -25,6 +25,7 @@ class MissingParameterError(Exception):
 
 
 async def make_request(
+    *,
     config: EndpointConfiguration,
     input: Optional[pydantic.BaseModel],
     team_id: Optional[uuid.UUID | str] = None,

@@ -1,5 +1,6 @@
 import enum
 import textwrap
+import uuid
 from typing import (
     Any,
     List,
@@ -9,8 +10,8 @@ from typing import (
     Union,
     cast,
 )
-import uuid
 
+from eave.stdlib.logging import LogContext
 from openai import AsyncOpenAI
 from openai.types.chat import (
     ChatCompletion,
@@ -20,12 +21,10 @@ from openai.types.chat import (
 )
 from openai.types.chat.completion_create_params import Function, FunctionCall, ResponseFormat
 
-from eave.stdlib.logging import LogContext
-
-from ..typing import NOT_GIVEN, JsonObject, NotGiven
 from ..config import SHARED_CONFIG
-from ..logging import eaveLogger
 from ..exceptions import OpenAIDataError
+from ..logging import eaveLogger
+from ..typing import NOT_GIVEN, JsonObject, NotGiven
 
 
 class DocumentationType(enum.StrEnum):

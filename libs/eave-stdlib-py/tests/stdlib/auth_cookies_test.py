@@ -1,10 +1,8 @@
-from http.cookies import SimpleCookie
 import re
+from http.cookies import SimpleCookie
 from typing import Any
-import aiohttp
-from starlette.requests import Request
 
-from starlette.responses import Response
+import aiohttp
 from eave.stdlib.auth_cookies import (
     AUTH_COOKIE_VERSION,
     EAVE_ACCESS_TOKEN_COOKIE_NAME,
@@ -16,6 +14,8 @@ from eave.stdlib.auth_cookies import (
 )
 from eave.stdlib.testing_util import UtilityBaseTestCase
 from eave.stdlib.util import istr_eq
+from starlette.requests import Request
+from starlette.responses import Response
 
 
 class AuthCookiesTestBase(UtilityBaseTestCase):

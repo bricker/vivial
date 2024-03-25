@@ -1,6 +1,6 @@
 import os
-import dotenv
 
+import dotenv
 from eave.dev_tooling.constants import EAVE_HOME
 
 

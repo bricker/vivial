@@ -3,18 +3,20 @@ import time
 
 from google.cloud import bigquery
 from google.cloud.bigquery.dataset import DatasetReference
+
+from eave.core.internal.bigquery.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.bigquery.types import BigQueryTableHandle
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
-from eave.tracing.core.datastructures import (
-    DataIngestRequestBody,
-    DatabaseChangeEventPayload,
-    DatabaseChangeOperation,
-    EventType,
-)
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
+from eave.tracing.core.datastructures import (
+    DatabaseChangeEventPayload,
+    DatabaseChangeOperation,
+    DataIngestRequestBody,
+    EventType,
+)
+
 from .base import BaseTestCase
-from eave.core.internal.bigquery.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 
 client = bigquery.Client(project=SHARED_CONFIG.google_cloud_project)
 

@@ -1,9 +1,11 @@
 import abc
 import time
 from typing import Optional, Protocol
+
 import redis.asyncio as redis
 from redis.asyncio.retry import Retry
 from redis.backoff import ConstantBackoff
+
 from .config import SHARED_CONFIG
 from .logging import eaveLogger
 

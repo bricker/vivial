@@ -1,9 +1,7 @@
 import re
 from typing import Any
-from starlette.requests import Request
-import aiohttp
 
-from starlette.responses import Response
+import aiohttp
 from eave.stdlib.testing_util import UtilityBaseTestCase
 from eave.stdlib.util import istr_eq
 from eave.stdlib.utm_cookies import (
@@ -13,6 +11,8 @@ from eave.stdlib.utm_cookies import (
     get_tracking_cookies,
     set_tracking_cookies,
 )
+from starlette.requests import Request
+from starlette.responses import Response
 
 
 class UtmCookiesTestBase(UtilityBaseTestCase):

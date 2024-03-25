@@ -1,16 +1,16 @@
-from datetime import datetime
 import json
-from typing import Any
 import unittest.mock
+from datetime import datetime
+from typing import Any
 
-from google.pubsub_v1 import PubsubMessage
+import eave.stdlib.logging as _l
 from eave.pubsub_schemas.generated.eave_event_pb2 import EaveEvent
 from eave.stdlib import analytics
 from eave.stdlib.config import EaveEnvironment
 from eave.stdlib.core_api.models.account import AnalyticsAccount, AuthProvider
 from eave.stdlib.core_api.models.team import AnalyticsTeam
-import eave.stdlib.logging as _l
 from eave.stdlib.testing_util import UtilityBaseTestCase
+from google.pubsub_v1 import PubsubMessage
 
 mut = analytics.__name__
 

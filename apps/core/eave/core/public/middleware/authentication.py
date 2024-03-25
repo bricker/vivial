@@ -1,26 +1,28 @@
 from http import HTTPStatus
 from typing import cast
-from eave.core.internal.orm.account import AccountOrm
-from eave.stdlib.auth_cookies import delete_auth_cookies, set_auth_cookies
-from eave.stdlib.core_api.operations import EndpointConfiguration
 
-import eave.stdlib.headers
-import eave.stdlib.api_util
-import eave.stdlib.exceptions
+import asgiref.typing
+import starlette.types
+from starlette.datastructures import MutableHeaders
+from starlette.responses import Response
+
 import eave.core.internal
 import eave.core.public
-from eave.stdlib.logging import LogContext, eaveLogger
-import asgiref.typing
+import eave.stdlib.api_util
+import eave.stdlib.exceptions
+import eave.stdlib.headers
+from eave.core.internal.orm.account import AccountOrm
 from eave.stdlib.api_util import get_bearer_token
-from starlette.responses import Response
-from starlette.datastructures import MutableHeaders
-import starlette.types
-from eave.stdlib.request_state import EaveRequestState
-from eave.stdlib.middleware.development_bypass import development_bypass_allowed
-from eave.stdlib.util import ensure_uuid
-from .development_bypass import development_bypass_auth
-from eave.stdlib.middleware.base import EaveASGIMiddleware
+from eave.stdlib.auth_cookies import delete_auth_cookies, set_auth_cookies
+from eave.stdlib.core_api.operations import EndpointConfiguration
 from eave.stdlib.exceptions import UnauthorizedError
+from eave.stdlib.logging import LogContext, eaveLogger
+from eave.stdlib.middleware.base import EaveASGIMiddleware
+from eave.stdlib.middleware.development_bypass import development_bypass_allowed
+from eave.stdlib.request_state import EaveRequestState
+from eave.stdlib.util import ensure_uuid
+
+from .development_bypass import development_bypass_auth
 
 
 class AuthASGIMiddleware(EaveASGIMiddleware):

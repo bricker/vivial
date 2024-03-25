@@ -7,11 +7,9 @@ from functools import cached_property
 from typing import Optional
 from urllib.parse import urlparse
 
-import google.cloud.secretmanager
 import google.cloud.client
-
+import google.cloud.secretmanager
 from eave.stdlib.eave_origins import EaveApp
-
 
 from . import checksum
 

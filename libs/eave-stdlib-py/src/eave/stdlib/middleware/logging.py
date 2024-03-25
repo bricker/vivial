@@ -1,9 +1,7 @@
 import asgiref.typing
-
 from eave.stdlib.request_state import EaveRequestState
 
 from ..logging import eaveLogger
-
 from .base import EaveASGIMiddleware
 
 

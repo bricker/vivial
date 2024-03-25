@@ -1,10 +1,10 @@
 import uuid
 from typing import Optional, Unpack
 
-from ... import requests_util
 from eave.stdlib.core_api.models.team import Team
 from eave.stdlib.endpoints import BaseResponseBody
 
+from ... import requests_util
 from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 

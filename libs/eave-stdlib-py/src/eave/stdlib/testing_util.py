@@ -1,21 +1,21 @@
 # ruff: noqa: FBT001, FBT002, FBT003, S311
 
 import base64
-from datetime import datetime, timedelta
 import json
-import uuid
 import random
-from typing import Any, Literal, TypeVar, Optional
 import unittest.mock
+import uuid
+from datetime import datetime, timedelta
+from typing import Any, Literal, Optional, TypeVar
 
-from eave.core.internal.oauth.google import GoogleOAuthV2GetResponse
-from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
-from eave.stdlib.checksum import generate_checksum
-import eave.stdlib.util
 import eave.stdlib.exceptions
 import eave.stdlib.signing
-from eave.stdlib.typing import JsonObject
+import eave.stdlib.util
+from eave.core.internal.oauth.google import GoogleOAuthV2GetResponse
+from eave.stdlib.checksum import generate_checksum
 from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.typing import JsonObject
+from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
 
 T = TypeVar("T")
 M = TypeVar("M", bound=unittest.mock.Mock)
@@ -305,7 +305,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
             return passing
 
-    def mock_google_auth(self):
+    def mock_google_auth(self) -> None:
         self._google_userinfo_response = GoogleOAuthV2GetResponse(
             email=self.anystr("google.email"),
             family_name=self.anystr("google.family_name"),

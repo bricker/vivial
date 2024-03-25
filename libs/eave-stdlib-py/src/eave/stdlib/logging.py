@@ -1,20 +1,19 @@
 import logging
-from logging import LogRecord
 import sys
-from typing import Any, Optional, Self, cast
 import uuid
+from logging import LogRecord
+from typing import Any, Optional, Self, cast
+
+import google.cloud.logging
 from asgiref.typing import HTTPScope
+from eave.stdlib.api_util import get_header_value, get_headers
+from eave.stdlib.headers import EAVE_ACCOUNT_ID_HEADER, EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER
+from eave.stdlib.typing import JsonObject
 from starlette.requests import Request
 from starlette.types import Scope
 
-import google.cloud.logging
-from eave.stdlib.api_util import get_header_value, get_headers
-from eave.stdlib.headers import EAVE_ACCOUNT_ID_HEADER, EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER
-
-from eave.stdlib.typing import JsonObject
-from .utm_cookies import get_tracking_cookies
-
 from .config import SHARED_CONFIG
+from .utm_cookies import get_tracking_cookies
 
 
 # https://stackoverflow.com/a/56944256/885036

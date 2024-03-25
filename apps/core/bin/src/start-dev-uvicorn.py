@@ -1,8 +1,9 @@
-import uvicorn
 import os
 import sys
-from eave.dev_tooling.constants import EAVE_HOME
 
+import uvicorn
+
+from eave.dev_tooling.constants import EAVE_HOME
 from eave.dev_tooling.dotenv_loader import load_dotenv
 
 sys.path.append(".")

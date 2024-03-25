@@ -1,8 +1,8 @@
 import uuid
 from typing import Unpack
 
-from eave.stdlib.endpoints import BaseRequestBody, BaseResponseBody
 from eave.stdlib import requests_util
+from eave.stdlib.endpoints import BaseRequestBody, BaseResponseBody
 from eave.stdlib.github_api.operations import GithubAppEndpoint, GithubAppEndpointConfiguration
 
 from ..models import FileChange

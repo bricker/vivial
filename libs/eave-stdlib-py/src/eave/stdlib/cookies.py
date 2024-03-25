@@ -1,7 +1,6 @@
+from .config import SHARED_CONFIG
 from .time import ONE_YEAR_IN_MS
 from .typing import HTTPFrameworkResponse
-
-from .config import SHARED_CONFIG
 
 
 def set_http_cookie(

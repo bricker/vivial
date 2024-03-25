@@ -1,10 +1,11 @@
-from datetime import datetime
 import inspect
 import re
 import sys
+from datetime import datetime
 from types import CodeType
 from typing import Any
 from uuid import uuid4
+
 from ..config import EaveConfig
 from .util import DISABLE, PRIMITIVE_TYPES, should_ignore_module
 

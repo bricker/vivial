@@ -1,15 +1,15 @@
 import http
 from typing import cast
+
 import asgiref.typing
 import starlette.types
-
 from eave.stdlib.request_state import EaveRequestState
-from ..api_util import json_response
 
-from ..logging import eaveLogger
+from ..api_util import json_response
 from ..config import SHARED_CONFIG
-from .base import EaveASGIMiddleware
 from ..core_api.models.error import ErrorResponse
+from ..logging import eaveLogger
+from .base import EaveASGIMiddleware
 
 
 class ExceptionHandlingASGIMiddleware(EaveASGIMiddleware):

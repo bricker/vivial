@@ -1,17 +1,18 @@
-from http import HTTPStatus
 import unittest.mock
-from eave.core.internal.oauth.google import GoogleOAuthV2GetResponse
+from http import HTTPStatus
 
+import google.oauth2.credentials
+
+from eave.core.internal.oauth.google import GoogleOAuthV2GetResponse
 from eave.core.internal.orm.account import AccountOrm
+from eave.stdlib.auth_cookies import (
+    EAVE_ACCESS_TOKEN_COOKIE_NAME,
+    EAVE_ACCOUNT_ID_COOKIE_NAME,
+    EAVE_TEAM_ID_COOKIE_NAME,
+)
 from eave.stdlib.core_api.models.account import AuthProvider
 
 from .base import BaseTestCase
-import google.oauth2.credentials
-from eave.stdlib.auth_cookies import (
-    EAVE_TEAM_ID_COOKIE_NAME,
-    EAVE_ACCOUNT_ID_COOKIE_NAME,
-    EAVE_ACCESS_TOKEN_COOKIE_NAME,
-)
 
 
 class TestAuthenticationMiddlewareBase(BaseTestCase):

@@ -1,10 +1,10 @@
-from dataclasses import dataclass
 import uuid
+from dataclasses import dataclass
 from datetime import datetime
 from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
 
-from sqlalchemy import Select, func, select, delete
+from sqlalchemy import Select, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 

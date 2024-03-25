@@ -1,10 +1,10 @@
 import multiprocessing
 import multiprocessing.connection
-from multiprocessing.connection import Connection, Listener
 import os
-from queue import Empty
 import signal
 import sys
+from multiprocessing.connection import Connection, Listener
+from queue import Empty
 from types import FrameType
 from typing import Any, cast
 

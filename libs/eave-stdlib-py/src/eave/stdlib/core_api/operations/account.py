@@ -5,8 +5,8 @@ from eave.stdlib.core_api.models.account import AuthenticatedAccount
 from eave.stdlib.core_api.models.team import Team
 from eave.stdlib.endpoints import BaseResponseBody
 
-from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 from ... import requests_util
+from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
 class GetAuthenticatedAccount(CoreApiEndpoint):

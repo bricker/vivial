@@ -1,18 +1,18 @@
 from typing import Optional, cast
 
 from asgiref.typing import HTTPScope
+from starlette.requests import Request
+from starlette.responses import Response
 
 from eave.core.internal import database
-from eave.core.internal.bigquery.dbchanges import DatabaseChangesTableHandle, BigQueryTableHandle
+from eave.core.internal.bigquery.dbchanges import BigQueryTableHandle, DatabaseChangesTableHandle
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
-from eave.tracing.core.datastructures import DataIngestRequestBody, EventType
 from eave.stdlib.api_util import get_header_value_or_exception
 from eave.stdlib.exceptions import ForbiddenError, UnauthorizedError
 from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.util import ensure_uuid
-from starlette.requests import Request
-from starlette.responses import Response
+from eave.tracing.core.datastructures import DataIngestRequestBody, EventType
 
 
 class DataIngestionEndpoint(HTTPEndpoint):

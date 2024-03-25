@@ -1,19 +1,20 @@
 from typing import cast
 
 from asgiref.typing import HTTPScope
-from eave.core.internal.orm.account import AccountOrm
-from eave.core.internal.orm.team import TeamOrm
-import eave.stdlib.api_util
-import eave.stdlib.util
-import eave.core.internal
-import eave.core.public
 from starlette.requests import Request
 from starlette.responses import Response
+
+import eave.core.internal
+import eave.core.public
+import eave.stdlib.api_util
+import eave.stdlib.util
+from eave.core.internal.orm.account import AccountOrm
+from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib.core_api.operations.account import (
     GetAuthenticatedAccount,
 )
-from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.http_endpoint import HTTPEndpoint
+from eave.stdlib.request_state import EaveRequestState
 
 
 class GetAuthedAccount(HTTPEndpoint):

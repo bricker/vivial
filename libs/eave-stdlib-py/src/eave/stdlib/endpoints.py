@@ -1,7 +1,8 @@
 from typing import Generic, Optional, Type, TypeVar
+
 import aiohttp
-import pydantic
 import eave.stdlib.core_api.operations.status as status
+import pydantic
 from eave.stdlib.eave_origins import EaveApp
 
 from .config import SHARED_CONFIG

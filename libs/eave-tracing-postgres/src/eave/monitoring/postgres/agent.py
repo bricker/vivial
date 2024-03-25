@@ -6,11 +6,11 @@ import signal
 import sys
 from types import FrameType
 from typing import LiteralString, cast
-import psycopg
-from psycopg import sql
 
+import psycopg
 from eave.tracing.core.datastructures import EventType
 from eave.tracing.core.write_queue import BatchWriteQueue, QueueParams
+from psycopg import sql
 
 # payload can only be 8kb max
 # NEW variable documented here: https://www.postgresql.org/docs/current/plpgsql-trigger.html
