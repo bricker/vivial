@@ -9,7 +9,7 @@ import uuid
 
 from eave.stdlib.typing import JsonObject
 
-from eave.stdlib.exceptions import UnexpectedMissingValue
+from eave.stdlib.exceptions import UnexpectedMissingValueError
 
 T = TypeVar("T")
 P = ParamSpec("P")
@@ -180,12 +180,12 @@ def unwrap(value: Optional[T], default: Optional[T] = None) -> T:
     Unwraps an Optional object to its wrapped type.
     You should use this method when you expect the wrapped type not to be None.
     If the object is not None, returns the unwrapped object.
-    If the object is None and no default given, raises UnexpectedMissingValue
+    If the object is None and no default given, raises UnexpectedMissingValueError
     If the object is None and a default is given, logs a warning and returns the default.
     This is meant to be used when you know the object isn't None. It's a short-hand for the following verbose pattern:
 
         if (foo := result.get("foo")) is None:
-            raise UnexpectedMissingValue()
+            raise UnexpectedMissingValueError()
 
         do_something(foo)
 
@@ -215,7 +215,7 @@ def unwrap(value: Optional[T], default: Optional[T] = None) -> T:
     """
     if value is None:
         if default is None:
-            raise UnexpectedMissingValue("force-unwrapped a None value")
+            raise UnexpectedMissingValueError("force-unwrapped a None value")
         else:
             return default
     else:

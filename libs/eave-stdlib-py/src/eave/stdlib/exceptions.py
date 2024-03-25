@@ -132,7 +132,7 @@ class MissingOAuthCredentialsError(Exception):
     pass
 
 
-class UnexpectedMissingValue(Exception):
+class UnexpectedMissingValueError(Exception):
     pass
 
 

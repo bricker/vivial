@@ -98,16 +98,16 @@ class CustomFilter(logging.Filter):
         return log and record.name in self._whitelist_records
 
 
-rootLogger = logging.getLogger()
+root_logger = logging.getLogger()
 level = SHARED_CONFIG.log_level
-rootLogger.setLevel(level)
+root_logger.setLevel(level)
 
 if SHARED_CONFIG.is_development:
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(level)
     handler.setFormatter(CustomFormatter())
     handler.addFilter(CustomFilter())
-    rootLogger.addHandler(handler)
+    root_logger.addHandler(handler)
 
 if SHARED_CONFIG.monitoring_enabled:
     # https://cloud.google.com/python/docs/reference/logging/latest/std-lib-integration
@@ -274,5 +274,5 @@ class EaveLogger:
             **kwargs,
         }
 
-
-eaveLogger = EaveLogger()
+# Should be eave_logger to conform to pep8, but this is already used heavily throughout this project.
+eaveLogger = EaveLogger() # noqa: N816

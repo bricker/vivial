@@ -15,7 +15,7 @@ from eave.stdlib.test_util import UtilityBaseTestCase
 mut = analytics.__name__
 
 
-class unserializable:
+class Unserializable:
     pass
 
 
@@ -52,7 +52,7 @@ class AnalyticsTestBase(UtilityBaseTestCase):
 
         self.data_ctx = _l.LogContext()
         self.data_ctx.feature_name = self.anystr("feature_name")
-        self.data_bad_params: Any = {self.anystr("paramkey"): unserializable()}
+        self.data_bad_params: Any = {self.anystr("paramkey"): Unserializable()}
 
 
 class AnalyticsTest(AnalyticsTestBase):

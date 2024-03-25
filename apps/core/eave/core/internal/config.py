@@ -5,7 +5,7 @@ from typing import Any, Mapping, Optional
 from eave.stdlib.config import SHARED_CONFIG, ConfigBase, get_required_env, get_secret
 
 from eave.stdlib.eave_origins import EaveApp
-from eave.stdlib.exceptions import UnexpectedMissingValue
+from eave.stdlib.exceptions import UnexpectedMissingValueError
 from eave.stdlib.logging import eaveLogger
 
 
@@ -72,7 +72,7 @@ class _AppConfig(ConfigBase):
     def eave_google_oauth_client_credentials(self) -> Mapping[str, Any]:
         encoded = get_secret("EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON")
         if not encoded:
-            raise UnexpectedMissingValue("secret: EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON")
+            raise UnexpectedMissingValueError("secret: EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON")
 
         credentials: dict[str, Any] = json.loads(encoded)
         return credentials

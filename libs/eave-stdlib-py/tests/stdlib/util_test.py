@@ -1,4 +1,4 @@
-from eave.stdlib.exceptions import UnexpectedMissingValue
+from eave.stdlib.exceptions import UnexpectedMissingValueError
 from eave.stdlib.test_util import UtilityBaseTestCase
 import eave.stdlib.util
 
@@ -75,7 +75,7 @@ class StdlibUtilTest(UtilityBaseTestCase):
         assert mut.xnor(True, True) is True
 
     async def test_unwrap(self):
-        with self.assertRaises(UnexpectedMissingValue):
+        with self.assertRaises(UnexpectedMissingValueError):
             mut.unwrap(None)
 
         v = self.anystring()

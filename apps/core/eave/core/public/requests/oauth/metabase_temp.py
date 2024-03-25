@@ -1,3 +1,5 @@
+# ruff: noqa
+
 import jwt
 from eave.core.internal.config import CORE_API_APP_CONFIG
 
