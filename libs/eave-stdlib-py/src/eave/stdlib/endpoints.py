@@ -55,16 +55,16 @@ class BaseRequestBody(pydantic.BaseModel):
 
 
 class BaseResponseBody(pydantic.BaseModel):
-    _raw_response: Optional[aiohttp.ClientResponse] = None
+    raw_response: Optional[aiohttp.ClientResponse] = None
 
     class Config:
         underscore_attrs_are_private = True
 
     @property
     def cookies(self) -> dict[str, str] | None:
-        if self._raw_response:
+        if self.raw_response:
             # SimpleCookie is a dict but invariant with dict[str,str], so convert it here
-            return {k: v.value for k, v in self._raw_response.cookies.items()}
+            return {k: v.value for k, v in self.raw_response.cookies.items()}
         else:
             return None
 
@@ -85,5 +85,5 @@ class Endpoint(Generic[_SomeEndpointConfiguration]):
             r = response_type(**response_json)
         else:
             r = response_type()
-        r._raw_response = response
+        r.raw_response = response
         return r

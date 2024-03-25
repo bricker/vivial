@@ -382,9 +382,9 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         # No calls matched the given args
         return False
 
-    def patch(self, patch: unittest.mock._patch, name: Optional[str] = None) -> unittest.mock.Mock:  # type:ignore
+    def patch(self, patch: unittest.mock._patch, name: Optional[str] = None) -> unittest.mock.Mock:
         m = patch.start()
-        m._testMethodName = self._testMethodName
+        m._testMethodName = self._testMethodName  # noqa: SLF001
 
         if name is None:
             if hasattr(patch.target, "__name__"):

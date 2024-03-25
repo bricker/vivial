@@ -23,7 +23,7 @@ from eave.stdlib.config import SHARED_CONFIG  # noqa
 from eave.stdlib.logging import eaveLogger  # noqa
 import eave.stdlib.analytics as analytics  # noqa
 
-eave.core.internal.orm.base._load_all()
+eave.core.internal.orm.base._load_all()  # noqa: SLF001
 
 db_session = eave.core.internal.database.async_session()
 

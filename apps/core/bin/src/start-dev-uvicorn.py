@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import uvicorn
 import os
 import sys

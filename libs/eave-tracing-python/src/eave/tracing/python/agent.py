@@ -84,7 +84,7 @@ def start_controller() -> None:
 
     # FIXME: Using private properties to set a timeout on socket operations.
     # This allows `listener.accept()` to be effectively non-blocking.
-    listener._listener._socket.settimeout(1)  # type: ignore
+    listener._listener._socket.settimeout(1)  # type: ignore  # noqa: SLF001
     workers: list[multiprocessing.Process] = []
 
     print("Eave agent started. (Ctrl-C to stop)", os.getpid())

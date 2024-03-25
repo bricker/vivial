@@ -31,7 +31,7 @@ def trace_py_start(config: EaveConfig, code: CodeType, instruction_offset: int) 
 
     # https://docs.python.org/3/reference/datamodel.html#frame-objects
     # _getframe(2) gives us the caller of the function being traced
-    frame = sys._getframe(2)
+    frame = sys._getframe(2)  # noqa: SLF001
     if not frame:
         return DISABLE
 
