@@ -1,3 +1,5 @@
+# ruff: noqa: FBT001, FBT002, FBT003
+
 import base64
 from datetime import datetime, timedelta
 import json
@@ -24,7 +26,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     _active_patches: dict[str, unittest.mock._patch]
     _active_patched_dicts: dict[str, unittest.mock._patch_dict]
 
-    def __init__(self, methodName: str = "runTest") -> None:  # type: ignore[no-untyped-def]
+    def __init__(self, methodName: str = "runTest") -> None:
         super().__init__(methodName)
 
         self.testdata = {}

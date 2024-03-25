@@ -7,6 +7,7 @@ from ...config import SHARED_CONFIG
 class CoreApiEndpointConfiguration(EndpointConfiguration):
     def __init__(
         self,
+        *,
         path: str,
         method: str = "POST",
         auth_required: bool = True,

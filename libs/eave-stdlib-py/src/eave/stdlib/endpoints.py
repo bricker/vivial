@@ -27,6 +27,7 @@ class EndpointConfiguration:
 
     def __init__(
         self,
+        *,
         base_url: str,
         path: str,
         audience: EaveApp,

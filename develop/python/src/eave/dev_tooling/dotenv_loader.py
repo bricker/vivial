@@ -19,7 +19,7 @@ def load_merged_dotenv_files(files: list[str]) -> None:
         dotenv.load_dotenv(f, override=False)
 
 
-def load_dotenv(path: str, override: bool = True) -> None:
+def load_dotenv(path: str, *, override: bool = True) -> None:
     dotenv.load_dotenv(dotenv_path=os.path.join(EAVE_HOME, path), override=override)
 
 

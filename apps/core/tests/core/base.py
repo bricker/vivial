@@ -129,6 +129,7 @@ class BaseTestCase(eave.stdlib.test_util.UtilityBaseTestCase):
 
     async def make_request(
         self,
+        *,
         path: str,
         payload: Optional[pydantic.BaseModel | eave.stdlib.typing.JsonObject] = None,
         method: str = "POST",

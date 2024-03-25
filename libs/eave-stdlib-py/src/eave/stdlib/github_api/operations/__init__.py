@@ -6,6 +6,7 @@ from eave.stdlib.endpoints import Endpoint, EndpointConfiguration
 class GithubAppEndpointConfiguration(EndpointConfiguration):
     def __init__(
         self,
+        *,
         path: str,
         method: str = "POST",
         auth_required: bool = True,

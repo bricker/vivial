@@ -60,7 +60,7 @@ def sha256hexdigest(data: str | bytes) -> str:
     return hashlib.sha256(ensure_bytes(data)).hexdigest()
 
 
-def b64encode(data: str | bytes, urlsafe: bool = False) -> str:
+def b64encode(data: str | bytes, *, urlsafe: bool = False) -> str:
     """
     base64-encode the data (utf-8 string or bytes) and return an ASCII string
     """
@@ -71,7 +71,7 @@ def b64encode(data: str | bytes, urlsafe: bool = False) -> str:
         return base64.b64encode(b).decode()
 
 
-def b64decode(data: str | bytes, urlsafe: bool = False) -> str:
+def b64decode(data: str | bytes, *, urlsafe: bool = False) -> str:
     """
     base64-decode the data (ASCII string or bytes) and return a utf8 string.
     Note that this function only works if you know that the encoded data will decode into a utf-8 string.
