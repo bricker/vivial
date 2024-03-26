@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import StrEnum
 from uuid import UUID
+
 from google.cloud.bigquery import SchemaField
 
 from eave.core.internal.bigquery import bq_client
@@ -33,4 +34,5 @@ class BigQueryTableHandle:
     def dataset_id(self) -> str:
         return f"team_{self.team_id.hex}"
 
-    async def insert(self, events: list[str]) -> None: ...
+    async def insert(self, events: list[str]) -> None:
+        ...

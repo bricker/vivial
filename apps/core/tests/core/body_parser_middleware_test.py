@@ -1,8 +1,8 @@
 from http import HTTPStatus
 
 import aiohttp
-from eave.stdlib.core_api.operations.status import Status
 
+from eave.stdlib.core_api.operations.status import Status
 from eave.stdlib.headers import MIME_TYPE_JSON, MIME_TYPE_TEXT
 
 from .base import BaseTestCase

@@ -7,6 +7,18 @@ variable "region" {
 }
 
 
+# https://www.hashicorp.com/blog/terraform-adds-support-for-gke-autopilot
+# resource "google_container_cluster" "primary" {
+#   name     = "${var.project_id}-gke"
+#   location = var.region
+
+#   network    = google_compute_network.vpc.name
+#   subnetwork = google_compute_subnetwork.subnet.name
+
+# # Enabling Autopilot for this cluster
+#   enable_autopilot = true
+# }
+
 resource "google_container_cluster" "eave_services" {
   name                = "eave-services"
   location            = var.region
@@ -24,7 +36,12 @@ resource "google_container_cluster" "eave_services" {
       cidr_block   = "157.22.33.161/32"
       display_name = "Bryan's Home Wifi"
     }
+    cidr_blocks {
+      cidr_block   = "76.146.71.81/32"
+      display_name = "Liam's Home Wifi"
+    }
   }
+
   private_cluster_config {
     enable_private_endpoint = false
     enable_private_nodes    = true

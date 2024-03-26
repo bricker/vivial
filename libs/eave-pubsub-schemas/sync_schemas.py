@@ -1,11 +1,8 @@
-import logging
 import os
-import sys
+
 from google.api_core.exceptions import AlreadyExists
 from google.cloud.pubsub import SchemaServiceClient
 from google.pubsub_v1.types import Schema
-
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 
 class Environment:
@@ -17,13 +14,13 @@ schema_client = SchemaServiceClient()
 
 
 class DuplicateSchemaIdError(Exception):
-    def __init__(self, schema_id: str):
+    def __init__(self, schema_id: str) -> None:
         msg = f"Duplicate schema ID: {schema_id}"
         super().__init__(msg)
 
 
 class SchemaDiscrepancyError(Exception):
-    def __init__(self, schema_id: str):
+    def __init__(self, schema_id: str) -> None:
         msg = (
             f"Schema {schema_id} already exists in remote and does not match local schema. "
             "Schemas cannot be changed once published! "
@@ -81,9 +78,9 @@ def publish_schema(schema_id: str, schema_definition: str) -> None:
             request={"parent": project_path, "schema": schema, "schema_id": schema_id},
         )
 
-        logging.info(f"Schema {schema_id} published to remote.")
+        print(f"Schema {schema_id} published to remote.")
     except AlreadyExists:
-        logging.info(f"Schema {schema_id} already exists on remote. This is normal. Skipping.")
+        print(f"Schema {schema_id} already exists on remote. This is normal. Skipping.")
 
 
 def create_topic() -> None:
@@ -107,7 +104,7 @@ def run() -> None:
             if local_definition != remote_definition:
                 raise SchemaDiscrepancyError(schema_id)
 
-            logging.info(f"Schema {schema_id} already exists on remote. This is normal. Skipping.")
+            print(f"Schema {schema_id} already exists on remote. This is normal. Skipping.")
             continue
 
         publish_schema(schema_id, local_definition)

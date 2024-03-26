@@ -1,19 +1,18 @@
-from dataclasses import dataclass
 import typing
 import uuid
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Optional, Self, Tuple
 from uuid import UUID
 
-import eave.stdlib.exceptions
-import eave.core.internal
 from sqlalchemy import Index, Select, func, or_, select
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
-from eave.stdlib.core_api.models.account import AnalyticsAccount, AuthenticatedAccount
-from eave.stdlib.core_api.models.account import AuthProvider
 
+import eave.core.internal
+import eave.stdlib.exceptions
+from eave.stdlib.core_api.models.account import AnalyticsAccount, AuthenticatedAccount, AuthProvider
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
 from eave.stdlib.logging import LogContext
 from eave.stdlib.typing import JsonObject

@@ -1,6 +1,12 @@
 from typing import cast
 
+import starlette.applications
+import starlette.endpoints
+from asgiref.typing import ASGI3Application
+from starlette.routing import Route
 from starlette.types import ASGIApp
+
+import eave.stdlib.time
 from eave.core.internal.oauth.google import (
     GOOGLE_OAUTH_AUTHORIZE_PATH,
     GOOGLE_OAUTH_CALLBACK_PATH,
@@ -10,39 +16,34 @@ from eave.core.public.middleware.team_lookup import TeamLookupASGIMiddleware
 from eave.core.public.requests.data_ingestion import DataIngestionEndpoint
 from eave.core.public.requests.oauth.metabase_embedding_sso import MetabaseEmbeddingSSO
 from eave.stdlib import cache, logging
+from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount
 from eave.stdlib.core_api.operations.github_installation import (
-    QueryGithubInstallation,
     DeleteGithubInstallation,
+    QueryGithubInstallation,
 )
-from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
-from eave.stdlib.core_api.operations.team import GetTeamRequest
-from eave.stdlib.core_api.operations.virtual_event import GetVirtualEventsRequest
 from eave.stdlib.core_api.operations.metabase_embedding_sso import (
     MetabaseEmbeddingSSOOperation,
 )
+from eave.stdlib.core_api.operations.team import GetTeamRequest
+from eave.stdlib.core_api.operations.virtual_event import GetVirtualEventsRequest
+from eave.stdlib.middleware import common_middlewares
 from eave.stdlib.middleware.origin import OriginASGIMiddleware
 from eave.stdlib.middleware.signature_verification import (
     SignatureVerificationASGIMiddleware,
 )
-import eave.stdlib.time
-import starlette.applications
-import starlette.endpoints
-from asgiref.typing import ASGI3Application
-from starlette.routing import Route
 
+from .internal.database import async_engine
 from .public.exception_handlers import exception_handlers
 from .public.requests import (
     authed_account,
-    noop,
-    team,
-    status,
     github_installation,
+    noop,
+    status,
+    team,
     virtual_event,
 )
 from .public.requests.oauth import github_oauth, google_oauth
-from .internal.database import async_engine
-from eave.stdlib.middleware import common_middlewares
 
 eave.stdlib.time.set_utc()
 

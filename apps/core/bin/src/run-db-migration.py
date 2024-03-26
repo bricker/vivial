@@ -10,14 +10,15 @@ load_standard_dotenv_files()
 
 import logging
 import os
-import click
-import alembic
-import alembic.config
-import alembic.command
-import alembic.script
-import alembic.migration
-from eave.stdlib.logging import eaveLogger
 
+import alembic
+import alembic.command
+import alembic.config
+import alembic.migration
+import alembic.script
+import click
+
+from eave.stdlib.logging import eaveLogger
 
 _alembic_config = alembic.config.Config("alembic.ini")
 

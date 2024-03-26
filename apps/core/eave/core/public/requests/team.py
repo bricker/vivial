@@ -1,12 +1,13 @@
-from eave.core.internal import database
-from eave.core.internal.orm.team import TeamOrm
-from eave.stdlib.http_endpoint import HTTPEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
+
+from eave.core.internal import database
+from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib.api_util import json_response
 from eave.stdlib.core_api.operations.team import (
     GetTeamRequest,
 )
+from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import unwrap
 

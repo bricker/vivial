@@ -10,6 +10,5 @@ mitmproxy \
 	--set keep_host_header \
 	--set anticache \
 	--scripts "${EAVE_HOME}"/develop/proxy/mitm_router.py \
-	--certs "*.eave.localhost"="${EAVE_HOME}"/develop/certs/eave-localhost/eave-localhost.pem \
 	--certs "*.eave.run"="${EAVE_HOME}"/develop/certs/eave-run/eave-run.pem \
 	"$@"

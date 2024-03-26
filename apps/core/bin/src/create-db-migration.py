@@ -8,10 +8,10 @@ load_standard_dotenv_files()
 
 # ruff: noqa: E402
 
-import click
 import alembic
-import alembic.config
 import alembic.command
+import alembic.config
+import click
 
 _alembic_config = alembic.config.Config("alembic.ini")
 

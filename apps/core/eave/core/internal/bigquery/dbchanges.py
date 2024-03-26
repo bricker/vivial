@@ -1,16 +1,17 @@
-from dataclasses import dataclass
 import dataclasses
-from datetime import datetime
 import json
+from dataclasses import dataclass
+from datetime import datetime
 from textwrap import dedent
 from typing import Any, Optional, override
+
 from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
 
+from eave.core.internal import database
 from eave.core.internal.bigquery.types import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 from eave.core.internal.orm.virtual_event import VirtualEventOrm, make_virtual_event_readable_name
-from eave.tracing.core.datastructures import DatabaseChangeEventPayload
-from eave.core.internal import database
 from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize
+from eave.tracing.core.datastructures import DatabaseChangeEventPayload
 
 
 @dataclass(frozen=True)
@@ -128,7 +129,7 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
             rows=[self._format_row(e) for e in dbchange_events],
         )
 
-        unique_operations = set((e.operation, e.table_name) for e in dbchange_events)
+        unique_operations = {(e.operation, e.table_name) for e in dbchange_events}
 
         # FIXME: This is vulnerable to a DoS where unique `table_name` is generated and inserted on a loop.
         for operation, table_name in unique_operations:

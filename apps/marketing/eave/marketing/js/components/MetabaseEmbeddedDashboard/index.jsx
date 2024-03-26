@@ -6,9 +6,11 @@ const MetabaseEmbeddedDashboard = ({
   /** @type {string} */ dashRoute = undefined,
 }) => {
   // route to web backend to add auth headers etc before redirecting to core api
-  let srcRoute = "/embed/metabase";
+  // https://www.metabase.com/docs/latest/embedding/interactive-embedding#showing-or-hiding-metabase-ui-components
+  let srcRoute =
+    "/embed/metabase?top_nav=false&side_nav=false&breadcrumbs=false&logo=false&search=false";
   if (dashRoute) {
-    srcRoute += `?return_to=${dashRoute}`;
+    srcRoute += `&return_to=${dashRoute}`;
   }
   return <iframe src={srcRoute} className={className}></iframe>;
 };

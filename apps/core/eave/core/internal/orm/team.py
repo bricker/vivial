@@ -1,12 +1,14 @@
 from datetime import datetime
 from typing import Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
-import eave.stdlib.util
+
 from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
+import eave.stdlib.util
 from eave.stdlib.core_api.models.team import AnalyticsTeam, Team
+
 from .base import Base
 from .util import UUID_DEFAULT_EXPR
 

@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 import uuid
+from dataclasses import dataclass
 from datetime import datetime
 from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
 from uuid import UUID
@@ -11,7 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from eave.stdlib.core_api.models.metabase_instance import MetabaseInstance
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, make_team_fk, make_team_composite_pk
+from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 
 
 class MetabaseInstanceOrm(Base):
@@ -63,7 +63,7 @@ class MetabaseInstanceOrm(Base):
         team_id: Optional[uuid.UUID] = None
         id: Optional[uuid.UUID] = None
 
-        def validate_or_exception(self):
+        def validate_or_exception(self) -> None:
             assert self.team_id or self.id, "At least one query parameter must be given"
 
     @classmethod
@@ -103,6 +103,6 @@ class MetabaseInstanceOrm(Base):
     def api_model(self) -> MetabaseInstance:
         return MetabaseInstance.from_orm(self)
 
-    def validate_hosting_data(self):
+    def validate_hosting_data(self) -> None:
         assert self.jwt_signing_key is not None, "Metabase instance doesn't have a signing key"
         assert self.route_id is not None, "Metabase instance doesn't have hosted route ID"

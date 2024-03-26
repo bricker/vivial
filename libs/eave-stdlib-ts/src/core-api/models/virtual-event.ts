@@ -3,6 +3,7 @@ export type VirtualEvent = {
   id: string;
   readable_name: string;
   description?: string;
+  fields?: string[];
 };
 
 export type VirtualEventQueryInput = {

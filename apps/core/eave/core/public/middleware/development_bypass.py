@@ -1,13 +1,13 @@
 import uuid
-import aiohttp
 
-import eave.core.internal
-from eave.core.internal.orm.account import AccountOrm
-import eave.stdlib.api_util
+import aiohttp
 from asgiref.typing import HTTPScope
 
-from eave.stdlib.request_state import EaveRequestState
+import eave.core.internal
+import eave.stdlib.api_util
+from eave.core.internal.orm.account import AccountOrm
 from eave.stdlib.logging import eaveLogger
+from eave.stdlib.request_state import EaveRequestState
 
 
 async def development_bypass_auth(scope: HTTPScope) -> None:

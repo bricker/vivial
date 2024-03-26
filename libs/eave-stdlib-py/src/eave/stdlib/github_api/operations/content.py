@@ -1,7 +1,8 @@
-from typing import Optional, Unpack
 import uuid
+from typing import Optional, Unpack
+
 from eave.stdlib import requests_util
-from eave.stdlib.core_api.operations import BaseRequestBody, BaseResponseBody
+from eave.stdlib.endpoints import BaseRequestBody, BaseResponseBody
 from eave.stdlib.github_api.operations import GithubAppEndpoint, GithubAppEndpointConfiguration
 
 

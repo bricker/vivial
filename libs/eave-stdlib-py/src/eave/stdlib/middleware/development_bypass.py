@@ -1,8 +1,8 @@
-from ..api_util import get_header_value
-from ..headers import EAVE_DEV_BYPASS_HEADER
-from ..config import SHARED_CONFIG
 from asgiref.typing import HTTPScope
 
+from ..api_util import get_header_value
+from ..config import SHARED_CONFIG
+from ..headers import EAVE_DEV_BYPASS_HEADER
 
 """
 ## middleware check bypass

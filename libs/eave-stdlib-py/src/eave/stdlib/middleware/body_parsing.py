@@ -1,6 +1,5 @@
 import asgiref.typing
 
-
 from .base import EaveASGIMiddleware
 
 

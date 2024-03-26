@@ -6,11 +6,11 @@ import signal
 import sys
 from types import FrameType
 from typing import LiteralString, cast
-import psycopg
-from psycopg import sql
 
+import psycopg
 from eave.tracing.core.datastructures import EventType
 from eave.tracing.core.write_queue import BatchWriteQueue, QueueParams
+from psycopg import sql
 
 # payload can only be 8kb max
 # NEW variable documented here: https://www.postgresql.org/docs/current/plpgsql-trigger.html
@@ -23,7 +23,7 @@ with open(os.path.join(_thisdir, "triggers.sql"), encoding="utf-8") as f:
 #    > maybe only needs to be running on the master replica
 
 
-async def start_agent(conninfo: str, team_id: str):
+async def start_agent(conninfo: str, team_id: str) -> None:
     """
     listen and poll for notifications for a postgresql database (requires pg version 12+)
 
@@ -37,6 +37,9 @@ async def start_agent(conninfo: str, team_id: str):
         sys.exit()
 
     signal.signal(signal.SIGINT, _sighandler)
+
+    queue_params = QueueParams(event_type=EventType.dbchange, maxsize=100, maxage_seconds=30)
+    q = BatchWriteQueue(queue_params=queue_params)
 
     try:
         async with conn.cursor() as curs:
@@ -53,10 +56,6 @@ async def start_agent(conninfo: str, team_id: str):
             )
 
         print("Eave PostgreSQL agent started (Ctrl-C to stop)")
-
-        queue_params = QueueParams(event_type=EventType.dbchange, maxsize=100, maxage_seconds=30)
-
-        q = BatchWriteQueue(queue_params=queue_params)
         q.start_autoflush()
 
         gen = conn.notifies()

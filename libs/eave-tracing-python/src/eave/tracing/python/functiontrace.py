@@ -19,7 +19,7 @@ exec $(which {python}) -m functiontrace "$@"
 """
 
 
-def setup_dependencies():
+def setup_dependencies() -> None:
     # We need the functiontrace-server installed and locatable in order to
     # trace anything.
     if shutil.which("functiontrace-server") is None:
@@ -44,10 +44,10 @@ def setup_dependencies():
     for python in wrap_pythons:
         with open(os.path.join(tempdir, python), "w") as f:
             f.write(PYTHON_TEMPLATE.format(python=python))
-            os.chmod(f.name, 0o755)
+            os.chmod(f.name, 0o755)  # noqa: S103
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Trace a script's execution.")
     parser.add_argument(
         "--trace-memory",
@@ -108,10 +108,10 @@ def main():
 
     # Run their code now that we're tracing.  This must be done in the context
     # of the __main__ module we've created.
-    exec(code, mod.__dict__)
+    exec(code, mod.__dict__)  # noqa: S102
 
 
-def trace():
+def trace() -> None:
     # Make sure we're set up to work properly, then begin tracing.
     setup_dependencies()
     _functiontrace.begin_tracing(os.getcwd())

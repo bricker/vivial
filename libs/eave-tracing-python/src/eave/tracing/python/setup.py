@@ -1,5 +1,5 @@
-from setuptools import setup, Extension
 import toml
+from setuptools import Extension, setup
 
 NAME = "eave-tracing-python"
 VERSION = "0.1.0"

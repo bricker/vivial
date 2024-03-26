@@ -1,18 +1,16 @@
-from datetime import datetime
 import json
 import typing
+from datetime import datetime
 from uuid import UUID
 
-from google.pubsub_v1 import PublisherAsyncClient, PubsubMessage
 from eave.pubsub_schemas import EaveEvent, GPTRequestEvent
-
 from eave.stdlib.core_api.models.account import AnalyticsAccount
-
 from eave.stdlib.core_api.models.team import AnalyticsTeam
+from google.pubsub_v1 import PublisherAsyncClient, PubsubMessage
 
-from .typing import JsonObject
-from .config import SHARED_CONFIG
 from . import logging as _l
+from .config import SHARED_CONFIG
+from .typing import JsonObject
 
 # This happens to be the same between prod and dev, but could come from an environment variable if necessary.
 _EVENT_TOPIC_ID = "eave_event"

@@ -2,16 +2,15 @@ import asgiref.typing
 import starlette.types
 from eave.stdlib.core_api.operations import EndpointConfiguration
 
-
-from .base import EaveASGIMiddleware
-from .development_bypass import development_bypass_allowed
-from ..logging import eaveLogger
+from .. import signing
 from ..api_util import get_header_value
-from ..headers import EAVE_SIG_TS_HEADER, EAVE_SIGNATURE_HEADER, EAVE_TEAM_ID_HEADER, EAVE_ACCOUNT_ID_HEADER
 from ..exceptions import InvalidSignatureError, MissingRequiredHeaderError
+from ..headers import EAVE_ACCOUNT_ID_HEADER, EAVE_SIG_TS_HEADER, EAVE_SIGNATURE_HEADER, EAVE_TEAM_ID_HEADER
+from ..logging import eaveLogger
 from ..request_state import EaveRequestState
 from ..util import unwrap
-from .. import signing
+from .base import EaveASGIMiddleware
+from .development_bypass import development_bypass_allowed
 
 MAX_SIGNATURE_AGE = 60 * 60  # 1h
 
@@ -25,7 +24,7 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
 
     endpoint_config: EndpointConfiguration
 
-    def __init__(self, app: starlette.types.ASGIApp, endpoint_config: EndpointConfiguration):
+    def __init__(self, app: starlette.types.ASGIApp, endpoint_config: EndpointConfiguration) -> None:
         super().__init__(app=app)
         self.endpoint_config = endpoint_config
 
