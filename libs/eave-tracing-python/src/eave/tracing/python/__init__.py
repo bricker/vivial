@@ -1,11 +1,11 @@
-from functools import reduce
 import functools
 import inspect
 import sys
+from functools import reduce
 from typing import Any, Callable, Concatenate, Optional
+
 from eave.tracing.python.callbacks.branch import trace_branch
 from eave.tracing.python.callbacks.call import trace_call
-
 from eave.tracing.python.callbacks.line import trace_line
 from eave.tracing.python.callbacks.py_return import trace_py_return
 from eave.tracing.python.callbacks.py_start import trace_py_start

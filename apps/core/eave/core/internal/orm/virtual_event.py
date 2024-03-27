@@ -1,5 +1,5 @@
-from dataclasses import dataclass
 import uuid
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, Self, Tuple
 from uuid import UUID
@@ -8,9 +8,9 @@ from sqlalchemy import Index, ScalarResult, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.tracing.core.datastructures import DatabaseChangeOperation
 from eave.stdlib.core_api.models.virtual_event import VirtualEvent
 from eave.stdlib.util import titleize
+from eave.tracing.core.datastructures import DatabaseChangeOperation
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk

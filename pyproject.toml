@@ -19,4 +19,4 @@ extraPaths=[
     "./apps/marketing",
     "./develop/python/src",
 ]
-typeCheckingMode = "basic"
+typeCheckingMode = "standard"

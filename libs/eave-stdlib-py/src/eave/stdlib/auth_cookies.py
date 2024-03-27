@@ -1,8 +1,7 @@
+import uuid
 from dataclasses import dataclass
 from http.cookies import Morsel, SimpleCookie
 from typing import Mapping, Optional
-import uuid
-
 
 from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
 from eave.stdlib.typing import HTTPFrameworkResponse

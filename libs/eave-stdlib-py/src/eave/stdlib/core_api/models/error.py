@@ -1,7 +1,7 @@
 from typing import Optional
 
-from . import BaseResponseModel
 from ... import typing
+from . import BaseResponseModel
 
 
 class ErrorResponse(BaseResponseModel):

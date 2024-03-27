@@ -1,14 +1,14 @@
 import multiprocessing
 import multiprocessing.connection
-from multiprocessing.connection import Connection, Listener
 import os
-from queue import Empty
 import signal
 import sys
+from multiprocessing.connection import Connection, Listener
+from queue import Empty
 from types import FrameType
 from typing import Any, cast
 
-_sockaddr = "/tmp/eaveagent.sock"
+_sockaddr = "/tmp/eaveagent.sock"  # noqa: S108
 _endmsg = "EOF"
 
 _buffer_maxsize = 1000
@@ -78,13 +78,13 @@ def _connection_handler(conn: Connection) -> None:
         q.put(msg, block=False)
 
 
-def start_controller():
+def start_controller() -> None:
     running = True
     listener = Listener(address=_sockaddr, family="AF_UNIX")
 
     # FIXME: Using private properties to set a timeout on socket operations.
     # This allows `listener.accept()` to be effectively non-blocking.
-    listener._listener._socket.settimeout(1)  # type: ignore
+    listener._listener._socket.settimeout(1)  # type: ignore  # noqa: SLF001
     workers: list[multiprocessing.Process] = []
 
     print("Eave agent started. (Ctrl-C to stop)", os.getpid())

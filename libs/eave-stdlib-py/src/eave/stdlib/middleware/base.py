@@ -1,12 +1,12 @@
 from abc import ABC, abstractmethod
 from typing import cast
+
 import aiohttp
-from aiohttp.compression_utils import ZLibDecompressor
 import asgiref.typing
 import starlette.types
+from aiohttp.compression_utils import ZLibDecompressor
 from eave.stdlib.api_util import get_header_value
 from eave.stdlib.headers import ENCODING_GZIP
-
 from eave.stdlib.request_state import EaveRequestState
 
 
@@ -26,7 +26,8 @@ class EaveASGIMiddleware(ABC):
         scope: asgiref.typing.Scope,
         receive: asgiref.typing.ASGIReceiveCallable,
         send: asgiref.typing.ASGISendCallable,
-    ) -> None: ...
+    ) -> None:
+        ...
 
     async def __call__(
         self, scope: starlette.types.Scope, receive: starlette.types.Receive, send: starlette.types.Send

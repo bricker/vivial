@@ -8,4 +8,3 @@ def trace_branch(config: EaveConfig, code: CodeType, instruction_offset: int, de
     """
     https://docs.python.org/3.12/library/sys.monitoring.html#callback-function-arguments
     """
-    pass

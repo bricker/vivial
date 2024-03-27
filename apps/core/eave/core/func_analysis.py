@@ -1,4 +1,4 @@
-# ruff: noqa: E402
+# ruff: noqa
 
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 

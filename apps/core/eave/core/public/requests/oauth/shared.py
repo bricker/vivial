@@ -1,34 +1,36 @@
 import datetime
 import http
+import json
 import re
+import typing
+import uuid
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+
 import aiohttp
 import oauthlib.common
-import uuid
-import json
-import typing
-from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 from starlette.requests import Request
 from starlette.responses import Response
+
+import eave.core.internal.oauth.state_cookies
+import eave.pubsub_schemas
+import eave.stdlib.analytics
+import eave.stdlib.config
+import eave.stdlib.cookies
+import eave.stdlib.exceptions
+import eave.stdlib.slack
 from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.github_installation import GithubInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
-
-import eave.pubsub_schemas
 from eave.stdlib import auth_cookies, utm_cookies
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.models.account import AuthProvider
+from eave.stdlib.eave_origins import EaveApp
+from eave.stdlib.github_api.operations.verify_installation import VerifyInstallation
 from eave.stdlib.logging import LogContext, eaveLogger
 from eave.stdlib.request_state import EaveRequestState
-from eave.stdlib.eave_origins import EaveApp
-import eave.stdlib.slack
-import eave.stdlib.cookies
-import eave.stdlib.analytics
-import eave.stdlib.exceptions
-import eave.stdlib.config
 from eave.stdlib.util import ensure_uuid
-from eave.stdlib.github_api.operations.verify_installation import VerifyInstallation
-import eave.core.internal.oauth.state_cookies
-from . import EaveOnboardingErrorCode, EAVE_ERROR_CODE_QP
-from eave.stdlib.config import SHARED_CONFIG
+
+from . import EAVE_ERROR_CODE_QP, EaveOnboardingErrorCode
 
 DEFAULT_TEAM_NAME = "Your Team"
 DEFAULT_REDIRECT_LOCATION = f"{SHARED_CONFIG.eave_public_www_base}/dashboard"

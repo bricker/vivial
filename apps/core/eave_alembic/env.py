@@ -7,13 +7,13 @@ load_standard_dotenv_files()
 import asyncio
 from logging.config import fileConfig
 
-import eave.stdlib.time  # noqa: E402
 from alembic import context
 from sqlalchemy import Connection
 
 import eave.core.internal.database as eave_db
 import eave.core.internal.orm
 import eave.core.internal.orm.base
+import eave.stdlib.time
 
 eave.stdlib.time.set_utc()
 

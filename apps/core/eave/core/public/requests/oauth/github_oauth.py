@@ -1,29 +1,29 @@
 import json
-from typing import Optional
 import urllib.parse
-from eave.core.internal.orm.account import AccountOrm
-from eave.core.internal.orm.github_installation import GithubInstallationOrm
-from eave.core.internal.orm.team import TeamOrm
+from typing import Optional
 
-import eave.pubsub_schemas
-from eave.stdlib import utm_cookies
-from eave.stdlib.auth_cookies import AuthCookies, get_auth_cookies
-from eave.stdlib.config import SHARED_CONFIG
-import eave.stdlib.cookies
-import eave.stdlib.util
-import eave.stdlib.analytics
 import oauthlib.common
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 
+import eave.pubsub_schemas
+import eave.stdlib.analytics
+import eave.stdlib.cookies
+import eave.stdlib.util
 from eave.core.internal import database
-from eave.stdlib.core_api.models.account import AuthProvider
 from eave.core.internal.oauth import state_cookies as oauth_cookies
+from eave.core.internal.orm.account import AccountOrm
+from eave.core.internal.orm.github_installation import GithubInstallationOrm
+from eave.core.internal.orm.team import TeamOrm
+from eave.stdlib import utm_cookies
+from eave.stdlib.auth_cookies import AuthCookies, get_auth_cookies
+from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.core_api.models.account import AuthProvider
+from eave.stdlib.http_endpoint import HTTPEndpoint
+from eave.stdlib.logging import eaveLogger
 from eave.stdlib.request_state import EaveRequestState
 
-from eave.stdlib.http_endpoint import HTTPEndpoint
 from . import EaveOnboardingErrorCode, shared
-from eave.stdlib.logging import eaveLogger
 
 _AUTH_PROVIDER = AuthProvider.github
 

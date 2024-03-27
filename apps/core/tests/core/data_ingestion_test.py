@@ -3,18 +3,20 @@ import time
 
 from google.cloud import bigquery
 from google.cloud.bigquery.dataset import DatasetReference
+
+from eave.core.internal.bigquery.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.bigquery.types import BigQueryTableHandle
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
+from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
 from eave.tracing.core.datastructures import (
-    DataIngestRequestBody,
     DatabaseChangeEventPayload,
     DatabaseChangeOperation,
+    DataIngestRequestBody,
     EventType,
 )
-from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.headers import EAVE_CLIENT_ID, EAVE_CLIENT_SECRET
+
 from .base import BaseTestCase
-from eave.core.internal.bigquery.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 
 client = bigquery.Client(project=SHARED_CONFIG.google_cloud_project)
 
@@ -68,8 +70,8 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
         response = await self.make_request(
             path="/ingest",
             headers={
-                EAVE_CLIENT_ID: str(self.anyuuid("invalid client ID")),
-                EAVE_CLIENT_SECRET: self.anystr("invalid client secret"),
+                EAVE_CLIENT_ID_HEADER: str(self.anyuuid("invalid client ID")),
+                EAVE_CLIENT_SECRET_HEADER: self.anystr("invalid client secret"),
             },
             payload=DataIngestRequestBody(event_type=EventType.dbchange, events=[]).to_dict(),
         )
@@ -89,8 +91,8 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
         response = await self.make_request(
             path="/ingest",
             headers={
-                EAVE_CLIENT_ID: str(ro_creds.id),
-                EAVE_CLIENT_SECRET: ro_creds.secret,
+                EAVE_CLIENT_ID_HEADER: str(ro_creds.id),
+                EAVE_CLIENT_SECRET_HEADER: ro_creds.secret,
             },
             payload=DataIngestRequestBody(event_type=EventType.dbchange, events=[]).to_dict(),
         )
@@ -102,8 +104,8 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
         response = await self.make_request(
             path="/ingest",
             headers={
-                EAVE_CLIENT_ID: str(self._client_credentials.id),
-                EAVE_CLIENT_SECRET: self._client_credentials.secret,
+                EAVE_CLIENT_ID_HEADER: str(self._client_credentials.id),
+                EAVE_CLIENT_SECRET_HEADER: self._client_credentials.secret,
             },
             payload=DataIngestRequestBody(event_type=EventType.dbchange, events=[]).to_dict(),
         )
@@ -116,8 +118,8 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
         response = await self.make_request(
             path="/ingest",
             headers={
-                EAVE_CLIENT_ID: str(self._client_credentials.id),
-                EAVE_CLIENT_SECRET: self._client_credentials.secret,
+                EAVE_CLIENT_ID_HEADER: str(self._client_credentials.id),
+                EAVE_CLIENT_SECRET_HEADER: self._client_credentials.secret,
             },
             payload=DataIngestRequestBody(event_type=EventType.dbchange, events=[]).to_dict(),
         )
@@ -132,8 +134,8 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
         response = await self.make_request(
             path="/ingest",
             headers={
-                EAVE_CLIENT_ID: str(self._client_credentials.id),
-                EAVE_CLIENT_SECRET: self._client_credentials.secret,
+                EAVE_CLIENT_ID_HEADER: str(self._client_credentials.id),
+                EAVE_CLIENT_SECRET_HEADER: self._client_credentials.secret,
             },
             payload=DataIngestRequestBody(
                 event_type=EventType.dbchange,

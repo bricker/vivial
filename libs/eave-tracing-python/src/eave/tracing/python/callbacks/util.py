@@ -1,5 +1,5 @@
 import sys
-from datetime import datetime, date
+from datetime import date, datetime
 
 DISABLE = sys.monitoring.DISABLE
 
@@ -8,12 +8,10 @@ PRIMITIVE_TYPES = (bool, str, int, float, date, datetime, type(None))
 
 _builtins_set = set(sys.builtin_module_names)
 _stdlib_set = sys.stdlib_module_names
-_common_noisy_modules_to_ignore = set(
-    (
-        "pydantic",
-        "pkg_resources",
-    )
-)
+_common_noisy_modules_to_ignore = {
+    "pydantic",
+    "pkg_resources",
+}
 
 _ignore_modules_set = _builtins_set | _stdlib_set | _common_noisy_modules_to_ignore
 

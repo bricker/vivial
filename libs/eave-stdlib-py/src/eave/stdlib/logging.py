@@ -1,20 +1,19 @@
 import logging
-from logging import LogRecord
 import sys
-from typing import Any, Optional, Self, cast
 import uuid
+from logging import LogRecord
+from typing import Any, Optional, Self, cast
+
+import google.cloud.logging
 from asgiref.typing import HTTPScope
+from eave.stdlib.api_util import get_header_value, get_headers
+from eave.stdlib.headers import EAVE_ACCOUNT_ID_HEADER, EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER
+from eave.stdlib.typing import JsonObject
 from starlette.requests import Request
 from starlette.types import Scope
 
-import google.cloud.logging
-from eave.stdlib.api_util import get_header_value, get_headers
-from eave.stdlib.headers import EAVE_ACCOUNT_ID_HEADER, EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER
-
-from eave.stdlib.typing import JsonObject
-from .utm_cookies import get_tracking_cookies
-
 from .config import SHARED_CONFIG
+from .utm_cookies import get_tracking_cookies
 
 
 # https://stackoverflow.com/a/56944256/885036
@@ -29,14 +28,6 @@ class CustomFormatter(logging.Formatter):
     bold_red = "\x1b[31;1m"
     reset = "\x1b[0m"
     formatstr = "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)\n"
-
-    FORMATS = {
-        logging.DEBUG: purple + formatstr + reset,
-        logging.INFO: cyan + formatstr + reset,
-        logging.WARNING: yellow + formatstr + reset,
-        logging.ERROR: red + formatstr + reset,
-        logging.CRITICAL: bold_red + formatstr + reset,
-    }
 
     @classmethod
     def get_formatstr(cls, levelno: int, message: str) -> str:
@@ -54,27 +45,25 @@ class CustomFormatter(logging.Formatter):
             case _:
                 return message
 
-    IGNORE_KEYS = set(
-        [
-            "asctime",
-            "created",
-            "exc_info",
-            "exc_text",
-            "filename",
-            "levelname",
-            "levelno",
-            "message",
-            "module",
-            "msecs",
-            "msg",
-            "name",
-            "process",
-            "processName",
-            "relativeCreated",
-            "stack_info",
-            "thread",
-            "threadName",
-        ]
+    IGNORE_KEYS = (
+        "asctime",
+        "created",
+        "exc_info",
+        "exc_text",
+        "filename",
+        "levelname",
+        "levelno",
+        "message",
+        "module",
+        "msecs",
+        "msg",
+        "name",
+        "process",
+        "processName",
+        "relativeCreated",
+        "stack_info",
+        "thread",
+        "threadName",
     )
 
     def format(self, record: logging.LogRecord) -> str:
@@ -82,32 +71,32 @@ class CustomFormatter(logging.Formatter):
         formatter = logging.Formatter(log_fmt)
         string = formatter.format(record)
 
-        extra = {k: v for k, v in record.__dict__.items() if k not in self.IGNORE_KEYS}
+        extra = {k: v for k, v in record.__dict__.items() if k not in CustomFormatter.IGNORE_KEYS}
         string += f"{self.dimgrey}{extra}{self.reset}"
         return string
 
 
 class CustomFilter(logging.Filter):
-    _whitelist_records = [
+    _whitelist_records = (
         "eave",
         "werkzeug",
-    ]
+    )
 
     def filter(self, record: LogRecord) -> bool:
         log = super().filter(record)
         return log and record.name in self._whitelist_records
 
 
-rootLogger = logging.getLogger()
+root_logger = logging.getLogger()
 level = SHARED_CONFIG.log_level
-rootLogger.setLevel(level)
+root_logger.setLevel(level)
 
 if SHARED_CONFIG.is_development:
     handler = logging.StreamHandler(sys.stdout)
     handler.setLevel(level)
     handler.setFormatter(CustomFormatter())
     handler.addFilter(CustomFilter())
-    rootLogger.addHandler(handler)
+    root_logger.addHandler(handler)
 
 if SHARED_CONFIG.monitoring_enabled:
     # https://cloud.google.com/python/docs/reference/logging/latest/std-lib-integration
@@ -275,4 +264,5 @@ class EaveLogger:
         }
 
 
-eaveLogger = EaveLogger()
+# Should be eave_logger to conform to pep8, but this is already used heavily throughout this project.
+eaveLogger = EaveLogger()  # noqa: N816

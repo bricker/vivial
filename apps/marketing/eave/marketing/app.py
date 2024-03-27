@@ -1,31 +1,31 @@
+import json
 from functools import wraps
 from http.client import UNAUTHORIZED
-import json
 from typing import Any, Awaitable, Callable, Optional
 
-from aiohttp import ClientResponseError
-from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
-from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
-from eave.stdlib.core_api.models.virtual_event import VirtualEventQueryInput
-from eave.stdlib.core_api.operations import BaseResponseBody
-import eave.stdlib.core_api.operations.account as account
-from eave.stdlib.core_api.operations.metabase_embedding_sso import MetabaseEmbeddingSSOOperation
-import eave.stdlib.core_api.operations.virtual_event as virtual_event
-import eave.stdlib.core_api.operations.team as team
-from eave.stdlib.headers import MIME_TYPE_JSON
-from eave.stdlib.util import ensure_uuid, unwrap
-
-from eave.stdlib.endpoints import status_payload
-import eave.stdlib.requests_util
-import eave.stdlib.logging
-import eave.stdlib.time
 import werkzeug.exceptions
+from aiohttp import ClientResponseError
 from flask import Flask, Response, make_response, redirect, render_template, request
 from werkzeug.wrappers import Response as BaseResponse
-from eave.stdlib.typing import JsonObject
-from eave.stdlib.utm_cookies import set_tracking_cookies
-from .config import MARKETING_APP_CONFIG
+
+import eave.stdlib.core_api.operations.account as account
+import eave.stdlib.core_api.operations.team as team
+import eave.stdlib.core_api.operations.virtual_event as virtual_event
+import eave.stdlib.logging
+import eave.stdlib.requests_util
+import eave.stdlib.time
+from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
 from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
+from eave.stdlib.core_api.models.virtual_event import VirtualEventQueryInput
+from eave.stdlib.core_api.operations.metabase_embedding_sso import MetabaseEmbeddingSSOOperation
+from eave.stdlib.endpoints import BaseResponseBody, status_payload
+from eave.stdlib.headers import MIME_TYPE_JSON
+from eave.stdlib.typing import JsonObject
+from eave.stdlib.util import ensure_uuid, unwrap
+from eave.stdlib.utm_cookies import set_tracking_cookies
+
+from .config import MARKETING_APP_CONFIG
 
 eave.stdlib.time.set_utc()
 
@@ -205,9 +205,9 @@ def _get_auth_cookies_or_exception() -> AuthCookies:
 
 
 async def _make_redirect_response(eave_response: BaseResponseBody) -> Response:
-    assert eave_response._raw_response, "invalid eave response"
-    headers = dict(eave_response._raw_response.headers)
-    status = eave_response._raw_response.status
+    assert eave_response.raw_response, "invalid eave response"
+    headers = dict(eave_response.raw_response.headers)
+    status = eave_response.raw_response.status
     response = Response(
         headers=headers,
         status=status,

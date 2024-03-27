@@ -1,9 +1,7 @@
 import re
 from typing import Any
-from starlette.requests import Request
-import aiohttp
 
-from starlette.responses import Response
+import aiohttp
 from eave.stdlib.testing_util import UtilityBaseTestCase
 from eave.stdlib.util import istr_eq
 from eave.stdlib.utm_cookies import (
@@ -13,6 +11,8 @@ from eave.stdlib.utm_cookies import (
     get_tracking_cookies,
     set_tracking_cookies,
 )
+from starlette.requests import Request
+from starlette.responses import Response
 
 
 class UtmCookiesTestBase(UtilityBaseTestCase):
@@ -36,9 +36,9 @@ class UtmCookiesTestBase(UtilityBaseTestCase):
         self.data_visitor_id = self.anystr("visitor_id")
         self.data_ignored_param = self.anystr("ignored_param")
 
-        self.mock_scope["query_string"] = (
-            f"utm_campaign={self.data_campaign}&UTM_TERM={self.data_term}&gclid={self.data_gclid}&ignored_param={self.data_ignored_param}"
-        )
+        self.mock_scope[
+            "query_string"
+        ] = f"utm_campaign={self.data_campaign}&UTM_TERM={self.data_term}&gclid={self.data_gclid}&ignored_param={self.data_ignored_param}"
 
 
 class UtmCookiesTest(UtmCookiesTestBase):

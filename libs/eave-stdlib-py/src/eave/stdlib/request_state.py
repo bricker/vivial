@@ -4,8 +4,8 @@ import starlette.applications
 import starlette.requests
 from asgiref.typing import HTTPScope
 
-from .util import xor
 from .logging import LogContext
+from .util import xor
 
 SCOPE_KEY = "eave_state"
 

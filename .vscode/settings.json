@@ -51,7 +51,9 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "yaml.schemas": {
-    "https://json.schemastore.org/github-action": ["action.yml"],
+    "https://json.schemastore.org/github-action": [
+      "action.yml"
+    ],
     "https://json.schemastore.org/github-workflow": ".github/workflows/*.yml",
   },
   "graphql-config.dotEnvPath": "${workspaceFolder}/.env",
@@ -77,7 +79,7 @@
   "javascript.inlayHints.parameterNames.enabled": "none",
   "javascript.inlayHints.variableTypes.suppressWhenTypeMatchesName": true,
   "python.analysis.diagnosticMode": "workspace",
-  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.typeCheckingMode": "standard",
   "python.analysis.extraPaths": [
     "vendor",
     "${workspaceFolder}/libs/eave-stdlib-py/src",
@@ -101,7 +103,7 @@
   "git.openRepositoryInParentFolders": "always",
   "python.analysis.autoImportCompletions": true,
   "python.testing.pytestArgs": [
-    "--config-file=${workspaceFolder}/develop/python/configs/pyproject.toml",
+    "--config-file=${workspaceFolder}/develop/python/configs/pytest.pyproject.toml",
     "--rootdir=${workspaceFolder}",
     "."
   ],
@@ -122,7 +124,7 @@
   "python.autoComplete.extraPaths": [
   ],
   "ruff.lint.args": [
-    "--config=${workspaceFolder}/develop/python/configs/pyproject.toml"
+    "--config=${workspaceFolder}/develop/python/configs/ruff.toml"
   ],
   "typescript.tsserver.experimental.enableProjectDiagnostics": true,
   "markdownlint.run": "onSave",
@@ -158,6 +160,7 @@
   "prettier.ignorePath": "./develop/javascript/es-config/prettier/prettierignore",
   "graphql-config.load.rootDir": "./apps/github/graphql.config.ts",
   "ruff.format.args": [
-    "--config=${workspaceFolder}/develop/python/configs/pyproject.toml"
+    "--config=${workspaceFolder}/develop/python/configs/ruff.toml"
   ],
+  "ruff.organizeImports": true,
 }
