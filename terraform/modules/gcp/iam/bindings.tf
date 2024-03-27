@@ -2,17 +2,16 @@ variable "project_id" {
   type = string
 }
 
-# resource "google_project_iam_binding" "cloud_sql_client" {
-#   depends_on = [ google_service_account.app_service_accounts ]
+resource "google_project_iam_binding" "cloud_sql_client" {
+  depends_on = [ google_service_account.app_service_accounts ]
 
-#   project = var.project_id
-#   role    = "roles/cloudsql.client"
+  project = var.project_id
+  role    = "roles/cloudsql.client"
 
-#   members = [
-#     "serviceAccount:${var.project_id}@appspot.gserviceaccount.com", // appengine
-#     "serviceAccount:${google_service_account.app_service_accounts["eave_core"].email}",
-#   ]
-# }
+  members = [
+    "serviceAccount:${google_service_account.app_service_accounts["eave_core"].email}",
+  ]
+}
 
 # resource "google_project_iam_binding" "apps" {
 #   depends_on = [

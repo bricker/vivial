@@ -38,19 +38,19 @@ module "gcp_gke" {
   region     = local.region
 }
 
-# module "gcp_iam" {
-#   source     = "../modules/gcp/iam"
-#   project_id = local.project_id
-# }
+module "gcp_iam" {
+  source     = "../modules/gcp/iam"
+  project_id = local.project_id
+}
 
-# resource "google_project_iam_binding" "bigquery_data_owner" {
-#   project = local.project_id
-#   role    = "roles/bigquery.dataOwner"
+resource "google_project_iam_binding" "bigquery_data_owner" {
+  project = local.project_id
+  role    = "roles/bigquery.dataOwner"
 
-#   members = [
-#     "domain:eave.fyi"
-#   ]
-# }
+  members = [
+    "domain:eave.fyi"
+  ]
+}
 
 # module "gcp_bigquery" {
 #   source     = "../modules/gcp/bigquery"
