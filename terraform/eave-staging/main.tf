@@ -45,6 +45,14 @@ module "gcp_gke" {
   network = module.gcp_networking.default_network.name
 }
 
+module "metabase_resources" {
+  source = "../modules/gcp/metabase_resources"
+  project_id = local.project_id
+  metabase_instances = [
+    "metabase-01" # TODO: This needs to be more dynamic; currently we'll have to update this list for each new customer.
+  ]
+}
+
 # module "gcp_iam" {
 #   source     = "../modules/gcp/iam"
 #   project_id = local.project_id
