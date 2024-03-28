@@ -8841,7 +8841,7 @@ if (typeof window.Matomo !== "object") {
   })();
 }
 
-/*!! pluginTrackerHook */
+/* pluginTrackerHook */
 
 (function () {
   "use strict";
