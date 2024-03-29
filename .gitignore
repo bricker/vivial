@@ -25,6 +25,9 @@ credentials.json
 Cargo.lock
 *.so
 
+secrets.yaml
+secrets.yml
+
 # directories that are git-ignored, and then un-ignored for deployment (gcloudignore)
 dist
 .yalc

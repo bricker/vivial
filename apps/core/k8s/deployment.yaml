@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: eave-core-deployment
+  name: eave-core
 spec:
   selector:
     matchLabels:
@@ -11,9 +11,9 @@ spec:
       labels:
         app: eave-core
     spec:
-      serviceAccountName: sa-eave-core
+      serviceAccountName: ksa-eave-core
       containers:
-        - name: eave-core-app
+        - name: eave-core
           image: eave-core:latest
           resources:
             requests:
@@ -22,8 +22,6 @@ spec:
             limits:
               memory: "768Mi"
               cpu: "100m"
-          ports:
-            - containerPort: 80
           env:
             - name: EAVE_DB_HOST
               valueFrom:
@@ -36,7 +34,7 @@ spec:
 
         - name: cloud-sql-proxy
           # https://cloud.google.com/sql/docs/postgres/connect-kubernetes-engine#run_the_in_a_sidecar_pattern
-          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.1.0
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:latest
           args:
             # If connecting from a VPC-native GKE cluster, you can use the
             # following flag to have the proxy connect over private IP
@@ -44,7 +42,8 @@ spec:
 
             # Enable structured logging with LogEntry format:
             - "--structured-logs"
-            - "eavefyi-dev:us-central1:eave-pg-core-dev"
+            - "--port=5432"
+            - "eave-staging:us-central1:eave"
 
           securityContext:
             # The default Cloud SQL Auth Proxy image runs as the

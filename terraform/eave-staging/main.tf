@@ -45,6 +45,35 @@ module "gcp_gke" {
   network = module.gcp_networking.default_network.name
 }
 
+module "ksa" {
+  source = "../modules/gcp/ksa"
+  project_id = local.project_id
+  apps = [
+    {
+      id = "metabase-01"
+      ksa = "metabase/ksa-metabase-01"
+    },
+    {
+      id = "gsa-eave-core"
+      ksa = "eave/ksa-eave-core"
+    },
+  ]
+  roles = [
+    {
+      role = "roles/cloudsql.client"
+      apps = [
+        "metabase-01"
+      ]
+    },
+    {
+      role = "roles/logging.logWriter"
+      apps = [
+        "metabase-01"
+      ]
+    },
+  ]
+}
+
 module "metabase_resources" {
   source = "../modules/gcp/metabase_resources"
   project_id = local.project_id
