@@ -31,81 +31,72 @@ spec:
       #   - name: cloudsql-socket
       #     emptyDir: {}
       containers:
-      - name: metabase-enterprise-1
-        image: metabase/metabase-enterprise:latest
-        imagePullPolicy: Always
-        # volumeMounts:
-        #   - name: cloudsql-socket
-        #     mountPath: /cloudsql
-        env:
-        - name: MB_DB_TYPE
-          value: postgres
-        - name: MB_DB_HOST
-          value: "127.0.0.1"
-          # value: "/cloudsql/eave-staging:us-central1:metabase"
-        - name: MB_DB_PORT
-          value: "5432"
-        - name: MB_DB_DBNAME
-          valueFrom:
-            secretKeyRef:
-              key: db_database
-              name: metabase-secrets-01
-        - name: MB_DB_USER
-          valueFrom:
-            secretKeyRef:
-              key: db_username
-              name: metabase-secrets-01
-        - name: MB_DB_PASS
-          valueFrom:
-            secretKeyRef:
-              key: db_password
-              name: metabase-secrets-01
-        resources:
-          limits:
-            cpu: 500m
-            memory: 2Gi
-          requests:
-            cpu: 500m
-            memory: 2Gi
-        securityContext:
-          capabilities:
-            drop:
-            - NET_RAW
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
+        - name: metabase-enterprise-1
+          image: metabase/metabase-enterprise:latest
+          imagePullPolicy: Always
+          # volumeMounts:
+          #   - name: cloudsql-socket
+          #     mountPath: /cloudsql
+          env:
+            - name: MB_DB_TYPE
+              value: postgres
+            - name: MB_DB_HOST
+              value: "127.0.0.1"
+              # value: "/cloudsql/eave-staging:us-central1:metabase"
+            - name: MB_DB_PORT
+              value: "5432"
+          envFrom:
+            - secretRef:
+                name: metabase-secrets-01
+            - configMapRef:
+                name: metabase-config
 
-      - name: cloud-sql-proxy
-        # This uses the latest version of the Cloud SQL Proxy
-        # It is recommended to use a specific version for production environments.
-        # See: https://github.com/GoogleCloudPlatform/cloudsql-proxy
-        image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:latest
-        args:
-          # If connecting from a VPC-native GKE cluster, you can use the
-          # following flag to have the proxy connect over private IP
-          - "--private-ip"
+          resources:
+            limits:
+              cpu: 500m
+              memory: 2Gi
+            requests:
+              cpu: 500m
+              memory: 2Gi
+          securityContext:
+            capabilities:
+              drop:
+              - NET_RAW
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
 
-          # If you are not connecting with Automatic IAM, you can delete
-          # the following flag.
-          # - "--auto-iam-authn"
+        - name: cloud-sql-proxy
+          # This uses the latest version of the Cloud SQL Proxy
+          # It is recommended to use a specific version for production environments.
+          # See: https://github.com/GoogleCloudPlatform/cloudsql-proxy
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:latest
+          args:
+            # If connecting from a VPC-native GKE cluster, you can use the
+            # following flag to have the proxy connect over private IP
+            - "--private-ip"
 
-          # tcp should be set to the port the proxy should listen on
-          # and should match the DB_PORT value set above.
-          # Defaults: MySQL: 3306, Postgres: 5432, SQLServer: 1433
-          - "--port=5432"
-          - "--structured-logs"
-          # - "--unix-socket /cloudsql"
-          - "eave-staging:us-central1:metabase"
-        # volumeMounts:
-        #   - name: cloudsql-socket
-        #     mountPath: /cloudsql
-        securityContext:
-          # The default Cloud SQL proxy image runs as the
-          # "nonroot" user and group (uid: 65532) by default.
-          runAsNonRoot: true
-        resources:
-          limits:
-            cpu: 500m
-            memory: 2Gi
-          requests:
-            cpu: 500m
-            memory: 2Gi
+            # If you are not connecting with Automatic IAM, you can delete
+            # the following flag.
+            # - "--auto-iam-authn"
+
+            # tcp should be set to the port the proxy should listen on
+            # and should match the DB_PORT value set above.
+            # Defaults: MySQL: 3306, Postgres: 5432, SQLServer: 1433
+            - "--port=5432"
+            - "--structured-logs"
+            # - "--unix-socket /cloudsql"
+            - "eave-staging:us-central1:metabase"
+          # volumeMounts:
+          #   - name: cloudsql-socket
+          #     mountPath: /cloudsql
+          securityContext:
+            # The default Cloud SQL proxy image runs as the
+            # "nonroot" user and group (uid: 65532) by default.
+            runAsNonRoot: true
+          resources:
+            limits:
+              cpu: 500m
+              memory: 2Gi
+            requests:
+              cpu: 500m
+              memory: 2Gi
