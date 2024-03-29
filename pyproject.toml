@@ -16,7 +16,7 @@ extraPaths=[
     "./libs/eave-tracing-python/src",
     "./libs/eave-pubsub-schemas/python/src",
     "./apps/core",
-    "./apps/marketing",
+    "./apps/dashboard",
     "./develop/python/src",
 ]
 typeCheckingMode = "standard"

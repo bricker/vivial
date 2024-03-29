@@ -39,7 +39,7 @@ const useUser = () => {
       accountIsErroring: false,
     }));
 
-    fetch("/dashboard/me", {
+    fetch("/api/me", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

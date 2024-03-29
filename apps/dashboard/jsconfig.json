@@ -5,5 +5,5 @@
     "allowJs": true,
     "strictNullChecks": true
   },
-  "include": ["eave/marketing/js/**/*.jsx", "eave/marketing/js/**/*.js"]
+  "include": ["eave/dashboard/js/**/*.jsx", "eave/dashboard/js/**/*.js"]
 }

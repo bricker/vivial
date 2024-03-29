@@ -1,16 +1,16 @@
 runtime: python311
-service: www
+service: dashboard
 
 entrypoint: |-
   gunicorn \
     --bind :$PORT \
     --pythonpath vendor \
     --workers 3 \
-    eave.marketing.app:app
+    eave.dashboard.app:app
 
 handlers:
   - url: /static
-    static_dir: eave/marketing/static
+    static_dir: eave/dashboard/static
 
   - url: /_ah/.*
     login: admin

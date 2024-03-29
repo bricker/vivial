@@ -26,7 +26,7 @@ const useTeam = () => {
   const [, setGlossaryNetworkState] = glossaryNetworkStateCtx;
 
   /**
-   * Asynchronously fetches team data from the "/dashboard/team" endpoint using a POST request.
+   * Asynchronously fetches team data from the "/api/team" endpoint using a POST request.
    * If the response is unauthorized, it logs the user out.
    * If there is an HTTP error, it throws the response.
    * On successful fetch, it updates the team state with the received data, including team ID, name, and integrations.
@@ -39,7 +39,7 @@ const useTeam = () => {
       teamIsLoading: true,
       teamIsErroring: false,
     }));
-    fetch("/dashboard/team", {
+    fetch("/api/team", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -93,7 +93,7 @@ const useTeam = () => {
       reposAreLoading: true,
       reposAreErroring: false,
     }));
-    fetch("/dashboard/team/repos", {
+    fetch("/api/team/repos", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -174,7 +174,7 @@ const useTeam = () => {
         };
       },
     );
-    fetch("/dashboard/team/repos/update", {
+    fetch("/api/team/repos/update", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -213,7 +213,7 @@ const useTeam = () => {
       virtualEventsAreLoading: true,
       virtualEventsAreErroring: false,
     }));
-    fetch("/dashboard/team/virtual-events", {
+    fetch("/api/team/virtual-events", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -266,7 +266,7 @@ const useTeam = () => {
       apiDocsJobStatusLoading: true,
       apiDocsJobStatusErroring: false,
     }));
-    fetch("/dashboard/team/api-docs-jobs", {
+    fetch("/api/team/api-docs-jobs", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -324,7 +324,7 @@ const useTeam = () => {
       apiDocsLoading: true,
       apiDocsErroring: false,
     }));
-    fetch("/dashboard/team/documents", {
+    fetch("/api/team/documents", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

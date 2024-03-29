@@ -5,7 +5,7 @@ filterwarnings = [
 ]
 pythonpath = [
   "../../../apps/core",
-  "../../../apps/marketing",
+  "../../../apps/dashboard",
   "../../../libs/eave-stdlib-py",
   "../../../libs/eave-tracing-core-py",
   "../../../libs/eave-tracing-python",

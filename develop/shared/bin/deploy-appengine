@@ -32,7 +32,7 @@ function deploy() (
 		# FIXME: Remove hardcoded status paths/services
 		statuspath="/status"
 		case "$service" in
-			api | www) statuspath="/status" ;;
+			api | dashboard) statuspath="/status" ;;
 			*) statuspath="/$service/status" ;;
 		esac
 

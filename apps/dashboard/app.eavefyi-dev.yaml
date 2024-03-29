@@ -1,16 +1,16 @@
 runtime: python311
-service: www
+service: dashboard
 
 entrypoint: |-
   gunicorn \
     --bind :$PORT \
     --pythonpath vendor \
     --workers 3 \
-    eave.marketing.app:app
+    eave.dashboard.app:app
 
 handlers:
   - url: /static
-    static_dir: eave/marketing/static
+    static_dir: eave/dashboard/static
 
   - url: /_ah/.*
     login: admin
@@ -33,6 +33,6 @@ vpc_access_connector:
 env_variables:
   EAVE_APPS_BASE_PUBLIC: https://apps.eave.dev
   EAVE_API_BASE_PUBLIC: https://api.eave.dev
-  EAVE_WWW_BASE_PUBLIC: https://www.eave.dev
+  EAVE_DASHBOARD_BASE_PUBLIC: https://dashboard.eave.dev
   EAVE_METABASE_BASE_PUBLIC: https://metabase.eave.dev
   LOG_LEVEL: "DEBUG"

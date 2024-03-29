@@ -10,5 +10,5 @@ cd "$(^parentpath)"
 "${EAVE_HOME}"/develop/javascript/_setup_base
 
 if ! ^ci; then
-	"${EAVE_HOME}"/develop/shared/bin/build-dotenv eave/marketing/config.py
+	"${EAVE_HOME}"/develop/shared/bin/build-dotenv eave/dashboard/config.py
 fi

@@ -78,8 +78,8 @@ export class EaveConfig {
     return this.eavePublicServiceBase(EaveApp.eave_api);
   }
 
-  get eavePublicWwwBase(): string {
-    return this.eavePublicServiceBase(EaveApp.eave_www);
+  get eavePublicDashboardBase(): string {
+    return this.eavePublicServiceBase(EaveApp.eave_dashboard);
   }
 
   eavePublicServiceBase(service: EaveApp): string {
@@ -91,8 +91,8 @@ export class EaveConfig {
     switch (service) {
       case EaveApp.eave_api:
         return process.env["EAVE_API_BASE"] || "https://api.eave.fyi";
-      case EaveApp.eave_www:
-        return process.env["EAVE_WWW_BASE"] || "https://www.eave.fyi";
+      case EaveApp.eave_dashboard:
+        return process.env["EAVE_DASHBOARD_BASE"] || "https://dashboard.eave.fyi";
       default:
         return this.eavePublicAppsBase;
     }
@@ -108,8 +108,8 @@ export class EaveConfig {
       switch (service) {
         case EaveApp.eave_api:
           return this.eavePublicApiBase;
-        case EaveApp.eave_www:
-          return this.eavePublicWwwBase;
+        case EaveApp.eave_dashboard:
+          return this.eavePublicDashboardBase;
         default:
           return this.eavePublicAppsBase;
       }
@@ -128,8 +128,8 @@ export class EaveConfig {
       return envv;
     }
 
-    const url = new URL(this.eavePublicWwwBase);
-    return url.hostname.replace(/^www/, "");
+    const url = new URL(this.eavePublicDashboardBase);
+    return url.hostname.replace(/^dashboard/, "");
   }
 
   async redisConnection(): Promise<

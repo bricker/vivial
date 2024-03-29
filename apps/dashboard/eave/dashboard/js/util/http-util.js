@@ -10,5 +10,5 @@ export function isHTTPError(httpResponse) {
  * Asynchronously logs the user out by redirecting to the logout page.
  */
 export function logUserOut() {
-  window.location.assign("/dashboard/logout");
+  window.location.assign("/logout");
 }

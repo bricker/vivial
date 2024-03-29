@@ -49,7 +49,7 @@ _SIGNING_KEYS = {
         version="1",
         algorithm=SigningAlgorithm.ES256,
     ),
-    EaveApp.eave_www.value: SigningKeyDetails(
+    EaveApp.eave_dashboard.value: SigningKeyDetails(
         id="eave-www-signing-key",
         version="1",
         algorithm=SigningAlgorithm.ES256,

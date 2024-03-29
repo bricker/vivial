@@ -4,7 +4,7 @@ locals {
   secrets = toset([
     "EAVE_API_BASE_PUBLIC",
     "EAVE_APPS_BASE_PUBLIC",
-    "EAVE_WWW_BASE_PUBLIC",
+    "EAVE_DASHBOARD_BASE_PUBLIC",
     "EAVE_DB_HOST",
     "EAVE_DB_NAME",
     "EAVE_DB_PASS",

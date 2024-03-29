@@ -32,7 +32,7 @@ const SIGNING_KEYS: { [key: string]: SigningKeyDetails } = {
     version: "1",
     algorithm: SigningAlgorithm.ES256,
   },
-  [EaveApp.eave_www]: {
+  [EaveApp.eave_dashboard]: {
     id: "eave-www-signing-key",
     version: "1",
     algorithm: SigningAlgorithm.ES256,

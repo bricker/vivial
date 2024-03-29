@@ -79,7 +79,7 @@ const replacementVerifyFunc = async (
 };
 
 export function mockSigning({ sandbox }: { sandbox: sinon.SinonSandbox }) {
-  const mock = new Signing("eave_www");
+  const mock = new Signing("eave_dashboard");
   sandbox.stub(Signing, "new").returns(mock);
   sandbox.stub(mock, "signBase64").callsFake(replacementSignFunc);
   sandbox
@@ -97,7 +97,7 @@ export async function makeRequest({
   headers,
   audience,
   method = "post",
-  origin = EaveApp.eave_www,
+  origin = EaveApp.eave_dashboard,
   requestId = uuidv4(),
 }: {
   app: express.Express;
