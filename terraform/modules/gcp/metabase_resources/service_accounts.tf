@@ -1,9 +1,3 @@
-variable "metabase_instances" {
-  type = set(string)
-}
-
-variable "project_id" { type = string }
-
 locals {
   metabase_roles = toset([
     "roles/cloudsql.client",

@@ -12,3 +12,8 @@
 #   id = "projects/eave-staging/regions/us-central1/subnetworks/default"
 #   to = google_compute_subnetwork.default
 # }
+
+import {
+  id = "projects/eave-staging/instances/metabase"
+  to = google_sql_database_instance.default
+}

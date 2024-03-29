@@ -48,31 +48,49 @@ module "gcp_gke" {
 module "ksa" {
   source = "../modules/gcp/ksa"
   project_id = local.project_id
-  apps = [
-    {
+  apps = {
+    "metabase-01": {
       id = "metabase-01"
       ksa = "metabase/ksa-metabase-01"
     },
-    {
+    "gsa-eave-core": {
       id = "gsa-eave-core"
       ksa = "eave/ksa-eave-core"
     },
-  ]
-  roles = [
-    {
+  }
+  roles = {
+    "roles/cloudsql.client": {
       role = "roles/cloudsql.client"
       apps = [
         "metabase-01"
       ]
     },
-    {
+    "roles/logging.logWriter": {
       role = "roles/logging.logWriter"
       apps = [
         "metabase-01"
       ]
     },
-  ]
+  }
 }
+
+# module "cloudsql_metabase" {
+#   source = "../modules/gcp/cloud_sql"
+#   project_id = local.project_id
+#   region = local.region
+#   instance_name = "metabase"
+#   instance_tier = ""
+#   instance_disk_type = ""
+#   instance_disk_size = ""
+#   instance_backup_enabled = ""
+#   instance_zone = ""
+#   project_id = ""
+# }
+
+# module "cloudsql_eave_core" {
+#   source = "../modules/gcp/cloud_sql"
+#   project_id = local.project_id
+# }
 
 module "metabase_resources" {
   source = "../modules/gcp/metabase_resources"

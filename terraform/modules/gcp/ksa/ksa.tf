@@ -1,12 +1,12 @@
 variable "apps" {
-  type = list(object({
+  type = map(object({
     id = string
     ksa = string
   }))
 }
 
 variable "roles" {
-  type = list(object({
+  type = map(object({
     role = string
     apps = list(string)
   }))
