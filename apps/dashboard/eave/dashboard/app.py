@@ -9,6 +9,7 @@ from flask import Flask, Response, make_response, redirect, render_template, req
 from werkzeug.wrappers import Response as BaseResponse
 
 import eave.stdlib.core_api.operations.account as account
+from eave.stdlib.core_api.operations.status import status_payload
 import eave.stdlib.core_api.operations.team as team
 import eave.stdlib.core_api.operations.virtual_event as virtual_event
 import eave.stdlib.logging
@@ -19,7 +20,7 @@ from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
 from eave.stdlib.core_api.models.virtual_event import VirtualEventQueryInput
 from eave.stdlib.core_api.operations.metabase_embedding_sso import MetabaseEmbeddingSSOOperation
-from eave.stdlib.endpoints import BaseResponseBody, status_payload
+from eave.stdlib.endpoints import BaseResponseBody
 from eave.stdlib.headers import MIME_TYPE_JSON
 from eave.stdlib.typing import JsonObject
 from eave.stdlib.util import ensure_uuid, unwrap

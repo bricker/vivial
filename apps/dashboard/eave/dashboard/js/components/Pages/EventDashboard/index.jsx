@@ -59,7 +59,7 @@ const EventDashboard = () => {
 
   return (
     <iframe
-      src="http://api.eave.run:8080/oauth/temp_metabase"
+      src="http://api.eave.run:8080/oauth/metabase"
       frameBorder="0"
       width="1280"
       height="600"

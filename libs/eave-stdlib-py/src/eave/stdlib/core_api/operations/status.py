@@ -1,4 +1,5 @@
 import aiohttp
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.endpoints import BaseResponseBody
 
 from . import CoreApiEndpoint, CoreApiEndpointConfiguration
@@ -31,3 +32,10 @@ class Status(CoreApiEndpoint):
             body = await cls.make_response(response, cls.ResponseBody)
 
         return body
+
+def status_payload() -> Status.ResponseBody:
+    return Status.ResponseBody(
+        service=SHARED_CONFIG.app_service,
+        version=SHARED_CONFIG.app_version,
+        status="OK",
+    )
