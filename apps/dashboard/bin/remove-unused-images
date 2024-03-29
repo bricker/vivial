@@ -9,7 +9,10 @@ ASSETS="$(ls "$ASSETS_PATH")"
 
 for image in $ASSETS; do
 	if ! grep -rq "$image" "$CODE_PATH" && ! grep -rq "$image" "$TEMPLATE_PATH"; then
-		echo "rm $image"
-		rm "$ASSETS_PATH/$image"
+		echo -n "remove $image? [y/n] "
+		read -r input
+		if test "$input" = "y"; then
+			rm "$ASSETS_PATH/$image"
+		fi
 	fi
 done

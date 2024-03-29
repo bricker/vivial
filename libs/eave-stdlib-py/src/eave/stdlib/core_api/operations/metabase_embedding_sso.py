@@ -15,9 +15,9 @@ class MetabaseEmbeddingSSOOperation(CoreApiEndpoint):
         path="/oauth/metabase",
         method="GET",
         auth_required=True,
-        signature_required=True,
-        origin_required=True,
-        team_id_required=True,
+        signature_required=False,
+        origin_required=False,
+        team_id_required=False,
     )
 
     class RequestBody(BaseRequestBody):
