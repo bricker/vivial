@@ -3,7 +3,7 @@ from eave.stdlib.eave_origins import EaveApp
 
 
 class _AppConfig(ConfigBase):
-    eave_origin = EaveApp.eave_www
+    eave_origin = EaveApp.eave_dashboard
 
 
-MARKETING_APP_CONFIG = _AppConfig()
+DASHBOARD_APP_CONFIG = _AppConfig()

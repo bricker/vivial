@@ -9,9 +9,9 @@ sys.path.append(".")
 load_dotenv("develop/shared/share.env", override=True)
 load_dotenv(".env", override=True)
 
-os.environ["GAE_SERVICE"] = "www"
+os.environ["GAE_SERVICE"] = "dashboard"
 
-from eave.marketing.app import app  # noqa: E402
+from eave.dashboard.app import app  # noqa: E402
 
 if __name__ == "__main__":
     app.run(

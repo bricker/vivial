@@ -33,8 +33,8 @@ from eave.stdlib.util import ensure_uuid
 from . import EAVE_ERROR_CODE_QP, EaveOnboardingErrorCode
 
 DEFAULT_TEAM_NAME = "Your Team"
-DEFAULT_REDIRECT_LOCATION = f"{SHARED_CONFIG.eave_public_www_base}/dashboard"
-SIGNUP_REDIRECT_LOCATION = f"{SHARED_CONFIG.eave_public_www_base}/signup"
+DEFAULT_REDIRECT_LOCATION = SHARED_CONFIG.eave_public_dashboard_base
+SIGNUP_REDIRECT_LOCATION = f"{SHARED_CONFIG.eave_public_dashboard_base}/signup"
 
 _GITHUB_INSTALLATION_FLOW_COOKIE_KEY = "ev_state_blob"
 
@@ -106,7 +106,7 @@ def is_error_response(response: Response) -> bool:
 
 
 def cancel_flow(response: Response) -> Response:
-    return set_redirect(response=response, location=SHARED_CONFIG.eave_public_www_base)
+    return set_redirect(response=response, location=SHARED_CONFIG.eave_public_dashboard_base)
 
 
 async def get_logged_in_eave_account(

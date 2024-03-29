@@ -2,9 +2,9 @@
 
 set -eu
 
-ASSETS_PATH="$EAVE_HOME/apps/marketing/eave/marketing/static/images"
-CODE_PATH="$EAVE_HOME/apps/marketing/eave/marketing/js"
-TEMPLATE_PATH="$EAVE_HOME/apps/marketing/eave/marketing/templates"
+ASSETS_PATH="$EAVE_HOME/apps/dashboard/eave/dashboard/static/images"
+CODE_PATH="$EAVE_HOME/apps/dashboard/eave/dashboard/js"
+TEMPLATE_PATH="$EAVE_HOME/apps/dashboard/eave/dashboard/templates"
 ASSETS="$(ls "$ASSETS_PATH")"
 
 for image in $ASSETS; do

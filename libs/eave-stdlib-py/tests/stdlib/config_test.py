@@ -13,8 +13,8 @@ class ConfigTest(UtilityBaseTestCase):
             == f"https://api-dot-{project}.uc.r.appspot.com"
         )
         assert (
-            SHARED_CONFIG.eave_internal_service_base(service=EaveApp.eave_www)
-            == f"https://www-dot-{project}.uc.r.appspot.com"
+            SHARED_CONFIG.eave_internal_service_base(service=EaveApp.eave_dashboard)
+            == f"https://dashboard-dot-{project}.uc.r.appspot.com"
         )
         assert (
             SHARED_CONFIG.eave_internal_service_base(service=EaveApp.eave_github_app)

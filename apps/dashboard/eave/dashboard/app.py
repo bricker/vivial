@@ -25,7 +25,7 @@ from eave.stdlib.typing import JsonObject
 from eave.stdlib.util import ensure_uuid, unwrap
 from eave.stdlib.utm_cookies import set_tracking_cookies
 
-from .config import MARKETING_APP_CONFIG
+from .config import DASHBOARD_APP_CONFIG
 
 eave.stdlib.time.set_utc()
 
@@ -58,7 +58,7 @@ def status() -> str:
 @app.route("/_ah/warmup", methods=["GET"])
 async def warmup() -> str:
     SHARED_CONFIG.preload()
-    MARKETING_APP_CONFIG.preload()
+    DASHBOARD_APP_CONFIG.preload()
     return "OK"
 
 
@@ -85,13 +85,13 @@ def _render_spa(**kwargs: Any) -> str:
     )
 
 
-@app.route("/dashboard/me", methods=["POST"])
+@app.route("/api/me", methods=["POST"])
 @_auth_handler
 async def get_user() -> Response:
     auth_cookies = _get_auth_cookies_or_exception()
 
     eave_response = await account.GetAuthenticatedAccount.perform(
-        origin=MARKETING_APP_CONFIG.eave_origin,
+        origin=DASHBOARD_APP_CONFIG.eave_origin,
         team_id=ensure_uuid(auth_cookies.team_id),
         account_id=ensure_uuid(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
@@ -100,7 +100,7 @@ async def get_user() -> Response:
     return _make_response(eave_response)
 
 
-@app.route("/dashboard/team/virtual-events", methods=["POST"])
+@app.route("/api/team/virtual-events", methods=["POST"])
 @_auth_handler
 async def get_virtual_events() -> Response:
     auth_cookies = _get_auth_cookies_or_exception()
@@ -109,7 +109,7 @@ async def get_virtual_events() -> Response:
     query_input: Optional[VirtualEventQueryInput] = body.get("query")
 
     eave_response = await virtual_event.GetVirtualEventsRequest.perform(
-        origin=MARKETING_APP_CONFIG.eave_origin,
+        origin=DASHBOARD_APP_CONFIG.eave_origin,
         team_id=ensure_uuid(auth_cookies.team_id),
         account_id=ensure_uuid(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
@@ -119,13 +119,13 @@ async def get_virtual_events() -> Response:
     return _make_response(eave_response)
 
 
-@app.route("/dashboard/team", methods=["POST"])
+@app.route("/api/team", methods=["POST"])
 @_auth_handler
 async def get_team() -> Response:
     auth_cookies = _get_auth_cookies_or_exception()
 
     eave_response = await team.GetTeamRequest.perform(
-        origin=MARKETING_APP_CONFIG.eave_origin,
+        origin=DASHBOARD_APP_CONFIG.eave_origin,
         team_id=unwrap(auth_cookies.team_id),
         account_id=ensure_uuid(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
@@ -141,7 +141,7 @@ async def embed_metabase() -> Response:
 
     resp = await MetabaseEmbeddingSSOOperation.perform(
         input=MetabaseEmbeddingSSOOperation.RequestBody(return_to=request.args.get("return_to")),
-        origin=MARKETING_APP_CONFIG.eave_origin,
+        origin=DASHBOARD_APP_CONFIG.eave_origin,
         team_id=unwrap(auth_cookies.team_id),
         account_id=ensure_uuid(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
@@ -150,9 +150,9 @@ async def embed_metabase() -> Response:
     return await _make_redirect_response(eave_response=resp)
 
 
-@app.route("/dashboard/logout", methods=["GET"])
+@app.route("/logout", methods=["GET"])
 async def logout() -> BaseResponse:
-    response = redirect(location=SHARED_CONFIG.eave_public_www_base, code=302)
+    response = redirect(location=SHARED_CONFIG.eave_public_dashboard_base, code=302)
     delete_auth_cookies(response=response)
     _delete_login_state_hint_cookie(response=response)
     return response
