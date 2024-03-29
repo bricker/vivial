@@ -32,24 +32,30 @@ module "gcp_project" {
   org_id          = local.org_id
 }
 
+module "gcp_networking" {
+  source = "../modules/gcp/networking"
+  project_id = local.project_id
+  region = local.region
+}
+
 module "gcp_gke" {
   source     = "../modules/gcp/gke"
   project_id = local.project_id
   region     = local.region
+  network = module.gcp_networking.default_network.name
+}
+
+module "metabase_resources" {
+  source = "../modules/gcp/metabase_resources"
+  project_id = local.project_id
+  metabase_instances = [
+    "metabase-01" # TODO: This needs to be more dynamic; currently we'll have to update this list for each new customer.
+  ]
 }
 
 # module "gcp_iam" {
 #   source     = "../modules/gcp/iam"
 #   project_id = local.project_id
-# }
-
-# resource "google_project_iam_binding" "bigquery_data_owner" {
-#   project = local.project_id
-#   role    = "roles/bigquery.dataOwner"
-
-#   members = [
-#     "domain:eave.fyi"
-#   ]
 # }
 
 # module "gcp_bigquery" {
