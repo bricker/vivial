@@ -15,8 +15,6 @@ modified from
  * https://github.com/matomo-org/matomo/js/piwik.js (BSD-3)
 */
 
-// Refer to README.md for build instructions when minifying this file for distribution. (YUICompressor)
-
 /*
  * Browser [In]Compatibility
  * - minimum required ECMAScript: ECMA-262, edition 3
@@ -2444,12 +2442,13 @@ if (typeof window.Matomo !== "object") {
         // visits will be created
         timeNextTrackingRequestCanBeExecutedImmediately = false,
         // Guard against installing the link tracker more than once per Tracker instance
-        linkTrackingInstalled = false,
+        clickListenerInstalled = false,
         linkTrackingEnabled = false,
         crossDomainTrackingEnabled = false,
         // Guard against installing route history tracker more than once per instance
-        routeHistoryTrackingInstalled = false,
         routeHistoryTrackingEnabled = false,
+        // Guard against installing button click tracker more than once per instance
+        buttonClickTrackingEnabled = false,
         // Guard against installing the activity tracker more than once per Tracker instance
         heartBeatSetUp = false,
         // bool used to detect whether this browser window had focus at least once. So far we cannot really
@@ -4649,27 +4648,32 @@ if (typeof window.Matomo !== "object") {
         return "link";
       }
 
-      function getSourceElement(sourceElement) {
-        var parentElement;
 
-        parentElement = sourceElement.parentNode;
-        while (
-          parentElement !== null &&
-          /* buggy IE5.5 */
-          isDefined(parentElement)
-        ) {
-          if (query.isLinkElement(sourceElement)) {
-            break;
-          }
-          sourceElement = parentElement;
-          parentElement = sourceElement.parentNode;
+      /** 
+       * Traverse up DOM from `target` to find node passing `isTargetNode` check 
+       * 
+       * @param {function (string) => boolean} isTargetNode check for matching html element nodeName
+       * @param {object} target DOM node to traverse from
+       * @return {object|undefined} the matching DOM node, if any
+       */
+      function getTargetNode(isTargetNode, target) {
+        var ignorePattern = getClassesRegExp(configIgnoreClasses, "ignore");
+        while (target && target.parentNode && !isTargetNode(target.nodeName) ) {
+          target = target.parentNode;
         }
 
-        return sourceElement;
+        if (
+          target &&
+          isTargetNode(target.nodeName) &&
+          !ignorePattern.test(target.className)
+        ) {
+          return target;
+        }
+        return undefined;
       }
 
       function getLinkIfShouldBeProcessed(sourceElement) {
-        sourceElement = getSourceElement(sourceElement);
+        sourceElement = getTargetNode(isLinkNode, sourceElement);
 
         if (!query.hasNodeAttribute(sourceElement, "href")) {
           return;
@@ -4678,8 +4682,6 @@ if (typeof window.Matomo !== "object") {
         if (!isDefined(sourceElement.href)) {
           return;
         }
-
-        var href = query.getAttributeValueFromNode(sourceElement, "href");
 
         var originalSourcePath =
           sourceElement.pathname || getPathName(sourceElement.href);
@@ -5252,9 +5254,9 @@ if (typeof window.Matomo !== "object") {
       }
 
       /*
-       * Process clicks
+       * Process clicks on link elements
        */
-      function processClick(sourceElement) {
+      function processLinkClick(sourceElement) {
         var link = getLinkIfShouldBeProcessed(sourceElement);
 
         // not a link to same domain or the same website (as set in setDomains())
@@ -5267,7 +5269,7 @@ if (typeof window.Matomo !== "object") {
         // a link to same domain or the same website (as set in setDomains())
         if (crossDomainTrackingEnabled) {
           // in case the clicked element is within the <a> (for example there is a <div> within the <a>) this will get the actual <a> link element
-          sourceElement = getSourceElement(sourceElement);
+          sourceElement = getTargetNode(isLinkNode, sourceElement);
 
           if (isLinkToDifferentDomainButSameMatomoWebsite(sourceElement)) {
             replaceHrefForCrossDomainLink(sourceElement);
@@ -5284,29 +5286,29 @@ if (typeof window.Matomo !== "object") {
         var which = event.which;
 
         /**
-                 1 : Left mouse button
-                 2 : Wheel button or middle button
-                 3 : Right mouse button
-                 */
+          1 : Left mouse button
+          2 : Wheel button or middle button
+          3 : Right mouse button
+          */
 
         var typeOfEventButton = typeof event.button;
 
         if (!which && typeOfEventButton !== "undefined") {
           /**
-                     -1: No button pressed
-                     0 : Main button pressed, usually the left button
-                     1 : Auxiliary button pressed, usually the wheel button or themiddle button (if present)
-                     2 : Secondary button pressed, usually the right button
-                     3 : Fourth button, typically the Browser Back button
-                     4 : Fifth button, typically the Browser Forward button
+           -1: No button pressed
+            0 : Main button pressed, usually the left button
+            1 : Auxiliary button pressed, usually the wheel button or themiddle button (if present)
+            2 : Secondary button pressed, usually the right button
+            3 : Fourth button, typically the Browser Back button
+            4 : Fifth button, typically the Browser Forward button
 
-                     IE8 and earlier has different values:
-                     1 : Left mouse button
-                     2 : Right mouse button
-                     4 : Wheel button or middle button
+            IE8 and earlier has different values:
+            1 : Left mouse button
+            2 : Right mouse button
+            4 : Wheel button or middle button
 
-                     For a left-hand configured mouse, the return values are reversed. We do not take care of that.
-                     */
+            For a left-hand configured mouse, the return values are reversed. We do not take care of that.
+            */
 
           if (isIE8orOlder()) {
             if (event.button & 1) {
@@ -5330,7 +5332,7 @@ if (typeof window.Matomo !== "object") {
         return which;
       }
 
-      function getNameOfClickedButton(event) {
+      function getNameOfClickedMouseButton(event) {
         switch (getKeyCodeFromEvent(event)) {
           case 1:
             return "left";
@@ -5345,42 +5347,77 @@ if (typeof window.Matomo !== "object") {
         return event.target || event.srcElement;
       }
 
-      function isClickNode(nodeName) {
+      function isLinkNode(nodeName) {
         return nodeName === "A" || nodeName === "AREA";
       }
 
-      /*
+      function isButtonNode(nodeName) {
+        return nodeName === "BUTTON";
+      }
+
+      /**
        * Handle click event
+       *
+       * @param {boolean} enable
        */
       function clickHandler(enable) {
-        function getLinkTarget(event) {
-          var target = getTargetElementFromEvent(event);
-          var nodeName = target.nodeName;
-          var ignorePattern = getClassesRegExp(configIgnoreClasses, "ignore");
+        /*
+        List of element tracking to check for in priority order.
+        This click handler will only fire 1 event per click, so higher
+        priority tracked elements should appear earlier in the list.
 
-          while (!isClickNode(nodeName) && target && target.parentNode) {
-            target = target.parentNode;
-            nodeName = target.nodeName;
-          }
+        e.g. 
+        linkTracking comes before buttonClickTracking.
+        Therefore, we expect clicking on the button element of
+        `<a href="#"><button>click!</button></a>`
+        Will trigger a link click event rather than a button click event.
+        */
+        var trackers = [
+          {trackingEnabled: linkTrackingEnabled, nodeFilter: isLinkNode, clickProcessor: processLinkClick },
+          {trackingEnabled: buttonClickTrackingEnabled, nodeFilter: isButtonNode, clickProcessor: processLinkClick }, // TODO: reimpl button processor
+        ];
+        var activeTracker;
 
-          if (
-            target &&
-            isClickNode(nodeName) &&
-            !ignorePattern.test(target.className)
-          ) {
-            return target;
+        /**
+         * From a click listener callback event, get a target element we
+         * are tracking, if any.
+         * 
+         * @param {*} event addEventListener callback param
+         */
+        function getClickTarget(event) {
+          var initialTarget = getTargetElementFromEvent(event);
+
+          /* 
+          loop over all enabled element trackers, returning the first
+          (aka highest priority) node found
+          */
+          var targetNode = undefined;
+          var i;
+          for (i = 0; i < trackers.length; i++) {
+            var targetTrackingEnabled = trackers[i].trackingEnabled;
+            var targetNodeFilter = trackers[i].nodeFilter;
+            if (targetTrackingEnabled) {
+              targetNode = getTargetNode(targetNodeFilter, initialTarget);
+              if (targetNode) {
+                // TODO: separate this side affect
+                activeTracker = trackers[i];
+                break;
+              }
+            }
           }
+          return targetNode;
         }
 
         return function (event) {
           event = event || windowAlias.event;
 
-          var target = getLinkTarget(event);
-          if (!target) {
+          var target = getClickTarget(event);
+          // we arent tracking the clicked element(s)
+          if (!target || !activeTracker) {
             return;
           }
 
-          var button = getNameOfClickedButton(event);
+          var button = getNameOfClickedMouseButton(event);
 
           if (event.type === "click") {
             var ignoreClick = false;
@@ -5393,7 +5430,7 @@ if (typeof window.Matomo !== "object") {
             }
 
             if (target && !ignoreClick) {
-              processClick(target);
+              activeTracker.clickProcessor(target);
             }
           } else if (event.type === "mousedown") {
             if (button === "middle" && target) {
@@ -5404,11 +5441,11 @@ if (typeof window.Matomo !== "object") {
             }
           } else if (event.type === "mouseup") {
             if (button === lastButton && target === lastTarget) {
-              processClick(target);
+              activeTracker.clickProcessor(target);
             }
             lastButton = lastTarget = null;
           } else if (event.type === "contextmenu") {
-            processClick(target);
+            activeTracker.clickProcessor(target);
           }
         };
       }
@@ -5704,7 +5741,7 @@ if (typeof window.Matomo !== "object") {
         isTrackOnlyVisibleContentEnabled = false;
       };
       this.disableLinkTracking = function () {
-        linkTrackingInstalled = false;
+        clickListenerInstalled = false;
         linkTrackingEnabled = false;
       };
 
@@ -7079,12 +7116,32 @@ if (typeof window.Matomo !== "object") {
 
         var self = this;
 
-        trackCallbackOnReady(function () {
-          linkTrackingInstalled = true;
+        if (!clickListenerInstalled) {
+          clickListenerInstalled = true;
+          trackCallbackOnReady(function () {
+            var element = documentAlias.body;
+            addClickListener(element, enable, true);
+          });
+        }
+      };
 
-          var element = documentAlias.body;
-          addClickListener(element, enable, true);
-        });
+      /**
+       * Track button element clicks
+       */
+      this.enableButtonClickTracking = function (enable) {
+        if (buttonClickTrackingEnabled) {
+          return;
+        }
+        buttonClickTrackingEnabled = true;
+
+        if (!clickListenerInstalled) {
+          clickListenerInstalled = true;
+          // TODO: change this??
+          trackCallbackOnReady(function () {
+            var element = documentAlias.body;
+            addClickListener(element, enable, true);
+          });
+        }
       };
 
       /**
@@ -7188,8 +7245,6 @@ if (typeof window.Matomo !== "object") {
         }
 
         trackCallbackOnReady(function () {
-          routeHistoryTrackingInstalled = true;
-
           var initialUrl = getCurrentUrl();
           var origin = parseUrl(initialUrl, "origin");
 
