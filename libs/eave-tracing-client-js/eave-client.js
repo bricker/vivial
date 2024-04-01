@@ -5253,7 +5253,16 @@ if (typeof window.Matomo !== "object") {
         return false;
       }
 
-      /*
+      /**
+       * Process clicks on button elements
+       */
+      function processButtonClick(sourceElement) {
+        // TODO improve data values passed...
+        // fire event
+        logEvent('button', 'click', 'button click', sourceElement.innerText, null, null);
+      }
+
+      /**
        * Process clicks on link elements
        */
       function processLinkClick(sourceElement) {
@@ -5373,8 +5382,8 @@ if (typeof window.Matomo !== "object") {
         Will trigger a link click event rather than a button click event.
         */
         var trackers = [
-          {trackingEnabled: linkTrackingEnabled, nodeFilter: isLinkNode, clickProcessor: processLinkClick },
-          {trackingEnabled: buttonClickTrackingEnabled, nodeFilter: isButtonNode, clickProcessor: processLinkClick }, // TODO: reimpl button processor
+          {trackingEnabled: function() { return linkTrackingEnabled; }, nodeFilter: isLinkNode, clickProcessor: processLinkClick },
+          {trackingEnabled: function() { return buttonClickTrackingEnabled; }, nodeFilter: isButtonNode, clickProcessor: processButtonClick },
         ];
         var activeTracker;
 
@@ -5394,7 +5403,7 @@ if (typeof window.Matomo !== "object") {
           var targetNode = undefined;
           var i;
           for (i = 0; i < trackers.length; i++) {
-            var targetTrackingEnabled = trackers[i].trackingEnabled;
+            var targetTrackingEnabled = trackers[i].trackingEnabled();
             var targetNodeFilter = trackers[i].nodeFilter;
             if (targetTrackingEnabled) {
               targetNode = getTargetNode(targetNodeFilter, initialTarget);
@@ -7136,7 +7145,6 @@ if (typeof window.Matomo !== "object") {
 
         if (!clickListenerInstalled) {
           clickListenerInstalled = true;
-          // TODO: change this??
           trackCallbackOnReady(function () {
             var element = documentAlias.body;
             addClickListener(element, enable, true);
