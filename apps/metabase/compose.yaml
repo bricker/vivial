@@ -6,8 +6,9 @@ services:
     volumes:
       - .pgdata:/var/lib/postgresql/data
     env_file:
-      - share.postgres.env
-      - .env
+      - path: share.postgres.env
+      - path: .env
+        required: false
 
   metabase:
     image: metabase/metabase-enterprise:latest
@@ -16,5 +17,6 @@ services:
     depends_on:
       - postgres
     env_file:
-      - share.metabase.env
-      - .env
+      - path: share.metabase.env
+      - path: .env
+        required: false

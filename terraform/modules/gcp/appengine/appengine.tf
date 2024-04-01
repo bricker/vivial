@@ -17,9 +17,9 @@ resource "google_app_engine_application" "app" {
   }
 }
 
-resource "google_app_engine_service_network_settings" "www" {
+resource "google_app_engine_service_network_settings" "dashboard" {
   project = var.project_id
-  service = "www"
+  service = "dashboard"
   network_settings {
     ingress_traffic_allowed = "INGRESS_TRAFFIC_ALLOWED_INTERNAL_AND_LB"
   }

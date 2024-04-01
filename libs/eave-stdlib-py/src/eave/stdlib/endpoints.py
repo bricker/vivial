@@ -1,20 +1,8 @@
 from typing import Generic, Optional, Type, TypeVar
 
 import aiohttp
-import eave.stdlib.core_api.operations.status as status
 import pydantic
 from eave.stdlib.eave_origins import EaveApp
-
-from .config import SHARED_CONFIG
-
-
-def status_payload() -> status.Status.ResponseBody:
-    return status.Status.ResponseBody(
-        service=SHARED_CONFIG.app_service,
-        version=SHARED_CONFIG.app_version,
-        status="OK",
-    )
-
 
 class EndpointConfiguration:
     base_url: str
@@ -57,10 +45,18 @@ class BaseRequestBody(pydantic.BaseModel):
 
 
 class BaseResponseBody(pydantic.BaseModel):
-    raw_response: Optional[aiohttp.ClientResponse] = None
+    _raw_response: Optional[aiohttp.ClientResponse] = None
 
     class Config:
         underscore_attrs_are_private = True
+
+    @property
+    def raw_response(self) -> Optional[aiohttp.ClientResponse]:
+        return self._raw_response
+
+    @raw_response.setter
+    def raw_response(self, value: Optional[aiohttp.ClientResponse]) -> None:
+        self._raw_response = value
 
     @property
     def cookies(self) -> dict[str, str] | None:

@@ -20,8 +20,8 @@ test("eaveInternalServiceBase for non-dev", (t) => {
     `https://api-dot-${project}.uc.r.appspot.com`,
   );
   t.is(
-    sharedConfig.eaveInternalServiceBase(EaveApp.eave_www),
-    `https://www-dot-${project}.uc.r.appspot.com`,
+    sharedConfig.eaveInternalServiceBase(EaveApp.eave_dashboard),
+    `https://dashboard-dot-${project}.uc.r.appspot.com`,
   );
   t.is(
     sharedConfig.eaveInternalServiceBase(EaveApp.eave_github_app),

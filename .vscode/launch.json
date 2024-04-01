@@ -27,9 +27,9 @@
       "console": "integratedTerminal"
     },
     {
-      "name": "Website (Flask)",
-      "consoleTitle": "Website (Flask)",
-      "cwd": "${workspaceFolder}/apps/marketing",
+      "name": "Dashboard (Flask)",
+      "consoleTitle": "Dashboard (Flask)",
+      "cwd": "${workspaceFolder}/apps/dashboard",
       "type": "python",
       "request": "launch",
       "program": "bin/src/start-dev-flask.py",
@@ -37,9 +37,9 @@
       "justMyCode": false,
     },
     {
-      "name": "Website (Webpack)",
-      "consoleTitle": "Website (Webpack)",
-      "cwd": "${workspaceFolder}/apps/marketing",
+      "name": "Dashboard (Webpack)",
+      "consoleTitle": "Dashboard (Webpack)",
+      "cwd": "${workspaceFolder}/apps/dashboard",
       "type": "node",
       "request": "launch",
       "program": "./node_modules/.bin/webpack",
@@ -68,19 +68,19 @@
   ],
   "compounds": [
     {
-      "name": "Website",
+      "name": "Dashboard",
       "configurations": [
-        "Website (Flask)",
-        "Website (Webpack)"
+        "Dashboard (Flask)",
+        "Dashboard (Webpack)"
       ],
       "stopAll": true
     },
     {
-      "name": "Core API + Website",
+      "name": "Core API + Dashboard",
       "configurations": [
         "Core API",
-        "Website (Flask)",
-        "Website (Webpack)",
+        "Dashboard (Flask)",
+        "Dashboard (Webpack)",
       ],
       "stopAll": true
     },

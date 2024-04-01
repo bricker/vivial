@@ -104,7 +104,7 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
         #     purpose=JWTPurpose.access,
         # )
 
-        # return_to = f"{SHARED_CONFIG.eave_public_www_base}/dashboard"
+        # return_to = SHARED_CONFIG.eave_public_dashboard_base
         # shared.set_redirect(
         #     response=self.response,
         #     location=f"http://metabase.eave.run:3000/auth/sso?jwt={jwt.signature}&return_to={return_to}"

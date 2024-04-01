@@ -169,7 +169,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             headers[EAVE_ORIGIN_HEADER] = origin.value
         else:
             if EAVE_ORIGIN_HEADER not in headers:
-                origin = eave.stdlib.eave_origins.EaveApp.eave_www
+                origin = eave.stdlib.eave_origins.EaveApp.eave_dashboard
                 headers[EAVE_ORIGIN_HEADER] = origin
 
         if request_id:
@@ -200,7 +200,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             request_args["content"] = encoded_payload
 
         if sign and EAVE_SIGNATURE_HEADER not in headers:
-            origin = origin or eave.stdlib.eave_origins.EaveApp.eave_www
+            origin = origin or eave.stdlib.eave_origins.EaveApp.eave_dashboard
             signature_message = eave.stdlib.signing.build_message_to_sign(
                 method=method,
                 path=path,

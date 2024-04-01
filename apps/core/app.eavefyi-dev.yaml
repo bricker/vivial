@@ -31,5 +31,5 @@ vpc_access_connector:
 env_variables:
   EAVE_APPS_BASE_PUBLIC: https://apps.eave.dev
   EAVE_API_BASE_PUBLIC: https://api.eave.dev
-  EAVE_WWW_BASE_PUBLIC: https://www.eave.dev
+  EAVE_DASHBOARD_BASE_PUBLIC: https://dashboard.eave.dev
   LOG_LEVEL: "DEBUG"

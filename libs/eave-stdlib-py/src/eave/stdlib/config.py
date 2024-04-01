@@ -117,8 +117,8 @@ class _EaveConfig(ConfigBase):
         return self.eave_public_service_base(EaveApp.eave_api)
 
     @property
-    def eave_public_www_base(self) -> str:
-        return self.eave_public_service_base(EaveApp.eave_www)
+    def eave_public_dashboard_base(self) -> str:
+        return self.eave_public_service_base(EaveApp.eave_dashboard)
 
     @property
     def eave_public_metabase_base(self) -> str:
@@ -129,15 +129,15 @@ class _EaveConfig(ConfigBase):
         if v := os.getenv(f"{sname}_BASE_PUBLIC"):
             return v
 
-        # EAVE_API_BASE, EAVE_WWW_BASE, and EAVE_APPS_BASE are deprecated.
+        # EAVE_API_BASE, EAVE_DASHBOARD_BASE, and EAVE_APPS_BASE are deprecated.
         # Use EAVE_*_BASE_PUBLIC instead.
-        # The `match` block here is mostly for the apps domain. The api and www cases shouldn't be reached
+        # The `match` block here is mostly for the apps domain. The api and dashboard cases shouldn't be reached
         # normally, but are here as fallbacks.
         match service:
             case EaveApp.eave_api:
                 return os.getenv("EAVE_API_BASE") or "https://api.eave.fyi"  # deprecated
-            case EaveApp.eave_www:
-                return os.getenv("EAVE_WWW_BASE") or "https://www.eave.fyi"  # deprecated
+            case EaveApp.eave_dashboard:
+                return os.getenv("EAVE_DASHBOARD_BASE") or "https://dashboard.eave.fyi"  # deprecated
             case _:
                 return self.eave_public_apps_base
 
@@ -158,8 +158,8 @@ class _EaveConfig(ConfigBase):
             match service:
                 case EaveApp.eave_api:
                     return self.eave_public_api_base
-                case EaveApp.eave_www:
-                    return self.eave_public_www_base
+                case EaveApp.eave_dashboard:
+                    return self.eave_public_dashboard_base
                 case _:
                     return self.eave_public_apps_base
         else:
@@ -174,9 +174,9 @@ class _EaveConfig(ConfigBase):
         if v := os.getenv("EAVE_COOKIE_DOMAIN"):
             return v
 
-        parsed = urlparse(self.eave_public_www_base)
-        host = parsed.hostname or "www.eave.fyi"
-        return re.sub("www", "", host)
+        parsed = urlparse(self.eave_public_dashboard_base)
+        host = parsed.hostname or "dashboard.eave.fyi"
+        return re.sub("dashboard", "", host)
 
     @cached_property
     def redis_connection(self) -> Optional[tuple[str, int, str]]:

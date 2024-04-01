@@ -37,10 +37,10 @@ eave_alembic
 # files specific to apps/slack
 /socketmode.py
 
-# files specific to apps/marketing
+# files specific to apps/dashboard
 webpack.config*
 # Because we pre-build everything, the whole JS source directory and dependencies aren't needed in production
-/eave/marketing/js
+/eave/dashboard/js
 
 
 # Local dependencies/builds are copied to these folders before pushing to App Engine.
