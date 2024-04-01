@@ -35,27 +35,27 @@ provider "google" {
 }
 
 module "gcp_project" {
-  source          = "../modules/gcp/project"
+  source          = "../../modules/gcp/project"
   project_id      = local.project_id
   billing_account = local.billing_account
   org_id          = local.org_id
 }
 
 # module "gcp_cloud_tasks" {
-#   source     = "../modules/gcp/cloud_tasks"
+#   source     = "../../modules/gcp/cloud_tasks"
 #   project_id = local.project_id
 #   region     = local.region
 # }
 
 # module "gcp_cloud_scheduler" {
-#   source             = "../modules/gcp/cloud_scheduler"
+#   source             = "../../modules/gcp/cloud_scheduler"
 #   project_id         = local.project_id
 #   region             = local.region
 #   cron_shared_secret = var.EAVE_GITHUB_APP_CRON_SECRET
 # }
 
 # module "gcp_monitoring" {
-#   source           = "../modules/gcp/monitoring"
+#   source           = "../../modules/gcp/monitoring"
 #   project_id       = local.project_id
 #   region           = local.region
 #   eave_domain_apex = local.eave_domain_apex
@@ -66,7 +66,7 @@ module "gcp_project" {
 # }
 
 # module "gcp_memorystore" {
-#   source     = "../modules/gcp/memorystore"
+#   source     = "../../modules/gcp/memorystore"
 #   project_id = local.project_id
 #   region     = local.region
 #   notification_channels = [

@@ -13,7 +13,7 @@
 #   to = google_compute_subnetwork.default
 # }
 
-import {
-  id = "projects/eave-staging/instances/metabase"
-  to = google_sql_database_instance.default
-}
+# import {
+#   id = "projects/eave-staging/instances/metabase"
+#   to = google_sql_database_instance.default
+# }
