@@ -48,23 +48,21 @@ provider "google" {
   zone    = local.zone
 }
 
-# https://cloud.google.com/docs/terraform/resource-management/store-state
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/storage_bucket
 resource "google_storage_bucket" "tfstate" {
-  name          = "tfstate"
+  name          = "tfstate.${local.project_id}.eave.fyi"
   project = local.project_id
   force_destroy = false
   location      = "US"
   storage_class = "STANDARD"
+  public_access_prevention = "enforced"
 
+  # logging {
+  #   log_bucket = "logs.${local.project_id}.eave.fyi"
+  # }
   versioning {
     enabled = true
   }
-  encryption {
-    default_kms_key_name = google_kms_crypto_key.terraform_state_bucket.id
-  }
-  depends_on = [
-    google_project_iam_member.default
-  ]
 }
 
 module "gcp_project" {
