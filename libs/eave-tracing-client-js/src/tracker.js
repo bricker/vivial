@@ -663,16 +663,16 @@ export function Tracker(trackerUrl, siteId) {
    * is supposed to be a tracking code install test.
    */
   function wasJsTrackingCodeInstallCheckParamProvided() {
-    if (global.ev.tracker.InstallCheckNonce && global.ev.tracker.InstallCheckNonce.length > 0) {
+    if (global.ev.trackerInstallCheckNonce && global.ev.trackerInstallCheckNonce.length > 0) {
       return true;
     }
 
-    global.ev.tracker.InstallCheckNonce = h.getUrlParameter(
+    global.ev.trackerInstallCheckNonce = h.getUrlParameter(
       global.ev.windowAlias.location.href,
       "tracker_install_check",
     );
 
-    return global.ev.tracker.InstallCheckNonce && global.ev.tracker.InstallCheckNonce.length > 0;
+    return global.ev.trackerInstallCheckNonce && global.ev.trackerInstallCheckNonce.length > 0;
   }
 
   /**
@@ -3128,7 +3128,6 @@ export function Tracker(trackerUrl, siteId) {
    * @param {boolean} enable
    */
   function clickHandler(enable) {
-    console.log('should shee this')
     /*
         List of element tracking to check for in priority order.
         This click handler will only fire 1 event per click, so higher
@@ -3189,7 +3188,6 @@ export function Tracker(trackerUrl, siteId) {
     }
 
     return function (event) {
-      console.log('clicked')
       event = event || global.ev.windowAlias.event;
 
       var target = getClickTarget(event);
@@ -3462,7 +3460,7 @@ export function Tracker(trackerUrl, siteId) {
     getContentImpressionsRequestsFromNodes;
   this.getCurrentlyVisibleContentImpressionsRequestsIfNotTrackedYet =
     getCurrentlyVisibleContentImpressionsRequestsIfNotTrackedYet;
-  this.h.trackCallbackOnLoad = h.trackCallbackOnLoad;
+  this.trackCallbackOnLoad = h.trackCallbackOnLoad;
   this.trackCallbackOnReady = h.trackCallbackOnReady;
   this.buildContentImpressionsRequests = buildContentImpressionsRequests;
   this.wasContentImpressionAlreadyTracked = wasContentImpressionAlreadyTracked;
