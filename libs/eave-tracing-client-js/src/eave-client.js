@@ -158,8 +158,8 @@ if (typeof window.eave !== "object") {
      ************************************************************/
 
     // initialize the eave singleton
-    addEventListener(global.ev.windowAlias, "beforeunload", h.beforeUnloadHandler, false);
-    addEventListener(
+    h.addEventListener(global.ev.windowAlias, "beforeunload", h.beforeUnloadHandler, false);
+    h.addEventListener(
       global.ev.windowAlias,
       "visibilitychange",
       function () {
@@ -174,7 +174,7 @@ if (typeof window.eave !== "object") {
       },
       false,
     );
-    addEventListener(
+    h.addEventListener(
       global.ev.windowAlias,
       "online",
       function () {
@@ -194,7 +194,7 @@ if (typeof window.eave !== "object") {
       false,
     );
 
-    addEventListener(
+    h.addEventListener(
       global.ev.windowAlias,
       "message",
       function (e) {
@@ -321,7 +321,7 @@ if (typeof window.eave !== "object") {
             useCapture = false;
           }
 
-          addEventListener(element, eventType, eventHandler, useCapture);
+          h.addEventListener(element, eventType, eventHandler, useCapture);
         },
         /**
          * Specify a function to execute when the DOM is fully loaded.

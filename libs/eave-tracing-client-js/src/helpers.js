@@ -293,8 +293,12 @@ export function executePluginMethod(methodName, params, callback) {
     value,
     isFunction;
 
-  for (i in plugins) {
-    if (Object.prototype.hasOwnProperty.call(plugins, i)) {
+  console.log('glabl:', global)
+  console.log('eave:', global.ev)
+  console.log('plugin:', global.ev.plugins)
+
+  for (i in global.ev.plugins) {
+    if (Object.prototype.hasOwnProperty.call(global.ev.plugins, i)) {
       isFunction = global.ev.plugins[i] && "function" === typeof global.ev.plugins[i][methodName];
 
       if (isFunction) {

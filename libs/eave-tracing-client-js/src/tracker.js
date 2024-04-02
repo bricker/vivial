@@ -33,7 +33,7 @@ export function Tracker(trackerUrl, siteId) {
       global.ev.windowAlias.location.href,
       h.getReferrer(),
     ),
-    domainAlias = h.h.domainFixup(locationArray[0]),
+    domainAlias = h.domainFixup(locationArray[0]),
     locationHrefAlias = h.safeDecodeWrapper(locationArray[1]),
     configReferrerUrl = h.safeDecodeWrapper(locationArray[2]),
     enableJSErrorTracking = false,
@@ -938,9 +938,9 @@ export function Tracker(trackerUrl, siteId) {
 
     heartBeatSetUp = true;
 
-    addEventListener(global.ev.windowAlias, "focus", heartBeatOnFocus);
-    addEventListener(global.ev.windowAlias, "blur", heartBeatOnBlur);
-    addEventListener(global.ev.windowAlias, "visibilitychange", heartBeatOnVisible);
+    h.addEventListener(global.ev.windowAlias, "focus", heartBeatOnFocus);
+    h.addEventListener(global.ev.windowAlias, "blur", heartBeatOnBlur);
+    h.addEventListener(global.ev.windowAlias, "visibilitychange", heartBeatOnVisible);
 
     // when using multiple trackers then we need to add this event for each tracker
     global.ev.coreHeartBeatCounter++;
@@ -2647,7 +2647,7 @@ export function Tracker(trackerUrl, siteId) {
       if (targetNode && !targetNode.contentInteractionTrackingSetupDone) {
         targetNode.contentInteractionTrackingSetupDone = true;
 
-        addEventListener(
+        h.addEventListener(
           targetNode,
           "click",
           trackContentImpressionClickInteraction(targetNode),
@@ -2908,7 +2908,7 @@ export function Tracker(trackerUrl, siteId) {
 
     if (isPreRendered) {
       // note: the event name doesn't follow the same naming convention as vendor properties
-      addEventListener(
+      h.addEventListener(
         global.ev.documentAlias,
         prefix + "visibilitychange",
         function ready() {
@@ -3045,7 +3045,7 @@ export function Tracker(trackerUrl, siteId) {
   }
 
   function isIE8orOlder() {
-    return global.ev.documentAlias.all && !global.ev.documentAlias.addEventListener;
+    return global.ev.documentAlias.all && !global.ev.documentAlias.h.addEventListener;
   }
 
   function getKeyCodeFromEvent(event) {
@@ -3128,6 +3128,7 @@ export function Tracker(trackerUrl, siteId) {
    * @param {boolean} enable
    */
   function clickHandler(enable) {
+    console.log('should shee this')
     /*
         List of element tracking to check for in priority order.
         This click handler will only fire 1 event per click, so higher
@@ -3161,7 +3162,7 @@ export function Tracker(trackerUrl, siteId) {
      * From a click listener callback event, get a target element we
      * are tracking, if any.
      *
-     * @param {*} event addEventListener callback param
+     * @param {*} event h.addEventListener callback param
      */
     function getClickTarget(event) {
       var initialTarget = getTargetElementFromEvent(event);
@@ -3188,6 +3189,7 @@ export function Tracker(trackerUrl, siteId) {
     }
 
     return function (event) {
+      console.log('clicked')
       event = event || global.ev.windowAlias.event;
 
       var target = getClickTarget(event);
@@ -3238,12 +3240,12 @@ export function Tracker(trackerUrl, siteId) {
       enable = true;
     }
 
-    addEventListener(element, "click", clickHandler(enable), useCapture);
+    h.addEventListener(element, "click", clickHandler(enable), useCapture);
 
     if (enable) {
-      addEventListener(element, "mouseup", clickHandler(enable), useCapture);
-      addEventListener(element, "mousedown", clickHandler(enable), useCapture);
-      addEventListener(
+      h.addEventListener(element, "mouseup", clickHandler(enable), useCapture);
+      h.addEventListener(element, "mousedown", clickHandler(enable), useCapture);
+      h.addEventListener(
         element,
         "contextmenu",
         clickHandler(enable),
@@ -3303,8 +3305,8 @@ export function Tracker(trackerUrl, siteId) {
         // execute event too often. otherwise FPS goes down a lot!
         events = ["scroll", "resize"];
         for (index = 0; index < events.length; index++) {
-          if (global.ev.documentAlias.addEventListener) {
-            global.ev.documentAlias.addEventListener(events[index], setDidScroll, false);
+          if (global.ev.documentAlias.h.addEventListener) {
+            global.ev.documentAlias.h.addEventListener(events[index], setDidScroll, false);
           } else {
             global.ev.windowAlias.attachEvent("on" + events[index], setDidScroll);
           }
@@ -5080,7 +5082,7 @@ export function Tracker(trackerUrl, siteId) {
       replaceHistoryMethod("replaceState");
       replaceHistoryMethod("pushState");
 
-      addEventListener(
+      h.addEventListener(
         global.ev.windowAlias,
         "hashchange",
         function (event) {
@@ -5089,7 +5091,7 @@ export function Tracker(trackerUrl, siteId) {
         },
         false,
       );
-      addEventListener(
+      h.addEventListener(
         global.ev.windowAlias,
         "popstate",
         function (event) {

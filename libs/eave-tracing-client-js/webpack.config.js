@@ -1,9 +1,9 @@
 const path = require('path');
 
 module.exports = {
-  mode: 'production',
+  mode: 'development',
   entry: {
-    index: './eave-client.js',
+    index: './src/eave-client.js',
   },
   output: {
     filename: 'eave-client.min.js',
