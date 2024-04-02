@@ -35,9 +35,9 @@ if (typeof _paq !== "object") {
   _paq = [];
 }
 
-// Matomo singleton and namespace
-if (typeof window.Matomo !== "object") {
-  window.Matomo = window.Piwik = (function () {
+// eave singleton and namespace
+if (typeof window.eave !== "object") {
+  window.eave = (function () {
     "use strict";
 
     /************************************************************
@@ -69,8 +69,8 @@ if (typeof window.Matomo !== "object") {
       asyncTrackers = [],
       /* iterator */
       iterator,
-      /* local Matomo */
-      Matomo,
+      /* local eave */
+      eave,
       missedPluginTrackerCalls = [],
       coreConsentCounter = 0,
       coreHeartBeatCounter = 0,
@@ -205,14 +205,14 @@ if (typeof window.Matomo !== "object") {
           f = fParts[1];
 
           if (
-            "object" === typeof Matomo[context] &&
-            "function" === typeof Matomo[context][f]
+            "object" === typeof eave[context] &&
+            "function" === typeof eave[context][f]
           ) {
-            Matomo[context][f].apply(Matomo[context], parameterArray);
+            eave[context][f].apply(eave[context], parameterArray);
           } else if (trackerCall) {
             // we try to call that method again later as the plugin might not be loaded yet
-            // a plugin can call "Matomo.retryMissedPluginCalls();" once it has been loaded and then the
-            // method call to "Matomo[context][f]" may be executed
+            // a plugin can call "eave.retryMissedPluginCalls();" once it has been loaded and then the
+            // method call to "eave[context][f]" may be executed
             missedPluginTrackerCalls.push(trackerCall);
           }
         } else {
@@ -240,7 +240,7 @@ if (typeof window.Matomo !== "object") {
                 var message =
                   "The method '" +
                   f +
-                  '\' was not found in "_paq" variable.  Please have a look at the Matomo tracker documentation: https://developer.matomo.org/api-reference/tracking-javascript';
+                  '\' was not found in "_paq" variable.  Please have a look at the eave tracker documentation: https://developer.matomo.org/api-reference/tracking-javascript';
                 logConsoleError(message);
 
                 if (!isPluginTrackerCall) {
@@ -1444,18 +1444,14 @@ if (typeof window.Matomo !== "object") {
 
     var content = {
       CONTENT_ATTR: "data-track-content",
-      CONTENT_CLASS: "matomoTrackContent",
-      LEGACY_CONTENT_CLASS: "piwikTrackContent",
+      CONTENT_CLASS: "eaveTrackContent",
       CONTENT_NAME_ATTR: "data-content-name",
       CONTENT_PIECE_ATTR: "data-content-piece",
-      CONTENT_PIECE_CLASS: "matomoContentPiece",
-      LEGACY_CONTENT_PIECE_CLASS: "piwikContentPiece",
+      CONTENT_PIECE_CLASS: "eaveContentPiece",
       CONTENT_TARGET_ATTR: "data-content-target",
-      CONTENT_TARGET_CLASS: "matomoContentTarget",
-      LEGACY_CONTENT_TARGET_CLASS: "piwikContentTarget",
+      CONTENT_TARGET_CLASS: "eaveContentTarget",
       CONTENT_IGNOREINTERACTION_ATTR: "data-content-ignoreinteraction",
-      CONTENT_IGNOREINTERACTION_CLASS: "matomoContentIgnoreInteraction",
-      LEGACY_CONTENT_IGNOREINTERACTION_CLASS: "piwikContentIgnoreInteraction",
+      CONTENT_IGNOREINTERACTION_CLASS: "eaveContentIgnoreInteraction",
       location: undefined,
 
       findContentNodes: function () {
@@ -2028,7 +2024,7 @@ if (typeof window.Matomo !== "object") {
      * Page Overlay
      ************************************************************/
 
-    function getMatomoUrlForOverlay(trackerUrl, apiUrl) {
+    function getEaveUrlForOverlay(trackerUrl, apiUrl) {
       if (apiUrl) {
         return apiUrl;
       }
@@ -2078,9 +2074,9 @@ if (typeof window.Matomo !== "object") {
      * {@internal side-effect: modifies window.name }}
      */
     function isOverlaySession(configTrackerSiteId) {
-      var windowName = "Matomo_Overlay";
+      var windowName = "eave_Overlay";
 
-      // check whether we were redirected from the matomo overlay plugin
+      // check whether we were redirected from the eave overlay plugin
       var referrerRegExp = new RegExp(
         "index\\.php\\?module=Overlay&action=startOverlaySession" +
           "&idSite=([0-9]+)&period=([^&]+)&date=([^&]+)(&segment=[^&]*)?",
@@ -2129,13 +2125,13 @@ if (typeof window.Matomo !== "object") {
         period = windowNameParts[1],
         date = windowNameParts[2],
         segment = windowNameParts[3],
-        matomoUrl = getMatomoUrlForOverlay(configTrackerUrl, configApiUrl);
+        eaveUrl = getEaveUrlForOverlay(configTrackerUrl, configApiUrl);
 
       loadScript(
-        matomoUrl + "plugins/Overlay/client/client.js?v=1",
+        eaveUrl + "plugins/Overlay/client/client.js?v=1",
         function () {
-          Matomo_Overlay_Client.initialize(
-            matomoUrl,
+          eave_Overlay_Client.initialize(
+            eaveUrl,
             configTrackerSiteId,
             period,
             date,
@@ -2176,7 +2172,7 @@ if (typeof window.Matomo !== "object") {
      ************************************************************/
 
     /*
-     * Matomo Tracker class
+     * eave Tracker class
      *
      * trackerUrl and trackerSiteId are optional arguments to the constructor
      *
@@ -2349,8 +2345,7 @@ if (typeof window.Matomo !== "object") {
         configCampaignNameParameters = [
           "pk_campaign",
           "mtm_campaign",
-          "piwik_campaign",
-          "matomo_campaign",
+          "eave_campaign",
           "utm_campaign",
           "utm_source",
           "utm_medium",
@@ -2359,8 +2354,7 @@ if (typeof window.Matomo !== "object") {
         configCampaignKeywordParameters = [
           "pk_kwd",
           "mtm_kwd",
-          "piwik_kwd",
-          "matomo_kwd",
+          "eave_kwd",
           "utm_term",
         ],
         // First-party cookie name prefix
@@ -2451,11 +2445,11 @@ if (typeof window.Matomo !== "object") {
         // Guard against installing the activity tracker more than once per Tracker instance
         heartBeatSetUp = false,
         // bool used to detect whether this browser window had focus at least once. So far we cannot really
-        // detect this 100% correct for an iframe so whenever Matomo is loaded inside an iframe we presume
+        // detect this 100% correct for an iframe so whenever eave is loaded inside an iframe we presume
         // the window had focus at least once.
         hadWindowFocusAtLeastOnce = isInsideAnIframe(),
         timeWindowLastFocused = null,
-        // Timestamp of last tracker request sent to Matomo
+        // Timestamp of last tracker request sent to eave
         lastTrackerRequestTime = null,
         // Internal state of the pseudo click handler
         lastButton,
@@ -2474,7 +2468,7 @@ if (typeof window.Matomo !== "object") {
         // whether requireConsent() was called or not
         configConsentRequired = false,
         // we always have the concept of consent. by default consent is assumed unless the end user removes it,
-        // or unless a matomo user explicitly requires consent (via requireConsent())
+        // or unless a eave user explicitly requires consent (via requireConsent())
         configHasConsent = null, // initialized below
         // holds all pending tracking requests that have not been tracked because we need consent
         consentRequestsQueue = [],
@@ -2593,7 +2587,7 @@ if (typeof window.Matomo !== "object") {
           }
         }
 
-        // we need to remove this parameter here, they wouldn't be removed in Matomo tracker otherwise eg
+        // we need to remove this parameter here, they wouldn't be removed in eave tracker otherwise eg
         // for outlinks or referrers
         url = removeUrlParameter(url, configVisitorIdUrlParameter);
 
@@ -2874,7 +2868,7 @@ if (typeof window.Matomo !== "object") {
       }
 
       /*
-       * Send image request to Matomo server using GET.
+       * Send image request to eave server using GET.
        * The infamous web bug (or beacon) is a transparent, single pixel (1x1) image
        */
       function getImage(request, callback) {
@@ -2974,7 +2968,7 @@ if (typeof window.Matomo !== "object") {
       }
 
       /*
-       * POST request to Matomo server using XMLHttpRequest.
+       * POST request to eave server using XMLHttpRequest.
        */
       function sendXmlHttpRequest(request, callback, fallbackToGet) {
         if (!isDefined(fallbackToGet) || null === fallbackToGet) {
@@ -3138,7 +3132,7 @@ if (typeof window.Matomo !== "object") {
 
         // when using multiple trackers then we need to add this event for each tracker
         coreHeartBeatCounter++;
-        Matomo.addPlugin("HeartBeat" + coreHeartBeatCounter, {
+        eave.addPlugin("HeartBeat" + coreHeartBeatCounter, {
           unload: function () {
             // we can't remove the unload plugin event when disabling heart beat timer but we at least
             // check if it is still enabled... note: when enabling heart beat, then disabling, then
@@ -3416,8 +3410,6 @@ if (typeof window.Matomo !== "object") {
        * Get cookie name with prefix and domain hash
        */
       function getCookieName(baseName) {
-        // NOTE: If the cookie name is changed, we must also update the MatomoTracker.php which
-        // will attempt to discover first party cookies. eg. See the PHP Client method getVisitorId()
         return (
           configCookieNamePrefix +
           baseName +
@@ -4215,7 +4207,7 @@ if (typeof window.Matomo !== "object") {
       }
 
       /**
-       * Returns the URL to call matomo.php,
+       * Returns the URL to send event to,
        * with the standard parameters (plugins, resolution, url, referrer, etc.).
        * Sends the pageview and browser settings with every request in case of race conditions.
        */
@@ -4251,7 +4243,7 @@ if (typeof window.Matomo !== "object") {
 
         // send charset if document charset is not utf-8. sometimes encoding
         // of urls will be the same as this and not utf-8, which will cause problems
-        // do not send charset if it is utf8 since it's assumed by default in Matomo
+        // do not send charset if it is utf8 since it's assumed by default in eave
         var charSet = documentAlias.characterSet || documentAlias.charset;
 
         if (!charSet || charSet.toLowerCase() === "utf-8") {
@@ -4589,7 +4581,7 @@ if (typeof window.Matomo !== "object") {
       function getClassesRegExp(configClasses, defaultClass) {
         var i,
           classesRegExp =
-            "(^| )(piwik[_-]" + defaultClass + "|matomo[_-]" + defaultClass;
+            "(^| )(eave[_-]" + defaultClass;
 
         if (configClasses) {
           for (i = 0; i < configClasses.length; i++) {
@@ -5216,7 +5208,7 @@ if (typeof window.Matomo !== "object") {
         query.setAnyAttribute(element, "href", link);
       }
 
-      function isLinkToDifferentDomainButSameMatomoWebsite(element) {
+      function isLinkToDifferentDomainButSameEaveWebsite(element) {
         var targetLink = query.getAttributeValueFromNode(element, "href");
 
         if (!targetLink) {
@@ -5279,7 +5271,7 @@ if (typeof window.Matomo !== "object") {
           // in case the clicked element is within the <a> (for example there is a <div> within the <a>) this will get the actual <a> link element
           sourceElement = getTargetNode(isLinkNode, sourceElement);
 
-          if (isLinkToDifferentDomainButSameMatomoWebsite(sourceElement)) {
+          if (isLinkToDifferentDomainButSameEaveWebsite(sourceElement)) {
             replaceHrefForCrossDomainLink(sourceElement);
           }
         }
@@ -5645,7 +5637,7 @@ if (typeof window.Matomo !== "object") {
           var trackerQueueId = "RequestQueue" + uniqueTrackerId;
           if (!Object.prototype.hasOwnProperty.call(plugins, trackerQueueId)) {
             // we setup one unload handler per tracker...
-            // Matomo.addPlugin might not be defined at this point, we add the plugin directly also to make
+            // eave.addPlugin might not be defined at this point, we add the plugin directly also to make
             // JSLint happy.
             plugins[trackerQueueId] = {
               unload: function () {
@@ -5822,7 +5814,7 @@ if (typeof window.Matomo !== "object") {
        * To access specific data point, you should use the other functions getAttributionReferrer* and getAttributionCampaign*
        *
        * @returns {Array} Attribution array, Example use:
-       *   1) Call windowAlias.JSON.stringify(matomoTracker.getAttributionInfo())
+       *   1) Call windowAlias.JSON.stringify(eaveTracker.getAttributionInfo())
        *   2) Pass this json encoded string to the Tracking API (php or java client): setAttributionInfo()
        */
       this.getAttributionInfo = function () {
@@ -5868,7 +5860,7 @@ if (typeof window.Matomo !== "object") {
       };
 
       /**
-       * Specify the Matomo tracking URL
+       * Specify the eave tracking URL
        *
        * @param {string} trackerUrl
        */
@@ -5877,7 +5869,7 @@ if (typeof window.Matomo !== "object") {
       };
 
       /**
-       * Returns the Matomo tracking URL
+       * Returns the eave tracking URL
        * @returns {string}
        */
       this.getTrackerUrl = function () {
@@ -5885,40 +5877,31 @@ if (typeof window.Matomo !== "object") {
       };
 
       /**
-       * Returns the Matomo server URL.
+       * Returns the eave server URL.
        *
        * @returns {string}
        */
-      this.getMatomoUrl = function () {
-        return getMatomoUrlForOverlay(this.getTrackerUrl(), configApiUrl);
+      this.getEaveUrl = function () {
+        return getEaveUrlForOverlay(this.getTrackerUrl(), configApiUrl);
       };
 
       /**
-       * Returns the Matomo server URL.
-       * @deprecated since Matomo 4.0.0 use `getMatomoUrl()` instead.
-       * @returns {string}
-       */
-      this.getPiwikUrl = function () {
-        return this.getMatomoUrl();
-      };
-
-      /**
-       * Adds a new tracker. All sent requests will be also sent to the given siteId and matomoUrl.
+       * Adds a new tracker. All sent requests will be also sent to the given siteId and eaveUrl.
        *
-       * @param {string} matomoUrl  The tracker URL of the current tracker instance
+       * @param {string} eaveUrl  The tracker URL of the current tracker instance
        * @param {int|string} siteId
        * @returns {Tracker}
        */
-      this.addTracker = function (matomoUrl, siteId) {
-        if (!isDefined(matomoUrl) || null === matomoUrl) {
-          matomoUrl = this.getTrackerUrl();
+      this.addTracker = function (eaveUrl, siteId) {
+        if (!isDefined(eaveUrl) || null === eaveUrl) {
+          eaveUrl = this.getTrackerUrl();
         }
 
-        var tracker = new Tracker(matomoUrl, siteId);
+        var tracker = new Tracker(eaveUrl, siteId);
 
         asyncTrackers.push(tracker);
 
-        Matomo.trigger("TrackerAdded", [this]);
+        eave.trigger("TrackerAdded", [this]);
 
         return tracker;
       };
@@ -6039,7 +6022,7 @@ if (typeof window.Matomo !== "object") {
       };
 
       /**
-       * Appends the specified query string to the matomo.php?... Tracking API URL
+       * Appends the specified query string to the Tracking API URL
        *
        * @param {string} queryString eg. 'lat=140&long=100'
        */
@@ -6049,7 +6032,7 @@ if (typeof window.Matomo !== "object") {
 
       /**
        * Returns the query string for the current HTTP Tracking API request.
-       * Matomo would prepend the hostname and path to Matomo: http://example.org/matomo/matomo.php?
+       * eave would prepend the hostname and path to eave: http://example.org/eave/api?
        * prior to sending the request.
        *
        * @param request eg. "param=value&param2=value2"
@@ -6295,12 +6278,12 @@ if (typeof window.Matomo !== "object") {
       };
 
       /**
-       * Set array of domains to be treated as local. Also supports path, eg '.matomo.org/subsite1'. In this
-       * case all links that don't go to '*.matomo.org/subsite1/ *' would be treated as outlinks.
-       * For example a link to 'matomo.org/' or 'matomo.org/subsite2' both would be treated as outlinks.
+       * Set array of domains to be treated as local. Also supports path, eg '.eave.org/subsite1'. In this
+       * case all links that don't go to '*.eave.org/subsite1/ *' would be treated as outlinks.
+       * For example a link to 'eave.org/' or 'eave.org/subsite2' both would be treated as outlinks.
        *
-       * Also supports page wildcard, eg 'matomo.org/index*'. In this case all links
-       * that don't go to matomo.org/index* would be treated as outlinks.
+       * Also supports page wildcard, eg 'eave.org/index*'. In this case all links
+       * that don't go to eave.org/index* would be treated as outlinks.
        *
        * The current domain will be added automatically if no given host alias contains a path and if no host
        * alias is already given for the current host alias. Say you are on "example.org" and set
@@ -6309,7 +6292,7 @@ if (typeof window.Matomo !== "object") {
        * it automatically if there was any other host specifying any path like
        * "['example.com', 'example2.com/test']". In this case we would also not add the current
        * domain "example.org" automatically as the "path" feature is used. As soon as someone uses the path
-       * feature, for Matomo JS Tracker to work correctly in all cases, one needs to specify all hosts
+       * feature, for eave JS Tracker to work correctly in all cases, one needs to specify all hosts
        * manually.
        *
        * @param {string|Array} hostsAlias
@@ -6339,20 +6322,20 @@ if (typeof window.Matomo !== "object") {
         // and if no host alias is already given for the current host alias.
         if (!hasDomainAliasAlready) {
           /**
-           * eg if domainAlias = 'matomo.org' and someone set hostsAlias = ['matomo.org/foo'] then we should
-           * not add matomo.org as it would increase the allowed scope.
+           * eg if domainAlias = 'eave.org' and someone set hostsAlias = ['eave.org/foo'] then we should
+           * not add eave.org as it would increase the allowed scope.
            */
           configHostsAlias.push(domainAlias);
         }
       };
 
       /**
-       * Set array of domains to be excluded as referrer. Also supports path, eg '.matomo.org/subsite1'. In this
-       * case all referrers that don't match '*.matomo.org/subsite1/ *' would still be used as referrer.
-       * For example 'matomo.org/' or 'matomo.org/subsite2' would both be used as referrer.
+       * Set array of domains to be excluded as referrer. Also supports path, eg '.eave.org/subsite1'. In this
+       * case all referrers that don't match '*.eave.org/subsite1/ *' would still be used as referrer.
+       * For example 'eave.org/' or 'eave.org/subsite2' would both be used as referrer.
        *
-       * Also supports page wildcard, eg 'matomo.org/index*'. In this case all referrers
-       * that don't match matomo.org/index* would still be treated as referrer.
+       * Also supports page wildcard, eg 'eave.org/index*'. In this case all referrers
+       * that don't match eave.org/index* would still be treated as referrer.
        *
        * Domains added with setDomains will automatically be excluded as referrers.
        *
@@ -6373,7 +6356,7 @@ if (typeof window.Matomo !== "object") {
        * current timestamp and the last 6 characters are an id based on the userAgent to identify the users device).
        * This way the current visitorId is forwarded to the page of the different domain.
        *
-       * On the different domain, the Matomo tracker will recognize the set visitorId from the URL parameter and
+       * On the different domain, the eave tracker will recognize the set visitorId from the URL parameter and
        * reuse this parameter if the page was loaded within 45 seconds. If cross domain linking was not enabled,
        * it would create a new visit on that page because we wouldn't be able to access the previously created
        * cookie. By enabling cross domain linking you can track several different domains into one website and
@@ -6422,7 +6405,7 @@ if (typeof window.Matomo !== "object") {
        *
        * Eg:
        *
-       * var url = 'http://myotherdomain.com/?' + matomoTracker.getCrossDomainLinkingUrlParameter();
+       * var url = 'http://myotherdomain.com/?' + eaveTracker.getCrossDomainLinkingUrlParameter();
        * $element.append('<a href="' + url + '"/>');
        */
       this.getCrossDomainLinkingUrlParameter = function () {
@@ -6472,16 +6455,6 @@ if (typeof window.Matomo !== "object") {
       this.setRequestContentType = function (requestContentType) {
         configRequestContentType =
           requestContentType || defaultRequestContentType;
-      };
-
-      /**
-       * Removed since Matomo 4
-       * @param generationTime
-       */
-      this.setGenerationTimeMs = function (generationTime) {
-        logConsoleError(
-          "setGenerationTimeMs is no longer supported since Matomo 4. The call will be ignored. The replacement is setPagePerformanceTiming.",
-        );
       };
 
       /**
@@ -6590,7 +6563,7 @@ if (typeof window.Matomo !== "object") {
       };
 
       /**
-       * Set the URL of the Matomo API. It is used for Page Overlay.
+       * Set the URL of the eave API. It is used for Page Overlay.
        * This method should only be called when the API URL differs from the tracker URL.
        *
        * @param {string} apiUrl
@@ -6641,17 +6614,6 @@ if (typeof window.Matomo !== "object") {
         configCampaignKeywordParameters = isString(campaignKeywords)
           ? [campaignKeywords]
           : campaignKeywords;
-      };
-
-      /**
-       * Strip hash tag (or anchor) from URL
-       * Note: this can be done in the Matomo>Settings>Websites on a per-website basis
-       *
-       * @deprecated
-       * @param {boolean} enableFilter
-       */
-      this.discardHashTag = function (enableFilter) {
-        configDiscardHashTag = enableFilter;
       };
 
       /**
@@ -6919,7 +6881,7 @@ if (typeof window.Matomo !== "object") {
             // sets attribution cookie, and updates visitorId in the backend
             // because hasSentTrackingRequestYet=true we assume there might not be another tracking
             // request within this page view so we trigger one ourselves.
-            // if no tracking request has been sent yet, we don't set the attribution cookie cause Matomo
+            // if no tracking request has been sent yet, we don't set the attribution cookie cause eave
             // sets the cookie only when there is a tracking request. It'll be set if the user sends
             // a tracking request afterwards
             var request = getRequest("ping=1", null, "ping");
@@ -7080,7 +7042,7 @@ if (typeof window.Matomo !== "object") {
 
       /**
        * Add click listener to a specific link element.
-       * When clicked, Matomo will log the click automatically.
+       * When clicked, eave will log the click automatically.
        *
        * @param {Element} element
        * @param {boolean} enable If false, do not use pseudo click-handler (middle click + context menu)
@@ -7092,7 +7054,7 @@ if (typeof window.Matomo !== "object") {
       /**
        * Install link tracker.
        *
-       * If you change the DOM of your website or web application Matomo will automatically detect links
+       * If you change the DOM of your website or web application eave will automatically detect links
        * that were added newly.
        *
        * The default behaviour is to use actual click events. However, some browsers
@@ -7405,7 +7367,7 @@ if (typeof window.Matomo !== "object") {
        *
        * Make sure not to overwrite the window.onerror handler after enabling the JS error
        * tracking as the error tracking won't work otherwise. To capture all JS errors we
-       * recommend to include the Matomo JavaScript tracker in the HTML as early as possible.
+       * recommend to include the eave JavaScript tracker in the HTML as early as possible.
        * If possible directly in <head></head> before loading any other JavaScript.
        */
       this.enableJSErrorTracking = function () {
@@ -7814,10 +7776,10 @@ if (typeof window.Matomo !== "object") {
        * By default we track interactions on click but sometimes you might want to track interactions yourself.
        * For instance you might want to track an interaction manually on a double click or a form submit.
        * Make sure to disable the automatic interaction tracking in this case by specifying either the CSS
-       * class `matomoContentIgnoreInteraction` or the attribute `data-content-ignoreinteraction`.
+       * class `eaveContentIgnoreInteraction` or the attribute `data-content-ignoreinteraction`.
        *
        * @param {Element} domNode  This element itself or any of its parent elements has to be a content block
-       *                         element. Meaning one of those has to have a `matomoTrackContent` CSS class or
+       *                         element. Meaning one of those has to have a `eaveTrackContent` CSS class or
        *                         a `data-track-content` attribute.
        * @param {string} [contentInteraction='Unknown] The name of the interaction that happened. For instance
        *                                             'click', 'formSubmit', 'DblClick', ...
@@ -7910,13 +7872,13 @@ if (typeof window.Matomo !== "object") {
        *
        * On a category page, you can set the parameter category, and set the other parameters to empty string or false
        *
-       * Tracking Product/Category page views will allow Matomo to report on Product & Categories
+       * Tracking Product/Category page views will allow eave to report on Product & Categories
        * conversion rates (Conversion rate = Ecommerce orders containing this product or category / Visits to the product or category)
        *
        * @param {string} sku Item's SKU code being viewed
        * @param {string} name Item's Name being viewed
        * @param {string} category Category page being viewed. On an Item's page, this is the item's category
-       * @param {float} price Item's display price, not use in standard Matomo reports, but output in API product reports.
+       * @param {float} price Item's display price, not use in standard eave reports, but output in API product reports.
        */
       this.setEcommerceView = function (sku, name, category, price) {
         ecommerceProductView = {};
@@ -8023,13 +7985,13 @@ if (typeof window.Matomo !== "object") {
       /**
        * Tracks an Ecommerce order.
        * If the Ecommerce order contains items (products), you must call first the addEcommerceItem() for each item in the order.
-       * All revenues (grandTotal, subTotal, tax, shipping, discount) will be individually summed and reported in Matomo reports.
+       * All revenues (grandTotal, subTotal, tax, shipping, discount) will be individually summed and reported in eave reports.
        * Parameters orderId and grandTotal are required. For others, you can set to false if you don't need to specify them.
        * After calling this method, items added to the cart will be removed from this JavaScript object.
        *
        * @param {string|int} orderId (required) Unique Order ID.
        *                   This will be used to count this order only once in the event the order page is reloaded several times.
-       *                   orderId must be unique for each transaction, even on different days, or the transaction will not be recorded by Matomo.
+       *                   orderId must be unique for each transaction, even on different days, or the transaction will not be recorded by eave.
        * @param {float} grandTotal (required) Grand Total revenue of the transaction (including tax, shipping, etc.)
        * @param {float} subTotal (optional) Sub total amount, typically the sum of items prices for all items in this order (before Tax and Shipping costs are applied)
        * @param {float} tax (optional) Tax amount for this order
@@ -8068,7 +8030,7 @@ if (typeof window.Matomo !== "object") {
 
       /**
        * Sends a tracking request with custom request parameters.
-       * Matomo will prepend the hostname and path to Matomo, as well as all other needed tracking request
+       * eave will prepend the hostname and path to eave, as well as all other needed tracking request
        * parameters prior to sending the request. Useful eg if you track custom dimensions via a plugin.
        *
        * @param request eg. "param=value&param2=value2"
@@ -8184,7 +8146,7 @@ if (typeof window.Matomo !== "object") {
       };
 
       /**
-       * When called, no tracking request will be sent to the Matomo server until you have called `setConsentGiven()`
+       * When called, no tracking request will be sent to the eave server until you have called `setConsentGiven()`
        * unless consent was given previously AND you called {@link rememberConsentGiven()} when the user gave their
        * consent.
        *
@@ -8210,7 +8172,7 @@ if (typeof window.Matomo !== "object") {
           // user might call `setConsentGiven` next
           configCookiesDisabled = true;
         }
-        // Matomo.addPlugin might not be defined at this point, we add the plugin directly also to make JSLint happy
+        // eave.addPlugin might not be defined at this point, we add the plugin directly also to make JSLint happy
         // We also want to make sure to define an unload listener for each tracker, not only one tracker.
         coreConsentCounter++;
         plugins["CoreConsent" + coreConsentCounter] = {
@@ -8386,9 +8348,9 @@ if (typeof window.Matomo !== "object") {
         }, 0);
       });
 
-      Matomo.trigger("TrackerSetup", [this]);
+      eave.trigger("TrackerSetup", [this]);
 
-      Matomo.addPlugin("TrackerVisitorIdCookie" + uniqueTrackerId, {
+      eave.addPlugin("TrackerVisitorIdCookie" + uniqueTrackerId, {
         // if no tracking request was sent we refresh the visitor id cookie on page unload
         unload: function () {
           if (supportsClientHints() && !clientHintsResolved) {
@@ -8443,7 +8405,7 @@ if (typeof window.Matomo !== "object") {
                 logConsoleError(
                   "The method " +
                     methodName +
-                    ' is registered more than once in "_paq" variable. Only the last call has an effect. Please have a look at the multiple Matomo trackers documentation: https://developer.matomo.org/guides/tracking-javascript-guide#multiple-piwik-trackers',
+                    ' is registered more than once in "_paq" variable. Only the last call has an effect. Please have a look at the multiple eave trackers documentation: https://developer.matomo.org/guides/tracking-javascript-guide#multiple-piwik-trackers',
                 );
               }
 
@@ -8495,8 +8457,8 @@ if (typeof window.Matomo !== "object") {
       "setExcludedReferrers",
     ];
 
-    function createFirstTracker(matomoUrl, siteId) {
-      var tracker = new Tracker(matomoUrl, siteId);
+    function createFirstTracker(eaveUrl, siteId) {
+      var tracker = new Tracker(eaveUrl, siteId);
       asyncTrackers.push(tracker);
 
       _paq = applyMethodsInOrder(_paq, applyFirst);
@@ -8511,7 +8473,7 @@ if (typeof window.Matomo !== "object") {
       // replace initialization array with proxy object
       _paq = new TrackerProxy();
 
-      Matomo.trigger("TrackerAdded", [tracker]);
+      eave.trigger("TrackerAdded", [tracker]);
 
       return tracker;
     }
@@ -8522,7 +8484,7 @@ if (typeof window.Matomo !== "object") {
      *   after the Tracker has been initialized and loaded
      ************************************************************/
 
-    // initialize the Matomo singleton
+    // initialize the eave singleton
     addEventListener(windowAlias, "beforeunload", beforeUnloadHandler, false);
     addEventListener(
       windowAlias,
@@ -8547,7 +8509,7 @@ if (typeof window.Matomo !== "object") {
           navigatorAlias.serviceWorker.ready.then(
             function (swRegistration) {
               if (swRegistration && swRegistration.sync) {
-                return swRegistration.sync.register("matomoSync");
+                return swRegistration.sync.register("eaveSync");
               }
             },
             function () {
@@ -8567,15 +8529,15 @@ if (typeof window.Matomo !== "object") {
           return;
         }
 
-        var tracker, i, matomoHost;
+        var tracker, i, eaveHost;
         var originHost = getHostName(e.origin);
 
-        var trackers = Matomo.getAsyncTrackers();
+        var trackers = eave.getAsyncTrackers();
         for (i = 0; i < trackers.length; i++) {
-          matomoHost = getHostName(trackers[i].getMatomoUrl());
+          eaveHost = getHostName(trackers[i].getEaveUrl());
 
           // find the matching tracker
-          if (matomoHost === originHost) {
+          if (eaveHost === originHost) {
             tracker = trackers[i];
             break;
           }
@@ -8627,12 +8589,12 @@ if (typeof window.Matomo !== "object") {
 
           postMessageToCorrectFrame({
             maq_opted_in: data.maq_initial_value && tracker.hasConsent(),
-            maq_url: tracker.getMatomoUrl(),
+            maq_url: tracker.getEaveUrl(),
             maq_optout_by_default: tracker.isConsentRequired(),
           });
         } else if (isDefined(data.maq_opted_in)) {
           // perform the opt in or opt out...
-          trackers = Matomo.getAsyncTrackers();
+          trackers = eave.getAsyncTrackers();
           for (i = 0; i < trackers.length; i++) {
             tracker = trackers[i];
             if (data.maq_opted_in) {
@@ -8645,7 +8607,7 @@ if (typeof window.Matomo !== "object") {
           // Make a message to tell the optout iframe about the current state
           postMessageToCorrectFrame({
             maq_confirm_opted_in: tracker.hasConsent(),
-            maq_url: tracker.getMatomoUrl(),
+            maq_url: tracker.getEaveUrl(),
             maq_optout_by_default: tracker.isConsentRequired(),
           });
         }
@@ -8659,7 +8621,7 @@ if (typeof window.Matomo !== "object") {
      * Public data and methods
      ************************************************************/
 
-    Matomo = {
+    eave = {
       initialized: false,
 
       JSON: windowAlias.JSON,
@@ -8784,19 +8746,19 @@ if (typeof window.Matomo !== "object") {
       /**
        * Get Tracker (factory method)
        *
-       * @param {string} matomoUrl
+       * @param {string} eaveUrl
        * @param {int|string} siteId
        * @returns {Tracker}
        */
-      getTracker: function (matomoUrl, siteId) {
+      getTracker: function (eaveUrl, siteId) {
         if (!isDefined(siteId)) {
           siteId = this.getAsyncTracker().getSiteId();
         }
-        if (!isDefined(matomoUrl)) {
-          matomoUrl = this.getAsyncTracker().getTrackerUrl();
+        if (!isDefined(eaveUrl)) {
+          eaveUrl = this.getAsyncTracker().getTrackerUrl();
         }
 
-        return new Tracker(matomoUrl, siteId);
+        return new Tracker(eaveUrl, siteId);
       },
 
       /**
@@ -8809,19 +8771,19 @@ if (typeof window.Matomo !== "object") {
       },
 
       /**
-       * Adds a new tracker. All sent requests will be also sent to the given siteId and matomoUrl.
-       * If matomoUrl is not set, current url will be used.
+       * Adds a new tracker. All sent requests will be also sent to the given siteId and eaveUrl.
+       * If eaveUrl is not set, current url will be used.
        *
-       * @param {null|string} matomoUrl  If null, will reuse the same tracker URL of the current tracker instance
+       * @param {null|string} eaveUrl  If null, will reuse the same tracker URL of the current tracker instance
        * @param {int|string} siteId
        * @returns {Tracker}
        */
-      addTracker: function (matomoUrl, siteId) {
+      addTracker: function (eaveUrl, siteId) {
         var tracker;
         if (!asyncTrackers.length) {
-          tracker = createFirstTracker(matomoUrl, siteId);
+          tracker = createFirstTracker(eaveUrl, siteId);
         } else {
-          tracker = asyncTrackers[0].addTracker(matomoUrl, siteId);
+          tracker = asyncTrackers[0].addTracker(eaveUrl, siteId);
         }
         return tracker;
       },
@@ -8829,22 +8791,22 @@ if (typeof window.Matomo !== "object") {
       /**
        * Get internal asynchronous tracker object.
        *
-       * If no parameters are given, it returns the internal asynchronous tracker object. If a matomoUrl and idSite
+       * If no parameters are given, it returns the internal asynchronous tracker object. If a eaveUrl and idSite
        * is given, it will try to find an optional
        *
-       * @param {string} matomoUrl
+       * @param {string} eaveUrl
        * @param {int|string} siteId
        * @returns {Tracker}
        */
-      getAsyncTracker: function (matomoUrl, siteId) {
+      getAsyncTracker: function (eaveUrl, siteId) {
         var firstTracker;
         if (asyncTrackers && asyncTrackers.length && asyncTrackers[0]) {
           firstTracker = asyncTrackers[0];
         } else {
-          return createFirstTracker(matomoUrl, siteId);
+          return createFirstTracker(eaveUrl, siteId);
         }
 
-        if (!siteId && !matomoUrl) {
+        if (!siteId && !eaveUrl) {
           // for BC and by default we just return the initially created tracker
           return firstTracker;
         }
@@ -8854,8 +8816,8 @@ if (typeof window.Matomo !== "object") {
           siteId = firstTracker.getSiteId();
         }
 
-        if ((!isDefined(matomoUrl) || null === matomoUrl) && firstTracker) {
-          matomoUrl = firstTracker.getTrackerUrl();
+        if ((!isDefined(eaveUrl) || null === eaveUrl) && firstTracker) {
+          eaveUrl = firstTracker.getTrackerUrl();
         }
 
         var tracker,
@@ -8865,7 +8827,7 @@ if (typeof window.Matomo !== "object") {
           if (
             tracker &&
             String(tracker.getSiteId()) === String(siteId) &&
-            tracker.getTrackerUrl() === matomoUrl
+            tracker.getTrackerUrl() === eaveUrl
           ) {
             return tracker;
           }
@@ -8873,11 +8835,12 @@ if (typeof window.Matomo !== "object") {
       },
 
       /**
+       * NOTE: not sure if this is relevant since matomo fork
        * When calling plugin methods via "_paq.push(['...'])" and the plugin is loaded separately because
-       * matomo.js is not writable then there is a chance that first matomo.js is loaded and later the plugin.
+       * eave.js is not writable then there is a chance that first eave.js is loaded and later the plugin.
        * In this case we would have already executed all "_paq.push" methods and they would not have succeeded
        * because the plugin will be loaded only later. In this case, once a plugin is loaded, it should call
-       * "Matomo.retryMissedPluginCalls()" so they will be executed after all.
+       * "eave.retryMissedPluginCalls()" so they will be executed after all.
        */
       retryMissedPluginCalls: function () {
         var missedCalls = missedPluginTrackerCalls;
@@ -8889,17 +8852,14 @@ if (typeof window.Matomo !== "object") {
       },
     };
 
-    // Expose Matomo as an AMD module
+    // Expose eave as an AMD module
     if (typeof define === "function" && define.amd) {
-      define("piwik", [], function () {
-        return Matomo;
-      });
-      define("matomo", [], function () {
-        return Matomo;
+      define("eave", [], function () {
+        return eave;
       });
     }
 
-    return Matomo;
+    return eave;
   })();
 }
 
@@ -8923,31 +8883,27 @@ if (typeof window.Matomo !== "object") {
 
   if (
     window &&
-    "object" === typeof window.matomoPluginAsyncInit &&
-    window.matomoPluginAsyncInit.length
+    "object" === typeof window.eavePluginAsyncInit &&
+    window.eavePluginAsyncInit.length
   ) {
     var i = 0;
-    for (i; i < window.matomoPluginAsyncInit.length; i++) {
-      if (typeof window.matomoPluginAsyncInit[i] === "function") {
-        window.matomoPluginAsyncInit[i]();
+    for (i; i < window.eavePluginAsyncInit.length; i++) {
+      if (typeof window.eavePluginAsyncInit[i] === "function") {
+        window.eavePluginAsyncInit[i]();
       }
     }
   }
 
-  if (window && window.piwikAsyncInit) {
-    window.piwikAsyncInit();
+  if (window && window.eaveAsyncInit) {
+    window.eaveAsyncInit();
   }
 
-  if (window && window.matomoAsyncInit) {
-    window.matomoAsyncInit();
-  }
-
-  if (!window.Matomo.getAsyncTrackers().length) {
-    // we only create an initial tracker when no other async tracker has been created yet in matomoAsyncInit()
+  if (!window.eave.getAsyncTrackers().length) {
+    // we only create an initial tracker when no other async tracker has been created yet in eaveAsyncInit()
     if (hasPaqConfiguration()) {
       // we only create an initial tracker if there is a configuration for it via _paq. Otherwise
-      // Matomo.getAsyncTrackers() would return unconfigured trackers
-      window.Matomo.addTracker();
+      // eave.getAsyncTrackers() would return unconfigured trackers
+      window.eave.addTracker();
     } else {
       _paq = {
         push: function (args) {
@@ -8955,7 +8911,7 @@ if (typeof window.Matomo !== "object") {
           var consoleType = typeof console;
           if (consoleType !== "undefined" && console && console.error) {
             console.error(
-              "_paq.push() was used but Matomo tracker was not initialized before the matomo.js file was loaded. Make sure to configure the tracker via _paq.push before loading matomo.js. Alternatively, you can create a tracker via Matomo.addTracker() manually and then use _paq.push but it may not fully work as tracker methods may not be executed in the correct order.",
+              "_paq.push() was used but eave tracker was not initialized before the eave.js file was loaded. Make sure to configure the tracker via _paq.push before loading eave.js. Alternatively, you can create a tracker via eave.addTracker() manually and then use _paq.push but it may not fully work as tracker methods may not be executed in the correct order.",
               args,
             );
           }
@@ -8964,15 +8920,15 @@ if (typeof window.Matomo !== "object") {
     }
   }
 
-  window.Matomo.trigger("MatomoInitialized", []);
-  window.Matomo.initialized = true;
+  window.eave.trigger("eaveInitialized", []);
+  window.eave.initialized = true;
 })();
 
 /*jslint sloppy: true */
 (function () {
   var jsTrackerType = typeof window.AnalyticsTracker;
   if (jsTrackerType === "undefined") {
-    window.AnalyticsTracker = window.Matomo;
+    window.AnalyticsTracker = window.eave;
   }
 })();
 /*jslint sloppy: false */
