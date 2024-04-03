@@ -35,11 +35,11 @@ const App = () => {
                 path="/signup"
                 element={<AuthenticationPage type="signup" />}
               />
-              {/*
+
               <Route
                 path="/login"
                 element={<AuthenticationPage type="login" />}
-              />*/}
+              />
               <Route path="/" element={<EventDashboard />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
