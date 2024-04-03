@@ -4,10 +4,9 @@ A JS file to include in any web page to collect user actions on the client.
 
 ## Notes
 
-This JS code was written to be ES3 compatibile AT MOST to maximize support of old browsers.
-So be sure to check browser compatibility of any language features or functions you want to
-introduce to the code. Please try to keep the compatibility comment in `eave-client.js`
-up to date.
+The original Matomo JS code was written to be ES3 compatibile AT MOST to maximize support of old browsers.
+Webpack+Babel is currently configured to transpile all code to ES5 for browser compatibility, so it should be
+possible to make use of ES6 features if you like.
 
 ## Dev
 
@@ -22,6 +21,39 @@ node echoserv.js
 ```
 
 Then nav to [dummy site](http://localhost:4000/bestfileever.html) to test events
+
+### Adding new tracking events
+
+You'll need to add a new member function to the Tracker "class" in `tracker.js` that
+calls the `logEvent()` function (or one of the other `log*` functions defined in it) on some action.
+You'll probably want to add some private globals to Tracker as well to ensure adding
+the event listeners is idempotent.
+
+e.g.
+
+```js
+this.enableButtonClickTracking = function (enable) {
+  if (buttonClickTrackingEnabled) {
+    return;
+  }
+  buttonClickTrackingEnabled = true;
+
+  if (!clickListenerInstalled) {
+    clickListenerInstalled = true;
+    h.trackCallbackOnReady(function () {
+      var element = global.ev.documentAlias.body;
+      addClickListener(element, enable, true);
+    });
+  }
+};
+```
+
+Then push the name of the function you created onto the `_paq` list in `globals.js`
+to apply your new tracking function it when the script is loaded in the browser.
+
+```js
+_paq.push(["name of your function"])
+```
 
 ## Build
 
