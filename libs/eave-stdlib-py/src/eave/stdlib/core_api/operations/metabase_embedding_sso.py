@@ -43,5 +43,5 @@ class MetabaseEmbeddingSSOOperation(CoreApiEndpoint):
         )
 
         resp = BaseResponseBody()
-        resp.raw_response = response
+        resp.set_raw_response(response)
         return resp
