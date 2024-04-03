@@ -1,7 +1,7 @@
-import query from './query.js';
-import content from './content.js'
-import { isVisible } from './visibility.js';
-import * as h from './helpers.js';
+import content from "./content.js";
+import * as h from "./helpers.js";
+import query from "./query.js";
+import { isVisible } from "./visibility.js";
 
 /*
  * eave Tracker class
@@ -445,7 +445,9 @@ export function Tracker(trackerUrl, siteId) {
     }
 
     if (url.slice(0, 1) === "/") {
-      return h.getProtocolScheme(baseUrl) + "://" + h.getHostName(baseUrl) + url;
+      return (
+        h.getProtocolScheme(baseUrl) + "://" + h.getHostName(baseUrl) + url
+      );
     }
 
     baseUrl = purify(baseUrl);
@@ -663,7 +665,10 @@ export function Tracker(trackerUrl, siteId) {
    * is supposed to be a tracking code install test.
    */
   function wasJsTrackingCodeInstallCheckParamProvided() {
-    if (global.ev.trackerInstallCheckNonce && global.ev.trackerInstallCheckNonce.length > 0) {
+    if (
+      global.ev.trackerInstallCheckNonce &&
+      global.ev.trackerInstallCheckNonce.length > 0
+    ) {
       return true;
     }
 
@@ -672,7 +677,10 @@ export function Tracker(trackerUrl, siteId) {
       "tracker_install_check",
     );
 
-    return global.ev.trackerInstallCheckNonce && global.ev.trackerInstallCheckNonce.length > 0;
+    return (
+      global.ev.trackerInstallCheckNonce &&
+      global.ev.trackerInstallCheckNonce.length > 0
+    );
   }
 
   /**
@@ -680,7 +688,10 @@ export function Tracker(trackerUrl, siteId) {
    */
   function closeWindowIfJsTrackingCodeInstallCheck() {
     // If the query parameter indicating this is a test exists
-    if (wasJsTrackingCodeInstallCheckParamProvided() && h.isObject(global.ev.windowAlias)) {
+    if (
+      wasJsTrackingCodeInstallCheckParamProvided() &&
+      h.isObject(global.ev.windowAlias)
+    ) {
       global.ev.windowAlias.close();
     }
   }
@@ -824,7 +835,7 @@ export function Tracker(trackerUrl, siteId) {
         var xhr = global.ev.windowAlias.XMLHttpRequest
           ? new global.ev.windowAlias.XMLHttpRequest()
           : global.ev.windowAlias.ActiveXObject
-          ? new ActiveXObject("Microsoft.XMLHTTP")
+          ? new global.ev.windowAlias.ActiveXObject("Microsoft.XMLHTTP")
           : null;
 
         xhr.open("POST", configTrackerUrl, true);
@@ -940,7 +951,11 @@ export function Tracker(trackerUrl, siteId) {
 
     h.addEventListener(global.ev.windowAlias, "focus", heartBeatOnFocus);
     h.addEventListener(global.ev.windowAlias, "blur", heartBeatOnBlur);
-    h.addEventListener(global.ev.windowAlias, "visibilitychange", heartBeatOnVisible);
+    h.addEventListener(
+      global.ev.windowAlias,
+      "visibilitychange",
+      heartBeatOnVisible,
+    );
 
     // when using multiple trackers then we need to add this event for each tracker
     global.ev.coreHeartBeatCounter++;
@@ -1019,7 +1034,10 @@ export function Tracker(trackerUrl, siteId) {
 
     if (clientHints) {
       appendix =
-        "&uadata=" + global.ev.encodeWrapper(global.ev.windowAlias.JSON.stringify(clientHints));
+        "&uadata=" +
+        global.ev.encodeWrapper(
+          global.ev.windowAlias.JSON.stringify(clientHints),
+        );
     }
 
     if (request instanceof Array) {
@@ -1332,7 +1350,10 @@ export function Tracker(trackerUrl, siteId) {
     // detect browser features except IE < 11 (IE 11 user agent is no longer MSIE)
     if (!new RegExp("MSIE").test(global.ev.navigatorAlias.userAgent)) {
       // general plugin detection
-      if (global.ev.navigatorAlias.mimeTypes && global.ev.navigatorAlias.mimeTypes.length) {
+      if (
+        global.ev.navigatorAlias.mimeTypes &&
+        global.ev.navigatorAlias.mimeTypes.length
+      ) {
         for (i in pluginMap) {
           if (Object.prototype.hasOwnProperty.call(pluginMap, i)) {
             mimeType = global.ev.navigatorAlias.mimeTypes[pluginMap[i]];
@@ -1345,7 +1366,9 @@ export function Tracker(trackerUrl, siteId) {
       // IE6/IE7 navigator.javaEnabled can't be aliased, so test directly
       // on Edge navigator.javaEnabled() always returns `true`, so ignore it
       if (
-        !new RegExp("Edge[ /](\\d+[\\.\\d]+)").test(global.ev.navigatorAlias.userAgent) &&
+        !new RegExp("Edge[ /](\\d+[\\.\\d]+)").test(
+          global.ev.navigatorAlias.userAgent,
+        ) &&
         typeof navigator.javaEnabled !== "undefined" &&
         h.isDefined(global.ev.navigatorAlias.javaEnabled) &&
         global.ev.navigatorAlias.javaEnabled()
@@ -1357,7 +1380,9 @@ export function Tracker(trackerUrl, siteId) {
         !h.isDefined(global.ev.windowAlias.showModalDialog) &&
         h.isDefined(global.ev.navigatorAlias.cookieEnabled)
       ) {
-        browserFeatures.cookie = global.ev.navigatorAlias.cookieEnabled ? "1" : "0";
+        browserFeatures.cookie = global.ev.navigatorAlias.cookieEnabled
+          ? "1"
+          : "0";
       } else {
         // Eg IE11 ... prevent error when cookieEnabled is requested within modal dialog. see #11507
         browserFeatures.cookie = hasCookies();
@@ -1755,7 +1780,8 @@ export function Tracker(trackerUrl, siteId) {
     }
 
     var performanceData =
-      typeof global.ev.performanceAlias.timing === "object" && global.ev.performanceAlias.timing
+      typeof global.ev.performanceAlias.timing === "object" &&
+      global.ev.performanceAlias.timing
         ? global.ev.performanceAlias.timing
         : undefined;
 
@@ -2028,7 +2054,8 @@ export function Tracker(trackerUrl, siteId) {
     var fileRegex = new RegExp("^file://", "i");
     if (
       !configFileTracking &&
-      (global.ev.windowAlias.location.protocol === "file:" || fileRegex.test(currentUrl))
+      (global.ev.windowAlias.location.protocol === "file:" ||
+        fileRegex.test(currentUrl))
     ) {
       return "";
     }
@@ -2041,7 +2068,8 @@ export function Tracker(trackerUrl, siteId) {
     // send charset if document charset is not utf-8. sometimes encoding
     // of urls will be the same as this and not utf-8, which will cause problems
     // do not send charset if it is utf8 since it's assumed by default in eave
-    var charSet = global.ev.documentAlias.characterSet || global.ev.documentAlias.charset;
+    var charSet =
+      global.ev.documentAlias.characterSet || global.ev.documentAlias.charset;
 
     if (!charSet || charSet.toLowerCase() === "utf-8") {
       charSet = null;
@@ -2109,7 +2137,8 @@ export function Tracker(trackerUrl, siteId) {
     // product page view
     for (i in ecommerceProductView) {
       if (Object.prototype.hasOwnProperty.call(ecommerceProductView, i)) {
-        request += "&" + i + "=" + encodeWrapper(ecommerceProductView[i]);
+        request +=
+          "&" + i + "=" + global.ev.encodeWrapper(ecommerceProductView[i]);
       }
     }
 
@@ -2120,7 +2149,10 @@ export function Tracker(trackerUrl, siteId) {
           -1 === h.indexOfArray(customDimensionIdsAlreadyHandled, i);
         if (isNotSetYet) {
           request +=
-            "&dimension" + i + "=" + encodeWrapper(customDimensions[i]);
+            "&dimension" +
+            i +
+            "=" +
+            global.ev.encodeWrapper(customDimensions[i]);
         }
       }
     }
@@ -2128,10 +2160,16 @@ export function Tracker(trackerUrl, siteId) {
     // custom data
     if (customData) {
       request +=
-        "&data=" + global.ev.encodeWrapper(global.ev.windowAlias.JSON.stringify(customData));
+        "&data=" +
+        global.ev.encodeWrapper(
+          global.ev.windowAlias.JSON.stringify(customData),
+        );
     } else if (configCustomData) {
       request +=
-        "&data=" + global.ev.encodeWrapper(global.ev.windowAlias.JSON.stringify(configCustomData));
+        "&data=" +
+        global.ev.encodeWrapper(
+          global.ev.windowAlias.JSON.stringify(configCustomData),
+        );
     }
 
     // Custom Variables, scope "page"
@@ -2140,7 +2178,10 @@ export function Tracker(trackerUrl, siteId) {
         global.ev.windowAlias.JSON.stringify(customVariables);
       if (customVariablesStringified.length > 2) {
         return (
-          "&" + parameterName + "=" + global.ev.encodeWrapper(customVariablesStringified)
+          "&" +
+          parameterName +
+          "=" +
+          global.ev.encodeWrapper(customVariablesStringified)
         );
       }
       return "";
@@ -2207,7 +2248,8 @@ export function Tracker(trackerUrl, siteId) {
     }
 
     if (wasJsTrackingCodeInstallCheckParamProvided()) {
-      request += "&tracker_install_check=" + global.ev.tracker.InstallCheckNonce;
+      request +=
+        "&tracker_install_check=" + global.ev.tracker.InstallCheckNonce;
     }
 
     if (h.isFunction(configCustomRequestContentProcessing)) {
@@ -2307,7 +2349,8 @@ export function Tracker(trackerUrl, siteId) {
         }
       }
       request +=
-        "&ec_items=" + global.ev.encodeWrapper(global.ev.windowAlias.JSON.stringify(items));
+        "&ec_items=" +
+        global.ev.encodeWrapper(global.ev.windowAlias.JSON.stringify(items));
     }
     request = getRequest(request, configCustomData, "ecommerce");
     sendRequest(request, configTrackerPause);
@@ -2345,7 +2388,8 @@ export function Tracker(trackerUrl, siteId) {
     }
 
     var request = getRequest(
-      "action_name=" + global.ev.encodeWrapper(h.titleFixup(customTitle || configTitle)),
+      "action_name=" +
+        global.ev.encodeWrapper(h.titleFixup(customTitle || configTitle)),
       customData,
       "log",
     );
@@ -2896,8 +2940,9 @@ export function Tracker(trackerUrl, siteId) {
         ) {
           // if pre-rendered, then defer callback until page visibility changes
           if (
-            global.ev.documentAlias[prefixPropertyName(prefix, "visibilityState")] ===
-            "prerender"
+            global.ev.documentAlias[
+              prefixPropertyName(prefix, "visibilityState")
+            ] === "prerender"
           ) {
             isPreRendered = true;
           }
@@ -3045,7 +3090,9 @@ export function Tracker(trackerUrl, siteId) {
   }
 
   function isIE8orOlder() {
-    return global.ev.documentAlias.all && !global.ev.documentAlias.h.addEventListener;
+    return (
+      global.ev.documentAlias.all && !global.ev.documentAlias.h.addEventListener
+    );
   }
 
   function getKeyCodeFromEvent(event) {
@@ -3242,7 +3289,12 @@ export function Tracker(trackerUrl, siteId) {
 
     if (enable) {
       h.addEventListener(element, "mouseup", clickHandler(enable), useCapture);
-      h.addEventListener(element, "mousedown", clickHandler(enable), useCapture);
+      h.addEventListener(
+        element,
+        "mousedown",
+        clickHandler(enable),
+        useCapture,
+      );
       h.addEventListener(
         element,
         "contextmenu",
@@ -3304,9 +3356,16 @@ export function Tracker(trackerUrl, siteId) {
         events = ["scroll", "resize"];
         for (index = 0; index < events.length; index++) {
           if (global.ev.documentAlias.h.addEventListener) {
-            global.ev.documentAlias.h.addEventListener(events[index], setDidScroll, false);
+            global.ev.documentAlias.h.addEventListener(
+              events[index],
+              setDidScroll,
+              false,
+            );
           } else {
-            global.ev.windowAlias.attachEvent("on" + events[index], setDidScroll);
+            global.ev.windowAlias.attachEvent(
+              "on" + events[index],
+              setDidScroll,
+            );
           }
         }
 
@@ -3400,7 +3459,9 @@ export function Tracker(trackerUrl, siteId) {
       }, requestQueue.interval);
 
       var trackerQueueId = "RequestQueue" + uniqueTrackerId;
-      if (!Object.prototype.hasOwnProperty.call(global.ev.plugins, trackerQueueId)) {
+      if (
+        !Object.prototype.hasOwnProperty.call(global.ev.plugins, trackerQueueId)
+      ) {
         // we setup one unload handler per tracker...
         // eave.addPlugin might not be defined at this point, we add the plugin directly also to make
         // JSLint happy.
@@ -4744,7 +4805,9 @@ export function Tracker(trackerUrl, siteId) {
    * @param {boolean} enable If true, don't track if user agent sends 'do-not-track' header
    */
   this.setDoNotTrack = function (enable) {
-    var dnt = global.ev.navigatorAlias.doNotTrack || global.ev.navigatorAlias.msDoNotTrack;
+    var dnt =
+      global.ev.navigatorAlias.doNotTrack ||
+      global.ev.navigatorAlias.msDoNotTrack;
     configDoNotTrack = enable && (dnt === "yes" || dnt === "1");
 
     // do not track also disables cookies and deletes existing cookies
@@ -5126,7 +5189,13 @@ export function Tracker(trackerUrl, siteId) {
     enableJSErrorTracking = true;
     var onError = global.ev.windowAlias.onerror;
 
-    global.ev.windowAlias.onerror = function (message, url, linenumber, column, error) {
+    global.ev.windowAlias.onerror = function (
+      message,
+      url,
+      linenumber,
+      column,
+      error,
+    ) {
       trackCallback(function () {
         var category = "JavaScript Errors";
 
@@ -5182,11 +5251,17 @@ export function Tracker(trackerUrl, siteId) {
       if (global.ev.windowAlias.removeEventListener) {
         global.ev.windowAlias.removeEventListener("focus", heartBeatOnFocus);
         global.ev.windowAlias.removeEventListener("blur", heartBeatOnBlur);
-        global.ev.windowAlias.removeEventListener("visibilitychange", heartBeatOnVisible);
+        global.ev.windowAlias.removeEventListener(
+          "visibilitychange",
+          heartBeatOnVisible,
+        );
       } else if (global.ev.windowAlias.detachEvent) {
         global.ev.windowAlias.detachEvent("onfocus", heartBeatOnFocus);
         global.ev.windowAlias.detachEvent("onblur", heartBeatOnBlur);
-        global.ev.windowAlias.detachEvent("visibilitychange", heartBeatOnVisible);
+        global.ev.windowAlias.detachEvent(
+          "visibilitychange",
+          heartBeatOnVisible,
+        );
       }
     }
 
@@ -5274,7 +5349,6 @@ export function Tracker(trackerUrl, siteId) {
       numTrackedPageviews++;
       logPageView(customTitle, customData, callback);
     });
-  
   };
 
   this.disableBrowserFeatureDetection = function () {
@@ -5300,7 +5374,6 @@ export function Tracker(trackerUrl, siteId) {
    * unless `trackPageView()` is called meanwhile. This is useful for single page applications.
    */
   this.trackAllContentImpressions = function () {
-
     trackCallback(function () {
       h.trackCallbackOnReady(function () {
         // we have to wait till DOM ready

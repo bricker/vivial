@@ -1,4 +1,4 @@
-import * as helpers from './helpers.js'
+import * as helpers from "./helpers.js";
 
 /**
  * Author: Jason Farrell
@@ -16,7 +16,9 @@ export function isVisible(node) {
   //-- Cross browser method to get style properties:
   function _getStyle(el, property) {
     if (global.ev.windowAlias.getComputedStyle) {
-      return global.ev.documentAlias.defaultView.getComputedStyle(el, null)[property];
+      return global.ev.documentAlias.defaultView.getComputedStyle(el, null)[
+        property
+      ];
     }
     if (el.currentStyle) {
       return el.currentStyle[property];

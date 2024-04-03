@@ -124,7 +124,10 @@ export function apply() {
         "object" === typeof global.ev.eave[context] &&
         "function" === typeof global.ev.eave[context][f]
       ) {
-        global.ev.eave[context][f].apply(global.ev.eave[context], parameterArray);
+        global.ev.eave[context][f].apply(
+          global.ev.eave[context],
+          parameterArray,
+        );
       } else if (trackerCall) {
         // we try to call that method again later as the plugin might not be loaded yet
         // a plugin can call "global.ev.eave.retryMissedPluginCalls();" once it has been loaded and then the
@@ -227,13 +230,21 @@ export function trackCallbackOnReady(callback) {
   var _timer;
 
   if (global.ev.documentAlias.addEventListener) {
-    addEventListener(global.ev.documentAlias, "DOMContentLoaded", function ready() {
-      global.ev.documentAlias.removeEventListener("DOMContentLoaded", ready, false);
-      if (!loaded) {
-        loaded = true;
-        callback();
-      }
-    });
+    addEventListener(
+      global.ev.documentAlias,
+      "DOMContentLoaded",
+      function ready() {
+        global.ev.documentAlias.removeEventListener(
+          "DOMContentLoaded",
+          ready,
+          false,
+        );
+        if (!loaded) {
+          loaded = true;
+          callback();
+        }
+      },
+    );
   } else if (global.ev.documentAlias.attachEvent) {
     global.ev.documentAlias.attachEvent("onreadystatechange", function ready() {
       if (global.ev.documentAlias.readyState === "complete") {
@@ -293,13 +304,11 @@ export function executePluginMethod(methodName, params, callback) {
     value,
     isFunction;
 
-  console.log('glabl:', global)
-  console.log('eave:', global.ev)
-  console.log('plugin:', global.ev.plugins)
-
   for (i in global.ev.plugins) {
     if (Object.prototype.hasOwnProperty.call(global.ev.plugins, i)) {
-      isFunction = global.ev.plugins[i] && "function" === typeof global.ev.plugins[i][methodName];
+      isFunction =
+        global.ev.plugins[i] &&
+        "function" === typeof global.ev.plugins[i][methodName];
 
       if (isFunction) {
         pluginMethod = global.ev.plugins[i][methodName];
@@ -456,7 +465,11 @@ export function queryStringify(data) {
     k;
   for (k in data) {
     if (data.hasOwnProperty(k)) {
-      queryString += "&" + global.ev.encodeWrapper(k) + "=" + global.ev.encodeWrapper(data[k]);
+      queryString +=
+        "&" +
+        global.ev.encodeWrapper(k) +
+        "=" +
+        global.ev.encodeWrapper(data[k]);
     }
   }
   return queryString;
@@ -512,7 +525,13 @@ export function addUrlParameter(url, name, value) {
   }
   // nothing to if ends with ?
 
-  return baseUrl + global.ev.encodeWrapper(name) + "=" + global.ev.encodeWrapper(value) + urlHash;
+  return (
+    baseUrl +
+    global.ev.encodeWrapper(name) +
+    "=" +
+    global.ev.encodeWrapper(value) +
+    urlHash
+  );
 }
 
 export function removeUrlParameter(url, name) {

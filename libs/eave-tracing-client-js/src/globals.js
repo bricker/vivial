@@ -3,20 +3,14 @@ var documentAlias = document,
   screenAlias = screen,
   windowAlias = window;
 
-// TODO: get rid of this, dictate enabled trackers in source rather than loading script
-// asynchronous tracker (or proxy)
-if (typeof _paq !== "object") {
-  var _paq = [];
-  _paq.push(['trackPageView']);
-  _paq.push(['enableLinkTracking']);
-  _paq.push(['enableRouteHistoryTracking']);
-  _paq.push(['enableButtonClickTracking']);
-  // TODO: add eave team ID or something to correlate event w/ team
-  // var u="http://localhost:3001/";
-  _paq.push(['setTrackerUrl', 'http://localhost:3000/matomo']);
-  _paq.push(['setSiteId', '1']);
-}
-console.log(_paq)
+var _paq = [];
+_paq.push(["trackPageView"]);
+_paq.push(["enableLinkTracking"]);
+_paq.push(["enableRouteHistoryTracking"]);
+_paq.push(["enableButtonClickTracking"]);
+// TODO: update to point to eave backend
+_paq.push(["setTrackerUrl", "http://localhost:3000/matomo"]);
+// _paq.push(['setSiteId', '1']); // TODO: this isnt necessary?
 
 global.ev = {
   expireDateTime: undefined,

@@ -1,6 +1,6 @@
-import query from './query.js';
-import { isVisible } from './visibility.js';
-import * as h from './helpers.js'
+import * as h from "./helpers.js";
+import query from "./query.js";
+import { isVisible } from "./visibility.js";
 
 export default {
   CONTENT_ATTR: "data-track-content",
@@ -334,13 +334,19 @@ export default {
 
     var docWidth = html.clientWidth; // The clientWidth attribute returns the viewport width excluding the size of a rendered scroll bar
 
-    if (global.ev.windowAlias.innerWidth && docWidth > global.ev.windowAlias.innerWidth) {
+    if (
+      global.ev.windowAlias.innerWidth &&
+      docWidth > global.ev.windowAlias.innerWidth
+    ) {
       docWidth = global.ev.windowAlias.innerWidth; // The innerWidth attribute must return the viewport width including the size of a rendered scroll bar
     }
 
     var docHeight = html.clientHeight; // The clientWidth attribute returns the viewport width excluding the size of a rendered scroll bar
 
-    if (global.ev.windowAlias.innerHeight && docHeight > global.ev.windowAlias.innerHeight) {
+    if (
+      global.ev.windowAlias.innerHeight &&
+      docHeight > global.ev.windowAlias.innerHeight
+    ) {
       docHeight = global.ev.windowAlias.innerHeight; // The innerWidth attribute must return the viewport width including the size of a rendered scroll bar
     }
 
@@ -388,7 +394,11 @@ export default {
     return params;
   },
   buildImpressionRequestParams: function (name, piece, target) {
-    var params = "c_n=" + global.ev.encodeWrapper(name) + "&c_p=" + global.ev.encodeWrapper(piece);
+    var params =
+      "c_n=" +
+      global.ev.encodeWrapper(name) +
+      "&c_p=" +
+      global.ev.encodeWrapper(piece);
 
     if (target) {
       params += "&c_t=" + global.ev.encodeWrapper(target);

@@ -1,4 +1,4 @@
-import * as h from './helpers.js';
+import * as h from "./helpers.js";
 
 export default {
   htmlCollectionToArray: function (foundNodes) {

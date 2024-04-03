@@ -29,11 +29,11 @@ modified from
  * - Opera 7
  */
 
-import './globals.js';
-import { isVisible } from './visibility.js';
-import content from './content.js';
-import * as h from './helpers.js';
-import { Tracker } from './tracker.js';
+import content from "./content.js";
+import "./globals.js";
+import * as h from "./helpers.js";
+import { Tracker } from "./tracker.js";
+import { isVisible } from "./visibility.js";
 
 // eave singleton and namespace
 if (typeof window.eave !== "object") {
@@ -158,7 +158,12 @@ if (typeof window.eave !== "object") {
      ************************************************************/
 
     // initialize the eave singleton
-    h.addEventListener(global.ev.windowAlias, "beforeunload", h.beforeUnloadHandler, false);
+    h.addEventListener(
+      global.ev.windowAlias,
+      "beforeunload",
+      h.beforeUnloadHandler,
+      false,
+    );
     h.addEventListener(
       global.ev.windowAlias,
       "visibilitychange",
@@ -473,7 +478,11 @@ if (typeof window.eave !== "object") {
        */
       getAsyncTracker: function (eaveUrl, siteId) {
         var firstTracker;
-        if (global.ev.asyncTrackers && global.ev.asyncTrackers.length && global.ev.asyncTrackers[0]) {
+        if (
+          global.ev.asyncTrackers &&
+          global.ev.asyncTrackers.length &&
+          global.ev.asyncTrackers[0]
+        ) {
           firstTracker = global.ev.asyncTrackers[0];
         } else {
           return createFirstTracker(eaveUrl, siteId);
