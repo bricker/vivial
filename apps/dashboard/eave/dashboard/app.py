@@ -153,7 +153,7 @@ async def embed_metabase() -> Response:
 
 @app.route("/logout", methods=["GET"])
 async def logout() -> BaseResponse:
-    response = redirect(location=SHARED_CONFIG.eave_public_dashboard_base, code=302)
+    response = redirect(location=SHARED_CONFIG.eave_public_dashboard_base + "/login", code=302)
     delete_auth_cookies(response=response)
     _delete_login_state_hint_cookie(response=response)
     return response
