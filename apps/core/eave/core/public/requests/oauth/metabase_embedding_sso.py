@@ -27,9 +27,8 @@ class MetabaseEmbeddingSSO(HTTPEndpoint):
         """
         eave_state = EaveRequestState.load(request=request)
 
-        # this must be a relative path to a metabase dashboard
-        # https://www.metabase.com/docs/v0.48/embedding/interactive-embedding-quick-start-guide#embed-metabase-in-your-app
-        # TODO: if empty default to user's first dash we created
+        # modify metabase UI using query params
+        # https://www.metabase.com/docs/latest/embedding/interactive-embedding#showing-or-hiding-metabase-ui-components
         qp = urlencode({
             "top_nav": "true",
             "new_button": "true",
@@ -40,6 +39,9 @@ class MetabaseEmbeddingSSO(HTTPEndpoint):
             "header": "true",
             "action_buttons": "true",
         })
+        # this must be a relative path to a metabase dashboard
+        # https://www.metabase.com/docs/v0.48/embedding/interactive-embedding-quick-start-guide#embed-metabase-in-your-app
+        # TODO: if empty default to user's first dash we created
         return_to = request.query_params.get("return_to") or quote(f"/dashboard/8?{qp}")
         response = Response()
 
