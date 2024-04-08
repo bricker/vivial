@@ -16,7 +16,7 @@ module "metabase_apps_service_accounts" {
 
 # Create custom role for Metabase apps
 module "metabase_app_base_role" {
-  source = "../../modules/gcp/custom_role"
+  source = "../../modules/custom_role"
   role_id     = "eave.metabaseApp"
   title       = "Metabase App"
   description       = "Permissions needed by the Metabase app"
@@ -38,7 +38,7 @@ resource "google_project_iam_binding" "metabase_app_base_role_bindings" {
 }
 
 module "cloudsql_metabase" {
-  source = "../../modules/gcp/cloud_sql"
+  source = "../../modules/cloud_sql"
   project_id = local.project_id
   region = local.region
   zone = local.zone

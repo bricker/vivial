@@ -49,7 +49,7 @@ provider "google" {
 }
 
 module "gcp_project" {
-  source          = "../../modules/gcp/project"
+  source          = "../../modules/project"
   project_id = local.project_id
   org_id          = local.org_id
   billing_account = local.billing_account
@@ -61,20 +61,20 @@ module "tfstate" {
 }
 
 module "nat" {
-  source = "../../modules/gcp/nat"
+  source = "../../modules/nat"
   project_id = local.project_id
   region = local.region
 }
 
 module "gke" {
-  source     = "../../modules/gcp/gke"
+  source     = "../../modules/gke"
   project_id = local.project_id
   region     = local.region
   authorized_networks = local.authorized_networks
 }
 
 # module "gcp_bigquery" {
-#   source     = "../../modules/gcp/bigquery"
+#   source     = "../../modules/bigquery"
 #   project_id = local.project_id
 #   region     = local.region
 # }

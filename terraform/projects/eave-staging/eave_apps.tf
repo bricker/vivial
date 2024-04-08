@@ -16,7 +16,7 @@ module "eave_apps_service_accounts" {
 
 # Define the base app role
 module "eave_app_base_role" {
-  source = "../../modules/gcp/custom_role"
+  source = "../../modules/custom_role"
   role_id     = "eave.eaveApp"
   title       = "Eave App"
   description = "Standard permissions needed by all Eave apps"
@@ -40,7 +40,7 @@ resource "google_project_iam_binding" "eave_app_base_role_bindings" {
 
 # Define CloudSQL IAM role
 module "eave_cloudsql_iam_role" {
-  source = "../../modules/gcp/custom_role"
+  source = "../../modules/custom_role"
   role_id     = "eave.eaveAppCloudsqlIamClient"
   title       = "Eave App CloudSQL IAM Client"
   description = "Eave App that needs to connect/use Cloud SQL via IAM"
@@ -61,7 +61,7 @@ resource "google_project_iam_binding" "eave_cloudsql_iam_role_bindings" {
 
 # Create core Eave CloudSQL Instance
 module "cloudsql_eave_core" {
-  source = "../../modules/gcp/cloud_sql"
+  source = "../../modules/cloud_sql"
   project_id = local.project_id
   region = local.region
   zone = local.zone
