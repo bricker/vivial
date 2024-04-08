@@ -9,13 +9,13 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 RUN mkdir -p /build/apps/core
-COPY apps/core /build/apps/core
+COPY ./apps/core /build/apps/core
 
 RUN mkdir -p /build/libs/eave-pubsub-schemas
-COPY libs/eave-pubsub-schemas /build/libs/eave-pubsub-schemas
+COPY ./libs/eave-pubsub-schemas /build/libs/eave-pubsub-schemas
 
 RUN mkdir -p /build/libs/eave-stdlib-py
-COPY libs/eave-stdlib-py /build/libs/eave-stdlib-py
+COPY ./libs/eave-stdlib-py /build/libs/eave-stdlib-py
 
 RUN apt-get update && apt-get install -y git
 

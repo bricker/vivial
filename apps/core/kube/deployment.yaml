@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: core-api
+  namespace: eave
+spec:
+  selector:
+    matchLabels:
+      app: core-api
+  template:
+    metadata:
+      labels:
+        app: core-api
+    spec:
+      serviceAccountName: ksa-app-core-api
+      containers:
+        - name: core-api
+          image: core-api:latest
+          resources:
+            requests:
+              memory: "768Mi"
+              cpu: "100m"
+            limits:
+              memory: "768Mi"
+              cpu: "100m"
+          envFrom:
+            - secretRef:
+                name: eave-shared-secrets
+            - configMapRef:
+                name: eave-shared-config
+          env:
+            - name: EAVE_DB_HOST
+              value: "127.0.0.1"
+            - name: EAVE_DB_PORT
+              value: "5432"
+
+        - name: cloud-sql-proxy
+          # This uses the latest version of the Cloud SQL Proxy
+          # It is recommended to use a specific version for production environments.
+          # See: https://github.com/GoogleCloudPlatform/cloudsql-proxy
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:latest
+          args:
+            # If connecting from a VPC-native GKE cluster, you can use the
+            # following flag to have the proxy connect over private IP
+            - "--private-ip"
+
+            # If you are not connecting with Automatic IAM, you can delete
+            # the following flag.
+            - "--auto-iam-authn"
+
+            # tcp should be set to the port the proxy should listen on
+            # and should match the DB_PORT value set above.
+            # Defaults: MySQL: 3306, Postgres: 5432, SQLServer: 1433
+            - "--port=5432"
+            - "--structured-logs"
+            # - "--unix-socket /cloudsql"
+            - "eave-staging:us-central1:eave"
+          # volumeMounts:
+          #   - name: cloudsql-socket
+          #     mountPath: /cloudsql
+          securityContext:
+            # The default Cloud SQL proxy image runs as the
+            # "nonroot" user and group (uid: 65532) by default.
+            runAsNonRoot: true
+          resources:
+            limits:
+              cpu: 500m
+              memory: 2Gi
+            requests:
+              cpu: 500m
+              memory: 2Gi

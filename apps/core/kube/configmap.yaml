@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eave-shared-config
+  namespace: eave
+data:
+  foo: "bar"
