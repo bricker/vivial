@@ -3,6 +3,10 @@ import time
 
 app = Flask(__name__)
 
+"""
+TODO: what about async/await? any python frameworks using/will use async/await and invalidate this approach?
+"""
+
 # the all important eave rolling ctx
 import threading 
 glob_ctx = threading.local()
