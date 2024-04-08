@@ -2,7 +2,6 @@
 
 ARG PYTHON_VERSION=3.12
 
-## Builder
 FROM python:${PYTHON_VERSION}-slim as builder
 ENV EAVE_HOME=/build
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -26,7 +25,6 @@ RUN python -m pip install \
     -r /build/apps/core/requirements-vendor.txt
 
 
-## Base
 FROM python:${PYTHON_VERSION}-slim as base
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1

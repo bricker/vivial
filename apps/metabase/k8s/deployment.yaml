@@ -22,7 +22,7 @@ spec:
       labels:
         app: metabase-01
     spec:
-      serviceAccountName: ksa-metabase-01
+      serviceAccountName: ksa-app-metabase-01
       dnsPolicy: ClusterFirst
       securityContext:
         seccompProfile:
@@ -77,7 +77,7 @@ spec:
 
             # If you are not connecting with Automatic IAM, you can delete
             # the following flag.
-            # - "--auto-iam-authn"
+            - "--auto-iam-authn"
 
             # tcp should be set to the port the proxy should listen on
             # and should match the DB_PORT value set above.

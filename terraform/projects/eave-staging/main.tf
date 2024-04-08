@@ -1,13 +1,13 @@
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs
 
-
 locals {
   project_id       = "eave-staging"
   region           = "us-central1"
-  zone             = "us-central1-c"
+  zone             = "us-central1-a"
   billing_account  = "013F5E-137CB0-B6AA2A"
   org_id           = "482990375115"
   eave_domain_apex = "eave.dev"
+  environment = "STG"
 
   authorized_networks = {
     "bryan-ethernet": {
@@ -28,9 +28,9 @@ locals {
     }
   }
 
-  # These are auto-created with the project
-  default_network_id = "projects/${local.project_id}/global/networks/default"
-  default_subnetwork_id = "projects/${local.project_id}/${local.region}/subnetworks/default"
+  # # These are auto-created with the project
+  # default_network_id = "projects/${local.project_id}/global/networks/default"
+  # default_subnetwork_id = "projects/${local.project_id}/${local.region}/subnetworks/default"
 }
 
 terraform {
@@ -48,99 +48,30 @@ provider "google" {
   zone    = local.zone
 }
 
-# https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/storage_bucket
-resource "google_storage_bucket" "tfstate" {
-  name          = "tfstate.${local.project_id}.eave.fyi"
-  project = local.project_id
-  force_destroy = false
-  location      = "US"
-  storage_class = "STANDARD"
-  public_access_prevention = "enforced"
-
-  # logging {
-  #   log_bucket = "logs.${local.project_id}.eave.fyi"
-  # }
-  versioning {
-    enabled = true
-  }
-}
-
 module "gcp_project" {
   source          = "../../modules/gcp/project"
   project_id = local.project_id
   org_id          = local.org_id
+  billing_account = local.billing_account
 }
 
-module "gcp_nat" {
+module "tfstate" {
+  source          = "../../modules/tfstate"
+  project_id = local.project_id
+}
+
+module "nat" {
   source = "../../modules/gcp/nat"
   project_id = local.project_id
   region = local.region
-  network_id = local.default_network_id
 }
 
-module "gcp_gke" {
+module "gke" {
   source     = "../../modules/gcp/gke"
   project_id = local.project_id
   region     = local.region
-  network_id = local.default_network_id
-  subnetwork_id = local.default_subnetwork_id
   authorized_networks = local.authorized_networks
-
-  google_service_accounts = {
-    "gsa-metabase-01": {
-      bound_ksa = "metabase/ksa-metabase-01"
-    },
-    "gsa-eave-core": {
-      bound_ksa = "eave/ksa-eave-core"
-    }
-  }
-
-  roles = {
-    "roles/cloudsql.client": {
-      google_service_accounts = [
-        "gsa-metabase-01",
-        "gsa-eave-core",
-      ]
-    },
-    "roles/logging.logWriter": {
-      google_service_accounts = [
-        "gsa-metabase-01",
-        "gsa-eave-core",
-      ]
-    },
-  }
 }
-
-# module "cloudsql_metabase" {
-#   source = "../../modules/gcp/cloud_sql"
-#   project_id = local.project_id
-#   region = local.region
-#   instance_name = "metabase"
-#   instance_tier = ""
-#   instance_disk_type = ""
-#   instance_disk_size = ""
-#   instance_backup_enabled = ""
-#   instance_zone = ""
-#   project_id = ""
-# }
-
-# module "cloudsql_eave_core" {
-#   source = "../../modules/gcp/cloud_sql"
-#   project_id = local.project_id
-# }
-
-# module "metabase_resources" {
-#   source = "../../modules/gcp/metabase_resources"
-#   project_id = local.project_id
-#   metabase_instances = [
-#     "metabase-01" # TODO: This needs to be more dynamic; currently we'll have to update this list for each new customer.
-#   ]
-# }
-
-# module "gcp_iam" {
-#   source     = "../../modules/gcp/iam"
-#   project_id = local.project_id
-# }
 
 # module "gcp_bigquery" {
 #   source     = "../../modules/gcp/bigquery"

@@ -1,6 +1,6 @@
-# terraform {
-#  backend "gcs" {
-#    bucket  = "tfstate"
-#    prefix  = "terraform/state"
-#  }
-# }
+terraform {
+ backend "gcs" {
+   bucket  = "tfstate.eave-staging.eave.fyi"
+   prefix  = "terraform/state"
+ }
+}
