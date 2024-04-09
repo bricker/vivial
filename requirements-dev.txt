@@ -6,6 +6,7 @@
 -e ${EAVE_HOME}/libs/eave-tracing-core-py
 -e ${EAVE_HOME}/libs/eave-tracing-python
 -e ${EAVE_HOME}/libs/eave-tracing-postgres
+-e ${EAVE_HOME}/libs/eave-monitoring
 
 grpcio-tools
 protobuf

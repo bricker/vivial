@@ -82,6 +82,7 @@
   "python.analysis.typeCheckingMode": "standard",
   "python.analysis.extraPaths": [
     "vendor",
+    "${workspaceFolder}/libs/eave-monitoring/src",
     "${workspaceFolder}/libs/eave-stdlib-py/src",
     "${workspaceFolder}/libs/eave-pubsub-schemas/python/src",
     "${workspaceFolder}/libs/eave-tracing-core-py/src",

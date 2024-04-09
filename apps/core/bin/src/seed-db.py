@@ -33,6 +33,25 @@ from eave.core.internal.orm.team import TeamOrm
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
 from eave.stdlib.logging import eaveLogger
 
+
+# ==== TRACING JUNK ====
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import (
+    BatchSpanProcessor,
+)
+from opentelemetry.trace import get_tracer_provider, set_tracer_provider
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from eave.monitoring.telem.instrumentors.sqlalchemy_client import SQLAlchemyInstrumentor
+from eave.otel_tracing.nettracing.telem.instrumentors.instrument import eave_instrument_db
+from eave.otel_tracing.nettracing.telem.exporters.span_exporter import EaveSpanExporter
+# eave_instrument_db(eave.core.internal.database.async_engine)
+set_tracer_provider(TracerProvider())
+get_tracer_provider().add_span_processor(  # type: ignore
+    BatchSpanProcessor(EaveSpanExporter()) # OTLPSpanExporter()
+)
+SQLAlchemyInstrumentor().instrument(engine=eave.core.internal.database.async_engine.sync_engine)
+# ==== END TRACING ====
+
 """
 This script is for seeding your local database with a bunch of garbage
 data to help test SQL query performance.
