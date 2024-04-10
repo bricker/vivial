@@ -25,7 +25,7 @@ def parse_config(filepath: str) -> None:
         for varname in varnames:
             if varname not in existing_values.keys():
                 # if env var is available, auto set it in .env, otherwise set placeholder
-                f.write(f"\n{varname}{'=' + envval if (envval := os.getenv(varname)) else ''}")
+                f.write(f"\n{varname}={os.getenv(varname, '')}")
                 print(f"Added {varname} to .env")
 
 def parse_python_config(filepath: str) -> list[str]:

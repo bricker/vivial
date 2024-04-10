@@ -4,28 +4,45 @@
 # For more help, visit the .dockerignore file reference guide at
 # https://docs.docker.com/engine/reference/builder/#dockerignore-file
 
+# Exclude (ignore) any files or directories beginning with a dot.
 **/.*
+# Examples:
+# **/.venv/
+# **/.pytest_cache
+# **/.*_cache/
+# **/.mypy_cache/
+# **/.ruff_cache/
+# **/.build/
+# **/.cloudsqlproxy
+# **/.yalc/
+# **/.DS_Store
+# **/.swc/
+# **/.coverage/
+# **/.tmp
+# **/.terraform*
+# **/.pgdata/
+
+
+*.env
+**/credentials.json
+**/__pycache__/
+**/node_modules/
+**/*.egg-info
+**/*.pyc
+**/build/
+**/yalc.lock
+**/app.*.yaml
+**/vendor/
+**/dist/
+**/*.tgz
+**/*.log*
+
+**/*.tfstate*
+**/*.tfvars
 
 **/docker-compose*
 **/compose*
 **/Dockerfile*
 
-**/__pycache__
-**/*.pyc
-**/*.egg-info
-
-**/build/
-**/dist/
-
-LICENSE
+**/LICENSE
 **/*.md
-
-**/tests/
-**/bin/
-**/alembic.ini
-**/eave_alembic/
-**/app.*.yaml
-**/vendor/
-terraform
-**/node_modules/
-**/yalc.lock
