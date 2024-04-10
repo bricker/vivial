@@ -6,6 +6,6 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 python-activate-venv
 cd "$(^parentpath)"
-python ./bin/src/init-db.py
+python ./bin/src/init-db.py "$@"
 PYTHONPATH=. alembic stamp head
 python ./bin/src/seed-db.py "$@"

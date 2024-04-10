@@ -10,8 +10,8 @@ from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, Clie
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
 from eave.tracing.core.datastructures import (
-    DatabaseChangeEventPayload,
-    DatabaseChangeOperation,
+    DatabaseEventPayload,
+    DatabaseOperation,
     DataIngestRequestBody,
     EventType,
 )
@@ -140,8 +140,8 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
             payload=DataIngestRequestBody(
                 event_type=EventType.dbchange,
                 events=[
-                    DatabaseChangeEventPayload(
-                        operation=DatabaseChangeOperation.INSERT,
+                    DatabaseEventPayload(
+                        operation=DatabaseOperation.INSERT,
                         table_name=self.anystr(),
                         timestamp=int(time.time()),
                         new_data={

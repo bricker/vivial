@@ -22,7 +22,8 @@ import socket
 import time
 import uuid
 
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
+from sqlalchemy.ext.asyncio import create_async_engine
 
 import eave.core.internal
 import eave.core.internal.orm.base
@@ -32,50 +33,6 @@ from eave.core.internal.orm.metabase_instance import MetabaseInstanceOrm
 from eave.core.internal.orm.team import TeamOrm
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
 from eave.stdlib.logging import eaveLogger
-
-
-# ==== TRACING JUNK ====
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import (
-    BatchSpanProcessor,
-)
-from opentelemetry.trace import get_tracer_provider, set_tracer_provider
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from eave.monitoring.telem.instrumentors.sqlalchemy_client import SQLAlchemyInstrumentor
-from eave.otel_tracing.nettracing.telem.instrumentors.instrument import eave_instrument_db
-from eave.otel_tracing.nettracing.telem.exporters.span_exporter import EaveSpanExporter
-# eave_instrument_db(eave.core.internal.database.async_engine)
-set_tracer_provider(TracerProvider())
-get_tracer_provider().add_span_processor(  # type: ignore
-    BatchSpanProcessor(EaveSpanExporter()) # OTLPSpanExporter()
-)
-SQLAlchemyInstrumentor().instrument(engine=eave.core.internal.database.async_engine.sync_engine)
-# ==== END TRACING ====
-
-"""
-This script is for seeding your local database with a bunch of garbage
-data to help test SQL query performance.
-
-None of the created table rows are valid data, other than the
-foreign keys linking correctly.
-
-UNDER NO CIRCUMSTANCES SHOULD THIS BE EVER RUN AGAINST PROD
-"""
-
-_EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
-_GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT")
-_GCLOUD_PROJECT = os.getenv("GCLOUD_PROJECT")
-_GAE_ENV = os.getenv("GAE_ENV")
-
-eaveLogger.fprint(logging.INFO, f"> GOOGLE_CLOUD_PROJECT: {_GOOGLE_CLOUD_PROJECT}")
-eaveLogger.fprint(logging.INFO, f"> EAVE_DB_NAME: {_EAVE_DB_NAME}")
-
-# Some attempts to prevent this script from running against the production database
-assert _GAE_ENV is None
-assert _GOOGLE_CLOUD_PROJECT != "eave-production"
-assert _GCLOUD_PROJECT != "eave-production"
-assert _EAVE_DB_NAME is not None
-assert _EAVE_DB_NAME != "eave"
 
 
 async def seed_table_entries_for_team(team_id: uuid.UUID, row: int, session: AsyncSession) -> None:
@@ -113,19 +70,19 @@ async def seed_table_entries_for_team(team_id: uuid.UUID, row: int, session: Asy
         )
 
 
-async def seed_database() -> None:
-    eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {eave.core.internal.database.async_engine.url}")
-    eaveLogger.fprint(logging.WARNING, f"\nThis script will insert junk seed data into the {_EAVE_DB_NAME} database.")
+async def seed_database(db: AsyncEngine) -> None:
+    eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {db.url}")
+    eaveLogger.fprint(logging.WARNING, f"\nThis script will insert junk seed data into the {db.url.database} database.")
 
     answer = input(
-        eaveLogger.f(logging.WARNING, f"Proceed to insert junk seed data into the {_EAVE_DB_NAME} database? (Y/n) ")
+        eaveLogger.f(logging.WARNING, f"Proceed to insert junk seed data into the {db.url.database} database? (Y/n) ")
     )
     if answer != "Y":
         eaveLogger.fprint(logging.CRITICAL, "Aborting.")
         return
 
-    eaveLogger.fprint(logging.INFO, f"Starting to seed your db {_EAVE_DB_NAME}...")
-    session = AsyncSession(eave.core.internal.database.async_engine)
+    eaveLogger.fprint(logging.INFO, f"Starting to seed your db {db.url.database}...")
+    session = AsyncSession(db)
 
     num_rows = 100
 
@@ -158,33 +115,33 @@ async def seed_database() -> None:
         sys.stdout.flush()
 
     await session.close()
-    await eave.core.internal.database.async_engine.dispose()
+    await db.dispose()
     eaveLogger.fprint(logging.INFO, "\nYour database has been seeded!")
 
 
-async def seed_team(team_id: uuid.UUID) -> None:
-    eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {eave.core.internal.database.async_engine.url}")
-    eaveLogger.fprint(logging.WARNING, f"\nThis script will insert junk seed data into the {_EAVE_DB_NAME} database.")
+async def seed_team(team_id: uuid.UUID, db: AsyncEngine) -> None:
+    eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {db.url}")
+    eaveLogger.fprint(logging.WARNING, f"\nThis script will insert junk seed data into the {db.url.database} database.")
 
     answer = input(
         eaveLogger.f(
             logging.WARNING,
-            f"Proceed to insert junk seed data for team {team_id} into the {_EAVE_DB_NAME} database? (Y/n) ",
+            f"Proceed to insert junk seed data for team {team_id} into the {db.url.database} database? (Y/n) ",
         )
     )
     if answer != "Y":
         eaveLogger.fprint(logging.CRITICAL, "Aborting.")
         return
 
-    eaveLogger.fprint(logging.INFO, f"Starting to seed your db {_EAVE_DB_NAME}...")
-    session = AsyncSession(eave.core.internal.database.async_engine)
+    eaveLogger.fprint(logging.INFO, f"Starting to seed your db {db.url.database}...")
+    session = AsyncSession(seed_db)
 
     # negative row to make sure it doesn't conflict with any other seeded entries already in db
     await seed_table_entries_for_team(team_id=team_id, row=-1, session=session)
 
     await session.commit()
     await session.close()
-    await eave.core.internal.database.async_engine.dispose()
+    await seed_db.dispose()
     eaveLogger.fprint(logging.INFO, "\nYour database has been seeded!")
     eaveLogger.fprint(
         logging.INFO,
@@ -193,14 +150,57 @@ async def seed_team(team_id: uuid.UUID) -> None:
 
 
 if __name__ == "__main__":
+    _EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
+    _GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT")
+    _GCLOUD_PROJECT = os.getenv("GCLOUD_PROJECT")
+    _GAE_ENV = os.getenv("GAE_ENV")
+
     import argparse
+
 
     parser = argparse.ArgumentParser(description="Database seeder")
     parser.add_argument("-t", "--team_id", help="ID of an existing team to seed", type=uuid.UUID, required=False)
+    parser.add_argument("-d", "--database", help="Name of the database to seed", type=str, required=False, default=_EAVE_DB_NAME)
     args = parser.parse_args()
 
-    team_id = args.team_id
-    if team_id:
-        asyncio.run(seed_team(team_id))
+    postgres_uri = eave.core.internal.database.async_engine.url._replace(database=args.database)
+    seed_db = create_async_engine(
+        postgres_uri,
+        isolation_level="AUTOCOMMIT",
+        echo=False,
+        connect_args={
+            "server_settings": {
+                "timezone": "UTC",
+            },
+        },
+    )
+
+    # ==== TRACING JUNK ====
+    from eave.otel_tracing.nettracing.telem.instrumentors.instrument import eave_instrument_db
+    eave_instrument_db(seed_db.sync_engine)
+    # ==== END TRACING ====
+
+    """
+    This script is for seeding your local database with a bunch of garbage
+    data to help test SQL query performance.
+
+    None of the created table rows are valid data, other than the
+    foreign keys linking correctly.
+
+    UNDER NO CIRCUMSTANCES SHOULD THIS BE EVER RUN AGAINST PROD
+    """
+
+    eaveLogger.fprint(logging.INFO, f"> GOOGLE_CLOUD_PROJECT: {_GOOGLE_CLOUD_PROJECT}")
+    eaveLogger.fprint(logging.INFO, f"> Target Database: {seed_db.url.database}")
+
+    # Some attempts to prevent this script from running against the production database
+    assert _GAE_ENV is None
+    assert _GOOGLE_CLOUD_PROJECT != "eave-production"
+    assert _GCLOUD_PROJECT != "eave-production"
+    assert seed_db.url.database is not None
+    assert seed_db.url.database != "eave"
+
+    if args.team_id:
+        asyncio.run(seed_team(args.team_id, seed_db))
     else:
-        asyncio.run(seed_database())
+        asyncio.run(seed_database(seed_db))

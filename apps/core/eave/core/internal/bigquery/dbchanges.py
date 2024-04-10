@@ -11,7 +11,7 @@ from eave.core.internal import database
 from eave.core.internal.bigquery.types import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 from eave.core.internal.orm.virtual_event import VirtualEventOrm, make_virtual_event_readable_name
 from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize
-from eave.tracing.core.datastructures import DatabaseChangeEventPayload
+from eave.tracing.core.datastructures import DatabaseEventPayload
 
 
 @dataclass(frozen=True)
@@ -24,13 +24,12 @@ class _DatabaseChangesTableSchema:
     table_name: str
     operation: str
     timestamp: datetime
-    old_data: Optional[dict[str, Any]]
-    new_data: Optional[dict[str, Any]]
+    parameters: Optional[dict[str, Any]]
 
 
 class DatabaseChangesTableHandle(BigQueryTableHandle):
     table_def = BigQueryTableDefinition(
-        table_id="atoms_dbchanges",
+        table_id="atoms_db",
         schema=[
             SchemaField(
                 name="table_name",
@@ -48,12 +47,7 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
                 mode=BigQueryFieldMode.REQUIRED,
             ),
             SchemaField(
-                name="old_data",
-                field_type=StandardSqlTypeNames.JSON,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="new_data",
+                name="parameters",
                 field_type=StandardSqlTypeNames.JSON,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
@@ -112,7 +106,9 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
         if len(events) == 0:
             return
 
-        dbchange_events = [DatabaseChangeEventPayload(**json.loads(e)) for e in events]
+        print(events)
+        dbchange_events = [DatabaseEventPayload(**json.loads(e)) for e in events]
+
 
         dataset = self._bq_client.get_or_create_dataset(
             dataset_id=self.dataset_id,
@@ -135,12 +131,11 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
         for operation, table_name in unique_operations:
             await self.create_vevent_view(operation=operation, source_table=table_name)
 
-    def _format_row(self, event: DatabaseChangeEventPayload) -> dict[str, Any]:
+    def _format_row(self, event: DatabaseEventPayload) -> dict[str, Any]:
         d = _DatabaseChangesTableSchema(
             table_name=event.table_name,
             operation=event.operation,
             timestamp=datetime.fromtimestamp(event.timestamp),
-            new_data=event.new_data,
-            old_data=event.old_data,
+            parameters=event.parameters,
         )
         return dataclasses.asdict(d)

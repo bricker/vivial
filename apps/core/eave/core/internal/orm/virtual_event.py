@@ -10,7 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.stdlib.core_api.models.virtual_event import VirtualEvent
 from eave.stdlib.util import titleize
-from eave.tracing.core.datastructures import DatabaseChangeOperation
+from eave.tracing.core.datastructures import DatabaseOperation
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
@@ -104,5 +104,5 @@ def make_virtual_event_readable_name(*, operation: str, table_name: str) -> str:
     'User Account Deleted'
     """
     obj_hr = titleize(table_name)
-    op_hr = DatabaseChangeOperation(value=operation.upper()).hr_past_tense
+    op_hr = DatabaseOperation(value=operation.upper()).hr_past_tense
     return f"{obj_hr} {op_hr}"
