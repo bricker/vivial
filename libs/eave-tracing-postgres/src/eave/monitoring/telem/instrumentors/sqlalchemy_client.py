@@ -240,6 +240,7 @@ class EngineTracer:
 
                 # NOTE: manually added this
                 span.set_attribute("db.params", str(params))
+                span.set_attribute("db.operation", self._operation_name(db_name, statement))
 
                 for key, value in attrs.items():
                     span.set_attribute(key, value)

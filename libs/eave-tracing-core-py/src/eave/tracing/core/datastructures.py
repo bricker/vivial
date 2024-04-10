@@ -3,25 +3,28 @@ import dataclasses
 from enum import StrEnum
 import json
 from typing import Any, Self
-
+import pydantic
 
 type RawEvent = dict[str, Any]
 
 
-class DatabaseChangeOperation(StrEnum):
+class DatabaseOperation(StrEnum):
     INSERT = "INSERT"
     UPDATE = "UPDATE"
     DELETE = "DELETE"
+    SELECT = "SELECT"
 
     @property
     def hr_past_tense(self) -> str:
         match self:
-            case DatabaseChangeOperation.INSERT:
+            case DatabaseOperation.INSERT:
                 return "Created"
-            case DatabaseChangeOperation.UPDATE:
+            case DatabaseOperation.UPDATE:
                 return "Updated"
-            case DatabaseChangeOperation.DELETE:
+            case DatabaseOperation.DELETE:
                 return "Deleted"
+            case DatabaseOperation.SELECT:
+                return "Queried"
 
 
 @dataclass
@@ -34,16 +37,17 @@ class EventPayload:
 
 
 @dataclass
-class DatabaseChangeEventPayload(EventPayload):
+class DatabaseEventPayload(EventPayload):
     table_name: str
-    operation: DatabaseChangeOperation
+    operation: DatabaseOperation
     timestamp: float
+    parameters: dict[str, Any] | None
 
-    new_data: dict[str, Any] | None
-    """JSON string mapping from column names to values"""
+    # new_data: dict[str, Any] | None
+    # """JSON string mapping from column names to values"""
 
-    old_data: dict[str, Any] | None
-    """JSON string mapping from column names to values"""
+    # old_data: dict[str, Any] | None
+    # """JSON string mapping from column names to values"""
 
 
 @dataclass
@@ -80,13 +84,13 @@ class NetworkOutEventPayload(EventPayload):
 
 
 class EventType(StrEnum):
-    dbchange = "dbchange"
+    dbevent = "dbevent"
 
     @property
     def payload_class(self) -> type[EventPayload]:
         match self:
-            case EventType.dbchange:
-                return DatabaseChangeEventPayload
+            case EventType.dbevent:
+                return DatabaseEventPayload
 
 
 @dataclass

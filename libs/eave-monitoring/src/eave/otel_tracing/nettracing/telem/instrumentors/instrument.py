@@ -10,6 +10,7 @@ from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExport
 
 from eave.otel_tracing.nettracing.telem.instrumentors import flask, aiohttp_client
 from eave.monitoring.telem.instrumentors import sqlalchemy_client
+from ..exporters.span_exporter import EaveSpanExporter
 
 _instrumented = False
 
@@ -19,7 +20,7 @@ def _init_eave_instrumentation():
         _instrumented = True
         set_tracer_provider(TracerProvider())
         get_tracer_provider().add_span_processor(  # type: ignore
-            BatchSpanProcessor(OTLPSpanExporter(endpoint="http://0.0.0.0:4317"))  # EaveSpanExporter())
+            BatchSpanProcessor(EaveSpanExporter()) # OTLPSpanExporter(endpoint="http://0.0.0.0:4317")) 
         )
 
 # TODO: try catch adding all supported instrumentation (since we dont know what deps they have). or autodetect from sys.modules
