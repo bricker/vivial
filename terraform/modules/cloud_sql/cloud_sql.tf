@@ -68,9 +68,9 @@ resource "google_sql_database_instance" "default" {
       # location                       = null
       point_in_time_recovery_enabled = local.preset_production
       start_time                     = "19:00"
-      transaction_log_retention_days = local.preset_production ? 7 : 0
+      transaction_log_retention_days = 7
       backup_retention_settings {
-        retained_backups = local.preset_production ? 7 : 0
+        retained_backups = 7
         retention_unit   = "COUNT"
       }
     }

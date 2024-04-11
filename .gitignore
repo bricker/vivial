@@ -11,8 +11,8 @@ __pycache__
 .*_cache
 node_modules
 *.egg-info
-build
-.build
+build/
+.build/
 .cloudsqlproxy
 .pgdata
 *.tgz

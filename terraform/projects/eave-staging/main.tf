@@ -60,6 +60,10 @@ module "tfstate" {
   project_id = local.project_id
 }
 
+module "docker_registry" {
+  source = "../../modules/docker_registry"
+}
+
 module "nat" {
   source = "../../modules/nat"
   project_id = local.project_id

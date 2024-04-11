@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+function build() (
+	local app=""
+	local dopush=false
+
+	while getopts "a:p" argname; do
+		case "$argname" in
+		a) app=$OPTARG ;;
+		p) dopush=true ;;
+		*)
+			statusmsg -e "unknown option: $argname"
+			;;
+		esac
+	done
+
+	if test -z "$app"; then
+		echo "app not specified."
+		exit 1
+	fi
+
+	local gcloudproject; gcloudproject="$(^gcloudproject)"
+	local gitsha; gitsha=$(git rev-parse HEAD)
+	local tag="us-central1-docker.pkg.dev/${gcloudproject}/docker/${app}:${gitsha}"
+	docker build -t "$tag" -f "$EAVE_HOME/docker/${app}/Dockerfile" "$EAVE_HOME"
+
+	if $dopush; then
+		docker push "$tag"
+	fi
+)
+
+build "$@"
