@@ -11,7 +11,7 @@ module "metabase_apps_service_accounts" {
   source = "../../modules/gke_app_service_account"
   project_id = local.project_id
   app = each.value
-  k8s_namespace = "metabase"
+  kube_namespace = "metabase"
 }
 
 # Create custom role for Metabase apps

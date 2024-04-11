@@ -1,8 +1,27 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eave-shared-config
+  namespace: eave-apps
+data:
+  foo: "bar"
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: eave-apps
+  name: ksa-app-core-api
+  annotations:
+    iam.gke.io/gcp-service-account: gsa-app-core-api@eave-staging.iam.gserviceaccount.com
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: core-api
-  namespace: eave
+  namespace: eave-apps
 spec:
   selector:
     matchLabels:
@@ -15,7 +34,7 @@ spec:
       serviceAccountName: ksa-app-core-api
       containers:
         - name: core-api
-          image: core-api:latest
+          image: us-central1-docker.pkg.dev/eave-staging/docker/core-api:latest
           resources:
             requests:
               memory: "768Mi"
@@ -29,6 +48,8 @@ spec:
             - configMapRef:
                 name: eave-shared-config
           env:
+            - name: EAVE_DB_USER
+              value: gsa-app-core-api@eave-staging.iam
             - name: EAVE_DB_HOST
               value: "127.0.0.1"
             - name: EAVE_DB_PORT

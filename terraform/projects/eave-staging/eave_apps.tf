@@ -11,7 +11,7 @@ module "eave_apps_service_accounts" {
   source = "../../modules/gke_app_service_account"
   project_id = local.project_id
   app = each.value
-  k8s_namespace = "eave"
+  kube_namespace = "eave-apps"
 }
 
 # Define the base app role
