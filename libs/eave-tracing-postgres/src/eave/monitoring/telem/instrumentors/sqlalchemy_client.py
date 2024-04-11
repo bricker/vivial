@@ -58,7 +58,9 @@ def _normalize_vendor(vendor):
     return vendor
 
 
-def _wrap_create_async_engine():
+def _wrap_create_async_engine(
+    tracer, connections_usage, enable_commenter=False, commenter_options=None
+):
     # pylint: disable=unused-argument
     def _wrap_create_async_engine_internal(func, module, args, kwargs):
         """Trace the SQLAlchemy engine, creating an `EngineTracer`
@@ -66,21 +68,31 @@ def _wrap_create_async_engine():
         """
         engine = func(*args, **kwargs)
         EngineTracer(
+            tracer,
             engine.sync_engine,
+            connections_usage,
+            enable_commenter,
+            commenter_options,
         )
         return engine
 
     return _wrap_create_async_engine_internal
 
 
-def _wrap_create_engine():
+def _wrap_create_engine(
+    tracer, connections_usage, enable_commenter=False, commenter_options=None
+):
     def _wrap_create_engine_internal(func, _module, args, kwargs):
         """Trace the SQLAlchemy engine, creating an `EngineTracer`
         object that will listen to SQLAlchemy events.
         """
         engine = func(*args, **kwargs)
         EngineTracer(
+            tracer,
             engine,
+            connections_usage,
+            enable_commenter,
+            commenter_options,
         )
         return engine
 
@@ -109,9 +121,17 @@ class EngineTracer:
 
     def __init__(
         self,
+        tracer,
         engine,
+        connections_usage,
+        enable_commenter=False,
+        commenter_options=None,
     ):
+        self.tracer = tracer
+        self.connections_usage = connections_usage
         self.vendor = _normalize_vendor(engine.name)
+        self.enable_commenter = enable_commenter
+        self.commenter_options = commenter_options if commenter_options else {}
         self._engine_attrs = _get_attributes_from_engine(engine)
         self._leading_comment_remover = re.compile(r"^/\*.*?\*/")
 
@@ -122,6 +142,46 @@ class EngineTracer:
             engine, "after_cursor_execute", _after_cur_exec
         )
         self._register_event_listener(engine, "handle_error", _handle_error)
+        self._register_event_listener(engine, "connect", self._pool_connect)
+        self._register_event_listener(engine, "close", self._pool_close)
+        self._register_event_listener(engine, "checkin", self._pool_checkin)
+        self._register_event_listener(engine, "checkout", self._pool_checkout)
+
+    def _add_idle_to_connection_usage(self, value):
+        self.connections_usage.add(
+            value,
+            attributes={
+                **self._engine_attrs,
+                "state": "idle",
+            },
+        )
+
+    def _add_used_to_connection_usage(self, value):
+        self.connections_usage.add(
+            value,
+            attributes={
+                **self._engine_attrs,
+                "state": "used",
+            },
+        )
+
+    def _pool_connect(self, _dbapi_connection, _connection_record):
+        self._add_idle_to_connection_usage(1)
+
+    def _pool_close(self, _dbapi_connection, _connection_record):
+        self._add_idle_to_connection_usage(-1)
+
+    # Called when a connection returns to the pool.
+    def _pool_checkin(self, _dbapi_connection, _connection_record):
+        self._add_used_to_connection_usage(-1)
+        self._add_idle_to_connection_usage(1)
+
+    # Called when a connection is retrieved from the Pool.
+    def _pool_checkout(
+        self, _dbapi_connection, _connection_record, _connection_proxy
+    ):
+        self._add_idle_to_connection_usage(-1)
+        self._add_used_to_connection_usage(1)
 
     @classmethod
     def _register_event_listener(cls, target, identifier, func, *args, **kw):
@@ -169,16 +229,41 @@ class EngineTracer:
             attrs = _get_attributes_from_cursor(self.vendor, cursor, attrs)
 
         db_name = attrs.get(SpanAttributes.DB_NAME, "")
- 
-        # TODO: wtf to replace span with...
-        span.set_attribute(SpanAttributes.DB_STATEMENT, statement)
-        span.set_attribute(SpanAttributes.DB_SYSTEM, self.vendor)
+        span = self.tracer.start_span(
+            self._operation_name(db_name, statement),
+            kind=trace.SpanKind.CLIENT,
+        )
+        with trace.use_span(span, end_on_exit=False):
+            if span.is_recording():
+                span.set_attribute(SpanAttributes.DB_STATEMENT, statement)
+                span.set_attribute(SpanAttributes.DB_SYSTEM, self.vendor)
 
-        span.set_attribute("db.params", str(params))
-        span.set_attribute("db.operation", self._operation_name(db_name, statement))
+                # NOTE: manually added this
+                span.set_attribute("db.params", str(params))
+                span.set_attribute("db.operation", self._operation_name(db_name, statement))
 
-        for key, value in attrs.items():
-            span.set_attribute(key, value)
+                for key, value in attrs.items():
+                    span.set_attribute(key, value)
+            if self.enable_commenter:
+                commenter_data = {
+                    "db_driver": conn.engine.driver,
+                    # Driver/framework centric information.
+                    "db_framework": f"sqlalchemy:{"__version__"}",
+                }
+
+                if self.commenter_options.get("opentelemetry_values", True):
+                    commenter_data.update(**_get_opentelemetry_values())
+
+                # Filter down to just the requested attributes.
+                commenter_data = {
+                    k: v
+                    for k, v in commenter_data.items()
+                    if self.commenter_options.get(k, True)
+                }
+
+                statement = _add_sql_comment(statement, **commenter_data)
+
+        context._otel_span = span
 
         return statement, params
 
@@ -292,37 +377,79 @@ class SQLAlchemyInstrumentor(BaseInstrumentor):
         Returns:
             An instrumented engine if passed in as an argument or list of instrumented engines, None otherwise.
         """
+        tracer_provider = kwargs.get("tracer_provider")
+        tracer = get_tracer(
+            __name__,
+            '0', #__version__,
+            tracer_provider,
+            schema_url="https://opentelemetry.io/schemas/1.11.0",
+        )
+
+        meter_provider = kwargs.get("meter_provider")
+        meter = get_meter(
+            __name__,
+            '0', #__version__,
+            meter_provider,
+            schema_url="https://opentelemetry.io/schemas/1.11.0",
+        )
+
+        connections_usage = meter.create_up_down_counter(
+            name=MetricInstruments.DB_CLIENT_CONNECTIONS_USAGE,
+            unit="connections",
+            description="The number of connections that are currently in state described by the state attribute.",
+        )
+
+        enable_commenter = kwargs.get("enable_commenter", False)
+        commenter_options = kwargs.get("commenter_options", {})
+
         _w(
             "sqlalchemy",
             "create_engine",
-            _wrap_create_engine(),
+            _wrap_create_engine(
+                tracer, connections_usage, enable_commenter, commenter_options
+            ),
         )
         _w(
             "sqlalchemy.engine",
             "create_engine",
-            _wrap_create_engine(),
+            _wrap_create_engine(
+                tracer, connections_usage, enable_commenter, commenter_options
+            ),
         )
         _w(
             "sqlalchemy.engine.base",
             "Engine.connect",
-            _wrap_connect(),
+            _wrap_connect(tracer),
         )
         if parse_version(sqlalchemy.__version__).release >= (1, 4):
             _w(
                 "sqlalchemy.ext.asyncio",
                 "create_async_engine",
-                _wrap_create_async_engine(),
+                _wrap_create_async_engine(
+                    tracer,
+                    connections_usage,
+                    enable_commenter,
+                    commenter_options,
+                ),
             )
         if kwargs.get("engine") is not None:
             return EngineTracer(
+                tracer,
                 kwargs.get("engine"),
+                connections_usage,
+                kwargs.get("enable_commenter", False),
+                kwargs.get("commenter_options", {}),
             )
         if kwargs.get("engines") is not None and isinstance(
             kwargs.get("engines"), Sequence
         ):
             return [
                 EngineTracer(
+                    tracer,
                     engine,
+                    connections_usage,
+                    kwargs.get("enable_commenter", False),
+                    kwargs.get("commenter_options", {}),
                 )
                 for engine in kwargs.get("engines", [])
             ]
