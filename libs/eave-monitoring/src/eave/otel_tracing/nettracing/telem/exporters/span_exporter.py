@@ -19,6 +19,62 @@ class SpanBaseModel(pydantic.BaseModel):
     events: list[str]
     event_type: EventType
 
+def to_json(span: ReadableSpan, indent: int = 4) -> typing.Any:
+    # parent_id = None
+    # if self.parent is not None:
+    #     parent_id = f"0x{trace_api.format_span_id(self.parent.span_id)}"
+
+    # start_time = None
+    # if self._start_time:
+    #     start_time = util.ns_to_iso_str(self._start_time)
+
+    # end_time = None
+    # if self._end_time:
+    #     end_time = util.ns_to_iso_str(self._end_time)
+
+    status = {
+        "status_code": str(span._status.status_code.name),
+    }
+    if span._status.description:
+        status["description"] = span._status.description
+
+
+    assert span._attributes
+    f_span = DatabaseEventPayload(
+        table_name=str(span._attributes.get("db.name")),
+        operation=DatabaseOperation(str(span._attributes.get("db.operation")).upper()),
+        parameters=None,
+        timestamp=time.time(),
+    ).to_dict()
+
+    """
+        -> db.statement: Str(INSERT INTO virtual_events (team_id, readable_name, description, view_id, updated) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::TIMESTAMP WITHOUT TIME ZONE) RETURNING virtual_events.id, virtual_events.created)
+        -> db.system: Str(postgresql)
+        -> db.params: Str((UUID('5ea57c57-ed6a-4d60-b2a0-e7a605fc47be'), 'Dummy event 99.29', 'boo fuzz fazz bizz bazz fazz fizz fazz bar', '99.29', None))
+        -> net.peer.name: Str(localhost)
+        -> net.peer.port: Int(5432)
+        -> db.name: Str(eave-test)
+        -> db.user: Str(eave_db_user)
+    """
+
+    # f_span = {
+    #     "name": self._name,
+    #     "context": self._format_context(self._context)
+    #     if self._context
+    #     else None,
+    #     "kind": str(self.kind),
+    #     # "parent_id": parent_id,
+    #     # "start_time": start_time,
+    #     # "end_time": end_time,
+    #     "status": status,
+    #     "attributes": self._format_attributes(self._attributes),
+    #     "events": self._format_events(self._events),
+    #     "links": self._format_links(self._links),
+    #     "resource": json.loads(self.resource.to_json()),
+    # }
+
+    return json.dumps(f_span, indent=indent)
+
 class EaveSpanExporter(SpanExporter):
     """copied base from ConsoleSpanExporter
     https://github.com/open-telemetry/opentelemetry-python/blob/975733c71473cddddd0859c6fcbd2b02405f7e12/opentelemetry-sdk/src/opentelemetry/sdk/trace/export/__init__.py#L499
