@@ -1,18 +1,21 @@
 import dataclasses
 import json
+import re
 from dataclasses import dataclass
 from datetime import datetime
 from textwrap import dedent
 from typing import Any, Optional, override
 
 from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
+import sqlparse
 
 from eave.core.internal import database
 from eave.core.internal.bigquery.types import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 from eave.core.internal.orm.virtual_event import VirtualEventOrm, make_virtual_event_readable_name
 from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize
-from eave.tracing.core.datastructures import DatabaseEventPayload
+from eave.tracing.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure
 
+_leading_comment_remover = re.compile(r"^/\*.*?\*/")
 
 @dataclass(frozen=True)
 class _DatabaseChangesTableSchema:
@@ -24,8 +27,10 @@ class _DatabaseChangesTableSchema:
     table_name: str
     operation: str
     timestamp: datetime
-    parameters: Optional[dict[str, Any]]
+    parameters: Optional[list[str]]
 
+    def as_dict(self) -> dict[str, Any]:
+        return dataclasses.asdict(self)
 
 class DatabaseChangesTableHandle(BigQueryTableHandle):
     table_def = BigQueryTableDefinition(
@@ -106,9 +111,7 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
         if len(events) == 0:
             return
 
-        print(events)
         dbchange_events = [DatabaseEventPayload(**json.loads(e)) for e in events]
-
 
         dataset = self._bq_client.get_or_create_dataset(
             dataset_id=self.dataset_id,
@@ -120,22 +123,67 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
             schema=self.table_def.schema,
         )
 
+        unique_operations: set[tuple[str, str]] = set()
+        formatted_rows: list[dict[str, Any]] = []
+
+        for e in dbchange_events:
+            match e.db_structure:
+                case DatabaseStructure.SQL:
+                    op = self._operation_name(e.statement)
+                    table_name = self._table_name(e.statement)
+                    if not op or not table_name:
+                        continue
+
+                    unique_operations.add((op, table_name))
+                    formatted_rows.append(
+                        _DatabaseChangesTableSchema(
+                            table_name=table_name,
+                            operation=op,
+                            timestamp=datetime.fromtimestamp(e.timestamp),
+                            parameters=e.parameters,
+                        ).as_dict()
+                    )
+                case _:
+                    # TODO: handle noSQL
+                    continue
+
         self._bq_client.append_rows(
             table=table,
-            rows=[self._format_row(e) for e in dbchange_events],
+            rows=formatted_rows,
         )
-
-        unique_operations = {(e.operation, e.table_name) for e in dbchange_events}
 
         # FIXME: This is vulnerable to a DoS where unique `table_name` is generated and inserted on a loop.
         for operation, table_name in unique_operations:
             await self.create_vevent_view(operation=operation, source_table=table_name)
 
-    def _format_row(self, event: DatabaseEventPayload) -> dict[str, Any]:
-        d = _DatabaseChangesTableSchema(
-            table_name=event.table_name,
-            operation=event.operation,
-            timestamp=datetime.fromtimestamp(event.timestamp),
-            parameters=event.parameters,
-        )
-        return dataclasses.asdict(d)
+    def _operation_name(self, statement) -> str | None:
+        parts = _leading_comment_remover.sub("", statement).split()
+        if len(parts) == 0:
+            return None
+        else:
+            return parts[0]
+
+    def _table_name(self, statement) -> str | None:
+        table_name = None
+        if isinstance(statement, str):
+            parts = _leading_comment_remover.sub("", statement).split()
+            if len(parts) < 1:
+                return None
+            op_str = parts[0]
+            op = DatabaseOperation.from_str(op_str)
+
+            match op:
+                case DatabaseOperation.INSERT, DatabaseOperation.DELETE:
+                    if len(parts) < 3:
+                        return None
+                    table_name = parts[2]
+                case DatabaseOperation.UPDATE:
+                    if len(parts) < 2:
+                        return None
+                    table_name = parts[1]
+                case DatabaseOperation.SELECT:
+                    match = re.search(r'FROM\s+([a-zA-Z0-9_\-\.]+)', statement, re.IGNORECASE)
+                    if match:
+                        table_name = match.group(1)
+
+        return table_name

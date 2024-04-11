@@ -7,6 +7,17 @@ import pydantic
 
 type RawEvent = dict[str, Any]
 
+class DatabaseStructure(StrEnum):
+    UNKNOWN = "unknown"
+    SQL = "SQL"
+    NO_SQL = "noSQL"
+
+    @classmethod
+    def from_str(cls, s: str) -> Self | None:
+        try:
+            return cls.__call__(value=s.upper())
+        except:
+            return None
 
 class DatabaseOperation(StrEnum):
     INSERT = "INSERT"
@@ -45,16 +56,10 @@ class EventPayload:
 
 @dataclass
 class DatabaseEventPayload(EventPayload):
-    table_name: str
-    operation: DatabaseOperation
+    statement: str
+    parameters: list[str] | None
     timestamp: float
-    parameters: dict[str, Any] | None
-
-    # new_data: dict[str, Any] | None
-    # """JSON string mapping from column names to values"""
-
-    # old_data: dict[str, Any] | None
-    # """JSON string mapping from column names to values"""
+    db_structure: DatabaseStructure
 
 
 @dataclass

@@ -17,26 +17,23 @@
 from typing import Collection
 from collections.abc import Sequence
 import sqlalchemy
+import json
 from packaging.version import parse as parse_version
 from sqlalchemy.engine.base import Engine
 from wrapt import wrap_function_wrapper as _w
+import os
+import re
+import weakref
+from sqlalchemy.event import (  # pylint: disable=no-name-in-module
+    listen,
+    remove,
+)
 
 from opentelemetry.instrumentation.instrumentor import BaseInstrumentor
 from opentelemetry.instrumentation.utils import unwrap
 from opentelemetry.metrics import get_meter
 from opentelemetry.semconv.metrics import MetricInstruments
 from opentelemetry.trace import get_tracer
-
-
-import os
-import re
-import weakref
-
-from sqlalchemy.event import (  # pylint: disable=no-name-in-module
-    listen,
-    remove,
-)
-
 from opentelemetry import trace
 from opentelemetry.instrumentation.sqlcommenter_utils import _add_sql_comment
 from opentelemetry.instrumentation.utils import _get_opentelemetry_values
@@ -237,8 +234,8 @@ class EngineTracer:
                 span.set_attribute(SpanAttributes.DB_SYSTEM, self.vendor)
 
                 # NOTE: manually added this
-                span.set_attribute("db.params", str(params))
-                span.set_attribute("db.operation", self._operation_name(db_name, statement))
+                span.set_attribute("db.params", list(map(str, params)))
+                span.set_attribute("db.structure", "SQL") # TODO: use enums/constants
 
                 for key, value in attrs.items():
                     span.set_attribute(key, value)
