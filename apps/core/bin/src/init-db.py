@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Database initializer")
     parser.add_argument("-d", "--db_name", help="Name of database to reconstruct", type=str, required=False)
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
 
     db_name = args.db_name or CORE_API_APP_CONFIG.db_name
     asyncio.run(main(db_name))

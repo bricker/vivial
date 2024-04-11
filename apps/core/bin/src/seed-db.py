@@ -161,7 +161,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Database seeder")
     parser.add_argument("-t", "--team_id", help="ID of an existing team to seed", type=uuid.UUID, required=False)
     parser.add_argument("-d", "--database", help="Name of the database to seed", type=str, required=False, default=_EAVE_DB_NAME)
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
 
     postgres_uri = eave.core.internal.database.async_engine.url._replace(database=args.database)
     seed_db = create_async_engine(
