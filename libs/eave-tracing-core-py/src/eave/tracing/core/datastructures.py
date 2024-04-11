@@ -14,6 +14,13 @@ class DatabaseOperation(StrEnum):
     DELETE = "DELETE"
     SELECT = "SELECT"
 
+    @classmethod
+    def from_str(cls, s: str) -> Self | None:
+        try:
+            return cls.__call__(value=s.upper())
+        except:
+            return None
+
     @property
     def hr_past_tense(self) -> str:
         match self:

@@ -215,8 +215,6 @@ class EngineTracer:
             parts.append(
                 self._leading_comment_remover.sub("", statement).split()[0]
             )
-        if db_name:
-            parts.append(db_name)
         if not parts:
             return self.vendor
         return " ".join(parts)
