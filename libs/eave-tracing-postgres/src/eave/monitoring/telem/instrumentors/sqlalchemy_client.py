@@ -40,6 +40,8 @@ from opentelemetry.instrumentation.utils import _get_opentelemetry_values
 from opentelemetry.semconv.trace import NetTransportValues, SpanAttributes
 from opentelemetry.trace.status import Status, StatusCode
 
+from eave.tracing.core.datastructures import DatabaseOperation
+
 
 def _normalize_vendor(vendor):
     """Return a canonical name for a type of database."""
@@ -143,6 +145,8 @@ class EngineTracer:
         self._register_event_listener(engine, "close", self._pool_close)
         self._register_event_listener(engine, "checkin", self._pool_checkin)
         self._register_event_listener(engine, "checkout", self._pool_checkout)
+        self._schema_cache = {}
+        # self._populate_schema_cache(engine) # IO attempted in unexpected place + inf loop
 
     def _add_idle_to_connection_usage(self, value):
         self.connections_usage.add(
@@ -200,22 +204,6 @@ class EngineTracer:
                 remove(weak_ref_target(), identifier, func)
         cls._remove_event_listener_params.clear()
 
-    def _operation_name(self, db_name, statement):
-        parts = []
-        if isinstance(statement, str):
-            # otel spec recommends against parsing SQL queries. We are not trying to parse SQL
-            # but simply truncating the statement to the first word. This covers probably >95%
-            # use cases and uses the SQL statement in span name correctly as per the spec.
-            # For some very special cases it might not record the correct statement if the SQL
-            # dialect is too weird but in any case it shouldn't break anything.
-            # Strip leading comments so we get the operation name.
-            parts.append(
-                self._leading_comment_remover.sub("", statement).split()[0]
-            )
-        if not parts:
-            return self.vendor
-        return " ".join(parts)
-
     def _before_cur_exec(
         self, conn, cursor, statement, params, context, _executemany
     ):
@@ -225,17 +213,32 @@ class EngineTracer:
 
         db_name = attrs.get(SpanAttributes.DB_NAME, "")
         span = self.tracer.start_span(
-            self._operation_name(db_name, statement),
+            self._operation_name(statement),
             kind=trace.SpanKind.CLIENT,
         )
         with trace.use_span(span, end_on_exit=False):
             if span.is_recording():
                 span.set_attribute(SpanAttributes.DB_STATEMENT, statement)
                 span.set_attribute(SpanAttributes.DB_SYSTEM, self.vendor)
+                span.set_attribute(SpanAttributes.DB_NAME, db_name)
 
                 # NOTE: manually added this
-                span.set_attribute("db.params", list(map(str, params)))
+                table_name = self._table_name(statement)
+                op = self._operation_name(statement)
+                if table_name:
+                    span.set_attribute(SpanAttributes.DB_SQL_TABLE, table_name)
+
+                    attr_params = list(map(str, params))
+                    cols = self._columns_from_statement(table_name, statement, conn)
+                    print(cols)
+                    span.set_attribute("db.params.values", attr_params)
+                    span.set_attribute("db.params.columns", cols)
+
+                if op:
+                    span.set_attribute(SpanAttributes.DB_OPERATION, op)
+
                 span.set_attribute("db.structure", "SQL") # TODO: use enums/constants
+                
 
                 for key, value in attrs.items():
                     span.set_attribute(key, value)
@@ -261,6 +264,67 @@ class EngineTracer:
         context._otel_span = span
 
         return statement, params
+    
+    def _operation_name(self, statement) -> str | None:
+        parts = self._leading_comment_remover.sub("", statement).split()
+        if len(parts) == 0:
+            return None
+        else:
+            return parts[0]
+
+    def _table_name(self, statement) -> str | None:
+        table_name = None
+        if isinstance(statement, str):
+            parts = self._leading_comment_remover.sub("", statement).split()
+            if len(parts) < 1:
+                return None
+            op_str = parts[0]
+            op = DatabaseOperation.from_str(op_str)
+
+            match op:
+                case DatabaseOperation.INSERT, DatabaseOperation.DELETE:
+                    if len(parts) < 3:
+                        return None
+                    table_name = parts[2]
+                case DatabaseOperation.UPDATE:
+                    if len(parts) < 2:
+                        return None
+                    table_name = parts[1]
+                case DatabaseOperation.SELECT:
+                    match = re.search(r'FROM\s+([a-zA-Z0-9_\-\.]+)', statement, re.IGNORECASE)
+                    if match:
+                        table_name = match.group(1)
+
+        return table_name
+
+    def _columns_from_statement(self, table_name, statement, conn) -> list[str]:
+        # repopulate cache if tablename not found
+        if table_name not in self._schema_cache:
+            # self._populate_schema_cache(conn.engine) # spawned too many queries, timedout and crashed process
+            pass
+
+        # try load table schema from fresh cache
+        if table_name not in self._schema_cache:
+            # give up
+            return []
+        schema = self._schema_cache[table_name]
+
+        # TODO: only return col names from statement values
+        return [c.name for c in schema.columns]
+
+    def _populate_schema_cache(self, engine) -> None:
+        metadata = sqlalchemy.MetaData()
+
+        # force sync engine since greenlet isnt setup here
+        # sync_engine = sqlalchemy.create_engine(engine.url) # cant create_engine bcus inf loop w/ listener that inits EngineTracer
+
+        # this fetches all tables metadata
+        with sync_engine.begin() as conn:
+            metadata.reflect(bind=conn)
+
+        # populate cache
+        for table_name, table in metadata.tables.items():
+            self._schema_cache[table_name] = table #TODO: any problems w/ holding this in mem???
 
 
 # pylint: disable=unused-argument

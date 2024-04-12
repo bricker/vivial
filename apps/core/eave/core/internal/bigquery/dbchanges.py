@@ -129,6 +129,7 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
         for e in dbchange_events:
             match e.db_structure:
                 case DatabaseStructure.SQL:
+                    # TODO: load these vals from event now + update DatabaseEventPayload fields
                     op = self._operation_name(e.statement)
                     table_name = self._table_name(e.statement)
                     if not op or not table_name:
@@ -156,34 +157,3 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
         for operation, table_name in unique_operations:
             await self.create_vevent_view(operation=operation, source_table=table_name)
 
-    def _operation_name(self, statement) -> str | None:
-        parts = _leading_comment_remover.sub("", statement).split()
-        if len(parts) == 0:
-            return None
-        else:
-            return parts[0]
-
-    def _table_name(self, statement) -> str | None:
-        table_name = None
-        if isinstance(statement, str):
-            parts = _leading_comment_remover.sub("", statement).split()
-            if len(parts) < 1:
-                return None
-            op_str = parts[0]
-            op = DatabaseOperation.from_str(op_str)
-
-            match op:
-                case DatabaseOperation.INSERT, DatabaseOperation.DELETE:
-                    if len(parts) < 3:
-                        return None
-                    table_name = parts[2]
-                case DatabaseOperation.UPDATE:
-                    if len(parts) < 2:
-                        return None
-                    table_name = parts[1]
-                case DatabaseOperation.SELECT:
-                    match = re.search(r'FROM\s+([a-zA-Z0-9_\-\.]+)', statement, re.IGNORECASE)
-                    if match:
-                        table_name = match.group(1)
-
-        return table_name

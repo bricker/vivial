@@ -24,6 +24,7 @@ def to_json(span: ReadableSpan, indent: int = 4) -> str | None:
     if not span._attributes:
         return None
     
+    # TODO: add new attrs to the paylaod
     statement = str(span._attributes.get(SpanAttributes.DB_STATEMENT))
     params = typing.cast(list[str] | None, span._attributes.get(DB_PARAMS))
     struct = DatabaseStructure.from_str(str(span._attributes.get(DB_STRUCTURE))) or DatabaseStructure.UNKNOWN
