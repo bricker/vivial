@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "$EAVE_HOME"/develop/functions.bash
+
+function main () (
+	local project=""
+	local app=""
+
+	while getopts "p:a:" argname; do
+		case "$argname" in
+		p) project=$OPTARG ;;
+		a) app=$OPTARG ;;
+		*)
+			statusmsg -e "unknown option: $argname"
+			exit 1
+			;;
+		esac
+	done
+
+	if test -z "$project"; then
+		statusmsg -e "project must be given with -p option."
+		exit 1
+	fi
+
+	if test -z "$app"; then
+		statusmsg -e "app must be given with -a option."
+		exit 1
+	fi
+
+	python -m dotenv --file ".$project.env" run -- \
+		python -m dotenv --file "./$app/vars.share.env" run -- \
+		yq '(.. | select(tag == "!!str")) |= envsubst(nu)' "$app"/*.yaml # | # kubectl apply -f .
+)
+
+main "$@"

@@ -5,6 +5,22 @@ set -eu
 source "$EAVE_HOME"/develop/functions.bash
 
 function run-cloud-sql-proxy() {
+	local instancename=""
+
+	while getopts "i:" argname; do
+		case "$argname" in
+		i) instancename=$OPTARG ;;
+		*)
+			statusmsg -e "unknown option: $argname"
+			;;
+		esac
+	done
+
+	if test -z "$instancename"; then
+		statusmsg -e "instance name must be passed in with the -i flag."
+		exit 1
+	fi
+
 	local gcloudproject; gcloudproject="$(^gcloudproject)"
 
 	if ! ^cmd-exists "cloud-sql-proxy"; then
@@ -47,7 +63,7 @@ function run-cloud-sql-proxy() {
 	mkdir -p "$socketdir"
 
 	local connectionName
-	connectionName=$(gcloud --project "$gcloudproject" --format json sql instances list --filter="state=RUNNABLE" | jq -r .[0].connectionName)
+	connectionName=$(gcloud --project "$gcloudproject" --format json sql instances list --filter="state=RUNNABLE" | jq -r ".[] | select(.name == \"$instancename\") | first(.) | .connectionName")
 
 	if test -z "$connectionName"; then
 		statusmsg -e "gcloud command failed. Cannot connect to Cloud SQL."
@@ -61,4 +77,4 @@ function run-cloud-sql-proxy() {
 	cloud-sql-proxy "$connectionName" --auto-iam-authn --unix-socket "$socketdir"
 }
 
-run-cloud-sql-proxy
+run-cloud-sql-proxy "$@"

@@ -1,17 +1,27 @@
 locals {
-  eave_apps = toset([
-    "core-api"
-  ])
-}
+  apps = {
+    "core-api" = {
+      domain_prefix = "api"
+      custom_roles = [
+        "eave.eaveApp",
+        "eave.eaveAppCloudsqlIamClient"
+      ]
+    }
 
-# Create app service accounts
-module "eave_apps_service_accounts" {
-  for_each = local.eave_apps
+    "dashboard" = {
+      domain_prefix = "dashboard"
+      custom_roles = [
+        "eave.eaveApp"
+      ]
+    }
 
-  source = "../../modules/gke_app_service_account"
-  project_id = local.project_id
-  app = each.value
-  kube_namespace = "eave-apps"
+    "metabase" = {
+      domain_prefix = "metabase"
+      custom_roles = [
+        "eave.metabaseApp"
+      ]
+    }
+  }
 }
 
 # Define the base app role
@@ -24,17 +34,6 @@ module "eave_app_base_role" {
     "roles/logging.logWriter",
     "roles/cloudkms.signerVerifier",
     "roles/secretmanager.secretAccessor",
-    "roles/pubsub.publisher",
-  ]
-}
-
-# Bind the base app role to all app service accounts. This is authoritative.
-resource "google_project_iam_binding" "eave_app_base_role_bindings" {
-  project = local.project_id
-  role    = module.eave_app_base_role.role.id
-  members = [
-    for _, sa in module.eave_apps_service_accounts:
-      "serviceAccount:${sa.service_account.email}"
   ]
 }
 
@@ -50,32 +49,66 @@ module "eave_cloudsql_iam_role" {
   ]
 }
 
-# Bind the custom CloudSQL IAM role. This is authoritative.
+# Create custom role for Metabase app
+module "metabase_app_base_role" {
+  source = "../../modules/custom_role"
+  role_id     = "eave.metabaseApp"
+  title       = "Metabase App"
+  description       = "Permissions needed by the Metabase apps"
+  base_roles = [
+    "roles/cloudsql.instanceUser", # for IAM auth
+    "roles/cloudsql.client",
+    "roles/logging.logWriter",
+  ]
+}
+
+# Create app service accounts
+module "apps_service_accounts" {
+  for_each = local.apps
+
+  source = "../../modules/gke_app_service_account"
+  project_id = local.project_id
+  app = each.key
+  kube_namespace = "eave"
+}
+
+# Bind the eave.eaveApp role to necessary service accounts. This is authoritative.
+resource "google_project_iam_binding" "eave_app_base_role_bindings" {
+  project = local.project_id
+  role    = module.eave_app_base_role.role.id
+  members = [
+    for app, props in local.apps:
+      "serviceAccount:${module.apps_service_accounts[app].service_account.email}"
+      if contains(props.custom_roles, module.eave_app_base_role.role.role_id)
+  ]
+}
+
+# Bind the eave.eaveAppCloudsqlIamClient role to necessary service accounts. This is authoritative.
 resource "google_project_iam_binding" "eave_cloudsql_iam_role_bindings" {
   project = local.project_id
   role    = module.eave_cloudsql_iam_role.role.id
   members = [
-    "serviceAccount:${module.eave_apps_service_accounts["core-api"].service_account.email}"
+    for app, props in local.apps:
+      "serviceAccount:${module.apps_service_accounts[app].service_account.email}"
+      if contains(props.custom_roles, module.eave_cloudsql_iam_role.role.role_id)
   ]
 }
 
-# Create core Eave CloudSQL Instance
-module "cloudsql_eave_core" {
-  source = "../../modules/cloud_sql"
-  project_id = local.project_id
-  region = local.region
-  zone = local.zone
-  instance_name = "eave-pg-core"
-  environment = local.environment
-
-  databases = [
-    "eave"
+# Bind the eave.metabaseApp role to necessary service accounts. This is authoritative.
+resource "google_project_iam_binding" "eave_metabase_role_bindings" {
+  project = local.project_id
+  role    = module.metabase_app_base_role.role.id
+  members = [
+    for app, props in local.apps:
+      "serviceAccount:${module.apps_service_accounts[app].service_account.email}"
+      if contains(props.custom_roles, module.metabase_app_base_role.role.role_id)
   ]
+}
 
-  users = {
-    "core-api" = {
-      email = module.eave_apps_service_accounts["core-api"].service_account.email,
-      user_type = "CLOUD_IAM_SERVICE_ACCOUNT",
-    }
-  }
+module "dns_apps" {
+  for_each = local.apps
+
+  source = "../../modules/dns"
+  domain_prefix = each.value.domain_prefix
+  zone = module.dns_zone_base_domain.zone
 }

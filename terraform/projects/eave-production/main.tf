@@ -16,7 +16,7 @@ locals {
   zone             = "us-central1-c"
   billing_account  = "013F5E-137CB0-B6AA2A"
   org_id           = "482990375115"
-  eave_domain_apex = "eave.fyi"
+  base_domain = "eave.fyi"
 }
 
 terraform {

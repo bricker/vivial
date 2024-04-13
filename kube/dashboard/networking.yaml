@@ -1,0 +1,57 @@
+---
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: core-api-cert
+  namespace: eave-apps
+spec:
+  domains:
+    - api.eave.dev
+
+---
+apiVersion: networking.gke.io/v1beta1
+kind: FrontendConfig
+metadata:
+  name: core-api-fc
+  namespace: eave-apps
+spec:
+  redirectToHttps:
+    enabled: true
+    responseCodeName: MOVED_PERMANENTLY_DEFAULT
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: core-api-service
+  namespace: eave-apps
+spec:
+  type: NodePort
+  selector:
+    app: core-api-app
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: core-api-port
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: core-api-ingress
+  namespace: eave-apps
+  annotations:
+    networking.gke.io/managed-certificates: core-api-cert
+    networking.gke.io/v1beta1.FrontendConfig: core-api-fc
+    kubernetes.io/ingress.global-static-ip-name: api-dot-eave-dot-dev-addr
+    kubernetes.io/ingress.class: gce
+  labels:
+    app: core-api-app
+spec:
+  # ingressClassName: gce # This does not work. Without the "ingress.class" annotation, the LB isn't created.
+  defaultBackend:
+    service:
+      name: core-api-service
+      port:
+        name: http

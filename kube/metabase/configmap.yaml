@@ -1,8 +1,9 @@
+---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: metabase-config
-  namespace: metabase
+  name: ${CONFIGMAP_NAME}
+  namespace: ${NAMESPACE}
 data:
   MB_NO_SURVEYS: "true"
   MB_SHOW_HOMEPAGE_DATA: "false"
@@ -12,7 +13,7 @@ data:
   MB_COLORIZE_LOGS: "false"
   MB_EMOJI_IN_LOGS: "false"
   MB_SITE_NAME: TKTK Eave Staging Site
-  MB_SITE_URL: http://metabase.eave.run:8080
+  MB_SITE_URL: https://metabase.eave.dev
   MB_ADMIN_EMAIL: support@eave.fyi
   MB_ANON_TRACKING_ENABLED: "false"
   MB_ENABLE_XRAYS: "true"
@@ -33,17 +34,16 @@ data:
   MB_SEND_NEW_SSO_USER_ADMIN_EMAIL: "true"
   # MB_SESSION_TIMEOUT:
   # MB_MAP_TILE_SERVER_URL:
-  MB_REPORT_TIMEZONE: America/Los_Angeles
+  MB_REPORT_TIMEZONE: America/Los_Angeles # FIXME: Can the browser's timezone be used?
   MB_ENABLE_PUBLIC_SHARING: "false"
   MB_ENABLE_EMBEDDING: "true"
-  MB_EMBEDDING_APP_ORIGIN: "*.eave.run:8080"
+  MB_EMBEDDING_APP_ORIGIN: "dashboard.eave.dev"
   MB_SESSION_COOKIE_SAMESITE: lax
   MB_JWT_ENABLED: "true"
-  MB_JWT_IDENTITY_PROVIDER_URI: http://api.eave.run:8080/oauth/metabase
-  MB_JWT_SHARED_SECRET: unsafe
+  MB_JWT_IDENTITY_PROVIDER_URI: https://dashboard.eave.dev/login
   MB_ENABLE_QUERY_CACHING: "false"
   MB_PERSISTED_MODELS_ENABLED: "false"
-  MB_PERSISTED_MODEL_REFRESH_CRON_SCHEDULE: null
+  MB_PERSISTED_MODEL_REFRESH_CRON_SCHEDULE: ""
   MB_APPLICATION_NAME: TKTK Eave Staging Application
   # MB_APPLICATION_FONT:
   # MB_APPLICATION_COLORS:
