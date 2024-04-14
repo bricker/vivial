@@ -51,9 +51,9 @@ spec:
               cpu: "100m"
           envFrom:
             - secretRef:
-                name: shared-secret
+                name: ${SHARED_SECRET_NAME}
             - configMapRef:
-                name: shared-configmap
+                name: ${SHARED_CONFIGMAP_NAME}
             - secretRef:
                 name: ${SECRET_NAME}
             - configMapRef:

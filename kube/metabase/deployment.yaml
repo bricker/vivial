@@ -1,46 +1,40 @@
 ---
-vars:
-  app: &app metabase-app
-
 apiVersion: v1
 kind: Service
 metadata:
-  name: metabase
-  namespace: eave
+  name: ${SERVICENAME}
+  namespace: ${NAMESPACE}
 spec:
   type: NodePort
   selector:
-    app: *app
+    app: ${APPNAME}
   ports:
     - name: http
       protocol: TCP
       port: 8080
-      targetPort: app-port
+      targetPort: ${APP_PORT_NAME}
 
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: ksa-app-metabase
-  namespace: eave
+  name: ${KSANAME}
+  namespace: ${NAMESPACE}
   annotations:
-    iam.gke.io/gcp-service-account: gsa-app-metabase@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com
+    iam.gke.io/gcp-service-account: ${GSANAME}@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com
 
 ---
-vars:
-  app: &app metabase-app
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: metabase-deployment
-  namespace: eave
+  namespace: ${NAMESPACE}
   labels:
-    app: *app
+    app: ${APPNAME}
 spec:
   selector:
     matchLabels:
-      app: *app
+      app: ${APPNAME}
   replicas: 1
   revisionHistoryLimit: 10
   strategy:
@@ -51,9 +45,9 @@ spec:
   template:
     metadata:
       labels:
-        app: *app
+        app: ${APPNAME}
     spec:
-      serviceAccountName: ksa-app-metabase
+      serviceAccountName: ${KSANAME}
       dnsPolicy: ClusterFirst
       securityContext:
         seccompProfile:
@@ -63,7 +57,7 @@ spec:
       #     emptyDir: {}
       containers:
         - name: metabase-enterprise
-          image: metabase/metabase-enterprise:latest
+          image: metabase/metabase-enterprise:${APP_VERSION}
           imagePullPolicy: Always
           # volumeMounts:
           #   - name: cloudsql-socket
@@ -78,12 +72,12 @@ spec:
               value: "5432"
           envFrom:
             - secretRef:
-                name: metabase-secret
+                name: ${SECRET_NAME}
             - configMapRef:
-                name: metabase-configmap
+                name: ${CONFIGMAP_NAME}
 
           ports:
-            - name: app-port
+            - name: ${APP_PORT_NAME}
               containerPort: 3000
 
           resources:
@@ -120,7 +114,7 @@ spec:
             - "--port=5432"
             - "--structured-logs"
             # - "--unix-socket /cloudsql"
-            - "eave-staging:us-central1:eave-pg-core"
+            - "${GOOGLE_CLOUD_PROJECT}:us-central1:eave-pg-core"
           # volumeMounts:
           #   - name: cloudsql-socket
           #     mountPath: /cloudsql

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -eu
+set -eu -o pipefail
 
 source "$EAVE_HOME"/develop/functions.bash
 
@@ -29,9 +29,11 @@ function main () (
 		exit 1
 	fi
 
-	python -m dotenv --file ".$project.env" run -- \
-		python -m dotenv --file "./$app/vars.share.env" run -- \
-		yq '(.. | select(tag == "!!str")) |= envsubst(nu)' "$app"/*.yaml # | # kubectl apply -f .
+	python -m dotenv --file "${EAVE_HOME}/kube/shared/vars.share.env" run --override -- \
+		python -m dotenv --file "${EAVE_HOME}/kube/$app/vars.share.env" run --override -- \
+			python -m dotenv --file "${EAVE_HOME}/kube/.$project.env" run --override -- \
+				yq eval-all '(.. | select(tag == "!!str")) |= envsubst(nu)' "${EAVE_HOME}/kube/$app"/*.yaml \
+					| kubectl apply -f -
 )
 
 main "$@"

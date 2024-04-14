@@ -4,20 +4,36 @@ set -eu
 
 source "$EAVE_HOME"/develop/functions.bash
 
-function run-cloud-sql-proxy() {
-	local instancename=""
+function _print_help() (
+		statusmsg -o "Usage: cloud-sql-proxy -i instancename [-s serviceaccount]"
+		statusmsg -o "  -i : Required: The instance name."
+		statusmsg -o "  -s : Optional: The service account name to impersonate, up to @."
+		statusmsg -o "       Eg: for 'gsa-app-core-api@eave-staging.iam.gserviceaccount.com', pass 'gsa-app-core-api'."
+		statusmsg -o "       If this option is omitted, gcloud CLI auth will be used."
+)
 
-	while getopts "i:" argname; do
+function run-cloud-sql-proxy() (
+	local instancename=""
+	local serviceaccount=""
+
+	while getopts "i:s:h" argname; do
 		case "$argname" in
 		i) instancename=$OPTARG ;;
+		s) serviceaccount=$OPTARG ;;
+		h)
+			_print_help
+			exit 0
+			;;
 		*)
 			statusmsg -e "unknown option: $argname"
+			_print_help
+			exit 1
 			;;
 		esac
 	done
 
 	if test -z "$instancename"; then
-		statusmsg -e "instance name must be passed in with the -i flag."
+		_print_help
 		exit 1
 	fi
 
@@ -71,10 +87,20 @@ function run-cloud-sql-proxy() {
 	fi
 
 	local username
-	username=$(gcloud --project "$gcloudproject" --format json info | jq -r .config.account)
+	local impersonateopt=""
+	if test -n "$serviceaccount"; then
+		username="$serviceaccount@$gcloudproject.iam.gserviceaccount.com"
+		impersonateopt="--impersonate-service-account $username"
+	else
+		username=$(gcloud --project "$gcloudproject" --format json info | jq -r .config.account)
+	fi
 
 	statusmsg -s "Connecting to CloudSQL as $username via $connectionName"
-	cloud-sql-proxy "$connectionName" --auto-iam-authn --unix-socket "$socketdir"
-}
+	# shellcheck disable=SC2086
+	cloud-sql-proxy "$connectionName" \
+		$impersonateopt \
+		--auto-iam-authn \
+		--unix-socket "$socketdir"
+)
 
 run-cloud-sql-proxy "$@"

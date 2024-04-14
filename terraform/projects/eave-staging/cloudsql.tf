@@ -14,11 +14,11 @@ module "cloudsql_eave_core" {
 
   users = {
     "core-api" = {
-      email = module.eave_apps_service_accounts["core-api"].service_account.email,
+      email = module.apps_service_accounts["core-api"].service_account.email,
       user_type = "CLOUD_IAM_SERVICE_ACCOUNT",
     },
     "metabase" = {
-      email = module.metabase_apps_service_accounts[name].service_account.email,
+      email = module.apps_service_accounts["metabase"].service_account.email,
       user_type = "CLOUD_IAM_SERVICE_ACCOUNT",
     },
   }

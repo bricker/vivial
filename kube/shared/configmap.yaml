@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: shared-configmap
-  namespace: eave
+  name: ${SHARED_CONFIGMAP_NAME}
+  namespace: ${NAMESPACE}
 data:
   foo: "bar"
