@@ -154,7 +154,7 @@ async def embed_metabase() -> Response:
 
 @app.route("/logout", methods=["GET"])
 async def logout() -> BaseResponse:
-    response = redirect(location=SHARED_CONFIG.eave_public_dashboard_base, code=302)
+    response = redirect(location=SHARED_CONFIG.eave_public_dashboard_base + "/login", code=302)
     delete_auth_cookies(response=response)
     _delete_login_state_hint_cookie(response=response)
     return response
@@ -165,14 +165,6 @@ async def logout() -> BaseResponse:
 def catch_all(path: str) -> Response:
     spa = _render_spa()
     response = make_response(spa)
-
-    # We changed these cookie names; This is a courtesy to the user to clean up their old cookies. This can be removed at any time.
-    delete_http_cookie(response=response, key="ev_account_id")
-    delete_http_cookie(response=response, key="ev_team_id")
-    delete_http_cookie(response=response, key="ev_access_token")
-    delete_http_cookie(response=response, key="ev_login_state_hint")
-    delete_http_cookie(response=response, key="visitor_id")
-
     set_tracking_cookies(response=response, request=request)
 
     auth_cookies = get_auth_cookies(request.cookies)

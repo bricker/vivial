@@ -12,6 +12,7 @@ from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import ensure_uuid
+from urllib.parse import urlencode, quote
 
 from . import shared
 
@@ -27,10 +28,22 @@ class MetabaseEmbeddingSSO(HTTPEndpoint):
         """
         eave_state = EaveRequestState.load(request=request)
 
+        # modify metabase UI using query params
+        # https://www.metabase.com/docs/latest/embedding/interactive-embedding#showing-or-hiding-metabase-ui-components
+        qp = urlencode({
+            "top_nav": "true",
+            "new_button": "true",
+            "logo": "false",
+            "side_nav": "false",
+            "breadcrumbs": "false",
+            "search": "false",
+            "header": "true",
+            "action_buttons": "true",
+        })
         # this must be a relative path to a metabase dashboard
         # https://www.metabase.com/docs/v0.48/embedding/interactive-embedding-quick-start-guide#embed-metabase-in-your-app
         # TODO: if empty default to user's first dash we created
-        return_to = request.query_params.get("return_to") or "/dashboard/8"
+        return_to = request.query_params.get("return_to") or quote(f"/dashboard/8?{qp}")
         response = Response()
 
         async with database.async_session.begin() as db_session:

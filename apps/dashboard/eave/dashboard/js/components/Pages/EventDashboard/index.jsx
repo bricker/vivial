@@ -4,6 +4,16 @@ import React, { useEffect, useState } from "react";
 import { makeStyles } from "@material-ui/styles";
 import { theme } from "../../../theme.js";
 import * as Types from "../../../types.js"; // eslint-disable-line no-unused-vars
+import SidebarNav from "./SidebarNav/index.jsx";
+import Menu from "./SidebarNav/Menu/index.jsx";
+import MenuItem from "./SidebarNav/MenuItem/index.jsx";
+import GraphIcon from "../../Icons/GraphIcon.jsx";
+import GlossaryIcon from "../../Icons/GlossaryIcon.jsx";
+import SettingsCogIcon from "../../Icons/SettingsCogIcon.jsx";
+import TeamIcon from "../../Icons/TeamIcon.jsx";
+import SignOutIcon from "../../Icons/SignOutIcon.jsx";
+import AnalyticsDashboard from "./AnalyticsDashboard/index.jsx";
+import EventGlossary from "./EventGlossary/index.jsx";
 
 const makeClasses = makeStyles((/** @type {Types.Theme} */ theme) => ({
   desktopContainer: {
@@ -57,16 +67,6 @@ const EventDashboard = () => {
     ? classes.mobileContainer
     : classes.desktopContainer;
 
-  return (
-    <iframe
-      // @ts-ignore
-      src={`${window.eave.apiBase}/oauth/metabase`}
-      frameBorder="0"
-      width="1280"
-      height="600"
-    ></iframe>
-  );
-  /*
   return (
     <div className={container}>
       <SidebarNav hamburger={usingMobileLayout}>
@@ -131,7 +131,7 @@ const EventDashboard = () => {
         }
       })()}
     </div>
-  );*/
+  );
 };
 
 export default EventDashboard;

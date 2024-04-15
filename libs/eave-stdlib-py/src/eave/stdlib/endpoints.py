@@ -54,8 +54,11 @@ class BaseResponseBody(pydantic.BaseModel):
     def raw_response(self) -> Optional[aiohttp.ClientResponse]:
         return self._raw_response
 
-    @raw_response.setter
-    def raw_response(self, value: Optional[aiohttp.ClientResponse]) -> None:
+    def set_raw_response(self, value: Optional[aiohttp.ClientResponse]) -> None:
+        """
+        This isn't a proper setter function because Pydantic hijacks attr lookups.
+        Calling `resp.raw_response = x` throws an error that there isn't a `raw_response` field.
+        """
         self._raw_response = value
 
     @property
@@ -83,5 +86,5 @@ class Endpoint(Generic[_SomeEndpointConfiguration]):
             r = response_type(**response_json)
         else:
             r = response_type()
-        r.raw_response = response
+        r.set_raw_response(response)
         return r
