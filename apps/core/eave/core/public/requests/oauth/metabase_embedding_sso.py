@@ -5,6 +5,7 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from eave.core.internal import database
+from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.metabase_instance import MetabaseInstanceOrm
 from eave.stdlib.config import SHARED_CONFIG
@@ -38,19 +39,19 @@ class MetabaseEmbeddingSSO(HTTPEndpoint):
                 params=AccountOrm.QueryParams(id=ensure_uuid(eave_state.ctx.eave_account_id)),
             )
 
-            metabase_instance = await MetabaseInstanceOrm.one_or_exception(
-                session=db_session,
-                team_id=account.team_id,
-            )
-            # validate instance hosting setup is complete before redirecting to instance
-            metabase_instance.validate_hosting_data()
+            # metabase_instance = await MetabaseInstanceOrm.one_or_exception(
+            #     session=db_session,
+            #     team_id=account.team_id,
+            # )
+            # # validate instance hosting setup is complete before redirecting to instance
+            # metabase_instance.validate_hosting_data()
 
         full_jwt = jwt.encode(
             {
                 "email": account.email,
                 "exp": round(time.time()) + (60 * 10),  # 10min
             },
-            metabase_instance.jwt_signing_key,  # type: ignore
+            CORE_API_APP_CONFIG.metabase_jwt_key,
         )
 
         # route to proper metabase instance for user's team

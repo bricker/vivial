@@ -8,17 +8,20 @@ function _print_help () (
 	statusmsg -o "Usage: build -d dirname [-p]"
 	statusmsg -o "  -d dirname : Required. Directory to build, relative to the docker directory. Do not include leading or trailing slashes or dots. eg 'core-api' or 'postgres'"
 	statusmsg -o "  -p : Optional. Push the image after building. (default: off)"
+	statusmsg -o "  -r : Optional. Rollout the matching deployment after push. Only applicable when -p also given. (default: off)"
 	statusmsg -o "  -h : Print this message."
 )
 
 function build() (
 	local _dirname=""
 	local _dopush=false
+	local _dorollout=false
 
-	while getopts "d:ph" argname; do
+	while getopts "d:prh" argname; do
 		case "$argname" in
 		d) _dirname=$OPTARG ;;
 		p) _dopush=true ;;
+		r) _dorollout=true ;;
 		h)
 			_print_help
 			exit 0
@@ -49,7 +52,10 @@ function build() (
 	if $_dopush; then
 		statusmsg -a "Pushing all tags for $imagename"
 		docker push --all-tags "$imagename"
-		"${EAVE_HOME}"/kube/bin/rollout -a "$_dirname"
+
+		if $_dorollout; then
+			"${EAVE_HOME}"/kube/bin/rollout -a "$_dirname"
+		fi
 	fi
 )
 

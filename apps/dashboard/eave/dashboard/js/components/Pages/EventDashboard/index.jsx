@@ -60,7 +60,7 @@ const EventDashboard = () => {
   return (
     <iframe
       // @ts-ignore
-      src={`//api.${window.eave.rootDomain}/oauth/metabase`}
+      src={`${window.eave.apiBase}/oauth/metabase`}
       frameBorder="0"
       width="1280"
       height="600"
