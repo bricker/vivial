@@ -6,7 +6,7 @@ locals {
   zone             = "us-central1-a"
   billing_account  = "013F5E-137CB0-B6AA2A"
   org_id           = "482990375115"
-  base_domain = "eave.dev"
+  root_domain = "eave.dev"
   environment = "STG"
 
   authorized_networks = {
@@ -72,7 +72,7 @@ module "nat" {
 
 module "dns_zone_base_domain" {
   source = "../../modules/dns_zone"
-  domain = local.base_domain
+  domain = local.root_domain
 }
 
 module "gke" {

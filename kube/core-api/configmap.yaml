@@ -6,3 +6,4 @@ metadata:
   namespace: "${NAMESPACE}"
 data:
   EAVE_DB_NAME: eave
+  GAE_SERVICE: core-api

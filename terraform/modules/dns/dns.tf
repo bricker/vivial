@@ -17,12 +17,12 @@ variable "zone" {
 
 locals {
   # eave.fyi. -> eave.fyi
-  base_domain = trimsuffix(var.zone.dns_name, ".")
+  root_domain = trimsuffix(var.zone.dns_name, ".")
 }
 
 resource "google_compute_global_address" "default" {
   # api.eave.fyi -> api-dot-eave-dot-fyi
-  name = join("", [replace("${var.domain_prefix}.${local.base_domain}", ".", "-dot-"), "-addr"])
+  name = join("", [replace("${var.domain_prefix}.${local.root_domain}", ".", "-dot-"), "-addr"])
   address_type = "EXTERNAL"
 }
 

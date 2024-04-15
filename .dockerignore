@@ -22,9 +22,6 @@
 # **/.terraform*
 # **/.pgdata/
 
-
-*.env
-**/credentials.json
 **/__pycache__/
 **/node_modules/
 **/*.egg-info
@@ -37,8 +34,10 @@
 **/*.tgz
 **/*.log*
 
-**/*.tfstate*
-**/*.tfvars
+terraform/
+docker/
+develop/
+**/bin/
 
 **/docker-compose*
 **/compose*

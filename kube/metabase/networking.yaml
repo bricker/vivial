@@ -6,7 +6,7 @@ metadata:
   namespace: "${NAMESPACE}"
 spec:
   domains:
-    - "metabase.${BASE_DOMAIN}"
+    - "metabase.${EAVE_ROOT_DOMAIN}"
 
 ---
 apiVersion: networking.gke.io/v1beta1

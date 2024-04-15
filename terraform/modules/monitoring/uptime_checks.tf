@@ -1,4 +1,4 @@
-variable "base_domain" {
+variable "root_domain" {
   type = string
 }
 
@@ -6,17 +6,17 @@ locals {
   services = {
     # eave_dashboard = {
     #   name = "Eave Dashboard uptime check"
-    #   host = "dashboard.${var.base_domain}"
+    #   host = "dashboard.${var.root_domain}"
     #   path = "/status"
     # },
     # eave_core_api = {
     #   name = "Eave Core API uptime check"
-    #   host = "api.${var.base_domain}"
+    #   host = "api.${var.root_domain}"
     #   path = "/status"
     # },
     # metabase = {
     #   name = "Metabase uptime check"
-    #   host = "metabase.${var.base_domain}"
+    #   host = "metabase.${var.root_domain}"
     #   path = "/status"
     # },
   }

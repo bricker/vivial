@@ -79,6 +79,7 @@ def _render_spa(**kwargs: Any) -> str:
         asset_base=SHARED_CONFIG.asset_base,
         cookie_domain=SHARED_CONFIG.eave_cookie_domain,
         api_base=SHARED_CONFIG.eave_public_api_base,
+        root_domain=SHARED_CONFIG.eave_root_domain,
         analytics_enabled=SHARED_CONFIG.analytics_enabled,
         app_env=SHARED_CONFIG.eave_env,
         app_version=SHARED_CONFIG.app_version,

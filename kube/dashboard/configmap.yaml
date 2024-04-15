@@ -5,4 +5,4 @@ metadata:
   name: "${CONFIGMAP_NAME}"
   namespace: "${NAMESPACE}"
 data:
-  foo: "bar"
+  GAE_SERVICE: dashboard

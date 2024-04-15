@@ -13,7 +13,7 @@ data:
   MB_COLORIZE_LOGS: "false"
   MB_EMOJI_IN_LOGS: "false"
   MB_SITE_NAME: TKTK Eave Staging Site
-  MB_SITE_URL: "https://metabase.${BASE_DOMAIN}"
+  MB_SITE_URL: "https://metabase.${EAVE_ROOT_DOMAIN}"
   MB_ANON_TRACKING_ENABLED: "false"
   MB_ENABLE_XRAYS: "true"
   MB_ENABLE_NESTED_QUERIES: "true"
@@ -35,10 +35,10 @@ data:
   MB_REPORT_TIMEZONE: America/Los_Angeles # FIXME: Can the browser's timezone be used?
   MB_ENABLE_PUBLIC_SHARING: "false"
   MB_ENABLE_EMBEDDING: "true"
-  MB_EMBEDDING_APP_ORIGIN: "dashboard.${BASE_DOMAIN}"
+  MB_EMBEDDING_APP_ORIGIN: "dashboard.${EAVE_ROOT_DOMAIN}"
   MB_SESSION_COOKIE_SAMESITE: lax
   MB_JWT_ENABLED: "true"
-  MB_JWT_IDENTITY_PROVIDER_URI: "https://dashboard.${BASE_DOMAIN}/login"
+  MB_JWT_IDENTITY_PROVIDER_URI: "https://dashboard.${EAVE_ROOT_DOMAIN}/login"
   MB_ENABLE_QUERY_CACHING: "false"
   MB_PERSISTED_MODELS_ENABLED: "false"
   MB_PERSISTED_MODEL_REFRESH_CRON_SCHEDULE: ""

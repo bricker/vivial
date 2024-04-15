@@ -7,7 +7,7 @@ locals {
   zone             = "us-central1-c"
   billing_account  = "013F5E-137CB0-B6AA2A"
   org_id           = "482990375115"
-  base_domain = "eave.run"
+  root_domain = "eave.run"
 }
 
 terraform {

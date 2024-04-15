@@ -47,7 +47,7 @@ function main () (
 					| kubectl apply $_dryrun -f -
 
 	if $_rollout; then
-		kubectl rollout restart deployment/"$_dirname"-deployment
+		"$(^parentpath)"/bin/rollout -a "$_dirname"
 	fi
 )
 
