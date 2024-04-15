@@ -4,32 +4,53 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-function build() (
-	local app=""
-	local dopush=false
+function _print_help () (
+	statusmsg -o "Usage: build -d dirname [-p]"
+	statusmsg -o "  -d dirname : Required. Directory to build, relative to the docker directory. Do not include leading or trailing slashes or dots. eg 'core-api' or 'postgres'"
+	statusmsg -o "  -p : Optional. Push the image after building. (default: off)"
+	statusmsg -o "  -h : Print this message."
+)
 
-	while getopts "a:p" argname; do
+function build() (
+	local _dirname=""
+	local _dopush=false
+
+	while getopts "d:ph" argname; do
 		case "$argname" in
-		a) app=$OPTARG ;;
-		p) dopush=true ;;
+		d) _dirname=$OPTARG ;;
+		p) _dopush=true ;;
+		h)
+			_print_help
+			exit 0
+			;;
 		*)
 			statusmsg -e "unknown option: $argname"
+			_print_help
+			exit 1
 			;;
 		esac
 	done
 
-	if test -z "$app"; then
-		echo "app not specified."
+	if test -z "$_dirname"; then
+		_print_help
 		exit 1
 	fi
 
 	local gcloudproject; gcloudproject="$(^gcloudproject)"
-	local gitsha; gitsha=$(git rev-parse HEAD)
-	local tag="us-central1-docker.pkg.dev/${gcloudproject}/docker/${app}:${gitsha}"
-	docker build -t "$tag" -f "$EAVE_HOME/docker/${app}/Dockerfile" "$EAVE_HOME"
+	local gitsha; gitsha="$(git rev-parse HEAD)"
+	local imagename="us-central1-docker.pkg.dev/${gcloudproject}/docker/${_dirname}"
 
-	if $dopush; then
-		docker push "$tag"
+	docker build \
+		-t "$imagename:latest" \
+		-t "$imagename:$gitsha" \
+		-f "$EAVE_HOME/docker/${_dirname}/Dockerfile" \
+		"$EAVE_HOME"
+
+	if $_dopush; then
+		statusmsg -a "Pushing all tags for $imagename"
+		if ^confirm; then
+			docker push --all-tags "$imagename"
+		fi
 	fi
 )
 

@@ -57,7 +57,6 @@ class _AppConfig(ConfigBase):
             try:
                 return get_secret(key)
             except Exception:
-                eaveLogger.exception(f"Fetching {key} from secrets failed.")
                 return None
 
     @cached_property

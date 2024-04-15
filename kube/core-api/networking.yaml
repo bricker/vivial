@@ -3,17 +3,17 @@ apiVersion: networking.gke.io/v1
 kind: ManagedCertificate
 metadata:
   name: core-api-cert
-  namespace: ${NAMESPACE}
+  namespace: "${NAMESPACE}"
 spec:
   domains:
-    - api.eave.dev
+    - "api.${BASE_DOMAIN}"
 
 ---
 apiVersion: networking.gke.io/v1beta1
 kind: FrontendConfig
 metadata:
   name: core-api-fc
-  namespace: ${NAMESPACE}
+  namespace: "${NAMESPACE}"
 spec:
   redirectToHttps:
     enabled: true
@@ -24,18 +24,18 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: core-api-ingress
-  namespace: ${NAMESPACE}
+  namespace: "${NAMESPACE}"
   annotations:
     networking.gke.io/managed-certificates: core-api-cert
     networking.gke.io/v1beta1.FrontendConfig: core-api-fc
     kubernetes.io/ingress.global-static-ip-name: api-dot-eave-dot-dev-addr
     kubernetes.io/ingress.class: gce
   labels:
-    app: ${APPNAME}
+    app: "${APPNAME}"
 spec:
   # ingressClassName: gce # This does not work. Without the "ingress.class" annotation, the LB isn't created.
   defaultBackend:
     service:
-      name: ${SERVICENAME}
+      name: "${SERVICENAME}"
       port:
         name: http

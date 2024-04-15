@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: ${SHARED_CONFIGMAP_NAME}
-  namespace: ${NAMESPACE}
+  name: "${SHARED_CONFIGMAP_NAME}"
+  namespace: "${NAMESPACE}"
 data:
-  foo: "bar"
+  GOOGLE_CLOUD_PROJECT: "${GOOGLE_CLOUD_PROJECT}"

@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+set -eu -o pipefail
+
+source "$EAVE_HOME"/develop/functions.bash
+
+function _print_help () (
+	statusmsg -o "Usage: logs -a appname"
+	statusmsg -o "  -a appname : Required. The app name (eg core-api) to watch."
+	statusmsg -o "  -h : Print this message."
+)
+
+function main () (
+	local _appname=""
+
+	while getopts "a:h" argname; do
+		case "$argname" in
+		a) _appname=$OPTARG ;;
+		h)
+			_print_help
+			exit 0
+			;;
+		*)
+			statusmsg -e "unknown option: $argname"
+			_print_help
+			exit 1
+			;;
+		esac
+	done
+
+	if test -z "$_appname"; then
+		_print_help
+		exit 1
+	fi
+
+	kubectl logs --follow --prefix --selector="app=$_appname-app" --tail=100 --all-containers
+)
+
+main "$@"

@@ -54,7 +54,7 @@ EXPOSE 8000
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
-CMD python -m gunicorn \
+CMD PYTHONPATH=/vendor python -m gunicorn \
     --bind :8000 \
     --pythonpath /vendor \
     --workers 3 \
