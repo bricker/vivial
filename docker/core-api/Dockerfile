@@ -15,12 +15,14 @@ RUN mkdir -p ${EAVE_HOME}
 COPY apps/core ${EAVE_HOME}/apps/core
 COPY libs ${EAVE_HOME}/libs
 
+WORKDIR ${EAVE_HOME}/apps/core
+
 # Install dependencies
 RUN mkdir -p /vendor
 RUN python -m pip install \
     -t /vendor \
-    -r ${EAVE_HOME}/apps/core/requirements.txt \
-    -r ${EAVE_HOME}/apps/core/requirements-vendor.txt
+    -r requirements.txt \
+    -r requirements-vendor.txt
 
 
 ## Base
@@ -30,9 +32,7 @@ FROM python:${PYTHON_VERSION}-slim as base
 RUN mkdir -p /vendor
 COPY --from=builder /vendor /vendor/
 
-# Copy only the app source code into the Docker image.
-# This excludes things like migration scripts, development scripts, tests, and requirements files.
-# This also excludes the rest of the monorepo.
+# Copy the app source code into the Docker image.
 RUN mkdir -p /app/eave
 COPY --from=builder /build/apps/core/eave /app/eave/
 

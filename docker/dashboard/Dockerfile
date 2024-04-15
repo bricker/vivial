@@ -3,6 +3,9 @@
 ARG PYTHON_VERSION=3.12
 ARG NODE_VERSION=18
 
+
+
+
 ## Python Builder
 FROM python:${PYTHON_VERSION}-slim as builder-py
 ENV EAVE_HOME=/build
@@ -11,16 +14,22 @@ ENV PYTHONUNBUFFERED=1
 
 RUN apt-get update && apt-get install -y git
 
-# Copy the full monorepo into the builder image
+# Copy relevant files
 RUN mkdir -p ${EAVE_HOME}
-COPY . ${EAVE_HOME}/
+COPY apps/dashboard ${EAVE_HOME}/apps/dashboard
+COPY libs ${EAVE_HOME}/libs
+
+WORKDIR ${EAVE_HOME}/apps/dashboard
 
 # Install dependencies
 RUN mkdir -p /vendor
 RUN python -m pip install \
     -t /vendor \
-    -r ${EAVE_HOME}/apps/core/requirements.txt \
-    -r ${EAVE_HOME}/apps/core/requirements-vendor.txt
+    -r requirements.txt \
+    -r requirements-vendor.txt
+
+
+
 
 
 ## Node Builder
@@ -30,26 +39,31 @@ ENV NODE_ENV=development
 
 RUN apt-get update && apt-get install -y git
 
-# Copy the full monorepo into the builder image
+# Copy relevant files
 RUN mkdir -p ${EAVE_HOME}
-COPY . ${EAVE_HOME}/
+COPY apps/dashboard ${EAVE_HOME}/apps/dashboard
+COPY libs ${EAVE_HOME}/libs
 
 WORKDIR ${EAVE_HOME}/apps/dashboard
 
-# Install dependencies
+# Build the client bundle.
 RUN npm ci --force
 RUN npx webpack build --mode=production --no-devtool
+
+
+
+
+
 
 ## Base
 FROM python:${PYTHON_VERSION}-slim as base
 
-# Copy dependencies into base image
+# Copy python dependencies into base image
+# Notably, node dependencies are _not_ required for this image. The webpack bundle contains everything necessary.
 RUN mkdir -p /vendor
 COPY --from=builder-py /vendor /vendor/
 
-# Copy only the app source code into the Docker image.
-# This excludes things like migration scripts, development scripts, tests, and requirements files.
-# This also excludes the rest of the monorepo.
+# Copy the app source code into the Docker image.
 RUN mkdir -p /app/eave
 COPY --from=builder-node /build/apps/dashboard/eave /app/eave/
 

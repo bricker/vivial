@@ -48,9 +48,7 @@ function build() (
 
 	if $_dopush; then
 		statusmsg -a "Pushing all tags for $imagename"
-		if ^confirm; then
-			docker push --all-tags "$imagename"
-		fi
+		docker push --all-tags "$imagename"
 	fi
 )
 
