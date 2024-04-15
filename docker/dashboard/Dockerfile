@@ -87,7 +87,5 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 CMD PYTHONPATH=/vendor python -m gunicorn \
-    --bind :8000 \
     --pythonpath /vendor \
-    --workers 3 \
     eave.dashboard.app:app

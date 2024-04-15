@@ -5,10 +5,10 @@ metadata:
   name: "${HEALTHCHECK_NAME}"
 spec:
   healthCheck:
-    timeoutSec: 1
     type: HTTP
     requestPath: /status
     port: 8000
+
 
 ---
 apiVersion: v1
@@ -68,11 +68,13 @@ spec:
             limits:
               memory: "768Mi"
               cpu: "100m"
+
           envFrom:
             - configMapRef:
                 name: "${SHARED_CONFIGMAP_NAME}"
             - configMapRef:
                 name: "${CONFIGMAP_NAME}"
+
           env:
             - name: EAVE_DB_USER
               value: "${GSANAME}@${GOOGLE_CLOUD_PROJECT}.iam"
@@ -80,15 +82,13 @@ spec:
               value: "127.0.0.1"
             - name: EAVE_DB_PORT
               value: "5432"
+            # gunicorn options
+            - name: GUNICORN_CMD_ARGS
+              value: "--bind=0.0.0.0:8000 --workers=3 --timeout=90"
 
           ports:
             - name: "${APP_PORT_NAME}"
               containerPort: 8000
-
-          readinessProbe:
-            httpGet:
-              port: 8000
-              path: "/status"
 
         - name: cloud-sql-proxy
           # This uses the latest version of the Cloud SQL Proxy

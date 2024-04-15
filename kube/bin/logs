@@ -33,7 +33,18 @@ function main () (
 		exit 1
 	fi
 
-	kubectl logs --follow --prefix --selector="app=$_appname-app" --tail=100 --all-containers
+	# gcloud --format=json alpha logging tail \
+	# 	'resource.type="k8s_container" AND
+	# 	resource.labels.container_name="'"${_appname}"'"'
+
+	kubectl logs \
+		--tail=100 \
+		--follow \
+		--prefix \
+		--timestamps \
+		--ignore-errors \
+		--all-containers \
+		"deployment/${_appname}-deployment"
 )
 
 main "$@"

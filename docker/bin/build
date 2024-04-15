@@ -49,6 +49,7 @@ function build() (
 	if $_dopush; then
 		statusmsg -a "Pushing all tags for $imagename"
 		docker push --all-tags "$imagename"
+		"${EAVE_HOME}"/kube/bin/rollout -a "$_dirname"
 	fi
 )
 

@@ -56,8 +56,6 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 CMD PYTHONPATH=/vendor python -m gunicorn \
-    --bind :8000 \
     --pythonpath /vendor \
-    --workers 3 \
     --worker-class uvicorn.workers.UvicornWorker \
     eave.core.app:app

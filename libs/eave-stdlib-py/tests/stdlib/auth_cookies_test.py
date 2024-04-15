@@ -4,7 +4,7 @@ from typing import Any
 
 import aiohttp
 from eave.stdlib.auth_cookies import (
-    AUTH_COOKIE_VERSION,
+    AUTH_COOKIE_SUFFIX,
     EAVE_ACCESS_TOKEN_COOKIE_NAME,
     EAVE_ACCOUNT_ID_COOKIE_NAME,
     EAVE_TEAM_ID_COOKIE_NAME,
@@ -43,7 +43,7 @@ class AuthCookiesTest(AuthCookiesTestBase):
         """
         The auth cookie names may be referenced in client code, eg GTM, so changing them needs consideration.
         """
-        assert AUTH_COOKIE_VERSION == "202311"
+        assert AUTH_COOKIE_SUFFIX == ".202311"
         assert EAVE_ACCOUNT_ID_COOKIE_NAME == "ev_account_id.202311"
         assert EAVE_TEAM_ID_COOKIE_NAME == "ev_team_id.202311"
         assert EAVE_ACCESS_TOKEN_COOKIE_NAME == "ev_access_token.202311"

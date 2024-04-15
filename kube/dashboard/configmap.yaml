@@ -6,3 +6,4 @@ metadata:
   namespace: "${NAMESPACE}"
 data:
   GAE_SERVICE: dashboard
+  GAE_VERSION: "${GAE_VERSION}"
