@@ -40,11 +40,14 @@ function main () (
 		exit 1
 	fi
 
+	export GAE_VERSION; GAE_VERSION="$(git rev-parse --short HEAD)"
+
 	python -m dotenv --file "${EAVE_HOME}/kube/shared/vars.share.env" run --override -- \
 		python -m dotenv --file "${EAVE_HOME}/kube/$_dirname/vars.share.env" run --override -- \
-			python -m dotenv --file "${EAVE_HOME}/kube/.$gcloudproject.env" run --override -- \
-				yq eval-all '(.. | select(tag == "!!str")) |= envsubst(nu)' "${EAVE_HOME}/kube/$_dirname"/*.yaml \
-					| kubectl apply $_dryrun -f -
+			python -m dotenv --file "${EAVE_HOME}/kube/.$gcloudproject.share.env" run --override -- \
+				python -m dotenv --file "${EAVE_HOME}/kube/.$gcloudproject.env" run --override -- \
+					yq eval-all '(.. | select(tag == "!!str")) |= envsubst(nu)' "${EAVE_HOME}/kube/$_dirname"/*.yaml \
+						| kubectl apply $_dryrun -f -
 
 	if $_rollout; then
 		"$(^parentpath)"/bin/rollout -a "$_dirname"

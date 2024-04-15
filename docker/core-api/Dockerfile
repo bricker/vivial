@@ -10,13 +10,13 @@ ENV PYTHONUNBUFFERED=1
 
 RUN apt-get update && apt-get install -y git
 
-# Copy the full monorepo into the builder image
+# Copy relevant files
 RUN mkdir -p ${EAVE_HOME}
-COPY . ${EAVE_HOME}/
+COPY apps/core ${EAVE_HOME}/apps/core
+COPY libs ${EAVE_HOME}/libs
 
 # Install dependencies
 RUN mkdir -p /vendor
-
 RUN python -m pip install \
     -t /vendor \
     -r ${EAVE_HOME}/apps/core/requirements.txt \

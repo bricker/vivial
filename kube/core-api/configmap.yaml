@@ -7,3 +7,4 @@ metadata:
 data:
   EAVE_DB_NAME: eave
   GAE_SERVICE: core-api
+  GAE_VERSION: "${GAE_VERSION}"
