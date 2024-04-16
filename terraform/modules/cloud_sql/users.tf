@@ -1,7 +1,7 @@
 variable "users" {
-  type=map(object({
-    email=string,
-    user_type=string,
+  type = map(object({
+    email     = string,
+    user_type = string,
   }))
 
   default = {}
@@ -12,9 +12,9 @@ variable "users" {
 resource "google_sql_user" "users" {
   for_each = var.users
 
-  instance = google_sql_database_instance.default.name
-  name     = trimsuffix(each.value.email, ".gserviceaccount.com")
-  type = each.value.user_type
-  password = null # only IAM supported
+  instance        = google_sql_database_instance.default.name
+  name            = trimsuffix(each.value.email, ".gserviceaccount.com")
+  type            = each.value.user_type
+  password        = null # only IAM supported
   deletion_policy = "ABANDON"
 }

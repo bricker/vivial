@@ -1,6 +1,5 @@
 import {
   StatusRouter,
-  addGAELifecycleRoutes,
   handlerWrapper,
   makeRoute,
 } from "@eave-fyi/eave-stdlib-ts/src/api-util.js";

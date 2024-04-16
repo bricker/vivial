@@ -3,15 +3,15 @@
 # }
 
 variable "app" {
-  type=string
+  type = string
 }
 
 variable "kube_namespace" {
-  type=string
+  type = string
 }
 
 variable "project_id" {
-  type=string
+  type = string
 }
 
 # data "google_iam_role" "app_role" {
@@ -36,7 +36,7 @@ resource "google_service_account" "app_service_account" {
 resource "google_service_account_iam_member" "app_service_account_ksa_binding" {
   service_account_id = google_service_account.app_service_account.id
   role               = data.google_iam_role.workload_identity_role.id
-  member = "serviceAccount:${var.project_id}.svc.id.goog[${var.kube_namespace}/ksa-app-${var.app}]"
+  member             = "serviceAccount:${var.project_id}.svc.id.goog[${var.kube_namespace}/ksa-app-${var.app}]"
 }
 
 output "service_account" {

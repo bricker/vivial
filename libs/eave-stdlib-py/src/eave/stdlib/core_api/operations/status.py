@@ -33,6 +33,7 @@ class Status(CoreApiEndpoint):
 
         return body
 
+
 def status_payload() -> Status.ResponseBody:
     return Status.ResponseBody(
         service=SHARED_CONFIG.app_service,

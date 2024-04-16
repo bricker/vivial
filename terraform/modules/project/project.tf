@@ -7,12 +7,12 @@ variable "org_id" {
 }
 
 variable "billing_account" {
-  type=string
+  type = string
 }
 
 resource "google_project" "main" {
   # folder_id           = null
-  billing_account = var.billing_account
+  billing_account     = var.billing_account
   org_id              = var.org_id
   project_id          = var.project_id
   name                = var.project_id

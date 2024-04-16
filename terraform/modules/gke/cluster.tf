@@ -8,7 +8,7 @@ variable "region" {
 
 variable "authorized_networks" {
   type = map(object({
-    cidr_block = string
+    cidr_block   = string
     display_name = string
   }))
 
@@ -38,8 +38,8 @@ resource "google_container_cluster" "default" {
   }
 
   private_cluster_config {
-    enable_private_endpoint     = false
-    enable_private_nodes        = true
+    enable_private_endpoint = false
+    enable_private_nodes    = true
     master_global_access_config {
       enabled = false
     }

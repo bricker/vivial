@@ -2,12 +2,12 @@
 
 
 locals {
-  project_id       = "eavefyi-dev"
-  region           = "us-central1"
-  zone             = "us-central1-c"
-  billing_account  = "013F5E-137CB0-B6AA2A"
-  org_id           = "482990375115"
-  root_domain = "eave.run"
+  project_id      = "eavefyi-dev"
+  region          = "us-central1"
+  zone            = "us-central1-c"
+  billing_account = "013F5E-137CB0-B6AA2A"
+  org_id          = "482990375115"
+  root_domain     = "eave.run"
 }
 
 terraform {

@@ -1,25 +1,25 @@
 # These are individual variables instead of a single map+iteration so that all of the expected secrets are required to be set.
 
 variable "METABASE_JWT_KEY" {
-  type=string
+  type      = string
   sensitive = true
 }
 
 variable "EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64" {
-  type=string
+  type      = string
   sensitive = true
 }
 
 variable "SLACK_SYSTEM_BOT_TOKEN" {
-  type=string
+  type      = string
   sensitive = true
 }
 
 locals {
   secrets = {
-    "METABASE_JWT_KEY" = var.METABASE_JWT_KEY
+    "METABASE_JWT_KEY"                              = var.METABASE_JWT_KEY
     "EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64" = var.EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64
-    "SLACK_SYSTEM_BOT_TOKEN" = var.SLACK_SYSTEM_BOT_TOKEN
+    "SLACK_SYSTEM_BOT_TOKEN"                        = var.SLACK_SYSTEM_BOT_TOKEN
   }
 }
 

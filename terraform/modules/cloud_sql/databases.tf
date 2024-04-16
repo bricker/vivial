@@ -1,5 +1,5 @@
 variable "databases" {
-  type=set(string)
+  type    = set(string)
   default = []
 }
 

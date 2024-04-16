@@ -1,25 +1,25 @@
 variable "base_roles" {
-  type=set(string)
+  type    = set(string)
   default = []
 }
 
 variable "role_id" {
-  type=string
+  type = string
 }
 
 variable "title" {
-  type=string
+  type = string
 }
 
 variable "description" {
-  type=string
+  type     = string
   nullable = true
-  default=null
+  default  = null
 }
 
 data "google_iam_role" "base_roles" {
   for_each = var.base_roles
-  name = each.value
+  name     = each.value
 }
 
 resource "google_project_iam_custom_role" "custom_role" {
@@ -28,7 +28,7 @@ resource "google_project_iam_custom_role" "custom_role" {
   description = var.description
   # https://cloud.google.com/knowledge/kb/permission-error-for-custom-role-000004670
   permissions = setsubtract(distinct(flatten(
-    [for _, role in data.google_iam_role.base_roles: role.included_permissions]
+    [for _, role in data.google_iam_role.base_roles : role.included_permissions]
   )), ["resourcemanager.projects.list"])
 }
 

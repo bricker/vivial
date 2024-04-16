@@ -30,21 +30,23 @@ class MetabaseEmbeddingSSO(HTTPEndpoint):
 
         # modify metabase UI using query params
         # https://www.metabase.com/docs/latest/embedding/interactive-embedding#showing-or-hiding-metabase-ui-components
-        qp = urlencode({
-            "top_nav": "true",
-            "new_button": "true",
-            "logo": "false",
-            "side_nav": "false",
-            "breadcrumbs": "false",
-            "search": "false",
-            "header": "true",
-            "action_buttons": "true",
-        })
+        qp = urlencode(
+            {
+                "top_nav": "true",
+                "new_button": "true",
+                "logo": "false",
+                "side_nav": "false",
+                "breadcrumbs": "false",
+                "search": "false",
+                "header": "true",
+                "action_buttons": "true",
+            }
+        )
         # this must be a relative path to a metabase dashboard
         # https://www.metabase.com/docs/v0.48/embedding/interactive-embedding-quick-start-guide#embed-metabase-in-your-app
         # TODO: if empty default to user's first dash we created
         return_to_str = request.query_params.get("return_to") or "/dashboard/1"
-        return_to_str = unquote(return_to_str) # In case return_to qp has its own query params
+        return_to_str = unquote(return_to_str)  # In case return_to qp has its own query params
         return_to_url = urlparse(return_to_str)
         sep = "&" if return_to_url.query else ""
         return_to_url = return_to_url._replace(query=f"{return_to_url.query}{sep}{qp}")

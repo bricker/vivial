@@ -1,28 +1,28 @@
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs
 
 locals {
-  project_id       = "eave-staging"
-  region           = "us-central1"
-  zone             = "us-central1-a"
-  billing_account  = "013F5E-137CB0-B6AA2A"
-  org_id           = "482990375115"
-  root_domain = "eave.dev"
-  environment = "STG"
+  project_id      = "eave-staging"
+  region          = "us-central1"
+  zone            = "us-central1-a"
+  billing_account = "013F5E-137CB0-B6AA2A"
+  org_id          = "482990375115"
+  root_domain     = "eave.dev"
+  environment     = "STG"
 
   authorized_networks = {
-    "bryan-ethernet": {
+    "bryan-ethernet" : {
       cidr_block   = "157.22.33.185/32"
       display_name = "Bryan's Home Ethernet"
     },
-    "bryan-wifi": {
+    "bryan-wifi" : {
       cidr_block   = "157.22.33.161/32"
       display_name = "Bryan's Home Wifi"
     },
-    "lana-home": {
+    "lana-home" : {
       cidr_block   = "75.84.53.143/32"
       display_name = "Lana's Home Network"
     },
-    "liam-home": {
+    "liam-home" : {
       cidr_block   = "76.146.71.81/32"
       display_name = "Liam's Home Network"
     }
@@ -50,13 +50,13 @@ provider "google" {
 
 module "gcp_project" {
   source          = "../../modules/project"
-  project_id = local.project_id
+  project_id      = local.project_id
   org_id          = local.org_id
   billing_account = local.billing_account
 }
 
 module "tfstate" {
-  source          = "../../modules/tfstate"
+  source     = "../../modules/tfstate"
   project_id = local.project_id
 }
 
@@ -65,9 +65,9 @@ module "docker_registry" {
 }
 
 module "nat" {
-  source = "../../modules/nat"
+  source     = "../../modules/nat"
   project_id = local.project_id
-  region = local.region
+  region     = local.region
 }
 
 module "dns_zone_base_domain" {
@@ -76,9 +76,9 @@ module "dns_zone_base_domain" {
 }
 
 module "gke" {
-  source     = "../../modules/gke"
-  project_id = local.project_id
-  region     = local.region
+  source              = "../../modules/gke"
+  project_id          = local.project_id
+  region              = local.region
   authorized_networks = local.authorized_networks
 }
 

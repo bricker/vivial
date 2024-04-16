@@ -1,4 +1,4 @@
-import Express, { IRouter, Request, Response, Router } from "express";
+import Express, { Request, Response, Router } from "express";
 import { Server } from "http";
 import { constants as httpConstants } from "node:http2";
 import { cacheInitialized, getCacheClient } from "./cache.js";
