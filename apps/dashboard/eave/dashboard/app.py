@@ -56,23 +56,6 @@ def status() -> str:
     return model.json()
 
 
-@app.route("/_ah/warmup", methods=["GET"])
-async def warmup() -> str:
-    SHARED_CONFIG.preload()
-    DASHBOARD_APP_CONFIG.preload()
-    return "OK"
-
-
-@app.route("/_ah/start", methods=["GET"])
-async def start() -> str:
-    return "OK"
-
-
-@app.route("/_ah/stop", methods=["GET"])
-async def stop() -> str:
-    return "OK"
-
-
 def _render_spa(**kwargs: Any) -> str:
     return render_template(
         "index.html.jinja",

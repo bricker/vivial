@@ -100,59 +100,66 @@ def build_headers(
     """
     ctx = LogContext.wrap(ctx=ctx)
     request_id = ctx.eave_request_id
-    eave_sig_ts = signing.make_sig_ts()
 
     headers: dict[str, str] = {
         eave_headers.EAVE_ORIGIN_HEADER: origin.value,
         eave_headers.EAVE_REQUEST_ID_HEADER: request_id,
-        eave_headers.EAVE_SIG_TS_HEADER: str(eave_sig_ts),
     }
 
-    if access_token:
-        headers[aiohttp.hdrs.AUTHORIZATION] = f"Bearer {access_token}"
-
-    team_id = team_id or ctx.eave_team_id
-    if team_id:
-        headers[eave_headers.EAVE_TEAM_ID_HEADER] = str(team_id)
-
-    account_id = account_id or ctx.eave_account_id
-    if account_id:
-        headers[eave_headers.EAVE_ACCOUNT_ID_HEADER] = str(account_id)
-
-    signature_message = signing.build_message_to_sign(
-        method=config.method,
-        path=config.path,
-        request_id=request_id,
-        origin=origin,
-        audience=config.audience,
-        ts=eave_sig_ts,
-        team_id=team_id,
-        account_id=account_id,
-        payload=payload,
-        ctx=ctx,
-    )
-
-    signature = signing.sign_b64(
-        signing_key=signing.get_key(signer=origin.value),
-        data=signature_message,
-        ctx=ctx,
-    )
-
-    headers[eave_headers.EAVE_SIGNATURE_HEADER] = signature
-
-    if addl_headers:
-        headers.update(addl_headers)
-
     request_params: JsonObject = {
-        "signature": redact(signature),
-        "access_token": redact(access_token),
         "eave_request_id": request_id,
         "eave_origin": origin.value,
         "eave_audience": config.audience.value,
-        "eave_team_id": ensure_str_or_none(team_id),
-        "eave_account_id": ensure_str_or_none(account_id),
         "method": config.method,
         "url": config.url,
     }
+
+    if config.auth_required:
+        if not access_token:
+            raise ValueError("missing access_token")
+        headers[aiohttp.hdrs.AUTHORIZATION] = f"Bearer {access_token}"
+        request_params["access_token"] = redact(access_token)
+
+        account_id = account_id or ctx.eave_account_id
+        if not account_id:
+            raise ValueError("missing account_id")
+        headers[eave_headers.EAVE_ACCOUNT_ID_HEADER] = str(account_id)
+        request_params["eave_account_id"] = ensure_str_or_none(account_id)
+
+    if config.team_id_required:
+        team_id = team_id or ctx.eave_team_id
+        if not team_id:
+            raise ValueError("missing team_id")
+        headers[eave_headers.EAVE_TEAM_ID_HEADER] = str(team_id)
+        request_params["eave_team_id"] = ensure_str_or_none(team_id)
+
+    if config.signature_required:
+        eave_sig_ts = signing.make_sig_ts()
+
+        signature_message = signing.build_message_to_sign(
+            method=config.method,
+            path=config.path,
+            request_id=request_id,
+            origin=origin,
+            audience=config.audience,
+            ts=eave_sig_ts,
+            team_id=team_id,
+            account_id=account_id,
+            payload=payload,
+            ctx=ctx,
+        )
+
+        signature = signing.sign_b64(
+            signing_key=signing.get_key(signer=origin.value),
+            data=signature_message,
+            ctx=ctx,
+        )
+
+        headers[eave_headers.EAVE_SIGNATURE_HEADER] = signature
+        headers[eave_headers.EAVE_SIG_TS_HEADER] = str(eave_sig_ts)
+        request_params["signature"] = redact(signature)
+
+    if addl_headers:
+        headers.update(addl_headers)
 
     return (headers, request_params)

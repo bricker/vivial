@@ -33,23 +33,6 @@ export function StatusRouter(): Router {
   return router;
 }
 
-export function addGAELifecycleRoutes({ router }: { router: IRouter }) {
-  router.get("/_ah/start", (_req: Request, res: Response) => {
-    res.sendStatus(200);
-  });
-
-  router.get("/_ah/stop", (_req: Request, res: Response) => {
-    res.sendStatus(200);
-  });
-
-  router.get("/_ah/warmup", async (_req: Request, res: Response) => {
-    // Initializes a client and connects to Redis
-    const cacheClient = await getCacheClient();
-    await cacheClient.ping();
-    res.sendStatus(200);
-  });
-}
-
 export function gracefulShutdownHandler({
   server,
 }: {
@@ -114,30 +97,14 @@ export function getHeaders(
 export abstract class ClientApiEndpointConfiguration {
   path: string;
   method: ExpressRoutingMethod;
-
-  abstract audience: EaveApp;
-
-  abstract get url(): string;
-
-  constructor({
-    path,
-    method = ExpressRoutingMethod.post,
-  }: {
-    path: string;
-    method?: ExpressRoutingMethod;
-  }) {
-    this.path = path;
-    this.method = method;
-  }
-}
-
-export abstract class ServerApiEndpointConfiguration extends ClientApiEndpointConfiguration {
   teamIdRequired: boolean;
   authRequired: boolean;
   originRequired: boolean;
   signatureRequired: boolean;
 
-  abstract get middlewares(): Express.Handler[];
+  abstract audience: EaveApp;
+
+  abstract get url(): string;
 
   constructor({
     path,
@@ -154,12 +121,17 @@ export abstract class ServerApiEndpointConfiguration extends ClientApiEndpointCo
     originRequired?: boolean;
     signatureRequired?: boolean;
   }) {
-    super({ path, method });
+    this.path = path;
+    this.method = method;
     this.teamIdRequired = teamIdRequired;
     this.authRequired = authRequired;
     this.originRequired = originRequired;
     this.signatureRequired = signatureRequired;
   }
+}
+
+export abstract class ServerApiEndpointConfiguration extends ClientApiEndpointConfiguration {
+  abstract get middlewares(): Express.Handler[];
 }
 
 export function handlerWrapper(

@@ -10,7 +10,8 @@ from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 class GetVirtualEventsRequest(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
-        path="/virtual-events/query",
+        path="/_/virtual-events/query",
+        signature_required=False,
     )
 
     class RequestBody(BaseRequestBody):

@@ -22,7 +22,10 @@ export type QueryGithubInstallationResponseBody = {
 
 export class QueryGithubInstallationOperation {
   static config = new CoreApiEndpointConfiguration({
-    path: "/github_installations/query",
+    path: "/_/github_installations/query",
+    signatureRequired: false,
+    authRequired: false,
+    teamIdRequired: false,
   });
 
   static async perform(
@@ -43,7 +46,9 @@ export type DeleteGithubInstallationRequestBody = {
 
 export class DeleteGithubInstallationOperation {
   static config = new CoreApiEndpointConfiguration({
-    path: "/github_installations/delete",
+    path: "/_/github_installations/delete",
+    authRequired: false,
+    signatureRequired: false,
   });
 
   static async perform(

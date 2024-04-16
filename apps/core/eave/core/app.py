@@ -156,9 +156,6 @@ def make_route(
 
 
 routes = [
-    Route(path="/_ah/warmup", endpoint=status.WarmupRequest, methods=["GET"]),
-    Route(path="/_ah/start", endpoint=status.StartRequest, methods=["GET"]),
-    Route(path="/_ah/stop", endpoint=status.StopRequest, methods=["GET"]),
     Route(
         path="/status",
         endpoint=status.StatusRequest,
@@ -166,7 +163,7 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/ingest",
+            path="/public/ingest", # TODO: Make ingest a separate app
             auth_required=False,
             signature_required=False,
             origin_required=False,

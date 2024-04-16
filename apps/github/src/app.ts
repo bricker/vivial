@@ -31,7 +31,6 @@ export const app = express();
 app.use(helmetMiddleware());
 app.use(commonRequestMiddlewares);
 app.use("/github/status", StatusRouter());
-addGAELifecycleRoutes({ router: app });
 
 // Github Webhook endpoint
 // This doesn't use `makeRoute` because it uses a special middleware

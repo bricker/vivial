@@ -20,6 +20,13 @@ spec:
     responseCodeName: MOVED_PERMANENTLY_DEFAULT
 
 ---
+vars:
+  backend: &backend
+    service:
+      name: "${SERVICENAME}"
+      port:
+        name: "${SERVICE_PORT_NAME}"
+
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -34,8 +41,27 @@ metadata:
     app: "${APPNAME}"
 spec:
   # ingressClassName: gce # This does not work. Without the "ingress.class" annotation, the LB isn't created.
-  defaultBackend:
-    service:
-      name: "${SERVICENAME}"
-      port:
-        name: http
+  # defaultBackend:
+  #   service:
+  #     name: "${SERVICENAME}"
+  #     port:
+  #       name: "${SERVICE_PORT_NAME}"
+  rules:
+    - host: "api.${EAVE_ROOT_DOMAIN}"
+      http:
+        paths:
+          # Supported public endpoint prefixes.
+          # Everything else is only accessible from the cluster.
+          # TODO: a better place to define these?
+          - pathType: Prefix
+            path: "/status"
+            backend: *backend
+          - pathType: Prefix
+            path: "/public"
+            backend: *backend
+          - pathType: Prefix
+            path: "/oauth"
+            backend: *backend
+          - pathType: Prefix
+            path: "/favicon.ico"
+            backend: *backend

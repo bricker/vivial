@@ -23,7 +23,7 @@ spec:
   selector:
     app: "${APPNAME}"
   ports:
-    - name: http
+    - name: "${SERVICE_PORT_NAME}"
       protocol: TCP
       port: 8080
       targetPort: "${APP_PORT_NAME}"
