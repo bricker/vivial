@@ -44,7 +44,7 @@ Example::
 
 if SHARED_CONFIG.eave_env in [EaveEnvironment.development, EaveEnvironment.test]:
 
-    async def init_database(db_name: str) -> None:
+    async def init_database(db_name: str = CORE_API_APP_CONFIG.db_name) -> None:
         """
         This function DROPS the database (EAVE_DB_NAME)!
 

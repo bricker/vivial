@@ -84,7 +84,7 @@ async def seed_database(db: AsyncEngine) -> None:
     eaveLogger.fprint(logging.INFO, f"Starting to seed your db {db.url.database}...")
     session = AsyncSession(db)
 
-    num_rows = 100
+    num_rows = 1#00
 
     # setup progress bar
     curr_progress = f"[0/{num_rows}] :: Seconds remaining: ???"

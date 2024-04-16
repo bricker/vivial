@@ -73,7 +73,7 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
                 EAVE_CLIENT_ID_HEADER: str(self.anyuuid("invalid client ID")),
                 EAVE_CLIENT_SECRET_HEADER: self.anystr("invalid client secret"),
             },
-            payload=DataIngestRequestBody(event_type=EventType.dbchange, events=[]).to_dict(),
+            payload=DataIngestRequestBody(event_type=EventType.dbevent, events=[]).to_dict(),
         )
 
         assert response.status_code == http.HTTPStatus.UNAUTHORIZED
@@ -94,7 +94,7 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
                 EAVE_CLIENT_ID_HEADER: str(ro_creds.id),
                 EAVE_CLIENT_SECRET_HEADER: ro_creds.secret,
             },
-            payload=DataIngestRequestBody(event_type=EventType.dbchange, events=[]).to_dict(),
+            payload=DataIngestRequestBody(event_type=EventType.dbevent, events=[]).to_dict(),
         )
 
         assert response.status_code == http.HTTPStatus.FORBIDDEN
@@ -107,7 +107,7 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
                 EAVE_CLIENT_ID_HEADER: str(self._client_credentials.id),
                 EAVE_CLIENT_SECRET_HEADER: self._client_credentials.secret,
             },
-            payload=DataIngestRequestBody(event_type=EventType.dbchange, events=[]).to_dict(),
+            payload=DataIngestRequestBody(event_type=EventType.dbevent, events=[]).to_dict(),
         )
 
         assert response.status_code == http.HTTPStatus.OK
@@ -121,7 +121,7 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
                 EAVE_CLIENT_ID_HEADER: str(self._client_credentials.id),
                 EAVE_CLIENT_SECRET_HEADER: self._client_credentials.secret,
             },
-            payload=DataIngestRequestBody(event_type=EventType.dbchange, events=[]).to_dict(),
+            payload=DataIngestRequestBody(event_type=EventType.dbevent, events=[]).to_dict(),
         )
 
         assert response.status_code == http.HTTPStatus.OK
@@ -138,17 +138,17 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
                 EAVE_CLIENT_SECRET_HEADER: self._client_credentials.secret,
             },
             payload=DataIngestRequestBody(
-                event_type=EventType.dbchange,
+                event_type=EventType.dbevent,
                 events=[
                     DatabaseEventPayload(
                         operation=DatabaseOperation.INSERT,
                         table_name=self.anystr(),
                         timestamp=int(time.time()),
-                        new_data={
-                            self.anystr("new_data_1"): self.anystr(),
-                            self.anystr("new_data_2"): self.anystr(),
-                        },
-                        old_data=None,
+                        # new_data={
+                        #     self.anystr("new_data_1"): self.anystr(),
+                        #     self.anystr("new_data_2"): self.anystr(),
+                        # },
+                        # old_data=None,
                     ).to_json(),
                 ],
             ).to_dict(),
