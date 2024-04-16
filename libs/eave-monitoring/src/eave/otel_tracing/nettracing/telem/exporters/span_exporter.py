@@ -14,7 +14,7 @@ from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
 from eave.tracing.core.datastructures import DataIngestRequestBody, DatabaseEventPayload, DatabaseOperation, DatabaseStructure, EventType
 
 # TODO: move this stuff to share w/ instrumentors
-DB_PARAMS = "db.params"
+DB_PARAMS = "db.params.values"
 DB_STRUCTURE = "db.structure"
 class SpanBaseModel(pydantic.BaseModel):
     events: list[str]

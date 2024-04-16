@@ -17,7 +17,7 @@
 from typing import Collection
 from collections.abc import Sequence
 import sqlalchemy
-import json
+import threading
 from packaging.version import parse as parse_version
 from sqlalchemy.engine.base import Engine
 from wrapt import wrap_function_wrapper as _w
@@ -39,8 +39,6 @@ from opentelemetry.instrumentation.sqlcommenter_utils import _add_sql_comment
 from opentelemetry.instrumentation.utils import _get_opentelemetry_values
 from opentelemetry.semconv.trace import NetTransportValues, SpanAttributes
 from opentelemetry.trace.status import Status, StatusCode
-
-from eave.tracing.core.datastructures import DatabaseOperation
 
 
 def _normalize_vendor(vendor):
@@ -145,8 +143,6 @@ class EngineTracer:
         self._register_event_listener(engine, "close", self._pool_close)
         self._register_event_listener(engine, "checkin", self._pool_checkin)
         self._register_event_listener(engine, "checkout", self._pool_checkout)
-        self._schema_cache = {}
-        # self._populate_schema_cache(engine) # IO attempted in unexpected place + inf loop
 
     def _add_idle_to_connection_usage(self, value):
         self.connections_usage.add(
@@ -223,21 +219,20 @@ class EngineTracer:
                 span.set_attribute(SpanAttributes.DB_NAME, db_name)
 
                 # NOTE: manually added this
-                table_name = self._table_name(statement)
-                op = self._operation_name(statement)
-                if table_name:
-                    span.set_attribute(SpanAttributes.DB_SQL_TABLE, table_name)
-
-                    attr_params = list(map(str, params))
-                    cols = self._columns_from_statement(table_name, statement, conn)
-                    print(cols)
-                    span.set_attribute("db.params.values", attr_params)
-                    span.set_attribute("db.params.columns", cols)
-
-                if op:
-                    span.set_attribute(SpanAttributes.DB_OPERATION, op)
-
+                attr_params = list(map(str, params))
+                span.set_attribute("db.params.values", attr_params)
                 span.set_attribute("db.structure", "SQL") # TODO: use enums/constants
+                # table_name = self._table_name(statement)
+                # op = self._operation_name(statement)
+                # if table_name:
+                #     span.set_attribute(SpanAttributes.DB_SQL_TABLE, table_name)
+
+                #     cols = self._columns_from_statement(table_name, statement, conn)
+                #     print(f"cols: {cols}")
+                #     span.set_attribute("db.params.columns", cols)
+
+                # if op:
+                #     span.set_attribute(SpanAttributes.DB_OPERATION, op)
                 
 
                 for key, value in attrs.items():
@@ -272,59 +267,15 @@ class EngineTracer:
         else:
             return parts[0]
 
-    def _table_name(self, statement) -> str | None:
-        table_name = None
-        if isinstance(statement, str):
-            parts = self._leading_comment_remover.sub("", statement).split()
-            if len(parts) < 1:
-                return None
-            op_str = parts[0]
-            op = DatabaseOperation.from_str(op_str)
+    # def _populate_schema_cache(self, conn) -> None:
+    #     metadata = sqlalchemy.MetaData()
 
-            match op:
-                case DatabaseOperation.INSERT, DatabaseOperation.DELETE:
-                    if len(parts) < 3:
-                        return None
-                    table_name = parts[2]
-                case DatabaseOperation.UPDATE:
-                    if len(parts) < 2:
-                        return None
-                    table_name = parts[1]
-                case DatabaseOperation.SELECT:
-                    match = re.search(r'FROM\s+([a-zA-Z0-9_\-\.]+)', statement, re.IGNORECASE)
-                    if match:
-                        table_name = match.group(1)
+    #     # this fetches all tables metadata
+    #     metadata.reflect(bind=conn)
 
-        return table_name
-
-    def _columns_from_statement(self, table_name, statement, conn) -> list[str]:
-        # repopulate cache if tablename not found
-        if table_name not in self._schema_cache:
-            # self._populate_schema_cache(conn.engine) # spawned too many queries, timedout and crashed process
-            pass
-
-        # try load table schema from fresh cache
-        if table_name not in self._schema_cache:
-            # give up
-            return []
-        schema = self._schema_cache[table_name]
-
-        # TODO: only return col names from statement values
-        return [c.name for c in schema.columns]
-
-    def _populate_schema_cache(self, engine) -> None:
-        metadata = sqlalchemy.MetaData()
-
-        # force sync engine since greenlet isnt setup here
-        # sync_engine = sqlalchemy.create_engine(engine.url) # cant create_engine bcus inf loop w/ listener that inits EngineTracer
-
-        # this fetches all tables metadata
-        with sync_engine.begin() as conn:
-            metadata.reflect(bind=conn)
-
-        # populate cache
-        for table_name, table in metadata.tables.items():
-            self._schema_cache[table_name] = table #TODO: any problems w/ holding this in mem???
+    #     # populate cache
+    #     for table_name, table in metadata.tables.items():
+    #         self._schema_cache[table_name] = table
 
 
 # pylint: disable=unused-argument
