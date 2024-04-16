@@ -50,8 +50,7 @@ class TestDatabaseChangeIngestion(BaseTestCase):
         check(BASIC_SELECT + END_CLAUSE, [])
         check(BASIC_DELETE + END_CLAUSE, [])
         check(BASIC_INSERT + END_CLAUSE, ["name", "age"])
-        # check(BASIC_UPDATE + END_CLAUSE, ["name", "age"])
-        check(NO_COLUMN_NAMES_INSERT + END_CLAUSE, [])  # TODO: update
+        check(NO_COLUMN_NAMES_INSERT + END_CLAUSE, [])
         check(f"{BASIC_SELECT} {WHERE_CLAUSE}{END_CLAUSE}", ["id", "name"])
         check(f"{BASIC_UPDATE} {WHERE_CLAUSE}{END_CLAUSE}", ["name", "age", "id", "name"])
         check(f"{BASIC_DELETE} {WHERE_CLAUSE}{END_CLAUSE}", ["id", "name"])

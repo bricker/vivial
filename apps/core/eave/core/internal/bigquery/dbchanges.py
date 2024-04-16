@@ -195,91 +195,15 @@ def _table_name(statement: str) -> str | None:
 
 def _columns_from_statement(statement: str) -> list[str]:
     """
-    try extract column names from statement string (based on common sql patterns)
-
-    handle where clause parsing + statemnet
+    Try to extract column names from `statement` SQL (based on common sql patterns).
+    Returns empty list if unable to resolve column names from the statement.
 
     NOTE: functionality depends heavily on values not being present in the sql `statement`; many
           edge cases related to value content arrise if values are not extracted from `statement`.
     """
     def parse_where(s: str) -> list[str]:
         """
-        what baut when multipel values should map to 1 col name? 
-        WHERE Price BETWEEN 50 AND 60;
-        and if WHERE isnt last part of stmt?
-        WHERE ... ORDER BY price ASC;
-        LIMIT doesnt have a col to associate w/ value...
-        
-        ===
-        atom -> {
-            statement = UPDATE github_installations SET api_docs_enabled=$1 WHERE id=$2;
-            values = [true, 123]
-        }
-
-        How many teams enabled API Docs in the last 7 days?
-        SELECT FROM atoms_dbops WHERE params.api_docs_enabled = true
-        statement = "..."
-        parameters = {
-            "api_docs_enabled": true
-        }
-        ===
-
-
-        statements -> {
-            "UPDATE accounts SET last_login=$1 WHERE id=$2" -> { ... }
-            "SELECT * from Transactions where Price > $1 AND account_id=$2;" -> { ... }
-            "DELETE ... FROM ..." -> { ... }
-        }
-
-        login ->
-            UPDATE accounts SET last_login=$1 WHERE id=$2
-            [now(), account_id]
-
-            "Update Account" -> dumb
-            "Account Login" -> intelligent way
-
-        stripe ->
-            GET /transactions
-            account_id=123
-            query = {
-                price > 100
-            }
-
-            SELECT * from Transactions where Price > $1 AND account_id=$2;
-            [100, 123]
-
-            atom -> {
-                statement = "SELECT * from Transactions where Price > $1 AND account_id=$2;"
-                values = [100, 123]
-                parsed -> {
-                    
-            }
-
-            What Price ranges do your customers want to know about?
-
-        atom ->
-            raw_statement -> UPDATE accounts SET last_login=$1 WHERE utm_source=$2;
-            values -> [now(), "google"]
-
-            UPDATE accounts SET last_login="123 January 1" WHERE utm_source="google";
-
-            Stickiness of Users from Google Ads:
-                get updates to the accounts table for "utm_source=google" accounts, where the "last_login" attribute was updated
-
-        atom -> {
-            statement = "SELECT * FROM table WHERE Price BETWEEN $1 AND $2"
-            values = [10, 20],
-        }
-
-        atom -> {
-            statement_type = SELECT
-            query_params -> {
-                price -> [
-                    "BETWEEN 50 AND 60",
-                    "> 0"
-                ],
-            }
-        }
+        Parse column names from WHERE clauses in the passed in SQL statement string `s`
         """
         import sqlparse
         parsed = sqlparse.parse(s)
@@ -294,6 +218,7 @@ def _columns_from_statement(statement: str) -> list[str]:
 
 
         def dfs(element, cols):
+            """Extracts Identifier tokens (this is what column names get typed as) from tokenized statement"""
             if isinstance(element, sqlparse.sql.IdentifierList):
                 cols.extend([str(identifier) for identifier in element.get_identifiers()])
             elif isinstance(element, sqlparse.sql.Identifier):
