@@ -5,8 +5,6 @@ from typing import Any, Mapping, Optional
 
 from eave.stdlib.config import SHARED_CONFIG, ConfigBase, get_required_env, get_secret
 from eave.stdlib.eave_origins import EaveApp
-from eave.stdlib.exceptions import UnexpectedMissingValueError
-from eave.stdlib.logging import eaveLogger
 from eave.stdlib.util import b64decode
 
 

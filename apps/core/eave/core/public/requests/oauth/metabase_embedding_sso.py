@@ -1,4 +1,5 @@
 import time
+from urllib.parse import quote, unquote, urlencode, urlparse, urlunparse
 
 import jwt
 from starlette.requests import Request
@@ -7,12 +8,10 @@ from starlette.responses import Response
 from eave.core.internal import database
 from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.orm.account import AccountOrm
-from eave.core.internal.orm.metabase_instance import MetabaseInstanceOrm
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import ensure_uuid
-from urllib.parse import unquote, urlencode, quote, urlparse, urlunparse
 
 from . import shared
 

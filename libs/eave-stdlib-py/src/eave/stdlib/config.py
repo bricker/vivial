@@ -1,11 +1,9 @@
 import enum
 import logging
 import os
-import re
 import sys
 from functools import cached_property
 from typing import Optional
-from urllib.parse import urlparse
 
 import google.cloud.client
 import google.cloud.secretmanager
