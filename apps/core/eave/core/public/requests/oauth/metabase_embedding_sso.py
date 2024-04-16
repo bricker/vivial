@@ -12,7 +12,7 @@ from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import ensure_uuid
-from urllib.parse import urlencode, quote
+from urllib.parse import unquote, urlencode, quote, urlparse, urlunparse
 
 from . import shared
 
@@ -43,7 +43,15 @@ class MetabaseEmbeddingSSO(HTTPEndpoint):
         # this must be a relative path to a metabase dashboard
         # https://www.metabase.com/docs/v0.48/embedding/interactive-embedding-quick-start-guide#embed-metabase-in-your-app
         # TODO: if empty default to user's first dash we created
-        return_to = request.query_params.get("return_to") or quote(f"/dashboard/8?{qp}")
+        return_to_str = request.query_params.get("return_to") or "/dashboard/1"
+        return_to_str = unquote(return_to_str) # In case return_to qp has its own query params
+        return_to_url = urlparse(return_to_str)
+        sep = "&" if return_to_url.query else ""
+        return_to_url = return_to_url._replace(query=f"{return_to_url.query}{sep}{qp}")
+        # Now reverse the decoding done above
+        return_to_str = urlunparse(return_to_url)
+        return_to_str = quote(return_to_str)
+
         response = Response()
 
         async with database.async_session.begin() as db_session:
@@ -75,7 +83,7 @@ class MetabaseEmbeddingSSO(HTTPEndpoint):
                     SHARED_CONFIG.eave_public_metabase_base,
                     # metabase_instance.route_id, # TODO: uncomment once mb instance deployment to subpaths is setup
                     "auth",
-                    f"sso?jwt={full_jwt}&return_to={return_to}",
+                    f"sso?jwt={full_jwt}&return_to={return_to_str}",
                 ]
             ),
         )

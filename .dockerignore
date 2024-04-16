@@ -35,7 +35,6 @@
 **/*.log*
 
 terraform/
-docker/
 develop/
 **/bin/
 
