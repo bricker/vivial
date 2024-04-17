@@ -39,6 +39,7 @@ function build() (
 		exit 1
 	fi
 
+	_dirname=${_dirname%%/}
 	local gcloudproject; gcloudproject="$(^gcloudproject)"
 	local gitsha; gitsha="$(git rev-parse --short HEAD)"
 	local imagename="us-central1-docker.pkg.dev/${gcloudproject}/docker/${_dirname}"
