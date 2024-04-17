@@ -45,6 +45,7 @@ function main () (
 
 	_dirname=${_dirname%%/}
 	export GAE_VERSION; GAE_VERSION="$(git rev-parse --short HEAD)"
+	export GAE_RELEASE_DATE; GAE_RELEASE_DATE="$(date --utc --iso-8601=seconds)"
 
 	python -m dotenv --file "${EAVE_HOME}/kube/shared/vars.share.env" run --override -- \
 		python -m dotenv --file "${EAVE_HOME}/kube/$_dirname/vars.share.env" run --override -- \
@@ -54,7 +55,7 @@ function main () (
 						| kubectl apply $_dryrun -f -
 
 	if $_rollout; then
-		"$(^parentpath)"/bin/rollout -a "$_dirname"
+		"$(^parentpath)"/bin/rollout -d "$_dirname"
 	fi
 )
 

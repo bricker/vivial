@@ -1,44 +1,60 @@
 ---
-apiVersion: cloud.google.com/v1
-kind: BackendConfig
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
 metadata:
-  name: "${HEALTHCHECK_NAME}"
+  name: dashboard-cert
+  namespace: "${NAMESPACE}"
 spec:
-  healthCheck:
-    timeoutSec: 1
-    type: HTTP
-    requestPath: /status
-    port: 8000
-  customResponseHeaders:
-    headers:
-      - "server: unspecified"
+  domains:
+    - "dashboard.${EAVE_ROOT_DOMAIN}"
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dashboard-ingress
+  namespace: "${NAMESPACE}"
+  annotations:
+    networking.gke.io/v1beta1.FrontendConfig: shared-fc
+    networking.gke.io/managed-certificates: dashboard-cert
+    kubernetes.io/ingress.global-static-ip-name: dashboard-dot-eave-dot-dev-addr
+    kubernetes.io/ingress.class: gce
+  labels:
+    app: dashboard-app
+spec:
+  # ingressClassName: gce # This does not work. Without the "ingress.class" annotation, the LB isn't created.
+  defaultBackend:
+    service:
+      name: dashboard
+      port:
+        name: http
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: "${SERVICENAME}"
+  name: dashboard
   namespace: "${NAMESPACE}"
   annotations:
-    beta.cloud.google.com/backend-config: '{"default": "${HEALTHCHECK_NAME}"}'
+    beta.cloud.google.com/backend-config: '{"default": "shared-bc"}'
 spec:
   type: NodePort
   selector:
-    app: "${APPNAME}"
+    app: dashboard-app
   ports:
     - name: http
       protocol: TCP
-      port: 8080
-      targetPort: "${APP_PORT_NAME}"
+      port: 80
+      targetPort: app
 
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: "${KSANAME}"
+  name: ksa-app-dashboard
   namespace: "${NAMESPACE}"
   annotations:
-    iam.gke.io/gcp-service-account: "${GSANAME}@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com"
+    iam.gke.io/gcp-service-account: "gsa-app-dashboard@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com"
 
 ---
 apiVersion: apps/v1
@@ -49,8 +65,8 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: "${APPNAME}"
-  replicas: 1
+      app: dashboard-app
+  replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -58,25 +74,24 @@ spec:
   template:
     metadata:
       labels:
-        app: "${APPNAME}"
+        app: dashboard-app
     spec:
-      serviceAccountName: "${KSANAME}"
+      serviceAccountName: ksa-app-dashboard
       containers:
         - name: dashboard
           image: "us-central1-docker.pkg.dev/${GOOGLE_CLOUD_PROJECT}/docker/dashboard:${APP_VERSION}"
           resources:
-            requests:
-              memory: "768Mi"
-              cpu: "100m"
+            # requests and limits must always be the same on Autopilot clusters without bursting.
+            # if requests is omitted, the limits values are used.
             limits:
-              memory: "768Mi"
-              cpu: "100m"
+              memory: "1Gi"
+              cpu: "250m"
 
           envFrom:
             - configMapRef:
-                name: "${SHARED_CONFIGMAP_NAME}"
+                name: shared-configmap
             - configMapRef:
-                name: "${CONFIGMAP_NAME}"
+                name: dashboard-configmap
 
           env:
             # gunicorn options
@@ -84,5 +99,5 @@ spec:
               value: "--bind=0.0.0.0:8000 --workers=3 --timeout=90"
 
           ports:
-            - name: "${APP_PORT_NAME}"
+            - name: app
               containerPort: 8000

@@ -102,6 +102,7 @@ function run-cloud-sql-proxy() (
 		$impersonateopt \
 		--auto-iam-authn \
 		--unix-socket "$socketdir"
+		# --port 5431
 )
 
 run-cloud-sql-proxy "$@"

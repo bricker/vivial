@@ -61,7 +61,7 @@ resource "google_sql_database_instance" "default" {
     # pricing_plan                = "PER_USE"
     tier = local.preset_production ? "db-f1-micro" : "db-f1-micro"
     # time_zone                   = null
-    user_labels = {}
+    # user_labels = {}
     backup_configuration {
       binary_log_enabled = local.preset_production
       enabled            = local.preset_production
@@ -90,8 +90,8 @@ resource "google_sql_database_instance" "default" {
       enable_private_path_for_google_cloud_services = true
       ipv4_enabled                                  = true
       private_network                               = data.google_compute_network.default_network.id
-      require_ssl                                   = false
-      # ssl_mode                                      = null
+      require_ssl = true
+      ssl_mode                                      = "TRUSTED_CLIENT_CERTIFICATE_REQUIRED" # ENCRYPTED_ONLY, TRUSTED_CLIENT_CERTIFICATE_REQUIRED, ALLOW_UNENCRYPTED_AND_ENCRYPTED
     }
     location_preference {
       # follow_gae_application = null

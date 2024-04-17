@@ -4,6 +4,7 @@ import { CoreApiEndpointConfiguration } from "./shared.js";
 export type StatusResponseBody = {
   service: string;
   version: string;
+  release_date: string; // underscore is to match python status payload
   status: string;
 };
 

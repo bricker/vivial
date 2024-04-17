@@ -6,7 +6,7 @@ source "$EAVE_HOME"/develop/functions.bash
 
 function _print_help () (
 	statusmsg -o "Usage: logs -a appname"
-	statusmsg -o "  -a appname : Required. The app name (eg core-api) to watch."
+	statusmsg -o "  -d appname : Required. The app name (eg core-api) to watch."
 	statusmsg -o "  -t logtype : Optional. The type of log to stream. Options: gcloud, kube (default)."
 	statusmsg -o "  -h : Print this message."
 )
@@ -15,9 +15,9 @@ function main () (
 	local _appname=""
 	local _logtype="kube"
 
-	while getopts "a:t:h" argname; do
+	while getopts "d:t:h" argname; do
 		case "$argname" in
-		a) _appname=$OPTARG ;;
+		d) _appname=$OPTARG ;;
 		t) _logtype=$OPTARG ;;
 		h)
 			_print_help

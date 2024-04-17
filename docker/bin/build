@@ -55,7 +55,7 @@ function build() (
 		docker push --all-tags "$imagename"
 
 		if $_dorollout; then
-			"${EAVE_HOME}"/kube/bin/rollout -a "$_dirname"
+			"${EAVE_HOME}"/kube/bin/rollout -d "$_dirname"
 		fi
 	fi
 )

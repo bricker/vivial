@@ -97,6 +97,10 @@ class _EaveConfig(ConfigBase):
         return os.getenv("GAE_VERSION", "unknown")
 
     @property
+    def release_date(self) -> str:
+        return os.getenv("GAE_RELEASE_DATE", "unknown")
+
+    @property
     def app_location(self) -> str:
         return os.getenv("GAE_LOCATION") or "us-central1"
 

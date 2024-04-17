@@ -1,27 +1,87 @@
 ---
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: metabase-cert
+  namespace: "${NAMESPACE}"
+spec:
+  domains:
+    - "metabase.${EAVE_ROOT_DOMAIN}"
+
+---
+apiVersion: networking.gke.io/v1beta1
+kind: FrontendConfig
+metadata:
+  name: metabase-fc
+  namespace: "${NAMESPACE}"
+spec:
+  redirectToHttps:
+    enabled: true
+    responseCodeName: MOVED_PERMANENTLY_DEFAULT
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: metabase-ingress
+  namespace: "${NAMESPACE}"
+  annotations:
+    networking.gke.io/v1beta1.FrontendConfig: metabase-fc
+    networking.gke.io/managed-certificates: metabase-cert
+    kubernetes.io/ingress.global-static-ip-name: metabase-dot-eave-dot-dev-addr
+    kubernetes.io/ingress.class: gce
+  labels:
+    app: metabase-app
+spec:
+  # ingressClassName: gce # This does not work. Without the "ingress.class" annotation, the LB isn't created.
+  defaultBackend:
+    service:
+      name: metabase
+      port:
+        name: http
+
+---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: metabase-bc
+spec:
+  healthCheck:
+    type: HTTP
+    requestPath: /api/health
+    port: 3000
+    checkIntervalSec: 30
+    unhealthyThreshold: 4
+  customResponseHeaders:
+    headers:
+      - "server: unspecified"
+
+---
 apiVersion: v1
 kind: Service
 metadata:
-  name: "${SERVICENAME}"
+  name: metabase
   namespace: "${NAMESPACE}"
+  annotations:
+    beta.cloud.google.com/backend-config: '{"default": "metabase-bc"}'
 spec:
   type: NodePort
   selector:
-    app: "${APPNAME}"
+    app: metabase-app
   ports:
     - name: http
       protocol: TCP
-      port: 8080
-      targetPort: "${APP_PORT_NAME}"
+      port: 80
+      targetPort: app
 
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: "${KSANAME}"
+  name: ksa-app-metabase
   namespace: "${NAMESPACE}"
   annotations:
-    iam.gke.io/gcp-service-account: "${GSANAME}@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com"
+    iam.gke.io/gcp-service-account: "gsa-app-metabase@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com"
 
 ---
 apiVersion: apps/v1
@@ -30,12 +90,12 @@ metadata:
   name: metabase-deployment
   namespace: "${NAMESPACE}"
   labels:
-    app: "${APPNAME}"
+    app: metabase-app
 spec:
   selector:
     matchLabels:
-      app: "${APPNAME}"
-  replicas: 1
+      app: metabase-app
+  replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -43,9 +103,9 @@ spec:
   template:
     metadata:
       labels:
-        app: "${APPNAME}"
+        app: metabase-app
     spec:
-      serviceAccountName: "${KSANAME}"
+      serviceAccountName: ksa-app-metabase
       dnsPolicy: ClusterFirst
       securityContext:
         seccompProfile:
@@ -56,7 +116,6 @@ spec:
       containers:
         - name: metabase-enterprise
           image: "metabase/metabase-enterprise:${APP_VERSION}"
-          imagePullPolicy: Always
           # volumeMounts:
           #   - name: cloudsql-socket
           #     mountPath: /cloudsql
@@ -70,25 +129,26 @@ spec:
               value: "5432"
           envFrom:
             - secretRef:
-                name: "${SECRET_NAME}"
+                name: metabase-secret
             - configMapRef:
-                name: "${CONFIGMAP_NAME}"
+                name: metabase-configmap
 
           ports:
-            - name: "${APP_PORT_NAME}"
+            - name: app
               containerPort: 3000
 
           resources:
+            # requests and limits must always be the same on Autopilot clusters without bursting.
+            # if requests is omitted, the limits values are used.
             limits:
               cpu: 500m
               memory: 2Gi
-            requests:
-              cpu: 500m
-              memory: 2Gi
+
           securityContext:
             capabilities:
               drop:
               - NET_RAW
+
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
 
@@ -112,7 +172,7 @@ spec:
             - "--port=5432"
             - "--structured-logs"
             # - "--unix-socket /cloudsql"
-            - "${GOOGLE_CLOUD_PROJECT}:us-central1:eave-pg-core"
+            - "${PG_CONNECTION_STRING}"
           # volumeMounts:
           #   - name: cloudsql-socket
           #     mountPath: /cloudsql
@@ -123,8 +183,5 @@ spec:
 
           resources:
             limits:
-              cpu: 500m
-              memory: 2Gi
-            requests:
               cpu: 500m
               memory: 2Gi

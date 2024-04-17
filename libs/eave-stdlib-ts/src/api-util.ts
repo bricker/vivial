@@ -13,6 +13,7 @@ export function statusPayload(): StatusResponseBody {
   return {
     service: sharedConfig.appService,
     version: sharedConfig.appVersion,
+    release_date: sharedConfig.releaseDate,
     status: "OK",
   };
 }
