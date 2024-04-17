@@ -40,6 +40,8 @@ from opentelemetry.instrumentation.utils import _get_opentelemetry_values
 from opentelemetry.semconv.trace import NetTransportValues, SpanAttributes
 from opentelemetry.trace.status import Status, StatusCode
 
+from eave.core.internal.bigquery.dbchanges import _table_name
+
 
 def _normalize_vendor(vendor):
     """Return a canonical name for a type of database."""
@@ -55,9 +57,7 @@ def _normalize_vendor(vendor):
     return vendor
 
 
-def _wrap_create_async_engine(
-    tracer, connections_usage, enable_commenter=False, commenter_options=None
-):
+def _wrap_create_async_engine(tracer, connections_usage, enable_commenter=False, commenter_options=None):
     # pylint: disable=unused-argument
     def _wrap_create_async_engine_internal(func, module, args, kwargs):
         """Trace the SQLAlchemy engine, creating an `EngineTracer`
@@ -76,9 +76,7 @@ def _wrap_create_async_engine(
     return _wrap_create_async_engine_internal
 
 
-def _wrap_create_engine(
-    tracer, connections_usage, enable_commenter=False, commenter_options=None
-):
+def _wrap_create_engine(tracer, connections_usage, enable_commenter=False, commenter_options=None):
     def _wrap_create_engine_internal(func, _module, args, kwargs):
         """Trace the SQLAlchemy engine, creating an `EngineTracer`
         object that will listen to SQLAlchemy events.
@@ -99,15 +97,11 @@ def _wrap_create_engine(
 def _wrap_connect(tracer):
     # pylint: disable=unused-argument
     def _wrap_connect_internal(func, module, args, kwargs):
-        with tracer.start_as_current_span(
-            "connect", kind=trace.SpanKind.CLIENT
-        ) as span:
+        with tracer.start_as_current_span("connect", kind=trace.SpanKind.CLIENT) as span:
             if span.is_recording():
                 attrs, _ = _get_attributes_from_url(module.url)
                 span.set_attributes(attrs)
-                span.set_attribute(
-                    SpanAttributes.DB_SYSTEM, _normalize_vendor(module.name)
-                )
+                span.set_attribute(SpanAttributes.DB_SYSTEM, _normalize_vendor(module.name))
             return func(*args, **kwargs)
 
     return _wrap_connect_internal
@@ -131,18 +125,18 @@ class EngineTracer:
         self.commenter_options = commenter_options if commenter_options else {}
         self._engine_attrs = _get_attributes_from_engine(engine)
         self._leading_comment_remover = re.compile(r"^/\*.*?\*/")
-
-        self._register_event_listener(
-            engine, "before_cursor_execute", self._before_cur_exec, retval=True
-        )
-        self._register_event_listener(
-            engine, "after_cursor_execute", _after_cur_exec
-        )
+        
+        self._register_event_listener(engine, "before_cursor_execute", self._before_cur_exec, retval=True)
+        self._register_event_listener(engine, "after_cursor_execute", _after_cur_exec)
+        # self._register_event_listener(engine, "before_cursor_execute", self._cur_exec_wrapper, retval=True)
+        # self._register_event_listener(engine, "after_cursor_execute", self._cur_exec_wrapper)
+        self._register_event_listener(engine, "do_execute", self._do_execute_handler)
         self._register_event_listener(engine, "handle_error", _handle_error)
         self._register_event_listener(engine, "connect", self._pool_connect)
         self._register_event_listener(engine, "close", self._pool_close)
         self._register_event_listener(engine, "checkin", self._pool_checkin)
         self._register_event_listener(engine, "checkout", self._pool_checkout)
+        self._schema_cache = {}
 
     def _add_idle_to_connection_usage(self, value):
         self.connections_usage.add(
@@ -174,18 +168,14 @@ class EngineTracer:
         self._add_idle_to_connection_usage(1)
 
     # Called when a connection is retrieved from the Pool.
-    def _pool_checkout(
-        self, _dbapi_connection, _connection_record, _connection_proxy
-    ):
+    def _pool_checkout(self, _dbapi_connection, _connection_record, _connection_proxy):
         self._add_idle_to_connection_usage(-1)
         self._add_used_to_connection_usage(1)
 
     @classmethod
     def _register_event_listener(cls, target, identifier, func, *args, **kw):
         listen(target, identifier, func, *args, **kw)
-        cls._remove_event_listener_params.append(
-            (weakref.ref(target), identifier, func)
-        )
+        cls._remove_event_listener_params.append((weakref.ref(target), identifier, func))
 
     @classmethod
     def remove_all_event_listeners(cls):
@@ -200,14 +190,26 @@ class EngineTracer:
                 remove(weak_ref_target(), identifier, func)
         cls._remove_event_listener_params.clear()
 
-    def _before_cur_exec(
-        self, conn, cursor, statement, params, context, _executemany
-    ):
+    def _exec_cur_wrapper(self):
+        pass
+
+    def _do_execute_handler(self, cursor, statement: str, parameters, context):
+        result = cursor.execute("select 1")
+        print(result)
+
+    def _before_cur_exec(self, conn: sqlalchemy.Connection, cursor: sqlalchemy.CursorResult, statement, params, context, _executemany):
         attrs, found = _get_attributes_from_url(conn.engine.url)
         if not found:
             attrs = _get_attributes_from_cursor(self.vendor, cursor, attrs)
 
         db_name = attrs.get(SpanAttributes.DB_NAME, "")
+        table_name = _table_name(statement) # TODO: dont import this
+        op = self._operation_name(statement)
+
+
+        # result = conn.exec_driver_sql("select 1")
+        # print(list(result))
+
         span = self.tracer.start_span(
             self._operation_name(statement),
             kind=trace.SpanKind.CLIENT,
@@ -221,19 +223,16 @@ class EngineTracer:
                 # NOTE: manually added this
                 attr_params = list(map(str, params))
                 span.set_attribute("db.params.values", attr_params)
-                span.set_attribute("db.structure", "SQL") # TODO: use enums/constants
-                # table_name = self._table_name(statement)
-                # op = self._operation_name(statement)
+                span.set_attribute("db.structure", "SQL")  # TODO: use enums/constants
+                # self._populate_schema_cache(conn)
                 # if table_name:
                 #     span.set_attribute(SpanAttributes.DB_SQL_TABLE, table_name)
 
                 #     cols = self._columns_from_statement(table_name, statement, conn)
-                #     print(f"cols: {cols}")
                 #     span.set_attribute("db.params.columns", cols)
 
                 # if op:
                 #     span.set_attribute(SpanAttributes.DB_OPERATION, op)
-                
 
                 for key, value in attrs.items():
                     span.set_attribute(key, value)
@@ -248,18 +247,14 @@ class EngineTracer:
                     commenter_data.update(**_get_opentelemetry_values())
 
                 # Filter down to just the requested attributes.
-                commenter_data = {
-                    k: v
-                    for k, v in commenter_data.items()
-                    if self.commenter_options.get(k, True)
-                }
+                commenter_data = {k: v for k, v in commenter_data.items() if self.commenter_options.get(k, True)}
 
                 statement = _add_sql_comment(statement, **commenter_data)
 
         context._otel_span = span
 
         return statement, params
-    
+
     def _operation_name(self, statement) -> str | None:
         parts = self._leading_comment_remover.sub("", statement).split()
         if len(parts) == 0:
@@ -327,18 +322,12 @@ def _get_attributes_from_cursor(vendor, cursor, attrs):
         is_unix_socket = info.host and info.host.startswith("/")
 
         if is_unix_socket:
-            attrs[
-                SpanAttributes.NET_TRANSPORT
-            ] = NetTransportValues.OTHER.value
+            attrs[SpanAttributes.NET_TRANSPORT] = NetTransportValues.OTHER.value
             if info.port:
                 # postgresql enforces this pattern on all socket names
-                attrs[SpanAttributes.NET_PEER_NAME] = os.path.join(
-                    info.host, f".s.PGSQL.{info.port}"
-                )
+                attrs[SpanAttributes.NET_PEER_NAME] = os.path.join(info.host, f".s.PGSQL.{info.port}")
         else:
-            attrs[
-                SpanAttributes.NET_TRANSPORT
-            ] = NetTransportValues.IP_TCP.value
+            attrs[SpanAttributes.NET_TRANSPORT] = NetTransportValues.IP_TCP.value
             attrs[SpanAttributes.NET_PEER_NAME] = info.host
             if info.port:
                 attrs[SpanAttributes.NET_PEER_PORT] = int(info.port)
@@ -357,11 +346,10 @@ def _get_attributes_from_engine(engine):
     """Set metadata attributes of the database engine"""
     attrs = {}
 
-    attrs["pool.name"] = getattr(
-        getattr(engine, "pool", None), "logging_name", None
-    ) or _get_connection_string(engine)
+    attrs["pool.name"] = getattr(getattr(engine, "pool", None), "logging_name", None) or _get_connection_string(engine)
 
     return attrs
+
 
 class SQLAlchemyInstrumentor(BaseInstrumentor):
     """An instrumentor for SQLAlchemy
@@ -369,7 +357,7 @@ class SQLAlchemyInstrumentor(BaseInstrumentor):
     """
 
     def instrumentation_dependencies(self) -> Collection[str]:
-        return ["sqlalchemy"] #_instruments
+        return ["sqlalchemy"]  # _instruments
 
     def _instrument(self, **kwargs):
         """Instruments SQLAlchemy engine creation methods and the engine
@@ -390,7 +378,7 @@ class SQLAlchemyInstrumentor(BaseInstrumentor):
         tracer_provider = kwargs.get("tracer_provider")
         tracer = get_tracer(
             __name__,
-            '0', #__version__,
+            "0",  # __version__,
             tracer_provider,
             schema_url="https://opentelemetry.io/schemas/1.11.0",
         )
@@ -398,7 +386,7 @@ class SQLAlchemyInstrumentor(BaseInstrumentor):
         meter_provider = kwargs.get("meter_provider")
         meter = get_meter(
             __name__,
-            '0', #__version__,
+            "0",  # __version__,
             meter_provider,
             schema_url="https://opentelemetry.io/schemas/1.11.0",
         )
@@ -415,16 +403,12 @@ class SQLAlchemyInstrumentor(BaseInstrumentor):
         _w(
             "sqlalchemy",
             "create_engine",
-            _wrap_create_engine(
-                tracer, connections_usage, enable_commenter, commenter_options
-            ),
+            _wrap_create_engine(tracer, connections_usage, enable_commenter, commenter_options),
         )
         _w(
             "sqlalchemy.engine",
             "create_engine",
-            _wrap_create_engine(
-                tracer, connections_usage, enable_commenter, commenter_options
-            ),
+            _wrap_create_engine(tracer, connections_usage, enable_commenter, commenter_options),
         )
         _w(
             "sqlalchemy.engine.base",
@@ -450,9 +434,7 @@ class SQLAlchemyInstrumentor(BaseInstrumentor):
                 kwargs.get("enable_commenter", False),
                 kwargs.get("commenter_options", {}),
             )
-        if kwargs.get("engines") is not None and isinstance(
-            kwargs.get("engines"), Sequence
-        ):
+        if kwargs.get("engines") is not None and isinstance(kwargs.get("engines"), Sequence):
             return [
                 EngineTracer(
                     tracer,
