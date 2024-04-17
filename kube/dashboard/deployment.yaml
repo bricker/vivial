@@ -9,6 +9,9 @@ spec:
     type: HTTP
     requestPath: /status
     port: 8000
+  customResponseHeaders:
+    headers:
+      - "server: unspecified"
 
 ---
 apiVersion: v1

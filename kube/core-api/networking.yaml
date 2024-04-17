@@ -36,9 +36,9 @@ spec:
   # ingressClassName: gce # This does not work. Without the "ingress.class" annotation, the LB isn't created.
   defaultBackend:
     service:
-      name: default-http-backend
+      name: noop-svc
       port:
-        number: 8080
+        number: 65535
   rules:
     - host: "api.${EAVE_ROOT_DOMAIN}"
       http:
