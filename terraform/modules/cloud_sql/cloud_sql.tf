@@ -78,6 +78,10 @@ resource "google_sql_database_instance" "default" {
       name  = "cloudsql.iam_authentication"
       value = "on"
     }
+    database_flags {
+      name  = "max_connections"
+      value = "100"
+    }
     insights_config {
       query_insights_enabled = true
       # query_plans_per_minute  = 5
