@@ -7,6 +7,7 @@ import json
 from opentelemetry.sdk.trace.export import SpanExportResult, SpanExporter
 from opentelemetry.sdk.trace import ReadableSpan
 from opentelemetry.semconv.trace import SpanAttributes
+from eave.otel_tracing.nettracing.telem.config.config_reader import EaveConfigReader
 from eave.stdlib import requests_util
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.eave_origins import EaveApp
@@ -23,7 +24,7 @@ class SpanBaseModel(pydantic.BaseModel):
 def to_json(span: ReadableSpan, indent: int = 4) -> str | None:
     if not span._attributes:
         return None
-    
+
     # TODO: add new attrs to the paylaod
     statement = str(span._attributes.get(SpanAttributes.DB_STATEMENT))
     params = typing.cast(list[str] | None, span._attributes.get(DB_PARAMS))
@@ -36,16 +37,6 @@ def to_json(span: ReadableSpan, indent: int = 4) -> str | None:
         db_structure=struct,
     ).to_dict()
 
-    """
-        -> db.statement: Str(INSERT INTO virtual_events (team_id, readable_name, description, view_id, updated) VALUES ($1::UUID, $2::VARCHAR, $3::VARCHAR, $4::VARCHAR, $5::TIMESTAMP WITHOUT TIME ZONE) RETURNING virtual_events.id, virtual_events.created)
-        -> db.system: Str(postgresql)
-        -> db.params: Str((UUID('5ea57c57-ed6a-4d60-b2a0-e7a605fc47be'), 'Dummy event 99.29', 'boo fuzz fazz bizz bazz fazz fizz fazz bar', '99.29', None))
-        -> net.peer.name: Str(localhost)
-        -> net.peer.port: Int(5432)
-        -> db.name: Str(eave-test)
-        -> db.user: Str(eave_db_user)
-    """
-
     return json.dumps(f_span, indent=indent)
 
 
@@ -53,6 +44,10 @@ class EaveSpanExporter(SpanExporter):
     """copied base from ConsoleSpanExporter
     https://github.com/open-telemetry/opentelemetry-python/blob/975733c71473cddddd0859c6fcbd2b02405f7e12/opentelemetry-sdk/src/opentelemetry/sdk/trace/export/__init__.py#L499
     """
+
+    def __init__(self):
+        super().__init__()
+        self.config = EaveConfigReader()
 
     def export(self, spans: typing.Sequence[ReadableSpan]) -> SpanExportResult:
         asyncio.run(requests_util.make_request( # TODO: dont depend on our internal stdlib; this needs to be published to public
@@ -70,9 +65,9 @@ class EaveSpanExporter(SpanExporter):
                 event_type=EventType.dbevent
             ),
             origin=EaveApp.eave_api,
-            addl_headers={ # TODO: read from config or something
-                EAVE_CLIENT_ID_HEADER: "8c1f12adbf7246a9af9a09fd19a5c43a",
-                EAVE_CLIENT_SECRET_HEADER: "f686f31cb4c11a9c25a526d0c7a4e58cb3e5a80959e8c55e00f528fd2af8468558ec32cfd3455b1043eb7f36ca7b024e59e40d82fe11801d48c3723ac41356ca"
+            addl_headers={
+                EAVE_CLIENT_ID_HEADER: self.config.client_id,
+                EAVE_CLIENT_SECRET_HEADER: self.config.client_secret,
             },
         ))
 

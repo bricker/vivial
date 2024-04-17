@@ -129,7 +129,6 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
         for e in dbchange_events:
             match e.db_structure:
                 case DatabaseStructure.SQL:
-                    # TODO: load these vals from event now + update DatabaseEventPayload fields
                     op = _operation_name(e.statement)
                     table_name = _table_name(e.statement)
                     if not op or not table_name:
@@ -217,7 +216,7 @@ def _columns_from_statement(statement: str) -> list[str]:
         column_names = []
 
 
-        def dfs(element, cols):
+        def dfs(element, cols: list[str]) -> None:
             """Extracts Identifier tokens (this is what column names get typed as) from tokenized statement"""
             if isinstance(element, sqlparse.sql.IdentifierList):
                 cols.extend([str(identifier) for identifier in element.get_identifiers()])
