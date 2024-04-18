@@ -71,10 +71,8 @@ ignore = [
   "PLW0603", # https://docs.astral.sh/ruff/rules/global-statement/ - useful
   "UP032", # https://docs.astral.sh/ruff/rules/f-string/ - format() is sometimes better for readability
   "ANN401", # https://docs.astral.sh/ruff/rules/any-type/ - Any is useful
-
   "ANN101", # https://docs.astral.sh/ruff/rules/missing-type-self/ - deprecated rule
   "ANN102", # https://docs.astral.sh/ruff/rules/missing-type-cls/ - deprecated rule
-
   "E501", # https://docs.astral.sh/ruff/rules/line-too-long/ - not useful
   "PLR09", # "too many ..." checks
   "PLR5501", # https://docs.astral.sh/ruff/rules/collapsible-else-if/ - Sometimes using `else/if` is more readable than using `elif`
@@ -84,7 +82,6 @@ ignore = [
   "ANN002", # https://docs.astral.sh/ruff/rules/missing-type-args/ - too common in current codebase
   "ANN003", # https://docs.astral.sh/ruff/rules/missing-type-kwargs/ - too common in current codebase
   "G004", # https://docs.astral.sh/ruff/rules/logging-f-string/ - too common in current codebase
-
   "COM812", # https://docs.astral.sh/ruff/rules/missing-trailing-comma/ - conflicts with ruff formatter
   "ISC001", # https://docs.astral.sh/ruff/rules/single-line-implicit-string-concatenation/ - conflicts with ruff formatter
 ]
