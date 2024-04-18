@@ -4,6 +4,6 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-# (
-# 	python-lint "$(^parentpath)"
-# )
+(
+	python-lint "$(^parentpath)"
+)

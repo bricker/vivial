@@ -14,9 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Collection
+from typing import Any, Collection, Mapping, Tuple, Union
 from collections.abc import Sequence
 import sqlalchemy
+from sqlalchemy.engine.interfaces import DBAPICursor, _DBAPIAnyExecuteParams, _CoreMultiExecuteParams, _CoreSingleExecuteParams, _ExecuteOptions
+from sqlalchemy.util import immutabledict
 import sqlparse
 from packaging.version import parse as parse_version
 from sqlalchemy.engine.base import Engine
@@ -127,7 +129,7 @@ class EngineTracer:
         self._leading_comment_remover = re.compile(r"^/\*.*?\*/")
 
         self._register_event_listener(engine, "before_cursor_execute", self._before_cur_exec, retval=True)
-        self._register_event_listener(engine, "after_cursor_execute", _after_cur_exec)
+        self._register_event_listener(engine, "after_cursor_execute", self._after_cur_exec)
         self._register_event_listener(engine, "handle_error", _handle_error)
         self._register_event_listener(engine, "connect", self._pool_connect)
         self._register_event_listener(engine, "close", self._pool_close)
@@ -186,7 +188,22 @@ class EngineTracer:
                 remove(weak_ref_target(), identifier, func)
         cls._remove_event_listener_params.clear()
 
-    def _before_cur_exec(self, conn: sqlalchemy.Connection, cursor, statement, params, context, _executemany):
+    # def _before_cur_exec_2(self, conn: sqlalchemy.Connection, cursor: DBAPICursor, statement: str, parameters: _DBAPIAnyExecuteParams, context: sqlalchemy.ExecutionContext | None, executemany: bool) ->  Tuple[str, _DBAPIAnyExecuteParams] | None:
+    #     pass
+
+    # def _after_cur_exec_2(self, conn: sqlalchemy.Connection, cursor: DBAPICursor, statement: str, parameters: _DBAPIAnyExecuteParams, context: sqlalchemy.ExecutionContext | None, executemany: bool) -> None:
+    #     print(_get_affected_rows(cursor, statement, parameters))
+
+    def _after_cur_exec(self, conn: sqlalchemy.Connection, cursor: DBAPICursor, statement: str, parameters: _DBAPIAnyExecuteParams, context: sqlalchemy.ExecutionContext | None, executemany: bool) -> None:
+        print(_get_affected_rows(cursor, statement, parameters))
+        print()
+        span = getattr(context, "_otel_span", None)
+        if span is None:
+            return
+
+        span.end()
+
+    def _before_cur_exec(self, conn: sqlalchemy.Connection, cursor: DBAPICursor, statement: str, parameters: _DBAPIAnyExecuteParams, context: sqlalchemy.ExecutionContext, executemany: bool) -> Tuple[str, _DBAPIAnyExecuteParams] | None:
         attrs, found = _get_attributes_from_url(conn.engine.url)
         if not found:
             attrs = _get_attributes_from_cursor(self.vendor, cursor, attrs)
@@ -194,7 +211,7 @@ class EngineTracer:
         db_name = attrs.get(SpanAttributes.DB_NAME, "")
 
         print(statement)
-        print(_get_affected_rows(cursor, statement, params))
+        print(_get_affected_rows(cursor, statement, parameters))
 
         span = self.tracer.start_span(
             self._operation_name(statement),
@@ -207,7 +224,7 @@ class EngineTracer:
                 span.set_attribute(SpanAttributes.DB_NAME, db_name)
 
                 # NOTE: manually added this
-                attr_params = list(map(str, params))
+                attr_params = list(map(str, parameters))
                 span.set_attribute("db.params.values", attr_params)
                 span.set_attribute("db.structure", "SQL")  # TODO: use enums/constants
                 # if table_name:
@@ -238,7 +255,7 @@ class EngineTracer:
 
         context._otel_span = span
 
-        return statement, params
+        return statement, parameters
 
     def _operation_name(self, statement) -> str | None:
         parts = self._leading_comment_remover.sub("", statement).split()
@@ -258,17 +275,6 @@ class EngineTracer:
     #         self._schema_cache[table_name] = table
 
 
-# pylint: disable=unused-argument
-def _after_cur_exec(conn, cursor, statement, params, context, executemany):
-    print(_get_affected_rows(cursor, statement, params))
-    print()
-    span = getattr(context, "_otel_span", None)
-    if span is None:
-        return
-
-    span.end()
-
-
 def _sub_params(statement, params) -> str:
     new_statement = []
     i = 0
@@ -283,10 +289,10 @@ def _sub_params(statement, params) -> str:
     print(ret)
     return ret
 
-def _get_affected_rows(cursor, statement, params):
+def _get_affected_rows(cursor: DBAPICursor, statement: str, params: _DBAPIAnyExecuteParams) -> Sequence[Any] | None:
     """
     extract where clause from statement and use to fetch the rows that will be affected by statement
-    
+
     NOTE: possibility of sql injection weakness
     """
     s = _sub_params(statement, params)
@@ -295,7 +301,9 @@ def _get_affected_rows(cursor, statement, params):
         table_name = _table_name(statement) # TODO: dont import this
         if table_name:
             # TODO: params values not part of where clause; need to sub all params back into statement first
-            cursor.execute(f"select * from {table_name} {where_clauses[0].strip()}")
+            stmt=f"select * from {table_name} {where_clauses[0].strip()}"
+            print(stmt)
+            cursor.execute(stmt)
             result = cursor.fetchall()
             return result
 
