@@ -1,9 +1,9 @@
-from dataclasses import dataclass
 import dataclasses
-from enum import StrEnum
 import json
+import logging
+from dataclasses import dataclass
+from enum import StrEnum
 from typing import Any, Self
-import pydantic
 
 type RawEvent = dict[str, Any]
 
@@ -17,7 +17,8 @@ class DatabaseStructure(StrEnum):
     def from_str(cls, s: str) -> Self | None:
         try:
             return cls.__call__(value=s.upper())
-        except:
+        except ValueError as e:
+            logging.getLogger().warning(e)
             return None
 
 
@@ -31,7 +32,8 @@ class DatabaseOperation(StrEnum):
     def from_str(cls, s: str) -> Self | None:
         try:
             return cls.__call__(value=s.upper())
-        except:
+        except ValueError as e:
+            logging.getLogger().warning(e)
             return None
 
     @property

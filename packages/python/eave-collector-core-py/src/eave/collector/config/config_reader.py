@@ -2,7 +2,7 @@ import os
 
 
 class EaveConfigReader:
-    def __init__(self):
+    def __init__(self) -> None:
         self.client_id = self._read_config_variable_or_exception("EAVE_CLIENT_ID")
         self.client_secret = self._read_config_variable_or_exception("EAVE_CLIENT_SECRET")
 

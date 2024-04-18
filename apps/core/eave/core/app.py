@@ -163,7 +163,7 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/public/ingest",  # TODO: Make ingest a separate app
+            path="/v1/ingest",  # TODO: Make ingest a separate app
             auth_required=False,
             signature_required=False,
             origin_required=False,

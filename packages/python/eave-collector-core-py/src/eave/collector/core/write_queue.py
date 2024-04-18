@@ -1,13 +1,12 @@
 import asyncio
 import atexit
-from dataclasses import dataclass
 import multiprocessing
-from queue import Empty
 import time
-
-from .ingestion_api import send_data
+from dataclasses import dataclass
+from queue import Empty
 
 from .datastructures import EventType
+from .ingest_api import send_batch
 
 
 @dataclass
@@ -41,7 +40,7 @@ async def _process_queue(q: multiprocessing.Queue, params: QueueParams) -> None:
             buffer_copy = buffer.copy()
 
             try:
-                await send_data(event_type=params.event_type, events=buffer_copy)
+                await send_batch(event_type=params.event_type, events=buffer_copy)
             except Exception as e:
                 print(e)
             else:

@@ -52,7 +52,7 @@
 #     def export(self, spans: typing.Sequence[ReadableSpan]) -> SpanExportResult:
 #         asyncio.run(requests_util.make_request( # TODO: dont depend on our internal stdlib; this needs to be published to public
 #             config=CoreApiEndpointConfiguration(
-#                 path="/ingest",
+#                 path="/v1/ingest",
 #                 auth_required=False,
 #                 team_id_required=False,
 #                 signature_required=False,
