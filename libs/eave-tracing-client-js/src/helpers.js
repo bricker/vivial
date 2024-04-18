@@ -933,10 +933,10 @@ export function indexOfArray(theArray, searchElement) {
 }
 
 export function uuidv4() {
-  if (crypto && crypto.randomUUID) {
+  if (isDefined(crypto) && isDefined(crypto.randomUUID)) {
     return crypto.randomUUID();
   }
-  // we an in an insecure env or this is an incompatible browser!
+  // we are in an insecure env or this is an incompatible browser!
   // fallback on some manual uuid jank
   // https://stackoverflow.com/a/2117523/9718199 
   return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c =>

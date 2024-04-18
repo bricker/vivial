@@ -1680,9 +1680,6 @@ export function Tracker(trackerUrl, siteId) {
       return;
     }
 
-    var now = new Date(),
-      nowTs = Math.round(now.getTime() / 1000);
-
     if (!h.isDefined(visitorIdCookieValues)) {
       visitorIdCookieValues = getValuesFromVisitorIdCookie();
     }
@@ -2445,10 +2442,12 @@ export function Tracker(trackerUrl, siteId) {
     }
   }
 
-  /*
+  /**
    * Log the page view / visit
    */
   function logPageView(customTitle, customData, callback) {
+    resetOrExtendSession();
+    
     if (!configIdPageViewSetManually) {
       configIdPageView = generateUniqueId();
     }
