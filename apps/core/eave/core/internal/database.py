@@ -76,9 +76,7 @@ if SHARED_CONFIG.eave_env in [EaveEnvironment.development, EaveEnvironment.test]
         async with postgres_engine.begin() as connection:
             await connection.execute(sqlalchemy.text(f'DROP DATABASE IF EXISTS "{db_name}"'))
             await connection.execute(sqlalchemy.text(f'CREATE DATABASE "{db_name}"'))
-            await connection.execute(
-                sqlalchemy.text(f'ALTER DATABASE "{db_name}" SET timezone TO "UTC"')
-            )
+            await connection.execute(sqlalchemy.text(f'ALTER DATABASE "{db_name}" SET timezone TO "UTC"'))
 
             try:
                 await connection.execute(sqlalchemy.text("""CREATE ROLE "eave-agent" PASSWORD 'dev'"""))

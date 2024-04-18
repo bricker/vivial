@@ -37,11 +37,7 @@ async def main(db_name: str) -> None:
     eaveLogger.fprint(logging.WARNING, "- 💥 DELETES THE DATABASE 💥 (if it exists)")
     eaveLogger.fprint(logging.WARNING, "- (RE-)CREATES THE DATABASE")
 
-    answer = input(
-        eaveLogger.f(
-            logging.WARNING, f"Proceed to delete and (re-)create the {db_name} database? (Y/n) "
-        )
-    )
+    answer = input(eaveLogger.f(logging.WARNING, f"Proceed to delete and (re-)create the {db_name} database? (Y/n) "))
     if answer != "Y":
         print("Aborting.")
         return

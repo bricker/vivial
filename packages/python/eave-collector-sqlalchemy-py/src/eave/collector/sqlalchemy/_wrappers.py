@@ -47,8 +47,6 @@ def _wrap_connect(tracer):
     return _wrap_connect_internal
 
 
-
-
 def wrap_sqlalchemy():
     _w(
         "sqlalchemy",

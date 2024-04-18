@@ -4,8 +4,7 @@ from dataclasses import dataclass
 from typing import Any, Coroutine, Optional, TypeVar
 
 import aiohttp
-import eave.stdlib.signing as signing
-from eave.stdlib import cache
+from eave.stdlib import cache, signing
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.headers import (
     EAVE_ACCOUNT_ID_HEADER,

@@ -1,4 +1,5 @@
 from eave.core.internal.bigquery import dbchanges
+
 from .base import BaseTestCase
 
 TABLE_NAME = "my_table"
@@ -55,7 +56,10 @@ class TestDatabaseChangeIngestion(BaseTestCase):
         check(f"{BASIC_UPDATE} {WHERE_CLAUSE}{END_CLAUSE}", ["name", "age", "id", "name"])
         check(f"{BASIC_DELETE} {WHERE_CLAUSE}{END_CLAUSE}", ["id", "name"])
         # multi-operation statement
-        check(f"{BASIC_INSERT}{END_CLAUSE} {BASIC_UPDATE} {WHERE_CLAUSE}{END_CLAUSE}", ["name", "age", "name", "age", "id", "name"])
+        check(
+            f"{BASIC_INSERT}{END_CLAUSE} {BASIC_UPDATE} {WHERE_CLAUSE}{END_CLAUSE}",
+            ["name", "age", "name", "age", "id", "name"],
+        )
         # multi-value per column name
         check(f"{BASIC_SELECT} WHERE Price BETWEEN 50 AND 60{END_CLAUSE}", ["Price"])
         # where is not end of statement

@@ -1,9 +1,10 @@
-import asyncio
 from dataclasses import dataclass
+
 import aiohttp
 
 from .config import EAVE_API_BASE_URL
 from .datastructures import DataIngestRequestBody, EventType
+
 
 @dataclass
 class SpanBaseModel:
@@ -50,6 +51,7 @@ class SpanBaseModel:
 #     },
 # ))
 
+
 async def send_batch(event_type: EventType, events: list[str]) -> None:
     async with aiohttp.ClientSession() as session:
         body = DataIngestRequestBody(event_type=event_type, events=events)
@@ -61,5 +63,5 @@ async def send_batch(event_type: EventType, events: list[str]) -> None:
             headers={
                 "eave-client-id": "TKTKTK",
                 "eave-client-secret": "TKTKTK",
-            }
+            },
         )

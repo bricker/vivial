@@ -22,8 +22,7 @@ import socket
 import time
 import uuid
 
-from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 
 import eave.core.internal
 import eave.core.internal.orm.base
@@ -84,7 +83,7 @@ async def seed_database(db: AsyncEngine) -> None:
     eaveLogger.fprint(logging.INFO, f"Starting to seed your db {db.url.database}...")
     session = AsyncSession(db)
 
-    num_rows = 1#00 #TODO: debug
+    num_rows = 1  # 00 #TODO: debug
 
     # setup progress bar
     curr_progress = f"[0/{num_rows}] :: Seconds remaining: ???"
@@ -157,10 +156,11 @@ if __name__ == "__main__":
 
     import argparse
 
-
     parser = argparse.ArgumentParser(description="Database seeder")
     parser.add_argument("-t", "--team_id", help="ID of an existing team to seed", type=uuid.UUID, required=False)
-    parser.add_argument("-d", "--database", help="Name of the database to seed", type=str, required=False, default=_EAVE_DB_NAME)
+    parser.add_argument(
+        "-d", "--database", help="Name of the database to seed", type=str, required=False, default=_EAVE_DB_NAME
+    )
     args, _ = parser.parse_known_args()
 
     postgres_uri = eave.core.internal.database.async_engine.url._replace(database=args.database)
@@ -177,6 +177,7 @@ if __name__ == "__main__":
 
     # ==== TRACING JUNK ====
     from eave.otel_tracing.nettracing.telem.instrumentors.instrument import eave_instrument_db
+
     eave_instrument_db(seed_db.sync_engine)
     # ==== END TRACING ====
 

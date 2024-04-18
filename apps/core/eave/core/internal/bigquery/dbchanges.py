@@ -6,12 +6,13 @@ from datetime import datetime
 from textwrap import dedent
 from typing import Any, Optional, override
 
+from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
+
 from eave.core.internal import database
 from eave.core.internal.bigquery.types import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 from eave.core.internal.orm.virtual_event import VirtualEventOrm, make_virtual_event_readable_name
 from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize
 from eave.tracing.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure
-from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
 
 _leading_comment_remover = re.compile(r"^/\*.*?\*/")
 
@@ -200,11 +201,13 @@ def _columns_from_statement(statement: str) -> list[str]:
     NOTE: functionality depends heavily on values not being present in the sql `statement`; many
           edge cases related to value content arrise if values are not extracted from `statement`.
     """
+
     def parse_where(s: str) -> list[str]:
         """
         Parse column names from WHERE clauses in the passed in SQL statement string `s`
         """
         import sqlparse
+
         parsed = sqlparse.parse(s)
         if not parsed:
             return []
@@ -214,7 +217,6 @@ def _columns_from_statement(statement: str) -> list[str]:
             return []
 
         column_names = []
-
 
         def dfs(element, cols: list[str]) -> None:
             """Extracts Identifier tokens (this is what column names get typed as) from tokenized statement"""
@@ -239,7 +241,11 @@ def _columns_from_statement(statement: str) -> list[str]:
         return column_names
 
     cols = []
-    statements = [stmt.strip() for stmt in _leading_comment_remover.sub("", statement).replace("\n", " ").split(";") if stmt.strip()]
+    statements = [
+        stmt.strip()
+        for stmt in _leading_comment_remover.sub("", statement).replace("\n", " ").split(";")
+        if stmt.strip()
+    ]
 
     for stmt in statements:
         if op_str := _operation_name(stmt):
