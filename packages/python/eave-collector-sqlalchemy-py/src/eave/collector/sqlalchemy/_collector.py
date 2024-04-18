@@ -19,7 +19,7 @@ from collections.abc import Sequence
 from typing import Any, Tuple
 
 import sqlparse
-from eave.collector.logger import EAVE_LOGGER
+from eave.collector.logging import EAVE_LOGGER
 from eave.core.internal.bigquery.dbchanges import _operation_name, _table_name
 
 import sqlalchemy
