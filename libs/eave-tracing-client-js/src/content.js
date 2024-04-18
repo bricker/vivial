@@ -68,7 +68,7 @@ export default {
     var node = anyNode;
     var counter = 0;
 
-    while (node && node !== global.ev.documentAlias && node.parentNode) {
+    while (node && node !== global.eave.documentAlias && node.parentNode) {
       if (query.hasNodeAttribute(node, this.CONTENT_ATTR)) {
         return node;
       }
@@ -325,7 +325,7 @@ export default {
     }
 
     var rect = node.getBoundingClientRect();
-    var html = global.ev.documentAlias.documentElement || {};
+    var html = global.eave.documentAlias.documentElement || {};
 
     var wasVisible = rect.top < 0;
     if (wasVisible && node.offsetTop) {
@@ -335,19 +335,19 @@ export default {
     var docWidth = html.clientWidth; // The clientWidth attribute returns the viewport width excluding the size of a rendered scroll bar
 
     if (
-      global.ev.windowAlias.innerWidth &&
-      docWidth > global.ev.windowAlias.innerWidth
+      global.eave.windowAlias.innerWidth &&
+      docWidth > global.eave.windowAlias.innerWidth
     ) {
-      docWidth = global.ev.windowAlias.innerWidth; // The innerWidth attribute must return the viewport width including the size of a rendered scroll bar
+      docWidth = global.eave.windowAlias.innerWidth; // The innerWidth attribute must return the viewport width including the size of a rendered scroll bar
     }
 
     var docHeight = html.clientHeight; // The clientWidth attribute returns the viewport width excluding the size of a rendered scroll bar
 
     if (
-      global.ev.windowAlias.innerHeight &&
-      docHeight > global.ev.windowAlias.innerHeight
+      global.eave.windowAlias.innerHeight &&
+      docHeight > global.eave.windowAlias.innerHeight
     ) {
-      docHeight = global.ev.windowAlias.innerHeight; // The innerWidth attribute must return the viewport width including the size of a rendered scroll bar
+      docHeight = global.eave.windowAlias.innerHeight; // The innerWidth attribute must return the viewport width including the size of a rendered scroll bar
     }
 
     return (
@@ -366,25 +366,25 @@ export default {
     var params = "";
 
     if (interaction) {
-      params += "c_i=" + global.ev.encodeWrapper(interaction);
+      params += "c_i=" + global.eave.encodeWrapper(interaction);
     }
     if (name) {
       if (params) {
         params += "&";
       }
-      params += "c_n=" + global.ev.encodeWrapper(name);
+      params += "c_n=" + global.eave.encodeWrapper(name);
     }
     if (piece) {
       if (params) {
         params += "&";
       }
-      params += "c_p=" + global.ev.encodeWrapper(piece);
+      params += "c_p=" + global.eave.encodeWrapper(piece);
     }
     if (target) {
       if (params) {
         params += "&";
       }
-      params += "c_t=" + global.ev.encodeWrapper(target);
+      params += "c_t=" + global.eave.encodeWrapper(target);
     }
 
     if (params) {
@@ -396,12 +396,12 @@ export default {
   buildImpressionRequestParams: function (name, piece, target) {
     var params =
       "c_n=" +
-      global.ev.encodeWrapper(name) +
+      global.eave.encodeWrapper(name) +
       "&c_p=" +
-      global.ev.encodeWrapper(piece);
+      global.eave.encodeWrapper(piece);
 
     if (target) {
-      params += "&c_t=" + global.ev.encodeWrapper(target);
+      params += "&c_t=" + global.eave.encodeWrapper(target);
     }
 
     if (params) {
@@ -450,7 +450,7 @@ export default {
     this.location = location;
   },
   getLocation: function () {
-    var locationAlias = this.location || global.ev.windowAlias.location;
+    var locationAlias = this.location || global.eave.windowAlias.location;
 
     if (!locationAlias.origin) {
       locationAlias.origin =

@@ -13,7 +13,7 @@ _paq.push(["enableButtonClickTracking"]);
 _paq.push(["setTrackerUrl", "http://localhost:3000/matomo"]);
 // _paq.push(['setSiteId', '1']); // TODO: this isnt necessary?
 
-global.ev = {
+global.eave = {
   expireDateTime: undefined,
   _paq,
   /* plugins */

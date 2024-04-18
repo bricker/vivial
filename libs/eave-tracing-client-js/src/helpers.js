@@ -7,7 +7,7 @@
  */
 export function safeDecodeWrapper(url) {
   try {
-    return global.ev.decodeWrapper(url);
+    return global.eave.decodeWrapper(url);
   } catch (e) {
     return unescape(url);
   }
@@ -121,23 +121,23 @@ export function apply() {
       f = fParts[1];
 
       if (
-        "object" === typeof global.ev.eave[context] &&
-        "function" === typeof global.ev.eave[context][f]
+        "object" === typeof global.eave.eave[context] &&
+        "function" === typeof global.eave.eave[context][f]
       ) {
-        global.ev.eave[context][f].apply(
-          global.ev.eave[context],
+        global.eave.eave[context][f].apply(
+          global.eave.eave[context],
           parameterArray,
         );
       } else if (trackerCall) {
         // we try to call that method again later as the plugin might not be loaded yet
-        // a plugin can call "global.ev.eave.retryMissedPluginCalls();" once it has been loaded and then the
-        // method call to "global.ev.eave[context][f]" may be executed
-        global.ev.missedPluginTrackerCalls.push(trackerCall);
+        // a plugin can call "global.eave.eave.retryMissedPluginCalls();" once it has been loaded and then the
+        // method call to "global.eave.eave[context][f]" may be executed
+        global.eave.missedPluginTrackerCalls.push(trackerCall);
       }
     } else {
-      for (j = 0; j < global.ev.asyncTrackers.length; j++) {
+      for (j = 0; j < global.eave.asyncTrackers.length; j++) {
         if (isString(f)) {
-          context = global.ev.asyncTrackers[j];
+          context = global.eave.asyncTrackers[j];
 
           var isPluginTrackerCall = f.indexOf(".") > 0;
 
@@ -148,7 +148,7 @@ export function apply() {
               f = fParts[1];
             } else if (trackerCall) {
               // we try to call that method again later as the plugin might not be loaded yet
-              global.ev.missedPluginTrackerCalls.push(trackerCall);
+              global.eave.missedPluginTrackerCalls.push(trackerCall);
               break;
             }
           }
@@ -170,7 +170,7 @@ export function apply() {
           }
 
           if (f === "addTracker") {
-            // addTracker adds an entry to global.ev.asyncTrackers and would otherwise result in an endless loop
+            // addTracker adds an entry to global.eave.asyncTrackers and would otherwise result in an endless loop
             break;
           }
 
@@ -179,7 +179,7 @@ export function apply() {
             break;
           }
         } else {
-          f.apply(global.ev.asyncTrackers[j], parameterArray);
+          f.apply(global.eave.asyncTrackers[j], parameterArray);
         }
       }
     }
@@ -204,22 +204,22 @@ export function addEventListener(element, eventType, eventHandler, useCapture) {
 }
 
 export function trackCallbackOnLoad(callback) {
-  if (global.ev.documentAlias.readyState === "complete") {
+  if (global.eave.documentAlias.readyState === "complete") {
     callback();
-  } else if (global.ev.windowAlias.addEventListener) {
-    global.ev.windowAlias.addEventListener("load", callback, false);
-  } else if (global.ev.windowAlias.attachEvent) {
-    global.ev.windowAlias.attachEvent("onload", callback);
+  } else if (global.eave.windowAlias.addEventListener) {
+    global.eave.windowAlias.addEventListener("load", callback, false);
+  } else if (global.eave.windowAlias.attachEvent) {
+    global.eave.windowAlias.attachEvent("onload", callback);
   }
 }
 
 export function trackCallbackOnReady(callback) {
   var loaded = false;
 
-  if (global.ev.documentAlias.attachEvent) {
-    loaded = global.ev.documentAlias.readyState === "complete";
+  if (global.eave.documentAlias.attachEvent) {
+    loaded = global.eave.documentAlias.readyState === "complete";
   } else {
-    loaded = global.ev.documentAlias.readyState !== "loading";
+    loaded = global.eave.documentAlias.readyState !== "loading";
   }
 
   if (loaded) {
@@ -229,12 +229,12 @@ export function trackCallbackOnReady(callback) {
 
   var _timer;
 
-  if (global.ev.documentAlias.addEventListener) {
+  if (global.eave.documentAlias.addEventListener) {
     addEventListener(
-      global.ev.documentAlias,
+      global.eave.documentAlias,
       "DOMContentLoaded",
       function ready() {
-        global.ev.documentAlias.removeEventListener(
+        global.eave.documentAlias.removeEventListener(
           "DOMContentLoaded",
           ready,
           false,
@@ -245,10 +245,10 @@ export function trackCallbackOnReady(callback) {
         }
       },
     );
-  } else if (global.ev.documentAlias.attachEvent) {
-    global.ev.documentAlias.attachEvent("onreadystatechange", function ready() {
-      if (global.ev.documentAlias.readyState === "complete") {
-        global.ev.documentAlias.detachEvent("onreadystatechange", ready);
+  } else if (global.eave.documentAlias.attachEvent) {
+    global.eave.documentAlias.attachEvent("onreadystatechange", function ready() {
+      if (global.eave.documentAlias.readyState === "complete") {
+        global.eave.documentAlias.detachEvent("onreadystatechange", ready);
         if (!loaded) {
           loaded = true;
           callback();
@@ -257,13 +257,13 @@ export function trackCallbackOnReady(callback) {
     });
 
     if (
-      global.ev.documentAlias.documentElement.doScroll &&
-      global.ev.windowAlias === global.ev.windowAlias.top
+      global.eave.documentAlias.documentElement.doScroll &&
+      global.eave.windowAlias === global.eave.windowAlias.top
     ) {
       (function ready() {
         if (!loaded) {
           try {
-            global.ev.documentAlias.documentElement.doScroll("left");
+            global.eave.documentAlias.documentElement.doScroll("left");
           } catch (error) {
             setTimeout(ready, 0);
 
@@ -278,7 +278,7 @@ export function trackCallbackOnReady(callback) {
 
   // fallback
   addEventListener(
-    global.ev.windowAlias,
+    global.eave.windowAlias,
     "load",
     function () {
       if (!loaded) {
@@ -304,14 +304,14 @@ export function executePluginMethod(methodName, params, callback) {
     value,
     isFunction;
 
-  for (i in global.ev.plugins) {
-    if (Object.prototype.hasOwnProperty.call(global.ev.plugins, i)) {
+  for (i in global.eave.plugins) {
+    if (Object.prototype.hasOwnProperty.call(global.eave.plugins, i)) {
       isFunction =
-        global.ev.plugins[i] &&
-        "function" === typeof global.ev.plugins[i][methodName];
+        global.eave.plugins[i] &&
+        "function" === typeof global.eave.plugins[i][methodName];
 
       if (isFunction) {
-        pluginMethod = global.ev.plugins[i][methodName];
+        pluginMethod = global.eave.plugins[i][methodName];
         value = pluginMethod(params || {}, callback);
 
         if (value) {
@@ -333,25 +333,25 @@ export function executePluginMethod(methodName, params, callback) {
  */
 export function beforeUnloadHandler(event) {
   var now;
-  global.ev.isPageUnloading = true;
+  global.eave.isPageUnloading = true;
 
   executePluginMethod("unload");
   now = new Date();
   var aliasTime = now.getTimeAlias();
-  if (global.ev.expireDateTime - aliasTime > 3000) {
-    global.ev.expireDateTime = aliasTime + 3000;
+  if (global.eave.expireDateTime - aliasTime > 3000) {
+    global.eave.expireDateTime = aliasTime + 3000;
   }
 
   /*
    * Delay/pause (blocks UI)
    */
-  if (global.ev.expireDateTime) {
+  if (global.eave.expireDateTime) {
     // the things we do for backwards compatibility...
     // in ECMA-262 5th ed., we could simply use:
-    //     while (Date.now() < global.ev.expireDateTime) { }
+    //     while (Date.now() < global.eave.expireDateTime) { }
     do {
       now = new Date();
-    } while (now.getTimeAlias() < global.ev.expireDateTime);
+    } while (now.getTimeAlias() < global.eave.expireDateTime);
   }
 }
 
@@ -359,7 +359,7 @@ export function beforeUnloadHandler(event) {
  * Load JavaScript file (asynchronously)
  */
 export function loadScript(src, onLoad) {
-  var script = global.ev.documentAlias.createElement("script");
+  var script = global.eave.documentAlias.createElement("script");
 
   script.type = "text/javascript";
   script.src = src;
@@ -377,7 +377,7 @@ export function loadScript(src, onLoad) {
     script.onload = onLoad;
   }
 
-  global.ev.documentAlias.getElementsByTagName("head")[0].appendChild(script);
+  global.eave.documentAlias.getElementsByTagName("head")[0].appendChild(script);
 }
 
 /*
@@ -387,11 +387,11 @@ export function getReferrer() {
   var referrer = "";
 
   try {
-    referrer = global.ev.windowAlias.top.document.referrer;
+    referrer = global.eave.windowAlias.top.document.referrer;
   } catch (e) {
-    if (global.ev.windowAlias.parent) {
+    if (global.eave.windowAlias.parent) {
       try {
-        referrer = global.ev.windowAlias.parent.document.referrer;
+        referrer = global.eave.windowAlias.parent.document.referrer;
       } catch (e2) {
         referrer = "";
       }
@@ -399,7 +399,7 @@ export function getReferrer() {
   }
 
   if (referrer === "") {
-    referrer = global.ev.documentAlias.referrer;
+    referrer = global.eave.documentAlias.referrer;
   }
 
   return referrer;
@@ -467,9 +467,9 @@ export function queryStringify(data) {
     if (data.hasOwnProperty(k)) {
       queryString +=
         "&" +
-        global.ev.encodeWrapper(k) +
+        global.eave.encodeWrapper(k) +
         "=" +
-        global.ev.encodeWrapper(data[k]);
+        global.eave.encodeWrapper(data[k]);
     }
   }
   return queryString;
@@ -527,9 +527,9 @@ export function addUrlParameter(url, name, value) {
 
   return (
     baseUrl +
-    global.ev.encodeWrapper(name) +
+    global.eave.encodeWrapper(name) +
     "=" +
-    global.ev.encodeWrapper(value) +
+    global.eave.encodeWrapper(value) +
     urlHash
   );
 }
@@ -609,7 +609,7 @@ export function trim(text) {
  * UTF-8 encoding
  */
 export function utf8_encode(argString) {
-  return unescape(global.ev.encodeWrapper(argString));
+  return unescape(global.eave.encodeWrapper(argString));
 }
 
 /************************************************************
@@ -803,7 +803,7 @@ export function urlFixup(hostName, href, referrer) {
     hostName.slice(0, 5) === "74.6."
   ) {
     // Yahoo (via Inktomi 74.6.0.0/16)
-    href = global.ev.documentAlias.links[0].href;
+    href = global.eave.documentAlias.links[0].href;
     hostName = getHostName(href);
   }
 
@@ -840,7 +840,7 @@ export function titleFixup(title) {
   title = title && title.text ? title.text : title;
 
   if (!isString(title)) {
-    var tmp = global.ev.documentAlias.getElementsByTagName("title");
+    var tmp = global.eave.documentAlias.getElementsByTagName("title");
 
     if (tmp && isDefined(tmp[0])) {
       title = tmp[0].text;
