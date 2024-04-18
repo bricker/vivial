@@ -17,7 +17,7 @@
 from typing import Collection
 from collections.abc import Sequence
 import sqlalchemy
-import threading
+import sqlparse
 from packaging.version import parse as parse_version
 from sqlalchemy.engine.base import Engine
 from wrapt import wrap_function_wrapper as _w
@@ -125,18 +125,14 @@ class EngineTracer:
         self.commenter_options = commenter_options if commenter_options else {}
         self._engine_attrs = _get_attributes_from_engine(engine)
         self._leading_comment_remover = re.compile(r"^/\*.*?\*/")
-        
+
         self._register_event_listener(engine, "before_cursor_execute", self._before_cur_exec, retval=True)
         self._register_event_listener(engine, "after_cursor_execute", _after_cur_exec)
-        # self._register_event_listener(engine, "before_cursor_execute", self._cur_exec_wrapper, retval=True)
-        # self._register_event_listener(engine, "after_cursor_execute", self._cur_exec_wrapper)
-        self._register_event_listener(engine, "do_execute", self._do_execute_handler)
         self._register_event_listener(engine, "handle_error", _handle_error)
         self._register_event_listener(engine, "connect", self._pool_connect)
         self._register_event_listener(engine, "close", self._pool_close)
         self._register_event_listener(engine, "checkin", self._pool_checkin)
         self._register_event_listener(engine, "checkout", self._pool_checkout)
-        self._schema_cache = {}
 
     def _add_idle_to_connection_usage(self, value):
         self.connections_usage.add(
@@ -190,25 +186,15 @@ class EngineTracer:
                 remove(weak_ref_target(), identifier, func)
         cls._remove_event_listener_params.clear()
 
-    def _exec_cur_wrapper(self):
-        pass
-
-    def _do_execute_handler(self, cursor, statement: str, parameters, context):
-        result = cursor.execute("select 1")
-        print(result)
-
-    def _before_cur_exec(self, conn: sqlalchemy.Connection, cursor: sqlalchemy.CursorResult, statement, params, context, _executemany):
+    def _before_cur_exec(self, conn: sqlalchemy.Connection, cursor, statement, params, context, _executemany):
         attrs, found = _get_attributes_from_url(conn.engine.url)
         if not found:
             attrs = _get_attributes_from_cursor(self.vendor, cursor, attrs)
 
         db_name = attrs.get(SpanAttributes.DB_NAME, "")
-        table_name = _table_name(statement) # TODO: dont import this
-        op = self._operation_name(statement)
 
-
-        # result = conn.exec_driver_sql("select 1")
-        # print(list(result))
+        print(statement)
+        print(_get_affected_rows(cursor, statement, params))
 
         span = self.tracer.start_span(
             self._operation_name(statement),
@@ -224,7 +210,6 @@ class EngineTracer:
                 attr_params = list(map(str, params))
                 span.set_attribute("db.params.values", attr_params)
                 span.set_attribute("db.structure", "SQL")  # TODO: use enums/constants
-                # self._populate_schema_cache(conn)
                 # if table_name:
                 #     span.set_attribute(SpanAttributes.DB_SQL_TABLE, table_name)
 
@@ -275,11 +260,44 @@ class EngineTracer:
 
 # pylint: disable=unused-argument
 def _after_cur_exec(conn, cursor, statement, params, context, executemany):
+    print(_get_affected_rows(cursor, statement, params))
+    print()
     span = getattr(context, "_otel_span", None)
     if span is None:
         return
 
     span.end()
+
+
+def _sub_params(statement, params) -> str:
+    new_statement = []
+    i = 0
+    for chunk in statement.split():
+        # TODO: ($1::VARCHAR, $2::TIMESTAMP WITHOUT TIME ZONE)
+        if chunk[0] == "$" and i < len(params):
+            new_statement.append(str(params[i]))
+            i += 1
+        else:
+            new_statement.append(chunk)
+    ret = " ".join(new_statement)
+    print(ret)
+    return ret
+
+def _get_affected_rows(cursor, statement, params):
+    """
+    extract where clause from statement and use to fetch the rows that will be affected by statement
+    
+    NOTE: possibility of sql injection weakness
+    """
+    s = _sub_params(statement, params)
+    where_clauses = [str(t) for t in sqlparse.parse(s)[0].tokens if isinstance(t, sqlparse.sql.Where)]
+    if len(where_clauses) > 0:
+        table_name = _table_name(statement) # TODO: dont import this
+        if table_name:
+            # TODO: params values not part of where clause; need to sub all params back into statement first
+            cursor.execute(f"select * from {table_name} {where_clauses[0].strip()}")
+            result = cursor.fetchall()
+            return result
 
 
 def _handle_error(context):
