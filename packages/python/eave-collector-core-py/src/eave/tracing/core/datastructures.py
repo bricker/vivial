@@ -7,6 +7,7 @@ import pydantic
 
 type RawEvent = dict[str, Any]
 
+
 class DatabaseStructure(StrEnum):
     UNKNOWN = "unknown"
     SQL = "SQL"
@@ -18,6 +19,7 @@ class DatabaseStructure(StrEnum):
             return cls.__call__(value=s.upper())
         except:
             return None
+
 
 class DatabaseOperation(StrEnum):
     INSERT = "INSERT"
