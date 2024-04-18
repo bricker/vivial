@@ -214,6 +214,10 @@ export async function createTask({
       url: `${host}${task.appEngineHttpRequest.relativeUri}`,
       audience,
       method: ExpressRoutingMethod.post,
+      signatureRequired: false,
+      teamIdRequired: false,
+      authRequired: false,
+      originRequired: false,
     };
 
     /*

@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+set -eu -o pipefail
+
+source "$EAVE_HOME"/develop/functions.bash
+
+function _print_help () (
+	statusmsg -o "Usage: rollout -a appname"
+	statusmsg -o "  -d appname : Required. The app name (eg core-api) to rollout."
+	statusmsg -o "  -h : Print this message."
+)
+
+function main () (
+	local _appname=""
+
+	while getopts "d:h" argname; do
+		case "$argname" in
+		d) _appname=$OPTARG ;;
+		h)
+			_print_help
+			exit 0
+			;;
+		*)
+			statusmsg -e "unknown option: $argname"
+			_print_help
+			exit 1
+			;;
+		esac
+	done
+
+	if test -z "$_appname"; then
+		_print_help
+		exit 1
+	fi
+
+	kubectl rollout restart deployment/"$_appname"-deployment
+)
+
+main "$@"

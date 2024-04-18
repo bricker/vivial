@@ -7,8 +7,7 @@ const MetabaseEmbeddedDashboard = ({
 }) => {
   // route to web backend to add auth headers etc before redirecting to core api
   // https://www.metabase.com/docs/latest/embedding/interactive-embedding#showing-or-hiding-metabase-ui-components
-  let srcRoute =
-    "/embed/metabase";
+  let srcRoute = "/embed/metabase";
   if (dashRoute) {
     srcRoute += `?return_to=${dashRoute}`;
   }

@@ -11,7 +11,8 @@ from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 class QueryGithubInstallation(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
-        path="/github_installations/query",
+        path="/_/github_installations/query",
+        signature_required=False,
         auth_required=False,
         team_id_required=False,
     )
@@ -42,8 +43,9 @@ class QueryGithubInstallation(CoreApiEndpoint):
 
 class DeleteGithubInstallation(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
-        path="/github_installations/delete",
+        path="/_/github_installations/delete",
         auth_required=False,
+        signature_required=False,
     )
 
     class RequestBody(BaseRequestBody):

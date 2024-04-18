@@ -10,8 +10,8 @@ from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 class GetTeamRequest(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
-        path="/team/query",
-        auth_required=False,
+        path="/_/team/query",
+        signature_required=False,
     )
 
     class ResponseBody(BaseResponseBody):

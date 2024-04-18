@@ -1,5 +1,5 @@
 import { SecretManagerServiceClient } from "@google-cloud/secret-manager";
-import { EaveApp, appengineServiceName } from "./eave-origins.js";
+import { EaveApp } from "./eave-origins.js";
 
 export enum EaveEnvironment {
   test = "test",
@@ -62,16 +62,12 @@ export class EaveConfig {
     return process.env["GAE_VERSION"] || "unknown";
   }
 
-  get appLocation(): string {
-    return process.env["GAE_LOCATION"] || "us-central1";
+  get releaseDate(): string {
+    return process.env["GAE_RELEASE_DATE"] || "unknown";
   }
 
-  get eavePublicAppsBase(): string {
-    return (
-      process.env["EAVE_APPS_BASE_PUBLIC"] ||
-      process.env["EAVE_APPS_BASE"] ||
-      "https://apps.eave.fyi"
-    );
+  get appLocation(): string {
+    return process.env["GAE_LOCATION"] || "us-central1";
   }
 
   get eavePublicApiBase(): string {
@@ -84,42 +80,12 @@ export class EaveConfig {
 
   eavePublicServiceBase(service: EaveApp): string {
     const envv = process.env[`${service.toUpperCase()}_BASE_PUBLIC`];
-    if (envv) {
-      return envv;
-    }
-
-    switch (service) {
-      case EaveApp.eave_api:
-        return process.env["EAVE_API_BASE"] || "https://api.eave.fyi";
-      case EaveApp.eave_dashboard:
-        return process.env["EAVE_DASHBOARD_BASE"] || "https://dashboard.eave.fyi";
-      default:
-        return this.eavePublicAppsBase;
-    }
+    return envv || "";
   }
 
   eaveInternalServiceBase(service: EaveApp): string {
     const envv = process.env[`${service.toUpperCase()}_BASE_INTERNAL`];
-    if (envv) {
-      return envv;
-    }
-
-    if (this.isDevelopment) {
-      switch (service) {
-        case EaveApp.eave_api:
-          return this.eavePublicApiBase;
-        case EaveApp.eave_dashboard:
-          return this.eavePublicDashboardBase;
-        default:
-          return this.eavePublicAppsBase;
-      }
-    } else {
-      // TODO: Remove hardcoded AppEngine URL
-      // FIXME: Hardcoded region id (uc)
-      return `https://${appengineServiceName(service)}-dot-${
-        this.googleCloudProject
-      }.uc.r.appspot.com`;
-    }
+    return envv || "";
   }
 
   get eaveCookieDomain(): string {

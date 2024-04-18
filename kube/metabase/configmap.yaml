@@ -1,0 +1,55 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: metabase-configmap
+  namespace: "${NAMESPACE}"
+data:
+  MB_DB_DBNAME: metabase
+  MB_DB_USER: "gsa-app-metabase@${GOOGLE_CLOUD_PROJECT}.iam"
+  MB_NO_SURVEYS: "true"
+  MB_SHOW_HOMEPAGE_DATA: "false"
+  MB_SHOW_HOMEPAGE_XRAYS: "false"
+  MB_SHOW_DATABASE_SYNCING_MODAL: "false"
+  MB_LOAD_ANALYTICS_CONTENT: "false"
+  MB_COLORIZE_LOGS: "false"
+  MB_EMOJI_IN_LOGS: "false"
+  MB_SITE_NAME: TKTK Eave Staging Site
+  MB_SITE_URL: "https://metabase.${EAVE_ROOT_DOMAIN}"
+  MB_ANON_TRACKING_ENABLED: "false"
+  MB_ENABLE_XRAYS: "true"
+  MB_ENABLE_NESTED_QUERIES: "true"
+  MB_CHECK_FOR_UPDATES: "false"
+  MB_EMAIL_SMTP_HOST: smtp-relay.gmail.com
+  MB_EMAIL_SMTP_PORT: "587"
+  MB_EMAIL_SMTP_SECURITY: tls
+  MB_EMAIL_FROM_ADDRESS: info@eave.fyi
+  MB_EMAIL_FROM_NAME: Eave
+  MB_ADMIN_EMAIL: support@eave.fyi
+  MB_SEND_EMAIL_ON_FIRST_LOGIN_FROM_NEW_DEVICE: "false"
+  # MB_EMAIL_REPLY_TO: "\"['info@eave.fyi']\""
+  # MB_SLACK_APP_TOKEN:
+  # MB_SLACK_FILES_CHANNEL:
+  MB_ENABLE_PASSWORD_LOGIN: "true" # for Eave admins
+  MB_SEND_NEW_SSO_USER_ADMIN_EMAIL: "true"
+  # MB_SESSION_TIMEOUT:
+  # MB_MAP_TILE_SERVER_URL:
+  MB_REPORT_TIMEZONE: America/Los_Angeles # FIXME: Can the browser's timezone be used?
+  MB_ENABLE_PUBLIC_SHARING: "false"
+  MB_ENABLE_EMBEDDING: "true"
+  MB_EMBEDDING_APP_ORIGIN: "dashboard.${EAVE_ROOT_DOMAIN}"
+  MB_SESSION_COOKIE_SAMESITE: lax
+  MB_JWT_ENABLED: "true"
+  MB_JWT_IDENTITY_PROVIDER_URI: "https://dashboard.${EAVE_ROOT_DOMAIN}/login"
+  MB_ENABLE_QUERY_CACHING: "false"
+  MB_PERSISTED_MODELS_ENABLED: "false"
+  MB_PERSISTED_MODEL_REFRESH_CRON_SCHEDULE: ""
+  MB_APPLICATION_NAME: TKTK Eave Staging Application
+  # MB_APPLICATION_FONT:
+  # MB_APPLICATION_COLORS:
+  # MB_APPLICATION_LOGO_URL:
+  # MB_APPLICATION_FAVICON_URL:
+  # MB_LANDING_PAGE:
+  MB_LOADING_MESSAGE: TKTK Custom Loading Message...
+  MB_SHOW_METABOT: "false"
+  MB_SHOW_LIGHTHOUSE_ILLUSTRATION: "false"

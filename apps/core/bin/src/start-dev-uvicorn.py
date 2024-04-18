@@ -18,6 +18,7 @@ if __name__ == "__main__":
         app="eave.core.app:app",
         port=5100,
         reload=True,
+        log_level="debug",
         reload_includes=[
             "eave",
             f"{EAVE_HOME}/libs/eave-stdlib-py/src/eave",
