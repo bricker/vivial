@@ -76,7 +76,7 @@ ignore = [
 
   "E501", # https://docs.astral.sh/ruff/rules/line-too-long/ - not useful
   "PLR09", # "too many ..." checks
-
+  "PLR5501", # https://docs.astral.sh/ruff/rules/collapsible-else-if/ - Sometimes using `else/if` is more readable than using `elif`
   "S101", # https://docs.astral.sh/ruff/rules/assert/ - too common in current codebase
   "A003", # https://docs.astral.sh/ruff/rules/builtin-attribute-shadowing/ - too common in current codebase
   "BLE001", # https://docs.astral.sh/ruff/rules/blind-except/ - too common in current codebase
