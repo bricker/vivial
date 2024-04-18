@@ -9,9 +9,13 @@ source "${EAVE_HOME}"/develop/functions.bash
 	if ! ^onlythismodule; then
 		"${EAVE_HOME}"/libs/eave-stdlib-py/bin/lint
 		"${EAVE_HOME}"/libs/eave-pubsub-schemas/python/bin/lint
-		"${EAVE_HOME}"/libs/eave-tracing-core-py/bin/lint
-		"${EAVE_HOME}"/libs/eave-tracing-python/bin/lint
-		"${EAVE_HOME}"/libs/eave-tracing-postgres/bin/lint
 
+		for pkg in "${EAVE_HOME}"/packages/python/*; do
+			if test -x "$pkg"/bin/lint; then
+				"$pkg"/bin/lint
+			else
+				statusmsg -w "No lint script in ${pkg}"
+			fi
+		done
 	fi
 )
