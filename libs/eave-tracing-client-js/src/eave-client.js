@@ -2,9 +2,9 @@
  * Eave - Intelligent Analytics
  *
  * JavaScript tracking client
- *TODO update links
- * @link https://piwik.org
- * @source https://github.com/matomo-org/matomo/blob/master/js/piwik.js
+ *
+ * @link https://eave.fyi
+ * @source https://github.com/eave-fyi/eave-tracing-client-js/
  * @license https://www.gnu.org/licenses/gpl-3.0.en.html#license-text GPLv3 (also in LICENSE.txt)
  */
 

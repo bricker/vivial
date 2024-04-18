@@ -4,6 +4,7 @@ var documentAlias = document,
   windowAlias = window;
 
 var _paq = [];
+_paq.push(["setTrackingCookies"])
 _paq.push(["trackPageView"]);
 _paq.push(["enableLinkTracking"]);
 _paq.push(["enableRouteHistoryTracking"]);
