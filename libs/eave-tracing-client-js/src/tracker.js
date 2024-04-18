@@ -24,9 +24,13 @@ export function Tracker(trackerUrl, siteId) {
 
     trackerInstance = this,
     // constants
-    CONSENT_COOKIE_NAME = "mtm_consent",
-    COOKIE_CONSENT_COOKIE_NAME = "mtm_cookie_consent",
-    CONSENT_REMOVED_COOKIE_NAME = "mtm_consent_removed",
+    CONSENT_COOKIE_NAME = "eave_consent",
+    COOKIE_CONSENT_COOKIE_NAME = "eave_cookie_consent",
+    CONSENT_REMOVED_COOKIE_NAME = "eave_consent_removed",
+    CONTEXT_COOKIE_NAME = "eave.context",
+    SESSION_COOKIE_NAME = "eave.session",
+    // in-memory context to be attached to all atoms. Use getContext()/setContext() to access!
+    _eaveContext = {}, // TODO: set on all fired atom events
     // Current URL and Referrer URL
     locationArray = h.urlFixup(
       global.eave.documentAlias.domain,
@@ -318,8 +322,10 @@ export function Tracker(trackerUrl, siteId) {
     configTitle = "";
   }
 
-  /*
+  /**
    * Get cookie value
+   *
+   * @returns {string|number} cookie value for `cookieName` or 0 if not found
    */
   function getCookie(cookieName) {
     if (configCookiesDisabled && cookieName !== CONSENT_REMOVED_COOKIE_NAME) {
@@ -334,8 +340,17 @@ export function Tracker(trackerUrl, siteId) {
 
   configHasConsent = !getCookie(CONSENT_REMOVED_COOKIE_NAME);
 
-  /*
+  /**
    * Set cookie value
+   * 
+   * @param {string} cookieName 
+   * @param {string} value 
+   * @param {number} msToExpire (optional)
+   * @param {string} path site path to limit cookie sharing to (default "/")
+   * @param {string} domain domain to limit cookie sharing to (optional)
+   * @param {boolean} isSecure wither cookie is only attached to https requests (default falsey)
+   * @param {string} sameSite cookie sharing restrictions (default "Lax")
+   *    https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#samesitesamesite-value
    */
   function setCookie(
     cookieName,
@@ -385,6 +400,57 @@ export function Tracker(trackerUrl, siteId) {
         "`. Please check domain and path.";
       h.logConsoleError(msg);
     }
+  }
+
+  /**
+   * Get a value from the in-memory _eaveContext object
+   * 
+   * @param {string} key to fetch a value for
+   * @returns {any} value associated w/ `key` or undefined
+   */
+  function getContext(key) {
+    return _eaveContext["key"];
+  }
+
+  /**
+   * Set `value` in the in-memory _eaveContext and save to cookie.
+   * 
+   * @param {string} key 
+   * @param {any} value 
+   */
+  function setContext(key, value) {
+    // set into in-mem ctx
+    _eaveContext[key] = value;
+
+    // save new ctx value to cookie
+    saveContext();
+  }
+
+  function saveContext() {
+    setCookie(
+      CONTEXT_COOKIE_NAME, 
+      JSON.stringify(_eaveContext), 
+      undefined, 
+      undefined, 
+      undefined, 
+      true, // required true for "None" sameSite
+      "None" // ensure this cookie is attached to our atom event requests
+    );
+  }
+
+  function resetOrExtendSession() {
+    // TODO: make sesion cookie json?
+    const sessionId = getCookie(SESSION_COOKIE_NAME) || h.uuidv4();
+    const thirtyMinsMs = 1000 * 60 * 30;
+    setCookie(
+      SESSION_COOKIE_NAME, 
+      sessionId, 
+      thirtyMinsMs, 
+      undefined, 
+      undefined, 
+      true, // required true for "None" sameSite
+      "None" // ensure this cookie is attached to our atom event requests
+    );
   }
 
   /*
@@ -6097,6 +6163,22 @@ export function Tracker(trackerUrl, siteId) {
    */
   this.enableFileTracking = function () {
     configFileTracking = true;
+  };
+
+  /**
+   * Set eave tracking cookies as necessary and setup the in-memory _eaveContext.
+   */
+  this.setTrackingCookies = function () {
+    // read eave cookies into ctx
+    var ctxCookie = getCookie(CONTEXT_COOKIE_NAME);
+    if (ctxCookie) {
+      _eaveContext = JSON.parse(ctxCookie);
+    }
+
+    // set visitor_id if need
+    if (!getContext("visitor_id")) {
+      setContext("visitor_id", h.uuidv4());
+    }
   };
 
   /**
