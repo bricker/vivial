@@ -18,6 +18,7 @@ db_uri = sqlalchemy.engine.url.URL.create(
     password=CORE_API_APP_CONFIG.db_pass,
     database=CORE_API_APP_CONFIG.db_name,
 )
+
 async_engine = create_async_engine(
     db_uri,
     echo=False,

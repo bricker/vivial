@@ -5,8 +5,7 @@ from typing import Any, Mapping, Optional
 
 from eave.stdlib.config import SHARED_CONFIG, ConfigBase, get_required_env, get_secret
 from eave.stdlib.eave_origins import EaveApp
-from eave.stdlib.exceptions import UnexpectedMissingValueError
-from eave.stdlib.logging import eaveLogger
+from eave.stdlib.util import b64decode
 
 
 class _AppConfig(ConfigBase):
@@ -57,7 +56,6 @@ class _AppConfig(ConfigBase):
             try:
                 return get_secret(key)
             except Exception:
-                eaveLogger.exception(f"Fetching {key} from secrets failed.")
                 return None
 
     @cached_property
@@ -70,11 +68,14 @@ class _AppConfig(ConfigBase):
 
     @cached_property
     def eave_google_oauth_client_credentials(self) -> Mapping[str, Any]:
-        encoded = get_secret("EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON")
-        if not encoded:
-            raise UnexpectedMissingValueError("secret: EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON")
+        try:
+            b64encoded = get_secret("EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64")
+            json_encoded = b64decode(b64encoded)
+        except Exception:
+            # DEPRECATED - use EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64 instead.
+            json_encoded = get_secret("EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON")
 
-        credentials: dict[str, Any] = json.loads(encoded)
+        credentials: dict[str, Any] = json.loads(json_encoded)
         return credentials
 
     @cached_property

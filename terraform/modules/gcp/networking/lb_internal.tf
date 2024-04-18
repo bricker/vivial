@@ -1,1 +1,0 @@
-// https://registry.terraform.io/modules/GoogleCloudPlatform/lb-internal/google/latest

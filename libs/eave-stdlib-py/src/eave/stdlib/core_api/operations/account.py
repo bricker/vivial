@@ -11,7 +11,8 @@ from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 class GetAuthenticatedAccount(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
-        path="/me/query",
+        path="/_/me/query",
+        signature_required=False,
     )
 
     class ResponseBody(BaseResponseBody):

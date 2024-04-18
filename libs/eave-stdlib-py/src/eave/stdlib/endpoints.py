@@ -4,6 +4,7 @@ import aiohttp
 import pydantic
 from eave.stdlib.eave_origins import EaveApp
 
+
 class EndpointConfiguration:
     base_url: str
     path: str

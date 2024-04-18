@@ -1,6 +1,9 @@
 .venv
-*.env*
-!share*.env
+**/*.env*
+
+# do not ignore *.share.env files
+!**/*share*.env
+
 __pycache__
 .mypy_cache
 .ruff_cache
@@ -8,9 +11,10 @@ __pycache__
 .*_cache
 node_modules
 *.egg-info
-build
-.build
+build/
+.build/
 .cloudsqlproxy
+.pgdata
 *.tgz
 yalc.lock
 .DS_Store

@@ -1,0 +1,91 @@
+# syntax=docker/dockerfile:1
+
+ARG PYTHON_VERSION=3.12
+ARG NODE_VERSION=18
+
+
+
+
+## Python Builder
+FROM python:${PYTHON_VERSION}-slim as builder-py
+ENV EAVE_HOME=/build
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y git
+
+# Copy relevant files
+RUN mkdir -p ${EAVE_HOME}
+COPY apps/dashboard ${EAVE_HOME}/apps/dashboard
+COPY libs ${EAVE_HOME}/libs
+
+WORKDIR ${EAVE_HOME}/apps/dashboard
+
+# Install dependencies
+RUN mkdir -p /vendor
+RUN python -m pip install \
+    -t /vendor \
+    -r requirements.txt \
+    -r requirements-vendor.txt
+
+
+
+
+
+## Node Builder
+FROM node:${NODE_VERSION}-slim as builder-node
+ENV EAVE_HOME=/build
+ENV NODE_ENV=development
+
+RUN apt-get update && apt-get install -y git
+
+# Copy relevant files
+RUN mkdir -p ${EAVE_HOME}
+COPY apps/dashboard ${EAVE_HOME}/apps/dashboard
+COPY libs ${EAVE_HOME}/libs
+
+WORKDIR ${EAVE_HOME}/apps/dashboard
+
+# Build the client bundle.
+RUN npm ci --force
+RUN npx webpack build --mode=production --no-devtool
+
+
+
+
+
+
+## Base
+FROM python:${PYTHON_VERSION}-slim as base
+
+# Copy python dependencies into base image
+# Notably, node dependencies are _not_ required for this image. The webpack bundle contains everything necessary.
+RUN mkdir -p /vendor
+COPY --from=builder-py /vendor /vendor/
+
+# Copy the app source code into the Docker image.
+RUN mkdir -p /app/eave
+COPY --from=builder-node /build/apps/dashboard/eave /app/eave/
+
+# Create a non-privileged user that the app will run under.
+# See https://docs.docker.com/go/dockerfile-user-best-practices/
+RUN adduser \
+    --disabled-password \
+    --gecos "" \
+    --home "/nonexistent" \
+    --shell "/sbin/nologin" \
+    --no-create-home \
+    --uid "10001" \
+    appuser
+
+USER appuser
+
+WORKDIR /app
+EXPOSE 8000
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+CMD PYTHONPATH=/vendor python -m gunicorn \
+    --pythonpath /vendor \
+    eave.dashboard.app:app

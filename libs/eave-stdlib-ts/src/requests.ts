@@ -69,7 +69,6 @@ export async function makeRequest(
   } = args;
 
   const requestId = ctx.eave_request_id;
-  const eaveSigTs = makeSigTs();
   let payload: string | undefined;
 
   if (input === undefined) {
@@ -80,57 +79,67 @@ export async function makeRequest(
     payload = input;
   }
 
+  const requestContext: JsonObject = {
+    eave_origin: origin,
+    eave_request_id: requestId,
+    method,
+    url: config.url,
+  };
+
   let headers: { [key: string]: string } = {
     [httpConstants.HTTP2_HEADER_CONTENT_TYPE]: MIME_TYPE_JSON,
     [EAVE_ORIGIN_HEADER]: origin,
     [EAVE_REQUEST_ID_HEADER]: requestId,
-    [EAVE_SIG_TS_HEADER]: eaveSigTs.toString(),
   };
 
-  const message = buildMessageToSign({
-    method,
-    path: config.path,
-    ts: eaveSigTs,
-    requestId,
-    audience: config.audience,
-    origin,
-    payload,
-    teamId,
-    accountId,
-    ctx,
-  });
+  if (config.signatureRequired) {
+    const eaveSigTs = makeSigTs();
+    const message = buildMessageToSign({
+      method,
+      path: config.path,
+      ts: eaveSigTs,
+      requestId,
+      audience: config.audience,
+      origin,
+      payload,
+      teamId,
+      accountId,
+      ctx,
+    });
 
-  const signing = Signing.new(origin);
-  const signature = await signing.signBase64(message);
+    const signing = Signing.new(origin);
+    const signature = await signing.signBase64(message);
 
-  headers[EAVE_SIGNATURE_HEADER] = signature;
+    headers[EAVE_SIGNATURE_HEADER] = signature;
+    headers[EAVE_SIG_TS_HEADER] = eaveSigTs.toString();
+    requestContext["signature"] = redact(signature);
+  }
 
-  if (accessToken !== undefined) {
+  if (config.authRequired) {
+    if (accessToken === undefined) {
+      throw new Error("missing access_token");
+    }
     headers[httpConstants.HTTP2_HEADER_AUTHORIZATION] = `Bearer ${accessToken}`;
-  }
+    requestContext["access_token"] = redact(accessToken);
 
-  if (teamId !== undefined) {
-    headers[EAVE_TEAM_ID_HEADER] = teamId;
-  }
-
-  if (accountId !== undefined) {
+    if (accountId === undefined) {
+      throw new Error("missing account_id");
+    }
     headers[EAVE_ACCOUNT_ID_HEADER] = accountId;
+    requestContext["eave_account_id"] = accountId;
+  }
+
+  if (config.teamIdRequired) {
+    if (teamId === undefined) {
+      throw new Error("missing team_id");
+    }
+    headers[EAVE_TEAM_ID_HEADER] = teamId;
+    requestContext["eave_team_id"] = teamId;
   }
 
   if (addlHeaders) {
     headers = Object.assign(headers, addlHeaders);
   }
-
-  const requestContext: JsonObject = {
-    eave_origin: origin,
-    signature: redact(signature),
-    access_token: redact(accessToken),
-    eave_request_id: requestId,
-    eave_team_id: teamId,
-    eave_account_id: accountId,
-    method,
-    url: config.url,
-  };
 
   eaveLogger.info(
     `Client Request: ${requestId}: ${method} ${config.url}`,

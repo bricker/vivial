@@ -18,6 +18,7 @@ class Status(CoreApiEndpoint):
     class ResponseBody(BaseResponseBody):
         service: str
         version: str
+        release_date: str
         status: str
 
     @classmethod
@@ -33,9 +34,11 @@ class Status(CoreApiEndpoint):
 
         return body
 
+
 def status_payload() -> Status.ResponseBody:
     return Status.ResponseBody(
         service=SHARED_CONFIG.app_service,
         version=SHARED_CONFIG.app_version,
+        release_date=SHARED_CONFIG.release_date,
         status="OK",
     )

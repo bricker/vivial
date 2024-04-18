@@ -1,0 +1,10 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dashboard-configmap
+  namespace: "${NAMESPACE}"
+data:
+  GAE_SERVICE: dashboard
+  GAE_VERSION: "${GAE_VERSION}"
+  GAE_RELEASE_DATE: "${GAE_RELEASE_DATE}"

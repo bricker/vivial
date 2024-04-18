@@ -425,6 +425,9 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		cd "$(dirname "$0")" && pwd -P
 	)
 
+	# Returns the parent path of the currently _executing_ file.
+	# This is useful for things in bin directories especially, when you want to call another script.
+	# eg: "$(^parentpath)/bin/lint"
 	function ^parentpath() (
 		cd "$(dirname "$0")/.." && pwd -P
 	)

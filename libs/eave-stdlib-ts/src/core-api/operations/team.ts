@@ -7,7 +7,10 @@ export type GetTeamResponseBody = {
 };
 
 export class GetTeamOperation {
-  static config = new CoreApiEndpointConfiguration({ path: "/team/query" });
+  static config = new CoreApiEndpointConfiguration({
+    path: "/_/team/query",
+    signatureRequired: false,
+  });
 
   static async perform(args: RequestArgsTeamId): Promise<GetTeamResponseBody> {
     const resp = await makeRequest({

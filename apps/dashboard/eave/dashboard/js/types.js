@@ -3,7 +3,7 @@
  */
 
 /**
- * @typedef {Window & typeof globalThis & { eave: { cookieDomain: string, apiBase: string, assetBase: string } }} GlobalEave
+ * @typedef {Window & typeof globalThis & { eave: { cookieDomain: string, rootDomain: string, apiBase: string, assetBase: string } }} GlobalEaveWindow
  */
 
 /**

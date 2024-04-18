@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+set -eu -o pipefail
+
+source "$EAVE_HOME"/develop/functions.bash
+
+function _print_help () (
+	statusmsg -o "Usage: logs -a appname"
+	statusmsg -o "  -d appname : Required. The app name (eg core-api) to watch."
+	statusmsg -o "  -t logtype : Optional. The type of log to stream. Options: gcloud, kube (default)."
+	statusmsg -o "  -h : Print this message."
+)
+
+function main () (
+	local _appname=""
+	local _logtype="kube"
+
+	while getopts "d:t:h" argname; do
+		case "$argname" in
+		d) _appname=$OPTARG ;;
+		t) _logtype=$OPTARG ;;
+		h)
+			_print_help
+			exit 0
+			;;
+		*)
+			statusmsg -e "unknown option: $argname"
+			_print_help
+			exit 1
+			;;
+		esac
+	done
+
+	if test -z "$_appname"; then
+		_print_help
+		exit 1
+	fi
+
+	if test "${_logtype}" = "gcloud"; then
+		gcloud --format=json alpha logging tail \
+			'resource.type="k8s_container" AND
+			resource.labels.container_name="'"${_appname}"'"'
+	else
+		kubectl logs \
+			--tail=100 \
+			--follow \
+			--prefix \
+			--timestamps \
+			--ignore-errors \
+			--all-containers \
+			"deployment/${_appname}-deployment"
+	fi
+)
+
+main "$@"

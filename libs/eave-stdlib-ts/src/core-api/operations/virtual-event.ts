@@ -15,8 +15,10 @@ export type GetVirtualEventsResponseBody = {
 
 export class GetVirtualEventsRequest {
   static config = new CoreApiEndpointConfiguration({
-    path: "/virtual-events/query",
+    path: "/_/virtual-events/query",
+    signatureRequired: false,
   });
+
   static async perform(
     args: RequestArgsTeamId & { input: GetVirtualEventsRequestBody },
   ): Promise<GetVirtualEventsResponseBody> {

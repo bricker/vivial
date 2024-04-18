@@ -1,11 +1,9 @@
 import enum
 import logging
 import os
-import re
 import sys
 from functools import cached_property
 from typing import Optional
-from urllib.parse import urlparse
 
 import google.cloud.client
 import google.cloud.secretmanager
@@ -99,6 +97,10 @@ class _EaveConfig(ConfigBase):
         return os.getenv("GAE_VERSION", "unknown")
 
     @property
+    def release_date(self) -> str:
+        return os.getenv("GAE_RELEASE_DATE", "unknown")
+
+    @property
     def app_location(self) -> str:
         return os.getenv("GAE_LOCATION") or "us-central1"
 
@@ -107,10 +109,8 @@ class _EaveConfig(ConfigBase):
         return os.getenv("EAVE_ASSET_BASE", "/static")
 
     @property
-    def eave_public_apps_base(self) -> str:
-        return (
-            os.getenv("EAVE_APPS_BASE_PUBLIC") or os.getenv("EAVE_APPS_BASE") or "https://apps.eave.fyi"  # deprecated
-        )
+    def eave_root_domain(self) -> str:
+        return os.getenv("EAVE_ROOT_DOMAIN", "eave.fyi")
 
     @property
     def eave_public_api_base(self) -> str:
@@ -126,57 +126,18 @@ class _EaveConfig(ConfigBase):
 
     def eave_public_service_base(self, service: EaveApp) -> str:
         sname = service.value.upper()
-        if v := os.getenv(f"{sname}_BASE_PUBLIC"):
-            return v
-
-        # EAVE_API_BASE, EAVE_DASHBOARD_BASE, and EAVE_APPS_BASE are deprecated.
-        # Use EAVE_*_BASE_PUBLIC instead.
-        # The `match` block here is mostly for the apps domain. The api and dashboard cases shouldn't be reached
-        # normally, but are here as fallbacks.
-        match service:
-            case EaveApp.eave_api:
-                return os.getenv("EAVE_API_BASE") or "https://api.eave.fyi"  # deprecated
-            case EaveApp.eave_dashboard:
-                return os.getenv("EAVE_DASHBOARD_BASE") or "https://dashboard.eave.fyi"  # deprecated
-            case _:
-                return self.eave_public_apps_base
+        return os.getenv(f"{sname}_BASE_PUBLIC", "")
 
     def eave_internal_service_base(self, service: EaveApp) -> str:
-        """
-        This method gets the internal URL for the given service.
-        It is a little messy because of the following:
-        1. In development, the Public and Internal URLs are expected to be the same
-        2. When running in AppEngine, the internal URLs have a different convention than the public URLs
-        """
-
         sname = service.value.upper()
-        if v := os.getenv(f"{sname}_BASE_INTERNAL"):
-            return v
-
-        if self.is_development:
-            # In development, Internal and Public URLs are expected to be the same.
-            match service:
-                case EaveApp.eave_api:
-                    return self.eave_public_api_base
-                case EaveApp.eave_dashboard:
-                    return self.eave_public_dashboard_base
-                case _:
-                    return self.eave_public_apps_base
-        else:
-            # In production (AppEngine), Internal and Public urls are expected to be different.
-            # Internal AppEngine services eave have a specific base URL.
-            # TODO: Remove hardcoded AppEngine URL
-            # FIXME: Hardcoded region ID (uc)
-            return "https://" f"{service.appengine_name}" "-dot-" f"{self.google_cloud_project}" ".uc.r.appspot.com"
+        return os.getenv(f"{sname}_BASE_INTERNAL", "")
 
     @property
     def eave_cookie_domain(self) -> str:
         if v := os.getenv("EAVE_COOKIE_DOMAIN"):
             return v
 
-        parsed = urlparse(self.eave_public_dashboard_base)
-        host = parsed.hostname or "dashboard.eave.fyi"
-        return re.sub("dashboard", "", host)
+        return f".{self.eave_root_domain}"
 
     @cached_property
     def redis_connection(self) -> Optional[tuple[str, int, str]]:

@@ -7,5 +7,5 @@ source "${EAVE_HOME}/develop/functions.bash"
 (
     python-validate-version
     python-activate-venv
-    python ${EAVE_HOME}/develop/shared/bin/_build-dotenv "$@"
+    python "${EAVE_HOME}/develop/shared/bin/src/build-dotenv.py" "$@"
 )
