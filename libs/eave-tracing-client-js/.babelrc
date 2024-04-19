@@ -5,10 +5,13 @@
       {
         "targets": {
           "browsers": [
-            "last 2 versions",
-            "ie >= 9"
+            "> 0.5%",
+            "ie >= 9",
+            "Firefox ESR",
+            "not dead"
           ]
-        }
+        },
+        "corejs": 5
       }
     ]
   ]

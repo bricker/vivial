@@ -246,15 +246,18 @@ export function trackCallbackOnReady(callback) {
       },
     );
   } else if (global.eave.documentAlias.attachEvent) {
-    global.eave.documentAlias.attachEvent("onreadystatechange", function ready() {
-      if (global.eave.documentAlias.readyState === "complete") {
-        global.eave.documentAlias.detachEvent("onreadystatechange", ready);
-        if (!loaded) {
-          loaded = true;
-          callback();
+    global.eave.documentAlias.attachEvent(
+      "onreadystatechange",
+      function ready() {
+        if (global.eave.documentAlias.readyState === "complete") {
+          global.eave.documentAlias.detachEvent("onreadystatechange", ready);
+          if (!loaded) {
+            loaded = true;
+            callback();
+          }
         }
-      }
-    });
+      },
+    );
 
     if (
       global.eave.documentAlias.documentElement.doScroll &&
@@ -938,8 +941,159 @@ export function uuidv4() {
   }
   // we are in an insecure env or this is an incompatible browser!
   // fallback on some manual uuid jank
-  // https://stackoverflow.com/a/2117523/9718199 
-  return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c =>
-    (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16)
+  // https://stackoverflow.com/a/2117523/9718199
+  return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) =>
+    (
+      +c ^
+      (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))
+    ).toString(16),
   );
+}
+
+export function getCurrentTimestampInSeconds() {
+  return Math.floor(new Date().getTime() / 1000);
+}
+
+export function sortObjectByKeys(value) {
+  if (!value || !isObject(value)) {
+    return;
+  }
+
+  // Object.keys(value) is not supported by all browsers, we get the keys manually
+  var keys = [];
+  var key;
+
+  for (key in value) {
+    if (Object.prototype.hasOwnProperty.call(value, key)) {
+      keys.push(key);
+    }
+  }
+
+  var normalized = {};
+  keys.sort();
+  var len = keys.length;
+  var i;
+
+  for (i = 0; i < len; i++) {
+    normalized[keys[i]] = value[keys[i]];
+  }
+
+  return normalized;
+}
+
+export function generateUniqueId() {
+  var id = "";
+  var chars = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  var charLen = chars.length;
+  var i;
+
+  for (i = 0; i < 6; i++) {
+    id += chars.charAt(Math.floor(Math.random() * charLen));
+  }
+
+  return id;
+}
+
+export function arrayChunk(theArray, chunkSize) {
+  if (!chunkSize || chunkSize >= theArray.length) {
+    return [theArray];
+  }
+
+  var index = 0;
+  var arrLength = theArray.length;
+  var chunks = [];
+
+  for (index; index < arrLength; index += chunkSize) {
+    chunks.push(theArray.slice(index, index + chunkSize));
+  }
+
+  return chunks;
+}
+
+export function setExpireDateTime(delay) {
+  var now = new Date();
+  var time = now.getTime() + delay;
+
+  if (!global.eave.expireDateTime || time > global.eave.expireDateTime) {
+    global.eave.expireDateTime = time;
+  }
+}
+
+export function isSameHost(hostName, alias) {
+  var offset;
+
+  hostName = String(hostName).toLowerCase();
+  alias = String(alias).toLowerCase();
+
+  if (hostName === alias) {
+    return true;
+  }
+
+  if (alias.slice(0, 1) === ".") {
+    if (hostName === alias.slice(1)) {
+      return true;
+    }
+
+    offset = hostName.length - alias.length;
+
+    if (offset > 0 && hostName.slice(offset) === alias) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export function isSitePath(path, pathAlias) {
+  if (!stringStartsWith(pathAlias, "/")) {
+    pathAlias = "/" + pathAlias;
+  }
+
+  if (!stringStartsWith(path, "/")) {
+    path = "/" + path;
+  }
+
+  var matchesAnyPath = pathAlias === "/" || pathAlias === "/*";
+
+  if (matchesAnyPath) {
+    return true;
+  }
+
+  if (path === pathAlias) {
+    return true;
+  }
+
+  pathAlias = String(pathAlias).toLowerCase();
+  path = String(path).toLowerCase();
+
+  // wildcard path support
+  if (stringEndsWith(pathAlias, "*")) {
+    // remove the final '*' before comparing
+    pathAlias = pathAlias.slice(0, -1);
+
+    // Note: this is almost duplicated from just few lines above
+    matchesAnyPath = !pathAlias || pathAlias === "/";
+
+    if (matchesAnyPath) {
+      return true;
+    }
+
+    if (path === pathAlias) {
+      return true;
+    }
+
+    // wildcard match
+    return path.indexOf(pathAlias) === 0;
+  }
+
+  // we need to append slashes so /foobarbaz won't match a site /foobar
+  if (!stringEndsWith(path, "/")) {
+    path += "/";
+  }
+
+  if (!stringEndsWith(pathAlias, "/")) {
+    pathAlias += "/";
+  }
+
+  return path.indexOf(pathAlias) === 0;
 }

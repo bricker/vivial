@@ -95,7 +95,8 @@ if (typeof window.eave !== "object") {
      * Constructor
      ************************************************************/
 
-    var applyFirst = [
+    // priority order for application of Tracker methods
+    var applyFirst = [ // TODO: make sure these all still exist or rm. also what is purpose of this??
       "addTracker",
       "enableFileTracking",
       "forgetCookieConsentGiven",
