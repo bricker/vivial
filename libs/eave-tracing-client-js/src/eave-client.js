@@ -96,7 +96,7 @@ if (typeof window.eave !== "object") {
      ************************************************************/
 
     // priority order for application of Tracker methods
-    var applyFirst = [ // TODO: make sure these all still exist or rm. also what is purpose of this??
+    var applyFirst = [
       "addTracker",
       "enableFileTracking",
       "forgetCookieConsentGiven",
@@ -108,16 +108,8 @@ if (typeof window.eave !== "object") {
       "setAPIUrl",
       "enableCrossDomainLinking",
       "setCrossDomainLinkingTimeout",
-      "setSessionCookieTimeout",
-      "setVisitorCookieTimeout",
-      "setCookieNamePrefix",
-      "setCookieSameSite",
-      "setSecureCookie",
-      "setCookiePath",
-      "setCookieDomain",
       "setDomains",
       "setUserId",
-      "setVisitorId",
       "setSiteId",
       "alwaysUseSendBeacon",
       "disableAlwaysUseSendBeacon",
@@ -241,7 +233,8 @@ if (typeof window.eave !== "object") {
 
         function postMessageToCorrectFrame(postMessage) {
           // Find the iframe with the right URL to send it back to
-          var iframes = global.eave.documentAlias.getElementsByTagName("iframe");
+          var iframes =
+            global.eave.documentAlias.getElementsByTagName("iframe");
           for (i = 0; i < iframes.length; i++) {
             var iframe = iframes[i];
             var iframeHost = h.getHostName(iframe.src);

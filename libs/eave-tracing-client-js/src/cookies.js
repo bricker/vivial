@@ -6,34 +6,32 @@ import * as h from "./helpers.js";
  */
 export function CookieManager() {
   /* MEMBER FIELDS */
-  // TODO: make fields accessible to outside
-  const SESSION_COOKIE_NAME = "eave.session",
-    CONSENT_COOKIE_NAME = "eave_consent",
-    COOKIE_CONSENT_COOKIE_NAME = "eave_cookie_consent",
-    CONSENT_REMOVED_COOKIE_NAME = "eave_consent_removed",
-    // First-party cookie name prefix
-    configCookieNamePrefix = "_ev_",
-    // Life of the visitor cookie (in milliseconds)
-    configVisitorCookieTimeout = 33955200000, // 13 months (365 days + 28days)
-    // Life of the session cookie (in milliseconds)
-    configSessionCookieTimeout = 1800000, // 30 minutes
-    // Life of the referral cookie (in milliseconds)
-    configReferralCookieTimeout = 15768000000, // 6 months
-    // Eave cookies we manage
-    configCookiesToDelete = ["id", "ses", "cvar", "ref"];
-
-  let // First-party cookie domain
-    // User agent defaults to origin hostname
-    configCookieDomain,
-    // First-party cookie path
-    // Default is user agent defined.
-    configCookiePath,
-    // Whether to use "Secure" cookies that only work over SSL
-    configCookieIsSecure = false,
-    // Set SameSite attribute for cookies
-    configCookieSameSite = "Lax",
-    // First-party cookies are disabled
-    configCookiesDisabled = false;
+  this.SESSION_COOKIE_NAME = "eave.session";
+  this.CONSENT_COOKIE_NAME = "eave_consent";
+  this.COOKIE_CONSENT_COOKIE_NAME = "eave_cookie_consent";
+  this.CONSENT_REMOVED_COOKIE_NAME = "eave_consent_removed";
+  // First-party cookie name prefix
+  this.configCookieNamePrefix = "_ev_";
+  // Life of the visitor cookie (in milliseconds)
+  this.configVisitorCookieTimeout = 33955200000; // 13 months (365 days + 28days)
+  // Life of the session cookie (in milliseconds)
+  this.configSessionCookieTimeout = 1800000; // 30 minutes
+  // Life of the referral cookie (in milliseconds)
+  this.configReferralCookieTimeout = 15768000000; // 6 months
+  // Eave cookies we manage
+  this.configCookiesToDelete = ["id", "ses", "cvar", "ref"];
+  // First-party cookie domain
+  // User agent defaults to origin hostname
+  this.configCookieDomain = undefined;
+  // First-party cookie path
+  // Default is user agent defined.
+  this.configCookiePath = undefined;
+  // Whether to use "Secure" cookies that only work over SSL
+  this.configCookieIsSecure = false;
+  // Set SameSite attribute for cookies
+  this.configCookieSameSite = "Lax";
+  // First-party cookies are disabled
+  this.configCookiesDisabled = false;
 
   /**
    * Get cookie value
@@ -41,7 +39,10 @@ export function CookieManager() {
    * @returns {string|number} cookie value for `cookieName` or 0 if not found
    */
   this.getCookie = function (cookieName) {
-    if (configCookiesDisabled && cookieName !== CONSENT_REMOVED_COOKIE_NAME) {
+    if (
+      this.configCookiesDisabled &&
+      cookieName !== this.CONSENT_REMOVED_COOKIE_NAME
+    ) {
       return 0;
     }
 
@@ -72,7 +73,10 @@ export function CookieManager() {
     isSecure,
     sameSite,
   ) {
-    if (configCookiesDisabled && cookieName !== CONSENT_REMOVED_COOKIE_NAME) {
+    if (
+      this.configCookiesDisabled &&
+      cookieName !== this.CONSENT_REMOVED_COOKIE_NAME
+    ) {
       return;
     }
 
@@ -161,7 +165,7 @@ export function CookieManager() {
   };
 
   this.isPossibleToSetCookieOnDomain = function (domainToTest) {
-    var testCookieName = configCookieNamePrefix + "testcookie_domain";
+    var testCookieName = this.configCookieNamePrefix + "testcookie_domain";
     var valueToSet = "testvalue";
     this.setCookie(
       testCookieName,
@@ -169,8 +173,8 @@ export function CookieManager() {
       10000,
       null,
       domainToTest,
-      configCookieIsSecure,
-      configCookieSameSite,
+      this.configCookieIsSecure,
+      this.configCookieSameSite,
     );
 
     if (this.getCookie(testCookieName) === valueToSet) {
@@ -186,32 +190,36 @@ export function CookieManager() {
    * Deletes the set of cookies `configCookiesToDelete` that we manage
    */
   this.deleteCookies = function () {
-    var savedConfigCookiesDisabled = configCookiesDisabled;
+    var savedConfigCookiesDisabled = this.configCookiesDisabled;
 
     // Temporarily allow cookies just to delete the existing ones
-    configCookiesDisabled = false;
+    this.configCookiesDisabled = false;
 
     var index, cookieName;
 
-    for (index = 0; index < configCookiesToDelete.length; index++) {
-      cookieName = this.getCookieName(configCookiesToDelete[index]);
+    for (index = 0; index < this.configCookiesToDelete.length; index++) {
+      cookieName = this.getCookieName(this.configCookiesToDelete[index]);
       if (
-        cookieName !== CONSENT_REMOVED_COOKIE_NAME &&
-        cookieName !== CONSENT_COOKIE_NAME &&
+        cookieName !== this.CONSENT_REMOVED_COOKIE_NAME &&
+        cookieName !== this.CONSENT_COOKIE_NAME &&
         0 !== this.getCookie(cookieName)
       ) {
-        this.deleteCookie(cookieName, configCookiePath, configCookieDomain);
+        this.deleteCookie(
+          cookieName,
+          this.configCookiePath,
+          this.configCookieDomain,
+        );
       }
     }
 
-    configCookiesDisabled = savedConfigCookiesDisabled;
+    this.configCookiesDisabled = savedConfigCookiesDisabled;
   };
 
   /*
    * Get cookie name with prefix and domain hash
    */
   this.getCookieName = function (baseName) {
-    return configCookieNamePrefix + baseName;
+    return this.configCookieNamePrefix + baseName;
   };
 
   this.deleteCookie = function (cookieName, path, domain) {
@@ -222,7 +230,7 @@ export function CookieManager() {
    * Does browser have cookies enabled (for this site)?
    */
   this.hasCookies = function () {
-    if (configCookiesDisabled) {
+    if (this.configCookiesDisabled) {
       return "0";
     }
 
@@ -234,15 +242,15 @@ export function CookieManager() {
     }
 
     // for IE we want to actually set the cookie to avoid trigger a warning eg in IE see #11507
-    var testCookieName = configCookieNamePrefix + "testcookie";
+    var testCookieName = this.configCookieNamePrefix + "testcookie";
     this.setCookie(
       testCookieName,
       "1",
       undefined,
-      configCookiePath,
-      configCookieDomain,
-      configCookieIsSecure,
-      configCookieSameSite,
+      this.configCookiePath,
+      this.configCookieDomain,
+      this.configCookieIsSecure,
+      this.configCookieSameSite,
     );
 
     var hasCookie = this.getCookie(testCookieName) === "1" ? "1" : "0";
@@ -251,11 +259,11 @@ export function CookieManager() {
   };
 
   this.resetOrExtendSession = function () {
-    const sessionId = this.getCookie(SESSION_COOKIE_NAME) || h.uuidv4();
+    const sessionId = this.getCookie(this.SESSION_COOKIE_NAME) || h.uuidv4();
     this.setCookie(
-      SESSION_COOKIE_NAME,
+      this.SESSION_COOKIE_NAME,
       sessionId,
-      configSessionCookieTimeout,
+      this.configSessionCookieTimeout,
       undefined,
       undefined,
       true, // required true for "None" sameSite
