@@ -1,4 +1,4 @@
-import * as helpers from "./helpers.js";
+import * as helpers from "./helpers.mjs";
 
 /**
  * Author: Jason Farrell

@@ -954,7 +954,7 @@ export function getCurrentTimestampInSeconds() {
   return Math.floor(new Date().getTime() / 1000);
 }
 
-export function sortObjectByKeys(value) {
+export function sortObjectsByKeys(value) {
   if (!value || !isObject(value)) {
     return;
   }

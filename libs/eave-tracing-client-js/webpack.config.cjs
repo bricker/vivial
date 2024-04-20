@@ -4,7 +4,7 @@ const TerserPlugin = require("terser-webpack-plugin");
 module.exports = {
   mode: 'development',
   entry: {
-    index: './src/eave-client.js',
+    index: './src/eave-client.mjs',
   },
   output: {
     filename: 'eave-client.min.js',
