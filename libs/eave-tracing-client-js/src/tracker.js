@@ -1460,84 +1460,60 @@ export function Tracker(trackerUrl, siteId) {
   }
 
   /**
-   * Returns the URL to send event to,
-   * with the standard parameters (plugins, resolution, url, referrer, etc.).
-   * Sends the pageview and browser settings with every request in case of race conditions.
+   * Build args to pass with event request being fired
    */
-  function getRequest(request, customData, pluginMethod) {
-    var i,
-      now = new Date(),
-      customVariablesCopy = customVariables,
-      cookieCustomVariablesName = cookieManager.getCookieName("cvar"),
-      currentUrl = configCustomUrl || locationHrefAlias,
-      hasIgnoreReferrerParam = hasIgnoreReferrerParameter(currentUrl);
-
-    if (cookieManager.configCookiesDisabled) {
-      cookieManager.deleteCookies();
-    }
-
-    if (configDoNotTrack) {
-      return "";
-    }
-
-    var fileRegex = new RegExp("^file://", "i");
-    if (
-      !configFileTracking &&
-      (global.eave.windowAlias.location.protocol === "file:" ||
-        fileRegex.test(currentUrl))
-    ) {
-      return "";
-    }
-
-    // trigger detection of browser feature to ensure a request might not end up in the client hints queue without being processed
-    detectBrowserFeatures();
-
-    var cookieVisitorId = getContext(configVisitorIdKey);
-
+  function buildRequest(customData) {
+    const now = new Date();
+    const currentUrl = configCustomUrl || locationHrefAlias;
+    const hasIgnoreReferrerParam = hasIgnoreReferrerParameter(currentUrl);
+    const cookieVisitorId = getContext(configVisitorIdKey);
     // send charset if document charset is not utf-8. sometimes encoding
     // of urls will be the same as this and not utf-8, which will cause problems
     // do not send charset if it is utf8 since it's assumed by default in eave
-    var charSet =
+    let charSet =
       global.eave.documentAlias.characterSet ||
       global.eave.documentAlias.charset;
-
     if (!charSet || charSet.toLowerCase() === "utf-8") {
       charSet = null;
     }
+    let i;
+    const customVariablesCopy = customVariables;
+    const cookieCustomVariablesName = cookieManager.getCookieName("cvar");
 
-    // build out the rest of the request
-    request +=
-      "&idsite=" +
-      configTrackerSiteId +
-      "&rec=1" +
-      "&r=" +
-      String(Math.random()).slice(2, 8) + // keep the string to a minimum
-      "&h=" +
-      now.getHours() +
-      "&m=" +
-      now.getMinutes() +
-      "&s=" +
-      now.getSeconds() +
-      "&url=" +
-      global.eave.encodeWrapper(purify(currentUrl)) +
-      (configReferrerUrl.length &&
+    const args = {
+      idsite: configTrackerSiteId,
+      rec: 1,
+      r: String(Math.random()).slice(2, 8), // keep the string to a minimum
+      h: now.getHours(),
+      m: now.getMinutes(),
+      s: now.getSeconds(),
+      url: global.eave.encodeWrapper(purify(currentUrl)),
+      _id: cookieVisitorId,
+      send_image: 0,
+    };
+
+    if (
+      configReferrerUrl.length &&
       !isReferrerExcluded(configReferrerUrl) &&
       !hasIgnoreReferrerParam
-        ? "&urlref=" + global.eave.encodeWrapper(purify(configReferrerUrl))
-        : "") +
-      (h.isNumberOrHasLength(configUserId)
-        ? "&uid=" + global.eave.encodeWrapper(configUserId)
-        : "") +
-      "&_id=" +
-      cookieVisitorId +
-      (charSet ? "&cs=" + global.eave.encodeWrapper(charSet) : "") +
-      "&send_image=0";
+    ) {
+      args["urlref"] = global.eave.encodeWrapper(purify(configReferrerUrl));
+    }
 
+    if (h.isNumberOrHasLength(configUserId)) {
+      args["uid"] = global.eave.encodeWrapper(configUserId);
+    }
+
+    if (charSet) {
+      args["cs"] = global.eave.encodeWrapper(charSet);
+    }
+
+    // TODO: convert to args obj stuff
     var referrerAttribution = detectReferrerAttribution();
     // referrer attribution
     for (i in referrerAttribution) {
       if (Object.prototype.hasOwnProperty.call(referrerAttribution, i)) {
-        request += "&" + i + "=" + referrerAttribution[i];
+        args[i] = referrerAttribution[i];
       }
     }
 
@@ -1551,7 +1527,7 @@ export function Tracker(trackerUrl, siteId) {
           var index = i.replace("dimension", "");
           customDimensionIdsAlreadyHandled.push(parseInt(index, 10));
           customDimensionIdsAlreadyHandled.push(String(index));
-          request += "&" + i + "=" + global.eave.encodeWrapper(customData[i]);
+          args[i] = global.eave.encodeWrapper(customData[i]);
           delete customData[i];
         }
       }
@@ -1565,8 +1541,7 @@ export function Tracker(trackerUrl, siteId) {
     // product page view
     for (i in ecommerceProductView) {
       if (Object.prototype.hasOwnProperty.call(ecommerceProductView, i)) {
-        request +=
-          "&" + i + "=" + global.eave.encodeWrapper(ecommerceProductView[i]);
+        args[i] = global.eave.encodeWrapper(ecommerceProductView[i]);
       }
     }
 
@@ -1576,54 +1551,44 @@ export function Tracker(trackerUrl, siteId) {
         var isNotSetYet =
           -1 === h.indexOfArray(customDimensionIdsAlreadyHandled, i);
         if (isNotSetYet) {
-          request +=
-            "&dimension" +
-            i +
-            "=" +
-            global.eave.encodeWrapper(customDimensions[i]);
+          args["dimension" + i] = global.eave.encodeWrapper(
+            customDimensions[i],
+          );
         }
       }
     }
 
     // custom data
     if (customData) {
-      request +=
-        "&data=" +
-        global.eave.encodeWrapper(
-          global.eave.windowAlias.JSON.stringify(customData),
-        );
+      args["data"] = global.eave.encodeWrapper(
+        global.eave.windowAlias.JSON.stringify(customData),
+      );
     } else if (configCustomData) {
-      request +=
-        "&data=" +
-        global.eave.encodeWrapper(
-          global.eave.windowAlias.JSON.stringify(configCustomData),
-        );
+      args["data"] = global.eave.encodeWrapper(
+        global.eave.windowAlias.JSON.stringify(configCustomData),
+      );
     }
 
     // Custom Variables, scope "page"
-    function appendCustomVariablesToRequest(customVariables, parameterName) {
+    function appendCustomVariablesToArgs(args, customVariables, parameterName) {
       var customVariablesStringified =
         global.eave.windowAlias.JSON.stringify(customVariables);
       if (customVariablesStringified.length > 2) {
-        return (
-          "&" +
-          parameterName +
-          "=" +
-          global.eave.encodeWrapper(customVariablesStringified)
+        args[parameterName] = global.eave.encodeWrapper(
+          customVariablesStringified,
         );
       }
-      return "";
     }
 
     var sortedCustomVarPage = h.sortObjectsByKeys(customVariablesPage);
     var sortedCustomVarEvent = h.sortObjectsByKeys(customVariablesEvent);
 
-    request += appendCustomVariablesToRequest(sortedCustomVarPage, "cvar");
-    request += appendCustomVariablesToRequest(sortedCustomVarEvent, "e_cvar");
+    appendCustomVariablesToArgs(args, sortedCustomVarPage, "cvar");
+    appendCustomVariablesToArgs(args, sortedCustomVarEvent, "e_cvar");
 
     // Custom Variables, scope "visit"
     if (customVariables) {
-      request += appendCustomVariablesToRequest(customVariables, "_cvar");
+      appendCustomVariablesToArgs(args, customVariables, "_cvar");
 
       // Don't save deleted custom variables in the cookie
       for (i in customVariablesCopy) {
@@ -1647,6 +1612,67 @@ export function Tracker(trackerUrl, siteId) {
       }
     }
 
+    if (configIdPageView) {
+      args["pv_id"] = configIdPageView;
+    }
+
+    if (wasJsTrackingCodeInstallCheckParamProvided()) {
+      args["tracker_install_check"] = global.eave.tracker.InstallCheckNonce;
+    }
+
+    return args;
+  }
+
+  /**
+   * Convert an object to a query params string
+   *
+   * @param {object} args
+   * @returns {string} query params to attach to a request URL
+   */
+  function argsToQueryParameters(args) {
+    let qp = "";
+    let key;
+    for (key of Object.keys(args)) {
+      qp += "&" + key + "=" + String(args[key]);
+    }
+    return qp;
+  }
+
+  /**
+   * Returns the URL to send event to,
+   * with the standard parameters (plugins, resolution, url, referrer, etc.).
+   * Sends the pageview and browser settings with every request in case of race conditions.
+   */
+  function getRequest(request, customData, pluginMethod) {
+    var currentUrl = configCustomUrl || locationHrefAlias;
+
+    if (cookieManager.configCookiesDisabled) {
+      cookieManager.deleteCookies();
+    }
+
+    if (configDoNotTrack) {
+      return "";
+    }
+
+    var fileRegex = new RegExp("^file://", "i");
+    if (
+      !configFileTracking &&
+      (global.eave.windowAlias.location.protocol === "file:" ||
+        fileRegex.test(currentUrl))
+    ) {
+      return "";
+    }
+
+    // trigger detection of browser feature to ensure a request might not end up in the client hints queue without being processed
+    detectBrowserFeatures();
+
+    // build out the rest of the request
+    request += argsToQueryParameters(buildRequest(customData));
+
+    if (h.isFunction(configCustomRequestContentProcessing)) {
+      request = configCustomRequestContentProcessing(request);
+    }
+
     // performance tracking
     if (
       configPerformanceTrackingEnabled &&
@@ -1657,10 +1683,6 @@ export function Tracker(trackerUrl, siteId) {
       performanceTracked = true;
     }
 
-    if (configIdPageView) {
-      request += "&pv_id=" + configIdPageView;
-    }
-
     // tracker plugin hook
     request += h.executePluginMethod(pluginMethod, {
       tracker: trackerInstance,
@@ -1669,15 +1691,6 @@ export function Tracker(trackerUrl, siteId) {
 
     if (configAppendToTrackingUrl.length) {
       request += "&" + configAppendToTrackingUrl;
-    }
-
-    if (wasJsTrackingCodeInstallCheckParamProvided()) {
-      request +=
-        "&tracker_install_check=" + global.eave.tracker.InstallCheckNonce;
-    }
-
-    if (h.isFunction(configCustomRequestContentProcessing)) {
-      request = configCustomRequestContentProcessing(request);
     }
 
     return request;
