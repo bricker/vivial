@@ -1,5 +1,5 @@
-import "./globals.js";
-import * as h from "./helpers.js";
+import "./globals.mjs";
+import * as h from "./helpers.mjs";
 
 /**
  * CookieManager class

@@ -1097,3 +1097,19 @@ export function isSitePath(path, pathAlias) {
 
   return path.indexOf(pathAlias) === 0;
 }
+
+/**
+ * Convert an object to a query params string
+ *
+ * @param {object} args
+ * @returns {string} query params to attach to a request URL
+ */
+export function argsToQueryParameters(args) {
+  const makeURLSafe = isFunction(encodeURIComponent) ? encodeURIComponent : function (x) { return x; };
+  let qp = "";
+  let key;
+  for (key of Object.keys(args)) {
+    qp += "&" + makeURLSafe(key) + "=" + makeURLSafe(String(args[key]));
+  }
+  return qp;
+}

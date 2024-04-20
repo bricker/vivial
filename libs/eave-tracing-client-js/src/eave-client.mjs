@@ -29,11 +29,11 @@ modified from
  * - Opera 7
  */
 
-import content from "./content.js";
-import "./globals.js";
-import * as h from "./helpers.js";
-import { Tracker } from "./tracker.js";
-import { isVisible } from "./visibility.js";
+import content from "./content.mjs";
+import "./globals.mjs";
+import * as h from "./helpers.mjs";
+import { Tracker } from "./tracker.mjs";
+import { isVisible } from "./visibility.mjs";
 
 // eave singleton and namespace
 if (typeof window.eave !== "object") {

@@ -1,6 +1,6 @@
-import * as h from "./helpers.js";
-import query from "./query.js";
-import { isVisible } from "./visibility.js";
+import * as h from "./helpers.mjs";
+import query from "./query.mjs";
+import { isVisible } from "./visibility.mjs";
 
 export default {
   CONTENT_ATTR: "data-track-content",

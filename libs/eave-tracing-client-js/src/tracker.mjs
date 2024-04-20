@@ -1,8 +1,8 @@
-import content from "./content.js";
-import { CookieManager } from "./cookies.js";
-import * as h from "./helpers.js";
-import query from "./query.js";
-import { isVisible } from "./visibility.js";
+import content from "./content.mjs";
+import { CookieManager } from "./cookies.mjs";
+import * as h from "./helpers.mjs";
+import query from "./query.mjs";
+import { isVisible } from "./visibility.mjs";
 
 /*
  * eave Tracker class
@@ -1623,20 +1623,6 @@ export function Tracker(trackerUrl, siteId) {
     return args;
   }
 
-  /**
-   * Convert an object to a query params string
-   *
-   * @param {object} args
-   * @returns {string} query params to attach to a request URL
-   */
-  function argsToQueryParameters(args) {
-    let qp = "";
-    let key;
-    for (key of Object.keys(args)) {
-      qp += "&" + key + "=" + String(args[key]);
-    }
-    return qp;
-  }
 
   /**
    * Returns the URL to send event to,
@@ -1667,7 +1653,7 @@ export function Tracker(trackerUrl, siteId) {
     detectBrowserFeatures();
 
     // build out the rest of the request
-    request += argsToQueryParameters(buildRequest(customData));
+    request += h.argsToQueryParameters(buildRequest(customData));
 
     if (h.isFunction(configCustomRequestContentProcessing)) {
       request = configCustomRequestContentProcessing(request);
