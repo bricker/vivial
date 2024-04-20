@@ -7,7 +7,7 @@ const windowAlias = {};
 
 const screenAlias = {};
 
-global.ev = {
+global.eave = {
   expireDateTime: undefined,
   _paq: [],
   /* plugins */
