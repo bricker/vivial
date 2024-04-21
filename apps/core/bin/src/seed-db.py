@@ -4,6 +4,9 @@
 
 import sys
 
+from eave.collectors.asyncpg import start_eave_asyncpg_collector
+
+
 sys.path.append(".")
 
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
@@ -32,9 +35,10 @@ from eave.core.internal.orm.metabase_instance import MetabaseInstanceOrm
 from eave.core.internal.orm.team import TeamOrm
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
 from eave.stdlib.logging import eaveLogger
-
+from eave.core.internal.database import async_engine
 
 async def seed_table_entries_for_team(team_id: uuid.UUID, row: int, session: AsyncSession) -> None:
+    print("doing ClientCredentialsOrm insert")
     await ClientCredentialsOrm.create(
         session=session,
         team_id=team_id,
@@ -42,24 +46,34 @@ async def seed_table_entries_for_team(team_id: uuid.UUID, row: int, session: Asy
         description=f"credentials for team {team_id} (database seed)",
     )
 
+    print("doing ClientCredentialsOrm query")
+    await ClientCredentialsOrm.query(session=session, params=ClientCredentialsOrm.QueryParams(team_id=team_id))
+
     github = GithubInstallationOrm(
         team_id=team_id,
-        github_install_id=f"github_install_id{row}",
+        github_install_id=f"github_install_id{row}{uuid.uuid4().hex}",
     )
     session.add(github)
 
+    print("doing MetabaseInstanceOrm insert")
     mb_inst = await MetabaseInstanceOrm.create(
         session=session,
         team_id=team_id,
     )
+
+    print("doing MetabaseInstanceOrm query")
+    await MetabaseInstanceOrm.query(session=session, params=MetabaseInstanceOrm.QueryParams(team_id=team_id))
+
     mb_inst.update(
         session=session,
         route_id=uuid.uuid4(),
     )
 
+
     for eavent in range(30):
         words = ["foo", "bar", "bazz", "fizz", "buzz", "far", "fuzz", "bizz", "boo", "fazz"]
         rand_desc = " ".join([words[random.randint(0, len(words) - 1)] for _ in range(random.randint(5, 40))])
+        print("doing VirtualEventOrm insert")
         await VirtualEventOrm.create(
             session=session,
             team_id=team_id,
@@ -68,17 +82,29 @@ async def seed_table_entries_for_team(team_id: uuid.UUID, row: int, session: Asy
             description=rand_desc,
         )
 
+    print("doing VirtualEventOrm query")
+    await VirtualEventOrm.query(session=session, params=VirtualEventOrm.QueryParams(team_id=team_id))
+
 
 async def seed_database(db: AsyncEngine) -> None:
+    dburl = db.sync_engine.url
+    await start_eave_asyncpg_collector(
+        host=dburl.host,
+        port=dburl.port,
+        user=dburl.username,
+        password=dburl.password,
+        database=dburl.database,
+    )
+
     eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {db.url}")
     eaveLogger.fprint(logging.WARNING, f"\nThis script will insert junk seed data into the {db.url.database} database.")
 
-    answer = input(
-        eaveLogger.f(logging.WARNING, f"Proceed to insert junk seed data into the {db.url.database} database? (Y/n) ")
-    )
-    if answer != "Y":
-        eaveLogger.fprint(logging.CRITICAL, "Aborting.")
-        return
+    # answer = input(
+    #     eaveLogger.f(logging.WARNING, f"Proceed to insert junk seed data into the {db.url.database} database? (Y/n) ")
+    # )
+    # if answer != "Y":
+    #     eaveLogger.fprint(logging.CRITICAL, "Aborting.")
+    #     return
 
     eaveLogger.fprint(logging.INFO, f"Starting to seed your db {db.url.database}...")
     session = AsyncSession(db)
@@ -87,8 +113,8 @@ async def seed_database(db: AsyncEngine) -> None:
 
     # setup progress bar
     curr_progress = f"[0/{num_rows}] :: Seconds remaining: ???"
-    sys.stdout.write(curr_progress)
-    sys.stdout.flush()
+    # sys.stdout.write(curr_progress)
+    # sys.stdout.flush()
 
     for row in range(num_rows):
         start = time.perf_counter()
@@ -106,12 +132,12 @@ async def seed_database(db: AsyncEngine) -> None:
         elapsed = end - start
 
         # update the progress tracker
-        sys.stdout.write("\r")  # return to start of line
-        sys.stdout.write(" " * len(curr_progress))  # clear old chars from buffer
-        sys.stdout.write("\r")  # re-return to start of line
-        curr_progress = f"[{row+1}/{num_rows}] :: Seconds remaining: ~{elapsed * (num_rows - row):.1f}"
-        sys.stdout.write(curr_progress)
-        sys.stdout.flush()
+        # sys.stdout.write("\r")  # return to start of line
+        # sys.stdout.write(" " * len(curr_progress))  # clear old chars from buffer
+        # sys.stdout.write("\r")  # re-return to start of line
+        # curr_progress = f"[{row+1}/{num_rows}] :: Seconds remaining: ~{elapsed * (num_rows - row):.1f}"
+        # sys.stdout.write(curr_progress)
+        # sys.stdout.flush()
 
     await session.close()
     await db.dispose()
@@ -119,18 +145,27 @@ async def seed_database(db: AsyncEngine) -> None:
 
 
 async def seed_team(team_id: uuid.UUID, db: AsyncEngine) -> None:
+    dburl = db.sync_engine.url
+    await start_eave_asyncpg_collector(
+        host=dburl.host,
+        port=dburl.port,
+        user=dburl.username,
+        password=dburl.password,
+        database=dburl.database,
+    )
+
     eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {db.url}")
     eaveLogger.fprint(logging.WARNING, f"\nThis script will insert junk seed data into the {db.url.database} database.")
 
-    answer = input(
-        eaveLogger.f(
-            logging.WARNING,
-            f"Proceed to insert junk seed data for team {team_id} into the {db.url.database} database? (Y/n) ",
-        )
-    )
-    if answer != "Y":
-        eaveLogger.fprint(logging.CRITICAL, "Aborting.")
-        return
+    # answer = input(
+    #     eaveLogger.f(
+    #         logging.WARNING,
+    #         f"Proceed to insert junk seed data for team {team_id} into the {db.url.database} database? (Y/n) ",
+    #     )
+    # )
+    # if answer != "Y":
+    #     eaveLogger.fprint(logging.CRITICAL, "Aborting.")
+    #     return
 
     eaveLogger.fprint(logging.INFO, f"Starting to seed your db {db.url.database}...")
     session = AsyncSession(seed_db)
@@ -174,12 +209,6 @@ if __name__ == "__main__":
             },
         },
     )
-
-    # ==== TRACING JUNK ====
-    from eave.otel_tracing.nettracing.telem.instrumentors.instrument import eave_instrument_db
-
-    eave_instrument_db(seed_db.sync_engine)
-    # ==== END TRACING ====
 
     """
     This script is for seeding your local database with a bunch of garbage

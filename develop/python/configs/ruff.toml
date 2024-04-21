@@ -12,7 +12,7 @@ extend-exclude = [
 ignore-init-module-imports = true
 logger-objects = [
   "eave.stdlib.logging.eaveLogger",
-  "eave.collector.core.logging.eaveLogger",
+  "eave.collectors.core.logging.eaveLogger",
 ]
 
 # https://docs.astral.sh/ruff/rules/

@@ -9,7 +9,7 @@ from eave.core.internal.bigquery.types import BigQueryTableHandle
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
-from eave.tracing.core.datastructures import (
+from eave.collectors.core.datastructures import (
     DatabaseEventPayload,
     DatabaseOperation,
     DataIngestRequestBody,

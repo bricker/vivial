@@ -8,8 +8,8 @@ from types import FrameType
 from typing import LiteralString, cast
 
 import psycopg
-from eave.tracing.core.datastructures import EventType
-from eave.tracing.core.write_queue import BatchWriteQueue, QueueParams
+from eave.collectors.core.datastructures import EventType
+from eave.collectors.core.write_queue import BatchWriteQueue, QueueParams
 from psycopg import sql
 
 # payload can only be 8kb max

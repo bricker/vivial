@@ -10,7 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.stdlib.core_api.models.virtual_event import VirtualEvent
 from eave.stdlib.util import titleize
-from eave.tracing.core.datastructures import DatabaseOperation
+from eave.collectors.core.datastructures import DatabaseOperation
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk

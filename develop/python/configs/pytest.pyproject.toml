@@ -12,6 +12,7 @@ pythonpath = [
   # "../../../packages/python/eave-collector-flask-py",
   # "../../../packages/python/eave-collector-func-py",
   # "../../../packages/python/eave-collector-network-py",
+  "../../../packages/python/eave-collector-asyncpg-py",
   "../../../packages/python/eave-collector-sqlalchemy-py",
   # "../../../packages/python/eave-collector-starlette-py",
 ]

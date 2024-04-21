@@ -12,7 +12,7 @@ from eave.core.internal import database
 from eave.core.internal.bigquery.types import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 from eave.core.internal.orm.virtual_event import VirtualEventOrm, make_virtual_event_readable_name
 from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize
-from eave.tracing.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure
+from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure
 
 _leading_comment_remover = re.compile(r"^/\*.*?\*/")
 

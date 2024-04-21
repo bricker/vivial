@@ -92,6 +92,7 @@
     // "${workspaceFolder}/packages/python/eave-collector-flask-py/src",
     // "${workspaceFolder}/packages/python/eave-collector-func-py/src",
     // "${workspaceFolder}/packages/python/eave-collector-network-py/src",
+    "${workspaceFolder}/packages/python/eave-collector-asyncpg-py/src",
     "${workspaceFolder}/packages/python/eave-collector-sqlalchemy-py/src",
     // "${workspaceFolder}/packages/python/eave-collector-starlette-py/src",
   ],

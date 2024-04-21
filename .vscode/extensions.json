@@ -6,7 +6,6 @@
   "recommendations": [
     "dbaeumer.vscode-eslint",
     "samuelcolvin.jinjahtml",
-    "tamasfe.even-better-toml",
     "graphql.vscode-graphql-syntax",
     "davidanson.vscode-markdownlint",
     "christian-kohler.npm-intellisense",
@@ -16,7 +15,8 @@
     "charliermarsh.ruff",
     "timonwong.shellcheck",
     "mkhl.shfmt",
-    "esbenp.prettier-vscode"
+    "esbenp.prettier-vscode",
+    "tamasfe.even-better-toml"
   ],
   // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
   "unwantedRecommendations": [
