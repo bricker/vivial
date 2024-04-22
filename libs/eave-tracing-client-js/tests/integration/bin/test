@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -x
-
 # app server must be running to run cypress tests against
 npm run start-headless > /dev/null &
 react_server_pid=$!
