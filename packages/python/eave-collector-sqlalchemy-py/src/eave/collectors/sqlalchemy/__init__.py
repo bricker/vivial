@@ -1,15 +1,16 @@
+import os
 from asyncio import Task, create_task
-from eave.collectors.sqlalchemy.private.collector import AnyEngine, SQLAlchemyCollector
+from eave.collectors.core.config import EAVE_CREDENTIALS_ENV_KEY
+from eave.collectors.sqlalchemy.private.collector import SupportedEngine, SQLAlchemyCollector
 import sqlalchemy
-from sqlalchemy.ext.asyncio import AsyncEngine
 
 __collector: SQLAlchemyCollector | None = None
 
-async def start_eave_sqlalchemy_collector(engine: AnyEngine) -> None:
+async def start_eave_sqlalchemy_collector(engine: SupportedEngine, credentials: str | None = None) -> None:
     global __collector
 
     if not __collector:
-        __collector = SQLAlchemyCollector()
+        __collector = SQLAlchemyCollector(credentials=credentials)
         await __collector.start(engine)
 
 def stop_eave_sqlalchemy_collector() -> None:

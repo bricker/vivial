@@ -6,10 +6,10 @@ from .config import EAVE_API_BASE_URL
 from .datastructures import DataIngestRequestBody, EventType
 
 
-@dataclass
-class SpanBaseModel:
-    events: list[str]
-    event_type: EventType
+# @dataclass
+# class SpanBaseModel:
+#     events: list[str]
+#     event_type: EventType
 
 
 # def to_json(span: ReadableSpan, indent: int = 4) -> str | None:

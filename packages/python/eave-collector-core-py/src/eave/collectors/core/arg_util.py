@@ -1,8 +1,6 @@
 from typing import Any, Callable
 from inspect import Parameter, signature
 
-_named_parameter_kinds = [Parameter.POSITIONAL_ONLY, Parameter.POSITIONAL_OR_KEYWORD, Parameter.KEYWORD_ONLY]
-
 def normalized_args(func: Callable[..., object], args: tuple[object, ...], kwargs: dict[str, object]) -> dict[str, Any]:
     normalized: dict[str, Any] = {}
 

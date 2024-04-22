@@ -15,16 +15,20 @@
 # limitations under the License.
 
 import asyncio
+import time
 import asyncpg
 import weakref
 from collections.abc import Sequence
-from typing import Any, Callable, Tuple, Union
+from typing import Any, Callable, Mapping, Tuple, Union
 
+from eave.collectors.core.collector import BaseCollector
+from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure, EventType
+from eave.collectors.core.sql_util import SQLStatementInspector
+from eave.collectors.core.write_queue import BatchWriteQueue, QueueParams
 from eave.collectors.sqlalchemy.private.util import normalize_vendor
 from sqlalchemy.ext.asyncio import AsyncEngine
 import sqlparse
 from eave.collectors.logging import EAVE_LOGGER
-from eave.core.internal.bigquery.dbchanges import _operation_name, _table_name
 
 import sqlalchemy
 from sqlalchemy.engine.interfaces import (
@@ -36,59 +40,69 @@ from sqlalchemy.event import (
     remove,
 )
 
-type AnyEngine = sqlalchemy.Engine
+import sqlglot
+from sqlglot import exp
 
-class SQLAlchemyCollector:
-    _event_listeners: list[tuple[weakref.ReferenceType[AnyEngine], str, Callable[..., Any]]]
+type SupportedEngine = sqlalchemy.Engine | AsyncEngine
+
+class SQLAlchemyCollector(BaseCollector):
+    _event_listeners: list[tuple[weakref.ReferenceType[sqlalchemy.Engine], str, Callable[..., Any]]]
     _db_metadata: sqlalchemy.MetaData | None
-    _running: bool
-    _tasks: set[asyncio.Task]
 
     def __init__(
         self,
+        credentials: str | None = None
     ) -> None:
+        super().__init__(event_type=EventType.dbevent, credentials=credentials)
+
         self._event_listeners = []
         self._db_metadata = None
-        self._running = False
-        self._tasks = set()
 
-    async def start(self, engine: AnyEngine) -> None:
-        if not self._running:
-            await self._load_metadata(engine)
-            self._register_engine_event_listener(target=engine, identifier="before_cursor_execute", fn=self._before_cursor_execute_handler, retval=True)
-            self._register_engine_event_listener(target=engine, identifier="after_cursor_execute", fn=self._after_cursor_execute_handler)
-            self._running = True
+    async def start(self, engine: SupportedEngine) -> None:
+        if not self.enabled:
+            self._db_metadata = await self._load_metadata(engine=engine)
+
+            sync_engine = engine.sync_engine if isinstance(engine, AsyncEngine) else engine
+            self._register_engine_event_listener(sync_engine=sync_engine, event_name="before_cursor_execute", fn=self._before_cursor_execute_handler, retval=True)
+            self._register_engine_event_listener(sync_engine=sync_engine, event_name="after_cursor_execute", fn=self._after_cursor_execute_handler)
+
+        super().start_base()
 
     def stop(self) -> None:
+        super().stop_base()
+        self._db_metadata = None
         self._remove_all_event_listeners()
-        self._running = False
 
-    async def _load_metadata(self, engine: AnyEngine) -> None:
+    async def _load_metadata(self, engine: SupportedEngine) -> sqlalchemy.MetaData:
         metadata = sqlalchemy.MetaData()
-        metadata.reflect(engine)
-        print(metadata)
-        # with engine.connect() as conn:
-        #     metadata.reflect(bind=engine)
-        # self._metadata = metadata
 
-    def _register_engine_event_listener(self, target: AnyEngine, identifier: str, fn: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
+        if isinstance(engine, AsyncEngine):
+            async with engine.connect() as aconn:
+                await aconn.run_sync(metadata.reflect)
+        else:
+            with engine.connect() as conn:
+                metadata.reflect(conn)
+
+        return metadata
+
+    def _register_engine_event_listener(self, sync_engine: sqlalchemy.Engine, event_name: str, fn: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
         self._event_listeners.append((
-            weakref.ref(target),
-            identifier,
+            weakref.ref(sync_engine),
+            event_name,
             fn,
         ))
-        listen(target=target, identifier=identifier, fn=fn, *args, **kwargs)
+        listen(target=sync_engine, identifier=event_name, fn=fn, *args, **kwargs)
 
     def _remove_all_event_listeners(self) -> None:
         for (
             weak_ref_target,
-            identifier,
+            event_name,
             fn,
         ) in self._event_listeners:
             # Remove an event listener only if saved weak reference points to an object
             # which has not been garbage collected
             if (target := weak_ref_target()) is not None:
-                remove(target=target, identifier=identifier, fn=fn)
+                remove(target=target, identifier=event_name, fn=fn)
 
         self._event_listeners.clear()
 
@@ -104,6 +118,9 @@ class SQLAlchemyCollector:
         """
         https://docs.sqlalchemy.org/en/20/core/events.html#sqlalchemy.events.ConnectionEvents.before_cursor_execute
         """
+        if not self.enabled:
+            return None
+
         db_name = conn.engine.url.database
         if not db_name:
             try:
@@ -113,20 +130,144 @@ class SQLAlchemyCollector:
                 EAVE_LOGGER.warning("Could not resolve database name.")
                 db_name = "unknown"
 
-        print(statement)
-        task = asyncio.create_task(self._load_statement_attributes(conn=conn, statement=statement))
-        self._tasks.add(task)
-        task.add_done_callback(self._tasks.discard)
+        # # print("statement >>", statement)
+        # # print("db_name >>", db_name)
+        # # print()
+        # records: list[dict[str, Any]] = []
+
+        # inspector = SQLStatementInspector(statement=statement)
+
+        # operation = inspector.get_operation()
+        # tablename = inspector.get_table_name()
+
+        # """
+        # Parameters type resolves to:
+        #     Union[
+        #         Sequence[Any],
+        #         Mapping[str, Any]
+        #         Sequence[Sequence[Any]],
+        #         Sequence[Mapping[str, Any]],
+        #     ]
+
+        #     Reminder that strings are Sequences! 🥲
+        # """
+
+        # match operation:
+        #     case DatabaseOperation.INSERT:
+        #         insert_cols = inspector.get_insert_cols()
+        #         if insert_cols is None and table is not None:
+        #             insert_cols = [c.name for c in table.columns]
+
+        #         if insert_cols is not None:
+        #             if isinstance(parameters, (list, tuple)):
+        #                 if len(parameters) > 0:
+        #                     p0: Sequence[Any] | Mapping[str, Any] | Any = parameters[0]
+        #                     if isinstance(p0, (list, tuple)):
+        #                         raise NotImplementedError("Unhandled parameters type")
+        #                     elif isinstance(p0, dict):
+        #                         raise NotImplementedError("Unhandled parameters type")
+        #                     else:
+        #                         record: dict[str, Any] = {}
+        #                         for idx, colname in enumerate(insert_cols):
+        #                             # FIXME: This makes the assumption that the number and order of parameters exactly matches the number of columns
+        #                             record[colname] = parameters[idx]
+
+        #                         records.append(record)
+
+        #             elif isinstance(parameters, dict):
+        #                 # Mapping[str, Any]
+        #                 # FIXME: In this case, what exactly is parameters?
+        #                 records.append(parameters)
+
+        #             else:
+        #                 raise NotImplementedError("Unexpected parameters type")
+
+        #     case DatabaseOperation.UPDATE:
+        #         update_cols = inspector.get_update_cols()
+        #         if update_cols is not None:
+        #             if isinstance(parameters, (list, tuple)):
+        #                 if len(parameters) > 0:
+        #                     p0: Sequence[Any] | Mapping[str, Any] | Any = parameters[0]
+        #                     if isinstance(p0, (list, tuple)):
+        #                         raise NotImplementedError("Unhandled parameters type")
+        #                     elif isinstance(p0, dict):
+        #                         raise NotImplementedError("Unhandled parameters type")
+        #                     else:
+        #                         record: dict[str, Any] = {}
+        #                         for idx, colname in enumerate(insert_cols):
+        #                             # FIXME: This makes the assumption that the number and order of parameters exactly matches the number of columns
+        #                             record[colname] = parameters[idx]
+
+        #                         records.append(record)
+
+        #             elif isinstance(parameters, dict):
+        #                 # Mapping[str, Any]
+        #                 # FIXME: In this case, what exactly is parameters?
+        #                 records.append(parameters)
+
+        #             else:
+        #                 raise NotImplementedError("Unexpected parameters type")
+
+        #     case DatabaseOperation.DELETE:
+        #         pass
+        #     case DatabaseOperation.SELECT:
+        #         pass
+        #     case _:
+        #         pass
+
+        parsed_statement = sqlglot.parse_one(statement).find(exp.DML)
+
+        records: list[dict[str, Any]] = []
+
+        if parsed_statement:
+            table_expr = parsed_statement.find(exp.Table)
+
+            if isinstance(parsed_statement, exp.Insert):
+                pass
+                # if table_expr:
+                #     insert_cols = [e.name for e in table_expr.iter_expressions() if isinstance(e, exp.Identifier)]
+                #     if len(insert_cols) == 0:
+                #         if self._db_metadata:
+                #             table_metadata = self._db_metadata.tables.get(table_expr.name, None)
+                #             if table_metadata is not None:
+                #                 insert_cols = [c.name for c in table_metadata.columns]
+
+                # if values_expr := parsed_statement.find(exp.Values):
+                #     if tuple_expr := next((e for e in values_expr.iter_expressions() if isinstance(e, exp.Tuple)), None):
+                #         colum_exprs = tuple_expr.find_all(exp.Column)
+
+            elif isinstance(parsed_statement, exp.Update):
+                pass
+            elif isinstance(parsed_statement, exp.Delete):
+                pass
+            elif isinstance(parsed_statement, exp.Select):
+                pass
+            else:
+                    raise ValueError("Unsuppored statement type")
+
+
+        # payload = DatabaseEventPayload(
+        #     statement=statement,
+        #     db_name=db_name,
+        #     table_name=tablename,
+        #     operation=operation,
+        #     timestamp=time.time(),
+        #     db_structure=DatabaseStructure.SQL,
+        #     parameters=parameters,
+        #     records=records,
+        # )
+
+        # self.write_queue.put(payload)
 
         # print(self._get_affected_rows(cursor=cursor, statement=statement, parameters=parameters))
         return statement, parameters
 
-    async def _load_statement_attributes(self, conn: sqlalchemy.Connection, statement: str) -> None:
-        if conn._dbapi_connection:
-            dconn: asyncpg.Connection | None = conn._dbapi_connection.driver_connection
-            if dconn:
-                p = await dconn.prepare(statement)
-                print(p.get_attributes())
+    # async def _load_statement_attributes(self, conn: sqlalchemy.Connection, statement: str) -> None:
+    #     if conn._dbapi_connection:
+    #         dconn: asyncpg.Connection | None = conn._dbapi_connection.driver_connection
+    #         if dconn:
+    #             p = await dconn.prepare(statement)
+    #             print(p.get_attributes())
 
     def _after_cursor_execute_handler(
         self,
@@ -140,7 +281,12 @@ class SQLAlchemyCollector:
         """
         https://docs.sqlalchemy.org/en/20/core/events.html#sqlalchemy.events.ConnectionEvents.after_cursor_execute
         """
-        pass
+        if not self.enabled:
+            return None
+
+        # print(">>> AFTER CURSOR EXECUTE <<<")
+        # print("==================")
+        # print()
         # print(self._get_affected_rows(cursor, statement, parameters))
         # print()
 

@@ -5,7 +5,9 @@ import time
 from dataclasses import dataclass
 from queue import Empty
 
-from .datastructures import EventType
+from eave.collectors.logging import EAVE_LOGGER
+
+from .datastructures import EventPayload, EventType
 from .ingest_api import send_batch
 
 
@@ -83,5 +85,9 @@ class BatchWriteQueue:
         except Exception as e:
             print(e)
 
-    def put(self, payload: str) -> None:
-        self._queue.put(payload, block=False)
+    def put(self, payload: EventPayload) -> None:
+        if self._process.is_alive():
+            print(payload.to_json())
+            # self._queue.put(payload.to_json(), block=False)
+        else:
+            EAVE_LOGGER.warning("Queue processor is not alive; queueing failed.")

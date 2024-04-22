@@ -3,10 +3,10 @@ import json
 import logging
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any, Self
+from typing import Any, Mapping, Self, Sequence
 
-type RawEvent = dict[str, Any]
-
+from eave.collectors.core.json import compact_json
+from eave.stdlib.typing import JsonObject
 
 class DatabaseStructure(StrEnum):
     UNKNOWN = "unknown"
@@ -27,6 +27,7 @@ class DatabaseOperation(StrEnum):
     UPDATE = "UPDATE"
     DELETE = "DELETE"
     SELECT = "SELECT"
+    UNKNOWN = "UNKNOWN"
 
     @classmethod
     def from_str(cls, s: str) -> Self | None:
@@ -47,23 +48,43 @@ class DatabaseOperation(StrEnum):
                 return "Deleted"
             case DatabaseOperation.SELECT:
                 return "Queried"
-
+            case _:
+                return "Inspected" # idk
 
 @dataclass
 class EventPayload:
-    def to_dict(self) -> RawEvent:
+    def to_dict(self) -> JsonObject:
         return dataclasses.asdict(self)
 
     def to_json(self) -> str:
-        return _compact_json(self.to_dict())
-
+        return compact_json(self.to_dict())
 
 @dataclass
 class DatabaseEventPayload(EventPayload):
-    statement: str
-    parameters: list[str] | None
+    statement: str | None
+    db_name: str | None
+    table_name: str | None
+    operation: str | None
     timestamp: float
     db_structure: DatabaseStructure
+    parameters: Any | None
+    records: list[dict[str, Any]] | None
+
+# @dataclass
+# class DatabaseInsertEventPayload(DatabaseEventPayload):
+#     inserted_records: list[dict[str, Any]]
+
+# @dataclass
+# class DatabaseUpdateEventPayload(EventPayload):
+#     updated_records: list[dict[str, Any]]
+
+# @dataclass
+# class DatabaseDeleteEventPayload(EventPayload):
+#     deleted_records: list[dict[str, Any]]
+
+# @dataclass
+# class DatabaseSelectEventPayload(EventPayload):
+#     selected_records: list[dict[str, Any]]
 
 
 @dataclass
@@ -125,8 +146,4 @@ class DataIngestRequestBody:
         return dataclasses.asdict(self)
 
     def to_json(self) -> str:
-        return _compact_json(self.to_dict())
-
-
-def _compact_json(data: dict[str, Any]) -> str:
-    return json.dumps(data, indent=None, separators=(",", ":"))
+        return compact_json(self.to_dict())
