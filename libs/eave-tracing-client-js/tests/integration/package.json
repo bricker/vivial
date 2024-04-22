@@ -14,7 +14,9 @@
   },
   "scripts": {
     "start": "PORT=3300 react-scripts start",
-    "test": "cypress run",
+    "start-headless": "BROWSER=none npm start",
+    "test": "./bin/test",
+    "cy:test": "cypress run",
     "cy:open": "cypress open"
   },
   "eslintConfig": {

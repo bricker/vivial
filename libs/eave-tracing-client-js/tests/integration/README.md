@@ -21,7 +21,8 @@ You may also see any lint errors in the console.
 
 Runs the cypress e2e tests located in the `cypress/e2e/` directory. Runs tests in headless mode.
 
-If running locally, recommended to run `npm run cy:open` to run tests in GUI.
+If running locally, recommended to run `npm run cy:open` to run tests in GUI. Seeing things occasionally helps.
+Cypress tests require the React app server to be actively running to run tests against. You can do this with `npm start`.
 
 ## Learn More
 
