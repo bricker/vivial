@@ -5,7 +5,7 @@ import time
 from dataclasses import dataclass
 from queue import Empty
 
-from eave.collectors.logging import EAVE_LOGGER
+from eave.collectors.core.logging import EAVE_LOGGER
 
 from .datastructures import EventPayload, EventType
 from .ingest_api import send_batch

@@ -4,22 +4,22 @@ from eave.collectors.core.config import EAVE_CREDENTIALS_ENV_KEY
 from eave.collectors.sqlalchemy.private.collector import SupportedEngine, SQLAlchemyCollector
 import sqlalchemy
 
-__collector: SQLAlchemyCollector | None = None
+_collector: SQLAlchemyCollector | None = None
 
 async def start_eave_sqlalchemy_collector(engine: SupportedEngine, credentials: str | None = None) -> None:
-    global __collector
+    global _collector
 
-    if not __collector:
-        __collector = SQLAlchemyCollector(credentials=credentials)
-        await __collector.start(engine)
+    if not _collector:
+        _collector = SQLAlchemyCollector(credentials=credentials)
+        await _collector.start(engine)
 
 def stop_eave_sqlalchemy_collector() -> None:
-    global __collector
+    global _collector
 
-    if __collector:
-        __collector.stop()
+    if _collector:
+        _collector.stop()
 
-    __collector = None # Deallocate the engine.
+    _collector = None # Deallocate the engine.
 
 # # TODO: try catch adding all supported instrumentation (since we dont know what deps they have). or autodetect from sys.modules
 # # https://github.com/open-telemetry/opentelemetry-python-contrib/blob/7c12ad9844ac179e3f6a493491707a9bafd06f6b/opentelemetry-instrumentation/src/opentelemetry/instrumentation/bootstrap.py#L87

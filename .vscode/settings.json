@@ -109,8 +109,7 @@
   "python.analysis.autoImportCompletions": true,
   "python.testing.pytestArgs": [
     "--config-file=${workspaceFolder}/develop/python/configs/pytest.pyproject.toml",
-    "--rootdir=${workspaceFolder}",
-    "."
+    ".",
   ],
   "python.analysis.exclude": [
     "**/node_modules",

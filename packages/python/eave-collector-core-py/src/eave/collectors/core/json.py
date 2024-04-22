@@ -8,11 +8,12 @@ JsonValue = Union[JsonScalar, "JsonObject", "JsonArray"]
 JsonObject = dict[str, JsonValue]
 JsonArray = list[JsonValue]
 
-def _serializer(obj: Any) -> Any:
-    if isinstance(obj, uuid.UUID):
-        return obj.hex
-    else:
-        return obj
+class DatabaseTypesJSONEncoder(json.JSONEncoder):
+    def default(self, o: Any) -> Any:
+        if isinstance(o, uuid.UUID):
+            return str(o)
+        else:
+            super().default(o)
 
 def compact_json(data: JsonObject) -> str:
-    return json.dumps(data, indent=None, separators=(",", ":"), default=_serializer)
+    return json.dumps(data, indent=None, separators=(",", ":"), cls=DatabaseTypesJSONEncoder)

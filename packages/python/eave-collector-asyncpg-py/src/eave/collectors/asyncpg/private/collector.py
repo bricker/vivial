@@ -10,7 +10,7 @@ import asyncpg.prepared_stmt
 from asyncpg.connection import LoggedQuery
 from eave.collectors.core.arg_util import normalized_args
 from eave.collectors.core.wrap_util import wrap, wrap_async
-from eave.collectors.logging import EAVE_LOGGER
+from eave.collectors.core.logging import EAVE_LOGGER
 
 _thisdir = os.path.dirname(__file__)
 with open(os.path.join(_thisdir, "triggers.sql"), encoding="utf-8") as f:

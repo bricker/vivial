@@ -67,8 +67,7 @@ class DatabaseEventPayload(EventPayload):
     operation: str | None
     timestamp: float
     db_structure: DatabaseStructure
-    parameters: Any | None
-    records: list[dict[str, Any]] | None
+    parameters: dict[str, Any] | None
 
 # @dataclass
 # class DatabaseInsertEventPayload(DatabaseEventPayload):
