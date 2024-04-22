@@ -129,7 +129,7 @@ async def seed_database(db: AsyncEngine, team_id: uuid.UUID | None = None) -> No
         end = time.perf_counter()
         elapsed = end - start
 
-        update the progress tracker
+        # update the progress tracker
         sys.stdout.write("\r")  # return to start of line
         sys.stdout.write(" " * len(curr_progress))  # clear old chars from buffer
         sys.stdout.write("\r")  # re-return to start of line
