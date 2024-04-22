@@ -129,13 +129,13 @@ async def seed_database(db: AsyncEngine, team_id: uuid.UUID | None = None) -> No
         end = time.perf_counter()
         elapsed = end - start
 
-        # update the progress tracker
-        # sys.stdout.write("\r")  # return to start of line
-        # sys.stdout.write(" " * len(curr_progress))  # clear old chars from buffer
-        # sys.stdout.write("\r")  # re-return to start of line
-        # curr_progress = f"[{row+1}/{num_rows}] :: Seconds remaining: ~{elapsed * (num_rows - row):.1f}"
-        # sys.stdout.write(curr_progress)
-        # sys.stdout.flush()
+        update the progress tracker
+        sys.stdout.write("\r")  # return to start of line
+        sys.stdout.write(" " * len(curr_progress))  # clear old chars from buffer
+        sys.stdout.write("\r")  # re-return to start of line
+        curr_progress = f"[{row+1}/{num_rows}] :: Seconds remaining: ~{elapsed * (num_rows - row):.1f}"
+        sys.stdout.write(curr_progress)
+        sys.stdout.flush()
 
     await session.close()
     await db.dispose()
@@ -170,12 +170,12 @@ async def main() -> None:
     eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {seed_db.url}")
     eaveLogger.fprint(logging.WARNING, f"\nThis script will insert junk seed data into the {seed_db.url.database} database.")
 
-    # answer = input(
-    #     eaveLogger.f(logging.WARNING, f"Proceed to insert junk seed data into the {db.url.database} database? (Y/n) ")
-    # )
-    # if answer != "Y":
-    #     eaveLogger.fprint(logging.CRITICAL, "Aborting.")
-    #     return
+    answer = input(
+        eaveLogger.f(logging.WARNING, f"Proceed to insert junk seed data into the {db.url.database} database? (Y/n) ")
+    )
+    if answer != "Y":
+        eaveLogger.fprint(logging.CRITICAL, "Aborting.")
+        return
 
     eaveLogger.fprint(logging.INFO, f"Starting to seed your db {seed_db.url.database}...")
     await seed_database(db=seed_db, team_id=args.team_id)

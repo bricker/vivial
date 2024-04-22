@@ -65,17 +65,6 @@
         "<node_internals>/**/*.js"
       ]
     },
-    {
-      "name": "Debug seed-db script",
-      "consoleTitle": "debug seed-db",
-      "cwd": "${workspaceFolder}/apps/core",
-      "type": "python",
-      "request": "launch",
-      "program": "bin/src/seed-db.py",
-      "args": ["-d", "experiments"],
-      "justMyCode": false,
-    },
-
   ],
   "compounds": [
     {

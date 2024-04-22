@@ -1,19 +1,3 @@
-# adapted from https://github.com/open-telemetry/opentelemetry-python-contrib/blob/main/instrumentation/opentelemetry-instrumentation-sqlalchemy/src/opentelemetry/instrumentation/sqlalchemy/__init__.py
-
-# Copyright The OpenTelemetry Authors
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import asyncio
 import time
 import asyncpg
@@ -60,8 +44,6 @@ class SQLAlchemyCollector(BaseCollector):
             # self._db_metadata = await self._load_metadata(engine=engine)
 
             sync_engine = engine.sync_engine if isinstance(engine, AsyncEngine) else engine
-            # self._register_engine_event_listener(sync_engine=sync_engine, event_name="before_cursor_execute", fn=self._before_cursor_execute_handler, retval=True)
-            # self._register_engine_event_listener(sync_engine=sync_engine, event_name="after_cursor_execute", fn=self._after_cursor_execute_handler)
             self._register_engine_event_listener(sync_engine=sync_engine, event_name="before_execute", fn=self._before_execute_handler)
             self._register_engine_event_listener(sync_engine=sync_engine, event_name="after_execute", fn=self._after_execute_handler)
 
