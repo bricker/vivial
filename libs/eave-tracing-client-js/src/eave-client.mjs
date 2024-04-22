@@ -36,8 +36,8 @@ import { Tracker } from "./tracker.mjs";
 import { isVisible } from "./visibility.mjs";
 
 // eave singleton and namespace
-if (typeof window.eave !== "object") {
-  window.eave = (function () {
+if (typeof window.eaveTracker !== "object") {
+  window.eaveTracker = (function () {
     "use strict";
 
     function TrackerProxy() {
@@ -78,7 +78,7 @@ if (typeof window.eave !== "object") {
                 h.logConsoleError(
                   "The method " +
                     methodName +
-                    ' is registered more than once in "global.eave._paq" variable. Only the last call has an effect. Please have a look at the multiple eave trackers documentation: https://developer.matomo.org/guides/tracking-javascript-guide#multiple-piwik-trackers',
+                    ' is registered more than once in "globalThis.eave._paq" variable. Only the last call has an effect. Please have a look at the multiple eave trackers documentation: https://developer.matomo.org/guides/tracking-javascript-guide#multiple-piwik-trackers',
                 );
               }
 
@@ -125,59 +125,66 @@ if (typeof window.eave !== "object") {
 
     function createFirstTracker(eaveUrl, siteId) {
       var tracker = new Tracker(eaveUrl, siteId);
-      global.eave.asyncTrackers.push(tracker);
+      globalThis.eave.asyncTrackers.push(tracker);
 
-      global.eave._paq = applyMethodsInOrder(global.eave._paq, applyFirst);
+      globalThis.eave._paq = applyMethodsInOrder(
+        globalThis.eave._paq,
+        applyFirst,
+      );
 
       // apply the queue of actions
-      for (var iterator = 0; iterator < global.eave._paq.length; iterator++) {
-        if (global.eave._paq[iterator]) {
-          h.apply(global.eave._paq[iterator]);
+      for (
+        var iterator = 0;
+        iterator < globalThis.eave._paq.length;
+        iterator++
+      ) {
+        if (globalThis.eave._paq[iterator]) {
+          h.apply(globalThis.eave._paq[iterator]);
         }
       }
 
       // replace initialization array with proxy object
-      global.eave._paq = new TrackerProxy();
+      globalThis.eave._paq = new TrackerProxy();
 
-      global.eave.eave.trigger("TrackerAdded", [tracker]);
+      globalThis.eave.eave.trigger("TrackerAdded", [tracker]);
 
       return tracker;
     }
 
     /************************************************************
      * Proxy object
-     * - this allows the caller to continue push()'ing to global.eave._paq
+     * - this allows the caller to continue push()'ing to globalThis.eave._paq
      *   after the Tracker has been initialized and loaded
      ************************************************************/
 
     // initialize the eave singleton
     h.addEventListener(
-      global.eave.windowAlias,
+      globalThis.eave.windowAlias,
       "beforeunload",
       h.beforeUnloadHandler,
       false,
     );
     h.addEventListener(
-      global.eave.windowAlias,
+      globalThis.eave.windowAlias,
       "visibilitychange",
       function () {
         // if unloaded, return
-        if (global.eave.isPageUnloading) {
+        if (globalThis.eave.isPageUnloading) {
           return;
         }
         // if not visible
-        if (global.eave.documentAlias.visibilityState === "hidden") {
+        if (globalThis.eave.documentAlias.visibilityState === "hidden") {
           h.executePluginMethod("unload");
         }
       },
       false,
     );
     h.addEventListener(
-      global.eave.windowAlias,
+      globalThis.eave.windowAlias,
       "online",
       function () {
-        if (h.isDefined(global.eave.navigatorAlias.serviceWorker)) {
-          global.eave.navigatorAlias.serviceWorker.ready.then(
+        if (h.isDefined(globalThis.eave.navigatorAlias.serviceWorker)) {
+          globalThis.eave.navigatorAlias.serviceWorker.ready.then(
             function (swRegistration) {
               if (swRegistration && swRegistration.sync) {
                 return swRegistration.sync.register("eaveSync");
@@ -193,7 +200,7 @@ if (typeof window.eave !== "object") {
     );
 
     h.addEventListener(
-      global.eave.windowAlias,
+      globalThis.eave.windowAlias,
       "message",
       function (e) {
         if (!e || !e.origin) {
@@ -203,7 +210,7 @@ if (typeof window.eave !== "object") {
         var tracker, i, eaveHost;
         var originHost = h.getHostName(e.origin);
 
-        var trackers = global.eave.eave.getAsyncTrackers();
+        var trackers = globalThis.eave.eave.getAsyncTrackers();
         for (i = 0; i < trackers.length; i++) {
           eaveHost = h.getHostName(trackers[i].getEaveUrl());
 
@@ -234,7 +241,7 @@ if (typeof window.eave !== "object") {
         function postMessageToCorrectFrame(postMessage) {
           // Find the iframe with the right URL to send it back to
           var iframes =
-            global.eave.documentAlias.getElementsByTagName("iframe");
+            globalThis.eave.documentAlias.getElementsByTagName("iframe");
           for (i = 0; i < iframes.length; i++) {
             var iframe = iframes[i];
             var iframeHost = h.getHostName(iframe.src);
@@ -266,7 +273,7 @@ if (typeof window.eave !== "object") {
           });
         } else if (h.isDefined(data.maq_opted_in)) {
           // perform the opt in or opt out...
-          trackers = global.eave.eave.getAsyncTrackers();
+          trackers = globalThis.eave.eave.getAsyncTrackers();
           for (i = 0; i < trackers.length; i++) {
             tracker = trackers[i];
             if (data.maq_opted_in) {
@@ -293,10 +300,10 @@ if (typeof window.eave !== "object") {
      * Public data and methods
      ************************************************************/
 
-    global.eave.eave = {
+    globalThis.eave.eave = {
       initialized: false,
 
-      JSON: global.eave.windowAlias.JSON,
+      JSON: globalThis.eave.windowAlias.JSON,
 
       /**
        * DOM Document related methods
@@ -358,11 +365,11 @@ if (typeof window.eave !== "object") {
        * @param {Function} handler
        */
       on: function (event, handler) {
-        if (!global.eave.eventHandlers[event]) {
-          global.eave.eventHandlers[event] = [];
+        if (!globalThis.eave.eventHandlers[event]) {
+          globalThis.eave.eventHandlers[event] = [];
         }
 
-        global.eave.eventHandlers[event].push(handler);
+        globalThis.eave.eventHandlers[event].push(handler);
       },
 
       /**
@@ -372,14 +379,14 @@ if (typeof window.eave !== "object") {
        * @param {Function} handler
        */
       off: function (event, handler) {
-        if (!global.eave.eventHandlers[event]) {
+        if (!globalThis.eave.eventHandlers[event]) {
           return;
         }
 
         var i = 0;
-        for (i; i < global.eave.eventHandlers[event].length; i++) {
-          if (global.eave.eventHandlers[event][i] === handler) {
-            global.eave.eventHandlers[event].splice(i, 1);
+        for (i; i < globalThis.eave.eventHandlers[event].length; i++) {
+          if (globalThis.eave.eventHandlers[event][i] === handler) {
+            globalThis.eave.eventHandlers[event].splice(i, 1);
           }
         }
       },
@@ -392,14 +399,14 @@ if (typeof window.eave !== "object") {
        * @param {Object} context  If given the handler will be executed in this context
        */
       trigger: function (event, extraParameters, context) {
-        if (!global.eave.eventHandlers[event]) {
+        if (!globalThis.eave.eventHandlers[event]) {
           return;
         }
 
         var i = 0;
-        for (i; i < global.eave.eventHandlers[event].length; i++) {
-          global.eave.eventHandlers[event][i].apply(
-            context || global.eave.windowAlias,
+        for (i; i < globalThis.eave.eventHandlers[event].length; i++) {
+          globalThis.eave.eventHandlers[event][i].apply(
+            context || globalThis.eave.windowAlias,
             extraParameters,
           );
         }
@@ -412,7 +419,7 @@ if (typeof window.eave !== "object") {
        * @param {Object} pluginObj
        */
       addPlugin: function (pluginName, pluginObj) {
-        global.eave.plugins[pluginName] = pluginObj;
+        globalThis.eave.plugins[pluginName] = pluginObj;
       },
 
       /**
@@ -439,7 +446,7 @@ if (typeof window.eave !== "object") {
        * @returns {Tracker[]}
        */
       getAsyncTrackers: function () {
-        return global.eave.asyncTrackers;
+        return globalThis.eave.asyncTrackers;
       },
 
       /**
@@ -452,10 +459,13 @@ if (typeof window.eave !== "object") {
        */
       addTracker: function (eaveUrl, siteId) {
         var tracker;
-        if (!global.eave.asyncTrackers.length) {
+        if (!globalThis.eave.asyncTrackers.length) {
           tracker = createFirstTracker(eaveUrl, siteId);
         } else {
-          tracker = global.eave.asyncTrackers[0].addTracker(eaveUrl, siteId);
+          tracker = globalThis.eave.asyncTrackers[0].addTracker(
+            eaveUrl,
+            siteId,
+          );
         }
         return tracker;
       },
@@ -473,11 +483,11 @@ if (typeof window.eave !== "object") {
       getAsyncTracker: function (eaveUrl, siteId) {
         var firstTracker;
         if (
-          global.eave.asyncTrackers &&
-          global.eave.asyncTrackers.length &&
-          global.eave.asyncTrackers[0]
+          globalThis.eave.asyncTrackers &&
+          globalThis.eave.asyncTrackers.length &&
+          globalThis.eave.asyncTrackers[0]
         ) {
-          firstTracker = global.eave.asyncTrackers[0];
+          firstTracker = globalThis.eave.asyncTrackers[0];
         } else {
           return createFirstTracker(eaveUrl, siteId);
         }
@@ -498,8 +508,8 @@ if (typeof window.eave !== "object") {
 
         var tracker,
           i = 0;
-        for (i; i < global.eave.asyncTrackers.length; i++) {
-          tracker = global.eave.asyncTrackers[i];
+        for (i; i < globalThis.eave.asyncTrackers.length; i++) {
+          tracker = globalThis.eave.asyncTrackers[i];
           if (
             tracker &&
             String(tracker.getSiteId()) === String(siteId) &&
@@ -512,15 +522,15 @@ if (typeof window.eave !== "object") {
 
       /**
        * NOTE: not sure if this is relevant since matomo fork
-       * When calling plugin methods via "global.eave._paq.push(['...'])" and the plugin is loaded separately because
+       * When calling plugin methods via "globalThis.eave._paq.push(['...'])" and the plugin is loaded separately because
        * eave.js is not writable then there is a chance that first eave.js is loaded and later the plugin.
-       * In this case we would have already executed all "global.eave._paq.push" methods and they would not have succeeded
+       * In this case we would have already executed all "globalThis.eave._paq.push" methods and they would not have succeeded
        * because the plugin will be loaded only later. In this case, once a plugin is loaded, it should call
        * "eave.retryMissedPluginCalls()" so they will be executed after all.
        */
       retryMissedPluginCalls: function () {
-        var missedCalls = global.eave.missedPluginTrackerCalls;
-        global.eave.missedPluginTrackerCalls = [];
+        var missedCalls = globalThis.eave.missedPluginTrackerCalls;
+        globalThis.eave.missedPluginTrackerCalls = [];
         var i = 0;
         for (i; i < missedCalls.length; i++) {
           h.apply(missedCalls[i]);
@@ -531,11 +541,11 @@ if (typeof window.eave !== "object") {
     // Expose eave as an AMD module
     if (typeof define === "function" && define.amd) {
       define("eave", [], function () {
-        return global.eave.eave;
+        return globalThis.eave.eave;
       });
     }
 
-    return global.eave.eave;
+    return globalThis.eave.eave;
   })();
 }
 
@@ -545,49 +555,49 @@ if (typeof window.eave !== "object") {
   "use strict";
 
   function hasPaqConfiguration() {
-    if ("object" !== typeof global.eave._paq) {
+    if ("object" !== typeof globalThis.eave._paq) {
       return false;
     }
     // needed to write it this way for jslint
-    var lengthType = typeof global.eave._paq.length;
+    var lengthType = typeof globalThis.eave._paq.length;
     if ("undefined" === lengthType) {
       return false;
     }
 
-    return !!global.eave._paq.length;
+    return !!globalThis.eave._paq.length;
   }
 
   if (
     window &&
-    "object" === typeof window.eavePluginAsyncInit &&
-    window.eavePluginAsyncInit.length
+    "object" === typeof window.eaveTrackerPluginAsyncInit &&
+    window.eaveTrackerPluginAsyncInit.length
   ) {
     var i = 0;
-    for (i; i < window.eavePluginAsyncInit.length; i++) {
-      if (typeof window.eavePluginAsyncInit[i] === "function") {
-        window.eavePluginAsyncInit[i]();
+    for (i; i < window.eaveTrackerPluginAsyncInit.length; i++) {
+      if (typeof window.eaveTrackerPluginAsyncInit[i] === "function") {
+        window.eaveTrackerPluginAsyncInit[i]();
       }
     }
   }
 
-  if (window && window.eaveAsyncInit) {
-    window.eaveAsyncInit();
+  if (window && window.eaveTrackerAsyncInit) {
+    window.eaveTrackerAsyncInit();
   }
 
-  if (!window.eave.getAsyncTrackers().length) {
+  if (!globalThis.eave.eave.getAsyncTrackers().length) {
     // we only create an initial tracker when no other async tracker has been created yet in eaveAsyncInit()
     if (hasPaqConfiguration()) {
-      // we only create an initial tracker if there is a configuration for it via global.eave._paq. Otherwise
+      // we only create an initial tracker if there is a configuration for it via globalThis.eave._paq. Otherwise
       // eave.getAsyncTrackers() would return unconfigured trackers
-      window.eave.addTracker();
+      globalThis.eave.eave.addTracker();
     } else {
-      global.eave._paq = {
+      globalThis.eave._paq = {
         push: function (args) {
           // needed to write it this way for jslint
           var consoleType = typeof console;
           if (consoleType !== "undefined" && console && console.error) {
             console.error(
-              "global.eave._paq.push() was used but eave tracker was not initialized before the eave.js file was loaded. Make sure to configure the tracker via global.eave._paq.push before loading eave.js. Alternatively, you can create a tracker via eave.addTracker() manually and then use global.eave._paq.push but it may not fully work as tracker methods may not be executed in the correct order.",
+              "globalThis.eave._paq.push() was used but eave tracker was not initialized before the eave.js file was loaded. Make sure to configure the tracker via globalThis.eave._paq.push before loading eave.js. Alternatively, you can create a tracker via eave.addTracker() manually and then use globalThis.eave._paq.push but it may not fully work as tracker methods may not be executed in the correct order.",
               args,
             );
           }
@@ -596,15 +606,15 @@ if (typeof window.eave !== "object") {
     }
   }
 
-  window.eave.trigger("eaveInitialized", []);
-  window.eave.initialized = true;
+  window.eaveTracker.trigger("eaveInitialized", []);
+  window.eaveTracker.initialized = true;
 })();
 
 /*jslint sloppy: true */
 (function () {
   var jsTrackerType = typeof window.AnalyticsTracker;
   if (jsTrackerType === "undefined") {
-    window.AnalyticsTracker = window.eave;
+    window.AnalyticsTracker = window.eaveTracker;
   }
 })();
 /*jslint sloppy: false */

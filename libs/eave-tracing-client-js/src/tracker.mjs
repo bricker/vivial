@@ -1,5 +1,6 @@
 import content from "./content.mjs";
 import { CookieManager } from "./cookies.mjs";
+import "./globals.mjs";
 import * as h from "./helpers.mjs";
 import query from "./query.mjs";
 import { isVisible } from "./visibility.mjs";
@@ -30,8 +31,8 @@ export function Tracker(trackerUrl, siteId) {
     _eaveContext = {}, // TODO: set on all fired atom events
     // Current URL and Referrer URL
     locationArray = h.urlFixup(
-      global.eave.documentAlias.domain,
-      global.eave.windowAlias.location.href,
+      globalThis.eave.documentAlias.domain,
+      globalThis.eave.windowAlias.location.href,
       h.getReferrer(),
     ),
     domainAlias = h.domainFixup(locationArray[0]),
@@ -273,16 +274,16 @@ export function Tracker(trackerUrl, siteId) {
     // happening multiple times, then it will be tracked only once within the same page view
     javaScriptErrors = [],
     // a unique ID for this tracker during this request
-    uniqueTrackerId = global.eave.trackerIdCounter++,
+    uniqueTrackerId = globalThis.eave.trackerIdCounter++,
     // whether a tracking request has been sent yet during this page view
     hasSentTrackingRequestYet = false,
     configBrowserFeatureDetection = true,
-    cookieManager = CookieManager(),
+    cookieManager = new CookieManager(),
     configFileTracking = false;
 
   // Document title
   try {
-    configTitle = global.eave.documentAlias.title;
+    configTitle = globalThis.eave.documentAlias.title;
   } catch (e) {
     configTitle = "";
   }
@@ -343,7 +344,7 @@ export function Tracker(trackerUrl, siteId) {
   function saveContext() {
     cookieManager.setCookie(
       CONTEXT_COOKIE_NAME,
-      global.eave.windowAlias.JSON.stringify(_eaveContext),
+      globalThis.eave.windowAlias.JSON.stringify(_eaveContext),
       cookieManager.configVisitorCookieTimeout,
       cookieManager.configCookiePath,
       cookieManager.configCookieDomain,
@@ -396,20 +397,20 @@ export function Tracker(trackerUrl, siteId) {
    */
   function wasJsTrackingCodeInstallCheckParamProvided() {
     if (
-      global.eave.trackerInstallCheckNonce &&
-      global.eave.trackerInstallCheckNonce.length > 0
+      globalThis.eave.trackerInstallCheckNonce &&
+      globalThis.eave.trackerInstallCheckNonce.length > 0
     ) {
       return true;
     }
 
-    global.eave.trackerInstallCheckNonce = h.getUrlParameter(
-      global.eave.windowAlias.location.href,
+    globalThis.eave.trackerInstallCheckNonce = h.getUrlParameter(
+      globalThis.eave.windowAlias.location.href,
       "tracker_install_check",
     );
 
     return (
-      global.eave.trackerInstallCheckNonce &&
-      global.eave.trackerInstallCheckNonce.length > 0
+      globalThis.eave.trackerInstallCheckNonce &&
+      globalThis.eave.trackerInstallCheckNonce.length > 0
     );
   }
 
@@ -420,9 +421,9 @@ export function Tracker(trackerUrl, siteId) {
     // If the query parameter indicating this is a test exists
     if (
       wasJsTrackingCodeInstallCheckParamProvided() &&
-      h.isObject(global.eave.windowAlias)
+      h.isObject(globalThis.eave.windowAlias)
     ) {
-      global.eave.windowAlias.close();
+      globalThis.eave.windowAlias.close();
     }
   }
 
@@ -474,8 +475,8 @@ export function Tracker(trackerUrl, siteId) {
 
   function supportsSendBeacon() {
     return (
-      "object" === typeof global.eave.navigatorAlias &&
-      "function" === typeof global.eave.navigatorAlias.sendBeacon &&
+      "object" === typeof globalThis.eave.navigatorAlias &&
+      "function" === typeof globalThis.eave.navigatorAlias.sendBeacon &&
       "function" === typeof Blob
     );
   }
@@ -502,7 +503,7 @@ export function Tracker(trackerUrl, siteId) {
         url = url + (url.indexOf("?") < 0 ? "?" : "&") + request;
       }
 
-      success = global.eave.navigatorAlias.sendBeacon(url, blob);
+      success = globalThis.eave.navigatorAlias.sendBeacon(url, blob);
       // returns true if the user agent is able to successfully queue the data for transfer,
       // Otherwise it returns false and we need to try the regular way
     } catch (e) {
@@ -533,7 +534,7 @@ export function Tracker(trackerUrl, siteId) {
     }
 
     if (
-      global.eave.isPageUnloading &&
+      globalThis.eave.isPageUnloading &&
       sendPostRequestViaSendBeacon(request, callback, fallbackToGet)
     ) {
       return;
@@ -551,7 +552,7 @@ export function Tracker(trackerUrl, siteId) {
       // by 50ms which gives it usually enough time to detect the unload event in most cases.
 
       if (
-        global.eave.isPageUnloading &&
+        globalThis.eave.isPageUnloading &&
         sendPostRequestViaSendBeacon(request, callback, fallbackToGet)
       ) {
         return;
@@ -562,10 +563,10 @@ export function Tracker(trackerUrl, siteId) {
         // we use the progid Microsoft.XMLHTTP because
         // IE5.5 included MSXML 2.5; the progid MSXML2.XMLHTTP
         // is pinned to MSXML2.XMLHTTP.3.0
-        var xhr = global.eave.windowAlias.XMLHttpRequest
-          ? new global.eave.windowAlias.XMLHttpRequest()
-          : global.eave.windowAlias.ActiveXObject
-          ? new global.eave.windowAlias.ActiveXObject("Microsoft.XMLHTTP")
+        var xhr = globalThis.eave.windowAlias.XMLHttpRequest
+          ? new globalThis.eave.windowAlias.XMLHttpRequest()
+          : globalThis.eave.windowAlias.ActiveXObject
+          ? new globalThis.eave.windowAlias.ActiveXObject("Microsoft.XMLHTTP")
           : null;
 
         xhr.open("POST", configTrackerUrl, true);
@@ -577,7 +578,7 @@ export function Tracker(trackerUrl, siteId) {
             !(this.status >= 200 && this.status < 300)
           ) {
             var sentViaBeacon =
-              global.eave.isPageUnloading &&
+              globalThis.eave.isPageUnloading &&
               sendPostRequestViaSendBeacon(request, callback, fallbackToGet);
 
             if (!sentViaBeacon && fallbackToGet) {
@@ -609,7 +610,7 @@ export function Tracker(trackerUrl, siteId) {
         xhr.send(request);
       } catch (e) {
         sentViaBeacon =
-          global.eave.isPageUnloading &&
+          globalThis.eave.isPageUnloading &&
           sendPostRequestViaSendBeacon(request, callback, fallbackToGet);
         if (!sentViaBeacon && fallbackToGet) {
           getImage(request, callback);
@@ -631,8 +632,11 @@ export function Tracker(trackerUrl, siteId) {
     var now = new Date();
     var time = now.getTime() + delay;
 
-    if (!global.eave.expireDateTime || time > global.eave.expireDateTime) {
-      global.eave.expireDateTime = time;
+    if (
+      !globalThis.eave.expireDateTime ||
+      time > globalThis.eave.expireDateTime
+    ) {
+      globalThis.eave.expireDateTime = time;
     }
   }
 
@@ -660,11 +664,11 @@ export function Tracker(trackerUrl, siteId) {
 
   function heartBeatOnVisible() {
     if (
-      global.eave.documentAlias.visibilityState === "hidden" &&
+      globalThis.eave.documentAlias.visibilityState === "hidden" &&
       hadWindowMinimalFocusToConsiderViewed()
     ) {
       heartBeatPingIfActivityAlias();
-    } else if (global.eave.documentAlias.visibilityState === "visible") {
+    } else if (globalThis.eave.documentAlias.visibilityState === "visible") {
       timeWindowLastFocused = new Date().getTime();
     }
   }
@@ -679,29 +683,32 @@ export function Tracker(trackerUrl, siteId) {
 
     heartBeatSetUp = true;
 
-    h.addEventListener(global.eave.windowAlias, "focus", heartBeatOnFocus);
-    h.addEventListener(global.eave.windowAlias, "blur", heartBeatOnBlur);
+    h.addEventListener(globalThis.eave.windowAlias, "focus", heartBeatOnFocus);
+    h.addEventListener(globalThis.eave.windowAlias, "blur", heartBeatOnBlur);
     h.addEventListener(
-      global.eave.windowAlias,
+      globalThis.eave.windowAlias,
       "visibilitychange",
       heartBeatOnVisible,
     );
 
     // when using multiple trackers then we need to add this event for each tracker
-    global.eave.coreHeartBeatCounter++;
-    global.eave.eave.addPlugin("HeartBeat" + global.eave.coreHeartBeatCounter, {
-      unload: function () {
-        // we can't remove the unload plugin event when disabling heart beat timer but we at least
-        // check if it is still enabled... note: when enabling heart beat, then disabling, then
-        // enabling then this could trigger two requests under circumstances maybe. it's edge case though
+    globalThis.eave.coreHeartBeatCounter++;
+    globalThis.eave.eave.addPlugin(
+      "HeartBeat" + globalThis.eave.coreHeartBeatCounter,
+      {
+        unload: function () {
+          // we can't remove the unload plugin event when disabling heart beat timer but we at least
+          // check if it is still enabled... note: when enabling heart beat, then disabling, then
+          // enabling then this could trigger two requests under circumstances maybe. it's edge case though
 
-        // we only send the heartbeat if onunload the user spent at least 15seconds since last focus
-        // or the configured heatbeat timer
-        if (heartBeatSetUp && hadWindowMinimalFocusToConsiderViewed()) {
-          heartBeatPingIfActivityAlias();
-        }
+          // we only send the heartbeat if onunload the user spent at least 15seconds since last focus
+          // or the configured heatbeat timer
+          if (heartBeatSetUp && hadWindowMinimalFocusToConsiderViewed()) {
+            heartBeatPingIfActivityAlias();
+          }
+        },
       },
-    });
+    );
   }
 
   function makeSureThereIsAGapAfterFirstTrackingRequestToPreventMultipleVisitorCreation(
@@ -793,15 +800,15 @@ export function Tracker(trackerUrl, siteId) {
       };
 
     // detect browser features except IE < 11 (IE 11 user agent is no longer MSIE)
-    if (!new RegExp("MSIE").test(global.eave.navigatorAlias.userAgent)) {
+    if (!new RegExp("MSIE").test(globalThis.eave.navigatorAlias.userAgent)) {
       // general plugin detection
       if (
-        global.eave.navigatorAlias.mimeTypes &&
-        global.eave.navigatorAlias.mimeTypes.length
+        globalThis.eave.navigatorAlias.mimeTypes &&
+        globalThis.eave.navigatorAlias.mimeTypes.length
       ) {
         for (i in pluginMap) {
           if (Object.prototype.hasOwnProperty.call(pluginMap, i)) {
-            mimeType = global.eave.navigatorAlias.mimeTypes[pluginMap[i]];
+            mimeType = globalThis.eave.navigatorAlias.mimeTypes[pluginMap[i]];
             browserFeatures[i] = mimeType && mimeType.enabledPlugin ? "1" : "0";
           }
         }
@@ -812,20 +819,20 @@ export function Tracker(trackerUrl, siteId) {
       // on Edge navigator.javaEnabled() always returns `true`, so ignore it
       if (
         !new RegExp("Edge[ /](\\d+[\\.\\d]+)").test(
-          global.eave.navigatorAlias.userAgent,
+          globalThis.eave.navigatorAlias.userAgent,
         ) &&
         typeof navigator.javaEnabled !== "undefined" &&
-        h.isDefined(global.eave.navigatorAlias.javaEnabled) &&
-        global.eave.navigatorAlias.javaEnabled()
+        h.isDefined(globalThis.eave.navigatorAlias.javaEnabled) &&
+        globalThis.eave.navigatorAlias.javaEnabled()
       ) {
         browserFeatures.java = "1";
       }
 
       if (
-        !h.isDefined(global.eave.windowAlias.showModalDialog) &&
-        h.isDefined(global.eave.navigatorAlias.cookieEnabled)
+        !h.isDefined(globalThis.eave.windowAlias.showModalDialog) &&
+        h.isDefined(globalThis.eave.navigatorAlias.cookieEnabled)
       ) {
-        browserFeatures.cookie = global.eave.navigatorAlias.cookieEnabled
+        browserFeatures.cookie = globalThis.eave.navigatorAlias.cookieEnabled
           ? "1"
           : "0";
       } else {
@@ -834,8 +841,8 @@ export function Tracker(trackerUrl, siteId) {
       }
     }
 
-    var width = parseInt(global.eave.screenAlias.width, 10);
-    var height = parseInt(global.eave.screenAlias.height, 10);
+    var width = parseInt(globalThis.eave.screenAlias.width, 10);
+    var height = parseInt(globalThis.eave.screenAlias.height, 10);
     browserFeatures.res = parseInt(width, 10) + "x" + parseInt(height, 10);
     return browserFeatures;
   }
@@ -854,8 +861,8 @@ export function Tracker(trackerUrl, siteId) {
     if (clientHints) {
       appendix =
         "&uadata=" +
-        global.eave.encodeWrapper(
-          global.eave.windowAlias.JSON.stringify(clientHints),
+        globalThis.eave.encodeWrapper(
+          globalThis.eave.windowAlias.JSON.stringify(clientHints),
         );
     }
 
@@ -872,9 +879,9 @@ export function Tracker(trackerUrl, siteId) {
 
   function supportsClientHints() {
     return (
-      h.isDefined(global.eave.navigatorAlias.userAgentData) &&
+      h.isDefined(globalThis.eave.navigatorAlias.userAgentData) &&
       h.isFunction(
-        global.eave.navigatorAlias.userAgentData.getHighEntropyValues,
+        globalThis.eave.navigatorAlias.userAgentData.getHighEntropyValues,
       )
     );
   }
@@ -889,14 +896,14 @@ export function Tracker(trackerUrl, siteId) {
 
     // Initialize with low entropy values that are always available
     clientHints = {
-      brands: global.eave.navigatorAlias.userAgentData.brands,
-      platform: global.eave.navigatorAlias.userAgentData.platform,
+      brands: globalThis.eave.navigatorAlias.userAgentData.brands,
+      platform: globalThis.eave.navigatorAlias.userAgentData.platform,
     };
 
     // try to gather high entropy values
     // currently this methods simply returns the requested values through a Promise
     // In later versions it might require a user permission
-    global.eave.navigatorAlias.userAgentData
+    globalThis.eave.navigatorAlias.userAgentData
       .getHighEntropyValues([
         "brands",
         "model",
@@ -931,9 +938,9 @@ export function Tracker(trackerUrl, siteId) {
 
     return h
       .sha1(
-        (global.eave.navigatorAlias.userAgent || "") +
-          (global.eave.navigatorAlias.platform || "") +
-          global.eave.windowAlias.JSON.stringify(browserFeatures),
+        (globalThis.eave.navigatorAlias.userAgent || "") +
+          (globalThis.eave.navigatorAlias.platform || "") +
+          globalThis.eave.windowAlias.JSON.stringify(browserFeatures),
       )
       .slice(0, 6);
   }
@@ -1168,21 +1175,22 @@ export function Tracker(trackerUrl, siteId) {
       return request;
     }
 
-    if (!global.eave.performanceAlias) {
+    if (!globalThis.eave.performanceAlias) {
       return request;
     }
 
     var performanceData =
-      typeof global.eave.performanceAlias.timing === "object" &&
-      global.eave.performanceAlias.timing
-        ? global.eave.performanceAlias.timing
+      typeof globalThis.eave.performanceAlias.timing === "object" &&
+      globalThis.eave.performanceAlias.timing
+        ? globalThis.eave.performanceAlias.timing
         : undefined;
 
     if (!performanceData) {
       performanceData =
-        typeof global.eave.performanceAlias.getEntriesByType === "function" &&
-        global.eave.performanceAlias.getEntriesByType("navigation")
-          ? global.eave.performanceAlias.getEntriesByType("navigation")[0]
+        typeof globalThis.eave.performanceAlias.getEntriesByType ===
+          "function" &&
+        globalThis.eave.performanceAlias.getEntriesByType("navigation")
+          ? globalThis.eave.performanceAlias.getEntriesByType("navigation")[0]
           : undefined;
     }
 
@@ -1394,7 +1402,7 @@ export function Tracker(trackerUrl, siteId) {
 
         cookieManager.setCookie(
           cookieReferrerName,
-          global.eave.windowAlias.JSON.stringify(attributionCookie),
+          globalThis.eave.windowAlias.JSON.stringify(attributionCookie),
           cookieManager.configReferralCookieTimeout,
           cookieManager.configCookiePath,
           cookieManager.configCookieDomain,
@@ -1405,11 +1413,12 @@ export function Tracker(trackerUrl, siteId) {
     }
 
     if (campaignNameDetected.length) {
-      attributionValues._rcn = global.eave.encodeWrapper(campaignNameDetected);
+      attributionValues._rcn =
+        globalThis.eave.encodeWrapper(campaignNameDetected);
     }
 
     if (campaignKeywordDetected.length) {
-      attributionValues._rck = global.eave.encodeWrapper(
+      attributionValues._rck = globalThis.eave.encodeWrapper(
         campaignKeywordDetected,
       );
     }
@@ -1417,7 +1426,7 @@ export function Tracker(trackerUrl, siteId) {
     attributionValues._refts = referralTs;
 
     if (String(referralUrl).length) {
-      attributionValues._ref = global.eave.encodeWrapper(
+      attributionValues._ref = globalThis.eave.encodeWrapper(
         purify(referralUrl.slice(0, referralUrlMaxLength)),
       );
     }
@@ -1471,8 +1480,8 @@ export function Tracker(trackerUrl, siteId) {
     // of urls will be the same as this and not utf-8, which will cause problems
     // do not send charset if it is utf8 since it's assumed by default in eave
     let charSet =
-      global.eave.documentAlias.characterSet ||
-      global.eave.documentAlias.charset;
+      globalThis.eave.documentAlias.characterSet ||
+      globalThis.eave.documentAlias.charset;
     if (!charSet || charSet.toLowerCase() === "utf-8") {
       charSet = null;
     }
@@ -1487,7 +1496,7 @@ export function Tracker(trackerUrl, siteId) {
       h: now.getHours(),
       m: now.getMinutes(),
       s: now.getSeconds(),
-      url: global.eave.encodeWrapper(purify(currentUrl)),
+      url: globalThis.eave.encodeWrapper(purify(currentUrl)),
       _id: cookieVisitorId,
       send_image: 0,
     };
@@ -1497,15 +1506,15 @@ export function Tracker(trackerUrl, siteId) {
       !isReferrerExcluded(configReferrerUrl) &&
       !hasIgnoreReferrerParam
     ) {
-      args["urlref"] = global.eave.encodeWrapper(purify(configReferrerUrl));
+      args["urlref"] = globalThis.eave.encodeWrapper(purify(configReferrerUrl));
     }
 
     if (h.isNumberOrHasLength(configUserId)) {
-      args["uid"] = global.eave.encodeWrapper(configUserId);
+      args["uid"] = globalThis.eave.encodeWrapper(configUserId);
     }
 
     if (charSet) {
-      args["cs"] = global.eave.encodeWrapper(charSet);
+      args["cs"] = globalThis.eave.encodeWrapper(charSet);
     }
 
     // TODO: convert to args obj stuff
@@ -1527,7 +1536,7 @@ export function Tracker(trackerUrl, siteId) {
           var index = i.replace("dimension", "");
           customDimensionIdsAlreadyHandled.push(parseInt(index, 10));
           customDimensionIdsAlreadyHandled.push(String(index));
-          args[i] = global.eave.encodeWrapper(customData[i]);
+          args[i] = globalThis.eave.encodeWrapper(customData[i]);
           delete customData[i];
         }
       }
@@ -1541,7 +1550,7 @@ export function Tracker(trackerUrl, siteId) {
     // product page view
     for (i in ecommerceProductView) {
       if (Object.prototype.hasOwnProperty.call(ecommerceProductView, i)) {
-        args[i] = global.eave.encodeWrapper(ecommerceProductView[i]);
+        args[i] = globalThis.eave.encodeWrapper(ecommerceProductView[i]);
       }
     }
 
@@ -1551,7 +1560,7 @@ export function Tracker(trackerUrl, siteId) {
         var isNotSetYet =
           -1 === h.indexOfArray(customDimensionIdsAlreadyHandled, i);
         if (isNotSetYet) {
-          args["dimension" + i] = global.eave.encodeWrapper(
+          args["dimension" + i] = globalThis.eave.encodeWrapper(
             customDimensions[i],
           );
         }
@@ -1560,21 +1569,21 @@ export function Tracker(trackerUrl, siteId) {
 
     // custom data
     if (customData) {
-      args["data"] = global.eave.encodeWrapper(
-        global.eave.windowAlias.JSON.stringify(customData),
+      args["data"] = globalThis.eave.encodeWrapper(
+        globalThis.eave.windowAlias.JSON.stringify(customData),
       );
     } else if (configCustomData) {
-      args["data"] = global.eave.encodeWrapper(
-        global.eave.windowAlias.JSON.stringify(configCustomData),
+      args["data"] = globalThis.eave.encodeWrapper(
+        globalThis.eave.windowAlias.JSON.stringify(configCustomData),
       );
     }
 
     // Custom Variables, scope "page"
     function appendCustomVariablesToArgs(args, customVariables, parameterName) {
       var customVariablesStringified =
-        global.eave.windowAlias.JSON.stringify(customVariables);
+        globalThis.eave.windowAlias.JSON.stringify(customVariables);
       if (customVariablesStringified.length > 2) {
-        args[parameterName] = global.eave.encodeWrapper(
+        args[parameterName] = globalThis.eave.encodeWrapper(
           customVariablesStringified,
         );
       }
@@ -1602,7 +1611,7 @@ export function Tracker(trackerUrl, siteId) {
       if (configStoreCustomVariablesInCookie) {
         cookieManager.setCookie(
           cookieCustomVariablesName,
-          global.eave.windowAlias.JSON.stringify(customVariables),
+          globalThis.eave.windowAlias.JSON.stringify(customVariables),
           cookieManager.configSessionCookieTimeout,
           cookieManager.configCookiePath,
           cookieManager.configCookieDomain,
@@ -1617,12 +1626,11 @@ export function Tracker(trackerUrl, siteId) {
     }
 
     if (wasJsTrackingCodeInstallCheckParamProvided()) {
-      args["tracker_install_check"] = global.eave.tracker.InstallCheckNonce;
+      args["tracker_install_check"] = globalThis.eave.tracker.InstallCheckNonce;
     }
 
     return args;
   }
-
 
   /**
    * Returns the URL to send event to,
@@ -1643,7 +1651,7 @@ export function Tracker(trackerUrl, siteId) {
     var fileRegex = new RegExp("^file://", "i");
     if (
       !configFileTracking &&
-      (global.eave.windowAlias.location.protocol === "file:" ||
+      (globalThis.eave.windowAlias.location.protocol === "file:" ||
         fileRegex.test(currentUrl))
     ) {
       return "";
@@ -1718,7 +1726,7 @@ export function Tracker(trackerUrl, siteId) {
       isEcommerceOrder = String(orderId).length;
 
     if (isEcommerceOrder) {
-      request += "&ec_id=" + global.eave.encodeWrapper(orderId);
+      request += "&ec_id=" + globalThis.eave.encodeWrapper(orderId);
     }
 
     request += "&revenue=" + grandTotal;
@@ -1773,8 +1781,8 @@ export function Tracker(trackerUrl, siteId) {
       }
       request +=
         "&ec_items=" +
-        global.eave.encodeWrapper(
-          global.eave.windowAlias.JSON.stringify(items),
+        globalThis.eave.encodeWrapper(
+          globalThis.eave.windowAlias.JSON.stringify(items),
         );
     }
     request = getRequest(request, configCustomData, "ecommerce");
@@ -1816,7 +1824,7 @@ export function Tracker(trackerUrl, siteId) {
 
     var request = getRequest(
       "action_name=" +
-        global.eave.encodeWrapper(h.titleFixup(customTitle || configTitle)),
+        globalThis.eave.encodeWrapper(h.titleFixup(customTitle || configTitle)),
       customData,
       "log",
     );
@@ -2249,11 +2257,13 @@ export function Tracker(trackerUrl, siteId) {
   function buildEventRequest(category, action, name, value) {
     return (
       "e_c=" +
-      global.eave.encodeWrapper(category) +
+      globalThis.eave.encodeWrapper(category) +
       "&e_a=" +
-      global.eave.encodeWrapper(action) +
-      (h.isDefined(name) ? "&e_n=" + global.eave.encodeWrapper(name) : "") +
-      (h.isDefined(value) ? "&e_v=" + global.eave.encodeWrapper(value) : "") +
+      globalThis.eave.encodeWrapper(action) +
+      (h.isDefined(name) ? "&e_n=" + globalThis.eave.encodeWrapper(name) : "") +
+      (h.isDefined(value)
+        ? "&e_v=" + globalThis.eave.encodeWrapper(value)
+        : "") +
       "&ca=1"
     );
   }
@@ -2284,8 +2294,10 @@ export function Tracker(trackerUrl, siteId) {
   function logSiteSearch(keyword, category, resultsCount, customData) {
     var request = getRequest(
       "search=" +
-        global.eave.encodeWrapper(keyword) +
-        (category ? "&search_cat=" + global.eave.encodeWrapper(category) : "") +
+        globalThis.eave.encodeWrapper(keyword) +
+        (category
+          ? "&search_cat=" + globalThis.eave.encodeWrapper(category)
+          : "") +
         (h.isDefined(resultsCount) ? "&search_count=" + resultsCount : ""),
       customData,
       "sitesearch",
@@ -2311,7 +2323,8 @@ export function Tracker(trackerUrl, siteId) {
    * Log the link or click with the server
    */
   function logLink(url, linkType, customData, callback, sourceElement) {
-    var linkParams = linkType + "=" + global.eave.encodeWrapper(purify(url));
+    var linkParams =
+      linkType + "=" + globalThis.eave.encodeWrapper(purify(url));
 
     var interaction = getContentInteractionToRequestIfPossible(
       sourceElement,
@@ -2361,13 +2374,13 @@ export function Tracker(trackerUrl, siteId) {
         // does this browser support the page visibility API?
         if (
           Object.prototype.hasOwnProperty.call(
-            global.eave.documentAlias,
+            globalThis.eave.documentAlias,
             prefixPropertyName(prefix, "hidden"),
           )
         ) {
           // if pre-rendered, then defer callback until page visibility changes
           if (
-            global.eave.documentAlias[
+            globalThis.eave.documentAlias[
               prefixPropertyName(prefix, "visibilityState")
             ] === "prerender"
           ) {
@@ -2381,10 +2394,10 @@ export function Tracker(trackerUrl, siteId) {
     if (isPreRendered) {
       // note: the event name doesn't follow the same naming convention as vendor properties
       h.addEventListener(
-        global.eave.documentAlias,
+        globalThis.eave.documentAlias,
         prefix + "visibilitychange",
         function ready() {
-          global.eave.documentAlias.removeEventListener(
+          globalThis.eave.documentAlias.removeEventListener(
             prefix + "visibilitychange",
             ready,
             false,
@@ -2518,8 +2531,8 @@ export function Tracker(trackerUrl, siteId) {
 
   function isIE8orOlder() {
     return (
-      global.eave.documentAlias.all &&
-      !global.eave.documentAlias.h.addEventListener
+      globalThis.eave.documentAlias.all &&
+      !globalThis.eave.documentAlias.h.addEventListener
     );
   }
 
@@ -2663,7 +2676,7 @@ export function Tracker(trackerUrl, siteId) {
     }
 
     return function (event) {
-      event = event || global.eave.windowAlias.event;
+      event = event || globalThis.eave.windowAlias.event;
 
       var target = getClickTarget(event);
       // we arent tracking the clicked element(s)
@@ -2783,14 +2796,14 @@ export function Tracker(trackerUrl, siteId) {
         // execute event too often. otherwise FPS goes down a lot!
         events = ["scroll", "resize"];
         for (index = 0; index < events.length; index++) {
-          if (global.eave.documentAlias.h.addEventListener) {
-            global.eave.documentAlias.h.addEventListener(
+          if (globalThis.eave.documentAlias.h.addEventListener) {
+            globalThis.eave.documentAlias.h.addEventListener(
               events[index],
               setDidScroll,
               false,
             );
           } else {
-            global.eave.windowAlias.attachEvent(
+            globalThis.eave.windowAlias.attachEvent(
               "on" + events[index],
               setDidScroll,
             );
@@ -2865,7 +2878,7 @@ export function Tracker(trackerUrl, siteId) {
       }
     },
     canQueue: function () {
-      return !global.eave.isPageUnloading && this.enabled;
+      return !globalThis.eave.isPageUnloading && this.enabled;
     },
     pushMultiple: function (requests) {
       if (!this.canQueue()) {
@@ -2903,14 +2916,14 @@ export function Tracker(trackerUrl, siteId) {
       var trackerQueueId = "RequestQueue" + uniqueTrackerId;
       if (
         !Object.prototype.hasOwnProperty.call(
-          global.eave.plugins,
+          globalThis.eave.plugins,
           trackerQueueId,
         )
       ) {
         // we setup one unload handler per tracker...
         // eave.addPlugin might not be defined at this point, we add the plugin directly also to make
         // JSLint happy.
-        global.eave.plugins[trackerQueueId] = {
+        globalThis.eave.plugins[trackerQueueId] = {
           unload: function () {
             if (requestQueue.timeout) {
               clearTimeout(requestQueue.timeout);
@@ -3012,8 +3025,8 @@ export function Tracker(trackerUrl, siteId) {
     return customPagePerformanceTiming;
   };
   this.removeAllAsyncTrackersButFirst = function () {
-    var firstTracker = global.eave.asyncTrackers[0];
-    global.eave.asyncTrackers = [firstTracker];
+    var firstTracker = globalThis.eave.asyncTrackers[0];
+    globalThis.eave.asyncTrackers = [firstTracker];
   };
   this.getConsentRequestsQueue = function () {
     var i,
@@ -3032,7 +3045,7 @@ export function Tracker(trackerUrl, siteId) {
     return javaScriptErrors;
   };
   this.unsetPageIsUnloading = function () {
-    global.eave.isPageUnloading = false;
+    globalThis.eave.isPageUnloading = false;
   };
   /*</DEBUG>*/
   this.hasConsent = function () {
@@ -3055,7 +3068,7 @@ export function Tracker(trackerUrl, siteId) {
    * To access specific data point, you should use the other functions getAttributionReferrer* and getAttributionCampaign*
    *
    * @returns {Array} Attribution array, Example use:
-   *   1) Call global.eave.windowAlias.JSON.stringify(eaveTracker.getAttributionInfo())
+   *   1) Call globalThis.eave.windowAlias.JSON.stringify(eaveTracker.getAttributionInfo())
    *   2) Pass this json encoded string to the Tracking API (php or java client): setAttributionInfo()
    */
   this.getAttributionInfo = function () {
@@ -3141,9 +3154,9 @@ export function Tracker(trackerUrl, siteId) {
 
     var tracker = new Tracker(eaveUrl, siteId);
 
-    global.eave.asyncTrackers.push(tracker);
+    globalThis.eave.asyncTrackers.push(tracker);
 
-    global.eave.eave.trigger("TrackerAdded", [this]);
+    globalThis.eave.eave.trigger("TrackerAdded", [this]);
 
     return tracker;
   };
@@ -3275,7 +3288,7 @@ export function Tracker(trackerUrl, siteId) {
    * @param {Object} pluginObj
    */
   this.addPlugin = function (pluginName, pluginObj) {
-    global.eave.plugins[pluginName] = pluginObj;
+    globalThis.eave.plugins[pluginName] = pluginObj;
   };
 
   /**
@@ -3641,9 +3654,9 @@ export function Tracker(trackerUrl, siteId) {
    */
   this.getCrossDomainLinkingUrlParameter = function () {
     return (
-      global.eave.encodeWrapper(configVisitorIdUrlParameter) +
+      globalThis.eave.encodeWrapper(configVisitorIdUrlParameter) +
       "=" +
-      global.eave.encodeWrapper(getCrossDomainVisitorId())
+      globalThis.eave.encodeWrapper(getCrossDomainVisitorId())
     );
   };
 
@@ -4059,8 +4072,8 @@ export function Tracker(trackerUrl, siteId) {
    */
   this.setDoNotTrack = function (enable) {
     var dnt =
-      global.eave.navigatorAlias.doNotTrack ||
-      global.eave.navigatorAlias.msDoNotTrack;
+      globalThis.eave.navigatorAlias.doNotTrack ||
+      globalThis.eave.navigatorAlias.msDoNotTrack;
     configDoNotTrack = enable && (dnt === "yes" || dnt === "1");
 
     // do not track also disables cookies and deletes existing cookies
@@ -4153,7 +4166,7 @@ export function Tracker(trackerUrl, siteId) {
     if (!clickListenerInstalled) {
       clickListenerInstalled = true;
       h.trackCallbackOnReady(function () {
-        var element = global.eave.documentAlias.body;
+        var element = globalThis.eave.documentAlias.body;
         addClickListener(element, enable, true);
       });
     }
@@ -4171,7 +4184,7 @@ export function Tracker(trackerUrl, siteId) {
     if (!clickListenerInstalled) {
       clickListenerInstalled = true;
       h.trackCallbackOnReady(function () {
-        var element = global.eave.documentAlias.body;
+        var element = globalThis.eave.documentAlias.body;
         addClickListener(element, enable, true);
       });
     }
@@ -4190,7 +4203,7 @@ export function Tracker(trackerUrl, siteId) {
     routeHistoryTrackingEnabled = true;
 
     function getCurrentUrl() {
-      return global.eave.windowAlias.location.href;
+      return globalThis.eave.windowAlias.location.href;
     }
     function getEventUrl(event) {
       if (
@@ -4205,12 +4218,12 @@ export function Tracker(trackerUrl, siteId) {
     }
     function parseUrl(urlToParse, urlPart) {
       try {
-        var loc = global.eave.documentAlias.createElement("a");
+        var loc = globalThis.eave.documentAlias.createElement("a");
         loc.href = urlToParse;
         var absUrl = loc.href;
 
         // needed to make tests work in IE10... we first need to convert URL to abs url
-        loc = global.eave.documentAlias.createElement("a");
+        loc = globalThis.eave.documentAlias.createElement("a");
         loc.href = absUrl;
 
         if (urlPart && urlPart in loc) {
@@ -4286,7 +4299,7 @@ export function Tracker(trackerUrl, siteId) {
         hash: parseUrl(initialUrl, "hash"),
         search: parseUrl(initialUrl, "search"),
         path: parseUrl(initialUrl, "pathname"),
-        state: global.eave.windowAlias.state || null,
+        state: globalThis.eave.windowAlias.state || null,
       };
 
       function trigger(eventType, newUrl, newState) {
@@ -4385,7 +4398,7 @@ export function Tracker(trackerUrl, siteId) {
 
       function replaceHistoryMethod(methodNameToReplace) {
         setMethodWrapIfNeeded(
-          global.eave.windowAlias.history,
+          globalThis.eave.windowAlias.history,
           methodNameToReplace,
           function (state, title, urlParam) {
             trigger(methodNameToReplace, getCurrentUrl(), state);
@@ -4397,7 +4410,7 @@ export function Tracker(trackerUrl, siteId) {
       replaceHistoryMethod("pushState");
 
       h.addEventListener(
-        global.eave.windowAlias,
+        globalThis.eave.windowAlias,
         "hashchange",
         function (event) {
           var newUrl = getEventUrl(event);
@@ -4406,7 +4419,7 @@ export function Tracker(trackerUrl, siteId) {
         false,
       );
       h.addEventListener(
-        global.eave.windowAlias,
+        globalThis.eave.windowAlias,
         "popstate",
         function (event) {
           var newUrl = getEventUrl(event);
@@ -4440,9 +4453,9 @@ export function Tracker(trackerUrl, siteId) {
     }
 
     enableJSErrorTracking = true;
-    var onError = global.eave.windowAlias.onerror;
+    var onError = globalThis.eave.windowAlias.onerror;
 
-    global.eave.windowAlias.onerror = function (
+    globalThis.eave.windowAlias.onerror = function (
       message,
       url,
       linenumber,
@@ -4501,17 +4514,23 @@ export function Tracker(trackerUrl, siteId) {
    */
   this.disableHeartBeatTimer = function () {
     if (configHeartBeatDelay || heartBeatSetUp) {
-      if (global.eave.windowAlias.removeEventListener) {
-        global.eave.windowAlias.removeEventListener("focus", heartBeatOnFocus);
-        global.eave.windowAlias.removeEventListener("blur", heartBeatOnBlur);
-        global.eave.windowAlias.removeEventListener(
+      if (globalThis.eave.windowAlias.removeEventListener) {
+        globalThis.eave.windowAlias.removeEventListener(
+          "focus",
+          heartBeatOnFocus,
+        );
+        globalThis.eave.windowAlias.removeEventListener(
+          "blur",
+          heartBeatOnBlur,
+        );
+        globalThis.eave.windowAlias.removeEventListener(
           "visibilitychange",
           heartBeatOnVisible,
         );
-      } else if (global.eave.windowAlias.detachEvent) {
-        global.eave.windowAlias.detachEvent("onfocus", heartBeatOnFocus);
-        global.eave.windowAlias.detachEvent("onblur", heartBeatOnBlur);
-        global.eave.windowAlias.detachEvent(
+      } else if (globalThis.eave.windowAlias.detachEvent) {
+        globalThis.eave.windowAlias.detachEvent("onfocus", heartBeatOnFocus);
+        globalThis.eave.windowAlias.detachEvent("onblur", heartBeatOnBlur);
+        globalThis.eave.windowAlias.detachEvent(
           "visibilitychange",
           heartBeatOnVisible,
         );
@@ -4527,9 +4546,11 @@ export function Tracker(trackerUrl, siteId) {
    */
   this.killFrame = function () {
     if (
-      global.eave.windowAlias.location !== global.eave.windowAlias.top.location
+      globalThis.eave.windowAlias.location !==
+      globalThis.eave.windowAlias.top.location
     ) {
-      global.eave.windowAlias.top.location = global.eave.windowAlias.location;
+      globalThis.eave.windowAlias.top.location =
+        globalThis.eave.windowAlias.location;
     }
   };
 
@@ -4539,8 +4560,8 @@ export function Tracker(trackerUrl, siteId) {
    * @param {string} url Redirect to this URL
    */
   this.redirectFile = function (url) {
-    if (global.eave.windowAlias.location.protocol === "file:") {
-      global.eave.windowAlias.location = url;
+    if (globalThis.eave.windowAlias.location.protocol === "file:") {
+      globalThis.eave.windowAlias.location = url;
     }
   };
 
@@ -4925,7 +4946,7 @@ export function Tracker(trackerUrl, siteId) {
     ) {
       category = "";
     } else if (category instanceof Array) {
-      category = global.eave.windowAlias.JSON.stringify(category);
+      category = globalThis.eave.windowAlias.JSON.stringify(category);
     }
 
     var param = "_pkc";
@@ -4969,8 +4990,8 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {Array}
    */
   this.getEcommerceItems = function () {
-    return global.eave.windowAlias.JSON.parse(
-      global.eave.windowAlias.JSON.stringify(ecommerceItems),
+    return globalThis.eave.windowAlias.JSON.parse(
+      globalThis.eave.windowAlias.JSON.stringify(ecommerceItems),
     );
   };
 
@@ -5195,8 +5216,10 @@ export function Tracker(trackerUrl, siteId) {
     }
     // eave.addPlugin might not be defined at this point, we add the plugin directly also to make JSLint happy
     // We also want to make sure to define an unload listener for each tracker, not only one tracker.
-    global.eave.coreConsentCounter++;
-    global.eave.plugins["CoreConsent" + global.eave.coreConsentCounter] = {
+    globalThis.eave.coreConsentCounter++;
+    globalThis.eave.plugins[
+      "CoreConsent" + globalThis.eave.coreConsentCounter
+    ] = {
       unload: function () {
         if (!configHasConsent) {
           // we want to make sure to remove all previously set cookies again
@@ -5390,9 +5413,9 @@ export function Tracker(trackerUrl, siteId) {
     }, 0);
   });
 
-  global.eave.eave.trigger("TrackerSetup", [this]);
+  globalThis.eave.eave.trigger("TrackerSetup", [this]);
 
-  global.eave.eave.addPlugin("TrackerVisitorIdCookie" + uniqueTrackerId, {
+  globalThis.eave.eave.addPlugin("TrackerVisitorIdCookie" + uniqueTrackerId, {
     // if no tracking request was sent we refresh the visitor id cookie on page unload
     unload: function () {
       if (supportsClientHints() && !clientHintsResolved) {

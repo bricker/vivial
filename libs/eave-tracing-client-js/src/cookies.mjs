@@ -4,41 +4,43 @@ import * as h from "./helpers.mjs";
 /**
  * CookieManager class
  */
-export function CookieManager() {
-  /* MEMBER FIELDS */
-  this.SESSION_COOKIE_NAME = "eave.session";
-  this.CONSENT_COOKIE_NAME = "eave_consent";
-  this.COOKIE_CONSENT_COOKIE_NAME = "eave_cookie_consent";
-  this.CONSENT_REMOVED_COOKIE_NAME = "eave_consent_removed";
-  // First-party cookie name prefix
-  this.configCookieNamePrefix = "_ev_";
-  // Life of the visitor cookie (in milliseconds)
-  this.configVisitorCookieTimeout = 33955200000; // 13 months (365 days + 28days)
-  // Life of the session cookie (in milliseconds)
-  this.configSessionCookieTimeout = 1800000; // 30 minutes
-  // Life of the referral cookie (in milliseconds)
-  this.configReferralCookieTimeout = 15768000000; // 6 months
-  // Eave cookies we manage
-  this.configCookiesToDelete = ["id", "ses", "cvar", "ref"];
-  // First-party cookie domain
-  // User agent defaults to origin hostname
-  this.configCookieDomain = undefined;
-  // First-party cookie path
-  // Default is user agent defined.
-  this.configCookiePath = undefined;
-  // Whether to use "Secure" cookies that only work over SSL
-  this.configCookieIsSecure = false;
-  // Set SameSite attribute for cookies
-  this.configCookieSameSite = "Lax";
-  // First-party cookies are disabled
-  this.configCookiesDisabled = false;
+export class CookieManager {
+  constructor() {
+    /* MEMBER FIELDS */
+    this.SESSION_COOKIE_NAME = "eave.session";
+    this.CONSENT_COOKIE_NAME = "eave_consent";
+    this.COOKIE_CONSENT_COOKIE_NAME = "eave_cookie_consent";
+    this.CONSENT_REMOVED_COOKIE_NAME = "eave_consent_removed";
+    // First-party cookie name prefix
+    this.configCookieNamePrefix = "_ev_";
+    // Life of the visitor cookie (in milliseconds)
+    this.configVisitorCookieTimeout = 33955200000; // 13 months (365 days + 28days)
+    // Life of the session cookie (in milliseconds)
+    this.configSessionCookieTimeout = 1800000; // 30 minutes
+    // Life of the referral cookie (in milliseconds)
+    this.configReferralCookieTimeout = 15768000000; // 6 months
+    // Eave cookies we manage
+    this.configCookiesToDelete = ["id", "ses", "cvar", "ref"];
+    // First-party cookie domain
+    // User agent defaults to origin hostname
+    this.configCookieDomain = undefined;
+    // First-party cookie path
+    // Default is user agent defined.
+    this.configCookiePath = undefined;
+    // Whether to use "Secure" cookies that only work over SSL
+    this.configCookieIsSecure = false;
+    // Set SameSite attribute for cookies
+    this.configCookieSameSite = "Lax";
+    // First-party cookies are disabled
+    this.configCookiesDisabled = false;
+  }
 
   /**
    * Get cookie value
    *
    * @returns {string|number} cookie value for `cookieName` or 0 if not found
    */
-  this.getCookie = function (cookieName) {
+  getCookie(cookieName) {
     if (
       this.configCookiesDisabled &&
       cookieName !== this.CONSENT_REMOVED_COOKIE_NAME
@@ -47,9 +49,9 @@ export function CookieManager() {
     }
 
     var cookiePattern = new RegExp("(^|;)[ ]*" + cookieName + "=([^;]*)"),
-      cookieMatch = cookiePattern.exec(global.eave.documentAlias.cookie);
+      cookieMatch = cookiePattern.exec(globalThis.eave.documentAlias.cookie);
 
-    return cookieMatch ? global.eave.decodeWrapper(cookieMatch[2]) : 0;
+    return cookieMatch ? globalThis.eave.decodeWrapper(cookieMatch[2]) : 0;
   };
 
   /**
@@ -64,7 +66,7 @@ export function CookieManager() {
    * @param {string} sameSite cookie sharing restrictions (default "Lax")
    *    https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#samesitesamesite-value
    */
-  this.setCookie = function (
+  setCookie(
     cookieName,
     value,
     msToExpire,
@@ -92,10 +94,10 @@ export function CookieManager() {
       sameSite = "Lax";
     }
 
-    global.eave.documentAlias.cookie =
+    globalThis.eave.documentAlias.cookie =
       cookieName +
       "=" +
-      global.eave.encodeWrapper(value) +
+      globalThis.eave.encodeWrapper(value) +
       (msToExpire ? ";expires=" + expiryDate.toGMTString() : "") +
       ";path=" +
       (path || "/") +
@@ -120,12 +122,12 @@ export function CookieManager() {
   /*
    * Inits the custom variables object
    */
-  this.getCustomVariablesFromCookie = function () {
+  getCustomVariablesFromCookie() {
     var cookieName = this.getCookieName("cvar"),
       cookie = this.getCookie(cookieName);
 
     if (cookie && cookie.length) {
-      cookie = global.eave.windowAlias.JSON.parse(cookie);
+      cookie = globalThis.eave.windowAlias.JSON.parse(cookie);
 
       if (h.isObject(cookie)) {
         return cookie;
@@ -144,7 +146,7 @@ export function CookieManager() {
    *  2: timestamp
    *  3: raw URL
    */
-  this.loadReferrerAttributionCookie = function () {
+  loadReferrerAttributionCookie() {
     // NOTE: if the format of the cookie changes,
     // we must also update JS tests, PHP tracker, System tests,
     // and notify other tracking clients (eg. Java) of the changes
@@ -152,7 +154,7 @@ export function CookieManager() {
 
     if (cookie.length) {
       try {
-        cookie = global.eave.windowAlias.JSON.parse(cookie);
+        cookie = globalThis.eave.windowAlias.JSON.parse(cookie);
         if (h.isObject(cookie)) {
           return cookie;
         }
@@ -164,7 +166,7 @@ export function CookieManager() {
     return ["", "", 0, ""];
   };
 
-  this.isPossibleToSetCookieOnDomain = function (domainToTest) {
+  isPossibleToSetCookieOnDomain(domainToTest) {
     var testCookieName = this.configCookieNamePrefix + "testcookie_domain";
     var valueToSet = "testvalue";
     this.setCookie(
@@ -189,7 +191,7 @@ export function CookieManager() {
   /**
    * Deletes the set of cookies `configCookiesToDelete` that we manage
    */
-  this.deleteCookies = function () {
+  deleteCookies() {
     var savedConfigCookiesDisabled = this.configCookiesDisabled;
 
     // Temporarily allow cookies just to delete the existing ones
@@ -218,27 +220,27 @@ export function CookieManager() {
   /*
    * Get cookie name with prefix and domain hash
    */
-  this.getCookieName = function (baseName) {
+  getCookieName(baseName) {
     return this.configCookieNamePrefix + baseName;
   };
 
-  this.deleteCookie = function (cookieName, path, domain) {
+  deleteCookie(cookieName, path, domain) {
     this.setCookie(cookieName, "", -129600000, path, domain);
   };
 
   /*
    * Does browser have cookies enabled (for this site)?
    */
-  this.hasCookies = function () {
+  hasCookies() {
     if (this.configCookiesDisabled) {
       return "0";
     }
 
     if (
-      !h.isDefined(global.eave.windowAlias.showModalDialog) &&
-      h.isDefined(global.eave.navigatorAlias.cookieEnabled)
+      !h.isDefined(globalThis.eave.windowAlias.showModalDialog) &&
+      h.isDefined(globalThis.eave.navigatorAlias.cookieEnabled)
     ) {
-      return global.eave.navigatorAlias.cookieEnabled ? "1" : "0";
+      return globalThis.eave.navigatorAlias.cookieEnabled ? "1" : "0";
     }
 
     // for IE we want to actually set the cookie to avoid trigger a warning eg in IE see #11507
@@ -258,7 +260,7 @@ export function CookieManager() {
     return hasCookie;
   };
 
-  this.resetOrExtendSession = function () {
+  resetOrExtendSession() {
     const sessionId = this.getCookie(this.SESSION_COOKIE_NAME) || h.uuidv4();
     this.setCookie(
       this.SESSION_COOKIE_NAME,

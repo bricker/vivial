@@ -1,3 +1,5 @@
+import "./globals.mjs";
+
 /**
  * See https://github.com/matomo-org/matomo/issues/8413
  * To prevent Javascript Error: Uncaught URIError: URI malformed when encoding is not UTF-8. Use this method
@@ -7,7 +9,7 @@
  */
 export function safeDecodeWrapper(url) {
   try {
-    return global.eave.decodeWrapper(url);
+    return globalThis.eave.decodeWrapper(url);
   } catch (e) {
     return unescape(url);
   }
@@ -121,23 +123,23 @@ export function apply() {
       f = fParts[1];
 
       if (
-        "object" === typeof global.eave.eave[context] &&
-        "function" === typeof global.eave.eave[context][f]
+        "object" === typeof globalThis.eave.eave[context] &&
+        "function" === typeof globalThis.eave.eave[context][f]
       ) {
-        global.eave.eave[context][f].apply(
-          global.eave.eave[context],
+        globalThis.eave.eave[context][f].apply(
+          globalThis.eave.eave[context],
           parameterArray,
         );
       } else if (trackerCall) {
         // we try to call that method again later as the plugin might not be loaded yet
-        // a plugin can call "global.eave.eave.retryMissedPluginCalls();" once it has been loaded and then the
-        // method call to "global.eave.eave[context][f]" may be executed
-        global.eave.missedPluginTrackerCalls.push(trackerCall);
+        // a plugin can call "globalThis.eave.eave.retryMissedPluginCalls();" once it has been loaded and then the
+        // method call to "globalThis.eave.eave[context][f]" may be executed
+        globalThis.eave.missedPluginTrackerCalls.push(trackerCall);
       }
     } else {
-      for (j = 0; j < global.eave.asyncTrackers.length; j++) {
+      for (j = 0; j < globalThis.eave.asyncTrackers.length; j++) {
         if (isString(f)) {
-          context = global.eave.asyncTrackers[j];
+          context = globalThis.eave.asyncTrackers[j];
 
           var isPluginTrackerCall = f.indexOf(".") > 0;
 
@@ -148,7 +150,7 @@ export function apply() {
               f = fParts[1];
             } else if (trackerCall) {
               // we try to call that method again later as the plugin might not be loaded yet
-              global.eave.missedPluginTrackerCalls.push(trackerCall);
+              globalThis.eave.missedPluginTrackerCalls.push(trackerCall);
               break;
             }
           }
@@ -170,7 +172,7 @@ export function apply() {
           }
 
           if (f === "addTracker") {
-            // addTracker adds an entry to global.eave.asyncTrackers and would otherwise result in an endless loop
+            // addTracker adds an entry to globalThis.eave.asyncTrackers and would otherwise result in an endless loop
             break;
           }
 
@@ -179,7 +181,7 @@ export function apply() {
             break;
           }
         } else {
-          f.apply(global.eave.asyncTrackers[j], parameterArray);
+          f.apply(globalThis.eave.asyncTrackers[j], parameterArray);
         }
       }
     }
@@ -204,22 +206,22 @@ export function addEventListener(element, eventType, eventHandler, useCapture) {
 }
 
 export function trackCallbackOnLoad(callback) {
-  if (global.eave.documentAlias.readyState === "complete") {
+  if (globalThis.eave.documentAlias.readyState === "complete") {
     callback();
-  } else if (global.eave.windowAlias.addEventListener) {
-    global.eave.windowAlias.addEventListener("load", callback, false);
-  } else if (global.eave.windowAlias.attachEvent) {
-    global.eave.windowAlias.attachEvent("onload", callback);
+  } else if (globalThis.eave.windowAlias.addEventListener) {
+    globalThis.eave.windowAlias.addEventListener("load", callback, false);
+  } else if (globalThis.eave.windowAlias.attachEvent) {
+    globalThis.eave.windowAlias.attachEvent("onload", callback);
   }
 }
 
 export function trackCallbackOnReady(callback) {
   var loaded = false;
 
-  if (global.eave.documentAlias.attachEvent) {
-    loaded = global.eave.documentAlias.readyState === "complete";
+  if (globalThis.eave.documentAlias.attachEvent) {
+    loaded = globalThis.eave.documentAlias.readyState === "complete";
   } else {
-    loaded = global.eave.documentAlias.readyState !== "loading";
+    loaded = globalThis.eave.documentAlias.readyState !== "loading";
   }
 
   if (loaded) {
@@ -229,12 +231,12 @@ export function trackCallbackOnReady(callback) {
 
   var _timer;
 
-  if (global.eave.documentAlias.addEventListener) {
+  if (globalThis.eave.documentAlias.addEventListener) {
     addEventListener(
-      global.eave.documentAlias,
+      globalThis.eave.documentAlias,
       "DOMContentLoaded",
       function ready() {
-        global.eave.documentAlias.removeEventListener(
+        globalThis.eave.documentAlias.removeEventListener(
           "DOMContentLoaded",
           ready,
           false,
@@ -245,12 +247,15 @@ export function trackCallbackOnReady(callback) {
         }
       },
     );
-  } else if (global.eave.documentAlias.attachEvent) {
-    global.eave.documentAlias.attachEvent(
+  } else if (globalThis.eave.documentAlias.attachEvent) {
+    globalThis.eave.documentAlias.attachEvent(
       "onreadystatechange",
       function ready() {
-        if (global.eave.documentAlias.readyState === "complete") {
-          global.eave.documentAlias.detachEvent("onreadystatechange", ready);
+        if (globalThis.eave.documentAlias.readyState === "complete") {
+          globalThis.eave.documentAlias.detachEvent(
+            "onreadystatechange",
+            ready,
+          );
           if (!loaded) {
             loaded = true;
             callback();
@@ -260,13 +265,13 @@ export function trackCallbackOnReady(callback) {
     );
 
     if (
-      global.eave.documentAlias.documentElement.doScroll &&
-      global.eave.windowAlias === global.eave.windowAlias.top
+      globalThis.eave.documentAlias.documentElement.doScroll &&
+      globalThis.eave.windowAlias === globalThis.eave.windowAlias.top
     ) {
       (function ready() {
         if (!loaded) {
           try {
-            global.eave.documentAlias.documentElement.doScroll("left");
+            globalThis.eave.documentAlias.documentElement.doScroll("left");
           } catch (error) {
             setTimeout(ready, 0);
 
@@ -281,7 +286,7 @@ export function trackCallbackOnReady(callback) {
 
   // fallback
   addEventListener(
-    global.eave.windowAlias,
+    globalThis.eave.windowAlias,
     "load",
     function () {
       if (!loaded) {
@@ -307,14 +312,14 @@ export function executePluginMethod(methodName, params, callback) {
     value,
     isFunction;
 
-  for (i in global.eave.plugins) {
-    if (Object.prototype.hasOwnProperty.call(global.eave.plugins, i)) {
+  for (i in globalThis.eave.plugins) {
+    if (Object.prototype.hasOwnProperty.call(globalThis.eave.plugins, i)) {
       isFunction =
-        global.eave.plugins[i] &&
-        "function" === typeof global.eave.plugins[i][methodName];
+        globalThis.eave.plugins[i] &&
+        "function" === typeof globalThis.eave.plugins[i][methodName];
 
       if (isFunction) {
-        pluginMethod = global.eave.plugins[i][methodName];
+        pluginMethod = globalThis.eave.plugins[i][methodName];
         value = pluginMethod(params || {}, callback);
 
         if (value) {
@@ -336,25 +341,25 @@ export function executePluginMethod(methodName, params, callback) {
  */
 export function beforeUnloadHandler(event) {
   var now;
-  global.eave.isPageUnloading = true;
+  globalThis.eave.isPageUnloading = true;
 
   executePluginMethod("unload");
   now = new Date();
   var aliasTime = now.getTimeAlias();
-  if (global.eave.expireDateTime - aliasTime > 3000) {
-    global.eave.expireDateTime = aliasTime + 3000;
+  if (globalThis.eave.expireDateTime - aliasTime > 3000) {
+    globalThis.eave.expireDateTime = aliasTime + 3000;
   }
 
   /*
    * Delay/pause (blocks UI)
    */
-  if (global.eave.expireDateTime) {
+  if (globalThis.eave.expireDateTime) {
     // the things we do for backwards compatibility...
     // in ECMA-262 5th ed., we could simply use:
-    //     while (Date.now() < global.eave.expireDateTime) { }
+    //     while (Date.now() < globalThis.eave.expireDateTime) { }
     do {
       now = new Date();
-    } while (now.getTimeAlias() < global.eave.expireDateTime);
+    } while (now.getTimeAlias() < globalThis.eave.expireDateTime);
   }
 }
 
@@ -362,7 +367,7 @@ export function beforeUnloadHandler(event) {
  * Load JavaScript file (asynchronously)
  */
 export function loadScript(src, onLoad) {
-  var script = global.eave.documentAlias.createElement("script");
+  var script = globalThis.eave.documentAlias.createElement("script");
 
   script.type = "text/javascript";
   script.src = src;
@@ -380,7 +385,9 @@ export function loadScript(src, onLoad) {
     script.onload = onLoad;
   }
 
-  global.eave.documentAlias.getElementsByTagName("head")[0].appendChild(script);
+  globalThis.eave.documentAlias
+    .getElementsByTagName("head")[0]
+    .appendChild(script);
 }
 
 /*
@@ -390,11 +397,11 @@ export function getReferrer() {
   var referrer = "";
 
   try {
-    referrer = global.eave.windowAlias.top.document.referrer;
+    referrer = globalThis.eave.windowAlias.top.document.referrer;
   } catch (e) {
-    if (global.eave.windowAlias.parent) {
+    if (globalThis.eave.windowAlias.parent) {
       try {
-        referrer = global.eave.windowAlias.parent.document.referrer;
+        referrer = globalThis.eave.windowAlias.parent.document.referrer;
       } catch (e2) {
         referrer = "";
       }
@@ -402,7 +409,7 @@ export function getReferrer() {
   }
 
   if (referrer === "") {
-    referrer = global.eave.documentAlias.referrer;
+    referrer = globalThis.eave.documentAlias.referrer;
   }
 
   return referrer;
@@ -470,9 +477,9 @@ export function queryStringify(data) {
     if (data.hasOwnProperty(k)) {
       queryString +=
         "&" +
-        global.eave.encodeWrapper(k) +
+        globalThis.eave.encodeWrapper(k) +
         "=" +
-        global.eave.encodeWrapper(data[k]);
+        globalThis.eave.encodeWrapper(data[k]);
     }
   }
   return queryString;
@@ -530,9 +537,9 @@ export function addUrlParameter(url, name, value) {
 
   return (
     baseUrl +
-    global.eave.encodeWrapper(name) +
+    globalThis.eave.encodeWrapper(name) +
     "=" +
-    global.eave.encodeWrapper(value) +
+    globalThis.eave.encodeWrapper(value) +
     urlHash
   );
 }
@@ -612,7 +619,7 @@ export function trim(text) {
  * UTF-8 encoding
  */
 export function utf8_encode(argString) {
-  return unescape(global.eave.encodeWrapper(argString));
+  return unescape(globalThis.eave.encodeWrapper(argString));
 }
 
 /************************************************************
@@ -806,7 +813,7 @@ export function urlFixup(hostName, href, referrer) {
     hostName.slice(0, 5) === "74.6."
   ) {
     // Yahoo (via Inktomi 74.6.0.0/16)
-    href = global.eave.documentAlias.links[0].href;
+    href = globalThis.eave.documentAlias.links[0].href;
     hostName = getHostName(href);
   }
 
@@ -843,7 +850,7 @@ export function titleFixup(title) {
   title = title && title.text ? title.text : title;
 
   if (!isString(title)) {
-    var tmp = global.eave.documentAlias.getElementsByTagName("title");
+    var tmp = globalThis.eave.documentAlias.getElementsByTagName("title");
 
     if (tmp && isDefined(tmp[0])) {
       title = tmp[0].text;
@@ -1014,8 +1021,11 @@ export function setExpireDateTime(delay) {
   var now = new Date();
   var time = now.getTime() + delay;
 
-  if (!global.eave.expireDateTime || time > global.eave.expireDateTime) {
-    global.eave.expireDateTime = time;
+  if (
+    !globalThis.eave.expireDateTime ||
+    time > globalThis.eave.expireDateTime
+  ) {
+    globalThis.eave.expireDateTime = time;
   }
 }
 
@@ -1105,7 +1115,11 @@ export function isSitePath(path, pathAlias) {
  * @returns {string} query params to attach to a request URL
  */
 export function argsToQueryParameters(args) {
-  const makeURLSafe = isFunction(encodeURIComponent) ? encodeURIComponent : function (x) { return x; };
+  const makeURLSafe = isFunction(encodeURIComponent)
+    ? encodeURIComponent
+    : function (x) {
+        return x;
+      };
   let qp = "";
   let key;
   for (key of Object.keys(args)) {

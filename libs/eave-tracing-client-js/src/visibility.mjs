@@ -1,3 +1,4 @@
+import "./globals.mjs";
 import * as helpers from "./helpers.mjs";
 
 /**
@@ -15,10 +16,11 @@ export function isVisible(node) {
 
   //-- Cross browser method to get style properties:
   function _getStyle(el, property) {
-    if (global.eave.windowAlias.getComputedStyle) {
-      return global.eave.documentAlias.defaultView.getComputedStyle(el, null)[
-        property
-      ];
+    if (globalThis.eave.windowAlias.getComputedStyle) {
+      return globalThis.eave.documentAlias.defaultView.getComputedStyle(
+        el,
+        null,
+      )[property];
     }
     if (el.currentStyle) {
       return el.currentStyle[property];
@@ -29,7 +31,7 @@ export function isVisible(node) {
     element = element.parentNode;
 
     while (element) {
-      if (element === global.eave.documentAlias) {
+      if (element === globalThis.eave.documentAlias) {
         return true;
       }
       element = element.parentNode;
