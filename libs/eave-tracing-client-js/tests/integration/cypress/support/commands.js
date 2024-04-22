@@ -23,3 +23,25 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+
+import { ATOM_INGESTION_ROUTE, EAVE_HOST } from "./constants";
+
+Cypress.Commands.add("interceptAtomIngestion", (requestAssertions) => {
+  // Intercept the ingestion request and mock resp
+  const interceptionName = "atomFired";
+  // wildcard at end of intercept route to match any query params attached
+  cy.intercept("POST", `${EAVE_HOST}${ATOM_INGESTION_ROUTE}*`, (req) => {
+    // in reality, the ingestion reply doesnt matter, so we'll use this stub
+    // to reflect info about the request we want to assert (i.e. data being passed)
+    const qp = new URL(req.url).searchParams;
+    req.reply({
+      statusCode: 200,
+      body: {
+        data: Object.fromEntries(qp.entries()),
+      },
+    });
+  }).as(interceptionName);
+
+  // Wait for the POST request to be sent
+  cy.wait(`@${interceptionName}`).then(requestAssertions);
+});
