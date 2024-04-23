@@ -6,13 +6,12 @@ import * as h from "./helpers.mjs";
  */
 export class CookieManager {
   constructor() {
-    /* MEMBER FIELDS */
     this.SESSION_COOKIE_NAME = "eave.session";
     this.CONSENT_COOKIE_NAME = "eave_consent";
     this.COOKIE_CONSENT_COOKIE_NAME = "eave_cookie_consent";
     this.CONSENT_REMOVED_COOKIE_NAME = "eave_consent_removed";
     // First-party cookie name prefix
-    this.configCookieNamePrefix = "_ev_";
+    this.configCookieNamePrefix = "_eave_";
     // Life of the visitor cookie (in milliseconds)
     this.configVisitorCookieTimeout = 33955200000; // 13 months (365 days + 28days)
     // Life of the session cookie (in milliseconds)

@@ -1115,8 +1115,8 @@ export function isSitePath(path, pathAlias) {
  * @returns {string} query params to attach to a request URL
  */
 export function argsToQueryParameters(args) {
-  const makeURLSafe = isFunction(encodeURIComponent)
-    ? encodeURIComponent
+  const makeURLSafe = isFunction(globalThis.eave.encodeWrapper)
+    ? globalThis.eave.encodeWrapper
     : function (x) {
         return x;
       };

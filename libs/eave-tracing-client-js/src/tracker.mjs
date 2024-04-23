@@ -28,7 +28,7 @@ export function Tracker(trackerUrl, siteId) {
     CONTEXT_COOKIE_NAME = "eave.context",
     trackerInstance = this,
     // in-memory context to be attached to all atoms. Use getContext()/setContext() to access!
-    _eaveContext = {}, // TODO: set on all fired atom events
+    _eaveContext = {},
     // Current URL and Referrer URL
     locationArray = h.urlFixup(
       globalThis.eave.documentAlias.domain,
@@ -1517,7 +1517,10 @@ export function Tracker(trackerUrl, siteId) {
       args["cs"] = globalThis.eave.encodeWrapper(charSet);
     }
 
-    // TODO: convert to args obj stuff
+    for (i of Object.keys(_eaveContext)) {
+      args[i] = getContext(i);
+    }
+
     var referrerAttribution = detectReferrerAttribution();
     // referrer attribution
     for (i in referrerAttribution) {
