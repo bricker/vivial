@@ -21,9 +21,9 @@ global.eave = {
   /* performance timing */
   performanceAlias: null,
   /* encode */
-  encodeWrapper: (x) => x,
+  encodeWrapper: encodeURIComponent,
   /* decode */
-  decodeWrapper: (x) => x,
+  decodeWrapper: decodeURIComponent,
   /* urldecode */
   urldecode: unescape,
   /* asynchronous tracker */

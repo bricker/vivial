@@ -1,7 +1,8 @@
-var documentAlias = document,
-  navigatorAlias = navigator,
-  screenAlias = screen,
-  windowAlias = window;
+// have to do this check on browser globals to make Node.js env happy
+var documentAlias = typeof document !== "undefined" ? document : {},
+  navigatorAlias = typeof navigator !== "undefined" ? navigator : {},
+  screenAlias = typeof screen !== "undefined" ? screen : {},
+  windowAlias = typeof window !== "undefined" ? window : {};
 
 var _paq = [];
 _paq.push(["setTrackingCookies"])
