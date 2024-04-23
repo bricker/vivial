@@ -8,9 +8,6 @@ from aiohttp import ClientResponseError
 from flask import Flask, Response, make_response, redirect, render_template, request
 from werkzeug.wrappers import Response as BaseResponse
 
-import eave.stdlib.core_api.operations.account as account
-import eave.stdlib.core_api.operations.team as team
-import eave.stdlib.core_api.operations.virtual_event as virtual_event
 import eave.stdlib.logging
 import eave.stdlib.requests_util
 import eave.stdlib.time
@@ -18,6 +15,7 @@ from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
 from eave.stdlib.core_api.models.virtual_event import VirtualEventQueryInput
+from eave.stdlib.core_api.operations import account, team, virtual_event
 from eave.stdlib.core_api.operations.metabase_embedding_sso import MetabaseEmbeddingSSOOperation
 from eave.stdlib.core_api.operations.status import status_payload
 from eave.stdlib.endpoints import BaseResponseBody
