@@ -20,7 +20,7 @@ export class CookieManager {
     // Life of the referral cookie (in milliseconds)
     this.configReferralCookieTimeout = 15768000000; // 6 months
     // Eave cookies we manage
-    this.configCookiesToDelete = [this.SESSION_COOKIE_NAME, this.CONTEXT_COOKIE_NAME, "id", "ses", "cvar", "ref"]; // TODO: do we need the rest of these values?
+    this.configCookiesToDelete = [this.SESSION_COOKIE_NAME, this.CONTEXT_COOKIE_NAME, "cvar"];
     // First-party cookie domain
     // User agent defaults to origin hostname
     this.configCookieDomain = undefined;
@@ -135,35 +135,6 @@ export class CookieManager {
     }
 
     return {};
-  };
-
-  /*
-   * Loads the referrer attribution information
-   *
-   * @returns {Array}
-   *  0: campaign name
-   *  1: campaign keyword
-   *  2: timestamp
-   *  3: raw URL
-   */
-  loadReferrerAttributionCookie() {
-    // NOTE: if the format of the cookie changes,
-    // we must also update JS tests, PHP tracker, System tests,
-    // and notify other tracking clients (eg. Java) of the changes
-    var cookie = this.getCookie(this.getCookieName("ref"));
-
-    if (cookie.length) {
-      try {
-        cookie = globalThis.eave.windowAlias.JSON.parse(cookie);
-        if (h.isObject(cookie)) {
-          return cookie;
-        }
-      } catch (ignore) {
-        // Pre 1.3, this cookie was not JSON encoded
-      }
-    }
-
-    return ["", "", 0, ""];
   };
 
   isPossibleToSetCookieOnDomain(domainToTest) {

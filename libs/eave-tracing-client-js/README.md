@@ -3,6 +3,8 @@
 Include the JS client via snippet/script tag to track user interactions with a webpage,
 sending data to the Eave backend for further processing and organization.
 
+Eave browser client manages its own visitor ID and session ID tracking so you don't have to!
+
 Project builds to `eave-client.min.js` file that can be included in any web page to collect user actions in the browser.
 
 Forked from the BSD-3/GPLv3 licensed [Matomo piwik.js file](https://github.com/matomo-org/matomo/blob/5.x-dev/js/piwik.js).

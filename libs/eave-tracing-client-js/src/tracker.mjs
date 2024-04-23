@@ -192,6 +192,7 @@ export function Tracker(trackerUrl, siteId) {
     // VDI = visitor device identifier
     configVisitorIdUrlParameter = "ev_vid",
     configVisitorIdKey = "visitor_id",
+    configReferralKey = "referrer",
     // Cross domain linking, the visitor ID is transmitted only in the 180 seconds following the click.
     configVisitorIdUrlParameterTimeoutInSeconds = 180,
     // Is performance tracking enabled
@@ -1307,22 +1308,20 @@ export function Tracker(trackerUrl, siteId) {
       referralUrlMaxLength = 1024,
       currentReferrerHostName,
       originalReferrerHostName,
-      cookieSessionName = cookieManager.getCookieName("ses"),
-      cookieReferrerName = cookieManager.getCookieName("ref"),
-      cookieSessionValue = cookieManager.getCookie(cookieSessionName),
-      attributionCookie = cookieManager.loadReferrerAttributionCookie(),
+      cookieSessionValue = cookieManager.getSession(),
+      attributionData = getContext(configReferralKey),
       currentUrl = configCustomUrl || locationHrefAlias,
       campaignNameDetected,
       campaignKeywordDetected,
       attributionValues = {};
 
-    campaignNameDetected = attributionCookie[0];
-    campaignKeywordDetected = attributionCookie[1];
-    referralTs = attributionCookie[2];
-    referralUrl = attributionCookie[3];
+    campaignNameDetected = attributionData[0];
+    campaignKeywordDetected = attributionData[1];
+    referralTs = attributionData[2];
+    referralUrl = attributionData[3];
 
     if (!hasIgnoreReferrerParameter(currentUrl) && !cookieSessionValue) {
-      // cookie 'ses' was not found: we consider this the start of a 'session'
+      // session cookie was not found: we consider this the start of a 'session'
 
       // Detect the campaign information from the current URL
       // Only if campaign wasn't previously set
@@ -1392,22 +1391,15 @@ export function Tracker(trackerUrl, siteId) {
       // Set the referral cookie if we have either a Referrer URL, or detected a Campaign (or both)
       if (referralUrl.length || campaignNameDetected.length) {
         referralTs = nowTs;
-        attributionCookie = [
-          campaignNameDetected,
-          campaignKeywordDetected,
-          referralTs,
-          purify(referralUrl.slice(0, referralUrlMaxLength)),
-        ];
 
-        cookieManager.setCookie(
-          cookieReferrerName,
-          globalThis.eave.windowAlias.JSON.stringify(attributionCookie),
-          cookieManager.configReferralCookieTimeout,
-          cookieManager.configCookiePath,
-          cookieManager.configCookieDomain,
-          cookieManager.configCookieIsSecure,
-          cookieManager.configCookieSameSite,
-        );
+        attributionData = {
+          campaign_name: campaignNameDetected,
+          campaign_kw: campaignKeywordDetected,
+          timestamp: referralTs,
+          raw_url: purify(referralUrl.slice(0, referralUrlMaxLength)),
+        };
+
+        setContext(configReferralKey, attributionData);
       }
     }
 
@@ -3067,17 +3059,17 @@ export function Tracker(trackerUrl, siteId) {
   };
 
   /**
-   * Get the Attribution information, which is an array that contains
+   * Get the Attribution information, which is an object that contains
    * the Referrer used to reach the site as well as the campaign name and keyword
    * It is useful only when used in conjunction with Tracker API function setAttributionInfo()
    * To access specific data point, you should use the other functions getAttributionReferrer* and getAttributionCampaign*
    *
-   * @returns {Array} Attribution array, Example use:
+   * @returns {object|undefined} Attribution data, Example use:
    *   1) Call globalThis.eave.windowAlias.JSON.stringify(eaveTracker.getAttributionInfo())
    *   2) Pass this json encoded string to the Tracking API (php or java client): setAttributionInfo()
    */
   this.getAttributionInfo = function () {
-    return cookieManager.loadReferrerAttributionCookie();
+    return getContext(configReferralKey);
   };
 
   /**
@@ -3087,7 +3079,7 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {string}
    */
   this.getAttributionCampaignName = function () {
-    return cookieManager.loadReferrerAttributionCookie()[0];
+    return getContext(configReferralKey)?.campaign_name || "";
   };
 
   /**
@@ -3097,7 +3089,7 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {string}
    */
   this.getAttributionCampaignKeyword = function () {
-    return cookieManager.loadReferrerAttributionCookie()[1];
+    return getContext(configReferralKey)?.campaign_kw || "";
   };
 
   /**
@@ -3106,7 +3098,7 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {int} Timestamp or 0 if no referrer currently set
    */
   this.getAttributionReferrerTimestamp = function () {
-    return cookieManager.loadReferrerAttributionCookie()[2];
+    return getContext(configReferralKey)?.timestamp || "";
   };
 
   /**
@@ -3115,7 +3107,7 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {string} Raw URL, or empty string '' if no referrer currently set
    */
   this.getAttributionReferrerUrl = function () {
-    return cookieManager.loadReferrerAttributionCookie()[3];
+    return getContext(configReferralKey)?.raw_url || "";
   };
 
   /**
