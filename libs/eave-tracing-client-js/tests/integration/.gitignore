@@ -26,4 +26,4 @@ yarn-error.log*
 screenshots
 
 # testing data
-public/eave-client.min.js
+/public/eave-client.min.js
