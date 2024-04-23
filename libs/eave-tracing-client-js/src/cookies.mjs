@@ -8,6 +8,7 @@ export class CookieManager {
   constructor() {
     this.SESSION_COOKIE_NAME = "eave.session";
     this.CONSENT_COOKIE_NAME = "eave_consent";
+    this.CONTEXT_COOKIE_NAME = "eave.context";
     this.COOKIE_CONSENT_COOKIE_NAME = "eave_cookie_consent";
     this.CONSENT_REMOVED_COOKIE_NAME = "eave_consent_removed";
     // First-party cookie name prefix
@@ -19,7 +20,7 @@ export class CookieManager {
     // Life of the referral cookie (in milliseconds)
     this.configReferralCookieTimeout = 15768000000; // 6 months
     // Eave cookies we manage
-    this.configCookiesToDelete = ["id", "ses", "cvar", "ref"];
+    this.configCookiesToDelete = [this.SESSION_COOKIE_NAME, this.CONTEXT_COOKIE_NAME, "id", "ses", "cvar", "ref"]; // TODO: do we need the rest of these values?
     // First-party cookie domain
     // User agent defaults to origin hostname
     this.configCookieDomain = undefined;
@@ -259,8 +260,12 @@ export class CookieManager {
     return hasCookie;
   };
 
+  getSession() {
+    return this.getCookie(this.SESSION_COOKIE_NAME);
+  }
+
   resetOrExtendSession() {
-    const sessionId = this.getCookie(this.SESSION_COOKIE_NAME) || h.uuidv4();
+    const sessionId = this.getSession() || h.uuidv4();
     this.setCookie(
       this.SESSION_COOKIE_NAME,
       sessionId,

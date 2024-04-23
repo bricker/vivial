@@ -24,3 +24,6 @@ yarn-error.log*
 
 # cypress
 screenshots
+
+# testing data
+public/eave-client.min.js

@@ -4,15 +4,17 @@ var documentAlias = typeof document !== "undefined" ? document : {},
   screenAlias = typeof screen !== "undefined" ? screen : {},
   windowAlias = typeof window !== "undefined" ? window : {};
 
-var _paq = [];
+// use existing _paq settings if available
+var _paq = typeof _paq !== "undefined" ? _paq : [];
 _paq.push(["setTrackingCookies"])
 _paq.push(["trackPageView"]);
 _paq.push(["enableLinkTracking"]);
 _paq.push(["enableRouteHistoryTracking"]);
 _paq.push(["enableButtonClickTracking"]);
 // TODO: update to point to eave backend
+// TODO: switch on env whether to send to prod or stage
 _paq.push(["setTrackerUrl", "http://localhost:3000/matomo"]);
-// _paq.push(['setSiteId', '1']); // TODO: this isnt necessary?
+// _paq.push(['setSiteId', '1']); // TODO: this isnt necessary
 
 globalThis.eave = {
   expireDateTime: undefined,
@@ -20,7 +22,7 @@ globalThis.eave = {
   /* plugins */
   plugins: {},
   eventHandlers: {},
-  /* alias frequently used globals for added minification */
+  /* alias frequently used globals for added minification (NOT CURRENTLY WORKING, JUST MAKING ACCESS PATH LONGER) */
   documentAlias,
   navigatorAlias,
   windowAlias,

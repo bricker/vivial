@@ -34,6 +34,7 @@ Cypress.Commands.add("interceptAtomIngestion", (requestAssertions) => {
     // in reality, the ingestion reply doesnt matter, so we'll use this stub
     // to reflect info about the request we want to assert (i.e. data being passed)
     const qp = new URL(req.url).searchParams;
+    console.log(Object.fromEntries(qp.entries()))
     req.reply({
       statusCode: 200,
       body: {

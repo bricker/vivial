@@ -25,7 +25,6 @@ export function Tracker(trackerUrl, siteId) {
     /*</DEBUG>*/
 
     // constants
-    CONTEXT_COOKIE_NAME = "eave.context",
     trackerInstance = this,
     // in-memory context to be attached to all atoms. Use getContext()/setContext() to access!
     _eaveContext = {},
@@ -343,7 +342,7 @@ export function Tracker(trackerUrl, siteId) {
 
   function saveContext() {
     cookieManager.setCookie(
-      CONTEXT_COOKIE_NAME,
+      cookieManager.CONTEXT_COOKIE_NAME,
       globalThis.eave.windowAlias.JSON.stringify(_eaveContext),
       cookieManager.configVisitorCookieTimeout,
       cookieManager.configCookiePath,
@@ -1517,9 +1516,12 @@ export function Tracker(trackerUrl, siteId) {
       args["cs"] = globalThis.eave.encodeWrapper(charSet);
     }
 
+    // add context data
     for (i of Object.keys(_eaveContext)) {
       args[i] = getContext(i);
     }
+    // add session ID
+    args["session_id"] = cookieManager.getSession();
 
     var referrerAttribution = detectReferrerAttribution();
     // referrer attribution
@@ -2832,7 +2834,7 @@ export function Tracker(trackerUrl, siteId) {
     if (!getContext(configVisitorIdKey)) {
       setContext(configVisitorIdKey, h.uuidv4());
     } else {
-      // try save cookie, in case of consent change
+      // save cookie, in case of consent change
       saveContext();
     }
   }
@@ -5395,7 +5397,7 @@ export function Tracker(trackerUrl, siteId) {
    */
   this.setTrackingCookies = function () {
     // read eave cookies into ctx
-    var ctxCookie = cookieManager.getCookie(CONTEXT_COOKIE_NAME);
+    var ctxCookie = cookieManager.getCookie(cookieManager.CONTEXT_COOKIE_NAME);
     if (ctxCookie) {
       _eaveContext = JSON.parse(ctxCookie);
     }

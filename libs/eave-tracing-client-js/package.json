@@ -6,7 +6,7 @@
   "scripts": {
     "test": "npm run unit-test",
     "unit-test": "ava **/*.test.mjs",
-    "e2e-test": "echo 'Copying current dist/eave-client.min.js to test app...' && cp dist/eave-client.min.js tests/integration/public/ && cd tests/integration && npm test",
+    "e2e-test": "npm run build && echo 'Copying current dist/eave-client.min.js to test app...' && cp dist/eave-client.min.js tests/integration/public/ && cd tests/integration && npm test",
     "build": "webpack"
   },
   "author": "eave.fyi",
