@@ -241,10 +241,10 @@ export class CookieManager {
       this.SESSION_COOKIE_NAME,
       sessionId,
       this.configSessionCookieTimeout,
-      undefined,
-      undefined,
-      true, // required true for "None" sameSite
-      "None", // ensure this cookie is attached to our atom event requests
+      this.configCookiePath,
+      this.configCookieDomain,
+      this.configCookieIsSecure,
+      this.configCookieSameSite,
     );
   };
 }

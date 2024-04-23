@@ -348,8 +348,8 @@ export function Tracker(trackerUrl, siteId) {
       cookieManager.configVisitorCookieTimeout,
       cookieManager.configCookiePath,
       cookieManager.configCookieDomain,
-      true, // required true for "None" sameSite
-      "None", // ensure this cookie is attached to our atom event requests
+      cookieManager.configCookieIsSecure,
+      cookieManager.configCookieSameSite,
     );
   }
 
