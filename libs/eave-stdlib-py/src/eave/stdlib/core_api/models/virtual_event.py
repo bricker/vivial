@@ -1,5 +1,4 @@
 import uuid
-from typing import Optional
 
 from eave.stdlib.core_api.models import BaseInputModel, BaseResponseModel
 
@@ -8,7 +7,7 @@ from eave.stdlib.core_api.models import BaseInputModel, BaseResponseModel
 class VirtualEvent(BaseResponseModel):
     id: uuid.UUID
     readable_name: str
-    description: Optional[str]
+    description: str | None
 
 
 class VirtualEventQueryInput(BaseInputModel):

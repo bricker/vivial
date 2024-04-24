@@ -64,7 +64,7 @@
       "skipFiles": [
         "<node_internals>/**/*.js"
       ]
-    }
+    },
   ],
   "compounds": [
     {

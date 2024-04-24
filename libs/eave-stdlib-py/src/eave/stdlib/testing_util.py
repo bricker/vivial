@@ -6,7 +6,9 @@ import random
 import unittest.mock
 import uuid
 from datetime import datetime, timedelta
-from typing import Any, Literal, Optional, TypeVar
+from typing import Any, Literal, TypeVar
+
+from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
 
 import eave.stdlib.exceptions
 import eave.stdlib.signing
@@ -15,7 +17,6 @@ from eave.core.internal.oauth.google import GoogleOAuthV2GetResponse
 from eave.stdlib.checksum import generate_checksum
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.typing import JsonObject
-from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
 
 T = TypeVar("T")
 M = TypeVar("M", bound=unittest.mock.Mock)
@@ -61,15 +62,15 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return value
 
     @staticmethod
-    def unwrap(value: Optional[T]) -> T:
+    def unwrap(value: T | None) -> T:
         return eave.stdlib.util.unwrap(value)
 
     def anydatetime(
         self,
-        name: Optional[str] = None,
-        offset: Optional[int] = None,
-        future: Optional[Literal[True]] = None,
-        past: Optional[Literal[True]] = None,
+        name: str | None = None,
+        offset: int | None = None,
+        future: Literal[True] | None = None,
+        past: Literal[True] | None = None,
     ) -> datetime:
         """
         - offset, future, and past arguments are mutually exclusive. Passing more than one is undefined behavior.
@@ -104,7 +105,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self._increment += 1
         return self._increment
 
-    def anyurl(self, name: Optional[str] = None) -> str:
+    def anyurl(self, name: str | None = None) -> str:
         if name is None:
             name = str(uuid.uuid4())
 
@@ -118,7 +119,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def geturl(self, name: str) -> str:
         return self.testdata[name]
 
-    def anypath(self, name: Optional[str] = None) -> str:
+    def anypath(self, name: str | None = None) -> str:
         if name is None:
             name = str(uuid.uuid4())
 
@@ -132,7 +133,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getpath(self, name: str) -> str:
         return self.testdata[name]
 
-    def anystr_b64(self, name: Optional[str] = None, urlsafe: bool = False) -> str:
+    def anystr_b64(self, name: str | None = None, urlsafe: bool = False) -> str:
         if name is None:
             name = str(uuid.uuid4())
 
@@ -148,7 +149,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         return self.testdata[name]
 
-    def anystr(self, name: Optional[str] = None) -> str:
+    def anystr(self, name: str | None = None) -> str:
         if name is None:
             name = str(uuid.uuid4())
 
@@ -159,7 +160,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         return self.testdata[name]
 
-    def anystring(self, name: Optional[str] = None) -> str:
+    def anystring(self, name: str | None = None) -> str:
         """
         DEPRECATED, use anystr
         """
@@ -189,7 +190,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         else:
             return base64.b64decode(value).decode()
 
-    def anyjson(self, name: Optional[str] = None) -> str:
+    def anyjson(self, name: str | None = None) -> str:
         if name is None:
             name = str(uuid.uuid4())
 
@@ -203,7 +204,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getjson(self, name: str) -> str:
         return self.testdata[name]
 
-    def anydict(self, name: Optional[str] = None, deterministic_keys: bool = False) -> JsonObject:
+    def anydict(self, name: str | None = None, deterministic_keys: bool = False) -> JsonObject:
         if name is None:
             name = str(uuid.uuid4())
 
@@ -221,7 +222,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getdict(self, name: str) -> JsonObject:
         return self.testdata[name]
 
-    def anyuuid(self, name: Optional[str] = None) -> uuid.UUID:
+    def anyuuid(self, name: str | None = None) -> uuid.UUID:
         if name is None:
             name = str(uuid.uuid4())
 
@@ -235,7 +236,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getuuid(self, name: str) -> uuid.UUID:
         return self.testdata[name]
 
-    def anyint(self, name: Optional[str] = None) -> int:
+    def anyint(self, name: str | None = None) -> int:
         if name is None:
             name = str(uuid.uuid4())
 
@@ -249,7 +250,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getint(self, name: str) -> int:
         return self.testdata[name]
 
-    def anybytes(self, name: Optional[str] = None, encoding: str = "utf-8") -> bytes:
+    def anybytes(self, name: str | None = None, encoding: str = "utf-8") -> bytes:
         if name is None:
             name = str(uuid.uuid4())
 
@@ -264,7 +265,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return self.testdata[name]
 
     @staticmethod
-    def all_same(obj1: object, obj2: object, attrs: Optional[list[str]] = None) -> bool:
+    def all_same(obj1: object, obj2: object, attrs: list[str] | None = None) -> bool:
         """
         Checks if all attributes `attrs` on objects `obj1` and `obj2` are the same value.
         """
@@ -287,7 +288,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             return passing
 
     @staticmethod
-    def all_different(obj1: object, obj2: object, attrs: Optional[list[str]] = None) -> bool:
+    def all_different(obj1: object, obj2: object, attrs: list[str] | None = None) -> bool:
         """
         Reciprical of `all_same`: Checks if all attributes `attrs` on objects `obj1` and `obj2` are a different value.
         This is not the same as `not all_same(...)`; that would pass if _any_ of the attributes were different,
@@ -331,7 +332,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         #     return v
 
         def _access_secret_version(
-            request: Optional[AccessSecretVersionRequest | dict] = None, *, name: Optional[str] = None, **kwargs: Any
+            request: AccessSecretVersionRequest | dict | None = None, *, name: str | None = None, **kwargs: Any
         ) -> AccessSecretVersionResponse:
             if isinstance(request, AccessSecretVersionRequest):
                 resolved_name = request.name
@@ -406,7 +407,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         # No calls matched the given args
         return False
 
-    def patch(self, patch: unittest.mock._patch, name: Optional[str] = None) -> unittest.mock.Mock:
+    def patch(self, patch: unittest.mock._patch, name: str | None = None) -> unittest.mock.Mock:
         m = patch.start()
         m._testMethodName = self._testMethodName  # noqa: SLF001
 
@@ -420,11 +421,11 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self.active_mocks[name] = m
         return m
 
-    def patch_env(self, values: dict[str, Optional[str]]) -> unittest.mock.Mock:
+    def patch_env(self, values: dict[str, str | None]) -> unittest.mock.Mock:
         m = self.patch_dict(name="env", patch=unittest.mock.patch.dict("os.environ", values))
         return m
 
-    def patch_dict(self, patch: unittest.mock._patch_dict, name: Optional[str] = None) -> unittest.mock.Mock:
+    def patch_dict(self, patch: unittest.mock._patch_dict, name: str | None = None) -> unittest.mock.Mock:
         name = name or str(patch.in_dict)
         mock = patch.start()
         self._active_patched_dicts[name] = patch

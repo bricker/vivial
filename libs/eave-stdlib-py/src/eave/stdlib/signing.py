@@ -4,15 +4,16 @@ import hashlib
 import time
 import uuid
 from dataclasses import dataclass
-from typing import Literal, Optional, cast
+from typing import Literal, cast
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, padding, rsa, utils
 from cryptography.hazmat.primitives.asymmetric.types import PublicKeyTypes
+from google.cloud import kms
+
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.eave_origins import EaveApp, ExternalOrigin
-from google.cloud import kms
 
 from . import checksum
 from . import exceptions as eave_exceptions
@@ -74,7 +75,7 @@ def get_key(signer: str) -> SigningKeyDetails:
     return _SIGNING_KEYS[signer]
 
 
-def sign_b64(signing_key: SigningKeyDetails, data: str | bytes, ctx: Optional[LogContext] = None) -> str:
+def sign_b64(signing_key: SigningKeyDetails, data: str | bytes, ctx: LogContext | None = None) -> str:
     """
     Signs the data with GCP KMS, and returns the base64-encoded signature
     """
@@ -107,7 +108,7 @@ def sign_b64(signing_key: SigningKeyDetails, data: str | bytes, ctx: Optional[Lo
 
 
 def verify_signature_or_exception(
-    signing_key: SigningKeyDetails, message: str | bytes, signature: str | bytes, ctx: Optional[LogContext] = None
+    signing_key: SigningKeyDetails, message: str | bytes, signature: str | bytes, ctx: LogContext | None = None
 ) -> Literal[True]:
     """
     Verifies the signature matches the message.
@@ -198,9 +199,9 @@ def build_message_to_sign(
     audience: EaveApp | str,
     origin: EaveApp | str,
     payload: str,
-    team_id: Optional[uuid.UUID | str],
-    account_id: Optional[uuid.UUID | str],
-    ctx: Optional[LogContext] = None,
+    team_id: uuid.UUID | str | None,
+    account_id: uuid.UUID | str | None,
+    ctx: LogContext | None = None,
 ) -> str:
     signature_elements: list[str] = [
         str(origin),

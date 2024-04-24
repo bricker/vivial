@@ -1,16 +1,16 @@
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional, Self, Tuple
+from typing import Self
 from uuid import UUID
 
 from sqlalchemy import Index, ScalarResult, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
+from eave.collectors.core.datastructures import DatabaseOperation
 from eave.stdlib.core_api.models.virtual_event import VirtualEvent
 from eave.stdlib.util import titleize
-from eave.tracing.core.datastructures import DatabaseChangeOperation
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
@@ -32,10 +32,10 @@ class VirtualEventOrm(Base):
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     readable_name: Mapped[str] = mapped_column()
-    description: Mapped[Optional[str]] = mapped_column()
+    description: Mapped[str | None] = mapped_column()
     view_id: Mapped[str] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+    updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
     async def create(
@@ -43,7 +43,7 @@ class VirtualEventOrm(Base):
         session: AsyncSession,
         team_id: UUID,
         readable_name: str,
-        description: Optional[str],
+        description: str | None,
         view_id: str,
     ) -> Self:
         obj = cls(
@@ -59,13 +59,13 @@ class VirtualEventOrm(Base):
 
     @dataclass
     class QueryParams:
-        id: Optional[uuid.UUID] = None
-        team_id: Optional[uuid.UUID] = None
-        readable_name: Optional[str] = None
-        view_id: Optional[str] = None
+        id: uuid.UUID | None = None
+        team_id: uuid.UUID | None = None
+        readable_name: str | None = None
+        view_id: str | None = None
 
     @classmethod
-    def _build_query(cls, params: QueryParams) -> Select[Tuple[Self]]:
+    def _build_query(cls, params: QueryParams) -> Select[tuple[Self]]:
         lookup = select(cls)
 
         if params.id is not None:
@@ -104,5 +104,5 @@ def make_virtual_event_readable_name(*, operation: str, table_name: str) -> str:
     'User Account Deleted'
     """
     obj_hr = titleize(table_name)
-    op_hr = DatabaseChangeOperation(value=operation.upper()).hr_past_tense
+    op_hr = DatabaseOperation(value=operation.upper()).hr_past_tense
     return f"{obj_hr} {op_hr}"

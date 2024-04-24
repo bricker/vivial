@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional, Unpack
+from typing import Unpack
 
 from eave.stdlib import requests_util
 from eave.stdlib.endpoints import BaseRequestBody, BaseResponseBody
@@ -15,7 +15,7 @@ class GetGithubUrlContent(GithubAppEndpoint):
         url: str
 
     class ResponseBody(BaseResponseBody):
-        content: Optional[str]
+        content: str | None
 
     @classmethod
     async def perform(

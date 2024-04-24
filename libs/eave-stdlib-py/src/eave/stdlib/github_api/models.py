@@ -1,5 +1,3 @@
-from typing import Optional
-
 from eave.stdlib.core_api.models import BaseInputModel, BaseResponseModel
 
 
@@ -26,17 +24,17 @@ class GithubRepoInput(BaseInputModel):
 
 
 class ExternalGithubRepoOwner(BaseResponseModel):
-    id: Optional[str]
-    login: Optional[str]
-    avatar_url: Optional[str]
+    id: str | None
+    login: str | None
+    avatar_url: str | None
 
 
 class ExternalGithubRepo(BaseResponseModel):
-    id: Optional[str]
-    name: Optional[str]
-    url: Optional[str]
-    description: Optional[str]
-    created_at: Optional[str]
-    updated_at: Optional[str]
-    pushed_at: Optional[str]
-    owner: Optional[ExternalGithubRepoOwner]
+    id: str | None
+    name: str | None
+    url: str | None
+    description: str | None
+    created_at: str | None
+    updated_at: str | None
+    pushed_at: str | None
+    owner: ExternalGithubRepoOwner | None

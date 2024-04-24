@@ -79,18 +79,22 @@
   "javascript.inlayHints.functionLikeReturnTypes.enabled": false,
   "javascript.inlayHints.parameterNames.enabled": "none",
   "javascript.inlayHints.variableTypes.suppressWhenTypeMatchesName": true,
-  "python.analysis.diagnosticMode": "workspace",
   "python.analysis.typeCheckingMode": "standard",
   "python.analysis.extraPaths": [
     "vendor",
-    "${workspaceFolder}/libs/eave-stdlib-py/src",
-    "${workspaceFolder}/libs/eave-pubsub-schemas/python/src",
-    "${workspaceFolder}/libs/eave-tracing-core-py/src",
-    "${workspaceFolder}/libs/eave-tracing-python/src",
-    "${workspaceFolder}/libs/eave-tracing-postgres/src",
     "${workspaceFolder}/apps/core",
     "${workspaceFolder}/apps/dashboard",
     "${workspaceFolder}/develop/python/src",
+    "${workspaceFolder}/libs/eave-stdlib-py/src",
+    "${workspaceFolder}/libs/eave-pubsub-schemas/python/src",
+    // "${workspaceFolder}/packages/python/eave-collector-aiohttp-py/src",
+    "${workspaceFolder}/packages/python/eave-collector-core-py/src",
+    // "${workspaceFolder}/packages/python/eave-collector-flask-py/src",
+    // "${workspaceFolder}/packages/python/eave-collector-func-py/src",
+    // "${workspaceFolder}/packages/python/eave-collector-network-py/src",
+    "${workspaceFolder}/packages/python/eave-collector-asyncpg-py/src",
+    "${workspaceFolder}/packages/python/eave-collector-sqlalchemy-py/src",
+    // "${workspaceFolder}/packages/python/eave-collector-starlette-py/src",
   ],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
@@ -105,8 +109,7 @@
   "python.analysis.autoImportCompletions": true,
   "python.testing.pytestArgs": [
     "--config-file=${workspaceFolder}/develop/python/configs/pytest.pyproject.toml",
-    "--rootdir=${workspaceFolder}",
-    "."
+    ".",
   ],
   "python.analysis.exclude": [
     "**/node_modules",
@@ -140,7 +143,6 @@
   "typescript.validate.enable": true,
   "eslint.run": "onSave",
   "ruff.importStrategy": "fromEnvironment",
-  "ruff.lint.run": "onSave",
   "ruff.interpreter": [
     "${workspaceFolder}/.venv/bin/python"
   ],

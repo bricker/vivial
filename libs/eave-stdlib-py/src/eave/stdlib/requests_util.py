@@ -1,8 +1,9 @@
 import uuid
-from typing import NotRequired, Optional, Required, TypedDict, Unpack
+from typing import NotRequired, Required, TypedDict, Unpack
 
 import aiohttp
 import pydantic
+
 from eave.stdlib.core_api.operations import EndpointConfiguration
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.typing import JsonObject
@@ -15,8 +16,8 @@ from .logging import LogContext, eaveLogger
 
 class CommonRequestArgs(TypedDict):
     origin: Required[EaveApp]
-    addl_headers: NotRequired[Optional[dict[str, str]]]
-    ctx: NotRequired[Optional[LogContext]]
+    addl_headers: NotRequired[dict[str, str] | None]
+    ctx: NotRequired[LogContext | None]
     base_timeout_seconds: NotRequired[int]
 
 
@@ -27,10 +28,10 @@ class MissingParameterError(Exception):
 async def make_request(
     *,
     config: EndpointConfiguration,
-    input: Optional[pydantic.BaseModel],
-    team_id: Optional[uuid.UUID | str] = None,
-    access_token: Optional[str] = None,
-    account_id: Optional[uuid.UUID | str] = None,
+    input: pydantic.BaseModel | None,
+    team_id: uuid.UUID | str | None = None,
+    access_token: str | None = None,
+    account_id: uuid.UUID | str | None = None,
     allow_redirects: bool = True,
     **kwargs: Unpack[CommonRequestArgs],
 ) -> aiohttp.ClientResponse:
@@ -88,10 +89,10 @@ def build_headers(
     payload: str,
     origin: EaveApp,
     addl_headers: dict[str, str],
-    team_id: Optional[uuid.UUID | str] = None,
-    access_token: Optional[str] = None,
-    account_id: Optional[uuid.UUID | str] = None,
-    ctx: Optional[LogContext] = None,
+    team_id: uuid.UUID | str | None = None,
+    access_token: str | None = None,
+    account_id: uuid.UUID | str | None = None,
+    ctx: LogContext | None = None,
 ) -> tuple[dict[str, str], JsonObject]:
     """
     Constructs Eave core api auth headers as required by `config`.

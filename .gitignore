@@ -33,3 +33,4 @@ Cargo.lock
 dist
 .yalc
 vendor
+**/.pgdata/

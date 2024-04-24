@@ -1,4 +1,4 @@
-import eave.stdlib.headers as headers
+from eave.stdlib import headers
 from eave.stdlib.testing_util import UtilityBaseTestCase
 
 

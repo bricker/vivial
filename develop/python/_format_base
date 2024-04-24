@@ -9,8 +9,5 @@ source "${EAVE_HOME}"/develop/functions.bash
 	if ! ^onlythismodule; then
 		"${EAVE_HOME}"/libs/eave-stdlib-py/bin/format
 		"${EAVE_HOME}"/libs/eave-pubsub-schemas/python/bin/format
-		"${EAVE_HOME}"/libs/eave-tracing-core-py/bin/format
-		"${EAVE_HOME}"/libs/eave-tracing-python/bin/format
-		"${EAVE_HOME}"/libs/eave-tracing-postgres/bin/format
 	fi
 )

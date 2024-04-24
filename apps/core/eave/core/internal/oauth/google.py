@@ -1,4 +1,3 @@
-import typing
 from dataclasses import dataclass
 
 import google.auth.transport.requests
@@ -35,9 +34,9 @@ class GoogleIdToken:
 
     sub: str
     """Google globally unique and immutable user ID"""
-    given_name: typing.Optional[str]
-    family_name: typing.Optional[str]
-    email: typing.Optional[str]
+    given_name: str | None
+    family_name: str | None
+    email: str | None
 
     def __init__(self, data: JsonObject) -> None:
         self.sub = erasetype(data, "sub", "")
@@ -56,7 +55,7 @@ class GoogleOAuthClientConfig:
     token_uri: str
     auth_provider_x509_cert_url: str
     client_secret: str
-    redirect_uris: typing.List[str]
+    redirect_uris: list[str]
 
 
 @dataclass
@@ -65,19 +64,17 @@ class GoogleOAuthV2GetResponse:
     https://googleapis.github.io/google-api-python-client/docs/dyn/oauth2_v2.userinfo.html#get
     """
 
-    email: typing.Optional[str] = None  # The user's email address.
-    family_name: typing.Optional[str] = None  # The user's last name.
-    gender: typing.Optional[str] = None  # The user's gender.
-    given_name: typing.Optional[str] = None  # The user's first name.
-    hd: typing.Optional[str] = None  # The hosted domain e.g. example.com if the user is Google apps user.
-    id: typing.Optional[str] = None  # The obfuscated ID of the user.
-    link: typing.Optional[str] = None  # URL of the profile page.
-    locale: typing.Optional[str] = None  # The user's preferred locale.
-    name: typing.Optional[str] = None  # The user's full name.
-    picture: typing.Optional[str] = None  # URL of the user's picture image.
-    verified_email: typing.Optional[
-        bool
-    ] = None  # Boolean flag which is true if the email address is verified. Always verified because we only return the user's primary email address.
+    email: str | None = None  # The user's email address.
+    family_name: str | None = None  # The user's last name.
+    gender: str | None = None  # The user's gender.
+    given_name: str | None = None  # The user's first name.
+    hd: str | None = None  # The hosted domain e.g. example.com if the user is Google apps user.
+    id: str | None = None  # The obfuscated ID of the user.
+    link: str | None = None  # URL of the profile page.
+    locale: str | None = None  # The user's preferred locale.
+    name: str | None = None  # The user's full name.
+    picture: str | None = None  # URL of the user's picture image.
+    verified_email: bool | None = None  # Boolean flag which is true if the email address is verified. Always verified because we only return the user's primary email address.
 
 
 def get_userinfo(credentials: google.oauth2.credentials.Credentials) -> GoogleOAuthV2GetResponse:
@@ -108,7 +105,7 @@ def get_oauth_credentials(access_token: str, refresh_token: str) -> google.oauth
     return credentials
 
 
-def build_flow(state: typing.Optional[str] = None) -> google_auth_oauthlib.flow.Flow:
+def build_flow(state: str | None = None) -> google_auth_oauthlib.flow.Flow:
     flow = google_auth_oauthlib.flow.Flow.from_client_config(
         CORE_API_APP_CONFIG.eave_google_oauth_client_credentials,
         scopes=_OAUTH_SCOPES,
