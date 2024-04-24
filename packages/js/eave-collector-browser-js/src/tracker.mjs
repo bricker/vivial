@@ -1309,16 +1309,15 @@ export function Tracker(trackerUrl, siteId) {
       currentReferrerHostName,
       originalReferrerHostName,
       cookieSessionValue = cookieManager.getSession(),
-      attributionData = getContext(configReferralKey),
       currentUrl = configCustomUrl || locationHrefAlias,
       campaignNameDetected,
       campaignKeywordDetected,
       attributionValues = {};
 
-    campaignNameDetected = attributionData[0];
-    campaignKeywordDetected = attributionData[1];
-    referralTs = attributionData[2];
-    referralUrl = attributionData[3];
+    campaignNameDetected = getAttributionCampaignName();
+    campaignKeywordDetected = getAttributionCampaignKeyword();
+    referralTs = getAttributionReferrerTimestamp();
+    referralUrl = getAttributionReferrerUrl();
 
     if (!hasIgnoreReferrerParameter(currentUrl) && !cookieSessionValue) {
       // session cookie was not found: we consider this the start of a 'session'
@@ -1392,14 +1391,12 @@ export function Tracker(trackerUrl, siteId) {
       if (referralUrl.length || campaignNameDetected.length) {
         referralTs = nowTs;
 
-        attributionData = {
+        setContext(configReferralKey, {
           campaign_name: campaignNameDetected,
           campaign_kw: campaignKeywordDetected,
           timestamp: referralTs,
           raw_url: purify(referralUrl.slice(0, referralUrlMaxLength)),
-        };
-
-        setContext(configReferralKey, attributionData);
+        });
       }
     }
 
@@ -3069,8 +3066,11 @@ export function Tracker(trackerUrl, siteId) {
    *   2) Pass this json encoded string to the Tracking API (php or java client): setAttributionInfo()
    */
   this.getAttributionInfo = function () {
-    return getContext(configReferralKey);
+    return getAttributionInfo();
   };
+  function getAttributionInfo() {
+    return getContext(configReferralKey);
+  }
 
   /**
    * Get the Campaign name that was parsed from the landing page URL when the visitor
@@ -3079,8 +3079,11 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {string}
    */
   this.getAttributionCampaignName = function () {
-    return getContext(configReferralKey)?.campaign_name || "";
+    return getAttributionCampaignName();
   };
+  function getAttributionCampaignName() {
+    return getContext(configReferralKey)?.campaign_name || "";
+  }
 
   /**
    * Get the Campaign keyword that was parsed from the landing page URL when the visitor
@@ -3089,8 +3092,11 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {string}
    */
   this.getAttributionCampaignKeyword = function () {
-    return getContext(configReferralKey)?.campaign_kw || "";
+    return getAttributionCampaignKeyword();
   };
+  function getAttributionCampaignKeyword() {
+    return getContext(configReferralKey)?.campaign_kw || "";
+  }
 
   /**
    * Get the time at which the referrer (used for Goal Attribution) was detected
@@ -3098,8 +3104,11 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {int} Timestamp or 0 if no referrer currently set
    */
   this.getAttributionReferrerTimestamp = function () {
-    return getContext(configReferralKey)?.timestamp || "";
+    return getAttributionReferrerTimestamp();
   };
+  function getAttributionReferrerTimestamp() {
+    return getContext(configReferralKey)?.timestamp || 0;
+  }
 
   /**
    * Get the full referrer URL that will be used for Goal Attribution
@@ -3107,8 +3116,11 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {string} Raw URL, or empty string '' if no referrer currently set
    */
   this.getAttributionReferrerUrl = function () {
-    return getContext(configReferralKey)?.raw_url || "";
+    return getAttributionReferrerUrl();
   };
+  function getAttributionReferrerUrl() {
+    return getContext(configReferralKey)?.raw_url || "";
+  }
 
   /**
    * Specify the eave tracking URL
