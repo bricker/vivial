@@ -3,7 +3,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from enum import IntEnum
-from typing import Optional, Self, Tuple
+from typing import Self
 from uuid import UUID
 
 from sqlalchemy import Index, ScalarResult, Select, SmallInteger, func, select
@@ -36,18 +36,18 @@ class ClientCredentialsOrm(Base):
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     secret: Mapped[str] = mapped_column()
-    description: Mapped[Optional[str]] = mapped_column()
+    description: Mapped[str | None] = mapped_column()
     scope: Mapped[ClientScope] = mapped_column(type_=SmallInteger)
-    last_used: Mapped[Optional[datetime]] = mapped_column()
+    last_used: Mapped[datetime | None] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+    updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
     async def create(
         cls,
         session: AsyncSession,
         team_id: UUID,
-        description: Optional[str],
+        description: str | None,
         scope: ClientScope,
     ) -> Self:
         obj = cls(
@@ -63,13 +63,13 @@ class ClientCredentialsOrm(Base):
 
     @dataclass
     class QueryParams:
-        id: Optional[uuid.UUID] = None
-        team_id: Optional[uuid.UUID] = None
-        secret: Optional[str] = None
-        scope_includes: Optional[ClientScope] = None
+        id: uuid.UUID | None = None
+        team_id: uuid.UUID | None = None
+        secret: str | None = None
+        scope_includes: ClientScope | None = None
 
     @classmethod
-    def _build_query(cls, params: QueryParams) -> Select[Tuple[Self]]:
+    def _build_query(cls, params: QueryParams) -> Select[tuple[Self]]:
         lookup = select(cls)
 
         if params.id is not None:

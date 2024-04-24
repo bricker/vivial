@@ -6,11 +6,12 @@ from typing import Any, Optional, Self, cast
 
 import google.cloud.logging
 from asgiref.typing import HTTPScope
+from starlette.requests import Request
+from starlette.types import Scope
+
 from eave.stdlib.api_util import get_header_value, get_headers
 from eave.stdlib.headers import EAVE_ACCOUNT_ID_HEADER, EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER
 from eave.stdlib.typing import JsonObject
-from starlette.requests import Request
-from starlette.types import Scope
 
 from .config import SHARED_CONFIG
 from .utm_cookies import get_tracking_cookies
@@ -106,10 +107,10 @@ if SHARED_CONFIG.monitoring_enabled:
 
 class LogContext(JsonObject):
     @classmethod
-    def wrap(cls, ctx: Optional["LogContext"] = None, scope: Optional[HTTPScope | Scope] = None) -> "LogContext":
+    def wrap(cls, ctx: Optional["LogContext"] = None, scope: HTTPScope | Scope | None = None) -> "LogContext":
         return ctx if ctx else cls(scope)
 
-    def __init__(self, scope: Optional[HTTPScope | Scope] = None) -> None:
+    def __init__(self, scope: HTTPScope | Scope | None = None) -> None:
         self.set({"feature_name": None})
         if scope:
             cscope = cast(HTTPScope, scope)
@@ -146,40 +147,40 @@ class LogContext(JsonObject):
         )
 
     @property
-    def eave_account_id(self) -> Optional[str]:
+    def eave_account_id(self) -> str | None:
         if v := self.get("eave_account_id"):
             return str(v)
         else:
             return None
 
     @eave_account_id.setter
-    def eave_account_id(self, value: Optional[str]) -> None:
+    def eave_account_id(self, value: str | None) -> None:
         self.set({"eave_account_id": value})
 
     @property
-    def eave_visitor_id(self) -> Optional[str]:
+    def eave_visitor_id(self) -> str | None:
         if v := self.get("eave_visitor_id"):
             return str(v)
         else:
             return None
 
     @eave_visitor_id.setter
-    def eave_visitor_id(self, value: Optional[str]) -> None:
+    def eave_visitor_id(self, value: str | None) -> None:
         self.set({"eave_visitor_id": value})
 
     @property
-    def eave_team_id(self) -> Optional[str]:
+    def eave_team_id(self) -> str | None:
         if v := self.get("eave_team_id"):
             return str(v)
         else:
             return None
 
     @eave_team_id.setter
-    def eave_team_id(self, value: Optional[str]) -> None:
+    def eave_team_id(self, value: str | None) -> None:
         self.set({"eave_team_id": value})
 
     @property
-    def eave_origin(self) -> Optional[str]:
+    def eave_origin(self) -> str | None:
         if v := self.get("eave_origin"):
             return str(v)
         else:
@@ -195,12 +196,12 @@ class LogContext(JsonObject):
         return str(v)
 
     @property
-    def feature_name(self) -> Optional[str]:
+    def feature_name(self) -> str | None:
         v = self["feature_name"]
         return str(v)
 
     @feature_name.setter
-    def feature_name(self, value: Optional[str]) -> None:
+    def feature_name(self, value: str | None) -> None:
         self.set({"feature_name": value})
 
 

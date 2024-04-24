@@ -1,7 +1,7 @@
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional, Self, Tuple
+from typing import Self
 from uuid import UUID
 
 from sqlalchemy import Index, ScalarResult, Select, func, select
@@ -32,10 +32,10 @@ class VirtualEventOrm(Base):
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     readable_name: Mapped[str] = mapped_column()
-    description: Mapped[Optional[str]] = mapped_column()
+    description: Mapped[str | None] = mapped_column()
     view_id: Mapped[str] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+    updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
     async def create(
@@ -43,7 +43,7 @@ class VirtualEventOrm(Base):
         session: AsyncSession,
         team_id: UUID,
         readable_name: str,
-        description: Optional[str],
+        description: str | None,
         view_id: str,
     ) -> Self:
         obj = cls(
@@ -59,13 +59,13 @@ class VirtualEventOrm(Base):
 
     @dataclass
     class QueryParams:
-        id: Optional[uuid.UUID] = None
-        team_id: Optional[uuid.UUID] = None
-        readable_name: Optional[str] = None
-        view_id: Optional[str] = None
+        id: uuid.UUID | None = None
+        team_id: uuid.UUID | None = None
+        readable_name: str | None = None
+        view_id: str | None = None
 
     @classmethod
-    def _build_query(cls, params: QueryParams) -> Select[Tuple[Self]]:
+    def _build_query(cls, params: QueryParams) -> Select[tuple[Self]]:
         lookup = select(cls)
 
         if params.id is not None:

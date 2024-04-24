@@ -45,7 +45,7 @@ class GithubInstallationFlowState(typing.TypedDict):
 
 
 def verify_oauth_state_or_exception(
-    state: typing.Optional[str],
+    state: str | None,
     auth_provider: AuthProvider,
     request: Request,
     response: Response,
@@ -113,8 +113,8 @@ async def get_logged_in_eave_account(
     request: Request,
     auth_provider: AuthProvider,
     access_token: str,
-    refresh_token: typing.Optional[str],
-) -> typing.Optional[AccountOrm]:
+    refresh_token: str | None,
+) -> AccountOrm | None:
     """
     Check if the user is logged in, and if so, get the account associated with the provided access token and account ID.
     """
@@ -147,8 +147,8 @@ async def get_existing_eave_account(
     auth_provider: AuthProvider,
     auth_id: str,
     access_token: str,
-    refresh_token: typing.Optional[str],
-) -> typing.Optional[AccountOrm]:
+    refresh_token: str | None,
+) -> AccountOrm | None:
     """
     Check for existing account with the given provider and ID.
     Also updates access_token and refresh_token in the database.
@@ -177,7 +177,7 @@ async def create_new_account_and_team(
     auth_provider: AuthProvider,
     auth_id: str,
     access_token: str,
-    refresh_token: typing.Optional[str],
+    refresh_token: str | None,
 ) -> AccountOrm:
     eave_state = EaveRequestState.load(request=request)
     tracking_cookies = utm_cookies.get_tracking_cookies(request=request)
@@ -253,11 +253,11 @@ async def get_or_create_eave_account(
     request: Request,
     response: Response,
     eave_team_name: str,
-    user_email: typing.Optional[str],
+    user_email: str | None,
     auth_provider: AuthProvider,
     auth_id: str,
     access_token: str,
-    refresh_token: typing.Optional[str],
+    refresh_token: str | None,
 ) -> AccountOrm:
     eave_account = await get_logged_in_eave_account(
         request=request,

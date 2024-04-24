@@ -1,4 +1,3 @@
-from typing import Optional
 
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 
@@ -23,7 +22,7 @@ class TestClientCredentialsOrmScopeQuery(BaseTestCase):
 
         return creds
 
-    async def _query_creds(self, creds: ClientCredentialsOrm, scope: ClientScope) -> Optional[ClientCredentialsOrm]:
+    async def _query_creds(self, creds: ClientCredentialsOrm, scope: ClientScope) -> ClientCredentialsOrm | None:
         async with self.db_session.begin() as s:
             qresult = (
                 await ClientCredentialsOrm.query(

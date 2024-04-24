@@ -1,7 +1,7 @@
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
-from typing import NotRequired, Optional, Self, Tuple, TypedDict, Unpack
+from typing import NotRequired, Self, TypedDict, Unpack
 from uuid import UUID
 
 from sqlalchemy import Select, func, select
@@ -23,16 +23,16 @@ class MetabaseInstanceOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    jwt_signing_key: Mapped[Optional[str]] = mapped_column(server_default=None)
-    route_id: Mapped[Optional[uuid.UUID]] = mapped_column(server_default=None)
+    jwt_signing_key: Mapped[str | None] = mapped_column(server_default=None)
+    route_id: Mapped[uuid.UUID | None] = mapped_column(server_default=None)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+    updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
     async def create(
         cls,
         session: AsyncSession,
-        team_id: Optional[uuid.UUID],
+        team_id: uuid.UUID | None,
     ) -> Self:
         obj = cls(
             team_id=team_id,
@@ -60,14 +60,14 @@ class MetabaseInstanceOrm(Base):
 
     @dataclass
     class QueryParams:
-        team_id: Optional[uuid.UUID] = None
-        id: Optional[uuid.UUID] = None
+        team_id: uuid.UUID | None = None
+        id: uuid.UUID | None = None
 
         def validate_or_exception(self) -> None:
             assert self.team_id or self.id, "At least one query parameter must be given"
 
     @classmethod
-    def _build_select(cls, params: QueryParams) -> Select[Tuple[Self]]:
+    def _build_select(cls, params: QueryParams) -> Select[tuple[Self]]:
         params.validate_or_exception()
 
         lookup = select(cls)

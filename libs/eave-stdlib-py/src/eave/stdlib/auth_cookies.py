@@ -1,7 +1,7 @@
 import uuid
+from collections.abc import Mapping
 from dataclasses import dataclass
 from http.cookies import Morsel, SimpleCookie
-from typing import Mapping, Optional
 
 from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
 from eave.stdlib.typing import HTTPFrameworkResponse
@@ -15,9 +15,9 @@ EAVE_ACCESS_TOKEN_COOKIE_NAME = f"ev_access_token{AUTH_COOKIE_SUFFIX}"
 
 @dataclass
 class AuthCookies:
-    account_id: Optional[str]
-    team_id: Optional[str]
-    access_token: Optional[str]
+    account_id: str | None
+    team_id: str | None
+    access_token: str | None
 
     @property
     def all_set(self) -> bool:
@@ -42,9 +42,9 @@ def get_auth_cookies(cookies: SimpleCookie | Mapping[str, str]) -> AuthCookies:
 
 def set_auth_cookies(
     response: HTTPFrameworkResponse,
-    account_id: Optional[uuid.UUID | str] = None,
-    team_id: Optional[uuid.UUID | str] = None,
-    access_token: Optional[str] = None,
+    account_id: uuid.UUID | str | None = None,
+    team_id: uuid.UUID | str | None = None,
+    access_token: str | None = None,
 ) -> None:
     if account_id:
         set_http_cookie(response=response, key=EAVE_ACCOUNT_ID_COOKIE_NAME, value=str(account_id))

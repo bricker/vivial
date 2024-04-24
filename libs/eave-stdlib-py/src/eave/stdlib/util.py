@@ -4,8 +4,9 @@ import hashlib
 import json
 import re
 import uuid
+from collections.abc import Awaitable, Callable
 from functools import wraps
-from typing import Any, Awaitable, Callable, Literal, Optional, ParamSpec, Type, TypeVar
+from typing import Any, Literal, ParamSpec, TypeVar
 
 from eave.stdlib.exceptions import UnexpectedMissingValueError
 from eave.stdlib.typing import JsonObject, JsonValue
@@ -174,7 +175,7 @@ def xnor(a: object, b: object) -> bool:
     return not xor(a, b)
 
 
-def unwrap(value: Optional[T], default: Optional[T] = None) -> T:
+def unwrap(value: T | None, default: T | None = None) -> T:
     """
     Unwraps an Optional object to its wrapped type.
     You should use this method when you expect the wrapped type not to be None.
@@ -231,7 +232,7 @@ def redact(string: str | None) -> str | None:
     return f"{string[:4]}[redacted {strlen - 8} chars]{string[-4:]}"
 
 
-def erasetype(data: JsonObject, key: str, default: Optional[JsonValue] = None) -> Any:
+def erasetype(data: JsonObject, key: str, default: JsonValue | None = None) -> Any:
     if v := data.get(key, default):
         return v
     else:
@@ -241,7 +242,7 @@ def erasetype(data: JsonObject, key: str, default: Optional[JsonValue] = None) -
 T = TypeVar("T")
 
 
-def suppress(e: Type[Exception], func: Callable[[], T]) -> T | None:
+def suppress(e: type[Exception], func: Callable[[], T]) -> T | None:
     """
     Proxy to contextlib.suppress(), but with the ability to do it on a single line
     """

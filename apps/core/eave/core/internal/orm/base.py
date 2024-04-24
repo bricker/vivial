@@ -1,4 +1,3 @@
-import typing
 
 from sqlalchemy import MetaData
 from sqlalchemy.orm import DeclarativeBase
@@ -43,7 +42,7 @@ def _load_all() -> None:
             importlib.import_module(f"eave.core.internal.orm.{fname}")
 
 
-_base_metadata: typing.Optional[MetaData] = None
+_base_metadata: MetaData | None = None
 
 
 def get_base_metadata() -> MetaData:

@@ -1,4 +1,4 @@
-from typing import Optional, cast
+from typing import cast
 
 from asgiref.typing import HTTPScope
 from starlette.requests import Request
@@ -45,7 +45,7 @@ class DataIngestionEndpoint(HTTPEndpoint):
 
             await creds.touch(session=db_session)
 
-        handle: Optional[BigQueryTableHandle] = None
+        handle: BigQueryTableHandle | None = None
         match input.event_type:
             case EventType.dbevent:
                 handle = DatabaseChangesTableHandle(team_id=creds.team_id)

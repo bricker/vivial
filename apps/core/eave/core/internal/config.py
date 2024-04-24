@@ -1,7 +1,8 @@
 import json
 import os
+from collections.abc import Mapping
 from functools import cached_property
-from typing import Any, Mapping, Optional
+from typing import Any
 
 from eave.stdlib.config import SHARED_CONFIG, ConfigBase, get_required_env, get_secret
 from eave.stdlib.eave_origins import EaveApp
@@ -46,7 +47,7 @@ class _AppConfig(ConfigBase):
             return get_secret(key)
 
     @cached_property
-    def db_pass(self) -> Optional[str]:
+    def db_pass(self) -> str | None:
         key = "EAVE_DB_PASS"
         if SHARED_CONFIG.is_development:
             value = os.getenv(key)

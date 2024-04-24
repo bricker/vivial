@@ -2,7 +2,7 @@ import typing
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Optional, Self, Tuple
+from typing import Any, Self
 from uuid import UUID
 
 from sqlalchemy import Index, Select, func, or_, select
@@ -45,8 +45,8 @@ class AccountOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    visitor_id: Mapped[Optional[UUID]] = mapped_column()
-    opaque_utm_params: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB)
+    visitor_id: Mapped[UUID | None] = mapped_column()
+    opaque_utm_params: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
     """Opaque, JSON-encoded utm params."""
     auth_provider: Mapped[AuthProvider] = mapped_column()
     """3rd party login provider"""
@@ -54,27 +54,27 @@ class AccountOrm(Base):
     """userid from 3rd party auth_provider"""
     access_token: Mapped[str] = mapped_column()
     """access token from 3rd party"""
-    refresh_token: Mapped[Optional[str]] = mapped_column(server_default=None)
-    previous_access_token: Mapped[Optional[str]] = mapped_column(server_default=None)
+    refresh_token: Mapped[str | None] = mapped_column(server_default=None)
+    previous_access_token: Mapped[str | None] = mapped_column(server_default=None)
     """When a new access token is acquired, move the previous value here. It can be used for lookup to mitigate race conditions between client and server"""
-    email: Mapped[Optional[str]] = mapped_column(server_default=None)
+    email: Mapped[str | None] = mapped_column(server_default=None)
     """refresh token from 3rd party"""
-    last_login: Mapped[Optional[datetime]] = mapped_column(server_default=func.current_timestamp(), nullable=True)
+    last_login: Mapped[datetime | None] = mapped_column(server_default=func.current_timestamp(), nullable=True)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+    updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
     async def create(
         cls,
         session: AsyncSession,
         team_id: UUID,
-        visitor_id: Optional[UUID | str],
-        opaque_utm_params: Optional[JsonObject],
+        visitor_id: UUID | str | None,
+        opaque_utm_params: JsonObject | None,
         auth_provider: AuthProvider,
         auth_id: str,
         access_token: str,
-        refresh_token: Optional[str],
-        email: Optional[str] = None,
+        refresh_token: str | None,
+        email: str | None = None,
     ) -> Self:
         obj = cls(
             team_id=team_id,
@@ -93,14 +93,14 @@ class AccountOrm(Base):
 
     @dataclass
     class QueryParams:
-        id: Optional[uuid.UUID] = None
-        team_id: Optional[uuid.UUID] = None
-        auth_provider: Optional[AuthProvider] = None
-        auth_id: Optional[str] = None
-        access_token: Optional[str] = None
+        id: uuid.UUID | None = None
+        team_id: uuid.UUID | None = None
+        auth_provider: AuthProvider | None = None
+        auth_id: str | None = None
+        access_token: str | None = None
 
     @classmethod
-    def _build_query(cls, params: QueryParams) -> Select[Tuple[Self]]:
+    def _build_query(cls, params: QueryParams) -> Select[tuple[Self]]:
         lookup = select(cls).limit(1)
 
         if params.id is not None:
@@ -156,7 +156,7 @@ class AccountOrm(Base):
             self.refresh_token = refresh_token
 
     async def verify_oauth_or_exception(
-        self, session: AsyncSession, ctx: Optional[LogContext] = None
+        self, session: AsyncSession, ctx: LogContext | None = None
     ) -> typing.Literal[True]:
         """
         The session parameter encourages the caller to call this function within DB session.
@@ -183,7 +183,7 @@ class AccountOrm(Base):
                 raise
 
     async def refresh_oauth_token(
-        self, session: AsyncSession, ctx: Optional[LogContext] = None
+        self, session: AsyncSession, ctx: LogContext | None = None
     ) -> typing.Literal[True]:
         """
         The session parameter encourages the caller to call this function within DB session.

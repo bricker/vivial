@@ -1,4 +1,3 @@
-from typing import Optional
 
 from starlette.requests import Request
 from starlette.responses import Response
@@ -15,9 +14,9 @@ class BaseOAuthCallback(HTTPEndpoint):
     request: Request
     response: Response
     state: str
-    code: Optional[str]
-    error: Optional[str]
-    error_description: Optional[str]
+    code: str | None
+    error: str | None
+    error_description: str | None
     auth_provider: AuthProvider
     eave_state: EaveRequestState
 

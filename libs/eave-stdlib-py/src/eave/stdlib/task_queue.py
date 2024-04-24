@@ -1,9 +1,13 @@
 import asyncio
 import json
+from collections.abc import Coroutine
 from dataclasses import dataclass
-from typing import Any, Coroutine, Optional, TypeVar
+from typing import Any, TypeVar
 
 import aiohttp
+from google.cloud import tasks
+from starlette.requests import Request
+
 from eave.stdlib import cache, signing
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.headers import (
@@ -19,8 +23,6 @@ from eave.stdlib.headers import (
 )
 from eave.stdlib.time import ONE_DAY_IN_MS
 from eave.stdlib.util import compact_deterministic_json, ensure_bytes, ensure_str
-from google.cloud import tasks
-from starlette.requests import Request
 
 from .config import SHARED_CONFIG
 from .logging import LogContext, eaveLogger
@@ -67,9 +69,9 @@ async def create_task_from_request(
     request: Request,
     origin: EaveApp,
     audience: EaveApp,
-    ctx: Optional[LogContext],
-    unique_task_id: Optional[str] = None,
-    task_name_prefix: Optional[str] = None,
+    ctx: LogContext | None,
+    unique_task_id: str | None = None,
+    task_name_prefix: str | None = None,
 ) -> None:
     ctx = LogContext.wrap(ctx)
 
@@ -110,10 +112,10 @@ async def create_task(
     payload: JsonObject | str | bytes,
     origin: EaveApp,
     audience: EaveApp,
-    ctx: Optional[LogContext],
-    unique_task_id: Optional[str] = None,
-    task_name_prefix: Optional[str] = None,
-    headers: Optional[dict[str, str]] = None,
+    ctx: LogContext | None,
+    unique_task_id: str | None = None,
+    task_name_prefix: str | None = None,
+    headers: dict[str, str] | None = None,
 ) -> tasks.Task:
     ctx = LogContext.wrap(ctx)
 

@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 import pydantic
 
@@ -11,6 +10,6 @@ class OAuthFlowInfo:
 
 
 class OAuthCallbackRequestBody(pydantic.BaseModel):
-    state: Optional[str]
-    code: Optional[str]
-    error: Optional[str]
+    state: str | None
+    code: str | None
+    error: str | None

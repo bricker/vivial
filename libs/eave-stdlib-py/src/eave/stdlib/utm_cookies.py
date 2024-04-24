@@ -2,7 +2,6 @@ import re
 import uuid
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Optional
 
 from eave.stdlib.cookies import set_http_cookie
 
@@ -39,7 +38,7 @@ EAVE_VISITOR_ID_COOKIE_NAME = "ev_visitor_id"
 @dataclass
 class TrackingCookies:
     utm_params: JsonObject
-    visitor_id: Optional[str]
+    visitor_id: str | None
 
 
 def set_tracking_cookies(
