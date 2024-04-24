@@ -48,7 +48,7 @@ spec:
                   name: http
 
           - pathType: Prefix
-            path: "/public"
+            path: "/v1"
             backend: *backend
 
           - pathType: Prefix

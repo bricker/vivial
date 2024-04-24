@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional, Unpack
+from typing import Unpack
 
 from eave.stdlib.core_api.models.virtual_event import VirtualEvent, VirtualEventQueryInput
 from eave.stdlib.endpoints import BaseRequestBody, BaseResponseBody
@@ -15,7 +15,7 @@ class GetVirtualEventsRequest(CoreApiEndpoint):
     )
 
     class RequestBody(BaseRequestBody):
-        virtual_events: Optional[VirtualEventQueryInput] = None
+        virtual_events: VirtualEventQueryInput | None = None
 
     class ResponseBody(BaseResponseBody):
         virtual_events: list[VirtualEvent]

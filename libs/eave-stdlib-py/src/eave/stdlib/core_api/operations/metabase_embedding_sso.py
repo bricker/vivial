@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional, Unpack
+from typing import Unpack
 
 from eave.stdlib.core_api.operations import (
     CoreApiEndpoint,
@@ -18,15 +18,15 @@ class MetabaseEmbeddingSSOOperation(CoreApiEndpoint):
     )
 
     class RequestBody(BaseRequestBody):
-        return_to: Optional[str]
+        return_to: str | None
 
     @classmethod
     async def perform(
         cls,
         team_id: uuid.UUID | str,
-        account_id: Optional[uuid.UUID],
-        access_token: Optional[str],
-        input: Optional[RequestBody] = None,
+        account_id: uuid.UUID | None,
+        access_token: str | None,
+        input: RequestBody | None = None,
         **kwargs: Unpack[requests_util.CommonRequestArgs],
     ) -> BaseResponseBody:
         response = await requests_util.make_request(

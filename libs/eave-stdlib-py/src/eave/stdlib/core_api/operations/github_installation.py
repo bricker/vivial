@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional, Unpack
+from typing import Unpack
 
 from eave.stdlib.core_api.models.github_installation import GithubInstallation, GithubInstallationQueryInput
 from eave.stdlib.core_api.models.team import Team, TeamQueryInput
@@ -18,11 +18,11 @@ class QueryGithubInstallation(CoreApiEndpoint):
     )
 
     class RequestBody(BaseRequestBody):
-        team: Optional[TeamQueryInput] = None
-        github_installation: Optional[GithubInstallationQueryInput] = None
+        team: TeamQueryInput | None = None
+        github_installation: GithubInstallationQueryInput | None = None
 
     class ResponseBody(BaseResponseBody):
-        team: Optional[Team]
+        team: Team | None
         github_installation: GithubInstallation
 
     @classmethod

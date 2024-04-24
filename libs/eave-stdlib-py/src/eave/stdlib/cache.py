@@ -1,6 +1,6 @@
 import abc
 import time
-from typing import Optional, Protocol
+from typing import Protocol
 
 import redis.asyncio as redis
 from redis.asyncio.retry import Retry
@@ -16,7 +16,7 @@ class CacheInterface(Protocol):
         ...
 
     @abc.abstractmethod
-    async def set(self, name: str, value: str, ex: Optional[int] = None) -> bool | None:
+    async def set(self, name: str, value: str, ex: int | None = None) -> bool | None:
         ...
 
     @abc.abstractmethod
@@ -24,7 +24,7 @@ class CacheInterface(Protocol):
         ...
 
     @abc.abstractmethod
-    async def close(self, close_connection_pool: Optional[bool] = None) -> None:
+    async def close(self, close_connection_pool: bool | None = None) -> None:
         ...
 
     @abc.abstractmethod
@@ -35,9 +35,9 @@ class CacheInterface(Protocol):
 class _CacheEntry:
     value: str
     ts: float
-    ex: Optional[int] = None
+    ex: int | None = None
 
-    def __init__(self, value: str, ex: Optional[int] = None) -> None:
+    def __init__(self, value: str, ex: int | None = None) -> None:
         self.value = value
         self.ex = ex
         self.ts = time.time()
@@ -63,7 +63,7 @@ class EphemeralCache(CacheInterface):
         else:
             return e.value
 
-    async def set(self, name: str, value: str, ex: Optional[int] = None) -> bool | None:
+    async def set(self, name: str, value: str, ex: int | None = None) -> bool | None:
         # quick way to put a hard limit on the size of this cache.
         # This class is only for development so there's no need for anything more complex than this.
         if len(self._store.keys()) > 100:
@@ -83,14 +83,14 @@ class EphemeralCache(CacheInterface):
 
         return num
 
-    async def close(self, close_connection_pool: Optional[bool] = None) -> None:
+    async def close(self, close_connection_pool: bool | None = None) -> None:
         return None
 
     async def ping(self) -> bool:
         return True
 
 
-_PROCESS_CACHE_CLIENT: Optional[CacheInterface] = None
+_PROCESS_CACHE_CLIENT: CacheInterface | None = None
 
 
 def client() -> CacheInterface | None:
@@ -133,7 +133,7 @@ def client_or_exception() -> CacheInterface:
     return cache_client
 
 
-def initialized_client() -> Optional[CacheInterface]:
+def initialized_client() -> CacheInterface | None:
     """
     Before closing a connection, check this property.
     Otherwise, if a connection wasn't previously established, you'd have to create a connection just to immediately close it.

@@ -1,4 +1,4 @@
-from typing import Optional, cast
+from typing import cast
 
 import starlette.applications
 import starlette.requests
@@ -11,12 +11,12 @@ SCOPE_KEY = "eave_state"
 
 
 class EaveRequestState(dict[object, object]):
-    raw_request_body: Optional[bytes] = None
+    raw_request_body: bytes | None = None
     ctx: LogContext
 
     @classmethod
     def load(
-        cls, scope: Optional[HTTPScope] = None, request: Optional[starlette.requests.Request] = None
+        cls, scope: HTTPScope | None = None, request: starlette.requests.Request | None = None
     ) -> "EaveRequestState":
         # Validate that exactly one parameter is supplied.
         assert xor(scope, request), "invalid parameters"
@@ -33,5 +33,5 @@ class EaveRequestState(dict[object, object]):
         eave_state = scope["extensions"].setdefault(SCOPE_KEY, EaveRequestState(scope=scope))
         return cast(EaveRequestState, eave_state)
 
-    def __init__(self, scope: Optional[HTTPScope]) -> None:
+    def __init__(self, scope: HTTPScope | None) -> None:
         self.ctx = LogContext(scope=scope)

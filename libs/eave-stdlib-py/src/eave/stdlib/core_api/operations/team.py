@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional, Unpack
+from typing import Unpack
 
 from eave.stdlib.core_api.models.team import Team
 from eave.stdlib.endpoints import BaseResponseBody
@@ -21,8 +21,8 @@ class GetTeamRequest(CoreApiEndpoint):
     async def perform(
         cls,
         team_id: uuid.UUID | str,
-        account_id: Optional[uuid.UUID],
-        access_token: Optional[str],
+        account_id: uuid.UUID | None,
+        access_token: str | None,
         **kwargs: Unpack[requests_util.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests_util.make_request(

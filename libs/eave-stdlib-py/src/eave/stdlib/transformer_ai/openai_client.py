@@ -3,15 +3,11 @@ import textwrap
 import uuid
 from typing import (
     Any,
-    List,
     Literal,
     LiteralString,
-    Optional,
-    Union,
     cast,
 )
 
-from eave.stdlib.logging import LogContext
 from openai import AsyncOpenAI
 from openai.types.chat import (
     ChatCompletion,
@@ -20,6 +16,8 @@ from openai.types.chat import (
     ChatCompletionToolParam,
 )
 from openai.types.chat.completion_create_params import Function, FunctionCall, ResponseFormat
+
+from eave.stdlib.logging import LogContext
 
 from ..config import SHARED_CONFIG
 from ..exceptions import OpenAIDataError
@@ -53,7 +51,7 @@ _openai_client = AsyncOpenAI(
 
 async def chat_completion(
     *,
-    ctx: Optional[LogContext],
+    ctx: LogContext | None,
     # document_id: Optional[str] = None,
     messages: list[ChatCompletionMessageParam],
     model: Literal[
@@ -72,23 +70,23 @@ async def chat_completion(
         "gpt-3.5-turbo-1106",
         "gpt-3.5-turbo-16k-0613",
     ],
-    frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+    frequency_penalty: float | None | NotGiven = NOT_GIVEN,
     function_call: FunctionCall | NotGiven = NOT_GIVEN,
-    functions: List[Function] | NotGiven = NOT_GIVEN,
-    logit_bias: Optional[dict[str, int]] | NotGiven = NOT_GIVEN,
-    logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
-    max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-    n: Optional[int] | NotGiven = NOT_GIVEN,
-    presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+    functions: list[Function] | NotGiven = NOT_GIVEN,
+    logit_bias: dict[str, int] | None | NotGiven = NOT_GIVEN,
+    logprobs: bool | None | NotGiven = NOT_GIVEN,
+    max_tokens: int | None | NotGiven = NOT_GIVEN,
+    n: int | None | NotGiven = NOT_GIVEN,
+    presence_penalty: float | None | NotGiven = NOT_GIVEN,
     response_format: ResponseFormat | NotGiven = NOT_GIVEN,
-    seed: Optional[int] | NotGiven = NOT_GIVEN,
-    stop: Union[Optional[str], List[str]] | NotGiven = NOT_GIVEN,
-    stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
-    temperature: Optional[float] | NotGiven = NOT_GIVEN,
+    seed: int | None | NotGiven = NOT_GIVEN,
+    stop: str | None | list[str] | NotGiven = NOT_GIVEN,
+    stream: Literal[False] | None | NotGiven = NOT_GIVEN,
+    temperature: float | None | NotGiven = NOT_GIVEN,
     tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
-    tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
-    top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
-    top_p: Optional[float] | NotGiven = NOT_GIVEN,
+    tools: list[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+    top_logprobs: int | None | NotGiven = NOT_GIVEN,
+    top_p: float | None | NotGiven = NOT_GIVEN,
     user: str | NotGiven = NOT_GIVEN,
     **kwargs: Any,
 ) -> str:

@@ -4,17 +4,18 @@ import time
 from google.cloud import bigquery
 from google.cloud.bigquery.dataset import DatasetReference
 
+from eave.collectors.core.datastructures import (
+    DatabaseEventPayload,
+    DatabaseOperation,
+    DatabaseStructure,
+    DataIngestRequestBody,
+    EventType,
+)
 from eave.core.internal.bigquery.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.bigquery.types import BigQueryTableHandle
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
-from eave.tracing.core.datastructures import (
-    DatabaseChangeEventPayload,
-    DatabaseChangeOperation,
-    DataIngestRequestBody,
-    EventType,
-)
 
 from .base import BaseTestCase
 
@@ -73,7 +74,7 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
                 EAVE_CLIENT_ID_HEADER: str(self.anyuuid("invalid client ID")),
                 EAVE_CLIENT_SECRET_HEADER: self.anystr("invalid client secret"),
             },
-            payload=DataIngestRequestBody(event_type=EventType.dbchange, events=[]).to_dict(),
+            payload=DataIngestRequestBody(event_type=EventType.dbevent, events=[]).to_dict(),
         )
 
         assert response.status_code == http.HTTPStatus.UNAUTHORIZED
@@ -94,7 +95,7 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
                 EAVE_CLIENT_ID_HEADER: str(ro_creds.id),
                 EAVE_CLIENT_SECRET_HEADER: ro_creds.secret,
             },
-            payload=DataIngestRequestBody(event_type=EventType.dbchange, events=[]).to_dict(),
+            payload=DataIngestRequestBody(event_type=EventType.dbevent, events=[]).to_dict(),
         )
 
         assert response.status_code == http.HTTPStatus.FORBIDDEN
@@ -107,7 +108,7 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
                 EAVE_CLIENT_ID_HEADER: str(self._client_credentials.id),
                 EAVE_CLIENT_SECRET_HEADER: self._client_credentials.secret,
             },
-            payload=DataIngestRequestBody(event_type=EventType.dbchange, events=[]).to_dict(),
+            payload=DataIngestRequestBody(event_type=EventType.dbevent, events=[]).to_dict(),
         )
 
         assert response.status_code == http.HTTPStatus.OK
@@ -121,7 +122,7 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
                 EAVE_CLIENT_ID_HEADER: str(self._client_credentials.id),
                 EAVE_CLIENT_SECRET_HEADER: self._client_credentials.secret,
             },
-            payload=DataIngestRequestBody(event_type=EventType.dbchange, events=[]).to_dict(),
+            payload=DataIngestRequestBody(event_type=EventType.dbevent, events=[]).to_dict(),
         )
 
         assert response.status_code == http.HTTPStatus.OK
@@ -129,7 +130,7 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
 
     async def test_insert_with_events_lazy_creates_db_and_tables(self) -> None:
         assert not self._bq_team_dataset_exists()
-        assert not self._bq_table_exists("atoms_dbchanges")
+        assert not self._bq_table_exists("atoms_db")
 
         response = await self.make_request(
             path="/ingest",
@@ -138,17 +139,19 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
                 EAVE_CLIENT_SECRET_HEADER: self._client_credentials.secret,
             },
             payload=DataIngestRequestBody(
-                event_type=EventType.dbchange,
+                event_type=EventType.dbevent,
                 events=[
-                    DatabaseChangeEventPayload(
-                        operation=DatabaseChangeOperation.INSERT,
-                        table_name=self.anystr(),
+                    DatabaseEventPayload(
+                        db_structure=DatabaseStructure.SQL,
                         timestamp=int(time.time()),
-                        new_data={
-                            self.anystr("new_data_1"): self.anystr(),
-                            self.anystr("new_data_2"): self.anystr(),
+                        db_name=self.anystring(),
+                        statement="update my_table set a=$1, b=$2;",
+                        operation=DatabaseOperation.INSERT,
+                        table_name=self.anystr(),
+                        parameters={
+                            "a": self.anystring(),
+                            "b": self.anystring(),
                         },
-                        old_data=None,
                     ).to_json(),
                 ],
             ).to_dict(),
@@ -156,4 +159,4 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
 
         assert response.status_code == http.HTTPStatus.OK
         assert self._bq_team_dataset_exists()
-        assert self._bq_table_exists("atoms_dbchanges")
+        assert self._bq_table_exists("atoms_db")

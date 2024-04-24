@@ -7,11 +7,19 @@ extend-exclude = [
   "build",
   ".*",
 ]
+target-version = "py312"
+src = [
+  # $EAVE_HOME/**/src isn't used because ** traverses leading-dot files (eg .venv)
+  "$EAVE_HOME/apps/**/src",
+  "$EAVE_HOME/libs/**/src",
+  "$EAVE_HOME/packages/**/src",
+  "$EAVE_HOME/develop/**/src",
+]
 
 [lint]
 ignore-init-module-imports = true
 logger-objects = [
-  "eave.stdlib.logging.eaveLogger",
+  "eave.collectors.core.logging.EAVE_LOGGER",
 ]
 
 # https://docs.astral.sh/ruff/rules/
@@ -58,7 +66,7 @@ select = [
   # "PTH", # https://docs.astral.sh/ruff/rules/#flake8-use-pathlib-pth
   # "ERA", # https://docs.astral.sh/ruff/rules/#eradicate-era
   # "PD", # https://docs.astral.sh/ruff/rules/#pandas-vet-pd
-  # "PL", # https://docs.astral.sh/ruff/rules/#pylint-pl
+  "PL", # https://docs.astral.sh/ruff/rules/#pylint-pl
   # "NPY", # https://docs.astral.sh/ruff/rules/#numpy-specific-rules-npy
   # "PERF", # https://docs.astral.sh/ruff/rules/#perflint-perf
   # "FURB", # https://docs.astral.sh/ruff/rules/#refurb-furb
@@ -70,27 +78,26 @@ ignore = [
   "PLW0603", # https://docs.astral.sh/ruff/rules/global-statement/ - useful
   "UP032", # https://docs.astral.sh/ruff/rules/f-string/ - format() is sometimes better for readability
   "ANN401", # https://docs.astral.sh/ruff/rules/any-type/ - Any is useful
-
   "ANN101", # https://docs.astral.sh/ruff/rules/missing-type-self/ - deprecated rule
   "ANN102", # https://docs.astral.sh/ruff/rules/missing-type-cls/ - deprecated rule
-
   "E501", # https://docs.astral.sh/ruff/rules/line-too-long/ - not useful
   "PLR09", # "too many ..." checks
-
+  "PLR5501", # https://docs.astral.sh/ruff/rules/collapsible-else-if/ - Sometimes using `else/if` is more readable than using `elif`
+  "PLR2004", # https://docs.astral.sh/ruff/rules/magic-value-comparison/ - This wants to use constants too often. Like `if len(thing) == 2`.
   "S101", # https://docs.astral.sh/ruff/rules/assert/ - too common in current codebase
   "A003", # https://docs.astral.sh/ruff/rules/builtin-attribute-shadowing/ - too common in current codebase
   "BLE001", # https://docs.astral.sh/ruff/rules/blind-except/ - too common in current codebase
   "ANN002", # https://docs.astral.sh/ruff/rules/missing-type-args/ - too common in current codebase
   "ANN003", # https://docs.astral.sh/ruff/rules/missing-type-kwargs/ - too common in current codebase
   "G004", # https://docs.astral.sh/ruff/rules/logging-f-string/ - too common in current codebase
-
   "COM812", # https://docs.astral.sh/ruff/rules/missing-trailing-comma/ - conflicts with ruff formatter
   "ISC001", # https://docs.astral.sh/ruff/rules/single-line-implicit-string-concatenation/ - conflicts with ruff formatter
+  "UP038", # https://docs.astral.sh/ruff/rules/non-pep604-isinstance/ - "Note that this results in slower code."
 ]
 
 [lint.extend-per-file-ignores]
 "__init__.py" = ["PLC0414"] # https://docs.astral.sh/ruff/rules/useless-import-alias/
-"tests/*" = [
+"**/tests/**/*_test.py" = [
   "S", # Disable security checks in test files
   "ANN", # Tests have lots of functions without return types, Any, etc.
   "FBT", # boolean args used in test util functions for brevity
@@ -102,4 +109,14 @@ allow-star-arg-any = true
 [lint.pep8-naming]
 extend-ignore-names = [
   "methodName", # unittest.TestCase.__init__
+]
+
+[lint.isort]
+# known-first-party is necessary because of the monorepo architecture.
+# Ruff looks for first-party modules by scanning for `src` directories first in the current directory, then in the project root (the nearest 'pyproject.toml').
+# So if you run the linter in the `apps/core` directory, for example, the eave modules are correctly classified as first-party, because a `src` directory exists.
+# If, however, you run the linter in the root of the project, where there is no `src` directory, then all of the eave modules are classified as third-party.
+# It's possible to configure Ruff to look in specific places using the `src` configuration, but this is less messy.
+known-first-party = [
+  "eave"
 ]

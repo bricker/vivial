@@ -7,7 +7,7 @@ export GLOBIGNORE="node_modules"
 source "$EAVE_HOME/develop/functions.bash"
 
 (
-	for ss in {apps,libs,develop,terraform}/**/bin/format; do
+	for ss in {apps,libs,packages,develop,terraform}/**/bin/format; do
 		if ^norecurse "$ss"; then
 			continue
 		fi
