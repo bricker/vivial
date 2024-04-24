@@ -3,7 +3,7 @@ import inspect
 import sys
 from collections.abc import Callable
 from functools import reduce
-from typing import Any, Concatenate, Optional
+from typing import Any, Concatenate
 
 from eave.collectors.python.callbacks.branch import trace_branch
 from eave.collectors.python.callbacks.call import trace_call

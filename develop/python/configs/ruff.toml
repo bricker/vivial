@@ -92,6 +92,7 @@ ignore = [
   "G004", # https://docs.astral.sh/ruff/rules/logging-f-string/ - too common in current codebase
   "COM812", # https://docs.astral.sh/ruff/rules/missing-trailing-comma/ - conflicts with ruff formatter
   "ISC001", # https://docs.astral.sh/ruff/rules/single-line-implicit-string-concatenation/ - conflicts with ruff formatter
+  "UP038", # https://docs.astral.sh/ruff/rules/non-pep604-isinstance/ - "Note that this results in slower code."
 ]
 
 [lint.extend-per-file-ignores]
