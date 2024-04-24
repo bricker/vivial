@@ -7,7 +7,7 @@ const windowAlias = {};
 
 const screenAlias = {};
 
-global.ev = {
+global.eave = {
   expireDateTime: undefined,
   _paq: [],
   /* plugins */
@@ -21,9 +21,9 @@ global.ev = {
   /* performance timing */
   performanceAlias: null,
   /* encode */
-  encodeWrapper: (x) => x,
+  encodeWrapper: encodeURIComponent,
   /* decode */
-  decodeWrapper: (x) => x,
+  decodeWrapper: decodeURIComponent,
   /* urldecode */
   urldecode: unescape,
   /* asynchronous tracker */

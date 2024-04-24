@@ -1,7 +1,9 @@
-import content from "./content.js";
-import * as h from "./helpers.js";
-import query from "./query.js";
-import { isVisible } from "./visibility.js";
+import content from "./content.mjs";
+import { CookieManager } from "./cookies.mjs";
+import "./globals.mjs";
+import * as h from "./helpers.mjs";
+import query from "./query.mjs";
+import { isVisible } from "./visibility.mjs";
 
 /*
  * eave Tracker class
@@ -22,15 +24,14 @@ export function Tracker(trackerUrl, siteId) {
     registeredHooks = {},
     /*</DEBUG>*/
 
-    trackerInstance = this,
     // constants
-    CONSENT_COOKIE_NAME = "mtm_consent",
-    COOKIE_CONSENT_COOKIE_NAME = "mtm_cookie_consent",
-    CONSENT_REMOVED_COOKIE_NAME = "mtm_consent_removed",
+    trackerInstance = this,
+    // in-memory context to be attached to all atoms. Use getContext()/setContext() to access!
+    _eaveContext = {},
     // Current URL and Referrer URL
     locationArray = h.urlFixup(
-      global.ev.documentAlias.domain,
-      global.ev.windowAlias.location.href,
+      globalThis.eave.documentAlias.domain,
+      globalThis.eave.windowAlias.location.href,
       h.getReferrer(),
     ),
     domainAlias = h.domainFixup(locationArray[0]),
@@ -56,8 +57,6 @@ export function Tracker(trackerUrl, siteId) {
     configTrackerSiteId = siteId || "",
     // User ID
     configUserId = "",
-    // Visitor UUID
-    visitorUUID = "",
     // Document URL
     configCustomUrl,
     // Document title
@@ -175,24 +174,15 @@ export function Tracker(trackerUrl, siteId) {
     configCustomData,
     // Campaign names
     configCampaignNameParameters = [
-      "pk_campaign",
-      "mtm_campaign",
       "eave_campaign",
       "utm_campaign",
       "utm_source",
       "utm_medium",
     ],
     // Campaign keywords
-    configCampaignKeywordParameters = [
-      "pk_kwd",
-      "mtm_kwd",
-      "eave_kwd",
-      "utm_term",
-    ],
-    // First-party cookie name prefix
-    configCookieNamePrefix = "_pk_",
+    configCampaignKeywordParameters = ["eave_kwd", "utm_term"],
     // the URL parameter that will store the visitorId if cross domain linking is enabled
-    // pk_vid = visitor ID
+    // ev_vid = visitor ID
     // first part of this URL parameter will be 16 char visitor Id.
     // The second part is the 10 char current timestamp and the third and last part will be a 6 characters deviceId
     // timestamp is needed to prevent reusing the visitorId when the URL is shared. The visitorId will be
@@ -200,35 +190,11 @@ export function Tracker(trackerUrl, siteId) {
     // deviceId parameter is needed to prevent reusing the visitorId when the URL is shared. The visitorId
     // will be only reused if the device is still the same when opening the link.
     // VDI = visitor device identifier
-    configVisitorIdUrlParameter = "pk_vid",
+    configVisitorIdUrlParameter = "ev_vid",
+    configVisitorIdKey = "visitor_id",
+    configReferralKey = "referrer",
     // Cross domain linking, the visitor ID is transmitted only in the 180 seconds following the click.
     configVisitorIdUrlParameterTimeoutInSeconds = 180,
-    // First-party cookie domain
-    // User agent defaults to origin hostname
-    configCookieDomain,
-    // First-party cookie path
-    // Default is user agent defined.
-    configCookiePath,
-    // Whether to use "Secure" cookies that only work over SSL
-    configCookieIsSecure = false,
-    // Set SameSite attribute for cookies
-    configCookieSameSite = "Lax",
-    // First-party cookies are disabled
-    configCookiesDisabled = false,
-    // Do Not Track
-    configDoNotTrack,
-    // Count sites which are pre-rendered
-    configCountPreRendered,
-    // Enable sending campaign parameters to backend.
-    configEnableCampaignParameters = true,
-    // Do we attribute the conversion to the first referrer or the most recent referrer?
-    configConversionAttributionFirstReferrer,
-    // Life of the visitor cookie (in milliseconds)
-    configVisitorCookieTimeout = 33955200000, // 13 months (365 days + 28days)
-    // Life of the session cookie (in milliseconds)
-    configSessionCookieTimeout = 1800000, // 30 minutes
-    // Life of the referral cookie (in milliseconds)
-    configReferralCookieTimeout = 15768000000, // 6 months
     // Is performance tracking enabled
     configPerformanceTrackingEnabled = true,
     // will be set to true automatically once the onload event has finished
@@ -240,6 +206,14 @@ export function Tracker(trackerUrl, siteId) {
     // Custom Variables read from cookie, scope "visit"
     customVariables = false,
     configCustomRequestContentProcessing,
+    // Do Not Track
+    configDoNotTrack,
+    // Count sites which are pre-rendered
+    configCountPreRendered,
+    // Enable sending campaign parameters to backend.
+    configEnableCampaignParameters = true,
+    // Do we attribute the conversion to the first referrer or the most recent referrer?
+    configConversionAttributionFirstReferrer,
     // Custom Variables, scope "page"
     customVariablesPage = {},
     // Custom Variables, scope "event"
@@ -283,17 +257,12 @@ export function Tracker(trackerUrl, siteId) {
     // Internal state of the pseudo click handler
     lastButton,
     lastTarget,
-    // Hash function
-    hash = h.sha1,
-    // Domain hash value
-    domainHash,
     configIdPageView,
     // Boolean indicating that a page view ID has been set manually
     configIdPageViewSetManually = false,
     // we measure how many pageviews have been tracked so plugins can use it to eg detect if a
     // pageview was already tracked or not
     numTrackedPageviews = 0,
-    configCookiesToDelete = ["id", "ses", "cvar", "ref"],
     // whether requireConsent() was called or not
     configConsentRequired = false,
     // we always have the concept of consent. by default consent is assumed unless the end user removes it,
@@ -305,190 +274,23 @@ export function Tracker(trackerUrl, siteId) {
     // happening multiple times, then it will be tracked only once within the same page view
     javaScriptErrors = [],
     // a unique ID for this tracker during this request
-    uniqueTrackerId = global.ev.trackerIdCounter++,
+    uniqueTrackerId = globalThis.eave.trackerIdCounter++,
     // whether a tracking request has been sent yet during this page view
     hasSentTrackingRequestYet = false,
     configBrowserFeatureDetection = true,
+    cookieManager = new CookieManager(),
     configFileTracking = false;
 
   // Document title
   try {
-    configTitle = global.ev.documentAlias.title;
+    configTitle = globalThis.eave.documentAlias.title;
   } catch (e) {
     configTitle = "";
   }
 
-  /*
-   * Get cookie value
-   */
-  function getCookie(cookieName) {
-    if (configCookiesDisabled && cookieName !== CONSENT_REMOVED_COOKIE_NAME) {
-      return 0;
-    }
-
-    var cookiePattern = new RegExp("(^|;)[ ]*" + cookieName + "=([^;]*)"),
-      cookieMatch = cookiePattern.exec(global.ev.documentAlias.cookie);
-
-    return cookieMatch ? global.ev.decodeWrapper(cookieMatch[2]) : 0;
-  }
-
-  configHasConsent = !getCookie(CONSENT_REMOVED_COOKIE_NAME);
-
-  /*
-   * Set cookie value
-   */
-  function setCookie(
-    cookieName,
-    value,
-    msToExpire,
-    path,
-    domain,
-    isSecure,
-    sameSite,
-  ) {
-    if (configCookiesDisabled && cookieName !== CONSENT_REMOVED_COOKIE_NAME) {
-      return;
-    }
-
-    var expiryDate;
-
-    // relative time to expire in milliseconds
-    if (msToExpire) {
-      expiryDate = new Date();
-      expiryDate.setTime(expiryDate.getTime() + msToExpire);
-    }
-
-    if (!sameSite) {
-      sameSite = "Lax";
-    }
-
-    global.ev.documentAlias.cookie =
-      cookieName +
-      "=" +
-      global.ev.encodeWrapper(value) +
-      (msToExpire ? ";expires=" + expiryDate.toGMTString() : "") +
-      ";path=" +
-      (path || "/") +
-      (domain ? ";domain=" + domain : "") +
-      (isSecure ? ";secure" : "") +
-      ";SameSite=" +
-      sameSite;
-
-    // check the cookie was actually set
-    if (
-      (!msToExpire || msToExpire >= 0) &&
-      getCookie(cookieName) !== String(value)
-    ) {
-      var msg =
-        "There was an error setting cookie `" +
-        cookieName +
-        "`. Please check domain and path.";
-      h.logConsoleError(msg);
-    }
-  }
-
-  /*
-   * Removes hash tag from the URL
-   * Removes ignore_referrer/ignore_referer
-   * Removes configVisitorIdUrlParameter
-   * Removes campaign parameters
-   *
-   * URLs are purified before being recorded in the cookie,
-   * or before being sent as GET parameters
-   */
-  function purify(url) {
-    var targetPattern, i;
-
-    // Remove campaign names/keywords from URL
-    if (configEnableCampaignParameters !== true) {
-      for (i = 0; i < configCampaignNameParameters.length; i++) {
-        url = h.removeUrlParameter(url, configCampaignNameParameters[i]);
-      }
-
-      for (i = 0; i < configCampaignKeywordParameters.length; i++) {
-        url = h.removeUrlParameter(url, configCampaignKeywordParameters[i]);
-      }
-    }
-
-    // we need to remove this parameter here, they wouldn't be removed in eave tracker otherwise eg
-    // for outlinks or referrers
-    url = h.removeUrlParameter(url, configVisitorIdUrlParameter);
-
-    // remove ignore referrer parameter if present
-    url = h.removeUrlParameter(url, "ignore_referrer");
-    url = h.removeUrlParameter(url, "ignore_referer");
-
-    for (i = 0; i < configExcludedQueryParams.length; i++) {
-      url = h.removeUrlParameter(url, configExcludedQueryParams[i]);
-    }
-
-    if (configDiscardHashTag) {
-      targetPattern = new RegExp("#.*");
-
-      return url.replace(targetPattern, "");
-    }
-
-    return url;
-  }
-
-  /*
-   * Resolve relative reference
-   *
-   * Note: not as described in rfc3986 section 5.2
-   */
-  function resolveRelativeReference(baseUrl, url) {
-    var protocol = h.getProtocolScheme(url),
-      i;
-
-    if (protocol) {
-      return url;
-    }
-
-    if (url.slice(0, 1) === "/") {
-      return (
-        h.getProtocolScheme(baseUrl) + "://" + h.getHostName(baseUrl) + url
-      );
-    }
-
-    baseUrl = purify(baseUrl);
-
-    i = baseUrl.indexOf("?");
-    if (i >= 0) {
-      baseUrl = baseUrl.slice(0, i);
-    }
-
-    i = baseUrl.lastIndexOf("/");
-    if (i !== baseUrl.length - 1) {
-      baseUrl = baseUrl.slice(0, i + 1);
-    }
-
-    return baseUrl + url;
-  }
-
-  function isSameHost(hostName, alias) {
-    var offset;
-
-    hostName = String(hostName).toLowerCase();
-    alias = String(alias).toLowerCase();
-
-    if (hostName === alias) {
-      return true;
-    }
-
-    if (alias.slice(0, 1) === ".") {
-      if (hostName === alias.slice(1)) {
-        return true;
-      }
-
-      offset = hostName.length - alias.length;
-
-      if (offset > 0 && hostName.slice(offset) === alias) {
-        return true;
-      }
-    }
-
-    return false;
-  }
+  configHasConsent = !cookieManager.getCookie(
+    cookieManager.CONSENT_REMOVED_COOKIE_NAME,
+  );
 
   /*
    * Extract pathname from URL. element.pathname is actually supported by pretty much all browsers including
@@ -515,111 +317,40 @@ export function Tracker(trackerUrl, siteId) {
     return "";
   }
 
-  function isSitePath(path, pathAlias) {
-    if (!h.stringStartsWith(pathAlias, "/")) {
-      pathAlias = "/" + pathAlias;
-    }
-
-    if (!h.stringStartsWith(path, "/")) {
-      path = "/" + path;
-    }
-
-    var matchesAnyPath = pathAlias === "/" || pathAlias === "/*";
-
-    if (matchesAnyPath) {
-      return true;
-    }
-
-    if (path === pathAlias) {
-      return true;
-    }
-
-    pathAlias = String(pathAlias).toLowerCase();
-    path = String(path).toLowerCase();
-
-    // wildcard path support
-    if (h.stringEndsWith(pathAlias, "*")) {
-      // remove the final '*' before comparing
-      pathAlias = pathAlias.slice(0, -1);
-
-      // Note: this is almost duplicated from just few lines above
-      matchesAnyPath = !pathAlias || pathAlias === "/";
-
-      if (matchesAnyPath) {
-        return true;
-      }
-
-      if (path === pathAlias) {
-        return true;
-      }
-
-      // wildcard match
-      return path.indexOf(pathAlias) === 0;
-    }
-
-    // we need to append slashes so /foobarbaz won't match a site /foobar
-    if (!h.stringEndsWith(path, "/")) {
-      path += "/";
-    }
-
-    if (!h.stringEndsWith(pathAlias, "/")) {
-      pathAlias += "/";
-    }
-
-    return path.indexOf(pathAlias) === 0;
+  /**
+   * Get a value from the in-memory _eaveContext object
+   *
+   * @param {string} key to fetch a value for
+   * @returns {any} value associated w/ `key` or undefined
+   */
+  function getContext(key) {
+    return _eaveContext[key];
   }
 
   /**
-   * Whether the specified domain name and path belong to any of the alias domains (eg. set via setDomains).
+   * Set `value` in the in-memory _eaveContext and save to cookie.
    *
-   * Note: this function is used to determine whether a click on a URL will be considered an "Outlink".
-   *
-   * @param host
-   * @param path
-   * @returns {boolean}
+   * @param {string} key
+   * @param {any} value
    */
-  function isSiteHostPath(host, path) {
-    var i, alias, configAlias, aliasHost, aliasPath;
+  function setContext(key, value) {
+    // set into in-mem ctx
+    _eaveContext[key] = value;
 
-    for (i = 0; i < configHostsAlias.length; i++) {
-      aliasHost = h.domainFixup(configHostsAlias[i]);
-      aliasPath = getPathName(configHostsAlias[i]);
-
-      if (isSameHost(host, aliasHost) && isSitePath(path, aliasPath)) {
-        return true;
-      }
-    }
-
-    return false;
+    // save new ctx value to cookie
+    saveContext();
   }
 
-  /*
-   * Is the host local? (i.e., not an outlink)
-   */
-  function isSiteHostName(hostName) {
-    var i, alias, offset;
-
-    for (i = 0; i < configHostsAlias.length; i++) {
-      alias = h.domainFixup(configHostsAlias[i].toLowerCase());
-
-      if (hostName === alias) {
-        return true;
-      }
-
-      if (alias.slice(0, 1) === ".") {
-        if (hostName === alias.slice(1)) {
-          return true;
-        }
-
-        offset = hostName.length - alias.length;
-
-        if (offset > 0 && hostName.slice(offset) === alias) {
-          return true;
-        }
-      }
-    }
-
-    return false;
+  function saveContext() {
+    cookieManager.setCookie(
+      cookieManager.CONTEXT_COOKIE_NAME,
+      globalThis.eave.windowAlias.JSON.stringify(_eaveContext),
+      cookieManager.configVisitorCookieTimeout,
+      cookieManager.configCookiePath,
+      cookieManager.configCookieDomain,
+      cookieManager.configCookieIsSecure,
+      cookieManager.configCookieSameSite,
+    );
   }
 
   /**
@@ -652,7 +383,7 @@ export function Tracker(trackerUrl, siteId) {
         aliasHost = aliasHost.substr(4);
       }
 
-      if (isSameHost(host, aliasHost) && isSitePath(path, aliasPath)) {
+      if (h.isSameHost(host, aliasHost) && h.isSitePath(path, aliasPath)) {
         return true;
       }
     }
@@ -666,20 +397,20 @@ export function Tracker(trackerUrl, siteId) {
    */
   function wasJsTrackingCodeInstallCheckParamProvided() {
     if (
-      global.ev.trackerInstallCheckNonce &&
-      global.ev.trackerInstallCheckNonce.length > 0
+      globalThis.eave.trackerInstallCheckNonce &&
+      globalThis.eave.trackerInstallCheckNonce.length > 0
     ) {
       return true;
     }
 
-    global.ev.trackerInstallCheckNonce = h.getUrlParameter(
-      global.ev.windowAlias.location.href,
+    globalThis.eave.trackerInstallCheckNonce = h.getUrlParameter(
+      globalThis.eave.windowAlias.location.href,
       "tracker_install_check",
     );
 
     return (
-      global.ev.trackerInstallCheckNonce &&
-      global.ev.trackerInstallCheckNonce.length > 0
+      globalThis.eave.trackerInstallCheckNonce &&
+      globalThis.eave.trackerInstallCheckNonce.length > 0
     );
   }
 
@@ -690,9 +421,9 @@ export function Tracker(trackerUrl, siteId) {
     // If the query parameter indicating this is a test exists
     if (
       wasJsTrackingCodeInstallCheckParamProvided() &&
-      h.isObject(global.ev.windowAlias)
+      h.isObject(globalThis.eave.windowAlias)
     ) {
-      global.ev.windowAlias.close();
+      globalThis.eave.windowAlias.close();
     }
   }
 
@@ -744,8 +475,8 @@ export function Tracker(trackerUrl, siteId) {
 
   function supportsSendBeacon() {
     return (
-      "object" === typeof global.ev.navigatorAlias &&
-      "function" === typeof global.ev.navigatorAlias.sendBeacon &&
+      "object" === typeof globalThis.eave.navigatorAlias &&
+      "function" === typeof globalThis.eave.navigatorAlias.sendBeacon &&
       "function" === typeof Blob
     );
   }
@@ -772,7 +503,7 @@ export function Tracker(trackerUrl, siteId) {
         url = url + (url.indexOf("?") < 0 ? "?" : "&") + request;
       }
 
-      success = global.ev.navigatorAlias.sendBeacon(url, blob);
+      success = globalThis.eave.navigatorAlias.sendBeacon(url, blob);
       // returns true if the user agent is able to successfully queue the data for transfer,
       // Otherwise it returns false and we need to try the regular way
     } catch (e) {
@@ -803,7 +534,7 @@ export function Tracker(trackerUrl, siteId) {
     }
 
     if (
-      global.ev.isPageUnloading &&
+      globalThis.eave.isPageUnloading &&
       sendPostRequestViaSendBeacon(request, callback, fallbackToGet)
     ) {
       return;
@@ -821,7 +552,7 @@ export function Tracker(trackerUrl, siteId) {
       // by 50ms which gives it usually enough time to detect the unload event in most cases.
 
       if (
-        global.ev.isPageUnloading &&
+        globalThis.eave.isPageUnloading &&
         sendPostRequestViaSendBeacon(request, callback, fallbackToGet)
       ) {
         return;
@@ -832,10 +563,10 @@ export function Tracker(trackerUrl, siteId) {
         // we use the progid Microsoft.XMLHTTP because
         // IE5.5 included MSXML 2.5; the progid MSXML2.XMLHTTP
         // is pinned to MSXML2.XMLHTTP.3.0
-        var xhr = global.ev.windowAlias.XMLHttpRequest
-          ? new global.ev.windowAlias.XMLHttpRequest()
-          : global.ev.windowAlias.ActiveXObject
-          ? new global.ev.windowAlias.ActiveXObject("Microsoft.XMLHTTP")
+        var xhr = globalThis.eave.windowAlias.XMLHttpRequest
+          ? new globalThis.eave.windowAlias.XMLHttpRequest()
+          : globalThis.eave.windowAlias.ActiveXObject
+          ? new globalThis.eave.windowAlias.ActiveXObject("Microsoft.XMLHTTP")
           : null;
 
         xhr.open("POST", configTrackerUrl, true);
@@ -847,7 +578,7 @@ export function Tracker(trackerUrl, siteId) {
             !(this.status >= 200 && this.status < 300)
           ) {
             var sentViaBeacon =
-              global.ev.isPageUnloading &&
+              globalThis.eave.isPageUnloading &&
               sendPostRequestViaSendBeacon(request, callback, fallbackToGet);
 
             if (!sentViaBeacon && fallbackToGet) {
@@ -879,7 +610,7 @@ export function Tracker(trackerUrl, siteId) {
         xhr.send(request);
       } catch (e) {
         sentViaBeacon =
-          global.ev.isPageUnloading &&
+          globalThis.eave.isPageUnloading &&
           sendPostRequestViaSendBeacon(request, callback, fallbackToGet);
         if (!sentViaBeacon && fallbackToGet) {
           getImage(request, callback);
@@ -901,8 +632,11 @@ export function Tracker(trackerUrl, siteId) {
     var now = new Date();
     var time = now.getTime() + delay;
 
-    if (!global.ev.expireDateTime || time > global.ev.expireDateTime) {
-      global.ev.expireDateTime = time;
+    if (
+      !globalThis.eave.expireDateTime ||
+      time > globalThis.eave.expireDateTime
+    ) {
+      globalThis.eave.expireDateTime = time;
     }
   }
 
@@ -930,11 +664,11 @@ export function Tracker(trackerUrl, siteId) {
 
   function heartBeatOnVisible() {
     if (
-      global.ev.documentAlias.visibilityState === "hidden" &&
+      globalThis.eave.documentAlias.visibilityState === "hidden" &&
       hadWindowMinimalFocusToConsiderViewed()
     ) {
       heartBeatPingIfActivityAlias();
-    } else if (global.ev.documentAlias.visibilityState === "visible") {
+    } else if (globalThis.eave.documentAlias.visibilityState === "visible") {
       timeWindowLastFocused = new Date().getTime();
     }
   }
@@ -949,29 +683,32 @@ export function Tracker(trackerUrl, siteId) {
 
     heartBeatSetUp = true;
 
-    h.addEventListener(global.ev.windowAlias, "focus", heartBeatOnFocus);
-    h.addEventListener(global.ev.windowAlias, "blur", heartBeatOnBlur);
+    h.addEventListener(globalThis.eave.windowAlias, "focus", heartBeatOnFocus);
+    h.addEventListener(globalThis.eave.windowAlias, "blur", heartBeatOnBlur);
     h.addEventListener(
-      global.ev.windowAlias,
+      globalThis.eave.windowAlias,
       "visibilitychange",
       heartBeatOnVisible,
     );
 
     // when using multiple trackers then we need to add this event for each tracker
-    global.ev.coreHeartBeatCounter++;
-    global.ev.eave.addPlugin("HeartBeat" + global.ev.coreHeartBeatCounter, {
-      unload: function () {
-        // we can't remove the unload plugin event when disabling heart beat timer but we at least
-        // check if it is still enabled... note: when enabling heart beat, then disabling, then
-        // enabling then this could trigger two requests under circumstances maybe. it's edge case though
+    globalThis.eave.coreHeartBeatCounter++;
+    globalThis.eave.eave.addPlugin(
+      "HeartBeat" + globalThis.eave.coreHeartBeatCounter,
+      {
+        unload: function () {
+          // we can't remove the unload plugin event when disabling heart beat timer but we at least
+          // check if it is still enabled... note: when enabling heart beat, then disabling, then
+          // enabling then this could trigger two requests under circumstances maybe. it's edge case though
 
-        // we only send the heartbeat if onunload the user spent at least 15seconds since last focus
-        // or the configured heatbeat timer
-        if (heartBeatSetUp && hadWindowMinimalFocusToConsiderViewed()) {
-          heartBeatPingIfActivityAlias();
-        }
+          // we only send the heartbeat if onunload the user spent at least 15seconds since last focus
+          // or the configured heatbeat timer
+          if (heartBeatSetUp && hadWindowMinimalFocusToConsiderViewed()) {
+            heartBeatPingIfActivityAlias();
+          }
+        },
       },
-    });
+    );
   }
 
   function makeSureThereIsAGapAfterFirstTrackingRequestToPreventMultipleVisitorCreation(
@@ -1009,16 +746,105 @@ export function Tracker(trackerUrl, siteId) {
     callback();
   }
 
-  /*
-   * Check first-party cookies and update the <code>configHasConsent</code> value.  Ensures that any
-   * change to the user opt-in/out status in another browser window will be respected.
-   */
-  function refreshConsentStatus() {
-    if (getCookie(CONSENT_REMOVED_COOKIE_NAME)) {
-      configHasConsent = false;
-    } else if (getCookie(CONSENT_COOKIE_NAME)) {
-      configHasConsent = true;
+  function processClientHintsQueue() {
+    var i, requestType;
+
+    for (i = 0; i < clientHintsRequestQueue.length; i++) {
+      requestType = typeof clientHintsRequestQueue[i][0];
+      if (requestType === "string") {
+        sendRequest(
+          clientHintsRequestQueue[i][0],
+          configTrackerPause,
+          clientHintsRequestQueue[i][1],
+        );
+      } else if (requestType === "object") {
+        sendBulkRequest(clientHintsRequestQueue[i][0], configTrackerPause);
+      }
     }
+    clientHintsRequestQueue = [];
+  }
+
+  /*
+   * Browser features (plugins, resolution, cookies)
+   */
+  function detectBrowserFeatures() {
+    // Browser Feature is disabled return empty object
+    if (!configBrowserFeatureDetection) {
+      return {};
+    }
+
+    if (supportsClientHints()) {
+      detectClientHints(processClientHintsQueue);
+    }
+
+    if (h.isDefined(browserFeatures.res)) {
+      return browserFeatures;
+    }
+    var i,
+      mimeType,
+      pluginMap = {
+        // document types
+        pdf: "application/pdf",
+
+        // media players
+        qt: "video/quicktime",
+        realp: "audio/x-pn-realaudio-plugin",
+        wma: "application/x-mplayer2",
+
+        // interactive multimedia
+        fla: "application/x-shockwave-flash",
+
+        // RIA
+        java: "application/x-java-vm",
+        ag: "application/x-silverlight",
+      };
+
+    // detect browser features except IE < 11 (IE 11 user agent is no longer MSIE)
+    if (!new RegExp("MSIE").test(globalThis.eave.navigatorAlias.userAgent)) {
+      // general plugin detection
+      if (
+        globalThis.eave.navigatorAlias.mimeTypes &&
+        globalThis.eave.navigatorAlias.mimeTypes.length
+      ) {
+        for (i in pluginMap) {
+          if (Object.prototype.hasOwnProperty.call(pluginMap, i)) {
+            mimeType = globalThis.eave.navigatorAlias.mimeTypes[pluginMap[i]];
+            browserFeatures[i] = mimeType && mimeType.enabledPlugin ? "1" : "0";
+          }
+        }
+      }
+
+      // Safari and Opera
+      // IE6/IE7 navigator.javaEnabled can't be aliased, so test directly
+      // on Edge navigator.javaEnabled() always returns `true`, so ignore it
+      if (
+        !new RegExp("Edge[ /](\\d+[\\.\\d]+)").test(
+          globalThis.eave.navigatorAlias.userAgent,
+        ) &&
+        typeof navigator.javaEnabled !== "undefined" &&
+        h.isDefined(globalThis.eave.navigatorAlias.javaEnabled) &&
+        globalThis.eave.navigatorAlias.javaEnabled()
+      ) {
+        browserFeatures.java = "1";
+      }
+
+      if (
+        !h.isDefined(globalThis.eave.windowAlias.showModalDialog) &&
+        h.isDefined(globalThis.eave.navigatorAlias.cookieEnabled)
+      ) {
+        browserFeatures.cookie = globalThis.eave.navigatorAlias.cookieEnabled
+          ? "1"
+          : "0";
+      } else {
+        // Eg IE11 ... prevent error when cookieEnabled is requested within modal dialog. see #11507
+        browserFeatures.cookie = cookieManager.hasCookies();
+      }
+    }
+
+    var width = parseInt(globalThis.eave.screenAlias.width, 10);
+    var height = parseInt(globalThis.eave.screenAlias.height, 10);
+    browserFeatures.res = parseInt(width, 10) + "x" + parseInt(height, 10);
+    return browserFeatures;
   }
 
   function injectBrowserFeaturesAndClientHints(request) {
@@ -1035,8 +861,8 @@ export function Tracker(trackerUrl, siteId) {
     if (clientHints) {
       appendix =
         "&uadata=" +
-        global.ev.encodeWrapper(
-          global.ev.windowAlias.JSON.stringify(clientHints),
+        globalThis.eave.encodeWrapper(
+          globalThis.eave.windowAlias.JSON.stringify(clientHints),
         );
     }
 
@@ -1053,8 +879,10 @@ export function Tracker(trackerUrl, siteId) {
 
   function supportsClientHints() {
     return (
-      h.isDefined(global.ev.navigatorAlias.userAgentData) &&
-      h.isFunction(global.ev.navigatorAlias.userAgentData.getHighEntropyValues)
+      h.isDefined(globalThis.eave.navigatorAlias.userAgentData) &&
+      h.isFunction(
+        globalThis.eave.navigatorAlias.userAgentData.getHighEntropyValues,
+      )
     );
   }
 
@@ -1068,14 +896,14 @@ export function Tracker(trackerUrl, siteId) {
 
     // Initialize with low entropy values that are always available
     clientHints = {
-      brands: global.ev.navigatorAlias.userAgentData.brands,
-      platform: global.ev.navigatorAlias.userAgentData.platform,
+      brands: globalThis.eave.navigatorAlias.userAgentData.brands,
+      platform: globalThis.eave.navigatorAlias.userAgentData.platform,
     };
 
     // try to gather high entropy values
     // currently this methods simply returns the requested values through a Promise
     // In later versions it might require a user permission
-    global.ev.navigatorAlias.userAgentData
+    globalThis.eave.navigatorAlias.userAgentData
       .getHighEntropyValues([
         "brands",
         "model",
@@ -1103,6 +931,123 @@ export function Tracker(trackerUrl, siteId) {
           callback();
         },
       );
+  }
+
+  function generateBrowserSpecificId() {
+    var browserFeatures = detectBrowserFeatures();
+
+    return h
+      .sha1(
+        (globalThis.eave.navigatorAlias.userAgent || "") +
+          (globalThis.eave.navigatorAlias.platform || "") +
+          globalThis.eave.windowAlias.JSON.stringify(browserFeatures),
+      )
+      .slice(0, 6);
+  }
+
+  function makeCrossDomainDeviceId() {
+    var timestamp = h.getCurrentTimestampInSeconds();
+    var browserId = generateBrowserSpecificId();
+    var deviceId = String(timestamp) + browserId;
+
+    return deviceId;
+  }
+
+  /**
+   * Is the host local? (i.e., not an outlink)
+   */
+  function isSiteHostName(hostName) {
+    var i, alias, offset;
+
+    for (i = 0; i < configHostsAlias.length; i++) {
+      alias = h.domainFixup(configHostsAlias[i].toLowerCase());
+
+      if (hostName === alias) {
+        return true;
+      }
+
+      if (alias.slice(0, 1) === ".") {
+        if (hostName === alias.slice(1)) {
+          return true;
+        }
+
+        offset = hostName.length - alias.length;
+
+        if (offset > 0 && hostName.slice(offset) === alias) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Whether the specified domain name and path belong to any of the alias domains (eg. set via setDomains).
+   *
+   * Note: this function is used to determine whether a click on a URL will be considered an "Outlink".
+   *
+   * @param host
+   * @param path
+   * @returns {boolean}
+   */
+  function isSiteHostPath(host, path) {
+    var i, aliasHost, aliasPath;
+
+    for (i = 0; i < configHostsAlias.length; i++) {
+      aliasHost = h.domainFixup(configHostsAlias[i]);
+      aliasPath = getPathName(configHostsAlias[i]);
+
+      if (h.isSameHost(host, aliasHost) && h.isSitePath(path, aliasPath)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Removes hash tag from the URL
+   * Removes ignore_referrer/ignore_referer
+   * Removes configVisitorIdUrlParameter
+   * Removes campaign parameters
+   *
+   * URLs are purified before being recorded in the cookie,
+   * or before being sent as GET parameters
+   */
+  function purify(url) {
+    var targetPattern, i;
+
+    // Remove campaign names/keywords from URL
+    if (configEnableCampaignParameters !== true) {
+      for (i = 0; i < configCampaignNameParameters.length; i++) {
+        url = h.removeUrlParameter(url, configCampaignNameParameters[i]);
+      }
+
+      for (i = 0; i < configCampaignKeywordParameters.length; i++) {
+        url = h.removeUrlParameter(url, configCampaignKeywordParameters[i]);
+      }
+    }
+
+    // we need to remove this parameter here, they wouldn't be removed in eave tracker otherwise eg
+    // for outlinks or referrers
+    url = h.removeUrlParameter(url, configVisitorIdUrlParameter);
+
+    // remove ignore referrer parameter if present
+    url = h.removeUrlParameter(url, "ignore_referrer");
+    url = h.removeUrlParameter(url, "ignore_referer");
+
+    for (i = 0; i < configExcludedQueryParams.length; i++) {
+      url = h.removeUrlParameter(url, configExcludedQueryParams[i]);
+    }
+
+    if (configDiscardHashTag) {
+      targetPattern = new RegExp("#.*");
+
+      return url.replace(targetPattern, "");
+    }
+
+    return url;
   }
 
   /*
@@ -1167,22 +1112,6 @@ export function Tracker(trackerUrl, siteId) {
     return requests && requests.length;
   }
 
-  function arrayChunk(theArray, chunkSize) {
-    if (!chunkSize || chunkSize >= theArray.length) {
-      return [theArray];
-    }
-
-    var index = 0;
-    var arrLength = theArray.length;
-    var chunks = [];
-
-    for (index; index < arrLength; index += chunkSize) {
-      chunks.push(theArray.slice(index, index + chunkSize));
-    }
-
-    return chunks;
-  }
-
   /*
    * Send requests using bulk
    */
@@ -1209,7 +1138,7 @@ export function Tracker(trackerUrl, siteId) {
 
     makeSureThereIsAGapAfterFirstTrackingRequestToPreventMultipleVisitorCreation(
       function () {
-        var chunks = arrayChunk(requests, 50);
+        var chunks = h.arrayChunk(requests, 50);
 
         var i = 0,
           bulk;
@@ -1235,537 +1164,8 @@ export function Tracker(trackerUrl, siteId) {
     );
   }
 
-  /*
-   * Get cookie name with prefix and domain hash
-   */
-  function getCookieName(baseName) {
-    return (
-      configCookieNamePrefix +
-      baseName +
-      "." +
-      configTrackerSiteId +
-      "." +
-      domainHash
-    );
-  }
-
-  function deleteCookie(cookieName, path, domain) {
-    setCookie(cookieName, "", -129600000, path, domain);
-  }
-
-  /*
-   * Does browser have cookies enabled (for this site)?
-   */
-  function hasCookies() {
-    if (configCookiesDisabled) {
-      return "0";
-    }
-
-    if (
-      !h.isDefined(global.ev.windowAlias.showModalDialog) &&
-      h.isDefined(global.ev.navigatorAlias.cookieEnabled)
-    ) {
-      return global.ev.navigatorAlias.cookieEnabled ? "1" : "0";
-    }
-
-    // for IE we want to actually set the cookie to avoid trigger a warning eg in IE see #11507
-    var testCookieName = configCookieNamePrefix + "testcookie";
-    setCookie(
-      testCookieName,
-      "1",
-      undefined,
-      configCookiePath,
-      configCookieDomain,
-      configCookieIsSecure,
-      configCookieSameSite,
-    );
-
-    var hasCookie = getCookie(testCookieName) === "1" ? "1" : "0";
-    deleteCookie(testCookieName);
-    return hasCookie;
-  }
-
-  /*
-   * Update domain hash
-   */
-  function updateDomainHash() {
-    domainHash = hash(
-      (configCookieDomain || domainAlias) + (configCookiePath || "/"),
-    ).slice(0, 4); // 4 hexits = 16 bits
-  }
-
-  function processClientHintsQueue() {
-    var i, requestType;
-
-    for (i = 0; i < clientHintsRequestQueue.length; i++) {
-      requestType = typeof clientHintsRequestQueue[i][0];
-      if (requestType === "string") {
-        sendRequest(
-          clientHintsRequestQueue[i][0],
-          configTrackerPause,
-          clientHintsRequestQueue[i][1],
-        );
-      } else if (requestType === "object") {
-        sendBulkRequest(clientHintsRequestQueue[i][0], configTrackerPause);
-      }
-    }
-    clientHintsRequestQueue = [];
-  }
-
-  /*
-   * Browser features (plugins, resolution, cookies)
-   */
-  function detectBrowserFeatures() {
-    // Browser Feature is disabled return empty object
-    if (!configBrowserFeatureDetection) {
-      return {};
-    }
-
-    if (supportsClientHints()) {
-      detectClientHints(processClientHintsQueue);
-    }
-
-    if (h.isDefined(browserFeatures.res)) {
-      return browserFeatures;
-    }
-    var i,
-      mimeType,
-      pluginMap = {
-        // document types
-        pdf: "application/pdf",
-
-        // media players
-        qt: "video/quicktime",
-        realp: "audio/x-pn-realaudio-plugin",
-        wma: "application/x-mplayer2",
-
-        // interactive multimedia
-        fla: "application/x-shockwave-flash",
-
-        // RIA
-        java: "application/x-java-vm",
-        ag: "application/x-silverlight",
-      };
-
-    // detect browser features except IE < 11 (IE 11 user agent is no longer MSIE)
-    if (!new RegExp("MSIE").test(global.ev.navigatorAlias.userAgent)) {
-      // general plugin detection
-      if (
-        global.ev.navigatorAlias.mimeTypes &&
-        global.ev.navigatorAlias.mimeTypes.length
-      ) {
-        for (i in pluginMap) {
-          if (Object.prototype.hasOwnProperty.call(pluginMap, i)) {
-            mimeType = global.ev.navigatorAlias.mimeTypes[pluginMap[i]];
-            browserFeatures[i] = mimeType && mimeType.enabledPlugin ? "1" : "0";
-          }
-        }
-      }
-
-      // Safari and Opera
-      // IE6/IE7 navigator.javaEnabled can't be aliased, so test directly
-      // on Edge navigator.javaEnabled() always returns `true`, so ignore it
-      if (
-        !new RegExp("Edge[ /](\\d+[\\.\\d]+)").test(
-          global.ev.navigatorAlias.userAgent,
-        ) &&
-        typeof navigator.javaEnabled !== "undefined" &&
-        h.isDefined(global.ev.navigatorAlias.javaEnabled) &&
-        global.ev.navigatorAlias.javaEnabled()
-      ) {
-        browserFeatures.java = "1";
-      }
-
-      if (
-        !h.isDefined(global.ev.windowAlias.showModalDialog) &&
-        h.isDefined(global.ev.navigatorAlias.cookieEnabled)
-      ) {
-        browserFeatures.cookie = global.ev.navigatorAlias.cookieEnabled
-          ? "1"
-          : "0";
-      } else {
-        // Eg IE11 ... prevent error when cookieEnabled is requested within modal dialog. see #11507
-        browserFeatures.cookie = hasCookies();
-      }
-    }
-
-    var width = parseInt(global.ev.screenAlias.width, 10);
-    var height = parseInt(global.ev.screenAlias.height, 10);
-    browserFeatures.res = parseInt(width, 10) + "x" + parseInt(height, 10);
-    return browserFeatures;
-  }
-
-  /*
-   * Inits the custom variables object
-   */
-  function getCustomVariablesFromCookie() {
-    var cookieName = getCookieName("cvar"),
-      cookie = getCookie(cookieName);
-
-    if (cookie && cookie.length) {
-      cookie = global.ev.windowAlias.JSON.parse(cookie);
-
-      if (h.isObject(cookie)) {
-        return cookie;
-      }
-    }
-
-    return {};
-  }
-
-  /*
-   * Lazy loads the custom variables from the cookie, only once during this page view
-   */
-  function loadCustomVariables() {
-    if (customVariables === false) {
-      customVariables = getCustomVariablesFromCookie();
-    }
-  }
-
-  /*
-   * Generate a pseudo-unique ID to fingerprint this user
-   * 16 hexits = 64 bits
-   * note: this isn't a RFC4122-compliant UUID
-   */
-  function generateRandomUuid() {
-    var browserFeatures = detectBrowserFeatures();
-    return hash(
-      (global.ev.navigatorAlias.userAgent || "") +
-        (global.ev.navigatorAlias.platform || "") +
-        global.ev.windowAlias.JSON.stringify(browserFeatures) +
-        new Date().getTime() +
-        Math.random(),
-    ).slice(0, 16);
-  }
-
-  function generateBrowserSpecificId() {
-    var browserFeatures = detectBrowserFeatures();
-
-    return hash(
-      (global.ev.navigatorAlias.userAgent || "") +
-        (global.ev.navigatorAlias.platform || "") +
-        global.ev.windowAlias.JSON.stringify(browserFeatures),
-    ).slice(0, 6);
-  }
-
-  function getCurrentTimestampInSeconds() {
-    return Math.floor(new Date().getTime() / 1000);
-  }
-
-  function makeCrossDomainDeviceId() {
-    var timestamp = getCurrentTimestampInSeconds();
-    var browserId = generateBrowserSpecificId();
-    var deviceId = String(timestamp) + browserId;
-
-    return deviceId;
-  }
-
-  function isSameCrossDomainDevice(deviceIdFromUrl) {
-    deviceIdFromUrl = String(deviceIdFromUrl);
-
-    var thisBrowserId = generateBrowserSpecificId();
-    var lengthBrowserId = thisBrowserId.length;
-
-    var browserIdInUrl = deviceIdFromUrl.substr(
-      -1 * lengthBrowserId,
-      lengthBrowserId,
-    );
-    var timestampInUrl = parseInt(
-      deviceIdFromUrl.substr(0, deviceIdFromUrl.length - lengthBrowserId),
-      10,
-    );
-
-    if (timestampInUrl && browserIdInUrl && browserIdInUrl === thisBrowserId) {
-      // we only reuse visitorId when used on same device / browser
-
-      var currentTimestampInSeconds = getCurrentTimestampInSeconds();
-
-      if (configVisitorIdUrlParameterTimeoutInSeconds <= 0) {
-        return true;
-      }
-      if (
-        currentTimestampInSeconds >= timestampInUrl &&
-        currentTimestampInSeconds <=
-          timestampInUrl + configVisitorIdUrlParameterTimeoutInSeconds
-      ) {
-        // we only use visitorId if it was generated max 180 seconds ago
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  function getVisitorIdFromUrl(url) {
-    if (!crossDomainTrackingEnabled) {
-      return "";
-    }
-
-    // problem different timezone or when the time on the computer is not set correctly it may re-use
-    // the same visitorId again. therefore we also have a factor like hashed user agent to reduce possible
-    // activation of a visitorId on other device
-    var visitorIdParam = h.getUrlParameter(url, configVisitorIdUrlParameter);
-
-    if (!visitorIdParam) {
-      return "";
-    }
-
-    visitorIdParam = String(visitorIdParam);
-
-    var pattern = new RegExp("^[a-zA-Z0-9]+$");
-
-    if (visitorIdParam.length === 32 && pattern.test(visitorIdParam)) {
-      var visitorDevice = visitorIdParam.substr(16, 32);
-
-      if (isSameCrossDomainDevice(visitorDevice)) {
-        var visitorId = visitorIdParam.substr(0, 16);
-        return visitorId;
-      }
-    }
-
-    return "";
-  }
-
-  /*
-   * Load visitor ID cookie
-   */
-  function loadVisitorIdCookie() {
-    if (!visitorUUID) {
-      // we are using locationHrefAlias and not currentUrl on purpose to for sure get the passed URL parameters
-      // from original URL
-      visitorUUID = getVisitorIdFromUrl(locationHrefAlias);
-    }
-
-    var now = new Date(),
-      nowTs = Math.round(now.getTime() / 1000),
-      visitorIdCookieName = getCookieName("id"),
-      id = getCookie(visitorIdCookieName),
-      cookieValue,
-      uuid;
-
-    // Visitor ID cookie found
-    if (id) {
-      cookieValue = id.split(".");
-
-      // returning visitor flag
-      cookieValue.unshift("0");
-
-      if (visitorUUID.length) {
-        cookieValue[1] = visitorUUID;
-      }
-      return cookieValue;
-    }
-
-    if (visitorUUID.length) {
-      uuid = visitorUUID;
-    } else if ("0" === hasCookies()) {
-      uuid = "";
-    } else {
-      uuid = generateRandomUuid();
-    }
-
-    // No visitor ID cookie, let's create a new one
-    cookieValue = [
-      // new visitor
-      "1",
-
-      // uuid
-      uuid,
-
-      // creation timestamp - seconds since Unix epoch
-      nowTs,
-    ];
-
-    return cookieValue;
-  }
-
-  /**
-   * Loads the Visitor ID cookie and returns a named array of values
-   */
-  function getValuesFromVisitorIdCookie() {
-    var cookieVisitorIdValue = loadVisitorIdCookie(),
-      newVisitor = cookieVisitorIdValue[0],
-      uuid = cookieVisitorIdValue[1],
-      createTs = cookieVisitorIdValue[2];
-
-    return {
-      newVisitor: newVisitor,
-      uuid: uuid,
-      createTs: createTs,
-    };
-  }
-
-  function getRemainingVisitorCookieTimeout() {
-    var now = new Date(),
-      nowTs = now.getTime(),
-      cookieCreatedTs = getValuesFromVisitorIdCookie().createTs;
-
-    var createTs = parseInt(cookieCreatedTs, 10);
-    var originalTimeout = createTs * 1000 + configVisitorCookieTimeout - nowTs;
-    return originalTimeout;
-  }
-
-  /*
-   * Sets the Visitor ID cookie
-   */
-  function setVisitorIdCookie(visitorIdCookieValues) {
-    if (!configTrackerSiteId) {
-      // when called before Site ID was set
-      return;
-    }
-
-    var now = new Date(),
-      nowTs = Math.round(now.getTime() / 1000);
-
-    if (!h.isDefined(visitorIdCookieValues)) {
-      visitorIdCookieValues = getValuesFromVisitorIdCookie();
-    }
-
-    var cookieValue =
-      visitorIdCookieValues.uuid + "." + visitorIdCookieValues.createTs + ".";
-
-    setCookie(
-      getCookieName("id"),
-      cookieValue,
-      getRemainingVisitorCookieTimeout(),
-      configCookiePath,
-      configCookieDomain,
-      configCookieIsSecure,
-      configCookieSameSite,
-    );
-  }
-
-  /*
-   * Loads the referrer attribution information
-   *
-   * @returns {Array}
-   *  0: campaign name
-   *  1: campaign keyword
-   *  2: timestamp
-   *  3: raw URL
-   */
-  function loadReferrerAttributionCookie() {
-    // NOTE: if the format of the cookie changes,
-    // we must also update JS tests, PHP tracker, System tests,
-    // and notify other tracking clients (eg. Java) of the changes
-    var cookie = getCookie(getCookieName("ref"));
-
-    if (cookie.length) {
-      try {
-        cookie = global.ev.windowAlias.JSON.parse(cookie);
-        if (h.isObject(cookie)) {
-          return cookie;
-        }
-      } catch (ignore) {
-        // Pre 1.3, this cookie was not JSON encoded
-      }
-    }
-
-    return ["", "", 0, ""];
-  }
-
-  function isPossibleToSetCookieOnDomain(domainToTest) {
-    var testCookieName = configCookieNamePrefix + "testcookie_domain";
-    var valueToSet = "testvalue";
-    setCookie(
-      testCookieName,
-      valueToSet,
-      10000,
-      null,
-      domainToTest,
-      configCookieIsSecure,
-      configCookieSameSite,
-    );
-
-    if (getCookie(testCookieName) === valueToSet) {
-      deleteCookie(testCookieName, null, domainToTest);
-
-      return true;
-    }
-
-    return false;
-  }
-
-  function deleteCookies() {
-    var savedConfigCookiesDisabled = configCookiesDisabled;
-
-    // Temporarily allow cookies just to delete the existing ones
-    configCookiesDisabled = false;
-
-    var index, cookieName;
-
-    for (index = 0; index < configCookiesToDelete.length; index++) {
-      cookieName = getCookieName(configCookiesToDelete[index]);
-      if (
-        cookieName !== CONSENT_REMOVED_COOKIE_NAME &&
-        cookieName !== CONSENT_COOKIE_NAME &&
-        0 !== getCookie(cookieName)
-      ) {
-        deleteCookie(cookieName, configCookiePath, configCookieDomain);
-      }
-    }
-
-    configCookiesDisabled = savedConfigCookiesDisabled;
-  }
-
   function setSiteId(siteId) {
     configTrackerSiteId = siteId;
-  }
-
-  function sortObjectByKeys(value) {
-    if (!value || !h.isObject(value)) {
-      return;
-    }
-
-    // Object.keys(value) is not supported by all browsers, we get the keys manually
-    var keys = [];
-    var key;
-
-    for (key in value) {
-      if (Object.prototype.hasOwnProperty.call(value, key)) {
-        keys.push(key);
-      }
-    }
-
-    var normalized = {};
-    keys.sort();
-    var len = keys.length;
-    var i;
-
-    for (i = 0; i < len; i++) {
-      normalized[keys[i]] = value[keys[i]];
-    }
-
-    return normalized;
-  }
-
-  /**
-   * Creates the session cookie
-   */
-  function setSessionCookie() {
-    setCookie(
-      getCookieName("ses"),
-      "1",
-      configSessionCookieTimeout,
-      configCookiePath,
-      configCookieDomain,
-      configCookieIsSecure,
-      configCookieSameSite,
-    );
-  }
-
-  function generateUniqueId() {
-    var id = "";
-    var chars =
-      "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    var charLen = chars.length;
-    var i;
-
-    for (i = 0; i < 6; i++) {
-      id += chars.charAt(Math.floor(Math.random() * charLen));
-    }
-
-    return id;
   }
 
   function appendAvailablePerformanceMetrics(request) {
@@ -1775,21 +1175,22 @@ export function Tracker(trackerUrl, siteId) {
       return request;
     }
 
-    if (!global.ev.performanceAlias) {
+    if (!globalThis.eave.performanceAlias) {
       return request;
     }
 
     var performanceData =
-      typeof global.ev.performanceAlias.timing === "object" &&
-      global.ev.performanceAlias.timing
-        ? global.ev.performanceAlias.timing
+      typeof globalThis.eave.performanceAlias.timing === "object" &&
+      globalThis.eave.performanceAlias.timing
+        ? globalThis.eave.performanceAlias.timing
         : undefined;
 
     if (!performanceData) {
       performanceData =
-        typeof global.ev.performanceAlias.getEntriesByType === "function" &&
-        global.ev.performanceAlias.getEntriesByType("navigation")
-          ? global.ev.performanceAlias.getEntriesByType("navigation")[0]
+        typeof globalThis.eave.performanceAlias.getEntriesByType ===
+          "function" &&
+        globalThis.eave.performanceAlias.getEntriesByType("navigation")
+          ? globalThis.eave.performanceAlias.getEntriesByType("navigation")[0]
           : undefined;
     }
 
@@ -1907,22 +1308,19 @@ export function Tracker(trackerUrl, siteId) {
       referralUrlMaxLength = 1024,
       currentReferrerHostName,
       originalReferrerHostName,
-      cookieSessionName = getCookieName("ses"),
-      cookieReferrerName = getCookieName("ref"),
-      cookieSessionValue = getCookie(cookieSessionName),
-      attributionCookie = loadReferrerAttributionCookie(),
+      cookieSessionValue = cookieManager.getSession(),
       currentUrl = configCustomUrl || locationHrefAlias,
       campaignNameDetected,
       campaignKeywordDetected,
       attributionValues = {};
 
-    campaignNameDetected = attributionCookie[0];
-    campaignKeywordDetected = attributionCookie[1];
-    referralTs = attributionCookie[2];
-    referralUrl = attributionCookie[3];
+    campaignNameDetected = getAttributionCampaignName();
+    campaignKeywordDetected = getAttributionCampaignKeyword();
+    referralTs = getAttributionReferrerTimestamp();
+    referralUrl = getAttributionReferrerUrl();
 
     if (!hasIgnoreReferrerParameter(currentUrl) && !cookieSessionValue) {
-      // cookie 'ses' was not found: we consider this the start of a 'session'
+      // session cookie was not found: we consider this the start of a 'session'
 
       // Detect the campaign information from the current URL
       // Only if campaign wasn't previously set
@@ -1992,37 +1390,31 @@ export function Tracker(trackerUrl, siteId) {
       // Set the referral cookie if we have either a Referrer URL, or detected a Campaign (or both)
       if (referralUrl.length || campaignNameDetected.length) {
         referralTs = nowTs;
-        attributionCookie = [
-          campaignNameDetected,
-          campaignKeywordDetected,
-          referralTs,
-          purify(referralUrl.slice(0, referralUrlMaxLength)),
-        ];
 
-        setCookie(
-          cookieReferrerName,
-          global.ev.windowAlias.JSON.stringify(attributionCookie),
-          configReferralCookieTimeout,
-          configCookiePath,
-          configCookieDomain,
-          configCookieIsSecure,
-          configCookieSameSite,
-        );
+        setContext(configReferralKey, {
+          campaign_name: campaignNameDetected,
+          campaign_kw: campaignKeywordDetected,
+          timestamp: referralTs,
+          raw_url: purify(referralUrl.slice(0, referralUrlMaxLength)),
+        });
       }
     }
 
     if (campaignNameDetected.length) {
-      attributionValues._rcn = global.ev.encodeWrapper(campaignNameDetected);
+      attributionValues._rcn =
+        globalThis.eave.encodeWrapper(campaignNameDetected);
     }
 
     if (campaignKeywordDetected.length) {
-      attributionValues._rck = global.ev.encodeWrapper(campaignKeywordDetected);
+      attributionValues._rck = globalThis.eave.encodeWrapper(
+        campaignKeywordDetected,
+      );
     }
 
     attributionValues._refts = referralTs;
 
     if (String(referralUrl).length) {
-      attributionValues._ref = global.ev.encodeWrapper(
+      attributionValues._ref = globalThis.eave.encodeWrapper(
         purify(referralUrl.slice(0, referralUrlMaxLength)),
       );
     }
@@ -2031,85 +1423,100 @@ export function Tracker(trackerUrl, siteId) {
   }
 
   /**
-   * Returns the URL to send event to,
-   * with the standard parameters (plugins, resolution, url, referrer, etc.).
-   * Sends the pageview and browser settings with every request in case of race conditions.
+   * Resolve relative reference
+   *
+   * Note: not as described in rfc3986 section 5.2
    */
-  function getRequest(request, customData, pluginMethod) {
-    var i,
-      now = new Date(),
-      customVariablesCopy = customVariables,
-      cookieCustomVariablesName = getCookieName("cvar"),
-      currentUrl = configCustomUrl || locationHrefAlias,
-      hasIgnoreReferrerParam = hasIgnoreReferrerParameter(currentUrl);
+  function resolveRelativeReference(baseUrl, url) {
+    var protocol = h.getProtocolScheme(url),
+      i;
 
-    if (configCookiesDisabled) {
-      deleteCookies();
+    if (protocol) {
+      return url;
     }
 
-    if (configDoNotTrack) {
-      return "";
+    if (url.slice(0, 1) === "/") {
+      return (
+        h.getProtocolScheme(baseUrl) + "://" + h.getHostName(baseUrl) + url
+      );
     }
 
-    var fileRegex = new RegExp("^file://", "i");
-    if (
-      !configFileTracking &&
-      (global.ev.windowAlias.location.protocol === "file:" ||
-        fileRegex.test(currentUrl))
-    ) {
-      return "";
+    baseUrl = purify(baseUrl);
+
+    i = baseUrl.indexOf("?");
+    if (i >= 0) {
+      baseUrl = baseUrl.slice(0, i);
     }
 
-    // trigger detection of browser feature to ensure a request might not end up in the client hints queue without being processed
-    detectBrowserFeatures();
+    i = baseUrl.lastIndexOf("/");
+    if (i !== baseUrl.length - 1) {
+      baseUrl = baseUrl.slice(0, i + 1);
+    }
 
-    var cookieVisitorIdValues = getValuesFromVisitorIdCookie();
+    return baseUrl + url;
+  }
 
+  /**
+   * Build args to pass with event request being fired
+   */
+  function buildRequest(customData) {
+    const now = new Date();
+    const currentUrl = configCustomUrl || locationHrefAlias;
+    const hasIgnoreReferrerParam = hasIgnoreReferrerParameter(currentUrl);
+    const cookieVisitorId = getContext(configVisitorIdKey);
     // send charset if document charset is not utf-8. sometimes encoding
     // of urls will be the same as this and not utf-8, which will cause problems
     // do not send charset if it is utf8 since it's assumed by default in eave
-    var charSet =
-      global.ev.documentAlias.characterSet || global.ev.documentAlias.charset;
-
+    let charSet =
+      globalThis.eave.documentAlias.characterSet ||
+      globalThis.eave.documentAlias.charset;
     if (!charSet || charSet.toLowerCase() === "utf-8") {
       charSet = null;
     }
+    let i;
+    const customVariablesCopy = customVariables;
+    const cookieCustomVariablesName = cookieManager.getCookieName("cvar");
 
-    // build out the rest of the request
-    request +=
-      "&idsite=" +
-      configTrackerSiteId +
-      "&rec=1" +
-      "&r=" +
-      String(Math.random()).slice(2, 8) + // keep the string to a minimum
-      "&h=" +
-      now.getHours() +
-      "&m=" +
-      now.getMinutes() +
-      "&s=" +
-      now.getSeconds() +
-      "&url=" +
-      global.ev.encodeWrapper(purify(currentUrl)) +
-      (configReferrerUrl.length &&
+    const args = {
+      idsite: configTrackerSiteId,
+      rec: 1,
+      r: String(Math.random()).slice(2, 8), // keep the string to a minimum
+      h: now.getHours(),
+      m: now.getMinutes(),
+      s: now.getSeconds(),
+      url: globalThis.eave.encodeWrapper(purify(currentUrl)),
+      _id: cookieVisitorId,
+      send_image: 0,
+    };
+
+    if (
+      configReferrerUrl.length &&
       !isReferrerExcluded(configReferrerUrl) &&
       !hasIgnoreReferrerParam
-        ? "&urlref=" + global.ev.encodeWrapper(purify(configReferrerUrl))
-        : "") +
-      (h.isNumberOrHasLength(configUserId)
-        ? "&uid=" + global.ev.encodeWrapper(configUserId)
-        : "") +
-      "&_id=" +
-      cookieVisitorIdValues.uuid +
-      "&_idn=" +
-      cookieVisitorIdValues.newVisitor + // currently unused
-      (charSet ? "&cs=" + global.ev.encodeWrapper(charSet) : "") +
-      "&send_image=0";
+    ) {
+      args["urlref"] = globalThis.eave.encodeWrapper(purify(configReferrerUrl));
+    }
+
+    if (h.isNumberOrHasLength(configUserId)) {
+      args["uid"] = globalThis.eave.encodeWrapper(configUserId);
+    }
+
+    if (charSet) {
+      args["cs"] = globalThis.eave.encodeWrapper(charSet);
+    }
+
+    // add context data
+    for (i of Object.keys(_eaveContext)) {
+      args[i] = getContext(i);
+    }
+    // add session ID
+    args["session_id"] = cookieManager.getSession();
 
     var referrerAttribution = detectReferrerAttribution();
     // referrer attribution
     for (i in referrerAttribution) {
       if (Object.prototype.hasOwnProperty.call(referrerAttribution, i)) {
-        request += "&" + i + "=" + referrerAttribution[i];
+        args[i] = referrerAttribution[i];
       }
     }
 
@@ -2123,7 +1530,7 @@ export function Tracker(trackerUrl, siteId) {
           var index = i.replace("dimension", "");
           customDimensionIdsAlreadyHandled.push(parseInt(index, 10));
           customDimensionIdsAlreadyHandled.push(String(index));
-          request += "&" + i + "=" + global.ev.encodeWrapper(customData[i]);
+          args[i] = globalThis.eave.encodeWrapper(customData[i]);
           delete customData[i];
         }
       }
@@ -2137,8 +1544,7 @@ export function Tracker(trackerUrl, siteId) {
     // product page view
     for (i in ecommerceProductView) {
       if (Object.prototype.hasOwnProperty.call(ecommerceProductView, i)) {
-        request +=
-          "&" + i + "=" + global.ev.encodeWrapper(ecommerceProductView[i]);
+        args[i] = globalThis.eave.encodeWrapper(ecommerceProductView[i]);
       }
     }
 
@@ -2148,54 +1554,44 @@ export function Tracker(trackerUrl, siteId) {
         var isNotSetYet =
           -1 === h.indexOfArray(customDimensionIdsAlreadyHandled, i);
         if (isNotSetYet) {
-          request +=
-            "&dimension" +
-            i +
-            "=" +
-            global.ev.encodeWrapper(customDimensions[i]);
+          args["dimension" + i] = globalThis.eave.encodeWrapper(
+            customDimensions[i],
+          );
         }
       }
     }
 
     // custom data
     if (customData) {
-      request +=
-        "&data=" +
-        global.ev.encodeWrapper(
-          global.ev.windowAlias.JSON.stringify(customData),
-        );
+      args["data"] = globalThis.eave.encodeWrapper(
+        globalThis.eave.windowAlias.JSON.stringify(customData),
+      );
     } else if (configCustomData) {
-      request +=
-        "&data=" +
-        global.ev.encodeWrapper(
-          global.ev.windowAlias.JSON.stringify(configCustomData),
-        );
+      args["data"] = globalThis.eave.encodeWrapper(
+        globalThis.eave.windowAlias.JSON.stringify(configCustomData),
+      );
     }
 
     // Custom Variables, scope "page"
-    function appendCustomVariablesToRequest(customVariables, parameterName) {
+    function appendCustomVariablesToArgs(args, customVariables, parameterName) {
       var customVariablesStringified =
-        global.ev.windowAlias.JSON.stringify(customVariables);
+        globalThis.eave.windowAlias.JSON.stringify(customVariables);
       if (customVariablesStringified.length > 2) {
-        return (
-          "&" +
-          parameterName +
-          "=" +
-          global.ev.encodeWrapper(customVariablesStringified)
+        args[parameterName] = globalThis.eave.encodeWrapper(
+          customVariablesStringified,
         );
       }
-      return "";
     }
 
-    var sortedCustomVarPage = sortObjectByKeys(customVariablesPage);
-    var sortedCustomVarEvent = sortObjectByKeys(customVariablesEvent);
+    var sortedCustomVarPage = h.sortObjectsByKeys(customVariablesPage);
+    var sortedCustomVarEvent = h.sortObjectsByKeys(customVariablesEvent);
 
-    request += appendCustomVariablesToRequest(sortedCustomVarPage, "cvar");
-    request += appendCustomVariablesToRequest(sortedCustomVarEvent, "e_cvar");
+    appendCustomVariablesToArgs(args, sortedCustomVarPage, "cvar");
+    appendCustomVariablesToArgs(args, sortedCustomVarEvent, "e_cvar");
 
     // Custom Variables, scope "visit"
     if (customVariables) {
-      request += appendCustomVariablesToRequest(customVariables, "_cvar");
+      appendCustomVariablesToArgs(args, customVariables, "_cvar");
 
       // Don't save deleted custom variables in the cookie
       for (i in customVariablesCopy) {
@@ -2207,16 +1603,62 @@ export function Tracker(trackerUrl, siteId) {
       }
 
       if (configStoreCustomVariablesInCookie) {
-        setCookie(
+        cookieManager.setCookie(
           cookieCustomVariablesName,
-          global.ev.windowAlias.JSON.stringify(customVariables),
-          configSessionCookieTimeout,
-          configCookiePath,
-          configCookieDomain,
-          configCookieIsSecure,
-          configCookieSameSite,
+          globalThis.eave.windowAlias.JSON.stringify(customVariables),
+          cookieManager.configSessionCookieTimeout,
+          cookieManager.configCookiePath,
+          cookieManager.configCookieDomain,
+          cookieManager.configCookieIsSecure,
+          cookieManager.configCookieSameSite,
         );
       }
+    }
+
+    if (configIdPageView) {
+      args["pv_id"] = configIdPageView;
+    }
+
+    if (wasJsTrackingCodeInstallCheckParamProvided()) {
+      args["tracker_install_check"] = globalThis.eave.tracker.InstallCheckNonce;
+    }
+
+    return args;
+  }
+
+  /**
+   * Returns the URL to send event to,
+   * with the standard parameters (plugins, resolution, url, referrer, etc.).
+   * Sends the pageview and browser settings with every request in case of race conditions.
+   */
+  function getRequest(request, customData, pluginMethod) {
+    var currentUrl = configCustomUrl || locationHrefAlias;
+
+    if (cookieManager.configCookiesDisabled) {
+      cookieManager.deleteCookies();
+    }
+
+    if (configDoNotTrack) {
+      return "";
+    }
+
+    var fileRegex = new RegExp("^file://", "i");
+    if (
+      !configFileTracking &&
+      (globalThis.eave.windowAlias.location.protocol === "file:" ||
+        fileRegex.test(currentUrl))
+    ) {
+      return "";
+    }
+
+    // trigger detection of browser feature to ensure a request might not end up in the client hints queue without being processed
+    detectBrowserFeatures();
+
+    // build out the rest of the request
+    request += h.argsToQueryParameters(buildRequest(customData));
+
+    if (h.isFunction(configCustomRequestContentProcessing)) {
+      request = configCustomRequestContentProcessing(request);
     }
 
     // performance tracking
@@ -2229,14 +1671,6 @@ export function Tracker(trackerUrl, siteId) {
       performanceTracked = true;
     }
 
-    if (configIdPageView) {
-      request += "&pv_id=" + configIdPageView;
-    }
-
-    // update cookies
-    setVisitorIdCookie(cookieVisitorIdValues);
-    setSessionCookie();
-
     // tracker plugin hook
     request += h.executePluginMethod(pluginMethod, {
       tracker: trackerInstance,
@@ -2245,15 +1679,6 @@ export function Tracker(trackerUrl, siteId) {
 
     if (configAppendToTrackingUrl.length) {
       request += "&" + configAppendToTrackingUrl;
-    }
-
-    if (wasJsTrackingCodeInstallCheckParamProvided()) {
-      request +=
-        "&tracker_install_check=" + global.ev.tracker.InstallCheckNonce;
-    }
-
-    if (h.isFunction(configCustomRequestContentProcessing)) {
-      request = configCustomRequestContentProcessing(request);
     }
 
     return request;
@@ -2295,7 +1720,7 @@ export function Tracker(trackerUrl, siteId) {
       isEcommerceOrder = String(orderId).length;
 
     if (isEcommerceOrder) {
-      request += "&ec_id=" + global.ev.encodeWrapper(orderId);
+      request += "&ec_id=" + globalThis.eave.encodeWrapper(orderId);
     }
 
     request += "&revenue=" + grandTotal;
@@ -2350,7 +1775,9 @@ export function Tracker(trackerUrl, siteId) {
       }
       request +=
         "&ec_items=" +
-        global.ev.encodeWrapper(global.ev.windowAlias.JSON.stringify(items));
+        globalThis.eave.encodeWrapper(
+          globalThis.eave.windowAlias.JSON.stringify(items),
+        );
     }
     request = getRequest(request, configCustomData, "ecommerce");
     sendRequest(request, configTrackerPause);
@@ -2379,17 +1806,19 @@ export function Tracker(trackerUrl, siteId) {
     }
   }
 
-  /*
+  /**
    * Log the page view / visit
    */
   function logPageView(customTitle, customData, callback) {
+    cookieManager.resetOrExtendSession();
+
     if (!configIdPageViewSetManually) {
-      configIdPageView = generateUniqueId();
+      configIdPageView = h.generateUniqueId();
     }
 
     var request = getRequest(
       "action_name=" +
-        global.ev.encodeWrapper(h.titleFixup(customTitle || configTitle)),
+        globalThis.eave.encodeWrapper(h.titleFixup(customTitle || configTitle)),
       customData,
       "log",
     );
@@ -2822,11 +2251,13 @@ export function Tracker(trackerUrl, siteId) {
   function buildEventRequest(category, action, name, value) {
     return (
       "e_c=" +
-      global.ev.encodeWrapper(category) +
+      globalThis.eave.encodeWrapper(category) +
       "&e_a=" +
-      global.ev.encodeWrapper(action) +
-      (h.isDefined(name) ? "&e_n=" + global.ev.encodeWrapper(name) : "") +
-      (h.isDefined(value) ? "&e_v=" + global.ev.encodeWrapper(value) : "") +
+      globalThis.eave.encodeWrapper(action) +
+      (h.isDefined(name) ? "&e_n=" + globalThis.eave.encodeWrapper(name) : "") +
+      (h.isDefined(value)
+        ? "&e_v=" + globalThis.eave.encodeWrapper(value)
+        : "") +
       "&ca=1"
     );
   }
@@ -2857,8 +2288,10 @@ export function Tracker(trackerUrl, siteId) {
   function logSiteSearch(keyword, category, resultsCount, customData) {
     var request = getRequest(
       "search=" +
-        global.ev.encodeWrapper(keyword) +
-        (category ? "&search_cat=" + global.ev.encodeWrapper(category) : "") +
+        globalThis.eave.encodeWrapper(keyword) +
+        (category
+          ? "&search_cat=" + globalThis.eave.encodeWrapper(category)
+          : "") +
         (h.isDefined(resultsCount) ? "&search_count=" + resultsCount : ""),
       customData,
       "sitesearch",
@@ -2884,7 +2317,8 @@ export function Tracker(trackerUrl, siteId) {
    * Log the link or click with the server
    */
   function logLink(url, linkType, customData, callback, sourceElement) {
-    var linkParams = linkType + "=" + global.ev.encodeWrapper(purify(url));
+    var linkParams =
+      linkType + "=" + globalThis.eave.encodeWrapper(purify(url));
 
     var interaction = getContentInteractionToRequestIfPossible(
       sourceElement,
@@ -2934,13 +2368,13 @@ export function Tracker(trackerUrl, siteId) {
         // does this browser support the page visibility API?
         if (
           Object.prototype.hasOwnProperty.call(
-            global.ev.documentAlias,
+            globalThis.eave.documentAlias,
             prefixPropertyName(prefix, "hidden"),
           )
         ) {
           // if pre-rendered, then defer callback until page visibility changes
           if (
-            global.ev.documentAlias[
+            globalThis.eave.documentAlias[
               prefixPropertyName(prefix, "visibilityState")
             ] === "prerender"
           ) {
@@ -2954,10 +2388,10 @@ export function Tracker(trackerUrl, siteId) {
     if (isPreRendered) {
       // note: the event name doesn't follow the same naming convention as vendor properties
       h.addEventListener(
-        global.ev.documentAlias,
+        globalThis.eave.documentAlias,
         prefix + "visibilitychange",
         function ready() {
-          global.ev.documentAlias.removeEventListener(
+          globalThis.eave.documentAlias.removeEventListener(
             prefix + "visibilitychange",
             ready,
             false,
@@ -3039,7 +2473,7 @@ export function Tracker(trackerUrl, siteId) {
     if (isSiteHostPath(originalSourceHostName, originalSourcePath)) {
       // we could also check against config cookie domain but this would require that other website
       // sets actually same cookie domain and we cannot rely on it.
-      if (!isSameHost(domainAlias, h.domainFixup(originalSourceHostName))) {
+      if (!h.isSameHost(domainAlias, h.domainFixup(originalSourceHostName))) {
         return true;
       }
 
@@ -3091,7 +2525,8 @@ export function Tracker(trackerUrl, siteId) {
 
   function isIE8orOlder() {
     return (
-      global.ev.documentAlias.all && !global.ev.documentAlias.h.addEventListener
+      globalThis.eave.documentAlias.all &&
+      !globalThis.eave.documentAlias.h.addEventListener
     );
   }
 
@@ -3235,7 +2670,7 @@ export function Tracker(trackerUrl, siteId) {
     }
 
     return function (event) {
-      event = event || global.ev.windowAlias.event;
+      event = event || globalThis.eave.windowAlias.event;
 
       var target = getClickTarget(event);
       // we arent tracking the clicked element(s)
@@ -3355,14 +2790,14 @@ export function Tracker(trackerUrl, siteId) {
         // execute event too often. otherwise FPS goes down a lot!
         events = ["scroll", "resize"];
         for (index = 0; index < events.length; index++) {
-          if (global.ev.documentAlias.h.addEventListener) {
-            global.ev.documentAlias.h.addEventListener(
+          if (globalThis.eave.documentAlias.h.addEventListener) {
+            globalThis.eave.documentAlias.h.addEventListener(
               events[index],
               setDidScroll,
               false,
             );
           } else {
-            global.ev.windowAlias.attachEvent(
+            globalThis.eave.windowAlias.attachEvent(
               "on" + events[index],
               setDidScroll,
             );
@@ -3377,6 +2812,20 @@ export function Tracker(trackerUrl, siteId) {
         checkContent(timeIntervalInMs);
       }
     });
+  }
+
+  /**
+   * Set visitor ID if it hasnt yet been set.
+   * Then trys to save eaveContext to cookie, in case
+   * cookie consent has changed.
+   */
+  function setVisitorId() {
+    if (!getContext(configVisitorIdKey)) {
+      setContext(configVisitorIdKey, h.uuidv4());
+    } else {
+      // save cookie, in case of consent change
+      saveContext();
+    }
   }
 
   /*<DEBUG>*/
@@ -3423,7 +2872,7 @@ export function Tracker(trackerUrl, siteId) {
       }
     },
     canQueue: function () {
-      return !global.ev.isPageUnloading && this.enabled;
+      return !globalThis.eave.isPageUnloading && this.enabled;
     },
     pushMultiple: function (requests) {
       if (!this.canQueue()) {
@@ -3460,12 +2909,15 @@ export function Tracker(trackerUrl, siteId) {
 
       var trackerQueueId = "RequestQueue" + uniqueTrackerId;
       if (
-        !Object.prototype.hasOwnProperty.call(global.ev.plugins, trackerQueueId)
+        !Object.prototype.hasOwnProperty.call(
+          globalThis.eave.plugins,
+          trackerQueueId,
+        )
       ) {
         // we setup one unload handler per tracker...
         // eave.addPlugin might not be defined at this point, we add the plugin directly also to make
         // JSLint happy.
-        global.ev.plugins[trackerQueueId] = {
+        globalThis.eave.plugins[trackerQueueId] = {
           unload: function () {
             if (requestQueue.timeout) {
               clearTimeout(requestQueue.timeout);
@@ -3483,7 +2935,6 @@ export function Tracker(trackerUrl, siteId) {
   /*
    * initialize tracker
    */
-  updateDomainHash();
 
   /*<DEBUG>*/
   /*
@@ -3564,19 +3015,12 @@ export function Tracker(trackerUrl, siteId) {
     clickListenerInstalled = false;
     linkTrackingEnabled = false;
   };
-
-  this.getConfigVisitorCookieTimeout = function () {
-    return configVisitorCookieTimeout;
-  };
-  this.getConfigCookieSameSite = function () {
-    return configCookieSameSite;
-  };
   this.getCustomPagePerformanceTiming = function () {
     return customPagePerformanceTiming;
   };
   this.removeAllAsyncTrackersButFirst = function () {
-    var firstTracker = global.ev.asyncTrackers[0];
-    global.ev.asyncTrackers = [firstTracker];
+    var firstTracker = globalThis.eave.asyncTrackers[0];
+    globalThis.eave.asyncTrackers = [firstTracker];
   };
   this.getConsentRequestsQueue = function () {
     var i,
@@ -3595,27 +3039,11 @@ export function Tracker(trackerUrl, siteId) {
     return javaScriptErrors;
   };
   this.unsetPageIsUnloading = function () {
-    global.ev.isPageUnloading = false;
+    globalThis.eave.isPageUnloading = false;
   };
-  this.getRemainingVisitorCookieTimeout = getRemainingVisitorCookieTimeout;
   /*</DEBUG>*/
   this.hasConsent = function () {
     return configHasConsent;
-  };
-
-  /**
-   * Get the visitor information (from first party cookie)
-   *
-   * @returns {Array}
-   */
-  this.getVisitorInfo = function () {
-    if (!getCookie(getCookieName("id"))) {
-      setVisitorIdCookie();
-    }
-
-    // Note: in a new method, we could return also return getValuesFromVisitorIdCookie()
-    //       which returns named parameters rather than returning integer indexed array
-    return loadVisitorIdCookie();
   };
 
   /**
@@ -3624,22 +3052,25 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {string} Visitor ID in hexits (or empty string, if not yet known)
    */
   this.getVisitorId = function () {
-    return this.getVisitorInfo()[1];
+    return getContext(configVisitorIdKey) || "";
   };
 
   /**
-   * Get the Attribution information, which is an array that contains
+   * Get the Attribution information, which is an object that contains
    * the Referrer used to reach the site as well as the campaign name and keyword
    * It is useful only when used in conjunction with Tracker API function setAttributionInfo()
    * To access specific data point, you should use the other functions getAttributionReferrer* and getAttributionCampaign*
    *
-   * @returns {Array} Attribution array, Example use:
-   *   1) Call global.ev.windowAlias.JSON.stringify(eaveTracker.getAttributionInfo())
+   * @returns {object|undefined} Attribution data, Example use:
+   *   1) Call globalThis.eave.windowAlias.JSON.stringify(eaveTracker.getAttributionInfo())
    *   2) Pass this json encoded string to the Tracking API (php or java client): setAttributionInfo()
    */
   this.getAttributionInfo = function () {
-    return loadReferrerAttributionCookie();
+    return getAttributionInfo();
   };
+  function getAttributionInfo() {
+    return getContext(configReferralKey);
+  }
 
   /**
    * Get the Campaign name that was parsed from the landing page URL when the visitor
@@ -3648,8 +3079,11 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {string}
    */
   this.getAttributionCampaignName = function () {
-    return loadReferrerAttributionCookie()[0];
+    return getAttributionCampaignName();
   };
+  function getAttributionCampaignName() {
+    return getContext(configReferralKey)?.campaign_name || "";
+  }
 
   /**
    * Get the Campaign keyword that was parsed from the landing page URL when the visitor
@@ -3658,8 +3092,11 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {string}
    */
   this.getAttributionCampaignKeyword = function () {
-    return loadReferrerAttributionCookie()[1];
+    return getAttributionCampaignKeyword();
   };
+  function getAttributionCampaignKeyword() {
+    return getContext(configReferralKey)?.campaign_kw || "";
+  }
 
   /**
    * Get the time at which the referrer (used for Goal Attribution) was detected
@@ -3667,8 +3104,11 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {int} Timestamp or 0 if no referrer currently set
    */
   this.getAttributionReferrerTimestamp = function () {
-    return loadReferrerAttributionCookie()[2];
+    return getAttributionReferrerTimestamp();
   };
+  function getAttributionReferrerTimestamp() {
+    return getContext(configReferralKey)?.timestamp || 0;
+  }
 
   /**
    * Get the full referrer URL that will be used for Goal Attribution
@@ -3676,8 +3116,11 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {string} Raw URL, or empty string '' if no referrer currently set
    */
   this.getAttributionReferrerUrl = function () {
-    return loadReferrerAttributionCookie()[3];
+    return getAttributionReferrerUrl();
   };
+  function getAttributionReferrerUrl() {
+    return getContext(configReferralKey)?.raw_url || "";
+  }
 
   /**
    * Specify the eave tracking URL
@@ -3720,9 +3163,9 @@ export function Tracker(trackerUrl, siteId) {
 
     var tracker = new Tracker(eaveUrl, siteId);
 
-    global.ev.asyncTrackers.push(tracker);
+    globalThis.eave.asyncTrackers.push(tracker);
 
-    global.ev.eave.trigger("TrackerAdded", [this]);
+    globalThis.eave.eave.trigger("TrackerAdded", [this]);
 
     return tracker;
   };
@@ -3760,22 +3203,6 @@ export function Tracker(trackerUrl, siteId) {
   this.setUserId = function (userId) {
     if (h.isNumberOrHasLength(userId)) {
       configUserId = userId;
-    }
-  };
-
-  /**
-   * Sets a Visitor ID to this visitor. Should be a 16 digit hex string.
-   * The visitorId won't be persisted in a cookie or something similar and needs to be set every time.
-   *
-   * @param {string} visitorId Visitor ID
-   */
-  this.setVisitorId = function (visitorId) {
-    var validation = /[0-9A-Fa-f]{16}/g;
-
-    if (h.isString(visitorId) && validation.test(visitorId)) {
-      visitorUUID = visitorId;
-    } else {
-      h.logConsoleError("Invalid visitorId set" + visitorId);
     }
   };
 
@@ -3870,8 +3297,17 @@ export function Tracker(trackerUrl, siteId) {
    * @param {Object} pluginObj
    */
   this.addPlugin = function (pluginName, pluginObj) {
-    global.ev.plugins[pluginName] = pluginObj;
+    globalThis.eave.plugins[pluginName] = pluginObj;
   };
+
+  /**
+   * Lazy loads the custom variables from the cookie, only once during this page view
+   */
+  function loadCustomVariables() {
+    if (customVariables === false) {
+      customVariables = cookieManager.getCustomVariablesFromCookie();
+    }
+  }
 
   /**
    * Set Custom Dimensions. Set Custom Dimensions will not be cleared after a tracked pageview and will
@@ -4123,7 +3559,7 @@ export function Tracker(trackerUrl, siteId) {
     for (i; i < configHostsAlias.length; i++) {
       alias = String(configHostsAlias[i]);
 
-      if (isSameHost(domainAlias, h.domainFixup(alias))) {
+      if (h.isSameHost(domainAlias, h.domainFixup(alias))) {
         hasDomainAliasAlready = true;
         break;
       }
@@ -4227,9 +3663,9 @@ export function Tracker(trackerUrl, siteId) {
    */
   this.getCrossDomainLinkingUrlParameter = function () {
     return (
-      global.ev.encodeWrapper(configVisitorIdUrlParameter) +
+      globalThis.eave.encodeWrapper(configVisitorIdUrlParameter) +
       "=" +
-      global.ev.encodeWrapper(getCrossDomainVisitorId())
+      globalThis.eave.encodeWrapper(getCrossDomainVisitorId())
     );
   };
 
@@ -4433,35 +3869,6 @@ export function Tracker(trackerUrl, siteId) {
   };
 
   /**
-   * Set first-party cookie name prefix
-   *
-   * @param {string} cookieNamePrefix
-   */
-  this.setCookieNamePrefix = function (cookieNamePrefix) {
-    configCookieNamePrefix = cookieNamePrefix;
-    // Re-init the Custom Variables cookie
-    if (customVariables) {
-      customVariables = getCustomVariablesFromCookie();
-    }
-  };
-
-  /**
-   * Set first-party cookie domain
-   *
-   * @param {string} domain
-   */
-  this.setCookieDomain = function (domain) {
-    var domainFixed = h.domainFixup(domain);
-
-    if (!configCookiesDisabled && !isPossibleToSetCookieOnDomain(domainFixed)) {
-      h.logConsoleError("Can't write cookie on domain " + domain);
-    } else {
-      configCookieDomain = domainFixed;
-      updateDomainHash();
-    }
-  };
-
-  /**
    * Set an array of query parameters to be excluded if in the url
    *
    * @param {string|Array} excludedQueryParams  'uid' or ['uid', 'sid']
@@ -4473,46 +3880,10 @@ export function Tracker(trackerUrl, siteId) {
   };
 
   /**
-   * Get first-party cookie domain
-   */
-  this.getCookieDomain = function () {
-    return configCookieDomain;
-  };
-
-  /**
    * Detect if cookies are enabled and supported by browser.
    */
   this.hasCookies = function () {
-    return "1" === hasCookies();
-  };
-
-  /**
-   * Set a first-party cookie for the duration of the session.
-   *
-   * @param {string} cookieName
-   * @param {string} cookieValue
-   * @param {int} msToExpire Defaults to session cookie timeout
-   */
-  this.setSessionCookie = function (cookieName, cookieValue, msToExpire) {
-    if (!cookieName) {
-      throw new Error("Missing cookie name");
-    }
-
-    if (!h.isDefined(msToExpire)) {
-      msToExpire = configSessionCookieTimeout;
-    }
-
-    configCookiesToDelete.push(cookieName);
-
-    setCookie(
-      getCookieName(cookieName),
-      cookieValue,
-      msToExpire,
-      configCookiePath,
-      configCookieDomain,
-      configCookieIsSecure,
-      configCookieSameSite,
-    );
+    return "1" === cookieManager.hasCookies();
   };
 
   /**
@@ -4523,69 +3894,15 @@ export function Tracker(trackerUrl, siteId) {
    * @param {string} cookieName
    */
   this.getCookie = function (cookieName) {
-    var cookieValue = getCookie(getCookieName(cookieName));
+    var cookieValue = cookieManager.getCookie(
+      cookieManager.getCookieName(cookieName),
+    );
 
     if (cookieValue === 0) {
       return null;
     }
 
     return cookieValue;
-  };
-
-  /**
-   * Set first-party cookie path.
-   *
-   * @param {string} path Cookie path
-   */
-  this.setCookiePath = function (path) {
-    configCookiePath = path;
-    updateDomainHash();
-  };
-
-  /**
-   * Get first-party cookie path.
-   *
-   * @returns {string} Cookie path
-   */
-  this.getCookiePath = function () {
-    return configCookiePath;
-  };
-
-  /**
-   * Set visitor cookie timeout (in seconds)
-   * Defaults to 13 months (timeout=33955200)
-   *
-   * @param {int} timeout
-   */
-  this.setVisitorCookieTimeout = function (timeout) {
-    configVisitorCookieTimeout = timeout * 1000;
-  };
-
-  /**
-   * Set session cookie timeout (in seconds).
-   * Defaults to 30 minutes (timeout=1800)
-   *
-   * @param {int} timeout
-   */
-  this.setSessionCookieTimeout = function (timeout) {
-    configSessionCookieTimeout = timeout * 1000;
-  };
-
-  /**
-   * Get session cookie timeout (in seconds).
-   */
-  this.getSessionCookieTimeout = function () {
-    return configSessionCookieTimeout;
-  };
-
-  /**
-   * Set referral cookie timeout (in seconds).
-   * Defaults to 6 months (15768000000)
-   *
-   * @param {int} timeout
-   */
-  this.setReferralCookieTimeout = function (timeout) {
-    configReferralCookieTimeout = timeout * 1000;
   };
 
   /**
@@ -4599,71 +3916,15 @@ export function Tracker(trackerUrl, siteId) {
   };
 
   /**
-   * Enable the Secure cookie flag on all first party cookies.
-   * This should be used when your website is only available under HTTPS
-   * so that all tracking cookies are always sent over secure connection.
-   *
-   * Warning: If your site is available under http and https,
-   * setting this might lead to duplicate or incomplete visits.
-   *
-   * @param {boolean} enable
-   */
-  this.setSecureCookie = function (enable) {
-    if (enable && location.protocol !== "https:") {
-      h.logConsoleError(
-        "Error in setSecureCookie: You cannot use `Secure` on http.",
-      );
-      return;
-    }
-    configCookieIsSecure = enable;
-  };
-
-  /**
-   * Set the SameSite attribute for cookies to a custom value.
-   * You might want to use this if your site is running in an iframe since
-   * then it will only be able to access the cookies if SameSite is set to 'None'.
-   *
-   *
-   * Warning:
-   * Sets CookieIsSecure to true on None, because None will only work with Secure; cookies
-   * If your site is available under http and https,
-   * using "None" might lead to duplicate or incomplete visits.
-   *
-   * @param {string} sameSite Either Lax, None or Strict
-   */
-  this.setCookieSameSite = function (sameSite) {
-    sameSite = String(sameSite);
-    sameSite =
-      sameSite.charAt(0).toUpperCase() + sameSite.toLowerCase().slice(1);
-    if (sameSite !== "None" && sameSite !== "Lax" && sameSite !== "Strict") {
-      h.logConsoleError(
-        "Ignored value for sameSite. Please use either Lax, None, or Strict.",
-      );
-      return;
-    }
-    if (sameSite === "None") {
-      if (location.protocol === "https:") {
-        this.setSecureCookie(true);
-      } else {
-        h.logConsoleError(
-          "sameSite=None cannot be used on http, reverted to sameSite=Lax.",
-        );
-        sameSite = "Lax";
-      }
-    }
-    configCookieSameSite = sameSite;
-  };
-
-  /**
    * Disables all cookies from being set
    *
    * Existing cookies will be deleted on the next call to track
    */
   this.disableCookies = function () {
-    configCookiesDisabled = true;
+    cookieManager.configCookiesDisabled = true;
 
     if (configTrackerSiteId) {
-      deleteCookies();
+      cookieManager.deleteCookies();
     }
   };
 
@@ -4672,20 +3933,20 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {boolean}
    */
   this.areCookiesEnabled = function () {
-    return !configCookiesDisabled;
+    return !cookieManager.configCookiesDisabled;
   };
 
   /**
    * Enables cookies if they were disabled previously.
    */
   this.setCookieConsentGiven = function () {
-    if (configCookiesDisabled && !configDoNotTrack) {
-      configCookiesDisabled = false;
+    if (cookieManager.configCookiesDisabled && !configDoNotTrack) {
+      cookieManager.configCookiesDisabled = false;
       if (!configBrowserFeatureDetection) {
         this.enableBrowserFeatureDetection();
       }
       if (configTrackerSiteId && hasSentTrackingRequestYet) {
-        setVisitorIdCookie();
+        setVisitorId();
 
         // sets attribution cookie, and updates visitorId in the backend
         // because hasSentTrackingRequestYet=true we assume there might not be another tracking
@@ -4698,6 +3959,18 @@ export function Tracker(trackerUrl, siteId) {
       }
     }
   };
+
+  /**
+   * Check first-party cookies and update the <code>configHasConsent</code> value.  Ensures that any
+   * change to the user opt-in/out status in another browser window will be respected.
+   */
+  function refreshConsentStatus() {
+    if (cookieManager.getCookie(cookieManager.CONSENT_REMOVED_COOKIE_NAME)) {
+      configHasConsent = false;
+    } else if (cookieManager.getCookie(cookieManager.CONSENT_COOKIE_NAME)) {
+      configHasConsent = true;
+    }
+  }
 
   /**
    * When called, no cookies will be set until you have called `setCookieConsentGiven()`
@@ -4737,7 +4010,7 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {number|string}
    */
   this.getRememberedCookieConsent = function () {
-    return getCookie(COOKIE_CONSENT_COOKIE_NAME);
+    return cookieManager.getCookie(cookieManager.COOKIE_CONSENT_COOKIE_NAME);
   };
 
   /**
@@ -4746,10 +4019,10 @@ export function Tracker(trackerUrl, siteId) {
    * want to re-ask for cookie consent after a specific time period.
    */
   this.forgetCookieConsentGiven = function () {
-    deleteCookie(
-      COOKIE_CONSENT_COOKIE_NAME,
-      configCookiePath,
-      configCookieDomain,
+    cookieManager.deleteCookie(
+      cookieManager.COOKIE_CONSENT_COOKIE_NAME,
+      cookieManager.configCookiePath,
+      cookieManager.configCookieDomain,
     );
     this.disableCookies();
   };
@@ -4774,20 +4047,22 @@ export function Tracker(trackerUrl, siteId) {
    */
   this.rememberCookieConsentGiven = function (hoursToExpire) {
     if (hoursToExpire) {
+      // convert hours to ms
       hoursToExpire = hoursToExpire * 60 * 60 * 1000;
     } else {
+      // 30 years ms
       hoursToExpire = 30 * 365 * 24 * 60 * 60 * 1000;
     }
     this.setCookieConsentGiven();
     var now = new Date().getTime();
-    setCookie(
-      COOKIE_CONSENT_COOKIE_NAME,
+    cookieManager.setCookie(
+      cookieManager.COOKIE_CONSENT_COOKIE_NAME,
       now,
       hoursToExpire,
-      configCookiePath,
-      configCookieDomain,
-      configCookieIsSecure,
-      configCookieSameSite,
+      cookieManager.configCookiePath,
+      cookieManager.configCookieDomain,
+      cookieManager.configCookieIsSecure,
+      cookieManager.configCookieSameSite,
     );
   };
 
@@ -4796,7 +4071,7 @@ export function Tracker(trackerUrl, siteId) {
    * it maybe helps to "reset" tracking cookies to prevent data reuse for different users.
    */
   this.deleteCookies = function () {
-    deleteCookies();
+    cookieManager.deleteCookies();
   };
 
   /**
@@ -4806,8 +4081,8 @@ export function Tracker(trackerUrl, siteId) {
    */
   this.setDoNotTrack = function (enable) {
     var dnt =
-      global.ev.navigatorAlias.doNotTrack ||
-      global.ev.navigatorAlias.msDoNotTrack;
+      globalThis.eave.navigatorAlias.doNotTrack ||
+      globalThis.eave.navigatorAlias.msDoNotTrack;
     configDoNotTrack = enable && (dnt === "yes" || dnt === "1");
 
     // do not track also disables cookies and deletes existing cookies
@@ -4900,7 +4175,7 @@ export function Tracker(trackerUrl, siteId) {
     if (!clickListenerInstalled) {
       clickListenerInstalled = true;
       h.trackCallbackOnReady(function () {
-        var element = global.ev.documentAlias.body;
+        var element = globalThis.eave.documentAlias.body;
         addClickListener(element, enable, true);
       });
     }
@@ -4918,7 +4193,7 @@ export function Tracker(trackerUrl, siteId) {
     if (!clickListenerInstalled) {
       clickListenerInstalled = true;
       h.trackCallbackOnReady(function () {
-        var element = global.ev.documentAlias.body;
+        var element = globalThis.eave.documentAlias.body;
         addClickListener(element, enable, true);
       });
     }
@@ -4937,7 +4212,7 @@ export function Tracker(trackerUrl, siteId) {
     routeHistoryTrackingEnabled = true;
 
     function getCurrentUrl() {
-      return global.ev.windowAlias.location.href;
+      return globalThis.eave.windowAlias.location.href;
     }
     function getEventUrl(event) {
       if (
@@ -4952,12 +4227,12 @@ export function Tracker(trackerUrl, siteId) {
     }
     function parseUrl(urlToParse, urlPart) {
       try {
-        var loc = global.ev.documentAlias.createElement("a");
+        var loc = globalThis.eave.documentAlias.createElement("a");
         loc.href = urlToParse;
         var absUrl = loc.href;
 
         // needed to make tests work in IE10... we first need to convert URL to abs url
-        loc = global.ev.documentAlias.createElement("a");
+        loc = globalThis.eave.documentAlias.createElement("a");
         loc.href = absUrl;
 
         if (urlPart && urlPart in loc) {
@@ -5033,7 +4308,7 @@ export function Tracker(trackerUrl, siteId) {
         hash: parseUrl(initialUrl, "hash"),
         search: parseUrl(initialUrl, "search"),
         path: parseUrl(initialUrl, "pathname"),
-        state: global.ev.windowAlias.state || null,
+        state: globalThis.eave.windowAlias.state || null,
       };
 
       function trigger(eventType, newUrl, newState) {
@@ -5132,7 +4407,7 @@ export function Tracker(trackerUrl, siteId) {
 
       function replaceHistoryMethod(methodNameToReplace) {
         setMethodWrapIfNeeded(
-          global.ev.windowAlias.history,
+          globalThis.eave.windowAlias.history,
           methodNameToReplace,
           function (state, title, urlParam) {
             trigger(methodNameToReplace, getCurrentUrl(), state);
@@ -5144,7 +4419,7 @@ export function Tracker(trackerUrl, siteId) {
       replaceHistoryMethod("pushState");
 
       h.addEventListener(
-        global.ev.windowAlias,
+        globalThis.eave.windowAlias,
         "hashchange",
         function (event) {
           var newUrl = getEventUrl(event);
@@ -5153,7 +4428,7 @@ export function Tracker(trackerUrl, siteId) {
         false,
       );
       h.addEventListener(
-        global.ev.windowAlias,
+        globalThis.eave.windowAlias,
         "popstate",
         function (event) {
           var newUrl = getEventUrl(event);
@@ -5187,9 +4462,9 @@ export function Tracker(trackerUrl, siteId) {
     }
 
     enableJSErrorTracking = true;
-    var onError = global.ev.windowAlias.onerror;
+    var onError = globalThis.eave.windowAlias.onerror;
 
-    global.ev.windowAlias.onerror = function (
+    globalThis.eave.windowAlias.onerror = function (
       message,
       url,
       linenumber,
@@ -5248,17 +4523,23 @@ export function Tracker(trackerUrl, siteId) {
    */
   this.disableHeartBeatTimer = function () {
     if (configHeartBeatDelay || heartBeatSetUp) {
-      if (global.ev.windowAlias.removeEventListener) {
-        global.ev.windowAlias.removeEventListener("focus", heartBeatOnFocus);
-        global.ev.windowAlias.removeEventListener("blur", heartBeatOnBlur);
-        global.ev.windowAlias.removeEventListener(
+      if (globalThis.eave.windowAlias.removeEventListener) {
+        globalThis.eave.windowAlias.removeEventListener(
+          "focus",
+          heartBeatOnFocus,
+        );
+        globalThis.eave.windowAlias.removeEventListener(
+          "blur",
+          heartBeatOnBlur,
+        );
+        globalThis.eave.windowAlias.removeEventListener(
           "visibilitychange",
           heartBeatOnVisible,
         );
-      } else if (global.ev.windowAlias.detachEvent) {
-        global.ev.windowAlias.detachEvent("onfocus", heartBeatOnFocus);
-        global.ev.windowAlias.detachEvent("onblur", heartBeatOnBlur);
-        global.ev.windowAlias.detachEvent(
+      } else if (globalThis.eave.windowAlias.detachEvent) {
+        globalThis.eave.windowAlias.detachEvent("onfocus", heartBeatOnFocus);
+        globalThis.eave.windowAlias.detachEvent("onblur", heartBeatOnBlur);
+        globalThis.eave.windowAlias.detachEvent(
           "visibilitychange",
           heartBeatOnVisible,
         );
@@ -5273,8 +4554,12 @@ export function Tracker(trackerUrl, siteId) {
    * Frame buster
    */
   this.killFrame = function () {
-    if (global.ev.windowAlias.location !== global.ev.windowAlias.top.location) {
-      global.ev.windowAlias.top.location = global.ev.windowAlias.location;
+    if (
+      globalThis.eave.windowAlias.location !==
+      globalThis.eave.windowAlias.top.location
+    ) {
+      globalThis.eave.windowAlias.top.location =
+        globalThis.eave.windowAlias.location;
     }
   };
 
@@ -5284,8 +4569,8 @@ export function Tracker(trackerUrl, siteId) {
    * @param {string} url Redirect to this URL
    */
   this.redirectFile = function (url) {
-    if (global.ev.windowAlias.location.protocol === "file:") {
-      global.ev.windowAlias.location = url;
+    if (globalThis.eave.windowAlias.location.protocol === "file:") {
+      globalThis.eave.windowAlias.location = url;
     }
   };
 
@@ -5670,7 +4955,7 @@ export function Tracker(trackerUrl, siteId) {
     ) {
       category = "";
     } else if (category instanceof Array) {
-      category = global.ev.windowAlias.JSON.stringify(category);
+      category = globalThis.eave.windowAlias.JSON.stringify(category);
     }
 
     var param = "_pkc";
@@ -5714,7 +4999,9 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {Array}
    */
   this.getEcommerceItems = function () {
-    return JSON.parse(JSON.stringify(ecommerceItems));
+    return globalThis.eave.windowAlias.JSON.parse(
+      globalThis.eave.windowAlias.JSON.stringify(ecommerceItems),
+    );
   };
 
   /**
@@ -5879,13 +5166,17 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {number|string}
    */
   this.getRememberedConsent = function () {
-    var value = getCookie(CONSENT_COOKIE_NAME);
-    if (getCookie(CONSENT_REMOVED_COOKIE_NAME)) {
+    var value = cookieManager.getCookie(cookieManager.CONSENT_COOKIE_NAME);
+    if (cookieManager.getCookie(cookieManager.CONSENT_REMOVED_COOKIE_NAME)) {
       // if for some reason the consent_removed cookie is also set with the consent cookie, the
       // consent_removed cookie overrides the consent one, and we make sure to delete the consent
       // cookie.
       if (value) {
-        deleteCookie(CONSENT_COOKIE_NAME, configCookiePath, configCookieDomain);
+        cookieManager.deleteCookie(
+          cookieManager.CONSENT_COOKIE_NAME,
+          cookieManager.configCookiePath,
+          cookieManager.configCookieDomain,
+        );
       }
       return null;
     }
@@ -5930,16 +5221,18 @@ export function Tracker(trackerUrl, siteId) {
     if (!configHasConsent) {
       // we won't call this.disableCookies() since we don't want to delete any cookies just yet
       // user might call `setConsentGiven` next
-      configCookiesDisabled = true;
+      cookieManager.configCookiesDisabled = true;
     }
     // eave.addPlugin might not be defined at this point, we add the plugin directly also to make JSLint happy
     // We also want to make sure to define an unload listener for each tracker, not only one tracker.
-    global.ev.coreConsentCounter++;
-    global.ev.plugins["CoreConsent" + global.ev.coreConsentCounter] = {
+    globalThis.eave.coreConsentCounter++;
+    globalThis.eave.plugins[
+      "CoreConsent" + globalThis.eave.coreConsentCounter
+    ] = {
       unload: function () {
         if (!configHasConsent) {
           // we want to make sure to remove all previously set cookies again
-          deleteCookies();
+          cookieManager.deleteCookies();
         }
       },
     };
@@ -5963,10 +5256,10 @@ export function Tracker(trackerUrl, siteId) {
       this.enableCampaignParameters();
     }
 
-    deleteCookie(
-      CONSENT_REMOVED_COOKIE_NAME,
-      configCookiePath,
-      configCookieDomain,
+    cookieManager.deleteCookie(
+      cookieManager.CONSENT_REMOVED_COOKIE_NAME,
+      cookieManager.configCookiePath,
+      cookieManager.configCookieDomain,
     );
 
     var i, requestType;
@@ -6026,14 +5319,14 @@ export function Tracker(trackerUrl, siteId) {
     // cookies should be automatically enabled or not.
     this.setConsentGiven(setCookieConsent);
     var now = new Date().getTime();
-    setCookie(
-      CONSENT_COOKIE_NAME,
+    cookieManager.setCookie(
+      cookieManager.CONSENT_COOKIE_NAME,
       now,
       hoursToExpire,
-      configCookiePath,
-      configCookieDomain,
-      configCookieIsSecure,
-      configCookieSameSite,
+      cookieManager.configCookiePath,
+      cookieManager.configCookieDomain,
+      cookieManager.configCookieIsSecure,
+      cookieManager.configCookieSameSite,
     );
   };
 
@@ -6055,15 +5348,19 @@ export function Tracker(trackerUrl, siteId) {
       hoursToExpire = 30 * 365 * 24 * 60 * 60 * 1000;
     }
 
-    deleteCookie(CONSENT_COOKIE_NAME, configCookiePath, configCookieDomain);
-    setCookie(
-      CONSENT_REMOVED_COOKIE_NAME,
+    cookieManager.deleteCookie(
+      cookieManager.CONSENT_COOKIE_NAME,
+      cookieManager.configCookiePath,
+      cookieManager.configCookieDomain,
+    );
+    cookieManager.setCookie(
+      cookieManager.CONSENT_REMOVED_COOKIE_NAME,
       new Date().getTime(),
       hoursToExpire,
-      configCookiePath,
-      configCookieDomain,
-      configCookieIsSecure,
-      configCookieSameSite,
+      cookieManager.configCookiePath,
+      cookieManager.configCookieDomain,
+      cookieManager.configCookieIsSecure,
+      cookieManager.configCookieSameSite,
     );
     this.forgetCookieConsentGiven();
     this.requireConsent();
@@ -6100,6 +5397,26 @@ export function Tracker(trackerUrl, siteId) {
   };
 
   /**
+   * Set eave tracking cookies as necessary and setup the in-memory _eaveContext.
+   */
+  this.setTrackingCookies = function () {
+    // read eave cookies into ctx
+    var ctxCookie = cookieManager.getCookie(cookieManager.CONTEXT_COOKIE_NAME);
+    if (ctxCookie) {
+      // try/catch in case ctx cookie json value is borked
+      try {
+        _eaveContext = globalThis.eave.windowAlias.JSON.parse(ctxCookie);
+      } catch (ignore) {}
+    }
+
+    // set visitor_id if need
+    setVisitorId();
+
+    // save ctx cookie in case it hasnt been saved already
+    saveContext();
+  };
+
+  /**
    * Mark performance metrics as available, once onload event has finished
    */
   h.trackCallbackOnLoad(function () {
@@ -6108,9 +5425,9 @@ export function Tracker(trackerUrl, siteId) {
     }, 0);
   });
 
-  global.ev.eave.trigger("TrackerSetup", [this]);
+  globalThis.eave.eave.trigger("TrackerSetup", [this]);
 
-  global.ev.eave.addPlugin("TrackerVisitorIdCookie" + uniqueTrackerId, {
+  globalThis.eave.eave.addPlugin("TrackerVisitorIdCookie" + uniqueTrackerId, {
     // if no tracking request was sent we refresh the visitor id cookie on page unload
     unload: function () {
       if (supportsClientHints() && !clientHintsResolved) {
@@ -6119,7 +5436,7 @@ export function Tracker(trackerUrl, siteId) {
       }
 
       if (!hasSentTrackingRequestYet) {
-        setVisitorIdCookie();
+        setVisitorId();
         // this will set the referrer attribution cookie
         detectReferrerAttribution();
       }

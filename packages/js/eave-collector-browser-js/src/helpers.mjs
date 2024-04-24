@@ -1,3 +1,5 @@
+import "./globals.mjs";
+
 /**
  * See https://github.com/matomo-org/matomo/issues/8413
  * To prevent Javascript Error: Uncaught URIError: URI malformed when encoding is not UTF-8. Use this method
@@ -7,7 +9,7 @@
  */
 export function safeDecodeWrapper(url) {
   try {
-    return global.ev.decodeWrapper(url);
+    return globalThis.eave.decodeWrapper(url);
   } catch (e) {
     return unescape(url);
   }
@@ -121,23 +123,23 @@ export function apply() {
       f = fParts[1];
 
       if (
-        "object" === typeof global.ev.eave[context] &&
-        "function" === typeof global.ev.eave[context][f]
+        "object" === typeof globalThis.eave.eave[context] &&
+        "function" === typeof globalThis.eave.eave[context][f]
       ) {
-        global.ev.eave[context][f].apply(
-          global.ev.eave[context],
+        globalThis.eave.eave[context][f].apply(
+          globalThis.eave.eave[context],
           parameterArray,
         );
       } else if (trackerCall) {
         // we try to call that method again later as the plugin might not be loaded yet
-        // a plugin can call "global.ev.eave.retryMissedPluginCalls();" once it has been loaded and then the
-        // method call to "global.ev.eave[context][f]" may be executed
-        global.ev.missedPluginTrackerCalls.push(trackerCall);
+        // a plugin can call "globalThis.eave.eave.retryMissedPluginCalls();" once it has been loaded and then the
+        // method call to "globalThis.eave.eave[context][f]" may be executed
+        globalThis.eave.missedPluginTrackerCalls.push(trackerCall);
       }
     } else {
-      for (j = 0; j < global.ev.asyncTrackers.length; j++) {
+      for (j = 0; j < globalThis.eave.asyncTrackers.length; j++) {
         if (isString(f)) {
-          context = global.ev.asyncTrackers[j];
+          context = globalThis.eave.asyncTrackers[j];
 
           var isPluginTrackerCall = f.indexOf(".") > 0;
 
@@ -148,7 +150,7 @@ export function apply() {
               f = fParts[1];
             } else if (trackerCall) {
               // we try to call that method again later as the plugin might not be loaded yet
-              global.ev.missedPluginTrackerCalls.push(trackerCall);
+              globalThis.eave.missedPluginTrackerCalls.push(trackerCall);
               break;
             }
           }
@@ -170,7 +172,7 @@ export function apply() {
           }
 
           if (f === "addTracker") {
-            // addTracker adds an entry to global.ev.asyncTrackers and would otherwise result in an endless loop
+            // addTracker adds an entry to globalThis.eave.asyncTrackers and would otherwise result in an endless loop
             break;
           }
 
@@ -179,7 +181,7 @@ export function apply() {
             break;
           }
         } else {
-          f.apply(global.ev.asyncTrackers[j], parameterArray);
+          f.apply(globalThis.eave.asyncTrackers[j], parameterArray);
         }
       }
     }
@@ -204,22 +206,22 @@ export function addEventListener(element, eventType, eventHandler, useCapture) {
 }
 
 export function trackCallbackOnLoad(callback) {
-  if (global.ev.documentAlias.readyState === "complete") {
+  if (globalThis.eave.documentAlias.readyState === "complete") {
     callback();
-  } else if (global.ev.windowAlias.addEventListener) {
-    global.ev.windowAlias.addEventListener("load", callback, false);
-  } else if (global.ev.windowAlias.attachEvent) {
-    global.ev.windowAlias.attachEvent("onload", callback);
+  } else if (globalThis.eave.windowAlias.addEventListener) {
+    globalThis.eave.windowAlias.addEventListener("load", callback, false);
+  } else if (globalThis.eave.windowAlias.attachEvent) {
+    globalThis.eave.windowAlias.attachEvent("onload", callback);
   }
 }
 
 export function trackCallbackOnReady(callback) {
   var loaded = false;
 
-  if (global.ev.documentAlias.attachEvent) {
-    loaded = global.ev.documentAlias.readyState === "complete";
+  if (globalThis.eave.documentAlias.attachEvent) {
+    loaded = globalThis.eave.documentAlias.readyState === "complete";
   } else {
-    loaded = global.ev.documentAlias.readyState !== "loading";
+    loaded = globalThis.eave.documentAlias.readyState !== "loading";
   }
 
   if (loaded) {
@@ -229,12 +231,12 @@ export function trackCallbackOnReady(callback) {
 
   var _timer;
 
-  if (global.ev.documentAlias.addEventListener) {
+  if (globalThis.eave.documentAlias.addEventListener) {
     addEventListener(
-      global.ev.documentAlias,
+      globalThis.eave.documentAlias,
       "DOMContentLoaded",
       function ready() {
-        global.ev.documentAlias.removeEventListener(
+        globalThis.eave.documentAlias.removeEventListener(
           "DOMContentLoaded",
           ready,
           false,
@@ -245,25 +247,31 @@ export function trackCallbackOnReady(callback) {
         }
       },
     );
-  } else if (global.ev.documentAlias.attachEvent) {
-    global.ev.documentAlias.attachEvent("onreadystatechange", function ready() {
-      if (global.ev.documentAlias.readyState === "complete") {
-        global.ev.documentAlias.detachEvent("onreadystatechange", ready);
-        if (!loaded) {
-          loaded = true;
-          callback();
+  } else if (globalThis.eave.documentAlias.attachEvent) {
+    globalThis.eave.documentAlias.attachEvent(
+      "onreadystatechange",
+      function ready() {
+        if (globalThis.eave.documentAlias.readyState === "complete") {
+          globalThis.eave.documentAlias.detachEvent(
+            "onreadystatechange",
+            ready,
+          );
+          if (!loaded) {
+            loaded = true;
+            callback();
+          }
         }
-      }
-    });
+      },
+    );
 
     if (
-      global.ev.documentAlias.documentElement.doScroll &&
-      global.ev.windowAlias === global.ev.windowAlias.top
+      globalThis.eave.documentAlias.documentElement.doScroll &&
+      globalThis.eave.windowAlias === globalThis.eave.windowAlias.top
     ) {
       (function ready() {
         if (!loaded) {
           try {
-            global.ev.documentAlias.documentElement.doScroll("left");
+            globalThis.eave.documentAlias.documentElement.doScroll("left");
           } catch (error) {
             setTimeout(ready, 0);
 
@@ -278,7 +286,7 @@ export function trackCallbackOnReady(callback) {
 
   // fallback
   addEventListener(
-    global.ev.windowAlias,
+    globalThis.eave.windowAlias,
     "load",
     function () {
       if (!loaded) {
@@ -304,14 +312,14 @@ export function executePluginMethod(methodName, params, callback) {
     value,
     isFunction;
 
-  for (i in global.ev.plugins) {
-    if (Object.prototype.hasOwnProperty.call(global.ev.plugins, i)) {
+  for (i in globalThis.eave.plugins) {
+    if (Object.prototype.hasOwnProperty.call(globalThis.eave.plugins, i)) {
       isFunction =
-        global.ev.plugins[i] &&
-        "function" === typeof global.ev.plugins[i][methodName];
+        globalThis.eave.plugins[i] &&
+        "function" === typeof globalThis.eave.plugins[i][methodName];
 
       if (isFunction) {
-        pluginMethod = global.ev.plugins[i][methodName];
+        pluginMethod = globalThis.eave.plugins[i][methodName];
         value = pluginMethod(params || {}, callback);
 
         if (value) {
@@ -333,25 +341,25 @@ export function executePluginMethod(methodName, params, callback) {
  */
 export function beforeUnloadHandler(event) {
   var now;
-  global.ev.isPageUnloading = true;
+  globalThis.eave.isPageUnloading = true;
 
   executePluginMethod("unload");
   now = new Date();
   var aliasTime = now.getTimeAlias();
-  if (global.ev.expireDateTime - aliasTime > 3000) {
-    global.ev.expireDateTime = aliasTime + 3000;
+  if (globalThis.eave.expireDateTime - aliasTime > 3000) {
+    globalThis.eave.expireDateTime = aliasTime + 3000;
   }
 
   /*
    * Delay/pause (blocks UI)
    */
-  if (global.ev.expireDateTime) {
+  if (globalThis.eave.expireDateTime) {
     // the things we do for backwards compatibility...
     // in ECMA-262 5th ed., we could simply use:
-    //     while (Date.now() < global.ev.expireDateTime) { }
+    //     while (Date.now() < globalThis.eave.expireDateTime) { }
     do {
       now = new Date();
-    } while (now.getTimeAlias() < global.ev.expireDateTime);
+    } while (now.getTimeAlias() < globalThis.eave.expireDateTime);
   }
 }
 
@@ -359,7 +367,7 @@ export function beforeUnloadHandler(event) {
  * Load JavaScript file (asynchronously)
  */
 export function loadScript(src, onLoad) {
-  var script = global.ev.documentAlias.createElement("script");
+  var script = globalThis.eave.documentAlias.createElement("script");
 
   script.type = "text/javascript";
   script.src = src;
@@ -377,7 +385,9 @@ export function loadScript(src, onLoad) {
     script.onload = onLoad;
   }
 
-  global.ev.documentAlias.getElementsByTagName("head")[0].appendChild(script);
+  globalThis.eave.documentAlias
+    .getElementsByTagName("head")[0]
+    .appendChild(script);
 }
 
 /*
@@ -387,11 +397,11 @@ export function getReferrer() {
   var referrer = "";
 
   try {
-    referrer = global.ev.windowAlias.top.document.referrer;
+    referrer = globalThis.eave.windowAlias.top.document.referrer;
   } catch (e) {
-    if (global.ev.windowAlias.parent) {
+    if (globalThis.eave.windowAlias.parent) {
       try {
-        referrer = global.ev.windowAlias.parent.document.referrer;
+        referrer = globalThis.eave.windowAlias.parent.document.referrer;
       } catch (e2) {
         referrer = "";
       }
@@ -399,7 +409,7 @@ export function getReferrer() {
   }
 
   if (referrer === "") {
-    referrer = global.ev.documentAlias.referrer;
+    referrer = globalThis.eave.documentAlias.referrer;
   }
 
   return referrer;
@@ -467,9 +477,9 @@ export function queryStringify(data) {
     if (data.hasOwnProperty(k)) {
       queryString +=
         "&" +
-        global.ev.encodeWrapper(k) +
+        globalThis.eave.encodeWrapper(k) +
         "=" +
-        global.ev.encodeWrapper(data[k]);
+        globalThis.eave.encodeWrapper(data[k]);
     }
   }
   return queryString;
@@ -527,9 +537,9 @@ export function addUrlParameter(url, name, value) {
 
   return (
     baseUrl +
-    global.ev.encodeWrapper(name) +
+    globalThis.eave.encodeWrapper(name) +
     "=" +
-    global.ev.encodeWrapper(value) +
+    globalThis.eave.encodeWrapper(value) +
     urlHash
   );
 }
@@ -609,7 +619,7 @@ export function trim(text) {
  * UTF-8 encoding
  */
 export function utf8_encode(argString) {
-  return unescape(global.ev.encodeWrapper(argString));
+  return unescape(globalThis.eave.encodeWrapper(argString));
 }
 
 /************************************************************
@@ -803,7 +813,7 @@ export function urlFixup(hostName, href, referrer) {
     hostName.slice(0, 5) === "74.6."
   ) {
     // Yahoo (via Inktomi 74.6.0.0/16)
-    href = global.ev.documentAlias.links[0].href;
+    href = globalThis.eave.documentAlias.links[0].href;
     hostName = getHostName(href);
   }
 
@@ -840,7 +850,7 @@ export function titleFixup(title) {
   title = title && title.text ? title.text : title;
 
   if (!isString(title)) {
-    var tmp = global.ev.documentAlias.getElementsByTagName("title");
+    var tmp = globalThis.eave.documentAlias.getElementsByTagName("title");
 
     if (tmp && isDefined(tmp[0])) {
       title = tmp[0].text;
@@ -930,4 +940,190 @@ export function indexOfArray(theArray, searchElement) {
     k++;
   }
   return -1;
+}
+
+export function uuidv4() {
+  if (isDefined(crypto) && isDefined(crypto.randomUUID)) {
+    return crypto.randomUUID();
+  }
+  // we are in an insecure env or this is an incompatible browser!
+  // fallback on some manual uuid jank
+  // https://stackoverflow.com/a/2117523/9718199
+  return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) =>
+    (
+      +c ^
+      (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))
+    ).toString(16),
+  );
+}
+
+export function getCurrentTimestampInSeconds() {
+  return Math.floor(new Date().getTime() / 1000);
+}
+
+export function sortObjectsByKeys(value) {
+  if (!value || !isObject(value)) {
+    return;
+  }
+
+  // Object.keys(value) is not supported by all browsers, we get the keys manually
+  var keys = [];
+  var key;
+
+  for (key in value) {
+    if (Object.prototype.hasOwnProperty.call(value, key)) {
+      keys.push(key);
+    }
+  }
+
+  var normalized = {};
+  keys.sort();
+  var len = keys.length;
+  var i;
+
+  for (i = 0; i < len; i++) {
+    normalized[keys[i]] = value[keys[i]];
+  }
+
+  return normalized;
+}
+
+export function generateUniqueId() {
+  var id = "";
+  var chars = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  var charLen = chars.length;
+  var i;
+
+  for (i = 0; i < 6; i++) {
+    id += chars.charAt(Math.floor(Math.random() * charLen));
+  }
+
+  return id;
+}
+
+export function arrayChunk(theArray, chunkSize) {
+  if (!chunkSize || chunkSize >= theArray.length) {
+    return [theArray];
+  }
+
+  var index = 0;
+  var arrLength = theArray.length;
+  var chunks = [];
+
+  for (index; index < arrLength; index += chunkSize) {
+    chunks.push(theArray.slice(index, index + chunkSize));
+  }
+
+  return chunks;
+}
+
+export function setExpireDateTime(delay) {
+  var now = new Date();
+  var time = now.getTime() + delay;
+
+  if (
+    !globalThis.eave.expireDateTime ||
+    time > globalThis.eave.expireDateTime
+  ) {
+    globalThis.eave.expireDateTime = time;
+  }
+}
+
+export function isSameHost(hostName, alias) {
+  var offset;
+
+  hostName = String(hostName).toLowerCase();
+  alias = String(alias).toLowerCase();
+
+  if (hostName === alias) {
+    return true;
+  }
+
+  if (alias.slice(0, 1) === ".") {
+    if (hostName === alias.slice(1)) {
+      return true;
+    }
+
+    offset = hostName.length - alias.length;
+
+    if (offset > 0 && hostName.slice(offset) === alias) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export function isSitePath(path, pathAlias) {
+  if (!stringStartsWith(pathAlias, "/")) {
+    pathAlias = "/" + pathAlias;
+  }
+
+  if (!stringStartsWith(path, "/")) {
+    path = "/" + path;
+  }
+
+  var matchesAnyPath = pathAlias === "/" || pathAlias === "/*";
+
+  if (matchesAnyPath) {
+    return true;
+  }
+
+  if (path === pathAlias) {
+    return true;
+  }
+
+  pathAlias = String(pathAlias).toLowerCase();
+  path = String(path).toLowerCase();
+
+  // wildcard path support
+  if (stringEndsWith(pathAlias, "*")) {
+    // remove the final '*' before comparing
+    pathAlias = pathAlias.slice(0, -1);
+
+    // Note: this is almost duplicated from just few lines above
+    matchesAnyPath = !pathAlias || pathAlias === "/";
+
+    if (matchesAnyPath) {
+      return true;
+    }
+
+    if (path === pathAlias) {
+      return true;
+    }
+
+    // wildcard match
+    return path.indexOf(pathAlias) === 0;
+  }
+
+  // we need to append slashes so /foobarbaz won't match a site /foobar
+  if (!stringEndsWith(path, "/")) {
+    path += "/";
+  }
+
+  if (!stringEndsWith(pathAlias, "/")) {
+    pathAlias += "/";
+  }
+
+  return path.indexOf(pathAlias) === 0;
+}
+
+/**
+ * Convert an object to a query params string
+ *
+ * @param {object} args
+ * @returns {string} query params to attach to a request URL
+ */
+export function argsToQueryParameters(args) {
+  const makeURLSafe = isFunction(globalThis.eave.encodeWrapper)
+    ? globalThis.eave.encodeWrapper
+    : function (x) {
+        return x;
+      };
+  let qp = "";
+  let key;
+  for (key of Object.keys(args)) {
+    qp += "&" + makeURLSafe(key) + "=" + makeURLSafe(String(args[key]));
+  }
+  return qp;
 }

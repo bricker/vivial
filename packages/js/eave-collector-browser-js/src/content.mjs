@@ -1,6 +1,7 @@
-import * as h from "./helpers.js";
-import query from "./query.js";
-import { isVisible } from "./visibility.js";
+import './globals.mjs';
+import * as h from "./helpers.mjs";
+import query from "./query.mjs";
+import { isVisible } from "./visibility.mjs";
 
 export default {
   CONTENT_ATTR: "data-track-content",
@@ -68,7 +69,7 @@ export default {
     var node = anyNode;
     var counter = 0;
 
-    while (node && node !== global.ev.documentAlias && node.parentNode) {
+    while (node && node !== globalThis.eave.documentAlias && node.parentNode) {
       if (query.hasNodeAttribute(node, this.CONTENT_ATTR)) {
         return node;
       }
@@ -325,7 +326,7 @@ export default {
     }
 
     var rect = node.getBoundingClientRect();
-    var html = global.ev.documentAlias.documentElement || {};
+    var html = globalThis.eave.documentAlias.documentElement || {};
 
     var wasVisible = rect.top < 0;
     if (wasVisible && node.offsetTop) {
@@ -335,19 +336,19 @@ export default {
     var docWidth = html.clientWidth; // The clientWidth attribute returns the viewport width excluding the size of a rendered scroll bar
 
     if (
-      global.ev.windowAlias.innerWidth &&
-      docWidth > global.ev.windowAlias.innerWidth
+      globalThis.eave.windowAlias.innerWidth &&
+      docWidth > globalThis.eave.windowAlias.innerWidth
     ) {
-      docWidth = global.ev.windowAlias.innerWidth; // The innerWidth attribute must return the viewport width including the size of a rendered scroll bar
+      docWidth = globalThis.eave.windowAlias.innerWidth; // The innerWidth attribute must return the viewport width including the size of a rendered scroll bar
     }
 
     var docHeight = html.clientHeight; // The clientWidth attribute returns the viewport width excluding the size of a rendered scroll bar
 
     if (
-      global.ev.windowAlias.innerHeight &&
-      docHeight > global.ev.windowAlias.innerHeight
+      globalThis.eave.windowAlias.innerHeight &&
+      docHeight > globalThis.eave.windowAlias.innerHeight
     ) {
-      docHeight = global.ev.windowAlias.innerHeight; // The innerWidth attribute must return the viewport width including the size of a rendered scroll bar
+      docHeight = globalThis.eave.windowAlias.innerHeight; // The innerWidth attribute must return the viewport width including the size of a rendered scroll bar
     }
 
     return (
@@ -366,25 +367,25 @@ export default {
     var params = "";
 
     if (interaction) {
-      params += "c_i=" + global.ev.encodeWrapper(interaction);
+      params += "c_i=" + globalThis.eave.encodeWrapper(interaction);
     }
     if (name) {
       if (params) {
         params += "&";
       }
-      params += "c_n=" + global.ev.encodeWrapper(name);
+      params += "c_n=" + globalThis.eave.encodeWrapper(name);
     }
     if (piece) {
       if (params) {
         params += "&";
       }
-      params += "c_p=" + global.ev.encodeWrapper(piece);
+      params += "c_p=" + globalThis.eave.encodeWrapper(piece);
     }
     if (target) {
       if (params) {
         params += "&";
       }
-      params += "c_t=" + global.ev.encodeWrapper(target);
+      params += "c_t=" + globalThis.eave.encodeWrapper(target);
     }
 
     if (params) {
@@ -396,12 +397,12 @@ export default {
   buildImpressionRequestParams: function (name, piece, target) {
     var params =
       "c_n=" +
-      global.ev.encodeWrapper(name) +
+      globalThis.eave.encodeWrapper(name) +
       "&c_p=" +
-      global.ev.encodeWrapper(piece);
+      globalThis.eave.encodeWrapper(piece);
 
     if (target) {
-      params += "&c_t=" + global.ev.encodeWrapper(target);
+      params += "&c_t=" + globalThis.eave.encodeWrapper(target);
     }
 
     if (params) {
@@ -450,7 +451,7 @@ export default {
     this.location = location;
   },
   getLocation: function () {
-    var locationAlias = this.location || global.ev.windowAlias.location;
+    var locationAlias = this.location || globalThis.eave.windowAlias.location;
 
     if (!locationAlias.origin) {
       locationAlias.origin =
