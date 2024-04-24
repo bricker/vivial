@@ -48,6 +48,11 @@ export class CookieManager {
       return 0;
     }
 
+    if (h.isDefined(URLSearchParams)) {
+      const cookieParams = new URLSearchParams(globalThis.eave.documentAlias.cookie);
+      return cookieParams.get(cookieName) || 0;
+    }
+
     var cookiePattern = new RegExp("(^|;)[ ]*" + cookieName + "=([^;]*)"),
       cookieMatch = cookiePattern.exec(globalThis.eave.documentAlias.cookie);
 
