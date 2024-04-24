@@ -107,7 +107,7 @@ class AsyncpgCollector:
                 check_enabled=self._check_enabled,
             )
 
-    def _eave_wrapper__asyncpg_connection_Connection_default[T, **P](
+    def _eave_wrapper__asyncpg_connection_Connection_default[T, **P](  # noqa: N802
         self,
         wrapped: Callable[P, T],
         instance: asyncpg.connection.Connection,
@@ -119,7 +119,7 @@ class AsyncpgCollector:
         # pprint.pprint(normalizedargs)
         return wrapped(*args, **kwargs)
 
-    async def _eave_wrapper__asyncpg_prepared_stmt_PreparedStatement_default[T, **P](
+    async def _eave_wrapper__asyncpg_prepared_stmt_PreparedStatement_default[T, **P](  # noqa: N802
         self,
         wrapped: Callable[P, Coroutine[Any, Any, T]],
         instance: asyncpg.prepared_stmt.PreparedStatement,
