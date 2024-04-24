@@ -1,0 +1,4 @@
+gunicorn
+Flask[async]>=3.0.0
+SQLAlchemy[asyncio]
+asyncpg
