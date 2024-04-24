@@ -1,5 +1,6 @@
+from collections.abc import Callable
 from types import CodeType
-from typing import Any, Callable
+from typing import Any
 
 from ..config import EaveConfig
 

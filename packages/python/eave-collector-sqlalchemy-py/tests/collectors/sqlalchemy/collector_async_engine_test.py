@@ -2,16 +2,16 @@ import os
 import unittest.mock
 import uuid
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 import sqlalchemy
-from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, EventPayload, EventType
-from eave.collectors.core.write_queue import BatchWriteQueue, QueueParams
-from eave.collectors.sqlalchemy.private.collector import SQLAlchemyCollector
 from sqlalchemy import func, text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, EventPayload, EventType
+from eave.collectors.core.write_queue import BatchWriteQueue, QueueParams
+from eave.collectors.sqlalchemy.private.collector import SQLAlchemyCollector
 
 
 class ConsoleOutputBatchWriteQueue(BatchWriteQueue):
@@ -67,7 +67,7 @@ class PeopleOrm(OrmBase):
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=text("(gen_random_uuid())"))
     name: Mapped[str]
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+    updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
 
 class CollectorTestBase(unittest.IsolatedAsyncioTestCase):

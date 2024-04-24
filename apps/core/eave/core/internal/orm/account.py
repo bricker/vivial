@@ -182,9 +182,7 @@ class AccountOrm(Base):
             case _:
                 raise
 
-    async def refresh_oauth_token(
-        self, session: AsyncSession, ctx: LogContext | None = None
-    ) -> typing.Literal[True]:
+    async def refresh_oauth_token(self, session: AsyncSession, ctx: LogContext | None = None) -> typing.Literal[True]:
         """
         The session parameter encourages the caller to call this function within DB session.
         """

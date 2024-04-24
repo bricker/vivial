@@ -1,8 +1,9 @@
 import functools
 import inspect
 import sys
+from collections.abc import Callable
 from functools import reduce
-from typing import Any, Callable, Concatenate, Optional
+from typing import Any, Concatenate, Optional
 
 from eave.collectors.python.callbacks.branch import trace_branch
 from eave.collectors.python.callbacks.call import trace_call
@@ -17,7 +18,7 @@ _TOOL_NAME = "eave"
 
 # https://docs.python.org/3.12/library/sys.monitoring.html#events
 
-_events: dict[int, Optional[Callable[Concatenate[EaveConfig, ...], Any]]] = {
+_events: dict[int, Callable[Concatenate[EaveConfig, ...], Any] | None] = {
     sys.monitoring.events.BRANCH: trace_branch,
     sys.monitoring.events.CALL: trace_call,
     sys.monitoring.events.C_RAISE: None,

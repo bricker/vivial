@@ -1,10 +1,9 @@
 import os
 from asyncio import Task, create_task
 
+import sqlalchemy
 from eave.collectors.core.config import EAVE_CREDENTIALS_ENV_KEY
 from eave.collectors.sqlalchemy.private.collector import SQLAlchemyCollector, SupportedEngine
-
-import sqlalchemy
 
 _collector: SQLAlchemyCollector | None = None
 

@@ -1,4 +1,3 @@
-
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 
 from .base import BaseTestCase

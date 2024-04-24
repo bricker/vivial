@@ -1,7 +1,8 @@
 import json
+from collections.abc import Awaitable, Callable
 from functools import wraps
 from http.client import UNAUTHORIZED
-from typing import Any, Awaitable, Callable, Optional
+from typing import Any
 
 import werkzeug.exceptions
 from aiohttp import ClientResponseError
@@ -89,7 +90,7 @@ async def get_virtual_events() -> Response:
     auth_cookies = _get_auth_cookies_or_exception()
 
     body = request.get_json()
-    query_input: Optional[VirtualEventQueryInput] = body.get("query")
+    query_input: VirtualEventQueryInput | None = body.get("query")
 
     eave_response = await virtual_event.GetVirtualEventsRequest.perform(
         origin=DASHBOARD_APP_CONFIG.eave_origin,

@@ -1,10 +1,9 @@
 import time
 import weakref
-from typing import Any, Callable, Tuple
+from collections.abc import Callable
+from typing import Any
 
 import sqlalchemy
-from eave.collectors.core.base_collector import BaseCollector
-from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure, EventType
 from sqlalchemy.engine.interfaces import (
     _CoreMultiExecuteParams,
     _CoreSingleExecuteParams,
@@ -15,6 +14,9 @@ from sqlalchemy.event import (
     remove,
 )
 from sqlalchemy.ext.asyncio import AsyncEngine
+
+from eave.collectors.core.base_collector import BaseCollector
+from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure, EventType
 
 type SupportedEngine = sqlalchemy.Engine | AsyncEngine
 
@@ -92,7 +94,7 @@ class SQLAlchemyCollector(BaseCollector):
         multiparams: _CoreMultiExecuteParams,
         params: _CoreSingleExecuteParams,
         execution_options: _ExecuteOptions,
-    ) -> Tuple[sqlalchemy.Executable, _CoreMultiExecuteParams, _CoreSingleExecuteParams] | None:
+    ) -> tuple[sqlalchemy.Executable, _CoreMultiExecuteParams, _CoreSingleExecuteParams] | None:
         if clauseelement.is_insert or clauseelement.is_select:
             return
 

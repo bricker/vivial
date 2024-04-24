@@ -1,4 +1,5 @@
-from typing import Any, Callable, Coroutine, Optional
+from collections.abc import Callable, Coroutine
+from typing import Any
 
 from wrapt import patch_function_wrapper
 
@@ -7,7 +8,7 @@ def wrap[T, **P](
     module: str,
     name: str,
     wrapper: Callable[[Callable[P, T], Any, tuple[Any, ...], dict[str, Any]], T],
-    check_enabled: Optional[Callable[[], bool]] = None,
+    check_enabled: Callable[[], bool] | None = None,
 ) -> None:
     patch_function_wrapper(
         module=module,
@@ -24,7 +25,7 @@ def wrap_async[T, **P](
     wrapper: Callable[
         [Callable[P, Coroutine[Any, Any, T]], Any, tuple[Any, ...], dict[str, Any]], Coroutine[Any, Any, T]
     ],
-    check_enabled: Optional[Callable[[], bool]] = None,
+    check_enabled: Callable[[], bool] | None = None,
 ) -> None:
     patch_function_wrapper(
         module=module,

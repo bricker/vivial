@@ -1,10 +1,12 @@
 import os
 import re
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
-from typing import Any, Callable, Coroutine, Self
+from typing import Any, Self
 
 import asyncpg
 import asyncpg.prepared_stmt
+
 from eave.collectors.core.wrap_util import wrap, wrap_async
 
 _thisdir = os.path.dirname(__file__)
