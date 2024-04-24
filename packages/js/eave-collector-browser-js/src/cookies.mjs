@@ -20,7 +20,11 @@ export class CookieManager {
     // Life of the referral cookie (in milliseconds)
     this.configReferralCookieTimeout = 15768000000; // 6 months
     // Eave cookies we manage
-    this.configCookiesToDelete = [this.SESSION_COOKIE_NAME, this.CONTEXT_COOKIE_NAME, "cvar"];
+    this.configCookiesToDelete = [
+      this.SESSION_COOKIE_NAME,
+      this.CONTEXT_COOKIE_NAME,
+      "cvar",
+    ];
     // First-party cookie domain
     // User agent defaults to origin hostname
     this.configCookieDomain = undefined;
@@ -48,16 +52,11 @@ export class CookieManager {
       return 0;
     }
 
-    if (h.isDefined(URLSearchParams)) {
-      const cookieParams = new URLSearchParams(globalThis.eave.documentAlias.cookie);
-      return cookieParams.get(cookieName) || 0;
-    }
-
     var cookiePattern = new RegExp("(^|;)[ ]*" + cookieName + "=([^;]*)"),
       cookieMatch = cookiePattern.exec(globalThis.eave.documentAlias.cookie);
 
     return cookieMatch ? globalThis.eave.decodeWrapper(cookieMatch[2]) : 0;
-  };
+  }
 
   /**
    * Set cookie value
@@ -71,15 +70,7 @@ export class CookieManager {
    * @param {string} sameSite cookie sharing restrictions (default "Lax")
    *    https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#samesitesamesite-value
    */
-  setCookie(
-    cookieName,
-    value,
-    msToExpire,
-    path,
-    domain,
-    isSecure,
-    sameSite,
-  ) {
+  setCookie(cookieName, value, msToExpire, path, domain, isSecure, sameSite) {
     if (
       this.configCookiesDisabled &&
       cookieName !== this.CONSENT_REMOVED_COOKIE_NAME
@@ -122,7 +113,7 @@ export class CookieManager {
         "`. Please check domain and path.";
       h.logConsoleError(msg);
     }
-  };
+  }
 
   /*
    * Inits the custom variables object
@@ -140,7 +131,7 @@ export class CookieManager {
     }
 
     return {};
-  };
+  }
 
   isPossibleToSetCookieOnDomain(domainToTest) {
     var testCookieName = this.configCookieNamePrefix + "testcookie_domain";
@@ -162,7 +153,7 @@ export class CookieManager {
     }
 
     return false;
-  };
+  }
 
   /**
    * Deletes the set of cookies `configCookiesToDelete` that we manage
@@ -191,18 +182,18 @@ export class CookieManager {
     }
 
     this.configCookiesDisabled = savedConfigCookiesDisabled;
-  };
+  }
 
   /*
    * Get cookie name with prefix and domain hash
    */
   getCookieName(baseName) {
     return this.configCookieNamePrefix + baseName;
-  };
+  }
 
   deleteCookie(cookieName, path, domain) {
     this.setCookie(cookieName, "", -129600000, path, domain);
-  };
+  }
 
   /*
    * Does browser have cookies enabled (for this site)?
@@ -234,7 +225,7 @@ export class CookieManager {
     var hasCookie = this.getCookie(testCookieName) === "1" ? "1" : "0";
     this.deleteCookie(testCookieName);
     return hasCookie;
-  };
+  }
 
   getSession() {
     return this.getCookie(this.SESSION_COOKIE_NAME);
@@ -251,5 +242,5 @@ export class CookieManager {
       this.configCookieIsSecure,
       this.configCookieSameSite,
     );
-  };
+  }
 }

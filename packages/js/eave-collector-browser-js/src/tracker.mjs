@@ -5403,7 +5403,10 @@ export function Tracker(trackerUrl, siteId) {
     // read eave cookies into ctx
     var ctxCookie = cookieManager.getCookie(cookieManager.CONTEXT_COOKIE_NAME);
     if (ctxCookie) {
-      _eaveContext = JSON.parse(ctxCookie);
+      // try/catch in case ctx cookie json value is borked
+      try {
+        _eaveContext = globalThis.eave.windowAlias.JSON.parse(ctxCookie);
+      } catch (ignore) {}
     }
 
     // set visitor_id if need
