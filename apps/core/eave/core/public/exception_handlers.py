@@ -1,5 +1,6 @@
 import http
-from typing import Any, Callable, Mapping
+from collections.abc import Callable, Mapping
+from typing import Any
 
 import pydantic
 from starlette.requests import Request

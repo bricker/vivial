@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Self, Tuple, TypedDict, Unpack
+from typing import Self, TypedDict, Unpack
 from uuid import UUID
 
 from sqlalchemy import Select, func, select
@@ -19,7 +19,7 @@ class TeamOrm(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=UUID_DEFAULT_EXPR)
     name: Mapped[str]
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+    updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
     async def create(
@@ -46,7 +46,7 @@ class TeamOrm(Base):
         team_id: UUID | str
 
     @classmethod
-    def query(cls, **kwargs: Unpack[QueryParams]) -> Select[Tuple[Self]]:
+    def query(cls, **kwargs: Unpack[QueryParams]) -> Select[tuple[Self]]:
         team_id = eave.stdlib.util.ensure_uuid(kwargs["team_id"])
         lookup = select(cls).where(cls.id == team_id)
         return lookup

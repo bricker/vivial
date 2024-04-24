@@ -3,10 +3,10 @@ import logging
 import os
 import sys
 from functools import cached_property
-from typing import Optional
 
 import google.cloud.client
 import google.cloud.secretmanager
+
 from eave.stdlib.eave_origins import EaveApp
 
 from . import checksum
@@ -140,7 +140,7 @@ class _EaveConfig(ConfigBase):
         return f".{self.eave_root_domain}"
 
     @cached_property
-    def redis_connection(self) -> Optional[tuple[str, int, str]]:
+    def redis_connection(self) -> tuple[str, int, str] | None:
         key = "REDIS_HOST_PORT"
         value: str | None
 
@@ -176,7 +176,7 @@ class _EaveConfig(ConfigBase):
         return (host, port, db)
 
     @cached_property
-    def redis_auth(self) -> Optional[str]:
+    def redis_auth(self) -> str | None:
         key = "REDIS_AUTH"
 
         if self.is_development:
@@ -188,7 +188,7 @@ class _EaveConfig(ConfigBase):
                 return None
 
     @cached_property
-    def redis_tls_ca(self) -> Optional[str]:
+    def redis_tls_ca(self) -> str | None:
         key = "REDIS_TLS_CA"
 
         if self.is_development:

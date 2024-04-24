@@ -1,7 +1,8 @@
-from typing import Generic, Optional, Type, TypeVar
+from typing import Generic, TypeVar
 
 import aiohttp
 import pydantic
+
 from eave.stdlib.eave_origins import EaveApp
 
 
@@ -46,16 +47,16 @@ class BaseRequestBody(pydantic.BaseModel):
 
 
 class BaseResponseBody(pydantic.BaseModel):
-    _raw_response: Optional[aiohttp.ClientResponse] = None
+    _raw_response: aiohttp.ClientResponse | None = None
 
     class Config:
         underscore_attrs_are_private = True
 
     @property
-    def raw_response(self) -> Optional[aiohttp.ClientResponse]:
+    def raw_response(self) -> aiohttp.ClientResponse | None:
         return self._raw_response
 
-    def set_raw_response(self, value: Optional[aiohttp.ClientResponse]) -> None:
+    def set_raw_response(self, value: aiohttp.ClientResponse | None) -> None:
         """
         This isn't a proper setter function because Pydantic hijacks attr lookups.
         Calling `resp.raw_response = x` throws an error that there isn't a `raw_response` field.
@@ -80,7 +81,7 @@ class Endpoint(Generic[_SomeEndpointConfiguration]):
 
     @classmethod
     async def make_response(
-        cls, response: aiohttp.ClientResponse, response_type: Type[_SomeResponseBody]
+        cls, response: aiohttp.ClientResponse, response_type: type[_SomeResponseBody]
     ) -> _SomeResponseBody:
         response_json = await response.json()
         if response_json:

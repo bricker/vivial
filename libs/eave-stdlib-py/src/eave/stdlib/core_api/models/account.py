@@ -1,6 +1,7 @@
 import enum
 import uuid
-from typing import Any, Mapping, Optional
+from collections.abc import Mapping
+from typing import Any
 
 from eave.stdlib.core_api.models import BaseResponseModel
 
@@ -13,15 +14,15 @@ class AuthProvider(enum.StrEnum):
 class AuthenticatedAccount(BaseResponseModel):
     id: uuid.UUID
     auth_provider: AuthProvider
-    visitor_id: Optional[uuid.UUID]
+    visitor_id: uuid.UUID | None
     team_id: uuid.UUID
-    opaque_utm_params: Optional[Mapping[str, Any]]
-    email: Optional[str]
+    opaque_utm_params: Mapping[str, Any] | None
+    email: str | None
 
 
 class AnalyticsAccount(BaseResponseModel):
     id: uuid.UUID
     auth_provider: AuthProvider
-    visitor_id: Optional[uuid.UUID]
+    visitor_id: uuid.UUID | None
     team_id: uuid.UUID
-    opaque_utm_params: Optional[Mapping[str, Any]]
+    opaque_utm_params: Mapping[str, Any] | None

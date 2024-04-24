@@ -6,20 +6,17 @@
   "recommendations": [
     "dbaeumer.vscode-eslint",
     "samuelcolvin.jinjahtml",
-    "tamasfe.even-better-toml",
-    "googlecloudtools.cloudcode",
     "graphql.vscode-graphql-syntax",
-    "graphql.vscode-graphql",
     "davidanson.vscode-markdownlint",
     "christian-kohler.npm-intellisense",
     "christian-kohler.path-intellisense",
-    "pbkit.vscode-pbkit",
     "ms-python.vscode-pylance",
     "redhat.vscode-yaml",
     "charliermarsh.ruff",
     "timonwong.shellcheck",
     "mkhl.shfmt",
-    "esbenp.prettier-vscode"
+    "esbenp.prettier-vscode",
+    "tamasfe.even-better-toml"
   ],
   // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
   "unwantedRecommendations": [

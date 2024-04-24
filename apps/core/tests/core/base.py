@@ -2,7 +2,7 @@ import json
 import os
 import urllib.parse
 import uuid
-from typing import Any, Optional, Protocol, TypeVar
+from typing import Any, Protocol, TypeVar
 from uuid import UUID
 
 import aiohttp
@@ -130,14 +130,14 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         self,
         *,
         path: str,
-        payload: Optional[pydantic.BaseModel | eave.stdlib.typing.JsonObject] = None,
+        payload: pydantic.BaseModel | eave.stdlib.typing.JsonObject | None = None,
         method: str = "POST",
-        headers: Optional[dict[str, Optional[str]]] = None,
-        origin: Optional[eave.stdlib.eave_origins.EaveApp] = None,
-        team_id: Optional[uuid.UUID] = None,
-        account_id: Optional[uuid.UUID] = None,
-        access_token: Optional[str] = None,
-        request_id: Optional[uuid.UUID] = None,
+        headers: dict[str, str | None] | None = None,
+        origin: eave.stdlib.eave_origins.EaveApp | None = None,
+        team_id: uuid.UUID | None = None,
+        account_id: uuid.UUID | None = None,
+        access_token: str | None = None,
+        request_id: uuid.UUID | None = None,
         sign: bool = True,
         **kwargs: Any,
     ) -> Response:
@@ -247,11 +247,11 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         self,
         session: AsyncSession,
         /,
-        team_id: Optional[uuid.UUID] = None,
-        auth_provider: Optional[AuthProvider] = None,
-        auth_id: Optional[str] = None,
-        access_token: Optional[str] = None,
-        refresh_token: Optional[str] = None,
+        team_id: uuid.UUID | None = None,
+        auth_provider: AuthProvider | None = None,
+        auth_id: str | None = None,
+        access_token: str | None = None,
+        refresh_token: str | None = None,
     ) -> AccountOrm:
         if not team_id:
             team = await self.make_team(session=session)

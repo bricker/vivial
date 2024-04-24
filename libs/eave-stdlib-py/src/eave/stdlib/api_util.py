@@ -1,14 +1,14 @@
 import http
 import re
-from typing import Optional
 
 import aiohttp
-import eave.stdlib.util as util
 import pydantic
 from asgiref.typing import HTTPScope
+from starlette.responses import Response
+
+from eave.stdlib import util
 from eave.stdlib.exceptions import MissingRequiredHeaderError
 from eave.stdlib.headers import EAVE_SIGNATURE_HEADER, MIME_TYPE_JSON
-from starlette.responses import Response
 
 
 def get_header_value(scope: HTTPScope, name: str) -> str | None:
@@ -32,7 +32,7 @@ def get_header_value_or_exception(scope: HTTPScope, name: str) -> str:
 
 
 def get_headers(
-    scope: HTTPScope, excluded: Optional[set[str]] = None, redacted: Optional[set[str]] = None
+    scope: HTTPScope, excluded: set[str] | None = None, redacted: set[str] | None = None
 ) -> dict[str, str | None]:
     """
     This function doesn't support multiple headers with the same name.

@@ -1,4 +1,5 @@
-from typing import Any, Sized, TypeVar
+from collections.abc import Sized
+from typing import Any, TypeVar
 
 import pydantic
 

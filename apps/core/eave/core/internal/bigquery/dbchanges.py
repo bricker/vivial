@@ -1,46 +1,45 @@
-import dataclasses
 import json
-from dataclasses import dataclass
-from datetime import datetime
 from textwrap import dedent
-from typing import Any, Optional, override
+from typing import Any, override
 
 from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
 
+from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseStructure
 from eave.core.internal import database
 from eave.core.internal.bigquery.types import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 from eave.core.internal.orm.virtual_event import VirtualEventOrm, make_virtual_event_readable_name
+from eave.stdlib.logging import LOGGER
 from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize
-from eave.tracing.core.datastructures import DatabaseChangeEventPayload
-
-
-@dataclass(frozen=True)
-class _DatabaseChangesTableSchema:
-    """
-    Convenience class for typing input data.
-    The associated BigQueryTableDefinition is authoritative.
-    """
-
-    table_name: str
-    operation: str
-    timestamp: datetime
-    old_data: Optional[dict[str, Any]]
-    new_data: Optional[dict[str, Any]]
 
 
 class DatabaseChangesTableHandle(BigQueryTableHandle):
     table_def = BigQueryTableDefinition(
-        table_id="atoms_dbchanges",
+        table_id="atoms_db",
         schema=[
+            SchemaField(
+                name="statement",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="db_structure",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="db_name",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
             SchemaField(
                 name="table_name",
                 field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.REQUIRED,
+                mode=BigQueryFieldMode.NULLABLE,
             ),
             SchemaField(
                 name="operation",
                 field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.REQUIRED,
+                mode=BigQueryFieldMode.NULLABLE,
             ),
             SchemaField(
                 name="timestamp",
@@ -48,12 +47,7 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
                 mode=BigQueryFieldMode.REQUIRED,
             ),
             SchemaField(
-                name="old_data",
-                field_type=StandardSqlTypeNames.JSON,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="new_data",
+                name="parameters",
                 field_type=StandardSqlTypeNames.JSON,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
@@ -112,7 +106,7 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
         if len(events) == 0:
             return
 
-        dbchange_events = [DatabaseChangeEventPayload(**json.loads(e)) for e in events]
+        dbchange_events = [DatabaseEventPayload(**json.loads(e)) for e in events]
 
         dataset = self._bq_client.get_or_create_dataset(
             dataset_id=self.dataset_id,
@@ -124,23 +118,27 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
             schema=self.table_def.schema,
         )
 
+        unique_operations: set[tuple[str, str]] = set()
+        formatted_rows: list[dict[str, Any]] = []
+
+        for e in dbchange_events:
+            match e.db_structure:
+                case DatabaseStructure.SQL:
+                    if not e.operation or not e.table_name:
+                        LOGGER.warning("Missing parameters e.operation and/or e.table_name")
+                        continue
+
+                    unique_operations.add((e.operation, e.table_name))
+                    formatted_rows.append(e.to_dict())
+                case _:
+                    # TODO: handle noSQL
+                    raise NotImplementedError("noSQL not implemented")
+
         self._bq_client.append_rows(
             table=table,
-            rows=[self._format_row(e) for e in dbchange_events],
+            rows=formatted_rows,
         )
-
-        unique_operations = {(e.operation, e.table_name) for e in dbchange_events}
 
         # FIXME: This is vulnerable to a DoS where unique `table_name` is generated and inserted on a loop.
         for operation, table_name in unique_operations:
             await self.create_vevent_view(operation=operation, source_table=table_name)
-
-    def _format_row(self, event: DatabaseChangeEventPayload) -> dict[str, Any]:
-        d = _DatabaseChangesTableSchema(
-            table_name=event.table_name,
-            operation=event.operation,
-            timestamp=datetime.fromtimestamp(event.timestamp),
-            new_data=event.new_data,
-            old_data=event.old_data,
-        )
-        return dataclasses.asdict(d)

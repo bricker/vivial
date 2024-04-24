@@ -1,6 +1,5 @@
 import json
 import urllib.parse
-from typing import Optional
 
 import oauthlib.common
 from starlette.requests import Request
@@ -70,8 +69,8 @@ class GithubOAuthAuthorize(HTTPEndpoint):
 class GithubOAuthCallback(HTTPEndpoint):
     auth_provider = _AUTH_PROVIDER
     github_installation_orm: GithubInstallationOrm
-    eave_account: Optional[AccountOrm] = None
-    eave_team: Optional[TeamOrm] = None
+    eave_account: AccountOrm | None = None
+    eave_team: TeamOrm | None = None
 
     async def get(
         self,
