@@ -1,4 +1,5 @@
-import * as helpers from "./helpers.js";
+import "./globals.mjs";
+import * as helpers from "./helpers.mjs";
 
 /**
  * Author: Jason Farrell
@@ -15,10 +16,11 @@ export function isVisible(node) {
 
   //-- Cross browser method to get style properties:
   function _getStyle(el, property) {
-    if (global.ev.windowAlias.getComputedStyle) {
-      return global.ev.documentAlias.defaultView.getComputedStyle(el, null)[
-        property
-      ];
+    if (globalThis.eave.windowAlias.getComputedStyle) {
+      return globalThis.eave.documentAlias.defaultView.getComputedStyle(
+        el,
+        null,
+      )[property];
     }
     if (el.currentStyle) {
       return el.currentStyle[property];
@@ -29,7 +31,7 @@ export function isVisible(node) {
     element = element.parentNode;
 
     while (element) {
-      if (element === global.ev.documentAlias) {
+      if (element === globalThis.eave.documentAlias) {
         return true;
       }
       element = element.parentNode;

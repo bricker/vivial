@@ -8,7 +8,6 @@ from eave.stdlib.core_api.models import BaseResponseModel
 
 class AuthProvider(enum.StrEnum):
     google = "google"
-    github = "github"
 
 
 class AuthenticatedAccount(BaseResponseModel):
