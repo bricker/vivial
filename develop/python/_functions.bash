@@ -70,7 +70,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		local ruffconfig="${EAVE_HOME}/develop/python/configs/ruff.toml"
 		python -m ruff format $verboseflag --config="$ruffconfig" .
-		python -m ruff check --fix-only $verboseflag --config="$ruffconfig" .
+		python -m ruff check --fix-only $verboseflag --config="$ruffconfig" --show-fixes .
 
 		statusmsg -s "Formatting $logtarget completed"
 		echo
