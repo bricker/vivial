@@ -7,11 +7,19 @@ extend-exclude = [
   "build",
   ".*",
 ]
+target-version = "py312"
+src = [
+  # $EAVE_HOME/**/src isn't used because ** traverses leading-dot files (eg .venv)
+  "$EAVE_HOME/apps/**/src",
+  "$EAVE_HOME/libs/**/src",
+  "$EAVE_HOME/packages/**/src",
+  "$EAVE_HOME/develop/**/src",
+]
 
 [lint]
 ignore-init-module-imports = true
 logger-objects = [
-  "eave.collectors.core.logging.eaveLogger",
+  "eave.collectors.core.logging.EAVE_LOGGER",
 ]
 
 # https://docs.astral.sh/ruff/rules/
@@ -88,7 +96,7 @@ ignore = [
 
 [lint.extend-per-file-ignores]
 "__init__.py" = ["PLC0414"] # https://docs.astral.sh/ruff/rules/useless-import-alias/
-"**/tests/*_test.py" = [
+"**/tests/**/*_test.py" = [
   "S", # Disable security checks in test files
   "ANN", # Tests have lots of functions without return types, Any, etc.
   "FBT", # boolean args used in test util functions for brevity
@@ -100,4 +108,14 @@ allow-star-arg-any = true
 [lint.pep8-naming]
 extend-ignore-names = [
   "methodName", # unittest.TestCase.__init__
+]
+
+[lint.isort]
+# known-first-party is necessary because of the monorepo architecture.
+# Ruff looks for first-party modules by scanning for `src` directories first in the current directory, then in the project root (the nearest 'pyproject.toml').
+# So if you run the linter in the `apps/core` directory, for example, the eave modules are correctly classified as first-party, because a `src` directory exists.
+# If, however, you run the linter in the root of the project, where there is no `src` directory, then all of the eave modules are classified as third-party.
+# It's possible to configure Ruff to look in specific places using the `src` configuration, but this is less messy.
+known-first-party = [
+  "eave"
 ]
