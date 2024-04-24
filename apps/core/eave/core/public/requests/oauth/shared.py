@@ -1,9 +1,7 @@
 import datetime
 import http
-import json
 import re
 import typing
-import uuid
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 import aiohttp
@@ -19,14 +17,11 @@ import eave.stdlib.cookies
 import eave.stdlib.exceptions
 import eave.stdlib.slack
 from eave.core.internal.orm.account import AccountOrm
-from eave.core.internal.orm.github_installation import GithubInstallationOrm
 from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib import auth_cookies, utm_cookies
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.models.account import AuthProvider
-from eave.stdlib.eave_origins import EaveApp
-from eave.stdlib.github_api.operations.verify_installation import VerifyInstallation
-from eave.stdlib.logging import LogContext, eaveLogger
+from eave.stdlib.logging import eaveLogger
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import ensure_uuid
 
@@ -35,13 +30,6 @@ from . import EAVE_ERROR_CODE_QP, EaveOnboardingErrorCode
 DEFAULT_TEAM_NAME = "Your Team"
 DEFAULT_REDIRECT_LOCATION = SHARED_CONFIG.eave_public_dashboard_base
 SIGNUP_REDIRECT_LOCATION = f"{SHARED_CONFIG.eave_public_dashboard_base}/signup"
-
-_GITHUB_INSTALLATION_FLOW_COOKIE_KEY = "ev_state_blob"
-
-
-class GithubInstallationFlowState(typing.TypedDict):
-    github_install_id: str
-    state: str
 
 
 def verify_oauth_state_or_exception(
@@ -58,28 +46,6 @@ def verify_oauth_state_or_exception(
         raise eave.stdlib.exceptions.InvalidStateError()
 
     return True
-
-
-async def verify_stateless_installation_or_exception(
-    code: str,
-    installation_id: str,
-    ctx: LogContext,
-) -> None:
-    """
-    When the GitHub app is installed through the GitHub marketplace, it doesnt give us
-    the opportunity to set/generate a state cookie for us to verify against mitm tampering,
-    so we have to manually validate that the user has access to the app installation.
-
-    code - user OAuth code for requesting an access_token
-            https://docs.github.com/en/apps/creating-github-apps/authenticating-with-a-github-app/generating-a-user-access-token-for-a-github-app#generating-a-user-access-token-when-a-user-installs-your-app
-
-    installation_id - (Eave) github app installation id
-    """
-    await VerifyInstallation.perform(
-        input=VerifyInstallation.RequestBody(code=code, installation_id=installation_id),
-        origin=EaveApp.eave_api,
-        ctx=ctx,
-    )
 
 
 def set_redirect(response: Response, location: str) -> Response:
@@ -287,12 +253,6 @@ async def get_or_create_eave_account(
             refresh_token=refresh_token,
         )
 
-    await try_associate_account_with_dangling_github_installation(
-        request=request,
-        response=response,
-        team_id=eave_account.team_id,
-    )
-
     # Set the cookie in the response headers.
     # This logs the user into their Eave account,
     # or updates the cookies if they were already logged in.
@@ -305,77 +265,6 @@ async def get_or_create_eave_account(
 
     set_redirect(response=response, location=DEFAULT_REDIRECT_LOCATION)
     return eave_account
-
-
-def set_github_installation_state_cookie(
-    response: Response,
-    installation_id: str,
-) -> str:
-    state = generate_rand_state()
-    flow_state = GithubInstallationFlowState(state=state, github_install_id=installation_id)
-    state_blob = json.dumps(flow_state)
-    eave.stdlib.cookies.set_http_cookie(response=response, key=_GITHUB_INSTALLATION_FLOW_COOKIE_KEY, value=state_blob)
-    return state
-
-
-async def try_associate_account_with_dangling_github_installation(
-    request: Request,
-    response: Response,
-    team_id: uuid.UUID,
-) -> None:
-    request_state = EaveRequestState.load(request=request)
-    state_blob = request.cookies.get(_GITHUB_INSTALLATION_FLOW_COOKIE_KEY)
-
-    if not state_blob:
-        # No github install flow state present. This is the most common scenario.
-        return
-
-    # delete cookie now that we've used it
-    eave.stdlib.cookies.delete_http_cookie(response=response, key=_GITHUB_INSTALLATION_FLOW_COOKIE_KEY)
-
-    flow_state: GithubInstallationFlowState = json.loads(state_blob)
-
-    state = flow_state["state"]
-    github_install_id = flow_state["github_install_id"]
-    if not state or not github_install_id:
-        # This check is done because TypedDict behaves as regular dict at runtime. If either of these were set to None, we shouldn't proceed.
-        return
-
-    async with eave.core.internal.database.async_session.begin() as db_session:
-        installation = await GithubInstallationOrm.query(
-            session=db_session,
-            params=GithubInstallationOrm.QueryParams(
-                github_install_id=github_install_id,
-            ),
-        )
-
-        if not installation or installation.install_flow_state != state:
-            eaveLogger.warning("GitHub app installation state did not match cookies state", request_state.ctx)
-            return
-
-        team = await TeamOrm.one_or_exception(
-            session=db_session,
-            team_id=team_id,
-        )
-
-        # associate installation w/ team (and erase state value)
-        installation.update(team_id=team_id, install_flow_state=None, session=db_session)
-
-    eaveLogger.debug("account associated with a github app installation", request_state.ctx)
-
-    await eave.stdlib.analytics.log_event(
-        event_name="eave_application_integration",
-        event_description="An integration was added for a team",
-        event_source="core api oauth",
-        eave_team=team.analytics_model,
-        opaque_params={
-            "integration_name": "github",
-            "auth_callback_url": str(request.url),
-            "late_association": True,
-            "installation_id": github_install_id,
-        },
-        ctx=request_state.ctx,
-    )
 
 
 def generate_rand_state() -> str:
