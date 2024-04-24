@@ -1,16 +1,11 @@
-from dataclasses import dataclass
 import os
-import pprint
 import re
-from textwrap import dedent
-from typing import Any, Callable, Coroutine, Optional, Self, Tuple
+from dataclasses import dataclass
+from typing import Any, Callable, Coroutine, Self
 
 import asyncpg
 import asyncpg.prepared_stmt
-from asyncpg.connection import LoggedQuery
-from eave.collectors.core.arg_util import normalized_args
 from eave.collectors.core.wrap_util import wrap, wrap_async
-from eave.collectors.core.logging import EAVE_LOGGER
 
 _thisdir = os.path.dirname(__file__)
 with open(os.path.join(_thisdir, "triggers.sql"), encoding="utf-8") as f:
@@ -31,11 +26,13 @@ _connection_funcs = [
     asyncpg.connection.Connection.fetchrow,
 ]
 
+
 @dataclass
 class _TableColumn:
     column_name: str
     data_type: str
     ordinal_position: int
+
 
 @dataclass
 class _TableSchema:
@@ -43,14 +40,15 @@ class _TableSchema:
 
     @classmethod
     def from_records(cls, records: list[asyncpg.Record]) -> Self:
-        return cls(columns=[
-            _TableColumn(
-                column_name=record.column_name,
-                data_type=record.data_type,
-                ordinal_position=record.ordinal_position
-            )
-            for record in records
-        ])
+        return cls(
+            columns=[
+                _TableColumn(
+                    column_name=record.column_name, data_type=record.data_type, ordinal_position=record.ordinal_position
+                )
+                for record in records
+            ]
+        )
+
 
 class AsyncpgCollector:
     _connect_args: tuple[Any]
@@ -70,10 +68,12 @@ class AsyncpgCollector:
     async def start(self) -> None:
         connection: asyncpg.Connection = await asyncpg.connect(*self._connect_args, **self._connect_kwargs)
         await connection.execute(
-            "\n".join([
-                _TRIGGERS_SQL,
-                "CALL eave_install_triggers();",
-            ])
+            "\n".join(
+                [
+                    _TRIGGERS_SQL,
+                    "CALL eave_install_triggers();",
+                ]
+            )
         )
         await connection.add_listener(channel="eave_dbchange_channel", callback=self._pg_notification_listener)
         self._install_wrappers()
@@ -105,13 +105,25 @@ class AsyncpgCollector:
                 check_enabled=self._check_enabled,
             )
 
-    def _eave_wrapper__asyncpg_connection_Connection_default[T, **P](self, wrapped: Callable[P, T], instance: asyncpg.connection.Connection, args: tuple[Any, ...], kwargs: dict[str, Any]) -> T:  # noqa: N802
+    def _eave_wrapper__asyncpg_connection_Connection_default[T, **P](
+        self,
+        wrapped: Callable[P, T],
+        instance: asyncpg.connection.Connection,
+        args: tuple[Any, ...],
+        kwargs: dict[str, Any],
+    ) -> T:
         # print(wrapped, args, kwargs)
         # normalizedargs = normalized_args(wrapped, args, kwargs)
         # pprint.pprint(normalizedargs)
         return wrapped(*args, **kwargs)
 
-    async def _eave_wrapper__asyncpg_prepared_stmt_PreparedStatement_default[T, **P](self, wrapped: Callable[P, Coroutine[Any, Any, T]], instance: asyncpg.prepared_stmt.PreparedStatement, args: tuple[Any, ...], kwargs: dict[str, Any]) -> T:  # noqa: N802
+    async def _eave_wrapper__asyncpg_prepared_stmt_PreparedStatement_default[T, **P](
+        self,
+        wrapped: Callable[P, Coroutine[Any, Any, T]],
+        instance: asyncpg.prepared_stmt.PreparedStatement,
+        args: tuple[Any, ...],
+        kwargs: dict[str, Any],
+    ) -> T:
         # if m := re.match((r"select\s+.+?\sfrom\s+" + tablematcher + r"[\s;]"), q, re.IGNORECASE | re.MULTILINE):
         #     tablename = m.group(1)
         # elif m := re.match((r"insert\s+into\s+" + tablematcher + r"\s"), q, re.IGNORECASE | re.MULTILINE):
@@ -158,7 +170,9 @@ class AsyncpgCollector:
 
         return r
 
-    async def _pg_notification_listener(self, connection: asyncpg.Connection, pid: str, channel: str, payload: Any) -> None:
+    async def _pg_notification_listener(
+        self, connection: asyncpg.Connection, pid: str, channel: str, payload: Any
+    ) -> None:
         print(">>> received pg notification", connection, pid, channel, payload)
         print()
 

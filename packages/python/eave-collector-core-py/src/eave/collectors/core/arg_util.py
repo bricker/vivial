@@ -1,5 +1,6 @@
-from typing import Any, Callable
 from inspect import Parameter, signature
+from typing import Any, Callable
+
 
 def normalized_args(func: Callable[..., object], args: tuple[object, ...], kwargs: dict[str, object]) -> dict[str, Any]:
     normalized: dict[str, Any] = {}

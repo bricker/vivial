@@ -9,13 +9,5 @@ source "${EAVE_HOME}"/develop/functions.bash
 	if ! ^onlythismodule; then
 		"${EAVE_HOME}"/libs/eave-stdlib-py/bin/test
 		"${EAVE_HOME}"/libs/eave-pubsub-schemas/python/bin/test
-
-		for pkg in "${EAVE_HOME}"/packages/python/*; do
-			if test -x "$pkg"/bin/test; then
-				"$pkg"/bin/test
-			else
-				statusmsg -w "No test script in ${pkg}"
-			fi
-		done
 	fi
 )

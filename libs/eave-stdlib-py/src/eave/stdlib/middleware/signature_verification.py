@@ -6,11 +6,9 @@ from .. import signing
 from ..api_util import get_header_value
 from ..exceptions import InvalidSignatureError, MissingRequiredHeaderError
 from ..headers import EAVE_ACCOUNT_ID_HEADER, EAVE_SIG_TS_HEADER, EAVE_SIGNATURE_HEADER, EAVE_TEAM_ID_HEADER
-from ..logging import eaveLogger
 from ..request_state import EaveRequestState
 from ..util import unwrap
 from .base import EaveASGIMiddleware
-from .development_bypass import development_bypass_allowed
 
 MAX_SIGNATURE_AGE = 60 * 60  # 1h
 
@@ -38,21 +36,9 @@ class SignatureVerificationASGIMiddleware(EaveASGIMiddleware):
             await self.app(scope, receive, send)
             return
 
-        if development_bypass_allowed(scope=scope):
-            eaveLogger.warning("Bypassing signature verification in dev environment")
-            await self.app(scope, receive, send)
-            return
-
         body = await self.read_body(scope=scope, receive=receive)
 
-        try:
-            self._do_signature_verification(scope=scope, body=body)
-        except Exception as e:
-            if not development_bypass_allowed(scope=scope):
-                raise
-            else:
-                eaveLogger.exception(e)
-                eaveLogger.warning("Bypassing signature verification in dev environment")
+        self._do_signature_verification(scope=scope, body=body)
 
         await self.app(scope, receive, send)
 

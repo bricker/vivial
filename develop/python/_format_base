@@ -9,13 +9,5 @@ source "${EAVE_HOME}"/develop/functions.bash
 	if ! ^onlythismodule; then
 		"${EAVE_HOME}"/libs/eave-stdlib-py/bin/format
 		"${EAVE_HOME}"/libs/eave-pubsub-schemas/python/bin/format
-
-		for pkg in "${EAVE_HOME}"/packages/python/*; do
-			if test -x "$pkg"/bin/format; then
-				"$pkg"/bin/format
-			else
-				statusmsg -w "No format script in ${pkg}"
-			fi
-		done
 	fi
 )

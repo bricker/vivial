@@ -1,39 +1,29 @@
-import asyncio
 import time
-import asyncpg
 import weakref
-from collections.abc import Sequence
-from typing import Any, Callable, Mapping, Tuple, Union, cast
-
-from eave.collectors.core.base_collector import BaseCollector
-from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure, EventType
-from eave.collectors.core.write_queue import BatchWriteQueue, QueueParams
-from sqlalchemy.ext.asyncio import AsyncEngine
-from eave.collectors.core.logging import EAVE_LOGGER
+from typing import Any, Callable, Tuple
 
 import sqlalchemy
+from eave.collectors.core.base_collector import BaseCollector
+from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure, EventType
 from sqlalchemy.engine.interfaces import (
-    DBAPICursor,
-    _DBAPIAnyExecuteParams,
     _CoreMultiExecuteParams,
     _CoreSingleExecuteParams,
-    _ExecuteOptions
+    _ExecuteOptions,
 )
 from sqlalchemy.event import (
     listen,
     remove,
 )
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 type SupportedEngine = sqlalchemy.Engine | AsyncEngine
+
 
 class SQLAlchemyCollector(BaseCollector):
     _event_listeners: list[tuple[weakref.ReferenceType[sqlalchemy.Engine], str, Callable[..., Any]]]
     _db_metadata: sqlalchemy.MetaData | None
 
-    def __init__(
-        self,
-        credentials: str | None = None
-    ) -> None:
+    def __init__(self, credentials: str | None = None) -> None:
         super().__init__(event_type=EventType.dbevent, credentials=credentials)
 
         self._event_listeners = []
@@ -44,8 +34,12 @@ class SQLAlchemyCollector(BaseCollector):
             # self._db_metadata = await self._load_metadata(engine=engine)
 
             sync_engine = engine.sync_engine if isinstance(engine, AsyncEngine) else engine
-            self._register_engine_event_listener(sync_engine=sync_engine, event_name="before_execute", fn=self._before_execute_handler)
-            self._register_engine_event_listener(sync_engine=sync_engine, event_name="after_execute", fn=self._after_execute_handler)
+            self._register_engine_event_listener(
+                sync_engine=sync_engine, event_name="before_execute", fn=self._before_execute_handler
+            )
+            self._register_engine_event_listener(
+                sync_engine=sync_engine, event_name="after_execute", fn=self._after_execute_handler
+            )
 
         super().start_base()
 
@@ -66,12 +60,16 @@ class SQLAlchemyCollector(BaseCollector):
 
     #     return metadata
 
-    def _register_engine_event_listener(self, sync_engine: sqlalchemy.Engine, event_name: str, fn: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
-        self._event_listeners.append((
-            weakref.ref(sync_engine),
-            event_name,
-            fn,
-        ))
+    def _register_engine_event_listener(
+        self, sync_engine: sqlalchemy.Engine, event_name: str, fn: Callable[..., Any], *args: Any, **kwargs: Any
+    ) -> None:
+        self._event_listeners.append(
+            (
+                weakref.ref(sync_engine),
+                event_name,
+                fn,
+            )
+        )
         listen(target=sync_engine, identifier=event_name, fn=fn, *args, **kwargs)
 
     def _remove_all_event_listeners(self) -> None:
@@ -87,11 +85,26 @@ class SQLAlchemyCollector(BaseCollector):
 
         self._event_listeners.clear()
 
-    def _before_execute_handler(self, conn: sqlalchemy.Connection, clauseelement: sqlalchemy.Executable, multiparams: _CoreMultiExecuteParams, params: _CoreSingleExecuteParams, execution_options: _ExecuteOptions) -> Tuple[sqlalchemy.Executable, _CoreMultiExecuteParams, _CoreSingleExecuteParams] | None:
+    def _before_execute_handler(
+        self,
+        conn: sqlalchemy.Connection,
+        clauseelement: sqlalchemy.Executable,
+        multiparams: _CoreMultiExecuteParams,
+        params: _CoreSingleExecuteParams,
+        execution_options: _ExecuteOptions,
+    ) -> Tuple[sqlalchemy.Executable, _CoreMultiExecuteParams, _CoreSingleExecuteParams] | None:
         if clauseelement.is_insert or clauseelement.is_select:
             return
 
-    def _after_execute_handler(self, conn: sqlalchemy.Connection, clauseelement: sqlalchemy.Executable, multiparams: list[dict[str, Any]], params: dict[str, Any], execution_options: _ExecuteOptions, result: sqlalchemy.Result[Any]) -> None:
+    def _after_execute_handler(
+        self,
+        conn: sqlalchemy.Connection,
+        clauseelement: sqlalchemy.Executable,
+        multiparams: list[dict[str, Any]],
+        params: dict[str, Any],
+        execution_options: _ExecuteOptions,
+        result: sqlalchemy.Result[Any],
+    ) -> None:
         rparams: list[dict[str, Any]]
 
         # This assumes that multiparams and params are mutually exclusive

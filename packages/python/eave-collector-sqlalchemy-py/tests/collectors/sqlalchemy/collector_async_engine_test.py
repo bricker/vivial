@@ -5,14 +5,14 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
+import sqlalchemy
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, EventPayload, EventType
 from eave.collectors.core.write_queue import BatchWriteQueue, QueueParams
-from eave.collectors.sqlalchemy import start_eave_sqlalchemy_collector, _collector
 from eave.collectors.sqlalchemy.private.collector import SQLAlchemyCollector
-import sqlalchemy
 from sqlalchemy import func, text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
 
 class ConsoleOutputBatchWriteQueue(BatchWriteQueue):
     _running: bool = False
@@ -34,13 +34,14 @@ class ConsoleOutputBatchWriteQueue(BatchWriteQueue):
 
         self.queue.append(payload)
 
+
 db_uri = sqlalchemy.engine.url.URL.create(
     drivername="postgresql+asyncpg",
     host=os.getenv("EAVE_DB_HOST", "localhost"),
     port=int(os.getenv("EAVE_DB_PORT", "5432")),
     username=os.getenv("EAVE_DB_USER", None),
     password=os.getenv("EAVE_DB_PASS", None),
-    database=os.getenv("EAVE_DB_NAME", "eave-sqlalchemy-tests")
+    database=os.getenv("EAVE_DB_NAME", "eave-sqlalchemy-tests"),
 )
 
 async_engine = create_async_engine(
@@ -55,8 +56,10 @@ async_engine = create_async_engine(
 
 async_session = async_sessionmaker(async_engine)
 
+
 class OrmBase(DeclarativeBase):
     pass
+
 
 class PeopleOrm(OrmBase):
     __tablename__ = "people"
@@ -65,6 +68,7 @@ class PeopleOrm(OrmBase):
     name: Mapped[str]
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[Optional[datetime]] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+
 
 class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:

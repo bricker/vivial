@@ -22,7 +22,6 @@ class BaseOAuthCallback(HTTPEndpoint):
     eave_state: EaveRequestState
 
     async def get(self, request: Request) -> Response:
-        request = request
         response = Response()
         state = request.query_params["state"]
         shared.verify_oauth_state_or_exception(

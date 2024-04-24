@@ -7,6 +7,7 @@ from google.cloud.bigquery.dataset import DatasetReference
 from eave.collectors.core.datastructures import (
     DatabaseEventPayload,
     DatabaseOperation,
+    DatabaseStructure,
     DataIngestRequestBody,
     EventType,
 )
@@ -129,7 +130,7 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
 
     async def test_insert_with_events_lazy_creates_db_and_tables(self) -> None:
         assert not self._bq_team_dataset_exists()
-        assert not self._bq_table_exists("atoms_dbchanges")
+        assert not self._bq_table_exists("atoms_db")
 
         response = await self.make_request(
             path="/ingest",
@@ -141,14 +142,16 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
                 event_type=EventType.dbevent,
                 events=[
                     DatabaseEventPayload(
+                        db_structure=DatabaseStructure.SQL,
+                        timestamp=int(time.time()),
+                        db_name=self.anystring(),
+                        statement="update my_table set a=$1, b=$2;",
                         operation=DatabaseOperation.INSERT,
                         table_name=self.anystr(),
-                        timestamp=int(time.time()),
-                        # new_data={
-                        #     self.anystr("new_data_1"): self.anystr(),
-                        #     self.anystr("new_data_2"): self.anystr(),
-                        # },
-                        # old_data=None,
+                        parameters={
+                            "a": self.anystring(),
+                            "b": self.anystring(),
+                        },
                     ).to_json(),
                 ],
             ).to_dict(),
@@ -156,4 +159,4 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
 
         assert response.status_code == http.HTTPStatus.OK
         assert self._bq_team_dataset_exists()
-        assert self._bq_table_exists("atoms_dbchanges")
+        assert self._bq_table_exists("atoms_db")

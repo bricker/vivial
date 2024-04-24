@@ -1,12 +1,12 @@
 import dataclasses
-import json
 import logging
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any, Mapping, Self, Sequence
+from typing import Any, Self
 
 from eave.collectors.core.json import compact_json
 from eave.stdlib.typing import JsonObject
+
 
 class DatabaseStructure(StrEnum):
     UNKNOWN = "unknown"
@@ -49,7 +49,8 @@ class DatabaseOperation(StrEnum):
             case DatabaseOperation.SELECT:
                 return "Queried"
             case _:
-                return "Inspected" # idk
+                return "Inspected"  # idk
+
 
 @dataclass
 class EventPayload:
@@ -58,6 +59,7 @@ class EventPayload:
 
     def to_json(self) -> str:
         return compact_json(self.to_dict())
+
 
 @dataclass
 class DatabaseEventPayload(EventPayload):
@@ -68,6 +70,7 @@ class DatabaseEventPayload(EventPayload):
     timestamp: float
     db_structure: DatabaseStructure
     parameters: dict[str, Any] | None
+
 
 # @dataclass
 # class DatabaseInsertEventPayload(DatabaseEventPayload):

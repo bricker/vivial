@@ -143,7 +143,6 @@
   "typescript.validate.enable": true,
   "eslint.run": "onSave",
   "ruff.importStrategy": "fromEnvironment",
-  "ruff.lint.run": "onSave",
   "ruff.interpreter": [
     "${workspaceFolder}/.venv/bin/python"
   ],

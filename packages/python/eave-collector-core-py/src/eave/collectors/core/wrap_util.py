@@ -1,19 +1,39 @@
-from typing import Any, Awaitable, Callable, Coroutine, Optional, TypeVar
-from wrapt import ObjectProxy, patch_function_wrapper, decorator
+from typing import Any, Callable, Coroutine, Optional
 
-def wrap[T, **P](module: str, name: str, wrapper: Callable[[Callable[P, T], Any, tuple[Any, ...], dict[str, Any]], T], check_enabled: Optional[Callable[[], bool]] = None) -> None:
+from wrapt import patch_function_wrapper
+
+
+def wrap[T, **P](
+    module: str,
+    name: str,
+    wrapper: Callable[[Callable[P, T], Any, tuple[Any, ...], dict[str, Any]], T],
+    check_enabled: Optional[Callable[[], bool]] = None,
+) -> None:
     patch_function_wrapper(
         module=module,
         name=name,
-        enabled=check_enabled if check_enabled is not None else True, # Default to always enabled. The enabled param accepts a callable or a boolean.
+        enabled=check_enabled
+        if check_enabled is not None
+        else True,  # Default to always enabled. The enabled param accepts a callable or a boolean.
     )(wrapper=wrapper)
 
-def wrap_async[T, **P](module: str, name: str, wrapper: Callable[[Callable[P, Coroutine[Any, Any, T]], Any, tuple[Any, ...], dict[str, Any]], Coroutine[Any, Any, T]], check_enabled: Optional[Callable[[], bool]] = None) -> None:
+
+def wrap_async[T, **P](
+    module: str,
+    name: str,
+    wrapper: Callable[
+        [Callable[P, Coroutine[Any, Any, T]], Any, tuple[Any, ...], dict[str, Any]], Coroutine[Any, Any, T]
+    ],
+    check_enabled: Optional[Callable[[], bool]] = None,
+) -> None:
     patch_function_wrapper(
         module=module,
         name=name,
-        enabled=check_enabled if check_enabled is not None else True, # Default to always enabled. The enabled param accepts a callable or a boolean.
+        enabled=check_enabled
+        if check_enabled is not None
+        else True,  # Default to always enabled. The enabled param accepts a callable or a boolean.
     )(wrapper=wrapper)
+
 
 # # Copied from opentelemetry-python-contrib
 # def unwrap(obj: object, attr: str) -> None:

@@ -1,9 +1,9 @@
-from dataclasses import dataclass
 
 import aiohttp
 
 from .config import EAVE_API_BASE_URL
 from .datastructures import DataIngestRequestBody, EventType
+
 
 async def send_batch(event_type: EventType, events: list[str]) -> None:
     async with aiohttp.ClientSession() as session:

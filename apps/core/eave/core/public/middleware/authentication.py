@@ -18,11 +18,8 @@ from eave.stdlib.core_api.operations import EndpointConfiguration
 from eave.stdlib.exceptions import UnauthorizedError
 from eave.stdlib.logging import LogContext, eaveLogger
 from eave.stdlib.middleware.base import EaveASGIMiddleware
-from eave.stdlib.middleware.development_bypass import development_bypass_allowed
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import ensure_uuid
-
-from .development_bypass import development_bypass_auth
 
 
 class AuthASGIMiddleware(EaveASGIMiddleware):
@@ -39,16 +36,6 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
         send: asgiref.typing.ASGISendCallable,
     ) -> None:
         if scope["type"] != "http":
-            await self.app(scope, receive, send)
-            return
-
-        if development_bypass_allowed(scope=scope):
-            try:
-                await development_bypass_auth(scope=scope)
-            except Exception:
-                if self.endpoint_config.auth_required:
-                    raise
-
             await self.app(scope, receive, send)
             return
 

@@ -171,7 +171,9 @@ async def main() -> None:
     )
 
     answer = input(
-        eaveLogger.f(logging.WARNING, f"Proceed to insert junk seed data into the {db.url.database} database? (Y/n) ")
+        eaveLogger.f(
+            logging.WARNING, f"Proceed to insert junk seed data into the {seed_db.url.database} database? (Y/n) "
+        )
     )
     if answer != "Y":
         eaveLogger.fprint(logging.CRITICAL, "Aborting.")
