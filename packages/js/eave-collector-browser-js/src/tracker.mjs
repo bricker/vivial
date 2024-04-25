@@ -837,7 +837,7 @@ export function Tracker(trackerUrl, siteId) {
           : "0";
       } else {
         // Eg IE11 ... prevent error when cookieEnabled is requested within modal dialog. see #11507
-        browserFeatures.cookie = cookieManager.hasCookies();
+        browserFeatures.cookie = cookieManager.hasCookies() ? "1" : "0";
       }
     }
 
@@ -1475,7 +1475,6 @@ export function Tracker(trackerUrl, siteId) {
     }
     let i;
     const customVariablesCopy = customVariables;
-    const cookieCustomVariablesName = cookieManager.getCookieName("cvar");
 
     const args = {
       idsite: configTrackerSiteId,
@@ -1604,7 +1603,7 @@ export function Tracker(trackerUrl, siteId) {
 
       if (configStoreCustomVariablesInCookie) {
         cookieManager.setCookie(
-          cookieCustomVariablesName,
+          "cvar",
           globalThis.eave.windowAlias.JSON.stringify(customVariables),
           cookieManager.configSessionCookieTimeout,
           cookieManager.configCookiePath,
@@ -3891,12 +3890,10 @@ export function Tracker(trackerUrl, siteId) {
    *
    * Returns null if cookies are disabled or if no cookie could be found for this name.
    *
-   * @param {string} cookieName
+   * @param {string|null} cookieName
    */
   this.getCookie = function (cookieName) {
-    var cookieValue = cookieManager.getCookie(
-      cookieManager.getCookieName(cookieName),
-    );
+    var cookieValue = cookieManager.getCookie(cookieName);
 
     if (cookieValue === 0) {
       return null;
