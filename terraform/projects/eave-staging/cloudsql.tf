@@ -10,7 +10,7 @@ module "cloudsql_eave_core" {
   databases = [
     "eave",
     "metabase",
-    # "playground-todoapp",
+    "playground-todoapp",
   ]
 
   users = {
@@ -22,10 +22,10 @@ module "cloudsql_eave_core" {
       email     = module.apps_service_accounts["metabase"].service_account.email,
       user_type = "CLOUD_IAM_SERVICE_ACCOUNT",
     },
-    # "playground-todoapp" = {
-    #   email     = module.apps_service_accounts["playground-todoapp"].service_account.email,
-    #   user_type = "CLOUD_IAM_SERVICE_ACCOUNT",
-    # },
+    "playground-todoapp" = {
+      email     = module.apps_service_accounts["playground-todoapp"].service_account.email,
+      user_type = "CLOUD_IAM_SERVICE_ACCOUNT",
+    },
   }
 
   # {

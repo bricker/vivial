@@ -24,14 +24,14 @@ locals {
         "roles/logging.logWriter",
       ]
     }
-    # "eave.playgroundApp" = {
-    #   role_id     = "eave.playgroundApp"
-    #   title       = "Eave Playground App"
-    #   description = "Permissions for Eave Playground Apps"
-    #   base_roles = [
-    #     "roles/logging.logWriter",
-    #   ]
-    # }
+    "eave.playgroundApp" = {
+      role_id     = "eave.playgroundApp"
+      title       = "Eave Playground App"
+      description = "Permissions for Eave Playground Apps"
+      base_roles = [
+        "roles/logging.logWriter",
+      ]
+    }
   }
 
   apps = {
@@ -55,14 +55,13 @@ locals {
         "eave.eaveAppCloudsqlIamClient",
       ]
     }
-  #   "playground-todoapp" = {
-  #     domain_prefix = "playground"
-  #     custom_roles = [
-  #       "eave.playgroundApp",
-  #       "eave.eaveAppCloudsqlIamClient",
-  #     ]
-  #   }
-  # }
+    "playground-todoapp" = {
+      domain_prefix = "playground-todoapp"
+      custom_roles = [
+        "eave.playgroundApp",
+        "eave.eaveAppCloudsqlIamClient",
+      ]
+    }
   }
 }
 

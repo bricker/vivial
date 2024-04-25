@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import styles from "./styles.module.css";
 
 function parseCookies() {
   const newCookieString = document.cookie.replaceAll(/; ?/g, "&");
@@ -61,25 +62,32 @@ const TodoList = () => {
 
   return (
     <div>
-      <h2>TODO List</h2>
+      <h2 className={styles.header}>TODO List</h2>
 
       {(() => {
         if (loading) {
-          return (<div>Loading...</div>);
+          return (
+            <div className={styles.loadingContainer}>
+              <div className={styles.loader}></div>
+            </div>
+          );
         } else {
           return (<>
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              placeholder="Enter a new todo..."
-            />
-            <button onClick={addTodo}>Add</button>
-            <ul>
+            <div style={{display: "flex"}}>
+              <input
+                className={styles.input}
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Enter a new todo..."
+              />
+              <button className={styles.button} onClick={addTodo}>Add</button>
+            </div>
+            <ul className={styles.list}>
               {todos.map(todo => (
-                <li key={todo.id}>
+                <li key={todo.id} className={styles.item}>
                   {todo.text}
-                  <button onClick={() => removeTodo(todo.id)}>Remove</button>
+                  <button className={styles.redbutton} onClick={() => removeTodo(todo.id)}>Remove</button>
                 </li>
               ))}
             </ul>
