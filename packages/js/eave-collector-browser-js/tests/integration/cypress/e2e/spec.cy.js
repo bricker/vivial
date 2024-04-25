@@ -40,12 +40,12 @@ describe("eave atom collection", () => {
     const dummyVisitorId = "dummy-vis-uuid";
     const dummySessionId = "dummy-sess-uuid";
     cy.setCookie(
-      "eave.context",
+      "_eave_context",
       JSON.stringify({
         visitor_id: dummyVisitorId,
       }),
     );
-    cy.setCookie("eave.session", dummySessionId);
+    cy.setCookie("_eave_session", dummySessionId);
 
     cy.interceptAtomIngestion();
 
