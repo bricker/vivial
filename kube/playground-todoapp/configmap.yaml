@@ -1,0 +1,10 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: playground-todoapp-configmap
+  namespace: "${NAMESPACE}"
+data:
+  GAE_SERVICE: playground-todoapp
+  GAE_VERSION: "${GAE_VERSION}"
+  GAE_RELEASE_DATE: "${GAE_RELEASE_DATE}"

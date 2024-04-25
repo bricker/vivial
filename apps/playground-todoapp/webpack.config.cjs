@@ -2,10 +2,10 @@ const path = require("path");
 
 module.exports = {
   mode: "development",
-  entry: path.join(__dirname, "eave/demo/js/App.jsx"),
+  entry: path.join(__dirname, "eave_playground/todoapp/js/App.jsx"),
   devtool: "eval-source-map",
   output: {
-    path: path.join(__dirname, "eave/demo/static/dist"),
+    path: path.join(__dirname, "eave_playground/todoapp/static/dist"),
   },
   module: {
     rules: [
@@ -33,7 +33,7 @@ module.exports = {
   devServer: {
     server: "http",
     static: {
-      directory: path.join(__dirname, "eave/demo/static"),
+      directory: path.join(__dirname, "eave_playground/todoapp/static"),
       publicPath: "/static",
     },
     client: {

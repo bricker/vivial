@@ -1,25 +1,25 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState } from "react";
+import axios from "axios";
 
 const LoginForm = () => {
-  const [username, setUsername] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [error, setError] = useState("");
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('/api/login', { username });
+      await axios.post("/api/login", { username });
       window.location.assign("/");
     } catch (error) {
-      console.error('Login failed:', error);
-      setError('Invalid login');
+      console.error("Login failed:", error);
+      setError("Invalid login");
     }
   };
 
   return (
     <div>
       <h2>Login</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
       <form onSubmit={handleLogin}>
         <div>
           <label htmlFor="username">Username:</label>

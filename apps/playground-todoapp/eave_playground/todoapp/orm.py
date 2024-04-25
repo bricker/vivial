@@ -1,11 +1,11 @@
 from datetime import datetime
-import hashlib
 import os
 from typing import Any
 from uuid import UUID
-from sqlalchemy import ForeignKey, func, text
+from sqlalchemy import ForeignKey, NullPool, func, text
 import sqlalchemy
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio.session import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -21,10 +21,13 @@ db_uri = sqlalchemy.engine.url.URL.create(
 async_engine = create_async_engine(
     db_uri,
     echo=False,
-    pool_pre_ping=True,
+    # poolclass=NullPoll is a hack only acceptable for this playground app.
+    # Long story short: The Flask development server isn't perfectly compatible with SQLAlchemy's asyncio extension, and this works around that.
+    poolclass=NullPool,
     connect_args={
         "server_settings": {
             "timezone": "UTC",
+            "application_name": "playground-todoapp",
         },
     },
 )

@@ -1,4 +1,39 @@
 locals {
+  customRoles = {
+    "eave.eaveApp" = {
+      title       = "Eave App"
+      description = "Standard permissions needed by all Eave apps"
+      base_roles = [
+        "roles/logging.logWriter",
+        "roles/cloudkms.signerVerifier",
+        "roles/secretmanager.secretAccessor",
+      ]
+    }
+    "eave.eaveAppCloudsqlIamClient" = {
+      title       = "Eave App CloudSQL IAM Client"
+      description = "Eave App that needs to connect/use Cloud SQL via IAM"
+      base_roles = [
+        "roles/cloudsql.instanceUser", # for IAM auth
+        "roles/cloudsql.client",
+      ]
+    }
+    "eave.metabaseApp" = {
+      title       = "Metabase App"
+      description = "Permissions needed by the Metabase apps"
+      base_roles = [
+        "roles/logging.logWriter",
+      ]
+    }
+    # "eave.playgroundApp" = {
+    #   role_id     = "eave.playgroundApp"
+    #   title       = "Eave Playground App"
+    #   description = "Permissions for Eave Playground Apps"
+    #   base_roles = [
+    #     "roles/logging.logWriter",
+    #   ]
+    # }
+  }
+
   apps = {
     "core-api" = {
       domain_prefix = "api"
@@ -7,59 +42,39 @@ locals {
         "eave.eaveAppCloudsqlIamClient"
       ]
     }
-
     "dashboard" = {
       domain_prefix = "dashboard"
       custom_roles = [
         "eave.eaveApp"
       ]
     }
-
     "metabase" = {
       domain_prefix = "metabase"
       custom_roles = [
-        "eave.metabaseApp"
+        "eave.metabaseApp",
+        "eave.eaveAppCloudsqlIamClient",
       ]
     }
+  #   "playground-todoapp" = {
+  #     domain_prefix = "playground"
+  #     custom_roles = [
+  #       "eave.playgroundApp",
+  #       "eave.eaveAppCloudsqlIamClient",
+  #     ]
+  #   }
+  # }
   }
 }
 
-# Define the base app role
-module "eave_app_base_role" {
-  source      = "../../modules/custom_role"
-  role_id     = "eave.eaveApp"
-  title       = "Eave App"
-  description = "Standard permissions needed by all Eave apps"
-  base_roles = [
-    "roles/logging.logWriter",
-    "roles/cloudkms.signerVerifier",
-    "roles/secretmanager.secretAccessor",
-  ]
-}
+# Create custom roles
+module "custom_roles" {
+  for_each = local.customRoles
 
-# Define CloudSQL IAM role
-module "eave_cloudsql_iam_role" {
   source      = "../../modules/custom_role"
-  role_id     = "eave.eaveAppCloudsqlIamClient"
-  title       = "Eave App CloudSQL IAM Client"
-  description = "Eave App that needs to connect/use Cloud SQL via IAM"
-  base_roles = [
-    "roles/cloudsql.instanceUser", # for IAM auth
-    "roles/cloudsql.client",
-  ]
-}
-
-# Create custom role for Metabase app
-module "metabase_app_base_role" {
-  source      = "../../modules/custom_role"
-  role_id     = "eave.metabaseApp"
-  title       = "Metabase App"
-  description = "Permissions needed by the Metabase apps"
-  base_roles = [
-    "roles/cloudsql.instanceUser", # for IAM auth
-    "roles/cloudsql.client",
-    "roles/logging.logWriter",
-  ]
+  role_id     = each.key
+  title       = each.value.title
+  description = each.value.description
+  base_roles = each.value.base_roles
 }
 
 # Create app service accounts
@@ -72,36 +87,17 @@ module "apps_service_accounts" {
   kube_namespace = "eave"
 }
 
-# Bind the eave.eaveApp role to necessary service accounts. This is authoritative.
-resource "google_project_iam_binding" "eave_app_base_role_bindings" {
-  project = local.project_id
-  role    = module.eave_app_base_role.role.id
-  members = [
-    for app, props in local.apps :
-    "serviceAccount:${module.apps_service_accounts[app].service_account.email}"
-    if contains(props.custom_roles, module.eave_app_base_role.role.role_id)
-  ]
-}
+# Bind the custom roles to necessary service accounts. This is authoritative.
+resource "google_project_iam_binding" "custom_role_bindings" {
+  for_each = module.custom_roles
 
-# Bind the eave.eaveAppCloudsqlIamClient role to necessary service accounts. This is authoritative.
-resource "google_project_iam_binding" "eave_cloudsql_iam_role_bindings" {
   project = local.project_id
-  role    = module.eave_cloudsql_iam_role.role.id
-  members = [
-    for app, props in local.apps :
-    "serviceAccount:${module.apps_service_accounts[app].service_account.email}"
-    if contains(props.custom_roles, module.eave_cloudsql_iam_role.role.role_id)
-  ]
-}
+  role    = each.value.role.id
 
-# Bind the eave.metabaseApp role to necessary service accounts. This is authoritative.
-resource "google_project_iam_binding" "eave_metabase_role_bindings" {
-  project = local.project_id
-  role    = module.metabase_app_base_role.role.id
   members = [
     for app, props in local.apps :
     "serviceAccount:${module.apps_service_accounts[app].service_account.email}"
-    if contains(props.custom_roles, module.metabase_app_base_role.role.role_id)
+    if contains(props.custom_roles, each.value.role.role_id)
   ]
 }
 

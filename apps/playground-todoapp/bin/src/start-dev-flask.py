@@ -7,11 +7,12 @@ sys.path.append(".")
 load_dotenv("develop/shared/share.env", override=True)
 load_dotenv(".env", override=True)
 
-from eave.demo.app import app  # noqa: E402
+from eave_playground.todoapp.app import app  # noqa: E402
 
 if __name__ == "__main__":
     app.run(
-        port=5000,
+        port=5500,
+        debug=True,
         use_debugger=False,
         use_reloader=True,
         extra_files=[

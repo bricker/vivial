@@ -85,10 +85,13 @@ class _AppConfig(ConfigBase):
         client_id: str = credentials["web"]["client_id"]
         return client_id
 
-    @cached_property
+    @property
     def metabase_jwt_key(self) -> str:
-        key = "METABASE_JWT_KEY"
-        return get_secret(key)
+        # This comes from the environment because it's defined as a Kubernetes secret for consumption by the Metabase app.
+        # The alternative is to set the JWT key in both the environment (for Metabase) and Secret Manager (for core API),
+        # and keep them in sync, but it's easier to use a single source.
+        key = "MB_JWT_SHARED_SECRET"
+        return get_required_env(key)
 
 
 CORE_API_APP_CONFIG = _AppConfig()

@@ -1,11 +1,9 @@
-import secrets
-from typing import Any
-
 from flask import Flask, Response, jsonify, make_response, render_template, request, redirect, abort
+import flask
 from sqlalchemy import and_, delete, select
 from werkzeug.wrappers.response import Response
 
-from .orm import TodoListItemOrm, UserOrm, async_session
+from .orm import TodoListItemOrm, UserOrm, async_session, async_engine
 
 app = Flask(__name__)
 
@@ -16,12 +14,12 @@ async def get_todos() -> Response:
         abort(401)
 
     async with async_session.begin() as session:
-        todos = (await session.scalars(
+        result = await session.scalars(
             select(TodoListItemOrm)
             .where(TodoListItemOrm.user_id == user_id)
             .order_by(TodoListItemOrm.created)
-        )).all()
-
+        )
+        todos = result.all()
         rendered_todos = [t.render() for t in todos]
         return jsonify(rendered_todos)
 
@@ -41,9 +39,8 @@ async def add_todo() -> Response:
         )
 
         session.add(todo)
-        await session.flush()
-
-    return jsonify(todo.render())
+        await session.commit()
+        return jsonify(todo.render())
 
 @app.route("/api/todos/<todo_id>", methods=["DELETE"])
 async def delete_todo(todo_id: str) -> Response:
@@ -73,17 +70,16 @@ async def login() -> Response:
                 utm_params=request.cookies.get("utm_params"),
             )
             session.add(user)
-            await session.flush()
+            await session.commit()
 
-    response = redirect("/")
-    response.set_cookie("user_id", user.id.hex)
-    return response
+        response = redirect("/")
+        response.set_cookie("user_id", user.id.hex)
+        return response
 
 @app.route("/logout", methods=["GET"])
-async def logout() -> Response:
+def logout() -> Response:
     response = redirect(location="/login")
     response.delete_cookie("user_id")
-
     return response
 
 @app.route("/", defaults={"path": ""})

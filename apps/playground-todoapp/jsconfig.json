@@ -5,5 +5,5 @@
     "allowJs": true,
     "strictNullChecks": true
   },
-  "include": ["eave/demo/js/**/*.jsx", "eave/demo/js/**/*.js"]
+  "include": ["eave_playground/todoapp/js/**/*.jsx", "eave_playground/todoapp/js/**/*.js"]
 }

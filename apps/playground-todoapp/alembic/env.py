@@ -4,7 +4,7 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import Connection
 
-from eave.demo.orm import BaseOrm, async_engine
+from eave_playground.todoapp.orm import BaseOrm, async_engine
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -67,7 +67,6 @@ async def run_migrations_online() -> None:
         await connection.run_sync(do_run_migrations)
 
     await async_engine.dispose()
-
 
 if context.is_offline_mode():
     asyncio.run(run_migrations_offline())

@@ -118,6 +118,8 @@ spec:
               cpu: "250m"
 
           envFrom:
+            - secretRef:
+                name: metabase-jwt-shared-secret
             - configMapRef:
                 name: shared-configmap
             - configMapRef:
