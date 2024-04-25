@@ -11,3 +11,10 @@ class BaseCorrelationContext(abc.ABC):
 
     @abc.abstractmethod
     def to_json(self) -> str: ...
+
+    # @abc.abstractmethod
+    # def to_cookie(self) -> str: ...
+
+    # @classmethod
+    # @abc.abstractmethod
+    # def from_cookies(cls, cookies) -> typing.Self: ...
