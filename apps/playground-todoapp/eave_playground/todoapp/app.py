@@ -1,11 +1,12 @@
-from http import HTTPStatus
 import json
+from http import HTTPStatus
 from uuid import UUID
-from starlette.applications import Starlette
+
 from sqlalchemy import and_, delete, select
+from starlette.applications import Starlette
 from starlette.requests import Request
-from starlette.routing import Mount, Route
 from starlette.responses import RedirectResponse, Response
+from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
@@ -36,7 +37,9 @@ async def add_todo(request: Request) -> Response:
     body = await request.json()
     async with async_session.begin() as session:
         todo = TodoListItemOrm(
-            user_id=UUID(user_id), # Explicit cast to UUID necessary because SQLAlchemy doesn't re-populate this field with the UUID type after commit.
+            user_id=UUID(
+                user_id
+            ),  # Explicit cast to UUID necessary because SQLAlchemy doesn't re-populate this field with the UUID type after commit.
             text=body["text"],
         )
 
@@ -91,6 +94,7 @@ def logout(request: Request) -> Response:
 
 templates = Jinja2Templates(directory="eave_playground/todoapp/templates")
 
+
 def web_app(request: Request) -> Response:
     response = templates.TemplateResponse(request, "index.html.jinja")
     return response
@@ -99,7 +103,6 @@ def web_app(request: Request) -> Response:
 app = Starlette(
     routes=[
         Mount("/static", StaticFiles(directory="eave_playground/todoapp/static")),
-
         Route(path="/api/todos", methods=["GET"], endpoint=get_todos),
         Route(path="/api/todos", methods=["POST"], endpoint=add_todo),
         Route(path="/api/todos/{todo_id}", methods=["DELETE"], endpoint=delete_todo),

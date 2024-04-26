@@ -1,13 +1,13 @@
 import os
 from datetime import datetime
-from typing import Any
 from uuid import UUID
 
-from eave.stdlib.typing import JsonValue
 import sqlalchemy
-from sqlalchemy import ForeignKey, NullPool, func, text
+from sqlalchemy import ForeignKey, func, text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+from eave.stdlib.typing import JsonValue
 
 db_uri = sqlalchemy.engine.url.URL.create(
     drivername="postgresql+asyncpg",
