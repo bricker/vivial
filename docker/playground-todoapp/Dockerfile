@@ -1,9 +1,13 @@
 # syntax=docker/dockerfile:1
 
 ARG PYTHON_VERSION=3.12
+ARG NODE_VERSION=18
 
-## Builder
-FROM python:${PYTHON_VERSION}-slim as builder
+
+
+
+## Python Builder
+FROM python:${PYTHON_VERSION}-slim as builder-py
 ENV EAVE_HOME=/build
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -12,11 +16,10 @@ RUN apt-get update && apt-get install -y git
 
 # Copy relevant files
 RUN mkdir -p ${EAVE_HOME}
-COPY apps/core ${EAVE_HOME}/apps/core
-COPY libs ${EAVE_HOME}/libs
+COPY apps/playground-todoapp ${EAVE_HOME}/apps/playground-todoapp
 COPY packages ${EAVE_HOME}/packages
 
-WORKDIR ${EAVE_HOME}/apps/core
+WORKDIR ${EAVE_HOME}/apps/playground-todoapp
 
 # Install dependencies
 RUN mkdir -p /vendor
@@ -26,16 +29,42 @@ RUN python -m pip install \
     -r requirements-vendor.txt
 
 
+
+
+
+## Node Builder
+FROM node:${NODE_VERSION}-slim as builder-node
+ENV EAVE_HOME=/build
+ENV NODE_ENV=development
+
+RUN apt-get update && apt-get install -y git
+
+# Copy relevant files
+RUN mkdir -p ${EAVE_HOME}
+COPY apps/playground-todoapp ${EAVE_HOME}/apps/playground-todoapp
+
+WORKDIR ${EAVE_HOME}/apps/playground-todoapp
+
+# Build the client bundle.
+RUN npm ci --force
+RUN npx webpack build --mode=production --no-devtool
+
+
+
+
+
+
 ## Base
 FROM python:${PYTHON_VERSION}-slim as base
 
-# Copy dependencies into base image
+# Copy python dependencies into base image
+# Notably, node dependencies are _not_ required for this image. The webpack bundle contains everything necessary.
 RUN mkdir -p /vendor
-COPY --from=builder /vendor /vendor/
+COPY --from=builder-py /vendor /vendor/
 
 # Copy the app source code into the Docker image.
 RUN mkdir -p /app/eave
-COPY --from=builder /build/apps/core/eave /app/eave/
+COPY --from=builder-node /build/apps/playground-todoapp/eave_playground /app/eave_playground
 
 # Create a non-privileged user that the app will run under.
 # See https://docs.docker.com/go/dockerfile-user-best-practices/
@@ -58,5 +87,4 @@ ENV PYTHONUNBUFFERED=1
 
 CMD PYTHONPATH=/vendor python -m gunicorn \
     --pythonpath /vendor \
-    --worker-class uvicorn.workers.UvicornWorker \
-    eave.core.app:app
+    eave_playground.todoapp.app:app

@@ -23,7 +23,7 @@ function main () (
 
 	while getopts "d:trh" argname; do
 		case "$argname" in
-		d) _dirname=$OPTARG ;;
+		d) _dirname=${OPTARG%%/} ;;
 		t) _dryrun="--dry-run=client" ;;
 		r) _rollout=true ;;
 		h)
@@ -43,7 +43,6 @@ function main () (
 		exit 1
 	fi
 
-	_dirname=${_dirname%%/}
 	export GAE_VERSION; GAE_VERSION="$(git rev-parse --short HEAD)"
 	export GAE_RELEASE_DATE; GAE_RELEASE_DATE="$(date --utc --iso-8601=seconds)"
 

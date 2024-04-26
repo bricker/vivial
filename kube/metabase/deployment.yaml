@@ -130,6 +130,8 @@ spec:
           envFrom:
             - secretRef:
                 name: metabase-secret
+            - secretRef:
+                name: metabase-jwt-shared-secret
             - configMapRef:
                 name: metabase-configmap
 

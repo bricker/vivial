@@ -49,6 +49,28 @@
       "console": "integratedTerminal"
     },
     {
+      "name": "Playground Todo App (Flask)",
+      "consoleTitle": "Playground Todo App (Flask)",
+      "cwd": "${workspaceFolder}/apps/playground-todoapp",
+      "type": "python",
+      "request": "launch",
+      "program": "bin/src/start-dev-flask.py",
+      "jinja": true,
+      "justMyCode": false,
+    },
+    {
+      "name": "Playground Todo App (Webpack)",
+      "consoleTitle": "Playground Todo App (Webpack)",
+      "cwd": "${workspaceFolder}/apps/playground-todoapp",
+      "type": "node",
+      "request": "launch",
+      "program": "./node_modules/.bin/webpack",
+      "args": [
+        "-w"
+      ],
+      "console": "integratedTerminal"
+    },
+    {
       "name": "Debug AVA test file",
       "envFile": "${workspaceFolder}/.env",
       "type": "node",
@@ -81,6 +103,14 @@
         "Core API",
         "Dashboard (Flask)",
         "Dashboard (Webpack)",
+      ],
+      "stopAll": true
+    },
+    {
+      "name": "Playground Todo App",
+      "configurations": [
+        "Playground Todo App (Flask)",
+        "Playground Todo App (Webpack)"
       ],
       "stopAll": true
     },

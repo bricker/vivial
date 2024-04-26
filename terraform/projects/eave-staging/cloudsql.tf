@@ -9,7 +9,8 @@ module "cloudsql_eave_core" {
 
   databases = [
     "eave",
-    "metabase"
+    "metabase",
+    "playground-todoapp",
   ]
 
   users = {
@@ -19,6 +20,10 @@ module "cloudsql_eave_core" {
     },
     "metabase" = {
       email     = module.apps_service_accounts["metabase"].service_account.email,
+      user_type = "CLOUD_IAM_SERVICE_ACCOUNT",
+    },
+    "playground-todoapp" = {
+      email     = module.apps_service_accounts["playground-todoapp"].service_account.email,
       user_type = "CLOUD_IAM_SERVICE_ACCOUNT",
     },
   }
@@ -35,11 +40,10 @@ module "cloudsql_eave_core" {
   #     user_type = "CLOUD_IAM_USER"
   #   }
   # },
-  # Not supported for Postgres
   # {
   #   "eave-devs" = {
   #     email = local.developers_group_email,
-  #     user_type = "CLOUD_IAM_GROUP"
+  #     user_type = "CLOUD_IAM_GROUP" # Not supported for Postgres
   #   }
   # },
 }

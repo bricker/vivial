@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: playground-todoapp-configmap
+  namespace: "${NAMESPACE}"
+data:
+  TODOAPP_DB_DATABASE: playground-todoapp
+  TODOAPP_DB_USER: "gsa-app-playground-todoapp@${GOOGLE_CLOUD_PROJECT}.iam"
+  GAE_SERVICE: playground-todoapp
+  GAE_VERSION: "${GAE_VERSION}"
+  GAE_RELEASE_DATE: "${GAE_RELEASE_DATE}"
