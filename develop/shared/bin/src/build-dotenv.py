@@ -1,7 +1,9 @@
+import os
 import re
 import sys
-import os
+
 import dotenv
+
 
 def parse_config(filepath: str) -> None:
     _, extension = os.path.splitext(filepath)
@@ -28,6 +30,7 @@ def parse_config(filepath: str) -> None:
                 f.write(f"\n{varname}={os.getenv(varname, '')}")
                 print(f"Added {varname} to .env")
 
+
 def parse_python_config(filepath: str) -> list[str]:
     with open(filepath, "r") as f:
         lines = f.readlines()
@@ -48,6 +51,7 @@ def parse_python_config(filepath: str) -> list[str]:
 
     return varnames
 
+
 def parse_typescript_config(filepath: str) -> list[str]:
     with open(filepath, "r") as f:
         lines = f.readlines()
@@ -66,6 +70,7 @@ def parse_typescript_config(filepath: str) -> list[str]:
 
     return varnames
 
+
 if __name__ == "__main__":
     filepath = sys.argv[1]
     configs = [filepath]
@@ -74,14 +79,10 @@ if __name__ == "__main__":
 
     match extension:
         case ".py":
-            stdlib_config = os.path.join(
-                os.environ["EAVE_HOME"], "libs/eave-stdlib-py/src/eave/stdlib/config.py"
-            )
+            stdlib_config = os.path.join(os.environ["EAVE_HOME"], "libs/eave-stdlib-py/src/eave/stdlib/config.py")
             configs.append(stdlib_config)
         case ".ts":
-            stdlib_config = os.path.join(
-                os.environ["EAVE_HOME"], "libs/eave-stdlib-ts/src/config.ts"
-            )
+            stdlib_config = os.path.join(os.environ["EAVE_HOME"], "libs/eave-stdlib-ts/src/config.ts")
             configs.append(stdlib_config)
         case _:
             pass
