@@ -1,17 +1,21 @@
-from flask import Flask, Response, abort, jsonify, make_response, redirect, render_template, request
+from http import HTTPStatus
+import json
+from uuid import UUID
+from starlette.applications import Starlette
 from sqlalchemy import and_, delete, select
-from werkzeug.wrappers.response import Response as BaseResponse
+from starlette.requests import Request
+from starlette.routing import Mount, Route
+from starlette.responses import RedirectResponse, Response
+from starlette.staticfiles import StaticFiles
+from starlette.templating import Jinja2Templates
 
 from .orm import TodoListItemOrm, UserOrm, async_session
 
-app = Flask(__name__)
 
-
-@app.route("/api/todos", methods=["GET"])
-async def get_todos() -> Response:
+async def get_todos(request: Request) -> Response:
     user_id = request.cookies.get("user_id")
     if not user_id:
-        abort(401)
+        return Response(content=HTTPStatus.UNAUTHORIZED.phrase, status_code=HTTPStatus.UNAUTHORIZED)
 
     async with async_session.begin() as session:
         result = await session.scalars(
@@ -19,74 +23,88 @@ async def get_todos() -> Response:
         )
         todos = result.all()
         rendered_todos = [t.render() for t in todos]
-        return jsonify(rendered_todos)
+        rendered_json = json.dumps(rendered_todos)
+
+    return Response(content=rendered_json, status_code=HTTPStatus.OK)
 
 
-@app.route("/api/todos", methods=["POST"])
-async def add_todo() -> Response:
-    if not request.json:
-        raise ValueError("Invalid request body")
-
+async def add_todo(request: Request) -> Response:
     user_id = request.cookies.get("user_id")
     if not user_id:
-        abort(401)
+        return Response(content=HTTPStatus.UNAUTHORIZED.phrase, status_code=HTTPStatus.UNAUTHORIZED)
 
+    body = await request.json()
     async with async_session.begin() as session:
         todo = TodoListItemOrm(
-            user_id=user_id,
-            text=request.json["text"],
+            user_id=UUID(user_id), # Explicit cast to UUID necessary because SQLAlchemy doesn't re-populate this field with the UUID type after commit.
+            text=body["text"],
         )
 
         session.add(todo)
-        await session.commit()
-        return jsonify(todo.render())
+
+    rendered_json = json.dumps(todo.render())
+
+    return Response(content=rendered_json, status_code=HTTPStatus.OK)
 
 
-@app.route("/api/todos/<todo_id>", methods=["DELETE"])
-async def delete_todo(todo_id: str) -> Response:
+async def delete_todo(request: Request) -> Response:
     user_id = request.cookies.get("user_id")
     if not user_id:
-        abort(401)
+        return Response(content=HTTPStatus.UNAUTHORIZED.phrase, status_code=HTTPStatus.UNAUTHORIZED)
+
+    todo_id = request.path_params["todo_id"]
 
     async with async_session.begin() as session:
         await session.execute(
             delete(TodoListItemOrm).where(and_(TodoListItemOrm.id == todo_id, TodoListItemOrm.user_id == user_id))
         )
 
-    return make_response()
+    return Response(status_code=HTTPStatus.OK)
 
 
-@app.route("/api/login", methods=["POST"])
-async def login() -> BaseResponse:
-    if not request.json:
-        raise ValueError("Invalid request body")
+async def login(request: Request) -> Response:
+    body = await request.json()
+    username = body["username"]
 
     async with async_session.begin() as session:
-        user = await session.scalar(select(UserOrm).where(UserOrm.username == request.json["username"]))
+        user = await session.scalar(select(UserOrm).where(UserOrm.username == username))
         if not user:
             user = UserOrm(
-                username=request.json["username"],
+                username=username,
                 visitor_id=request.cookies.get("visitor_id"),
                 utm_params=request.cookies.get("utm_params"),
             )
             session.add(user)
             await session.commit()
 
-        response = redirect("/")
+        response = Response(status_code=HTTPStatus.OK)
         response.set_cookie("user_id", user.id.hex)
-        return response
+
+    return response
 
 
-@app.route("/logout", methods=["GET"])
-def logout() -> BaseResponse:
-    response = redirect(location="/login")
+def logout(request: Request) -> Response:
+    response = RedirectResponse(url="/login")
     response.delete_cookie("user_id")
     return response
 
 
-@app.route("/", defaults={"path": ""})
-@app.route("/<path:path>")
-def catch_all(path: str) -> str:
-    return render_template(
-        "index.html.jinja",
-    )
+templates = Jinja2Templates(directory="eave_playground/todoapp/templates")
+
+def web_app(request: Request) -> Response:
+    response = templates.TemplateResponse(request, "index.html.jinja")
+    return response
+
+
+app = Starlette(
+    routes=[
+        Mount("/static", StaticFiles(directory="eave_playground/todoapp/static")),
+
+        Route(path="/api/todos", methods=["GET"], endpoint=get_todos),
+        Route(path="/api/todos", methods=["POST"], endpoint=add_todo),
+        Route(path="/api/todos/{todo_id}", methods=["DELETE"], endpoint=delete_todo),
+        Route(path="/api/login", methods=["POST"], endpoint=login),
+        Route(path="/logout", methods=["GET"], endpoint=logout),
+        Route(path="/{rest:path}", methods=["GET"], endpoint=web_app),
+    ],
+)

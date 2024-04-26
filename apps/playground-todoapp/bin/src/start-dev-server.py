@@ -1,4 +1,7 @@
+import os
 import sys
+
+import uvicorn
 
 from eave.dev_tooling.dotenv_loader import load_dotenv
 
@@ -7,18 +10,20 @@ sys.path.append(".")
 load_dotenv("develop/shared/share.env", override=True)
 load_dotenv(".env", override=True)
 
-from eave_playground.todoapp.app import app  # noqa: E402
+os.environ["GAE_SERVICE"] = "playground-todoapp"
 
 if __name__ == "__main__":
-    app.run(
+    uvicorn.run(
+        app="eave_playground.todoapp.app:app",
         port=5500,
-        debug=True,
-        use_debugger=False,
-        use_reloader=True,
-        extra_files=[],
-        exclude_patterns=[
-            ".*",
+        reload=True,
+        log_level="debug",
+        reload_includes=[
+            "eave",
+        ],
+        reload_excludes=[
             "**/build/",
+            ".*",
             "**/__pycache__",
             "*.egg-info",
             "**/node_modules",

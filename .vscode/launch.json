@@ -49,12 +49,12 @@
       "console": "integratedTerminal"
     },
     {
-      "name": "Playground Todo App (Flask)",
-      "consoleTitle": "Playground Todo App (Flask)",
+      "name": "Playground Todo App (Server)",
+      "consoleTitle": "Playground Todo App (Server)",
       "cwd": "${workspaceFolder}/apps/playground-todoapp",
       "type": "python",
       "request": "launch",
-      "program": "bin/src/start-dev-flask.py",
+      "program": "bin/src/start-dev-server.py",
       "jinja": true,
       "justMyCode": false,
     },
@@ -109,7 +109,7 @@
     {
       "name": "Playground Todo App",
       "configurations": [
-        "Playground Todo App (Flask)",
+        "Playground Todo App (Server)",
         "Playground Todo App (Webpack)"
       ],
       "stopAll": true
