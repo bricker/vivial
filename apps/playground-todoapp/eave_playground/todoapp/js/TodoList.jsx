@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import styles from "./styles.module.css";
+import styles from "./TodoList.module.css";
 
 function parseCookies() {
   const newCookieString = document.cookie.replaceAll(/; ?/g, "&");
@@ -60,40 +60,37 @@ const TodoList = () => {
     fetchTodos();
   }, []);
 
-  return (
-    <div>
-      <h2 className={styles.header}>TODO List</h2>
 
-      {(() => {
-        if (loading) {
-          return (
-            <div className={styles.loadingContainer}>
-              <div className={styles.loader}></div>
-            </div>
-          );
-        } else {
-          return (<>
-            <div style={{display: "flex"}}>
-              <input
-                className={styles.input}
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Enter a new todo..."
-              />
-              <button className={styles.button} onClick={addTodo}>Add</button>
-            </div>
-            <ul className={styles.list}>
-              {todos.map(todo => (
-                <li key={todo.id} className={styles.item}>
-                  {todo.text}
-                  <button className={styles.redbutton} onClick={() => removeTodo(todo.id)}>Remove</button>
-                </li>
-              ))}
-            </ul>
-          </>);
-        }
-      })()}
+  return (
+    <div className={styles.todoList}>
+      <h2 className={styles.title}>TODO List</h2>
+
+      {loading ? (
+        <div className={styles.loadingContainer}>
+          <div className={styles.loader}></div>
+        </div>
+      ) : (
+        <>
+          <div className={styles.inputContainer}>
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder="Enter a new todo..."
+              className={styles.input}
+            />
+            <button onClick={addTodo} className={styles.addButton}>Add</button>
+          </div>
+          <ul className={styles.todoItems}>
+            {todos.map(todo => (
+              <li key={todo.id} className={styles.todoItem}>
+                {todo.text}
+                <button onClick={() => removeTodo(todo.id)} className={styles.removeButton}>Remove</button>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </div>
   );
 };

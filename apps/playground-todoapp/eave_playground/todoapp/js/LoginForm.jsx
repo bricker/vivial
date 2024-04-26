@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import styles from "./styles.module.css";
+import styles from "./LoginForm.module.css";
 
 const LoginForm = () => {
   const [username, setUsername] = useState("");
@@ -18,11 +18,11 @@ const LoginForm = () => {
   };
 
   return (
-    <div>
-      <h2>Login</h2>
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      <form onSubmit={handleLogin}>
-        <div>
+    <div className={styles.loginContainer}>
+      <h2 className={styles.title}>Login</h2>
+      {error && <p className={styles.error}>{error}</p>}
+      <form onSubmit={handleLogin} className={styles.form}>
+        <div className={styles.formGroup}>
           <label className={styles.label} htmlFor="username">Username:</label>
           <input
             className={styles.input}
