@@ -11,11 +11,11 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 db_uri = sqlalchemy.engine.url.URL.create(
     drivername="postgresql+asyncpg",
-    host=os.getenv("DEMO_DB_HOST", "localhost"),
-    port=int(os.getenv("DEMO_DB_PORT", "5432")),
-    username=os.getenv("DEMO_DB_USER"),
-    password=os.getenv("DEMO_DB_PASS"),
-    database=os.getenv("DEMO_DB_DATABASE", "eave-demo-app"),
+    host=os.getenv("TODOAPP_DB_HOST", "localhost"),
+    port=int(os.getenv("TODOAPP_DB_PORT", "5432")),
+    username=os.getenv("TODOAPP_DB_USER"),
+    password=os.getenv("TODOAPP_DB_PASS"),
+    database=os.getenv("TODOAPP_DB_DATABASE", "playground-todoapp"),
 )
 
 async_engine = create_async_engine(
