@@ -3,7 +3,7 @@ import sys
 
 import uvicorn
 
-from eave.dev_tooling.dotenv_loader import load_dotenv, load_standard_dotenv_files
+from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 sys.path.append(".")
 
