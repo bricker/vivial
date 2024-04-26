@@ -69,13 +69,8 @@ class _AppConfig(ConfigBase):
 
     @cached_property
     def eave_google_oauth_client_credentials(self) -> Mapping[str, Any]:
-        try:
-            b64encoded = get_secret("EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64")
-            json_encoded = b64decode(b64encoded)
-        except Exception:
-            # DEPRECATED - use EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64 instead.
-            json_encoded = get_secret("EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON")
-
+        b64encoded = get_secret("EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64")
+        json_encoded = b64decode(b64encoded)
         credentials: dict[str, Any] = json.loads(json_encoded)
         return credentials
 

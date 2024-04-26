@@ -5,4 +5,4 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 python-activate-venv
 cd "$(^parentpath)"
-python ./bin/src/start-dev-uvicorn.py
+python ./bin/src/start-dev-server.py

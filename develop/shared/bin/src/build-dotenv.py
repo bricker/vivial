@@ -18,8 +18,10 @@ def parse_config(filepath: str) -> None:
             return
 
     dotenv_path = os.path.join(os.getenv("EAVE_HOME", ""), ".env")
+    shared_dotenv_path = os.path.join(os.getenv("EAVE_HOME", ""), "develop/shared/share.env")
 
-    existing_values = dotenv.dotenv_values(dotenv_path)
+    existing_values = dotenv.dotenv_values(shared_dotenv_path)
+    existing_values.update(dotenv.dotenv_values(dotenv_path))
 
     with open(dotenv_path, "a+") as f:
         for varname in varnames:
@@ -35,11 +37,13 @@ def parse_python_config(filepath: str) -> list[str]:
     varnames = []
 
     for line in lines:
-        if (m := re.search("getenv\\([\"']([^\"']+)[\"']", line)) is not None:
+        if (m := re.search(r"getenv\([\"']([^\"']+)[\"']", line)) is not None:
             varnames.append(m.group(1))
-        elif (m := re.search("environ\\[[\"']([^\"']+)[\"']", line)) is not None:
+        elif (m := re.search(r"environ\[[\"']([^\"']+)[\"']", line)) is not None:
             varnames.append(m.group(1))
-        elif (m := re.search("get_secret\\([\"']([^\"']+)[\"']", line)) is not None:
+        elif (m := re.search(r"get_secret\([\"']([^\"']+)[\"']", line)) is not None:
+            varnames.append(m.group(1))
+        elif (m := re.search(r"key\s+=\s+[\"']([^\"']+)[\"']", line)) is not None:
             varnames.append(m.group(1))
         else:
             pass
@@ -53,9 +57,11 @@ def parse_typescript_config(filepath: str) -> list[str]:
     varnames = []
 
     for line in lines:
-        if (m := re.search("process\\.env\\[[\"']([^\"']+)[\"']", line)) is not None:
+        if (m := re.search(r"process\.env\[[\"']([^\"']+)[\"']", line)) is not None:
             varnames.append(m.group(1))
-        if (m := re.search("this\\.getSecret\\([\"']([^\"']+)[\"']", line)) is not None:
+        if (m := re.search(r"getSecret\([\"']([^\"']+)[\"']", line)) is not None:
+            varnames.append(m.group(1))
+        elif (m := re.search(r"key\s+=\s+[\"']([^\"']+)[\"']", line)) is not None:
             varnames.append(m.group(1))
         else:
             pass

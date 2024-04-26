@@ -11,7 +11,7 @@ source "${EAVE_HOME}"/develop/functions.bash
 	node-activate-venv
 	cd "$(^parentpath)"
 
-	python ./bin/src/start-dev-flask.py &
+	python ./bin/src/start-dev-server.py &
 	bash ./bin/src/start-dev-webpack.bash &
 	wait
 )

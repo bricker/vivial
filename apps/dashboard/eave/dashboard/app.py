@@ -1,13 +1,16 @@
+from http import HTTPStatus
 import json
 from collections.abc import Awaitable, Callable
 from functools import wraps
-from http.client import UNAUTHORIZED
 from typing import Any
 
-import werkzeug.exceptions
+from eave.stdlib.exceptions import UnauthorizedError
+from starlette.applications import Starlette
+from starlette.requests import Request
+from starlette.responses import JSONResponse, RedirectResponse, Response
+from starlette.routing import Mount, Route
+from starlette.staticfiles import StaticFiles
 from aiohttp import ClientResponseError
-from flask import Flask, Response, make_response, redirect, render_template, request
-from werkzeug.wrappers import Response as BaseResponse
 
 import eave.stdlib.logging
 import eave.stdlib.requests_util
@@ -24,23 +27,23 @@ from eave.stdlib.headers import MIME_TYPE_JSON
 from eave.stdlib.typing import JsonObject
 from eave.stdlib.util import ensure_uuid, unwrap
 from eave.stdlib.utm_cookies import set_tracking_cookies
+from starlette.templating import Jinja2Templates
 
 from .config import DASHBOARD_APP_CONFIG
 
 eave.stdlib.time.set_utc()
 
-app = Flask(__name__)
 
-
-def _auth_handler(f: Callable[..., Awaitable[Response]]) -> Callable[..., Awaitable[Response]]:
+def _auth_handler(f: Callable[[Request, AuthCookies], Awaitable[Response]]) -> Callable[[Request], Awaitable[Response]]:
     @wraps(f)
-    async def wrapper(*args: Any, **kwargs: Any) -> Response:
+    async def wrapper(request: Request) -> Response:
         try:
-            r = await f(*args, **kwargs)
+            auth_cookies = _get_auth_cookies_or_exception(request=request)
+            r = await f(request, auth_cookies)
             return r
-        except ClientResponseError as e:
-            if e.code == UNAUTHORIZED:
-                response = Response(status=UNAUTHORIZED)
+        except (ClientResponseError, UnauthorizedError) as e:
+            if e.code == HTTPStatus.UNAUTHORIZED:
+                response = Response(status_code=HTTPStatus.UNAUTHORIZED)
                 delete_auth_cookies(response)
                 return response
             else:
@@ -48,32 +51,13 @@ def _auth_handler(f: Callable[..., Awaitable[Response]]) -> Callable[..., Awaita
 
     return wrapper
 
-
-@app.get("/status")
-def status() -> str:
+def status_endpoint() -> str:
     model = status_payload()
     return model.json()
 
 
-def _render_spa(**kwargs: Any) -> str:
-    return render_template(
-        "index.html.jinja",
-        asset_base=SHARED_CONFIG.asset_base,
-        cookie_domain=SHARED_CONFIG.eave_cookie_domain,
-        api_base=SHARED_CONFIG.eave_public_api_base,
-        root_domain=SHARED_CONFIG.eave_root_domain,
-        analytics_enabled=SHARED_CONFIG.analytics_enabled,
-        app_env=SHARED_CONFIG.eave_env,
-        app_version=SHARED_CONFIG.app_version,
-        **kwargs,
-    )
-
-
-@app.route("/api/me", methods=["POST"])
 @_auth_handler
-async def get_user() -> Response:
-    auth_cookies = _get_auth_cookies_or_exception()
-
+async def get_user_endpoint(request: Request, auth_cookies: AuthCookies) -> Response:
     eave_response = await account.GetAuthenticatedAccount.perform(
         origin=DASHBOARD_APP_CONFIG.eave_origin,
         team_id=ensure_uuid(auth_cookies.team_id),
@@ -84,12 +68,9 @@ async def get_user() -> Response:
     return _make_response(eave_response)
 
 
-@app.route("/api/team/virtual-events", methods=["POST"])
 @_auth_handler
-async def get_virtual_events() -> Response:
-    auth_cookies = _get_auth_cookies_or_exception()
-
-    body = request.get_json()
+async def get_virtual_events_endpoint(request: Request, auth_cookies: AuthCookies) -> Response:
+    body = await request.json()
     query_input: VirtualEventQueryInput | None = body.get("query")
 
     eave_response = await virtual_event.GetVirtualEventsRequest.perform(
@@ -103,11 +84,8 @@ async def get_virtual_events() -> Response:
     return _make_response(eave_response)
 
 
-@app.route("/api/team", methods=["POST"])
 @_auth_handler
-async def get_team() -> Response:
-    auth_cookies = _get_auth_cookies_or_exception()
-
+async def get_team_endpoint(request: Request, auth_cookies: AuthCookies) -> Response:
     eave_response = await team.GetTeamRequest.perform(
         origin=DASHBOARD_APP_CONFIG.eave_origin,
         team_id=unwrap(auth_cookies.team_id),
@@ -118,13 +96,10 @@ async def get_team() -> Response:
     return _make_response(eave_response)
 
 
-@app.route("/embed/metabase", methods=["GET"])
 @_auth_handler
-async def embed_metabase() -> Response:
-    auth_cookies = _get_auth_cookies_or_exception()
-
+async def embed_metabase_endpoint(request: Request, auth_cookies: AuthCookies) -> Response:
     resp = await MetabaseEmbeddingSSOOperation.perform(
-        input=MetabaseEmbeddingSSOOperation.RequestBody(return_to=request.args.get("return_to")),
+        input=MetabaseEmbeddingSSOOperation.RequestBody(return_to=request.query_params.get("return_to")),
         origin=DASHBOARD_APP_CONFIG.eave_origin,
         team_id=unwrap(auth_cookies.team_id),
         account_id=ensure_uuid(auth_cookies.account_id),
@@ -134,19 +109,25 @@ async def embed_metabase() -> Response:
     return await _make_redirect_response(eave_response=resp)
 
 
-@app.route("/logout", methods=["GET"])
-async def logout() -> BaseResponse:
-    response = redirect(location=SHARED_CONFIG.eave_public_dashboard_base + "/login", code=302)
+async def logout_endpoint(request: Request) -> Response:
+    response = RedirectResponse(url=SHARED_CONFIG.eave_public_dashboard_base + "/login", status_code=HTTPStatus.FOUND)
     delete_auth_cookies(response=response)
     _delete_login_state_hint_cookie(response=response)
     return response
 
 
-@app.route("/", defaults={"path": ""})
-@app.route("/<path:path>")
-def catch_all(path: str) -> Response:
-    spa = _render_spa()
-    response = make_response(spa)
+templates = Jinja2Templates(directory="eave/dashboard/templates")
+
+def web_app_endpoint(request: Request) -> Response:
+    response = templates.TemplateResponse(request, "index.html.jinja", context={
+        "asset_base": SHARED_CONFIG.asset_base,
+        "cookie_domain": SHARED_CONFIG.eave_cookie_domain,
+        "api_base": SHARED_CONFIG.eave_public_api_base,
+        "analytics_enabled": SHARED_CONFIG.analytics_enabled,
+        "app_env": SHARED_CONFIG.eave_env,
+        "app_version": SHARED_CONFIG.app_version,
+    })
+
     set_tracking_cookies(response=response, request=request)
 
     auth_cookies = get_auth_cookies(request.cookies)
@@ -161,21 +142,21 @@ def catch_all(path: str) -> Response:
 _EAVE_LOGIN_STATE_HINT_COOKIE_NAME = "ev_login_state_hint.202311"
 
 
-def _set_login_state_hint_cookie(response: BaseResponse) -> None:
+def _set_login_state_hint_cookie(response: Response) -> None:
     # This cookie is a HINT to the client whether the user may be logged in.
     # It doesn't actually indicate the logged-in state, but the client can use this cookie to decide if it can skip some API calls, for example.
     # This cookie is set to httponly=False so the client can read it.
     set_http_cookie(response=response, key=_EAVE_LOGIN_STATE_HINT_COOKIE_NAME, value="1", httponly=False)
 
 
-def _delete_login_state_hint_cookie(response: BaseResponse) -> None:
+def _delete_login_state_hint_cookie(response: Response) -> None:
     delete_http_cookie(response=response, key=_EAVE_LOGIN_STATE_HINT_COOKIE_NAME, httponly=False)
 
 
-def _get_auth_cookies_or_exception() -> AuthCookies:
+def _get_auth_cookies_or_exception(request: Request) -> AuthCookies:
     auth_cookies = get_auth_cookies(request.cookies)
     if not auth_cookies.all_set:
-        raise werkzeug.exceptions.Unauthorized()
+        raise UnauthorizedError()
 
     return auth_cookies
 
@@ -186,14 +167,14 @@ async def _make_redirect_response(eave_response: BaseResponseBody) -> Response:
     status = eave_response.raw_response.status
     response = Response(
         headers=headers,
-        status=status,
+        status_code=status,
     )
 
     return response
 
 
 def _make_response(eave_response: BaseResponseBody) -> Response:
-    response = _json_response(body=eave_response.json())
+    response = JSONResponse(content=eave_response.json())
 
     if eave_response.cookies:
         cookies = get_auth_cookies(cookies=eave_response.cookies)
@@ -203,16 +184,15 @@ def _make_response(eave_response: BaseResponseBody) -> Response:
 
     return response
 
-
-def _set_json_response_body(response: Response, body: JsonObject | str) -> Response:
-    if not isinstance(body, str):
-        body = json.dumps(body)
-    response.set_data(body)
-    return response
-
-
-def _json_response(body: JsonObject | str | None) -> Response:
-    response = Response(mimetype=MIME_TYPE_JSON)
-    if body:
-        _set_json_response_body(response, body)
-    return response
+app = Starlette(
+    routes=[
+        Mount("/static", StaticFiles(directory="eave/dashboard/static")),
+        Route(path="/status", methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"], endpoint=status_endpoint),
+        Route(path="/api/me", methods=["POST"], endpoint=get_user_endpoint),
+        Route(path="/api/team/virtual-events", methods=["POST"], endpoint=get_virtual_events_endpoint),
+        Route(path="/api/team", methods=["POST"], endpoint=get_team_endpoint),
+        Route(path="/embed/metabase", methods=["GET"], endpoint=embed_metabase_endpoint),
+        Route(path="/logout", methods=["GET"], endpoint=logout_endpoint),
+        Route(path="/{rest:path}", methods=["GET"], endpoint=web_app_endpoint),
+    ],
+)
