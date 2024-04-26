@@ -1,11 +1,11 @@
-from flask import Flask, Response, jsonify, make_response, render_template, request, redirect, abort
-import flask
+from flask import Flask, Response, abort, jsonify, make_response, redirect, render_template, request
 from sqlalchemy import and_, delete, select
-from werkzeug.wrappers.response import Response
+from werkzeug.wrappers.response import Response as BaseResponse
 
-from .orm import TodoListItemOrm, UserOrm, async_session, async_engine
+from .orm import TodoListItemOrm, UserOrm, async_session
 
 app = Flask(__name__)
+
 
 @app.route("/api/todos", methods=["GET"])
 async def get_todos() -> Response:
@@ -15,13 +15,12 @@ async def get_todos() -> Response:
 
     async with async_session.begin() as session:
         result = await session.scalars(
-            select(TodoListItemOrm)
-            .where(TodoListItemOrm.user_id == user_id)
-            .order_by(TodoListItemOrm.created)
+            select(TodoListItemOrm).where(TodoListItemOrm.user_id == user_id).order_by(TodoListItemOrm.created)
         )
         todos = result.all()
         rendered_todos = [t.render() for t in todos]
         return jsonify(rendered_todos)
+
 
 @app.route("/api/todos", methods=["POST"])
 async def add_todo() -> Response:
@@ -42,6 +41,7 @@ async def add_todo() -> Response:
         await session.commit()
         return jsonify(todo.render())
 
+
 @app.route("/api/todos/<todo_id>", methods=["DELETE"])
 async def delete_todo(todo_id: str) -> Response:
     user_id = request.cookies.get("user_id")
@@ -49,15 +49,15 @@ async def delete_todo(todo_id: str) -> Response:
         abort(401)
 
     async with async_session.begin() as session:
-        await session.execute(delete(TodoListItemOrm).where(and_(
-            TodoListItemOrm.id == todo_id,
-            TodoListItemOrm.user_id == user_id
-        )))
+        await session.execute(
+            delete(TodoListItemOrm).where(and_(TodoListItemOrm.id == todo_id, TodoListItemOrm.user_id == user_id))
+        )
 
     return make_response()
 
+
 @app.route("/api/login", methods=["POST"])
-async def login() -> Response:
+async def login() -> BaseResponse:
     if not request.json:
         raise ValueError("Invalid request body")
 
@@ -76,11 +76,13 @@ async def login() -> Response:
         response.set_cookie("user_id", user.id.hex)
         return response
 
+
 @app.route("/logout", methods=["GET"])
-def logout() -> Response:
+def logout() -> BaseResponse:
     response = redirect(location="/login")
     response.delete_cookie("user_id")
     return response
+
 
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")

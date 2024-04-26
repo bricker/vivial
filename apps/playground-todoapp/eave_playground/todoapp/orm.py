@@ -1,13 +1,12 @@
-from datetime import datetime
 import os
+from datetime import datetime
 from typing import Any
 from uuid import UUID
-from sqlalchemy import ForeignKey, NullPool, func, text
-import sqlalchemy
-from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-from sqlalchemy.ext.asyncio.session import AsyncSession
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
+import sqlalchemy
+from sqlalchemy import ForeignKey, NullPool, func, text
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 db_uri = sqlalchemy.engine.url.URL.create(
     drivername="postgresql+asyncpg",
@@ -34,8 +33,10 @@ async_engine = create_async_engine(
 
 async_session = async_sessionmaker(async_engine, expire_on_commit=False)
 
+
 class BaseOrm(DeclarativeBase):
     pass
+
 
 class UserOrm(BaseOrm):
     __tablename__ = "users"
@@ -46,6 +47,7 @@ class UserOrm(BaseOrm):
     utm_params: Mapped[str | None] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+
 
 class TodoListItemOrm(BaseOrm):
     __tablename__ = "todo_list_items"

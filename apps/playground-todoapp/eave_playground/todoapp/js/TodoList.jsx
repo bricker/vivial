@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
 import axios from "axios";
+import React, { useEffect, useState } from "react";
 import styles from "./TodoList.module.css";
 
 function parseCookies() {
@@ -21,11 +21,12 @@ const TodoList = () => {
 
   const fetchTodos = () => {
     setLoading(true);
-    axios.get("/api/todos")
-      .then(response => {
+    axios
+      .get("/api/todos")
+      .then((response) => {
         setTodos(response.data);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error fetching todos:", error);
       })
       .finally(() => {
@@ -35,23 +36,25 @@ const TodoList = () => {
 
   const addTodo = () => {
     if (inputValue.trim() !== "") {
-      axios.post("/api/todos", { text: inputValue })
-        .then(response => {
+      axios
+        .post("/api/todos", { text: inputValue })
+        .then((response) => {
           setTodos([...todos, response.data]);
           setInputValue("");
         })
-        .catch(error => {
+        .catch((error) => {
           console.error("Error adding todo:", error);
         });
     }
   };
 
   const removeTodo = (id) => {
-    axios.delete(`/api/todos/${id}`)
+    axios
+      .delete(`/api/todos/${id}`)
       .then(() => {
-        setTodos(todos.filter(todo => todo.id !== id));
+        setTodos(todos.filter((todo) => todo.id !== id));
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error deleting todo:", error);
       });
   };
@@ -59,7 +62,6 @@ const TodoList = () => {
   useEffect(() => {
     fetchTodos();
   }, []);
-
 
   return (
     <div className={styles.todoList}>
@@ -79,13 +81,20 @@ const TodoList = () => {
               placeholder="Enter a new todo..."
               className={styles.input}
             />
-            <button onClick={addTodo} className={styles.addButton}>Add</button>
+            <button onClick={addTodo} className={styles.addButton}>
+              Add
+            </button>
           </div>
           <ul className={styles.todoItems}>
-            {todos.map(todo => (
+            {todos.map((todo) => (
               <li key={todo.id} className={styles.todoItem}>
                 {todo.text}
-                <button onClick={() => removeTodo(todo.id)} className={styles.removeButton}>Remove</button>
+                <button
+                  onClick={() => removeTodo(todo.id)}
+                  className={styles.removeButton}
+                >
+                  Remove
+                </button>
               </li>
             ))}
           </ul>

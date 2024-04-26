@@ -1,5 +1,5 @@
-import React, { useState } from "react";
 import axios from "axios";
+import React, { useState } from "react";
 import styles from "./LoginForm.module.css";
 
 const LoginForm = () => {
@@ -23,7 +23,9 @@ const LoginForm = () => {
       {error && <p className={styles.error}>{error}</p>}
       <form onSubmit={handleLogin} className={styles.form}>
         <div className={styles.formGroup}>
-          <label className={styles.label} htmlFor="username">Username:</label>
+          <label className={styles.label} htmlFor="username">
+            Username:
+          </label>
           <input
             className={styles.input}
             type="text"
@@ -33,7 +35,9 @@ const LoginForm = () => {
             required
           />
         </div>
-        <button className={styles.button} type="submit">Login</button>
+        <button className={styles.button} type="submit">
+          Login
+        </button>
       </form>
     </div>
   );

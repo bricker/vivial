@@ -15,8 +15,7 @@ if __name__ == "__main__":
         debug=True,
         use_debugger=False,
         use_reloader=True,
-        extra_files=[
-        ],
+        extra_files=[],
         exclude_patterns=[
             ".*",
             "**/build/",
