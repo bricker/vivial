@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
+from eave.stdlib.typing import JsonValue
 import sqlalchemy
 from sqlalchemy import ForeignKey, NullPool, func, text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
@@ -20,9 +21,6 @@ db_uri = sqlalchemy.engine.url.URL.create(
 async_engine = create_async_engine(
     db_uri,
     echo=False,
-    # poolclass=NullPoll is a hack only acceptable for this playground app.
-    # Long story short: The Flask development server isn't perfectly compatible with SQLAlchemy's asyncio extension, and this works around that.
-    poolclass=NullPool,
     connect_args={
         "server_settings": {
             "timezone": "UTC",
@@ -43,7 +41,7 @@ class UserOrm(BaseOrm):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=text("(gen_random_uuid())"))
     username: Mapped[str] = mapped_column()
-    visitor_id: Mapped[UUID | None] = mapped_column()
+    visitor_id: Mapped[str | None] = mapped_column()
     utm_params: Mapped[str | None] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -58,11 +56,11 @@ class TodoListItemOrm(BaseOrm):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
-    def render(self) -> dict[str, Any]:
+    def render(self) -> dict[str, JsonValue]:
         return {
-            "id": self.id,
-            "user_id": self.user_id,
+            "id": self.id.hex,
+            "user_id": self.user_id.hex,
             "text": self.text,
-            "created": self.created,
-            "updated": self.updated,
+            "created": self.created.isoformat(),
+            "updated": self.updated.isoformat() if self.updated else None,
         }
