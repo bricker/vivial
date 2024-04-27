@@ -38,13 +38,12 @@ async def _process_queue(q: multiprocessing.Queue, params: QueueParams) -> None:
         now = time.time()
 
         if buflen >= params.maxsize or now - lastflush >= params.maxage_seconds:
-            print("Flushing...", flush=True)
             buffer_copy = buffer.copy()
 
             try:
                 await send_batch(event_type=params.event_type, events=buffer_copy)
             except Exception as e:
-                print(e)
+                EAVE_LOGGER.exception(e)
             else:
                 buffer.clear()
                 lastflush = now
@@ -83,11 +82,10 @@ class BatchWriteQueue:
                 buffer.append(self._queue.get(block=False))
             print("FIXME: on close, buffer should be flushed and sent to the server", buffer)
         except Exception as e:
-            print(e)
+            EAVE_LOGGER.exception(e)
 
     def put(self, payload: EventPayload) -> None:
         if self._process.is_alive():
-            print(payload.to_json())
-            # self._queue.put(payload.to_json(), block=False)
+            self._queue.put(payload.to_json(), block=False)
         else:
             EAVE_LOGGER.warning("Queue processor is not alive; queueing failed.")
