@@ -9,7 +9,7 @@ const makeClasses = makeStyles()((theme) => ({
     zIndex: 100,
   },
   innerContainer: {
-    height: theme["header"].height,
+    height: theme.header.height,
     display: "flex",
     alignItems: "flex-start",
     justifyContent: "space-between",
@@ -17,7 +17,7 @@ const makeClasses = makeStyles()((theme) => ({
     maxWidth: 1440,
     margin: "0 auto",
     [theme.breakpoints.up("md")]: {
-      height: theme["header"].md.height,
+      height: theme.header.md.height,
       alignItems: "center",
       padding: "0px 46px",
     },
