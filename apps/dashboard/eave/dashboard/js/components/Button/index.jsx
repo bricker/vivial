@@ -23,7 +23,8 @@ const makeClasses = makeStyles(() => ({
 }));
 
 const Button = (
-  /** @type {{ children: any, className: string, to?: string, target?: string, color?: import("@material-ui/core").PropTypes.Color, variant?: "text" | "outlined" | "contained", [key:string]: any }} */ {
+  /** @type {{ children: any, className: string, to?: string, target?: string, color?: import("@material-ui/core").PropTypes.Color, variant?: "text" | "outlined" | "contained", [key:string]: any }} */
+  {
     children,
     className,
     to,

@@ -1,7 +1,10 @@
 // @ts-check
 import React from "react";
 
-const SignOutIcon = ({ /** @type {string} */ color = "black" }) => {
+const SignOutIcon = (
+  /** @type {{color: string}} */
+  { color = "black" }
+) => {
   return (
     <svg
       width="48"

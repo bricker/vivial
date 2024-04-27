@@ -1,7 +1,10 @@
 // @ts-check
 import React from "react";
 
-const SearchIcon = ({ /** @type {string} */ color = "black" }) => {
+const SearchIcon = (
+  /** @type {{color: string}} */
+  { color = "black" }
+) => {
   return (
     <svg
       width="24"

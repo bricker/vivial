@@ -1,7 +1,10 @@
 // @ts-check
 import React from "react";
 
-const GraphIcon = ({ /** @type {string} */ color = "black" }) => {
+const GraphIcon = (
+  /** @type {{color: string}} */
+  { color = "black" }
+) => {
   return (
     <svg
       width="41"

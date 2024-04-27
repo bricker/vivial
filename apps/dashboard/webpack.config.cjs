@@ -2,7 +2,7 @@ const path = require("path");
 
 module.exports = {
   mode: "development",
-  entry: path.join(__dirname, "eave/dashboard/js/index.js"),
+  entry: path.join(__dirname, "eave/dashboard/js/index.jsx"),
   devtool: "eval-source-map",
   output: {
     path: path.join(__dirname, "eave/dashboard/static/dist"),

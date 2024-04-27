@@ -39,22 +39,9 @@
 
 /**
  * @typedef {object} DashboardNetworkState
- * @property {boolean} accountIsLoading
- * @property {boolean} accountIsErroring
  * @property {boolean} teamIsLoading
  * @property {boolean} teamIsErroring
  * @property {boolean} teamRequestHasSucceededAtLeastOnce
- */
-
-/**
- * @typedef {object} DashboardUser
- * @property {AuthenticatedAccount} [account]
- */
-
-/**
- * @typedef {object} AuthModal
- * @property {boolean} isOpen
- * @property {string} mode
  */
 
 /**

@@ -1,7 +1,10 @@
 // @ts-check
 import React from "react";
 
-const SettingsCogIcon = ({ /** @type {string} */ color = "black" }) => {
+const SettingsCogIcon = (
+  /** @type {{color: string}} */
+  { color = "black" }
+) => {
   return (
     <svg
       width="48"

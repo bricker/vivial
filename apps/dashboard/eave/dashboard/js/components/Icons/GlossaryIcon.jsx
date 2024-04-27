@@ -1,7 +1,10 @@
 // @ts-check
 import React from "react";
 
-const GlossaryIcon = ({ /** @type {string} */ color = "black" }) => {
+const GlossaryIcon = (
+  /** @type {{color: string}} */
+  { color = "black" }
+) => {
   return (
     <svg
       width="48"

@@ -1,6 +1,9 @@
 import React from "react";
 
-function GoogleIcon({ className }) {
+function GoogleIcon(
+  /** @type {{className: string}} */
+  { className }
+) {
   return (
     <svg
       className={className}
