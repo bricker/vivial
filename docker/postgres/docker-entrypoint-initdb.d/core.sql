@@ -1,3 +1,0 @@
-CREATE USER app WITH PASSWORD 'unsafe';
-CREATE DATABASE eave_dev;
-ALTER DATABASE eave_dev OWNER TO app;
