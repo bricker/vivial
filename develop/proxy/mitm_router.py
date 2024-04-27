@@ -1,5 +1,6 @@
 import logging
 import re
+
 import mitmproxy.http
 
 
@@ -20,7 +21,7 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
     elif re.match(r"^api\.", flow.request.host):
         port = 5100
     elif re.match(r"^metabase\.", flow.request.host):
-        port = 3000
+        port = 5400
     elif re.match(r"^playground-todoapp\.", flow.request.host):
         port = 5500
     elif re.match(r"^apps\.", flow.request.host):

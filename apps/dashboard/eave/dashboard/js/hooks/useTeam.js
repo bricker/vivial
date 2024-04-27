@@ -1,6 +1,6 @@
 // @ts-check
 import { useContext } from "react";
-import { AppContext } from "../context/Provider.js";
+import { AppContext } from "../context/Provider.jsx";
 import * as Types from "../types.js"; // eslint-disable-line no-unused-vars
 import { isHTTPError, isUnauthorized, logUserOut } from "../util/http-util.js";
 

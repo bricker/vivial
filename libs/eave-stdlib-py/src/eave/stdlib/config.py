@@ -90,15 +90,15 @@ class _EaveConfig(ConfigBase):
 
     @property
     def app_service(self) -> str:
-        return os.getenv("GAE_SERVICE", "unknown")
+        return os.getenv("GAE_SERVICE") or "unknown"
 
     @property
     def app_version(self) -> str:
-        return os.getenv("GAE_VERSION", "unknown")
+        return os.getenv("GAE_VERSION") or "unknown"
 
     @property
     def release_date(self) -> str:
-        return os.getenv("GAE_RELEASE_DATE", "unknown")
+        return os.getenv("GAE_RELEASE_DATE") or "unknown"
 
     @property
     def app_location(self) -> str:
@@ -107,10 +107,6 @@ class _EaveConfig(ConfigBase):
     @property
     def asset_base(self) -> str:
         return os.getenv("EAVE_ASSET_BASE", "/static")
-
-    @property
-    def eave_root_domain(self) -> str:
-        return os.getenv("EAVE_ROOT_DOMAIN", "eave.fyi")
 
     @property
     def eave_public_api_base(self) -> str:
@@ -134,10 +130,7 @@ class _EaveConfig(ConfigBase):
 
     @property
     def eave_cookie_domain(self) -> str:
-        if v := os.getenv("EAVE_COOKIE_DOMAIN"):
-            return v
-
-        return f".{self.eave_root_domain}"
+        return os.getenv("EAVE_COOKIE_DOMAIN") or ".eave.fyi"
 
     @cached_property
     def redis_connection(self) -> tuple[str, int, str] | None:

@@ -93,21 +93,4 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
             refresh_token=credentials.refresh_token,
         )
 
-        # do metabase stuff
-
-        # jwt = TEMP_create_jwt_for_metabase(
-        #     email=account.email or "",
-        #     first_name=google_token.given_name or "",
-        #     last_name=google_token.family_name or "",
-        #     exp_minutes=10,
-        #     signing_key="8c1c4cb0017162745f294d4d67a8e249205f1057284809f13c8064f87c796fbf", # TODO make secrt
-        #     purpose=JWTPurpose.access,
-        # )
-
-        # return_to = SHARED_CONFIG.eave_public_dashboard_base
-        # shared.set_redirect(
-        #     response=self.response,
-        #     location=f"http://metabase.eave.run:3000/auth/sso?jwt={jwt.signature}&return_to={return_to}"
-        # )
-
         return self.response

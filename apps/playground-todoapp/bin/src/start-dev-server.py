@@ -3,12 +3,11 @@ import sys
 
 import uvicorn
 
-from eave.dev_tooling.dotenv_loader import load_dotenv
+from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 sys.path.append(".")
 
-load_dotenv("develop/shared/share.env", override=True)
-load_dotenv(".env", override=True)
+load_standard_dotenv_files()
 
 os.environ["GAE_SERVICE"] = "playground-todoapp"
 

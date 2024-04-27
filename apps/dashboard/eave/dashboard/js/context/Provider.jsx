@@ -1,0 +1,59 @@
+// @ts-check
+import React, { createContext, useState } from "react";
+import * as Types from "../types.js"; // eslint-disable-line no-unused-vars
+
+/**
+ * @typedef {[Types.DashboardTeam | null, React.Dispatch<React.SetStateAction<Types.DashboardTeam | null>>]} TeamContext
+ */
+
+/**
+ * @typedef {[Types.DashboardNetworkState, React.Dispatch<React.SetStateAction<Types.DashboardNetworkState>>]} NetworkStateContext
+ */
+
+/**
+ * @typedef {[Types.GlossaryNetworkState, React.Dispatch<React.SetStateAction<Types.GlossaryNetworkState>>]} GlossaryNetworkStateContext
+ */
+
+/**
+ * @typedef {object} AppContextProps
+ * @property {TeamContext} teamCtx
+ * @property {NetworkStateContext} dashboardNetworkStateCtx
+ * @property {GlossaryNetworkStateContext} glossaryNetworkStateCtx
+ */
+
+/**
+ * This Context object should only be used inside of a Provider. Outside of a Provider, it is empty and unusable.
+ *
+ * @type {React.Context<AppContextProps>}
+ */
+// @ts-ignore
+export const AppContext = createContext(null); // we ignore this line because there is no sense in setting defaults for state hooks. Don't use this Context object outside of a Provider.
+
+const AppContextProvider = ({ children }) => {
+  /** @type {TeamContext} */
+  const teamCtx = useState(null);
+
+  /** @type {NetworkStateContext} */
+  const dashboardNetworkStateCtx = useState({
+    teamIsLoading: true,
+    teamIsErroring: false,
+    teamRequestHasSucceededAtLeastOnce: false,
+  });
+
+  /** @type {GlossaryNetworkStateContext} */
+  const glossaryNetworkStateCtx = useState({
+    virtualEventsAreErroring: false,
+    virtualEventsAreLoading: true,
+  });
+
+  /** @type {AppContextProps} */
+  const ctx = {
+    teamCtx,
+    dashboardNetworkStateCtx,
+    glossaryNetworkStateCtx,
+  };
+
+  return <AppContext.Provider value={ctx}>{children}</AppContext.Provider>;
+};
+
+export default AppContextProvider;

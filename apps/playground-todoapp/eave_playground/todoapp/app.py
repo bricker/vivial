@@ -82,6 +82,7 @@ async def login(request: Request) -> Response:
 
         response = Response(status_code=HTTPStatus.OK)
         response.set_cookie("user_id", user.id.hex)
+        response.set_cookie("user_name", user.username)
 
     return response
 

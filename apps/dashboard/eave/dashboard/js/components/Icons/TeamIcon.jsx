@@ -1,7 +1,10 @@
 // @ts-check
 import React from "react";
 
-const TeamIcon = ({ /** @type {string} */ color = "black" }) => {
+const TeamIcon = (
+  /** @type {{color: string}} */
+  { color = "black" }
+) => {
   return (
     <svg
       width="48"

@@ -1,7 +1,10 @@
 // @ts-check
 import React from "react";
 
-const SidePanelIcon = ({ /** @type {string} */ color = "black" }) => {
+const SidePanelIcon = (
+  /** @type {{color: string}} */
+  { color = "black" }
+) => {
   return (
     <svg
       width="24"

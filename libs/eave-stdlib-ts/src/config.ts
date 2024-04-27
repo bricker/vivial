@@ -90,12 +90,7 @@ export class EaveConfig {
 
   get eaveCookieDomain(): string {
     const envv = process.env["EAVE_COOKIE_DOMAIN"];
-    if (envv) {
-      return envv;
-    }
-
-    const url = new URL(this.eavePublicDashboardBase);
-    return url.hostname.replace(/^dashboard/, "");
+    return envv || ".eave.fyi";
   }
 
   async redisConnection(): Promise<
