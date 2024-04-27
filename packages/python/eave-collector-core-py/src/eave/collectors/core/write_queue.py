@@ -7,6 +7,7 @@ from queue import Empty
 
 from eave.collectors.core.logging import EAVE_LOGGER
 
+from . import config
 from .datastructures import EventPayload, EventType
 from .ingest_api import send_batch
 
@@ -14,8 +15,14 @@ from .ingest_api import send_batch
 @dataclass
 class QueueParams:
     event_type: EventType
-    maxsize: int = 0  # We use this instead of the Queue `maxsize` parameter so that `put` never blocks or fails
-    maxage_seconds: int = 30
+    # We use this instead of the Queue `maxsize` parameter so that `put` never blocks or fails
+    maxsize: int
+    maxage_seconds: int
+
+    def __init__(self, event_type: EventType, maxsize: int | None = None, maxage_seconds: int | None = None) -> None:
+        self.event_type = event_type
+        self.maxsize = maxsize if maxsize is not None else config.batch_maxsize()
+        self.maxage_seconds = maxage_seconds if maxage_seconds is not None else config.batch_maxage_seconds()
 
 
 # TODO: sigterm handler

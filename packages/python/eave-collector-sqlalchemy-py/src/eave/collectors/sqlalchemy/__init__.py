@@ -3,11 +3,11 @@ from eave.collectors.sqlalchemy.private.collector import SQLAlchemyCollector, Su
 _collector: SQLAlchemyCollector | None = None
 
 
-async def start_eave_sqlalchemy_collector(engine: SupportedEngine, credentials: str | None = None) -> None:
+async def start_eave_sqlalchemy_collector(engine: SupportedEngine) -> None:
     global _collector
 
     if not _collector:
-        _collector = SQLAlchemyCollector(credentials=credentials)
+        _collector = SQLAlchemyCollector()
         await _collector.start(engine)
 
 

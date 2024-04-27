@@ -25,8 +25,8 @@ class SQLAlchemyCollector(BaseCollector):
     _event_listeners: list[tuple[weakref.ReferenceType[sqlalchemy.Engine], str, Callable[..., Any]]]
     _db_metadata: sqlalchemy.MetaData | None
 
-    def __init__(self, credentials: str | None = None) -> None:
-        super().__init__(event_type=EventType.dbevent, credentials=credentials)
+    def __init__(self) -> None:
+        super().__init__(event_type=EventType.dbevent)
 
         self._event_listeners = []
         self._db_metadata = None
