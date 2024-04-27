@@ -109,7 +109,7 @@ class FunctionReturnEventPayload(EventPayload):
 @dataclass
 class NetworkInEventPayload(EventPayload):
     request_method: str
-    request_path: str
+    request_url: str
     request_headers: dict[str, str]
     request_payload: str
 
