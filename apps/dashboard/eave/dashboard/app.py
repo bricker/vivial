@@ -3,6 +3,7 @@ from functools import wraps
 from http import HTTPStatus
 
 from aiohttp import ClientResponseError
+from eave.stdlib.headers import MIME_TYPE_JSON
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import JSONResponse, RedirectResponse, Response
@@ -176,7 +177,7 @@ async def _make_redirect_response(eave_response: BaseResponseBody) -> Response:
 
 
 def _make_response(eave_response: BaseResponseBody) -> Response:
-    response = JSONResponse(content=eave_response.json())
+    response = Response(media_type=MIME_TYPE_JSON, content=eave_response.json())
 
     if eave_response.cookies:
         cookies = get_auth_cookies(cookies=eave_response.cookies)
