@@ -1,0 +1,15 @@
+{
+  "extends": "./node_modules/@eave-fyi/eave-stdlib-ts/src/tsconfig-base.json",
+  "include": [
+    "eave/dashboard/js/**/*.ts",
+    "eave/dashboard/js/**/*.tsx",
+    "eave/dashboard/js/**/*.js",
+    "eave/dashboard/js/**/*.jsx",
+  ],
+  "compilerOptions": {
+    "jsx": "react",
+    // "typeRoots": ["./node_modules/@types", "./node_modules/@eave-fyi/eave-stdlib-ts/src/@types", "./node_modules/@eave-fyi/eave-stdlib-ts/src/core-api/models", "../../node_modules/@types"],
+    "esModuleInterop": true,
+    "allowJs": true,
+  }
+}
