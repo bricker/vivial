@@ -88,6 +88,8 @@ spec:
               cpu: "250m"
 
           envFrom:
+            - secretRef:
+                name: playground-todoapp-secret
             - configMapRef:
                 name: shared-configmap
             - configMapRef:

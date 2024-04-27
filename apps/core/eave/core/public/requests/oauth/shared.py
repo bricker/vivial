@@ -17,6 +17,7 @@ import eave.stdlib.cookies
 import eave.stdlib.exceptions
 import eave.stdlib.slack
 from eave.core.internal.orm.account import AccountOrm
+from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib import auth_cookies, utm_cookies
 from eave.stdlib.config import SHARED_CONFIG
@@ -164,6 +165,13 @@ async def create_new_account_and_team(
             access_token=access_token,
             refresh_token=refresh_token,
             email=user_email,
+        )
+
+        await ClientCredentialsOrm.create(
+            session=db_session,
+            team_id=eave_team.id,
+            description="Default client credentials",
+            scope=ClientScope.readwrite,
         )
 
     eaveLogger.debug(

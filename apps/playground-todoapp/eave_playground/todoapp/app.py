@@ -1,4 +1,6 @@
+import contextlib
 import json
+from collections.abc import AsyncGenerator
 from http import HTTPStatus
 from uuid import UUID
 
@@ -10,7 +12,9 @@ from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
-from .orm import TodoListItemOrm, UserOrm, async_session
+from eave.collectors.sqlalchemy import start_eave_sqlalchemy_collector, stop_eave_sqlalchemy_collector
+
+from .orm import TodoListItemOrm, UserOrm, async_engine, async_session
 
 
 async def get_todos(request: Request) -> Response:
@@ -101,6 +105,13 @@ def web_app(request: Request) -> Response:
     return response
 
 
+@contextlib.asynccontextmanager
+async def lifespan(app: Starlette) -> AsyncGenerator[None, None]:
+    await start_eave_sqlalchemy_collector(engine=async_engine)
+    yield
+    stop_eave_sqlalchemy_collector()
+
+
 app = Starlette(
     routes=[
         Mount("/static", StaticFiles(directory="eave_playground/todoapp/static")),
@@ -111,4 +122,5 @@ app = Starlette(
         Route(path="/logout", methods=["GET"], endpoint=logout),
         Route(path="/{rest:path}", methods=["GET"], endpoint=web_app),
     ],
+    lifespan=lifespan,
 )
