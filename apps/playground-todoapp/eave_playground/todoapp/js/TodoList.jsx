@@ -15,6 +15,8 @@ const TodoList = () => {
     return;
   }
 
+  const username = cookies.get("user_name");
+
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [inputValue, setInputValue] = useState("");
@@ -66,6 +68,7 @@ const TodoList = () => {
   return (
     <div className={styles.todoList}>
       <h2 className={styles.title}>TODO List</h2>
+      <h5>Logged in as {username}</h5>
 
       {loading ? (
         <div className={styles.loadingContainer}>
