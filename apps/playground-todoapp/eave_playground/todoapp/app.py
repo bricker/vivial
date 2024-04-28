@@ -3,6 +3,7 @@ from collections.abc import AsyncGenerator
 from http import HTTPStatus
 from uuid import UUID
 
+from eave.stdlib.core_api.operations.status import status_payload
 from sqlalchemy import and_, delete, select, update
 from starlette.applications import Starlette
 from starlette.requests import Request
@@ -118,6 +119,11 @@ def web_app(request: Request) -> Response:
     return response
 
 
+def status_endpoint(request: Request) -> Response:
+    model = status_payload()
+    response = Response(content=model.json(), status_code=HTTPStatus.OK)
+    return response
+
 @contextlib.asynccontextmanager
 async def lifespan(app: Starlette) -> AsyncGenerator[None, None]:
     await start_eave_sqlalchemy_collector(engine=async_engine)
@@ -128,6 +134,7 @@ async def lifespan(app: Starlette) -> AsyncGenerator[None, None]:
 app = Starlette(
     routes=[
         Mount("/static", StaticFiles(directory="eave_playground/todoapp/static")),
+        Route(path="/status", methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"], endpoint=status_endpoint),
         Route(path="/api/todos", methods=["GET"], endpoint=get_todos),
         Route(path="/api/todos", methods=["POST"], endpoint=add_todo),
         Route(path="/api/todos/{todo_id}", methods=["DELETE"], endpoint=delete_todo),

@@ -47,9 +47,10 @@ def _auth_handler(f: Callable[[Request, AuthCookies], Awaitable[Response]]) -> C
     return wrapper
 
 
-def status_endpoint() -> str:
+def status_endpoint(request: Request) -> Response:
     model = status_payload()
-    return model.json()
+    response = Response(content=model.json(), status_code=HTTPStatus.OK)
+    return response
 
 
 @_auth_handler
