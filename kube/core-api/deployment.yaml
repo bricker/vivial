@@ -140,12 +140,27 @@ spec:
             - name: app
               containerPort: 8000
 
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: app
+
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /status
+              port: app
+
         - name: cloud-sql-proxy
           # This uses the latest version of the Cloud SQL Proxy
           # It is recommended to use a specific version for production environments.
           # See: https://github.com/GoogleCloudPlatform/cloudsql-proxy
           image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:latest
           args:
+            # Enable healthcheck endpoints for kube probes
+            - "--health-check"
+            - "--http-port 9090" # This is the default
+
             # If connecting from a VPC-native GKE cluster, you can use the
             # following flag to have the proxy connect over private IP
             - "--private-ip"
@@ -173,3 +188,25 @@ spec:
             limits:
               cpu: 500m
               memory: 2Gi
+
+          ports:
+            - name: healthcheck
+              containerPort: 9090
+            - name: proxy
+              containerPort: 5432
+
+          readinessProbe:
+            httpGet:
+              path: /readiness
+              port: healthcheck
+
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /liveness
+              port: healthcheck
+
+          startupProbe:
+            httpGet:
+              path: /startup
+              port: healthcheck

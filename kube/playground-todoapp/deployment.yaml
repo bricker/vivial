@@ -96,6 +96,13 @@ spec:
                 name: playground-todoapp-configmap
 
           env:
+            - name: TODOAPP_DB_USER
+              value: "gsa-app-playground-todoapp@${GOOGLE_CLOUD_PROJECT}.iam"
+            - name: TODOAPP_DB_HOST
+              value: "127.0.0.1"
+            - name: TODOAPP_DB_PORT
+              value: "5432"
+
             # gunicorn options
             - name: GUNICORN_CMD_ARGS
               value: "--bind=0.0.0.0:8000 --workers=3 --timeout=90"
@@ -104,6 +111,16 @@ spec:
             - name: app
               containerPort: 8000
 
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: app
+
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /status
+              port: app
 
         - name: cloud-sql-proxy
           # This uses the latest version of the Cloud SQL Proxy
@@ -111,6 +128,10 @@ spec:
           # See: https://github.com/GoogleCloudPlatform/cloudsql-proxy
           image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:latest
           args:
+            # Enable healthcheck endpoints for kube probes
+            - "--health-check"
+            - "--http-port 9090" # This is the default
+
             # If connecting from a VPC-native GKE cluster, you can use the
             # following flag to have the proxy connect over private IP
             - "--private-ip"
@@ -138,3 +159,25 @@ spec:
             limits:
               cpu: 500m
               memory: 2Gi
+
+          ports:
+            - name: healthcheck
+              containerPort: 9090
+            - name: proxy
+              containerPort: 5432
+
+          readinessProbe:
+            httpGet:
+              path: /readiness
+              port: healthcheck
+
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /liveness
+              port: healthcheck
+
+          startupProbe:
+            httpGet:
+              path: /startup
+              port: healthcheck
