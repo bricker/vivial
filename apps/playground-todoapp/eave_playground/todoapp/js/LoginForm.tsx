@@ -1,18 +1,18 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { FormEvent, useState } from "react";
 import styles from "./LoginForm.module.css";
 
 const LoginForm = () => {
   const [username, setUsername] = useState("");
   const [error, setError] = useState("");
 
-  const handleLogin = async (e) => {
+  const handleLogin = async (e: FormEvent) => {
     e.preventDefault();
     try {
       await axios.post("/api/login", { username });
       window.location.assign("/");
-    } catch (error) {
-      console.error("Login failed:", error);
+    } catch (ex) {
+      console.error("Login failed:", ex);
       setError("Invalid login");
     }
   };

@@ -1,4 +1,3 @@
-// @ts-check
 import React from "react";
 import ReactDOM from "react-dom/client";
 import {
@@ -9,8 +8,8 @@ import {
 } from "react-router-dom";
 
 import "../static/css/app.css";
-import LoginForm from "./LoginForm.jsx";
-import TodoList from "./TodoList.jsx";
+import LoginForm from "./LoginForm";
+import TodoList from "./TodoList";
 
 const App = () => {
   return (
@@ -24,5 +23,5 @@ const App = () => {
   );
 };
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
+const root = ReactDOM.createRoot(document.getElementById("root")!);
 root.render(<App />);

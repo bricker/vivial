@@ -4,10 +4,10 @@ from collections.abc import AsyncGenerator
 from http import HTTPStatus
 from uuid import UUID
 
-from sqlalchemy import and_, delete, select
+from sqlalchemy import and_, delete, select, update
 from starlette.applications import Starlette
 from starlette.requests import Request
-from starlette.responses import RedirectResponse, Response
+from starlette.responses import JSONResponse, RedirectResponse, Response
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
@@ -28,9 +28,7 @@ async def get_todos(request: Request) -> Response:
         )
         todos = result.all()
         rendered_todos = [t.render() for t in todos]
-        rendered_json = json.dumps(rendered_todos)
-
-    return Response(content=rendered_json, status_code=HTTPStatus.OK)
+        return JSONResponse(content=rendered_todos, status_code=HTTPStatus.OK)
 
 
 async def add_todo(request: Request) -> Response:
@@ -49,9 +47,7 @@ async def add_todo(request: Request) -> Response:
 
         session.add(todo)
 
-    rendered_json = json.dumps(todo.render())
-
-    return Response(content=rendered_json, status_code=HTTPStatus.OK)
+    return JSONResponse(content=todo.render(), status_code=HTTPStatus.OK)
 
 
 async def delete_todo(request: Request) -> Response:
@@ -64,6 +60,23 @@ async def delete_todo(request: Request) -> Response:
     async with async_session.begin() as session:
         await session.execute(
             delete(TodoListItemOrm).where(and_(TodoListItemOrm.id == todo_id, TodoListItemOrm.user_id == user_id))
+        )
+
+    return Response(status_code=HTTPStatus.OK)
+
+async def update_todo(request: Request) -> Response:
+    user_id = request.cookies.get("user_id")
+    if not user_id:
+        return Response(content=HTTPStatus.UNAUTHORIZED.phrase, status_code=HTTPStatus.UNAUTHORIZED)
+
+    todo_id = request.path_params["todo_id"]
+
+    body = await request.json()
+    async with async_session.begin() as session:
+        await session.execute(
+            update(TodoListItemOrm)
+            .where(and_(TodoListItemOrm.id == todo_id, TodoListItemOrm.user_id == user_id))
+            .values(text=body["text"])
         )
 
     return Response(status_code=HTTPStatus.OK)
@@ -118,6 +131,7 @@ app = Starlette(
         Route(path="/api/todos", methods=["GET"], endpoint=get_todos),
         Route(path="/api/todos", methods=["POST"], endpoint=add_todo),
         Route(path="/api/todos/{todo_id}", methods=["DELETE"], endpoint=delete_todo),
+        Route(path="/api/todos/{todo_id}", methods=["PATCH"], endpoint=update_todo),
         Route(path="/api/login", methods=["POST"], endpoint=login),
         Route(path="/logout", methods=["GET"], endpoint=logout),
         Route(path="/{rest:path}", methods=["GET"], endpoint=web_app),

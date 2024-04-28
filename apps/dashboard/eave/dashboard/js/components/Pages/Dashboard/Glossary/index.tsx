@@ -188,13 +188,13 @@ const Glossary = () => {
   }, [searchValue]);
 
   // factored out as it's used in both the row onClick and onKeyPress actions
-  const rowClicked = useCallback((event: VirtualEvent) => {
+  const rowClicked = (event: VirtualEvent) => {
     setSelectedEvent(event);
     // setIsOpen(true);
     // move kb focus to the sidepanel for a11y
     const sidepanel = document.getElementById("glos_sidepanel");
     sidepanel?.focus();
-  }, []);
+  };
 
   let component: React.ReactElement;
 
