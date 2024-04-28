@@ -1,5 +1,6 @@
 import React from "react";
 import { makeStyles } from "tss-react/mui";
+import { eaveWindow } from "../../../../types";
 
 const makeClasses = makeStyles()(() => ({
   embedding: {

@@ -74,7 +74,7 @@ const SidebarNav = (
         {!menuOpen && (
           <button
             className={classes.hamburgerButton}
-            onClick={useCallback(() => setMenuOpen(true), [])}
+            onClick={() => setMenuOpen(true)}
           >
             <HamburgerIcon stroke="#363636" />
           </button>
@@ -88,7 +88,7 @@ const SidebarNav = (
               />
               <button
                 className={classes.closeButton}
-                onClick={useCallback(() => setMenuOpen(false), [])}
+                onClick={() => setMenuOpen(false)}
               >
                 <CloseIcon stroke="#363636" />
               </button>

@@ -1,8 +1,9 @@
+const { resolve } = require("dns/promises");
 const path = require("path");
 
 module.exports = {
   mode: "development",
-  entry: path.join(__dirname, "eave_playground/todoapp/js/App.jsx"),
+  entry: path.join(__dirname, "eave_playground/todoapp/js/App.tsx"),
   devtool: "eval-source-map",
   output: {
     path: path.join(__dirname, "eave_playground/todoapp/static/dist"),
@@ -10,13 +11,20 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.?(jsx|js)$/,
+        test: /\.jsx?$/,
         exclude: /node_modules/,
         use: {
           loader: "babel-loader",
           options: {
             presets: ["@babel/preset-env", "@babel/preset-react"],
           },
+        },
+      },
+      {
+        test: /\.tsx?$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "ts-loader",
         },
       },
       {
@@ -29,6 +37,16 @@ module.exports = {
       },
     ],
   },
+
+  resolve: {
+    extensions: [
+      ".ts",
+      ".tsx",
+      ".js",
+      ".jsx",
+    ],
+  },
+
   // This configuration is only used by the dev server, which we currently don't use in development.
   devServer: {
     server: "http",
