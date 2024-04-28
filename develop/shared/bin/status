@@ -1,8 +1,0 @@
-#!/usr/bin/env -S bash -eu
-
-source "${EAVE_HOME}"/develop/functions.bash
-
-(
-	statusmsg -i "Status check for $1"
-	curl -is "$1"
-)

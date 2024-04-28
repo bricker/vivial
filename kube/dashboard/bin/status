@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+set -eu
+
+watch curl -is "https://dashboard.eave.${1:-fyi}/status"

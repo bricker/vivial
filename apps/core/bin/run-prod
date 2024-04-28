@@ -1,8 +1,0 @@
-#!/usr/bin/env sh
-
-gunicorn \
-  --bind :$PORT \
-  --pythonpath vendor \
-  --workers 3 \
-  --worker-class uvicorn.workers.UvicornWorker \
-  eave.core.app:app
