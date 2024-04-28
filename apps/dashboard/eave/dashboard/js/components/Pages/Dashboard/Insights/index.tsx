@@ -15,13 +15,11 @@ const Insights = (
 ) => {
   const { classes } = makeClasses();
 
-    // route to web backend to add auth headers etc before redirecting to core api
-  // https://www.metabase.com/docs/latest/embedding/interactive-embedding#showing-or-hiding-metabase-ui-components
-  let srcRoute = "/embed/metabase";
+  let qp = "";
   if (dashRoute) {
-    srcRoute += `?return_to=${dashRoute}`;
+    qp += `return_to=${dashRoute}`;
   }
-  return <iframe src={srcRoute} className={classes.embedding}></iframe>;
+  return <iframe src={`${eaveWindow.eave.apiBase}/oauth/metabase?${qp}`} className={classes.embedding}></iframe>;
 };
 
 export default Insights;

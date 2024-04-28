@@ -7,11 +7,15 @@ import mitmproxy.http
 class NoUpstreamDefinedError(Exception):
     pass
 
+class PrivateEndpointAccessError(Exception):
+    pass
 
 def request(flow: mitmproxy.http.HTTPFlow) -> None:
     if re.search(r"\.eave\.(localhost|run)$", flow.request.host) is None:
         # do nothing
         return
+
+    is_internal = re.search(r"\.internal\.eave\.", flow.request.host)
 
     # tld = flow.request.host.split(".")[-1]
     port = None
@@ -19,6 +23,12 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
     if re.match(r"^dashboard\.", flow.request.host):
         port = 5000
     elif re.match(r"^api\.", flow.request.host):
+        # Simulate Ingress rules. This should match the Core API Kubernetes Ingress configuration.
+        if not is_internal and len(flow.request.path_components) > 0 and flow.request.path_components[0] not in ["status", "v1", "oauth", "favicon.ico"]:
+            # The first path component is not whitelisted as a public endpoint.
+            # In the real world, this would return something like a 404.
+            flow.kill()
+            raise PrivateEndpointAccessError("Private endpoints can't be accessed through public DNS. Use '.internal.eave.run' to simulate internal DNS.")
         port = 5100
     elif re.match(r"^metabase\.", flow.request.host):
         port = 5400
