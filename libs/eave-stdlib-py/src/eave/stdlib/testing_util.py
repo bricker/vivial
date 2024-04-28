@@ -327,10 +327,6 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         )
 
     def mock_google_services(self) -> None:
-        # def _get_runtimeconfig(name: str) -> str:
-        #     v: str = os.getenv(name, f"not mocked: {name}")
-        #     return v
-
         def _access_secret_version(
             request: AccessSecretVersionRequest | dict | None = None, *, name: str | None = None, **kwargs: Any
         ) -> AccessSecretVersionResponse:

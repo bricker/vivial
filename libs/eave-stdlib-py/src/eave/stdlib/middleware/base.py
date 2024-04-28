@@ -3,6 +3,7 @@ from typing import cast
 
 import aiohttp
 import asgiref.typing
+from starlette.requests import Request
 import starlette.types
 from aiohttp.compression_utils import ZLibDecompressor
 
