@@ -1,9 +1,9 @@
 import classNames from "classnames";
-import React, { useCallback, useState } from "react";
+import React, { useState } from "react";
+import { makeStyles } from "tss-react/mui";
 import { imageUrl } from "../../../../util/asset-util";
 import CloseIcon from "../../../Icons/CloseIcon";
 import HamburgerIcon from "../../../Icons/HamburgerIcon";
-import { makeStyles } from "tss-react/mui";
 
 const makeClasses = makeStyles()(() => ({
   navbar: {
@@ -56,15 +56,13 @@ const makeClasses = makeStyles()(() => ({
   },
 }));
 
-const SidebarNav = (
-  {
-    children,
-    hamburger = false,
-  }: {
-    children: React.ReactNode;
-    hamburger?: boolean;
-  }
-) => {
+const SidebarNav = ({
+  children,
+  hamburger = false,
+}: {
+  children: React.ReactNode;
+  hamburger?: boolean;
+}) => {
   const { classes } = makeClasses();
   const [menuOpen, setMenuOpen] = useState(false);
 

@@ -90,6 +90,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         self.httpclient = AsyncClient(
             app=eave.core.app.app,
             base_url=SHARED_CONFIG.eave_public_api_base,
+            # transport=transport,
         )
 
     async def asyncTearDown(self) -> None:
@@ -133,6 +134,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         payload: pydantic.BaseModel | eave.stdlib.typing.JsonObject | None = None,
         method: str = "POST",
         headers: dict[str, str | None] | None = None,
+        cookies: dict[str, str] | None = None,
         origin: eave.stdlib.eave_origins.EaveApp | None = None,
         team_id: uuid.UUID | None = None,
         account_id: uuid.UUID | None = None,
@@ -229,6 +231,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             method,
             path,
             headers=clean_headers,
+            cookies=cookies,
             **request_args,
             **kwargs,
         )
@@ -246,7 +249,6 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
     async def make_account(
         self,
         session: AsyncSession,
-        /,
         team_id: uuid.UUID | None = None,
         auth_provider: AuthProvider | None = None,
         auth_id: str | None = None,

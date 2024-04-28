@@ -1,10 +1,10 @@
-import { useContext } from "react";
-import { AppContext } from "../context/Provider";
-import { isHTTPError, isUnauthorized, logUserOut } from "../util/http-util";
-import { DashboardTeam } from "../types";
 import { VirtualEventQueryInput } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/virtual-event.js";
 import { GetTeamResponseBody } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/team.js";
 import { GetVirtualEventsResponseBody } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/virtual-event.js";
+import { useContext } from "react";
+import { AppContext } from "../context/Provider";
+import { DashboardTeam } from "../types";
+import { isHTTPError, isUnauthorized, logUserOut } from "../util/http-util";
 
 export interface TeamHook {
   team: DashboardTeam | null;
@@ -48,21 +48,19 @@ const useTeam = (): TeamHook => {
         if (isHTTPError(resp)) {
           throw resp;
         }
-        return resp
-          .json()
-          .then((data: GetTeamResponseBody) => {
-            setTeam((prev) => ({
-              ...prev,
-              id: data.team?.id,
-              name: data.team?.name,
-            }));
+        return resp.json().then((data: GetTeamResponseBody) => {
+          setTeam((prev) => ({
+            ...prev,
+            id: data.team?.id,
+            name: data.team?.name,
+          }));
 
-            setDashboardNetworkState((prev) => ({
-              ...prev,
-              teamIsLoading: false,
-              teamRequestHasSucceededAtLeastOnce: true, // continue to show the table even if a subsequent request failed.
-            }));
-          });
+          setDashboardNetworkState((prev) => ({
+            ...prev,
+            teamIsLoading: false,
+            teamRequestHasSucceededAtLeastOnce: true, // continue to show the table even if a subsequent request failed.
+          }));
+        });
       })
       .catch(() => {
         setDashboardNetworkState((prev) => ({
@@ -81,9 +79,7 @@ const useTeam = (): TeamHook => {
    * The `input` parameter is passed along for event filtering on the backend.
    * If null is provided, no filtering is expected to be done.
    */
-  function getTeamVirtualEvents(
-    input: VirtualEventQueryInput | null,
-  ) {
+  function getTeamVirtualEvents(input: VirtualEventQueryInput | null) {
     setGlossaryNetworkState((prev) => ({
       ...prev,
       virtualEventsAreLoading: true,
@@ -105,20 +101,18 @@ const useTeam = (): TeamHook => {
         if (isHTTPError(resp)) {
           throw resp;
         }
-        return resp
-          .json()
-          .then((data: GetVirtualEventsResponseBody) => {
-            setTeam((prev) => ({
-              ...prev,
-              virtualEvents: data.virtual_events,
-            }));
+        return resp.json().then((data: GetVirtualEventsResponseBody) => {
+          setTeam((prev) => ({
+            ...prev,
+            virtualEvents: data.virtual_events,
+          }));
 
-            setGlossaryNetworkState((prev) => ({
-              ...prev,
-              virtualEventsAreErroring: false,
-              virtualEventsAreLoading: false,
-            }));
-          });
+          setGlossaryNetworkState((prev) => ({
+            ...prev,
+            virtualEventsAreErroring: false,
+            virtualEventsAreLoading: false,
+          }));
+        });
       })
       .catch(() => {
         setGlossaryNetworkState((prev) => ({

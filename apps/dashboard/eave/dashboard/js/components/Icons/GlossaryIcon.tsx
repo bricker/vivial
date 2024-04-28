@@ -1,8 +1,6 @@
 import React from "react";
 
-const GlossaryIcon = (
-  { color = "black" }: { color?: string; }
-) => {
+const GlossaryIcon = ({ color = "black" }: { color?: string }) => {
   return (
     <svg
       width="48"

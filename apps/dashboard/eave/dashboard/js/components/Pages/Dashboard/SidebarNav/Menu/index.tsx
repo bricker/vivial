@@ -12,9 +12,7 @@ const makeClasses = makeStyles()(() => ({
   },
 }));
 
-const Menu = (
-  { children }: { children: React.ReactNode; }
-) => {
+const Menu = ({ children }: { children: React.ReactNode }) => {
   const { classes } = makeClasses();
   return <nav className={classes.menuList}>{children}</nav>;
 };

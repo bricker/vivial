@@ -82,7 +82,6 @@ class MetabaseEmbeddingSSO(HTTPEndpoint):
             location="/".join(
                 [
                     SHARED_CONFIG.eave_public_metabase_base,
-                    # metabase_instance.route_id, # TODO: uncomment once mb instance deployment to subpaths is setup
                     "auth",
                     f"sso?jwt={full_jwt}&return_to={return_to_str}",
                 ]

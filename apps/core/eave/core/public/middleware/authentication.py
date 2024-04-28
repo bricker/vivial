@@ -4,6 +4,7 @@ from typing import cast
 import asgiref.typing
 import starlette.types
 from starlette.datastructures import MutableHeaders
+from starlette.requests import Request
 from starlette.responses import Response
 
 import eave.core.internal
@@ -13,7 +14,7 @@ import eave.stdlib.exceptions
 import eave.stdlib.headers
 from eave.core.internal.orm.account import AccountOrm
 from eave.stdlib.api_util import get_bearer_token
-from eave.stdlib.auth_cookies import delete_auth_cookies, set_auth_cookies
+from eave.stdlib.auth_cookies import delete_auth_cookies, get_auth_cookies, set_auth_cookies
 from eave.stdlib.core_api.operations import EndpointConfiguration
 from eave.stdlib.exceptions import UnauthorizedError
 from eave.stdlib.logging import LogContext, eaveLogger
@@ -40,22 +41,34 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
             return
 
         eave_state = EaveRequestState.load(scope=scope)
-        account_id_header = eave.stdlib.api_util.get_header_value(
-            scope=scope, name=eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER
-        )
+        request = Request(scope=cast(starlette.types.Scope, scope))
+
+        # Auth can come from either:
+        # 1. Headers: Authorization, eave-account-id
+        # 2. Cookies: ev_access_token, ev_account_id
+        # Any mix is acceptable. Headers take precedence over Cookies.
+        auth_cookies = get_auth_cookies(cookies=request.cookies)
+
+        account_id = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER)
+
+        if account_id is None:
+            account_id = auth_cookies.account_id
 
         access_token = get_bearer_token(scope=scope)
 
+        if access_token is None:
+            access_token = auth_cookies.access_token
+
         try:
-            if account_id_header is None or access_token is None:
+            if account_id is None or access_token is None:
                 if not self.endpoint_config.auth_required:
                     await self.app(scope, receive, send)
                     return
                 else:
-                    raise UnauthorizedError("missing auth headers")
+                    raise UnauthorizedError("missing auth")
 
             account = await self._verify_auth(
-                account_id_header=account_id_header, access_token=access_token, ctx=eave_state.ctx
+                account_id_header=account_id, access_token=access_token, ctx=eave_state.ctx
             )
             eave_state.ctx.eave_account_id = str(account.id)
             eave_state.ctx.eave_team_id = str(account.team_id)
@@ -72,6 +85,10 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
 
             headers = MutableHeaders(raw=list(event["headers"]))
             response = Response(headers=headers)
+
+            # Set the response cookies in case the access token was refreshed.
+            # If the request came from a browser, the cookies will be automatically updated and the user session will continue.
+            # If the request came from a server, it is the client's responsibility to get and save the refreshed token from the response cookies.
             set_auth_cookies(
                 response=response,
                 team_id=account.team_id,

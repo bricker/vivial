@@ -1,4 +1,3 @@
-const { resolve } = require("dns/promises");
 const path = require("path");
 
 module.exports = {
@@ -39,12 +38,7 @@ module.exports = {
   },
 
   resolve: {
-    extensions: [
-      ".ts",
-      ".tsx",
-      ".js",
-      ".jsx",
-    ],
+    extensions: [".ts", ".tsx", ".js", ".jsx"],
   },
 
   // This configuration is only used by the dev server, which we currently don't use in development.

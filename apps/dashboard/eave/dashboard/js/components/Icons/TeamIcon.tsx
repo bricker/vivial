@@ -1,8 +1,6 @@
 import React from "react";
 
-const TeamIcon = (
-  { color = "black" }: { color?: string; }
-) => {
+const TeamIcon = ({ color = "black" }: { color?: string }) => {
   return (
     <svg
       width="48"

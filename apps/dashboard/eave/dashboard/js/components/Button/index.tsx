@@ -21,26 +21,30 @@ const makeClasses = makeStyles()(() => ({
   },
 }));
 
-const Button = (
-  {
-    children,
-    className,
-    to,
-    target,
-    color = "primary",
-    variant = "contained",
-    ...rest
-  }:
-  {
-    children: React.ReactNode;
-    className: string;
-    to?: string;
-    target?: string;
-    color?: "inherit" | "primary" | "secondary" | "success" | "error" | "info" | "warning";
-    variant: "text" | "outlined" | "contained";
-    [key:string]: any;
-  },
-) => {
+const Button = ({
+  children,
+  className,
+  to,
+  target,
+  color = "primary",
+  variant = "contained",
+  ...rest
+}: {
+  children: React.ReactNode;
+  className: string;
+  to?: string;
+  target?: string;
+  color?:
+    | "inherit"
+    | "primary"
+    | "secondary"
+    | "success"
+    | "error"
+    | "info"
+    | "warning";
+  variant: "text" | "outlined" | "contained";
+  [key: string]: any;
+}) => {
   const { classes } = makeClasses();
   const rootClass = classNames(classes.root, className);
 

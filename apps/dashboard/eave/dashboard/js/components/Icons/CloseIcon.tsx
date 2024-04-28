@@ -1,6 +1,9 @@
 import React from "react";
 
-class CloseIcon extends React.Component<{ className?: string; stroke: string }> {
+class CloseIcon extends React.Component<{
+  className?: string;
+  stroke: string;
+}> {
   override render() {
     const { className = undefined, stroke } = this.props;
     return (

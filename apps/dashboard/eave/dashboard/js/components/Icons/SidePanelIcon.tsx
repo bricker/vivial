@@ -1,8 +1,6 @@
 import React from "react";
 
-const SidePanelIcon = (
-  { color = "black" }: { color?: string; }
-) => {
+const SidePanelIcon = ({ color = "black" }: { color?: string }) => {
   return (
     <svg
       width="24"

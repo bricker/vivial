@@ -26,25 +26,22 @@ const makeClasses = makeStyles()(() => ({
   },
 }));
 
-const MenuItem = (
-  {
-    children,
-    label,
-    to,
-    selected = false,
-    expanded = false,
-    reloadDocument = false,
-  }:
-  {
-    children: React.ReactNode;
-    label: string;
-    to: string,
-    selected?: boolean;
-    expanded?: boolean;
-    reloadDocument?: boolean;
-  }
-) => {
-  const {classes} = makeClasses();
+const MenuItem = ({
+  children,
+  label,
+  to,
+  selected = false,
+  expanded = false,
+  reloadDocument = false,
+}: {
+  children: React.ReactNode;
+  label: string;
+  to: string;
+  selected?: boolean;
+  expanded?: boolean;
+  reloadDocument?: boolean;
+}) => {
+  const { classes } = makeClasses();
 
   const background = selected
     ? classes.selectedBackground

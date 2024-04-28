@@ -1,7 +1,7 @@
 import React from "react";
 
-import Header from "../../Header";
 import { makeStyles } from "tss-react/mui";
+import Header from "../../Header";
 
 const makeClasses = makeStyles()((theme) => ({
   container: {
@@ -19,9 +19,7 @@ const makeClasses = makeStyles()((theme) => ({
   },
 }));
 
-const Page = ({
-  children,
-}: { children: React.ReactNode; }) => {
+const Page = ({ children }: { children: React.ReactNode }) => {
   const { classes } = makeClasses();
   return (
     <div className={classes.container}>

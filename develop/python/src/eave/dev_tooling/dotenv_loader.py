@@ -26,7 +26,7 @@ def load_dotenv(path: str, *, override: bool = True) -> None:
 
 def load_standard_dotenv_files() -> None:
     eave_env = os.getenv("EAVE_ENV", "development")
-    load_dotenv(f".{eave_env}.env", override=False)
-    load_dotenv(".env", override=False)
-    load_dotenv(f"develop/shared/share.{eave_env}.env", override=False)
-    load_dotenv("develop/shared/share.env", override=False)
+    load_dotenv("develop/shared/share.env", override=True)
+    load_dotenv(f"develop/shared/share.{eave_env}.env", override=True)
+    load_dotenv(".env", override=True)
+    load_dotenv(f".{eave_env}.env", override=True)

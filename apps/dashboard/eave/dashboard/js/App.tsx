@@ -8,13 +8,13 @@ import {
   Routes,
 } from "react-router-dom";
 
+import { CssBaseline, ThemeProvider } from "@mui/material";
 import "../static/css/app.css";
 import AuthenticationPage from "./components/Pages/AuthenticationPage";
 import Dashboard from "./components/Pages/Dashboard";
 import ScrollToTop from "./components/ScrollToTop";
 import AppContextProvider from "./context/Provider";
 import { theme } from "./theme";
-import { CssBaseline, ThemeProvider } from "@mui/material";
 
 const App = () => {
   return (
