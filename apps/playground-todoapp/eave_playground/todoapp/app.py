@@ -1,5 +1,4 @@
 import contextlib
-import json
 from collections.abc import AsyncGenerator
 from http import HTTPStatus
 from uuid import UUID
@@ -63,6 +62,7 @@ async def delete_todo(request: Request) -> Response:
         )
 
     return Response(status_code=HTTPStatus.OK)
+
 
 async def update_todo(request: Request) -> Response:
     user_id = request.cookies.get("user_id")

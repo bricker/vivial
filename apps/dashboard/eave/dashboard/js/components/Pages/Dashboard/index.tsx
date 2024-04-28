@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from "react";
 
+import { makeStyles } from "tss-react/mui";
 import { theme } from "../../../theme";
 import GlossaryIcon from "../../Icons/GlossaryIcon";
 import GraphIcon from "../../Icons/GraphIcon";
 import SettingsCogIcon from "../../Icons/SettingsCogIcon";
 import SignOutIcon from "../../Icons/SignOutIcon";
 import TeamIcon from "../../Icons/TeamIcon";
-import Insights from "./Insights";
+import NotFound from "../NotFound";
 import Glossary from "./Glossary";
+import Insights from "./Insights";
+import Settings from "./Settings";
+import SidebarNav from "./SidebarNav";
 import Menu from "./SidebarNav/Menu";
 import MenuItem from "./SidebarNav/MenuItem";
-import SidebarNav from "./SidebarNav";
-import NotFound from "../NotFound";
-import Settings from "./Settings";
 import TeamManagement from "./TeamManagement";
-import { makeStyles } from "tss-react/mui";
 
 const makeClasses = makeStyles()(() => ({
   desktopContainer: {
@@ -37,7 +37,11 @@ function iconColor(isSelected: boolean): "white" | "black" {
   return isSelected ? "white" : "black";
 }
 
-const Dashboard = ({ page = "insights" }: { page?: "insights" | "glossary" | "settings" | "team" }) => {
+const Dashboard = ({
+  page = "insights",
+}: {
+  page?: "insights" | "glossary" | "settings" | "team";
+}) => {
   const { classes } = makeClasses();
 
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
@@ -118,19 +122,19 @@ const Dashboard = ({ page = "insights" }: { page?: "insights" | "glossary" | "se
 
   switch (page) {
     case "insights":
-      pageComponent = <Insights />
+      pageComponent = <Insights />;
       break;
     case "glossary":
-      pageComponent = <Glossary />
+      pageComponent = <Glossary />;
       break;
     case "settings":
-      pageComponent = <Settings />
+      pageComponent = <Settings />;
       break;
     case "team":
-      pageComponent = <TeamManagement />
+      pageComponent = <TeamManagement />;
       break;
     default:
-      pageComponent = <NotFound />
+      pageComponent = <NotFound />;
       break;
   }
 

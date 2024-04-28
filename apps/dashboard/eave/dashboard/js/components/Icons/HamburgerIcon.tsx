@@ -1,6 +1,9 @@
 import React from "react";
 
-class HamburgerIcon extends React.Component<{ className?: string; stroke: string; }> {
+class HamburgerIcon extends React.Component<{
+  className?: string;
+  stroke: string;
+}> {
   override render() {
     const { className = undefined, stroke } = this.props;
     return (

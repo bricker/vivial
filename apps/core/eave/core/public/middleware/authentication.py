@@ -2,9 +2,9 @@ from http import HTTPStatus
 from typing import cast
 
 import asgiref.typing
-from starlette.requests import Request
 import starlette.types
 from starlette.datastructures import MutableHeaders
+from starlette.requests import Request
 from starlette.responses import Response
 
 import eave.core.internal
@@ -49,9 +49,7 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
         # Any mix is acceptable. Headers take precedence over Cookies.
         auth_cookies = get_auth_cookies(cookies=request.cookies)
 
-        account_id = eave.stdlib.api_util.get_header_value(
-            scope=scope, name=eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER
-        )
+        account_id = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER)
 
         if account_id is None:
             account_id = auth_cookies.account_id

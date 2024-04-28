@@ -6,7 +6,6 @@ from typing import Any, Protocol, TypeVar
 from uuid import UUID
 
 import aiohttp
-import httpx
 import pydantic
 import sqlalchemy
 import sqlalchemy.orm

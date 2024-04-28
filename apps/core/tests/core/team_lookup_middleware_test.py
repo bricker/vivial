@@ -1,6 +1,7 @@
 from http import HTTPStatus
 
 from aiohttp.hdrs import AUTHORIZATION
+
 from eave.stdlib.auth_cookies import EAVE_TEAM_ID_COOKIE_NAME
 from eave.stdlib.core_api.operations.status import Status
 from eave.stdlib.core_api.operations.team import GetTeamRequest
@@ -69,9 +70,7 @@ class TestTeamLookupMiddleware(BaseTestCase):
                 EAVE_ACCOUNT_ID_HEADER: str(self._account.id),
                 AUTHORIZATION: f"Bearer {self._account.access_token}",
             },
-            cookies={
-                EAVE_TEAM_ID_COOKIE_NAME: str(self._team.id)
-            }
+            cookies={EAVE_TEAM_ID_COOKIE_NAME: str(self._team.id)},
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -84,9 +83,7 @@ class TestTeamLookupMiddleware(BaseTestCase):
                 EAVE_ACCOUNT_ID_HEADER: str(self._account.id),
                 AUTHORIZATION: f"Bearer {self._account.access_token}",
             },
-            cookies={
-                EAVE_TEAM_ID_COOKIE_NAME: self.anystr()
-            }
+            cookies={EAVE_TEAM_ID_COOKIE_NAME: self.anystr()},
         )
 
         assert response.status_code == HTTPStatus.OK

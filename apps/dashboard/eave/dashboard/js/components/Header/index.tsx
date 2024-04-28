@@ -1,6 +1,6 @@
 import React from "react";
-import EaveLogo from "../EaveLogo";
 import { makeStyles } from "tss-react/mui";
+import EaveLogo from "../EaveLogo";
 
 const makeClasses = makeStyles()((theme) => ({
   outerContainer: {

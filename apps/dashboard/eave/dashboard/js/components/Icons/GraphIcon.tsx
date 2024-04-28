@@ -1,8 +1,6 @@
 import React from "react";
 
-const GraphIcon = (
-  { color = "black" }: { color?: string; }
-) => {
+const GraphIcon = ({ color = "black" }: { color?: string }) => {
   return (
     <svg
       width="41"

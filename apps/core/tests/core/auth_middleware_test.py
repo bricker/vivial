@@ -1,10 +1,8 @@
 import unittest.mock
 from http import HTTPStatus
 
-from aiohttp.hdrs import AUTHORIZATION
-from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount
-from eave.stdlib.headers import EAVE_ACCOUNT_ID_HEADER, EAVE_TEAM_ID_HEADER
 import google.oauth2.credentials
+from aiohttp.hdrs import AUTHORIZATION
 
 from eave.core.internal.oauth.google import GoogleOAuthV2GetResponse
 from eave.core.internal.orm.account import AccountOrm
@@ -14,6 +12,8 @@ from eave.stdlib.auth_cookies import (
     EAVE_TEAM_ID_COOKIE_NAME,
 )
 from eave.stdlib.core_api.models.account import AuthProvider
+from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount
+from eave.stdlib.headers import EAVE_ACCOUNT_ID_HEADER, EAVE_TEAM_ID_HEADER
 
 from .base import BaseTestCase
 
@@ -217,6 +217,7 @@ class TestAuthenticationMiddlewareRequiredValidRequest(TestAuthenticationMiddlew
         assert eave_account.access_token == self.getstr("refreshed_token")
         assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) == self.getstr("refreshed_token")
 
+
 class TestAuthenticationMiddlewareWithCookies(TestAuthenticationMiddlewareBase):
     async def test_valid_auth_with_cookies(self) -> None:
         response = await self.make_request(
@@ -225,7 +226,7 @@ class TestAuthenticationMiddlewareWithCookies(TestAuthenticationMiddlewareBase):
                 EAVE_ACCOUNT_ID_COOKIE_NAME: str(self._eave_account.id),
                 EAVE_TEAM_ID_COOKIE_NAME: str(self._eave_account.team_id),
                 EAVE_ACCESS_TOKEN_COOKIE_NAME: str(self._eave_account.access_token),
-            }
+            },
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -262,7 +263,7 @@ class TestAuthenticationMiddlewareWithCookies(TestAuthenticationMiddlewareBase):
                 EAVE_ACCOUNT_ID_COOKIE_NAME: str(self._eave_account.id),
                 EAVE_TEAM_ID_COOKIE_NAME: str(self._eave_account.team_id),
                 EAVE_ACCESS_TOKEN_COOKIE_NAME: str(self._eave_account.access_token),
-            }
+            },
         )
 
         async with self.db_session.begin() as s:
@@ -281,7 +282,7 @@ class TestAuthenticationMiddlewareWithCookies(TestAuthenticationMiddlewareBase):
                 EAVE_ACCOUNT_ID_COOKIE_NAME: str(self._eave_account.id),
                 EAVE_TEAM_ID_COOKIE_NAME: str(self._eave_account.team_id),
                 EAVE_ACCESS_TOKEN_COOKIE_NAME: str(self._eave_account.access_token),
-            }
+            },
         )
 
         async with self.db_session.begin() as s:

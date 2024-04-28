@@ -1,144 +1,145 @@
+import { VirtualEvent } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/virtual-event.js";
+import { CircularProgress } from "@mui/material";
 import classNames from "classnames";
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import { makeStyles } from "tss-react/mui";
 import { AppContext } from "../../../../context/Provider";
 import useTeam from "../../../../hooks/useTeam";
 import { theme as eaveTheme } from "../../../../theme";
-import CloseIcon from "../../../Icons/CloseIcon";
 import SearchIcon from "../../../Icons/SearchIcon";
 import SidePanelIcon from "../../../Icons/SidePanelIcon";
-import { VirtualEvent } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/virtual-event.js";
-import { CircularProgress } from "@mui/material";
-import { makeStyles } from "tss-react/mui";
 
-const makeClasses = makeStyles<void, "hoverIcon">()((theme, _params, classes) => ({
-  glossary: {
-    padding: "10px 24px",
-    overflowY: "scroll",
-    flex: 3,
-  },
-  header: {
-    fontSize: 34,
-    fontWeight: 400,
-  },
-  searchBar: {
-    maxWidth: 789,
-    minWidth: "calc(100vw / 2)",
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    textAlign: "center",
-    borderRadius: 20,
-    backgroundColor: "#f1f1f1",
-    boxSizing: "border-box",
-    padding: 12,
-    marginTop: 18,
-    "&:focus-within": {
-      outline: "2px solid",
+const makeClasses = makeStyles<void, "hoverIcon">()(
+  (theme, _params, classes) => ({
+    glossary: {
+      padding: "10px 24px",
+      overflowY: "scroll",
+      flex: 3,
     },
-  },
-  searchIcon: {
-    position: "relative",
-    top: 3,
-  },
-  searchInput: {
-    backgroundColor: "transparent",
-    outline: "none",
-    fontSize: 16,
-    padding: "1px 10px",
-    border: "none",
-    flexGrow: 1,
-  },
-  table: {
-    borderCollapse: "collapse",
-    fontSize: 14,
-    marginTop: 60,
-  },
-  tableValue: {
-    textAlign: "left",
-    padding: "12px 24px",
-  },
-  columnWidthLimit: {
-    maxWidth: "calc(100vw / 3)",
-  },
-  tableHeader: {
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-  tableRow: {
-    "&:nth-child(even)": {
+    header: {
+      fontSize: 34,
+      fontWeight: 400,
+    },
+    searchBar: {
+      maxWidth: 789,
+      minWidth: "calc(100vw / 2)",
+      display: "flex",
+      flexDirection: "row",
+      alignItems: "center",
+      textAlign: "center",
+      borderRadius: 20,
+      backgroundColor: "#f1f1f1",
+      boxSizing: "border-box",
+      padding: 12,
+      marginTop: 18,
+      "&:focus-within": {
+        outline: "2px solid",
+      },
+    },
+    searchIcon: {
+      position: "relative",
+      top: 3,
+    },
+    searchInput: {
+      backgroundColor: "transparent",
+      outline: "none",
+      fontSize: 16,
+      padding: "1px 10px",
+      border: "none",
+      flexGrow: 1,
+    },
+    table: {
+      borderCollapse: "collapse",
+      fontSize: 14,
+      marginTop: 60,
+    },
+    tableValue: {
+      textAlign: "left",
+      padding: "12px 24px",
+    },
+    columnWidthLimit: {
+      maxWidth: "calc(100vw / 3)",
+    },
+    tableHeader: {
+      fontWeight: "bold",
+      fontSize: 16,
+    },
+    tableRow: {
+      "&:nth-child(even)": {
+        backgroundColor: "#e5e9f5",
+      },
+    },
+    rowHighlight: {
+      "&:hover": {
+        backgroundColor: "#36363666",
+        cursor: "pointer",
+      },
+      [`&:hover ${classes.hoverIcon}`]: {
+        opacity: 100,
+      },
+    },
+    hoverIcon: {
+      opacity: 0,
+    },
+    root: {
+      display: "flex",
+      flexDirection: "row",
+      wordWrap: "break-word",
+      overflowX: "hidden",
+    },
+    panelContainer: {
+      position: "sticky",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "flex-start",
+      height: "100vh",
+      maxWidth: "100vw / 4",
       backgroundColor: "#e5e9f5",
+      [theme.breakpoints.up("md")]: {
+        transition: "1s cubic-bezier(.36,-0.01,0,.77)",
+      },
+      padding: 24,
+      overflow: "auto",
+      flex: 1,
     },
-  },
-  rowHighlight: {
-    "&:hover": {
-      backgroundColor: "#36363666",
+    panelHidden: {
+      flex: 0,
+      padding: 0, // any padding keeps the panel visible
+    },
+    closeButton: {
+      alignSelf: "flex-end",
       cursor: "pointer",
+      border: "none",
+      backgroundColor: "transparent",
     },
-    [`&:hover ${classes.hoverIcon}`]: {
-      opacity: 100,
+    panelTitle: {
+      // prevent long event names from stretching out of bounds
+      wordWrap: "break-word",
+      maxWidth: "80vw",
+      [theme.breakpoints.up("md")]: {
+        maxWidth: "calc(100vw / 5)",
+      },
     },
-  },
-  hoverIcon: {
-    opacity: 0,
-  },
-  root: {
-    display: "flex",
-    flexDirection: "row",
-    wordWrap: "break-word",
-    overflowX: "hidden",
-  },
-  panelContainer: {
-    position: "sticky",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-start",
-    height: "100vh",
-    maxWidth: "100vw / 4",
-    backgroundColor: "#e5e9f5",
-    [theme.breakpoints.up("md")]: {
-      transition: "1s cubic-bezier(.36,-0.01,0,.77)",
+    loader: {
+      display: "flex",
+      width: "100%",
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: 32,
     },
-    padding: 24,
-    overflow: "auto",
-    flex: 1,
-  },
-  panelHidden: {
-    flex: 0,
-    padding: 0, // any padding keeps the panel visible
-  },
-  closeButton: {
-    alignSelf: "flex-end",
-    cursor: "pointer",
-    border: "none",
-    backgroundColor: "transparent",
-  },
-  panelTitle: {
-    // prevent long event names from stretching out of bounds
-    wordWrap: "break-word",
-    maxWidth: "80vw",
-    [theme.breakpoints.up("md")]: {
-      maxWidth: "calc(100vw / 5)",
+    noEventsHeader: {
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
     },
-  },
-  loader: {
-    display: "flex",
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 32,
-  },
-  noEventsHeader: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  error: {
-    color: theme.palette.error.main,
-    padding: "0px 30px",
-    textAlign: "center",
-    fontSize: "26px",
-  },
-}));
+    error: {
+      color: theme.palette.error.main,
+      padding: "0px 30px",
+      textAlign: "center",
+      fontSize: "26px",
+    },
+  }),
+);
 
 const Glossary = () => {
   const { classes } = makeClasses();
@@ -148,10 +149,8 @@ const Glossary = () => {
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
   const { team, getTeamVirtualEvents } = useTeam();
 
-  const {
-    glossaryNetworkStateCtx,
-  } = useContext(AppContext);
-  const [networkState,] = glossaryNetworkStateCtx!;
+  const { glossaryNetworkStateCtx } = useContext(AppContext);
+  const [networkState] = glossaryNetworkStateCtx!;
 
   // initial data load
   useEffect(() => {
@@ -160,7 +159,9 @@ const Glossary = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      setUsingMobileLayout(window.innerWidth <= eaveTheme.breakpoints.values.md);
+      setUsingMobileLayout(
+        window.innerWidth <= eaveTheme.breakpoints.values.md,
+      );
     };
 
     handleResize();
@@ -204,29 +205,16 @@ const Glossary = () => {
       <table className={classes.table}>
         <tbody>
           <tr className={classes.tableRow}>
-            <th
-              className={classNames(
-                classes.tableValue,
-                classes.tableHeader,
-              )}
-            >
+            <th className={classNames(classes.tableValue, classes.tableHeader)}>
               Event Name
             </th>
-            <th
-              className={classNames(
-                classes.tableValue,
-                classes.tableHeader,
-              )}
-            >
+            <th className={classNames(classes.tableValue, classes.tableHeader)}>
               Event Description
             </th>
           </tr>
           {team.virtualEvents.map((event) => (
             <tr
-              className={classNames(
-                classes.tableRow,
-                classes.rowHighlight,
-              )}
+              className={classNames(classes.tableRow, classes.rowHighlight)}
               key={event.readable_name}
               tabIndex={0}
               aria-label={`${event.readable_name}: ${event.description}`}
@@ -246,15 +234,10 @@ const Glossary = () => {
               >
                 {event.readable_name}
               </td>
-              <td className={classes.tableValue}>
-                {event.description}
-              </td>
+              <td className={classes.tableValue}>{event.description}</td>
               <td>
                 <span
-                  className={classNames(
-                    classes.hoverIcon,
-                    classes.tableValue,
-                  )}
+                  className={classNames(classes.hoverIcon, classes.tableValue)}
                 >
                   <SidePanelIcon color="#363636" />
                 </span>
@@ -264,19 +247,14 @@ const Glossary = () => {
         </tbody>
       </table>
     );
-
-  }
-
-  else if (networkState.virtualEventsAreLoading) {
+  } else if (networkState.virtualEventsAreLoading) {
     // show loading state
     component = (
       <div className={classes.loader}>
         <CircularProgress color="secondary" />
       </div>
     );
-  }
-
-  else if (networkState.virtualEventsAreErroring) {
+  } else if (networkState.virtualEventsAreErroring) {
     // show err state
     component = (
       <div className={classes.error}>
@@ -284,9 +262,7 @@ const Glossary = () => {
         {searchValue ? `for searched term "${searchValue}"` : ""}
       </div>
     );
-  }
-
-  else {
+  } else {
     // not loading/erroring and no events found
     component = (
       <div className={classes.noEventsHeader}>
@@ -298,22 +274,20 @@ const Glossary = () => {
   let sidepanelContent: React.ReactElement;
 
   if (selectedEvent) {
-    sidepanelContent = (<>
-      <h1 className={classes.panelTitle}>{selectedEvent.readable_name}</h1>
-      <p>{selectedEvent.description}</p>
-      <div>
-        TODO add fields column to VirtualEventOrm
-        {/* {selectedEvent.fields.map((field) => {
+    sidepanelContent = (
+      <>
+        <h1 className={classes.panelTitle}>{selectedEvent.readable_name}</h1>
+        <p>{selectedEvent.description}</p>
+        <div>
+          TODO add fields column to VirtualEventOrm
+          {/* {selectedEvent.fields.map((field) => {
           return <p key={field}>{field}</p>;
         })} */}
-      </div>
-    </>);
-  }
-
-  else {
-    sidepanelContent = (
-      <p>Select an event to see details.</p>
-    )
+        </div>
+      </>
+    );
+  } else {
+    sidepanelContent = <p>Select an event to see details.</p>;
   }
 
   return (

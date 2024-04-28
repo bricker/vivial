@@ -1,8 +1,6 @@
 import React from "react";
 
-function GoogleIcon(
-  { className = undefined }: { className?: string; }
-) {
+function GoogleIcon({ className = undefined }: { className?: string }) {
   return (
     <svg
       className={className}

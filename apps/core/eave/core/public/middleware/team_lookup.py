@@ -1,10 +1,9 @@
-from typing import cast
 import uuid
+from typing import cast
 
 import asgiref.typing
-from eave.stdlib.auth_cookies import get_auth_cookies
-from starlette.requests import Request
 import starlette.types
+from starlette.requests import Request
 
 import eave.core.internal
 import eave.core.public
@@ -12,6 +11,7 @@ import eave.stdlib.api_util
 import eave.stdlib.exceptions
 import eave.stdlib.headers
 from eave.core.internal.orm.team import TeamOrm
+from eave.stdlib.auth_cookies import get_auth_cookies
 from eave.stdlib.core_api.operations import EndpointConfiguration
 from eave.stdlib.middleware.base import EaveASGIMiddleware
 from eave.stdlib.request_state import EaveRequestState
@@ -45,9 +45,7 @@ class TeamLookupASGIMiddleware(EaveASGIMiddleware):
         # The header take precedence over the cookies, in case both are given.
         auth_cookies = get_auth_cookies(cookies=request.cookies)
 
-        team_id = eave.stdlib.api_util.get_header_value(
-            scope=scope, name=eave.stdlib.headers.EAVE_TEAM_ID_HEADER
-        )
+        team_id = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.EAVE_TEAM_ID_HEADER)
 
         if team_id is None:
             team_id = auth_cookies.team_id

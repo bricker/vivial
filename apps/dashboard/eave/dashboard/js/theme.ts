@@ -4,8 +4,8 @@ export interface EaveHeaderStyle {
   height: number;
   marginBottom: number;
   md: {
-      height: number;
-      marginBottom: number;
+    height: number;
+    marginBottom: number;
   };
 }
 
@@ -13,7 +13,7 @@ export interface EaveFooterStyle {
   height: number;
 }
 
-declare module '@mui/material/styles' {
+declare module "@mui/material/styles" {
   interface BreakpointOverrides {
     xs: true;
     sm: true;

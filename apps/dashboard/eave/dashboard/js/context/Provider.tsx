@@ -1,15 +1,28 @@
 import React, { createContext, useState } from "react";
-import { DashboardNetworkState, DashboardTeam, GlossaryNetworkState } from "../types";
+import {
+  DashboardNetworkState,
+  DashboardTeam,
+  GlossaryNetworkState,
+} from "../types";
 
 export type AppContextProps = {
-  teamCtx?: [DashboardTeam | null, React.Dispatch<React.SetStateAction<DashboardTeam | null>>];
-  dashboardNetworkStateCtx?: [DashboardNetworkState, React.Dispatch<React.SetStateAction<DashboardNetworkState>>];
-  glossaryNetworkStateCtx?: [GlossaryNetworkState, React.Dispatch<React.SetStateAction<GlossaryNetworkState>>]
-}
+  teamCtx?: [
+    DashboardTeam | null,
+    React.Dispatch<React.SetStateAction<DashboardTeam | null>>,
+  ];
+  dashboardNetworkStateCtx?: [
+    DashboardNetworkState,
+    React.Dispatch<React.SetStateAction<DashboardNetworkState>>,
+  ];
+  glossaryNetworkStateCtx?: [
+    GlossaryNetworkState,
+    React.Dispatch<React.SetStateAction<GlossaryNetworkState>>,
+  ];
+};
 
 export const AppContext = createContext<AppContextProps>({});
 
-const AppContextProvider = ({ children }: { children: React.ReactNode; }) => {
+const AppContextProvider = ({ children }: { children: React.ReactNode }) => {
   const teamCtx = useState<DashboardTeam | null>(null);
 
   const dashboardNetworkStateCtx = useState<DashboardNetworkState>({

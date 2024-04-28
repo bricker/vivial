@@ -1,11 +1,11 @@
+import { Typography } from "@mui/material";
 import React from "react";
+import { makeStyles } from "tss-react/mui";
+import { eaveWindow } from "../../../types";
 import { imageUrl } from "../../../util/asset-util";
 import Button from "../../Button";
 import GoogleIcon from "../../Icons/GoogleIcon";
 import Page from "../Page";
-import { makeStyles } from "tss-react/mui";
-import { Typography } from "@mui/material";
-import { eaveWindow } from "../../../types";
 
 const makeClasses = makeStyles()((theme) => ({
   container: {
@@ -93,9 +93,7 @@ const makeClasses = makeStyles()((theme) => ({
   },
 }));
 
-const AuthenticationPage = (
-  { type }: { type: "signup" | "login" }
-) => {
+const AuthenticationPage = ({ type }: { type: "signup" | "login" }) => {
   const { classes } = makeClasses();
   // if isLoginMode is false, then we are in sign up mode
   const isLoginMode = type === "login";

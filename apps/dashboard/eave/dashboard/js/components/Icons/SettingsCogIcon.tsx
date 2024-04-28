@@ -1,8 +1,6 @@
 import React from "react";
 
-const SettingsCogIcon = (
-  { color = "black" }: { color?: string; }
-) => {
+const SettingsCogIcon = ({ color = "black" }: { color?: string }) => {
   return (
     <svg
       width="48"

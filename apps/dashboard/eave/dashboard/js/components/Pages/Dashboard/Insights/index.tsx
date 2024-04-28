@@ -10,16 +10,19 @@ const makeClasses = makeStyles()(() => ({
   },
 }));
 
-const Insights = (
-  { dashRoute = undefined }: { dashRoute?: string }
-) => {
+const Insights = ({ dashRoute = undefined }: { dashRoute?: string }) => {
   const { classes } = makeClasses();
 
   let qp = "";
   if (dashRoute) {
     qp += `return_to=${dashRoute}`;
   }
-  return <iframe src={`${eaveWindow.eave.apiBase}/oauth/metabase?${qp}`} className={classes.embedding}></iframe>;
+  return (
+    <iframe
+      src={`${eaveWindow.eave.apiBase}/oauth/metabase?${qp}`}
+      className={classes.embedding}
+    ></iframe>
+  );
 };
 
 export default Insights;

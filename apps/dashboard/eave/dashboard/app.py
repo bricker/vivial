@@ -3,10 +3,9 @@ from functools import wraps
 from http import HTTPStatus
 
 from aiohttp import ClientResponseError
-from eave.stdlib.headers import MIME_TYPE_JSON
 from starlette.applications import Starlette
 from starlette.requests import Request
-from starlette.responses import JSONResponse, RedirectResponse, Response
+from starlette.responses import RedirectResponse, Response
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
@@ -16,12 +15,12 @@ import eave.stdlib.requests_util
 import eave.stdlib.time
 from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
 from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
 from eave.stdlib.core_api.models.virtual_event import VirtualEventQueryInput
-from eave.stdlib.core_api.operations import account, team, virtual_event
+from eave.stdlib.core_api.operations import team, virtual_event
 from eave.stdlib.core_api.operations.status import status_payload
 from eave.stdlib.endpoints import BaseResponseBody
 from eave.stdlib.exceptions import UnauthorizedError
+from eave.stdlib.headers import MIME_TYPE_JSON
 from eave.stdlib.util import ensure_uuid, unwrap
 from eave.stdlib.utm_cookies import set_tracking_cookies
 
