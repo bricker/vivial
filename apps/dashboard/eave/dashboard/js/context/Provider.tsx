@@ -3,7 +3,7 @@ import {
   DashboardNetworkState,
   DashboardTeam,
   GlossaryNetworkState,
-} from "../types";
+} from "$eave-dashboard/js/types";
 
 export type AppContextProps = {
   teamCtx?: [

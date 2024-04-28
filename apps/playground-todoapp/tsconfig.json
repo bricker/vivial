@@ -1,5 +1,5 @@
 {
-  "extends": "./node_modules/@eave-fyi/eave-stdlib-ts/src/tsconfig-base.json",
+  "extends": "../../libs/eave-stdlib-ts/src/tsconfig-base.json",
   "include": [
     "eave_playground/todoapp/js/**/*.ts",
     "eave_playground/todoapp/js/**/*.tsx",

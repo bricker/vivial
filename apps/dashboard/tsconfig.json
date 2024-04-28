@@ -1,5 +1,5 @@
 {
-  "extends": "./node_modules/@eave-fyi/eave-stdlib-ts/src/tsconfig-base.json",
+  "extends": "../../libs/eave-stdlib-ts/src/tsconfig-base.json",
   "include": [
     "eave/dashboard/js/**/*.ts",
     "eave/dashboard/js/**/*.tsx",
@@ -11,6 +11,10 @@
     // "typeRoots": ["./node_modules/@types", "./node_modules/@eave-fyi/eave-stdlib-ts/src/@types", "./node_modules/@eave-fyi/eave-stdlib-ts/src/core-api/models", "../../node_modules/@types"],
     "esModuleInterop": true,
     "allowJs": true,
-    "lib": ["ES2021", "DOM"]
-  }
+    "lib": ["ES2021", "DOM"],
+    "paths": {
+      "$eave-dashboard/*": ["./eave/dashboard/*"],
+      "$eave-stdlib-ts/*": ["../../libs/eave-stdlib-ts/*"]
+    }
+  },
 }

@@ -21,7 +21,6 @@
     "webpack": "^5.75.0",
     "webpack-cli": "^5.0.1",
     "webpack-dev-server": "^4.11.1",
-    "@eave-fyi/eave-stdlib-ts": "file:../../libs/eave-stdlib-ts"
   },
   "eslintConfig": {
     "parserOptions": {

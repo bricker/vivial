@@ -1,11 +1,11 @@
 import { Typography } from "@mui/material";
 import React from "react";
 import { makeStyles } from "tss-react/mui";
-import { eaveWindow } from "../../../types";
-import { imageUrl } from "../../../util/asset-util";
-import Button from "../../Button";
-import GoogleIcon from "../../Icons/GoogleIcon";
-import Page from "../Page";
+import Page from "../Page/index";
+import { imageUrl } from "$eave-dashboard/js/util/asset-util";
+import Button from "$eave-dashboard/js/components/Button";
+import { eaveWindow } from "$eave-dashboard/js/types";
+import GoogleIcon from "$eave-dashboard/js/components/Icons/GoogleIcon";
 
 const makeClasses = makeStyles()((theme) => ({
   container: {

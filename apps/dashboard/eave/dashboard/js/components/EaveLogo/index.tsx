@@ -1,7 +1,7 @@
+import { imageUrl } from "$eave-dashboard/js/util/asset-util";
 import React from "react";
 import { Link } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
-import { imageUrl } from "../../util/asset-util";
 
 const makeClasses = makeStyles()((theme) => ({
   logoContainer: {

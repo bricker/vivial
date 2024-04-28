@@ -1,13 +1,13 @@
-import { VirtualEvent } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/virtual-event.js";
+import { VirtualEvent } from "$eave-stdlib-ts/src/core-api/models/virtual-event.js";
 import { CircularProgress } from "@mui/material";
 import classNames from "classnames";
 import React, { useContext, useEffect, useState } from "react";
 import { makeStyles } from "tss-react/mui";
-import { AppContext } from "../../../../context/Provider";
-import useTeam from "../../../../hooks/useTeam";
-import { theme as eaveTheme } from "../../../../theme";
-import SearchIcon from "../../../Icons/SearchIcon";
-import SidePanelIcon from "../../../Icons/SidePanelIcon";
+import { AppContext } from "$eave-dashboard/js/context/Provider";
+import useTeam from "$eave-dashboard/js/hooks/useTeam";
+import SidePanelIcon from "$eave-dashboard/js/components/Icons/SidePanelIcon";
+import SearchIcon from "$eave-dashboard/js/components/Icons/SearchIcon";
+import { theme as eaveTheme } from "$eave-dashboard/js/theme";
 
 const makeClasses = makeStyles<void, "hoverIcon">()(
   (theme, _params, classes) => ({

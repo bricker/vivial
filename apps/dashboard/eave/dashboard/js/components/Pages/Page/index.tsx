@@ -1,7 +1,7 @@
+import Header from "$eave-dashboard/js/components/Header/index";
 import React from "react";
 
 import { makeStyles } from "tss-react/mui";
-import Header from "../../Header";
 
 const makeClasses = makeStyles()((theme) => ({
   container: {

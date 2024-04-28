@@ -39,6 +39,10 @@ module.exports = {
 
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx"],
+    alias: {
+      "$eave-dashboard": path.resolve(__dirname, 'eave/dashboard'),
+      "$eave-stdlib-ts": path.resolve(__dirname, '../../libs/eave-stdlib-ts'),
+    },
   },
 
   // This configuration is only used by the dev server, which we currently don't use in development.

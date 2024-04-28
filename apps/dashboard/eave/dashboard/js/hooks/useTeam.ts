@@ -1,10 +1,10 @@
-import { VirtualEventQueryInput } from "@eave-fyi/eave-stdlib-ts/src/core-api/models/virtual-event.js";
-import { GetTeamResponseBody } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/team.js";
-import { GetVirtualEventsResponseBody } from "@eave-fyi/eave-stdlib-ts/src/core-api/operations/virtual-event.js";
+import { AppContext } from "$eave-dashboard/js/context/Provider";
+import { DashboardTeam } from "$eave-dashboard/js/types";
+import { isHTTPError, isUnauthorized, logUserOut } from "$eave-dashboard/js/util/http-util";
+import { VirtualEventQueryInput } from "$eave-stdlib-ts/src/core-api/models/virtual-event.js";
+import { GetTeamResponseBody } from "$eave-stdlib-ts/src/core-api/operations/team.js";
+import { GetVirtualEventsResponseBody } from "$eave-stdlib-ts/src/core-api/operations/virtual-event.js";
 import { useContext } from "react";
-import { AppContext } from "../context/Provider";
-import { DashboardTeam } from "../types";
-import { isHTTPError, isUnauthorized, logUserOut } from "../util/http-util";
 
 export interface TeamHook {
   team: DashboardTeam | null;

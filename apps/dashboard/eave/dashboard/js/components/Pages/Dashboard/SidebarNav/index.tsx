@@ -1,9 +1,9 @@
+import CloseIcon from "$eave-dashboard/js/components/Icons/CloseIcon";
+import HamburgerIcon from "$eave-dashboard/js/components/Icons/HamburgerIcon";
+import { imageUrl } from "$eave-dashboard/js/util/asset-util";
 import classNames from "classnames";
 import React, { useState } from "react";
 import { makeStyles } from "tss-react/mui";
-import { imageUrl } from "../../../../util/asset-util";
-import CloseIcon from "../../../Icons/CloseIcon";
-import HamburgerIcon from "../../../Icons/HamburgerIcon";
 
 const makeClasses = makeStyles()(() => ({
   navbar: {
