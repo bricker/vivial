@@ -1,9 +1,10 @@
 import contextlib
 from collections.abc import AsyncGenerator
 from http import HTTPStatus
+import json
+import os
 from uuid import UUID
 
-from eave.stdlib.core_api.operations.status import status_payload
 from sqlalchemy import and_, delete, select, update
 from starlette.applications import Starlette
 from starlette.requests import Request
@@ -120,8 +121,15 @@ def web_app(request: Request) -> Response:
 
 
 def status_endpoint(request: Request) -> Response:
-    model = status_payload()
-    response = Response(content=model.json(), status_code=HTTPStatus.OK)
+    # This doesn't use the shared status_endpoint function, because this app deliberately doesn't use the eave stdlib.
+    body = {
+        "service": os.getenv("GAE_SERVICE", "unknown"),
+        "version": os.getenv("GAE_VERSION", "unknown"),
+        "release_date": os.getenv("GAE_RELEASE_DATE", "unknown"),
+        "status": "OK",
+    }
+
+    response = JSONResponse(content=body, status_code=HTTPStatus.OK)
     return response
 
 @contextlib.asynccontextmanager
