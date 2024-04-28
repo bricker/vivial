@@ -14,6 +14,11 @@
     "lib": ["ES2021", "DOM"],
     "paths": {
       "$eave-dashboard/*": ["./eave/dashboard/*"],
+      // eave-stdlib-ts is imported relative in monorepo instead of installed as a development dependency.
+      // eave-stdlib-ts is a node library, and not suitable for the browser.
+      // However, it contains type definitions that are useful during development of the React app.
+      // If we installed the library as a development dependency, it would bring in all of its dependencies, eg Google Cloud libraries, Redis, etc.
+      // By importing the type definitions directly, we avoid all that, and the types are all erased when compiled to javascript anyways.
       "$eave-stdlib-ts/*": ["../../libs/eave-stdlib-ts/*"]
     }
   },

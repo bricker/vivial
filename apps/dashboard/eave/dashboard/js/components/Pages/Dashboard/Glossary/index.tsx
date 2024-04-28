@@ -1,4 +1,4 @@
-import { VirtualEvent } from "$eave-stdlib-ts/src/core-api/models/virtual-event.js";
+import type { VirtualEvent } from "$eave-stdlib-ts/src/core-api/models/virtual-event.js";
 import { CircularProgress } from "@mui/material";
 import classNames from "classnames";
 import React, { useContext, useEffect, useState } from "react";

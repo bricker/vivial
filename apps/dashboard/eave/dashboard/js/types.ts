@@ -1,4 +1,4 @@
-import { VirtualEvent } from "$eave-stdlib-ts/src/core-api/models/virtual-event.js";
+import type { VirtualEvent } from "$eave-stdlib-ts/src/core-api/models/virtual-event.js";
 
 export type GlobalEaveWindow = Window &
   typeof globalThis & {
