@@ -43,11 +43,12 @@ RUN apt-get update && apt-get install -y git
 RUN mkdir -p ${EAVE_HOME}
 COPY apps/dashboard ${EAVE_HOME}/apps/dashboard
 COPY libs ${EAVE_HOME}/libs
+COPY packages ${EAVE_HOME}/packages
 
 WORKDIR ${EAVE_HOME}/apps/dashboard
 
 # Build the client bundle.
-RUN npm ci --force
+RUN npm ci
 RUN npx webpack build --mode=production --no-devtool
 
 

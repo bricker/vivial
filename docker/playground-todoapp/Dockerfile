@@ -42,11 +42,13 @@ RUN apt-get update && apt-get install -y git
 # Copy relevant files
 RUN mkdir -p ${EAVE_HOME}
 COPY apps/playground-todoapp ${EAVE_HOME}/apps/playground-todoapp
+COPY packages ${EAVE_HOME}/packages
+COPY libs ${EAVE_HOME}/libs
 
 WORKDIR ${EAVE_HOME}/apps/playground-todoapp
 
 # Build the client bundle.
-RUN npm ci --force
+RUN npm ci
 RUN npx webpack build --mode=production --no-devtool
 
 
