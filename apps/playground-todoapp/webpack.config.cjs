@@ -1,4 +1,3 @@
-const { resolve } = require("dns/promises");
 const path = require("path");
 
 module.exports = {

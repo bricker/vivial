@@ -145,7 +145,7 @@ const Glossary = () => {
   const { classes } = makeClasses();
   const [searchValue, setSearchValue] = useState("");
   const [selectedEvent, setSelectedEvent] = useState<VirtualEvent | null>(null);
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, _setIsOpen] = useState(true);
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
   const { team, getTeamVirtualEvents } = useTeam();
 
