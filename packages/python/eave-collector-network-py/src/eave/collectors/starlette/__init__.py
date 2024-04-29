@@ -20,7 +20,6 @@ from functools import wraps
 from timeit import default_timer
 
 from asgiref.compatibility import guarantee_single_callable
-from eave.collectors.core.datastructures import NetworkInEventPayload, NetworkOutEventPayload
 from starlette import applications
 from starlette.requests import Request
 from starlette.responses import Response
@@ -28,59 +27,60 @@ from starlette.routing import Match
 
 from eave.collectors.core.base_collector import BaseCollector
 from eave.collectors.core.correlation_context import corr_ctx
+from eave.collectors.core.datastructures import NetworkInEventPayload, NetworkOutEventPayload
 
 
-class ASGIGetter:
-    def get(self, carrier: dict, key: str) -> list[str] | None:
-        """Getter implementation to retrieve a HTTP header value from the ASGI
-        scope.
+# class ASGIGetter:
+#     def get(self, carrier: dict, key: str) -> list[str] | None:
+#         """Getter implementation to retrieve a HTTP header value from the ASGI
+#         scope.
 
-        Args:
-            carrier: ASGI scope object
-            key: header name in scope
-        Returns:
-            A list with a single string with the header value if it exists,
-                else None.
-        """
-        headers = carrier.get("headers")
-        if not headers:
-            return None
+#         Args:
+#             carrier: ASGI scope object
+#             key: header name in scope
+#         Returns:
+#             A list with a single string with the header value if it exists,
+#                 else None.
+#         """
+#         headers = carrier.get("headers")
+#         if not headers:
+#             return None
 
-        # ASGI header keys are in lower case
-        key = key.lower()
-        decoded = [_value.decode("utf8") for _key, _value in headers if _key.decode("utf8").lower() == key]
-        if not decoded:
-            return None
-        return decoded
+#         # ASGI header keys are in lower case
+#         key = key.lower()
+#         decoded = [_value.decode("utf8") for _key, _value in headers if _key.decode("utf8").lower() == key]
+#         if not decoded:
+#             return None
+#         return decoded
 
-    def keys(self, carrier: dict) -> list[str]:
-        headers = carrier.get("headers") or []
-        return [_key.decode("utf8") for _key, _ in headers]
-
-
-asgi_getter = ASGIGetter()
+#     def keys(self, carrier: dict) -> list[str]:
+#         headers = carrier.get("headers") or []
+#         return [_key.decode("utf8") for _key, _ in headers]
 
 
-class ASGISetter:
-    def set(self, carrier: dict, key: str, value: str) -> None:
-        """Sets response header values on an ASGI scope according to `the spec <https://asgi.readthedocs.io/en/latest/specs/www.html#response-start-send-event>`_.
-
-        Args:
-            carrier: ASGI scope object
-            key: response header name to set
-            value: response header value
-        Returns:
-            None
-        """
-        headers = carrier.get("headers")
-        if not headers:
-            headers = []
-            carrier["headers"] = headers
-
-        headers.append([key.lower().encode(), value.encode()])
+# asgi_getter = ASGIGetter()
 
 
-asgi_setter = ASGISetter()
+# class ASGISetter:
+#     def set(self, carrier: dict, key: str, value: str) -> None:
+#         """Sets response header values on an ASGI scope according to `the spec <https://asgi.readthedocs.io/en/latest/specs/www.html#response-start-send-event>`_.
+
+#         Args:
+#             carrier: ASGI scope object
+#             key: response header name to set
+#             value: response header value
+#         Returns:
+#             None
+#         """
+#         headers = carrier.get("headers")
+#         if not headers:
+#             headers = []
+#             carrier["headers"] = headers
+
+#         headers.append([key.lower().encode(), value.encode()])
+
+
+# asgi_setter = ASGISetter()
 
 
 def get_host_port_url_tuple(scope):
@@ -113,28 +113,28 @@ def get_default_span_details(scope: dict) -> tuple[str, dict]:
     return method, {}  # http with no path
 
 
-def _censored_url(scope: dict[str, typing.Any]) -> str | None:
-    """
-    Returns the target path as defined by the Semantic Conventions.
+# def _censored_url(scope: dict[str, typing.Any]) -> str | None:
+#     """
+#     Returns the target path as defined by the Semantic Conventions.
 
-    This value is suitable to use in metrics as it should replace concrete
-    values with a parameterized name. Example: /api/users/{user_id}
+#     This value is suitable to use in metrics as it should replace concrete
+#     values with a parameterized name. Example: /api/users/{user_id}
 
-    Refer to the specification
-    https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/http-metrics.md#parameterized-attributes
+#     Refer to the specification
+#     https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/semantic_conventions/http-metrics.md#parameterized-attributes
 
-    Note: this function requires specific code for each framework, as there's no
-    standard attribute to use.
-    """
-    # FastAPI
-    root_path = scope.get("root_path", "")
+#     Note: this function requires specific code for each framework, as there's no
+#     standard attribute to use.
+#     """
+#     # FastAPI
+#     root_path = scope.get("root_path", "")
 
-    route = scope.get("route")
-    path_format = getattr(route, "path_format", None)
-    if path_format:
-        return f"{root_path}{path_format}"
+#     route = scope.get("route")
+#     path_format = getattr(route, "path_format", None)
+#     if path_format:
+#         return f"{root_path}{path_format}"
 
-    return None
+#     return None
 
 def remove_url_credentials(url: str) -> str:
     """Given a string url, remove the username and password only if it is a valid url"""
@@ -227,12 +227,12 @@ class EaveASGIMiddleware:
                 "http_target": scope.get("path"),
             }
 
-            http_host_value_list = asgi_getter.get(scope, "host")
-            if http_host_value_list:
-                attributes["http_server_name"] = ",".join(http_host_value_list)
-            http_user_agent = asgi_getter.get(scope, "user-agent")
-            if http_user_agent:
-                attributes["http_user_agent"] = http_user_agent[0]
+            # http_host_value_list = asgi_getter.get(scope, "host")
+            # if http_host_value_list:
+            #     attributes["http_server_name"] = ",".join(http_host_value_list)
+            # http_user_agent = asgi_getter.get(scope, "user-agent")
+            # if http_user_agent:
+            #     attributes["http_user_agent"] = http_user_agent[0]
 
             # if "client" in scope and scope["client"] is not None:
             #     attributes[SpanAttributes.NET_PEER_IP] = scope.get("client")[0]
@@ -318,6 +318,7 @@ class StarletteInstrumentor(BaseCollector):
         applications.Starlette = self._original_starlette
 
     def _wrap_instrummentor(self):
+        @wraps(applications.Starlette)
         def _wrapper(*args, **kwargs):
             return _InstrumentedStarlette(self.write_queue, *args, **kwargs)
         return _wrapper
