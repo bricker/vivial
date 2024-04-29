@@ -14,17 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import typing
+from typing import Any, Callable
 import urllib.parse
 from functools import wraps
 from timeit import default_timer
 
 from asgiref.compatibility import guarantee_single_callable
 from starlette import applications
+import starlette.types
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.routing import Match
 
+from eave.collectors.core.write_queue import BatchWriteQueue
 from eave.collectors.core.base_collector import BaseCollector
 from eave.collectors.core.correlation_context import corr_ctx
 from eave.collectors.core.datastructures import NetworkInEventPayload, NetworkOutEventPayload
@@ -83,7 +85,7 @@ from eave.collectors.core.datastructures import NetworkInEventPayload, NetworkOu
 # asgi_setter = ASGISetter()
 
 
-def get_host_port_url_tuple(scope):
+def get_host_port_url_tuple(scope: starlette.types.Scope) -> tuple[str, int, str]:
     """Returns (host, port, full_url) tuple."""
     server = scope.get("server") or ["0.0.0.0", 80]
     port = server[1]
@@ -93,24 +95,24 @@ def get_host_port_url_tuple(scope):
     return server_host, port, http_url
 
 
-def get_default_span_details(scope: dict) -> tuple[str, dict]:
-    """
-    Default span name is the HTTP method and URL path, or just the method.
-    https://github.com/open-telemetry/opentelemetry-specification/pull/3165
-    https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/http/#name
+# def get_default_span_details(scope: starlette.types.Scope) -> str:
+#     """
+#     Default span name is the HTTP method and URL path, or just the method.
+#     https://github.com/open-telemetry/opentelemetry-specification/pull/3165
+#     https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/http/#name
 
-    Args:
-        scope: the ASGI scope dictionary
-    Returns:
-        a tuple of the span name, and any attributes to attach to the span.
-    """
-    path = scope.get("path", "").strip()
-    method = scope.get("method", "").strip()
-    if method and path:  # http
-        return f"{method} {path}", {}
-    if path:  # websocket
-        return path, {}
-    return method, {}  # http with no path
+#     Args:
+#         scope: the ASGI scope dictionary
+#     Returns:
+#         a tuple of the span name, and any attributes to attach to the span.
+#     """
+#     path = scope.get("path", "").strip()
+#     method = scope.get("method", "").strip()
+#     if method and path:  # http
+#         return f"{method} {path}"
+#     if path:  # websocket
+#         return path
+#     return method  # http with no path
 
 
 # def _censored_url(scope: dict[str, typing.Any]) -> str | None:
@@ -176,14 +178,14 @@ class EaveASGIMiddleware:
 
     def __init__(
         self,
-        app,
-        write_queue,
+        app: starlette.types.ASGIApp,
+        write_queue: BatchWriteQueue,
     ):
         self.app = guarantee_single_callable(app)
         self.content_length_header = None
         self.write_queue = write_queue
 
-    async def __call__(self, scope, receive, send):
+    async def __call__(self, scope: starlette.types.Scope, receive: starlette.types.Receive, send: starlette.types.Send) -> None:
         """The ASGI application
 
         Args:
@@ -195,7 +197,7 @@ class EaveASGIMiddleware:
         if scope["type"] not in ("http", "websocket"):
             return await self.app(scope, receive, send)
 
-        _, _, url = get_host_port_url_tuple(scope)
+        # _, _, url = get_host_port_url_tuple(scope)
         # TODO: offer config options for URL patterns to exclude?
         # if self.excluded_urls and self.excluded_urls.url_disabled(url):
         #     return await self.app(scope, receive, send)
@@ -298,7 +300,7 @@ class StarletteInstrumentor(BaseCollector):
     #         if app not in _InstrumentedStarlette._instrumented_starlette_apps:
     #             _InstrumentedStarlette._instrumented_starlette_apps.add(app)
 
-    def uninstrument_app(self, app: applications.Starlette):
+    def uninstrument_app(self, app: applications.Starlette) -> None:
         app.user_middleware = [x for x in app.user_middleware if x.cls is not EaveASGIMiddleware]
         app.middleware_stack = app.build_middleware_stack()
         app.is_instrumented_by_eave = False # type: ignore
@@ -306,27 +308,27 @@ class StarletteInstrumentor(BaseCollector):
     def instrumentation_dependencies(self) -> list[str]:
         return ["starlette"]
 
-    def instrument(self, **kwargs):
+    def instrument(self) -> None:
         self._original_starlette = applications.Starlette
         applications.Starlette = self._wrap_instrummentor()
 
-    def uninstrument(self, **kwargs):
+    def uninstrument(self) -> None:
         """uninstrumenting all created apps by user"""
         for instance in _InstrumentedStarlette._instrumented_starlette_apps:
             self.uninstrument_app(instance)
         _InstrumentedStarlette._instrumented_starlette_apps.clear()
         applications.Starlette = self._original_starlette
 
-    def _wrap_instrummentor(self):
+    def _wrap_instrummentor(self) -> Callable:
         @wraps(applications.Starlette)
-        def _wrapper(*args, **kwargs):
+        def _wrapper(*args, **kwargs) -> applications.Starlette:
             return _InstrumentedStarlette(self.write_queue, *args, **kwargs)
         return _wrapper
 
 class _InstrumentedStarlette(applications.Starlette):
     _instrumented_starlette_apps = set()
 
-    def __init__(self, write_queue, *args, **kwargs):
+    def __init__(self, write_queue: BatchWriteQueue, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.add_middleware(EaveASGIMiddleware, write_queue)
         self._is_instrumented_by_eave = True
