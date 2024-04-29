@@ -1,8 +1,9 @@
 import contextvars
 import json
 import typing
+import urllib.parse
 
-from .base import BaseCorrelationContext
+from .base import CONTEXT_NAME, COOKIE_PREFIX, BaseCorrelationContext
 
 _local_async_storage = contextvars.ContextVar("eave_corr_ctx")
 
@@ -11,19 +12,41 @@ class AsyncioCorrelationContext(BaseCorrelationContext):
     def _get_storage(self) -> dict[str, typing.Any]:
         eave_ctx = contextvars.copy_context().get(_local_async_storage, None)
         if not eave_ctx:
-            _local_async_storage.set({"context": {}})
+            _local_async_storage.set({CONTEXT_NAME: {}})
             # refetch ctx vars now that we've set a value
             eave_ctx = contextvars.copy_context().get(_local_async_storage)
         return typing.cast(dict[str, typing.Any], eave_ctx)
 
     def get(self, key: str) -> typing.Any:
         storage = self._get_storage()
-        return storage.get(key, None) or storage.get("context", {}).get(key, None)
+        return storage.get(key, None) or storage.get(CONTEXT_NAME, {}).get(key, None)
 
     def set(self, key: str, value: typing.Any) -> None:
         storage = self._get_storage()
-        storage["context"][key] = value
+        storage[CONTEXT_NAME][key] = value
 
     def to_json(self) -> str:
         storage = self._get_storage()
         return json.dumps(storage)
+
+    def to_cookie(self) -> str:
+        storage = self._get_storage()
+        # URL encode the cookie values
+        return "; ".join(
+            [f"{key}={urllib.parse.quote_plus(value)}" for key, value in storage.items()]
+        )
+
+    def from_cookies(self, cookies: dict[str, str]) -> None:
+        storage = self._get_storage()
+        for cookie_name, value in [(k, v) for k, v in cookies.items() if k.startswith(COOKIE_PREFIX)]:
+            # URL decode cookie values
+            decoded_value = urllib.parse.unquote(value)
+            if cookie_name == CONTEXT_NAME:
+                # parse context cookie json data
+                try:
+                    storage[cookie_name].update(json.loads(decoded_value))
+                finally:
+                    # _init_storage already insures eave[CONTEXT_NAME] is at least empty dict, so noop
+                    pass
+            else:
+                storage[cookie_name] = decoded_value
