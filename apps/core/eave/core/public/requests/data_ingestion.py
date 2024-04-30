@@ -14,6 +14,8 @@ from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.util import ensure_uuid
 
+from eave.core.internal.orm.team import TeamOrm
+
 
 class DataIngestionEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
@@ -45,10 +47,12 @@ class DataIngestionEndpoint(HTTPEndpoint):
 
             await creds.touch(session=db_session)
 
+            eave_team = await TeamOrm.one_or_exception(session=db_session, team_id=creds.team_id)
+
         handle: BigQueryTableHandle | None = None
         match input.event_type:
             case EventType.dbevent:
-                handle = DatabaseChangesTableHandle(team_id=creds.team_id)
+                handle = DatabaseChangesTableHandle(team=eave_team)
 
         if handle:
             await handle.insert(events=input.events)

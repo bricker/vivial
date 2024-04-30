@@ -208,6 +208,11 @@ class _EaveConfig(ConfigBase):
         return value
 
     @cached_property
+    def metabase_admin_api_key(self) -> str:
+        value = get_secret("METABASE_ADMIN_API_KEY")
+        return value
+
+    @cached_property
     def eave_github_app_public_url(self) -> str:
         return get_secret("EAVE_GITHUB_APP_PUBLIC_URL")
 

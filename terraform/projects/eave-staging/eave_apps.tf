@@ -1,5 +1,5 @@
 locals {
-  customRoles = {
+  customAppRoles = {
     "eave.eaveApp" = {
       title       = "Eave App"
       description = "Standard permissions needed by all Eave apps"
@@ -15,6 +15,13 @@ locals {
       base_roles = [
         "roles/cloudsql.instanceUser", # for IAM auth
         "roles/cloudsql.client",
+      ]
+    }
+    "eave.coreApiApp" = {
+      title = "Core API App"
+      description = "Additional permissions needed by the Core API App"
+      base_roles = [
+        "roles/bigquery.dataOwner",
       ]
     }
     "eave.metabaseApp" = {
@@ -39,7 +46,8 @@ locals {
       domain_prefix = "api"
       custom_roles = [
         "eave.eaveApp",
-        "eave.eaveAppCloudsqlIamClient"
+        "eave.coreApiApp",
+        "eave.eaveAppCloudsqlIamClient",
       ]
     }
     "dashboard" = {
@@ -67,7 +75,7 @@ locals {
 
 # Create custom roles
 module "custom_roles" {
-  for_each = local.customRoles
+  for_each = local.customAppRoles
 
   source      = "../../modules/custom_role"
   role_id     = each.key

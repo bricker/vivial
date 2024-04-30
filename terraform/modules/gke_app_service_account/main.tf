@@ -25,6 +25,7 @@ data "google_iam_role" "workload_identity_role" {
 resource "google_service_account" "app_service_account" {
   account_id   = "gsa-app-${var.app}"
   display_name = var.app
+  description = "KSA/GSA binding for ${var.app}"
 }
 
 # resource "google_project_iam_member" "app_service_accounts_role_bindings" {

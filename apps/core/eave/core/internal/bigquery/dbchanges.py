@@ -64,14 +64,14 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
             vevent_query = await VirtualEventOrm.query(
                 session=db_session,
                 params=VirtualEventOrm.QueryParams(
-                    team_id=self.team_id,
+                    team_id=self.team.id,
                     view_id=vevent_view_id,
                 ),
             )
 
             if not vevent_query.one_or_none():
                 self._bq_client.get_or_create_view(
-                    dataset_id=self.dataset_id,
+                    dataset_id=self.team.bq_dataset_id,
                     view_id=vevent_view_id,
                     view_query=dedent(
                         """
@@ -85,7 +85,7 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
                         ORDER BY
                             `timestamp` ASC
                         """.format(
-                            dataset_id=sql_sanitized_identifier(self.dataset_id),
+                            dataset_id=sql_sanitized_identifier(self.team.bq_dataset_id),
                             atom_table_id=sql_sanitized_identifier(self.table_def.table_id),
                             source_table=sql_sanitized_literal(source_table),
                             operation=sql_sanitized_literal(operation),
@@ -95,7 +95,7 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
 
                 await VirtualEventOrm.create(
                     session=db_session,
-                    team_id=self.team_id,
+                    team_id=self.team.id,
                     view_id=vevent_view_id,
                     readable_name=vevent_readable_name,
                     description=f"{operation} operation on the {source_table} table.",
@@ -109,7 +109,7 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
         dbchange_events = [DatabaseEventPayload(**json.loads(e)) for e in events]
 
         dataset = self._bq_client.get_or_create_dataset(
-            dataset_id=self.dataset_id,
+            dataset_id=self.team.bq_dataset_id,
         )
 
         table = self._bq_client.get_or_create_table(

@@ -5,10 +5,13 @@ import typing
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 import aiohttp
+from eave.stdlib.metabase_api import MetabaseApiClient
 import oauthlib.common
 from starlette.requests import Request
 from starlette.responses import Response
 
+from eave.core.internal.bigquery.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
+from eave.core.internal.config import CORE_API_APP_CONFIG
 import eave.core.internal.oauth.state_cookies
 import eave.pubsub_schemas
 import eave.stdlib.analytics
@@ -174,6 +177,22 @@ async def create_new_account_and_team(
             scope=ClientScope.readwrite,
         )
 
+        EAVE_INTERNAL_BIGQUERY_CLIENT.get_or_create_dataset(dataset_id=eave_team.bq_dataset_id)
+
+        metabase_api_client = MetabaseApiClient.create()
+        await metabase_api_client.create_database(name=f"{eave_team.name} ({eave_team.id.hex})", engine="bigquery-cloud-sdk", details={
+            "project-id": SHARED_CONFIG.google_cloud_project,
+            "service-account-json": CORE_API_APP_CONFIG.metabase_ui_bigquery_accessor_gsa_key_json_b64,
+            "dataset-filters-type": "inclusion",
+            "dataset-filters-patterns": eave_team.bq_dataset_id,
+            "advanced-options": True,
+            "use-jvm-timezone": False,
+            "include-user-id-and-hash": False,
+            "ssl": True,
+        })
+
+        await metabase_api_client.create_group(name=f"{eave_team.name} ({eave_team.id.hex})")
+
     eaveLogger.debug(
         "created new account",
         eave_state.ctx,
@@ -188,37 +207,6 @@ async def create_new_account_and_team(
         eave_team=eave_team.analytics_model,
         ctx=eave_state.ctx,
     )
-
-    try:
-        # TODO: This should happen in a pubsub subscriber on the "eave_account_registration" event.
-        # Notify #sign-ups Slack channel.
-
-        if user_email and re.search("@eave.fyi$", user_email):
-            channel_id = "C04GDPU3B5Z"  # #bot-testing in eave slack
-        else:
-            channel_id = "C04HH2N08LD"  # #sign-ups in eave slack
-
-        slack_client = eave.stdlib.slack.get_authenticated_eave_system_slack_client()
-        slack_response = await slack_client.chat_postMessage(
-            channel=channel_id,
-            text="Someone registered for Eave!",
-        )
-
-        await slack_client.chat_postMessage(
-            channel=channel_id,
-            thread_ts=slack_response.get("ts"),
-            text=(
-                f"Auth Provider: `{auth_provider.value}`\n"
-                f"Email: `{user_email}`\n"
-                f"Account ID: `{eave_account.id}`\n"
-                f"Visitor ID: `{eave_account.visitor_id}`\n"
-                f"Eave Team Name: `{eave_team.name}`\n"
-                f"UTM Params:\n"
-                f"```{eave_account.opaque_utm_params}```"
-            ),
-        )
-    except Exception as e:
-        eaveLogger.exception(e, eave_state.ctx)
 
     return eave_account
 

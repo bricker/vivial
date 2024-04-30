@@ -68,7 +68,7 @@ class _AppConfig(ConfigBase):
             return get_secret(key)
 
     @cached_property
-    def eave_google_oauth_client_credentials(self) -> Mapping[str, Any]:
+    def eave_google_oauth_client_credentials(self) -> dict[str, Any]:
         b64encoded = get_secret("EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64")
         json_encoded = b64decode(b64encoded)
         credentials: dict[str, Any] = json.loads(json_encoded)
@@ -79,6 +79,16 @@ class _AppConfig(ConfigBase):
         credentials = self.eave_google_oauth_client_credentials
         client_id: str = credentials["web"]["client_id"]
         return client_id
+
+    @cached_property
+    def metabase_ui_bigquery_accessor_gsa_key_json_b64(self) -> dict[str, Any]:
+        """
+        Service account for Metabase to access BigQuery.
+        """
+        b64encoded = get_secret("METABASE_UI_BIGQUERY_ACCESSOR_GSA_KEY_JSON_B64")
+        json_encoded = b64decode(b64encoded)
+        credentials: dict[str, Any] = json.loads(json_encoded)
+        return credentials
 
     @property
     def metabase_jwt_key(self) -> str:

@@ -49,6 +49,6 @@ data:
   # MB_APPLICATION_LOGO_URL:
   # MB_APPLICATION_FAVICON_URL:
   # MB_LANDING_PAGE:
-  MB_LOADING_MESSAGE: TKTK Custom Loading Message...
+  MB_LOADING_MESSAGE: running-query # This is an enum, not an arbitrary string. Setting it to an unsupported value breaks the UI!
   MB_SHOW_METABOT: "false"
   MB_SHOW_LIGHTHOUSE_ILLUSTRATION: "false"

@@ -130,7 +130,8 @@ spec:
           args:
             # Enable healthcheck endpoints for kube probes
             - "--health-check"
-            - "--http-port 9090" # This is the default
+            - "--http-address=0.0.0.0" # Bind to all interfaces so that the Kubernetes control plane can communicate with this process.
+            - "--http-port=9090" # This is the default
 
             # If connecting from a VPC-native GKE cluster, you can use the
             # following flag to have the proxy connect over private IP
@@ -166,18 +167,46 @@ spec:
             - name: proxy
               containerPort: 5432
 
-          readinessProbe:
-            httpGet:
-              path: /readiness
-              port: healthcheck
-
-          livenessProbe:
-            failureThreshold: 5
-            httpGet:
-              path: /liveness
-              port: healthcheck
+          # https://github.com/GoogleCloudPlatform/cloud-sql-proxy/tree/54e65d14a5d533f44e33b52a2dc88c2a419eae2f/examples/k8s-health-check#running-cloud-sql-proxy-with-health-checks-in-kubernetes
 
           startupProbe:
             httpGet:
               path: /startup
               port: healthcheck
+            periodSeconds: 1
+            timeoutSeconds: 5
+            failureThreshold: 20
+
+          # The documentation does not recommend using the readiness probe.
+          # The cloud-sql-proxy readiness probe checks for issues that can usually resolve themselves, so this check could restart the container unnecessarily.
+          # readinessProbe:
+          #   httpGet:
+          #     path: /readiness
+          #     port: healthcheck
+            # initialDelaySeconds: 30
+            # # 30 sec period x 6 failures = 3 min until the pod is terminated
+            # periodSeconds: 30
+            # failureThreshold: 6
+            # timeoutSeconds: 10
+            # successThreshold: 1
+
+          livenessProbe:
+            httpGet:
+              path: /liveness
+              port: healthcheck
+            # Number of seconds after the container has started before the first probe is scheduled. Defaults to 0.
+            # Not necessary when the startup probe is in use.
+            initialDelaySeconds: 0
+            # Frequency of the probe.
+            periodSeconds: 60
+            # Number of seconds after which the probe times out.
+            timeoutSeconds: 30
+            # Number of times the probe is allowed to fail before the transition
+            # from healthy to failure state.
+            #
+            # If periodSeconds = 60, 5 tries will result in five minutes of
+            # checks. The proxy starts to refresh a certificate five minutes
+            # before its expiration. If those five minutes lapse without a
+            # successful refresh, the liveness probe will fail and the pod will be
+            # restarted.
+            failureThreshold: 5
