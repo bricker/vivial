@@ -292,6 +292,7 @@ class StarletteCollector(BaseCollector):
     def _instrument_app(self, app: applications.Starlette) -> None:
         """instrument specific app instance. ONLY FOR UNIT TESTS"""
         if not getattr(app, "is_instrumented_by_eave", False):
+            self.write_queue.start_autoflush()
             app.add_middleware(
                 EaveASGIMiddleware,
                 write_queue=self.write_queue,
