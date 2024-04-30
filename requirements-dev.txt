@@ -8,10 +8,10 @@
 -e ${EAVE_HOME}/packages/python/eave-collector-core-py
 # -e ${EAVE_HOME}/packages/python/eave-collector-flask-py
 # -e ${EAVE_HOME}/packages/python/eave-collector-func-py
--e ${EAVE_HOME}/packages/python/eave-collector-network-py
+# -e ${EAVE_HOME}/packages/python/eave-collector-network-py
 -e ${EAVE_HOME}/packages/python/eave-collector-asyncpg-py
 -e ${EAVE_HOME}/packages/python/eave-collector-sqlalchemy-py
-# -e ${EAVE_HOME}/packages/python/eave-collector-starlette-py
+-e ${EAVE_HOME}/packages/python/eave-collector-starlette-py
 
 grpcio-tools
 protobuf
