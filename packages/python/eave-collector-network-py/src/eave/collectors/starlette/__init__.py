@@ -1,6 +1,6 @@
-from eave.collectors.starlette.private.collector import StarletteInstrumentor
+from eave.collectors.starlette.private.collector import StarletteCollector
 
-_collector: StarletteInstrumentor | None = None
+_collector: StarletteCollector | None = None
 
 
 class StarletteCollectorManager:
@@ -9,7 +9,7 @@ class StarletteCollectorManager:
         global _collector
 
         if not _collector:
-            _collector = StarletteInstrumentor(credentials=credentials)
+            _collector = StarletteCollector(credentials=credentials)
             _collector.instrument()
 
     @classmethod

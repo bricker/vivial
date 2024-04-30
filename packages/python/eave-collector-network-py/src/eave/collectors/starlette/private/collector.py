@@ -19,17 +19,17 @@ from collections.abc import Callable
 from functools import wraps
 from timeit import default_timer
 
-from asgiref.compatibility import guarantee_single_callable
-
 import starlette.types
-from eave.collectors.core.base_collector import BaseCollector
-from eave.collectors.core.correlation_context import corr_ctx
-from eave.collectors.core.datastructures import EventType, NetworkEventPayload
-from eave.collectors.core.write_queue import BatchWriteQueue
+from asgiref.compatibility import guarantee_single_callable
 from starlette import applications
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.routing import Match
+
+from eave.collectors.core.base_collector import BaseCollector
+from eave.collectors.core.correlation_context import corr_ctx
+from eave.collectors.core.datastructures import EventType, NetworkEventPayload
+from eave.collectors.core.write_queue import BatchWriteQueue
 
 # class ASGIGetter:
 #     def get(self, carrier: dict, key: str) -> list[str] | None:
@@ -282,32 +282,27 @@ class EaveASGIMiddleware:
             pass
 
 
-class StarletteInstrumentor(BaseCollector):
-    """An instrumentor for starlette
-
-    See `BaseCollector`
-    """
+class StarletteCollector(BaseCollector):
 
     _original_starlette = None
 
     def __init__(self, credentials: str | None) -> None:
         super().__init__(EventType.network_event, credentials)
 
-    # TODO: we shouldnt need to use this
-    # def instrument_app(self, app: applications.Starlette):
-    #     """Instrument an uninstrumented Starlette application."""
-    #     if not getattr(app, "is_instrumented_by_eave", False):
-    #         app.add_middleware(
-    #             EaveASGIMiddleware,
-    #             write_queue=self.write_queue,
-    #         )
-    #         app.is_instrumented_by_eave = True
+    def _instrument_app(self, app: applications.Starlette) -> None:
+        """instrument specific app instance. ONLY FOR UNIT TESTS"""
+        if not getattr(app, "is_instrumented_by_eave", False):
+            app.add_middleware(
+                EaveASGIMiddleware,
+                write_queue=self.write_queue,
+            )
+            app.is_instrumented_by_eave = True  # type: ignore
 
-    #         # adding apps to set for uninstrumenting
-    #         if app not in _InstrumentedStarlette._instrumented_starlette_apps:
-    #             _InstrumentedStarlette._instrumented_starlette_apps.add(app)
+            # adding apps to set for uninstrumenting
+            if app not in _InstrumentedStarlette._instrumented_starlette_apps:
+                _InstrumentedStarlette._instrumented_starlette_apps.add(app)
 
-    def uninstrument_app(self, app: applications.Starlette) -> None:
+    def _uninstrument_app(self, app: applications.Starlette) -> None:
         app.user_middleware = [x for x in app.user_middleware if x.cls is not EaveASGIMiddleware]
         app.middleware_stack = app.build_middleware_stack()
         app.is_instrumented_by_eave = False  # type: ignore
@@ -320,7 +315,7 @@ class StarletteInstrumentor(BaseCollector):
     def uninstrument(self) -> None:
         """uninstrumenting all created apps by user"""
         for instance in _InstrumentedStarlette._instrumented_starlette_apps:
-            self.uninstrument_app(instance)
+            self._uninstrument_app(instance)
         _InstrumentedStarlette._instrumented_starlette_apps.clear()
         applications.Starlette = self._original_starlette
 
