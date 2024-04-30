@@ -26,6 +26,7 @@ async_engine = create_async_engine(
     connect_args={
         "server_settings": {
             "timezone": "UTC",
+            "application_name": "core-api",
         },
     },
 )

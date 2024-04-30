@@ -1,10 +1,6 @@
 import { RequestArgsTeamId, makeRequest } from "../../requests.js";
-import { Team } from "../models/team.js";
+import { GetTeamResponseBody } from "../models/team.js";
 import { CoreApiEndpointConfiguration } from "./shared.js";
-
-export type GetTeamResponseBody = {
-  team: Team;
-};
 
 export class GetTeamOperation {
   static config = new CoreApiEndpointConfiguration({

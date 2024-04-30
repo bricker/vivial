@@ -101,3 +101,14 @@ spec:
           ports:
             - name: app
               containerPort: 8000
+
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: app
+
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /status
+              port: app

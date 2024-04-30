@@ -1,9 +1,9 @@
-#!/usr/bin/env python
-
+import os
 import re
 import sys
-import os
+
 import dotenv
+
 
 def parse_config(filepath: str) -> None:
     _, extension = os.path.splitext(filepath)
@@ -18,8 +18,10 @@ def parse_config(filepath: str) -> None:
             return
 
     dotenv_path = os.path.join(os.getenv("EAVE_HOME", ""), ".env")
+    shared_dotenv_path = os.path.join(os.getenv("EAVE_HOME", ""), "develop/shared/share.env")
 
-    existing_values = dotenv.dotenv_values(dotenv_path)
+    existing_values = dotenv.dotenv_values(shared_dotenv_path)
+    existing_values.update(dotenv.dotenv_values(dotenv_path))
 
     with open(dotenv_path, "a+") as f:
         for varname in varnames:
@@ -28,6 +30,7 @@ def parse_config(filepath: str) -> None:
                 f.write(f"\n{varname}={os.getenv(varname, '')}")
                 print(f"Added {varname} to .env")
 
+
 def parse_python_config(filepath: str) -> list[str]:
     with open(filepath, "r") as f:
         lines = f.readlines()
@@ -35,16 +38,19 @@ def parse_python_config(filepath: str) -> list[str]:
     varnames = []
 
     for line in lines:
-        if (m := re.search("getenv\\([\"']([^\"']+)[\"']", line)) is not None:
+        if (m := re.search(r"getenv\([\"']([^\"']+)[\"']", line)) is not None:
             varnames.append(m.group(1))
-        elif (m := re.search("environ\\[[\"']([^\"']+)[\"']", line)) is not None:
+        elif (m := re.search(r"environ\[[\"']([^\"']+)[\"']", line)) is not None:
             varnames.append(m.group(1))
-        elif (m := re.search("get_secret\\([\"']([^\"']+)[\"']", line)) is not None:
+        elif (m := re.search(r"get_secret\([\"']([^\"']+)[\"']", line)) is not None:
+            varnames.append(m.group(1))
+        elif (m := re.search(r"key\s+=\s+[\"']([^\"']+)[\"']", line)) is not None:
             varnames.append(m.group(1))
         else:
             pass
 
     return varnames
+
 
 def parse_typescript_config(filepath: str) -> list[str]:
     with open(filepath, "r") as f:
@@ -53,14 +59,17 @@ def parse_typescript_config(filepath: str) -> list[str]:
     varnames = []
 
     for line in lines:
-        if (m := re.search("process\\.env\\[[\"']([^\"']+)[\"']", line)) is not None:
+        if (m := re.search(r"process\.env\[[\"']([^\"']+)[\"']", line)) is not None:
             varnames.append(m.group(1))
-        if (m := re.search("this\\.getSecret\\([\"']([^\"']+)[\"']", line)) is not None:
+        if (m := re.search(r"getSecret\([\"']([^\"']+)[\"']", line)) is not None:
+            varnames.append(m.group(1))
+        elif (m := re.search(r"key\s+=\s+[\"']([^\"']+)[\"']", line)) is not None:
             varnames.append(m.group(1))
         else:
             pass
 
     return varnames
+
 
 if __name__ == "__main__":
     filepath = sys.argv[1]
@@ -70,14 +79,10 @@ if __name__ == "__main__":
 
     match extension:
         case ".py":
-            stdlib_config = os.path.join(
-                os.environ["EAVE_HOME"], "libs/eave-stdlib-py/src/eave/stdlib/config.py"
-            )
+            stdlib_config = os.path.join(os.environ["EAVE_HOME"], "libs/eave-stdlib-py/src/eave/stdlib/config.py")
             configs.append(stdlib_config)
         case ".ts":
-            stdlib_config = os.path.join(
-                os.environ["EAVE_HOME"], "libs/eave-stdlib-ts/src/config.ts"
-            )
+            stdlib_config = os.path.join(os.environ["EAVE_HOME"], "libs/eave-stdlib-ts/src/config.ts")
             configs.append(stdlib_config)
         case _:
             pass

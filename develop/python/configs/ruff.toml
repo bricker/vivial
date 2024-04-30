@@ -93,6 +93,7 @@ ignore = [
   "COM812", # https://docs.astral.sh/ruff/rules/missing-trailing-comma/ - conflicts with ruff formatter
   "ISC001", # https://docs.astral.sh/ruff/rules/single-line-implicit-string-concatenation/ - conflicts with ruff formatter
   "UP038", # https://docs.astral.sh/ruff/rules/non-pep604-isinstance/ - "Note that this results in slower code."
+  "UP015", # https://docs.astral.sh/ruff/rules/redundant-open-modes/ - Good sometimes for readability
 ]
 
 [lint.extend-per-file-ignores]
@@ -113,9 +114,9 @@ extend-ignore-names = [
 
 [lint.isort]
 # known-first-party is necessary because of the monorepo architecture.
-# Ruff looks for first-party modules by scanning for `src` directories first in the current directory, then in the project root (the nearest 'pyproject.toml').
-# So if you run the linter in the `apps/core` directory, for example, the eave modules are correctly classified as first-party, because a `src` directory exists.
-# If, however, you run the linter in the root of the project, where there is no `src` directory, then all of the eave modules are classified as third-party.
+# Ruff looks for first-party modules by first scanning the current directory (or a `src` directory in the current directory), then in the project root (the nearest 'pyproject.toml').
+# So if you run the linter in the `apps/core` directory, for example, the eave modules are correctly classified as first-party, because the module path can be resolved from that directory.
+# If, however, you run the linter in the root of the project, where there is no `src` directory and module path can't be resolved, then all of the eave modules are classified as third-party.
 # It's possible to configure Ruff to look in specific places using the `src` configuration, but this is less messy.
 known-first-party = [
   "eave"

@@ -13,6 +13,10 @@ Errors like this should just be thrown, and let the middleware handle logging.
 
 class HTTPException(starlette.exceptions.HTTPException):
     request_id: str | None = None
+    code: int
+    """
+    alias for status_code
+    """
 
     def __init__(
         self,
@@ -22,6 +26,7 @@ class HTTPException(starlette.exceptions.HTTPException):
         request_id: str | None = None,
     ) -> None:
         self.request_id = request_id
+        self.code = status_code
         super().__init__(status_code=status_code, detail=detail, headers=headers)
 
 

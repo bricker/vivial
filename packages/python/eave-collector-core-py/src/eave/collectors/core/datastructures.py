@@ -4,9 +4,7 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, Self
 
-from eave.collectors.core.json import compact_json
-from eave.stdlib.typing import JsonObject
-
+from .json import JsonObject, compact_json
 
 class DatabaseStructure(StrEnum):
     UNKNOWN = "unknown"

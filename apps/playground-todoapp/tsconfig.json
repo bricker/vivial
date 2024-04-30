@@ -1,0 +1,15 @@
+{
+  "extends": "../../libs/eave-stdlib-ts/src/tsconfig-base.json",
+  "include": [
+    "eave_playground/todoapp/js/**/*.ts",
+    "eave_playground/todoapp/js/**/*.tsx",
+    "eave_playground/todoapp/js/**/*.js",
+    "eave_playground/todoapp/js/**/*.jsx"
+  ],
+  "compilerOptions": {
+    "jsx": "react",
+    "esModuleInterop": true,
+    "allowJs": true,
+    "lib": ["ES2021", "DOM"]
+  }
+}

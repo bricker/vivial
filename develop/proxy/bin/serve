@@ -9,6 +9,7 @@ mitmproxy \
 	--listen-port 8080 \
 	--set keep_host_header \
 	--set anticache \
+	--set console_focus_follow \
 	--scripts "${EAVE_HOME}"/develop/proxy/mitm_router.py \
 	--certs "*.eave.run"="${EAVE_HOME}"/develop/certs/eave-run/eave-run.pem \
 	"$@"

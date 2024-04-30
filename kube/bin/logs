@@ -17,7 +17,7 @@ function main () (
 
 	while getopts "d:t:h" argname; do
 		case "$argname" in
-		d) _appname=$OPTARG ;;
+		d) _appname=${OPTARG%%/} ;;
 		t) _logtype=$OPTARG ;;
 		h)
 			_print_help
@@ -38,8 +38,7 @@ function main () (
 
 	if test "${_logtype}" = "gcloud"; then
 		gcloud --format=json alpha logging tail \
-			'resource.type="k8s_container" AND
-			resource.labels.container_name="'"${_appname}"'"'
+			'resource.type="k8s_container" AND resource.labels.container_name="'"${_appname}"'"'
 	else
 		kubectl logs \
 			--tail=100 \

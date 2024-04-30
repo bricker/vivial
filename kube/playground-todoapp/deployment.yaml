@@ -1,0 +1,183 @@
+---
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: playground-todoapp-cert
+  namespace: "${NAMESPACE}"
+spec:
+  domains:
+    - "playground-todoapp.${EAVE_ROOT_DOMAIN}"
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: playground-todoapp-ingress
+  namespace: "${NAMESPACE}"
+  annotations:
+    networking.gke.io/v1beta1.FrontendConfig: shared-fc
+    networking.gke.io/managed-certificates: playground-todoapp-cert
+    kubernetes.io/ingress.global-static-ip-name: playground-todoapp-dot-eave-dot-dev-addr
+    kubernetes.io/ingress.class: gce
+  labels:
+    app: playground-todoapp-app
+spec:
+  # ingressClassName: gce # This does not work. Without the "ingress.class" annotation, the LB isn't created.
+  defaultBackend:
+    service:
+      name: playground-todoapp
+      port:
+        name: http
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: playground-todoapp
+  namespace: "${NAMESPACE}"
+  annotations:
+    beta.cloud.google.com/backend-config: '{"default": "shared-bc"}'
+spec:
+  type: NodePort
+  selector:
+    app: playground-todoapp-app
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: app
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ksa-app-playground-todoapp
+  namespace: "${NAMESPACE}"
+  annotations:
+    iam.gke.io/gcp-service-account: "gsa-app-playground-todoapp@${GOOGLE_CLOUD_PROJECT}.iam.gserviceaccount.com"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: playground-todoapp-deployment
+  namespace: "${NAMESPACE}"
+spec:
+  selector:
+    matchLabels:
+      app: playground-todoapp-app
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: playground-todoapp-app
+    spec:
+      serviceAccountName: ksa-app-playground-todoapp
+      containers:
+        - name: playground-todoapp
+          image: "us-central1-docker.pkg.dev/${GOOGLE_CLOUD_PROJECT}/docker/playground-todoapp:${APP_VERSION}"
+          resources:
+            # requests and limits must always be the same on Autopilot clusters without bursting.
+            # if requests is omitted, the limits values are used.
+            limits:
+              memory: "1Gi"
+              cpu: "250m"
+
+          envFrom:
+            - secretRef:
+                name: playground-todoapp-secret
+            - configMapRef:
+                name: shared-configmap
+            - configMapRef:
+                name: playground-todoapp-configmap
+
+          env:
+            - name: TODOAPP_DB_USER
+              value: "gsa-app-playground-todoapp@${GOOGLE_CLOUD_PROJECT}.iam"
+            - name: TODOAPP_DB_HOST
+              value: "127.0.0.1"
+            - name: TODOAPP_DB_PORT
+              value: "5432"
+
+            # gunicorn options
+            - name: GUNICORN_CMD_ARGS
+              value: "--bind=0.0.0.0:8000 --workers=3 --timeout=90"
+
+          ports:
+            - name: app
+              containerPort: 8000
+
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: app
+
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /status
+              port: app
+
+        - name: cloud-sql-proxy
+          # This uses the latest version of the Cloud SQL Proxy
+          # It is recommended to use a specific version for production environments.
+          # See: https://github.com/GoogleCloudPlatform/cloudsql-proxy
+          image: gcr.io/cloud-sql-connectors/cloud-sql-proxy:latest
+          args:
+            # Enable healthcheck endpoints for kube probes
+            - "--health-check"
+            - "--http-port 9090" # This is the default
+
+            # If connecting from a VPC-native GKE cluster, you can use the
+            # following flag to have the proxy connect over private IP
+            - "--private-ip"
+
+            # If you are not connecting with Automatic IAM, you can delete
+            # the following flag.
+            - "--auto-iam-authn"
+
+            # tcp should be set to the port the proxy should listen on
+            # and should match the DB_PORT value set above.
+            # Defaults: MySQL: 3306, Postgres: 5432, SQLServer: 1433
+            - "--port=5432"
+            - "--structured-logs"
+            # - "--unix-socket /cloudsql"
+            - "${PG_CONNECTION_STRING}"
+          # volumeMounts:
+          #   - name: cloudsql-socket
+          #     mountPath: /cloudsql
+          securityContext:
+            # The default Cloud SQL proxy image runs as the
+            # "nonroot" user and group (uid: 65532) by default.
+            runAsNonRoot: true
+
+          resources:
+            limits:
+              cpu: 500m
+              memory: 2Gi
+
+          ports:
+            - name: healthcheck
+              containerPort: 9090
+            - name: proxy
+              containerPort: 5432
+
+          readinessProbe:
+            httpGet:
+              path: /readiness
+              port: healthcheck
+
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /liveness
+              port: healthcheck
+
+          startupProbe:
+            httpGet:
+              path: /startup
+              port: healthcheck

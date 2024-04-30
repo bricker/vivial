@@ -385,41 +385,6 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		test -n "${VERBOSE:-}"
 	}
 
-	# On purpose using curly-braces; this function is meant to be called in a deployment script and puts the script into the correct directory.
-	function setup-deployment-workspace() {
-		local builddir="$EAVE_HOME/.build"
-		local appname
-		appname=$(basename "$PWD")
-		mkdir -p "$builddir"
-		rm -rf "${builddir:?}/${appname:?}"
-
-		local vflag=""
-		if verbose; then
-			vflag="-v"
-		fi
-
-		rsync -a $vflag \
-			--exclude='.*' \
-			--exclude 'node_modules' \
-			--exclude 'vendor' \
-			--exclude 'dist' \
-			--exclude '__pycache__' \
-			--exclude '*.pyc' \
-			"$PWD" "$builddir"
-
-		cd "${builddir:?}/${appname:?}" &&
-			cp "$EAVE_HOME/.gitignore" . &&
-			cp "$EAVE_HOME/.gcloudignore" . &&
-			cp "$EAVE_HOME/.gcloudignore-builder" .
-	}
-
-	function clean-deployment-workspace() {
-		local builddir=$EAVE_HOME/.build
-		local appname
-		appname=$(basename "$PWD")
-		rm -r "${builddir:?}/${appname:?}"
-	}
-
 	# Returns the absolute path to the dir of the program currently running
 	function ^abspath() (
 		cd "$(dirname "$0")" && pwd -P

@@ -2,7 +2,7 @@ const path = require("path");
 
 module.exports = {
   mode: "development",
-  entry: path.join(__dirname, "eave/dashboard/js/index.js"),
+  entry: path.join(__dirname, "eave/dashboard/js/index.tsx"),
   devtool: "eval-source-map",
   output: {
     path: path.join(__dirname, "eave/dashboard/static/dist"),
@@ -10,13 +10,20 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.?(jsx|js)$/,
+        test: /\.jsx?$/,
         exclude: /node_modules/,
         use: {
           loader: "babel-loader",
           options: {
             presets: ["@babel/preset-env", "@babel/preset-react"],
           },
+        },
+      },
+      {
+        test: /\.tsx?$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "ts-loader",
         },
       },
       {
@@ -29,6 +36,15 @@ module.exports = {
       },
     ],
   },
+
+  resolve: {
+    extensions: [".ts", ".tsx", ".js", ".jsx"],
+    alias: {
+      "$eave-dashboard": path.resolve(__dirname, 'eave/dashboard'),
+      "$eave-stdlib-ts": path.resolve(__dirname, '../../libs/eave-stdlib-ts'),
+    },
+  },
+
   // This configuration is only used by the dev server, which we currently don't use in development.
   devServer: {
     server: "http",

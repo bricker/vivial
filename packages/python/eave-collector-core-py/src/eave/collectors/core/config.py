@@ -1,18 +1,43 @@
 import os
 
-EAVE_API_BASE_URL = os.getenv("EAVE_API_BASE_PUBLIC", "https://api.eave.fyi")
 
-# We don't call `os.getenv()` here so that the value can be read lazily.
-EAVE_CREDENTIALS_ENV_KEY = "EAVE_CREDENTIALS"
+def eave_api_base_url() -> str:
+    return os.getenv("EAVE_API_BASE_PUBLIC", "https://api.eave.fyi")
 
 
-class EaveConfigReader:
-    def __init__(self) -> None:
-        self.client_id = self._read_config_variable_or_exception("EAVE_CLIENT_ID")
-        self.client_secret = self._read_config_variable_or_exception("EAVE_CLIENT_SECRET")
+def eave_credentials_headers() -> dict[str, str]:
+    credentials_str = os.getenv("EAVE_CREDENTIALS")
+    if not credentials_str:
+        return {}
 
-    def _read_config_variable_or_exception(self, key: str) -> str:
-        value = os.getenv(key)
-        if value is None:
-            raise Exception(f"Unable to find required variable {key} in Eave config")
-        return value
+    credentials = credentials_str.split(":")
+
+    if len(credentials) != 2:
+        raise ValueError('invalid credentials format. Expected format: "client_id:client_secret"')
+
+    return {
+        "eave-client-id": credentials[0],
+        "eave-client-secret": credentials[1],
+    }
+
+
+def eave_env() -> str:
+    return os.getenv("EAVE_ENV", default="production")
+
+
+def is_development() -> bool:
+    return eave_env() == "development"
+
+
+def batch_maxsize() -> int:
+    if is_development():
+        return 0
+    else:
+        return 0  # TODO: make this >0
+
+
+def batch_maxage_seconds() -> int:
+    if is_development():
+        return 0
+    else:
+        return 30
