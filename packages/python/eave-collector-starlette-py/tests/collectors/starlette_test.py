@@ -5,14 +5,34 @@ from starlette.responses import PlainTextResponse
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
-from eave.collectors.core.datastructures import EventType, NetworkEventPayload
+from eave.collectors.core.datastructures import EventPayload, EventType, NetworkEventPayload
+from eave.collectors.core.write_queue import BatchWriteQueue, QueueParams
 from eave.collectors.starlette.private.collector import StarletteCollector
 
-from ...mock_write_queue import ConsoleOutputBatchWriteQueue
+
+class ConsoleOutputBatchWriteQueue(BatchWriteQueue):
+    _running: bool = False
+    queue: list[EventPayload]
+
+    def __init__(self, event_type: EventType) -> None:
+        super().__init__(queue_params=QueueParams(event_type=event_type))
+        self.queue = []
+
+    def start_autoflush(self) -> None:
+        self._running = True
+
+    def stop_autoflush(self) -> None:
+        self._running = False
+
+    def put(self, payload: EventPayload) -> None:
+        if not self._running:
+            raise RuntimeError("queue processor not running")
+
+        self.queue.append(payload)
 
 
 class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
-    def _create_starlette_app() -> Starlette:
+    def _create_starlette_app(self) -> Starlette:
         async def test_endpoint(request):
             return PlainTextResponse("Hello!")
 
