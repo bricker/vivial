@@ -68,6 +68,11 @@ class BatchWriteQueue:
             },
         )
 
+    def __del__(self) -> None:
+        """Cleanup dangling processes before garbage collection completes"""
+        if getattr(self, "_queue", None) and getattr(self, "_process", None):
+            self.start_autoflush()
+
     def start_autoflush(self) -> None:
         atexit.register(self.stop_autoflush)
         self._process.start()
