@@ -107,15 +107,7 @@ class FunctionReturnEventPayload(EventPayload):
 
 
 @dataclass
-class NetworkInEventPayload(EventPayload):
-    request_method: str
-    request_url: str
-    request_headers: dict[str, str]
-    request_payload: str
-
-
-@dataclass
-class NetworkOutEventPayload(EventPayload):
+class NetworkEventPayload(EventPayload):
     request_method: str
     request_url: str
     request_headers: dict[str, str]
@@ -124,12 +116,15 @@ class NetworkOutEventPayload(EventPayload):
 
 class EventType(StrEnum):
     dbevent = "dbevent"
+    network_event = "network_event"
 
     @property
     def payload_class(self) -> type[EventPayload]:
         match self:
             case EventType.dbevent:
                 return DatabaseEventPayload
+            case EventType.network_event:
+                return NetworkEventPayload
 
 
 @dataclass

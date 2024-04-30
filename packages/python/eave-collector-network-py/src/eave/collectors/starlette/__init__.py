@@ -14,23 +14,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable
 import urllib.parse
+from collections.abc import Callable
 from functools import wraps
 from timeit import default_timer
 
 from asgiref.compatibility import guarantee_single_callable
-from starlette import applications
+
 import starlette.types
+from eave.collectors.core.base_collector import BaseCollector
+from eave.collectors.core.correlation_context import corr_ctx
+from eave.collectors.core.datastructures import EventType, NetworkEventPayload
+from eave.collectors.core.write_queue import BatchWriteQueue
+from starlette import applications
 from starlette.requests import Request
 from starlette.responses import Response
 from starlette.routing import Match
-
-from eave.collectors.core.write_queue import BatchWriteQueue
-from eave.collectors.core.base_collector import BaseCollector
-from eave.collectors.core.correlation_context import corr_ctx
-from eave.collectors.core.datastructures import NetworkInEventPayload, NetworkOutEventPayload
-
 
 # class ASGIGetter:
 #     def get(self, carrier: dict, key: str) -> list[str] | None:
@@ -138,6 +137,7 @@ def get_host_port_url_tuple(scope: starlette.types.Scope) -> tuple[str, int, str
 
 #     return None
 
+
 def remove_url_credentials(url: str) -> str:
     """Given a string url, remove the username and password only if it is a valid url"""
 
@@ -180,12 +180,14 @@ class EaveASGIMiddleware:
         self,
         app: starlette.types.ASGIApp,
         write_queue: BatchWriteQueue,
-    ):
+    ) -> None:
         self.app = guarantee_single_callable(app)
         self.content_length_header = None
         self.write_queue = write_queue
 
-    async def __call__(self, scope: starlette.types.Scope, receive: starlette.types.Receive, send: starlette.types.Send) -> None:
+    async def __call__(
+        self, scope: starlette.types.Scope, receive: starlette.types.Receive, send: starlette.types.Send
+    ) -> None:
         """The ASGI application
 
         Args:
@@ -244,12 +246,14 @@ class EaveASGIMiddleware:
 
             req_method = scope.get("method") or "unknown"
             req_url = remove_url_credentials(http_url)
-            self.write_queue.put(NetworkInEventPayload(
-                request_method=req_method,
-                request_url=req_url,
-                request_headers=dict(request.headers.items()),
-                request_payload=str(req_body),
-            ))
+            self.write_queue.put(
+                NetworkEventPayload(
+                    request_method=req_method,
+                    request_url=req_url,
+                    request_headers=dict(request.headers.items()),
+                    request_payload=str(req_body),
+                )
+            )
 
             response: Response = await self.app(scope, receive, send)
 
@@ -267,24 +271,29 @@ class EaveASGIMiddleware:
 
             if response is not None:
                 resp_body = await response.body()
-                self.write_queue.put(NetworkOutEventPayload(
-                    request_method=req_method,
-                    request_url=req_url,
-                    request_headers=dict(response.headers.items()),
-                    request_payload=str(resp_body),
-                ))
+                self.write_queue.put(
+                    NetworkEventPayload(
+                        request_method=req_method,
+                        request_url=req_url,
+                        request_headers=dict(response.headers.items()),
+                        request_payload=str(resp_body),
+                    )
+                )
         finally:
             pass
-
 
 
 class StarletteInstrumentor(BaseCollector):
     """An instrumentor for starlette
 
-    See `BaseInstrumentor`
+    See `BaseCollector`
     """
 
     _original_starlette = None
+
+    def __init__(self, credentials: str | None) -> None:
+        super().__init__(EventType.network_event, credentials)
+        self.write_queue.start_autoflush()
 
     # TODO: we shouldnt need to use this
     # def instrument_app(self, app: applications.Starlette):
@@ -303,7 +312,7 @@ class StarletteInstrumentor(BaseCollector):
     def uninstrument_app(self, app: applications.Starlette) -> None:
         app.user_middleware = [x for x in app.user_middleware if x.cls is not EaveASGIMiddleware]
         app.middleware_stack = app.build_middleware_stack()
-        app.is_instrumented_by_eave = False # type: ignore
+        app.is_instrumented_by_eave = False  # type: ignore
 
     def instrumentation_dependencies(self) -> list[str]:
         return ["starlette"]
@@ -323,19 +332,21 @@ class StarletteInstrumentor(BaseCollector):
         @wraps(applications.Starlette)
         def _wrapper(*args, **kwargs) -> applications.Starlette:
             return _InstrumentedStarlette(self.write_queue, *args, **kwargs)
+
         return _wrapper
+
 
 class _InstrumentedStarlette(applications.Starlette):
     _instrumented_starlette_apps = set()
 
-    def __init__(self, write_queue: BatchWriteQueue, *args, **kwargs):
+    def __init__(self, write_queue: BatchWriteQueue, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.add_middleware(EaveASGIMiddleware, write_queue)
+        self.add_middleware(EaveASGIMiddleware, write_queue=write_queue)
         self._is_instrumented_by_eave = True
         # adding apps to set for uninstrumenting
         _InstrumentedStarlette._instrumented_starlette_apps.add(self)
 
-    def __del__(self):
+    def __del__(self) -> None:
         _InstrumentedStarlette._instrumented_starlette_apps.remove(self)
 
 

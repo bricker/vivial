@@ -88,6 +88,7 @@ class BatchWriteQueue:
     def put(self, payload: EventPayload) -> None:
         if self._process.is_alive():
             print(payload.to_json())
+            # TODO: ACTUALLY WRITE TO QUEUE!!
             # self._queue.put(payload.to_json(), block=False)
         else:
             EAVE_LOGGER.warning("Queue processor is not alive; queueing failed.")
