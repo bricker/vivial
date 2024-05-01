@@ -17,6 +17,9 @@ class BaseCorrelationContext(abc.ABC):
     def to_json(self) -> str: ...
 
     @abc.abstractmethod
+    def to_dict(self) -> dict[str, typing.Any]: ...
+
+    @abc.abstractmethod
     def to_cookie(self) -> str: ...
 
     @abc.abstractmethod

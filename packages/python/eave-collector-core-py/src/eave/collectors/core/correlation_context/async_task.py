@@ -26,15 +26,16 @@ class AsyncioCorrelationContext(BaseCorrelationContext):
         storage[CONTEXT_NAME][key] = value
 
     def to_json(self) -> str:
+        return json.dumps(self.to_dict())
+
+    def to_dict(self) -> dict[str, typing.Any]:
         storage = self._get_storage()
-        return json.dumps(storage)
+        return storage
 
     def to_cookie(self) -> str:
         storage = self._get_storage()
         # URL encode the cookie values
-        return "; ".join(
-            [f"{key}={urllib.parse.quote_plus(value)}" for key, value in storage.items()]
-        )
+        return "; ".join([f"{key}={urllib.parse.quote_plus(value)}" for key, value in storage.items()])
 
     def from_cookies(self, cookies: dict[str, str]) -> None:
         storage = self._get_storage()

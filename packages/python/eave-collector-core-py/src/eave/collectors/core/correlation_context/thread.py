@@ -25,8 +25,11 @@ class ThreadedCorrelationContext(BaseCorrelationContext):
         _local_thread_storage.eave[CONTEXT_NAME][key] = value
 
     def to_json(self) -> str:
+        return json.dumps(self.to_dict())
+
+    def to_dict(self) -> dict[str, typing.Any]:
         self._init_storage()
-        return json.dumps(_local_thread_storage.eave)
+        return _local_thread_storage.eave
 
     def to_cookie(self) -> str:
         self._init_storage()
