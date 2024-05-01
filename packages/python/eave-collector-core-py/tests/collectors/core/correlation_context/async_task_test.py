@@ -1,3 +1,4 @@
+import asyncio
 import unittest
 
 """
@@ -34,10 +35,11 @@ class AsyncioCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
                 ctx.set(key, 1)
 
             expected = '{"_eave_context": {' + ", ".join([f'"{k}": 1' for k in keys]) + "}}"
-            assert ctx.to_json() == expected, "Context did not match expected content"
+            assert ctx.to_json() == expected, "Context contained other than expected values"
 
-        await _helper(["k1", "k2", "k3"])
-        await _helper(["k4", "k5", "k6"])
+        t1 = asyncio.create_task(_helper(["k1", "k2", "k3"]))
+        t2 = asyncio.create_task(_helper(["k4", "k5", "k6"]))
+        await asyncio.gather(t1, t2)
 
     async def test_child_tasks_inherit_parent_ctx_values(self) -> None:
         from eave.collectors.core.correlation_context import AsyncioCorrelationContext
