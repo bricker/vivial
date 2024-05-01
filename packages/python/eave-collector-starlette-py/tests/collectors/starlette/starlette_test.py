@@ -5,6 +5,7 @@ from starlette.responses import PlainTextResponse
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
+from eave.collectors.core.correlation_context.base import CONTEXT_NAME, COOKIE_PREFIX
 from eave.collectors.core.datastructures import EventPayload, EventType, NetworkEventPayload
 from eave.collectors.core.write_queue import BatchWriteQueue, QueueParams
 from eave.collectors.starlette.private.collector import StarletteCollector
@@ -63,7 +64,28 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
         self._client.get("/test")
 
         # THEN network event is pushed to write_queue
-        assert len(self._write_queue.queue) == 1
+        assert len(self._write_queue.queue) == 1  # TODO: this should actually be 2; req + resp events
         e = self._write_queue.queue[0]
         assert isinstance(e, NetworkEventPayload)
         # TODO: event content assertions
+
+    async def test_eave_ctx_set_from_cookies(self) -> None:
+        # GIVEN eave cookies set on request
+        valid_cookie = f"{COOKIE_PREFIX}test_cookie"
+        non_eave_cookie = "no_eave_prefix"
+        ctx_key = "some_ctx_key"
+        self._client.cookies.set(valid_cookie, "valid")
+        self._client.cookies.set(CONTEXT_NAME, f'{{"{ctx_key}": 123}}')
+        self._client.cookies.set(non_eave_cookie, "invalid")
+
+        # WHEN request made
+        self._client.get("/test")
+
+        # THEN cookie values set in eave ctx
+        assert len(self._write_queue.queue) > 0
+        e = self._write_queue.queue[0]
+        assert isinstance(e, NetworkEventPayload)
+        assert e.context is not None, "Eave context was expected to be set in the network event"
+        assert e.context.get(valid_cookie) == "valid"
+        assert e.context.get(non_eave_cookie) is None
+        assert e.context.get(CONTEXT_NAME) == {ctx_key: 123}
