@@ -5,11 +5,11 @@ _collector: StarletteCollector | None = None
 
 class StarletteCollectorManager:
     @classmethod
-    def start(cls, credentials: str | None) -> None:
+    def start(cls) -> None:
         global _collector
 
         if not _collector:
-            _collector = StarletteCollector(credentials=credentials)
+            _collector = StarletteCollector()
             _collector.instrument()
 
     @classmethod

@@ -17,15 +17,15 @@
 import urllib.parse
 from collections.abc import Callable
 from functools import wraps
-from timeit import default_timer
 
+# from timeit import default_timer
 import starlette.types
 from asgiref.compatibility import guarantee_single_callable
 from starlette import applications
 from starlette.requests import Request
 from starlette.responses import Response
-from starlette.routing import Match
 
+# from starlette.routing import Match
 from eave.collectors.core.base_collector import BaseCollector
 from eave.collectors.core.correlation_context import corr_ctx
 from eave.collectors.core.datastructures import EventType, NetworkEventPayload
@@ -86,7 +86,7 @@ from eave.collectors.core.write_queue import BatchWriteQueue
 
 def get_host_port_url_tuple(scope: starlette.types.Scope) -> tuple[str, int, str]:
     """Returns (host, port, full_url) tuple."""
-    server = scope.get("server") or ["0.0.0.0", 80]
+    server = scope.get("server") or ["0.0.0.0", 80]  # noqa: S104
     port = server[1]
     server_host = server[0] + (":" + str(port) if str(port) != "80" else "")
     full_path = scope.get("root_path", "") + scope.get("path", "")
@@ -270,7 +270,8 @@ class EaveASGIMiddleware:
             #             pass
 
             if response is not None:
-                resp_body = await response.body()
+                # resp_body = await response.body() # original
+                resp_body = response.body.decode("utf-8")
                 self.write_queue.put(
                     NetworkEventPayload(
                         request_method=req_method,
@@ -280,16 +281,15 @@ class EaveASGIMiddleware:
                         context=corr_ctx.to_dict(),
                     )
                 )
-        finally:
+        except UnicodeDecodeError as _:
             pass
 
 
 class StarletteCollector(BaseCollector):
-
     _original_starlette = None
 
-    def __init__(self, credentials: str | None) -> None:
-        super().__init__(EventType.network_event, credentials)
+    def __init__(self) -> None:
+        super().__init__(EventType.network_event)
 
     def _instrument_app(self, app: applications.Starlette) -> None:
         """instrument specific app instance. ONLY FOR UNIT TESTS"""
@@ -302,8 +302,8 @@ class StarletteCollector(BaseCollector):
             app.is_instrumented_by_eave = True  # type: ignore
 
             # adding apps to set for uninstrumenting
-            if app not in _InstrumentedStarlette._instrumented_starlette_apps:
-                _InstrumentedStarlette._instrumented_starlette_apps.add(app)
+            if app not in _InstrumentedStarlette._instrumented_starlette_apps:  # noqa: SLF001
+                _InstrumentedStarlette._instrumented_starlette_apps.add(app)  # noqa: SLF001
 
     def _uninstrument_app(self, app: applications.Starlette) -> None:
         app.user_middleware = [x for x in app.user_middleware if x.cls is not EaveASGIMiddleware]
@@ -317,9 +317,9 @@ class StarletteCollector(BaseCollector):
 
     def uninstrument(self) -> None:
         """uninstrumenting all created apps by user"""
-        for instance in _InstrumentedStarlette._instrumented_starlette_apps:
+        for instance in _InstrumentedStarlette._instrumented_starlette_apps:  # noqa: SLF001
             self._uninstrument_app(instance)
-        _InstrumentedStarlette._instrumented_starlette_apps.clear()
+        _InstrumentedStarlette._instrumented_starlette_apps.clear()  # noqa: SLF001
         applications.Starlette = self._original_starlette
 
     def _wrap_instrummentor(self) -> Callable:
@@ -331,7 +331,7 @@ class StarletteCollector(BaseCollector):
 
 
 class _InstrumentedStarlette(applications.Starlette):
-    _instrumented_starlette_apps = set()
+    _instrumented_starlette_apps = set()  # noqa: RUF012
 
     def __init__(self, write_queue: BatchWriteQueue, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
