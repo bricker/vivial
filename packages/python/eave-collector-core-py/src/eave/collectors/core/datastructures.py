@@ -54,6 +54,8 @@ class DatabaseOperation(StrEnum):
 
 @dataclass
 class EventPayload:
+    context: dict[str, Any] | None
+
     def to_dict(self) -> JsonObject:
         return dataclasses.asdict(self)
 

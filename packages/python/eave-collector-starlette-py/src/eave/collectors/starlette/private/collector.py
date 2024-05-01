@@ -252,6 +252,7 @@ class EaveASGIMiddleware:
                     request_url=req_url,
                     request_headers=dict(request.headers.items()),
                     request_payload=str(req_body),
+                    context=corr_ctx.to_dict(),
                 )
             )
 
@@ -276,6 +277,7 @@ class EaveASGIMiddleware:
                         request_url=req_url,
                         request_headers=dict(response.headers.items()),
                         request_payload=str(resp_body),
+                        context=corr_ctx.to_dict(),
                     )
                 )
         finally:
