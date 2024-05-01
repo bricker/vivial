@@ -1,17 +1,9 @@
 import { RequestArgsTeamId, makeRequest } from "../../requests.js";
 import {
-  VirtualEvent,
-  VirtualEventQueryInput,
+  GetVirtualEventsRequestBody,
+  GetVirtualEventsResponseBody,
 } from "../models/virtual-event.js";
 import { CoreApiEndpointConfiguration } from "./shared.js";
-
-export type GetVirtualEventsRequestBody = {
-  virtual_events?: VirtualEventQueryInput;
-};
-
-export type GetVirtualEventsResponseBody = {
-  virtual_events: Array<VirtualEvent>;
-};
 
 export class GetVirtualEventsRequest {
   static config = new CoreApiEndpointConfiguration({

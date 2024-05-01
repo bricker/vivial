@@ -1,0 +1,6 @@
+uvicorn[standard]
+gunicorn
+SQLAlchemy[asyncio]
+asyncpg
+starlette
+jinja2

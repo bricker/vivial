@@ -6,7 +6,6 @@ metadata:
   namespace: "${NAMESPACE}"
 data:
   MB_DB_DBNAME: metabase
-  MB_DB_USER: "gsa-app-metabase@${GOOGLE_CLOUD_PROJECT}.iam"
   MB_NO_SURVEYS: "true"
   MB_SHOW_HOMEPAGE_DATA: "false"
   MB_SHOW_HOMEPAGE_XRAYS: "false"

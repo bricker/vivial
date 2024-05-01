@@ -14,6 +14,7 @@ RUN apt-get update && apt-get install -y git
 RUN mkdir -p ${EAVE_HOME}
 COPY apps/core ${EAVE_HOME}/apps/core
 COPY libs ${EAVE_HOME}/libs
+COPY packages ${EAVE_HOME}/packages
 
 WORKDIR ${EAVE_HOME}/apps/core
 

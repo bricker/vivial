@@ -6,3 +6,7 @@ export type Team = {
 export type TeamQueryInput = {
   id: string;
 };
+
+export type GetTeamResponseBody = {
+  team: Team;
+};

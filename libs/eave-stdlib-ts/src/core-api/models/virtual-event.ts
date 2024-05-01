@@ -9,3 +9,11 @@ export type VirtualEvent = {
 export type VirtualEventQueryInput = {
   search_term: string;
 };
+
+export type GetVirtualEventsRequestBody = {
+  virtual_events?: VirtualEventQueryInput;
+};
+
+export type GetVirtualEventsResponseBody = {
+  virtual_events: Array<VirtualEvent>;
+};

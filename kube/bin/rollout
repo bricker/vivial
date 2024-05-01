@@ -15,7 +15,7 @@ function main () (
 
 	while getopts "d:h" argname; do
 		case "$argname" in
-		d) _appname=$OPTARG ;;
+		d) _appname=${OPTARG%%/} ;;
 		h)
 			_print_help
 			exit 0

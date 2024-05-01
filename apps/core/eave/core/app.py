@@ -18,9 +18,6 @@ from eave.core.public.requests.oauth.metabase_embedding_sso import MetabaseEmbed
 from eave.stdlib import cache, logging
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount
-from eave.stdlib.core_api.operations.metabase_embedding_sso import (
-    MetabaseEmbeddingSSOOperation,
-)
 from eave.stdlib.core_api.operations.team import GetTeamRequest
 from eave.stdlib.core_api.operations.virtual_event import GetVirtualEventsRequest
 from eave.stdlib.middleware import common_middlewares
@@ -181,6 +178,7 @@ routes = [
     make_route(
         config=CoreApiEndpointConfiguration(
             path=GOOGLE_OAUTH_AUTHORIZE_PATH,
+            method="GET",
             auth_required=False,
             signature_required=False,
             origin_required=False,
@@ -191,6 +189,7 @@ routes = [
     make_route(
         config=CoreApiEndpointConfiguration(
             path=GOOGLE_OAUTH_CALLBACK_PATH,
+            method="GET",
             auth_required=False,
             signature_required=False,
             origin_required=False,
@@ -199,7 +198,14 @@ routes = [
         endpoint=google_oauth.GoogleOAuthCallback,
     ),
     make_route(
-        config=MetabaseEmbeddingSSOOperation.config,
+        config=CoreApiEndpointConfiguration(
+            path="/oauth/metabase",
+            method="GET",
+            auth_required=True,
+            signature_required=False,
+            origin_required=False,
+            team_id_required=True,
+        ),
         endpoint=MetabaseEmbeddingSSO,
     ),
     make_route(

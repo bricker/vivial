@@ -1,9 +1,0 @@
-{
-  "compilerOptions": {
-    "jsx": "react",
-    "noEmit": true,
-    "allowJs": true,
-    "strictNullChecks": true
-  },
-  "include": ["eave/dashboard/js/**/*.jsx", "eave/dashboard/js/**/*.js"]
-}

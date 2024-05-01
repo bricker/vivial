@@ -141,7 +141,6 @@
   ],
   "typescript.preferences.importModuleSpecifierEnding": "js",
   "typescript.validate.enable": true,
-  "eslint.run": "onSave",
   "ruff.importStrategy": "fromEnvironment",
   "ruff.interpreter": [
     "${workspaceFolder}/.venv/bin/python"
