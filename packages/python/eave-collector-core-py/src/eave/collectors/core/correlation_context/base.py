@@ -6,6 +6,7 @@ import typing
 COOKIE_PREFIX = "_eave_"
 CONTEXT_NAME = COOKIE_PREFIX + "context"
 
+
 class BaseCorrelationContext(abc.ABC):
     @abc.abstractmethod
     def get(self, key: str) -> typing.Any: ...

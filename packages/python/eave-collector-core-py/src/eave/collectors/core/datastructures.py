@@ -6,6 +6,7 @@ from typing import Any, Self
 
 from .json import JsonObject, compact_json
 
+
 class DatabaseStructure(StrEnum):
     UNKNOWN = "unknown"
     SQL = "SQL"
