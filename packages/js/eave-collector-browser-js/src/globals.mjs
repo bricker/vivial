@@ -5,12 +5,14 @@ var documentAlias = typeof document !== "undefined" ? document : {},
   windowAlias = typeof window !== "undefined" ? window : {};
 
 // use existing _paq settings if available
+// eslint-disable-next-line no-use-before-define
 var _paq = typeof _paq !== "undefined" ? _paq : [];
 _paq.push(["setTrackingCookies"])
 _paq.push(["trackPageView"]);
 _paq.push(["enableLinkTracking"]);
 _paq.push(["enableRouteHistoryTracking"]);
 _paq.push(["enableButtonClickTracking"]);
+_paq.push(["enableFormTracking"]);
 // TODO: update to point to eave backend
 // TODO: switch on env whether to send to prod or stage
 _paq.push(["setTrackerUrl", "http://localhost:3000/matomo"]);

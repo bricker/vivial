@@ -248,6 +248,9 @@ export function Tracker(trackerUrl, siteId) {
     routeHistoryTrackingEnabled = false,
     // Guard against installing button click tracker more than once per instance
     buttonClickTrackingEnabled = false,
+    // Guard against double installing form tracking
+    formTrackingEnabled = false,
+    formTrackerInstalled = false,
     // Guard against installing the activity tracker more than once per Tracker instance
     heartBeatSetUp = false,
     hadWindowFocusAtLeastOnce = false,
@@ -4167,8 +4170,6 @@ export function Tracker(trackerUrl, siteId) {
     }
     linkTrackingEnabled = true;
 
-    var self = this;
-
     if (!clickListenerInstalled) {
       clickListenerInstalled = true;
       h.trackCallbackOnReady(function () {
@@ -4985,6 +4986,54 @@ export function Tracker(trackerUrl, siteId) {
     param = "_pkn";
     ecommerceProductView[param] = name;
   };
+
+  /**
+   * 
+   */
+  this.enableFormTracking = function () {
+    if (formTrackingEnabled) {
+      return;
+    }
+    formTrackingEnabled = true;
+
+    if (!formTrackerInstalled) {
+      formTrackerInstalled = true;
+      h.trackCallbackOnReady(function () {
+        var element = globalThis.eave.documentAlias.body;
+        
+        TagManager.dom.addEventListener(element, "submit", function (event) {
+          if (!event.target) {
+              return;
+          }
+          var target = event.target;
+          if (target.nodeName === 'FORM') {
+              var formAction = dom.getElementAttribute(target, 'action');
+              if (!formAction) {
+                  formAction = parameters.window.location.href;
+              }
+    
+              logEvent(
+                "category",
+                "action",
+                "name",
+                "value",
+                { // custom data
+                  event: 'mtm.FormSubmit',
+                  'mtm.formElement': target,
+                  'mtm.formElementId': dom.getElementAttribute(target, 'id'),
+                  'mtm.formElementName': dom.getElementAttribute(target, 'name'),
+                  'mtm.formElementClasses': dom.getElementClassNames(target),
+                  'mtm.formElementAction': formAction
+              },
+                undefined // callback
+              );
+          }
+      }, true);
+      });
+    }
+
+    
+  }
 
   /**
    * Returns the list of ecommerce items that will be sent when a cart update or order is tracked.
