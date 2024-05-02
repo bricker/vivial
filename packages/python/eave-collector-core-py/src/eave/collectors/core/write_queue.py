@@ -5,7 +5,6 @@ import time
 from dataclasses import dataclass
 from queue import Empty
 
-
 from . import config
 from .datastructures import EventPayload, EventType
 from .ingest_api import send_batch

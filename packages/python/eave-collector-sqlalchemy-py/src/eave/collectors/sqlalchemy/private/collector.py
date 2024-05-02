@@ -26,7 +26,7 @@ class SQLAlchemyCollector(BaseCollector):
     _db_metadata: sqlalchemy.MetaData | None
 
     def __init__(self) -> None:
-        super().__init__(event_type=EventType.dbevent)
+        super().__init__(event_type=EventType.db_event)
 
         self._event_listeners = []
         self._db_metadata = None
