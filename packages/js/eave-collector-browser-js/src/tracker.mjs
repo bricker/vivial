@@ -2713,7 +2713,7 @@ export function Tracker(trackerUrl, siteId) {
     };
   }
 
-  /*
+  /**
    * Add click listener to a DOM element
    */
   function addClickListener(element, enable, useCapture) {
@@ -4988,7 +4988,7 @@ export function Tracker(trackerUrl, siteId) {
   };
 
   /**
-   * 
+   * Track form submission events
    */
   this.enableFormTracking = function () {
     if (formTrackingEnabled) {
@@ -5000,40 +5000,45 @@ export function Tracker(trackerUrl, siteId) {
       formTrackerInstalled = true;
       h.trackCallbackOnReady(function () {
         var element = globalThis.eave.documentAlias.body;
-        
-        TagManager.dom.addEventListener(element, "submit", function (event) {
-          if (!event.target) {
+
+        h.addEventListener(
+          element,
+          "submit",
+          function (event) {
+            if (!event.target) {
               return;
-          }
-          var target = event.target;
-          if (target.nodeName === 'FORM') {
-              var formAction = dom.getElementAttribute(target, 'action');
+            }
+            var target = event.target;
+            if (target.nodeName === "FORM") {
+              var formAction = target.getAttribute("action");
               if (!formAction) {
-                  formAction = parameters.window.location.href;
+                formAction = globalThis.eave.windowAlias.location.href;
               }
-    
+
               logEvent(
+                // TODO: details
                 "category",
                 "action",
                 "name",
                 "value",
-                { // custom data
-                  event: 'mtm.FormSubmit',
-                  'mtm.formElement': target,
-                  'mtm.formElementId': dom.getElementAttribute(target, 'id'),
-                  'mtm.formElementName': dom.getElementAttribute(target, 'name'),
-                  'mtm.formElementClasses': dom.getElementClassNames(target),
-                  'mtm.formElementAction': formAction
-              },
-                undefined // callback
+                {
+                  // custom data
+                  event: "mtm.FormSubmit",
+                  "mtm.formElement": target,
+                  "mtm.formElementId": target.getAttribute("id"),
+                  "mtm.formElementName": target.getAttribute("name"),
+                  "mtm.formElementClasses": target.className.split(" "),
+                  "mtm.formElementAction": formAction,
+                },
+                undefined, // callback
               );
-          }
-      }, true);
+            }
+          },
+          true,
+        );
       });
     }
-
-    
-  }
+  };
 
   /**
    * Returns the list of ecommerce items that will be sent when a cart update or order is tracked.
