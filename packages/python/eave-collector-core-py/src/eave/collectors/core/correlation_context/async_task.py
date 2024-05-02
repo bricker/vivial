@@ -46,7 +46,7 @@ class AsyncioCorrelationContext(BaseCorrelationContext):
                 # parse context cookie json data
                 try:
                     storage[cookie_name].update(json.loads(decoded_value))
-                finally:
+                except json.decoder.JSONDecodeError:
                     # _init_storage already insures eave[CONTEXT_NAME] is at least empty dict, so noop
                     pass
             else:

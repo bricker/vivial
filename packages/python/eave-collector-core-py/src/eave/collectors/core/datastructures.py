@@ -108,7 +108,19 @@ class FunctionReturnEventPayload(EventPayload):
 
 
 @dataclass
-class NetworkEventPayload(EventPayload):
+class ServerRequestEventPayload(EventPayload):
+    """Data about a request being handled by server application code"""
+
+    request_method: str
+    request_url: str
+    request_headers: dict[str, str]
+    request_payload: str
+
+
+@dataclass
+class NetworkRequestEventPayload(EventPayload):
+    """Data about requests made by application code"""
+
     request_method: str
     request_url: str
     request_headers: dict[str, str]
@@ -116,16 +128,19 @@ class NetworkEventPayload(EventPayload):
 
 
 class EventType(StrEnum):
-    dbevent = "dbevent"
-    network_event = "network_event"
+    db_event = "db_event"
+    server_event = "server_event"
+    request_event = "request_event"
 
     @property
     def payload_class(self) -> type[EventPayload]:
         match self:
-            case EventType.dbevent:
+            case EventType.db_event:
                 return DatabaseEventPayload
-            case EventType.network_event:
-                return NetworkEventPayload
+            case EventType.server_event:
+                return ServerRequestEventPayload
+            case EventType.request_event:
+                return NetworkRequestEventPayload
 
 
 @dataclass

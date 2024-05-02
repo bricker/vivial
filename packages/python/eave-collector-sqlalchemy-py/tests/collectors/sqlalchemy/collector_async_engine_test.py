@@ -19,7 +19,7 @@ class ConsoleOutputBatchWriteQueue(BatchWriteQueue):
     queue: list[EventPayload]
 
     def __init__(self) -> None:
-        super().__init__(queue_params=QueueParams(event_type=EventType.dbevent))
+        super().__init__(queue_params=QueueParams(event_type=EventType.db_event))
         self.queue = []
 
     def start_autoflush(self) -> None:
