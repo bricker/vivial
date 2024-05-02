@@ -4,21 +4,7 @@ import {
   DUMMY_APP_ROOT,
 } from "../support/constants";
 
-describe("eave atom collection", () => {
-  it("fires page view on site load", () => {
-    // GIVEN site hase Eave script
-    cy.interceptAtomIngestion();
-
-    // WHEN site is visited
-    cy.visit(DUMMY_APP_ROOT);
-
-    // THEN an event is fired
-    // Wait for the POST request to be sent
-    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response).to.exist;
-    });
-  });
-
+describe("eave correlation context cookies", () => {
   it("creates ctx and session cookies and attaches cookie data to events", () => {
     // GIVEN site has eave script
     cy.interceptAtomIngestion();
