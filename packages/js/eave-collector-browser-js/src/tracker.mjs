@@ -4999,21 +4999,18 @@ export function Tracker(trackerUrl, siteId) {
     if (!formTrackerInstalled) {
       formTrackerInstalled = true;
       h.trackCallbackOnReady(function () {
-        var element = globalThis.eave.documentAlias.body;
-
         h.addEventListener(
-          element,
+          globalThis.eave.documentAlias.body,
           "submit",
           function (event) {
             if (!event.target) {
               return;
             }
-            var target = event.target;
+            const target = event.target;
             if (target.nodeName === "FORM") {
-              var formAction = target.getAttribute("action");
-              if (!formAction) {
-                formAction = globalThis.eave.windowAlias.location.href;
-              }
+              const formAction =
+                target.getAttribute("action") ||
+                globalThis.eave.windowAlias.location.href;
 
               logEvent(
                 // TODO: details
@@ -5024,7 +5021,7 @@ export function Tracker(trackerUrl, siteId) {
                 {
                   // custom data
                   event: "mtm.FormSubmit",
-                  "mtm.formElement": target,
+                  "mtm.formElement": target.outerHtml,
                   "mtm.formElementId": target.getAttribute("id"),
                   "mtm.formElementName": target.getAttribute("name"),
                   "mtm.formElementClasses": target.className.split(" "),
