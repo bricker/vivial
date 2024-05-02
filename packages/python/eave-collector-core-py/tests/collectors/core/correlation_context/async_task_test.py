@@ -48,15 +48,18 @@ class AsyncioCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
         # given values exist in parent context
         ctx.set("parent", 0)
 
-        async def t1() -> None:
+        async def task1() -> None:
             assert ctx.get("parent") == 0, "Parent value not present in child task t1"
             ctx.set("t1", 1)
 
-        async def t2() -> None:
+        async def task2() -> None:
             assert ctx.get("parent") == 0, "Parent value not present in child task t2"
             ctx.set("t2", 2)
 
-        await t1()  # run async?
-        await t2()
+        t1 = asyncio.create_task(task1())
+        t2 = asyncio.create_task(task2())
+        await asyncio.gather(t1, t2)
 
-        assert ctx.to_json() == '{"_eave_context": {"parent": 0, "t1": 1, "t2": 2}}', "Values set by child tasks not found"
+        assert (
+            ctx.to_json() == '{"_eave_context": {"parent": 0, "t1": 1, "t2": 2}}'
+        ), "Values set by child tasks not found"

@@ -50,12 +50,12 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
         self._write_queue = ConsoleOutputBatchWriteQueue(EventType.server_event)
         self._collector.write_queue = self._write_queue
         self._app = self._create_starlette_app()
-        self._collector._instrument_app(self._app)  # noqa: SLF001
+        self._collector.instrument_app(self._app)
         self._client = TestClient(self._app)
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
-        self._collector._uninstrument_app(self._app)  # noqa: SLF001
+        self._collector.uninstrument_app(self._app)
 
     async def test_get_request_collected(self) -> None:
         assert len(self._write_queue.queue) == 0

@@ -210,6 +210,7 @@ class EaveASGIMiddleware:
             corr_ctx.from_cookies(request.cookies)
 
             # event collection
+            # NOTE: this removes ability for further middleware/processing to request streaming by consuming the body
             req_body = (await request.body()).decode("utf-8")
 
             server_host, port, http_url = get_host_port_url_tuple(scope)
@@ -287,8 +288,8 @@ class StarletteCollector(BaseCollector):
     def __init__(self) -> None:
         super().__init__(EventType.server_event)
 
-    def _instrument_app(self, app: applications.Starlette) -> None:
-        """instrument specific app instance. ONLY FOR UNIT TESTS"""
+    def instrument_app(self, app: applications.Starlette) -> None:
+        """instrument specific app instance only"""
         if not getattr(app, "is_instrumented_by_eave", False):
             self.write_queue.start_autoflush()
             app.add_middleware(
@@ -301,7 +302,7 @@ class StarletteCollector(BaseCollector):
             if app not in _InstrumentedStarlette._instrumented_starlette_apps:  # noqa: SLF001
                 _InstrumentedStarlette._instrumented_starlette_apps.add(app)  # noqa: SLF001
 
-    def _uninstrument_app(self, app: applications.Starlette) -> None:
+    def uninstrument_app(self, app: applications.Starlette) -> None:
         app.user_middleware = [x for x in app.user_middleware if x.cls is not EaveASGIMiddleware]
         app.middleware_stack = app.build_middleware_stack()
         app.is_instrumented_by_eave = False  # type: ignore
@@ -314,7 +315,7 @@ class StarletteCollector(BaseCollector):
     def uninstrument(self) -> None:
         """uninstrumenting all created apps by user"""
         for instance in _InstrumentedStarlette._instrumented_starlette_apps:  # noqa: SLF001
-            self._uninstrument_app(instance)
+            self.uninstrument_app(instance)
         _InstrumentedStarlette._instrumented_starlette_apps.clear()  # noqa: SLF001
         applications.Starlette = self._original_starlette
 
