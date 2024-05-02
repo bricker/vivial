@@ -35,7 +35,7 @@ class AsyncioCorrelationContext(BaseCorrelationContext):
     def to_cookie(self) -> str:
         storage = self._get_storage()
         # URL encode the cookie values
-        return "; ".join([f"{key}={urllib.parse.quote_plus(value)}" for key, value in storage.items()])
+        return "; ".join([f"{key}={urllib.parse.quote_plus(str(value))}" for key, value in storage.items()])
 
     def from_cookies(self, cookies: dict[str, str]) -> None:
         storage = self._get_storage()

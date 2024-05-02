@@ -35,7 +35,7 @@ class ThreadedCorrelationContext(BaseCorrelationContext):
         self._init_storage()
         # URL encode the cookie values
         return "; ".join(
-            [f"{key}={urllib.parse.quote_plus(value)}" for key, value in _local_thread_storage.eave.items()]
+            [f"{key}={urllib.parse.quote_plus(str(value))}" for key, value in _local_thread_storage.eave.items()]
         )
 
     def from_cookies(self, cookies: dict[str, str]) -> None:

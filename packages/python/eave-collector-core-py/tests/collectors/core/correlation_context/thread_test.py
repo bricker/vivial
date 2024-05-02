@@ -2,12 +2,8 @@ import threading
 import unittest
 
 from eave.collectors.core.correlation_context import ThreadedCorrelationContext
+from eave.collectors.core.correlation_context.base import CONTEXT_NAME, COOKIE_PREFIX
 from eave.collectors.core.correlation_context.thread import _local_thread_storage
-
-"""
-read from cookeis sets all vlues
-write cookies only sets context values
-"""
 
 
 class ThreadedCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
@@ -15,7 +11,6 @@ class ThreadedCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
         super().tearDown()
         # manually reset private thread storage since asyncio tests are all launched from same thread
         _local_thread_storage.eave = {}
-
 
     async def test_values_can_be_written_and_read(self) -> None:
         ctx = ThreadedCorrelationContext()
@@ -69,4 +64,41 @@ class ThreadedCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
         t1.join()
         t2.join()
 
-        assert ctx.to_json() == '{"_eave_context": {"parent": 0, "t1": 1, "t2": 2}}', "Values set by child threads not found"
+        assert (
+            ctx.to_json() == '{"_eave_context": {"parent": 0, "t1": 1, "t2": 2}}'
+        ), "Values set by child threads not found"
+
+    async def test_initialize_from_cookies_performs_union(self) -> None:
+        ctx = ThreadedCorrelationContext()
+        cookies = {
+            "other_cookie": "yummy",
+            f"{COOKIE_PREFIX}session": "ses",
+            CONTEXT_NAME: '{"key": "value", "other": "val"}',
+        }
+        ctx.from_cookies(cookies)
+
+        # non eave cookies should be skipped
+        assert (
+            ctx.to_json() == '{"_eave_context": {"key": "value", "other": "val"}, "_eave_session": "ses"}'
+        ), "Cookie conversion failed"
+
+        # cookies should join join if existing ctx
+        ctx.from_cookies({f"{COOKIE_PREFIX}visitor_id": "123", CONTEXT_NAME: '{"key": "new val", "key2": "val2"}'})
+        assert (
+            ctx.to_json()
+            == '{"_eave_context": {"key": "new val", "other": "val", "key2": "val2"}, "_eave_session": "ses", "_eave_visitor_id": "123"}'
+        ), "Context did not join as expected"
+
+    async def test_convert_ctx_to_cookies_creates_valid_cookies(self) -> None:
+        ctx = ThreadedCorrelationContext()
+        cookies = {
+            "other_cookie": "yummy",
+            f"{COOKIE_PREFIX}session": "ses",
+            CONTEXT_NAME: '{"key": "value", "other": "val"}',
+        }
+        ctx.from_cookies(cookies)
+
+        assert (
+            ctx.to_cookie()
+            == "_eave_context=%7B%27key%27%3A+%27value%27%2C+%27other%27%3A+%27val%27%7D; _eave_session=ses"
+        )
