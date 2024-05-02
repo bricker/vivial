@@ -49,3 +49,7 @@ resource "google_container_cluster" "default" {
     enabled = false
   }
 }
+
+output "cluster" {
+  value = google_container_cluster.default
+}

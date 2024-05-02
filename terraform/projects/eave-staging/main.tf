@@ -39,6 +39,10 @@ terraform {
       source  = "hashicorp/google"
       version = "~> 5.0"
     }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.0.1"
+    }
   }
 }
 
@@ -62,6 +66,7 @@ module "tfstate" {
 
 module "docker_registry" {
   source = "../../modules/docker_registry"
+  region = local.region
 }
 
 module "nat" {
@@ -80,6 +85,23 @@ module "gke" {
   project_id          = local.project_id
   region              = local.region
   authorized_networks = local.authorized_networks
+}
+
+module "kube_config_core_api" {
+  source = "../../modules/kube_configs/core-api"
+  project_id = local.project_id
+  docker_repository = module.docker_registry.repository
+}
+
+# Configure kubernetes provider with Oauth2 access token.
+# https://registry.terraform.io/providers/hashicorp/google/latest/docs/data-sources/client_config
+# This fetches a new token, which will expire in 1 hour.
+data "google_client_config" "default" {}
+
+provider "kubernetes" {
+  host = module.gke.cluster.host
+  token                  = data.google_client_config.default.access_token
+  cluster_ca_certificate = base64decode(module.gke.cluster.master_auth[0].cluster_ca_certificate)
 }
 
 # module "gcp_bigquery" {

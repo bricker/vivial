@@ -1,6 +1,7 @@
 import time
 from urllib.parse import quote, unquote, urlencode, urlparse, urlunparse
 
+from eave.stdlib.exceptions import UnauthorizedError
 import jwt
 from starlette.requests import Request
 from starlette.responses import Response
@@ -68,15 +69,17 @@ class MetabaseEmbeddingSSO(HTTPEndpoint):
             # # validate instance hosting setup is complete before redirecting to instance
             # metabase_instance.validate_hosting_data()
 
+        email = account.email or "unknown"
+
         full_jwt = jwt.encode(
             {
-                "email": account.email,
+                "email": email,
+                "first_name": email.split("@")[0] or "unknown",
                 "exp": round(time.time()) + (60 * 10),  # 10min
             },
             CORE_API_APP_CONFIG.metabase_jwt_key,
         )
 
-        # route to proper metabase instance for user's team
         shared.set_redirect(
             response=response,
             location="/".join(

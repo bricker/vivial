@@ -5,7 +5,7 @@ import typing
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 import aiohttp
-from eave.stdlib.metabase_api import MetabaseApiClient
+from eave.core.internal.lib.metabase_api import MetabaseApiClient
 import oauthlib.common
 from starlette.requests import Request
 from starlette.responses import Response
@@ -179,19 +179,60 @@ async def create_new_account_and_team(
 
         EAVE_INTERNAL_BIGQUERY_CLIENT.get_or_create_dataset(dataset_id=eave_team.bq_dataset_id)
 
-        metabase_api_client = MetabaseApiClient.create()
-        await metabase_api_client.create_database(name=f"{eave_team.name} ({eave_team.id.hex})", engine="bigquery-cloud-sdk", details={
-            "project-id": SHARED_CONFIG.google_cloud_project,
-            "service-account-json": CORE_API_APP_CONFIG.metabase_ui_bigquery_accessor_gsa_key_json_b64,
-            "dataset-filters-type": "inclusion",
-            "dataset-filters-patterns": eave_team.bq_dataset_id,
-            "advanced-options": True,
-            "use-jvm-timezone": False,
-            "include-user-id-and-hash": False,
-            "ssl": True,
-        })
+        ###
+        ### METABASE STUFF
+        ###
 
-        await metabase_api_client.create_group(name=f"{eave_team.name} ({eave_team.id.hex})")
+        metabase_api_client = MetabaseApiClient.get_authenticated_client()
+        new_database, _ = await metabase_api_client.create_database(
+            name="Dummy Data",
+            description="Dummy Database",
+            engine="bigquery-cloud-sdk",
+            details={}
+        )
+
+        new_group, _ = await metabase_api_client.create_group(name=f"{eave_team.name} ({eave_team.id.hex})")
+
+        if new_database and (new_database_id := new_database.get("id")) and new_group and (new_group_id := new_group.get("id")):
+            permissions, _ = await metabase_api_client.get_permissions_graph()
+            if permissions and (all_groups := permissions.get("groups")):
+                for group_id, databases in all_groups.items():
+                    if not databases:
+                        continue
+
+                    # 13371337 is a magic database ID for admins, I guess it means "all databases", it's internal to Metabase
+                    if "13371337" in databases:
+                        # This is the admin group, Metabase doesn't allow modifications.
+                        continue
+
+                    if group_id == str(new_group_id):
+                        databases[str(new_database_id)] = {
+                            "data": { "schemas": { eave_team.bq_dataset_id: "all" } },
+                            "download": { "schemas": { eave_team.bq_dataset_id: "limited" } },
+                        }
+                    else:
+                        # Block all other group's access to the new database
+                        databases[str(new_database_id)] = {
+                            "data": { "schemas": "block" },
+                        }
+
+                await metabase_api_client.update_permissions_graph(graph=permissions)
+
+            await metabase_api_client.update_database(
+                id=new_database_id,
+                name=f"{eave_team.name}",
+                description=f"Team ID: {eave_team.id.hex}",
+                details={
+                    "project-id": SHARED_CONFIG.google_cloud_project,
+                    "service-account-json": CORE_API_APP_CONFIG.metabase_ui_bigquery_accessor_gsa_key_json_str,
+                    "dataset-filters-type": "inclusion",
+                    "dataset-filters-patterns": eave_team.bq_dataset_id,
+                    "advanced-options": True,
+                    "use-jvm-timezone": False,
+                    "include-user-id-and-hash": False,
+                    "ssl": True,
+                }
+            )
 
     eaveLogger.debug(
         "created new account",

@@ -1,7 +1,7 @@
 import logging
 import sys
 import uuid
-from logging import LogRecord
+from logging import LogRecord, Logger
 from typing import Any, Optional, Self, cast
 
 import google.cloud.logging
@@ -80,30 +80,11 @@ class CustomFormatter(logging.Formatter):
 class CustomFilter(logging.Filter):
     _whitelist_records = (
         "eave",
-        "werkzeug",
     )
 
     def filter(self, record: LogRecord) -> bool:
         log = super().filter(record)
         return log and record.name in self._whitelist_records
-
-
-root_logger = logging.getLogger()
-level = SHARED_CONFIG.log_level
-root_logger.setLevel(level)
-
-if SHARED_CONFIG.is_development:
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(level)
-    handler.setFormatter(CustomFormatter())
-    handler.addFilter(CustomFilter())
-    root_logger.addHandler(handler)
-
-if SHARED_CONFIG.monitoring_enabled:
-    # https://cloud.google.com/python/docs/reference/logging/latest/std-lib-integration
-    client = google.cloud.logging.Client()
-    client.setup_logging(log_level=level)
-
 
 class LogContext(JsonObject):
     @classmethod
@@ -205,11 +186,27 @@ class LogContext(JsonObject):
         self.set({"feature_name": value})
 
 
+_root_logger = logging.getLogger()
+_root_logger.setLevel(SHARED_CONFIG.log_level)
+
+if SHARED_CONFIG.is_development or SHARED_CONFIG.is_test:
+    _stream_handler = logging.StreamHandler(sys.stdout)
+    _stream_handler.setLevel(SHARED_CONFIG.log_level)
+    _stream_handler.setFormatter(CustomFormatter())
+    _stream_handler.addFilter(CustomFilter())
+    _root_logger.addHandler(_stream_handler)
+
+if SHARED_CONFIG.monitoring_enabled:
+    # https://cloud.google.com/python/docs/reference/logging/latest/std-lib-integration
+    _gcp_log_client = google.cloud.logging.Client()
+    _gcp_log_client.setup_logging(log_level=SHARED_CONFIG.log_level)
+
 class EaveLogger:
-    _raw_logger = logging.getLogger("eave")
+    _raw_logger: Logger
 
     def __init__(self) -> None:
-        pass
+        self._raw_logger = logging.getLogger("eave")
+        self._raw_logger.setLevel(SHARED_CONFIG.log_level)
 
     def f(self, level: int, message: str) -> str:
         return CustomFormatter.get_formatstr(level, message)
@@ -263,7 +260,6 @@ class EaveLogger:
             ),
             **kwargs,
         }
-
 
 # Should be eave_logger to conform to pep8, but this is already used heavily throughout this project.
 eaveLogger = EaveLogger()  # noqa: N816

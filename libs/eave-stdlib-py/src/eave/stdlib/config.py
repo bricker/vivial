@@ -68,6 +68,10 @@ class _EaveConfig(ConfigBase):
         return self.eave_env is EaveEnvironment.development
 
     @property
+    def is_test(self) -> bool:
+        return self.eave_env is EaveEnvironment.test
+
+    @property
     def raise_app_exceptions(self) -> bool:
         """
         This is intended for using during development.
@@ -113,12 +117,20 @@ class _EaveConfig(ConfigBase):
         return self.eave_public_service_base(EaveApp.eave_api)
 
     @property
+    def eave_internal_api_base(self) -> str:
+        return self.eave_internal_service_base(EaveApp.eave_api)
+
+    @property
     def eave_public_dashboard_base(self) -> str:
         return self.eave_public_service_base(EaveApp.eave_dashboard)
 
     @property
     def eave_public_metabase_base(self) -> str:
         return self.eave_public_service_base(EaveApp.eave_metabase)
+
+    @property
+    def eave_internal_metabase_base(self) -> str:
+        return self.eave_internal_service_base(EaveApp.eave_metabase)
 
     def eave_public_service_base(self, service: EaveApp) -> str:
         sname = service.value.upper()
@@ -205,11 +217,6 @@ class _EaveConfig(ConfigBase):
     @cached_property
     def eave_slack_system_bot_token(self) -> str:
         value = get_secret("SLACK_SYSTEM_BOT_TOKEN")
-        return value
-
-    @cached_property
-    def metabase_admin_api_key(self) -> str:
-        value = get_secret("METABASE_ADMIN_API_KEY")
         return value
 
     @cached_property
