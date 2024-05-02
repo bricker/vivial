@@ -210,11 +210,7 @@ class EaveASGIMiddleware:
             corr_ctx.from_cookies(request.cookies)
 
             # event collection
-            req_body = None
-            try:
-                req_body = (await request.body()).decode("utf-8")
-            finally:
-                pass
+            req_body = (await request.body()).decode("utf-8")
 
             server_host, port, http_url = get_host_port_url_tuple(scope)
             query_string = scope.get("query_string")
