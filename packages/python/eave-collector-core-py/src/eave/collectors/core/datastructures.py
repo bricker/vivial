@@ -6,6 +6,7 @@ from typing import Any, Self
 
 from .json import JsonObject, compact_json
 
+
 class DatabaseStructure(StrEnum):
     UNKNOWN = "unknown"
     SQL = "SQL"
@@ -52,6 +53,8 @@ class DatabaseOperation(StrEnum):
 
 @dataclass
 class EventPayload:
+    context: dict[str, Any] | None
+
     def to_dict(self) -> JsonObject:
         return dataclasses.asdict(self)
 
@@ -105,15 +108,19 @@ class FunctionReturnEventPayload(EventPayload):
 
 
 @dataclass
-class NetworkInEventPayload(EventPayload):
+class ServerRequestEventPayload(EventPayload):
+    """Data about a request being handled by server application code"""
+
     request_method: str
-    request_path: str
+    request_url: str
     request_headers: dict[str, str]
     request_payload: str
 
 
 @dataclass
-class NetworkOutEventPayload(EventPayload):
+class NetworkRequestEventPayload(EventPayload):
+    """Data about requests made by application code"""
+
     request_method: str
     request_url: str
     request_headers: dict[str, str]
@@ -121,13 +128,19 @@ class NetworkOutEventPayload(EventPayload):
 
 
 class EventType(StrEnum):
-    dbevent = "dbevent"
+    db_event = "db_event"
+    server_event = "server_event"
+    request_event = "request_event"
 
     @property
     def payload_class(self) -> type[EventPayload]:
         match self:
-            case EventType.dbevent:
+            case EventType.db_event:
                 return DatabaseEventPayload
+            case EventType.server_event:
+                return ServerRequestEventPayload
+            case EventType.request_event:
+                return NetworkRequestEventPayload
 
 
 @dataclass

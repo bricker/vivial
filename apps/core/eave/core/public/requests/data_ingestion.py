@@ -47,7 +47,7 @@ class DataIngestionEndpoint(HTTPEndpoint):
 
         handle: BigQueryTableHandle | None = None
         match input.event_type:
-            case EventType.dbevent:
+            case EventType.db_event:
                 handle = DatabaseChangesTableHandle(team_id=creds.team_id)
 
         if handle:
