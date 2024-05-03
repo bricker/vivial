@@ -34,18 +34,21 @@ import {
  * This intercept helper MUST be called before the atoms we want to intercept are fired,
  * including the pageView ones fired on cy.visit.
  */
-Cypress.Commands.add("interceptAtomIngestion", (requestAssertions) => {
+Cypress.Commands.add("interceptAtomIngestion", () => {
   // Intercept the ingestion request and mock resp.
   // wildcard at end of intercept route to match any query params attached
   cy.intercept("POST", `${EAVE_API_ROOT}${ATOM_INGESTION_ROUTE}*`, (req) => {
     // in reality, the ingestion reply doesnt matter, so we'll use this stub
     // to reflect info about the request we want to assert (i.e. data being passed)
     const qp = new URL(req.url).searchParams;
-    console.log(Object.fromEntries(qp.entries()));
+    const data = {};
+    for (const [key, val] of qp) {
+      data[key] = decodeURIComponent(val);
+    }
     req.reply({
       statusCode: 200,
       body: {
-        data: Object.fromEntries(qp.entries()),
+        data,
       },
     });
   }).as(ATOM_INTERCEPTION_EVENT_NAME);

@@ -17,7 +17,6 @@ describe("eave form atom collection", () => {
     cy.get("#formBtn").click();
 
     // THEN an event is fired
-    // Wait for the POST request to be sent
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       expect(interception.response).to.exist;
     });

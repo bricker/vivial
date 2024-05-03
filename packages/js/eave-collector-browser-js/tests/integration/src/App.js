@@ -1,8 +1,11 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import "./App.css";
 import logo from "./logo.svg";
 
 function App() {
+  const [counter, setCounter] = useState(0);
+
   return (
     <div className="App">
       <header className="App-header">
@@ -10,13 +13,15 @@ function App() {
         <p>
           Edit <code>src/App.js</code> and save to reload.
         </p>
+        <p>Counter {counter}</p>
+        <button id="counter-btn" onClick={() => setCounter(counter + 1)}>counter++</button>
 
         <a href="https://google.com">External link</a>
 
-        <Link className="App-link" to="/page">
+        <Link id="page-link" className="App-link" to="/page">
           Go to subpage
         </Link>
-        <Link className="App-link" to="/form">
+        <Link id="form-link" className="App-link" to="/form">
           Go to form
         </Link>
       </header>

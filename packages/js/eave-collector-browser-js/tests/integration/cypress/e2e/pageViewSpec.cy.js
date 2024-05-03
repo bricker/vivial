@@ -13,9 +13,25 @@ describe("eave page view atom collection", () => {
     cy.visit(DUMMY_APP_ROOT);
 
     // THEN an event is fired
-    // Wait for the POST request to be sent
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       expect(interception.response).to.exist;
+    });
+  });
+
+  it("fires page view on SPA internal navigation", () => {
+    // GIVEN site is an SPA
+    cy.visit(DUMMY_APP_ROOT);
+
+    // WHEN navigating to a subpage/route
+    cy.get("#page-link").click();
+    cy.interceptAtomIngestion();
+
+    // THEN page view event is fired
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
+      expect(interception.response).to.exist;
+      expect(interception.response.body.data.data).to.match(
+        /HistoryChange/,
+      );
     });
   });
 });
