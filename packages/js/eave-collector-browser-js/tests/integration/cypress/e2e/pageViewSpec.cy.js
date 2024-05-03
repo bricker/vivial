@@ -19,12 +19,14 @@ describe("eave page view atom collection", () => {
   });
 
   it("fires page view on SPA internal navigation", () => {
+    cy.interceptAtomIngestion();
+
     // GIVEN site is an SPA
     cy.visit(DUMMY_APP_ROOT);
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`)
 
     // WHEN navigating to a subpage/route
     cy.get("#page-link").click();
-    cy.interceptAtomIngestion();
 
     // THEN page view event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {

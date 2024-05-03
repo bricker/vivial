@@ -8,16 +8,15 @@ describe("eave click atom collection", () => {
   it("fires atom on button click", () => {
     cy.interceptAtomIngestion();
 
-    // GIVEN site has a form
+    // GIVEN site has a button
     cy.visit(DUMMY_APP_ROOT);
     // wait for pageview to fire
-    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`)
-    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`)
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
 
-    // WHEN internal link is clicked
+    // WHEN a button tag is clicked
     cy.get("#counter-btn").click();
 
-    // THEN a click event is fired
+    // THEN a button click event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       expect(interception.response).to.exist;
       expect(interception.response.body.data.e_n).to.match(/button click/);
