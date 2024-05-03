@@ -4215,6 +4215,9 @@ export function Tracker(trackerUrl, siteId) {
       return;
     }
     routeHistoryTrackingEnabled = true;
+    trackedContentImpressions = [];
+    consentRequestsQueue = [];
+    javaScriptErrors = [];
 
     function getCurrentUrl() {
       return globalThis.eave.windowAlias.location.href;
@@ -4325,17 +4328,6 @@ export function Tracker(trackerUrl, siteId) {
           state: newState,
         };
 
-        var shouldForceEvent =
-          (lastEvent.eventType === "popstate" &&
-            newEvent.eventType === "hashchange") ||
-          (lastEvent.eventType === "hashchange" &&
-            newEvent.eventType === "popstate") ||
-          (lastEvent.eventType === "hashchange" &&
-            newEvent.eventType === "hashchange") ||
-          (lastEvent.eventType === "popstate" &&
-            newEvent.eventType === "popstate");
-        shouldForceEvent = !shouldForceEvent;
-
         var oldUrl = lastEvent.path;
         if (lastEvent.search) {
           oldUrl += "?" + lastEvent.search;
@@ -4350,7 +4342,7 @@ export function Tracker(trackerUrl, siteId) {
         if (newEvent.hash) {
           nowUrl += "#" + newEvent.hash;
         }
-        if (shouldForceEvent || oldUrl !== nowUrl) {
+        if (oldUrl !== nowUrl) {
           var tmpLast = lastEvent;
           lastEvent = newEvent; // overwrite as early as possible in case event gets triggered again
 
