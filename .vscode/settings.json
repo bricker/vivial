@@ -94,7 +94,7 @@
     // "${workspaceFolder}/packages/python/eave-collector-network-py/src",
     "${workspaceFolder}/packages/python/eave-collector-asyncpg-py/src",
     "${workspaceFolder}/packages/python/eave-collector-sqlalchemy-py/src",
-    // "${workspaceFolder}/packages/python/eave-collector-starlette-py/src",
+    "${workspaceFolder}/packages/python/eave-collector-starlette-py/src",
   ],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
