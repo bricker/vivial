@@ -5013,10 +5013,10 @@ export function Tracker(trackerUrl, siteId) {
 
               logEvent(
                 // TODO: details
-                "category",
-                "action",
-                "name",
-                "value",
+                "form",
+                "submit",
+                "form submitted",
+                formAction,
                 {
                   // custom data
                   event: "mtm.FormSubmit",
