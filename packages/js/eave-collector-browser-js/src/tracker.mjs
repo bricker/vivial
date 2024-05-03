@@ -1629,9 +1629,14 @@ export function Tracker(trackerUrl, siteId) {
   }
 
   /**
-   * Returns the URL to send event to,
+   * Returns the URL query params to send with an event,
    * with the standard parameters (plugins, resolution, url, referrer, etc.).
    * Sends the pageview and browser settings with every request in case of race conditions.
+   *
+   * @param {string} request any initial query params to attach to the request
+   * @param {object} customData additional key-value data to attach to the request
+   * @param {Function} pluginMethod function return value builds on request query params
+   * @returns {string} built up query parameters to send with the request
    */
   function getRequest(request, customData, pluginMethod) {
     var currentUrl = configCustomUrl || locationHrefAlias;
@@ -1810,6 +1815,10 @@ export function Tracker(trackerUrl, siteId) {
 
   /**
    * Log the page view / visit
+   *
+   * @param {string|object} customTitle title to add to request params, or object with `text` attribute
+   * @param {object} customData key value pairs to add to request params
+   * @param {Function} callback
    */
   function logPageView(customTitle, customData, callback) {
     cookieManager.resetOrExtendSession();
@@ -4200,10 +4209,8 @@ export function Tracker(trackerUrl, siteId) {
   /**
    * Tracks route-change history for single page applications, since
    * normal page view events aren't triggered for navigation without a GET request.
-   *
-   * @param {boolean} enable Whether to allow tracking route history. Defaults to true.
    */
-  this.enableRouteHistoryTracking = function (enable) {
+  this.enableRouteHistoryTracking = function () {
     if (routeHistoryTrackingEnabled) {
       return;
     }
@@ -4349,7 +4356,7 @@ export function Tracker(trackerUrl, siteId) {
 
           trackCallback(function () {
             logPageView(
-              {},
+              "", // TODO: make more meaningful
               {
                 event: "mtm.HistoryChange",
                 "mtm.historyChangeSource": newEvent.eventType,
@@ -4620,7 +4627,7 @@ export function Tracker(trackerUrl, siteId) {
    * Log visit to this page
    *
    * @param {string} customTitle
-   * @param {*} customData
+   * @param {object} customData
    * @param {Function} callback
    */
   this.trackPageView = function (customTitle, customData, callback) {
