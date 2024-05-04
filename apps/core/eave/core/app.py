@@ -13,7 +13,7 @@ from eave.core.internal.oauth.google import (
 )
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.core.public.middleware.team_lookup import TeamLookupASGIMiddleware
-from eave.core.public.requests.data_ingestion import DataIngestionEndpoint
+from eave.core.public.requests.data_ingestion import BrowserDataIngestionEndpoint, ServerDataIngestionEndpoint
 from eave.core.public.requests.oauth.metabase_embedding_sso import MetabaseEmbeddingSSO
 from eave.stdlib import cache, logging
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
@@ -155,13 +155,23 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/v1/ingest",  # TODO: Make ingest a separate app
+            path="/public/ingest/server",
             auth_required=False,
             signature_required=False,
             origin_required=False,
             team_id_required=False,
         ),
-        endpoint=DataIngestionEndpoint,
+        endpoint=ServerDataIngestionEndpoint,
+    ),
+    make_route(
+        config=CoreApiEndpointConfiguration(
+            path="/public/ingest/browser",
+            auth_required=False,
+            signature_required=False,
+            origin_required=False,
+            team_id_required=False,
+        ),
+        endpoint=BrowserDataIngestionEndpoint,
     ),
     make_route(
         config=GetTeamRequest.config,

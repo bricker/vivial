@@ -6,13 +6,13 @@ from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
 
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseStructure
 from eave.core.internal import database
-from eave.core.internal.bigquery.types import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
+from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 from eave.core.internal.orm.virtual_event import VirtualEventOrm, make_virtual_event_readable_name
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize
 
 
-class DatabaseChangesTableHandle(BigQueryTableHandle):
+class DatabaseEventsTableHandle(BigQueryTableHandle):
     table_def = BigQueryTableDefinition(
         table_id="atoms_db",
         schema=[
@@ -70,43 +70,48 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
             )
 
             if not vevent_query.one_or_none():
-                self._bq_client.get_or_create_view(
-                    dataset_id=self.team.bq_dataset_id,
-                    view_id=vevent_view_id,
-                    view_query=dedent(
-                        """
-                        SELECT
-                            *
-                        FROM
-                            {dataset_id}.{atom_table_id}
-                        WHERE
-                            `table_name` = {source_table}
-                            AND `operation` = {operation}
-                        ORDER BY
-                            `timestamp` ASC
-                        """.format(
-                            dataset_id=sql_sanitized_identifier(self.team.bq_dataset_id),
-                            atom_table_id=sql_sanitized_identifier(self.table_def.table_id),
-                            source_table=sql_sanitized_literal(source_table),
-                            operation=sql_sanitized_literal(operation),
-                        )
-                    ).strip(),
-                )
+                try:
+                    self._bq_client.get_or_create_view(
+                        dataset_id=self.team.bq_dataset_id,
+                        view_id=vevent_view_id,
+                        view_query=dedent(
+                            """
+                            SELECT
+                                *
+                            FROM
+                                {dataset_id}.{atom_table_id}
+                            WHERE
+                                `table_name` = {source_table}
+                                AND `operation` = {operation}
+                            ORDER BY
+                                `timestamp` ASC
+                            """.format(
+                                dataset_id=sql_sanitized_identifier(self.team.bq_dataset_id),
+                                atom_table_id=sql_sanitized_identifier(self.table_def.table_id),
+                                source_table=sql_sanitized_literal(source_table),
+                                operation=sql_sanitized_literal(operation),
+                            )
+                        ).strip(),
+                    )
 
-                await VirtualEventOrm.create(
-                    session=db_session,
-                    team_id=self.team.id,
-                    view_id=vevent_view_id,
-                    readable_name=vevent_readable_name,
-                    description=f"{operation} operation on the {source_table} table.",
-                )
+                    await VirtualEventOrm.create(
+                        session=db_session,
+                        team_id=self.team.id,
+                        view_id=vevent_view_id,
+                        readable_name=vevent_readable_name,
+                        description=f"{operation} operation on the {source_table} table.",
+                    )
+                except Exception as e:
+                    # This may indicate a race condition, where two requests attempted to create the same view/virtual event at the same time.
+                    # In that case, it's okay to ignore the failure.
+                    LOGGER.exception(e)
 
     @override
-    async def insert(self, events: list[str]) -> None:
+    async def insert(self, events: list[dict[str, Any]]) -> None:
         if len(events) == 0:
             return
 
-        dbchange_events = [DatabaseEventPayload(**json.loads(e)) for e in events]
+        db_events = [DatabaseEventPayload(**e) for e in events]
 
         dataset = self._bq_client.get_or_create_dataset(
             dataset_id=self.team.bq_dataset_id,
@@ -121,7 +126,7 @@ class DatabaseChangesTableHandle(BigQueryTableHandle):
         unique_operations: set[tuple[str, str]] = set()
         formatted_rows: list[dict[str, Any]] = []
 
-        for e in dbchange_events:
+        for e in db_events:
             match e.db_structure:
                 case DatabaseStructure.SQL:
                     if not e.operation or not e.table_name:

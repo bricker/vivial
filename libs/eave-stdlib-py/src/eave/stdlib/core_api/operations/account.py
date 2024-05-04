@@ -22,6 +22,7 @@ class GetAuthenticatedAccount(CoreApiEndpoint):
     @classmethod
     async def perform(
         cls,
+        *,
         access_token: str,
         team_id: uuid.UUID | str,
         account_id: uuid.UUID | str,

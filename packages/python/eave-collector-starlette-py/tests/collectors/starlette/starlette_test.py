@@ -6,17 +6,16 @@ from starlette.routing import Route
 from starlette.testclient import TestClient
 
 from eave.collectors.core.correlation_context.base import CONTEXT_NAME, COOKIE_PREFIX
-from eave.collectors.core.datastructures import EventPayload, EventType, ServerRequestEventPayload
+from eave.collectors.core.datastructures import EventPayload, EventType, HttpServerEventPayload
 from eave.collectors.core.write_queue import BatchWriteQueue, QueueParams
 from eave.collectors.starlette.private.collector import StarletteCollector
-
 
 class ConsoleOutputBatchWriteQueue(BatchWriteQueue):
     _running: bool = False
     queue: list[EventPayload]
 
     def __init__(self, event_type: EventType) -> None:
-        super().__init__(queue_params=QueueParams(event_type=event_type))
+        super().__init__(queue_params=QueueParams())
         self.queue = []
 
     def start_autoflush(self) -> None:
@@ -47,7 +46,7 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
         self._collector = StarletteCollector()
-        self._write_queue = ConsoleOutputBatchWriteQueue(EventType.server_event)
+        self._write_queue = ConsoleOutputBatchWriteQueue(EventType.http_server_event)
         self._collector.write_queue = self._write_queue
         self._app = self._create_starlette_app()
         self._collector.instrument_app(self._app)
@@ -66,7 +65,7 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
         # THEN network event is pushed to write_queue
         assert len(self._write_queue.queue) == 1  # TODO: this should actually be 2; req + resp events
         e = self._write_queue.queue[0]
-        assert isinstance(e, ServerRequestEventPayload)
+        assert isinstance(e, HttpServerEventPayload)
         # TODO: event content assertions
 
     async def test_eave_ctx_set_from_cookies(self) -> None:
@@ -84,7 +83,7 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
         # THEN cookie values set in eave ctx
         assert len(self._write_queue.queue) > 0
         e = self._write_queue.queue[0]
-        assert isinstance(e, ServerRequestEventPayload)
+        assert isinstance(e, HttpServerEventPayload)
         assert e.context is not None, "Eave context was expected to be set in the network event"
         assert e.context.get(valid_cookie) == "valid"
         assert e.context.get(non_eave_cookie) is None

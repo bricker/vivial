@@ -154,8 +154,8 @@ class TestAuthenticationMiddlewareRequiredValidRequest(TestAuthenticationMiddlew
         )
 
         assert response.status_code == HTTPStatus.OK
-        assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) == str(self._eave_account.id)
-        assert response.cookies.get(EAVE_TEAM_ID_COOKIE_NAME) == str(self._eave_account.team_id)
+        assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) is None
+        assert response.cookies.get(EAVE_TEAM_ID_COOKIE_NAME) is None
         assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) == self._eave_account.access_token
 
     async def test_previous_access_token_accepted(self) -> None:
@@ -175,8 +175,8 @@ class TestAuthenticationMiddlewareRequiredValidRequest(TestAuthenticationMiddlew
 
         assert response.status_code == HTTPStatus.OK
         assert self._eave_account.access_token == self.getstr("current_token")
-        assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) == str(self._eave_account.id)
-        assert response.cookies.get(EAVE_TEAM_ID_COOKIE_NAME) == str(self._eave_account.team_id)
+        assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) is None
+        assert response.cookies.get(EAVE_TEAM_ID_COOKIE_NAME) is None
         assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) == self.getstr("current_token")
 
     async def test_access_token_not_refreshed(self) -> None:
@@ -230,8 +230,8 @@ class TestAuthenticationMiddlewareWithCookies(TestAuthenticationMiddlewareBase):
         )
 
         assert response.status_code == HTTPStatus.OK
-        assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) == str(self._eave_account.id)
-        assert response.cookies.get(EAVE_TEAM_ID_COOKIE_NAME) == str(self._eave_account.team_id)
+        assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) is None
+        assert response.cookies.get(EAVE_TEAM_ID_COOKIE_NAME) is None
         assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) == self._eave_account.access_token
 
     async def test_auth_header_precedence(self) -> None:
@@ -250,8 +250,8 @@ class TestAuthenticationMiddlewareWithCookies(TestAuthenticationMiddlewareBase):
         )
 
         assert response.status_code == HTTPStatus.OK
-        assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) == str(self._eave_account.id)
-        assert response.cookies.get(EAVE_TEAM_ID_COOKIE_NAME) == str(self._eave_account.team_id)
+        assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) is None
+        assert response.cookies.get(EAVE_TEAM_ID_COOKIE_NAME) is None
         assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) == self._eave_account.access_token
 
     async def test_access_token_not_refreshed(self) -> None:

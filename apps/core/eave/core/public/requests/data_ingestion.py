@@ -1,12 +1,17 @@
+import threading
 from typing import cast
 
 from asgiref.typing import HTTPScope
 from starlette.requests import Request
 from starlette.responses import Response
+import aiohttp
 
 from eave.collectors.core.datastructures import DataIngestRequestBody, EventType
 from eave.core.internal import database
-from eave.core.internal.bigquery.dbchanges import BigQueryTableHandle, DatabaseChangesTableHandle
+from eave.core.internal.atoms.browser_events import BrowserEventsTableHandle
+from eave.core.internal.atoms.db_events import BigQueryTableHandle, DatabaseEventsTableHandle
+from eave.core.internal.atoms.http_client_events import HttpClientEventsTableHandle
+from eave.core.internal.atoms.http_server_events import HttpServerEventsTableHandle
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.stdlib.api_util import get_header_value_or_exception
 from eave.stdlib.exceptions import ForbiddenError, UnauthorizedError
@@ -17,7 +22,48 @@ from eave.stdlib.util import ensure_uuid
 from eave.core.internal.orm.team import TeamOrm
 
 
-class DataIngestionEndpoint(HTTPEndpoint):
+class BrowserDataIngestionEndpoint(HTTPEndpoint):
+    async def post(self, request: Request) -> Response:
+        body = await request.json()
+        input = DataIngestRequestBody.from_json(data=body)
+
+        http_scope = cast(HTTPScope, request.scope)
+        client_id = get_header_value_or_exception(scope=http_scope, name=EAVE_CLIENT_ID_HEADER)
+        origin_header = get_header_value_or_exception(scope=http_scope, name=aiohttp.hdrs.ORIGIN)
+
+        async with database.async_session.begin() as db_session:
+            creds = (
+                await ClientCredentialsOrm.query(
+                    session=db_session,
+                    params=ClientCredentialsOrm.QueryParams(
+                        id=ensure_uuid(client_id),
+                    ),
+                )
+            ).one_or_none()
+
+            if not creds:
+                raise UnauthorizedError("invalid credentials")
+
+            if not (creds.scope & ClientScope.write) > 0:
+                raise ForbiddenError("invalid scopes")
+
+            eave_team = await TeamOrm.one_or_exception(session=db_session, team_id=creds.team_id)
+
+            if origin_header not in eave_team.allowed_origins:
+                raise ForbiddenError("Invalid origin")
+
+            await creds.touch(session=db_session)
+
+        if (events := input.events.get(EventType.browser_event)) and len(events) > 0:
+            handle = BrowserEventsTableHandle(team=eave_team)
+            await handle.insert(events=events)
+
+        # Throw an error if there are any other event types in the payload?
+
+        response = Response(content="OK", status_code=200)
+        return response
+
+class ServerDataIngestionEndpoint(HTTPEndpoint):
     async def post(self, request: Request) -> Response:
         body = await request.json()
         input = DataIngestRequestBody.from_json(data=body)
@@ -49,14 +95,21 @@ class DataIngestionEndpoint(HTTPEndpoint):
 
             eave_team = await TeamOrm.one_or_exception(session=db_session, team_id=creds.team_id)
 
-        handle: BigQueryTableHandle | None = None
-        match input.event_type:
-            case EventType.db_event:
-                handle = DatabaseChangesTableHandle(team=eave_team)
+        if (events := input.events.get(EventType.db_event)) and len(events) > 0:
+            handle = DatabaseEventsTableHandle(team=eave_team)
+            await handle.insert(events=events)
 
-        if handle:
-            await handle.insert(events=input.events)
-        # TODO: is it worth sending back an error if we couldnt handle the event?
+        if (events := input.events.get(EventType.http_server_event)) and len(events) > 0:
+            handle = HttpServerEventsTableHandle(team=eave_team)
+            await handle.insert(events=events)
+
+        if (events := input.events.get(EventType.http_client_event)) and len(events) > 0:
+            handle = HttpClientEventsTableHandle(team=eave_team)
+            await handle.insert(events=events)
+
+        if (events := input.events.get(EventType.browser_event)) and len(events) > 0:
+            handle = BrowserEventsTableHandle(team=eave_team)
+            await handle.insert(events=events)
 
         response = Response(content="OK", status_code=200)
         return response

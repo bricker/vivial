@@ -4,6 +4,7 @@ import uuid
 from datetime import datetime
 from uuid import UUID
 
+from eave.collectors.core.test_util import EphemeralWriteQueue
 import sqlalchemy
 from sqlalchemy import func, text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
@@ -12,27 +13,6 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, EventPayload, EventType
 from eave.collectors.core.write_queue import BatchWriteQueue, QueueParams
 from eave.collectors.sqlalchemy.private.collector import SQLAlchemyCollector
-
-
-class ConsoleOutputBatchWriteQueue(BatchWriteQueue):
-    _running: bool = False
-    queue: list[EventPayload]
-
-    def __init__(self) -> None:
-        super().__init__(queue_params=QueueParams(event_type=EventType.db_event))
-        self.queue = []
-
-    def start_autoflush(self) -> None:
-        self._running = True
-
-    def stop_autoflush(self) -> None:
-        self._running = False
-
-    def put(self, payload: EventPayload) -> None:
-        if not self._running:
-            raise RuntimeError("queue processor not running")
-
-        self.queue.append(payload)
 
 
 db_uri = sqlalchemy.engine.url.URL.create(
@@ -78,9 +58,8 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
             await connection.run_sync(OrmBase.metadata.drop_all)
             await connection.run_sync(OrmBase.metadata.create_all)
 
-        self._collector = SQLAlchemyCollector()
-        self._write_queue = ConsoleOutputBatchWriteQueue()
-        self._collector.write_queue = self._write_queue
+        self._write_queue = EphemeralWriteQueue()
+        self._collector = SQLAlchemyCollector(write_queue=self._write_queue)
         await self._collector.start(engine=async_engine)
 
     async def test_after_execute_insert(self) -> None:

@@ -42,7 +42,7 @@ resource "kubernetes_ingress" "default" {
           }
         }
         path {
-          path = "/v1"
+          path = "/public"
           backend {
             service_name = local.app_name
             service_port = "http"

@@ -1,15 +1,19 @@
+from typing import Any
 import aiohttp
+from eave.stdlib.typing import JsonObject
+from eave.stdlib.util import compact_json
 
 from . import config
-from .datastructures import DataIngestRequestBody, EventType
+from .datastructures import DataIngestRequestBody
 
 
-async def send_batch(event_type: EventType, events: list[str]) -> None:
+async def send_batch(events: dict[str, list[JsonObject]]) -> None:
+    body = DataIngestRequestBody(events=events)
+
     async with aiohttp.ClientSession() as session:
-        body = DataIngestRequestBody(event_type=event_type, events=events)
         await session.request(
             method="POST",
-            url=f"{config.eave_api_base_url()}/v1/ingest",
+            url=f"{config.eave_api_base_url()}/public/ingest/server",
             data=body.to_json(),
             compress="gzip",
             headers={

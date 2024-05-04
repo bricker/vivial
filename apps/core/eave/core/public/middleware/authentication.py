@@ -86,13 +86,11 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
             headers = MutableHeaders(raw=list(event["headers"]))
             response = Response(headers=headers)
 
-            # Set the response cookies in case the access token was refreshed.
-            # If the request came from a browser, the cookies will be automatically updated and the user session will continue.
-            # If the request came from a server, it is the client's responsibility to get and save the refreshed token from the response cookies.
+            # Set the access_token response cookie in case the access token was refreshed.
+            # If the request came from a browser, the cookie will be automatically updated and the user session will continue.
+            # If the request came from a server, it is the client's responsibility to get and save the refreshed token from the response cookie.
             set_auth_cookies(
                 response=response,
-                team_id=account.team_id,
-                account_id=account.id,
                 access_token=account.access_token,
             )
 

@@ -28,8 +28,8 @@ from starlette.responses import Response
 # from starlette.routing import Match
 from eave.collectors.core.base_collector import BaseCollector
 from eave.collectors.core.correlation_context import corr_ctx
-from eave.collectors.core.datastructures import EventType, ServerRequestEventPayload
-from eave.collectors.core.write_queue import BatchWriteQueue
+from eave.collectors.core.datastructures import EventType, HttpServerEventPayload
+from eave.collectors.core.write_queue import BatchWriteQueue, WriteQueue
 
 # class ASGIGetter:
 #     def get(self, carrier: dict, key: str) -> list[str] | None:
@@ -179,7 +179,7 @@ class EaveASGIMiddleware:
     def __init__(
         self,
         app: starlette.types.ASGIApp,
-        write_queue: BatchWriteQueue,
+        write_queue: WriteQueue,
     ) -> None:
         self.app = guarantee_single_callable(app)
         self.content_length_header = None
@@ -244,7 +244,7 @@ class EaveASGIMiddleware:
             req_method = scope.get("method") or "unknown"
             req_url = remove_url_credentials(http_url)
             self.write_queue.put(
-                ServerRequestEventPayload(
+                HttpServerEventPayload(
                     request_method=req_method,
                     request_url=req_url,
                     request_headers=dict(request.headers.items()),
@@ -270,7 +270,7 @@ class EaveASGIMiddleware:
                 # resp_body = await response.body() # original
                 resp_body = response.body.decode("utf-8")
                 self.write_queue.put(
-                    ServerRequestEventPayload(
+                    HttpServerEventPayload(
                         request_method=req_method,
                         request_url=req_url,
                         request_headers=dict(response.headers.items()),
@@ -286,7 +286,7 @@ class StarletteCollector(BaseCollector):
     _original_starlette = None
 
     def __init__(self) -> None:
-        super().__init__(EventType.server_event)
+        super().__init__()
 
     def instrument_app(self, app: applications.Starlette) -> None:
         """instrument specific app instance only"""
@@ -330,7 +330,7 @@ class StarletteCollector(BaseCollector):
 class _InstrumentedStarlette(applications.Starlette):
     _instrumented_starlette_apps = set()  # noqa: RUF012
 
-    def __init__(self, write_queue: BatchWriteQueue, *args, **kwargs) -> None:
+    def __init__(self, write_queue: WriteQueue, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.add_middleware(EaveASGIMiddleware, write_queue=write_queue)
         self._is_instrumented_by_eave = True

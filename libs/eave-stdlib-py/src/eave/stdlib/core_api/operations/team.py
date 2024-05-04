@@ -20,6 +20,7 @@ class GetTeamRequest(CoreApiEndpoint):
     @classmethod
     async def perform(
         cls,
+        *,
         team_id: uuid.UUID | str,
         account_id: uuid.UUID | None,
         access_token: str | None,

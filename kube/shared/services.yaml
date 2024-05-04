@@ -14,7 +14,9 @@ spec:
 ---
 # Standard app healthcheck/backend config
 # Assumes the app is listening on port 8000 and has a /status endpoint.
-# Also removes any "server" response header, for security.
+# Also:
+# - Removes any "server" response header, for security.
+# - Adds a special header to indicate to the backend that the request flowed through this ingress.
 apiVersion: cloud.google.com/v1
 kind: BackendConfig
 metadata:
@@ -24,9 +26,15 @@ spec:
     type: HTTP
     requestPath: /status
     port: 8000
+  logging:
+    enable: true
+    sampleRate: 0.5
+  customRequestHeaders:
+    headers:
+    - "eave-lb: 1"
   customResponseHeaders:
     headers:
-      - "server: unspecified"
+      - "server: n/a"
 
 ---
 # Standard app frontend config.

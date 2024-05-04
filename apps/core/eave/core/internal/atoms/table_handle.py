@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from enum import StrEnum
 
-from google.cloud.bigquery import SchemaField
+from eave.stdlib.typing import JsonObject
+from google.cloud.bigquery import Dataset, SchemaField, Table
 
-from eave.core.internal.bigquery import bq_client
+from ..lib import bq_client
 from eave.core.internal.orm.team import TeamOrm
 
 
@@ -22,6 +23,7 @@ class BigQueryTableDefinition:
 class BigQueryTableHandle:
     table_def: BigQueryTableDefinition
     team: TeamOrm
+    _bq_client: bq_client.BigQueryClient
 
     def __init__(self, *, team: TeamOrm) -> None:
         """
@@ -30,5 +32,5 @@ class BigQueryTableHandle:
         self._bq_client = bq_client.EAVE_INTERNAL_BIGQUERY_CLIENT
         self.team = team
 
-    async def insert(self, events: list[str]) -> None:
+    async def insert(self, events: list[JsonObject]) -> None:
         ...

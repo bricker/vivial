@@ -1,8 +1,8 @@
 import dataclasses
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import StrEnum
-from typing import Any, Self
+from typing import Any, ClassVar, Self
 
 from .json import JsonObject, compact_json
 
@@ -50,9 +50,19 @@ class DatabaseOperation(StrEnum):
             case _:
                 return "Inspected"  # idk
 
+class EventType(StrEnum):
+    db_event = "db_event"
+    http_server_event = "http_server_event"
+    http_client_event = "http_client_event"
+    function_call = "function_call"
+    function_return = "function_return"
+    browser_event = "browser_event"
 
-@dataclass
+
+@dataclass(kw_only=True)
 class EventPayload:
+    event_type: ClassVar[EventType]
+
     context: dict[str, Any] | None
 
     def to_dict(self) -> JsonObject:
@@ -62,8 +72,10 @@ class EventPayload:
         return compact_json(self.to_dict())
 
 
-@dataclass
+@dataclass(kw_only=True)
 class DatabaseEventPayload(EventPayload):
+    event_type: ClassVar[EventType] = EventType.db_event
+
     statement: str | None
     db_name: str | None
     table_name: str | None
@@ -72,34 +84,28 @@ class DatabaseEventPayload(EventPayload):
     db_structure: DatabaseStructure
     parameters: dict[str, Any] | None
 
+@dataclass(kw_only=True)
+class BrowserEventPayload(EventPayload):
+    event_type: ClassVar[EventType] = EventType.browser_event
 
-# @dataclass
-# class DatabaseInsertEventPayload(DatabaseEventPayload):
-#     inserted_records: list[dict[str, Any]]
-
-# @dataclass
-# class DatabaseUpdateEventPayload(EventPayload):
-#     updated_records: list[dict[str, Any]]
-
-# @dataclass
-# class DatabaseDeleteEventPayload(EventPayload):
-#     deleted_records: list[dict[str, Any]]
-
-# @dataclass
-# class DatabaseSelectEventPayload(EventPayload):
-#     selected_records: list[dict[str, Any]]
+    event: str | None
+    # TODO: What other fields?
 
 
-@dataclass
+
+@dataclass(kw_only=True)
 class FunctionCallEventPayload(EventPayload):
+    event_type: ClassVar[EventType] = EventType.function_call
+
     function_module: str | None
     function_class: str | None
     function_name: str | None
     function_args: dict[str, Any] | None
 
-
-@dataclass
+@dataclass(kw_only=True)
 class FunctionReturnEventPayload(EventPayload):
+    event_type: ClassVar[EventType] = EventType.function_return
+
     function_module: str
     function_class: str
     function_name: str
@@ -107,51 +113,33 @@ class FunctionReturnEventPayload(EventPayload):
     function_return_value: str
 
 
-@dataclass
-class ServerRequestEventPayload(EventPayload):
+@dataclass(kw_only=True)
+class HttpServerEventPayload(EventPayload):
     """Data about a request being handled by server application code"""
+    event_type: ClassVar[EventType] = EventType.http_server_event
 
     request_method: str
     request_url: str
     request_headers: dict[str, str]
     request_payload: str
-
 
 @dataclass
-class NetworkRequestEventPayload(EventPayload):
+class HttpClientEventPayload(EventPayload):
     """Data about requests made by application code"""
+    event_type: ClassVar[EventType] = EventType.http_client_event
 
     request_method: str
     request_url: str
     request_headers: dict[str, str]
     request_payload: str
-
-
-class EventType(StrEnum):
-    db_event = "db_event"
-    server_event = "server_event"
-    request_event = "request_event"
-
-    @property
-    def payload_class(self) -> type[EventPayload]:
-        match self:
-            case EventType.db_event:
-                return DatabaseEventPayload
-            case EventType.server_event:
-                return ServerRequestEventPayload
-            case EventType.request_event:
-                return NetworkRequestEventPayload
-
 
 @dataclass
 class DataIngestRequestBody:
-    event_type: EventType
-    events: list[str]
+    events: dict[str, list[JsonObject]]
 
     @classmethod
     def from_json(cls, data: dict[str, Any]) -> Self:
         return cls(
-            event_type=EventType(value=data["event_type"]),
             events=data["events"],
         )
 

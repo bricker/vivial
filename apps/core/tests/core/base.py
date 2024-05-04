@@ -242,6 +242,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         team = await TeamOrm.create(
             session=session,
             name=self.anystr("team name"),
+            allowed_origins_csv="eave.tests"
         )
 
         return team

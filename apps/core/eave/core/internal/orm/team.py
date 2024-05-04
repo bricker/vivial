@@ -18,6 +18,7 @@ class TeamOrm(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=UUID_DEFAULT_EXPR)
     name: Mapped[str]
+    allowed_origins_csv: Mapped[str | None] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -26,9 +27,11 @@ class TeamOrm(Base):
         cls,
         session: AsyncSession,
         name: str,
+        allowed_origins_csv: str | None = None,
     ) -> Self:
         obj = cls(
             name=name,
+            allowed_origins_csv=allowed_origins_csv,
         )
         session.add(obj)
         await session.flush()
@@ -66,3 +69,12 @@ class TeamOrm(Base):
         lookup = cls.query(**kwargs).limit(1)
         result = await session.scalar(lookup)
         return result
+
+    @property
+    def allowed_origins(self) -> list[str]:
+        if not self.allowed_origins_csv:
+            return []
+
+        split = ",".split(self.allowed_origins_csv)
+        return [o.strip() for o in split]
+
