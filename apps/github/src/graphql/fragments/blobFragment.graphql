@@ -1,4 +1,0 @@
-fragment blobFragment on Blob {
-  ...gitObjectFragment
-  text
-}

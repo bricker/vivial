@@ -1,7 +1,0 @@
-{
-  "extends": "./node_modules/@eave-fyi/eave-stdlib-ts/src/tsconfig-base.json",
-  "include": ["**/*.ts"],
-  "compilerOptions": {
-    "typeRoots": ["node_modules/@types", "../../libs/eave-stdlib-ts/src/@types"]
-  }
-}
