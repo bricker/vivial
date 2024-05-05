@@ -60,8 +60,7 @@ async def get_virtual_events_endpoint(request: Request, auth_cookies: AuthCookie
 
     eave_response = await virtual_event.GetMyVirtualEventsRequest.perform(
         origin=DASHBOARD_APP_CONFIG.eave_origin,
-        team_id=ensure_uuid(auth_cookies.team_id),
-        account_id=ensure_uuid(auth_cookies.account_id),
+        account_id=unwrap(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
         input=virtual_event.GetMyVirtualEventsRequest.RequestBody(virtual_events=query_input),
     )
@@ -73,8 +72,7 @@ async def get_virtual_events_endpoint(request: Request, auth_cookies: AuthCookie
 async def get_team_endpoint(request: Request, auth_cookies: AuthCookies) -> Response:
     eave_response = await team.GetMyTeamRequest.perform(
         origin=DASHBOARD_APP_CONFIG.eave_origin,
-        team_id=unwrap(auth_cookies.team_id),
-        account_id=ensure_uuid(auth_cookies.account_id),
+        account_id=unwrap(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
     )
 
@@ -133,7 +131,7 @@ def _make_response(eave_response: BaseResponseBody) -> Response:
 app = Starlette(
     routes=[
         Mount("/static", StaticFiles(directory="eave/dashboard/static")),
-        Route(path="/status", methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"], endpoint=status_endpoint),
+        Route(path="/status", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"], endpoint=status_endpoint),
         Route(path="/api/team/virtual-events", methods=["POST"], endpoint=get_virtual_events_endpoint),
         Route(path="/api/team", methods=["POST"], endpoint=get_team_endpoint),
         Route(path="/logout", methods=["GET"], endpoint=logout_endpoint),

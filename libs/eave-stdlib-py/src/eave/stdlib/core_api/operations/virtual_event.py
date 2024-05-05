@@ -26,8 +26,8 @@ class GetMyVirtualEventsRequest(CoreApiEndpoint):
     async def perform(
         cls,
         *,
-        access_token: str,
         account_id: uuid.UUID | str,
+        access_token: str,
         input: RequestBody,
         **kwargs: Unpack[requests_util.CommonRequestArgs],
     ) -> ResponseBody:

@@ -25,5 +25,5 @@ class TestAuthedAccountRequests(BaseTestCase):
 
         response_obj = GetMyAccountRequest.ResponseBody(**response.json())
 
-        assert response_obj.account.id == account.id
+        assert response_obj.account.email == account.email
         assert response_obj.team.id == account.team_id

@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from "uuid";
 import { EaveApp } from "./eave-origins.js";
 import { InvalidSignatureError } from "./exceptions.js";
 import { LogContext } from "./logging.js";
-import Signing, { buildMessageToSign, makeSigTs } from "./signing.js";
 
 /*
   These libraries aren't listed in the dependencies for eave-stdlib-ts, because they are development dependencies but this file is exported from this library.
@@ -18,8 +17,6 @@ import {
   EAVE_ACCOUNT_ID_HEADER,
   EAVE_ORIGIN_HEADER,
   EAVE_REQUEST_ID_HEADER,
-  EAVE_SIGNATURE_HEADER,
-  EAVE_SIG_TS_HEADER,
   EAVE_TEAM_ID_HEADER,
 } from "./headers.js";
 
@@ -57,34 +54,6 @@ export class TestUtil {
 
 export interface TestContextBase {
   u: TestUtil;
-}
-
-function fakeSign(m: string | Buffer): string {
-  return createHash("sha256").update(m).digest().toString("base64");
-}
-
-const replacementSignFunc = async (data: string | Buffer): Promise<string> => {
-  return fakeSign(data);
-};
-
-const replacementVerifyFunc = async (
-  message: string | Buffer,
-  signature: string | Buffer,
-): Promise<void> => {
-  const expected = fakeSign(message);
-
-  if (signature.toString("base64") !== expected) {
-    throw new InvalidSignatureError("Signature failed verification");
-  }
-};
-
-export function mockSigning({ sandbox }: { sandbox: sinon.SinonSandbox }) {
-  const mock = new Signing("eave_dashboard");
-  sandbox.stub(Signing, "new").returns(mock);
-  sandbox.stub(mock, "signBase64").callsFake(replacementSignFunc);
-  sandbox
-    .stub(mock, "verifySignatureOrException")
-    .callsFake(replacementVerifyFunc);
 }
 
 export async function makeRequest({
@@ -132,15 +101,6 @@ export async function makeRequest({
     ] = `Bearer ${accessToken}`;
   }
 
-  let eaveSigTs: number;
-  const eaveSigTsHeader = headers?.[EAVE_SIG_TS_HEADER];
-  if (eaveSigTsHeader) {
-    eaveSigTs = parseInt(eaveSigTsHeader, 10);
-  } else {
-    eaveSigTs = makeSigTs();
-    updatedHeaders[EAVE_SIG_TS_HEADER] = eaveSigTs.toString();
-  }
-
   updatedHeaders[EAVE_REQUEST_ID_HEADER] = requestId;
   updatedHeaders[EAVE_ORIGIN_HEADER] = origin;
 
@@ -153,23 +113,6 @@ export async function makeRequest({
   } else {
     encodedPayload = input;
   }
-
-  const message = buildMessageToSign({
-    method,
-    path,
-    ts: eaveSigTs,
-    requestId,
-    origin,
-    audience,
-    payload: encodedPayload,
-    teamId,
-    accountId,
-    ctx,
-  });
-
-  const signing = Signing.new(origin);
-  const signature = await signing.signBase64(message);
-  updatedHeaders[EAVE_SIGNATURE_HEADER] = signature;
 
   if (headers !== undefined) {
     Object.assign(updatedHeaders, headers);

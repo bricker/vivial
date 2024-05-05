@@ -23,8 +23,8 @@ class GetMyTeamRequest(CoreApiEndpoint):
     async def perform(
         cls,
         *,
-        account_id: uuid.UUID | None,
-        access_token: str | None,
+        account_id: uuid.UUID | str,
+        access_token: str,
         **kwargs: Unpack[requests_util.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests_util.make_request(

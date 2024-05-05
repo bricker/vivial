@@ -25,8 +25,8 @@ class GetMyAccountRequest(CoreApiEndpoint):
     async def perform(
         cls,
         *,
-        access_token: str,
         account_id: uuid.UUID | str,
+        access_token: str,
         **kwargs: Unpack[requests_util.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests_util.make_request(
