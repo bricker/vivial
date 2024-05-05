@@ -8,10 +8,12 @@ from ... import requests_util
 from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
-class GetVirtualEventsRequest(CoreApiEndpoint):
+class GetMyVirtualEventsRequest(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
-        path="/_/virtual-events/query",
-        signature_required=False,
+        path="/_/me/virtual-events/query",
+        auth_required=True,
+        origin_required=True,
+        is_public=False,
     )
 
     class RequestBody(BaseRequestBody):
@@ -25,7 +27,6 @@ class GetVirtualEventsRequest(CoreApiEndpoint):
         cls,
         *,
         access_token: str,
-        team_id: uuid.UUID | str,
         account_id: uuid.UUID | str,
         input: RequestBody,
         **kwargs: Unpack[requests_util.CommonRequestArgs],
@@ -35,7 +36,6 @@ class GetVirtualEventsRequest(CoreApiEndpoint):
             input=input,
             access_token=access_token,
             account_id=account_id,
-            team_id=team_id,
             **kwargs,
         )
 

@@ -10,7 +10,6 @@ from eave.stdlib.typing import JsonObject
 from eave.stdlib.util import ensure_str_or_none, redact
 
 from . import headers as eave_headers
-from . import signing
 from .logging import LogContext, eaveLogger
 
 
@@ -29,7 +28,6 @@ async def make_request(
     *,
     config: EndpointConfiguration,
     input: pydantic.BaseModel | None,
-    team_id: uuid.UUID | str | None = None,
     access_token: str | None = None,
     account_id: uuid.UUID | str | None = None,
     allow_redirects: bool = True,
@@ -45,9 +43,7 @@ async def make_request(
 
     headers, request_params = build_headers(
         config=config,
-        payload=payload,
         ctx=ctx,
-        team_id=team_id,
         access_token=access_token,
         account_id=account_id,
         origin=origin,
@@ -86,10 +82,8 @@ async def make_request(
 
 def build_headers(
     config: EndpointConfiguration,
-    payload: str,
     origin: EaveApp,
     addl_headers: dict[str, str],
-    team_id: uuid.UUID | str | None = None,
     access_token: str | None = None,
     account_id: uuid.UUID | str | None = None,
     ctx: LogContext | None = None,
@@ -126,39 +120,6 @@ def build_headers(
             raise ValueError("missing account_id")
         headers[eave_headers.EAVE_ACCOUNT_ID_HEADER] = str(account_id)
         request_params["eave_account_id"] = ensure_str_or_none(account_id)
-
-    if config.team_id_required:
-        team_id = team_id or ctx.eave_team_id
-        if not team_id:
-            raise ValueError("missing team_id")
-        headers[eave_headers.EAVE_TEAM_ID_HEADER] = str(team_id)
-        request_params["eave_team_id"] = ensure_str_or_none(team_id)
-
-    if config.signature_required:
-        eave_sig_ts = signing.make_sig_ts()
-
-        signature_message = signing.build_message_to_sign(
-            method=config.method,
-            path=config.path,
-            request_id=request_id,
-            origin=origin,
-            audience=config.audience,
-            ts=eave_sig_ts,
-            team_id=team_id,
-            account_id=account_id,
-            payload=payload,
-            ctx=ctx,
-        )
-
-        signature = signing.sign_b64(
-            signing_key=signing.get_key(signer=origin.value),
-            data=signature_message,
-            ctx=ctx,
-        )
-
-        headers[eave_headers.EAVE_SIGNATURE_HEADER] = signature
-        headers[eave_headers.EAVE_SIG_TS_HEADER] = str(eave_sig_ts)
-        request_params["signature"] = redact(signature)
 
     if addl_headers:
         headers.update(addl_headers)

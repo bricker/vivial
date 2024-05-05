@@ -1,5 +1,11 @@
 from typing import cast
 
+from eave.stdlib.middleware.deny_public_request import DenyPublicRequestASGIMiddleware
+from eave.stdlib.middleware.exception_handling import ExceptionHandlingASGIMiddleware
+from eave.stdlib.middleware.logging import LoggingASGIMiddleware
+from eave.stdlib.middleware.read_body import ReadBodyASGIMiddleware
+from eave.stdlib.middleware.request_integrity import RequestIntegrityASGIMiddleware
+from eave.stdlib.util import nand
 import starlette.applications
 import starlette.endpoints
 from asgiref.typing import ASGI3Application
@@ -12,19 +18,14 @@ from eave.core.internal.oauth.google import (
     GOOGLE_OAUTH_CALLBACK_PATH,
 )
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
-from eave.core.public.middleware.team_lookup import TeamLookupASGIMiddleware
 from eave.core.public.requests.data_ingestion import BrowserDataIngestionEndpoint, ServerDataIngestionEndpoint
 from eave.core.public.requests.oauth.metabase_embedding_sso import MetabaseEmbeddingSSO
 from eave.stdlib import cache, logging
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
-from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount
-from eave.stdlib.core_api.operations.team import GetTeamRequest
-from eave.stdlib.core_api.operations.virtual_event import GetVirtualEventsRequest
-from eave.stdlib.middleware import common_middlewares
+from eave.stdlib.core_api.operations.account import GetMyAccountRequest
+from eave.stdlib.core_api.operations.team import GetMyTeamRequest
+from eave.stdlib.core_api.operations.virtual_event import GetMyVirtualEventsRequest
 from eave.stdlib.middleware.origin import OriginASGIMiddleware
-from eave.stdlib.middleware.signature_verification import (
-    SignatureVerificationASGIMiddleware,
-)
 
 from .internal.database import async_engine
 from .public.exception_handlers import exception_handlers
@@ -133,33 +134,59 @@ def make_route(
                 return Response(status_code=200)
 
     So, that's a long-winded explanation of the order of the middlewares below.
+
+    - Why not just define them in order and then reverse them? Because these middlewares aren't necessarily all initialized in the same way.
+
+    - Why not use Starlette(middlewares=...) or Route(middlewares...)? Because the starlette Middleware type is too restrictive:
+        - The passed-in class must have an initializer with `app: starlette.types.ASGIApp`, but our middlewares accept the more generic `app: asgiref.typing.ASGI3Application`.
+          Those two types are compatible but unrelated types, so the typechecker doesn't allow it.
+        - The passed-in class can't accept any additional parameters, which is sometimes necessary for our middlewares.
     """
-    starlette_endpoint = cast(ASGIApp, endpoint)
-    starlette_endpoint = TeamLookupASGIMiddleware(
-        app=starlette_endpoint, endpoint_config=config
-    )  # Last thing to happen before the Route handler
-    starlette_endpoint = AuthASGIMiddleware(app=starlette_endpoint, endpoint_config=config)
-    starlette_endpoint = SignatureVerificationASGIMiddleware(app=starlette_endpoint, endpoint_config=config)
-    starlette_endpoint = OriginASGIMiddleware(
-        app=starlette_endpoint, endpoint_config=config
-    )  # First thing to happen when the middleware chain is kicked off
 
-    return Route(path=config.path, endpoint=starlette_endpoint)
+    # When deciding the order of middlewares, start at the _bottom_ of this block and go up.
+    # The first middleware, starting from here (the top), directly wraps the route handler.
+    # Then, each one wraps the previous one.
+    if config.auth_required:
+        endpoint = AuthASGIMiddleware(app=endpoint)
 
+    if config.origin_required:
+        endpoint = OriginASGIMiddleware(
+            app=endpoint,
+        )
+
+    endpoint = ReadBodyASGIMiddleware(app=endpoint)
+
+    if not config.is_public:
+        endpoint = DenyPublicRequestASGIMiddleware(app=endpoint)
+
+    endpoint = LoggingASGIMiddleware(app=endpoint)
+    endpoint = RequestIntegrityASGIMiddleware(app=endpoint)
+    endpoint = ExceptionHandlingASGIMiddleware(app=endpoint) # This wraps everything and is the first middleware that gets called.
+
+    # ^^ When deciding the order of middlewares, start here and go up ^^
+
+    return Route(
+        path=config.path,
+        methods=[config.method],
+        endpoint=endpoint
+    )
 
 routes = [
+    ##
+    ## Public Endpoints
+    ##
+
     Route(
         path="/status",
-        endpoint=status.StatusRequest,
-        methods=["GET", "POST", "DELETE", "HEAD", "OPTIONS"],
+        endpoint=status.StatusEndpoint,
+        methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
             path="/public/ingest/server",
             auth_required=False,
-            signature_required=False,
             origin_required=False,
-            team_id_required=False,
+            is_public=True,
         ),
         endpoint=ServerDataIngestionEndpoint,
     ),
@@ -167,32 +194,18 @@ routes = [
         config=CoreApiEndpointConfiguration(
             path="/public/ingest/browser",
             auth_required=False,
-            signature_required=False,
             origin_required=False,
-            team_id_required=False,
+            is_public=True,
         ),
         endpoint=BrowserDataIngestionEndpoint,
-    ),
-    make_route(
-        config=GetTeamRequest.config,
-        endpoint=team.GetTeamEndpoint,
-    ),
-    make_route(
-        config=GetVirtualEventsRequest.config,
-        endpoint=virtual_event.GetVirtualEventsEndpoint,
-    ),
-    make_route(
-        config=GetAuthenticatedAccount.config,
-        endpoint=authed_account.GetAuthedAccount,
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
             path=GOOGLE_OAUTH_AUTHORIZE_PATH,
             method="GET",
             auth_required=False,
-            signature_required=False,
             origin_required=False,
-            team_id_required=False,
+            is_public=True,
         ),
         endpoint=google_oauth.GoogleOAuthAuthorize,
     ),
@@ -201,9 +214,8 @@ routes = [
             path=GOOGLE_OAUTH_CALLBACK_PATH,
             method="GET",
             auth_required=False,
-            signature_required=False,
             origin_required=False,
-            team_id_required=False,
+            is_public=True,
         ),
         endpoint=google_oauth.GoogleOAuthCallback,
     ),
@@ -212,9 +224,8 @@ routes = [
             path="/oauth/metabase",
             method="GET",
             auth_required=True,
-            signature_required=False,
             origin_required=False,
-            team_id_required=True,
+            is_public=True,
         ),
         endpoint=MetabaseEmbeddingSSO,
     ),
@@ -222,12 +233,29 @@ routes = [
         config=CoreApiEndpointConfiguration(
             path="/favicon.ico",
             auth_required=False,
-            signature_required=False,
             origin_required=False,
-            team_id_required=False,
+            is_public=True,
         ),
-        endpoint=noop.NoopRequest,
+        endpoint=noop.NoopEndpoint,
     ),
+
+    ##
+    ## Internal Endpoints
+    ##
+
+    make_route(
+        config=GetMyTeamRequest.config,
+        endpoint=team.GetTeamEndpoint,
+    ),
+    make_route(
+        config=GetMyVirtualEventsRequest.config,
+        endpoint=virtual_event.GetVirtualEventsEndpoint,
+    ),
+    make_route(
+        config=GetMyAccountRequest.config,
+        endpoint=authed_account.GetAccountEndpoint,
+    ),
+
 ]
 
 
@@ -242,7 +270,6 @@ async def graceful_shutdown() -> None:
 
 
 app = starlette.applications.Starlette(
-    middleware=common_middlewares,
     routes=routes,
     exception_handlers=exception_handlers,
     on_shutdown=[graceful_shutdown],

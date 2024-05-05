@@ -11,7 +11,6 @@ from typing import Any, Literal, TypeVar
 from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
 
 import eave.stdlib.exceptions
-import eave.stdlib.signing
 import eave.stdlib.util
 from eave.core.internal.oauth.google import GoogleOAuthV2GetResponse
 from eave.stdlib.checksum import generate_checksum
@@ -44,7 +43,6 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self.mock_google_services()
         self.mock_google_auth()
         self.mock_slack_client()
-        self.mock_signing()
         self.mock_analytics()
 
     async def asyncTearDown(self) -> None:
@@ -359,24 +357,6 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     def mock_slack_client(self) -> None:
         self.patch(name="slack client", patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient"))
-
-    def mock_signing(self) -> None:
-        def _sign_b64(signing_key: eave.stdlib.signing.SigningKeyDetails, data: str | bytes) -> str:
-            value: str = eave.stdlib.util.b64encode(eave.stdlib.util.sha256hexdigest(data))
-            return value
-
-        def _verify_signature_or_exception(
-            signing_key: eave.stdlib.signing.SigningKeyDetails, message: str | bytes, signature: str
-        ) -> None:
-            if signature != eave.stdlib.util.b64encode(eave.stdlib.util.sha256hexdigest(message)):
-                raise eave.stdlib.exceptions.InvalidSignatureError()
-
-        self.patch(unittest.mock.patch("eave.stdlib.signing.sign_b64", side_effect=_sign_b64))
-        self.patch(
-            unittest.mock.patch(
-                "eave.stdlib.signing.verify_signature_or_exception", side_effect=_verify_signature_or_exception
-            )
-        )
 
     def mock_analytics(self) -> None:
         self.patch(name="analytics", patch=unittest.mock.patch("eave.stdlib.analytics.log_event"))

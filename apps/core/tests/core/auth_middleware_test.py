@@ -12,7 +12,7 @@ from eave.stdlib.auth_cookies import (
     EAVE_TEAM_ID_COOKIE_NAME,
 )
 from eave.stdlib.core_api.models.account import AuthProvider
-from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount
+from eave.stdlib.core_api.operations.account import GetMyAccountRequest
 from eave.stdlib.headers import EAVE_ACCOUNT_ID_HEADER, EAVE_TEAM_ID_HEADER
 
 from .base import BaseTestCase
@@ -86,7 +86,7 @@ class TestAuthenticationMiddlewareNotRequired(TestAuthenticationMiddlewareBase):
 class TestAuthenticationMiddlewareRequiredInvalidRequest(TestAuthenticationMiddlewareBase):
     async def test_required_missing_account_id_header(self) -> None:
         response = await self.make_request(
-            path=GetAuthenticatedAccount.config.path,
+            path=GetMyAccountRequest.config.path,
             headers={
                 EAVE_ACCOUNT_ID_HEADER: None,
                 AUTHORIZATION: f"Bearer {self._eave_account.access_token}",
@@ -97,7 +97,7 @@ class TestAuthenticationMiddlewareRequiredInvalidRequest(TestAuthenticationMiddl
 
     async def test_required_missing_access_token_header(self) -> None:
         response = await self.make_request(
-            path=GetAuthenticatedAccount.config.path,
+            path=GetMyAccountRequest.config.path,
             headers={
                 EAVE_ACCOUNT_ID_HEADER: str(self._eave_account.id),
                 AUTHORIZATION: None,
@@ -108,7 +108,7 @@ class TestAuthenticationMiddlewareRequiredInvalidRequest(TestAuthenticationMiddl
 
     async def test_required_missing_all(self) -> None:
         response = await self.make_request(
-            path=GetAuthenticatedAccount.config.path,
+            path=GetMyAccountRequest.config.path,
             headers={
                 EAVE_ACCOUNT_ID_HEADER: None,
                 AUTHORIZATION: None,
@@ -119,7 +119,7 @@ class TestAuthenticationMiddlewareRequiredInvalidRequest(TestAuthenticationMiddl
 
     async def test_required_invalid_account_id(self) -> None:
         response = await self.make_request(
-            path=GetAuthenticatedAccount.config.path,
+            path=GetMyAccountRequest.config.path,
             headers={
                 EAVE_ACCOUNT_ID_HEADER: str(self.anyuuid()),
                 AUTHORIZATION: f"Bearer {self._eave_account.access_token}",
@@ -133,7 +133,7 @@ class TestAuthenticationMiddlewareRequiredInvalidRequest(TestAuthenticationMiddl
 
     async def test_required_invalid_access_token(self) -> None:
         response = await self.make_request(
-            path=GetAuthenticatedAccount.config.path, account_id=self._eave_account.id, access_token=self.anystr()
+            path=GetMyAccountRequest.config.path, account_id=self._eave_account.id, access_token=self.anystr()
         )
 
         assert response.status_code == HTTPStatus.UNAUTHORIZED
@@ -145,7 +145,7 @@ class TestAuthenticationMiddlewareRequiredInvalidRequest(TestAuthenticationMiddl
 class TestAuthenticationMiddlewareRequiredValidRequest(TestAuthenticationMiddlewareBase):
     async def test_required_valid_auth_headers(self) -> None:
         response = await self.make_request(
-            path=GetAuthenticatedAccount.config.path,
+            path=GetMyAccountRequest.config.path,
             headers={
                 EAVE_TEAM_ID_HEADER: str(self._eave_account.team_id),
                 EAVE_ACCOUNT_ID_HEADER: str(self._eave_account.id),
@@ -165,7 +165,7 @@ class TestAuthenticationMiddlewareRequiredValidRequest(TestAuthenticationMiddlew
             await self.save(s, self._eave_account)
 
         response = await self.make_request(
-            path=GetAuthenticatedAccount.config.path,
+            path=GetMyAccountRequest.config.path,
             headers={
                 EAVE_TEAM_ID_HEADER: str(self._eave_account.team_id),
                 EAVE_ACCOUNT_ID_HEADER: str(self._eave_account.id),
@@ -183,7 +183,7 @@ class TestAuthenticationMiddlewareRequiredValidRequest(TestAuthenticationMiddlew
         self.get_mock("google_get_userinfo").side_effect = self._mock_get_userinfo_token_not_refreshed
 
         response = await self.make_request(
-            path=GetAuthenticatedAccount.config.path,
+            path=GetMyAccountRequest.config.path,
             headers={
                 EAVE_TEAM_ID_HEADER: str(self._eave_account.team_id),
                 EAVE_ACCOUNT_ID_HEADER: str(self._eave_account.id),
@@ -202,7 +202,7 @@ class TestAuthenticationMiddlewareRequiredValidRequest(TestAuthenticationMiddlew
         self.get_mock("google_get_userinfo").side_effect = self._mock_get_userinfo_token_refreshed
 
         response = await self.make_request(
-            path=GetAuthenticatedAccount.config.path,
+            path=GetMyAccountRequest.config.path,
             headers={
                 EAVE_TEAM_ID_HEADER: str(self._eave_account.team_id),
                 EAVE_ACCOUNT_ID_HEADER: str(self._eave_account.id),
@@ -221,7 +221,7 @@ class TestAuthenticationMiddlewareRequiredValidRequest(TestAuthenticationMiddlew
 class TestAuthenticationMiddlewareWithCookies(TestAuthenticationMiddlewareBase):
     async def test_valid_auth_with_cookies(self) -> None:
         response = await self.make_request(
-            path=GetAuthenticatedAccount.config.path,
+            path=GetMyAccountRequest.config.path,
             cookies={
                 EAVE_ACCOUNT_ID_COOKIE_NAME: str(self._eave_account.id),
                 EAVE_TEAM_ID_COOKIE_NAME: str(self._eave_account.team_id),
@@ -236,7 +236,7 @@ class TestAuthenticationMiddlewareWithCookies(TestAuthenticationMiddlewareBase):
 
     async def test_auth_header_precedence(self) -> None:
         response = await self.make_request(
-            path=GetAuthenticatedAccount.config.path,
+            path=GetMyAccountRequest.config.path,
             cookies={
                 EAVE_ACCOUNT_ID_COOKIE_NAME: self.anystr("invalid account id"),
                 EAVE_TEAM_ID_COOKIE_NAME: self.anystr("invalid team id"),
@@ -258,7 +258,7 @@ class TestAuthenticationMiddlewareWithCookies(TestAuthenticationMiddlewareBase):
         self.get_mock("google_get_userinfo").side_effect = self._mock_get_userinfo_token_not_refreshed
 
         response = await self.make_request(
-            path=GetAuthenticatedAccount.config.path,
+            path=GetMyAccountRequest.config.path,
             cookies={
                 EAVE_ACCOUNT_ID_COOKIE_NAME: str(self._eave_account.id),
                 EAVE_TEAM_ID_COOKIE_NAME: str(self._eave_account.team_id),
@@ -277,7 +277,7 @@ class TestAuthenticationMiddlewareWithCookies(TestAuthenticationMiddlewareBase):
         self.get_mock("google_get_userinfo").side_effect = self._mock_get_userinfo_token_refreshed
 
         response = await self.make_request(
-            path=GetAuthenticatedAccount.config.path,
+            path=GetMyAccountRequest.config.path,
             cookies={
                 EAVE_ACCOUNT_ID_COOKIE_NAME: str(self._eave_account.id),
                 EAVE_TEAM_ID_COOKIE_NAME: str(self._eave_account.team_id),

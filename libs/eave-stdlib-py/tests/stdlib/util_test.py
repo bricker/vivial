@@ -1,11 +1,11 @@
 import eave.stdlib.util
 from eave.stdlib.exceptions import UnexpectedMissingValueError
-from eave.stdlib.testing_util import UtilityBaseTestCase
+from .base import StdlibBaseTestCase
 
 mut = eave.stdlib.util
 
 
-class StdlibUtilTest(UtilityBaseTestCase):
+class StdlibUtilTest(StdlibBaseTestCase):
     async def asyncSetUp(self):
         await super().asyncSetUp()
 

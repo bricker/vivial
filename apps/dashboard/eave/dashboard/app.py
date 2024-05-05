@@ -58,12 +58,12 @@ async def get_virtual_events_endpoint(request: Request, auth_cookies: AuthCookie
     body = await request.json()
     query_input: VirtualEventQueryInput | None = body.get("query")
 
-    eave_response = await virtual_event.GetVirtualEventsRequest.perform(
+    eave_response = await virtual_event.GetMyVirtualEventsRequest.perform(
         origin=DASHBOARD_APP_CONFIG.eave_origin,
         team_id=ensure_uuid(auth_cookies.team_id),
         account_id=ensure_uuid(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
-        input=virtual_event.GetVirtualEventsRequest.RequestBody(virtual_events=query_input),
+        input=virtual_event.GetMyVirtualEventsRequest.RequestBody(virtual_events=query_input),
     )
 
     return _make_response(eave_response)
@@ -71,7 +71,7 @@ async def get_virtual_events_endpoint(request: Request, auth_cookies: AuthCookie
 
 @_auth_handler
 async def get_team_endpoint(request: Request, auth_cookies: AuthCookies) -> Response:
-    eave_response = await team.GetTeamRequest.perform(
+    eave_response = await team.GetMyTeamRequest.perform(
         origin=DASHBOARD_APP_CONFIG.eave_origin,
         team_id=unwrap(auth_cookies.team_id),
         account_id=ensure_uuid(auth_cookies.account_id),

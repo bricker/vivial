@@ -160,7 +160,6 @@
   ],
   "prettier.configPath": "./develop/javascript/es-config/prettier/index.js",
   "prettier.ignorePath": "./develop/javascript/es-config/prettier/prettierignore",
-  "graphql-config.load.rootDir": "./apps/github/graphql.config.ts",
   "ruff.format.args": [
     "--config=${workspaceFolder}/develop/python/configs/ruff.toml"
   ],

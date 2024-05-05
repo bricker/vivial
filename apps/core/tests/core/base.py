@@ -19,7 +19,6 @@ import eave.core.internal
 import eave.core.internal.orm
 import eave.stdlib.eave_origins
 import eave.stdlib.requests_util
-import eave.stdlib.signing
 import eave.stdlib.testing_util
 import eave.stdlib.typing
 from eave.core.internal.config import CORE_API_APP_CONFIG
@@ -45,12 +44,6 @@ class AnyStandardOrm(Protocol):
 
 T = TypeVar("T")
 J = TypeVar("J", bound=AnyStandardOrm)
-
-TEST_SIGNING_KEY = eave.stdlib.signing.SigningKeyDetails(
-    id="test-key",
-    version="1",
-    algorithm=eave.stdlib.signing.SigningAlgorithm.RS256,
-)
 
 # eave.core.internal.database.async_engine.echo = False  # shhh
 
@@ -131,33 +124,18 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         self,
         *,
         path: str,
-        payload: pydantic.BaseModel | eave.stdlib.typing.JsonObject | None = None,
+        payload: pydantic.BaseModel | eave.stdlib.typing.JsonObject | str | bytes | None = None,
         method: str = "POST",
         headers: dict[str, str | None] | None = None,
         cookies: dict[str, str] | None = None,
         origin: eave.stdlib.eave_origins.EaveApp | None = None,
-        team_id: uuid.UUID | None = None,
         account_id: uuid.UUID | None = None,
         access_token: str | None = None,
         request_id: uuid.UUID | None = None,
-        sign: bool = True,
         **kwargs: Any,
     ) -> Response:
         if headers is None:
             headers = {}
-
-        if e := headers.get(EAVE_SIG_TS_HEADER):
-            eave_sig_ts = int(e)
-        else:
-            eave_sig_ts = eave.stdlib.signing.make_sig_ts()
-            headers[EAVE_SIG_TS_HEADER] = str(eave_sig_ts)
-
-        if team_id:
-            assert EAVE_TEAM_ID_HEADER not in headers
-            headers[EAVE_TEAM_ID_HEADER] = str(team_id)
-        else:
-            v = headers.get(EAVE_TEAM_ID_HEADER)
-            team_id = uuid.UUID(v) if v else None
 
         if account_id:
             assert EAVE_ACCOUNT_ID_HEADER not in headers
@@ -191,6 +169,13 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         elif isinstance(payload, pydantic.BaseModel):
             encoded_payload = payload.json()
             query_payload = payload.dict()
+        elif isinstance(payload, str):
+            # Assumed to be a json-encoded string
+            encoded_payload = payload
+            query_payload = json.loads(encoded_payload)
+        elif isinstance(payload, (bytes, bytearray, memoryview)):
+            encoded_payload = payload
+            query_payload = {}
         else:
             encoded_payload = json.dumps(payload)
             query_payload = payload
@@ -200,27 +185,6 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             request_args["params"] = data
         else:
             request_args["content"] = encoded_payload
-
-        if sign and EAVE_SIGNATURE_HEADER not in headers:
-            origin = origin or eave.stdlib.eave_origins.EaveApp.eave_dashboard
-            signature_message = eave.stdlib.signing.build_message_to_sign(
-                method=method,
-                path=path,
-                ts=eave_sig_ts,
-                origin=origin,
-                audience=eave.stdlib.eave_origins.EaveApp.eave_api,
-                payload=encoded_payload,
-                request_id=request_id,
-                team_id=team_id,
-                account_id=account_id,
-            )
-
-            signature = eave.stdlib.signing.sign_b64(
-                signing_key=eave.stdlib.signing.get_key(signer=origin.value),
-                data=signature_message,
-            )
-
-            headers[EAVE_SIGNATURE_HEADER] = signature
 
         if access_token and aiohttp.hdrs.AUTHORIZATION not in headers:
             headers[aiohttp.hdrs.AUTHORIZATION] = f"Bearer {access_token}"

@@ -1,5 +1,5 @@
 import { ExpressRoutingMethod } from "../../types.js";
-import { CoreApiEndpointConfiguration } from "./shared.js";
+import { CoreApiEndpointClientConfiguration } from "./shared.js";
 
 export type StatusResponseBody = {
   service: string;
@@ -9,13 +9,11 @@ export type StatusResponseBody = {
 };
 
 export class StatusOperation {
-  static config = new CoreApiEndpointConfiguration({
+  static config = new CoreApiEndpointClientConfiguration({
     path: "/status",
     method: ExpressRoutingMethod.get,
-    teamIdRequired: false,
     authRequired: false,
     originRequired: false,
-    signatureRequired: false,
   });
 
   static async perform(): Promise<StatusResponseBody> {

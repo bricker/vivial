@@ -8,8 +8,6 @@ from sqlalchemy import Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.stdlib.core_api.models.metabase_instance import MetabaseInstance
-
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 
@@ -98,10 +96,6 @@ class MetabaseInstanceOrm(Base):
         lookup = cls._build_select(params=cls.QueryParams(team_id=team_id)).limit(1)
         result = (await session.scalars(lookup)).one()
         return result
-
-    @property
-    def api_model(self) -> MetabaseInstance:
-        return MetabaseInstance.from_orm(self)
 
     def validate_hosting_data(self) -> None:
         assert self.jwt_signing_key is not None, "Metabase instance doesn't have a signing key"

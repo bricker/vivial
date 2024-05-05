@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { constants as httpConstants } from "node:http2";
-import { ClientApiEndpointConfiguration } from "./api-util.js";
+import { ApiEndpointClientConfiguration } from "./api-util.js";
 import { EaveApp } from "./eave-origins.js";
 import {
   EAVE_ACCOUNT_ID_HEADER,
@@ -12,7 +12,6 @@ import {
   MIME_TYPE_JSON,
 } from "./headers.js";
 import { LogContext, eaveLogger } from "./logging.js";
-import Signing, { buildMessageToSign, makeSigTs } from "./signing.js";
 import { JsonObject } from "./types.js";
 import { redact } from "./util.js";
 
@@ -30,17 +29,13 @@ export type RequestArgsOrigin = CtxArg & {
   origin: EaveApp | string;
 };
 
-export type RequestArgsTeamId = RequestArgsOrigin & {
-  teamId: string;
-};
-
-export type RequestArgsAuthedRequest = RequestArgsTeamId & {
+export type RequestArgsAuthedRequest = RequestArgsOrigin & {
   accountId: string;
   accessToken: string;
 };
 
 type RequestArgs = CtxArg & {
-  config: ClientApiEndpointConfiguration;
+  config: ApiEndpointClientConfiguration;
   origin: EaveApp | string;
   input?: unknown;
   accountId?: string;
@@ -62,7 +57,6 @@ export async function makeRequest(
     input,
     accessToken,
     addlHeaders,
-    teamId = ctx?.eave_team_id,
     accountId = ctx?.eave_account_id,
     method = httpConstants.HTTP2_METHOD_POST,
     baseTimeoutSeconds = 600,
@@ -92,29 +86,6 @@ export async function makeRequest(
     [EAVE_REQUEST_ID_HEADER]: requestId,
   };
 
-  if (config.signatureRequired) {
-    const eaveSigTs = makeSigTs();
-    const message = buildMessageToSign({
-      method,
-      path: config.path,
-      ts: eaveSigTs,
-      requestId,
-      audience: config.audience,
-      origin,
-      payload,
-      teamId,
-      accountId,
-      ctx,
-    });
-
-    const signing = Signing.new(origin);
-    const signature = await signing.signBase64(message);
-
-    headers[EAVE_SIGNATURE_HEADER] = signature;
-    headers[EAVE_SIG_TS_HEADER] = eaveSigTs.toString();
-    requestContext["signature"] = redact(signature);
-  }
-
   if (config.authRequired) {
     if (accessToken === undefined) {
       throw new Error("missing access_token");
@@ -127,14 +98,6 @@ export async function makeRequest(
     }
     headers[EAVE_ACCOUNT_ID_HEADER] = accountId;
     requestContext["eave_account_id"] = accountId;
-  }
-
-  if (config.teamIdRequired) {
-    if (teamId === undefined) {
-      throw new Error("missing team_id");
-    }
-    headers[EAVE_TEAM_ID_HEADER] = teamId;
-    requestContext["eave_team_id"] = teamId;
   }
 
   if (addlHeaders) {

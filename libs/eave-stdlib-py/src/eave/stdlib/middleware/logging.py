@@ -1,3 +1,6 @@
+import time
+from typing import Awaitable, Callable
+from starlette.requests import Request
 import asgiref.typing
 
 from eave.stdlib.request_state import EaveRequestState
@@ -7,23 +10,26 @@ from .base import EaveASGIMiddleware
 
 
 class LoggingASGIMiddleware(EaveASGIMiddleware):
-    async def run(
+    async def process_request(
         self,
-        scope: asgiref.typing.Scope,
+        scope: asgiref.typing.HTTPScope,
         receive: asgiref.typing.ASGIReceiveCallable,
         send: asgiref.typing.ASGISendCallable,
+        request: Request,
+        state: EaveRequestState,
+        continue_request: Callable[[], Awaitable[None]],
     ) -> None:
-        if scope["type"] != "http":
-            await self.app(scope, receive, send)
-            return
-
-        eave_state = EaveRequestState.load(scope=scope)
         eaveLogger.info(
-            f"Server Request Start: {eave_state.ctx.eave_request_id}: {scope['method']} {scope['path']}",
-            eave_state.ctx,
+            f"Server Request Start: {state.ctx.eave_request_id}: {scope['method']} {scope['path']}",
+            state.ctx,
         )
-        await self.app(scope, receive, send)
+
+        rstart = int(time.time())
+        await continue_request()
+        rend = int(time.time())
+
         eaveLogger.info(
-            f"Server Request End: {eave_state.ctx.eave_request_id}: {scope['method']} {scope['path']}",
-            eave_state.ctx,
+            f"Server Request End: {state.ctx.eave_request_id}: {scope['method']} {scope['path']}",
+            state.ctx,
+            request_duration=rend-rstart
         )

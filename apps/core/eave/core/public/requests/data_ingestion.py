@@ -1,7 +1,8 @@
 import threading
-from typing import cast
+from typing import cast, override
 
 from asgiref.typing import HTTPScope
+from eave.stdlib.request_state import EaveRequestState
 from starlette.requests import Request
 from starlette.responses import Response
 import aiohttp
@@ -23,13 +24,12 @@ from eave.core.internal.orm.team import TeamOrm
 
 
 class BrowserDataIngestionEndpoint(HTTPEndpoint):
-    async def post(self, request: Request) -> Response:
+    async def handle(self, request: Request, scope: HTTPScope, state: EaveRequestState) -> Response:
         body = await request.json()
         input = DataIngestRequestBody.from_json(data=body)
 
-        http_scope = cast(HTTPScope, request.scope)
-        client_id = get_header_value_or_exception(scope=http_scope, name=EAVE_CLIENT_ID_HEADER)
-        origin_header = get_header_value_or_exception(scope=http_scope, name=aiohttp.hdrs.ORIGIN)
+        client_id = get_header_value_or_exception(scope=scope, name=EAVE_CLIENT_ID_HEADER)
+        origin_header = get_header_value_or_exception(scope=scope, name=aiohttp.hdrs.ORIGIN)
 
         async with database.async_session.begin() as db_session:
             creds = (
@@ -60,19 +60,17 @@ class BrowserDataIngestionEndpoint(HTTPEndpoint):
 
         # Throw an error if there are any other event types in the payload?
 
-        response = Response(content="OK", status_code=200)
+        response = Response(status_code=200)
         return response
 
 class ServerDataIngestionEndpoint(HTTPEndpoint):
-    async def post(self, request: Request) -> Response:
+    async def handle(self, request: Request, scope: HTTPScope, state: EaveRequestState) -> Response:
         body = await request.json()
         input = DataIngestRequestBody.from_json(data=body)
 
-        http_scope = cast(HTTPScope, request.scope)
-
         # TODO: Move client credentials validation into middleware
-        client_id = get_header_value_or_exception(scope=http_scope, name=EAVE_CLIENT_ID_HEADER)
-        client_secret = get_header_value_or_exception(scope=http_scope, name=EAVE_CLIENT_SECRET_HEADER)
+        client_id = get_header_value_or_exception(scope=scope, name=EAVE_CLIENT_ID_HEADER)
+        client_secret = get_header_value_or_exception(scope=scope, name=EAVE_CLIENT_SECRET_HEADER)
 
         async with database.async_session.begin() as db_session:
             creds = (
@@ -111,5 +109,5 @@ class ServerDataIngestionEndpoint(HTTPEndpoint):
             handle = BrowserEventsTableHandle(team=eave_team)
             await handle.insert(events=events)
 
-        response = Response(content="OK", status_code=200)
+        response = Response(status_code=200)
         return response

@@ -1,6 +1,9 @@
 import http
 import json
+from typing import override
 
+from asgiref.typing import HTTPScope
+from eave.stdlib.request_state import EaveRequestState
 from sqlalchemy import text
 from starlette.requests import Request
 from starlette.responses import Response
@@ -13,20 +16,8 @@ from eave.stdlib.headers import MIME_TYPE_JSON
 from eave.stdlib.http_endpoint import HTTPEndpoint
 
 
-class StatusRequest(HTTPEndpoint):
-    async def post(self, request: Request) -> Response:
-        return await self.get(request=request)
-
-    async def delete(self, request: Request) -> Response:
-        return await self.get(request=request)
-
-    async def head(self, request: Request) -> Response:
-        return await self.get(request=request)
-
-    async def options(self, request: Request) -> Response:
-        return await self.get(request=request)
-
-    async def get(self, request: Request) -> Response:
+class StatusEndpoint(HTTPEndpoint):
+    async def handle(self, request: Request, scope: HTTPScope, state: EaveRequestState) -> Response:
         status_code = http.HTTPStatus.OK
         status = status_payload().dict()
         content = json.dumps(status)

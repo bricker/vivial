@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount
+from eave.stdlib.core_api.operations.account import GetMyAccountRequest
 
 from .base import BaseTestCase
 
@@ -23,7 +23,7 @@ class TestAuthedAccountRequests(BaseTestCase):
 
         assert response.status_code == HTTPStatus.OK
 
-        response_obj = GetAuthenticatedAccount.ResponseBody(**response.json())
+        response_obj = GetMyAccountRequest.ResponseBody(**response.json())
 
         assert response_obj.account.id == account.id
         assert response_obj.team.id == account.team_id

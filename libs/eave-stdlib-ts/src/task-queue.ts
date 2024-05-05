@@ -2,7 +2,7 @@ import { CloudTasksClient, protos } from "@google-cloud/tasks";
 import { Request } from "express";
 import assert from "node:assert";
 import { constants as httpConstants } from "node:http2";
-import { ClientApiEndpointConfiguration } from "./api-util.js";
+import { ApiEndpointClientConfiguration } from "./api-util.js";
 import { getCacheClient } from "./cache.js";
 import { sharedConfig } from "./config.js";
 import { EaveApp } from "./eave-origins.js";
@@ -209,7 +209,7 @@ export async function createTask({
   if (sharedConfig.isDevelopment) {
     const host = sharedConfig.eavePublicServiceBase(origin);
 
-    const endpointConfig: ClientApiEndpointConfiguration = {
+    const endpointConfig: ApiEndpointClientConfiguration = {
       path: task.appEngineHttpRequest.relativeUri!,
       url: `${host}${task.appEngineHttpRequest.relativeUri}`,
       audience,

@@ -1,5 +1,5 @@
 from http import HTTPStatus
-from typing import cast
+from typing import Awaitable, Callable, cast
 
 import asgiref.typing
 import starlette.types
@@ -24,25 +24,15 @@ from eave.stdlib.util import ensure_uuid
 
 
 class AuthASGIMiddleware(EaveASGIMiddleware):
-    endpoint_config: EndpointConfiguration
-
-    def __init__(self, app: starlette.types.ASGIApp, endpoint_config: EndpointConfiguration) -> None:
-        super().__init__(app)
-        self.endpoint_config = endpoint_config
-
-    async def run(
+    async def process_request(
         self,
-        scope: asgiref.typing.Scope,
+        scope: asgiref.typing.HTTPScope,
         receive: asgiref.typing.ASGIReceiveCallable,
         send: asgiref.typing.ASGISendCallable,
+        request: Request,
+        state: EaveRequestState,
+        continue_request: Callable[[], Awaitable[None]],
     ) -> None:
-        if scope["type"] != "http":
-            await self.app(scope, receive, send)
-            return
-
-        eave_state = EaveRequestState.load(scope=scope)
-        request = Request(scope=cast(starlette.types.Scope, scope))
-
         # Auth can come from either:
         # 1. Headers: Authorization, eave-account-id
         # 2. Cookies: ev_access_token, ev_account_id
@@ -61,20 +51,16 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
 
         try:
             if account_id is None or access_token is None:
-                if not self.endpoint_config.auth_required:
-                    await self.app(scope, receive, send)
-                    return
-                else:
-                    raise UnauthorizedError("missing auth")
+                raise UnauthorizedError("missing auth")
 
             account = await self._verify_auth(
-                account_id_header=account_id, access_token=access_token, ctx=eave_state.ctx
+                account_id_header=account_id, access_token=access_token, ctx=state.ctx
             )
-            eave_state.ctx.eave_account_id = str(account.id)
-            eave_state.ctx.eave_team_id = str(account.team_id)
+            state.ctx.eave_account_id = str(account.id)
+            state.ctx.eave_team_id = str(account.team_id)
 
         except UnauthorizedError as e:
-            eaveLogger.exception(e, eave_state.ctx)
+            eaveLogger.exception(e, state.ctx)
             await self._abort_unauthorized(scope, receive, send)
             return
 

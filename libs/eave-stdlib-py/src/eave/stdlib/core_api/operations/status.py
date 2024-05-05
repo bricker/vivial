@@ -11,9 +11,8 @@ class Status(CoreApiEndpoint):
         path="/status",
         method="GET",
         auth_required=False,
-        team_id_required=False,
-        signature_required=False,
         origin_required=False,
+        is_public=True,
     )
 
     class ResponseBody(BaseResponseBody):

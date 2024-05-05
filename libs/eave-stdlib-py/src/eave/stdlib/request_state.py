@@ -11,7 +11,6 @@ SCOPE_KEY = "eave_state"
 
 
 class EaveRequestState(dict[object, object]):
-    raw_request_body: bytes | None = None
     ctx: LogContext
 
     @classmethod

@@ -8,6 +8,7 @@ EAVE_REQUEST_ID_HEADER = "eave-request-id"
 EAVE_CRON_DISPATCH_KEY_HEADER = "eave-cron-dispatch-key"
 EAVE_CLIENT_ID_HEADER = "eave-client-id"
 EAVE_CLIENT_SECRET_HEADER = "eave-client-secret"  # noqa: S105
+EAVE_LB_HEADER = "eave-lb"
 
 EAVE_DEV_BYPASS_HEADER = "X-Google-EAVEDEV"
 """

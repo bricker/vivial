@@ -9,10 +9,12 @@ from ... import requests_util
 from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
-class GetAuthenticatedAccount(CoreApiEndpoint):
+class GetMyAccountRequest(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
-        path="/_/me/query",
-        signature_required=False,
+        path="/_/me/account/query",
+        auth_required=True,
+        origin_required=True,
+        is_public=False,
     )
 
     class ResponseBody(BaseResponseBody):
@@ -24,7 +26,6 @@ class GetAuthenticatedAccount(CoreApiEndpoint):
         cls,
         *,
         access_token: str,
-        team_id: uuid.UUID | str,
         account_id: uuid.UUID | str,
         **kwargs: Unpack[requests_util.CommonRequestArgs],
     ) -> ResponseBody:
@@ -33,7 +34,6 @@ class GetAuthenticatedAccount(CoreApiEndpoint):
             input=None,
             access_token=access_token,
             account_id=account_id,
-            team_id=team_id,
             **kwargs,
         )
 

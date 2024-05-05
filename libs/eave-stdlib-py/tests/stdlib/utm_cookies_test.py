@@ -5,7 +5,6 @@ import aiohttp
 from starlette.requests import Request
 from starlette.responses import Response
 
-from eave.stdlib.testing_util import UtilityBaseTestCase
 from eave.stdlib.util import istr_eq
 from eave.stdlib.utm_cookies import (
     EAVE_COOKIE_PREFIX_UTM,
@@ -14,9 +13,9 @@ from eave.stdlib.utm_cookies import (
     get_tracking_cookies,
     set_tracking_cookies,
 )
+from .base import StdlibBaseTestCase
 
-
-class UtmCookiesTestBase(UtilityBaseTestCase):
+class UtmCookiesTestBase(StdlibBaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 

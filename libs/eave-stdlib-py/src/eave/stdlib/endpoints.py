@@ -12,9 +12,8 @@ class EndpointConfiguration:
     audience: EaveApp
     method: str
     auth_required: bool
-    team_id_required: bool
-    signature_required: bool
     origin_required: bool
+    is_public: bool
 
     def __init__(
         self,
@@ -24,18 +23,16 @@ class EndpointConfiguration:
         audience: EaveApp,
         method: str,
         auth_required: bool,
-        team_id_required: bool,
-        signature_required: bool,
         origin_required: bool,
+        is_public: bool = False,
     ) -> None:
         self.base_url = base_url
         self.path = path
         self.audience = audience
         self.method = method
         self.auth_required = auth_required
-        self.team_id_required = team_id_required
-        self.signature_required = signature_required
         self.origin_required = origin_required
+        self.is_public = is_public
 
     @property
     def url(self) -> str:

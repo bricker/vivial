@@ -11,11 +11,7 @@ class AuthProvider(enum.StrEnum):
 
 
 class AuthenticatedAccount(BaseResponseModel):
-    id: uuid.UUID
     auth_provider: AuthProvider
-    visitor_id: uuid.UUID | None
-    team_id: uuid.UUID
-    opaque_utm_params: Mapping[str, Any] | None
     email: str | None
 
 

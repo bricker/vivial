@@ -1,15 +1,16 @@
 from abc import ABC, abstractmethod
-from typing import cast
+from typing import Awaitable, Callable, cast
 
 import aiohttp
 import asgiref.typing
+from eave.stdlib.exceptions import BadRequestError
+from starlette.requests import Request
 import starlette.types
 from aiohttp.compression_utils import ZLibDecompressor
 
 from eave.stdlib.api_util import get_header_value
 from eave.stdlib.headers import ENCODING_GZIP
 from eave.stdlib.request_state import EaveRequestState
-
 
 class EaveASGIMiddleware(ABC):
     """
@@ -18,52 +19,60 @@ class EaveASGIMiddleware(ABC):
 
     app: asgiref.typing.ASGI3Application
 
-    def __init__(self, app: starlette.types.ASGIApp) -> None:
+    def __init__(self, app: asgiref.typing.ASGI3Application) -> None:
         self.app = cast(asgiref.typing.ASGI3Application, app)
 
-    @abstractmethod
-    async def run(
+    async def process_request(
         self,
-        scope: asgiref.typing.Scope,
+        scope: asgiref.typing.HTTPScope,
         receive: asgiref.typing.ASGIReceiveCallable,
         send: asgiref.typing.ASGISendCallable,
+        request: Request,
+        state: EaveRequestState,
+        continue_request: Callable[[], Awaitable[None]],
     ) -> None:
-        ...
+        """
+        Processes the request. This is the main entrypoint for sublcasses.
+        Override this function with your middleware logic.
+        The default implementation just continues the request (pass-through)
+        """
+        # Default implementation just continues
+        await continue_request()
+
+    async def handle(self, scope: asgiref.typing.Scope, receive: asgiref.typing.ASGIReceiveCallable, send: asgiref.typing.ASGISendCallable) -> None:
+        """
+        Lower-level function to do some basic checks and create the Request and EaveRequestState objects.
+        """
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        cscope = cast(starlette.types.Scope, scope)
+        creceive = cast(starlette.types.Receive, receive)
+
+        request = Request(scope=cscope, receive=creceive)
+        state = EaveRequestState.load(request=request)
+
+        async def _next_handler() -> None:
+            await self.app(scope, receive, send)
+
+        await self.process_request(
+            scope=scope,
+            receive=receive,
+            send=send,
+            request=request,
+            state=state,
+            continue_request=_next_handler,
+        )
 
     async def __call__(
-        self, scope: starlette.types.Scope, receive: starlette.types.Receive, send: starlette.types.Send
+        self, scope: asgiref.typing.Scope, receive: asgiref.typing.ASGIReceiveCallable, send: asgiref.typing.ASGISendCallable
     ) -> None:
-        await self.run(
+        """
+        Just casts the scope, receive, and send objects to more useful types.
+        """
+        await self.handle(
             scope=cast(asgiref.typing.Scope, scope),
             receive=cast(asgiref.typing.ASGIReceiveCallable, receive),
             send=cast(asgiref.typing.ASGISendCallable, send),
         )
-
-    @staticmethod
-    async def read_body(scope: asgiref.typing.HTTPScope, receive: asgiref.typing.ASGIReceiveCallable) -> bytes:
-        eave_state = EaveRequestState.load(scope=scope)
-        if not eave_state.raw_request_body:
-            body: bytes = b""
-
-            while True:
-                # https://asgi.readthedocs.io/en/latest/specs/www.html#request-receive-event
-                message = await receive()
-                assert message["type"] == "http.request"
-                chunk: bytes = message.get("body", b"")
-                body += chunk
-
-                if message.get("more_body", False) is False:
-                    break
-
-            encoding = get_header_value(scope=scope, name=aiohttp.hdrs.CONTENT_ENCODING)
-
-            if encoding == ENCODING_GZIP:
-                decompressor = ZLibDecompressor(encoding=encoding)
-                decompressed_body = await decompressor.decompress(body)
-                eave_state.raw_request_body = decompressed_body
-            else:
-                eave_state.raw_request_body = body
-
-            # Note: we currently do not support other compression encodings.
-
-        return eave_state.raw_request_body

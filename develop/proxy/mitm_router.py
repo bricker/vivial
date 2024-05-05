@@ -19,6 +19,9 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
 
     is_internal = re.search(r"\.internal\.eave\.", flow.request.host)
 
+    if not is_internal:
+        flow.request.headers["eave-lb"] = "1"
+
     # tld = flow.request.host.split(".")[-1]
     port = None
 

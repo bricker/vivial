@@ -1,9 +1,6 @@
 from eave.stdlib.testing_util import UtilityBaseTestCase
 
 
-class TestTaskQueue(UtilityBaseTestCase):
+class StdlibBaseTestCase(UtilityBaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
-
-    async def test_alive(self) -> None:
-        pass

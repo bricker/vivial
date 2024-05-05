@@ -1,14 +1,15 @@
-import { RequestArgsTeamId, makeRequest } from "../../requests.js";
+import { RequestArgsAuthedRequest, makeRequest } from "../../requests.js";
 import { GetTeamResponseBody } from "../models/team.js";
-import { CoreApiEndpointConfiguration } from "./shared.js";
+import { CoreApiEndpointClientConfiguration } from "./shared.js";
 
-export class GetTeamOperation {
-  static config = new CoreApiEndpointConfiguration({
-    path: "/_/team/query",
-    signatureRequired: false,
+export class GetMyTeamRequest {
+  static config = new CoreApiEndpointClientConfiguration({
+    path: "/_/me/team/query",
+    authRequired: true,
+    originRequired: true,
   });
 
-  static async perform(args: RequestArgsTeamId): Promise<GetTeamResponseBody> {
+  static async perform(args: RequestArgsAuthedRequest): Promise<GetTeamResponseBody> {
     const resp = await makeRequest({
       config: this.config,
       ...args,

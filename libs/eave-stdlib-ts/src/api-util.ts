@@ -95,13 +95,11 @@ export function getHeaders(
   return logHeaders;
 }
 
-export abstract class ClientApiEndpointConfiguration {
+export abstract class ApiEndpointClientConfiguration {
   path: string;
   method: ExpressRoutingMethod;
-  teamIdRequired: boolean;
   authRequired: boolean;
   originRequired: boolean;
-  signatureRequired: boolean;
 
   abstract audience: EaveApp;
 
@@ -110,29 +108,47 @@ export abstract class ClientApiEndpointConfiguration {
   constructor({
     path,
     method = ExpressRoutingMethod.post,
-    teamIdRequired = true,
     authRequired = true,
     originRequired = true,
-    signatureRequired = true,
   }: {
     path: string;
     method?: ExpressRoutingMethod;
-    teamIdRequired?: boolean;
     authRequired?: boolean;
     originRequired?: boolean;
-    signatureRequired?: boolean;
   }) {
     this.path = path;
     this.method = method;
-    this.teamIdRequired = teamIdRequired;
     this.authRequired = authRequired;
     this.originRequired = originRequired;
-    this.signatureRequired = signatureRequired;
   }
 }
 
-export abstract class ServerApiEndpointConfiguration extends ClientApiEndpointConfiguration {
+export abstract class ApiEndpointServerConfiguration extends ApiEndpointClientConfiguration {
+  isPublic: boolean;
   abstract get middlewares(): Express.Handler[];
+
+  constructor({
+    path,
+    method = ExpressRoutingMethod.post,
+    authRequired = true,
+    originRequired = true,
+    isPublic = false,
+  }: {
+    path: string;
+    method?: ExpressRoutingMethod;
+    authRequired?: boolean;
+    originRequired?: boolean;
+    isPublic?: boolean;
+  }) {
+    super({
+      path,
+      method,
+      authRequired,
+      originRequired,
+    })
+
+    this.isPublic = isPublic;
+  }
 }
 
 export function handlerWrapper(
@@ -158,7 +174,7 @@ export function makeRoute({
   handler,
 }: {
   router: Express.Router;
-  config: ServerApiEndpointConfiguration;
+  config: ApiEndpointServerConfiguration;
   handler: Express.Handler;
 }) {
   router[config.method](

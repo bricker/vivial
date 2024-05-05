@@ -1,9 +1,9 @@
 from eave.stdlib.config import SHARED_CONFIG, EaveEnvironment
 from eave.stdlib.eave_origins import EaveApp
-from eave.stdlib.testing_util import UtilityBaseTestCase
+from .base import StdlibBaseTestCase
 
 
-class ConfigTest(UtilityBaseTestCase):
+class ConfigTest(StdlibBaseTestCase):
     async def test_internal_service_base_non_dev(self):
         project = self.anystr("gcp")
         self.patch_env({"EAVE_ENV": EaveEnvironment.production, "GOOGLE_CLOUD_PROJECT": project})

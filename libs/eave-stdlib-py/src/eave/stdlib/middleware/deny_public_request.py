@@ -7,13 +7,13 @@ from eave.stdlib.core_api.operations import EndpointConfiguration
 
 from ..api_util import get_header_value
 from ..eave_origins import EaveApp
-from ..exceptions import InvalidOriginError, MissingRequiredHeaderError
-from ..headers import EAVE_ORIGIN_HEADER
+from ..exceptions import InvalidOriginError, MissingRequiredHeaderError, NotFoundError
+from ..headers import EAVE_LB_HEADER, EAVE_ORIGIN_HEADER
 from ..request_state import EaveRequestState
 from .base import EaveASGIMiddleware
 
 
-class OriginASGIMiddleware(EaveASGIMiddleware):
+class DenyPublicRequestASGIMiddleware(EaveASGIMiddleware):
     async def process_request(
         self,
         scope: asgiref.typing.HTTPScope,
@@ -23,14 +23,11 @@ class OriginASGIMiddleware(EaveASGIMiddleware):
         state: EaveRequestState,
         continue_request: Callable[[], Awaitable[None]],
     ) -> None:
-        origin_header = get_header_value(scope=scope, name=EAVE_ORIGIN_HEADER)
-        if not origin_header:
-            raise MissingRequiredHeaderError(EAVE_ORIGIN_HEADER)
+        # The EAVE_LB_HEADER header gets added onto the request at the load balancer.
+        # Internal traffic isn't routed through the load balancer, so won't have this header.
+        eave_lb_header = get_header_value(scope=scope, name=EAVE_LB_HEADER)
 
-        try:
-            origin = EaveApp(value=origin_header)
-            state.ctx.eave_origin = str(origin)
-        except ValueError:
-            raise InvalidOriginError()
+        if eave_lb_header:
+            raise NotFoundError()
 
         await continue_request()
