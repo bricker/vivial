@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import urllib.parse
 from collections.abc import Callable
 from functools import wraps
@@ -253,7 +254,7 @@ class EaveASGIMiddleware:
                 )
             )
 
-            response: Response = await self.app(scope, receive, send)
+            response: Response | None = await self.app(scope, receive, send)
 
             # if scope["type"] == "http":
             #     target = _censored_url(scope)
@@ -278,7 +279,12 @@ class EaveASGIMiddleware:
                         context=corr_ctx.to_dict(),
                     )
                 )
+
+                # add our eave cookies back to the response
+                for k, v in corr_ctx.to_dict().items():
+                    response.set_cookie(k, json.dumps(v))
         except UnicodeDecodeError as _:
+            # ignore json decoding errors
             pass
 
 
