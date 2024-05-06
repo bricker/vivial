@@ -248,6 +248,9 @@ export function Tracker(trackerUrl, siteId) {
     routeHistoryTrackingEnabled = false,
     // Guard against installing button click tracker more than once per instance
     buttonClickTrackingEnabled = false,
+    // Guard against double installing form tracking
+    formTrackingEnabled = false,
+    formTrackerInstalled = false,
     // Guard against installing the activity tracker more than once per Tracker instance
     heartBeatSetUp = false,
     hadWindowFocusAtLeastOnce = false,
@@ -1626,9 +1629,14 @@ export function Tracker(trackerUrl, siteId) {
   }
 
   /**
-   * Returns the URL to send event to,
+   * Returns the URL query params to send with an event,
    * with the standard parameters (plugins, resolution, url, referrer, etc.).
    * Sends the pageview and browser settings with every request in case of race conditions.
+   *
+   * @param {string} request any initial query params to attach to the request
+   * @param {object} customData additional key-value data to attach to the request
+   * @param {string} pluginMethod name of a function that builds on request query params
+   * @returns {string} built up query parameters to send with the request
    */
   function getRequest(request, customData, pluginMethod) {
     var currentUrl = configCustomUrl || locationHrefAlias;
@@ -1807,6 +1815,10 @@ export function Tracker(trackerUrl, siteId) {
 
   /**
    * Log the page view / visit
+   *
+   * @param {string|object} customTitle title to add to request params, or object with `text` attribute
+   * @param {object} customData key value pairs to add to request params
+   * @param {Function} callback
    */
   function logPageView(customTitle, customData, callback) {
     cookieManager.resetOrExtendSession();
@@ -2617,7 +2629,7 @@ export function Tracker(trackerUrl, siteId) {
         e.g. 
         linkTracking comes before buttonClickTracking.
         Therefore, we expect clicking on the button element of
-        `<a href="#"><button>click!</button></a>`
+        `<a href="..."><button>click!</button></a>`
         Will trigger a link click event rather than a button click event.
         */
     var trackers = [
@@ -2710,7 +2722,7 @@ export function Tracker(trackerUrl, siteId) {
     };
   }
 
-  /*
+  /**
    * Add click listener to a DOM element
    */
   function addClickListener(element, enable, useCapture) {
@@ -4167,8 +4179,6 @@ export function Tracker(trackerUrl, siteId) {
     }
     linkTrackingEnabled = true;
 
-    var self = this;
-
     if (!clickListenerInstalled) {
       clickListenerInstalled = true;
       h.trackCallbackOnReady(function () {
@@ -4199,14 +4209,15 @@ export function Tracker(trackerUrl, siteId) {
   /**
    * Tracks route-change history for single page applications, since
    * normal page view events aren't triggered for navigation without a GET request.
-   *
-   * @param {boolean} enable Whether to allow tracking route history. Defaults to true.
    */
-  this.enableRouteHistoryTracking = function (enable) {
+  this.enableRouteHistoryTracking = function () {
     if (routeHistoryTrackingEnabled) {
       return;
     }
     routeHistoryTrackingEnabled = true;
+    trackedContentImpressions = [];
+    consentRequestsQueue = [];
+    javaScriptErrors = [];
 
     function getCurrentUrl() {
       return globalThis.eave.windowAlias.location.href;
@@ -4317,17 +4328,6 @@ export function Tracker(trackerUrl, siteId) {
           state: newState,
         };
 
-        var shouldForceEvent =
-          (lastEvent.eventType === "popstate" &&
-            newEvent.eventType === "hashchange") ||
-          (lastEvent.eventType === "hashchange" &&
-            newEvent.eventType === "popstate") ||
-          (lastEvent.eventType === "hashchange" &&
-            newEvent.eventType === "hashchange") ||
-          (lastEvent.eventType === "popstate" &&
-            newEvent.eventType === "popstate");
-        shouldForceEvent = !shouldForceEvent;
-
         var oldUrl = lastEvent.path;
         if (lastEvent.search) {
           oldUrl += "?" + lastEvent.search;
@@ -4342,13 +4342,13 @@ export function Tracker(trackerUrl, siteId) {
         if (newEvent.hash) {
           nowUrl += "#" + newEvent.hash;
         }
-        if (shouldForceEvent || oldUrl !== nowUrl) {
+        if (oldUrl !== nowUrl) {
           var tmpLast = lastEvent;
           lastEvent = newEvent; // overwrite as early as possible in case event gets triggered again
 
           trackCallback(function () {
             logPageView(
-              {},
+              "", // TODO: make more meaningful
               {
                 event: "mtm.HistoryChange",
                 "mtm.historyChangeSource": newEvent.eventType,
@@ -4619,7 +4619,7 @@ export function Tracker(trackerUrl, siteId) {
    * Log visit to this page
    *
    * @param {string} customTitle
-   * @param {*} customData
+   * @param {object} customData
    * @param {Function} callback
    */
   this.trackPageView = function (customTitle, customData, callback) {
@@ -4984,6 +4984,56 @@ export function Tracker(trackerUrl, siteId) {
 
     param = "_pkn";
     ecommerceProductView[param] = name;
+  };
+
+  /**
+   * Track form submission events
+   */
+  this.enableFormTracking = function () {
+    if (formTrackingEnabled) {
+      return;
+    }
+    formTrackingEnabled = true;
+
+    if (!formTrackerInstalled) {
+      formTrackerInstalled = true;
+      h.trackCallbackOnReady(function () {
+        h.addEventListener(
+          globalThis.eave.documentAlias.body,
+          "submit",
+          function (event) {
+            if (!event.target) {
+              return;
+            }
+            const target = event.target;
+            if (target.nodeName === "FORM") {
+              const formAction =
+                target.getAttribute("action") ||
+                globalThis.eave.windowAlias.location.href;
+
+              logEvent(
+                // TODO: details
+                "form",
+                "submit",
+                "form submitted",
+                formAction,
+                {
+                  // custom data
+                  event: "mtm.FormSubmit",
+                  "mtm.formElement": target.outerHtml,
+                  "mtm.formElementId": target.getAttribute("id"),
+                  "mtm.formElementName": target.getAttribute("name"),
+                  "mtm.formElementClasses": target.className.split(" "),
+                  "mtm.formElementAction": formAction,
+                },
+                undefined, // callback
+              );
+            }
+          },
+          true,
+        );
+      });
+    }
   };
 
   /**
