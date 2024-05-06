@@ -4,10 +4,18 @@ resource "kubernetes_namespace" "eave" {
   }
 }
 
+output "eave_namespace_name" {
+  value = kubernetes_namespace.eave.name
+}
+
 resource "kubernetes_namespace" "metabase" {
   metadata {
     name = "metabase"
   }
+}
+
+output "metabase_namespace_name" {
+  value = kubernetes_namespace.metabase.name
 }
 
 resource "kubernetes_config_map" "shared" {
@@ -34,6 +42,9 @@ resource "kubernetes_config_map" "shared" {
   }
 }
 
+output "shared_config_map_name" {
+  value = kubernetes_config_map.shared.name
+}
 
 resource "kubernetes_service" "noop" {
   # Noop service; always fails.
@@ -91,6 +102,10 @@ resource "kubernetes_manifest" "shared_backend_config" {
   }
 }
 
+output "shared_backend_config_name" {
+  value = kubernetes_manifest.shared_backend_config.manifest.metadata.name
+}
+
 resource "kubernetes_manifest" "shared_frontend_config" {
   # Standard app frontend config.
   manifest = {
@@ -108,4 +123,9 @@ resource "kubernetes_manifest" "shared_frontend_config" {
       }
     }
   }
+}
+
+
+output "shared_frontend_config_name" {
+  value = kubernetes_manifest.shared_frontend_config.manifest.metadata.name
 }

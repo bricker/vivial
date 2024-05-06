@@ -1,69 +1,152 @@
-resource "kubernetes_config_map" "core_api" {
+variable "metabase_instance_id" {
+  type=string
+}
+
+variable "project_id" {
+  type = string
+}
+
+variable "region" {
+  type = string
+}
+
+variable "namespace" {
+  type=string
+}
+
+variable "cloudsql_instance_id" {
+  type=string
+}
+
+resource "kubernetes_config_map" "metabase" {
   metadata {
-    name = "core-api-configmap"
-    namespace = kubernetes_namespace.eave.metadata.0.name
+    name = "metabase-${var.metabase_instance_id}-configmap"
+    namespace = var.namespace
   }
 
   data = {
-    EAVE_DB_NAME = "eave"
-    GAE_SERVICE = "core-api"
-    GAE_VERSION = "${var.RELEASE.core_api.version}"
-    GAE_RELEASE_DATE = "${var.RELEASE.core_api.release_date}"
-    LOG_LEVEL = "debug"
+    # MB_DB_DBNAME: metabase
+    # MB_NO_SURVEYS: "true"
+    # MB_SHOW_HOMEPAGE_DATA: "false"
+    # MB_SHOW_HOMEPAGE_XRAYS: "false"
+    # MB_SHOW_DATABASE_SYNCING_MODAL: "false"
+    # MB_LOAD_ANALYTICS_CONTENT: "false"
+    # MB_COLORIZE_LOGS: "false"
+    # MB_EMOJI_IN_LOGS: "false"
+    # MB_SITE_NAME: TKTK Eave Staging Site
+    # MB_SITE_URL: "https://metabase.${EAVE_ROOT_DOMAIN}"
+    # MB_ANON_TRACKING_ENABLED: "false"
+    # MB_ENABLE_XRAYS: "true"
+    # MB_ENABLE_NESTED_QUERIES: "true"
+    # MB_CHECK_FOR_UPDATES: "false"
+    # MB_EMAIL_SMTP_HOST: smtp-relay.gmail.com
+    # MB_EMAIL_SMTP_PORT: "587"
+    # MB_EMAIL_SMTP_SECURITY: tls
+    # MB_EMAIL_FROM_ADDRESS: info@eave.fyi
+    # MB_EMAIL_FROM_NAME: Eave
+    # MB_ADMIN_EMAIL: support@eave.fyi
+    # MB_SEND_EMAIL_ON_FIRST_LOGIN_FROM_NEW_DEVICE: "false"
+    # # MB_EMAIL_REPLY_TO: "\"['info@eave.fyi']\""
+    # # MB_SLACK_APP_TOKEN:
+    # # MB_SLACK_FILES_CHANNEL:
+    # MB_ENABLE_PASSWORD_LOGIN: "true" # for Eave admins
+    # MB_SEND_NEW_SSO_USER_ADMIN_EMAIL: "true"
+    # # MB_SESSION_TIMEOUT:
+    # # MB_MAP_TILE_SERVER_URL:
+    # MB_REPORT_TIMEZONE: America/Los_Angeles # FIXME: Can the browser's timezone be used?
+    # MB_ENABLE_PUBLIC_SHARING: "false"
+    # MB_ENABLE_EMBEDDING: "true"
+    # MB_EMBEDDING_APP_ORIGIN: "dashboard.${EAVE_ROOT_DOMAIN}"
+    # MB_SESSION_COOKIE_SAMESITE: lax
+    # MB_JWT_ENABLED: "true"
+    # MB_JWT_IDENTITY_PROVIDER_URI: "https://dashboard.${EAVE_ROOT_DOMAIN}/login"
+    # MB_ENABLE_QUERY_CACHING: "false"
+    # MB_PERSISTED_MODELS_ENABLED: "false"
+    # MB_PERSISTED_MODEL_REFRESH_CRON_SCHEDULE: ""
+    # MB_APPLICATION_NAME: TKTK Eave Staging Application
+    # # MB_APPLICATION_FONT:
+    # # MB_APPLICATION_COLORS:
+    # # MB_APPLICATION_LOGO_URL:
+    # # MB_APPLICATION_FAVICON_URL:
+    # # MB_LANDING_PAGE:
+    # MB_LOADING_MESSAGE: running-query # This is an enum, not an arbitrary string. Setting it to an unsupported value breaks the UI!
+    # MB_SHOW_METABOT: "false"
+    # MB_SHOW_LIGHTHOUSE_ILLUSTRATION: "false"
+
   }
 }
 
-resource "kubernetes_secret" "core_api" {
+resource "kubernetes_secret" "metabase" {
   metadata {
-    name = "core-api-secret"
-    namespace = kubernetes_namespace.eave.metadata.0.name
+    name = "metabase-${var.metabase_instance_id}-secret"
+    namespace = var.namespace
   }
 
   type = "Opaque"
   data = {
-    METABASE_UI_BIGQUERY_ACCESSOR_GSA_KEY_JSON_B64 = "${var.METABASE_UI_BIGQUERY_ACCESSOR_GSA_KEY_JSON_B64}"
+    # MB_ENCRYPTION_SECRET_KEY: "${MB_ENCRYPTION_SECRET_KEY}"
+    # MB_PREMIUM_EMBEDDING_TOKEN: "${MB_PREMIUM_EMBEDDING_TOKEN}"
+    # MB_EMAIL_SMTP_USERNAME: "${MB_EMAIL_SMTP_USERNAME}"
+    # MB_EMAIL_SMTP_PASSWORD: "${MB_EMAIL_SMTP_PASSWORD}"
+    # MB_JWT_SHARED_SECRET: "${MB_JWT_SHARED_SECRET}"
   }
 }
 
-resource "kubernetes_manifest" "core_api_managed_certificate" {
+resource "kubernetes_service_account" "metabase" {
+  metadata {
+    name = "ksa-app-metabase-${var.metabase_instance_id}"
+    namespace = var.namespace
+    annotations = {
+      "iam.gke.io/gcp-service-account" = "gsa-app-metabase-${var.metabase_instance_id}@${var.project_id}.iam.gserviceaccount.com"
+    }
+  }
+}
+
+
+resource "kubernetes_manifest" "metabase_backend_config" {
   manifest = {
-    apiVersion = "networking.gke.io/v1"
-    kind       = "ManagedCertificate"
+    apiVersion = "cloud.google.com/v1"
+    kind       = "BackendConfig"
     metadata = {
-      name = "core-api-cert"
-      namespace = kubernetes_namespace.eave.metadata.0.name
+      name = "metabase-${var.metabase_instance_id}-bc"
+      namespace = var.namespace
     }
 
     spec = {
-      domains = [
-        "api.${var.root_domain}"
-      ]
+      healthCheck = {
+        type = "HTTP"
+        requestPath = "/api/health"
+        port = 3000
+        checkIntervalSec = 30
+        unhealthyThreshold = 4
+      }
+
+      logging = {
+        enable = true
+        sampleRate = 0.5
+      }
+
+      customResponseHeaders = {
+        headers = [
+          "server: n/a"
+        ]
+      }
     }
   }
 }
 
-resource "kubernetes_service_account" "core_api" {
+resource "kubernetes_service" "metabase" {
   metadata {
-    name = "ksa-app-core-api"
-    namespace = kubernetes_namespace.eave.metadata.0.name
+    name = "metabase-${var.metabase_instance_id}"
+    namespace = var.namespace
     annotations = {
-      "iam.gke.io/gcp-service-account" = "gsa-app-core-api@${var.project_id}.iam.gserviceaccount.com"
-    }
-  }
-}
-
-resource "kubernetes_service" "core_api" {
-  metadata {
-    name = "core-api"
-    namespace = kubernetes_namespace.eave.metadata.0.name
-    annotations = {
-      "beta.cloud.google.com/backend-config" = "{\"default\": \"${kubernetes_manifest.shared_backend_config.manifest.metadata.name}\"}"
+      "beta.cloud.google.com/backend-config" = "{\"default\": \"${kubernetes_manifest.metabase_backend_config.manifest.metadata.name}\"}"
     }
   }
 
   spec {
     selector = {
-      "app" = "core-api-app"
+      "app" = "metabase-${var.metabase_instance_id}-app"
     }
 
     type = "NodePort"
@@ -76,110 +159,21 @@ resource "kubernetes_service" "core_api" {
   }
 }
 
-resource "kubernetes_ingress_v1" "core_api" {
-  metadata {
-    name = "core-api-ingress"
-    namespace = kubernetes_namespace.eave.metadata.0.name
-    annotations = {
-      "networking.gke.io/v1beta1.FrontendConfig" = kubernetes_manifest.shared_frontend_config.manifest.metadata.name
-      "networking.gke.io/managed-certificates" = kubernetes_manifest.core_api_managed_certificate.manifest.metadata.name
-      "kubernetes.io/ingress.global-static-ip-name" = var.static_ip_names.core_api
-      "kubernetes.io/ingress.class" = "gce"
-    }
-
-    labels = {
-      "app" = "core-api-app"
-    }
-  }
-
-  spec {
-    # This does not work. Without the "ingress.class" annotation, the LB isn't created.
-    ingress_class_name = "gce"
-
-    # The NOOP service is meant to always fail. It prevents external traffic from accessing paths that aren't whitelisted here.
-    # GKE provides a "default-http-backend" service that is used if defaultBackend isn't specified here.
-    # However, the response that it returns is a 404 with a message that exposes details about the infrastructure, and is therefore unsuitable.
-    default_backend {
-      service {
-        name = "noop"
-        port {
-          number = 65535
-        }
-      }
-    }
-
-
-    rule {
-      host = "api.${var.root_domain}"
-      http {
-        # Supported public endpoint prefixes.
-        # Everything else is only accessible from the cluster.
-        # TODO: a better place to define these?
-
-        path {
-          path = "/status"
-          backend {
-            service {
-              name = kubernetes_service.core_api.metadata.0.name
-              port {
-                name = "http"
-              }
-            }
-          }
-        }
-        path {
-          path = "/public"
-          backend {
-            service {
-              name = kubernetes_service.core_api.metadata.0.name
-              port {
-                name = "http"
-              }
-            }
-          }
-        }
-        path {
-          path = "/oauth"
-          backend {
-            service {
-              name = kubernetes_service.core_api.metadata.0.name
-              port {
-                name = "http"
-              }
-            }
-          }
-        }
-        path {
-          path = "/favicon.ico"
-          backend {
-            service {
-              name = kubernetes_service.core_api.metadata.0.name
-              port {
-                name = "http"
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-resource "kubernetes_deployment" "core_api" {
+resource "kubernetes_deployment" "metabase" {
   wait_for_rollout = false
 
   metadata {
-    name = "core-api-deployment"
-    namespace = kubernetes_namespace.eave.metadata.0.name
+    name = "metabase-${var.metabase_instance_id}-deployment"
+    namespace = var.namespace
     labels = {
-      app = "core-api-app"
+      app = "metabase-${var.metabase_instance_id}-app"
     }
   }
 
   spec {
     selector {
       match_labels = {
-        app = "core-api-app"
+        app = "metabase-${var.metabase_instance_id}-app"
       }
     }
 
@@ -194,11 +188,11 @@ resource "kubernetes_deployment" "core_api" {
     template {
       metadata {
         labels = {
-          app = "core-api-app"
+          app = "metabase-${var.metabase_instance_id}-app"
         }
       }
       spec {
-        service_account_name = kubernetes_service_account.core_api.metadata.0.name
+        service_account_name = kubernetes_service_account.metabase.metadata.0.name
 
         # Necessary to prevent perpetual diff
         # https://github.com/hashicorp/terraform-provider-kubernetes/pull/2380
@@ -220,63 +214,62 @@ resource "kubernetes_deployment" "core_api" {
         }
 
         container {
-          name = "core-api"
-          image = "${var.docker_repository.location}-docker.pkg.dev/${var.docker_repository.project}/${var.docker_repository.repository_id}/core-api:${var.RELEASE.core_api.version}"
+          name = "metabase-enterprise"
+          image = "metabase/metabase-enterprise:latest"
 
           port {
             name = "app"
-            container_port = 8000
+            container_port = 3000
           }
 
           resources {
             # requests and limits must always be the same on Autopilot clusters without bursting.
             # if requests is omitted, the limits values are used.
             limits = {
-              cpu    = "250m"
-              memory = "1Gi"
+              cpu    = "500m"
+              memory = "2Gi"
               # Necessary to prevent perpetual diff
               # https://github.com/hashicorp/terraform-provider-kubernetes/pull/2380
               "ephemeral-storage" = "1Gi"
             }
           }
 
-          # env_from {
-          #   secret_ref {
-          #     name = "metabase-jwt-shared-secret"
-          #   }
-          # }
           env_from {
             secret_ref {
-              name = kubernetes_secret.core_api.metadata.0.name
+              name = kubernetes_secret.metabase.metadata.0.name
             }
           }
           env_from {
             config_map_ref {
-              name = kubernetes_config_map.shared.metadata.0.name
-            }
-          }
-          env_from {
-            config_map_ref {
-              name = kubernetes_config_map.core_api.metadata.0.name
+              name = kubernetes_config_map.metabase.metadata.0.name
             }
           }
 
           env {
-            name = "EAVE_DB_USER"
-            value = "gsa-app-core-api@${var.project_id}.iam"
+            name = "MB_DB_USER"
+            value = "gsa-app-metabase-${var.metabase_instance_id}@${var.project_id}.iam"
           }
           env {
-            name = "EAVE_DB_HOST"
+            name = "MB_DB_TYPE"
+            value = "postgres"
+          }
+          env {
+            name = "MB_DB_HOST"
             value = "127.0.0.1"
           }
           env {
-            name = "EAVE_DB_PORT"
+            name = "MB_DB_PORT"
             value = "5432"
           }
           env {
-            name = "GUNICORN_CMD_ARGS"
-            value = "--bind=0.0.0.0:8000 --workers=3 --timeout=90"
+            name = "MB_JETTY_HOST"
+            value = "0.0.0.0" # Default for Docker
           }
+          env {
+            name = "MB_JETTY_PORT"
+            value = "3000" # Default
+          }
+
 
           # Necessary to prevent perpetual diff
           # https://github.com/hashicorp/terraform-provider-kubernetes/pull/2380
@@ -292,17 +285,22 @@ resource "kubernetes_deployment" "core_api" {
             }
           }
 
-          readiness_probe {
+          liveness_probe {
+            period_seconds = 60
+            timeout_seconds = 30
+            failure_threshold = 5
             http_get {
-              path = "/status"
+              path = "/api/health"
               port = "app"
             }
           }
 
-          liveness_probe {
-            failure_threshold = 5
+          startup_probe {
+            # The metabase container takes a long time to boot up
+            period_seconds = 10
+            failure_threshold = 30
             http_get {
-              path = "/status"
+              path = "/api/health"
               port = "app"
             }
           }
@@ -369,7 +367,7 @@ resource "kubernetes_deployment" "core_api" {
             "--port=5432",
             "--structured-logs",
             # - "--unix-socket /cloudsql"
-            "${var.project_id}:${var.region}:eave-pg-core",
+            "${var.project_id}:${var.region}:${var.cloudsql_instance_id}",
           ]
 
           startup_probe {

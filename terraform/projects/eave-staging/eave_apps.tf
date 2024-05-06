@@ -49,13 +49,6 @@ locals {
         "eave.eaveApp"
       ]
     }
-    "metabase" = {
-      domain_prefix = "metabase"
-      custom_roles = [
-        "eave.metabaseApp",
-        "eave.eaveAppCloudsqlIamClient",
-      ]
-    }
     "playground-todoapp" = {
       domain_prefix = "playground-todoapp"
       custom_roles = [

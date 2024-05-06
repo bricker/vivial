@@ -1,7 +1,3 @@
-locals {
-  metabase_instances = toset([])
-}
-
 module "metabase_role" {
   source      = "../../modules/custom_role"
   role_id     = "eave.metabaseApp"

@@ -40,10 +40,6 @@ variable "RELEASE" {
   })
 }
 
-variable "static_ip_names" {
-  type=object({
-    core_api=string
-    dashboard=string
-    playground_todoapp=string
-  })
+variable "metabase_instances" {
+  type=list(string)
 }
