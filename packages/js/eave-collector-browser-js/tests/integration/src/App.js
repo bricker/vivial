@@ -14,9 +14,15 @@ function App() {
           Edit <code>src/App.js</code> and save to reload.
         </p>
         <p>Counter {counter}</p>
-        <button id="counter-btn" onClick={() => setCounter(counter + 1)}>counter++</button>
+        <button id="counter-btn" onClick={() => setCounter(counter + 1)}>
+          counter++
+        </button>
 
-        <a href="https://google.com">External link</a>
+        <a id="external-link" href="https://google.com">
+          External link
+        </a>
+
+        <a id="page-internal-link" href="#">To top of page</a>
 
         <Link id="page-link" className="App-link" to="/page">
           Go to subpage
@@ -24,6 +30,14 @@ function App() {
         <Link id="form-link" className="App-link" to="/form">
           Go to form
         </Link>
+
+        <a href="#">
+          <button id="btn-internal-link">Button in internal link</button>
+        </a>
+
+        <a href="https://google.com">
+          <button id="btn-external-link">Button in external link</button>
+        </a>
       </header>
     </div>
   );
