@@ -1635,7 +1635,7 @@ export function Tracker(trackerUrl, siteId) {
    *
    * @param {string} request any initial query params to attach to the request
    * @param {object} customData additional key-value data to attach to the request
-   * @param {Function} pluginMethod function return value builds on request query params
+   * @param {string} pluginMethod name of a function that builds on request query params
    * @returns {string} built up query parameters to send with the request
    */
   function getRequest(request, customData, pluginMethod) {
@@ -2629,7 +2629,7 @@ export function Tracker(trackerUrl, siteId) {
         e.g. 
         linkTracking comes before buttonClickTracking.
         Therefore, we expect clicking on the button element of
-        `<a href="#"><button>click!</button></a>`
+        `<a href="..."><button>click!</button></a>`
         Will trigger a link click event rather than a button click event.
         */
     var trackers = [
