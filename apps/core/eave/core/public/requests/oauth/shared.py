@@ -5,6 +5,7 @@ import typing
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 import aiohttp
+from eave.stdlib.api_util import set_redirect
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.lib.metabase_api import MetabaseApiClient
 import oauthlib.common
@@ -21,6 +22,7 @@ import eave.stdlib.exceptions
 import eave.stdlib.slack
 from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
+from eave.core.internal.orm.metabase_instance import MetabaseInstanceOrm
 from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib import auth_cookies, utm_cookies
 from eave.stdlib.config import SHARED_CONFIG
@@ -50,12 +52,6 @@ def verify_oauth_state_or_exception(
         raise eave.stdlib.exceptions.InvalidStateError()
 
     return True
-
-
-def set_redirect(response: Response, location: str) -> Response:
-    response.headers[aiohttp.hdrs.LOCATION] = location
-    response.status_code = http.HTTPStatus.TEMPORARY_REDIRECT
-    return response
 
 
 def set_error_code(response: Response, error_code: EaveOnboardingErrorCode) -> Response:
@@ -158,6 +154,18 @@ async def create_new_account_and_team(
             name=eave_team_name,
         )
 
+        await ClientCredentialsOrm.create(
+            session=db_session,
+            team_id=eave_team.id,
+            description="Default client credentials",
+            scope=ClientScope.readwrite,
+        )
+
+        await MetabaseInstanceOrm.create(
+            session=db_session,
+            team_id=eave_team.id,
+        )
+
         eave_account = await AccountOrm.create(
             session=db_session,
             team_id=eave_team.id,
@@ -168,13 +176,6 @@ async def create_new_account_and_team(
             access_token=access_token,
             refresh_token=refresh_token,
             email=user_email,
-        )
-
-        await ClientCredentialsOrm.create(
-            session=db_session,
-            team_id=eave_team.id,
-            description="Default client credentials",
-            scope=ClientScope.readwrite,
         )
 
         EAVE_INTERNAL_BIGQUERY_CLIENT.get_or_create_dataset(dataset_id=eave_team.bq_dataset_id)

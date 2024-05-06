@@ -16,7 +16,3 @@ class ConfigTest(StdlibBaseTestCase):
             SHARED_CONFIG.eave_internal_service_base(service=EaveApp.eave_dashboard)
             == f"https://dashboard-dot-{project}.uc.r.appspot.com"
         )
-        assert (
-            SHARED_CONFIG.eave_internal_service_base(service=EaveApp.eave_github_app)
-            == f"https://github-dot-{project}.uc.r.appspot.com"
-        )

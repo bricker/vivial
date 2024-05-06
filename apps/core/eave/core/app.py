@@ -19,6 +19,7 @@ from eave.core.internal.oauth.google import (
 )
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.core.public.requests.data_ingestion import BrowserDataIngestionEndpoint, ServerDataIngestionEndpoint
+from eave.core.public.requests.metabase_auth_proxy import MetabaseAuthProxyEndpoint
 from eave.core.public.requests.oauth.metabase_embedding_sso import MetabaseEmbeddingSSO
 from eave.stdlib import cache, logging
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
@@ -201,6 +202,16 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
+            path="/public/mb",
+            method="GET",
+            auth_required=True,
+            origin_required=False,
+            is_public=True,
+        ),
+        endpoint=MetabaseAuthProxyEndpoint,
+    ),
+    make_route(
+        config=CoreApiEndpointConfiguration(
             path=GOOGLE_OAUTH_AUTHORIZE_PATH,
             method="GET",
             auth_required=False,
@@ -219,16 +230,7 @@ routes = [
         ),
         endpoint=google_oauth.GoogleOAuthCallback,
     ),
-    make_route(
-        config=CoreApiEndpointConfiguration(
-            path="/oauth/metabase",
-            method="GET",
-            auth_required=True,
-            origin_required=False,
-            is_public=True,
-        ),
-        endpoint=MetabaseEmbeddingSSO,
-    ),
+
     make_route(
         config=CoreApiEndpointConfiguration(
             path="/favicon.ico",

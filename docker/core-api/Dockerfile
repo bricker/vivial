@@ -48,7 +48,7 @@ RUN adduser \
     --uid "10001" \
     appuser
 
-USER appuser
+USER 10001
 
 WORKDIR /app
 EXPOSE 8000

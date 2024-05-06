@@ -16,6 +16,8 @@ class HTTPEndpoint:
     scope: asgiref.typing.HTTPScope
     receive: asgiref.typing.ASGIReceiveCallable
     send: asgiref.typing.ASGISendCallable
+    request: Request
+    state: EaveRequestState
 
     def __init__(
         self,
@@ -28,6 +30,13 @@ class HTTPEndpoint:
         self.receive = receive
         self.send = send
 
+        self.request = Request(
+            scope=typing.cast(starlette.types.Scope, self.scope),
+            receive=typing.cast(starlette.types.Receive, self.receive),
+        )
+
+        self.state = EaveRequestState.load(request=self.request)
+
     def __await__(self) -> typing.Generator[typing.Any, None, None]:
         return self._dispatch().__await__()
 
@@ -35,15 +44,14 @@ class HTTPEndpoint:
         raise NotImplementedError("HTTPEndpoint.handler")
 
     async def _dispatch(self) -> None:
-        cscope=typing.cast(starlette.types.Scope, self.scope)
-        creceive=typing.cast(starlette.types.Receive, self.receive)
-        csend=typing.cast(starlette.types.Send, self.send)
-
-        request = Request(
-            scope=cscope,
-            receive=creceive,
+        response = await self.handle(
+            request=self.request,
+            scope=self.scope,
+            state=self.state
         )
 
-        state = EaveRequestState.load(request=request)
-        response = await self.handle(request, scope=self.scope, state=state)
-        await response(cscope, creceive, csend)
+        await response(
+            typing.cast(starlette.types.Scope, self.scope),
+            typing.cast(starlette.types.Receive, self.receive),
+            typing.cast(starlette.types.Send, self.send),
+        )

@@ -1,5 +1,27 @@
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs
 
+variable "METABASE_UI_BIGQUERY_ACCESSOR_GSA_KEY_JSON_B64" {
+  type=string
+  sensitive=true
+}
+
+variable "RELEASE" {
+  type=object({
+    core_api=object({
+      version=string
+      release_date=string
+    })
+    dashboard=object({
+      version=string
+      release_date=string
+    })
+    playground_todoapp=object({
+      version=string
+      release_date=string
+    })
+  })
+}
+
 locals {
   project_id      = "eave-staging"
   region          = "us-central1"
@@ -87,21 +109,38 @@ module "gke" {
   authorized_networks = local.authorized_networks
 }
 
-module "kube_config_core_api" {
-  source = "../../modules/kube_configs/core-api"
-  project_id = local.project_id
-  docker_repository = module.docker_registry.repository
-}
-
 # Configure kubernetes provider with Oauth2 access token.
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs/data-sources/client_config
 # This fetches a new token, which will expire in 1 hour.
 data "google_client_config" "default" {}
 
 provider "kubernetes" {
-  host = module.gke.cluster.host
+  host                   = "https://${module.gke.cluster.endpoint}"
   token                  = data.google_client_config.default.access_token
   cluster_ca_certificate = base64decode(module.gke.cluster.master_auth[0].cluster_ca_certificate)
+
+  # config_path = "~/.kube/config"
+  # config_context = "eave-staging"
+
+  ignore_annotations = [
+    "^autopilot\\.gke\\.io\\/.*",
+    "^cloud\\.google\\.com\\/.*"
+  ]
+}
+
+module "kube_configs" {
+  source = "../../kube_configs"
+  project_id = local.project_id
+  region = local.region
+  root_domain = local.root_domain
+  docker_repository = module.docker_registry.repository
+  METABASE_UI_BIGQUERY_ACCESSOR_GSA_KEY_JSON_B64 = var.METABASE_UI_BIGQUERY_ACCESSOR_GSA_KEY_JSON_B64
+  RELEASE = var.RELEASE
+  static_ip_names = {
+    core_api = module.dns_apps["core-api"].google_compute_global_address.name
+    dashboard = module.dns_apps["dashboard"].google_compute_global_address.name
+    playground_todoapp = module.dns_apps["playground-todoapp"].google_compute_global_address.name
+  }
 }
 
 # module "gcp_bigquery" {

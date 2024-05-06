@@ -24,13 +24,6 @@ locals {
         "roles/bigquery.dataOwner",
       ]
     }
-    "eave.metabaseApp" = {
-      title       = "Metabase App"
-      description = "Permissions needed by the Metabase apps"
-      base_roles = [
-        "roles/logging.logWriter",
-      ]
-    }
     "eave.playgroundApp" = {
       role_id     = "eave.playgroundApp"
       title       = "Eave Playground App"

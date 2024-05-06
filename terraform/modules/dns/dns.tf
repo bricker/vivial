@@ -38,3 +38,7 @@ resource "google_dns_record_set" "a" {
 
   rrdatas = [google_compute_global_address.default.address]
 }
+
+output "google_compute_global_address" {
+  value = google_compute_global_address.default
+}

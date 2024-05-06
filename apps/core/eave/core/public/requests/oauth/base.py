@@ -1,3 +1,4 @@
+from asgiref.typing import HTTPScope
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -12,21 +13,19 @@ from . import shared
 class BaseOAuthCallback(HTTPEndpoint):
     request: Request
     response: Response
-    state: str
+    oauth_state: str
     code: str | None
     error: str | None
     error_description: str | None
     auth_provider: AuthProvider
     eave_state: EaveRequestState
 
-    async def get(self, request: Request) -> Response:
+    async def handle(self, request: Request, scope: HTTPScope, state: EaveRequestState) -> Response:
         response = Response()
-        state = request.query_params["state"]
+        oauth_state = request.query_params["state"]
         shared.verify_oauth_state_or_exception(
-            state=state, auth_provider=self.auth_provider, request=request, response=response
+            state=oauth_state, auth_provider=self.auth_provider, request=request, response=response
         )
-
-        eave_state = EaveRequestState.load(request=request)
 
         self.code = request.query_params.get("code")
         self.error = request.query_params.get("error")
@@ -34,8 +33,8 @@ class BaseOAuthCallback(HTTPEndpoint):
 
         self.request = request
         self.response = response
-        self.state = state
-        self.eave_state = eave_state
+        self.oauth_state = oauth_state
+        self.eave_state = state
 
         return self.response
 

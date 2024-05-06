@@ -125,12 +125,24 @@ class _EaveConfig(ConfigBase):
         return self.eave_public_service_base(EaveApp.eave_dashboard)
 
     @property
-    def eave_public_metabase_base(self) -> str:
-        return self.eave_public_service_base(EaveApp.eave_metabase)
-
-    @property
     def eave_internal_metabase_base(self) -> str:
         return self.eave_internal_service_base(EaveApp.eave_metabase)
+
+    @property
+    def eave_internal_root_domain(self) -> str:
+        """
+        Root domain for accessing internal services.
+        Prepend the service name to get the internal service domain, eg `core-api.eave.svc.cluster.local`
+        """
+        return os.getenv("EAVE_INTERNAL_ROOT_DOMAIN", "eave.svc.cluster.local")
+
+    @property
+    def metabase_internal_root_domain(self) -> str:
+        """
+        Root domain for accessing internal metabase instances.
+        Prepend the metabase instance ID to get the internal metabase service domain, eg `{metabase_instance.id.hex}.eave.svc.cluster.local`
+        """
+        return os.getenv("METABASE_INTERNAL_ROOT_DOMAIN", "metabase.svc.cluster.local")
 
     def eave_public_service_base(self, service: EaveApp) -> str:
         sname = service.value.upper()
@@ -218,10 +230,6 @@ class _EaveConfig(ConfigBase):
     def eave_slack_system_bot_token(self) -> str:
         value = get_secret("SLACK_SYSTEM_BOT_TOKEN")
         return value
-
-    @cached_property
-    def eave_github_app_public_url(self) -> str:
-        return get_secret("EAVE_GITHUB_APP_PUBLIC_URL")
 
 
 def get_secret(name: str) -> str:

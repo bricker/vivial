@@ -1,5 +1,7 @@
 from typing import cast
 
+from asgiref.typing import HTTPScope
+from eave.stdlib.request_state import EaveRequestState
 import google.oauth2.credentials
 import google.oauth2.id_token
 from starlette.requests import Request
@@ -19,7 +21,7 @@ _AUTH_PROVIDER = AuthProvider.google
 
 
 class GoogleOAuthAuthorize(HTTPEndpoint):
-    async def get(self, request: Request) -> Response:
+    async def handle(self, request: Request, scope: HTTPScope, state: EaveRequestState) -> Response:
         ctx = LogContext.wrap(scope=request.scope)
 
         await analytics.log_event(
@@ -52,8 +54,8 @@ class GoogleOAuthAuthorize(HTTPEndpoint):
 class GoogleOAuthCallback(base.BaseOAuthCallback):
     auth_provider = _AUTH_PROVIDER
 
-    async def get(self, request: Request) -> Response:
-        await super().get(request=request)
+    async def handle(self, request: Request, scope: HTTPScope, state: EaveRequestState) -> Response:
+        await super().handle(request=request, scope=scope, state=state)
         ctx = LogContext.wrap(scope=request.scope)
 
         if not self._check_valid_callback():
@@ -69,7 +71,7 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
             ctx=ctx,
         )
 
-        flow = eave.core.internal.oauth.google.build_flow(state=self.state)
+        flow = eave.core.internal.oauth.google.build_flow(state=self.oauth_state)
         flow.fetch_token(code=self.code)
 
         # flow.credentials returns a `google.auth.credentials.Credentials`, which is the base class of

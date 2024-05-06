@@ -23,8 +23,4 @@ test("eaveInternalServiceBase for non-dev", (t) => {
     sharedConfig.eaveInternalServiceBase(EaveApp.eave_dashboard),
     `https://dashboard-dot-${project}.uc.r.appspot.com`,
   );
-  t.is(
-    sharedConfig.eaveInternalServiceBase(EaveApp.eave_github_app),
-    `https://github-dot-${project}.uc.r.appspot.com`,
-  );
 });

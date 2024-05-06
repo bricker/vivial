@@ -41,7 +41,9 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
                 "Private endpoints can't be accessed through public DNS. Use '.internal.eave.run' to simulate internal DNS."
             )
         port = 5100
-    elif re.match(r"^metabase\.", flow.request.host):
+    elif re.match(r"^metabase", flow.request.host):
+        # NOTE! During local development, any path prefixed with `metabase` prefix routes to the locally-running Metabase instance.
+        # This is so you can use one metabase instance for all teams in local development.
         port = 5400
     elif re.match(r"^playground-todoapp\.", flow.request.host):
         port = 5500
