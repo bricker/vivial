@@ -16,6 +16,7 @@ from sqlalchemy.event import (
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from eave.collectors.core.base_collector import BaseCollector
+from eave.collectors.core.correlation_context import corr_ctx
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure, EventType
 
 type SupportedEngine = sqlalchemy.Engine | AsyncEngine
@@ -138,6 +139,7 @@ class SQLAlchemyCollector(BaseCollector):
                         statement=clauseelement.compile().string,
                         table_name=tablename,
                         parameters=rparam,
+                        context=corr_ctx.to_dict(),
                     )
 
                     self.write_queue.put(record)
@@ -153,6 +155,7 @@ class SQLAlchemyCollector(BaseCollector):
                         statement=clauseelement.compile().string,
                         table_name=tablename,
                         parameters=rparam,
+                        context=corr_ctx.to_dict(),
                     )
 
                     self.write_queue.put(record)
@@ -167,6 +170,7 @@ class SQLAlchemyCollector(BaseCollector):
                         statement=clauseelement.compile().string,
                         table_name=tablename,
                         parameters=rparam,
+                        context=corr_ctx.to_dict(),
                     )
 
                     self.write_queue.put(record)
