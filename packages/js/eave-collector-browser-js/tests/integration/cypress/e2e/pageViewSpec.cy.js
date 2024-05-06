@@ -15,6 +15,9 @@ describe("eave page view atom collection", () => {
     // THEN an event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       expect(interception.response).to.exist;
+      expect(interception.response.body.data.action_name).to.deep.equal(
+        "React App",
+      ); // html title
     });
   });
 
@@ -23,7 +26,7 @@ describe("eave page view atom collection", () => {
 
     // GIVEN site is an SPA
     cy.visit(DUMMY_APP_ROOT);
-    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`)
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
 
     // WHEN navigating to a subpage/route
     cy.get("#page-link").click();
@@ -31,9 +34,7 @@ describe("eave page view atom collection", () => {
     // THEN page view event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       expect(interception.response).to.exist;
-      expect(interception.response.body.data.data).to.match(
-        /HistoryChange/,
-      );
+      expect(interception.response.body.data.data).to.match(/HistoryChange/);
     });
   });
 });

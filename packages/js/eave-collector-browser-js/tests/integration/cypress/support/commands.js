@@ -53,31 +53,3 @@ Cypress.Commands.add("interceptAtomIngestion", () => {
     });
   }).as(ATOM_INTERCEPTION_EVENT_NAME);
 });
-
-/**
- * Make sure a timeout occurs.
- * Useful for testing that no further atoms are fired after an action.
- *
- * @example cy.wait(5000).waitForTimeout(6000); // 6s
- */
-Cypress.Commands.add('waitForTimeout', { prevSubject: true }, (subject, timeout) => {
-  return new Cypress.Promise(resolve => {
-    // Chain a should() assertion with an assertion that will always fail
-    // This will trigger Cypress to retry the command until the timeout
-    // Without failing the test
-    cy.wrap(subject, { timeout }).should(() => {
-      // Log a message indicating the timeout
-      Cypress.log({
-        name: 'Timeout',
-        message: [`Waited for ${timeout}ms without failing the test`],
-        consoleProps: () => {
-          return {
-            Timeout: timeout
-          };
-        }
-      });
-      // Resolve the promise to continue the test without failing
-      resolve(subject);
-    });
-  });
-});
