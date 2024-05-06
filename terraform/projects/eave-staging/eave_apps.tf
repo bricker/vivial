@@ -1,5 +1,5 @@
 locals {
-  customAppRoles = {
+  custom_app_roles = {
     "eave.eaveApp" = {
       title       = "Eave App"
       description = "Standard permissions needed by all Eave apps"
@@ -9,19 +9,13 @@ locals {
         "roles/secretmanager.secretAccessor",
       ]
     }
-    "eave.eaveAppCloudsqlIamClient" = {
-      title       = "Eave App CloudSQL IAM Client"
-      description = "Eave App that needs to connect/use Cloud SQL via IAM"
-      base_roles = [
-        "roles/cloudsql.instanceUser", # for IAM auth
-        "roles/cloudsql.client",
-      ]
-    }
     "eave.coreApiApp" = {
       title = "Core API App"
       description = "Additional permissions needed by the Core API App"
       base_roles = [
         "roles/bigquery.dataOwner",
+        "roles/cloudsql.instanceUser", # for IAM auth
+        "roles/cloudsql.client",
       ]
     }
     "eave.playgroundApp" = {
@@ -30,6 +24,8 @@ locals {
       description = "Permissions for Eave Playground Apps"
       base_roles = [
         "roles/logging.logWriter",
+        "roles/cloudsql.instanceUser", # for IAM auth
+        "roles/cloudsql.client"
       ]
     }
   }
@@ -40,7 +36,6 @@ locals {
       custom_roles = [
         "eave.eaveApp",
         "eave.coreApiApp",
-        "eave.eaveAppCloudsqlIamClient",
       ]
     }
     "dashboard" = {
@@ -53,7 +48,6 @@ locals {
       domain_prefix = "playground-todoapp"
       custom_roles = [
         "eave.playgroundApp",
-        "eave.eaveAppCloudsqlIamClient",
       ]
     }
   }
@@ -61,7 +55,7 @@ locals {
 
 # Create custom roles
 module "custom_roles" {
-  for_each = local.customAppRoles
+  for_each = local.custom_app_roles
 
   source      = "../../modules/custom_role"
   role_id     = each.key
@@ -75,21 +69,21 @@ module "apps_service_accounts" {
   for_each = local.apps
 
   source         = "../../modules/gke_app_service_account"
-  project_id     = local.project_id
+  project_id     = local.project.id
   app            = each.key
-  kube_namespace = "eave"
+  kube_namespace = kubernetes_namespace.eave.metadata.0.name
 }
 
 # Bind the custom roles to necessary service accounts. This is authoritative.
 resource "google_project_iam_binding" "custom_role_bindings" {
   for_each = module.custom_roles
 
-  project = local.project_id
+  project = local.project.id
   role    = each.value.role.id
 
   members = [
     for app, props in local.apps :
-    "serviceAccount:${module.apps_service_accounts[app].service_account.email}"
+    "serviceAccount:${module.apps_service_accounts[app].gsa.email}"
     if contains(props.custom_roles, each.value.role.role_id)
   ]
 }

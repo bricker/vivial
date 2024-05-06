@@ -1,3 +1,8 @@
+variable "project" {
+  type = object({
+    id = string
+  })
+}
 resource "kubernetes_namespace" "eave" {
   metadata {
     name = "eave"
@@ -5,7 +10,7 @@ resource "kubernetes_namespace" "eave" {
 }
 
 output "eave_namespace_name" {
-  value = kubernetes_namespace.eave.name
+  value = kubernetes_namespace.eave.metadata.0.name
 }
 
 resource "kubernetes_namespace" "metabase" {
@@ -15,7 +20,7 @@ resource "kubernetes_namespace" "metabase" {
 }
 
 output "metabase_namespace_name" {
-  value = kubernetes_namespace.metabase.name
+  value = kubernetes_namespace.metabase.metadata.0.name
 }
 
 resource "kubernetes_config_map" "shared" {
@@ -25,40 +30,40 @@ resource "kubernetes_config_map" "shared" {
   }
 
   data = {
-    GOOGLE_CLOUD_PROJECT = "${var.project_id}"
-    EAVE_METABASE_BASE_PUBLIC = "https://metabase.${var.root_domain}"
-    EAVE_METABASE_BASE_INTERNAL = "http://metabase.${kubernetes_namespace.eave.metadata.0.name}.svc.cluster.local"
+    GOOGLE_CLOUD_PROJECT = var.project.id
+    # EAVE_METABASE_BASE_PUBLIC = "https://metabase.${var.root_domain}"
+    # EAVE_METABASE_BASE_INTERNAL = "http://metabase.${kubernetes_namespace.eave.metadata.0.name}.svc.cluster.local"
 
-    EAVE_API_BASE_PUBLIC = "https://api.${var.root_domain}"
+    EAVE_API_BASE_PUBLIC = "https://api.${var.project.root_domain}"
     EAVE_API_BASE_INTERNAL = "http://core-api.${kubernetes_namespace.eave.metadata.0.name}.svc.cluster.local"
 
-    EAVE_DASHBOARD_BASE_PUBLIC = "https://dashboard.${var.root_domain}"
+    EAVE_DASHBOARD_BASE_PUBLIC = "https://dashboard.${var.project.root_domain}"
     EAVE_DASHBOARD_BASE_INTERNAL = "http://dashboard.${kubernetes_namespace.eave.metadata.0.name}.svc.cluster.local"
 
     EAVE_INTERNAL_ROOT_DOMAIN = "${kubernetes_namespace.eave.metadata.0.name}.svc.cluster.local"
     METABASE_INTERNAL_ROOT_DOMAIN = "${kubernetes_namespace.metabase.metadata.0.name}.svc.cluster.local"
 
-    EAVE_COOKIE_DOMAIN = ".${var.root_domain}"
+    EAVE_COOKIE_DOMAIN = ".${var.project.root_domain}"
   }
 }
 
 output "shared_config_map_name" {
-  value = kubernetes_config_map.shared.name
+  value = kubernetes_config_map.shared.metadata.0.name
 }
 
-resource "kubernetes_service" "noop" {
-  # Noop service; always fails.
-  # This can be used for default backend in an Ingress when you want to block certain routes from being accessed externally.
-  metadata {
-    name = "noop"
-    namespace = kubernetes_namespace.eave.metadata.0.name
-  }
+# resource "kubernetes_service" "noop" {
+#   # Noop service; always fails.
+#   # This can be used for default backend in an Ingress when you want to block certain routes from being accessed externally.
+#   metadata {
+#     name = "noop"
+#     namespace = kubernetes_namespace.eave.metadata.0.name
+#   }
 
-  spec {
-    type = "ExternalName"
-    external_name = "eave.fyi" # Dummy value
-  }
-}
+#   spec {
+#     type = "ExternalName"
+#     external_name = "eave.fyi" # Dummy value
+#   }
+# }
 
 resource "kubernetes_manifest" "shared_backend_config" {
   # Standard app healthcheck/backend config
@@ -124,7 +129,6 @@ resource "kubernetes_manifest" "shared_frontend_config" {
     }
   }
 }
-
 
 output "shared_frontend_config_name" {
   value = kubernetes_manifest.shared_frontend_config.manifest.metadata.name

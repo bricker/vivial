@@ -44,7 +44,7 @@ resource "google_service_account" "addl_service_accounts" {
 resource "google_project_iam_binding" "service_accounts_custom_role_bindings" {
   for_each = module.service_accounts_custom_roles
 
-  project = local.project_id
+  project = local.project.id
   role    = each.value.role.id
 
   members = [

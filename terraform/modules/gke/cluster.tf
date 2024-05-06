@@ -1,9 +1,6 @@
-variable "project_id" {
+variable "location" {
   type = string
-}
-
-variable "region" {
-  type = string
+  description = "Specify either a region or a zone. Region spreads the cluster out over all zones in the region. Zone deploys the cluster into just one zone. Zone is better for lower environments."
 }
 
 variable "authorized_networks" {
@@ -17,7 +14,7 @@ variable "authorized_networks" {
 
 resource "google_container_cluster" "default" {
   name     = "eave-cluster"
-  location = var.region
+  location = var.location
 
   enable_autopilot = true
 

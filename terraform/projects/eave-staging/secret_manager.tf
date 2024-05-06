@@ -2,10 +2,10 @@
 # If any of these aren't set, terraform apply won't run.
 # Additionally, a map with `sensitive=true` can't be used for iteration.
 
-variable "METABASE_JWT_KEY" {
-  type      = string
-  sensitive = true
-}
+# variable "METABASE_JWT_KEY" {
+#   type      = string
+#   sensitive = true
+# }
 
 variable "EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64" {
   type      = string
@@ -19,7 +19,7 @@ variable "SLACK_SYSTEM_BOT_TOKEN" {
 
 locals {
   secrets = {
-    "METABASE_JWT_KEY"                              = var.METABASE_JWT_KEY
+    # "METABASE_JWT_KEY"                              = var.METABASE_JWT_KEY
     "EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64" = var.EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64
     "SLACK_SYSTEM_BOT_TOKEN"                        = var.SLACK_SYSTEM_BOT_TOKEN
   }

@@ -34,12 +34,26 @@ resource "google_service_account" "app_service_account" {
 #   member = "serviceAccount:${google_service_account.app_service_account.email}"
 # }
 
+resource "kubernetes_service_account" "app_ksa" {
+  metadata {
+    name = "ksa-app-${var.app}"
+    namespace = var.kube_namespace
+    annotations = {
+      "iam.gke.io/gcp-service-account" = google_service_account.app_service_account.email
+    }
+  }
+}
+
 resource "google_service_account_iam_member" "app_service_account_ksa_binding" {
   service_account_id = google_service_account.app_service_account.id
   role               = data.google_iam_role.workload_identity_role.id
-  member             = "serviceAccount:${var.project_id}.svc.id.goog[${var.kube_namespace}/ksa-app-${var.app}]"
+  member             = "serviceAccount:${var.project_id}.svc.id.goog[${var.kube_namespace}/${kubernetes_service_account.app_ksa.metadata.0.name}]"
 }
 
-output "service_account" {
+output "gsa" {
   value = google_service_account.app_service_account
+}
+
+output "ksa" {
+  value = kubernetes_service_account.app_ksa
 }

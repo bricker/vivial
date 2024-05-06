@@ -1,5 +1,28 @@
 locals {
-  app_name = "core-api"
+  service_name = "core-api"
+  app_name = "${local.service_name}-app"
+
+  http_port = {
+    name = "http"
+    number = 80
+  }
+
+  app_port = {
+    name = "app"
+    number = 8000
+  }
+
+  clousql_proxy_healthcheck_port = {
+    name = "healthcheck"
+    number = 9090
+  }
+
+  cloudsql_proxy_port = {
+    name = "proxy"
+    number = 5432
+  }
+
+  cloudsql_proxy_version = "latest"
 }
 
 variable "project_id" {
@@ -22,7 +45,15 @@ variable "db_name" {
   type=string
 }
 
+variable "db_user" {
+  type=string
+}
+
 variable "domain" {
+  type=string
+}
+
+variable "shared_config_map_name" {
   type=string
 }
 
@@ -51,15 +82,19 @@ variable "LOG_LEVEL" {
   default = "debug"
 }
 
+variable "gsa_email" {
+  type=string
+}
+
+
 resource "kubernetes_config_map" "core_api" {
   metadata {
-    name = "${local.app_name}-configmap"
+    name = "${local.service_name}-configmap"
     namespace = var.namespace
   }
 
   data = {
-    EAVE_DB_NAME = var.db_name
-    GAE_SERVICE = local.app_name
+    GAE_SERVICE = local.service_name
     GAE_VERSION = var.release_version
     GAE_RELEASE_DATE = var.release_date
     LOG_LEVEL = var.LOG_LEVEL
@@ -68,13 +103,12 @@ resource "kubernetes_config_map" "core_api" {
 
 resource "kubernetes_secret" "core_api" {
   metadata {
-    name = "${local.app_name}-secret"
+    name = "${local.service_name}-secret"
     namespace = var.namespace
   }
 
   type = "Opaque"
   data = {
-    METABASE_UI_BIGQUERY_ACCESSOR_GSA_KEY_JSON_B64 = "${var.METABASE_UI_BIGQUERY_ACCESSOR_GSA_KEY_JSON_B64}"
   }
 }
 
@@ -83,7 +117,7 @@ resource "kubernetes_manifest" "core_api_managed_certificate" {
     apiVersion = "networking.gke.io/v1"
     kind       = "ManagedCertificate"
     metadata = {
-      name = "${local.app_name}-cert"
+      name = "${local.service_name}-cert"
       namespace = var.namespace
     }
 
@@ -95,51 +129,59 @@ resource "kubernetes_manifest" "core_api_managed_certificate" {
 
 resource "kubernetes_service_account" "core_api" {
   metadata {
-    name = "ksa-app-${local.app_name}"
+    name = "ksa-app-${local.service_name}"
     namespace = var.namespace
     annotations = {
-      "iam.gke.io/gcp-service-account" = "gsa-app-${local.app_name}@${var.project_id}.iam.gserviceaccount.com"
+      "iam.gke.io/gcp-service-account" = var.gsa_email
     }
   }
 }
 
+output "kubernetes_service_account_core_api_name" {
+  value = kubernetes_service_account.core_api.metadata.0.name
+}
+
 resource "kubernetes_service" "core_api" {
   metadata {
-    name = "${local.app_name}"
-    namespace = kubernetes_namespace.eave.metadata.0.name
+    name = local.service_name
+    namespace = var.namespace
     annotations = {
       "beta.cloud.google.com/backend-config" = jsonencode({"default": var.shared_backend_config_name})
+    }
+
+    labels = {
+      app = local.app_name
     }
   }
 
   spec {
     selector = {
-      "app" = "${local.app_name}-app"
+      app = local.app_name
     }
 
     type = "NodePort"
     port {
-      name = "http"
+      name = local.http_port.name
       protocol = "TCP"
-      port = 80
-      target_port = "app"
+      port = local.http_port.number
+      target_port = local.app_port.name
     }
   }
 }
 
 resource "kubernetes_ingress_v1" "core_api" {
   metadata {
-    name = "${local.app_name}-ingress"
+    name = "${local.service_name}-ingress"
     namespace = var.namespace
     annotations = {
-      "networking.gke.io/v1beta1.FrontendConfig" = var.shared_frontend_config_name
+      "networking.gke.io/v1beta1.FrontendConfig" = kubernetes_manifest.shared_frontend_config.manifest.metadata.name
       "networking.gke.io/managed-certificates" = kubernetes_manifest.core_api_managed_certificate.manifest.metadata.name
       "kubernetes.io/ingress.global-static-ip-name" = var.static_ip_name
       "kubernetes.io/ingress.class" = "gce"
     }
 
     labels = {
-      "app" = "${local.app_name}-app"
+      app = local.app_name
     }
   }
 
@@ -173,7 +215,7 @@ resource "kubernetes_ingress_v1" "core_api" {
             service {
               name = kubernetes_service.core_api.metadata.0.name
               port {
-                name = "http"
+                name = local.http_port.name
               }
             }
           }
@@ -184,7 +226,7 @@ resource "kubernetes_ingress_v1" "core_api" {
             service {
               name = kubernetes_service.core_api.metadata.0.name
               port {
-                name = "http"
+                name = local.http_port.name
               }
             }
           }
@@ -195,7 +237,7 @@ resource "kubernetes_ingress_v1" "core_api" {
             service {
               name = kubernetes_service.core_api.metadata.0.name
               port {
-                name = "http"
+                name = local.http_port.name
               }
             }
           }
@@ -206,7 +248,7 @@ resource "kubernetes_ingress_v1" "core_api" {
             service {
               name = kubernetes_service.core_api.metadata.0.name
               port {
-                name = "http"
+                name = local.http_port.name
               }
             }
           }
@@ -220,17 +262,17 @@ resource "kubernetes_deployment" "core_api" {
   wait_for_rollout = false
 
   metadata {
-    name = "${local.app_name}-deployment"
+    name = "${local.service_name}-deployment"
     namespace = var.namespace
     labels = {
-      app = "${local.app_name}-app"
+      app = local.app_name
     }
   }
 
   spec {
     selector {
       match_labels = {
-        app = "${local.app_name}-app"
+        app = local.app_name
       }
     }
 
@@ -245,7 +287,7 @@ resource "kubernetes_deployment" "core_api" {
     template {
       metadata {
         labels = {
-          app = "${local.app_name}-app"
+          app = local.app_name
         }
       }
       spec {
@@ -271,12 +313,12 @@ resource "kubernetes_deployment" "core_api" {
         }
 
         container {
-          name = "${local.app_name}"
-          image = "${var.docker_repository.location}-docker.pkg.dev/${var.docker_repository.project}/${var.docker_repository.repository_id}/${local.app_name}:${var.release.version}"
+          name = local.service_name
+          image = "${var.docker_repository.location}-docker.pkg.dev/${var.docker_repository.project}/${var.docker_repository.repository_id}/${local.service_name}:${var.release.version}"
 
           port {
-            name = "app"
-            container_port = 8000
+            name = local.app_port.name
+            container_port = local.app_port.number
           }
 
           resources {
@@ -303,7 +345,7 @@ resource "kubernetes_deployment" "core_api" {
           }
           env_from {
             config_map_ref {
-              name = kubernetes_config_map.shared.metadata.0.name
+              name = var.shared_config_map_name
             }
           }
           env_from {
@@ -313,8 +355,12 @@ resource "kubernetes_deployment" "core_api" {
           }
 
           env {
+            name = "EAVE_DB_NAME"
+            value = var.db_name
+          }
+          env {
             name = "EAVE_DB_USER"
-            value = "gsa-app-${local.app_name}@${var.project_id}.iam"
+            value = var.db_user
           }
           env {
             name = "EAVE_DB_HOST"
@@ -322,11 +368,11 @@ resource "kubernetes_deployment" "core_api" {
           }
           env {
             name = "EAVE_DB_PORT"
-            value = "5432"
+            value = "${local.cloudsql_proxy_port.number}"
           }
           env {
             name = "GUNICORN_CMD_ARGS"
-            value = "--bind=0.0.0.0:8000 --workers=3 --timeout=90"
+            value = "--bind=0.0.0.0:${local.app_port.number} --workers=3 --timeout=90"
           }
 
           # Necessary to prevent perpetual diff
@@ -346,7 +392,7 @@ resource "kubernetes_deployment" "core_api" {
           readiness_probe {
             http_get {
               path = "/status"
-              port = "app"
+              port = local.app_port.name
             }
           }
 
@@ -354,23 +400,23 @@ resource "kubernetes_deployment" "core_api" {
             failure_threshold = 5
             http_get {
               path = "/status"
-              port = "app"
+              port = local.app_port.name
             }
           }
         }
 
         container {
           name = "cloud-sql-proxy"
-          image = "gcr.io/cloud-sql-connectors/cloud-sql-proxy:latest"
+          image = "gcr.io/cloud-sql-connectors/cloud-sql-proxy:${local.cloudsql_proxy_version}"
 
           port {
-            name = "healthcheck"
-            container_port = 9090
+            name = local.clousql_proxy_healthcheck_port.name
+            container_port = local.clousql_proxy_healthcheck_port.number
           }
 
           port {
-            name = "proxy"
-            container_port = 5432
+            name = local.cloudsql_proxy_port.name
+            container_port = local.cloudsql_proxy_port.number
           }
 
           resources {
@@ -404,7 +450,7 @@ resource "kubernetes_deployment" "core_api" {
             # Enable healthcheck endpoints for kube probes
             "--health-check",
             "--http-address=0.0.0.0", # Bind to all interfaces so that the Kubernetes control plane can communicate with this process.
-            "--http-port=9090", # This is the default
+            "--http-port=${local.clousql_proxy_healthcheck_port.number}", # This is the default
 
             # If connecting from a VPC-native GKE cluster, you can use the
             # following flag to have the proxy connect over private IP
@@ -417,7 +463,7 @@ resource "kubernetes_deployment" "core_api" {
             # tcp should be set to the port the proxy should listen on
             # and should match the DB_PORT value set above.
             # Defaults: MySQL: 3306, Postgres: 5432, SQLServer: 1433
-            "--port=5432",
+            "--port=${local.cloudsql_proxy_port.number}",
             "--structured-logs",
             # - "--unix-socket /cloudsql"
             "${var.project_id}:${var.region}:${var.cloudsql_instance_id}",
@@ -429,7 +475,7 @@ resource "kubernetes_deployment" "core_api" {
             failure_threshold = 20
             http_get {
               path = "/startup"
-              port = "healthcheck"
+              port = local.clousql_proxy_healthcheck_port.name
             }
           }
 
@@ -443,7 +489,7 @@ resource "kubernetes_deployment" "core_api" {
             failure_threshold = 5
             http_get {
               path = "/liveness"
-              port = "healthcheck"
+              port = local.clousql_proxy_healthcheck_port.name
             }
           }
         }
