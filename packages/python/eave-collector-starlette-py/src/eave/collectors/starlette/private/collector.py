@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 import urllib.parse
 from collections.abc import Callable
 from functools import wraps
