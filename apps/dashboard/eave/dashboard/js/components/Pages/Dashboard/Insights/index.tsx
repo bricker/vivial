@@ -19,7 +19,7 @@ const Insights = ({ dashRoute = undefined }: { dashRoute?: string }) => {
   }
   return (
     <iframe
-      src={`${eaveWindow.eave.apiBase}/oauth/metabase?${qp}`}
+      src={`${eaveWindow.eave.apiBase}/public/mb?${qp}`}
       className={classes.embedding}
     ></iframe>
   );

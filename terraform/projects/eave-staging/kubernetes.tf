@@ -19,7 +19,8 @@ provider "kubernetes" {
 
   ignore_annotations = [
     "^autopilot\\.gke\\.io\\/.*",
-    "^cloud\\.google\\.com\\/.*"
+    "^cloud\\.google\\.com\\/.*",
+    "^kubectl\\.kubernetes\\.io\\/restartedAt",
   ]
 }
 

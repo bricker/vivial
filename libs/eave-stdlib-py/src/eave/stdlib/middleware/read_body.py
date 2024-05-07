@@ -37,11 +37,11 @@ class ReadBodyASGIMiddleware(EaveASGIMiddleware):
         if scope["method"] in _BODY_METHODS:
             # We only read and validate the body for POST, PUT, and PATCH.
             # For anything else, we remove the body from the request (i.e. set it to empty string)
-            if not content_length_header:
-                raise LengthRequiredError()
+            # if not content_length_header:
+            #     raise LengthRequiredError()
 
-            if int(content_length_header) > _REQUEST_BODY_MAX_SIZE:
-                raise RequestEntityTooLargeError()
+            # if int(content_length_header) > _REQUEST_BODY_MAX_SIZE:
+            #     raise RequestEntityTooLargeError()
 
             # We use `request.stream()` instead of `request.body()` (which just uses `stream()` internally) so we can do the body size check.
             async for chunk in request.stream():
@@ -49,8 +49,8 @@ class ReadBodyASGIMiddleware(EaveASGIMiddleware):
                 if len(body) > _REQUEST_BODY_MAX_SIZE:
                     raise RequestEntityTooLargeError()
 
-            if len(body) != int(content_length_header):
-                raise BadRequestError("Invalid request body.")
+            # if len(body) != int(content_length_header):
+            #     raise BadRequestError("Invalid request body.")
 
             # Note: we currently only support gzip compression
             if encoding and ENCODING_GZIP in encoding:

@@ -23,7 +23,8 @@ class MetabaseInstanceOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    jwt_signing_key: Mapped[str | None] = mapped_column(server_default=None)
+    jwt_signing_key: Mapped[str] = mapped_column()
+    instance_id: Mapped[str] = mapped_column(unique=True)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -36,6 +37,7 @@ class MetabaseInstanceOrm(Base):
         obj = cls(
             team_id=team_id,
             jwt_signing_key=secrets.token_hex(64),
+            instance_id=secrets.token_hex(4),
         )
         session.add(obj)
         await session.flush()
@@ -84,4 +86,4 @@ class MetabaseInstanceOrm(Base):
 
     @property
     def internal_base_url(self) -> str:
-        return f"http://metabase-{self.id.hex}.{SHARED_CONFIG.metabase_internal_root_domain}"
+        return f"http://mb-{self.instance_id}.{SHARED_CONFIG.metabase_internal_root_domain}"

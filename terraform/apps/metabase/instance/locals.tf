@@ -1,6 +1,6 @@
 locals {
-  app_name = "metabase-${var.metabase_instance_id}"
-  public_domain_prefix = var.metabase_instance_id
+  app_name = "mb-${var.metabase_instance_id}"
+  public_domain_prefix = "${var.metabase_instance_id}.mb"
 
   service_port = {
     name = "http"

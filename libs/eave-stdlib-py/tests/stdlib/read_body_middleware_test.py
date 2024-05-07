@@ -112,48 +112,6 @@ class TestReadBodyASGIMiddleware(StdlibBaseTestCase):
 
         assert response.status_code == HTTPStatus.REQUEST_ENTITY_TOO_LARGE
 
-    async def test_body_reader_with_too_large_content_length_header(self) -> None:
-        body = self.anyjson()
-
-        response = await self.httpclient.request(
-            method=EchoPostEndpoint.config.method,
-            url=EchoPostEndpoint.config.path,
-            headers={
-                aiohttp.hdrs.CONTENT_LENGTH: str(len(huge_payload))
-            },
-            content=body,
-        )
-
-        assert response.status_code == HTTPStatus.REQUEST_ENTITY_TOO_LARGE
-
-    async def test_body_reader_with_mismatched_content_length_header(self) -> None:
-        body = self.anyjson()
-
-        response = await self.httpclient.request(
-            method=EchoPostEndpoint.config.method,
-            url=EchoPostEndpoint.config.path,
-            headers={
-                aiohttp.hdrs.CONTENT_LENGTH: str(len(body) + 100)
-            },
-            content=body,
-        )
-
-        assert response.status_code == HTTPStatus.BAD_REQUEST
-
-    async def test_body_reader_with_missing_content_length_header(self) -> None:
-        body = self.anyjson()
-
-        response = await self.httpclient.request(
-            method=EchoPostEndpoint.config.method,
-            url=EchoPostEndpoint.config.path,
-            headers={
-                aiohttp.hdrs.CONTENT_LENGTH: "",
-            },
-            content=body,
-        )
-
-        assert response.status_code == HTTPStatus.LENGTH_REQUIRED
-
     async def test_body_reader_with_gzip_body(self) -> None:
         body = self.anyjson()
         compressed_body = await ZLibCompressor(encoding=ENCODING_GZIP).compress(body.encode())

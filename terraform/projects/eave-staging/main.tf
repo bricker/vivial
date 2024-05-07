@@ -81,7 +81,7 @@ module "nat" {
 
 module "dns_zone_base_domain" {
   source = "../../modules/dns_zone"
-  project = local.project
+  root_domain = local.project.root_domain
 }
 
 module "cloudsql_eave_core" {

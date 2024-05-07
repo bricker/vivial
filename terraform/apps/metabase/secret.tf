@@ -11,3 +11,16 @@ resource "kubernetes_secret" "shared" {
     MB_EMAIL_SMTP_PASSWORD = var.MB_SHARED_SECRETS.MB_EMAIL_SMTP_PASSWORD
   }
 }
+
+resource "kubernetes_secret" "iap_oauth_credentials" {
+  metadata {
+    name = "iap-oauth-credentials"
+    namespace = var.kube_namespace_name
+  }
+
+  type = "Opaque"
+  data = {
+    client_id = var.IAP_OAUTH_CLIENT_CREDENTIALS.client_id
+    client_secret = var.IAP_OAUTH_CLIENT_CREDENTIALS.client_secret
+  }
+}

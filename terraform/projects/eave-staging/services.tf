@@ -10,6 +10,7 @@ locals {
     "dns.googleapis.com",                 # Cloud DNS API
     "domains.googleapis.com",             # Cloud Domains API
     "iam.googleapis.com",                 # Identity and Access Management (IAM) API
+    "iap.googleapis.com",                 # Identity-Aware Proxy API
     "iamcredentials.googleapis.com",      # IAM Service Account Credentials API
     "logging.googleapis.com",             # Cloud Logging API
     "monitoring.googleapis.com",          # Cloud Monitoring API

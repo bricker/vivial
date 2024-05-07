@@ -13,13 +13,11 @@ from dataclasses import dataclass
 from queue import Empty
 from typing import Any
 
-from eave.stdlib.typing import JsonObject
-
 from . import config
 from .datastructures import EventPayload, EventType
 from .ingest_api import send_batch
 from .logging import EAVE_LOGGER
-
+from .json import JsonObject
 
 _FAILSAFE_MAX_FAILURES = 10
 

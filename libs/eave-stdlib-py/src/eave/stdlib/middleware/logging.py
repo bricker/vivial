@@ -31,5 +31,5 @@ class LoggingASGIMiddleware(EaveASGIMiddleware):
         eaveLogger.info(
             f"Server Request End: {state.ctx.eave_request_id}: {scope['method']} {scope['path']}",
             state.ctx,
-            request_duration=rend-rstart
+            { "request_duration": rend-rstart },
         )

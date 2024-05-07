@@ -47,7 +47,7 @@ function main () (
 			--timestamps \
 			--ignore-errors \
 			--all-containers \
-			"deployment/${_appname}-deployment"
+			"deployment/${_appname}"
 	fi
 )
 

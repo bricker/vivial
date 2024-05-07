@@ -1,7 +1,6 @@
 from typing import Any
 import aiohttp
-from eave.stdlib.typing import JsonObject
-from eave.stdlib.util import compact_json
+from .json import JsonObject, compact_json
 
 from . import config
 from .datastructures import DataIngestRequestBody

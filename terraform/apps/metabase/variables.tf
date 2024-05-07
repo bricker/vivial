@@ -1,5 +1,8 @@
 variable "metabase_instances" {
-  type = list(string)
+  type = list(object({
+    metabase_instance_id = string
+    team_id = string
+  }))
 }
 
 variable "project" {
@@ -26,4 +29,18 @@ variable "MB_SHARED_SECRETS" {
 variable "MB_INSTANCE_SECRETS" {
   type = any
   sensitive = true
+}
+
+variable "IAP_OAUTH_CLIENT_CREDENTIALS" {
+  type = object({
+    client_id=string
+    client_secret=string
+  })
+}
+
+variable "dns_zone" {
+  type = object({
+    name     = string
+    dns_name = string
+  })
 }

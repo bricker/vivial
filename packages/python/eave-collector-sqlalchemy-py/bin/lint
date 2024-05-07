@@ -6,4 +6,7 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 (
 	python-lint "$(^parentpath)"
+
+	# A very dumb and temporary way to double-check that eave.stdlib isn't being used.
+	test ! "$(grep -r "eave.stdlib" "$(^parentpath)/**/*.py")"
 )

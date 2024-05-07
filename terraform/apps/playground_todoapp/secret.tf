@@ -10,6 +10,6 @@ resource "kubernetes_secret" "app" {
 
   type = "Opaque"
   data = {
-    EAVE_CREDENTIALS = "xxx" #"${PLAYGROUND_TODO_EAVE_CREDENTIALS}"
+    EAVE_CREDENTIALS = var.PLAYGROUND_TODOAPP_EAVE_CREDENTIALS
   }
 }

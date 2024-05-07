@@ -60,10 +60,19 @@ resource "kubernetes_manifest" "backend_config" {
     }
 
     spec = {
+      iap = {
+        enabled = true
+        oauthclientCredentials = {
+          secretName = var.iap_oauth_client_credentials_secret_name
+        }
+      }
+
       healthCheck = {
         type = "HTTP"
-        requestPath = "/status"
+        requestPath = "/api/health"
         port = local.app_port.number
+        checkIntervalSec = 30
+        unhealthyThreshold = 4
       }
 
       logging = {
@@ -105,65 +114,22 @@ resource "kubernetes_ingress_v1" "app" {
   spec {
     ingress_class_name = "gce"
 
-    # The NOOP service is meant to always fail. It prevents external traffic from accessing paths that aren't whitelisted here.
-    # GKE provides a "default-http-backend" service that is used if defaultBackend isn't specified here.
-    # However, the response that it returns is a 404 with a message that exposes details about the infrastructure, and is therefore unsuitable.
+    # Default backend doesn't do host matching
     # default_backend {
     #   service {
-    #     name = "noop"
+    #     name = kubernetes_service.app.metadata[0].name
     #     port {
-    #       number = 65535
+    #       name = local.service_port.name
     #     }
     #   }
     # }
 
-
     rule {
       host = module.dns.domain
       http {
-        # Supported public endpoint prefixes.
-        # Everything else is only accessible from the cluster.
-        # TODO: a better place to define these?
-
         path {
-          path = "/status"
+          path = "/"
           path_type = "Prefix"
-          backend {
-            service {
-              name = kubernetes_service.app.metadata[0].name
-              port {
-                name = local.service_port.name
-              }
-            }
-          }
-        }
-        path {
-          path = "/public"
-          path_type = "Prefix"
-          backend {
-            service {
-              name = kubernetes_service.app.metadata[0].name
-              port {
-                name = local.service_port.name
-              }
-            }
-          }
-        }
-        path {
-          path = "/oauth"
-          path_type = "Prefix"
-          backend {
-            service {
-              name = kubernetes_service.app.metadata[0].name
-              port {
-                name = local.service_port.name
-              }
-            }
-          }
-        }
-        path {
-          path = "/favicon.ico"
-          path_type = "Exact"
           backend {
             service {
               name = kubernetes_service.app.metadata[0].name

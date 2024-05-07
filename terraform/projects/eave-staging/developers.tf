@@ -7,6 +7,7 @@ module "custom_developer_role" {
     "roles/cloudsql.client",
     "roles/cloudsql.instanceUser",
     "roles/artifactregistry.writer",
+    "roles/iap.httpsResourceAccessor",
   ]
   members = [
     "group:developers@eave.fyi",

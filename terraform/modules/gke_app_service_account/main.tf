@@ -17,7 +17,7 @@ data "google_iam_role" "workload_identity_role" {
 }
 
 resource "google_service_account" "app_service_account" {
-  account_id   = "gsa-app-${var.kube_service_name}"
+  account_id   = substr("gsa-app-${var.kube_service_name}", 0, 26)
   display_name = var.kube_service_name
   description = "KSA/GSA binding for ${var.kube_service_name}"
 }
@@ -28,7 +28,7 @@ output "gsa" {
 
 resource "kubernetes_service_account" "app_ksa" {
   metadata {
-    name = "ksa-app-${var.kube_service_name}"
+    name = substr("ksa-app-${var.kube_service_name}", 0, 26)
     namespace = var.kube_namespace_name
     annotations = {
       "iam.gke.io/gcp-service-account" = google_service_account.app_service_account.email

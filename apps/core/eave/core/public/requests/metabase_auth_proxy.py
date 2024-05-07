@@ -6,6 +6,7 @@ from aiohttp.hdrs import METH_GET
 from asgiref.typing import HTTPScope
 from eave.stdlib.api_util import set_redirect
 from eave.stdlib.exceptions import NotFoundError, UnauthorizedError
+from eave.stdlib.logging import LOGGER
 import jwt
 from starlette.requests import Request
 from starlette.responses import Response
@@ -42,7 +43,7 @@ class MetabaseAuthProxyEndpoint(HTTPEndpoint):
                 team_id=account.team_id,
             )
 
-        if not metabase_instance.jwt_signing_key:
+        if not metabase_instance.jwt_signing_key or not metabase_instance.jwt_signing_key:
             raise NotFoundError("Metabase instance can't be reached.")
 
         email = account.email or "unknown"
@@ -69,16 +70,16 @@ class MetabaseAuthProxyEndpoint(HTTPEndpoint):
                 },
                 headers=request.headers,
                 cookies=request.cookies,
-
                 allow_redirects=True,
             )
 
             # Consume the body while the session is still open
             body = await response.read()
 
+        LOGGER.info("metabase response", state.ctx, { "body": str(body), "headers": dict(response.headers), "status": response.status })
+
         response = Response(
             status_code=response.status,
-            headers=response.headers,
             content=body,
             media_type=response.content_type,
         )
@@ -111,5 +112,5 @@ class MetabaseAuthProxyEndpoint(HTTPEndpoint):
 
         # Now reverse the decoding done above
         return_to_str = urlunparse(return_to_url)
-        # return_to_str = quote(return_to_str)
+        return_to_str = quote(return_to_str)
         return return_to_str

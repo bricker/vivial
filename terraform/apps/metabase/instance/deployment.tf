@@ -128,7 +128,7 @@ resource "kubernetes_deployment" "app" {
           # Necessary to prevent perpetual diff
           # https://github.com/hashicorp/terraform-provider-kubernetes/pull/2380
           security_context {
-            run_as_non_root = true
+            run_as_non_root = false
             allow_privilege_escalation = false
             privileged                 = false
             read_only_root_filesystem  = false

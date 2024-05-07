@@ -30,6 +30,8 @@ module "playground_todoapp" {
 
   release_date = "unknown"
   release_version = "latest"
+
+  PLAYGROUND_TODOAPP_EAVE_CREDENTIALS = var.PLAYGROUND_TODOAPP_EAVE_CREDENTIALS
 }
 
 module "dashboard_app" {
@@ -52,11 +54,16 @@ module "metabase" {
   source = "../../apps/metabase"
   project = local.project
   metabase_instances = [
-    "dev"
+    {
+      metabase_instance_id = "b579428e"
+      team_id = "4b885eea03f6488b93b186e2eeff5e13"
+    },
   ]
 
+  dns_zone = module.dns_zone_base_domain.zone
   kube_namespace_name = module.shared_kubernetes_resources.metabase_namespace_name
   cloudsql_instance_name = module.cloudsql_eave_core.instance.name
   MB_SHARED_SECRETS = var.MB_SHARED_SECRETS
   MB_INSTANCE_SECRETS = var.MB_INSTANCE_SECRETS
+  IAP_OAUTH_CLIENT_CREDENTIALS = var.IAP_OAUTH_CLIENT_CREDENTIALS
 }

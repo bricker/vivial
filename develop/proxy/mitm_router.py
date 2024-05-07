@@ -32,7 +32,7 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
         if (
             not is_internal
             and len(flow.request.path_components) > 0
-            and flow.request.path_components[0] not in ["status", "v1", "oauth", "favicon.ico"]
+            and flow.request.path_components[0] not in ["status", "public", "oauth", "favicon.ico"]
         ):
             # The first path component is not whitelisted as a public endpoint.
             # In the real world, this would return something like a 404.
@@ -47,9 +47,6 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
         port = 5400
     elif re.match(r"^playground-todoapp\.", flow.request.host):
         port = 5500
-    elif re.match(r"^apps\.", flow.request.host):
-        if re.match(r"(/_)?/github", flow.request.path):
-            port = 5300
 
     if not port:
         flow.kill()

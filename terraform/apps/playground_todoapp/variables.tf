@@ -45,3 +45,8 @@ variable "dns_zone" {
     dns_name = string
   })
 }
+
+variable "PLAYGROUND_TODOAPP_EAVE_CREDENTIALS" {
+  type=string
+  sensitive=true
+}
