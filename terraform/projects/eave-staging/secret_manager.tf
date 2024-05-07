@@ -19,7 +19,6 @@ variable "SLACK_SYSTEM_BOT_TOKEN" {
 
 locals {
   secrets = {
-    # "METABASE_JWT_KEY"                              = var.METABASE_JWT_KEY
     "EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64" = var.EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64
     "SLACK_SYSTEM_BOT_TOKEN"                        = var.SLACK_SYSTEM_BOT_TOKEN
   }

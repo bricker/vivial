@@ -1,6 +1,5 @@
 # https://registry.terraform.io/providers/hashicorp/google/latest/docs
 
-
 locals {
   project = {
     id      = "eave-staging"
@@ -85,7 +84,7 @@ module "dns_zone_base_domain" {
   project = local.project
 }
 
-module "cloudsql_instance" {
+module "cloudsql_eave_core" {
   source              = "../../modules/cloudsql_instance"
   project = local.project
   instance_name = "eave-pg-core"

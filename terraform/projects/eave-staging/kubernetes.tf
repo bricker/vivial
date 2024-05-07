@@ -1,6 +1,6 @@
 module "gke" {
   source              = "../../modules/gke"
-  location = local.project.zone
+  location = local.project.region # For staging this should be a zone, but I already created it with a region and I didn't want to recreate the whole cluster.
   authorized_networks = local.authorized_networks
 }
 
@@ -21,4 +21,9 @@ provider "kubernetes" {
     "^autopilot\\.gke\\.io\\/.*",
     "^cloud\\.google\\.com\\/.*"
   ]
+}
+
+module "shared_kubernetes_resources" {
+  source = "../../modules/kube_shared_resources"
+  project = local.project
 }

@@ -3,6 +3,7 @@
 variable "project" {
   type = object({
     region = string
+    zone = string
     preset_production = bool
   })
 }
