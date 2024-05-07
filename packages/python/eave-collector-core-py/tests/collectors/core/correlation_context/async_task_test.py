@@ -85,5 +85,5 @@ class AsyncioCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
         ctx.from_cookies(cookies)
 
         assert (
-            ctx.to_cookie() == "_eave_context=%7B%22key%22%3A+%22value%22%2C+%22other%22%3A+%22val%22%7D"
+            ctx.get_context_cookie() == "_eave_context=%7B%22key%22%3A+%22value%22%2C+%22other%22%3A+%22val%22%7D"
         ), "Context cookie was converted incorrectly"

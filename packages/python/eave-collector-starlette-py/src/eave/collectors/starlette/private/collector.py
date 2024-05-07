@@ -268,7 +268,7 @@ class EaveASGIMiddleware:
                     # save current headers for event
                     headers_ref[0] = dict(headers.items())
                     # add our eave ctx cookie to the response
-                    headers.append("Set-Cookie", corr_ctx.to_cookie())
+                    headers.append("Set-Cookie", corr_ctx.get_context_cookie())
                 elif message["type"] == "http.response.body":
                     resp_body = None
                     try:

@@ -28,7 +28,7 @@ class ThreadedCorrelationContext(BaseCorrelationContext):
         self._init_storage()
         return _local_thread_storage.eave
 
-    def to_cookie(self) -> str:
+    def get_context_cookie(self) -> str:
         self._init_storage()
         # URL encode the cookie value
         encoded_json_ctx_value = urllib.parse.quote_plus(json.dumps(_local_thread_storage.eave[CONTEXT_NAME]))

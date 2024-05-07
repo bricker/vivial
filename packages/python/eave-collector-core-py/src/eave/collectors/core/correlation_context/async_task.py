@@ -29,7 +29,7 @@ class AsyncioCorrelationContext(BaseCorrelationContext):
         storage = self._get_storage()
         return storage
 
-    def to_cookie(self) -> str:
+    def get_context_cookie(self) -> str:
         storage = self._get_storage()
         # URL encode the cookie values
         encoded_json_ctx_value = urllib.parse.quote_plus(json.dumps(storage[CONTEXT_NAME]))
