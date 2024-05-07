@@ -1,4 +1,5 @@
 import abc
+import json
 import typing
 
 # These values are dependent on the eave browser js client implementation and MUST change
@@ -14,14 +15,19 @@ class BaseCorrelationContext(abc.ABC):
     @abc.abstractmethod
     def set(self, key: str, value: typing.Any) -> None: ...
 
-    @abc.abstractmethod
-    def to_json(self) -> str: ...
+    def to_json(self) -> str:
+        """Convert entirity of storage to JSON string"""
+        return json.dumps(self.to_dict())
 
     @abc.abstractmethod
-    def to_dict(self) -> dict[str, typing.Any]: ...
+    def to_dict(self) -> dict[str, typing.Any]:
+        """Convert entirity of storage to dict"""
+        ...
 
     @abc.abstractmethod
-    def to_cookie(self) -> str: ...
+    def to_cookie(self) -> str:
+        """Convert just CONTEXT_NAME dict to URL encoded cookie string"""
+        ...
 
     @abc.abstractmethod
     def from_cookies(self, cookies: dict[str, str]) -> None: ...

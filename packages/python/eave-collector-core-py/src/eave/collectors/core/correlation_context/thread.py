@@ -24,19 +24,15 @@ class ThreadedCorrelationContext(BaseCorrelationContext):
         self._init_storage()
         _local_thread_storage.eave[CONTEXT_NAME][key] = value
 
-    def to_json(self) -> str:
-        return json.dumps(self.to_dict())
-
     def to_dict(self) -> dict[str, typing.Any]:
         self._init_storage()
         return _local_thread_storage.eave
 
     def to_cookie(self) -> str:
         self._init_storage()
-        # URL encode the cookie values
-        return "; ".join(
-            [f"{key}={urllib.parse.quote_plus(str(value))}" for key, value in _local_thread_storage.eave.items()]
-        )
+        # URL encode the cookie value
+        encoded_json_ctx_value = urllib.parse.quote_plus(json.dumps(_local_thread_storage.eave[CONTEXT_NAME]))
+        return f"{CONTEXT_NAME}={encoded_json_ctx_value}"
 
     def from_cookies(self, cookies: dict[str, str]) -> None:
         self._init_storage()

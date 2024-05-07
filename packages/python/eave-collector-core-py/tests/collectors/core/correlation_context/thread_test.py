@@ -89,7 +89,7 @@ class ThreadedCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
             == '{"_eave_context": {"key": "new val", "other": "val", "key2": "val2"}, "_eave_session": "ses", "_eave_visitor_id": "123"}'
         ), "Context did not join as expected"
 
-    async def test_convert_ctx_to_cookies_creates_valid_cookies(self) -> None:
+    async def test_convert_ctx_to_cookies_creates_valid_cookie(self) -> None:
         ctx = ThreadedCorrelationContext()
         cookies = {
             "other_cookie": "yummy",
@@ -99,6 +99,5 @@ class ThreadedCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
         ctx.from_cookies(cookies)
 
         assert (
-            ctx.to_cookie()
-            == "_eave_context=%7B%27key%27%3A+%27value%27%2C+%27other%27%3A+%27val%27%7D; _eave_session=ses"
-        )
+            ctx.to_cookie() == "_eave_context=%7B%22key%22%3A+%22value%22%2C+%22other%22%3A+%22val%22%7D"
+        ), "Context cookie was converted incorrectly"
