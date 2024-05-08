@@ -25,6 +25,7 @@ class MetabaseInstanceOrm(Base):
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     jwt_signing_key: Mapped[str] = mapped_column()
     instance_id: Mapped[str] = mapped_column(unique=True)
+    default_dashboard_id: Mapped[str | None] = mapped_column(nullable=True)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 

@@ -27,8 +27,17 @@ class QueueParams:
     flush_frequency_seconds: int
 
     def __init__(self, *, maxsize: int | None = None, flush_frequency_seconds: int | None = None) -> None:
-        self.maxsize = maxsize if maxsize is not None else config.queue_maxsize()
-        self.flush_frequency_seconds = flush_frequency_seconds if flush_frequency_seconds is not None else config.queue_flush_frequency_seconds()
+        # Ensure > 0
+        self.maxsize = max(
+            maxsize if maxsize is not None else config.queue_maxsize(),
+            1
+        )
+
+        # Ensure not negative
+        self.flush_frequency_seconds = max(
+            flush_frequency_seconds if flush_frequency_seconds is not None else config.queue_flush_frequency_seconds(),
+            0
+        )
 
 @dataclass
 class QueueItem:
