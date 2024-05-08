@@ -11,6 +11,7 @@ function Subpage() {
           Edit <code>src/App.js</code> and save to reload.
         </p>
         <Link
+          id="page-link"
           className="App-link"
           to="/"
         >
