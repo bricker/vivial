@@ -1,4 +1,5 @@
 import unittest
+import urllib.parse
 
 from starlette.applications import Starlette
 from starlette.responses import PlainTextResponse
@@ -92,3 +93,12 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert e.context.get(valid_cookie) == "valid"
         assert e.context.get(non_eave_cookie) is None
         assert e.context.get(CONTEXT_NAME) == {ctx_key: 123}
+
+    async def test_response_cookie_ctx_set(self) -> None:
+        # GIVEN corr ctx changes are made server-side
+        # WHEN response is made
+        resp = self._client.get("/test")
+
+        # THEN context cookie is set
+        assert resp is not None
+        assert resp.cookies.get(CONTEXT_NAME) == urllib.parse.quote_plus("{}")
