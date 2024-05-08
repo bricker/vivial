@@ -152,6 +152,7 @@ class TestDataIngestionEndpointWithBigQuery(BaseTestCase):
                             "a": self.anystring(),
                             "b": self.anystring(),
                         },
+                        context={},
                     ).to_json(),
                 ],
             ).to_dict(),

@@ -22,8 +22,8 @@ from functools import wraps
 import starlette.types
 from asgiref.compatibility import guarantee_single_callable
 from starlette import applications
+from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
-from starlette.responses import Response
 
 # from starlette.routing import Match
 from eave.collectors.core.base_collector import BaseCollector
@@ -196,7 +196,7 @@ class EaveASGIMiddleware:
             send: An awaitable callable taking a single dictionary as argument.
         """
         # start = default_timer()
-        if scope["type"] not in ("http", "websocket"):
+        if scope["type"] != "http":
             return await self.app(scope, receive, send)
 
         # _, _, url = get_host_port_url_tuple(scope)
@@ -253,7 +253,41 @@ class EaveASGIMiddleware:
                 )
             )
 
-            response: Response = await self.app(scope, receive, send)
+            # we need this external header reference to get scope captured in `resonse_interceptor`
+            # so that headers can be saved in 1 send message execution and still referenced in
+            # a later invocation of the `response_interceptor` function that fires the analytics event.
+            # (stored as a list so we can reassign the value w/o reassigning the variable reference)
+            headers_ref: list[dict[str, str]] = [{}]
+
+            async def response_interceptor(message: starlette.types.Message) -> None:
+                """wrapper to fire analytics events on ASGI response messages"""
+                # message definitions per ASGI spec:
+                # https://asgi.readthedocs.io/en/latest/specs/www.html#response-start-send-event
+                if message["type"] == "http.response.start":
+                    headers = MutableHeaders(scope=message)
+                    # save current headers for event
+                    headers_ref[0] = dict(headers.items())
+                    # add our eave ctx cookie to the response
+                    headers.append("Set-Cookie", corr_ctx.get_context_cookie())
+                elif message["type"] == "http.response.body":
+                    resp_body = None
+                    try:
+                        # NOTE: if message["more_body"] == True, then we wont get the whole body here
+                        resp_body = message["body"].decode("utf-8")
+                    except UnicodeDecodeError:
+                        pass
+                    self.write_queue.put(
+                        ServerRequestEventPayload(
+                            request_method=req_method,
+                            request_url=req_url,
+                            request_headers=headers_ref[0],
+                            request_payload=str(resp_body),
+                            context=corr_ctx.to_dict(),
+                        )
+                    )
+                await send(message)
+
+            await self.app(scope, receive, response_interceptor)
 
             # if scope["type"] == "http":
             #     target = _censored_url(scope)
@@ -266,19 +300,8 @@ class EaveASGIMiddleware:
             #         except ValueError:
             #             pass
 
-            if response is not None:
-                # resp_body = await response.body() # original
-                resp_body = response.body.decode("utf-8")
-                self.write_queue.put(
-                    ServerRequestEventPayload(
-                        request_method=req_method,
-                        request_url=req_url,
-                        request_headers=dict(response.headers.items()),
-                        request_payload=str(resp_body),
-                        context=corr_ctx.to_dict(),
-                    )
-                )
-        except UnicodeDecodeError as _:
+        except UnicodeDecodeError:
+            # ignore json decoding errors
             pass
 
 

@@ -1,4 +1,5 @@
 import unittest
+import urllib.parse
 
 from starlette.applications import Starlette
 from starlette.responses import PlainTextResponse
@@ -63,11 +64,14 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
         # WHEN get request is made to instrumented app
         self._client.get("/test")
 
-        # THEN network event is pushed to write_queue
-        assert len(self._write_queue.queue) == 1  # TODO: this should actually be 2; req + resp events
-        e = self._write_queue.queue[0]
-        assert isinstance(e, ServerRequestEventPayload)
-        # TODO: event content assertions
+        # THEN network events (request + response) are pushed to write_queue
+        assert len(self._write_queue.queue) == 2
+        e1 = self._write_queue.queue[0]
+        e2 = self._write_queue.queue[1]
+        assert isinstance(e1, ServerRequestEventPayload), "First event was not a server network event"
+        assert isinstance(e2, ServerRequestEventPayload), "Second event was not a server network event"
+        assert e1.request_payload == "", "GET request has unexpected payload"
+        assert e2.request_payload == "Hello!", "Response body was not recorded"
 
     async def test_eave_ctx_set_from_cookies(self) -> None:
         # GIVEN eave cookies set on request
@@ -89,3 +93,12 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert e.context.get(valid_cookie) == "valid"
         assert e.context.get(non_eave_cookie) is None
         assert e.context.get(CONTEXT_NAME) == {ctx_key: 123}
+
+    async def test_response_cookie_ctx_set(self) -> None:
+        # GIVEN corr ctx changes are made server-side
+        # WHEN response is made
+        resp = self._client.get("/test")
+
+        # THEN context cookie is set
+        assert resp is not None
+        assert resp.cookies.get(CONTEXT_NAME) == urllib.parse.quote_plus("{}")
