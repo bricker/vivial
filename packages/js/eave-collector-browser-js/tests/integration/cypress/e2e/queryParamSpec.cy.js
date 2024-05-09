@@ -19,6 +19,7 @@ describe("eave UTM and query parameter collection", () => {
         utm_source: "tickletok",
         utm_campaign: "gogole",
       });
+      // expect(interception.response.body.data).to.deep.equal({})
       // saved referrer storage
       expect(
         interception.response.body.data.referrer.queryParams,
@@ -41,7 +42,7 @@ describe("eave UTM and query parameter collection", () => {
 
     // THEN query/utm params are still included in the following event
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response.body.data.data).to.match(/HistoryChange/);
+      expect(interception.response.body.data.data.event).to.match(/HistoryChange/);
       expect(
         interception.response.body.data.referrer.queryParams,
       ).to.deep.equal({

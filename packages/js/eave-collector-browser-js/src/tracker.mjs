@@ -1287,6 +1287,7 @@ export function Tracker(trackerUrl, siteId) {
     const previousReferralUrl = referralUrl;
 
     if (!hasIgnoreReferrerParameter(currentUrl) && !cookieSessionValue) {
+      // TODO: we may never get here if session is always set in tracking setup. call this function in tracking setup?
       // session cookie was not found: we consider this the start of a 'session'
 
       if (
@@ -1318,7 +1319,7 @@ export function Tracker(trackerUrl, siteId) {
         referralUrl = configReferrerUrl;
       }
 
-      // Set the referral cookie if we have either a Referrer URL, or detected a Campaign (or both)
+      // Set the referral cookie if we have a Referrer URL or query params on initial URL
       if (referralUrl.length || !h.isObjectEmpty(referralQueryParams)) {
         setContext(configReferralKey, {
           queryParams: referralQueryParams,
@@ -1329,11 +1330,11 @@ export function Tracker(trackerUrl, siteId) {
     }
 
     // refetch incase new value was just set in context
-    attributionValues = getAttributionInfo();
-    attributionValues.queryParams = attributionValues.queryParams ?? {};
-    attributionValues.timestamp = attributionValues.timestamp ?? nowTs;
+    attributionValues = getAttributionInfo() || {};
+    attributionValues.queryParams = attributionValues?.queryParams ?? {};
+    attributionValues.timestamp = attributionValues?.timestamp ?? nowTs;
     attributionValues.url =
-      attributionValues.url ??
+      attributionValues?.url ??
       purify(referralUrl.slice(0, referralUrlMaxLength));
 
     return attributionValues;
@@ -1374,7 +1375,7 @@ export function Tracker(trackerUrl, siteId) {
         globalThis.eave.windowAlias.location.search,
       );
       const params = Object.fromEntries(urlSearchParams.entries());
-      args.query_params = params;
+      args.queryParams = globalThis.eave.windowAlias.JSON.stringify(params);
     }
 
     if (charSet) {
@@ -1383,19 +1384,15 @@ export function Tracker(trackerUrl, siteId) {
 
     // add context data
     for (i of Object.keys(_eaveContext)) {
-      args[i] = getContext(i);
+      let value = getContext(i);
+      // stringify objects to prevent us getting "[object Object]" data
+      if (h.isObject(value)) {
+        value = globalThis.eave.windowAlias.JSON.stringify(value); // TODO: probably dont want this once we are sending data in req body
+      }
+      args[i] = value;
     }
     // add session ID
     args["session_id"] = cookieManager.getSession();
-
-    // add referrer attribution
-    // TODO: dont need to add referrer stuff again; already part of eaveContext above?
-    // const referrerAttribution = detectReferrerAttribution();
-    // for (i in referrerAttribution) {
-    //   if (Object.prototype.hasOwnProperty.call(referrerAttribution, i)) {
-    //     args[i] = referrerAttribution[i];
-    //   }
-    // }
 
     var customDimensionIdsAlreadyHandled = [];
     if (customData) {
@@ -3797,7 +3794,7 @@ export function Tracker(trackerUrl, siteId) {
 
   /**
    * Calling this method will remember that the user has given cookie consent across multiple requests by setting
-   * a cookie named "mtm_cookie_consent". You can optionally define the lifetime of that cookie in hours
+   * a cookie named "_eave_cookie_consent". You can optionally define the lifetime of that cookie in hours
    * using a parameter.
    *
    * When you call this method, we imply that the user has given cookie consent for this page view, and will also
@@ -4109,18 +4106,18 @@ export function Tracker(trackerUrl, siteId) {
             logPageView(
               "", // TODO: make more meaningful
               {
-                event: "mtm.HistoryChange",
-                "mtm.historyChangeSource": newEvent.eventType,
-                "mtm.oldUrl": origin + oldUrl,
-                "mtm.newUrl": origin + nowUrl,
-                "mtm.oldUrlHash": tmpLast.hash,
-                "mtm.newUrlHash": newEvent.hash,
-                "mtm.oldUrlPath": tmpLast.path,
-                "mtm.newUrlPath": newEvent.path,
-                "mtm.oldUrlSearch": tmpLast.search,
-                "mtm.newUrlSearch": newEvent.search,
-                "mtm.oldHistoryState": tmpLast.state,
-                "mtm.newHistoryState": newEvent.state,
+                event: "HistoryChange",
+                historyChangeSource: newEvent.eventType,
+                oldUrl: origin + oldUrl,
+                newUrl: origin + nowUrl,
+                oldUrlHash: tmpLast.hash,
+                newUrlHash: newEvent.hash,
+                oldUrlPath: tmpLast.path,
+                newUrlPath: newEvent.path,
+                oldUrlSearch: tmpLast.search,
+                newUrlSearch: newEvent.search,
+                oldHistoryState: tmpLast.state,
+                newHistoryState: newEvent.state,
               },
               null,
             );
@@ -4778,12 +4775,12 @@ export function Tracker(trackerUrl, siteId) {
                 formAction,
                 {
                   // custom data
-                  event: "mtm.FormSubmit",
-                  "mtm.formElement": target.outerHtml,
-                  "mtm.formElementId": target.getAttribute("id"),
-                  "mtm.formElementName": target.getAttribute("name"),
-                  "mtm.formElementClasses": target.className.split(" "),
-                  "mtm.formElementAction": formAction,
+                  event: "FormSubmit",
+                  formElement: target.outerHtml,
+                  formElementId: target.getAttribute("id"),
+                  formElementName: target.getAttribute("name"),
+                  formElementClasses: target.className.split(" "),
+                  formElementAction: formAction,
                 },
                 undefined, // callback
               );
@@ -5215,8 +5212,11 @@ export function Tracker(trackerUrl, siteId) {
       } catch (ignore) {}
     }
 
-    // set visitor_id if need
+    // set visitor_id if needed
     setVisitorId();
+
+    // set referral data, if any
+    detectReferrerAttribution();
 
     // save ctx cookie in case it hasnt been saved already
     saveContext();
