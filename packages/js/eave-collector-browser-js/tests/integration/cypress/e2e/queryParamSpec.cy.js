@@ -14,7 +14,15 @@ describe("eave UTM and query parameter collection", () => {
 
     // THEN utm params are included in fired events
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response.body.data.query_params).to.deep.equal({
+      // current page
+      expect(interception.response.body.data.queryParams).to.deep.equal({
+        utm_source: "tickletok",
+        utm_campaign: "gogole",
+      });
+      // saved referrer storage
+      expect(
+        interception.response.body.data.referrer.queryParams,
+      ).to.deep.equal({
         utm_source: "tickletok",
         utm_campaign: "gogole",
       });
@@ -34,7 +42,9 @@ describe("eave UTM and query parameter collection", () => {
     // THEN query/utm params are still included in the following event
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       expect(interception.response.body.data.data).to.match(/HistoryChange/);
-      expect(interception.response.body.data.query_params).to.deep.equal({
+      expect(
+        interception.response.body.data.referrer.queryParams,
+      ).to.deep.equal({
         utm_source: "tickletok",
         utm_campaign: "gogole",
       });
@@ -53,9 +63,13 @@ describe("eave UTM and query parameter collection", () => {
 
     // THEN current query params AND initial saved query/utm params included in the event
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response.body.data.query_params).to.deep.equal({
+      expect(
+        interception.response.body.data.referrer.queryParams,
+      ).to.deep.equal({
         utm_source: "tickletok",
         utm_campaign: "gogole",
+      });
+      expect(interception.response.body.data.queryParams).to.deep.equal({
         search: "beans",
         filter: "canned",
       });
@@ -66,9 +80,13 @@ describe("eave UTM and query parameter collection", () => {
 
     // THEN current query params included in the event, prev qp not included
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response.body.data.query_params).to.deep.equal({
+      expect(
+        interception.response.body.data.referrer.queryParams,
+      ).to.deep.equal({
         utm_source: "tickletok",
         utm_campaign: "gogole",
+      });
+      expect(interception.response.body.data.queryParams).to.deep.equal({
         search: "food",
         approval: "fda",
       });
