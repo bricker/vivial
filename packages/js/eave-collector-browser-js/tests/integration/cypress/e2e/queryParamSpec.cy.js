@@ -5,7 +5,7 @@ import {
 } from "../support/constants";
 
 describe("eave UTM and query parameter collection", () => {
-  it("includes query params in page view atom", () => {
+  it("includes query params in every atom", () => {
     // GIVEN site has Eave script
     cy.interceptAtomIngestion();
 
@@ -19,7 +19,6 @@ describe("eave UTM and query parameter collection", () => {
         utm_source: "tickletok",
         utm_campaign: "gogole",
       });
-      // expect(interception.response.body.data).to.deep.equal({})
       // saved referrer storage
       expect(
         interception.response.body.data.referrer.queryParams,
@@ -42,7 +41,9 @@ describe("eave UTM and query parameter collection", () => {
 
     // THEN query/utm params are still included in the following event
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response.body.data.data.event).to.match(/HistoryChange/);
+      expect(interception.response.body.data.data.event).to.match(
+        /HistoryChange/,
+      );
       expect(
         interception.response.body.data.referrer.queryParams,
       ).to.deep.equal({
@@ -91,6 +92,26 @@ describe("eave UTM and query parameter collection", () => {
         search: "food",
         approval: "fda",
       });
+    });
+  });
+
+  it("doesnt set referrer data if there is an existing session", () => {
+    // GIVEN there is an existing session cookie
+    cy.setCookie("_eave_session", "session");
+    cy.interceptAtomIngestion();
+
+    // WHEN site is initially visited including some query/utm params
+    cy.visit(`${DUMMY_APP_ROOT}/page?utm_source=tickletok&utm_campaign=gogole`);
+
+    // THEN utm params are included in fired events
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
+      // current page qp still set
+      expect(interception.response.body.data.queryParams).to.deep.equal({
+        utm_source: "tickletok",
+        utm_campaign: "gogole",
+      });
+      // referrer data not set
+      expect(interception.response.body.data.referrer).to.not.exist;
     });
   });
 });
