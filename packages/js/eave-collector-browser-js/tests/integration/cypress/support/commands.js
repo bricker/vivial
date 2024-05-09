@@ -44,6 +44,10 @@ Cypress.Commands.add("interceptAtomIngestion", () => {
     const data = {};
     for (const [key, val] of qp) {
       data[key] = decodeURIComponent(val);
+      // decode json to object if necessary
+      try {
+        data[key] = JSON.parse(data[key]);
+      } catch (ignore) {}
     }
     req.reply({
       statusCode: 200,

@@ -22,7 +22,7 @@ describe("eave form atom collection", () => {
     // THEN an event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       expect(interception.response).to.exist;
-      expect(interception.response.body.data.data).to.match(/FormSubmit/);
+      expect(interception.response.body.data.data.event).to.match(/FormSubmit/);
     });
   });
 });

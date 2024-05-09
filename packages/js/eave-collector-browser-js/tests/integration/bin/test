@@ -4,7 +4,8 @@
 npm run start-headless > /dev/null &
 react_server_pid=$!
 
-npm run cy:test
+# allow script CLI args as cypress args.
+npm run cy:test -- "$@"
 
 # cleanup bg processes for running headless server
 kill $react_server_pid

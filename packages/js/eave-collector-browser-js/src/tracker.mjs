@@ -35,7 +35,6 @@ export function Tracker(trackerUrl, siteId) {
       h.getReferrer(),
     ),
     domainAlias = h.domainFixup(locationArray[0]),
-    locationHrefAlias = h.safeDecodeWrapper(locationArray[1]),
     configReferrerUrl = h.safeDecodeWrapper(locationArray[2]),
     enableJSErrorTracking = false,
     defaultRequestMethod = "GET",
@@ -47,18 +46,12 @@ export function Tracker(trackerUrl, siteId) {
     configRequestContentType = defaultRequestContentType,
     // Tracker URL
     configTrackerUrl = trackerUrl || "",
-    // API URL (only set if it differs from the Tracker URL)
-    configApiUrl = "",
     // This string is appended to the Tracker URL Request (eg. to send data that is not handled by the existing setters/getters)
     configAppendToTrackingUrl = "",
     // setPagePerformanceTiming sets this manually for SPAs
     customPagePerformanceTiming = "",
     // Site ID
     configTrackerSiteId = siteId || "",
-    // User ID
-    configUserId = "",
-    // Document URL
-    configCustomUrl,
     // Document title
     configTitle = "",
     // Extensions to be treated as download links
@@ -162,8 +155,6 @@ export function Tracker(trackerUrl, siteId) {
     configTrackerPause = 500,
     // If enabled, always use sendBeacon if the browser supports it
     configAlwaysUseSendBeacon = true,
-    // Minimum visit time after initial page view (in milliseconds)
-    configMinimumVisitTime,
     // Recurring heart beat after initial ping (in milliseconds)
     configHeartBeatDelay,
     // alias to circumvent circular function dependency (JSLint requires this)
@@ -172,15 +163,6 @@ export function Tracker(trackerUrl, siteId) {
     configDiscardHashTag,
     // Custom data
     configCustomData,
-    // Campaign names
-    configCampaignNameParameters = [
-      "eave_campaign",
-      "utm_campaign",
-      "utm_source",
-      "utm_medium",
-    ],
-    // Campaign keywords
-    configCampaignKeywordParameters = ["eave_kwd", "utm_term"],
     // the URL parameter that will store the visitorId if cross domain linking is enabled
     // ev_vid = visitor ID
     // first part of this URL parameter will be 16 char visitor Id.
@@ -193,8 +175,6 @@ export function Tracker(trackerUrl, siteId) {
     configVisitorIdUrlParameter = "ev_vid",
     configVisitorIdKey = "visitor_id",
     configReferralKey = "referrer",
-    // Cross domain linking, the visitor ID is transmitted only in the 180 seconds following the click.
-    configVisitorIdUrlParameterTimeoutInSeconds = 180,
     // Is performance tracking enabled
     configPerformanceTrackingEnabled = true,
     // will be set to true automatically once the onload event has finished
@@ -212,8 +192,6 @@ export function Tracker(trackerUrl, siteId) {
     configCountPreRendered,
     // Enable sending campaign parameters to backend.
     configEnableCampaignParameters = true,
-    // Do we attribute the conversion to the first referrer or the most recent referrer?
-    configConversionAttributionFirstReferrer,
     // Custom Variables, scope "page"
     customVariablesPage = {},
     // Custom Variables, scope "event"
@@ -1013,24 +991,12 @@ export function Tracker(trackerUrl, siteId) {
    * Removes hash tag from the URL
    * Removes ignore_referrer/ignore_referer
    * Removes configVisitorIdUrlParameter
-   * Removes campaign parameters
    *
    * URLs are purified before being recorded in the cookie,
    * or before being sent as GET parameters
    */
   function purify(url) {
     var targetPattern, i;
-
-    // Remove campaign names/keywords from URL
-    if (configEnableCampaignParameters !== true) {
-      for (i = 0; i < configCampaignNameParameters.length; i++) {
-        url = h.removeUrlParameter(url, configCampaignNameParameters[i]);
-      }
-
-      for (i = 0; i < configCampaignKeywordParameters.length; i++) {
-        url = h.removeUrlParameter(url, configCampaignKeywordParameters[i]);
-      }
-    }
 
     // we need to remove this parameter here, they wouldn't be removed in eave tracker otherwise eg
     // for outlinks or referrers
@@ -1302,161 +1268,76 @@ export function Tracker(trackerUrl, siteId) {
     );
   }
 
+  /**
+   * Return referrer attribution data. Also saves that
+   * data to the context cookie if it's a new session.
+   *
+   * @returns {object}
+   */
   function detectReferrerAttribution() {
-    var i,
-      now = new Date(),
+    const now = new Date(),
       nowTs = Math.round(now.getTime() / 1000),
-      referralTs,
-      referralUrl,
       referralUrlMaxLength = 1024,
-      currentReferrerHostName,
-      originalReferrerHostName,
       cookieSessionValue = cookieManager.getSession(),
-      currentUrl = configCustomUrl || locationHrefAlias,
-      campaignNameDetected,
-      campaignKeywordDetected,
-      attributionValues = {};
+      currentUrl = getCurrentUrl();
 
-    campaignNameDetected = getAttributionCampaignName();
-    campaignKeywordDetected = getAttributionCampaignKeyword();
-    referralTs = getAttributionReferrerTimestamp();
-    referralUrl = getAttributionReferrerUrl();
+    let attributionValues = getAttributionInfo();
+    let referralUrl = getAttributionReferrerUrl();
+    let referralQueryParams = {};
+    const previousReferralUrl = referralUrl;
 
     if (!hasIgnoreReferrerParameter(currentUrl) && !cookieSessionValue) {
+      // TODO: we may never get here if session is always set in tracking setup. call this function in tracking setup?
       // session cookie was not found: we consider this the start of a 'session'
 
-      // Detect the campaign information from the current URL
-      // Only if campaign wasn't previously set
-      // Or if it was set but we must attribute to the most recent one
-      // Note: we are working on the currentUrl before purify() since we can parse the campaign parameters in the hash tag
       if (
-        (!configConversionAttributionFirstReferrer ||
-          !campaignNameDetected.length) &&
+        h.isObjectEmpty(attributionValues) &&
         configEnableCampaignParameters
       ) {
-        for (i in configCampaignNameParameters) {
-          if (
-            Object.prototype.hasOwnProperty.call(
-              configCampaignNameParameters,
-              i,
-            )
-          ) {
-            campaignNameDetected = h.getUrlParameter(
-              currentUrl,
-              configCampaignNameParameters[i],
-            );
-
-            if (campaignNameDetected.length) {
-              break;
-            }
-          }
-        }
-
-        for (i in configCampaignKeywordParameters) {
-          if (
-            Object.prototype.hasOwnProperty.call(
-              configCampaignKeywordParameters,
-              i,
-            )
-          ) {
-            campaignKeywordDetected = h.getUrlParameter(
-              currentUrl,
-              configCampaignKeywordParameters[i],
-            );
-
-            if (campaignKeywordDetected.length) {
-              break;
-            }
-          }
-        }
+        // extract and save all qp
+        const urlSearchParams = new URLSearchParams(
+          globalThis.eave.windowAlias.location.search,
+        );
+        referralQueryParams = Object.fromEntries(urlSearchParams.entries());
       }
 
       // Store the referrer URL and time in the cookie;
       // referral URL depends on the first or last referrer attribution
-      currentReferrerHostName = h.getHostName(configReferrerUrl);
-      originalReferrerHostName = referralUrl.length
-        ? h.getHostName(referralUrl)
+      const currentReferrerHostName = h.getHostName(configReferrerUrl);
+      const originalReferrerHostName = previousReferralUrl.length
+        ? h.getHostName(previousReferralUrl)
         : "";
 
       if (
         currentReferrerHostName.length && // there is a referrer
         !isSiteHostName(currentReferrerHostName) && // domain is not the current domain
         !isReferrerExcluded(configReferrerUrl) && // referrer is excluded
-        (!configConversionAttributionFirstReferrer || // attribute to last known referrer
-          !originalReferrerHostName.length || // previously empty
+        (!originalReferrerHostName.length || // previously empty
           isSiteHostName(originalReferrerHostName) || // previously set but in current domain
           isReferrerExcluded(referralUrl)) // previously set but excluded
       ) {
         referralUrl = configReferrerUrl;
       }
 
-      // Set the referral cookie if we have either a Referrer URL, or detected a Campaign (or both)
-      if (referralUrl.length || campaignNameDetected.length) {
-        referralTs = nowTs;
-
+      // Set the referral cookie if we have a Referrer URL or query params on initial URL
+      if (referralUrl.length || !h.isObjectEmpty(referralQueryParams)) {
         setContext(configReferralKey, {
-          campaign_name: campaignNameDetected,
-          campaign_kw: campaignKeywordDetected,
-          timestamp: referralTs,
-          raw_url: purify(referralUrl.slice(0, referralUrlMaxLength)),
+          queryParams: referralQueryParams,
+          timestamp: nowTs,
+          url: purify(referralUrl.slice(0, referralUrlMaxLength)),
         });
       }
     }
 
-    if (campaignNameDetected.length) {
-      attributionValues._rcn =
-        globalThis.eave.encodeWrapper(campaignNameDetected);
-    }
-
-    if (campaignKeywordDetected.length) {
-      attributionValues._rck = globalThis.eave.encodeWrapper(
-        campaignKeywordDetected,
-      );
-    }
-
-    attributionValues._refts = referralTs;
-
-    if (String(referralUrl).length) {
-      attributionValues._ref = globalThis.eave.encodeWrapper(
-        purify(referralUrl.slice(0, referralUrlMaxLength)),
-      );
-    }
+    // refetch incase new value was just set in context
+    attributionValues = getAttributionInfo() || {};
+    attributionValues.queryParams = attributionValues?.queryParams ?? {};
+    attributionValues.timestamp = attributionValues?.timestamp ?? nowTs;
+    attributionValues.url =
+      attributionValues?.url ??
+      purify(referralUrl.slice(0, referralUrlMaxLength));
 
     return attributionValues;
-  }
-
-  /**
-   * Resolve relative reference
-   *
-   * Note: not as described in rfc3986 section 5.2
-   */
-  function resolveRelativeReference(baseUrl, url) {
-    var protocol = h.getProtocolScheme(url),
-      i;
-
-    if (protocol) {
-      return url;
-    }
-
-    if (url.slice(0, 1) === "/") {
-      return (
-        h.getProtocolScheme(baseUrl) + "://" + h.getHostName(baseUrl) + url
-      );
-    }
-
-    baseUrl = purify(baseUrl);
-
-    i = baseUrl.indexOf("?");
-    if (i >= 0) {
-      baseUrl = baseUrl.slice(0, i);
-    }
-
-    i = baseUrl.lastIndexOf("/");
-    if (i !== baseUrl.length - 1) {
-      baseUrl = baseUrl.slice(0, i + 1);
-    }
-
-    return baseUrl + url;
   }
 
   /**
@@ -1464,7 +1345,7 @@ export function Tracker(trackerUrl, siteId) {
    */
   function buildRequest(customData) {
     const now = new Date();
-    const currentUrl = configCustomUrl || locationHrefAlias;
+    const currentUrl = getCurrentUrl();
     const hasIgnoreReferrerParam = hasIgnoreReferrerParameter(currentUrl);
     const cookieVisitorId = getContext(configVisitorIdKey);
     // send charset if document charset is not utf-8. sometimes encoding
@@ -1481,26 +1362,20 @@ export function Tracker(trackerUrl, siteId) {
 
     const args = {
       idsite: configTrackerSiteId,
-      rec: 1,
-      r: String(Math.random()).slice(2, 8), // keep the string to a minimum
       h: now.getHours(),
       m: now.getMinutes(),
       s: now.getSeconds(),
       url: globalThis.eave.encodeWrapper(purify(currentUrl)),
-      _id: cookieVisitorId,
-      send_image: 0,
+      visitor_id: cookieVisitorId,
     };
 
-    if (
-      configReferrerUrl.length &&
-      !isReferrerExcluded(configReferrerUrl) &&
-      !hasIgnoreReferrerParam
-    ) {
-      args["urlref"] = globalThis.eave.encodeWrapper(purify(configReferrerUrl));
-    }
-
-    if (h.isNumberOrHasLength(configUserId)) {
-      args["uid"] = globalThis.eave.encodeWrapper(configUserId);
+    // add current query params
+    if (!hasIgnoreReferrerParam) {
+      const urlSearchParams = new URLSearchParams(
+        globalThis.eave.windowAlias.location.search,
+      );
+      const params = Object.fromEntries(urlSearchParams.entries());
+      args.queryParams = globalThis.eave.windowAlias.JSON.stringify(params);
     }
 
     if (charSet) {
@@ -1509,18 +1384,15 @@ export function Tracker(trackerUrl, siteId) {
 
     // add context data
     for (i of Object.keys(_eaveContext)) {
-      args[i] = getContext(i);
+      let value = getContext(i);
+      // stringify objects to prevent us getting "[object Object]" data
+      if (h.isObject(value)) {
+        value = globalThis.eave.windowAlias.JSON.stringify(value); // TODO: probably dont want this once we are sending data in req body
+      }
+      args[i] = value;
     }
     // add session ID
     args["session_id"] = cookieManager.getSession();
-
-    var referrerAttribution = detectReferrerAttribution();
-    // referrer attribution
-    for (i in referrerAttribution) {
-      if (Object.prototype.hasOwnProperty.call(referrerAttribution, i)) {
-        args[i] = referrerAttribution[i];
-      }
-    }
 
     var customDimensionIdsAlreadyHandled = [];
     if (customData) {
@@ -1639,7 +1511,7 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {string} built up query parameters to send with the request
    */
   function getRequest(request, customData, pluginMethod) {
-    var currentUrl = configCustomUrl || locationHrefAlias;
+    var currentUrl = getCurrentUrl();
 
     if (cookieManager.configCookiesDisabled) {
       cookieManager.deleteCookies();
@@ -1721,7 +1593,6 @@ export function Tracker(trackerUrl, siteId) {
     discount,
   ) {
     var request = "idgoal=0",
-      now = new Date(),
       items = [],
       sku,
       isEcommerceOrder = String(orderId).length;
@@ -3076,62 +2947,40 @@ export function Tracker(trackerUrl, siteId) {
    *   1) Call globalThis.eave.windowAlias.JSON.stringify(eaveTracker.getAttributionInfo())
    *   2) Pass this json encoded string to the Tracking API (php or java client): setAttributionInfo()
    */
-  this.getAttributionInfo = function () {
-    return getAttributionInfo();
-  };
   function getAttributionInfo() {
     return getContext(configReferralKey);
   }
-
-  /**
-   * Get the Campaign name that was parsed from the landing page URL when the visitor
-   * landed on the site originally
-   *
-   * @returns {string}
-   */
-  this.getAttributionCampaignName = function () {
-    return getAttributionCampaignName();
-  };
-  function getAttributionCampaignName() {
-    return getContext(configReferralKey)?.campaign_name || "";
-  }
-
-  /**
-   * Get the Campaign keyword that was parsed from the landing page URL when the visitor
-   * landed on the site originally
-   *
-   * @returns {string}
-   */
-  this.getAttributionCampaignKeyword = function () {
-    return getAttributionCampaignKeyword();
-  };
-  function getAttributionCampaignKeyword() {
-    return getContext(configReferralKey)?.campaign_kw || "";
-  }
+  this.getAttributionInfo = getAttributionInfo;
 
   /**
    * Get the time at which the referrer (used for Goal Attribution) was detected
    *
    * @returns {int} Timestamp or 0 if no referrer currently set
    */
-  this.getAttributionReferrerTimestamp = function () {
-    return getAttributionReferrerTimestamp();
-  };
   function getAttributionReferrerTimestamp() {
     return getContext(configReferralKey)?.timestamp || 0;
   }
+  this.getAttributionReferrerTimestamp = getAttributionReferrerTimestamp;
 
   /**
    * Get the full referrer URL that will be used for Goal Attribution
    *
    * @returns {string} Raw URL, or empty string '' if no referrer currently set
    */
-  this.getAttributionReferrerUrl = function () {
-    return getAttributionReferrerUrl();
-  };
   function getAttributionReferrerUrl() {
-    return getContext(configReferralKey)?.raw_url || "";
+    return getContext(configReferralKey)?.url || "";
   }
+  this.getAttributionReferrerUrl = getAttributionReferrerUrl;
+
+  /**
+   * Get referrer URL query params.
+   *
+   * @returns {object} map of query param keys and values
+   */
+  function getAttributionReferrerQueryParams() {
+    return getContext(configReferralKey)?.queryParams || {};
+  }
+  this.getAttributionReferrerQueryParams = getAttributionReferrerQueryParams;
 
   /**
    * Specify the eave tracking URL
@@ -3197,33 +3046,6 @@ export function Tracker(trackerUrl, siteId) {
    */
   this.setSiteId = function (siteId) {
     setSiteId(siteId);
-  };
-
-  /**
-   * Clears the User ID
-   */
-  this.resetUserId = function () {
-    configUserId = "";
-  };
-
-  /**
-   * Sets a User ID to this user (such as an email address or a username)
-   *
-   * @param {string} userId User ID
-   */
-  this.setUserId = function (userId) {
-    if (h.isNumberOrHasLength(userId)) {
-      configUserId = userId;
-    }
-  };
-
-  /**
-   * Gets the User ID if set.
-   *
-   * @returns {string} User ID
-   */
-  this.getUserId = function () {
-    return configUserId;
   };
 
   /**
@@ -3651,15 +3473,6 @@ export function Tracker(trackerUrl, siteId) {
   };
 
   /**
-   * By default, the two visits across domains will be linked together
-   * when the link is click and the page is loaded within 180 seconds.
-   * @param timeout in seconds
-   */
-  this.setCrossDomainLinkingTimeout = function (timeout) {
-    configVisitorIdUrlParameterTimeoutInSeconds = timeout;
-  };
-
-  /**
    * Returns the query parameter appended to link URLs so cross domain visits
    * can be detected.
    *
@@ -3769,30 +3582,17 @@ export function Tracker(trackerUrl, siteId) {
   };
 
   /**
-   * Override referrer
-   *
-   * @param {string} url
+   * Returns the current url of the page that is currently being visited.
+   * @returns {string}
    */
-  this.setReferrerUrl = function (url) {
-    configReferrerUrl = url;
-  };
-
-  /**
-   * Override url
-   *
-   * @param {string} url
-   */
-  this.setCustomUrl = function (url) {
-    configCustomUrl = resolveRelativeReference(locationHrefAlias, url);
-  };
-
-  /**
-   * Returns the current url of the page that is currently being visited. If a custom URL was set, the
-   * previously defined custom URL will be returned.
-   */
-  this.getCurrentUrl = function () {
-    return configCustomUrl || locationHrefAlias;
-  };
+  function getCurrentUrl() {
+    return h.urlFixup(
+      globalThis.eave.documentAlias.domain,
+      globalThis.eave.windowAlias.location.href,
+      h.getReferrer(),
+    )[1];
+  }
+  this.getCurrentUrl = getCurrentUrl;
 
   /**
    * Override document.title
@@ -3826,16 +3626,6 @@ export function Tracker(trackerUrl, siteId) {
   };
 
   /**
-   * Set the URL of the eave API. It is used for Page Overlay.
-   * This method should only be called when the API URL differs from the tracker URL.
-   *
-   * @param {string} apiUrl
-   */
-  this.setAPIUrl = function (apiUrl) {
-    configApiUrl = apiUrl;
-  };
-
-  /**
    * Set array of classes to be treated as downloads
    *
    * @param {string|Array} downloadClasses
@@ -3853,30 +3643,6 @@ export function Tracker(trackerUrl, siteId) {
    */
   this.setLinkClasses = function (linkClasses) {
     configLinkClasses = h.isString(linkClasses) ? [linkClasses] : linkClasses;
-  };
-
-  /**
-   * Set array of campaign name parameters
-   *
-   * @see https://matomo.org/faq/how-to/faq_120
-   * @param {string|Array} campaignNames
-   */
-  this.setCampaignNameKey = function (campaignNames) {
-    configCampaignNameParameters = h.isString(campaignNames)
-      ? [campaignNames]
-      : campaignNames;
-  };
-
-  /**
-   * Set array of campaign keyword parameters
-   *
-   * @see https://matomo.org/faq/how-to/faq_120
-   * @param {string|Array} campaignKeywords
-   */
-  this.setCampaignKeywordKey = function (campaignKeywords) {
-    configCampaignKeywordParameters = h.isString(campaignKeywords)
-      ? [campaignKeywords]
-      : campaignKeywords;
   };
 
   /**
@@ -3912,16 +3678,6 @@ export function Tracker(trackerUrl, siteId) {
     }
 
     return cookieValue;
-  };
-
-  /**
-   * Set conversion attribution to first referrer and campaign
-   *
-   * @param {boolean} enable If true, use first referrer (and first campaign)
-   *             if false, use the last referrer (or campaign)
-   */
-  this.setConversionAttributionFirstReferrer = function (enable) {
-    configConversionAttributionFirstReferrer = enable;
   };
 
   /**
@@ -4038,7 +3794,7 @@ export function Tracker(trackerUrl, siteId) {
 
   /**
    * Calling this method will remember that the user has given cookie consent across multiple requests by setting
-   * a cookie named "mtm_cookie_consent". You can optionally define the lifetime of that cookie in hours
+   * a cookie named "_eave_cookie_consent". You can optionally define the lifetime of that cookie in hours
    * using a parameter.
    *
    * When you call this method, we imply that the user has given cookie consent for this page view, and will also
@@ -4350,18 +4106,18 @@ export function Tracker(trackerUrl, siteId) {
             logPageView(
               "", // TODO: make more meaningful
               {
-                event: "mtm.HistoryChange",
-                "mtm.historyChangeSource": newEvent.eventType,
-                "mtm.oldUrl": origin + oldUrl,
-                "mtm.newUrl": origin + nowUrl,
-                "mtm.oldUrlHash": tmpLast.hash,
-                "mtm.newUrlHash": newEvent.hash,
-                "mtm.oldUrlPath": tmpLast.path,
-                "mtm.newUrlPath": newEvent.path,
-                "mtm.oldUrlSearch": tmpLast.search,
-                "mtm.newUrlSearch": newEvent.search,
-                "mtm.oldHistoryState": tmpLast.state,
-                "mtm.newHistoryState": newEvent.state,
+                event: "HistoryChange",
+                historyChangeSource: newEvent.eventType,
+                oldUrl: origin + oldUrl,
+                newUrl: origin + nowUrl,
+                oldUrlHash: tmpLast.hash,
+                newUrlHash: newEvent.hash,
+                oldUrlPath: tmpLast.path,
+                newUrlPath: newEvent.path,
+                oldUrlSearch: tmpLast.search,
+                newUrlSearch: newEvent.search,
+                oldHistoryState: tmpLast.state,
+                newHistoryState: newEvent.state,
               },
               null,
             );
@@ -5019,12 +4775,12 @@ export function Tracker(trackerUrl, siteId) {
                 formAction,
                 {
                   // custom data
-                  event: "mtm.FormSubmit",
-                  "mtm.formElement": target.outerHtml,
-                  "mtm.formElementId": target.getAttribute("id"),
-                  "mtm.formElementName": target.getAttribute("name"),
-                  "mtm.formElementClasses": target.className.split(" "),
-                  "mtm.formElementAction": formAction,
+                  event: "FormSubmit",
+                  formElement: target.outerHtml,
+                  formElementId: target.getAttribute("id"),
+                  formElementName: target.getAttribute("name"),
+                  formElementClasses: target.className.split(" "),
+                  formElementAction: formAction,
                 },
                 undefined, // callback
               );
@@ -5456,8 +5212,11 @@ export function Tracker(trackerUrl, siteId) {
       } catch (ignore) {}
     }
 
-    // set visitor_id if need
+    // set visitor_id if needed
     setVisitorId();
+
+    // set referral data, if any
+    detectReferrerAttribution();
 
     // save ctx cookie in case it hasnt been saved already
     saveContext();
