@@ -1,6 +1,6 @@
 locals {
   app_name = "dashboard"
-  public_domain_prefix = "dashboard"
+  domain_prefix = "dashboard"
 
   service_port = {
     name = "http"

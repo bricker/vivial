@@ -22,3 +22,7 @@ class StatusEndpoint(HTTPEndpoint):
         status = status_payload().dict()
         content = json.dumps(status)
         return Response(status_code=status_code, content=content, media_type=MIME_TYPE_JSON)
+
+class HealthEndpoint(HTTPEndpoint):
+    async def handle(self, request: Request, scope: HTTPScope, state: EaveRequestState) -> Response:
+        return Response(status_code=http.HTTPStatus.OK, content="1")

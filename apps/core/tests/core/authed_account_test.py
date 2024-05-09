@@ -14,9 +14,8 @@ class TestAuthedAccountRequests(BaseTestCase):
             account = await self.make_account(s)
 
         response = await self.make_request(
-            path="/me/query",
+            path=GetMyAccountRequest.config.path,
             payload=None,
-            team_id=account.team_id,
             account_id=account.id,
             access_token=account.access_token,
         )

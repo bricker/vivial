@@ -2,6 +2,7 @@ import http
 import time
 
 import aiohttp
+from eave.stdlib.auth_cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME, EAVE_ACCOUNT_ID_COOKIE_NAME
 from google.cloud import bigquery
 from google.cloud.bigquery.dataset import DatasetReference
 
@@ -40,15 +41,18 @@ class TestMetabaseEmbeddingSSOEndpoints(BaseTestCase):
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
 
-    # async def test_metabase_embedding_sso(self) -> None:
-    #     response = await self.make_request(
-    #         path="/oauth/metabase",
-    #         headers={
-    #             EAVE_CLIENT_ID_HEADER: str(self.anyuuid("invalid client ID")),
-    #             EAVE_CLIENT_SECRET_HEADER: self.anystr("invalid client secret"),
-    #         },
-    #         payload=DataIngestRequestBody(events={}).to_dict(),
-    #     )
+    async def test_metabase_auth_proxy(self) -> None:
+        self.skipTest("need to mock the internal request to metabase backend")
+        response = await self.make_request(
+            path="/public/mb",
+            cookies={
+                EAVE_ACCOUNT_ID_COOKIE_NAME: str(self._account.id),
+                EAVE_ACCESS_TOKEN_COOKIE_NAME: self._account.access_token
+            },
+            payload={
+                "return_to": self.anypath("return_to"),
+            },
+        )
 
-    #     assert response.status_code == http.HTTPStatus.OK
+        assert response.status_code == http.HTTPStatus.OK
 

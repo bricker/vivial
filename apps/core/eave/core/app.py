@@ -181,6 +181,11 @@ routes = [
         endpoint=status.StatusEndpoint,
         methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
     ),
+    Route(
+        path="/healthz",
+        endpoint=status.HealthEndpoint,
+        methods=["GET"],
+    ),
     make_route(
         config=CoreApiEndpointConfiguration(
             path="/public/ingest/server",

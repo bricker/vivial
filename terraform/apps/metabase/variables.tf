@@ -21,6 +21,10 @@ variable "cloudsql_instance_name" {
   type=string
 }
 
+variable "ssl_policy_name" {
+  type=string
+}
+
 variable "MB_SHARED_SECRETS" {
   type = any
   sensitive = true

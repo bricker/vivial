@@ -6,7 +6,7 @@ from typing import NotRequired, Self, TypedDict, Unpack
 from uuid import UUID
 
 from eave.stdlib.config import SHARED_CONFIG
-from sqlalchemy import Select, func, select
+from sqlalchemy import Select, String, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -24,7 +24,7 @@ class MetabaseInstanceOrm(Base):
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     jwt_signing_key: Mapped[str] = mapped_column()
-    instance_id: Mapped[str] = mapped_column(unique=True)
+    instance_id: Mapped[str] = mapped_column(unique=True, type_=String(length=8)) # The length restraint is important because this value is used for GCP resources, some of which have a maximum length.
     default_dashboard_id: Mapped[str | None] = mapped_column(nullable=True)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())

@@ -2,6 +2,7 @@ locals {
   enabled_services = toset([
     "artifactregistry.googleapis.com",    # Artifact Registry API
     "bigquery.googleapis.com",            # BigQuery API
+    "certificatemanager.googleapis.com",  # Certificate Manager API
     "cloudbuild.googleapis.com",          # Cloud Build API
     "cloudkms.googleapis.com",            # Cloud Key Management Service (KMS) API
     "compute.googleapis.com",             # Compute Engine API

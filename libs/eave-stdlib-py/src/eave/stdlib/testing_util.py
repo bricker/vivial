@@ -107,72 +107,117 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         if name is None:
             name = str(uuid.uuid4())
 
-        if name not in self.testdata:
-            data = f"https://{name}.{uuid.uuid4()}.com/{uuid.uuid4()}"
-            self.testdata[name] = data
+        assert name not in self.testdata, f"test value {name} is already in use. Use geturl() to retrieve it."
 
-        value: str = self.testdata[name]
-        return value
+        data = f"https://{name}.{uuid.uuid4()}.com/{uuid.uuid4()}"
+        self.testdata[name] = data
+        return self.geturl(name)
 
     def geturl(self, name: str) -> str:
+        assert name in self.testdata, f"test value {name} has not been set. Use anyurl() to set it."
         return self.testdata[name]
 
     def anypath(self, name: str | None = None) -> str:
         if name is None:
             name = str(uuid.uuid4())
 
-        if name not in self.testdata:
-            data = f"/{name}/{uuid.uuid4()}"
-            self.testdata[name] = data
+        assert name not in self.testdata, f"test value {name} is already in use. Use getpath() to retrieve it."
 
-        value: str = self.testdata[name]
-        return value
+        data = f"/{name}/{uuid.uuid4()}"
+        self.testdata[name] = data
+        return self.getpath(name)
 
     def getpath(self, name: str) -> str:
-        return self.testdata[name]
-
-    def anystr_b64(self, name: str | None = None, urlsafe: bool = False) -> str:
-        if name is None:
-            name = str(uuid.uuid4())
-
-        if name not in self.testdata:
-            data = str(uuid.uuid4())
-            new_value = f"{name}:{data}"
-            if urlsafe:
-                new_value = base64.urlsafe_b64encode(new_value.encode()).decode()
-            else:
-                new_value = base64.b64encode(new_value.encode()).decode()
-
-            self.testdata[name] = new_value
-
+        assert name in self.testdata, f"test value {name} has not been set. Use anypath() to set it."
         return self.testdata[name]
 
     def anystr(self, name: str | None = None) -> str:
         if name is None:
             name = str(uuid.uuid4())
 
-        if name not in self.testdata:
-            data = str(uuid.uuid4())
-            new_value = f"{name}:{data}"
-            self.testdata[name] = new_value
+        assert name not in self.testdata, f"test value {name} is already in use. Use getstr() to retrieve it."
 
-        return self.testdata[name]
-
-    def anystring(self, name: str | None = None) -> str:
-        """
-        DEPRECATED, use anystr
-        """
-        return self.anystr(name=name)
-
-    def getstr_b64(self, name: str, urlsafe: bool = False) -> str:
-        v = self.testdata[name]
-
-        if urlsafe:
-            return base64.urlsafe_b64decode(v).decode()
-        else:
-            return base64.b64decode(v).decode()
+        data = str(uuid.uuid4())
+        new_value = f"{name}:{data}"
+        self.testdata[name] = new_value
+        return self.getstr(name)
 
     def getstr(self, name: str) -> str:
+        assert name in self.testdata, f"test value {name} has not been set. Use anystr() to set it."
+        return self.testdata[name]
+
+    def anyjson(self, name: str | None = None) -> str:
+        if name is None:
+            name = str(uuid.uuid4())
+
+        assert name not in self.testdata, f"test value {name} is already in use. Use getjson() to retrieve it."
+
+        data = json.dumps({f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}" for _ in range(3)})
+        self.testdata[name] = data
+        return self.getjson(name)
+
+    def getjson(self, name: str) -> str:
+        assert name in self.testdata, f"test value {name} has not been set. Use anyjson() to set it."
+        return self.testdata[name]
+
+    def anydict(self, name: str | None = None, deterministic_keys: bool = False) -> JsonObject:
+        if name is None:
+            name = str(uuid.uuid4())
+
+        assert name not in self.testdata, f"test value {name} is already in use. Use getdict() to retrieve it."
+
+        if deterministic_keys:
+            data: JsonObject = {f"{name}:{i}": f"{name}:{uuid.uuid4()}" for i in range(3)}
+        else:
+            data: JsonObject = {f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}" for _ in range(3)}
+
+        self.testdata[name] = data
+        return self.getdict(name)
+
+    def getdict(self, name: str) -> JsonObject:
+        assert name in self.testdata, f"test value {name} has not been set. Use anydict() to set it."
+        return self.testdata[name]
+
+    def anyuuid(self, name: str | None = None) -> uuid.UUID:
+        if name is None:
+            name = str(uuid.uuid4())
+
+        assert name not in self.testdata, f"test value {name} is already in use. Use getuuid() to retrieve it."
+
+        data = uuid.uuid4()
+        self.testdata[name] = data
+        return self.getuuid(name)
+
+    def getuuid(self, name: str) -> uuid.UUID:
+        assert name in self.testdata, f"test value {name} has not been set. Use anyuuid() to set it."
+        return self.testdata[name]
+
+    def anyint(self, name: str | None = None) -> int:
+        if name is None:
+            name = str(uuid.uuid4())
+
+        assert name not in self.testdata, f"test value {name} is already in use. Use getint() to retrieve it."
+
+        data = random.randint(0, 9999)
+        self.testdata[name] = data
+        return self.getint(name)
+
+    def getint(self, name: str) -> int:
+        assert name in self.testdata, f"test value {name} has not been set. Use anyint() to set it."
+        return self.testdata[name]
+
+    def anybytes(self, name: str | None = None, encoding: str = "utf-8") -> bytes:
+        if name is None:
+            name = str(uuid.uuid4())
+
+        assert name not in self.testdata, f"test value {name} is already in use. Use getbytes() to retrieve it."
+        v = uuid.uuid4()
+        data = bytes(v.hex, encoding)
+        self.testdata[name] = data
+        return self.getbytes(name)
+
+    def getbytes(self, name: str) -> bytes:
+        assert name in self.testdata, f"test value {name} has not been set. Use anybytes() to set it."
         return self.testdata[name]
 
     def b64encode(self, value: str, urlsafe: bool = False) -> str:
@@ -187,80 +232,6 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             return base64.urlsafe_b64decode(value).decode()
         else:
             return base64.b64decode(value).decode()
-
-    def anyjson(self, name: str | None = None) -> str:
-        if name is None:
-            name = str(uuid.uuid4())
-
-        if name not in self.testdata:
-            data = json.dumps({f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}" for _ in range(3)})
-            self.testdata[name] = data
-
-        value: str = self.testdata[name]
-        return value
-
-    def getjson(self, name: str) -> str:
-        return self.testdata[name]
-
-    def anydict(self, name: str | None = None, deterministic_keys: bool = False) -> JsonObject:
-        if name is None:
-            name = str(uuid.uuid4())
-
-        if name not in self.testdata:
-            if deterministic_keys:
-                data: JsonObject = {f"{name}:{i}": f"{name}:{uuid.uuid4()}" for i in range(3)}
-            else:
-                data: JsonObject = {f"{name}:{uuid.uuid4()}": f"{name}:{uuid.uuid4()}" for _ in range(3)}
-
-            self.testdata[name] = data
-
-        value: JsonObject = self.testdata[name]
-        return value
-
-    def getdict(self, name: str) -> JsonObject:
-        return self.testdata[name]
-
-    def anyuuid(self, name: str | None = None) -> uuid.UUID:
-        if name is None:
-            name = str(uuid.uuid4())
-
-        if name not in self.testdata:
-            data = uuid.uuid4()
-            self.testdata[name] = data
-
-        value: uuid.UUID = self.testdata[name]
-        return value
-
-    def getuuid(self, name: str) -> uuid.UUID:
-        return self.testdata[name]
-
-    def anyint(self, name: str | None = None) -> int:
-        if name is None:
-            name = str(uuid.uuid4())
-
-        if name not in self.testdata:
-            data = random.randint(0, 9999)
-            self.testdata[name] = data
-
-        value: int = self.testdata[name]
-        return value
-
-    def getint(self, name: str) -> int:
-        return self.testdata[name]
-
-    def anybytes(self, name: str | None = None, encoding: str = "utf-8") -> bytes:
-        if name is None:
-            name = str(uuid.uuid4())
-
-        if name not in self.testdata:
-            v = uuid.uuid4()
-            data = bytes(v.hex, encoding)
-            self.testdata[name] = data
-
-        return self.testdata[name]
-
-    def getbytes(self, name: str) -> bytes:
-        return self.testdata[name]
 
     @staticmethod
     def all_same(obj1: object, obj2: object, attrs: list[str] | None = None) -> bool:
@@ -397,8 +368,8 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self.active_mocks[name] = m
         return m
 
-    def patch_env(self, values: dict[str, str | None]) -> unittest.mock.Mock:
-        m = self.patch_dict(name="env", patch=unittest.mock.patch.dict("os.environ", values))
+    def patch_env(self, values: dict[str, str | None], clear: bool = False) -> unittest.mock.Mock:
+        m = self.patch_dict(name="env", patch=unittest.mock.patch.dict("os.environ", values, clear=clear))
         return m
 
     def patch_dict(self, patch: unittest.mock._patch_dict, name: str | None = None) -> unittest.mock.Mock:

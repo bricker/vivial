@@ -1,3 +1,7 @@
+resource "google_certificate_manager_certificate_map" "default" {
+  name        = "root-certificate-map"
+}
+
 module "core_api_app" {
   source = "../../apps/core_api"
   project = local.project
@@ -5,6 +9,7 @@ module "core_api_app" {
   cloudsql_instance_name = module.cloudsql_eave_core.instance.name
   dns_zone = module.dns_zone_base_domain.zone
   docker_repository = module.docker_registry.repository
+  ssl_policy_name = module.ssl_policy.policy_name
 
   kube_namespace_name = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
@@ -22,6 +27,7 @@ module "playground_todoapp" {
   cloudsql_instance_name = module.cloudsql_eave_core.instance.name
   dns_zone = module.dns_zone_base_domain.zone
   docker_repository = module.docker_registry.repository
+  ssl_policy_name = module.ssl_policy.policy_name
 
   kube_namespace_name = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
@@ -40,6 +46,7 @@ module "dashboard_app" {
 
   dns_zone = module.dns_zone_base_domain.zone
   docker_repository = module.docker_registry.repository
+  ssl_policy_name = module.ssl_policy.policy_name
 
   kube_namespace_name = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
@@ -60,9 +67,11 @@ module "metabase" {
     },
   ]
 
-  dns_zone = module.dns_zone_base_domain.zone
-  kube_namespace_name = module.shared_kubernetes_resources.metabase_namespace_name
   cloudsql_instance_name = module.cloudsql_eave_core.instance.name
+  dns_zone = module.dns_zone_base_domain.zone
+  ssl_policy_name = module.ssl_policy.policy_name
+
+  kube_namespace_name = module.shared_kubernetes_resources.metabase_namespace_name
   MB_SHARED_SECRETS = var.MB_SHARED_SECRETS
   MB_INSTANCE_SECRETS = var.MB_INSTANCE_SECRETS
   IAP_OAUTH_CLIENT_CREDENTIALS = var.IAP_OAUTH_CLIENT_CREDENTIALS

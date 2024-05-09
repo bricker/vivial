@@ -36,8 +36,19 @@ resource "google_sql_user" "app" {
   deletion_policy = "ABANDON"
 }
 
-module "dns" {
-  source        = "../../modules/dns"
-  domain_prefix = local.public_domain_prefix
-  zone          = var.dns_zone
+resource "google_compute_global_address" "default" {
+  name         = "playground-todoapp"
+  address_type = "EXTERNAL"
+}
+
+resource "google_dns_record_set" "default" {
+  managed_zone = var.dns_zone.name
+  name = "${local.domain_prefix}.${var.dns_zone.dns_name}"
+  type = "A"
+  ttl  = 300
+  rrdatas = [google_compute_global_address.default.address]
+}
+
+locals {
+  domain = trimsuffix(google_dns_record_set.default.name, ".")
 }

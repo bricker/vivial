@@ -6,6 +6,7 @@ from typing import Any, Protocol, TypeVar
 from uuid import UUID
 
 import aiohttp
+from eave.stdlib.util import ensure_uuid
 import pydantic
 import sqlalchemy
 import sqlalchemy.orm
@@ -205,7 +206,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
     async def make_team(self, session: AsyncSession) -> TeamOrm:
         team = await TeamOrm.create(
             session=session,
-            name=self.anystr("team name"),
+            name=self.anystr(),
             allowed_origins_csv="eave.tests"
         )
 
@@ -222,17 +223,17 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
     ) -> AccountOrm:
         if not team_id:
             team = await self.make_team(session=session)
-            team_id = team.id
+            team_id = ensure_uuid(team.id)
 
         account = await AccountOrm.create(
             session=session,
             team_id=team_id,
-            visitor_id=self.anyuuid("account.visitor_id"),
-            opaque_utm_params=self.anydict("account.opaque_utm_params", deterministic_keys=True),
+            visitor_id=self.anyuuid(),
+            opaque_utm_params=self.anydict(deterministic_keys=True),
             auth_provider=auth_provider or AuthProvider.google,
-            auth_id=auth_id or self.anystr("account.auth_id"),
-            access_token=access_token or self.anystr("account.oauth_token"),
-            refresh_token=refresh_token or self.anystr("account.refresh_token"),
+            auth_id=auth_id or self.anystr(),
+            access_token=access_token or self.anystr(),
+            refresh_token=refresh_token or self.anystr(),
         )
 
         return account

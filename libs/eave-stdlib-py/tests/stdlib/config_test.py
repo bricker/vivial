@@ -4,15 +4,34 @@ from .base import StdlibBaseTestCase
 
 
 class ConfigTest(StdlibBaseTestCase):
-    async def test_internal_service_base_non_dev(self):
-        project = self.anystr("gcp")
-        self.patch_env({"EAVE_ENV": EaveEnvironment.production, "GOOGLE_CLOUD_PROJECT": project})
+    async def test_public_service_base(self):
+        self.patch_env({
+            "EAVE_API_BASE_PUBLIC": "https://api.eave.tests",
+        }, clear=True)
+
+        assert (
+            SHARED_CONFIG.eave_public_service_base(service=EaveApp.eave_api)
+            == "https://api.eave.tests"
+        )
+
+        # Test the default value
+        assert (
+            SHARED_CONFIG.eave_public_service_base(service=EaveApp.eave_dashboard)
+            == ""
+        )
+
+    async def test_internal_service_base(self):
+        self.patch_env({
+            "EAVE_API_BASE_INTERNAL": "https://api.eave.internal",
+        }, clear=True)
 
         assert (
             SHARED_CONFIG.eave_internal_service_base(service=EaveApp.eave_api)
-            == f"https://api-dot-{project}.uc.r.appspot.com"
+            == "https://api.eave.internal"
         )
+
+        # Test the default value
         assert (
             SHARED_CONFIG.eave_internal_service_base(service=EaveApp.eave_dashboard)
-            == f"https://dashboard-dot-{project}.uc.r.appspot.com"
+            == ""
         )

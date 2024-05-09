@@ -37,7 +37,7 @@ class StdlibUtilTest(StdlibBaseTestCase):
         )
 
     async def test_ensure_bytes(self):
-        string = self.anystring()
+        string = self.anystr()
         bytez = string.encode()
         assert mut.ensure_bytes(string) == bytez
         assert mut.ensure_bytes(bytez) == bytez
@@ -78,14 +78,14 @@ class StdlibUtilTest(StdlibBaseTestCase):
         with self.assertRaises(UnexpectedMissingValueError):
             mut.unwrap(None)
 
-        v = self.anystring()
+        v = self.anystr()
         assert mut.unwrap(None, v) == v
         assert mut.unwrap(v) == v
 
     async def test_redact(self):
         assert mut.redact(None) is None
-        assert mut.redact(self.anystring()[:8]) == "[redacted 8 chars]"
-        assert mut.redact(self.anystring()[:2]) == "[redacted 2 chars]"
+        assert mut.redact(self.anystr()[:8]) == "[redacted 8 chars]"
+        assert mut.redact(self.anystr()[:2]) == "[redacted 2 chars]"
 
-        test_string = self.anystring()
+        test_string = self.anystr()
         assert mut.redact(f"1234{test_string}4321") == f"1234[redacted {len(test_string)} chars]4321"

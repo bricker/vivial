@@ -9,12 +9,6 @@ output "service_accounts" {
   value = module.service_accounts
 }
 
-module "dns" {
-  source        = "../../../modules/dns"
-  domain_prefix = local.public_domain_prefix
-  zone          = var.dns_zone
-}
-
 resource "google_sql_database" "app" {
   name     = "mb_${var.metabase_instance_id}"
   instance = var.cloudsql_instance_name

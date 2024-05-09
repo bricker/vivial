@@ -12,7 +12,9 @@ resource "kubernetes_manifest" "managed_certificate" {
     }
 
     spec = {
-      domains = [module.dns.domain]
+      domains = [
+        local.domain
+      ]
     }
   }
 }
@@ -93,7 +95,7 @@ resource "kubernetes_ingress_v1" "app" {
     annotations = {
       "networking.gke.io/v1beta1.FrontendConfig" = kubernetes_manifest.frontend_config.manifest.metadata.name
       "networking.gke.io/managed-certificates" = kubernetes_manifest.managed_certificate.manifest.metadata.name
-      "kubernetes.io/ingress.global-static-ip-name" = module.dns.address.name
+      "kubernetes.io/ingress.global-static-ip-name" = google_compute_global_address.default.name
       "kubernetes.io/ingress.class" = "gce"
     }
 
@@ -119,7 +121,7 @@ resource "kubernetes_ingress_v1" "app" {
 
 
     rule {
-      host = module.dns.domain
+      host = local.domain
       http {
         # Supported public endpoint prefixes.
         # Everything else is only accessible from the cluster.

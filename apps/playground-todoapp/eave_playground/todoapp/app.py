@@ -132,6 +132,9 @@ def status_endpoint(request: Request) -> Response:
     response = JSONResponse(content=body, status_code=HTTPStatus.OK)
     return response
 
+def health_endpoint(request: Request) -> Response:
+    return Response(content="1", status_code=HTTPStatus.OK)
+
 @contextlib.asynccontextmanager
 async def lifespan(app: Starlette) -> AsyncGenerator[None, None]:
     await start_eave_sqlalchemy_collector(engine=async_engine)
@@ -143,6 +146,7 @@ app = Starlette(
     routes=[
         Mount("/static", StaticFiles(directory="eave_playground/todoapp/static")),
         Route(path="/status", methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"], endpoint=status_endpoint),
+        Route(path="/healthz", methods=["GET"], endpoint=health_endpoint),
         Route(path="/api/todos", methods=["GET"], endpoint=get_todos),
         Route(path="/api/todos", methods=["POST"], endpoint=add_todo),
         Route(path="/api/todos/{todo_id}", methods=["DELETE"], endpoint=delete_todo),

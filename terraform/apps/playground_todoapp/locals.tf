@@ -1,6 +1,6 @@
 locals {
   app_name = "playground-todoapp"
-  public_domain_prefix = "playground-todoapp"
+  domain_prefix = "playground-todoapp"
 
   service_port = {
     name = "http"

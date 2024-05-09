@@ -125,10 +125,6 @@ class _EaveConfig(ConfigBase):
         return self.eave_public_service_base(EaveApp.eave_dashboard)
 
     @property
-    def eave_internal_metabase_base(self) -> str:
-        return self.eave_internal_service_base(EaveApp.eave_metabase)
-
-    @property
     def eave_internal_root_domain(self) -> str:
         """
         Root domain for accessing internal services.

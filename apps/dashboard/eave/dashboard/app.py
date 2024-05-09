@@ -52,6 +52,9 @@ def status_endpoint(request: Request) -> Response:
     response = Response(content=model.json(), status_code=HTTPStatus.OK, media_type=MIME_TYPE_JSON)
     return response
 
+def health_endpoint(request: Request) -> Response:
+    return Response(content="1", status_code=HTTPStatus.OK)
+
 
 @_auth_handler
 async def get_virtual_events_endpoint(request: Request, auth_cookies: AuthCookies) -> Response:
@@ -132,6 +135,7 @@ app = Starlette(
     routes=[
         Mount("/static", StaticFiles(directory="eave/dashboard/static")),
         Route(path="/status", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"], endpoint=status_endpoint),
+        Route(path="/healthz", methods=["GET"], endpoint=health_endpoint),
         Route(path="/api/team/virtual-events", methods=["POST"], endpoint=get_virtual_events_endpoint),
         Route(path="/api/team", methods=["POST"], endpoint=get_team_endpoint),
         Route(path="/logout", methods=["GET"], endpoint=logout_endpoint),

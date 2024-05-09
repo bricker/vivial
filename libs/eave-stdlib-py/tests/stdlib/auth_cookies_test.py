@@ -10,7 +10,6 @@ from eave.stdlib.auth_cookies import (
     AUTH_COOKIE_SUFFIX,
     EAVE_ACCESS_TOKEN_COOKIE_NAME,
     EAVE_ACCOUNT_ID_COOKIE_NAME,
-    EAVE_TEAM_ID_COOKIE_NAME,
     delete_auth_cookies,
     get_auth_cookies,
     set_auth_cookies,
@@ -43,10 +42,9 @@ class AuthCookiesTest(AuthCookiesTestBase):
         """
         The auth cookie names may be referenced in client code, eg GTM, so changing them needs consideration.
         """
-        assert AUTH_COOKIE_SUFFIX == ".202311"
-        assert EAVE_ACCOUNT_ID_COOKIE_NAME == "ev_account_id.202311"
-        assert EAVE_TEAM_ID_COOKIE_NAME == "ev_team_id.202311"
-        assert EAVE_ACCESS_TOKEN_COOKIE_NAME == "ev_access_token.202311"
+        assert AUTH_COOKIE_SUFFIX == ".202404"
+        assert EAVE_ACCOUNT_ID_COOKIE_NAME == "ev_account_id.202404"
+        assert EAVE_ACCESS_TOKEN_COOKIE_NAME == "ev_access_token.202404"
 
     async def test_set_auth_cookies_with_all_data(self):
         set_auth_cookies(
@@ -57,23 +55,20 @@ class AuthCookiesTest(AuthCookiesTestBase):
         )
         cookies = [v for k, v in self.mock_response.headers.items() if istr_eq(k, aiohttp.hdrs.SET_COOKIE)]
 
-        assert len(cookies) == 3
+        assert len(cookies) == 2
         assert any(re.search(f"^{EAVE_ACCOUNT_ID_COOKIE_NAME}={self.data_account_id};", v) for v in cookies)
         assert any(re.search(f"^{EAVE_ACCESS_TOKEN_COOKIE_NAME}={self.data_access_token};", v) for v in cookies)
-        assert any(re.search(f"^{EAVE_TEAM_ID_COOKIE_NAME}={self.data_team_id};", v) for v in cookies)
 
     async def test_get_auth_cookies_with_all_data(self):
         cookies = get_auth_cookies(
             cookies={
                 EAVE_ACCOUNT_ID_COOKIE_NAME: self.data_account_id,
                 EAVE_ACCESS_TOKEN_COOKIE_NAME: self.data_access_token,
-                EAVE_TEAM_ID_COOKIE_NAME: self.data_team_id,
             }
         )
 
         assert cookies.account_id == self.data_account_id
         assert cookies.access_token == self.data_access_token
-        assert cookies.team_id == self.data_team_id
 
     async def test_get_auth_cookies_with_simple_cookie(self):
         cookies = get_auth_cookies(
@@ -81,14 +76,12 @@ class AuthCookiesTest(AuthCookiesTestBase):
                 input={
                     EAVE_ACCOUNT_ID_COOKIE_NAME: self.data_account_id,
                     EAVE_ACCESS_TOKEN_COOKIE_NAME: self.data_access_token,
-                    EAVE_TEAM_ID_COOKIE_NAME: self.data_team_id,
                 }
             )
         )
 
         assert cookies.account_id == self.data_account_id
         assert cookies.access_token == self.data_access_token
-        assert cookies.team_id == self.data_team_id
 
     async def test_get_auth_cookies_with_account_id_only(self):
         cookies = get_auth_cookies(
@@ -99,7 +92,6 @@ class AuthCookiesTest(AuthCookiesTestBase):
 
         assert cookies.account_id == self.data_account_id
         assert cookies.access_token is None
-        assert cookies.team_id is None
 
     async def test_get_auth_cookies_with_access_token_only(self):
         cookies = get_auth_cookies(
@@ -110,18 +102,6 @@ class AuthCookiesTest(AuthCookiesTestBase):
 
         assert cookies.account_id is None
         assert cookies.access_token == self.data_access_token
-        assert cookies.team_id is None
-
-    async def test_get_auth_cookies_with_team_id_only(self):
-        cookies = get_auth_cookies(
-            cookies={
-                EAVE_TEAM_ID_COOKIE_NAME: self.data_team_id,
-            }
-        )
-
-        assert cookies.account_id is None
-        assert cookies.access_token is None
-        assert cookies.team_id == self.data_team_id
 
     async def test_get_auth_cookies_with_no_data(self):
         cookies = get_auth_cookies(cookies={})
@@ -132,8 +112,7 @@ class AuthCookiesTest(AuthCookiesTestBase):
     async def test_delete_auth_cookies(self):
         delete_auth_cookies(response=self.mock_response)
         cookies = [v for k, v in self.mock_response.headers.items() if istr_eq(k, aiohttp.hdrs.SET_COOKIE)]
-        assert len(cookies) == 3
+        assert len(cookies) == 2
 
         assert any(re.search(f'^{EAVE_ACCOUNT_ID_COOKIE_NAME}="";', v) for v in cookies)
         assert any(re.search(f'^{EAVE_ACCESS_TOKEN_COOKIE_NAME}="";', v) for v in cookies)
-        assert any(re.search(f'^{EAVE_TEAM_ID_COOKIE_NAME}="";', v) for v in cookies)

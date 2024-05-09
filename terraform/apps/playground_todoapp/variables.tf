@@ -23,19 +23,7 @@ variable "LOG_LEVEL" {
   default = "debug"
 }
 
-variable "docker_repository" {
-  type=object({
-    location=string
-    project=string
-    repository_id=string
-  })
-}
-
 variable "cloudsql_instance_name" {
-  type=string
-}
-
-variable "kube_namespace_name" {
   type=string
 }
 
@@ -45,6 +33,23 @@ variable "dns_zone" {
     dns_name = string
   })
 }
+
+variable "docker_repository" {
+  type=object({
+    location=string
+    project=string
+    repository_id=string
+  })
+}
+
+variable "ssl_policy_name" {
+  type=string
+}
+
+variable "kube_namespace_name" {
+  type=string
+}
+
 
 variable "PLAYGROUND_TODOAPP_EAVE_CREDENTIALS" {
   type=string

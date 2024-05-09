@@ -12,6 +12,7 @@ resource "kubernetes_secret" "shared" {
   }
 }
 
+# This is for Ingress IAP
 resource "kubernetes_secret" "iap_oauth_credentials" {
   metadata {
     name = "iap-oauth-credentials"
@@ -22,5 +23,18 @@ resource "kubernetes_secret" "iap_oauth_credentials" {
   data = {
     client_id = var.IAP_OAUTH_CLIENT_CREDENTIALS.client_id
     client_secret = var.IAP_OAUTH_CLIENT_CREDENTIALS.client_secret
+  }
+}
+
+# This is for Gateway IAP
+resource "kubernetes_secret" "iap_oauth_client_secret" {
+  metadata {
+    name = "iap-oauth-client-secret"
+    namespace = var.kube_namespace_name
+  }
+
+  type = "Opaque"
+  data = {
+    key = var.IAP_OAUTH_CLIENT_CREDENTIALS.client_secret
   }
 }

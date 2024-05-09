@@ -1,6 +1,7 @@
 locals {
   app_name = "core-api"
-  public_domain_prefix = "api"
+  domain_prefix = "api"
+  mbproxy_domain_prefix = "mbproxy"
 
   service_port = {
     name = "http"

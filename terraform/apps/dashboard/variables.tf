@@ -23,6 +23,13 @@ variable "LOG_LEVEL" {
   default = "debug"
 }
 
+variable "dns_zone" {
+  type = object({
+    name     = string
+    dns_name = string
+  })
+}
+
 variable "docker_repository" {
   type=object({
     location=string
@@ -31,13 +38,10 @@ variable "docker_repository" {
   })
 }
 
-variable "kube_namespace_name" {
+variable "ssl_policy_name" {
   type=string
 }
 
-variable "dns_zone" {
-  type = object({
-    name     = string
-    dns_name = string
-  })
+variable "kube_namespace_name" {
+  type=string
 }

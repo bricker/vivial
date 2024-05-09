@@ -25,3 +25,45 @@ resource "kubernetes_service" "app" {
     }
   }
 }
+
+
+# # https://cloud.google.com/kubernetes-engine/docs/how-to/configure-gateway-resources#configure_health_check
+# resource "kubernetes_manifest" "healthcheck_policy" {
+#   manifest = {
+#     apiVersion = "networking.gke.io/v1"
+#     kind       = "HealthCheckPolicy"
+#     metadata = {
+#       name = local.app_name
+#       namespace = var.kube_namespace_name
+
+#       labels = {
+#         app = local.app_name
+#       }
+#     }
+
+#     spec = {
+#       default = {
+#         checkIntervalSec = 30
+#         timeoutSec = 25
+#         healthyThreshold = 1
+#         unhealthyThreshold = 2
+#         logConfig = {
+#           enabled = true
+#         }
+#         config = {
+#           type = "HTTP"
+#           httpHealthCheck = {
+#             portName = local.app_port.name
+#             requestPath = "/healthz"
+#             response = "1"
+#           }
+#         }
+#       }
+
+#       targetRef = {
+#         kind = "Service"
+#         name = kubernetes_service.app.metadata[0].name
+#       }
+#     }
+#   }
+# }
