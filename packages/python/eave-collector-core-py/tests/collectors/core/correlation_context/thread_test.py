@@ -64,9 +64,7 @@ class ThreadedCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
         t1.join()
         t2.join()
 
-        assert (
-            ctx.to_json() == '{"parent": 0, "t1": 1, "t2": 2}'
-        ), "Values set by child threads not found"
+        assert ctx.to_json() == '{"parent": 0, "t1": 1, "t2": 2}', "Values set by child threads not found"
 
     async def test_initialize_from_cookies_performs_union(self) -> None:
         ctx = ThreadedCorrelationContext()
