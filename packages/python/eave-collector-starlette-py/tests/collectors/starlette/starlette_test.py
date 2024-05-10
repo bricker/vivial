@@ -6,7 +6,8 @@ from starlette.responses import PlainTextResponse
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
-from eave.collectors.core.correlation_context.base import CONTEXT_NAME, COOKIE_PREFIX
+from eave.collectors.core.correlation_context import corr_ctx
+from eave.collectors.core.correlation_context.base import COOKIE_PREFIX
 from eave.collectors.core.datastructures import EventPayload, EventType, ServerRequestEventPayload
 from eave.collectors.core.write_queue import BatchWriteQueue, QueueParams
 from eave.collectors.starlette.private.collector import StarletteCollector
@@ -38,9 +39,16 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
         async def test_endpoint(request):
             return PlainTextResponse("Hello!")
 
+        async def ctx_set_endpoint(request):
+            body = request.query_params
+            for k, v in body.items():
+                corr_ctx.set(k, v)
+            return PlainTextResponse("cookies changed")
+
         app = Starlette(
             routes=[
                 Route("/test", test_endpoint, methods=["GET"]),
+                Route("/set_ctx", ctx_set_endpoint, methods=["GET"]),
             ]
         )
         return app
@@ -76,10 +84,11 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
     async def test_eave_ctx_set_from_cookies(self) -> None:
         # GIVEN eave cookies set on request
         valid_cookie = f"{COOKIE_PREFIX}test_cookie"
+        json_cookie = f"{COOKIE_PREFIX}json"
         non_eave_cookie = "no_eave_prefix"
         ctx_key = "some_ctx_key"
         self._client.cookies.set(valid_cookie, "valid")
-        self._client.cookies.set(CONTEXT_NAME, f'{{"{ctx_key}": 123}}')
+        self._client.cookies.set(json_cookie, f'{{"{ctx_key}": 123}}')
         self._client.cookies.set(non_eave_cookie, "invalid")
 
         # WHEN request made
@@ -92,13 +101,23 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert e.context is not None, "Eave context was expected to be set in the network event"
         assert e.context.get(valid_cookie) == "valid"
         assert e.context.get(non_eave_cookie) is None
-        assert e.context.get(CONTEXT_NAME) == {ctx_key: 123}
+        assert e.context.get(json_cookie) == f'{{"{ctx_key}": 123}}'
 
     async def test_response_cookie_ctx_set(self) -> None:
-        # GIVEN corr ctx changes are made server-side
-        # WHEN response is made
-        resp = self._client.get("/test")
+        # GIVEN there is some ctx cookies that can be changed
+        unchanged_cookie = f"{COOKIE_PREFIX}cookie"
+        changed_cookie = f"{COOKIE_PREFIX}mutable"
+        new_cookie = f"{COOKIE_PREFIX}new"
+        self._client.cookies.set(unchanged_cookie, "valid")
+        self._client.cookies.set(changed_cookie, "change_me")
 
-        # THEN context cookie is set
+        # WHEN corr ctx is changed/created server-side
+        # NOTE: couldnt use post+json body bcus TestClient cannot handle async responses,
+        #       and reading request.json() is async
+        resp = self._client.get(f"/set_ctx?{changed_cookie}=new_value&{new_cookie}=shiny")
+
+        # THEN only changed values are set in cookies
         assert resp is not None
-        assert resp.cookies.get(CONTEXT_NAME) == urllib.parse.quote_plus("{}")
+        assert resp.cookies.get(unchanged_cookie) is None
+        assert resp.cookies.get(changed_cookie) == urllib.parse.quote_plus("new_value")
+        assert resp.cookies.get(new_cookie) == "shiny"
