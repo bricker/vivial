@@ -6,7 +6,8 @@ import * as h from "./helpers.mjs";
  */
 export class CookieManager {
   constructor() {
-    this.SESSION_COOKIE_NAME = "session";
+    this.SESSION_ID_COOKIE_NAME = "session_id";
+    this.VISITOR_ID_COOKIE_NAME = "visitor_id";
     this.CONSENT_COOKIE_NAME = "consent";
     this.COOKIE_CONSENT_COOKIE_NAME = "cookie_consent";
     this.CONSENT_REMOVED_COOKIE_NAME = "consent_removed";
@@ -268,7 +269,7 @@ export class CookieManager {
   }
 
   getSession() {
-    return this.getCookie(this.SESSION_COOKIE_NAME);
+    return this.getCookie(this.SESSION_ID_COOKIE_NAME);
   }
 
   /**
@@ -278,7 +279,7 @@ export class CookieManager {
   resetOrExtendSession() {
     const sessionId = this.getSession() || h.uuidv4();
     this.setCookie(
-      this.SESSION_COOKIE_NAME,
+      this.SESSION_ID_COOKIE_NAME,
       sessionId,
       this.configSessionCookieTimeout,
       this.configCookiePath,
@@ -286,5 +287,14 @@ export class CookieManager {
       this.configCookieIsSecure,
       this.configCookieSameSite,
     );
+  }
+
+  /**
+   * Set visitor ID if it hasnt yet been set.
+   */
+  setVisitorId() {
+    if (!this.getCookie(this.VISITOR_ID_COOKIE_NAME)) {
+      this.setCookie(this.VISITOR_ID_COOKIE_NAME, h.uuidv4());
+    }
   }
 }

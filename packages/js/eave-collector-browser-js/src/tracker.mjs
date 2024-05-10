@@ -171,8 +171,9 @@ export function Tracker(trackerUrl, siteId) {
     // will be only reused if the device is still the same when opening the link.
     // VDI = visitor device identifier
     configVisitorIdUrlParameter = "ev_vid",
-    configVisitorIdKey = "visitor_id",
-    configReferralKey = "referrer",
+    configReferralQueryParamsKey = "referrer_query_params",
+    configReferralTimestampKey = "referrer_timestamp",
+    configReferralUrlKey = "referrer_url",
     // Is performance tracking enabled
     configPerformanceTrackingEnabled = true,
     // will be set to true automatically once the onload event has finished
@@ -1231,32 +1232,28 @@ export function Tracker(trackerUrl, siteId) {
   }
 
   /**
-   * Return referrer attribution data. Also saves that
-   * data to the context cookie if it's a new session.
-   *
-   * @returns {object}
+   * Set referrer attribution data cookies on a new session.
+   * Otherwise, no action taken.
    */
-  function detectReferrerAttribution() {
+  function maybeSetReferrerAttribution() {
     const now = new Date(),
       nowTs = Math.round(now.getTime() / 1000),
       referralUrlMaxLength = 1024,
       cookieSessionValue = cookieManager.getSession(),
       currentUrl = getCurrentUrl();
 
-    let attributionValues = getAttributionInfo();
     let referralUrl = getAttributionReferrerUrl();
-    let referralQueryParams = {};
+    let referralQueryParams = getAttributionReferrerQueryParams();
     const previousReferralUrl = referralUrl;
 
     if (!hasIgnoreReferrerParameter(currentUrl) && !cookieSessionValue) {
-      // TODO: we may never get here if session is always set in tracking setup. call this function in tracking setup?
       // session cookie was not found: we consider this the start of a 'session'
 
       if (
-        h.isObjectEmpty(attributionValues) &&
+        h.isObjectEmpty(referralQueryParams) &&
         configEnableCampaignParameters
       ) {
-        // extract and save all qp
+        // extract and save all current qp
         const urlSearchParams = new URLSearchParams(
           globalThis.eave.windowAlias.location.search,
         );
@@ -1282,24 +1279,21 @@ export function Tracker(trackerUrl, siteId) {
       }
 
       // Set the referral cookie if we have a Referrer URL or query params on initial URL
-      if (referralUrl.length || !h.isObjectEmpty(referralQueryParams)) {
-        cookieManager.setCookie(configReferralKey, {
-          queryParams: referralQueryParams,
-          timestamp: nowTs,
-          url: purify(referralUrl.slice(0, referralUrlMaxLength)),
-        });
+      if (referralUrl.length) {
+        cookieManager.setCookie(
+          configReferralUrlKey,
+          purify(referralUrl.slice(0, referralUrlMaxLength)),
+        );
+        cookieManager.setCookie(configReferralTimestampKey, nowTs);
+      }
+      if (!h.isObjectEmpty(referralQueryParams)) {
+        cookieManager.setCookie(
+          configReferralQueryParamsKey,
+          referralQueryParams,
+        );
+        cookieManager.setCookie(configReferralTimestampKey, nowTs);
       }
     }
-
-    // refetch incase new value was just set in context
-    attributionValues = getAttributionInfo() || {};
-    attributionValues.queryParams = attributionValues?.queryParams ?? {};
-    attributionValues.timestamp = attributionValues?.timestamp ?? nowTs;
-    attributionValues.url =
-      attributionValues?.url ??
-      purify(referralUrl.slice(0, referralUrlMaxLength));
-
-    return attributionValues;
   }
 
   /**
@@ -1309,7 +1303,6 @@ export function Tracker(trackerUrl, siteId) {
     const now = new Date();
     const currentUrl = getCurrentUrl();
     const hasIgnoreReferrerParam = hasIgnoreReferrerParameter(currentUrl);
-    const cookieVisitorId = cookieManager.getCookie(configVisitorIdKey);
     // send charset if document charset is not utf-8. sometimes encoding
     // of urls will be the same as this and not utf-8, which will cause problems
     // do not send charset if it is utf8 since it's assumed by default in eave
@@ -1328,7 +1321,6 @@ export function Tracker(trackerUrl, siteId) {
       m: now.getMinutes(),
       s: now.getSeconds(),
       url: globalThis.eave.encodeWrapper(purify(currentUrl)),
-      visitor_id: cookieVisitorId,
     };
 
     // add current query params
@@ -1344,12 +1336,10 @@ export function Tracker(trackerUrl, siteId) {
       args["cs"] = globalThis.eave.encodeWrapper(charSet);
     }
 
-    // add context data
+    // add eave cookie context data
     for (const [cookieName, cookieValue] of cookieManager.getEaveCookies()) {
       args[cookieName] = cookieValue;
     }
-    // add session ID
-    args["session_id"] = cookieManager.getSession();
 
     var customDimensionIdsAlreadyHandled = [];
     if (customData) {
@@ -2653,17 +2643,6 @@ export function Tracker(trackerUrl, siteId) {
     });
   }
 
-  /**
-   * Set visitor ID if it hasnt yet been set.
-   * Then trys to save eaveContext to cookie, in case
-   * cookie consent has changed.
-   */
-  function setVisitorId() {
-    if (!cookieManager.getCookie(configVisitorIdKey)) {
-      cookieManager.setCookie(configVisitorIdKey, h.uuidv4());
-    }
-  }
-
   /*<DEBUG>*/
   /*
    * Register a test hook. Using eval() permits access to otherwise
@@ -2888,23 +2867,8 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {string} Visitor ID in hexits (or empty string, if not yet known)
    */
   this.getVisitorId = function () {
-    return cookieManager.getCookie(configVisitorIdKey) || "";
+    return cookieManager.getCookie(cookieManager.VISITOR_ID_COOKIE_NAME) || "";
   };
-
-  /**
-   * Get the Attribution information, which is an object that contains
-   * the Referrer used to reach the site as well as the campaign name and keyword
-   * It is useful only when used in conjunction with Tracker API function setAttributionInfo()
-   * To access specific data point, you should use the other functions getAttributionReferrer* and getAttributionCampaign*
-   *
-   * @returns {object|undefined} Attribution data, Example use:
-   *   1) Call globalThis.eave.windowAlias.JSON.stringify(eaveTracker.getAttributionInfo())
-   *   2) Pass this json encoded string to the Tracking API (php or java client): setAttributionInfo()
-   */
-  function getAttributionInfo() {
-    return cookieManager.getCookie(configReferralKey);
-  }
-  this.getAttributionInfo = getAttributionInfo;
 
   /**
    * Get the time at which the referrer (used for Goal Attribution) was detected
@@ -2912,7 +2876,7 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {int} Timestamp or 0 if no referrer currently set
    */
   function getAttributionReferrerTimestamp() {
-    return cookieManager.getCookie(configReferralKey)?.timestamp || 0;
+    return cookieManager.getCookie(configReferralTimestampKey) || 0;
   }
   this.getAttributionReferrerTimestamp = getAttributionReferrerTimestamp;
 
@@ -2922,7 +2886,7 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {string} Raw URL, or empty string '' if no referrer currently set
    */
   function getAttributionReferrerUrl() {
-    return cookieManager.getCookie(configReferralKey)?.url || "";
+    return cookieManager.getCookie(configReferralUrlKey) || "";
   }
   this.getAttributionReferrerUrl = getAttributionReferrerUrl;
 
@@ -2932,7 +2896,7 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {object} map of query param keys and values
    */
   function getAttributionReferrerQueryParams() {
-    return cookieManager.getCookie(configReferralKey)?.queryParams || {};
+    return cookieManager.getCookie(configReferralQueryParamsKey) || {};
   }
   this.getAttributionReferrerQueryParams = getAttributionReferrerQueryParams;
 
@@ -3665,7 +3629,7 @@ export function Tracker(trackerUrl, siteId) {
         this.enableBrowserFeatureDetection();
       }
       if (configTrackerSiteId && hasSentTrackingRequestYet) {
-        setVisitorId();
+        cookieManager.setVisitorId();
 
         // sets attribution cookie, and updates visitorId in the backend
         // because hasSentTrackingRequestYet=true we assume there might not be another tracking
@@ -5156,13 +5120,15 @@ export function Tracker(trackerUrl, siteId) {
   /**
    * Set initial eave tracking cookies as necessary.
    */
-  this.setTrackingCookies = function () {
+  function setTrackingCookies() {
+    // (session_id is reset on every pageView event, which will trigger directly after this)
     // set visitor_id if needed
-    setVisitorId();
+    cookieManager.setVisitorId();
 
     // set referral data, if any
-    detectReferrerAttribution();
-  };
+    maybeSetReferrerAttribution();
+  }
+  this.setTrackingCookies = setTrackingCookies;
 
   /**
    * Mark performance metrics as available, once onload event has finished
@@ -5184,9 +5150,7 @@ export function Tracker(trackerUrl, siteId) {
       }
 
       if (!hasSentTrackingRequestYet) {
-        setVisitorId();
-        // this will set the referrer attribution cookie
-        detectReferrerAttribution();
+        setTrackingCookies();
       }
     },
   });
