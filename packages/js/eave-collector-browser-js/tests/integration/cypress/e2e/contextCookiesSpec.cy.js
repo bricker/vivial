@@ -9,15 +9,13 @@ describe("eave correlation context cookies", () => {
     // GIVEN site has eave script
     cy.interceptAtomIngestion();
 
-    // WHEN site is visited
+    // WHEN site is visited for the first time w/o visitor/session id
     cy.visit(DUMMY_APP_ROOT);
 
-    // THEN page view event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response.body).to.exist;
       // THEN eave generated ctx cookie data is attached to events
-      expect(interception.response.body.data.visitor_id).to.exist;
-      expect(interception.response.body.data.session_id).to.exist;
+      expect(interception.response.body.data._eave_visitor_id).to.exist;
+      expect(interception.response.body.data._eave_session_id).to.exist;
     });
   });
 
@@ -25,13 +23,8 @@ describe("eave correlation context cookies", () => {
     // GIVEN site has existing ctx and sesssion cookies set
     const dummyVisitorId = "dummy-vis-uuid";
     const dummySessionId = "dummy-sess-uuid";
-    cy.setCookie(
-      "_eave_context",
-      JSON.stringify({
-        visitor_id: dummyVisitorId,
-      }),
-    );
-    cy.setCookie("_eave_session", dummySessionId);
+    cy.setCookie("_eave_visitor_id", dummyVisitorId);
+    cy.setCookie("_eave_session_id", dummySessionId);
 
     cy.interceptAtomIngestion();
 
@@ -40,12 +33,11 @@ describe("eave correlation context cookies", () => {
 
     // THEN page view event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response.body).to.exist;
       // THEN eave ctx cookie data is attached to events
-      expect(interception.response.body.data.visitor_id).to.equal(
+      expect(interception.response.body.data._eave_visitor_id).to.equal(
         dummyVisitorId,
       );
-      expect(interception.response.body.data.session_id).to.equal(
+      expect(interception.response.body.data._eave_session_id).to.equal(
         dummySessionId,
       );
     });
