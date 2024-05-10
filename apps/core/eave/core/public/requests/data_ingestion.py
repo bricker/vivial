@@ -1,26 +1,22 @@
-import threading
-from typing import cast, override
-
+import aiohttp
 from asgiref.typing import HTTPScope
-from eave.stdlib.request_state import EaveRequestState
 from starlette.requests import Request
 from starlette.responses import Response
-import aiohttp
 
 from eave.collectors.core.datastructures import DataIngestRequestBody, EventType
 from eave.core.internal import database
 from eave.core.internal.atoms.browser_events import BrowserEventsTableHandle
-from eave.core.internal.atoms.db_events import BigQueryTableHandle, DatabaseEventsTableHandle
+from eave.core.internal.atoms.db_events import DatabaseEventsTableHandle
 from eave.core.internal.atoms.http_client_events import HttpClientEventsTableHandle
 from eave.core.internal.atoms.http_server_events import HttpServerEventsTableHandle
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
+from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib.api_util import get_header_value_or_exception
 from eave.stdlib.exceptions import ForbiddenError, UnauthorizedError
 from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
 from eave.stdlib.http_endpoint import HTTPEndpoint
+from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import ensure_uuid
-
-from eave.core.internal.orm.team import TeamOrm
 
 
 class BrowserDataIngestionEndpoint(HTTPEndpoint):
@@ -62,6 +58,7 @@ class BrowserDataIngestionEndpoint(HTTPEndpoint):
 
         response = Response(status_code=200)
         return response
+
 
 class ServerDataIngestionEndpoint(HTTPEndpoint):
     async def handle(self, request: Request, scope: HTTPScope, state: EaveRequestState) -> Response:

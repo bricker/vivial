@@ -1,4 +1,3 @@
-import unittest.mock
 from http import HTTPStatus
 
 import google.oauth2.credentials

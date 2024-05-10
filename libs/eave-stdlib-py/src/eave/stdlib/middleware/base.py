@@ -1,16 +1,13 @@
-from abc import ABC, abstractmethod
-from typing import Awaitable, Callable, cast
+from abc import ABC
+from collections.abc import Awaitable, Callable
+from typing import cast
 
-import aiohttp
 import asgiref.typing
-from eave.stdlib.exceptions import BadRequestError
-from starlette.requests import Request
 import starlette.types
-from aiohttp.compression_utils import ZLibDecompressor
+from starlette.requests import Request
 
-from eave.stdlib.api_util import get_header_value
-from eave.stdlib.headers import ENCODING_GZIP
 from eave.stdlib.request_state import EaveRequestState
+
 
 class EaveASGIMiddleware(ABC):
     """
@@ -39,7 +36,12 @@ class EaveASGIMiddleware(ABC):
         # Default implementation just continues
         await continue_request()
 
-    async def handle(self, scope: asgiref.typing.Scope, receive: asgiref.typing.ASGIReceiveCallable, send: asgiref.typing.ASGISendCallable) -> None:
+    async def handle(
+        self,
+        scope: asgiref.typing.Scope,
+        receive: asgiref.typing.ASGIReceiveCallable,
+        send: asgiref.typing.ASGISendCallable,
+    ) -> None:
         """
         Lower-level function to do some basic checks and create the Request and EaveRequestState objects.
         """
@@ -66,7 +68,10 @@ class EaveASGIMiddleware(ABC):
         )
 
     async def __call__(
-        self, scope: asgiref.typing.Scope, receive: asgiref.typing.ASGIReceiveCallable, send: asgiref.typing.ASGISendCallable
+        self,
+        scope: asgiref.typing.Scope,
+        receive: asgiref.typing.ASGIReceiveCallable,
+        send: asgiref.typing.ASGISendCallable,
     ) -> None:
         """
         Just casts the scope, receive, and send objects to more useful types.

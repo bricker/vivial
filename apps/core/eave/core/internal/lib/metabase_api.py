@@ -1,18 +1,18 @@
-from dataclasses import dataclass
-from typing import Any, Literal, Self, Type, TypedDict
+from typing import Any, Literal, Self, TypedDict
+
 import aiohttp
-from eave.stdlib.config import SHARED_CONFIG
+
+from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.stdlib.headers import MIME_TYPE_JSON
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.typing import JsonObject
-
-from eave.core.internal.config import CORE_API_APP_CONFIG
 
 # Aliases for readability in types
 MetabaseGroupIdKey = str
 MetabaseDatabaseIdKey = str
 MetabaseDatabaseSchemaIdKey = str
 MetabaseDatabaseTableIdKey = str
+
 
 class MetabaseDatabase(TypedDict, total=False):
     id: int | None
@@ -34,12 +34,14 @@ class MetabaseDatabase(TypedDict, total=False):
     cache_ttl: int | None
     engine: str | None
     details: dict[str, Any] | None
-    schedules: Any | None # dict[str, dict[str, Any]] | None # Using Any to be safe because this field isn't documented.
+    schedules: Any | None  # dict[str, dict[str, Any]] | None # Using Any to be safe because this field isn't documented.
     initial_sync_status: str | None
+
 
 class MetabaseUserGroupMembership(TypedDict, total=False):
     id: int | None
     is_group_manager: bool | None
+
 
 class MetabaseUser(TypedDict, total=False):
     id: int | None
@@ -58,126 +60,134 @@ class MetabaseUser(TypedDict, total=False):
     last_login: str | None
     updated_at: str | None
 
+
 class MetabasePermissionsGroup(TypedDict, total=False):
     id: int | None
     name: str | None
     members: list[MetabaseUser] | None
 
+
 class MetabaseDatabaseActionPermissions(TypedDict, total=False):
     native: str | None
     schemas: str | dict[MetabaseDatabaseSchemaIdKey, dict[MetabaseDatabaseTableIdKey, str | None] | str | None] | None
 
-# This "functional syntax" is necessary because the "data-model" key isn't a valid Python identifier
-MetabaseDatabasePermissions = TypedDict("MetabaseDatabasePermissions", {
-    "details": str | None,
-    "data": MetabaseDatabaseActionPermissions | None,
-    "download": MetabaseDatabaseActionPermissions | None,
-    "data-model": MetabaseDatabaseActionPermissions | None,
-}, total=False)
 
+# This "functional syntax" is necessary because the "data-model" key isn't a valid Python identifier
+MetabaseDatabasePermissions = TypedDict(
+    "MetabaseDatabasePermissions",
+    {
+        "details": str | None,
+        "data": MetabaseDatabaseActionPermissions | None,
+        "download": MetabaseDatabaseActionPermissions | None,
+        "data-model": MetabaseDatabaseActionPermissions | None,
+    },
+    total=False,
+)
 
 
 class MetabasePermissionsGraph(TypedDict, total=False):
     """
-        {
-          "groups": {
-            "1": {
-              "1": { "data": { "schemas": "block" } },
-              "2": { "data": { "schemas": "block" } },
-              "5": { "data": { "schemas": "block" } },
-              "6": { "data": { "schemas": "block" } }
-            },
-            "2": { // group ID
-              "1": { // database ID
-                "data": { "native": "write", "schemas": "all" },
-                "download": { "native": "full", "schemas": "full" },
-                "data-model": { "schemas": "all" },
-                "details": "yes"
-              },
-              "2": {
-                "data": { "native": "write", "schemas": "all" },
-                "download": { "native": "full", "schemas": "full" },
-                "data-model": { "schemas": "all" },
-                "details": "yes"
-              },
-              "5": {
-                "data": { "native": "write", "schemas": "all" },
-                "download": { "native": "full", "schemas": "full" },
-                "data-model": { "schemas": "all" },
-                "details": "yes"
-              },
-              "6": {
-                "data": { "native": "write", "schemas": "all" },
-                "download": { "native": "full", "schemas": "full" },
-                "data-model": { "schemas": "all" },
-                "details": "yes"
-              },
-              "13371337": {
-                "data": { "native": "write", "schemas": "all" },
-                "download": { "native": "full", "schemas": "full" },
-                "data-model": { "schemas": "all" },
-                "details": "yes"
+    {
+      "groups": {
+        "1": {
+          "1": { "data": { "schemas": "block" } },
+          "2": { "data": { "schemas": "block" } },
+          "5": { "data": { "schemas": "block" } },
+          "6": { "data": { "schemas": "block" } }
+        },
+        "2": { // group ID
+          "1": { // database ID
+            "data": { "native": "write", "schemas": "all" },
+            "download": { "native": "full", "schemas": "full" },
+            "data-model": { "schemas": "all" },
+            "details": "yes"
+          },
+          "2": {
+            "data": { "native": "write", "schemas": "all" },
+            "download": { "native": "full", "schemas": "full" },
+            "data-model": { "schemas": "all" },
+            "details": "yes"
+          },
+          "5": {
+            "data": { "native": "write", "schemas": "all" },
+            "download": { "native": "full", "schemas": "full" },
+            "data-model": { "schemas": "all" },
+            "details": "yes"
+          },
+          "6": {
+            "data": { "native": "write", "schemas": "all" },
+            "download": { "native": "full", "schemas": "full" },
+            "data-model": { "schemas": "all" },
+            "details": "yes"
+          },
+          "13371337": {
+            "data": { "native": "write", "schemas": "all" },
+            "download": { "native": "full", "schemas": "full" },
+            "data-model": { "schemas": "all" },
+            "details": "yes"
+          }
+        },
+        "3": {
+          "1": { "data": { "schemas": "block" } },
+          "2": { "data": { "schemas": "block" } },
+          "5": {
+            "data": {
+              "schemas": {
+                "team_4b885eea03f6488b93b186e2eeff5e13": {
+                  "22": "all",
+                  "23": "all",
+                  "25": "all",
+                  "26": "all"
+                }
               }
             },
-            "3": {
-              "1": { "data": { "schemas": "block" } },
-              "2": { "data": { "schemas": "block" } },
-              "5": {
-                "data": {
-                  "schemas": {
-                    "team_4b885eea03f6488b93b186e2eeff5e13": {
-                      "22": "all",
-                      "23": "all",
-                      "25": "all",
-                      "26": "all"
-                    }
-                  }
-                },
-                "download": {
-                  "schemas": {
-                    "team_4b885eea03f6488b93b186e2eeff5e13": {
-                      "22": "limited",
-                      "23": "limited",
-                      "25": "limited",
-                      "26": "limited"
-                    }
-                  }
+            "download": {
+              "schemas": {
+                "team_4b885eea03f6488b93b186e2eeff5e13": {
+                  "22": "limited",
+                  "23": "limited",
+                  "25": "limited",
+                  "26": "limited"
                 }
-              },
-              "6": { "data": { "schemas": "block" } }
-            },
-            "4": {
-              "1": { "data": { "schemas": "block" } },
-              "2": { "data": { "schemas": "block" } },
-              "5": { "data": { "schemas": "all" } },
-              "6": {
-                "download": { "native": "limited", "schemas": "limited" },
-                "data": { "schemas": "all" }
               }
             }
           },
-          "revision": 18,
-          "sandboxes": [],
-          "impersonations": []
+          "6": { "data": { "schemas": "block" } }
+        },
+        "4": {
+          "1": { "data": { "schemas": "block" } },
+          "2": { "data": { "schemas": "block" } },
+          "5": { "data": { "schemas": "all" } },
+          "6": {
+            "download": { "native": "limited", "schemas": "limited" },
+            "data": { "schemas": "all" }
+          }
         }
+      },
+      "revision": 18,
+      "sandboxes": [],
+      "impersonations": []
+    }
     """
 
     groups: dict[MetabaseGroupIdKey, dict[MetabaseDatabaseIdKey, MetabaseDatabasePermissions | None] | None] | None
     revision: int | None
-    sandboxes: Any | None # Field not documented, using Any to be safe
-    impersonations: Any | None # Field not documented, using Any to be safe
+    sandboxes: Any | None  # Field not documented, using Any to be safe
+    impersonations: Any | None  # Field not documented, using Any to be safe
+
 
 class MetabaseDashboard(TypedDict, total=False):
     pass
+
 
 class MetabaseApiClient:
     _base_url: str
     _admin_api_key: str
 
     @classmethod
-    def get_authenticated_client(cls) -> Self:
+    def get_authenticated_client(cls, url: str) -> Self:
         admin_api_key = CORE_API_APP_CONFIG.metabase_admin_api_key
-        metabase_url = SHARED_CONFIG.eave_internal_metabase_base
+        metabase_url = url
         return cls(base_url=metabase_url, admin_api_key=admin_api_key)
 
     def __init__(self, base_url: str, admin_api_key: str) -> None:
@@ -194,10 +204,12 @@ class MetabaseApiClient:
             response_type=MetabaseUser,
             json={
                 "email": email,
-                "user_group_memberships": [{
-                    "id": group_id,
-                    "is_group_manager": False,
-                }]
+                "user_group_memberships": [
+                    {
+                        "id": group_id,
+                        "is_group_manager": False,
+                    }
+                ],
             },
         )
 
@@ -218,14 +230,16 @@ class MetabaseApiClient:
 
         return response
 
-    async def add_user_to_group(self, group_id: int, user_id: int) -> tuple[list[MetabaseUser] | None, aiohttp.ClientResponse]:
+    async def add_user_to_group(
+        self, group_id: int, user_id: int
+    ) -> tuple[list[MetabaseUser] | None, aiohttp.ClientResponse]:
         """
         https://www.metabase.com/docs/latest/api/permissions#post-apipermissionsmembership
         """
         response = await self.request(
             path="/api/permissions/membership",
             method="POST",
-            response_type=None, # Because this one returns a list, we have to parse this response manually
+            response_type=None,  # Because this one returns a list, we have to parse this response manually
             json={
                 "group_id": group_id,
                 "user_id": user_id,
@@ -266,7 +280,9 @@ class MetabaseApiClient:
 
         return response
 
-    async def update_permissions_graph(self, graph: MetabasePermissionsGraph) -> tuple[MetabasePermissionsGraph | None, aiohttp.ClientResponse]:
+    async def update_permissions_graph(
+        self, graph: MetabasePermissionsGraph
+    ) -> tuple[MetabasePermissionsGraph | None, aiohttp.ClientResponse]:
         """
         https://www.metabase.com/docs/latest/api/permissions#put-apipermissionsgraph
         """
@@ -279,7 +295,9 @@ class MetabaseApiClient:
 
         return response
 
-    async def update_execution_permissions_graph(self, graph: MetabasePermissionsGraph) -> tuple[MetabasePermissionsGraph | None, aiohttp.ClientResponse]:
+    async def update_execution_permissions_graph(
+        self, graph: MetabasePermissionsGraph
+    ) -> tuple[MetabasePermissionsGraph | None, aiohttp.ClientResponse]:
         """
         https://www.metabase.com/docs/latest/api/permissions#put-apipermissionsexecutiongraph
         """
@@ -292,7 +310,9 @@ class MetabaseApiClient:
 
         return response
 
-    async def create_database(self, name: str, description: str, engine: str, details: JsonObject) -> tuple[MetabaseDatabase | None, aiohttp.ClientResponse]:
+    async def create_database(
+        self, name: str, description: str, engine: str, details: JsonObject
+    ) -> tuple[MetabaseDatabase | None, aiohttp.ClientResponse]:
         """
         https://www.metabase.com/docs/latest/api/database#post-apidatabase
         """
@@ -310,7 +330,9 @@ class MetabaseApiClient:
 
         return response
 
-    async def update_database(self, id: int, name: str | None = None, description: str | None = None, details: JsonObject | None = None) -> tuple[MetabaseDatabase | None, aiohttp.ClientResponse]:
+    async def update_database(
+        self, id: int, name: str | None = None, description: str | None = None, details: JsonObject | None = None
+    ) -> tuple[MetabaseDatabase | None, aiohttp.ClientResponse]:
         """
         https://www.metabase.com/docs/latest/api/database#put-apidatabaseid
         """
@@ -342,7 +364,9 @@ class MetabaseApiClient:
 
         return response
 
-    async def copy_dashboard(self, from_id: int, to_name: str) -> tuple[MetabaseDashboard | None, aiohttp.ClientResponse]:
+    async def copy_dashboard(
+        self, from_id: int, to_name: str
+    ) -> tuple[MetabaseDashboard | None, aiohttp.ClientResponse]:
         """
         https://www.metabase.com/docs/latest/api/dashboard#post-apidashboardfrom-dashboard-idcopy
         """
@@ -357,7 +381,13 @@ class MetabaseApiClient:
 
         return response
 
-    async def request[T](self, path: str, method: Literal["POST", "GET", "PUT", "PATCH", "DELETE"], response_type: type[T] | None = None, json: Any | None = None) -> tuple[T | None, aiohttp.ClientResponse]:
+    async def request[T](
+        self,
+        path: str,
+        method: Literal["POST", "GET", "PUT", "PATCH", "DELETE"],
+        response_type: type[T] | None = None,
+        json: Any | None = None,
+    ) -> tuple[T | None, aiohttp.ClientResponse]:
         async with aiohttp.ClientSession() as session:
             response = await session.request(
                 method=method,

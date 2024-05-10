@@ -1,6 +1,5 @@
 import json
 import os
-from collections.abc import Mapping
 from functools import cached_property
 from typing import Any
 

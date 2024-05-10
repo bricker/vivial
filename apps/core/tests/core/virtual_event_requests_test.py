@@ -1,10 +1,8 @@
 from http import HTTPStatus
 
-from eave.stdlib.core_api.models.virtual_event import VirtualEventQueryInput
-from eave.stdlib.core_api.operations.team import GetMyTeamRequest
-from eave.stdlib.core_api.operations.virtual_event import GetMyVirtualEventsRequest
-
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
+from eave.stdlib.core_api.models.virtual_event import VirtualEventQueryInput
+from eave.stdlib.core_api.operations.virtual_event import GetMyVirtualEventsRequest
 
 from .base import BaseTestCase
 
@@ -45,7 +43,7 @@ class TestVirtualEventRequests(BaseTestCase):
             ]
 
             self._team2_virtual_events.append(
-            # Create another virtual event only for team2 with different properties
+                # Create another virtual event only for team2 with different properties
                 await VirtualEventOrm.create(
                     session=s,
                     team_id=self._team2.id,
@@ -105,7 +103,6 @@ class TestVirtualEventRequests(BaseTestCase):
         assert len(response_obj.virtual_events) == 2
         assert sorted(e.id for e in response_obj.virtual_events) == sorted(e.id for e in self._team1_virtual_events)
 
-
     async def test_get_virtual_events_with_search_term_team_scope(self) -> None:
         """
         If someone from Team 1 searches for a virtual event owned by Team 2, then there should be no results.
@@ -142,4 +139,3 @@ class TestVirtualEventRequests(BaseTestCase):
         response_obj = GetMyVirtualEventsRequest.ResponseBody(**response.json())
         assert len(response_obj.virtual_events) == 1
         assert response_obj.virtual_events[0].id == self._team2_virtual_events[-1].id
-

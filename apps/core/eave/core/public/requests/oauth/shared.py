@@ -1,18 +1,12 @@
 import datetime
-import http
-import re
 import typing
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 import aiohttp
-from eave.stdlib.api_util import set_redirect
-from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
-from eave.core.internal.lib.metabase_api import MetabaseApiClient
 import oauthlib.common
 from starlette.requests import Request
 from starlette.responses import Response
 
-from eave.core.internal.config import CORE_API_APP_CONFIG
 import eave.core.internal.oauth.state_cookies
 import eave.pubsub_schemas
 import eave.stdlib.analytics
@@ -20,11 +14,13 @@ import eave.stdlib.config
 import eave.stdlib.cookies
 import eave.stdlib.exceptions
 import eave.stdlib.slack
+from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.core.internal.orm.metabase_instance import MetabaseInstanceOrm
 from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib import auth_cookies, utm_cookies
+from eave.stdlib.api_util import set_redirect
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.logging import eaveLogger

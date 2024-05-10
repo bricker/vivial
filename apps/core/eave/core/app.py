@@ -1,16 +1,7 @@
-from typing import cast
-
-from eave.stdlib.middleware.deny_public_request import DenyPublicRequestASGIMiddleware
-from eave.stdlib.middleware.exception_handling import ExceptionHandlingASGIMiddleware
-from eave.stdlib.middleware.logging import LoggingASGIMiddleware
-from eave.stdlib.middleware.read_body import ReadBodyASGIMiddleware
-from eave.stdlib.middleware.request_integrity import RequestIntegrityASGIMiddleware
-from eave.stdlib.util import nand
 import starlette.applications
 import starlette.endpoints
 from asgiref.typing import ASGI3Application
 from starlette.routing import Route
-from starlette.types import ASGIApp
 
 import eave.stdlib.time
 from eave.core.internal.oauth.google import (
@@ -25,7 +16,12 @@ from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.core_api.operations.account import GetMyAccountRequest
 from eave.stdlib.core_api.operations.team import GetMyTeamRequest
 from eave.stdlib.core_api.operations.virtual_event import GetMyVirtualEventsRequest
+from eave.stdlib.middleware.deny_public_request import DenyPublicRequestASGIMiddleware
+from eave.stdlib.middleware.exception_handling import ExceptionHandlingASGIMiddleware
+from eave.stdlib.middleware.logging import LoggingASGIMiddleware
 from eave.stdlib.middleware.origin import OriginASGIMiddleware
+from eave.stdlib.middleware.read_body import ReadBodyASGIMiddleware
+from eave.stdlib.middleware.request_integrity import RequestIntegrityASGIMiddleware
 
 from .internal.database import async_engine
 from .public.exception_handlers import exception_handlers
@@ -161,21 +157,19 @@ def make_route(
 
     endpoint = LoggingASGIMiddleware(app=endpoint)
     endpoint = RequestIntegrityASGIMiddleware(app=endpoint)
-    endpoint = ExceptionHandlingASGIMiddleware(app=endpoint) # This wraps everything and is the first middleware that gets called.
+    endpoint = ExceptionHandlingASGIMiddleware(
+        app=endpoint
+    )  # This wraps everything and is the first middleware that gets called.
 
     # ^^ When deciding the order of middlewares, start here and go up ^^
 
-    return Route(
-        path=config.path,
-        methods=[config.method],
-        endpoint=endpoint
-    )
+    return Route(path=config.path, methods=[config.method], endpoint=endpoint)
+
 
 routes = [
     ##
     ## Public Endpoints
     ##
-
     Route(
         path="/status",
         endpoint=status.StatusEndpoint,
@@ -234,7 +228,6 @@ routes = [
         ),
         endpoint=google_oauth.GoogleOAuthCallback,
     ),
-
     make_route(
         config=CoreApiEndpointConfiguration(
             path="/favicon.ico",
@@ -244,11 +237,9 @@ routes = [
         ),
         endpoint=noop.NoopEndpoint,
     ),
-
     ##
     ## Internal Endpoints
     ##
-
     make_route(
         config=GetMyTeamRequest.config,
         endpoint=team.GetTeamEndpoint,
@@ -261,7 +252,6 @@ routes = [
         config=GetMyAccountRequest.config,
         endpoint=authed_account.GetAccountEndpoint,
     ),
-
 ]
 
 

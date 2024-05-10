@@ -1,7 +1,8 @@
 import time
-from typing import Awaitable, Callable
-from starlette.requests import Request
+from collections.abc import Awaitable, Callable
+
 import asgiref.typing
+from starlette.requests import Request
 
 from eave.stdlib.request_state import EaveRequestState
 
@@ -31,5 +32,5 @@ class LoggingASGIMiddleware(EaveASGIMiddleware):
         eaveLogger.info(
             f"Server Request End: {state.ctx.eave_request_id}: {scope['method']} {scope['path']}",
             state.ctx,
-            { "request_duration": rend-rstart },
+            {"request_duration": rend - rstart},
         )

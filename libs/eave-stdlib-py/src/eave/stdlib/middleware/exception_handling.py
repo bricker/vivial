@@ -1,9 +1,11 @@
 import http
-from typing import Awaitable, Callable, cast
+from collections.abc import Awaitable, Callable
+from typing import cast
 
 import asgiref.typing
 import starlette.types
 from starlette.requests import Request
+
 from eave.stdlib.request_state import EaveRequestState
 
 from ..api_util import json_response

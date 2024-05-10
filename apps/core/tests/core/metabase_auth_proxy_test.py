@@ -1,30 +1,9 @@
 import http
-import time
 
-import aiohttp
-from eave.stdlib.auth_cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME, EAVE_ACCOUNT_ID_COOKIE_NAME
 from google.cloud import bigquery
-from google.cloud.bigquery.dataset import DatasetReference
 
-from eave.collectors.core.datastructures import (
-    BrowserEventPayload,
-    DatabaseEventPayload,
-    DatabaseOperation,
-    DatabaseStructure,
-    DataIngestRequestBody,
-    EventType,
-    HttpClientEventPayload,
-    HttpServerEventPayload,
-)
-from eave.core.internal.atoms.browser_events import BrowserEventsTableHandle
-from eave.core.internal.atoms.db_events import DatabaseEventsTableHandle
-from eave.core.internal.atoms.http_client_events import HttpClientEventsTableHandle
-from eave.core.internal.atoms.http_server_events import HttpServerEventsTableHandle
-from eave.core.internal.atoms.table_handle import BigQueryTableHandle
-from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
-from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
+from eave.stdlib.auth_cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME, EAVE_ACCOUNT_ID_COOKIE_NAME
 from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
 
 from .base import BaseTestCase
 
@@ -47,7 +26,7 @@ class TestMetabaseEmbeddingSSOEndpoints(BaseTestCase):
             path="/public/mb",
             cookies={
                 EAVE_ACCOUNT_ID_COOKIE_NAME: str(self._account.id),
-                EAVE_ACCESS_TOKEN_COOKIE_NAME: self._account.access_token
+                EAVE_ACCESS_TOKEN_COOKIE_NAME: self._account.access_token,
             },
             payload={
                 "return_to": self.anypath("return_to"),
@@ -55,4 +34,3 @@ class TestMetabaseEmbeddingSSOEndpoints(BaseTestCase):
         )
 
         assert response.status_code == http.HTTPStatus.OK
-

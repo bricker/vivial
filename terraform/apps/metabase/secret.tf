@@ -38,3 +38,23 @@ resource "kubernetes_secret" "iap_oauth_client_secret" {
     key = var.IAP_OAUTH_CLIENT_CREDENTIALS.client_secret
   }
 }
+
+# Individual instance secrets
+resource "kubernetes_secret" "instances" {
+  for_each = var.metabase_instances
+
+  metadata {
+    name = "mb-${each.value.metabase_instance_id}"
+    namespace = var.kube_namespace_name
+
+    labels = {
+      app = "mb-${each.value.metabase_instance_id}"
+    }
+  }
+
+  type = "Opaque"
+  data = {
+    MB_ENCRYPTION_SECRET_KEY = var.MB_INSTANCE_SECRETS[each.key].MB_ENCRYPTION_SECRET_KEY
+    MB_JWT_SHARED_SECRET = var.MB_INSTANCE_SECRETS[each.key].MB_JWT_SHARED_SECRET
+  }
+}

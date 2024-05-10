@@ -46,6 +46,10 @@ variable "ssl_policy_name" {
   type=string
 }
 
+variable "certificate_map_name" {
+  type=string
+}
+
 variable "kube_namespace_name" {
   type=string
 }

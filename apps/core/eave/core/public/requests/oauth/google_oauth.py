@@ -1,9 +1,8 @@
 from typing import cast
 
-from asgiref.typing import HTTPScope
-from eave.stdlib.request_state import EaveRequestState
 import google.oauth2.credentials
 import google.oauth2.id_token
+from asgiref.typing import HTTPScope
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 
@@ -14,6 +13,7 @@ from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.logging import LogContext
+from eave.stdlib.request_state import EaveRequestState
 
 from . import base, shared
 

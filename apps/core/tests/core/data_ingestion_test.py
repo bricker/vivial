@@ -3,7 +3,6 @@ import time
 
 import aiohttp
 from google.cloud import bigquery
-from google.cloud.bigquery.dataset import DatasetReference
 
 from eave.collectors.core.datastructures import (
     BrowserEventPayload,
@@ -19,7 +18,6 @@ from eave.core.internal.atoms.browser_events import BrowserEventsTableHandle
 from eave.core.internal.atoms.db_events import DatabaseEventsTableHandle
 from eave.core.internal.atoms.http_client_events import HttpClientEventsTableHandle
 from eave.core.internal.atoms.http_server_events import HttpServerEventsTableHandle
-from eave.core.internal.atoms.table_handle import BigQueryTableHandle
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.stdlib.config import SHARED_CONFIG
@@ -67,7 +65,9 @@ class TestDataIngestionEndpoints(BaseTestCase):
         return dataset is not None
 
     def _bq_table_exists(self, table_name: str) -> bool:
-        table = EAVE_INTERNAL_BIGQUERY_CLIENT.get_table_or_none(dataset_id=self._team.bq_dataset_id, table_id=table_name)
+        table = EAVE_INTERNAL_BIGQUERY_CLIENT.get_table_or_none(
+            dataset_id=self._team.bq_dataset_id, table_id=table_name
+        )
         return table is not None
 
     async def _client_credentials_used(self) -> bool:
@@ -125,7 +125,7 @@ class TestDataIngestionEndpoints(BaseTestCase):
         )
 
         assert response.status_code == http.HTTPStatus.OK
-        assert (await self._client_credentials_used())
+        assert await self._client_credentials_used()
 
     async def test_server_insert_with_no_events_doesnt_lazy_create_anything(self) -> None:
         response = await self.make_request(
@@ -205,7 +205,7 @@ class TestDataIngestionEndpoints(BaseTestCase):
         assert self._bq_table_exists(HttpServerEventsTableHandle.table_def.table_id)
         assert self._bq_table_exists(HttpClientEventsTableHandle.table_def.table_id)
         assert self._bq_table_exists(BrowserEventsTableHandle.table_def.table_id)
-        assert (await self._client_credentials_used())
+        assert await self._client_credentials_used()
 
     async def test_browser_insert_endpoint(self) -> None:
         assert not self._bq_team_dataset_exists()
@@ -220,7 +220,7 @@ class TestDataIngestionEndpoints(BaseTestCase):
             },
             payload=DataIngestRequestBody(
                 events={
-                    EventType.http_server_event: [ # This should be ignored by the server
+                    EventType.http_server_event: [  # This should be ignored by the server
                         HttpServerEventPayload(
                             context=None,
                             request_method="GET",
@@ -240,12 +240,10 @@ class TestDataIngestionEndpoints(BaseTestCase):
         )
 
         assert response.status_code == http.HTTPStatus.OK
-        assert (await self._client_credentials_used())
+        assert await self._client_credentials_used()
         assert self._bq_team_dataset_exists()
         assert self._bq_table_exists(BrowserEventsTableHandle.table_def.table_id)
         assert not self._bq_table_exists(HttpServerEventsTableHandle.table_def.table_id)
-
-
 
     async def test_browser_insert_endpoint_with_invalid_client_id(self) -> None:
         response = await self.make_request(
@@ -304,10 +302,7 @@ class TestDataIngestionEndpoints(BaseTestCase):
 
         response = await self.make_request(
             path="/public/ingest/browser",
-            headers={
-                EAVE_CLIENT_ID_HEADER: str(ro_creds.id),
-                aiohttp.hdrs.ORIGIN: self._team.allowed_origins[0]
-            },
+            headers={EAVE_CLIENT_ID_HEADER: str(ro_creds.id), aiohttp.hdrs.ORIGIN: self._team.allowed_origins[0]},
             payload=DataIngestRequestBody(events={}).to_dict(),
         )
 

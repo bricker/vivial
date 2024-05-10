@@ -1,10 +1,10 @@
 variable "MB_SHARED_SECRETS" {
-  type = any
+  type = map(string)
   sensitive = true
 }
 
 variable "MB_INSTANCE_SECRETS" {
-  type = any
+  type = map(map(string))
   sensitive = true
 }
 
@@ -18,4 +18,5 @@ variable "IAP_OAUTH_CLIENT_CREDENTIALS" {
     client_id=string
     client_secret=string
   })
+  sensitive = true
 }

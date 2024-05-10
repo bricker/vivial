@@ -1,18 +1,20 @@
-resource "kubernetes_deployment" "app" {
+resource "kubernetes_deployment" "instances" {
+  for_each = var.metabase_instances
+
   wait_for_rollout = false
 
   metadata {
-    name = local.app_name
+    name = "mb-${each.value.metabase_instance_id}"
     namespace = var.kube_namespace_name
     labels = {
-      app = local.app_name
+      app = "mb-${each.value.metabase_instance_id}"
     }
   }
 
   spec {
     selector {
       match_labels = {
-        app = local.app_name
+        app = "mb-${each.value.metabase_instance_id}"
       }
     }
 
@@ -26,13 +28,13 @@ resource "kubernetes_deployment" "app" {
 
     template {
       metadata {
-        name = local.app_name
+        name = "mb-${each.value.metabase_instance_id}"
         labels = {
-          app = local.app_name
+          app = "mb-${each.value.metabase_instance_id}"
         }
       }
       spec {
-        service_account_name = module.service_accounts.ksa_name
+        service_account_name = module.service_accounts[each.key].ksa_name
 
         # Necessary to prevent perpetual diff
         # https://github.com/hashicorp/terraform-provider-kubernetes/pull/2380
@@ -76,32 +78,27 @@ resource "kubernetes_deployment" "app" {
 
           env_from {
             secret_ref {
-              name = var.shared_metabase_secret_name
+              name = kubernetes_secret.shared.metadata[0].name
             }
           }
           env_from {
             secret_ref {
-              name = kubernetes_secret.app.metadata[0].name
+              name = kubernetes_secret.instances[each.key].metadata[0].name
             }
           }
           env_from {
             config_map_ref {
-              name = var.shared_metabase_config_map_name
-            }
-          }
-          env_from {
-            config_map_ref {
-              name = kubernetes_config_map.app.metadata[0].name
+              name = kubernetes_config_map.shared.metadata[0].name
             }
           }
 
           env {
             name = "MB_DB_DBNAME"
-            value = google_sql_database.app.name
+            value = google_sql_database.instances[each.key].name
           }
           env {
             name = "MB_DB_USER"
-            value = google_sql_user.app.name
+            value = google_sql_user.instances[each.key].name
           }
           env {
             name = "MB_DB_TYPE"

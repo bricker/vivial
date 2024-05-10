@@ -1,25 +1,24 @@
-from http import HTTPStatus
 import json
-import unittest.mock
+from http import HTTPStatus
 
 import aiohttp
-
-from aiohttp.compression_utils import ZLibCompressor
-from aiohttp.hdrs import METH_GET, METH_PATCH, METH_POST, METH_PUT
-from eave.stdlib.core_api.operations.status import Status
-from eave.stdlib.headers import ENCODING_GZIP, MIME_TYPE_JSON, MIME_TYPE_TEXT
-from eave.stdlib.middleware.read_body import ReadBodyASGIMiddleware
-from eave.stdlib.testing_util import UtilityBaseTestCase
-from httpx import AsyncClient
 import starlette.applications
+from aiohttp.compression_utils import ZLibCompressor
+from httpx import AsyncClient
 from starlette.routing import Route
 
-from .dummy_endpoints import DummyEndpoint, EchoGetEndpoint, EchoPatchEndpoint, EchoPostEndpoint, EchoPutEndpoint
-from .base import StdlibBaseTestCase
+from eave.stdlib.headers import ENCODING_GZIP
+from eave.stdlib.middleware.read_body import ReadBodyASGIMiddleware
 
-huge_payload = json.dumps({
-    "a": "b" * (pow(10, 6) * 2) # 2mb worth of "b"
-})
+from .base import StdlibBaseTestCase
+from .dummy_endpoints import DummyEndpoint, EchoGetEndpoint, EchoPatchEndpoint, EchoPostEndpoint, EchoPutEndpoint
+
+huge_payload = json.dumps(
+    {
+        "a": "b" * (pow(10, 6) * 2)  # 2mb worth of "b"
+    }
+)
+
 
 class TestReadBodyASGIMiddleware(StdlibBaseTestCase):
     async def asyncSetUp(self) -> None:
@@ -39,8 +38,6 @@ class TestReadBodyASGIMiddleware(StdlibBaseTestCase):
             base_url="http://eave.tests",
         )
 
-
-
     async def test_body_reader_with_valid_post_request(self) -> None:
         body = self.anyjson()
 
@@ -54,9 +51,7 @@ class TestReadBodyASGIMiddleware(StdlibBaseTestCase):
 
     async def test_body_reader_with_valid_post_request_without_body(self) -> None:
         response = await self.httpclient.request(
-            method=EchoPostEndpoint.config.method,
-            url=EchoPostEndpoint.config.path,
-            content=""
+            method=EchoPostEndpoint.config.method, url=EchoPostEndpoint.config.path, content=""
         )
 
         assert response.status_code == HTTPStatus.OK

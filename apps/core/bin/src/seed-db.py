@@ -70,16 +70,9 @@ async def seed_table_entries_for_team(team_id: uuid.UUID, row: int, session: Asy
     creds.scope = ClientScope.read
     await session.flush()
 
-    mb_inst = await MetabaseInstanceOrm.create(
+    await MetabaseInstanceOrm.create(
         session=session,
         team_id=team_id,
-    )
-
-    await MetabaseInstanceOrm.query(session=session, params=MetabaseInstanceOrm.QueryParams(team_id=team_id))
-
-    mb_inst.update(
-        session=session,
-        route_id=uuid.uuid4(),
     )
 
     for eavent in range(30):

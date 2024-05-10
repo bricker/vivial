@@ -1,4 +1,3 @@
-from typing import override
 from asgiref.typing import HTTPScope
 from starlette.requests import Request
 from starlette.responses import Response

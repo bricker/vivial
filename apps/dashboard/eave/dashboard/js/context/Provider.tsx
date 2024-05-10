@@ -1,9 +1,9 @@
-import React, { createContext, useState } from "react";
 import {
   DashboardNetworkState,
   DashboardTeam,
   GlossaryNetworkState,
 } from "$eave-dashboard/js/types";
+import React, { createContext, useState } from "react";
 
 export type AppContextProps = {
   teamCtx?: [

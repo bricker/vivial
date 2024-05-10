@@ -1,5 +1,6 @@
+from collections.abc import Awaitable, Callable
 from http import HTTPStatus
-from typing import Awaitable, Callable, cast
+from typing import cast
 
 import asgiref.typing
 import starlette.types
@@ -15,7 +16,6 @@ import eave.stdlib.headers
 from eave.core.internal.orm.account import AccountOrm
 from eave.stdlib.api_util import get_bearer_token
 from eave.stdlib.auth_cookies import delete_auth_cookies, get_auth_cookies, set_auth_cookies
-from eave.stdlib.core_api.operations import EndpointConfiguration
 from eave.stdlib.exceptions import UnauthorizedError
 from eave.stdlib.logging import LogContext, eaveLogger
 from eave.stdlib.middleware.base import EaveASGIMiddleware
@@ -53,9 +53,7 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
             if account_id is None or access_token is None:
                 raise UnauthorizedError("missing auth")
 
-            account = await self._verify_auth(
-                account_id_header=account_id, access_token=access_token, ctx=state.ctx
-            )
+            account = await self._verify_auth(account_id_header=account_id, access_token=access_token, ctx=state.ctx)
             state.ctx.eave_account_id = str(account.id)
             state.ctx.eave_team_id = str(account.team_id)
 

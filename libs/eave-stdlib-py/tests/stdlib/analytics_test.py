@@ -11,6 +11,7 @@ from eave.stdlib import analytics
 from eave.stdlib.config import EaveEnvironment
 from eave.stdlib.core_api.models.account import AnalyticsAccount, AuthProvider
 from eave.stdlib.core_api.models.team import AnalyticsTeam
+
 from .base import StdlibBaseTestCase
 
 mut = analytics.__name__

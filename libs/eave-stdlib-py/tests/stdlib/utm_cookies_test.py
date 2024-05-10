@@ -13,7 +13,9 @@ from eave.stdlib.utm_cookies import (
     get_tracking_cookies,
     set_tracking_cookies,
 )
+
 from .base import StdlibBaseTestCase
+
 
 class UtmCookiesTestBase(StdlibBaseTestCase):
     async def asyncSetUp(self) -> None:

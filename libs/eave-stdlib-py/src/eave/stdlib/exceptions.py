@@ -87,7 +87,9 @@ class RequestEntityTooLargeError(HTTPException):
         headers: dict[str, str] | None = None,
         request_id: str | None = None,
     ) -> None:
-        super().__init__(status_code=HTTPStatus.REQUEST_ENTITY_TOO_LARGE, detail=detail, headers=headers, request_id=request_id)
+        super().__init__(
+            status_code=HTTPStatus.REQUEST_ENTITY_TOO_LARGE, detail=detail, headers=headers, request_id=request_id
+        )
 
 
 class UnprocessableEntityError(HTTPException):
@@ -97,7 +99,9 @@ class UnprocessableEntityError(HTTPException):
         headers: dict[str, str] | None = None,
         request_id: str | None = None,
     ) -> None:
-        super().__init__(status_code=HTTPStatus.UNPROCESSABLE_ENTITY, detail=detail, headers=headers, request_id=request_id)
+        super().__init__(
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY, detail=detail, headers=headers, request_id=request_id
+        )
 
 
 class InternalServerError(HTTPException):

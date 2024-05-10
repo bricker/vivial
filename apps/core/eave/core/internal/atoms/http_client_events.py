@@ -1,15 +1,12 @@
-import json
-from textwrap import dedent
 from typing import Any, override
 
 from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
 
-from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseStructure, HttpClientEventPayload, HttpServerEventPayload
-from eave.core.internal import database
+from eave.collectors.core.datastructures import (
+    HttpClientEventPayload,
+)
+
 from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
-from eave.core.internal.orm.virtual_event import VirtualEventOrm, make_virtual_event_readable_name
-from eave.stdlib.logging import LOGGER
-from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize
 
 
 class HttpClientEventsTableHandle(BigQueryTableHandle):

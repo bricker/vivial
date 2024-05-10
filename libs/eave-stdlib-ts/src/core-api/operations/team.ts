@@ -9,7 +9,9 @@ export class GetMyTeamRequest {
     originRequired: true,
   });
 
-  static async perform(args: RequestArgsAuthedRequest): Promise<GetTeamResponseBody> {
+  static async perform(
+    args: RequestArgsAuthedRequest,
+  ): Promise<GetTeamResponseBody> {
     const resp = await makeRequest({
       config: this.config,
       ...args,

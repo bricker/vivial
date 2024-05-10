@@ -8,7 +8,9 @@ from starlette.responses import Response
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
 from eave.stdlib.util import istr_eq
+
 from .base import StdlibBaseTestCase
+
 
 class CookiesTestBase(StdlibBaseTestCase):
     async def asyncSetUp(self) -> None:

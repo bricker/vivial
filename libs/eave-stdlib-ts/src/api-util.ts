@@ -145,7 +145,7 @@ export abstract class ApiEndpointServerConfiguration extends ApiEndpointClientCo
       method,
       authRequired,
       originRequired,
-    })
+    });
 
     this.isPublic = isPublic;
   }

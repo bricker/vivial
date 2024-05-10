@@ -76,6 +76,7 @@ def json_response(model: pydantic.BaseModel, status_code: int = http.HTTPStatus.
     response = Response(status_code=status_code, content=model.json(), media_type=MIME_TYPE_JSON)
     return response
 
+
 def set_redirect(response: Response, location: str) -> Response:
     response.headers[aiohttp.hdrs.LOCATION] = location
     response.status_code = http.HTTPStatus.TEMPORARY_REDIRECT

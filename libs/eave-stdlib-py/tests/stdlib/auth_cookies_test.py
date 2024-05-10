@@ -15,7 +15,9 @@ from eave.stdlib.auth_cookies import (
     set_auth_cookies,
 )
 from eave.stdlib.util import istr_eq
+
 from .base import StdlibBaseTestCase
+
 
 class AuthCookiesTestBase(StdlibBaseTestCase):
     async def asyncSetUp(self) -> None:

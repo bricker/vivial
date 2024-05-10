@@ -6,7 +6,6 @@ from typing import Any, Protocol, TypeVar
 from uuid import UUID
 
 import aiohttp
-from eave.stdlib.util import ensure_uuid
 import pydantic
 import sqlalchemy
 import sqlalchemy.orm
@@ -33,10 +32,8 @@ from eave.stdlib.headers import (
     EAVE_ACCOUNT_ID_HEADER,
     EAVE_ORIGIN_HEADER,
     EAVE_REQUEST_ID_HEADER,
-    EAVE_SIG_TS_HEADER,
-    EAVE_SIGNATURE_HEADER,
-    EAVE_TEAM_ID_HEADER,
 )
+from eave.stdlib.util import ensure_uuid
 
 
 class AnyStandardOrm(Protocol):
@@ -204,11 +201,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         return response
 
     async def make_team(self, session: AsyncSession) -> TeamOrm:
-        team = await TeamOrm.create(
-            session=session,
-            name=self.anystr(),
-            allowed_origins_csv="eave.tests"
-        )
+        team = await TeamOrm.create(session=session, name=self.anystr(), allowed_origins_csv="eave.tests")
 
         return team
 

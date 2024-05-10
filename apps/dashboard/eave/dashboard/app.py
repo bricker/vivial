@@ -21,7 +21,7 @@ from eave.stdlib.core_api.operations.status import status_payload
 from eave.stdlib.endpoints import BaseResponseBody
 from eave.stdlib.exceptions import UnauthorizedError
 from eave.stdlib.headers import MIME_TYPE_JSON
-from eave.stdlib.util import ensure_uuid, unwrap
+from eave.stdlib.util import unwrap
 from eave.stdlib.utm_cookies import set_tracking_cookies
 
 from .config import DASHBOARD_APP_CONFIG
@@ -51,6 +51,7 @@ def status_endpoint(request: Request) -> Response:
     model = status_payload()
     response = Response(content=model.json(), status_code=HTTPStatus.OK, media_type=MIME_TYPE_JSON)
     return response
+
 
 def health_endpoint(request: Request) -> Response:
     return Response(content="1", status_code=HTTPStatus.OK)
@@ -125,7 +126,9 @@ def _make_response(eave_response: BaseResponseBody) -> Response:
     if eave_response.cookies:
         cookies = get_auth_cookies(cookies=eave_response.cookies)
         set_auth_cookies(
-            response=response, access_token=cookies.access_token, account_id=cookies.account_id, team_id=cookies.team_id
+            response=response,
+            access_token=cookies.access_token,
+            account_id=cookies.account_id,
         )
 
     return response
@@ -134,7 +137,11 @@ def _make_response(eave_response: BaseResponseBody) -> Response:
 app = Starlette(
     routes=[
         Mount("/static", StaticFiles(directory="eave/dashboard/static")),
-        Route(path="/status", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"], endpoint=status_endpoint),
+        Route(
+            path="/status",
+            methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
+            endpoint=status_endpoint,
+        ),
         Route(path="/healthz", methods=["GET"], endpoint=health_endpoint),
         Route(path="/api/team/virtual-events", methods=["POST"], endpoint=get_virtual_events_endpoint),
         Route(path="/api/team", methods=["POST"], endpoint=get_team_endpoint),

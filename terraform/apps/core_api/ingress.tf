@@ -134,7 +134,19 @@ resource "kubernetes_ingress_v1" "app" {
             service {
               name = kubernetes_service.app.metadata[0].name
               port {
-                name = local.service_port.name
+                name = kubernetes_service.app.spec[0].port[0].name
+              }
+            }
+          }
+        }
+        path {
+          path = "/healthz"
+          path_type = "Exact"
+          backend {
+            service {
+              name = kubernetes_service.app.metadata[0].name
+              port {
+                name = kubernetes_service.app.spec[0].port[0].name
               }
             }
           }
@@ -146,7 +158,7 @@ resource "kubernetes_ingress_v1" "app" {
             service {
               name = kubernetes_service.app.metadata[0].name
               port {
-                name = local.service_port.name
+                name = kubernetes_service.app.spec[0].port[0].name
               }
             }
           }
@@ -158,7 +170,7 @@ resource "kubernetes_ingress_v1" "app" {
             service {
               name = kubernetes_service.app.metadata[0].name
               port {
-                name = local.service_port.name
+                name = kubernetes_service.app.spec[0].port[0].name
               }
             }
           }
@@ -170,7 +182,7 @@ resource "kubernetes_ingress_v1" "app" {
             service {
               name = kubernetes_service.app.metadata[0].name
               port {
-                name = local.service_port.name
+                name = kubernetes_service.app.spec[0].port[0].name
               }
             }
           }

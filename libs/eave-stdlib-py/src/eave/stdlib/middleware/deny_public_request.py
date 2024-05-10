@@ -1,14 +1,11 @@
-from typing import Awaitable, Callable
-from starlette.requests import Request
-import asgiref.typing
-import starlette.types
+from collections.abc import Awaitable, Callable
 
-from eave.stdlib.core_api.operations import EndpointConfiguration
+import asgiref.typing
+from starlette.requests import Request
 
 from ..api_util import get_header_value
-from ..eave_origins import EaveApp
-from ..exceptions import InvalidOriginError, MissingRequiredHeaderError, NotFoundError
-from ..headers import EAVE_LB_HEADER, EAVE_ORIGIN_HEADER
+from ..exceptions import NotFoundError
+from ..headers import EAVE_LB_HEADER
 from ..request_state import EaveRequestState
 from .base import EaveASGIMiddleware
 

@@ -1,17 +1,13 @@
-import { createHash } from "crypto";
 import express from "express";
 import { constants as httpConstants } from "node:http2";
 import { v4 as uuidv4 } from "uuid";
 import { EaveApp } from "./eave-origins.js";
-import { InvalidSignatureError } from "./exceptions.js";
-import { LogContext } from "./logging.js";
 
 /*
   These libraries aren't listed in the dependencies for eave-stdlib-ts, because they are development dependencies but this file is exported from this library.
   So when this file is imported, they need to be available from somewhere else (probably the app or repo running the tests).
   These imports will fail in a non-development environment.
 */
-import sinon from "sinon";
 import request from "supertest";
 import {
   EAVE_ACCOUNT_ID_HEADER,
@@ -64,14 +60,12 @@ export async function makeRequest({
   input,
   accessToken,
   headers,
-  audience,
   method = "post",
   origin = EaveApp.eave_dashboard,
   requestId = uuidv4(),
 }: {
   app: express.Express;
   path: string;
-  audience: EaveApp;
   input?: unknown;
   method?: "get" | "post";
   origin?: EaveApp;
@@ -81,7 +75,6 @@ export async function makeRequest({
   requestId?: string;
   headers?: { [key: string]: string };
 }): Promise<request.Test> {
-  const ctx = new LogContext();
   const updatedHeaders: { [key: string]: string } = {};
   const requestAgent = request(app)[method](path).type("json");
 

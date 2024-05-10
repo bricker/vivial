@@ -15,27 +15,6 @@ locals {
   domain = join(".", [local.domain_prefix, trimsuffix(var.dns_zone.dns_name, ".")])
 }
 
-module "metabase_instances" {
-  source = "./instance"
-  for_each = { for instance in var.metabase_instances: instance.metabase_instance_id => instance }
-
-  metabase_instance_id = each.value.metabase_instance_id
-  team_id = each.value.team_id
-  project = var.project
-
-  cloudsql_instance_name = var.cloudsql_instance_name
-
-  kube_namespace_name = var.kube_namespace_name
-  shared_metabase_secret_name = kubernetes_secret.shared.metadata[0].name
-  shared_metabase_config_map_name = kubernetes_config_map.shared.metadata[0].name
-
-  iap_oauth_client_credentials_secret_name = kubernetes_secret.iap_oauth_credentials.metadata[0].name
-  iap_oauth_client_secret_secret_name = kubernetes_secret.iap_oauth_client_secret.metadata[0].name
-  iap_oauth_client_id = var.IAP_OAUTH_CLIENT_CREDENTIALS.client_id
-
-  MB_INSTANCE_SECRETS = var.MB_INSTANCE_SECRETS[each.value.metabase_instance_id]
-}
-
 # This has to be defined outside of the metabase app modules because it's shared by all metabase instances.
 module "metabase_role" {
   source      = "../../modules/custom_role"
@@ -50,7 +29,7 @@ module "metabase_role" {
   ]
 
   members = [
-    for mbid, instance in module.metabase_instances:
-      "serviceAccount:${instance.service_accounts.gsa.email}"
+    for mbid, sa in module.service_accounts:
+      "serviceAccount:${sa.gsa.email}"
   ]
 }

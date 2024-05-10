@@ -6,9 +6,6 @@ import {
   EAVE_ACCOUNT_ID_HEADER,
   EAVE_ORIGIN_HEADER,
   EAVE_REQUEST_ID_HEADER,
-  EAVE_SIGNATURE_HEADER,
-  EAVE_SIG_TS_HEADER,
-  EAVE_TEAM_ID_HEADER,
   MIME_TYPE_JSON,
 } from "./headers.js";
 import { LogContext, eaveLogger } from "./logging.js";

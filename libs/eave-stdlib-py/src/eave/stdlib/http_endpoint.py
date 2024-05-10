@@ -1,15 +1,11 @@
-from abc import abstractmethod
-import abc
 import typing
 
 import asgiref.typing
-from eave.stdlib.request_state import EaveRequestState
 import starlette.types
-from starlette._utils import is_async_callable
-from starlette.concurrency import run_in_threadpool
-from starlette.exceptions import HTTPException
 from starlette.requests import Request
-from starlette.responses import PlainTextResponse, Response
+from starlette.responses import Response
+
+from eave.stdlib.request_state import EaveRequestState
 
 
 class HTTPEndpoint:
@@ -44,11 +40,7 @@ class HTTPEndpoint:
         raise NotImplementedError("HTTPEndpoint.handler")
 
     async def _dispatch(self) -> None:
-        response = await self.handle(
-            request=self.request,
-            scope=self.scope,
-            state=self.state
-        )
+        response = await self.handle(request=self.request, scope=self.scope, state=self.state)
 
         await response(
             typing.cast(starlette.types.Scope, self.scope),

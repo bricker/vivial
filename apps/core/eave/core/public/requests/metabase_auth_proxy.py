@@ -2,24 +2,21 @@ import time
 from urllib.parse import quote, unquote, urlencode, urlparse, urlunparse
 
 import aiohttp
+import jwt
 from aiohttp.hdrs import METH_GET
 from asgiref.typing import HTTPScope
-from eave.stdlib.api_util import set_redirect
-from eave.stdlib.exceptions import NotFoundError, UnauthorizedError
-from eave.stdlib.logging import LOGGER
-import jwt
 from starlette.requests import Request
 from starlette.responses import Response
 
 from eave.core.internal import database
-from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.orm.account import AccountOrm
-from eave.stdlib.config import SHARED_CONFIG
+from eave.core.internal.orm.metabase_instance import MetabaseInstanceOrm
+from eave.stdlib.exceptions import NotFoundError
 from eave.stdlib.http_endpoint import HTTPEndpoint
+from eave.stdlib.logging import LOGGER
 from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import ensure_uuid
 
-from eave.core.internal.orm.metabase_instance import MetabaseInstanceOrm
 
 class MetabaseAuthProxyEndpoint(HTTPEndpoint):
     async def handle(self, request: Request, scope: HTTPScope, state: EaveRequestState) -> Response:
@@ -62,7 +59,7 @@ class MetabaseAuthProxyEndpoint(HTTPEndpoint):
         async with aiohttp.ClientSession() as session:
             # Get the response from Metabase
             response = await session.request(
-                method=METH_GET, # Only GET supported currently
+                method=METH_GET,  # Only GET supported currently
                 url=f"{metabase_instance.internal_base_url}/auth/sso",
                 params={
                     "jwt": full_jwt,
@@ -76,7 +73,11 @@ class MetabaseAuthProxyEndpoint(HTTPEndpoint):
             # Consume the body while the session is still open
             body = await response.read()
 
-        LOGGER.info("metabase response", state.ctx, { "body": str(body), "headers": dict(response.headers), "status": response.status })
+        LOGGER.info(
+            "metabase response",
+            state.ctx,
+            {"body": str(body), "headers": dict(response.headers), "status": response.status},
+        )
 
         response = Response(
             status_code=response.status,

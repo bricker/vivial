@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
 
+import GlossaryIcon from "$eave-dashboard/js/components/Icons/GlossaryIcon";
+import GraphIcon from "$eave-dashboard/js/components/Icons/GraphIcon";
+import SettingsCogIcon from "$eave-dashboard/js/components/Icons/SettingsCogIcon";
+import SignOutIcon from "$eave-dashboard/js/components/Icons/SignOutIcon";
+import TeamIcon from "$eave-dashboard/js/components/Icons/TeamIcon";
+import { theme } from "$eave-dashboard/js/theme";
 import { makeStyles } from "tss-react/mui";
+import NotFound from "../NotFound";
 import Glossary from "./Glossary";
 import Insights from "./Insights";
 import Settings from "./Settings";
@@ -8,13 +15,6 @@ import SidebarNav from "./SidebarNav";
 import Menu from "./SidebarNav/Menu";
 import MenuItem from "./SidebarNav/MenuItem";
 import TeamManagement from "./TeamManagement";
-import { theme } from "$eave-dashboard/js/theme";
-import GraphIcon from "$eave-dashboard/js/components/Icons/GraphIcon";
-import GlossaryIcon from "$eave-dashboard/js/components/Icons/GlossaryIcon";
-import SettingsCogIcon from "$eave-dashboard/js/components/Icons/SettingsCogIcon";
-import TeamIcon from "$eave-dashboard/js/components/Icons/TeamIcon";
-import SignOutIcon from "$eave-dashboard/js/components/Icons/SignOutIcon";
-import NotFound from "../NotFound";
 
 const makeClasses = makeStyles()(() => ({
   desktopContainer: {

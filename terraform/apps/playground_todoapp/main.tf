@@ -1,7 +1,7 @@
 module "service_accounts" {
   source         = "../../modules/gke_app_service_account"
   project     = var.project
-  kube_service_name            = kubernetes_service.app.metadata[0].name
+  kube_service_name            = module.kubernetes_service.name
   kube_namespace_name = var.kube_namespace_name
 }
 
@@ -37,7 +37,7 @@ resource "google_sql_user" "app" {
 }
 
 resource "google_compute_global_address" "default" {
-  name         = "playground-todoapp"
+  name         = local.app_name
   address_type = "EXTERNAL"
 }
 
@@ -51,4 +51,13 @@ resource "google_dns_record_set" "default" {
 
 locals {
   domain = trimsuffix(google_dns_record_set.default.name, ".")
+}
+
+module "certificate" {
+  source = "../../modules/certificate_manager"
+  certificate_map = var.certificate_map_name
+  cert_name = local.app_name
+  entry_name = local.app_name
+  hostname = local.domain
+  domains = [local.domain]
 }

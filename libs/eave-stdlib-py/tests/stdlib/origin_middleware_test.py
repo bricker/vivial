@@ -1,16 +1,16 @@
 import http
 from http import HTTPStatus
 
-from eave.stdlib.core_api.models.error import ErrorResponse
-from eave.stdlib.core_api.operations.status import Status
-from eave.stdlib.core_api.operations.team import GetMyTeamRequest
-from eave.stdlib.eave_origins import EaveApp
-from eave.stdlib.middleware.origin import OriginASGIMiddleware
 from httpx import AsyncClient
 from starlette.applications import Starlette
 from starlette.routing import Route
+
+from eave.stdlib.eave_origins import EaveApp
+from eave.stdlib.middleware.origin import OriginASGIMiddleware
+
 from .base import StdlibBaseTestCase
-from .dummy_endpoints import DummyEndpoint, EchoGetEndpoint, EchoPostEndpoint
+from .dummy_endpoints import EchoGetEndpoint
+
 
 # TODO: Separate tests for testing response status codes. By default, the HTTP client used for tests raises app exceptions.
 # https://github.com/encode/httpx/blob/a682f6f1c7f1c5e10c66ae5bef139aea37ef0c4e/httpx/_transports/asgi.py#L71
@@ -20,8 +20,16 @@ class TestOriginMiddleware(StdlibBaseTestCase):
 
         self.dummy_app = Starlette(
             routes=[
-                Route(methods=[EchoGetEndpoint.config.method], path=f"{EchoGetEndpoint.config.path}/no-origin", endpoint=EchoGetEndpoint),
-                Route(methods=[EchoGetEndpoint.config.method], path=f"{EchoGetEndpoint.config.path}/origin-required", endpoint=OriginASGIMiddleware(app=EchoGetEndpoint))
+                Route(
+                    methods=[EchoGetEndpoint.config.method],
+                    path=f"{EchoGetEndpoint.config.path}/no-origin",
+                    endpoint=EchoGetEndpoint,
+                ),
+                Route(
+                    methods=[EchoGetEndpoint.config.method],
+                    path=f"{EchoGetEndpoint.config.path}/origin-required",
+                    endpoint=OriginASGIMiddleware(app=EchoGetEndpoint),
+                ),
             ],
         )
 
@@ -63,9 +71,7 @@ class TestOriginMiddleware(StdlibBaseTestCase):
         response = await self.httpclient.request(
             method=EchoGetEndpoint.config.method,
             url=f"{EchoGetEndpoint.config.path}/origin-required",
-            headers={
-                "eave-origin": EaveApp.eave_api
-            },
+            headers={"eave-origin": EaveApp.eave_api},
         )
 
         assert response.status_code == http.HTTPStatus.OK

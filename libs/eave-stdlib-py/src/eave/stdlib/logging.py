@@ -1,7 +1,7 @@
 import logging
 import sys
 import uuid
-from logging import LogRecord, Logger
+from logging import Logger, LogRecord
 from typing import Any, Optional, Self, cast
 
 import google.cloud.logging
@@ -78,13 +78,12 @@ class CustomFormatter(logging.Formatter):
 
 
 class CustomFilter(logging.Filter):
-    _whitelist_records = (
-        "eave",
-    )
+    _whitelist_records = ("eave",)
 
     def filter(self, record: LogRecord) -> bool:
         log = super().filter(record)
         return log and record.name in self._whitelist_records
+
 
 class LogContext(JsonObject):
     @classmethod
@@ -201,6 +200,7 @@ if SHARED_CONFIG.monitoring_enabled:
     _gcp_log_client = google.cloud.logging.Client()
     _gcp_log_client.setup_logging(log_level=SHARED_CONFIG.log_level)
 
+
 class EaveLogger:
     _raw_logger: Logger
 
@@ -260,6 +260,7 @@ class EaveLogger:
             ),
             **kwargs,
         }
+
 
 # Should be eave_logger to conform to pep8, but this is already used heavily throughout this project.
 eaveLogger = EaveLogger()  # noqa: N816

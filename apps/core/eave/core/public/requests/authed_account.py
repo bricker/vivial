@@ -1,9 +1,4 @@
-from typing import cast, override
-
 from asgiref.typing import HTTPScope
-from eave.stdlib.api_util import get_bearer_token, get_header_value_or_exception, json_response
-from eave.stdlib.headers import EAVE_ACCOUNT_ID_HEADER
-from eave.stdlib.util import ensure_uuid
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -11,11 +6,13 @@ import eave.core.internal
 import eave.core.public
 from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.team import TeamOrm
+from eave.stdlib.api_util import json_response
 from eave.stdlib.core_api.operations.account import (
     GetMyAccountRequest,
 )
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.request_state import EaveRequestState
+from eave.stdlib.util import ensure_uuid
 
 
 class GetAccountEndpoint(HTTPEndpoint):
@@ -28,7 +25,8 @@ class GetAccountEndpoint(HTTPEndpoint):
                 ),
             )
             eave_team_orm = await TeamOrm.one_or_exception(
-                session=db_session, team_id=eave_account_orm.team_id,
+                session=db_session,
+                team_id=eave_account_orm.team_id,
             )
 
         return json_response(

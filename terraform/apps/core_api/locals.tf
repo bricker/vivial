@@ -1,7 +1,7 @@
 locals {
   app_name = "core-api"
   domain_prefix = "api"
-  mbproxy_domain_prefix = "mbproxy"
+  viz_domain_prefix = "viz"
 
   service_port = {
     name = "http"

@@ -1,244 +1,266 @@
-# # https://cloud.google.com/kubernetes-engine/docs/concepts/gateway-api
+# # # https://cloud.google.com/kubernetes-engine/docs/concepts/gateway-api
 
 
 
-resource "kubernetes_manifest" "gateway" {
-  manifest = {
-    apiVersion = "gateway.networking.k8s.io/v1beta1"
-    kind       = "Gateway"
-    metadata = {
-      name = local.app_name
-      namespace = var.kube_namespace_name
+# resource "kubernetes_manifest" "gateway" {
+#   manifest = {
+#     apiVersion = "gateway.networking.k8s.io/v1beta1"
+#     kind       = "Gateway"
+#     metadata = {
+#       name = local.app_name
+#       namespace = var.kube_namespace_name
 
-      labels = {
-        app = local.app_name
-      }
-    }
+#       annotations = {
+#         "networking.gke.io/certmap": var.certificate_map_name
+#       }
 
-    spec = {
-      # https://cloud.google.com/kubernetes-engine/docs/concepts/gateway-api#gatewayclass
-      gatewayClassName = "gke-l7-global-external-managed"
-      listeners = [
-        {
-          name = "https"
-          protocol = "HTTPS"
-          port = 443
+#       labels = {
+#         app = local.app_name
+#       }
+#     }
 
-          tls = {
-            mode = "Terminate"
-            options = {
-              "networking.gke.io/pre-shared-certs" = kubernetes_manifest.managed_certificate.manifest.metadata.name
-            }
-          }
+#     spec = {
+#       # https://cloud.google.com/kubernetes-engine/docs/concepts/gateway-api#gatewayclass
+#       gatewayClassName = "gke-l7-global-external-managed"
+#       listeners = [
+#         {
+#           name = "https"
+#           protocol = "HTTPS"
+#           port = 443
 
-          allowedRoutes = {
-            kinds = [
-              {
-                kind = "HTTPRoute"
-              }
-            ]
-          }
-        }
-      ]
+#           # This block is not needed because TLS is configured by certificate manager
+#           # tls = {
+#           #   mode = "Terminate"
+#           #   options = {
+#           #     "networking.gke.io/pre-shared-certs" = kubernetes_manifest.managed_certificate.manifest.metadata.name
+#           #   }
+#           # }
 
-      addresses = [
-        {
-          type = "NamedAddress"
-          value = google_compute_global_address.default.name
-        }
-      ]
-    }
-  }
-}
+#           allowedRoutes = {
+#             kinds = [
+#               {
+#                 kind = "HTTPRoute"
+#               }
+#             ]
+#           }
+#         }
+#       ]
 
-
-# https://cloud.google.com/kubernetes-engine/docs/how-to/configure-gateway-resources#configure_ssl_policies
-resource "kubernetes_manifest" "gateway_policy" {
-  manifest = {
-    apiVersion = "networking.gke.io/v1"
-    kind       = "GCPGatewayPolicy"
-    metadata = {
-      name = local.app_name
-      namespace = var.kube_namespace_name
-
-      labels = {
-        app = local.app_name
-      }
-    }
-
-    spec = {
-      default = {
-        sslPolicy = var.ssl_policy_name
-      }
-
-      targetRef = {
-        group = "gateway.networking.k8s.io"
-        kind = "Gateway"
-        name = kubernetes_manifest.gateway.manifest.metadata.name
-      }
-    }
-  }
-}
+#       addresses = [
+#         {
+#           type = "NamedAddress"
+#           value = google_compute_global_address.default.name
+#         }
+#       ]
+#     }
+#   }
+# }
 
 
-resource "kubernetes_manifest" "api_httproute" {
-  manifest = {
-    apiVersion = "gateway.networking.k8s.io/v1beta1"
-    kind       = "HTTPRoute"
-    metadata = {
-      name = local.app_name
-      namespace = var.kube_namespace_name
+# # https://cloud.google.com/kubernetes-engine/docs/how-to/configure-gateway-resources#configure_ssl_policies
+# resource "kubernetes_manifest" "gateway_policy" {
+#   manifest = {
+#     apiVersion = "networking.gke.io/v1"
+#     kind       = "GCPGatewayPolicy"
+#     metadata = {
+#       name = local.app_name
+#       namespace = var.kube_namespace_name
 
-      labels = {
-        app = local.app_name
-      }
-    }
+#       labels = {
+#         app = local.app_name
+#       }
+#     }
 
-    spec = {
-      parentRefs = [
-        {
-          name = kubernetes_manifest.gateway.manifest.metadata.name
-        }
-      ]
+#     spec = {
+#       default = {
+#         sslPolicy = var.ssl_policy_name
+#       }
 
-      hostname = [
-        local.domain
-      ]
+#       targetRef = {
+#         group = "gateway.networking.k8s.io"
+#         kind = "Gateway"
+#         name = kubernetes_manifest.gateway.manifest.metadata.name
+#       }
+#     }
+#   }
+# }
 
-      rules = [
-        {
-          matches = [
-            {
-              path = {
-                type = "PathPrefix"
-                value = ""
-              }
-            }
-          ]
 
-          backendRefs = [
-            {
-              name = kubernetes_service.app.metadata[0].name
-              port = kubernetes_service.app.ports[0].http
-            }
-          ]
+# resource "kubernetes_manifest" "api_httproute" {
+#   manifest = {
+#     apiVersion = "gateway.networking.k8s.io/v1beta1"
+#     kind       = "HTTPRoute"
+#     metadata = {
+#       name = local.app_name
+#       namespace = var.kube_namespace_name
 
-          filters = [
-            {
-              type = "URLRewrite"
-              urlRewrite = {
-                path = {
-                  type = "ReplacePrefixMatch"
-                  replacePrefixMatch = "/"
-                }
-              }
-            },
-            {
-              type = "RequestHeaderModifier"
-              requestHeaderModifier = {
-                add = [
-                  {
-                    name = "eave-lb"
-                    value = "1"
-                  }
-                ]
-              }
-            },
-            {
-              type = "ResponseHeaderModifier"
-              responseHeaderModifier = {
-                set = [
-                  {
-                    name = "server"
-                    value = "n/a"
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    }
-  }
-}
+#       labels = {
+#         app = local.app_name
+#       }
+#     }
 
-resource "kubernetes_manifest" "metabase_httproute" {
-  manifest = {
-    apiVersion = "gateway.networking.k8s.io/v1beta1"
-    kind       = "HTTPRoute"
-    metadata = {
-      name = "metabase-rewrite"
-      namespace = var.kube_namespace_name
+#     spec = {
+#       parentRefs = [
+#         {
+#           name = kubernetes_manifest.gateway.manifest.metadata.name
+#         }
+#       ]
 
-      labels = {
-        app = local.app_name
-      }
-    }
+#       hostnames = [
+#         local.domain
+#       ]
 
-    spec = {
-      parentRefs = [
-        {
-          name = kubernetes_manifest.gateway.manifest.metadata.name
-        }
-      ]
+#       rules = [
+#         {
+#           # These are the only path prefixes that can be accessed throug the load balancer.
+#           # All other path prefixes are considered internal-only and can only be accessed within the cluster.
+#           matches = [
+#             {
+#               path = {
+#                 type = "Exact"
+#                 value = "/status"
+#               }
+#             },
+#             {
+#               path = {
+#                 type = "Exact"
+#                 value = "/healthz"
+#               }
+#             },
+#             {
+#               path = {
+#                 type = "PathPrefix"
+#                 value = "/public"
+#               }
+#             },
+#             {
+#               path = {
+#                 type = "PathPrefix"
+#                 value = "/oauth"
+#               }
+#             },
+#             {
+#               path = {
+#                 type = "Exact"
+#                 value = "/favicon.ico"
+#               }
+#             }
+#           ]
 
-      hostname = [
-        local.mbproxy_domain
-      ]
+#           backendRefs = [
+#             {
+#               name = module.kubernetes_service.name
+#               port = module.kubernetes_service.port.number
+#             }
+#           ]
 
-      rules = [
-        {
-          matches = [
-            {
-              path = {
-                type = "PathPrefix"
-                value = "/"
-              }
-            }
-          ]
+#           filters = [
+#             {
+#               type = "RequestHeaderModifier"
+#               requestHeaderModifier = {
+#                 add = [
+#                   {
+#                     name = "eave-lb"
+#                     value = "1"
+#                   }
+#                 ]
+#               }
+#             },
+#             {
+#               type = "ResponseHeaderModifier"
+#               responseHeaderModifier = {
+#                 set = [
+#                   {
+#                     name = "server"
+#                     value = "n/a"
+#                   }
+#                 ]
+#               }
+#             }
+#           ]
+#         }
+#       ]
+#     }
+#   }
+# }
 
-          backendRefs = [
-            {
-              name = kubernetes_service.app.metadata[0].name
-              port = kubernetes_service.app.ports[0].http
-            }
-          ]
+# resource "kubernetes_manifest" "metabase_httproute" {
+#   manifest = {
+#     apiVersion = "gateway.networking.k8s.io/v1beta1"
+#     kind       = "HTTPRoute"
+#     metadata = {
+#       name = "metabase-rewrite"
+#       namespace = var.kube_namespace_name
 
-          filters = [
-            {
-              type = "URLRewrite"
-              urlRewrite = {
-                path = {
-                  type = "ReplacePrefixMatch"
-                  replacePrefixMatch = "/_/mbproxy"
-                }
-              }
-            },
-            {
-              type = "RequestHeaderModifier"
-              requestHeaderModifier = {
-                add = [
-                  {
-                    name = "eave-lb"
-                    value = "1"
-                  }
-                ]
-              }
-            },
-            {
-              type = "ResponseHeaderModifier"
-              responseHeaderModifier = {
-                set = [
-                  {
-                    name = "server"
-                    value = "n/a"
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    }
-  }
-}
+#       labels = {
+#         app = local.app_name
+#       }
+#     }
+
+#     spec = {
+#       parentRefs = [
+#         {
+#           name = kubernetes_manifest.gateway.manifest.metadata.name
+#         }
+#       ]
+
+#       hostnames = [
+#         local.viz_domain
+#       ]
+
+#       rules = [
+#         {
+#           matches = [
+#             {
+#               path = {
+#                 type = "PathPrefix"
+#                 value = "/"
+#               }
+#             }
+#           ]
+
+#           backendRefs = [
+#             {
+#               name = module.kubernetes_service.name
+#               port = module.kubernetes_service.port.number
+#             }
+#           ]
+
+#           filters = [
+#             {
+#               type = "URLRewrite"
+#               urlRewrite = {
+#                 path = {
+#                   type = "ReplacePrefixMatch"
+#                   replacePrefixMatch = "/_/mbproxy"
+#                 }
+#               }
+#             },
+#             {
+#               type = "RequestHeaderModifier"
+#               requestHeaderModifier = {
+#                 add = [
+#                   {
+#                     name = "eave-lb"
+#                     value = "1"
+#                   }
+#                 ]
+#               }
+#             },
+#             {
+#               type = "ResponseHeaderModifier"
+#               responseHeaderModifier = {
+#                 set = [
+#                   {
+#                     name = "server"
+#                     value = "n/a"
+#                   }
+#                 ]
+#               }
+#             }
+#           ]
+#         }
+#       ]
+#     }
+#   }
+# }

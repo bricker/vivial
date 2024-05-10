@@ -1,4 +1,3 @@
-from typing import override
 from asgiref.typing import HTTPScope
 from starlette.requests import Request
 from starlette.responses import Response
@@ -17,9 +16,7 @@ from eave.stdlib.util import unwrap
 class GetTeamEndpoint(HTTPEndpoint):
     async def handle(self, request: Request, scope: HTTPScope, state: EaveRequestState) -> Response:
         async with database.async_session.begin() as db_session:
-            eave_team_orm = await TeamOrm.one_or_exception(
-                session=db_session, team_id=unwrap(state.ctx.eave_team_id)
-            )
+            eave_team_orm = await TeamOrm.one_or_exception(session=db_session, team_id=unwrap(state.ctx.eave_team_id))
 
         return json_response(
             GetMyTeamRequest.ResponseBody(

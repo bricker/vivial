@@ -77,4 +77,3 @@ class TeamOrm(Base):
 
         split = ",".split(self.allowed_origins_csv)
         return [o.strip() for o in split]
-

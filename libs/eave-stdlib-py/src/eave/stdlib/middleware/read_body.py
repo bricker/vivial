@@ -1,23 +1,28 @@
-from typing import Awaitable, Callable, cast
+from collections.abc import Awaitable, Callable
+
+import aiohttp
+import asgiref.typing
 from aiohttp.compression_utils import ZLibDecompressor
 from aiohttp.hdrs import METH_PATCH, METH_POST, METH_PUT
-import asgiref.typing
+from starlette.requests import Request
+
 from eave.stdlib.api_util import get_header_value
-from eave.stdlib.exceptions import BadRequestError, LengthRequiredError, MissingRequiredHeaderError, RequestEntityTooLargeError, UnprocessableEntityError
+from eave.stdlib.exceptions import (
+    RequestEntityTooLargeError,
+)
 from eave.stdlib.headers import ENCODING_GZIP
 from eave.stdlib.request_state import EaveRequestState
-import starlette.types
-from starlette.requests import Request
-import aiohttp
+
 from .base import EaveASGIMiddleware
 
-_REQUEST_BODY_MAX_SIZE = 1 * pow(10, 6) # 1mb
+_REQUEST_BODY_MAX_SIZE = 1 * pow(10, 6)  # 1mb
 
 _BODY_METHODS = [
     METH_POST,
     METH_PUT,
     METH_PATCH,
 ]
+
 
 class ReadBodyASGIMiddleware(EaveASGIMiddleware):
     async def process_request(
@@ -30,8 +35,6 @@ class ReadBodyASGIMiddleware(EaveASGIMiddleware):
         continue_request: Callable[[], Awaitable[None]],
     ) -> None:
         encoding = get_header_value(scope=scope, name=aiohttp.hdrs.CONTENT_ENCODING)
-        content_length_header = get_header_value(scope=scope, name=aiohttp.hdrs.CONTENT_LENGTH)
-
         body = b""
 
         if scope["method"] in _BODY_METHODS:

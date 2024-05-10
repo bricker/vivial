@@ -1,6 +1,12 @@
 resource "kubernetes_deployment" "app" {
   wait_for_rollout = false
 
+  lifecycle {
+    ignore_changes = [
+      spec[0].template[0].metadata[0].annotations["kubectl.kubernetes.io/restartedAt"],
+    ]
+  }
+
   metadata {
     name = local.app_name
     namespace = var.kube_namespace_name
@@ -127,7 +133,7 @@ resource "kubernetes_deployment" "app" {
 
           readiness_probe {
             http_get {
-              path = "/status"
+              path = "/healthz"
               port = local.app_port.name
             }
           }
@@ -135,7 +141,7 @@ resource "kubernetes_deployment" "app" {
           liveness_probe {
             failure_threshold = 5
             http_get {
-              path = "/status"
+              path = "/healthz"
               port = local.app_port.name
             }
           }
