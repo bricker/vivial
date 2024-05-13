@@ -172,54 +172,6 @@ class _EaveConfig(ConfigBase):
     def eave_cookie_domain(self) -> str:
         return self.eave_hostname_public
 
-    # @property
-    # def eave_public_embed_base(self) -> str:
-    #     return os.getenv("EAVE_EMBED_BASE_PUBLIC") or f"https://{self.eave_public_embed_domain}"
-
-    # @property
-    # def eave_public_api_base(self) -> str:
-    #     return os.getenv("EAVE_API_BASE_PUBLIC") or f"https://api.{self.eave_public_root_domain}"
-
-    # @property
-    # def eave_internal_api_base(self) -> str:
-    #     return os.getenv("EAVE_API_BASE_INTERNAL") or f"http://core-api.{self.eave_internal_root_domain}"
-
-    # @property
-    # def eave_public_dashboard_base(self) -> str:
-    #     return os.getenv("EAVE_DASHBOARD_BASE_PUBLIC") or f"https://dashboard.{self.eave_public_root_domain}"
-
-    # @property
-    # def eave_public_root_domain(self) -> str:
-    #     return os.getenv("EAVE_ROOT_DOMAIN") or "eave.fyi"
-
-    # @property
-    # def eave_root_cookie_domain(self) -> str:
-    #     return self.eave_public_root_domain.split(":", maxsplit=1)[0]
-
-    # @property
-    # def eave_public_embed_domain(self) -> str:
-    #     return os.getenv("EAVE_EMBED_ROOT_DOMAIN") or f"embed.{self.eave_public_root_domain}"
-
-    # @property
-    # def eave_embed_cookie_domain(self) -> str:
-    #     return self.eave_public_embed_domain.split(":", maxsplit=1)[0]
-
-    # @property
-    # def eave_internal_root_domain(self) -> str:
-    #     """
-    #     Root domain for accessing internal services.
-    #     Prepend the service name to get the internal service domain, eg `core-api.eave.svc.cluster.local`
-    #     """
-    #     return os.getenv("EAVE_INTERNAL_ROOT_DOMAIN") or "eave.svc.cluster.local"
-
-    # @property
-    # def metabase_internal_root_domain(self) -> str:
-    #     """
-    #     Root domain for accessing internal metabase instances.
-    #     Prepend the metabase instance ID to get the internal metabase service domain, eg `{metabase_instance.id.hex}.eave.svc.cluster.local`
-    #     """
-    #     return os.getenv("METABASE_INTERNAL_ROOT_DOMAIN") or "metabase.svc.cluster.local"
-
     @cached_property
     def redis_connection(self) -> tuple[str, int, str] | None:
         key = "REDIS_HOST_PORT"

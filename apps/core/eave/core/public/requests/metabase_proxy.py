@@ -114,11 +114,6 @@ class MetabaseProxyEndpoint(HTTPEndpoint):
             {"mb": { "headers": dict(mb_response.headers), "status": mb_response.status } },
         )
 
-        # new_headers = MultiDict()
-
-        # if (values := mb_response.headers.getall(aiohttp.hdrs.SET_COOKIE, None)) and len(values) > 0:
-        #     [new_headers.add(aiohttp.hdrs.SET_COOKIE, v) for v in values]
-
         mb_response = Response(
             status_code=mb_response.status,
             content=body,
@@ -182,16 +177,6 @@ class MetabaseAuthEndpoint(HTTPEndpoint):
 
             mb_response.raise_for_status()
 
-            # mb_response = await session.request(
-            #     method=METH_GET,  # Only GET supported currently
-            #     url=f"{metabase_instance.internal_base_url}/api/health",
-            #     allow_redirects=True,
-            # )
-
-            # Consume the body while the session is still open
-            # This is expected to be a redirect request, so no body.
-            # body = await mb_response.read()
-
         LOGGER.info(
             "metabase response",
             ctx,
@@ -216,38 +201,4 @@ class MetabaseAuthEndpoint(HTTPEndpoint):
                     httponly=True,
                 )
 
-        # response = Response(
-        #     status_code=200,
-        #     content="1",
-        # )
-
         return response
-
-    # def _build_qp(self, mb_instance_id: str) -> str:
-    #     # modify metabase UI using query params
-    #     # https://www.metabase.com/docs/latest/embedding/interactive-embedding#showing-or-hiding-metabase-ui-components
-    #     qp = urlencode(
-    #         {
-    #             "top_nav": "true",
-    #             "new_button": "true",
-    #             "logo": "false",
-    #             "side_nav": "false",
-    #             "breadcrumbs": "false",
-    #             "search": "false",
-    #             "header": "true",
-    #             "action_buttons": "true",
-    #         }
-    #     )
-    #     # this must be a relative path to a metabase dashboard
-    #     # https://www.metabase.com/docs/v0.48/embedding/interactive-embedding-quick-start-guide#embed-metabase-in-your-app
-    #     # TODO: if empty default to user's first dash we created
-    #     return_to_str = "/dashboard/1"
-    #     return_to_str = unquote(return_to_str)  # In case return_to qp has its own query params
-    #     return_to_url = urlparse(return_to_str)
-    #     sep = "&" if return_to_url.query else ""
-    #     return_to_url = return_to_url._replace(query=f"{return_to_url.query}{sep}{qp}")
-
-    #     # Now reverse the decoding done above
-    #     return_to_str = urlunparse(return_to_url)
-    #     return_to_str = quote(return_to_str)
-    #     return return_to_str

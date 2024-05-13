@@ -80,23 +80,6 @@ class _AppConfig(ConfigBase):
         return client_id
 
     @cached_property
-    def metabase_ui_bigquery_accessor_gsa_key_json_str(self) -> str:
-        """
-        Service account for Metabase to access BigQuery.
-        """
-        b64encoded = get_secret("METABASE_UI_BIGQUERY_ACCESSOR_GSA_KEY_JSON_B64")
-        json_encoded = b64decode(b64encoded)
-        return json_encoded
-
-    @cached_property
-    def metabase_jwt_key(self) -> str:
-        # This comes from the environment because it's defined as a Kubernetes secret for consumption by the Metabase app.
-        # The alternative is to set the JWT key in both the environment (for Metabase) and Secret Manager (for core API),
-        # and keep them in sync, but it's easier to use a single source.
-        key = "MB_JWT_SHARED_SECRET"
-        return get_required_env(key)
-
-    @cached_property
     def metabase_admin_api_key(self) -> str:
         """
         https://www.metabase.com/docs/latest/people-and-groups/api-keys
