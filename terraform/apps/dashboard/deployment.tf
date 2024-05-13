@@ -116,6 +116,10 @@ resource "kubernetes_deployment" "app" {
           }
 
           readiness_probe {
+            failure_threshold = 2
+            timeout_seconds = 30
+            period_seconds = 30
+            initial_delay_seconds = 15
             http_get {
               path = "/healthz"
               port = local.app_port.name
@@ -124,6 +128,9 @@ resource "kubernetes_deployment" "app" {
 
           liveness_probe {
             failure_threshold = 5
+            timeout_seconds = 30
+            period_seconds = 30
+            initial_delay_seconds = 15
             http_get {
               path = "/healthz"
               port = local.app_port.name

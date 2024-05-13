@@ -15,6 +15,8 @@ import SidebarNav from "./SidebarNav";
 import Menu from "./SidebarNav/Menu";
 import MenuItem from "./SidebarNav/MenuItem";
 import TeamManagement from "./TeamManagement";
+import useAuth from "$eave-dashboard/js/hooks/useAuth";
+import { CircularProgress } from "@mui/material";
 
 const makeClasses = makeStyles()(() => ({
   desktopContainer: {
@@ -31,6 +33,13 @@ const makeClasses = makeStyles()(() => ({
   spacer: {
     flexGrow: 1,
   },
+  loader: {
+    display: "flex",
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 32,
+  },
 }));
 
 function iconColor(isSelected: boolean): "white" | "black" {
@@ -44,6 +53,12 @@ const Dashboard = ({
 }) => {
 
   const { classes } = makeClasses();
+
+  const { userIsAuthed, validateUserAuth } = useAuth();
+
+  useEffect(() => {
+    validateUserAuth();
+  }, [page]);
 
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
   useEffect(() => {
@@ -139,12 +154,22 @@ const Dashboard = ({
       break;
   }
 
-  return (
-    <div className={container}>
-      {nav}
-      {pageComponent}
-    </div>
-  );
+  if (!userIsAuthed) {
+    return (
+      <div className={container}>
+        <div className={classes.loader}>
+          <CircularProgress color="secondary" />
+        </div>
+      </div>
+    );
+  } else {
+    return (
+      <div className={container}>
+        {nav}
+        {pageComponent}
+      </div>
+    );
+  }
 };
 
 export default Dashboard;

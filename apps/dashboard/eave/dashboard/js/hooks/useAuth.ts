@@ -26,6 +26,8 @@ const useAuth = (): AuthedUserHook => {
         if (isHTTPError(resp)) {
           throw resp;
         }
+
+        setUserIsAuthed(true);
       })
       .catch(() => {
         // TODO

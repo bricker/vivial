@@ -3,6 +3,7 @@ from functools import wraps
 from http import HTTPStatus
 
 from aiohttp import ClientResponseError
+from eave.stdlib.core_api.operations.account import GetMyAccountRequest
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
@@ -56,6 +57,15 @@ def status_endpoint(request: Request) -> Response:
 def health_endpoint(request: Request) -> Response:
     return Response(content="1", status_code=HTTPStatus.OK)
 
+@_auth_handler
+async def validate_user_auth_endpoint(request: Request, auth_cookies: AuthCookies) -> Response:
+    await GetMyAccountRequest.perform(
+        origin=DASHBOARD_APP_CONFIG.eave_origin,
+        account_id=unwrap(auth_cookies.account_id),
+        access_token=unwrap(auth_cookies.access_token),
+    )
+
+    return Response(status_code=200)
 
 @_auth_handler
 async def get_virtual_events_endpoint(request: Request, auth_cookies: AuthCookies) -> Response:
@@ -143,6 +153,7 @@ app = Starlette(
             endpoint=status_endpoint,
         ),
         Route(path="/healthz", methods=["GET"], endpoint=health_endpoint),
+        Route(path="/api/auth", methods=["GET"], endpoint=validate_user_auth_endpoint),
         Route(path="/api/team/virtual-events", methods=["POST"], endpoint=get_virtual_events_endpoint),
         Route(path="/api/team", methods=["POST"], endpoint=get_team_endpoint),
         Route(path="/logout", methods=["GET"], endpoint=logout_endpoint),
