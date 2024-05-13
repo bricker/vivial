@@ -1,4 +1,4 @@
-import google_crc32c
+from crc32c import crc32c
 from google.protobuf.wrappers_pb2 import Int64Value
 
 from . import exceptions
@@ -12,9 +12,8 @@ def generate_checksum(data: bytes) -> int:
     Returns:
         An int representing the CRC32C checksum of the provided bytes.
     """
-    crc32c = google_crc32c.Checksum()
-    crc32c.update(data)
-    return int(crc32c.hexdigest(), 16)
+    checksum = crc32c(data)
+    return checksum
 
 
 def validate_checksum_or_exception(data: bytes, checksum: int | Int64Value) -> None:
