@@ -2,25 +2,25 @@ locals {
   domain_prefix = "mb"
 
   service_port = {
-    name = "http"
+    name   = "http"
     number = 80
   }
 
   app_port = {
-    name = "app"
+    name   = "app"
     number = 3000
   }
 
   clousql_proxy_healthcheck_port = {
-    name = "healthcheck"
+    name   = "healthcheck"
     number = 9090
   }
 
   cloudsql_proxy_port = {
-    name = "proxy"
+    name   = "proxy"
     number = 5432
   }
 
-  cloudsql_proxy_version = "latest"
+  cloudsql_proxy_version      = "latest"
   metabase_enterprise_version = "latest"
 }

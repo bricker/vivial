@@ -1,5 +1,5 @@
 from eave.collectors.core.datastructures import EventPayload
-from eave.collectors.core.write_queue import WriteQueue, BatchWriteQueue, QueueParams
+from eave.collectors.core.write_queue import WriteQueue
 
 
 class EphemeralWriteQueue(WriteQueue):

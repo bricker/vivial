@@ -6,7 +6,6 @@ import asgiref.typing
 import starlette.types
 from starlette.requests import Request
 
-
 from ..api_util import json_response
 from ..config import SHARED_CONFIG
 from ..core_api.models.error import ErrorResponse

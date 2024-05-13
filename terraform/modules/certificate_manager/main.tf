@@ -1,36 +1,36 @@
 variable "certificate_map" {
-  type=string
+  type = string
 }
 
 variable "cert_name" {
-  type=string
+  type = string
 }
 
 variable "entry_name" {
-  type=string
+  type = string
 }
 
 variable "hostname" {
-  type=string
+  type = string
 }
 
 variable "domains" {
-  type=list(string)
+  type        = list(string)
   description = "If not given, the hostname will be used"
-  nullable = true
-  default = null
+  nullable    = true
+  default     = null
 }
 
 resource "google_certificate_manager_certificate" "default" {
-  name        = var.cert_name
+  name = var.cert_name
   managed {
     domains = var.domains != null ? var.domains : [var.hostname]
   }
 }
 
 resource "google_certificate_manager_certificate_map_entry" "default" {
-  map         = var.certificate_map
-  name        = var.entry_name
+  map          = var.certificate_map
+  name         = var.entry_name
   certificates = [google_certificate_manager_certificate.default.id]
   hostname     = var.hostname
 }

@@ -1,25 +1,21 @@
 import abc
 import asyncio
 import atexit
-import copy
-import dataclasses
-from enum import StrEnum
 import multiprocessing
 import sys
-from threading import Event
 import threading
 import time
 from dataclasses import dataclass
 from queue import Empty
-from typing import Any
 
 from . import config
-from .datastructures import EventPayload, EventType
+from .datastructures import EventPayload
 from .ingest_api import send_batch
-from .logging import EAVE_LOGGER
 from .json import JsonObject
+from .logging import EAVE_LOGGER
 
 _FAILSAFE_MAX_FAILURES = 10
+
 
 class QueueParams:
     # We use this instead of the Queue `maxsize` parameter so that `put` never blocks or fails
@@ -28,21 +24,20 @@ class QueueParams:
 
     def __init__(self, *, maxsize: int | None = None, flush_frequency_seconds: int | None = None) -> None:
         # Ensure > 0
-        self.maxsize = max(
-            maxsize if maxsize is not None else config.queue_maxsize(),
-            1
-        )
+        self.maxsize = max(maxsize if maxsize is not None else config.queue_maxsize(), 1)
 
         # Ensure not negative
         self.flush_frequency_seconds = max(
             flush_frequency_seconds if flush_frequency_seconds is not None else config.queue_flush_frequency_seconds(),
-            0
+            0,
         )
+
 
 @dataclass
 class QueueItem:
     event_type: str
     payload: str
+
 
 # TODO: sigterm handler
 async def _process_queue(q: multiprocessing.Queue, params: QueueParams, queue_closed_event: threading.Event) -> int:
@@ -106,6 +101,7 @@ def _queue_processor_event_loop(*args, **kwargs) -> None:
     result = asyncio.run(_process_queue(*args, **kwargs))
     sys.exit(result)
 
+
 class WriteQueue(abc.ABC):
     @abc.abstractmethod
     def start_autoflush(self) -> None:
@@ -118,6 +114,7 @@ class WriteQueue(abc.ABC):
     @abc.abstractmethod
     def put(self, payload: EventPayload) -> None:
         ...
+
 
 class BatchWriteQueue(WriteQueue):
     _queue: multiprocessing.Queue

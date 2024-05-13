@@ -4,16 +4,14 @@ import uuid
 from datetime import datetime
 from uuid import UUID
 
-from eave.collectors.core.test_util import EphemeralWriteQueue
 import sqlalchemy
 from sqlalchemy import func, text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, EventPayload, EventType
-from eave.collectors.core.write_queue import BatchWriteQueue, QueueParams
+from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
+from eave.collectors.core.test_util import EphemeralWriteQueue
 from eave.collectors.sqlalchemy.private.collector import SQLAlchemyCollector
-
 
 db_uri = sqlalchemy.engine.url.URL.create(
     drivername="postgresql+asyncpg",

@@ -1,7 +1,7 @@
 variable "project" {
   type = object({
-    id = string
-    root_domain=string
+    id          = string
+    root_domain = string
   })
 }
 
@@ -27,19 +27,19 @@ output "metabase_namespace_name" {
 
 resource "kubernetes_config_map" "shared" {
   metadata {
-    name = "shared"
+    name      = "shared"
     namespace = kubernetes_namespace.eave.metadata[0].name
   }
 
   data = {
     GOOGLE_CLOUD_PROJECT = var.project.id
 
-    EAVE_BASE_URL_PUBLIC = "https://${var.project.root_domain}"
-    EAVE_BASE_URL_INTERNAL = "http://${kubernetes_namespace.eave.metadata[0].name}.svc.cluster.local"
-    EAVE_EMBED_BASE_URL_PUBLIC = "https://embed.${var.project.root_domain}"
-    EAVE_EMBED_BASE_URL_INTERNAL = "http://${kubernetes_namespace.metabase.metadata[0].name}.svc.cluster.local"
-    EAVE_API_BASE_URL_PUBLIC = "https://api.${var.project.root_domain}"
-    EAVE_API_BASE_URL_INTERNAL = "http://core-api.${kubernetes_namespace.eave.metadata[0].name}.svc.cluster.local"
+    EAVE_BASE_URL_PUBLIC           = "https://${var.project.root_domain}"
+    EAVE_BASE_URL_INTERNAL         = "http://${kubernetes_namespace.eave.metadata[0].name}.svc.cluster.local"
+    EAVE_EMBED_BASE_URL_PUBLIC     = "https://embed.${var.project.root_domain}"
+    EAVE_EMBED_BASE_URL_INTERNAL   = "http://${kubernetes_namespace.metabase.metadata[0].name}.svc.cluster.local"
+    EAVE_API_BASE_URL_PUBLIC       = "https://api.${var.project.root_domain}"
+    EAVE_API_BASE_URL_INTERNAL     = "http://core-api.${kubernetes_namespace.eave.metadata[0].name}.svc.cluster.local"
     EAVE_DASHBOARD_BASE_URL_PUBLIC = "https://dashboard.${var.project.root_domain}"
 
     EAVE_ENV = "production"

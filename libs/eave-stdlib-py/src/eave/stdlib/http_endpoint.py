@@ -1,11 +1,11 @@
 import typing
 
 import asgiref.typing
-from eave.stdlib.logging import LogContext
 import starlette.types
 from starlette.requests import Request
 from starlette.responses import Response
 
+from eave.stdlib.logging import LogContext
 
 
 class HTTPEndpoint:

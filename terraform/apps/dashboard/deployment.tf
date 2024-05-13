@@ -8,7 +8,7 @@ resource "kubernetes_deployment" "app" {
   }
 
   metadata {
-    name = local.app_name
+    name      = local.app_name
     namespace = var.kube_namespace_name
     labels = {
       app = local.app_name
@@ -60,11 +60,11 @@ resource "kubernetes_deployment" "app" {
         }
 
         container {
-          name = local.app_name
+          name  = local.app_name
           image = "${var.docker_repository.location}-docker.pkg.dev/${var.docker_repository.project}/${var.docker_repository.repository_id}/${local.app_name}:${var.release_version}"
 
           port {
-            name = local.app_port.name
+            name           = local.app_port.name
             container_port = local.app_port.number
           }
 
@@ -97,14 +97,14 @@ resource "kubernetes_deployment" "app" {
           }
 
           env {
-            name = "GUNICORN_CMD_ARGS"
+            name  = "GUNICORN_CMD_ARGS"
             value = "--bind=0.0.0.0:${local.app_port.number} --workers=3 --timeout=90"
           }
 
           # Necessary to prevent perpetual diff
           # https://github.com/hashicorp/terraform-provider-kubernetes/pull/2380
           security_context {
-            run_as_non_root = true
+            run_as_non_root            = true
             allow_privilege_escalation = false
             privileged                 = false
             read_only_root_filesystem  = false
@@ -116,9 +116,9 @@ resource "kubernetes_deployment" "app" {
           }
 
           readiness_probe {
-            failure_threshold = 2
-            timeout_seconds = 30
-            period_seconds = 30
+            failure_threshold     = 2
+            timeout_seconds       = 30
+            period_seconds        = 30
             initial_delay_seconds = 15
             http_get {
               path = "/healthz"
@@ -127,9 +127,9 @@ resource "kubernetes_deployment" "app" {
           }
 
           liveness_probe {
-            failure_threshold = 5
-            timeout_seconds = 30
-            period_seconds = 30
+            failure_threshold     = 5
+            timeout_seconds       = 30
+            period_seconds        = 30
             initial_delay_seconds = 15
             http_get {
               path = "/healthz"

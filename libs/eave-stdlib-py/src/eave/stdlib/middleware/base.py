@@ -3,10 +3,10 @@ from collections.abc import Awaitable, Callable
 from typing import cast
 
 import asgiref.typing
-from eave.stdlib.logging import LogContext
 import starlette.types
 from starlette.requests import Request
 
+from eave.stdlib.logging import LogContext
 
 
 class EaveASGIMiddleware(ABC):

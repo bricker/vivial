@@ -1,5 +1,4 @@
 from asgiref.typing import HTTPScope
-from eave.stdlib.logging import LogContext
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -12,6 +11,7 @@ from eave.stdlib.core_api.operations.account import (
     GetMyAccountRequest,
 )
 from eave.stdlib.http_endpoint import HTTPEndpoint
+from eave.stdlib.logging import LogContext
 from eave.stdlib.util import ensure_uuid
 
 

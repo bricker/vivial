@@ -1,30 +1,30 @@
 variable "project" {
   type = object({
-    id = string
-    region = string
+    id          = string
+    region      = string
     root_domain = string
   })
 }
 
 variable "release_version" {
-  type=string
+  type = string
 }
 
 variable "release_date" {
-  type=string
+  type = string
 }
 
 variable "shared_config_map_name" {
-  type=string
+  type = string
 }
 
 variable "LOG_LEVEL" {
-  type=string
+  type    = string
   default = "debug"
 }
 
 variable "cloudsql_instance_name" {
-  type=string
+  type = string
 }
 
 variable "dns_zone" {
@@ -35,21 +35,21 @@ variable "dns_zone" {
 }
 
 variable "docker_repository" {
-  type=object({
-    location=string
-    project=string
-    repository_id=string
+  type = object({
+    location      = string
+    project       = string
+    repository_id = string
   })
 }
 
 variable "ssl_policy_name" {
-  type=string
+  type = string
 }
 
 variable "certificate_map_name" {
-  type=string
+  type = string
 }
 
 variable "kube_namespace_name" {
-  type=string
+  type = string
 }

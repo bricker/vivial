@@ -1,13 +1,13 @@
 module "app_gateway" {
-  source = "../../modules/app_gateway"
+  source       = "../../modules/app_gateway"
   service_name = module.kubernetes_service.name
   labels = {
     app = local.app_name
   }
-  namespace = var.kube_namespace_name
+  namespace            = var.kube_namespace_name
   certificate_map_name = var.certificate_map_name
-  address_name = google_compute_global_address.default.name
-  ssl_policy_name = var.ssl_policy_name
+  address_name         = google_compute_global_address.default.name
+  ssl_policy_name      = var.ssl_policy_name
 }
 
 
@@ -16,7 +16,7 @@ resource "kubernetes_manifest" "app_httproute" {
     apiVersion = "gateway.networking.k8s.io/v1beta1"
     kind       = "HTTPRoute"
     metadata = {
-      name = local.app_name
+      name      = local.app_name
       namespace = var.kube_namespace_name
 
       labels = {
@@ -51,7 +51,7 @@ resource "kubernetes_manifest" "app_httproute" {
               requestHeaderModifier = {
                 add = [
                   {
-                    name = "eave-lb"
+                    name  = "eave-lb"
                     value = "1"
                   }
                 ]
@@ -62,7 +62,7 @@ resource "kubernetes_manifest" "app_httproute" {
               responseHeaderModifier = {
                 set = [
                   {
-                    name = "server"
+                    name  = "server"
                     value = "n/a"
                   }
                 ]

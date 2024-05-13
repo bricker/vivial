@@ -4,12 +4,12 @@ resource "kubernetes_manifest" "gateway" {
     apiVersion = "gateway.networking.k8s.io/v1beta1"
     kind       = "Gateway"
     metadata = {
-      name = var.service_name
+      name      = var.service_name
       namespace = var.namespace
-      labels = var.labels
+      labels    = var.labels
 
       annotations = {
-        "networking.gke.io/certmap": var.certificate_map_name
+        "networking.gke.io/certmap" : var.certificate_map_name
       }
     }
 
@@ -18,9 +18,9 @@ resource "kubernetes_manifest" "gateway" {
       gatewayClassName = "gke-l7-global-external-managed"
       listeners = [
         {
-          name = "https"
+          name     = "https"
           protocol = "HTTPS"
-          port = 443
+          port     = 443
 
           # This block is NOT needed because TLS is configured by certificate manager
           # tls = {
@@ -42,7 +42,7 @@ resource "kubernetes_manifest" "gateway" {
 
       addresses = [
         {
-          type = "NamedAddress"
+          type  = "NamedAddress"
           value = var.address_name
         }
       ]
@@ -56,9 +56,9 @@ resource "kubernetes_manifest" "gateway_policy" {
     apiVersion = "networking.gke.io/v1"
     kind       = "GCPGatewayPolicy"
     metadata = {
-      name = var.service_name
+      name      = var.service_name
       namespace = var.namespace
-      labels = var.labels
+      labels    = var.labels
     }
 
     spec = {
@@ -68,8 +68,8 @@ resource "kubernetes_manifest" "gateway_policy" {
 
       targetRef = {
         group = "gateway.networking.k8s.io"
-        kind = "Gateway"
-        name = kubernetes_manifest.gateway.manifest.metadata.name
+        kind  = "Gateway"
+        name  = kubernetes_manifest.gateway.manifest.metadata.name
       }
     }
   }

@@ -38,6 +38,7 @@ class EndpointConfiguration:
     def url(self) -> str:
         return f"{self.base_url}{self.path}"
 
+
 class BaseRequestBody(pydantic.BaseModel):
     pass
 

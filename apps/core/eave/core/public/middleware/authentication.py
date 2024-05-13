@@ -38,7 +38,9 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
         # Any mix is acceptable. Headers take precedence over Cookies.
         auth_cookies = get_auth_cookies(cookies=request.cookies)
 
-        account_id_header = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER)
+        account_id_header = eave.stdlib.api_util.get_header_value(
+            scope=scope, name=eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER
+        )
 
         if account_id_header is None:
             account_id_header = auth_cookies.account_id
@@ -52,7 +54,9 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
             if account_id_header is None or access_token_header is None:
                 raise UnauthorizedError("missing auth")
 
-            account = await self._verify_auth(account_id_header=account_id_header, access_token=access_token_header, ctx=ctx)
+            account = await self._verify_auth(
+                account_id_header=account_id_header, access_token=access_token_header, ctx=ctx
+            )
             ctx.eave_authed_account_id = str(account.id)
             ctx.eave_authed_team_id = str(account.team_id)
 

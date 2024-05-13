@@ -3,7 +3,6 @@ from functools import wraps
 from http import HTTPStatus
 
 from aiohttp import ClientResponseError
-from eave.stdlib.core_api.operations.account import GetMyAccountRequest
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
@@ -18,6 +17,7 @@ from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.models.virtual_event import VirtualEventQueryInput
 from eave.stdlib.core_api.operations import team, virtual_event
+from eave.stdlib.core_api.operations.account import GetMyAccountRequest
 from eave.stdlib.core_api.operations.status import status_payload
 from eave.stdlib.endpoints import BaseResponseBody
 from eave.stdlib.exceptions import UnauthorizedError
@@ -57,6 +57,7 @@ def status_endpoint(request: Request) -> Response:
 def health_endpoint(request: Request) -> Response:
     return Response(content="1", status_code=HTTPStatus.OK)
 
+
 @_auth_handler
 async def validate_user_auth_endpoint(request: Request, auth_cookies: AuthCookies) -> Response:
     await GetMyAccountRequest.perform(
@@ -66,6 +67,7 @@ async def validate_user_auth_endpoint(request: Request, auth_cookies: AuthCookie
     )
 
     return Response(status_code=200)
+
 
 @_auth_handler
 async def get_virtual_events_endpoint(request: Request, auth_cookies: AuthCookies) -> Response:
@@ -94,7 +96,9 @@ async def get_team_endpoint(request: Request, auth_cookies: AuthCookies) -> Resp
 
 
 async def logout_endpoint(request: Request) -> Response:
-    response = RedirectResponse(url=SHARED_CONFIG.eave_dashboard_base_url_public + "/login", status_code=HTTPStatus.FOUND)
+    response = RedirectResponse(
+        url=SHARED_CONFIG.eave_dashboard_base_url_public + "/login", status_code=HTTPStatus.FOUND
+    )
     delete_auth_cookies(request=request, response=response)
     return response
 

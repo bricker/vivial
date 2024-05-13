@@ -4,7 +4,7 @@ resource "kubernetes_deployment" "instances" {
   wait_for_rollout = false
 
   metadata {
-    name = "mb-${each.value.metabase_instance_id}"
+    name      = "mb-${each.value.metabase_instance_id}"
     namespace = var.kube_namespace_name
     labels = {
       app = "mb-${each.value.metabase_instance_id}"
@@ -56,11 +56,11 @@ resource "kubernetes_deployment" "instances" {
         }
 
         container {
-          name = "metabase-enterprise"
+          name  = "metabase-enterprise"
           image = "metabase/metabase-enterprise:${local.metabase_enterprise_version}"
 
           port {
-            name = local.app_port.name
+            name           = local.app_port.name
             container_port = local.app_port.number
           }
 
@@ -93,39 +93,39 @@ resource "kubernetes_deployment" "instances" {
           }
 
           env {
-            name = "MB_DB_DBNAME"
+            name  = "MB_DB_DBNAME"
             value = google_sql_database.instances[each.key].name
           }
           env {
-            name = "MB_DB_USER"
+            name  = "MB_DB_USER"
             value = google_sql_user.instances[each.key].name
           }
           env {
-            name = "MB_DB_TYPE"
+            name  = "MB_DB_TYPE"
             value = "postgres"
           }
           env {
-            name = "MB_DB_HOST"
+            name  = "MB_DB_HOST"
             value = "127.0.0.1"
           }
           env {
-            name = "MB_DB_PORT"
-            value = "${local.cloudsql_proxy_port.number}"
+            name  = "MB_DB_PORT"
+            value = local.cloudsql_proxy_port.number
           }
           env {
-            name = "MB_JETTY_HOST"
+            name  = "MB_JETTY_HOST"
             value = "0.0.0.0" # Default for Docker
           }
           env {
-            name = "MB_JETTY_PORT"
-            value = "${local.app_port.number}"
+            name  = "MB_JETTY_PORT"
+            value = local.app_port.number
           }
 
 
           # Necessary to prevent perpetual diff
           # https://github.com/hashicorp/terraform-provider-kubernetes/pull/2380
           security_context {
-            run_as_non_root = false
+            run_as_non_root            = false
             allow_privilege_escalation = false
             privileged                 = false
             read_only_root_filesystem  = false
@@ -137,8 +137,8 @@ resource "kubernetes_deployment" "instances" {
           }
 
           liveness_probe {
-            period_seconds = 60
-            timeout_seconds = 30
+            period_seconds    = 60
+            timeout_seconds   = 30
             failure_threshold = 5
             http_get {
               path = "/api/health"
@@ -148,7 +148,7 @@ resource "kubernetes_deployment" "instances" {
 
           startup_probe {
             # The metabase container takes a long time to boot up
-            period_seconds = 10
+            period_seconds    = 10
             failure_threshold = 30
             http_get {
               path = "/api/health"
@@ -158,16 +158,16 @@ resource "kubernetes_deployment" "instances" {
         }
 
         container {
-          name = "cloud-sql-proxy"
+          name  = "cloud-sql-proxy"
           image = "gcr.io/cloud-sql-connectors/cloud-sql-proxy:${local.cloudsql_proxy_version}"
 
           port {
-            name = local.clousql_proxy_healthcheck_port.name
+            name           = local.clousql_proxy_healthcheck_port.name
             container_port = local.clousql_proxy_healthcheck_port.number
           }
 
           port {
-            name = local.cloudsql_proxy_port.name
+            name           = local.cloudsql_proxy_port.name
             container_port = local.cloudsql_proxy_port.number
           }
 
@@ -187,7 +187,7 @@ resource "kubernetes_deployment" "instances" {
           # Necessary to prevent perpetual diff
           # https://github.com/hashicorp/terraform-provider-kubernetes/pull/2380
           security_context {
-            run_as_non_root = true
+            run_as_non_root            = true
             allow_privilege_escalation = false
             privileged                 = false
             read_only_root_filesystem  = false
@@ -201,7 +201,7 @@ resource "kubernetes_deployment" "instances" {
           args = [
             # Enable healthcheck endpoints for kube probes
             "--health-check",
-            "--http-address=0.0.0.0", # Bind to all interfaces so that the Kubernetes control plane can communicate with this process.
+            "--http-address=0.0.0.0",                                     # Bind to all interfaces so that the Kubernetes control plane can communicate with this process.
             "--http-port=${local.clousql_proxy_healthcheck_port.number}", # This is the default
 
             # If connecting from a VPC-native GKE cluster, you can use the
@@ -222,8 +222,8 @@ resource "kubernetes_deployment" "instances" {
           ]
 
           startup_probe {
-            period_seconds = 1
-            timeout_seconds = 5
+            period_seconds    = 1
+            timeout_seconds   = 5
             failure_threshold = 20
             http_get {
               path = "/startup"
@@ -236,9 +236,9 @@ resource "kubernetes_deployment" "instances" {
 
           liveness_probe {
             initial_delay_seconds = 0
-            period_seconds = 60
-            timeout_seconds = 30
-            failure_threshold = 5
+            period_seconds        = 60
+            timeout_seconds       = 30
+            failure_threshold     = 5
             http_get {
               path = "/liveness"
               port = local.clousql_proxy_healthcheck_port.name

@@ -1,6 +1,6 @@
 import dataclasses
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, ClassVar, Self
 
@@ -50,6 +50,7 @@ class DatabaseOperation(StrEnum):
             case _:
                 return "Inspected"  # idk
 
+
 class EventType(StrEnum):
     db_event = "db_event"
     http_server_event = "http_server_event"
@@ -84,13 +85,13 @@ class DatabaseEventPayload(EventPayload):
     db_structure: DatabaseStructure
     parameters: dict[str, Any] | None
 
+
 @dataclass(kw_only=True)
 class BrowserEventPayload(EventPayload):
     event_type: ClassVar[EventType] = EventType.browser_event
 
     event: str | None
     # TODO: What other fields?
-
 
 
 @dataclass(kw_only=True)
@@ -101,6 +102,7 @@ class FunctionCallEventPayload(EventPayload):
     function_class: str | None
     function_name: str | None
     function_args: dict[str, Any] | None
+
 
 @dataclass(kw_only=True)
 class FunctionReturnEventPayload(EventPayload):
@@ -116,6 +118,7 @@ class FunctionReturnEventPayload(EventPayload):
 @dataclass(kw_only=True)
 class HttpServerEventPayload(EventPayload):
     """Data about a request being handled by server application code"""
+
     event_type: ClassVar[EventType] = EventType.http_server_event
 
     request_method: str
@@ -123,15 +126,18 @@ class HttpServerEventPayload(EventPayload):
     request_headers: dict[str, str]
     request_payload: str
 
+
 @dataclass
 class HttpClientEventPayload(EventPayload):
     """Data about requests made by application code"""
+
     event_type: ClassVar[EventType] = EventType.http_client_event
 
     request_method: str
     request_url: str
     request_headers: dict[str, str]
     request_payload: str
+
 
 @dataclass
 class DataIngestRequestBody:

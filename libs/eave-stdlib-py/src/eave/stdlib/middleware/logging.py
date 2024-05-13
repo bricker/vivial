@@ -3,11 +3,11 @@ from collections.abc import Awaitable, Callable
 from typing import cast
 
 import asgiref.typing
+from starlette.requests import Request
+
 from eave.stdlib.api_util import get_headers
 from eave.stdlib.typing import JsonObject
 from eave.stdlib.utm_cookies import get_tracking_cookies
-from starlette.requests import Request
-
 
 from ..logging import LOGGER, LogContext
 from .base import EaveASGIMiddleware

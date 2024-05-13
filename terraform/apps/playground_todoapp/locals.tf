@@ -1,24 +1,24 @@
 locals {
-  app_name = "playground-todoapp"
+  app_name      = "playground-todoapp"
   domain_prefix = "playground-todoapp"
 
   service_port = {
-    name = "http"
+    name   = "http"
     number = 80
   }
 
   app_port = {
-    name = "app"
+    name   = "app"
     number = 8000
   }
 
   clousql_proxy_healthcheck_port = {
-    name = "healthcheck"
+    name   = "healthcheck"
     number = 9090
   }
 
   cloudsql_proxy_port = {
-    name = "proxy"
+    name   = "proxy"
     number = 5432
   }
 

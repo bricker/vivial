@@ -1,8 +1,7 @@
 import contextlib
+import os
 from collections.abc import AsyncGenerator
 from http import HTTPStatus
-import json
-import os
 from uuid import UUID
 
 from sqlalchemy import and_, delete, select, update
@@ -132,8 +131,10 @@ def status_endpoint(request: Request) -> Response:
     response = JSONResponse(content=body, status_code=HTTPStatus.OK)
     return response
 
+
 def health_endpoint(request: Request) -> Response:
     return Response(content="1", status_code=HTTPStatus.OK)
+
 
 @contextlib.asynccontextmanager
 async def lifespan(app: Starlette) -> AsyncGenerator[None, None]:

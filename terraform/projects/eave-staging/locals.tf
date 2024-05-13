@@ -1,14 +1,14 @@
 
 locals {
   project = {
-    id      = "eave-staging"
-    region          = "us-central1"
-    zone            = "us-central1-a"
-    environment     = "STG"
-    root_domain     = "eave.dev"
+    id          = "eave-staging"
+    region      = "us-central1"
+    zone        = "us-central1-a"
+    environment = "STG"
+    root_domain = "eave.dev"
 
     preset_development = true
-    preset_production = false
+    preset_production  = false
   }
 
   billing_account = "013F5E-137CB0-B6AA2A"

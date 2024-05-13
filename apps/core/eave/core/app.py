@@ -1,13 +1,11 @@
 import aiohttp.hdrs
-from starlette.middleware import Middleware
-from eave.stdlib.config import SHARED_CONFIG
 import starlette.applications
 import starlette.endpoints
 from asgiref.typing import ASGI3Application
+from starlette.middleware import Middleware
 from starlette.routing import Route
 
 import eave.stdlib.time
-from starlette.types import ASGIApp, Receive, Scope, Send
 from eave.core.internal.oauth.google import (
     GOOGLE_OAUTH_AUTHORIZE_PATH,
     GOOGLE_OAUTH_CALLBACK_PATH,
@@ -180,7 +178,15 @@ routes = [
     Route(
         path="/status",
         endpoint=status.StatusEndpoint,
-        methods=[aiohttp.hdrs.METH_GET, aiohttp.hdrs.METH_POST, aiohttp.hdrs.METH_PUT, aiohttp.hdrs.METH_PATCH, aiohttp.hdrs.METH_DELETE, aiohttp.hdrs.METH_HEAD, aiohttp.hdrs.METH_OPTIONS],
+        methods=[
+            aiohttp.hdrs.METH_GET,
+            aiohttp.hdrs.METH_POST,
+            aiohttp.hdrs.METH_PUT,
+            aiohttp.hdrs.METH_PATCH,
+            aiohttp.hdrs.METH_DELETE,
+            aiohttp.hdrs.METH_HEAD,
+            aiohttp.hdrs.METH_OPTIONS,
+        ],
     ),
     Route(
         path="/healthz",
@@ -213,7 +219,7 @@ routes = [
             method=aiohttp.hdrs.METH_GET,
             auth_required=True,
             origin_required=False,
-            is_public=True, # This is True because embed.eave.fyi forwards to this endpoint via the LB, which sets the eave-lb header.
+            is_public=True,  # This is True because embed.eave.fyi forwards to this endpoint via the LB, which sets the eave-lb header.
         ),
         endpoint=MetabaseAuthEndpoint,
     ),
@@ -223,10 +229,17 @@ routes = [
             method=aiohttp.hdrs.METH_GET,
             auth_required=True,
             origin_required=False,
-            is_public=True, # This is True because embed.eave.fyi forwards to this endpoint via the LB, which sets the eave-lb header.
+            is_public=True,  # This is True because embed.eave.fyi forwards to this endpoint via the LB, which sets the eave-lb header.
         ),
         endpoint=MetabaseProxyEndpoint,
-        addl_methods=[aiohttp.hdrs.METH_POST, aiohttp.hdrs.METH_PUT, aiohttp.hdrs.METH_PATCH, aiohttp.hdrs.METH_DELETE, aiohttp.hdrs.METH_HEAD, aiohttp.hdrs.METH_OPTIONS],
+        addl_methods=[
+            aiohttp.hdrs.METH_POST,
+            aiohttp.hdrs.METH_PUT,
+            aiohttp.hdrs.METH_PATCH,
+            aiohttp.hdrs.METH_DELETE,
+            aiohttp.hdrs.METH_HEAD,
+            aiohttp.hdrs.METH_OPTIONS,
+        ],
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
@@ -284,6 +297,7 @@ async def graceful_shutdown() -> None:
             await client.close()
     except Exception as e:
         logging.eaveLogger.exception(e)
+
 
 app = starlette.applications.Starlette(
     routes=routes,

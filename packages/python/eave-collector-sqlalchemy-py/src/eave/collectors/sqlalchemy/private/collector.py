@@ -3,8 +3,6 @@ import weakref
 from collections.abc import Callable
 from typing import Any
 
-from eave.collectors.core.logging import EAVE_LOGGER
-from eave.collectors.core.write_queue import WriteQueue
 import sqlalchemy
 from sqlalchemy.engine.interfaces import (
     _CoreMultiExecuteParams,
@@ -19,7 +17,8 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from eave.collectors.core.base_collector import BaseCollector
 from eave.collectors.core.correlation_context import corr_ctx
-from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure, EventType
+from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure
+from eave.collectors.core.write_queue import WriteQueue
 
 type SupportedEngine = sqlalchemy.Engine | AsyncEngine
 
@@ -46,7 +45,6 @@ class SQLAlchemyCollector(BaseCollector):
             self._register_engine_event_listener(
                 sync_engine=sync_engine, event_name="after_execute", fn=self._after_execute_handler
             )
-
 
     def stop(self) -> None:
         self._remove_all_event_listeners()
@@ -134,7 +132,6 @@ class SQLAlchemyCollector(BaseCollector):
                     rparam["__primary_key"] = pkey
 
                     record = DatabaseEventPayload(
-                        context=None,
                         timestamp=time.time(),
                         db_structure=DatabaseStructure.SQL,
                         operation=DatabaseOperation.INSERT,
@@ -151,7 +148,6 @@ class SQLAlchemyCollector(BaseCollector):
             elif isinstance(clauseelement, sqlalchemy.Update):
                 for idx, rparam in enumerate(rparams):
                     record = DatabaseEventPayload(
-                        context=None,
                         timestamp=time.time(),
                         db_structure=DatabaseStructure.SQL,
                         operation=DatabaseOperation.UPDATE,
@@ -167,7 +163,6 @@ class SQLAlchemyCollector(BaseCollector):
             elif isinstance(clauseelement, sqlalchemy.Delete):
                 for idx, rparam in enumerate(rparams):
                     record = DatabaseEventPayload(
-                        context=None,
                         timestamp=time.time(),
                         db_structure=DatabaseStructure.SQL,
                         operation=DatabaseOperation.DELETE,

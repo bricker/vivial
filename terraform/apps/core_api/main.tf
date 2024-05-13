@@ -1,18 +1,18 @@
 module "service_accounts" {
-  source         = "../../modules/gke_app_service_account"
-  project     = var.project
-  kube_service_name            = module.kubernetes_service.name
+  source              = "../../modules/gke_app_service_account"
+  project             = var.project
+  kube_service_name   = module.kubernetes_service.name
   kube_namespace_name = var.kube_namespace_name
 }
 
 # Create custom role
 module "app_iam_role" {
   source      = "../../modules/custom_role"
-  project = var.project
+  project     = var.project
   role_id     = "eave.coreApiApp"
   title       = "Core API App"
   description = "Permissions needed by the Core API App"
-  base_roles  = [
+  base_roles = [
     "roles/logging.logWriter",
     "roles/cloudkms.signerVerifier",
     "roles/secretmanager.secretAccessor",
@@ -51,37 +51,37 @@ resource "google_compute_global_address" "default" {
 # The load balancer is configured such that requests to embed.eave.fyi get their path rewritten for compatibility with the Metabase auth proxy.
 resource "google_dns_record_set" "default" {
   managed_zone = var.dns_zone.name
-  name = "${local.domain_prefix}.${var.dns_zone.dns_name}"
-  type = "A"
-  ttl  = 300
-  rrdatas = [google_compute_global_address.default.address]
+  name         = "${local.domain_prefix}.${var.dns_zone.dns_name}"
+  type         = "A"
+  ttl          = 300
+  rrdatas      = [google_compute_global_address.default.address]
 }
 
 resource "google_dns_record_set" "embed" {
   managed_zone = var.dns_zone.name
-  name = "${local.embed_domain_prefix}.${var.dns_zone.dns_name}"
-  type = "A"
-  ttl  = 300
-  rrdatas = [google_compute_global_address.default.address]
+  name         = "${local.embed_domain_prefix}.${var.dns_zone.dns_name}"
+  type         = "A"
+  ttl          = 300
+  rrdatas      = [google_compute_global_address.default.address]
 }
 
 locals {
-  domain = trimsuffix(google_dns_record_set.default.name, ".")
+  domain       = trimsuffix(google_dns_record_set.default.name, ".")
   embed_domain = trimsuffix(google_dns_record_set.embed.name, ".")
 }
 
 module "api_certificate" {
-  source = "../../modules/certificate_manager"
+  source          = "../../modules/certificate_manager"
   certificate_map = var.certificate_map_name
-  cert_name = local.app_name
-  entry_name = local.app_name
-  hostname = local.domain
+  cert_name       = local.app_name
+  entry_name      = local.app_name
+  hostname        = local.domain
 }
 
 module "embed_certificate" {
-  source = "../../modules/certificate_manager"
+  source          = "../../modules/certificate_manager"
   certificate_map = var.certificate_map_name
-  cert_name = "embed"
-  entry_name = "embed"
-  hostname = local.embed_domain
+  cert_name       = "embed"
+  entry_name      = "embed"
+  hostname        = local.embed_domain
 }

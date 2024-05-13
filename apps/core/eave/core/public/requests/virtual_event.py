@@ -1,5 +1,4 @@
 from asgiref.typing import HTTPScope
-from eave.stdlib.logging import LogContext
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -8,6 +7,7 @@ from eave.core.internal import database
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
 from eave.stdlib.api_util import json_response
 from eave.stdlib.http_endpoint import HTTPEndpoint
+from eave.stdlib.logging import LogContext
 from eave.stdlib.util import ensure_uuid
 
 

@@ -1,6 +1,5 @@
 import aiohttp
 from asgiref.typing import HTTPScope
-from eave.stdlib.logging import LogContext
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -16,6 +15,7 @@ from eave.stdlib.api_util import get_header_value_or_exception
 from eave.stdlib.exceptions import ForbiddenError, UnauthorizedError
 from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
 from eave.stdlib.http_endpoint import HTTPEndpoint
+from eave.stdlib.logging import LogContext
 from eave.stdlib.util import ensure_uuid
 
 

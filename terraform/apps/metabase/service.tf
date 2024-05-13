@@ -2,7 +2,7 @@ resource "kubernetes_service" "instances" {
   for_each = var.metabase_instances
 
   metadata {
-    name = "mb-${each.value.metabase_instance_id}"
+    name      = "mb-${each.value.metabase_instance_id}"
     namespace = var.kube_namespace_name
     labels = {
       app = "mb-${each.value.metabase_instance_id}"
@@ -16,9 +16,9 @@ resource "kubernetes_service" "instances" {
 
     type = "NodePort"
     port {
-      protocol = "TCP"
-      name = local.service_port.name
-      port = local.service_port.number
+      protocol    = "TCP"
+      name        = local.service_port.name
+      port        = local.service_port.number
       target_port = local.app_port.name
     }
   }
@@ -32,7 +32,7 @@ resource "kubernetes_manifest" "instances_healthcheck_policy" {
     apiVersion = "networking.gke.io/v1"
     kind       = "HealthCheckPolicy"
     metadata = {
-      name = "mb-${each.value.metabase_instance_id}"
+      name      = "mb-${each.value.metabase_instance_id}"
       namespace = var.kube_namespace_name
 
       labels = {
@@ -42,9 +42,9 @@ resource "kubernetes_manifest" "instances_healthcheck_policy" {
 
     spec = {
       default = {
-        checkIntervalSec = 30
-        timeoutSec = 25
-        healthyThreshold = 1
+        checkIntervalSec   = 30
+        timeoutSec         = 25
+        healthyThreshold   = 1
         unhealthyThreshold = 2
         logConfig = {
           enabled = true
@@ -52,7 +52,7 @@ resource "kubernetes_manifest" "instances_healthcheck_policy" {
         config = {
           type = "HTTP"
           httpHealthCheck = {
-            port = local.app_port.number
+            port        = local.app_port.number
             requestPath = "/api/health"
             # response = jsonencode({"status":"ok"})
           }
@@ -61,8 +61,8 @@ resource "kubernetes_manifest" "instances_healthcheck_policy" {
 
       targetRef = {
         group = "" # This is a required attribute, can be empty
-        kind = "Service"
-        name = kubernetes_service.instances[each.key].metadata[0].name
+        kind  = "Service"
+        name  = kubernetes_service.instances[each.key].metadata[0].name
       }
     }
   }

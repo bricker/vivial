@@ -2,11 +2,11 @@ from dataclasses import dataclass
 
 from aiohttp.hdrs import METH_DELETE, METH_GET, METH_PATCH, METH_POST, METH_PUT
 from asgiref.typing import HTTPScope
-from eave.stdlib.logging import LogContext
 from starlette.requests import Request
 from starlette.responses import Response
 
 from eave.stdlib.http_endpoint import HTTPEndpoint
+from eave.stdlib.logging import LogContext
 
 
 @dataclass

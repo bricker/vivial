@@ -28,8 +28,8 @@ from starlette.requests import Request
 # from starlette.routing import Match
 from eave.collectors.core.base_collector import BaseCollector
 from eave.collectors.core.correlation_context import corr_ctx
-from eave.collectors.core.datastructures import EventType, HttpServerEventPayload
-from eave.collectors.core.write_queue import BatchWriteQueue, WriteQueue
+from eave.collectors.core.datastructures import HttpServerEventPayload
+from eave.collectors.core.write_queue import WriteQueue
 
 # class ASGIGetter:
 #     def get(self, carrier: dict, key: str) -> list[str] | None:

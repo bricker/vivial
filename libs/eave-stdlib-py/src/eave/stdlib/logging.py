@@ -2,19 +2,15 @@ import logging
 import sys
 import uuid
 from logging import Logger, LogRecord
-from typing import Any, Optional, Self, TypedDict, cast
+from typing import Any, cast
 
-from eave.stdlib.util import erasetype
 import google.cloud.logging
 from asgiref.typing import HTTPScope
-from starlette.requests import Request
 from starlette.types import Scope
 
-from eave.stdlib.api_util import get_header_value, get_headers
-from eave.stdlib.typing import JsonObject, JsonValue
+from eave.stdlib.typing import JsonObject
 
 from .config import SHARED_CONFIG
-from .utm_cookies import get_tracking_cookies
 
 
 # https://stackoverflow.com/a/56944256/885036
@@ -87,11 +83,10 @@ class CustomFilter(logging.Filter):
 
 _SCOPE_KEY = "eave_state"
 
+
 class LogContext(JsonObject):
     @classmethod
-    def load(
-        cls, scope: HTTPScope | Scope
-    ) -> "LogContext":
+    def load(cls, scope: HTTPScope | Scope) -> "LogContext":
         if "extensions" not in scope or scope["extensions"] is None:
             scope["extensions"] = {}
 

@@ -1,6 +1,6 @@
 resource "kubernetes_secret" "app" {
   metadata {
-    name = local.app_name
+    name      = local.app_name
     namespace = var.kube_namespace_name
 
     labels = {

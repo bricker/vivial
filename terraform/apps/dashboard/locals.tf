@@ -1,14 +1,14 @@
 locals {
-  app_name = "dashboard"
+  app_name      = "dashboard"
   domain_prefix = "dashboard"
 
   service_port = {
-    name = "http"
+    name   = "http"
     number = 80
   }
 
   app_port = {
-    name = "app"
+    name   = "app"
     number = 8000
   }
 }

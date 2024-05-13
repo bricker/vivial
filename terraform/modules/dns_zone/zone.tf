@@ -1,9 +1,9 @@
 variable "root_domain" {
-  type=string
+  type = string
 }
 
 variable "visibility" {
-  type = string
+  type    = string
   default = "public"
 }
 

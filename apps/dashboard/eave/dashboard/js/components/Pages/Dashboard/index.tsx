@@ -5,7 +5,9 @@ import GraphIcon from "$eave-dashboard/js/components/Icons/GraphIcon";
 import SettingsCogIcon from "$eave-dashboard/js/components/Icons/SettingsCogIcon";
 import SignOutIcon from "$eave-dashboard/js/components/Icons/SignOutIcon";
 import TeamIcon from "$eave-dashboard/js/components/Icons/TeamIcon";
+import useAuth from "$eave-dashboard/js/hooks/useAuth";
 import { theme } from "$eave-dashboard/js/theme";
+import { CircularProgress } from "@mui/material";
 import { makeStyles } from "tss-react/mui";
 import NotFound from "../NotFound";
 import Glossary from "./Glossary";
@@ -15,8 +17,6 @@ import SidebarNav from "./SidebarNav";
 import Menu from "./SidebarNav/Menu";
 import MenuItem from "./SidebarNav/MenuItem";
 import TeamManagement from "./TeamManagement";
-import useAuth from "$eave-dashboard/js/hooks/useAuth";
-import { CircularProgress } from "@mui/material";
 
 const makeClasses = makeStyles()(() => ({
   desktopContainer: {
@@ -51,7 +51,6 @@ const Dashboard = ({
 }: {
   page?: "insights" | "glossary" | "settings" | "team";
 }) => {
-
   const { classes } = makeClasses();
 
   const { userIsAuthed, validateUserAuth } = useAuth();

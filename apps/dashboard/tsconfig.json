@@ -13,7 +13,7 @@
     "allowJs": true,
     "lib": ["ES2021", "DOM"],
     "paths": {
-      "$eave-dashboard/*": ["./eave/dashboard/*"],
+      "$eave-dashboard/*": ["./eave/dashboard/*"]
     }
   }
 }

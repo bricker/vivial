@@ -1,5 +1,10 @@
 import { AppContext } from "$eave-dashboard/js/context/Provider";
-import { DashboardTeam, GetTeamResponseBody, GetVirtualEventsResponseBody, VirtualEventQueryInput } from "$eave-dashboard/js/types";
+import {
+  DashboardTeam,
+  GetTeamResponseBody,
+  GetVirtualEventsResponseBody,
+  VirtualEventQueryInput,
+} from "$eave-dashboard/js/types";
 import {
   isHTTPError,
   isUnauthorized,

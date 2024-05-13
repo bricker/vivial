@@ -1,10 +1,11 @@
-from typing import Awaitable, Callable
-from uuid import uuid4
+from collections.abc import Awaitable, Callable
+
 import asgiref.typing
+from starlette.requests import Request
+
 from eave.stdlib.api_util import get_header_value
 from eave.stdlib.headers import EAVE_REQUEST_ID_HEADER
 from eave.stdlib.logging import LogContext
-from starlette.requests import Request
 
 from ..exceptions import BadRequestError
 from .base import EaveASGIMiddleware

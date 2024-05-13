@@ -1,16 +1,10 @@
-from http import HTTPStatus
 import time
-from urllib.parse import quote, unquote, urlencode, urlparse, urlunparse
+from urllib.parse import urlencode
 
 import aiohttp
-from eave.stdlib.api_util import get_header_value
-from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.cookies import EAVE_EMBED_COOKIE_PREFIX, set_http_cookie
-from eave.stdlib.headers import MIME_TYPE_JSON
 import jwt
 from aiohttp.hdrs import METH_GET
 from asgiref.typing import HTTPScope
-from multidict import MultiDict
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 from starlette.types import ASGIApp, Receive, Scope, Send
@@ -18,7 +12,10 @@ from starlette.types import ASGIApp, Receive, Scope, Send
 from eave.core.internal import database
 from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.metabase_instance import MetabaseInstanceOrm
-from eave.stdlib.exceptions import NotFoundError, UnauthorizedError
+from eave.stdlib.api_util import get_header_value
+from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.cookies import EAVE_EMBED_COOKIE_PREFIX, set_http_cookie
+from eave.stdlib.exceptions import NotFoundError
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.logging import LOGGER, LogContext
 from eave.stdlib.util import ensure_uuid
@@ -62,6 +59,7 @@ class MetabaseProxyRouter:
 
         await self.app(scope, receive, send)
 
+
 class MetabaseProxyEndpoint(HTTPEndpoint):
     async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
         async with database.async_session.begin() as db_session:
@@ -70,7 +68,7 @@ class MetabaseProxyEndpoint(HTTPEndpoint):
                 team_id=ensure_uuid(ctx.eave_authed_team_id),
             )
 
-        mb_cookies: dict[str,str] = {}
+        mb_cookies: dict[str, str] = {}
 
         for cookie_name in _METABASE_SESSION_COOKIE_NAMES:
             cookie_value = request.cookies.get(f"{EAVE_EMBED_COOKIE_PREFIX}{cookie_name}")
@@ -80,7 +78,7 @@ class MetabaseProxyEndpoint(HTTPEndpoint):
         original_path = request.path_params["rest"]
         original_body = await request.body()
 
-        new_headers: dict[str,str] = {}
+        new_headers: dict[str, str] = {}
         new_headers["X-Metabase-Embedded"] = "true"
 
         for header in [aiohttp.hdrs.ACCEPT, aiohttp.hdrs.ACCEPT_ENCODING, aiohttp.hdrs.CONTENT_TYPE]:
@@ -111,7 +109,7 @@ class MetabaseProxyEndpoint(HTTPEndpoint):
         LOGGER.info(
             "metabase response",
             ctx,
-            {"mb": { "headers": dict(mb_response.headers), "status": mb_response.status } },
+            {"mb": {"headers": dict(mb_response.headers), "status": mb_response.status}},
         )
 
         mb_response = Response(
@@ -121,6 +119,7 @@ class MetabaseProxyEndpoint(HTTPEndpoint):
         )
 
         return mb_response
+
 
 class MetabaseAuthEndpoint(HTTPEndpoint):
     async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
@@ -159,7 +158,9 @@ class MetabaseAuthEndpoint(HTTPEndpoint):
         )
 
         # FIXME: Default "1" isn't logical
-        dashboard_id = metabase_instance.default_dashboard_id if metabase_instance.default_dashboard_id is not None else "1"
+        dashboard_id = (
+            metabase_instance.default_dashboard_id if metabase_instance.default_dashboard_id is not None else "1"
+        )
 
         async with aiohttp.ClientSession() as session:
             # Get the response from Metabase
@@ -172,7 +173,7 @@ class MetabaseAuthEndpoint(HTTPEndpoint):
                     "jwt": full_jwt,
                     "return_to": f"/dashboard/{dashboard_id}?{urlencode(_METABASE_UI_QP)}",
                 },
-                allow_redirects=False, # This is important, because the /auth/sso endpoint returns Set-Cookie headers that we need to capture.
+                allow_redirects=False,  # This is important, because the /auth/sso endpoint returns Set-Cookie headers that we need to capture.
             )
 
             mb_response.raise_for_status()
@@ -180,7 +181,7 @@ class MetabaseAuthEndpoint(HTTPEndpoint):
         LOGGER.info(
             "metabase response",
             ctx,
-            {"mb": { "headers": dict(mb_response.headers), "status": mb_response.status } },
+            {"mb": {"headers": dict(mb_response.headers), "status": mb_response.status}},
         )
 
         response = RedirectResponse(

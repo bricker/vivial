@@ -2,6 +2,7 @@ import uuid
 from typing import Unpack
 
 from aiohttp.hdrs import METH_POST
+
 from eave.stdlib.core_api.models.virtual_event import VirtualEvent, VirtualEventQueryInput
 from eave.stdlib.endpoints import BaseRequestBody, BaseResponseBody
 

@@ -141,7 +141,6 @@ class _EaveConfig(ConfigBase):
     def eave_dashboard_base_url_public(self) -> str:
         return os.getenv("EAVE_DASHBOARD_BASE_URL_PUBLIC") or "https://dashboard.eave.fyi"
 
-
     ## Embed URLs
 
     @property

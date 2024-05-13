@@ -1,6 +1,5 @@
 import os
 import sys
-from typing import Any
 
 import uvicorn
 import uvicorn.workers

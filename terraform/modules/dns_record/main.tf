@@ -1,10 +1,10 @@
 variable "address_name" {
-  type=string
+  type = string
 }
 
 variable "domain_prefix" {
   description = "The domain prefix for each domain. Example: for 'api.eave.fyi', this value should be 'api'. Use empty string for apex domains."
-  type = string
+  type        = string
 }
 
 variable "zone" {
@@ -16,7 +16,7 @@ variable "zone" {
 }
 
 variable "record_type" {
-  type=string
+  type    = string
   default = "A"
 }
 

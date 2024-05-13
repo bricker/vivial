@@ -31,10 +31,7 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
 
     elif re.match(r"^api\.", flow.request.host):
         # Simulate Ingress rules. This should match the Core API Kubernetes Ingress configuration.
-        if (
-            is_public
-            and flow.request.path_components[0] not in ["status", "healthz", "public", "oauth", "favicon.ico"]
-        ):
+        if is_public and flow.request.path_components[0] not in ["status", "healthz", "public", "oauth", "favicon.ico"]:
             # The first path component is not whitelisted as a public endpoint.
             # In the real world, this would return something like a 404.
             flow.kill()
@@ -47,9 +44,7 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
         # Prepend /_/metabase to the original path. This goes to core API and then proxies to metabase.
         if flow.request.path_components[0] not in ["auth", "dashboard", "app", "api"]:
             flow.kill()
-            raise PrivateEndpointAccessError(
-                "Unsupported path for embed host."
-            )
+            raise PrivateEndpointAccessError("Unsupported path for embed host.")
         port = 5100
 
     elif re.search(r"\.mb\.", flow.request.host):

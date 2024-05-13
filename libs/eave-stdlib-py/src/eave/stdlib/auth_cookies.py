@@ -3,8 +3,16 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from http.cookies import Morsel, SimpleCookie
 
-from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME, EAVE_ACCOUNT_ID_COOKIE_NAME, EAVE_AUTH_COOKIE_PREFIX, EAVE_EMBED_COOKIE_PREFIX, delete_cookies_with_prefix, delete_http_cookie, set_http_cookie
+from eave.stdlib.cookies import (
+    EAVE_ACCESS_TOKEN_COOKIE_NAME,
+    EAVE_ACCOUNT_ID_COOKIE_NAME,
+    EAVE_AUTH_COOKIE_PREFIX,
+    EAVE_EMBED_COOKIE_PREFIX,
+    delete_cookies_with_prefix,
+    set_http_cookie,
+)
 from eave.stdlib.typing import HTTPFrameworkRequest, HTTPFrameworkResponse
+
 
 @dataclass
 class AuthCookies:

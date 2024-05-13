@@ -1,5 +1,4 @@
-from eave.collectors.core.datastructures import EventType
-from eave.collectors.core.write_queue import BatchWriteQueue, QueueParams, WriteQueue
+from eave.collectors.core.write_queue import BatchWriteQueue, WriteQueue
 
 
 class BaseCollector:

@@ -1,9 +1,8 @@
-from typing import Any
 import aiohttp
-from .json import JsonObject, compact_json
 
 from . import config
 from .datastructures import DataIngestRequestBody
+from .json import JsonObject
 
 
 async def send_batch(events: dict[str, list[JsonObject]]) -> None:

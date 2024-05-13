@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Literal
+
 from .config import SHARED_CONFIG
 from .time import ONE_YEAR_IN_MS
 from .typing import HTTPFrameworkRequest, HTTPFrameworkResponse
@@ -18,13 +19,15 @@ EAVE_ACCESS_TOKEN_COOKIE_NAME = f"{EAVE_AUTH_COOKIE_PREFIX}access_token"
 
 EAVE_OAUTH_STATE_COOKIE_PREFIX = f"{EAVE_OAUTH_COOKIE_PREFIX}state_"
 
+
 def get_cookies_with_prefix(request: HTTPFrameworkRequest, prefix: str) -> dict[str, str]:
-    cookies: dict[str,str] = {}
+    cookies: dict[str, str] = {}
     for name, value in request.cookies.items():
         if name.startswith(prefix):
             cookies[name] = value
 
     return cookies
+
 
 def delete_cookies_with_prefix(
     request: HTTPFrameworkRequest,
@@ -44,6 +47,7 @@ def delete_cookies_with_prefix(
             path=path,
             samesite=samesite,
         )
+
 
 def set_http_cookie(
     *,

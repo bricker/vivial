@@ -1,6 +1,6 @@
 import aiohttp
+from aiohttp.hdrs import METH_GET
 
-from aiohttp.hdrs import METH_GET, METH_POST
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.endpoints import BaseResponseBody
 

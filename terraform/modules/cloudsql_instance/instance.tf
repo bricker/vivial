@@ -2,8 +2,8 @@
 
 variable "project" {
   type = object({
-    region = string
-    zone = string
+    region            = string
+    zone              = string
     preset_production = bool
   })
 }
@@ -13,7 +13,7 @@ variable "instance_name" {
 }
 
 data "google_compute_network" "default" {
-  name    = "default"
+  name = "default"
 }
 
 resource "google_sql_database_instance" "default" {
@@ -21,10 +21,10 @@ resource "google_sql_database_instance" "default" {
   database_version    = "POSTGRES_15"
   instance_type       = "CLOUD_SQL_INSTANCE"
   deletion_protection = true
-  region  = var.project.region
+  region              = var.project.region
 
   settings {
-    availability_type = var.project.preset_production ? "REGIONAL" : "ZONAL"
+    availability_type           = var.project.preset_production ? "REGIONAL" : "ZONAL"
     connector_enforcement       = "REQUIRED"
     deletion_protection_enabled = true
     disk_autoresize             = var.project.preset_production
@@ -32,10 +32,10 @@ resource "google_sql_database_instance" "default" {
     disk_size                   = var.project.preset_production ? 100 : 10
     disk_type                   = "PD_SSD"
     edition                     = var.project.preset_production ? "ENTERPRISE_PLUS" : "ENTERPRISE"
-    tier = var.project.preset_production ? "db-f1-micro" : "db-f1-micro"
+    tier                        = var.project.preset_production ? "db-f1-micro" : "db-f1-micro"
     backup_configuration {
-      binary_log_enabled = var.project.preset_production
-      enabled            = var.project.preset_production
+      binary_log_enabled             = var.project.preset_production
+      enabled                        = var.project.preset_production
       point_in_time_recovery_enabled = var.project.preset_production
       start_time                     = "19:00"
       transaction_log_retention_days = 7
@@ -53,7 +53,7 @@ resource "google_sql_database_instance" "default" {
       value = "100"
     }
     insights_config {
-      query_insights_enabled = true
+      query_insights_enabled  = true
       record_application_tags = true
       record_client_address   = true
     }
@@ -77,7 +77,7 @@ resource "google_sql_database_instance" "default" {
       disallow_username_substring = true
       enable_password_policy      = true
       min_length                  = 20
-      reuse_interval = 10
+      reuse_interval              = 10
     }
   }
 }

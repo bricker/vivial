@@ -1,8 +1,9 @@
 from collections.abc import Awaitable, Callable
 
 import asgiref.typing
-from eave.stdlib.logging import LogContext
 from starlette.requests import Request
+
+from eave.stdlib.logging import LogContext
 
 from ..api_util import get_header_value
 from ..exceptions import NotFoundError

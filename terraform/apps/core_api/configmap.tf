@@ -1,6 +1,6 @@
 resource "kubernetes_config_map" "app" {
   metadata {
-    name = local.app_name
+    name      = local.app_name
     namespace = var.kube_namespace_name
 
     labels = {
@@ -10,9 +10,9 @@ resource "kubernetes_config_map" "app" {
   }
 
   data = {
-    GAE_SERVICE = local.app_name
-    GAE_VERSION = var.release_version
+    GAE_SERVICE      = local.app_name
+    GAE_VERSION      = var.release_version
     GAE_RELEASE_DATE = var.release_date
-    LOG_LEVEL = var.LOG_LEVEL
+    LOG_LEVEL        = var.LOG_LEVEL
   }
 }

@@ -1,24 +1,24 @@
 variable "service_name" {
-  type=string
+  type = string
 }
 
 variable "namespace" {
-  type=string
+  type = string
 }
 
 variable "certificate_map_name" {
-  type=string
+  type = string
 }
 
 variable "address_name" {
-  type=string
+  type = string
 }
 
 variable "ssl_policy_name" {
-  type=string
+  type = string
 }
 
 variable "labels" {
-  type = map(string)
+  type    = map(string)
   default = {}
 }

@@ -8,7 +8,7 @@ resource "kubernetes_deployment" "app" {
   }
 
   metadata {
-    name = local.app_name
+    name      = local.app_name
     namespace = var.kube_namespace_name
     labels = {
       app = local.app_name
@@ -60,11 +60,11 @@ resource "kubernetes_deployment" "app" {
         }
 
         container {
-          name = local.app_name
+          name  = local.app_name
           image = "${var.docker_repository.location}-docker.pkg.dev/${var.docker_repository.project}/${var.docker_repository.repository_id}/${local.app_name}:${var.release_version}"
 
           port {
-            name = local.app_port.name
+            name           = local.app_port.name
             container_port = local.app_port.number
           }
 
@@ -97,30 +97,30 @@ resource "kubernetes_deployment" "app" {
           }
 
           env {
-            name = "EAVE_DB_NAME"
+            name  = "EAVE_DB_NAME"
             value = google_sql_database.app.name
           }
           env {
-            name = "EAVE_DB_USER"
+            name  = "EAVE_DB_USER"
             value = google_sql_user.app.name
           }
           env {
-            name = "EAVE_DB_HOST"
+            name  = "EAVE_DB_HOST"
             value = "127.0.0.1"
           }
           env {
-            name = "EAVE_DB_PORT"
-            value = "${local.cloudsql_proxy_port.number}"
+            name  = "EAVE_DB_PORT"
+            value = local.cloudsql_proxy_port.number
           }
           env {
-            name = "GUNICORN_CMD_ARGS"
+            name  = "GUNICORN_CMD_ARGS"
             value = "--bind=0.0.0.0:${local.app_port.number} --workers=3 --timeout=90"
           }
 
           # Necessary to prevent perpetual diff
           # https://github.com/hashicorp/terraform-provider-kubernetes/pull/2380
           security_context {
-            run_as_non_root = true
+            run_as_non_root            = true
             allow_privilege_escalation = false
             privileged                 = false
             read_only_root_filesystem  = false
@@ -132,9 +132,9 @@ resource "kubernetes_deployment" "app" {
           }
 
           readiness_probe {
-            failure_threshold = 2
-            timeout_seconds = 30
-            period_seconds = 30
+            failure_threshold     = 2
+            timeout_seconds       = 30
+            period_seconds        = 30
             initial_delay_seconds = 15
             http_get {
               path = "/healthz"
@@ -143,9 +143,9 @@ resource "kubernetes_deployment" "app" {
           }
 
           liveness_probe {
-            failure_threshold = 5
-            timeout_seconds = 30
-            period_seconds = 30
+            failure_threshold     = 5
+            timeout_seconds       = 30
+            period_seconds        = 30
             initial_delay_seconds = 15
             http_get {
               path = "/healthz"
@@ -155,16 +155,16 @@ resource "kubernetes_deployment" "app" {
         }
 
         container {
-          name = "cloud-sql-proxy"
+          name  = "cloud-sql-proxy"
           image = "gcr.io/cloud-sql-connectors/cloud-sql-proxy:${local.cloudsql_proxy_version}"
 
           port {
-            name = local.clousql_proxy_healthcheck_port.name
+            name           = local.clousql_proxy_healthcheck_port.name
             container_port = local.clousql_proxy_healthcheck_port.number
           }
 
           port {
-            name = local.cloudsql_proxy_port.name
+            name           = local.cloudsql_proxy_port.name
             container_port = local.cloudsql_proxy_port.number
           }
 
@@ -184,7 +184,7 @@ resource "kubernetes_deployment" "app" {
           # Necessary to prevent perpetual diff
           # https://github.com/hashicorp/terraform-provider-kubernetes/pull/2380
           security_context {
-            run_as_non_root = true
+            run_as_non_root            = true
             allow_privilege_escalation = false
             privileged                 = false
             read_only_root_filesystem  = false
@@ -198,7 +198,7 @@ resource "kubernetes_deployment" "app" {
           args = [
             # Enable healthcheck endpoints for kube probes
             "--health-check",
-            "--http-address=0.0.0.0", # Bind to all interfaces so that the Kubernetes control plane can communicate with this process.
+            "--http-address=0.0.0.0",                                     # Bind to all interfaces so that the Kubernetes control plane can communicate with this process.
             "--http-port=${local.clousql_proxy_healthcheck_port.number}", # This is the default
 
             # If connecting from a VPC-native GKE cluster, you can use the
@@ -219,8 +219,8 @@ resource "kubernetes_deployment" "app" {
           ]
 
           startup_probe {
-            period_seconds = 1
-            timeout_seconds = 5
+            period_seconds    = 1
+            timeout_seconds   = 5
             failure_threshold = 20
             http_get {
               path = "/startup"
@@ -233,9 +233,9 @@ resource "kubernetes_deployment" "app" {
 
           liveness_probe {
             initial_delay_seconds = 0
-            period_seconds = 60
-            timeout_seconds = 30
-            failure_threshold = 5
+            period_seconds        = 60
+            timeout_seconds       = 30
+            failure_threshold     = 5
             http_get {
               path = "/liveness"
               port = local.clousql_proxy_healthcheck_port.name

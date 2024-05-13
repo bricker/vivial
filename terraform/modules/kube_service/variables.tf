@@ -1,21 +1,21 @@
 variable "namespace" {
-  type=string
+  type = string
 }
 
 variable "service_name" {
-  type=string
+  type = string
 }
 
 variable "service_port" {
-  type=object({
-    name = string
+  type = object({
+    name   = string
     number = number
   })
 }
 
 variable "app_port" {
-  type=object({
-    name = string
+  type = object({
+    name   = string
     number = number
   })
 }

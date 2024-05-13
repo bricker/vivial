@@ -4,11 +4,11 @@ resource "kubernetes_manifest" "gateway" {
     apiVersion = "gateway.networking.k8s.io/v1beta1"
     kind       = "Gateway"
     metadata = {
-      name = "metabase-instances"
+      name      = "metabase-instances"
       namespace = var.kube_namespace_name
 
       annotations = {
-        "networking.gke.io/certmap": var.certificate_map_name
+        "networking.gke.io/certmap" : var.certificate_map_name
       }
     }
 
@@ -17,9 +17,9 @@ resource "kubernetes_manifest" "gateway" {
       gatewayClassName = "gke-l7-global-external-managed"
       listeners = [
         {
-          name = "https"
+          name     = "https"
           protocol = "HTTPS"
-          port = 443
+          port     = 443
 
           # This block is NOT needed because TLS is configured by certificate manager
           # tls = {
@@ -41,7 +41,7 @@ resource "kubernetes_manifest" "gateway" {
 
       addresses = [
         {
-          type = "NamedAddress"
+          type  = "NamedAddress"
           value = google_compute_global_address.default.name
         }
       ]
@@ -55,7 +55,7 @@ resource "kubernetes_manifest" "gateway_policy" {
     apiVersion = "networking.gke.io/v1"
     kind       = "GCPGatewayPolicy"
     metadata = {
-      name = "metabase-instances"
+      name      = "metabase-instances"
       namespace = var.kube_namespace_name
     }
 
@@ -66,8 +66,8 @@ resource "kubernetes_manifest" "gateway_policy" {
 
       targetRef = {
         group = "gateway.networking.k8s.io"
-        kind = "Gateway"
-        name = kubernetes_manifest.gateway.manifest.metadata.name
+        kind  = "Gateway"
+        name  = kubernetes_manifest.gateway.manifest.metadata.name
       }
     }
   }
@@ -80,7 +80,7 @@ resource "kubernetes_manifest" "instances_backend_policy" {
     apiVersion = "networking.gke.io/v1"
     kind       = "GCPBackendPolicy"
     metadata = {
-      name = "mb-${each.value.metabase_instance_id}"
+      name      = "mb-${each.value.metabase_instance_id}"
       namespace = var.kube_namespace_name
     }
 
@@ -99,8 +99,8 @@ resource "kubernetes_manifest" "instances_backend_policy" {
 
       targetRef = {
         group = ""
-        kind = "Service"
-        name = kubernetes_service.instances[each.key].metadata[0].name
+        kind  = "Service"
+        name  = kubernetes_service.instances[each.key].metadata[0].name
       }
     }
   }
@@ -113,7 +113,7 @@ resource "kubernetes_manifest" "instances_httproute" {
     apiVersion = "gateway.networking.k8s.io/v1beta1"
     kind       = "HTTPRoute"
     metadata = {
-      name = "mb-${each.key}"
+      name      = "mb-${each.key}"
       namespace = var.kube_namespace_name
     }
 

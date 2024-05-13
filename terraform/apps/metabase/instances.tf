@@ -1,8 +1,8 @@
 module "service_accounts" {
-  source         = "../../modules/gke_app_service_account"
-  for_each = var.metabase_instances
-  project     = var.project
-  kube_service_name            = kubernetes_service.instances[each.key].metadata[0].name
+  source              = "../../modules/gke_app_service_account"
+  for_each            = var.metabase_instances
+  project             = var.project
+  kube_service_name   = kubernetes_service.instances[each.key].metadata[0].name
   kube_namespace_name = var.kube_namespace_name
 }
 
@@ -13,7 +13,7 @@ resource "google_sql_database" "instances" {
 }
 
 resource "google_sql_user" "instances" {
-  for_each = var.metabase_instances
+  for_each        = var.metabase_instances
   instance        = var.cloudsql_instance_name
   name            = trimsuffix(module.service_accounts[each.key].gsa.email, ".gserviceaccount.com")
   type            = "CLOUD_IAM_SERVICE_ACCOUNT"
@@ -45,11 +45,11 @@ resource "google_sql_user" "instances" {
 
 # We create a separate certificate per instance so that we don't have to replace the single cert every time we add an instance.
 module "certificates" {
-  source = "../../modules/certificate_manager"
+  source   = "../../modules/certificate_manager"
   for_each = var.metabase_instances
 
   certificate_map = var.certificate_map_name
-  cert_name = "mb-${each.value.metabase_instance_id}"
-  entry_name = "mb-${each.value.metabase_instance_id}"
-  hostname = "${each.value.metabase_instance_id}.${local.domain}"
+  cert_name       = "mb-${each.value.metabase_instance_id}"
+  entry_name      = "mb-${each.value.metabase_instance_id}"
+  hostname        = "${each.value.metabase_instance_id}.${local.domain}"
 }
