@@ -1,6 +1,5 @@
 import json
 import os
-from collections.abc import Mapping
 from functools import cached_property
 from typing import Any
 
@@ -68,25 +67,25 @@ class _AppConfig(ConfigBase):
             return get_secret(key)
 
     @cached_property
-    def eave_google_oauth_client_credentials(self) -> Mapping[str, Any]:
+    def eave_google_oauth_client_credentials(self) -> dict[str, Any]:
         b64encoded = get_secret("EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64")
         json_encoded = b64decode(b64encoded)
         credentials: dict[str, Any] = json.loads(json_encoded)
         return credentials
 
-    @cached_property
+    @property
     def eave_google_oauth_client_id(self) -> str:
         credentials = self.eave_google_oauth_client_credentials
         client_id: str = credentials["web"]["client_id"]
         return client_id
 
-    @property
-    def metabase_jwt_key(self) -> str:
-        # This comes from the environment because it's defined as a Kubernetes secret for consumption by the Metabase app.
-        # The alternative is to set the JWT key in both the environment (for Metabase) and Secret Manager (for core API),
-        # and keep them in sync, but it's easier to use a single source.
-        key = "MB_JWT_SHARED_SECRET"
-        return get_required_env(key)
+    @cached_property
+    def metabase_admin_api_key(self) -> str:
+        """
+        https://www.metabase.com/docs/latest/people-and-groups/api-keys
+        """
+        value = get_secret("METABASE_ADMIN_API_KEY")
+        return value
 
 
 CORE_API_APP_CONFIG = _AppConfig()

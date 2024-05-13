@@ -29,14 +29,14 @@ def is_development() -> bool:
     return eave_env() == "development"
 
 
-def batch_maxsize() -> int:
+def queue_maxsize() -> int:
     if is_development():
-        return 0
+        return 1
     else:
-        return 0  # TODO: make this >0
+        return 1  # TODO: make this >0
 
 
-def batch_maxage_seconds() -> int:
+def queue_flush_frequency_seconds() -> int:
     if is_development():
         return 0
     else:

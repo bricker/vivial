@@ -17,7 +17,8 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from eave.collectors.core.base_collector import BaseCollector
 from eave.collectors.core.correlation_context import corr_ctx
-from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure, EventType
+from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure
+from eave.collectors.core.write_queue import WriteQueue
 
 type SupportedEngine = sqlalchemy.Engine | AsyncEngine
 
@@ -26,14 +27,15 @@ class SQLAlchemyCollector(BaseCollector):
     _event_listeners: list[tuple[weakref.ReferenceType[sqlalchemy.Engine], str, Callable[..., Any]]]
     _db_metadata: sqlalchemy.MetaData | None
 
-    def __init__(self) -> None:
-        super().__init__(event_type=EventType.db_event)
+    def __init__(self, *, write_queue: WriteQueue | None = None) -> None:
+        super().__init__(write_queue=write_queue)
 
         self._event_listeners = []
         self._db_metadata = None
 
     async def start(self, engine: SupportedEngine) -> None:
         if not self.enabled:
+            self.run()
             # self._db_metadata = await self._load_metadata(engine=engine)
 
             sync_engine = engine.sync_engine if isinstance(engine, AsyncEngine) else engine
@@ -44,12 +46,10 @@ class SQLAlchemyCollector(BaseCollector):
                 sync_engine=sync_engine, event_name="after_execute", fn=self._after_execute_handler
             )
 
-        super().start_base()
-
     def stop(self) -> None:
-        super().stop_base()
-        self._db_metadata = None
         self._remove_all_event_listeners()
+        self.terminate()
+        self._db_metadata = None
 
     # async def _load_metadata(self, engine: SupportedEngine) -> sqlalchemy.MetaData:
     #     metadata = sqlalchemy.MetaData()

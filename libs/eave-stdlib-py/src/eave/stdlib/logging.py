@@ -1,20 +1,16 @@
 import logging
 import sys
 import uuid
-from logging import LogRecord
-from typing import Any, Optional, Self, cast
+from logging import Logger, LogRecord
+from typing import Any, cast
 
 import google.cloud.logging
 from asgiref.typing import HTTPScope
-from starlette.requests import Request
 from starlette.types import Scope
 
-from eave.stdlib.api_util import get_header_value, get_headers
-from eave.stdlib.headers import EAVE_ACCOUNT_ID_HEADER, EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER, EAVE_TEAM_ID_HEADER
 from eave.stdlib.typing import JsonObject
 
 from .config import SHARED_CONFIG
-from .utm_cookies import get_tracking_cookies
 
 
 # https://stackoverflow.com/a/56944256/885036
@@ -78,65 +74,31 @@ class CustomFormatter(logging.Formatter):
 
 
 class CustomFilter(logging.Filter):
-    _whitelist_records = (
-        "eave",
-        "werkzeug",
-    )
+    _whitelist_records = ("eave",)
 
     def filter(self, record: LogRecord) -> bool:
         log = super().filter(record)
         return log and record.name in self._whitelist_records
 
 
-root_logger = logging.getLogger()
-level = SHARED_CONFIG.log_level
-root_logger.setLevel(level)
-
-if SHARED_CONFIG.is_development:
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(level)
-    handler.setFormatter(CustomFormatter())
-    handler.addFilter(CustomFilter())
-    root_logger.addHandler(handler)
-
-if SHARED_CONFIG.monitoring_enabled:
-    # https://cloud.google.com/python/docs/reference/logging/latest/std-lib-integration
-    client = google.cloud.logging.Client()
-    client.setup_logging(log_level=level)
+_SCOPE_KEY = "eave_state"
 
 
 class LogContext(JsonObject):
     @classmethod
-    def wrap(cls, ctx: Optional["LogContext"] = None, scope: HTTPScope | Scope | None = None) -> "LogContext":
-        return ctx if ctx else cls(scope)
+    def load(cls, scope: HTTPScope | Scope) -> "LogContext":
+        if "extensions" not in scope or scope["extensions"] is None:
+            scope["extensions"] = {}
 
-    def __init__(self, scope: HTTPScope | Scope | None = None) -> None:
-        self.set({"feature_name": None})
-        if scope:
-            cscope = cast(HTTPScope, scope)
-            headers = cast(JsonObject, get_headers(cscope))
-            self.set({"headers": headers})
-
-            self.set({"eave_request_id": get_header_value(cscope, EAVE_REQUEST_ID_HEADER) or str(uuid.uuid4())})
-            self.set({"eave_team_id": get_header_value(cscope, EAVE_TEAM_ID_HEADER)})
-            self.set({"eave_account_id": get_header_value(cscope, EAVE_ACCOUNT_ID_HEADER)})
-            self.set({"eave_origin": get_header_value(cscope, EAVE_ORIGIN_HEADER)})
-
-            r = Request(cast(Scope, scope))
-            tracking_cookies = get_tracking_cookies(request=r)
-            self.set({"eave_visitor_id": tracking_cookies.visitor_id})
-            self.set({"eave_utm_params": tracking_cookies.utm_params})
+        if ctx := scope["extensions"].get(_SCOPE_KEY):
+            return cast(LogContext, ctx)
         else:
-            self.set({"eave_request_id": str(uuid.uuid4())})
-            self.set({"eave_team_id": None})
-            self.set({"eave_account_id": None})
-            self.set({"eave_origin": None})
-            self.set({"eave_visitor_id": None})
-            self.set({"eave_utm_params": None})
+            ctx = LogContext()
+            scope["extensions"][_SCOPE_KEY] = cast(Any, ctx)
+            return ctx
 
-    def set(self, attributes: JsonObject) -> Self:
-        self.update(attributes)
-        return self
+    def __init__(self) -> None:
+        self.eave_request_id = uuid.uuid4().hex
 
     @property
     def public(self) -> JsonObject:
@@ -147,69 +109,76 @@ class LogContext(JsonObject):
         )
 
     @property
-    def eave_account_id(self) -> str | None:
-        if v := self.get("eave_account_id"):
-            return str(v)
-        else:
-            return None
-
-    @eave_account_id.setter
-    def eave_account_id(self, value: str | None) -> None:
-        self.set({"eave_account_id": value})
-
-    @property
     def eave_visitor_id(self) -> str | None:
-        if v := self.get("eave_visitor_id"):
-            return str(v)
-        else:
-            return None
+        return str(v) if (v := self.get("eave_visitor_id")) else None
 
     @eave_visitor_id.setter
     def eave_visitor_id(self, value: str | None) -> None:
-        self.set({"eave_visitor_id": value})
+        self["eave_visitor_id"] = value
 
     @property
-    def eave_team_id(self) -> str | None:
-        if v := self.get("eave_team_id"):
-            return str(v)
-        else:
-            return None
+    def eave_authed_account_id(self) -> str | None:
+        return str(v) if (v := self.get("eave_authed_account_id")) else None
 
-    @eave_team_id.setter
-    def eave_team_id(self, value: str | None) -> None:
-        self.set({"eave_team_id": value})
+    @eave_authed_account_id.setter
+    def eave_authed_account_id(self, value: str | None) -> None:
+        self["eave_authed_account_id"] = value
+
+    @property
+    def eave_authed_team_id(self) -> str | None:
+        return str(v) if (v := self.get("eave_authed_team_id")) else None
+
+    @eave_authed_team_id.setter
+    def eave_authed_team_id(self, value: str | None) -> None:
+        self["eave_authed_team_id"] = value
 
     @property
     def eave_origin(self) -> str | None:
-        if v := self.get("eave_origin"):
-            return str(v)
-        else:
-            return None
+        return str(v) if (v := self.get("eave_origin")) else None
 
     @eave_origin.setter
     def eave_origin(self, value: str) -> None:
-        self.set({"eave_origin": value})
+        self["eave_origin"] = value
 
     @property
     def eave_request_id(self) -> str:
-        v = self["eave_request_id"]
-        return str(v)
+        return str(self["eave_request_id"])
+
+    @eave_request_id.setter
+    def eave_request_id(self, value: str) -> None:
+        self["eave_request_id"] = value
 
     @property
     def feature_name(self) -> str | None:
-        v = self["feature_name"]
-        return str(v)
+        return str(v) if (v := self.get("feature_name")) else None
 
     @feature_name.setter
     def feature_name(self, value: str | None) -> None:
-        self.set({"feature_name": value})
+        self["feature_name"] = value
+
+
+_root_logger = logging.getLogger()
+_root_logger.setLevel(SHARED_CONFIG.log_level)
+
+if SHARED_CONFIG.is_development or SHARED_CONFIG.is_test:
+    _stream_handler = logging.StreamHandler(sys.stdout)
+    _stream_handler.setLevel(SHARED_CONFIG.log_level)
+    _stream_handler.setFormatter(CustomFormatter())
+    _stream_handler.addFilter(CustomFilter())
+    _root_logger.addHandler(_stream_handler)
+
+if SHARED_CONFIG.monitoring_enabled:
+    # https://cloud.google.com/python/docs/reference/logging/latest/std-lib-integration
+    _gcp_log_client = google.cloud.logging.Client()
+    _gcp_log_client.setup_logging(log_level=SHARED_CONFIG.log_level)
 
 
 class EaveLogger:
-    _raw_logger = logging.getLogger("eave")
+    _raw_logger: Logger
 
     def __init__(self) -> None:
-        pass
+        self._raw_logger = logging.getLogger("eave")
+        self._raw_logger.setLevel(SHARED_CONFIG.log_level)
 
     def f(self, level: int, message: str) -> str:
         return CustomFormatter.get_formatstr(level, message)

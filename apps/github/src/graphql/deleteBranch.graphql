@@ -1,6 +1,0 @@
-mutation ($refNodeId: ID!) {
-  deleteRef(input: { refId: $refNodeId }) {
-    __typename
-    clientMutationId
-  }
-}

@@ -70,17 +70,14 @@ async def seed_table_entries_for_team(team_id: uuid.UUID, row: int, session: Asy
     creds.scope = ClientScope.read
     await session.flush()
 
-    mb_inst = await MetabaseInstanceOrm.create(
+    metabase_instance = await MetabaseInstanceOrm.create(
         session=session,
         team_id=team_id,
     )
 
-    await MetabaseInstanceOrm.query(session=session, params=MetabaseInstanceOrm.QueryParams(team_id=team_id))
-
-    mb_inst.update(
-        session=session,
-        route_id=uuid.uuid4(),
-    )
+    # Hardcoded signing key for easier development. This is also hardcoded in the metabase environment variables in metabase.share.env.
+    metabase_instance.jwt_signing_key = "unsafe"
+    await session.flush()
 
     for eavent in range(30):
         words = ["foo", "bar", "bazz", "fizz", "buzz", "far", "fuzz", "bizz", "boo", "fazz"]

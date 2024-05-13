@@ -1,14 +1,15 @@
+import secrets
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
-from typing import NotRequired, Self, TypedDict, Unpack
+from typing import Self
 from uuid import UUID
 
-from sqlalchemy import Select, func, select
+from sqlalchemy import Select, String, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.stdlib.core_api.models.metabase_instance import MetabaseInstance
+from eave.stdlib.config import SHARED_CONFIG
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
@@ -23,8 +24,11 @@ class MetabaseInstanceOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    jwt_signing_key: Mapped[str | None] = mapped_column(server_default=None)
-    route_id: Mapped[uuid.UUID | None] = mapped_column(server_default=None)
+    jwt_signing_key: Mapped[str] = mapped_column()
+    instance_id: Mapped[str] = mapped_column(
+        unique=True, type_=String(length=8)
+    )  # The length restraint is important because this value is used for GCP resources, some of which have a maximum length.
+    default_dashboard_id: Mapped[str | None] = mapped_column(nullable=True)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -36,27 +40,12 @@ class MetabaseInstanceOrm(Base):
     ) -> Self:
         obj = cls(
             team_id=team_id,
+            jwt_signing_key=secrets.token_hex(64),
+            instance_id=secrets.token_hex(4),
         )
         session.add(obj)
         await session.flush()
         return obj
-
-    class UpdateParameters(TypedDict):
-        jwt_signing_key: NotRequired[str]
-        route_id: NotRequired[uuid.UUID]
-
-    def update(
-        self,
-        session: AsyncSession,
-        **kwargs: Unpack[UpdateParameters],
-    ) -> Self:
-        """session parameter required (although unused) to indicate this should only be called w/in a db session"""
-        if jwt_signing_key := kwargs.get("jwt_signing_key"):
-            self.jwt_signing_key = jwt_signing_key
-
-        if route_id := kwargs.get("route_id"):
-            self.route_id = route_id
-        return self
 
     @dataclass
     class QueryParams:
@@ -100,9 +89,5 @@ class MetabaseInstanceOrm(Base):
         return result
 
     @property
-    def api_model(self) -> MetabaseInstance:
-        return MetabaseInstance.from_orm(self)
-
-    def validate_hosting_data(self) -> None:
-        assert self.jwt_signing_key is not None, "Metabase instance doesn't have a signing key"
-        assert self.route_id is not None, "Metabase instance doesn't have hosted route ID"
+    def internal_base_url(self) -> str:
+        return f"http://mb-{self.instance_id}.{SHARED_CONFIG.eave_embed_netloc_internal}"

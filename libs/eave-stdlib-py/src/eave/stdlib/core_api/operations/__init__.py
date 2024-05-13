@@ -9,21 +9,19 @@ class CoreApiEndpointConfiguration(EndpointConfiguration):
         self,
         *,
         path: str,
-        method: str = "POST",
+        method: str,
         auth_required: bool = True,
-        team_id_required: bool = True,
-        signature_required: bool = True,
         origin_required: bool = True,
+        is_public: bool = False,
     ) -> None:
         super().__init__(
-            base_url=SHARED_CONFIG.eave_internal_service_base(EaveApp.eave_api),
+            base_url=SHARED_CONFIG.eave_api_base_url_internal,
             path=path,
-            audience=EaveApp.eave_api,
             method=method,
+            audience=EaveApp.eave_api,
             auth_required=auth_required,
-            team_id_required=team_id_required,
-            signature_required=signature_required,
             origin_required=origin_required,
+            is_public=is_public,
         )
 
 

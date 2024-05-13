@@ -21,7 +21,7 @@ _OAUTH_SCOPES = [
 
 GOOGLE_OAUTH_AUTHORIZE_PATH = "/oauth/google/authorize"
 GOOGLE_OAUTH_CALLBACK_PATH = "/oauth/google/callback"
-GOOGLE_OAUTH_CALLBACK_URI = f"{SHARED_CONFIG.eave_public_api_base}{GOOGLE_OAUTH_CALLBACK_PATH}"
+GOOGLE_OAUTH_CALLBACK_URI = f"{SHARED_CONFIG.eave_api_base_url_public}{GOOGLE_OAUTH_CALLBACK_PATH}"
 
 
 # https://developers.google.com/identity/protocols/oauth2

@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-set -eu
-
-watch curl -is "https://api.eave.${1:-fyi}/status"

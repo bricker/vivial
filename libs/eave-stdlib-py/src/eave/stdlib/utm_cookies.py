@@ -3,14 +3,12 @@ import uuid
 from dataclasses import dataclass
 from enum import StrEnum
 
-from eave.stdlib.cookies import set_http_cookie
+from eave.stdlib.cookies import EAVE_COOKIE_PREFIX_UTM, EAVE_VISITOR_ID_COOKIE_NAME, set_http_cookie
 
 from .typing import (
     HTTPFrameworkRequest,
     HTTPFrameworkResponse,
     JsonObject,
-    StarletteRequest,
-    WerkzeugRequest,
 )
 
 
@@ -30,11 +28,6 @@ class TrackingParam(StrEnum):
     cid = "cid"
 
 
-# DON'T RENAME THESE, they are referenced in GTM by name. Changing them will break tracking.
-EAVE_COOKIE_PREFIX_UTM = "ev_utm_"
-EAVE_VISITOR_ID_COOKIE_NAME = "ev_visitor_id"
-
-
 @dataclass
 class TrackingCookies:
     utm_params: JsonObject
@@ -49,11 +42,7 @@ def set_tracking_cookies(
     GTM gtag.js needs to be able to read these cookies in the browser,
     so we must set httponly to False when setting analytics cookies.
     """
-    if isinstance(request, StarletteRequest):
-        query_params = request.query_params
-    elif isinstance(request, WerkzeugRequest):
-        query_params = request.args
-
+    query_params = request.query_params
     request_cookies = request.cookies
 
     if (cookie_value := request_cookies.get(EAVE_VISITOR_ID_COOKIE_NAME)) is None or len(cookie_value) == 0:

@@ -7,11 +7,12 @@ from starlette.responses import Response
 
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
-from eave.stdlib.testing_util import UtilityBaseTestCase
 from eave.stdlib.util import istr_eq
 
+from .base import StdlibBaseTestCase
 
-class CookiesTestBase(UtilityBaseTestCase):
+
+class CookiesTestBase(StdlibBaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
@@ -40,6 +41,18 @@ class CookiesTest(CookiesTestBase):
         assert cookie
         assert re.search(f"Domain={SHARED_CONFIG.eave_cookie_domain};", cookie)
         assert re.search("HttpOnly;", cookie)
+
+    async def test_set_http_cookie_with_domain(self):
+        key = self.anystr("cookie_key")
+        value = self.anystr("cookie_value")
+        set_http_cookie(key=key, value=value, response=self.mock_response, domain="example.com")
+        cookies = [v for k, v in self.mock_response.headers.items() if istr_eq(k, aiohttp.hdrs.SET_COOKIE)]
+
+        assert len(cookies) == 1
+
+        cookie = next((v for v in cookies if re.search(f"^{key}={value}", v)), None)
+        assert cookie
+        assert re.search("Domain=example.com;", cookie)
 
     async def test_delete_http_cookie(self):
         key = self.anystr("cookie_key")

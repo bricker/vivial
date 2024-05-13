@@ -1,0 +1,200 @@
+module "app_gateway" {
+  source       = "../../modules/app_gateway"
+  service_name = module.kubernetes_service.name
+  labels = {
+    app = local.app_name
+  }
+  namespace            = var.kube_namespace_name
+  certificate_map_name = var.certificate_map_name
+  address_name         = google_compute_global_address.default.name
+  ssl_policy_name      = var.ssl_policy_name
+}
+
+
+resource "kubernetes_manifest" "app_httproute" {
+  manifest = {
+    apiVersion = "gateway.networking.k8s.io/v1beta1"
+    kind       = "HTTPRoute"
+    metadata = {
+      name      = local.app_name
+      namespace = var.kube_namespace_name
+
+      labels = {
+        app = local.app_name
+      }
+    }
+
+    spec = {
+      parentRefs = [
+        {
+          name = module.app_gateway.name
+        }
+      ]
+
+      hostnames = [
+        local.domain
+      ]
+
+      rules = [
+        {
+          # These are the only path prefixes that can be accessed through the load balancer.
+          # All other path prefixes are considered internal-only and can only be accessed within the cluster.
+          matches = [
+            {
+              path = {
+                type  = "Exact"
+                value = "/status"
+              }
+            },
+            {
+              path = {
+                type  = "Exact"
+                value = "/healthz"
+              }
+            },
+            {
+              path = {
+                type  = "PathPrefix"
+                value = "/public"
+              }
+            },
+            {
+              path = {
+                type  = "PathPrefix"
+                value = "/oauth"
+              }
+            },
+            {
+              path = {
+                type  = "Exact"
+                value = "/favicon.ico"
+              }
+            }
+          ]
+
+          backendRefs = [
+            {
+              name = module.kubernetes_service.name
+              port = module.kubernetes_service.port.number
+            }
+          ]
+
+          filters = [
+            {
+              type = "RequestHeaderModifier"
+              requestHeaderModifier = {
+                add = [
+                  {
+                    name  = "eave-lb"
+                    value = "1"
+                  }
+                ]
+              }
+            },
+            {
+              type = "ResponseHeaderModifier"
+              responseHeaderModifier = {
+                set = [
+                  {
+                    name  = "server"
+                    value = "n/a"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
+resource "kubernetes_manifest" "metabase_httproute" {
+  manifest = {
+    apiVersion = "gateway.networking.k8s.io/v1beta1"
+    kind       = "HTTPRoute"
+    metadata = {
+      name      = "metabase-rewrite"
+      namespace = var.kube_namespace_name
+
+      labels = {
+        app = local.app_name
+      }
+    }
+
+    spec = {
+      parentRefs = [
+        {
+          name = module.app_gateway.name
+        }
+      ]
+
+      hostnames = [
+        local.embed_domain
+      ]
+
+      rules = [
+        {
+          matches = [
+            {
+              path = {
+                type  = "PathPrefix"
+                value = "/auth/sso"
+              }
+            },
+            {
+              path = {
+                type  = "PathPrefix"
+                value = "/app"
+              }
+            },
+            {
+              path = {
+                type  = "PathPrefix"
+                value = "/api"
+              }
+            },
+            {
+              path = {
+                type  = "PathPrefix"
+                value = "/dashboard"
+              }
+            },
+          ]
+
+          backendRefs = [
+            {
+              name = module.kubernetes_service.name
+              port = module.kubernetes_service.port.number
+            }
+          ]
+
+          filters = [
+            {
+              type = "RequestHeaderModifier"
+              requestHeaderModifier = {
+                add = [
+                  {
+                    name  = "eave-lb"
+                    value = "1"
+                  }
+                ]
+              }
+            },
+            {
+              type = "ResponseHeaderModifier"
+              responseHeaderModifier = {
+                set = [
+                  {
+                    name  = "server"
+                    value = "n/a"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+      ]
+    }
+  }
+}

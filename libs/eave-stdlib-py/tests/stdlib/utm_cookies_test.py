@@ -5,7 +5,6 @@ import aiohttp
 from starlette.requests import Request
 from starlette.responses import Response
 
-from eave.stdlib.testing_util import UtilityBaseTestCase
 from eave.stdlib.util import istr_eq
 from eave.stdlib.utm_cookies import (
     EAVE_COOKIE_PREFIX_UTM,
@@ -15,8 +14,10 @@ from eave.stdlib.utm_cookies import (
     set_tracking_cookies,
 )
 
+from .base import StdlibBaseTestCase
 
-class UtmCookiesTestBase(UtilityBaseTestCase):
+
+class UtmCookiesTestBase(StdlibBaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
@@ -45,8 +46,8 @@ class UtmCookiesTestBase(UtilityBaseTestCase):
 class UtmCookiesTest(UtmCookiesTestBase):
     async def test_constants(self):
         # These cannot be changed, because the names are hardcoded in GTM. Changing these will break tracking.
-        assert EAVE_COOKIE_PREFIX_UTM == "ev_utm_"
-        assert EAVE_VISITOR_ID_COOKIE_NAME == "ev_visitor_id"
+        assert EAVE_COOKIE_PREFIX_UTM == "eave.utm_"
+        assert EAVE_VISITOR_ID_COOKIE_NAME == "eave.visitor_id"
 
         assert TrackingParam.gclid == "gclid"
         assert TrackingParam.msclkid == "msclkid"

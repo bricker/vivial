@@ -7,8 +7,5 @@ source "${EAVE_HOME}"/develop/functions.bash
 	cd "$(^parentpath)"
 
 	python-lint .
-	node-lint .
-
 	python/bin/lint
-	typescript/bin/lint
 )

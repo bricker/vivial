@@ -1,8 +1,0 @@
-#!/usr/bin/env bash
-
-set -eu
-
-source "${EAVE_HOME}"/develop/functions.bash
-
-statusmsg -i "After the REPL loads, run '.load ../../develop/javascript/repl.cjs' to setup the environment."
-"$EAVE_HOME/node_modules/.bin/tsx"

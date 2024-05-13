@@ -1,24 +1,44 @@
+from collections.abc import Awaitable, Callable
+
 import asgiref.typing
+from starlette.requests import Request
+
+from eave.stdlib.api_util import get_header_value
+from eave.stdlib.headers import EAVE_REQUEST_ID_HEADER
+from eave.stdlib.logging import LogContext
 
 from ..exceptions import BadRequestError
 from .base import EaveASGIMiddleware
 
-ALLOWED_ASGI_PROTOCOLS = ["http", "lifespan"]
+_ALLOWED_ASGI_PROTOCOLS = ["http", "lifespan"]
 
 
 class RequestIntegrityASGIMiddleware(EaveASGIMiddleware):
     """
-    Does some basic integrity checks, for example:
-    - the request is for a supported protocol
+    Does some basic integrity checks
     """
 
-    async def run(
+    async def process_request(
+        self,
+        scope: asgiref.typing.HTTPScope,
+        receive: asgiref.typing.ASGIReceiveCallable,
+        send: asgiref.typing.ASGISendCallable,
+        request: Request,
+        ctx: LogContext,
+        continue_request: Callable[[], Awaitable[None]],
+    ) -> None:
+        if request_id_header := get_header_value(scope=scope, name=EAVE_REQUEST_ID_HEADER):
+            ctx.eave_request_id = request_id_header
+
+        await continue_request()
+
+    async def handle(
         self,
         scope: asgiref.typing.Scope,
         receive: asgiref.typing.ASGIReceiveCallable,
         send: asgiref.typing.ASGISendCallable,
     ) -> None:
-        if scope["type"] not in ALLOWED_ASGI_PROTOCOLS:
+        if scope["type"] not in _ALLOWED_ASGI_PROTOCOLS:
             raise BadRequestError(f"Unsupported protocol: {scope['type']}")
 
-        await self.app(scope, receive, send)
+        await super().handle(scope, receive, send)

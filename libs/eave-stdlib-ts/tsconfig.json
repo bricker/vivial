@@ -1,7 +1,0 @@
-{
-  "extends": "./src/tsconfig-base.json",
-  "include": ["src/**/*", "tests/**/*", "test/mocha.test.ts"],
-  "compilerOptions": {
-    "typeRoots": ["src/@types", "node_modules/@types"]
-  }
-}

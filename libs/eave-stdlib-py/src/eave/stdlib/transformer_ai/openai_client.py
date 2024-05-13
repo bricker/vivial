@@ -102,14 +102,13 @@ async def chat_completion(
     returns - API chat completion response string (throws on timeout or other error)
     """
 
-    eave_ctx = LogContext.wrap(ctx)
     openai_request_id = str(uuid.uuid4())
     log_params = {
         "openai_params": kwargs,
         "openai_request_id": openai_request_id,
     }
 
-    eaveLogger.debug(f"OpenAI Request: {openai_request_id}", eave_ctx, log_params)
+    eaveLogger.debug(f"OpenAI Request: {openai_request_id}", ctx, log_params)
     # timestamp_start = time.perf_counter()
 
     # This is crazy but it's basically so we can accurately forward the params from this function to the `completions.create` function.
@@ -157,12 +156,12 @@ async def chat_completion(
         eaveLogger.debug(
             f"OpenAI Response: {openai_request_id}",
             {"openai_response": cast(JsonObject, response)},
-            eave_ctx,
+            ctx,
             log_params,
         )
     except Exception as e:
         # Because `reponse` contains Any, we don't want an error if it can't be serialized for GCP
-        eaveLogger.exception(e, eave_ctx, log_params)
+        eaveLogger.exception(e, ctx, log_params)
 
     candidates = [c for c in response.choices if c.finish_reason == "stop"]
 
@@ -170,7 +169,7 @@ async def chat_completion(
         choice = candidates[0]
     else:
         eaveLogger.warning(
-            f"No valid choices from openAI; using the first result. {openai_request_id}", eave_ctx, log_params
+            f"No valid choices from openAI; using the first result. {openai_request_id}", ctx, log_params
         )
         if len(response.choices) > 0:
             choice = response.choices[0]

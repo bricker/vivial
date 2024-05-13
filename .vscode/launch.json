@@ -15,18 +15,6 @@
       "justMyCode": false,
     },
     {
-      "name": "GitHub App",
-      "consoleTitle": "GitHub App",
-      "cwd": "${workspaceFolder}/apps/github",
-      "type": "node",
-      "request": "launch",
-      "program": "bin/src/start-dev-nodemon.cjs",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "console": "integratedTerminal"
-    },
-    {
       "name": "Dashboard (Server)",
       "consoleTitle": "Dashboard (Server)",
       "cwd": "${workspaceFolder}/apps/dashboard",

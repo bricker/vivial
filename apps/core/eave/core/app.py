@@ -1,10 +1,9 @@
-from typing import cast
-
+import aiohttp.hdrs
 import starlette.applications
 import starlette.endpoints
 from asgiref.typing import ASGI3Application
+from starlette.middleware import Middleware
 from starlette.routing import Route
-from starlette.types import ASGIApp
 
 import eave.stdlib.time
 from eave.core.internal.oauth.google import (
@@ -12,19 +11,19 @@ from eave.core.internal.oauth.google import (
     GOOGLE_OAUTH_CALLBACK_PATH,
 )
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
-from eave.core.public.middleware.team_lookup import TeamLookupASGIMiddleware
-from eave.core.public.requests.data_ingestion import DataIngestionEndpoint
-from eave.core.public.requests.oauth.metabase_embedding_sso import MetabaseEmbeddingSSO
+from eave.core.public.requests.data_ingestion import BrowserDataIngestionEndpoint, ServerDataIngestionEndpoint
+from eave.core.public.requests.metabase_proxy import MetabaseAuthEndpoint, MetabaseProxyEndpoint, MetabaseProxyRouter
 from eave.stdlib import cache, logging
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
-from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount
-from eave.stdlib.core_api.operations.team import GetTeamRequest
-from eave.stdlib.core_api.operations.virtual_event import GetVirtualEventsRequest
-from eave.stdlib.middleware import common_middlewares
+from eave.stdlib.core_api.operations.account import GetMyAccountRequest
+from eave.stdlib.core_api.operations.team import GetMyTeamRequest
+from eave.stdlib.core_api.operations.virtual_event import GetMyVirtualEventsRequest
+from eave.stdlib.middleware.deny_public_request import DenyPublicRequestASGIMiddleware
+from eave.stdlib.middleware.exception_handling import ExceptionHandlingASGIMiddleware
+from eave.stdlib.middleware.logging import LoggingASGIMiddleware
 from eave.stdlib.middleware.origin import OriginASGIMiddleware
-from eave.stdlib.middleware.signature_verification import (
-    SignatureVerificationASGIMiddleware,
-)
+from eave.stdlib.middleware.read_body import ReadBodyASGIMiddleware
+from eave.stdlib.middleware.request_integrity import RequestIntegrityASGIMiddleware
 
 from .internal.database import async_engine
 from .public.exception_handlers import exception_handlers
@@ -43,6 +42,7 @@ eave.stdlib.time.set_utc()
 def make_route(
     config: CoreApiEndpointConfiguration,
     endpoint: ASGI3Application,
+    addl_methods: list[str] | None = None,
 ) -> Route:
     """
     Defines basic information about the route, passed-through to the Starlette router.
@@ -133,90 +133,158 @@ def make_route(
                 return Response(status_code=200)
 
     So, that's a long-winded explanation of the order of the middlewares below.
-    """
-    starlette_endpoint = cast(ASGIApp, endpoint)
-    starlette_endpoint = TeamLookupASGIMiddleware(
-        app=starlette_endpoint, endpoint_config=config
-    )  # Last thing to happen before the Route handler
-    starlette_endpoint = AuthASGIMiddleware(app=starlette_endpoint, endpoint_config=config)
-    starlette_endpoint = SignatureVerificationASGIMiddleware(app=starlette_endpoint, endpoint_config=config)
-    starlette_endpoint = OriginASGIMiddleware(
-        app=starlette_endpoint, endpoint_config=config
-    )  # First thing to happen when the middleware chain is kicked off
 
-    return Route(path=config.path, endpoint=starlette_endpoint)
+    - Why not just define them in order and then reverse them? Because these middlewares aren't necessarily all initialized in the same way.
+
+    - Why not use Starlette(middlewares=...) or Route(middlewares...)? Because the starlette Middleware type is too restrictive:
+        - The passed-in class must have an initializer with `app: starlette.types.ASGIApp`, but our middlewares accept the more generic `app: asgiref.typing.ASGI3Application`.
+          Those two types are compatible but unrelated types, so the typechecker doesn't allow it.
+        - The passed-in class can't accept any additional parameters, which is sometimes necessary for our middlewares.
+    """
+
+    # When deciding the order of middlewares, start at the _bottom_ of this block and go up.
+    # The first middleware, starting from here (the top), directly wraps the route handler.
+    # Then, each one wraps the previous one.
+    if config.auth_required:
+        endpoint = AuthASGIMiddleware(app=endpoint)
+
+    if config.origin_required:
+        endpoint = OriginASGIMiddleware(
+            app=endpoint,
+        )
+
+    endpoint = ReadBodyASGIMiddleware(app=endpoint)
+
+    if not config.is_public:
+        endpoint = DenyPublicRequestASGIMiddleware(app=endpoint)
+
+    endpoint = LoggingASGIMiddleware(app=endpoint)
+    endpoint = RequestIntegrityASGIMiddleware(app=endpoint)
+    endpoint = ExceptionHandlingASGIMiddleware(
+        app=endpoint
+    )  # This wraps everything and is the first middleware that gets called.
+
+    # ^^ When deciding the order of middlewares, start here and go up ^^
+
+    # This is to append the additional methods, removing any duplicate of config.method, and putting config.method at the beginning.
+    addl_methods = [m for m in addl_methods if m != config.method] if addl_methods else []
+    return Route(path=config.path, methods=[config.method, *addl_methods], endpoint=endpoint)
 
 
 routes = [
+    ##
+    ## Public Endpoints
+    ##
     Route(
         path="/status",
-        endpoint=status.StatusRequest,
-        methods=["GET", "POST", "DELETE", "HEAD", "OPTIONS"],
+        endpoint=status.StatusEndpoint,
+        methods=[
+            aiohttp.hdrs.METH_GET,
+            aiohttp.hdrs.METH_POST,
+            aiohttp.hdrs.METH_PUT,
+            aiohttp.hdrs.METH_PATCH,
+            aiohttp.hdrs.METH_DELETE,
+            aiohttp.hdrs.METH_HEAD,
+            aiohttp.hdrs.METH_OPTIONS,
+        ],
+    ),
+    Route(
+        path="/healthz",
+        endpoint=status.HealthEndpoint,
+        methods=[aiohttp.hdrs.METH_GET],
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/v1/ingest",  # TODO: Make ingest a separate app
+            path="/public/ingest/server",
+            method=aiohttp.hdrs.METH_POST,
             auth_required=False,
-            signature_required=False,
             origin_required=False,
-            team_id_required=False,
+            is_public=True,
         ),
-        endpoint=DataIngestionEndpoint,
+        endpoint=ServerDataIngestionEndpoint,
     ),
     make_route(
-        config=GetTeamRequest.config,
-        endpoint=team.GetTeamEndpoint,
+        config=CoreApiEndpointConfiguration(
+            path="/public/ingest/browser",
+            method=aiohttp.hdrs.METH_POST,
+            auth_required=False,
+            origin_required=False,
+            is_public=True,
+        ),
+        endpoint=BrowserDataIngestionEndpoint,
     ),
     make_route(
-        config=GetVirtualEventsRequest.config,
-        endpoint=virtual_event.GetVirtualEventsEndpoint,
+        config=CoreApiEndpointConfiguration(
+            path="/_/metabase/proxy/auth/sso",
+            method=aiohttp.hdrs.METH_GET,
+            auth_required=True,
+            origin_required=False,
+            is_public=True,  # This is True because embed.eave.fyi forwards to this endpoint via the LB, which sets the eave-lb header.
+        ),
+        endpoint=MetabaseAuthEndpoint,
     ),
     make_route(
-        config=GetAuthenticatedAccount.config,
-        endpoint=authed_account.GetAuthedAccount,
+        config=CoreApiEndpointConfiguration(
+            path="/_/metabase/proxy/{rest:path}",
+            method=aiohttp.hdrs.METH_GET,
+            auth_required=True,
+            origin_required=False,
+            is_public=True,  # This is True because embed.eave.fyi forwards to this endpoint via the LB, which sets the eave-lb header.
+        ),
+        endpoint=MetabaseProxyEndpoint,
+        addl_methods=[
+            aiohttp.hdrs.METH_POST,
+            aiohttp.hdrs.METH_PUT,
+            aiohttp.hdrs.METH_PATCH,
+            aiohttp.hdrs.METH_DELETE,
+            aiohttp.hdrs.METH_HEAD,
+            aiohttp.hdrs.METH_OPTIONS,
+        ],
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
             path=GOOGLE_OAUTH_AUTHORIZE_PATH,
-            method="GET",
+            method=aiohttp.hdrs.METH_GET,
             auth_required=False,
-            signature_required=False,
             origin_required=False,
-            team_id_required=False,
+            is_public=True,
         ),
         endpoint=google_oauth.GoogleOAuthAuthorize,
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
             path=GOOGLE_OAUTH_CALLBACK_PATH,
-            method="GET",
+            method=aiohttp.hdrs.METH_GET,
             auth_required=False,
-            signature_required=False,
             origin_required=False,
-            team_id_required=False,
+            is_public=True,
         ),
         endpoint=google_oauth.GoogleOAuthCallback,
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/oauth/metabase",
-            method="GET",
-            auth_required=True,
-            signature_required=False,
+            path="/favicon.ico",
+            method=aiohttp.hdrs.METH_GET,
+            auth_required=False,
             origin_required=False,
-            team_id_required=True,
+            is_public=True,
         ),
-        endpoint=MetabaseEmbeddingSSO,
+        endpoint=noop.NoopEndpoint,
+    ),
+    ##
+    ## Internal Endpoints
+    ##
+    make_route(
+        config=GetMyTeamRequest.config,
+        endpoint=team.GetTeamEndpoint,
     ),
     make_route(
-        config=CoreApiEndpointConfiguration(
-            path="/favicon.ico",
-            auth_required=False,
-            signature_required=False,
-            origin_required=False,
-            team_id_required=False,
-        ),
-        endpoint=noop.NoopRequest,
+        config=GetMyVirtualEventsRequest.config,
+        endpoint=virtual_event.GetVirtualEventsEndpoint,
+    ),
+    make_route(
+        config=GetMyAccountRequest.config,
+        endpoint=authed_account.GetAccountEndpoint,
     ),
 ]
 
@@ -232,8 +300,8 @@ async def graceful_shutdown() -> None:
 
 
 app = starlette.applications.Starlette(
-    middleware=common_middlewares,
     routes=routes,
     exception_handlers=exception_handlers,
+    middleware=[Middleware(MetabaseProxyRouter)],
     on_shutdown=[graceful_shutdown],
 )

@@ -2,7 +2,7 @@
 
 set -eu
 
-source ${EAVE_HOME}/develop/functions.bash
+source "${EAVE_HOME}"/develop/functions.bash
 
 statusmsg -i "Compiling protobuf schemas..."
 
@@ -15,22 +15,7 @@ python -m grpc_tools.protoc \
 	--pyi_out=python/src/eave/pubsub_schemas/generated \
 	protos/*
 
-# https://github.com/stephenh/ts-proto
-python -m grpc_tools.protoc \
-	--fatal_warnings \
-	--proto_path=protos \
-	--plugin=node_modules/.bin/protoc-gen-ts_proto \
-	--ts_proto_out=typescript/src/generated \
-	--ts_proto_opt=stringEnums=true \
-	--ts_proto_opt=snakeToCamel=false \
-	--ts_proto_opt=unrecognizedEnum=false \
-	--ts_proto_opt=removeEnumPrefix=false \
-	--ts_proto_opt=exportCommonSymbols=false \
-	--ts_proto_opt=enumsAsLiterals=true \
-	protos/*
-
 statusmsg -s "Done!"
-statusmsg -w "Please adjust the Typescript imports to use the default import and import files as .js files to prevent production crashes."
 
 # TODO: Can we use this for anything?
 # https://proto-plus-python.readthedocs.io/en/stable/index.html

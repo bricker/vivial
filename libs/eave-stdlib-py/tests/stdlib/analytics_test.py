@@ -11,7 +11,8 @@ from eave.stdlib import analytics
 from eave.stdlib.config import EaveEnvironment
 from eave.stdlib.core_api.models.account import AnalyticsAccount, AuthProvider
 from eave.stdlib.core_api.models.team import AnalyticsTeam
-from eave.stdlib.testing_util import UtilityBaseTestCase
+
+from .base import StdlibBaseTestCase
 
 mut = analytics.__name__
 
@@ -20,7 +21,7 @@ class Unserializable:
     pass
 
 
-class AnalyticsTestBase(UtilityBaseTestCase):
+class AnalyticsTestBase(StdlibBaseTestCase):
     def mock_analytics(self) -> None:
         # The base class mocks out analytics because we want it mocked out for every other test, except these ones.
         pass
