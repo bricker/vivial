@@ -128,7 +128,8 @@
   "python.autoComplete.extraPaths": [
   ],
   "ruff.lint.args": [
-    "--config=${workspaceFolder}/develop/python/configs/ruff.toml"
+    "--config=${workspaceFolder}/develop/python/configs/ruff.toml",
+    "--ignore=I"
   ],
   "typescript.tsserver.experimental.enableProjectDiagnostics": true,
   "markdownlint.run": "onSave",
