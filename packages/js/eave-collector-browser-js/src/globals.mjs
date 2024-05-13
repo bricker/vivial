@@ -1,3 +1,14 @@
+/**
+ * 
+ * @param {string} clientId 
+ * 
+ * @example
+ * <script src="https://cdn.eave.fyi/browser.js"></script>
+ * <script>
+ *   initEave("your client id");
+ * </script>
+ */
+
 // have to do this check on browser globals to make Node.js env happy
 var documentAlias = typeof document !== "undefined" ? document : {},
   navigatorAlias = typeof navigator !== "undefined" ? navigator : {},
@@ -15,7 +26,9 @@ _settings.push(["enableButtonClickTracking"]);
 _settings.push(["enableFormTracking"]);
 // TODO: update to point to eave backend
 // TODO: switch on env whether to send to prod or stage
-_settings.push(["setTrackerUrl", "http://localhost:3000/matomo"]);
+// TODO: update post to send data in body
+_settings.push(["setTrackerUrl", "http://api.eave.run:8080/public/ingest/browser"]);
+// _settings.push(["setEaveClientId", eaveClientId]);
 
 globalThis.eave = {
   expireDateTime: undefined,
@@ -51,3 +64,7 @@ globalThis.eave = {
   isPageUnloading: false,
   trackerInstallCheckNonce: "",
 };
+
+function initEave(clientId) {
+  _settings.push(["setEaveClientId", clientId]);
+}

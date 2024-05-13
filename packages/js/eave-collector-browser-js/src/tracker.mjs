@@ -259,7 +259,8 @@ export function Tracker(trackerUrl, siteId) {
     hasSentTrackingRequestYet = false,
     configBrowserFeatureDetection = true,
     cookieManager = new CookieManager(),
-    configFileTracking = false;
+    configFileTracking = false,
+    eaveClientId = null;
 
   // Document title
   try {
@@ -512,7 +513,7 @@ export function Tracker(trackerUrl, siteId) {
           : globalThis.eave.windowAlias.ActiveXObject
           ? new globalThis.eave.windowAlias.ActiveXObject("Microsoft.XMLHTTP")
           : null;
-
+        
         xhr.open("POST", configTrackerUrl, true);
 
         // fallback on error
@@ -548,6 +549,7 @@ export function Tracker(trackerUrl, siteId) {
         };
 
         xhr.setRequestHeader("Content-Type", configRequestContentType);
+        xhr.setRequestHeader("eave-client-id", eaveClientId);
 
         xhr.withCredentials = true;
 
@@ -982,7 +984,7 @@ export function Tracker(trackerUrl, siteId) {
     return url;
   }
 
-  /*
+  /**
    * Send request
    */
   function sendRequest(request, delay, callback) {
@@ -2899,6 +2901,17 @@ export function Tracker(trackerUrl, siteId) {
     return cookieManager.getCookie(configReferralQueryParamsKey) || {};
   }
   this.getAttributionReferrerQueryParams = getAttributionReferrerQueryParams;
+
+  /**
+   * Specify the eave client ID for the specific customer.
+   * This value is needed to authenticate requests to send atoms,
+   * so it is vital!
+   * 
+   * @param {string} eaveClientId
+   */
+  this.setEaveClientId = function (clientId) {
+    eaveClientId = clientId;
+  }
 
   /**
    * Specify the eave tracking URL

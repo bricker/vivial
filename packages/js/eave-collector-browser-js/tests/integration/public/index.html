@@ -27,14 +27,20 @@
     <title>React App</title>
 
     <!-- Eave client tracing -->
+    <!-- <script src="%PUBLIC_URL%/eave-client.min.js"></script> -->
     <script>
-      var _paq = window._paq = window._paq || [];
+      var eaveClientId = "94ebaf29-35ee-4b11-821f-132a581e5796";
+
+      var _settings = window._settings = window._settings || [];
+      _settings.push(["setEaveClientId", eaveClientId]);
       /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
       (function() {
         var scriptHostLocation = "%PUBLIC_URL%/eave-client.min.js";
         var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
         g.async=true; g.src=scriptHostLocation; s.parentNode.insertBefore(g,s);
       })();
+
+      // initEave("94ebaf29-35ee-4b11-821f-132a581e5796"); // TODO: dummy value
     </script>
     <!-- End Eave client tracing Code -->
   </head>
