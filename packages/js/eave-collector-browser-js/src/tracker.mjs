@@ -3665,16 +3665,16 @@ export function Tracker(trackerUrl, siteId) {
    * or {@link rememberCookieConsentGiven()}.
    *
    * If you require tracking consent for example because you are tracking personal data and GDPR applies to you,
-   * then have a look at `_paq.push(['requireConsent'])` instead.
+   * then have a look at `_settings.push(['requireConsent'])` instead.
    *
    * If the user has already given consent in the past, you can either decide to not call `requireCookieConsent` at all
-   * or call `_paq.push(['setCookieConsentGiven'])` on each page view at any time after calling `requireCookieConsent`.
+   * or call `_settings.push(['setCookieConsentGiven'])` on each page view at any time after calling `requireCookieConsent`.
    *
-   * When the user gives you the consent to set cookies, you can also call `_paq.push(['rememberCookieConsentGiven', optionalTimeoutInHours])`
+   * When the user gives you the consent to set cookies, you can also call `_settings.push(['rememberCookieConsentGiven', optionalTimeoutInHours])`
    * and for the duration while the cookie consent is remembered, any call to `requireCoookieConsent` will be automatically ignored
    * until you call `forgetCookieConsentGiven`.
    * `forgetCookieConsentGiven` needs to be called when the user removes consent for using cookies. This means if you call `rememberCookieConsentGiven` at the
-   * time the user gives you consent, you do not need to ever call `_paq.push(['setCookieConsentGiven'])` as the consent
+   * time the user gives you consent, you do not need to ever call `_settings.push(['setCookieConsentGiven'])` as the consent
    * will be detected automatically through cookies.
    */
   this.requireCookieConsent = function () {
@@ -4926,15 +4926,15 @@ export function Tracker(trackerUrl, siteId) {
    * Once the user has given consent, you should call {@link setConsentGiven()} or {@link rememberConsentGiven()}.
    *
    * If you require consent for tracking personal data for example, you should first call
-   * `_paq.push(['requireConsent'])`.
+   * `_settings.push(['requireConsent'])`.
    *
    * If the user has already given consent in the past, you can either decide to not call `requireConsent` at all
-   * or call `_paq.push(['setConsentGiven'])` on each page view at any time after calling `requireConsent`.
+   * or call `_settings.push(['setConsentGiven'])` on each page view at any time after calling `requireConsent`.
    *
-   * When the user gives you the consent to track data, you can also call `_paq.push(['rememberConsentGiven', optionalTimeoutInHours])`
+   * When the user gives you the consent to track data, you can also call `_settings.push(['rememberConsentGiven', optionalTimeoutInHours])`
    * and for the duration while the consent is remembered, any call to `requireConsent` will be automatically ignored until you call `forgetConsentGiven`.
    * `forgetConsentGiven` needs to be called when the user removes consent for tracking. This means if you call `rememberConsentGiven` at the
-   * time the user gives you consent, you do not need to ever call `_paq.push(['setConsentGiven'])`.
+   * time the user gives you consent, you do not need to ever call `_settings.push(['setConsentGiven'])`.
    */
   this.requireConsent = function () {
     configConsentRequired = true;
