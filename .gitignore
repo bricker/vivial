@@ -22,6 +22,8 @@ yalc.lock
 .swc
 credentials.json
 .coverage
+coverage.xml
+lcov.info
 .tmp
 .terraform*
 *.tfstate*
