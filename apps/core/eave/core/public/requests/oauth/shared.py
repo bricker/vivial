@@ -153,7 +153,7 @@ async def create_new_account_and_team(
             session=db_session,
             team_id=eave_team.id,
             description="Default client credentials",
-            scope=ClientScope.readwrite,
+            scope=ClientScope.write,
         )
 
         await MetabaseInstanceOrm.create(
