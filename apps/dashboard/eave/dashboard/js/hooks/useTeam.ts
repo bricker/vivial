@@ -1,15 +1,10 @@
 import { AppContext } from "$eave-dashboard/js/context/Provider";
-import { DashboardTeam } from "$eave-dashboard/js/types";
+import { DashboardTeam, GetTeamResponseBody, GetVirtualEventsResponseBody, VirtualEventQueryInput } from "$eave-dashboard/js/types";
 import {
   isHTTPError,
   isUnauthorized,
   logUserOut,
 } from "$eave-dashboard/js/util/http-util";
-import type { GetTeamResponseBody } from "$eave-stdlib-ts/src/core-api/models/team.js";
-import type {
-  GetVirtualEventsResponseBody,
-  VirtualEventQueryInput,
-} from "$eave-stdlib-ts/src/core-api/models/virtual-event.js";
 import { useContext } from "react";
 
 export interface TeamHook {
