@@ -1,5 +1,5 @@
 {
-  "extends": "../../libs/eave-stdlib-ts/src/tsconfig-base.json",
+  "extends": "../../develop/javascript/es-config/ts/tsconfig-base.json",
   "include": [
     "eave/dashboard/js/**/*.ts",
     "eave/dashboard/js/**/*.tsx",
@@ -8,18 +8,12 @@
   ],
   "compilerOptions": {
     "jsx": "react",
-    // "typeRoots": ["./node_modules/@types", "./node_modules/@eave-fyi/eave-stdlib-ts/src/@types", "./node_modules/@eave-fyi/eave-stdlib-ts/src/core-api/models", "../../node_modules/@types"],
+    // "typeRoots": ["./node_modules/@types", "../../node_modules/@types"],
     "esModuleInterop": true,
     "allowJs": true,
     "lib": ["ES2021", "DOM"],
     "paths": {
       "$eave-dashboard/*": ["./eave/dashboard/*"],
-      // eave-stdlib-ts is imported relative in monorepo instead of installed as a development dependency.
-      // eave-stdlib-ts is a node library, and not suitable for the browser.
-      // However, it contains type definitions that are useful during development of the React app.
-      // If we installed the library as a development dependency, it would bring in all of its dependencies, eg Google Cloud libraries, Redis, etc.
-      // By importing the type definitions directly, we avoid all that, and the types are all erased when compiled to javascript anyways.
-      "$eave-stdlib-ts/*": ["../../libs/eave-stdlib-ts/*"]
     }
   }
 }

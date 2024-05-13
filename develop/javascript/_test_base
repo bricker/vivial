@@ -6,8 +6,4 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 (
 	node-test -p . "$@"
-	if ! ^onlythismodule; then
-		"${EAVE_HOME}"/libs/eave-stdlib-ts/bin/test
-		"${EAVE_HOME}"/libs/eave-pubsub-schemas/typescript/bin/test
-	fi
 )

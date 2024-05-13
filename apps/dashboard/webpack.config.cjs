@@ -41,7 +41,6 @@ module.exports = {
     extensions: [".ts", ".tsx", ".js", ".jsx"],
     alias: {
       "$eave-dashboard": path.resolve(__dirname, "eave/dashboard"),
-      "$eave-stdlib-ts": path.resolve(__dirname, "../../libs/eave-stdlib-ts"),
     },
   },
 

@@ -6,8 +6,4 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 (
 	node-lint .
-	if ! ^onlythismodule; then
-		"${EAVE_HOME}"/libs/eave-stdlib-ts/bin/lint
-		"${EAVE_HOME}"/libs/eave-pubsub-schemas/typescript/bin/lint
-	fi
 )

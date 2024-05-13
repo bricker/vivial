@@ -1,9 +1,0 @@
-{
-  "type": "module",
-  "dependencies": {
-    "express": "4.x"
-  },
-  "devDependencies": {
-    "@types/express": "4.x"
-  }
-}
