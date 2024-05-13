@@ -6,9 +6,9 @@ import * as h from "./helpers.mjs";
  */
 export class CookieManager {
   constructor() {
-    this.SESSION_COOKIE_NAME = "session";
+    this.SESSION_ID_COOKIE_NAME = "session_id";
+    this.VISITOR_ID_COOKIE_NAME = "visitor_id";
     this.CONSENT_COOKIE_NAME = "consent";
-    this.CONTEXT_COOKIE_NAME = "context";
     this.COOKIE_CONSENT_COOKIE_NAME = "cookie_consent";
     this.CONSENT_REMOVED_COOKIE_NAME = "consent_removed";
     // First-party cookie name prefix
@@ -74,7 +74,7 @@ export class CookieManager {
    * @param {number} msToExpire (optional)
    * @param {string} path site path to limit cookie sharing to (default "/")
    * @param {string} domain domain to limit cookie sharing to (optional)
-   * @param {boolean} isSecure wither cookie is only attached to https requests (default falsey)
+   * @param {boolean} isSecure whether cookie is only attached to https requests (default falsey)
    * @param {string} sameSite cookie sharing restrictions (default "Lax")
    *    https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie#samesitesamesite-value
    */
@@ -87,7 +87,7 @@ export class CookieManager {
       return;
     }
 
-    var expiryDate;
+    let expiryDate;
 
     // relative time to expire in milliseconds
     if (msToExpire) {
@@ -97,6 +97,15 @@ export class CookieManager {
 
     if (!sameSite) {
       sameSite = "Lax";
+    }
+
+    if (sameSite === "None") {
+      // SameSite None cookies must also be Secure, per spec
+      isSecure = true;
+    }
+
+    if (h.isObject(value)) {
+      value = globalThis.eave.windowAlias.JSON.stringify(value);
     }
 
     globalThis.eave.documentAlias.cookie =
@@ -166,32 +175,48 @@ export class CookieManager {
   }
 
   /**
-   * Deletes all cookies with the `configCookieNamePrefix` prefix; a.k.a the ones Eave manages
+   * Gets all cookies with the `configCookieNamePrefix` prefix; a.k.a the ones Eave manages
+   *
+   * @returns {Array<Array<String>[2]>} list of eave cookie key/value pairs, ["cookieName", "cookieValue"]
    */
-  deleteCookies() {
-    var savedConfigCookiesDisabled = this.configCookiesDisabled;
-
-    // Temporarily allow cookies just to delete the existing ones
-    this.configCookiesDisabled = false;
+  getEaveCookies() {
+    const eaveCookies = [];
 
     const urlParamifiedCookies = globalThis.eave.documentAlias.cookie.replace(
       /;[ ]*/g,
       "&",
     );
     const cookies = new URLSearchParams(urlParamifiedCookies);
-    for (const [cookieName, _] of cookies.entries()) {
+    for (const [cookieName, cookieValue] of cookies.entries()) {
       if (
         cookieName.startsWith(this.configCookieNamePrefix) &&
+        // ignore consent cookies; they're strictly internal operations data
         cookieName !== this.#getCookieName(this.CONSENT_REMOVED_COOKIE_NAME) &&
         cookieName !== this.#getCookieName(this.CONSENT_COOKIE_NAME) &&
         0 !== this.getCookie(cookieName)
       ) {
-        this.deleteCookie(
-          cookieName,
-          this.configCookiePath,
-          this.configCookieDomain,
-        );
+        eaveCookies.push([cookieName, cookieValue]);
       }
+    }
+
+    return eaveCookies;
+  }
+
+  /**
+   * Deletes all cookies with the `configCookieNamePrefix` prefix; a.k.a the ones Eave manages
+   */
+  deleteEaveCookies() {
+    var savedConfigCookiesDisabled = this.configCookiesDisabled;
+
+    // Temporarily allow cookies just to delete the existing ones
+    this.configCookiesDisabled = false;
+
+    for (const [cookieName, _] of this.getEaveCookies()) {
+      this.deleteCookie(
+        cookieName,
+        this.configCookiePath,
+        this.configCookieDomain,
+      );
     }
 
     this.configCookiesDisabled = savedConfigCookiesDisabled;
@@ -201,10 +226,10 @@ export class CookieManager {
    * Delete a first-party Eave cookie
    * Since we delete via `this.setCookie`, `cookieName` will automatically be prefixed
    * with `configCookieNamePrefix`.
-   * 
-   * @param {string} cookieName 
-   * @param {string} path 
-   * @param {string} domain 
+   *
+   * @param {string} cookieName
+   * @param {string} path
+   * @param {string} domain
    */
   deleteCookie(cookieName, path, domain) {
     this.setCookie(cookieName, "", -129600000, path, domain);
@@ -244,7 +269,7 @@ export class CookieManager {
   }
 
   getSession() {
-    return this.getCookie(this.SESSION_COOKIE_NAME);
+    return this.getCookie(this.SESSION_ID_COOKIE_NAME);
   }
 
   /**
@@ -254,7 +279,7 @@ export class CookieManager {
   resetOrExtendSession() {
     const sessionId = this.getSession() || h.uuidv4();
     this.setCookie(
-      this.SESSION_COOKIE_NAME,
+      this.SESSION_ID_COOKIE_NAME,
       sessionId,
       this.configSessionCookieTimeout,
       this.configCookiePath,
@@ -262,5 +287,14 @@ export class CookieManager {
       this.configCookieIsSecure,
       this.configCookieSameSite,
     );
+  }
+
+  /**
+   * Set visitor ID if it hasnt yet been set.
+   */
+  setVisitorId() {
+    if (!this.getCookie(this.VISITOR_ID_COOKIE_NAME)) {
+      this.setCookie(this.VISITOR_ID_COOKIE_NAME, h.uuidv4());
+    }
   }
 }

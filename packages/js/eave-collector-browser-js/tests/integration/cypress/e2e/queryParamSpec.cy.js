@@ -21,7 +21,7 @@ describe("eave UTM and query parameter collection", () => {
       });
       // saved referrer storage
       expect(
-        interception.response.body.data.referrer.queryParams,
+        interception.response.body.data._eave_referrer_query_params,
       ).to.deep.equal({
         utm_source: "tickletok",
         utm_campaign: "gogole",
@@ -45,7 +45,7 @@ describe("eave UTM and query parameter collection", () => {
         /HistoryChange/,
       );
       expect(
-        interception.response.body.data.referrer.queryParams,
+        interception.response.body.data._eave_referrer_query_params,
       ).to.deep.equal({
         utm_source: "tickletok",
         utm_campaign: "gogole",
@@ -66,7 +66,7 @@ describe("eave UTM and query parameter collection", () => {
     // THEN current query params AND initial saved query/utm params included in the event
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       expect(
-        interception.response.body.data.referrer.queryParams,
+        interception.response.body.data._eave_referrer_query_params,
       ).to.deep.equal({
         utm_source: "tickletok",
         utm_campaign: "gogole",
@@ -83,7 +83,7 @@ describe("eave UTM and query parameter collection", () => {
     // THEN current query params included in the event, prev qp not included
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       expect(
-        interception.response.body.data.referrer.queryParams,
+        interception.response.body.data._eave_referrer_query_params,
       ).to.deep.equal({
         utm_source: "tickletok",
         utm_campaign: "gogole",
@@ -97,7 +97,7 @@ describe("eave UTM and query parameter collection", () => {
 
   it("doesnt set referrer data if there is an existing session", () => {
     // GIVEN there is an existing session cookie
-    cy.setCookie("_eave_session", "session");
+    cy.setCookie("_eave_session_id", "session");
     cy.interceptAtomIngestion();
 
     // WHEN site is initially visited including some query/utm params
@@ -111,7 +111,7 @@ describe("eave UTM and query parameter collection", () => {
         utm_campaign: "gogole",
       });
       // referrer data not set
-      expect(interception.response.body.data.referrer).to.not.exist;
+      expect(interception.response.body.data._eave_referrer_query_params).to.not.exist;
     });
   });
 });
