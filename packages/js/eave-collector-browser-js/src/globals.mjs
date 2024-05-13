@@ -17,7 +17,7 @@ var documentAlias = typeof document !== "undefined" ? document : {},
 
 // use existing _settings settings if available
 // eslint-disable-next-line no-use-before-define
-var _settings = typeof _settings !== "undefined" ? _settings : [];
+var _settings = typeof windowAlias._settings !== "undefined" ? windowAlias._settings : [];
 _settings.push(["setTrackingCookies"])
 _settings.push(["trackPageView"]);
 _settings.push(["enableLinkTracking"]);

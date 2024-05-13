@@ -549,7 +549,6 @@ export function Tracker(trackerUrl, siteId) {
         };
 
         xhr.setRequestHeader("Content-Type", configRequestContentType);
-        xhr.setRequestHeader("eave-client-id", eaveClientId);
 
         xhr.withCredentials = true;
 
@@ -988,6 +987,10 @@ export function Tracker(trackerUrl, siteId) {
    * Send request
    */
   function sendRequest(request, delay, callback) {
+    if (eaveClientId) {
+      request += "&eaveClientId=" + eaveClientId;
+    }
+
     refreshConsentStatus();
     if (!configHasConsent) {
       consentRequestsQueue.push([request, callback]);
