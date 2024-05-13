@@ -390,7 +390,7 @@ export function loadScript(src, onLoad) {
     .appendChild(script);
 }
 
-/*
+/**
  * Get page referrer
  */
 export function getReferrer() {
@@ -425,7 +425,7 @@ export function getProtocolScheme(url) {
   return matches ? matches[1] : null;
 }
 
-/*
+/**
  * Extract hostname from URL
  */
 export function getHostName(url) {
@@ -435,11 +435,13 @@ export function getHostName(url) {
 
   return matches ? matches[1] : url;
 }
+
 export function isPositiveNumberString(str) {
   // !isNaN(str) could be used but does not cover '03' (octal) and '0xA' (hex)
   // nor negative numbers
   return /^[0-9][0-9]*(\.[0-9]+)?$/.test(str);
 }
+
 export function filterIn(object, byFunction) {
   var result = {},
     k;
@@ -450,6 +452,7 @@ export function filterIn(object, byFunction) {
   }
   return result;
 }
+
 export function onlyPositiveIntegers(data) {
   var result = {},
     k;
@@ -470,6 +473,7 @@ export function onlyPositiveIntegers(data) {
   }
   return result;
 }
+
 export function queryStringify(data) {
   var queryString = "",
     k;
@@ -787,8 +791,12 @@ export function sha1(str) {
  * end sha1
  ************************************************************/
 
-/*
- * Fix-up URL when page rendered from search engine cache or translated page
+/**
+ * Fix-up URL when page rendered from search engine cache or translated page;
+ * returning the actual page URL components, stripping any search engine junk
+ * from the URL.
+ *
+ * @returns {Array[3]} "fixed" versions of the passed in parameters
  */
 export function urlFixup(hostName, href, referrer) {
   if (!hostName) {
@@ -810,9 +818,8 @@ export function urlFixup(hostName, href, referrer) {
   } else if (
     hostName === "cc.bingj.com" || // Bing
     hostName === "webcache.googleusercontent.com" || // Google
-    hostName.slice(0, 5) === "74.6."
+    hostName.slice(0, 5) === "74.6." // Yahoo (via Inktomi 74.6.0.0/16)
   ) {
-    // Yahoo (via Inktomi 74.6.0.0/16)
     href = globalThis.eave.documentAlias.links[0].href;
     hostName = getHostName(href);
   }
@@ -820,7 +827,7 @@ export function urlFixup(hostName, href, referrer) {
   return [hostName, href, referrer];
 }
 
-/*
+/**
  * Fix-up domain
  */
 export function domainFixup(domain) {

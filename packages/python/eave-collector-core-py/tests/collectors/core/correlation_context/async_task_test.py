@@ -2,7 +2,7 @@ import asyncio
 import unittest
 
 from eave.collectors.core.correlation_context import AsyncioCorrelationContext
-from eave.collectors.core.correlation_context.base import CONTEXT_NAME, COOKIE_PREFIX
+from eave.collectors.core.correlation_context.base import COOKIE_PREFIX
 
 
 class AsyncioCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
@@ -13,12 +13,12 @@ class AsyncioCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
         assert ctx.get("key") == 1, "Set value was not read"
         ctx.set("key", 2)
         assert ctx.get("key") == 2, "Set value was not overwritten"
-        assert ctx.to_json() == '{"_eave_context": {"key": 2}}', "Value was not set in dedicated context dict"
+        assert ctx.to_json() == '{"key": 2}'
 
     async def test_empty_state(self) -> None:
         ctx = AsyncioCorrelationContext()
         assert ctx.get("key") is None, "Non-existent key value was not None"
-        assert ctx.to_json() == '{"_eave_context": {}}', "Empty/default context didnt convert to json as expected"
+        assert ctx.to_json() == "{}", "Empty/default context didnt convert to json as expected"
 
     async def test_separate_async_task_ctx_cannot_access_each_others_data(self) -> None:
         async def _helper(keys) -> None:
@@ -26,7 +26,7 @@ class AsyncioCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
             for key in keys:
                 ctx.set(key, 1)
 
-            expected = '{"_eave_context": {' + ", ".join([f'"{k}": 1' for k in keys]) + "}}"
+            expected = "{" + ", ".join([f'"{k}": 1' for k in keys]) + "}"
             assert ctx.to_json() == expected, "Context contained other than expected values"
 
         t1 = asyncio.create_task(_helper(["k1", "k2", "k3"]))
@@ -50,41 +50,36 @@ class AsyncioCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
         t2 = asyncio.create_task(task2())
         await asyncio.gather(t1, t2)
 
-        assert (
-            ctx.to_json() == '{"_eave_context": {"parent": 0, "t1": 1, "t2": 2}}'
-        ), "Values set by child tasks not found"
+        assert ctx.to_json() == '{"parent": 0, "t1": 1, "t2": 2}', "Values set by child tasks not found"
 
     async def test_initialize_from_cookies_performs_union(self) -> None:
         ctx = AsyncioCorrelationContext()
         cookies = {
             "other_cookie": "yummy",
-            f"{COOKIE_PREFIX}session": "ses",
-            CONTEXT_NAME: '{"key": "value", "other": "val"}',
+            f"{COOKIE_PREFIX}session_id": "ses",
+            f"{COOKIE_PREFIX}key": "value",
         }
         ctx.from_cookies(cookies)
 
         # non eave cookies should be skipped
         assert (
-            ctx.to_json() == '{"_eave_context": {"key": "value", "other": "val"}, "_eave_session": "ses"}'
-        ), "Cookie conversion failed"
+            ctx.to_json() == f'{{"{COOKIE_PREFIX}session_id": "ses", "{COOKIE_PREFIX}key": "value"}}'
+        ), "Cookie conversion did not include only the expected cookies"
 
         # cookies should join join if existing ctx
-        ctx.from_cookies({f"{COOKIE_PREFIX}visitor_id": "123", CONTEXT_NAME: '{"key": "new val", "key2": "val2"}'})
+        ctx.from_cookies({f"{COOKIE_PREFIX}visitor_id": "123", f"{COOKIE_PREFIX}key": "new val"})
         assert (
             ctx.to_json()
-            == '{"_eave_context": {"key": "new val", "other": "val", "key2": "val2"}, "_eave_session": "ses", "_eave_visitor_id": "123"}'
+            == f'{{"{COOKIE_PREFIX}session_id": "ses", "{COOKIE_PREFIX}key": "new val", "{COOKIE_PREFIX}visitor_id": "123"}}'
         ), "Context did not join as expected"
 
-    async def test_convert_ctx_to_cookies_creates_valid_cookies(self) -> None:
+    async def test_convert_ctx_to_cookies_creates_valid_cookie(self) -> None:
         ctx = AsyncioCorrelationContext()
-        cookies = {
-            "other_cookie": "yummy",
-            f"{COOKIE_PREFIX}session": "ses",
-            CONTEXT_NAME: '{"key": "value", "other": "val"}',
-        }
-        ctx.from_cookies(cookies)
+        ctx.set("session_id", "ses")
+        ctx.set(f"{COOKIE_PREFIX}key", '"value"')
 
-        assert (
-            ctx.to_cookie()
-            == "_eave_context=%7B%27key%27%3A+%27value%27%2C+%27other%27%3A+%27val%27%7D; _eave_session=ses"
-        )
+        # expect URL encoded
+        assert ctx.get_updated_values_cookies() == [
+            f"{COOKIE_PREFIX}session_id=ses",
+            f"{COOKIE_PREFIX}key=%22value%22",
+        ], "Context cookie was converted incorrectly"

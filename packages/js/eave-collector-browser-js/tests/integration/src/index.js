@@ -7,6 +7,7 @@ import {
   createBrowserRouter,
   RouterProvider,
 } from 'react-router-dom';
+import FormPage from './FormPage';
 
 const router = createBrowserRouter([
   {
@@ -16,6 +17,10 @@ const router = createBrowserRouter([
   {
     path: '/page',
     element: <Subpage />
+  },
+  {
+    path: '/form',
+    element: <FormPage />
   },
 ]);
 
