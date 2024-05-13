@@ -39,7 +39,7 @@ def _auth_handler(f: Callable[[Request, AuthCookies], Awaitable[Response]]) -> C
         except (ClientResponseError, UnauthorizedError) as e:
             if e.code == HTTPStatus.UNAUTHORIZED:
                 response = Response(status_code=HTTPStatus.UNAUTHORIZED)
-                delete_auth_cookies(response)
+                delete_auth_cookies(request=request, response=response)
                 return response
             else:
                 raise
@@ -84,8 +84,8 @@ async def get_team_endpoint(request: Request, auth_cookies: AuthCookies) -> Resp
 
 
 async def logout_endpoint(request: Request) -> Response:
-    response = RedirectResponse(url=SHARED_CONFIG.eave_public_dashboard_base + "/login", status_code=HTTPStatus.FOUND)
-    delete_auth_cookies(response=response)
+    response = RedirectResponse(url=SHARED_CONFIG.eave_dashboard_base_url_public + "/login", status_code=HTTPStatus.FOUND)
+    delete_auth_cookies(request=request, response=response)
     return response
 
 
@@ -98,8 +98,8 @@ def web_app_endpoint(request: Request) -> Response:
         "index.html.jinja",
         context={
             "asset_base": SHARED_CONFIG.asset_base,
-            "cookie_domain": SHARED_CONFIG.eave_cookie_domain,
-            "api_base": SHARED_CONFIG.eave_public_api_base,
+            "api_base": SHARED_CONFIG.eave_api_base_url_public,
+            "embed_base": SHARED_CONFIG.eave_embed_base_url_public,
             "analytics_enabled": SHARED_CONFIG.analytics_enabled,
             "app_env": SHARED_CONFIG.eave_env,
             "app_version": SHARED_CONFIG.app_version,

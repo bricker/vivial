@@ -1,5 +1,6 @@
 import aiohttp
 
+from aiohttp.hdrs import METH_GET, METH_POST
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.endpoints import BaseResponseBody
 
@@ -9,7 +10,7 @@ from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 class Status(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
         path="/status",
-        method="GET",
+        method=METH_GET,
         auth_required=False,
         origin_required=False,
         is_public=True,

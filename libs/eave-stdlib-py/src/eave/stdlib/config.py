@@ -3,11 +3,10 @@ import logging
 import os
 import sys
 from functools import cached_property
+from urllib.parse import urlparse
 
 import google.cloud.client
 import google.cloud.secretmanager
-
-from eave.stdlib.eave_origins import EaveApp
 
 from . import checksum
 
@@ -46,13 +45,13 @@ class _EaveConfig(ConfigBase):
 
     @property
     def log_level(self) -> int:
-        level = os.getenv("LOG_LEVEL", "INFO")
+        level = os.getenv("LOG_LEVEL") or "INFO"
         mapping = logging.getLevelNamesMapping()
         return mapping.get(level.upper(), logging.INFO)
 
     @property
     def eave_env(self) -> EaveEnvironment:
-        strenv = os.getenv("EAVE_ENV", "production")
+        strenv = os.getenv("EAVE_ENV") or "production"
         match strenv:
             case "test":
                 return EaveEnvironment.test
@@ -112,45 +111,114 @@ class _EaveConfig(ConfigBase):
     def asset_base(self) -> str:
         return os.getenv("EAVE_ASSET_BASE", "/static")
 
-    @property
-    def eave_public_api_base(self) -> str:
-        return self.eave_public_service_base(EaveApp.eave_api)
+    ## Base URLs
 
     @property
-    def eave_internal_api_base(self) -> str:
-        return self.eave_internal_service_base(EaveApp.eave_api)
+    def eave_base_url_public(self) -> str:
+        return os.getenv("EAVE_BASE_URL_PUBLIC") or "https://eave.fyi"
 
     @property
-    def eave_public_dashboard_base(self) -> str:
-        return self.eave_public_service_base(EaveApp.eave_dashboard)
+    def eave_base_url_internal(self) -> str:
+        return os.getenv("EAVE_BASE_URL_INTERNAL") or "http://eave.svc.cluster.local"
 
     @property
-    def eave_internal_root_domain(self) -> str:
-        """
-        Root domain for accessing internal services.
-        Prepend the service name to get the internal service domain, eg `core-api.eave.svc.cluster.local`
-        """
-        return os.getenv("EAVE_INTERNAL_ROOT_DOMAIN", "eave.svc.cluster.local")
+    def eave_hostname_public(self) -> str:
+        return urlparse(self.eave_base_url_public).hostname or "eave.fyi"
 
     @property
-    def metabase_internal_root_domain(self) -> str:
-        """
-        Root domain for accessing internal metabase instances.
-        Prepend the metabase instance ID to get the internal metabase service domain, eg `{metabase_instance.id.hex}.eave.svc.cluster.local`
-        """
-        return os.getenv("METABASE_INTERNAL_ROOT_DOMAIN", "metabase.svc.cluster.local")
+    def eave_netloc_public(self) -> str:
+        return urlparse(self.eave_base_url_public).netloc or self.eave_hostname_public
 
-    def eave_public_service_base(self, service: EaveApp) -> str:
-        sname = service.value.upper()
-        return os.getenv(f"{sname}_BASE_PUBLIC", "")
+    @property
+    def eave_api_base_url_public(self) -> str:
+        return os.getenv("EAVE_API_BASE_URL_PUBLIC") or "https://api.eave.fyi"
 
-    def eave_internal_service_base(self, service: EaveApp) -> str:
-        sname = service.value.upper()
-        return os.getenv(f"{sname}_BASE_INTERNAL", "")
+    @property
+    def eave_api_base_url_internal(self) -> str:
+        return os.getenv("EAVE_API_BASE_URL_INTERNAL") or "http://core-api.eave.svc.cluster.local"
+
+    @property
+    def eave_dashboard_base_url_public(self) -> str:
+        return os.getenv("EAVE_DASHBOARD_BASE_URL_PUBLIC") or "https://dashboard.eave.fyi"
+
+
+    ## Embed URLs
+
+    @property
+    def eave_embed_base_url_public(self) -> str:
+        return os.getenv("EAVE_EMBED_BASE_URL_PUBLIC") or "https://embed.eave.fyi"
+
+    @property
+    def eave_embed_hostname_public(self) -> str:
+        return urlparse(self.eave_embed_base_url_public).hostname or "embed.eave.fyi"
+
+    @property
+    def eave_embed_netloc_public(self) -> str:
+        return urlparse(self.eave_embed_base_url_public).netloc or self.eave_embed_hostname_public
+
+    @property
+    def eave_embed_base_url_internal(self) -> str:
+        return os.getenv("EAVE_EMBED_BASE_URL_INTERNAL") or "http://metabase.svc.cluster.local"
+
+    @property
+    def eave_embed_hostname_internal(self) -> str:
+        return urlparse(self.eave_embed_base_url_internal).hostname or "metabase.svc.cluster.local"
+
+    @property
+    def eave_embed_netloc_internal(self) -> str:
+        return urlparse(self.eave_embed_base_url_internal).netloc or self.eave_embed_hostname_internal
 
     @property
     def eave_cookie_domain(self) -> str:
-        return os.getenv("EAVE_COOKIE_DOMAIN") or ".eave.fyi"
+        return self.eave_hostname_public
+
+    # @property
+    # def eave_public_embed_base(self) -> str:
+    #     return os.getenv("EAVE_EMBED_BASE_PUBLIC") or f"https://{self.eave_public_embed_domain}"
+
+    # @property
+    # def eave_public_api_base(self) -> str:
+    #     return os.getenv("EAVE_API_BASE_PUBLIC") or f"https://api.{self.eave_public_root_domain}"
+
+    # @property
+    # def eave_internal_api_base(self) -> str:
+    #     return os.getenv("EAVE_API_BASE_INTERNAL") or f"http://core-api.{self.eave_internal_root_domain}"
+
+    # @property
+    # def eave_public_dashboard_base(self) -> str:
+    #     return os.getenv("EAVE_DASHBOARD_BASE_PUBLIC") or f"https://dashboard.{self.eave_public_root_domain}"
+
+    # @property
+    # def eave_public_root_domain(self) -> str:
+    #     return os.getenv("EAVE_ROOT_DOMAIN") or "eave.fyi"
+
+    # @property
+    # def eave_root_cookie_domain(self) -> str:
+    #     return self.eave_public_root_domain.split(":", maxsplit=1)[0]
+
+    # @property
+    # def eave_public_embed_domain(self) -> str:
+    #     return os.getenv("EAVE_EMBED_ROOT_DOMAIN") or f"embed.{self.eave_public_root_domain}"
+
+    # @property
+    # def eave_embed_cookie_domain(self) -> str:
+    #     return self.eave_public_embed_domain.split(":", maxsplit=1)[0]
+
+    # @property
+    # def eave_internal_root_domain(self) -> str:
+    #     """
+    #     Root domain for accessing internal services.
+    #     Prepend the service name to get the internal service domain, eg `core-api.eave.svc.cluster.local`
+    #     """
+    #     return os.getenv("EAVE_INTERNAL_ROOT_DOMAIN") or "eave.svc.cluster.local"
+
+    # @property
+    # def metabase_internal_root_domain(self) -> str:
+    #     """
+    #     Root domain for accessing internal metabase instances.
+    #     Prepend the metabase instance ID to get the internal metabase service domain, eg `{metabase_instance.id.hex}.eave.svc.cluster.local`
+    #     """
+    #     return os.getenv("METABASE_INTERNAL_ROOT_DOMAIN") or "metabase.svc.cluster.local"
 
     @cached_property
     def redis_connection(self) -> tuple[str, int, str] | None:

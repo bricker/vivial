@@ -42,6 +42,18 @@ class CookiesTest(CookiesTestBase):
         assert re.search(f"Domain={SHARED_CONFIG.eave_cookie_domain};", cookie)
         assert re.search("HttpOnly;", cookie)
 
+    async def test_set_http_cookie_with_domain(self):
+        key = self.anystr("cookie_key")
+        value = self.anystr("cookie_value")
+        set_http_cookie(key=key, value=value, response=self.mock_response, domain="example.com")
+        cookies = [v for k, v in self.mock_response.headers.items() if istr_eq(k, aiohttp.hdrs.SET_COOKIE)]
+
+        assert len(cookies) == 1
+
+        cookie = next((v for v in cookies if re.search(f"^{key}={value}", v)), None)
+        assert cookie
+        assert re.search("Domain=example.com;", cookie)
+
     async def test_delete_http_cookie(self):
         key = self.anystr("cookie_key")
         delete_http_cookie(key=key, response=self.mock_response)

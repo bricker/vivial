@@ -1,12 +1,12 @@
 from collections.abc import Awaitable, Callable
 
 import asgiref.typing
+from eave.stdlib.logging import LogContext
 from starlette.requests import Request
 
 from ..api_util import get_header_value
 from ..exceptions import NotFoundError
 from ..headers import EAVE_LB_HEADER
-from ..request_state import EaveRequestState
 from .base import EaveASGIMiddleware
 
 
@@ -17,7 +17,7 @@ class DenyPublicRequestASGIMiddleware(EaveASGIMiddleware):
         receive: asgiref.typing.ASGIReceiveCallable,
         send: asgiref.typing.ASGISendCallable,
         request: Request,
-        state: EaveRequestState,
+        ctx: LogContext,
         continue_request: Callable[[], Awaitable[None]],
     ) -> None:
         # The EAVE_LB_HEADER header gets added onto the request at the load balancer.

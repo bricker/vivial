@@ -1,7 +1,7 @@
 locals {
   app_name = "core-api"
   domain_prefix = "api"
-  viz_domain_prefix = "viz"
+  embed_domain_prefix = "embed"
 
   service_port = {
     name = "http"

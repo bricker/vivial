@@ -259,5 +259,5 @@ class TestGoogleOAuthHandler(BaseTestCase):
         assert eave.core.internal.oauth.google.GOOGLE_OAUTH_CALLBACK_PATH == "/oauth/google/callback"
         assert (
             eave.core.internal.oauth.google.GOOGLE_OAUTH_CALLBACK_URI
-            == f"{SHARED_CONFIG.eave_public_api_base}/oauth/google/callback"
+            == f"{SHARED_CONFIG.eave_api_base_url_public}/oauth/google/callback"
         )

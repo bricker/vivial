@@ -1,8 +1,5 @@
 # Eave-specific request headers
-EAVE_TEAM_ID_HEADER = "eave-team-id"
 EAVE_ACCOUNT_ID_HEADER = "eave-account-id"
-EAVE_SIGNATURE_HEADER = "eave-signature"
-EAVE_SIG_TS_HEADER = "eave-sig-ts"
 EAVE_ORIGIN_HEADER = "eave-origin"
 EAVE_REQUEST_ID_HEADER = "eave-request-id"
 EAVE_CRON_DISPATCH_KEY_HEADER = "eave-cron-dispatch-key"

@@ -1,4 +1,10 @@
+from typing import Awaitable, Callable
+from uuid import uuid4
 import asgiref.typing
+from eave.stdlib.api_util import get_header_value
+from eave.stdlib.headers import EAVE_REQUEST_ID_HEADER
+from eave.stdlib.logging import LogContext
+from starlette.requests import Request
 
 from ..exceptions import BadRequestError
 from .base import EaveASGIMiddleware
@@ -8,12 +14,23 @@ _ALLOWED_ASGI_PROTOCOLS = ["http", "lifespan"]
 
 class RequestIntegrityASGIMiddleware(EaveASGIMiddleware):
     """
-    Does some basic integrity checks, for example:
-    - the request is for a supported protocol
+    Does some basic integrity checks
     """
 
-    # This class overrides the __call__() method instead of run() so that it can perform lower-level checks on the request
-    # than EaveASGIMiddleware allows.
+    async def process_request(
+        self,
+        scope: asgiref.typing.HTTPScope,
+        receive: asgiref.typing.ASGIReceiveCallable,
+        send: asgiref.typing.ASGISendCallable,
+        request: Request,
+        ctx: LogContext,
+        continue_request: Callable[[], Awaitable[None]],
+    ) -> None:
+        if request_id_header := get_header_value(scope=scope, name=EAVE_REQUEST_ID_HEADER):
+            ctx.eave_request_id = request_id_header
+
+        await continue_request()
+
     async def handle(
         self,
         scope: asgiref.typing.Scope,

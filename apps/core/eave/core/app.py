@@ -1,16 +1,20 @@
+import aiohttp.hdrs
+from starlette.middleware import Middleware
+from eave.stdlib.config import SHARED_CONFIG
 import starlette.applications
 import starlette.endpoints
 from asgiref.typing import ASGI3Application
 from starlette.routing import Route
 
 import eave.stdlib.time
+from starlette.types import ASGIApp, Receive, Scope, Send
 from eave.core.internal.oauth.google import (
     GOOGLE_OAUTH_AUTHORIZE_PATH,
     GOOGLE_OAUTH_CALLBACK_PATH,
 )
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.core.public.requests.data_ingestion import BrowserDataIngestionEndpoint, ServerDataIngestionEndpoint
-from eave.core.public.requests.metabase_auth_proxy import MetabaseAuthProxyEndpoint
+from eave.core.public.requests.metabase_proxy import MetabaseAuthEndpoint, MetabaseProxyEndpoint, MetabaseProxyRouter
 from eave.stdlib import cache, logging
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.core_api.operations.account import GetMyAccountRequest
@@ -40,6 +44,7 @@ eave.stdlib.time.set_utc()
 def make_route(
     config: CoreApiEndpointConfiguration,
     endpoint: ASGI3Application,
+    addl_methods: list[str] | None = None,
 ) -> Route:
     """
     Defines basic information about the route, passed-through to the Starlette router.
@@ -163,7 +168,9 @@ def make_route(
 
     # ^^ When deciding the order of middlewares, start here and go up ^^
 
-    return Route(path=config.path, methods=[config.method], endpoint=endpoint)
+    # This is to append the additional methods, removing any duplicate of config.method, and putting config.method at the beginning.
+    addl_methods = [m for m in addl_methods if m != config.method] if addl_methods else []
+    return Route(path=config.path, methods=[config.method, *addl_methods], endpoint=endpoint)
 
 
 routes = [
@@ -173,16 +180,17 @@ routes = [
     Route(
         path="/status",
         endpoint=status.StatusEndpoint,
-        methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],
+        methods=[aiohttp.hdrs.METH_GET, aiohttp.hdrs.METH_POST, aiohttp.hdrs.METH_PUT, aiohttp.hdrs.METH_PATCH, aiohttp.hdrs.METH_DELETE, aiohttp.hdrs.METH_HEAD, aiohttp.hdrs.METH_OPTIONS],
     ),
     Route(
         path="/healthz",
         endpoint=status.HealthEndpoint,
-        methods=["GET"],
+        methods=[aiohttp.hdrs.METH_GET],
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
             path="/public/ingest/server",
+            method=aiohttp.hdrs.METH_POST,
             auth_required=False,
             origin_required=False,
             is_public=True,
@@ -192,6 +200,7 @@ routes = [
     make_route(
         config=CoreApiEndpointConfiguration(
             path="/public/ingest/browser",
+            method=aiohttp.hdrs.METH_POST,
             auth_required=False,
             origin_required=False,
             is_public=True,
@@ -200,18 +209,29 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/public/mb",
-            method="GET",
+            path="/_/metabase/proxy/auth/sso",
+            method=aiohttp.hdrs.METH_GET,
             auth_required=True,
             origin_required=False,
-            is_public=True,
+            is_public=True, # This is True because embed.eave.fyi forwards to this endpoint via the LB, which sets the eave-lb header.
         ),
-        endpoint=MetabaseAuthProxyEndpoint,
+        endpoint=MetabaseAuthEndpoint,
+    ),
+    make_route(
+        config=CoreApiEndpointConfiguration(
+            path="/_/metabase/proxy/{rest:path}",
+            method=aiohttp.hdrs.METH_GET,
+            auth_required=True,
+            origin_required=False,
+            is_public=True, # This is True because embed.eave.fyi forwards to this endpoint via the LB, which sets the eave-lb header.
+        ),
+        endpoint=MetabaseProxyEndpoint,
+        addl_methods=[aiohttp.hdrs.METH_POST, aiohttp.hdrs.METH_PUT, aiohttp.hdrs.METH_PATCH, aiohttp.hdrs.METH_DELETE, aiohttp.hdrs.METH_HEAD, aiohttp.hdrs.METH_OPTIONS],
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
             path=GOOGLE_OAUTH_AUTHORIZE_PATH,
-            method="GET",
+            method=aiohttp.hdrs.METH_GET,
             auth_required=False,
             origin_required=False,
             is_public=True,
@@ -221,7 +241,7 @@ routes = [
     make_route(
         config=CoreApiEndpointConfiguration(
             path=GOOGLE_OAUTH_CALLBACK_PATH,
-            method="GET",
+            method=aiohttp.hdrs.METH_GET,
             auth_required=False,
             origin_required=False,
             is_public=True,
@@ -231,6 +251,7 @@ routes = [
     make_route(
         config=CoreApiEndpointConfiguration(
             path="/favicon.ico",
+            method=aiohttp.hdrs.METH_GET,
             auth_required=False,
             origin_required=False,
             is_public=True,
@@ -264,9 +285,9 @@ async def graceful_shutdown() -> None:
     except Exception as e:
         logging.eaveLogger.exception(e)
 
-
 app = starlette.applications.Starlette(
     routes=routes,
     exception_handlers=exception_handlers,
+    middleware=[Middleware(MetabaseProxyRouter)],
     on_shutdown=[graceful_shutdown],
 )

@@ -6,12 +6,11 @@ import asgiref.typing
 import starlette.types
 from starlette.requests import Request
 
-from eave.stdlib.request_state import EaveRequestState
 
 from ..api_util import json_response
 from ..config import SHARED_CONFIG
 from ..core_api.models.error import ErrorResponse
-from ..logging import eaveLogger
+from ..logging import LogContext, eaveLogger
 from .base import EaveASGIMiddleware
 
 
@@ -27,7 +26,7 @@ class ExceptionHandlingASGIMiddleware(EaveASGIMiddleware):
         receive: asgiref.typing.ASGIReceiveCallable,
         send: asgiref.typing.ASGISendCallable,
         request: Request,
-        state: EaveRequestState,
+        ctx: LogContext,
         continue_request: Callable[[], Awaitable[None]],
     ) -> None:
         response_started = False
@@ -42,7 +41,7 @@ class ExceptionHandlingASGIMiddleware(EaveASGIMiddleware):
         try:
             await self.app(scope, receive, _send)
         except Exception as e:
-            eaveLogger.exception(e, state.ctx)
+            eaveLogger.exception(e, ctx)
 
             if SHARED_CONFIG.raise_app_exceptions:
                 # NOTE: In development and test, this effectively converts every HTTPException into a 500 Server Error, and can make it difficult to troubleshoot request errors.
@@ -55,7 +54,7 @@ class ExceptionHandlingASGIMiddleware(EaveASGIMiddleware):
                 model = ErrorResponse(
                     status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
                     error_message=http.HTTPStatus.INTERNAL_SERVER_ERROR.phrase,
-                    context=state.ctx.public,
+                    context=ctx.public,
                 )
 
                 response = json_response(model=model, status_code=model.status_code)

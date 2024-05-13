@@ -2614,7 +2614,7 @@ export function Tracker(trackerUrl, siteId) {
         This click handler will only fire 1 event per click, so higher
         priority tracked elements should appear earlier in the list.
 
-        e.g. 
+        e.g.
         linkTracking comes before buttonClickTracking.
         Therefore, we expect clicking on the button element of
         `<a href="#"><button>click!</button></a>`
@@ -2647,7 +2647,7 @@ export function Tracker(trackerUrl, siteId) {
     function getClickTarget(event) {
       var initialTarget = getTargetElementFromEvent(event);
 
-      /* 
+      /*
           loop over all enabled element trackers, returning the first
           (aka highest priority) node found
           */

@@ -1,12 +1,15 @@
 import time
 from collections.abc import Awaitable, Callable
+from typing import cast
 
 import asgiref.typing
+from eave.stdlib.api_util import get_headers
+from eave.stdlib.typing import JsonObject
+from eave.stdlib.utm_cookies import get_tracking_cookies
 from starlette.requests import Request
 
-from eave.stdlib.request_state import EaveRequestState
 
-from ..logging import eaveLogger
+from ..logging import LOGGER, LogContext
 from .base import EaveASGIMiddleware
 
 
@@ -17,20 +20,28 @@ class LoggingASGIMiddleware(EaveASGIMiddleware):
         receive: asgiref.typing.ASGIReceiveCallable,
         send: asgiref.typing.ASGISendCallable,
         request: Request,
-        state: EaveRequestState,
+        ctx: LogContext,
         continue_request: Callable[[], Awaitable[None]],
     ) -> None:
-        eaveLogger.info(
-            f"Server Request Start: {state.ctx.eave_request_id}: {scope['method']} {scope['path']}",
-            state.ctx,
+        LOGGER.info(
+            f"Server Request Start: {ctx.eave_request_id}: {scope['method']} {scope['path']}",
+            ctx,
         )
+
+        # Add some tracking context to the log context.
+        tracking_cookies = get_tracking_cookies(request=request)
+        ctx["eave_visitor_id"] = tracking_cookies.visitor_id
+        ctx["eave_utm_params"] = tracking_cookies.utm_params
+
+        # Add request headers to the log context.
+        ctx["headers"] = cast(JsonObject, get_headers(scope=scope))
 
         rstart = int(time.time())
         await continue_request()
         rend = int(time.time())
 
-        eaveLogger.info(
-            f"Server Request End: {state.ctx.eave_request_id}: {scope['method']} {scope['path']}",
-            state.ctx,
+        LOGGER.info(
+            f"Server Request End: {ctx.eave_request_id}: {scope['method']} {scope['path']}",
+            ctx,
             {"request_duration": rend - rstart},
         )

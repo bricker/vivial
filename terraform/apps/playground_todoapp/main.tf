@@ -59,5 +59,4 @@ module "certificate" {
   cert_name = local.app_name
   entry_name = local.app_name
   hostname = local.domain
-  domains = [local.domain]
 }

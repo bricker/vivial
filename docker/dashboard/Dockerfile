@@ -90,5 +90,5 @@ ENV PYTHONUNBUFFERED=1
 
 CMD PYTHONPATH=/vendor python -m gunicorn \
     --pythonpath /vendor \
-    --worker-class uvicorn.workers.UvicornWorker \
+    --worker-class eave.stdlib.uvicorn.EaveUvicornWorker \
     eave.dashboard.app:app

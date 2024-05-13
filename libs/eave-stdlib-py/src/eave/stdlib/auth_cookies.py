@@ -3,14 +3,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from http.cookies import Morsel, SimpleCookie
 
-from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
-from eave.stdlib.typing import HTTPFrameworkResponse
-
-# version can be changed when a force-logout is required for all users
-AUTH_COOKIE_SUFFIX = ".202404"
-EAVE_ACCOUNT_ID_COOKIE_NAME = f"ev_account_id{AUTH_COOKIE_SUFFIX}"
-EAVE_ACCESS_TOKEN_COOKIE_NAME = f"ev_access_token{AUTH_COOKIE_SUFFIX}"
-
+from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME, EAVE_ACCOUNT_ID_COOKIE_NAME, EAVE_AUTH_COOKIE_PREFIX, EAVE_EMBED_COOKIE_PREFIX, delete_cookies_with_prefix, delete_http_cookie, set_http_cookie
+from eave.stdlib.typing import HTTPFrameworkRequest, HTTPFrameworkResponse
 
 @dataclass
 class AuthCookies:
@@ -38,7 +32,6 @@ def get_auth_cookies(cookies: SimpleCookie | Mapping[str, str]) -> AuthCookies:
 def set_auth_cookies(
     response: HTTPFrameworkResponse,
     account_id: uuid.UUID | str | None = None,
-    team_id: uuid.UUID | str | None = None,
     access_token: str | None = None,
 ) -> None:
     if account_id:
@@ -48,6 +41,6 @@ def set_auth_cookies(
         set_http_cookie(response=response, key=EAVE_ACCESS_TOKEN_COOKIE_NAME, value=access_token)
 
 
-def delete_auth_cookies(response: HTTPFrameworkResponse) -> None:
-    delete_http_cookie(response=response, key=EAVE_ACCOUNT_ID_COOKIE_NAME)
-    delete_http_cookie(response=response, key=EAVE_ACCESS_TOKEN_COOKIE_NAME)
+def delete_auth_cookies(request: HTTPFrameworkRequest, response: HTTPFrameworkResponse) -> None:
+    delete_cookies_with_prefix(request=request, response=response, prefix=EAVE_AUTH_COOKIE_PREFIX)
+    delete_cookies_with_prefix(request=request, response=response, prefix=EAVE_EMBED_COOKIE_PREFIX)

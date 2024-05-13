@@ -33,19 +33,16 @@ resource "kubernetes_config_map" "shared" {
 
   data = {
     GOOGLE_CLOUD_PROJECT = var.project.id
-    # EAVE_METABASE_BASE_PUBLIC = "https://metabase.${var.root_domain}"
-    # EAVE_METABASE_BASE_INTERNAL = "http://metabase.${kubernetes_namespace.eave.metadata[0].name}.svc.cluster.local"
 
-    EAVE_API_BASE_PUBLIC = "https://api.${var.project.root_domain}"
-    EAVE_API_BASE_INTERNAL = "http://core-api.${kubernetes_namespace.eave.metadata[0].name}.svc.cluster.local"
+    EAVE_BASE_URL_PUBLIC = "https://${var.project.root_domain}"
+    EAVE_BASE_URL_INTERNAL = "http://${kubernetes_namespace.eave.metadata[0].name}.svc.cluster.local"
+    EAVE_EMBED_BASE_URL_PUBLIC = "https://embed.${var.project.root_domain}"
+    EAVE_EMBED_BASE_URL_INTERNAL = "http://${kubernetes_namespace.metabase.metadata[0].name}.svc.cluster.local"
+    EAVE_API_BASE_URL_PUBLIC = "https://api.${var.project.root_domain}"
+    EAVE_API_BASE_URL_INTERNAL = "http://core-api.${kubernetes_namespace.eave.metadata[0].name}.svc.cluster.local"
+    EAVE_DASHBOARD_BASE_URL_PUBLIC = "https://dashboard.${var.project.root_domain}"
 
-    EAVE_DASHBOARD_BASE_PUBLIC = "https://dashboard.${var.project.root_domain}"
-    EAVE_DASHBOARD_BASE_INTERNAL = "http://dashboard.${kubernetes_namespace.eave.metadata[0].name}.svc.cluster.local"
-
-    EAVE_INTERNAL_ROOT_DOMAIN = "${kubernetes_namespace.eave.metadata[0].name}.svc.cluster.local"
-    METABASE_INTERNAL_ROOT_DOMAIN = "${kubernetes_namespace.metabase.metadata[0].name}.svc.cluster.local"
-
-    EAVE_COOKIE_DOMAIN = ".${var.project.root_domain}"
+    EAVE_ENV = "production"
   }
 }
 

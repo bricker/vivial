@@ -42,6 +42,7 @@ const Dashboard = ({
 }: {
   page?: "insights" | "glossary" | "settings" | "team";
 }) => {
+
   const { classes } = makeClasses();
 
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);

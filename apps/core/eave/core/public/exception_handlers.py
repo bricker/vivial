@@ -11,87 +11,86 @@ import eave.stdlib.cookies
 from eave.stdlib.auth_cookies import delete_auth_cookies
 from eave.stdlib.core_api.models.error import ErrorResponse
 from eave.stdlib.exceptions import BadRequestError, ForbiddenError, NotFoundError, UnauthorizedError
-from eave.stdlib.logging import eaveLogger
-from eave.stdlib.request_state import EaveRequestState
+from eave.stdlib.logging import LogContext, eaveLogger
 
 
 def internal_server_error(request: Request, exc: Exception) -> Response:
-    eave_state = EaveRequestState.load(request=request)
-    eaveLogger.error(exc, eave_state.ctx)
+    ctx = LogContext.load(scope=request.scope)
+    eaveLogger.error(exc, ctx)
 
     model = ErrorResponse(
         status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
         error_message=http.HTTPStatus.INTERNAL_SERVER_ERROR.phrase,
-        context=eave_state.ctx.public,
+        context=ctx.public,
     )
 
     return eave.stdlib.api_util.json_response(model=model, status_code=model.status_code)
 
 
 def not_found(request: Request, exc: Exception) -> Response:
-    eave_state = EaveRequestState.load(request=request)
-    eaveLogger.warning(exc, eave_state.ctx)
+    ctx = LogContext.load(scope=request.scope)
+    eaveLogger.warning(exc, ctx)
 
     model = ErrorResponse(
         status_code=http.HTTPStatus.NOT_FOUND,
         error_message=http.HTTPStatus.NOT_FOUND.phrase,
-        context=eave_state.ctx.public,
+        context=ctx.public,
     )
 
     return eave.stdlib.api_util.json_response(model=model, status_code=model.status_code)
 
 
 def bad_request(request: Request, exc: Exception) -> Response:
-    eave_state = EaveRequestState.load(request=request)
-    eaveLogger.warning(exc, eave_state.ctx)
+    ctx = LogContext.load(scope=request.scope)
+    eaveLogger.warning(exc, ctx)
 
     model = ErrorResponse(
         status_code=http.HTTPStatus.BAD_REQUEST,
         error_message=http.HTTPStatus.BAD_REQUEST.phrase,
-        context=eave_state.ctx.public,
+        context=ctx.public,
     )
 
     return eave.stdlib.api_util.json_response(model=model, status_code=model.status_code)
 
 
 def unauthorized(request: Request, exc: Exception) -> Response:
-    eave_state = EaveRequestState.load(request=request)
-    eaveLogger.warning(exc, eave_state.ctx)
+    ctx = LogContext.load(scope=request.scope)
+    eaveLogger.warning(exc, ctx)
 
     model = ErrorResponse(
         status_code=http.HTTPStatus.UNAUTHORIZED,
         error_message=http.HTTPStatus.UNAUTHORIZED.phrase,
-        context=eave_state.ctx.public,
+        context=ctx.public,
     )
     response = eave.stdlib.api_util.json_response(model=model, status_code=model.status_code)
-    delete_auth_cookies(response=response)
+    delete_auth_cookies(request=request, response=response)
     return response
 
 
 def forbidden(request: Request, exc: Exception) -> Response:
-    eave_state = EaveRequestState.load(request=request)
-    eaveLogger.warning(exc, eave_state.ctx)
+    ctx = LogContext.load(scope=request.scope)
+    eaveLogger.warning(exc, ctx)
 
     model = ErrorResponse(
         status_code=http.HTTPStatus.FORBIDDEN,
         error_message=http.HTTPStatus.FORBIDDEN.phrase,
-        context=eave_state.ctx.public,
+        context=ctx.public,
     )
     response = eave.stdlib.api_util.json_response(model=model, status_code=model.status_code)
     return response
 
 
 def validation_error(request: Request, exc: Exception) -> Response:
-    eave_state = EaveRequestState.load(request=request)
-    eaveLogger.warning(exc, eave_state.ctx)
+    ctx = LogContext.load(scope=request.scope)
+    eaveLogger.warning(exc, ctx)
 
     if isinstance(exc, pydantic.ValidationError):
-        eave_state.ctx.public["validation_errors"] = exc.json()
+        ctx.public["validation_errors"] = exc.json()
 
     model = ErrorResponse(
         status_code=http.HTTPStatus.UNPROCESSABLE_ENTITY,
         error_message="validation errors",
-        context=eave_state.ctx.public,
+        context=ctx.public,
     )
 
     return eave.stdlib.api_util.json_response(model=model, status_code=model.status_code)

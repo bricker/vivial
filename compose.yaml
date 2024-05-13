@@ -28,55 +28,58 @@ services:
       - MB_DB_HOST=postgres
       - MB_DB_PORT=5432
 
-  core-api:
-    build:
-      context: .
-      dockerfile: ./docker/core-api/Dockerfile
-    volumes:
-      - ~/.config/gcloud:/gcloud
-    ports:
-      - "5100:8000"
-    depends_on:
-      - postgres
-    env_file:
-      - path: .env
-        required: false
-      - path: ./develop/shared/share.env
-    environment:
-      - GUNICORN_CMD_ARGS=--bind=0.0.0.0:8000 --workers=3 --timeout=90
-      - EAVE_DB_HOST=postgres
-      - EAVE_DB_NAME=eave_dev
-      - EAVE_DB_PORT=5432
-      - EAVE_DB_USER=app
-      - EAVE_DB_PASS=unsafe
-      - GOOGLE_APPLICATION_CREDENTIALS=/gcloud/application_default_credentials.json
-      - GOOGLE_CLOUD_PROJECT=eavefyi-dev
-      - EAVE_API_BASE_INTERNAL="http://core-api"
-      - EAVE_API_BASE_PUBLIC="http://core-api"
-      - EAVE_METABASE_BASE_PUBLIC="http://metabase"
-      - EAVE_METABASE_BASE_INTERNAL="http://metabase"
-      - EAVE_COOKIE_DOMAIN=".eave.run:8080"
 
-  dashboard:
-    build:
-      context: .
-      dockerfile: ./docker/dashboard/Dockerfile
-    volumes:
-      - ~/.config/gcloud:/gcloud
-    ports:
-      - "5000:8000"
-    depends_on:
-      - postgres
-    env_file:
-      - path: .env
-        required: false
-      - path: ./develop/shared/share.env
-    environment:
-      - GUNICORN_CMD_ARGS=--bind=0.0.0.0:8000 --workers=3 --timeout=90
-      - GOOGLE_APPLICATION_CREDENTIALS="/gcloud/application_default_credentials.json"
-      - GOOGLE_CLOUD_PROJECT="eavefyi-dev"
-      - EAVE_API_BASE_INTERNAL="http://core-api"
-      - EAVE_API_BASE_PUBLIC="http://core-api"
-      - EAVE_METABASE_BASE_PUBLIC="http://metabase"
-      - EAVE_METABASE_BASE_INTERNAL="http://metabase"
-      - EAVE_COOKIE_DOMAIN=".eave.run:8080"
+  # Just experimenting, don't use these:
+
+  # core-api:
+  #   build:
+  #     context: .
+  #     dockerfile: ./docker/core-api/Dockerfile
+  #   volumes:
+  #     - ~/.config/gcloud:/gcloud
+  #   ports:
+  #     - "5100:8000"
+  #   depends_on:
+  #     - postgres
+  #   env_file:
+  #     - path: .env
+  #       required: false
+  #     - path: ./develop/shared/share.env
+  #   environment:
+  #     - GUNICORN_CMD_ARGS=--bind=0.0.0.0:8000 --workers=3 --timeout=90
+  #     - EAVE_DB_HOST=postgres
+  #     - EAVE_DB_NAME=eave_dev
+  #     - EAVE_DB_PORT=5432
+  #     - EAVE_DB_USER=app
+  #     - EAVE_DB_PASS=unsafe
+  #     - GOOGLE_APPLICATION_CREDENTIALS=/gcloud/application_default_credentials.json
+  #     - GOOGLE_CLOUD_PROJECT=eavefyi-dev
+  #     - EAVE_API_BASE_INTERNAL="http://core-api"
+  #     - EAVE_API_BASE_PUBLIC="http://core-api"
+  #     - EAVE_METABASE_BASE_PUBLIC="http://metabase"
+  #     - EAVE_METABASE_BASE_INTERNAL="http://metabase"
+  #     - EAVE_COOKIE_DOMAIN=".eave.run:8080"
+
+  # dashboard:
+  #   build:
+  #     context: .
+  #     dockerfile: ./docker/dashboard/Dockerfile
+  #   volumes:
+  #     - ~/.config/gcloud:/gcloud
+  #   ports:
+  #     - "5000:8000"
+  #   depends_on:
+  #     - postgres
+  #   env_file:
+  #     - path: .env
+  #       required: false
+  #     - path: ./develop/shared/share.env
+  #   environment:
+  #     - GUNICORN_CMD_ARGS=--bind=0.0.0.0:8000 --workers=3 --timeout=90
+  #     - GOOGLE_APPLICATION_CREDENTIALS="/gcloud/application_default_credentials.json"
+  #     - GOOGLE_CLOUD_PROJECT="eavefyi-dev"
+  #     - EAVE_API_BASE_INTERNAL="http://core-api"
+  #     - EAVE_API_BASE_PUBLIC="http://core-api"
+  #     - EAVE_METABASE_BASE_PUBLIC="http://metabase"
+  #     - EAVE_METABASE_BASE_INTERNAL="http://metabase"
+  #     - EAVE_COOKIE_DOMAIN=".eave.run:8080"

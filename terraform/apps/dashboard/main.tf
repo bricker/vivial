@@ -1,7 +1,7 @@
 module "service_accounts" {
   source         = "../../modules/gke_app_service_account"
   project     = var.project
-  kube_service_name            = local.app_name #kubernetes_service.app.metadata[0].name
+  kube_service_name            = module.kubernetes_service.name
   kube_namespace_name = var.kube_namespace_name
 }
 
@@ -46,5 +46,4 @@ module "certificate" {
   cert_name = local.app_name
   entry_name = local.app_name
   hostname = local.domain
-  domains = [local.domain]
 }

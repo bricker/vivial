@@ -7,7 +7,6 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from eave.stdlib.auth_cookies import (
-    AUTH_COOKIE_SUFFIX,
     EAVE_ACCESS_TOKEN_COOKIE_NAME,
     EAVE_ACCOUNT_ID_COOKIE_NAME,
     delete_auth_cookies,
@@ -44,14 +43,12 @@ class AuthCookiesTest(AuthCookiesTestBase):
         """
         The auth cookie names may be referenced in client code, eg GTM, so changing them needs consideration.
         """
-        assert AUTH_COOKIE_SUFFIX == ".202404"
-        assert EAVE_ACCOUNT_ID_COOKIE_NAME == "ev_account_id.202404"
-        assert EAVE_ACCESS_TOKEN_COOKIE_NAME == "ev_access_token.202404"
+        assert EAVE_ACCOUNT_ID_COOKIE_NAME == "eave.auth.account_id"
+        assert EAVE_ACCESS_TOKEN_COOKIE_NAME == "eave.auth.access_token"
 
     async def test_set_auth_cookies_with_all_data(self):
         set_auth_cookies(
             response=self.mock_response,
-            team_id=self.data_team_id,
             account_id=self.data_account_id,
             access_token=self.data_access_token,
         )
@@ -112,7 +109,7 @@ class AuthCookiesTest(AuthCookiesTestBase):
         assert cookies.access_token is None
 
     async def test_delete_auth_cookies(self):
-        delete_auth_cookies(response=self.mock_response)
+        delete_auth_cookies(request=self.mock_request, response=self.mock_response)
         cookies = [v for k, v in self.mock_response.headers.items() if istr_eq(k, aiohttp.hdrs.SET_COOKIE)]
         assert len(cookies) == 2
 

@@ -23,15 +23,14 @@ from eave.stdlib import auth_cookies, utm_cookies
 from eave.stdlib.api_util import set_redirect
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.models.account import AuthProvider
-from eave.stdlib.logging import eaveLogger
-from eave.stdlib.request_state import EaveRequestState
+from eave.stdlib.logging import LogContext, eaveLogger
 from eave.stdlib.util import ensure_uuid
 
 from . import EAVE_ERROR_CODE_QP, EaveOnboardingErrorCode
 
 DEFAULT_TEAM_NAME = "Your Team"
-DEFAULT_REDIRECT_LOCATION = SHARED_CONFIG.eave_public_dashboard_base
-SIGNUP_REDIRECT_LOCATION = f"{SHARED_CONFIG.eave_public_dashboard_base}/signup"
+DEFAULT_REDIRECT_LOCATION = SHARED_CONFIG.eave_dashboard_base_url_public
+SIGNUP_REDIRECT_LOCATION = f"{SHARED_CONFIG.eave_dashboard_base_url_public}/signup"
 
 
 def verify_oauth_state_or_exception(
@@ -68,7 +67,7 @@ def is_error_response(response: Response) -> bool:
 
 
 def cancel_flow(response: Response) -> Response:
-    return set_redirect(response=response, location=SHARED_CONFIG.eave_public_dashboard_base)
+    return set_redirect(response=response, location=SHARED_CONFIG.eave_dashboard_base_url_public)
 
 
 async def get_logged_in_eave_account(
@@ -140,8 +139,8 @@ async def create_new_account_and_team(
     auth_id: str,
     access_token: str,
     refresh_token: str | None,
+    ctx: LogContext,
 ) -> AccountOrm:
-    eave_state = EaveRequestState.load(request=request)
     tracking_cookies = utm_cookies.get_tracking_cookies(request=request)
 
     async with eave.core.internal.database.async_session.begin() as db_session:
@@ -178,7 +177,7 @@ async def create_new_account_and_team(
 
     eaveLogger.debug(
         "created new account",
-        eave_state.ctx,
+        ctx,
         {"eave_account_id": str(eave_account.id), "eave_team_id": str(eave_team.id)},
     )
 
@@ -188,7 +187,7 @@ async def create_new_account_and_team(
         event_source="core api oauth",
         eave_account=eave_account.analytics_model,
         eave_team=eave_team.analytics_model,
-        ctx=eave_state.ctx,
+        ctx=ctx,
     )
 
     return eave_account
@@ -203,6 +202,7 @@ async def get_or_create_eave_account(
     auth_id: str,
     access_token: str,
     refresh_token: str | None,
+    ctx: LogContext,
 ) -> AccountOrm:
     eave_account = await get_logged_in_eave_account(
         request=request,
@@ -230,6 +230,7 @@ async def get_or_create_eave_account(
             auth_id=auth_id,
             access_token=access_token,
             refresh_token=refresh_token,
+            ctx=ctx,
         )
 
     # Set the cookie in the response headers.
@@ -238,7 +239,6 @@ async def get_or_create_eave_account(
     auth_cookies.set_auth_cookies(
         response=response,
         account_id=eave_account.id,
-        team_id=eave_account.team_id,
         access_token=eave_account.access_token,
     )
 

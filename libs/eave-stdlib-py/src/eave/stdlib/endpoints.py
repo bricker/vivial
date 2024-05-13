@@ -9,8 +9,8 @@ from eave.stdlib.eave_origins import EaveApp
 class EndpointConfiguration:
     base_url: str
     path: str
-    audience: EaveApp
     method: str
+    audience: EaveApp
     auth_required: bool
     origin_required: bool
     is_public: bool
@@ -20,16 +20,16 @@ class EndpointConfiguration:
         *,
         base_url: str,
         path: str,
-        audience: EaveApp,
         method: str,
+        audience: EaveApp,
         auth_required: bool,
         origin_required: bool,
         is_public: bool = False,
     ) -> None:
         self.base_url = base_url
         self.path = path
-        self.audience = audience
         self.method = method
+        self.audience = audience
         self.auth_required = auth_required
         self.origin_required = origin_required
         self.is_public = is_public
@@ -37,7 +37,6 @@ class EndpointConfiguration:
     @property
     def url(self) -> str:
         return f"{self.base_url}{self.path}"
-
 
 class BaseRequestBody(pydantic.BaseModel):
     pass

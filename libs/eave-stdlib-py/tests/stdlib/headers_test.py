@@ -9,10 +9,7 @@ class HeadersTest(StdlibBaseTestCase):
     """
 
     async def test_header_values(self):
-        assert headers.EAVE_TEAM_ID_HEADER == "eave-team-id"
         assert headers.EAVE_ACCOUNT_ID_HEADER == "eave-account-id"
-        assert headers.EAVE_SIGNATURE_HEADER == "eave-signature"
-        assert headers.EAVE_SIG_TS_HEADER == "eave-sig-ts"
         assert headers.EAVE_ORIGIN_HEADER == "eave-origin"
         assert headers.EAVE_REQUEST_ID_HEADER == "eave-request-id"
         assert headers.EAVE_CRON_DISPATCH_KEY_HEADER == "eave-cron-dispatch-key"

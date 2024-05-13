@@ -40,7 +40,7 @@ resource "kubernetes_config_map" "shared" {
     # MB_PERSISTED_MODEL_REFRESH_CRON_SCHEDULE = ""
     MB_SITE_NAME = "Eave"
     MB_APPLICATION_NAME = "Eave"
-    MB_SITE_URL = "https://dashboard.${var.project.root_domain}"
+    MB_SITE_URL = "https://embed.${var.project.root_domain}"
     # MB_APPLICATION_FONT:
     # MB_APPLICATION_COLORS:
     # MB_APPLICATION_LOGO_URL:

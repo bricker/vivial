@@ -4,6 +4,7 @@ import aiohttp
 import asgiref.typing
 from aiohttp.compression_utils import ZLibDecompressor
 from aiohttp.hdrs import METH_PATCH, METH_POST, METH_PUT
+from eave.stdlib.logging import LogContext
 from starlette.requests import Request
 
 from eave.stdlib.api_util import get_header_value
@@ -11,7 +12,6 @@ from eave.stdlib.exceptions import (
     RequestEntityTooLargeError,
 )
 from eave.stdlib.headers import ENCODING_GZIP
-from eave.stdlib.request_state import EaveRequestState
 
 from .base import EaveASGIMiddleware
 
@@ -31,7 +31,7 @@ class ReadBodyASGIMiddleware(EaveASGIMiddleware):
         receive: asgiref.typing.ASGIReceiveCallable,
         send: asgiref.typing.ASGISendCallable,
         request: Request,
-        state: EaveRequestState,
+        ctx: LogContext,
         continue_request: Callable[[], Awaitable[None]],
     ) -> None:
         encoding = get_header_value(scope=scope, name=aiohttp.hdrs.CONTENT_ENCODING)

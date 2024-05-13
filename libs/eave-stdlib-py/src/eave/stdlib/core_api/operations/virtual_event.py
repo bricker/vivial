@@ -1,6 +1,7 @@
 import uuid
 from typing import Unpack
 
+from aiohttp.hdrs import METH_POST
 from eave.stdlib.core_api.models.virtual_event import VirtualEvent, VirtualEventQueryInput
 from eave.stdlib.endpoints import BaseRequestBody, BaseResponseBody
 
@@ -11,6 +12,7 @@ from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 class GetMyVirtualEventsRequest(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
         path="/_/me/virtual-events/query",
+        method=METH_POST,
         auth_required=True,
         origin_required=True,
         is_public=False,

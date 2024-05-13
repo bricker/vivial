@@ -1,4 +1,5 @@
 from asgiref.typing import HTTPScope
+from eave.stdlib.logging import LogContext
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -11,17 +12,16 @@ from eave.stdlib.core_api.operations.account import (
     GetMyAccountRequest,
 )
 from eave.stdlib.http_endpoint import HTTPEndpoint
-from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import ensure_uuid
 
 
 class GetAccountEndpoint(HTTPEndpoint):
-    async def handle(self, request: Request, scope: HTTPScope, state: EaveRequestState) -> Response:
+    async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
         async with eave.core.internal.database.async_session.begin() as db_session:
             eave_account_orm = await AccountOrm.one_or_exception(
                 session=db_session,
                 params=AccountOrm.QueryParams(
-                    id=ensure_uuid(state.ctx.eave_account_id),
+                    id=ensure_uuid(ctx.eave_authed_account_id),
                 ),
             )
             eave_team_orm = await TeamOrm.one_or_exception(

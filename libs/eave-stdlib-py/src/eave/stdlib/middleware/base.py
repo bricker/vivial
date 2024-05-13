@@ -3,10 +3,10 @@ from collections.abc import Awaitable, Callable
 from typing import cast
 
 import asgiref.typing
+from eave.stdlib.logging import LogContext
 import starlette.types
 from starlette.requests import Request
 
-from eave.stdlib.request_state import EaveRequestState
 
 
 class EaveASGIMiddleware(ABC):
@@ -25,7 +25,7 @@ class EaveASGIMiddleware(ABC):
         receive: asgiref.typing.ASGIReceiveCallable,
         send: asgiref.typing.ASGISendCallable,
         request: Request,
-        state: EaveRequestState,
+        ctx: LogContext,
         continue_request: Callable[[], Awaitable[None]],
     ) -> None:
         """
@@ -43,7 +43,7 @@ class EaveASGIMiddleware(ABC):
         send: asgiref.typing.ASGISendCallable,
     ) -> None:
         """
-        Lower-level function to do some basic checks and create the Request and EaveRequestState objects.
+        Lower-level function to do some basic checks and create the Request and LogContext objects.
         """
         if scope["type"] != "http":
             await self.app(scope, receive, send)
@@ -53,7 +53,7 @@ class EaveASGIMiddleware(ABC):
         creceive = cast(starlette.types.Receive, receive)
 
         request = Request(scope=cscope, receive=creceive)
-        state = EaveRequestState.load(request=request)
+        ctx = LogContext.load(scope=cscope)
 
         async def _next_handler() -> None:
             await self.app(scope, receive, send)
@@ -63,7 +63,7 @@ class EaveASGIMiddleware(ABC):
             receive=receive,
             send=send,
             request=request,
-            state=state,
+            ctx=ctx,
             continue_request=_next_handler,
         )
 

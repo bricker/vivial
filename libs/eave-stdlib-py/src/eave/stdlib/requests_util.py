@@ -16,7 +16,7 @@ from .logging import LogContext, eaveLogger
 class CommonRequestArgs(TypedDict):
     origin: Required[EaveApp]
     addl_headers: NotRequired[dict[str, str] | None]
-    ctx: NotRequired[LogContext | None]
+    ctx: NotRequired[LogContext]
     base_timeout_seconds: NotRequired[int]
 
 
@@ -34,9 +34,10 @@ async def make_request(
     **kwargs: Unpack[CommonRequestArgs],
 ) -> aiohttp.ClientResponse:
     base_timeout_seconds = kwargs.get("base_timeout_seconds", 600)
-    ctx = LogContext.wrap(kwargs.get("ctx"))
     origin = kwargs["origin"]
     addl_headers = kwargs.get("addl_headers", {}) or {}
+    ctx = kwargs.get("ctx", LogContext())
+
     # The indent and separators params here ensure that the payload is as compact as possible.
     # It's mostly a way to normalize the payload so services know what to expect.
     payload = input.json(exclude_unset=True, indent=None, separators=(",", ":")) if input else "{}"  # empty JSON object
@@ -84,16 +85,15 @@ def build_headers(
     config: EndpointConfiguration,
     origin: EaveApp,
     addl_headers: dict[str, str],
+    ctx: LogContext,
     access_token: str | None = None,
     account_id: uuid.UUID | str | None = None,
-    ctx: LogContext | None = None,
 ) -> tuple[dict[str, str], JsonObject]:
     """
     Constructs Eave core api auth headers as required by `config`.
 
     returns tuple of headers dict, followed by JsonObject used to debug logging.
     """
-    ctx = LogContext.wrap(ctx=ctx)
     request_id = ctx.eave_request_id
 
     headers: dict[str, str] = {
@@ -115,7 +115,7 @@ def build_headers(
         headers[aiohttp.hdrs.AUTHORIZATION] = f"Bearer {access_token}"
         request_params["access_token"] = redact(access_token)
 
-        account_id = account_id or ctx.eave_account_id
+        account_id = account_id or ctx.eave_authed_account_id
         if not account_id:
             raise ValueError("missing account_id")
         headers[eave_headers.EAVE_ACCOUNT_ID_HEADER] = str(account_id)

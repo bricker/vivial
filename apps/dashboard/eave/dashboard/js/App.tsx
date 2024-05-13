@@ -2,9 +2,9 @@ import React from "react";
 import { CookiesProvider, withCookies } from "react-cookie";
 import { Helmet } from "react-helmet";
 import {
+  BrowserRouter,
   Navigate,
   Route,
-  BrowserRouter as Router,
   Routes,
 } from "react-router-dom";
 
@@ -12,7 +12,6 @@ import { CssBaseline, ThemeProvider } from "@mui/material";
 import "../static/css/app.css";
 import AuthenticationPage from "./components/Pages/AuthenticationPage";
 import Dashboard from "./components/Pages/Dashboard";
-import ScrollToTop from "./components/ScrollToTop";
 import AppContextProvider from "./context/Provider";
 import { theme } from "./theme";
 
@@ -25,8 +24,7 @@ const App = () => {
           <Helmet>
             <title>Eave - for your information.</title>
           </Helmet>
-          <Router>
-            <ScrollToTop />
+          <BrowserRouter>
             <Routes>
               <Route
                 path="/signup"
@@ -37,6 +35,7 @@ const App = () => {
                 path="/login"
                 element={<AuthenticationPage type="login" />}
               />
+
               <Route path="/insights" element={<Dashboard page="insights" />} />
               <Route path="/glossary" element={<Dashboard page="glossary" />} />
               <Route path="/settings" element={<Dashboard page="settings" />} />
@@ -44,7 +43,7 @@ const App = () => {
 
               <Route path="*" element={<Navigate to="/insights" />} />
             </Routes>
-          </Router>
+          </BrowserRouter>
         </ThemeProvider>
       </AppContextProvider>
     </CookiesProvider>

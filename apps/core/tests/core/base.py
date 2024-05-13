@@ -80,7 +80,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         # )
         self.httpclient = AsyncClient(
             app=eave.core.app.app,
-            base_url=SHARED_CONFIG.eave_public_api_base,
+            base_url=SHARED_CONFIG.eave_api_base_url_public,
             # transport=transport,
         )
 

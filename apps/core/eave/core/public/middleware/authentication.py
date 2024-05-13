@@ -19,7 +19,6 @@ from eave.stdlib.auth_cookies import delete_auth_cookies, get_auth_cookies, set_
 from eave.stdlib.exceptions import UnauthorizedError
 from eave.stdlib.logging import LogContext, eaveLogger
 from eave.stdlib.middleware.base import EaveASGIMiddleware
-from eave.stdlib.request_state import EaveRequestState
 from eave.stdlib.util import ensure_uuid
 
 
@@ -30,7 +29,7 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
         receive: asgiref.typing.ASGIReceiveCallable,
         send: asgiref.typing.ASGISendCallable,
         request: Request,
-        state: EaveRequestState,
+        ctx: LogContext,
         continue_request: Callable[[], Awaitable[None]],
     ) -> None:
         # Auth can come from either:
@@ -39,30 +38,30 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
         # Any mix is acceptable. Headers take precedence over Cookies.
         auth_cookies = get_auth_cookies(cookies=request.cookies)
 
-        account_id = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER)
+        account_id_header = eave.stdlib.api_util.get_header_value(scope=scope, name=eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER)
 
-        if account_id is None:
-            account_id = auth_cookies.account_id
+        if account_id_header is None:
+            account_id_header = auth_cookies.account_id
 
-        access_token = get_bearer_token(scope=scope)
+        access_token_header = get_bearer_token(scope=scope)
 
-        if access_token is None:
-            access_token = auth_cookies.access_token
+        if access_token_header is None:
+            access_token_header = auth_cookies.access_token
 
         try:
-            if account_id is None or access_token is None:
+            if account_id_header is None or access_token_header is None:
                 raise UnauthorizedError("missing auth")
 
-            account = await self._verify_auth(account_id_header=account_id, access_token=access_token, ctx=state.ctx)
-            state.ctx.eave_account_id = str(account.id)
-            state.ctx.eave_team_id = str(account.team_id)
+            account = await self._verify_auth(account_id_header=account_id_header, access_token=access_token_header, ctx=ctx)
+            ctx.eave_authed_account_id = str(account.id)
+            ctx.eave_authed_team_id = str(account.team_id)
 
         except UnauthorizedError as e:
-            eaveLogger.exception(e, state.ctx)
-            await self._abort_unauthorized(scope, receive, send)
+            eaveLogger.exception(e, ctx)
+            await self._abort_unauthorized(request=request, scope=scope, receive=receive, send=send)
             return
 
-        async def _send(event: asgiref.typing.ASGISendEvent) -> None:
+        async def _send_with_auth_cookie(event: asgiref.typing.ASGISendEvent) -> None:
             if event["type"] != "http.response.start":
                 await send(event)
                 return
@@ -81,7 +80,8 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
             event["headers"] = response.headers.raw
             await send(event)
 
-        await self.app(scope, receive, _send)
+        sendfunc = _send_with_auth_cookie if account.access_token != access_token_header else send
+        await self.app(scope, receive, sendfunc)
 
     async def _verify_auth(self, account_id_header: str, access_token: str, ctx: LogContext) -> AccountOrm:
         async with eave.core.internal.database.async_session.begin() as db_session:
@@ -106,12 +106,13 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
 
     async def _abort_unauthorized(
         self,
+        request: Request,
         scope: asgiref.typing.Scope,
         receive: asgiref.typing.ASGIReceiveCallable,
         send: asgiref.typing.ASGISendCallable,
     ) -> None:
         response = Response(status_code=HTTPStatus.UNAUTHORIZED)
-        delete_auth_cookies(response=response)
+        delete_auth_cookies(request=request, response=response)
         await response(
             cast(starlette.types.Scope, scope), cast(starlette.types.Receive, receive), cast(starlette.types.Send, send)
         )

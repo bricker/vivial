@@ -46,8 +46,8 @@ class UtmCookiesTestBase(StdlibBaseTestCase):
 class UtmCookiesTest(UtmCookiesTestBase):
     async def test_constants(self):
         # These cannot be changed, because the names are hardcoded in GTM. Changing these will break tracking.
-        assert EAVE_COOKIE_PREFIX_UTM == "ev_utm_"
-        assert EAVE_VISITOR_ID_COOKIE_NAME == "ev_visitor_id"
+        assert EAVE_COOKIE_PREFIX_UTM == "eave.utm_"
+        assert EAVE_VISITOR_ID_COOKIE_NAME == "eave.visitor_id"
 
         assert TrackingParam.gclid == "gclid"
         assert TrackingParam.msclkid == "msclkid"

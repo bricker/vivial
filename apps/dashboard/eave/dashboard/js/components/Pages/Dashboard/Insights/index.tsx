@@ -10,16 +10,12 @@ const makeClasses = makeStyles()(() => ({
   },
 }));
 
-const Insights = ({ dashRoute = undefined }: { dashRoute?: string }) => {
+const Insights = () => {
   const { classes } = makeClasses();
 
-  let qp = "";
-  if (dashRoute) {
-    qp += `return_to=${dashRoute}`;
-  }
   return (
     <iframe
-      src={`${eaveWindow.eave.apiBase}/public/mb?${qp}`}
+      src={`${eaveWindow.eave.embedBase}/auth/sso`}
       className={classes.embedding}
     ></iframe>
   );

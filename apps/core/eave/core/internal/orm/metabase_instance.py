@@ -90,4 +90,4 @@ class MetabaseInstanceOrm(Base):
 
     @property
     def internal_base_url(self) -> str:
-        return f"http://mb-{self.instance_id}.{SHARED_CONFIG.metabase_internal_root_domain}"
+        return f"http://mb-{self.instance_id}.{SHARED_CONFIG.eave_embed_netloc_internal}"

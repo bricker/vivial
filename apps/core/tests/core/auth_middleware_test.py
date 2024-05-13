@@ -11,7 +11,7 @@ from eave.stdlib.auth_cookies import (
 )
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.core_api.operations.account import GetMyAccountRequest
-from eave.stdlib.headers import EAVE_ACCOUNT_ID_HEADER, EAVE_TEAM_ID_HEADER
+from eave.stdlib.headers import EAVE_ACCOUNT_ID_HEADER
 
 from .base import BaseTestCase
 
@@ -124,7 +124,6 @@ class TestAuthenticationMiddlewareRequiredValidRequest(TestAuthenticationMiddlew
         response = await self.make_request(
             path=GetMyAccountRequest.config.path,
             headers={
-                EAVE_TEAM_ID_HEADER: str(self._eave_account.team_id),
                 EAVE_ACCOUNT_ID_HEADER: str(self._eave_account.id),
                 AUTHORIZATION: f"Bearer {self._eave_account.access_token}",
             },
@@ -143,7 +142,6 @@ class TestAuthenticationMiddlewareRequiredValidRequest(TestAuthenticationMiddlew
         response = await self.make_request(
             path=GetMyAccountRequest.config.path,
             headers={
-                EAVE_TEAM_ID_HEADER: str(self._eave_account.team_id),
                 EAVE_ACCOUNT_ID_HEADER: str(self._eave_account.id),
                 AUTHORIZATION: f"Bearer {self.getstr("previous_token")}",
             },
@@ -162,7 +160,6 @@ class TestAuthenticationMiddlewareRequiredValidRequest(TestAuthenticationMiddlew
         response = await self.make_request(
             path=GetMyAccountRequest.config.path,
             headers={
-                EAVE_TEAM_ID_HEADER: str(self._eave_account.team_id),
                 EAVE_ACCOUNT_ID_HEADER: str(self._eave_account.id),
                 AUTHORIZATION: f"Bearer {self._eave_account.access_token}",
             },
@@ -181,7 +178,6 @@ class TestAuthenticationMiddlewareRequiredValidRequest(TestAuthenticationMiddlew
         response = await self.make_request(
             path=GetMyAccountRequest.config.path,
             headers={
-                EAVE_TEAM_ID_HEADER: str(self._eave_account.team_id),
                 EAVE_ACCOUNT_ID_HEADER: str(self._eave_account.id),
                 AUTHORIZATION: f"Bearer {self._eave_account.access_token}",
             },
@@ -217,7 +213,6 @@ class TestAuthenticationMiddlewareWithCookies(TestAuthenticationMiddlewareBase):
                 EAVE_ACCESS_TOKEN_COOKIE_NAME: self.anystr("invalid access token"),
             },
             headers={
-                EAVE_TEAM_ID_HEADER: str(self._eave_account.team_id),
                 EAVE_ACCOUNT_ID_HEADER: str(self._eave_account.id),
                 AUTHORIZATION: f"Bearer {self._eave_account.access_token}",
             },

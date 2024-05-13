@@ -3,8 +3,8 @@ import type { VirtualEvent } from "$eave-stdlib-ts/src/core-api/models/virtual-e
 export type GlobalEaveWindow = Window &
   typeof globalThis & {
     eave: {
-      cookieDomain?: string;
       apiBase?: string;
+      embedBase?: string;
       assetBase?: string;
     };
   };

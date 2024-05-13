@@ -8,7 +8,7 @@ from starlette.responses import Response
 
 from eave.stdlib import util
 from eave.stdlib.exceptions import MissingRequiredHeaderError
-from eave.stdlib.headers import EAVE_SIGNATURE_HEADER, MIME_TYPE_JSON
+from eave.stdlib.headers import MIME_TYPE_JSON
 
 
 def get_header_value(scope: HTTPScope, name: str) -> str | None:
@@ -47,7 +47,6 @@ def get_headers(
 
     augmented_redacted = redacted.union(
         [
-            EAVE_SIGNATURE_HEADER.lower(),
             aiohttp.hdrs.AUTHORIZATION.lower(),
             aiohttp.hdrs.COOKIE.lower(),
         ]
