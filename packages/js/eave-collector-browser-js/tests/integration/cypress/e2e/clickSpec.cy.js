@@ -139,6 +139,7 @@ describe("eave click atom collection", () => {
     // THEN an image click event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       expect(interception.response.body.data.e_n).to.match(/img tag clicked/);
+      expect(interception.response.body.data.data.src).to.match(/logo.*svg/);
     })
   })
 });

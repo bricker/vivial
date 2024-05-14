@@ -2475,8 +2475,11 @@ export function Tracker(trackerUrl, siteId) {
             "click",
             "img",
             "img tag clicked",
-            sourceElement.outerHtml,
-            undefined,
+            sourceElement.id,
+            {
+              src: sourceElement.src,
+              full_html: sourceElement.outerHTML,
+            },
             undefined,
           ),
       },
