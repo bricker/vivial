@@ -16,7 +16,8 @@ _settings.push(["enableFormTracking"]);
 // TODO: update to point to eave backend
 // TODO: switch on env whether to send to prod or stage
 // TODO: update post to send data in body
-_settings.push(["setTrackerUrl", "http://api.eave.run:8080/public/ingest/browser"]);
+
+// _settings.push(["setTrackerUrl", "https://api.eave.dev/public/ingest/browser"]);
 // _settings.push(["setEaveClientId", eaveClientId]);
 
 globalThis.eave = {
