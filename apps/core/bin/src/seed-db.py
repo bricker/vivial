@@ -14,9 +14,6 @@ UNDER NO CIRCUMSTANCES SHOULD THIS BE EVER RUN AGAINST PROD
 
 import sys
 
-from eave.collectors.sqlalchemy import start_eave_sqlalchemy_collector
-
-
 sys.path.append(".")
 
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
@@ -96,12 +93,12 @@ async def seed_table_entries_for_team(team_id: uuid.UUID, row: int, session: Asy
 async def seed_database(db: AsyncEngine, team_id: uuid.UUID | None = None) -> None:
     session = AsyncSession(db)
 
-    num_rows = 1  # 00 #TODO: debug
+    num_rows = 100
 
     # setup progress bar
     curr_progress = f"[0/{num_rows}] :: Seconds remaining: ???"
-    # sys.stdout.write(curr_progress)
-    # sys.stdout.flush()
+    sys.stdout.write(curr_progress)
+    sys.stdout.flush()
 
     team: TeamOrm | None = None
 
@@ -118,7 +115,6 @@ async def seed_database(db: AsyncEngine, team_id: uuid.UUID | None = None) -> No
             )
 
         await seed_table_entries_for_team(team_id=team.id, row=row, session=session)
-        await session.commit()
 
         end = time.perf_counter()
         elapsed = end - start
@@ -131,6 +127,7 @@ async def seed_database(db: AsyncEngine, team_id: uuid.UUID | None = None) -> No
         sys.stdout.write(curr_progress)
         sys.stdout.flush()
 
+    await session.commit()
     await session.close()
     await db.dispose()
 
@@ -147,7 +144,7 @@ async def main() -> None:
     seed_db = create_async_engine(
         postgres_uri,
         isolation_level="AUTOCOMMIT",
-        echo=True,
+        echo=False,
         connect_args={
             "server_settings": {
                 "timezone": "UTC",
@@ -157,11 +154,6 @@ async def main() -> None:
 
     eaveLogger.fprint(logging.INFO, f"> GOOGLE_CLOUD_PROJECT: {_GOOGLE_CLOUD_PROJECT}")
     eaveLogger.fprint(logging.INFO, f"> Target Database: {seed_db.url.database}")
-
-    await start_eave_sqlalchemy_collector(
-        engine=seed_db,
-    )
-
     eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {seed_db.url}")
     eaveLogger.fprint(
         logging.WARNING, f"\nThis script will insert junk seed data into the {seed_db.url.database} database."

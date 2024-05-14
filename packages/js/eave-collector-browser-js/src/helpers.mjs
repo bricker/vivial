@@ -161,7 +161,7 @@ export function apply() {
             var message =
               "The method '" +
               f +
-              '\' was not found in "_paq" variable.  Please have a look at the eave tracker documentation: https://developer.matomo.org/api-reference/tracking-javascript';
+              '\' was not found in "_settings" variable.  Please have a look at the eave tracker documentation: https://developer.matomo.org/api-reference/tracking-javascript';
             logConsoleError(message);
 
             if (!isPluginTrackerCall) {

@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-expressions */
 import {
   ATOM_INTERCEPTION_EVENT_NAME,
-  DUMMY_APP_ROOT,
+  dummyAppRoot,
 } from "../support/constants";
 
 describe("eave UTM and query parameter collection", () => {
@@ -10,7 +10,7 @@ describe("eave UTM and query parameter collection", () => {
     cy.interceptAtomIngestion();
 
     // WHEN site is initially visited including some query/utm params
-    cy.visit(`${DUMMY_APP_ROOT}/page?utm_source=tickletok&utm_campaign=gogole`);
+    cy.visit(dummyAppRoot("/page", "utm_source=tickletok&utm_campaign=gogole"));
 
     // THEN utm params are included in fired events
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
@@ -33,7 +33,7 @@ describe("eave UTM and query parameter collection", () => {
     cy.interceptAtomIngestion();
 
     // GIVEN initial visit URL contains query/utm params
-    cy.visit(`${DUMMY_APP_ROOT}/page?utm_source=tickletok&utm_campaign=gogole`);
+    cy.visit(dummyAppRoot({ path: "/page", qp: "utm_source=tickletok&utm_campaign=gogole" }));
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
 
     // WHEN performing some other event triggering action
@@ -57,11 +57,11 @@ describe("eave UTM and query parameter collection", () => {
     cy.interceptAtomIngestion();
 
     // GIVEN initial visit URL contains query/utm params
-    cy.visit(`${DUMMY_APP_ROOT}/page?utm_source=tickletok&utm_campaign=gogole`);
+    cy.visit(dummyAppRoot({ path: "/page", qp: "utm_source=tickletok&utm_campaign=gogole" }));
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
 
     // WHEN navigating to a page w/ different query params
-    cy.visit(`${DUMMY_APP_ROOT}/?search=beans&filter=canned`);
+    cy.visit(dummyAppRoot({ path: "/", qp: "search=beans&filter=canned" }));
 
     // THEN current query params AND initial saved query/utm params included in the event
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
@@ -78,7 +78,7 @@ describe("eave UTM and query parameter collection", () => {
     });
 
     // WHEN event is triggered after current query params change
-    cy.visit(`${DUMMY_APP_ROOT}/?search=food&approval=fda`);
+    cy.visit(dummyAppRoot({ path: "/", qp: "search=food&approval=fda" }));
 
     // THEN current query params included in the event, prev qp not included
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
@@ -101,7 +101,7 @@ describe("eave UTM and query parameter collection", () => {
     cy.interceptAtomIngestion();
 
     // WHEN site is initially visited including some query/utm params
-    cy.visit(`${DUMMY_APP_ROOT}/page?utm_source=tickletok&utm_campaign=gogole`);
+    cy.visit(dummyAppRoot({ path: "/page", qp: "utm_source=tickletok&utm_campaign=gogole" }));
 
     // THEN utm params are included in fired events
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {

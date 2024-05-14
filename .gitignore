@@ -22,12 +22,15 @@ yalc.lock
 .swc
 credentials.json
 .coverage
+coverage.xml
+lcov.info
 .tmp
 .terraform*
 *.tfstate*
 *.tfvars
 Cargo.lock
 *.so
+cypress.env.json
 
 # directories that are git-ignored, and then un-ignored for deployment (gcloudignore)
 dist

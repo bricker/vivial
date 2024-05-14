@@ -90,7 +90,12 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		cd "$target" || exit 1
 		# run-with-dotenv python -m coverage run --rcfile=$configfile -m pytest -c=$configfile $target
 		# python -m coverage lcov --rcfile=$configfile
-		python -m pytest --config-file="${EAVE_HOME}/develop/python/configs/pytest.pyproject.toml" --rootdir="${EAVE_HOME}" $exitfirst "$testfile"
+		python -m pytest \
+			--cov \
+			--cov-report=xml \
+			--cov-config="${EAVE_HOME}/develop/python/configs/coverage.toml" \
+			--config-file="${EAVE_HOME}/develop/python/configs/pytest.pyproject.toml" \
+			--rootdir="${EAVE_HOME}" $exitfirst "$testfile"
 	)
 
 	_PYTHON_FUNCTIONS_LOADED=1

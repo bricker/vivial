@@ -14,29 +14,134 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
         table_id="atoms_browser_events",
         schema=[
             SchemaField(
-                name="request_method",
+                name="action_name",
                 field_type=StandardSqlTypeNames.STRING,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
             SchemaField(
-                name="request_url",
+                name="idsite",
                 field_type=StandardSqlTypeNames.STRING,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
             SchemaField(
-                name="request_headers",
+                name="h",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="m",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="s",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="url",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="queryParams",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="_eave_visitor_id",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="_eave_session_id",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="pv_id",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="pf_net",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="pf_srv",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="pf_tfr",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="pf_dm1",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="eaveClientId",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="uadata",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="pdf",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="qt",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="realp",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="wma",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="fla",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="java",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="ag",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="cookie",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="res",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="_extra",
                 field_type=StandardSqlTypeNames.JSON,
                 mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="request_payload",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="timestamp",
-                field_type=StandardSqlTypeNames.TIMESTAMP,
-                mode=BigQueryFieldMode.REQUIRED,
             ),
         ],
     )

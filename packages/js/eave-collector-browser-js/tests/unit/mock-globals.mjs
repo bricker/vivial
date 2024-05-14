@@ -9,7 +9,7 @@ const screenAlias = {};
 
 global.eave = {
   expireDateTime: undefined,
-  _paq: [],
+  _settings: [],
   /* plugins */
   plugins: {},
   eventHandlers: {},

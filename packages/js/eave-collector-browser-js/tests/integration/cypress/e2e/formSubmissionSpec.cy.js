@@ -1,14 +1,14 @@
 /* eslint-disable no-unused-expressions */
 import {
   ATOM_INTERCEPTION_EVENT_NAME,
-  DUMMY_APP_ROOT,
+  dummyAppRoot,
 } from "../support/constants";
 
 describe("eave form atom collection", () => {
   it("fires atom on form submission", () => {
     cy.interceptAtomIngestion();
     // GIVEN site has a form
-    cy.visit(DUMMY_APP_ROOT + "/form");
+    cy.visit(dummyAppRoot({ path: "/form" }));
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
 
     // WHEN form is submitted

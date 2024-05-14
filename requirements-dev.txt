@@ -20,6 +20,7 @@ ruff
 httpx
 python-dotenv[cli]
 pytest
+pytest-cov
 coverage
 pretty_errors
 types-requests

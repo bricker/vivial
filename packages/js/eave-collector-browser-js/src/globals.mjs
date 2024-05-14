@@ -4,23 +4,25 @@ var documentAlias = typeof document !== "undefined" ? document : {},
   screenAlias = typeof screen !== "undefined" ? screen : {},
   windowAlias = typeof window !== "undefined" ? window : {};
 
-// use existing _paq settings if available
+// use existing _settings settings if available
 // eslint-disable-next-line no-use-before-define
-var _paq = typeof _paq !== "undefined" ? _paq : [];
-_paq.push(["setTrackingCookies"])
-_paq.push(["trackPageView"]);
-_paq.push(["enableLinkTracking"]);
-_paq.push(["enableRouteHistoryTracking"]);
-_paq.push(["enableButtonClickTracking"]);
-_paq.push(["enableFormTracking"]);
+var _settings = typeof windowAlias._settings !== "undefined" ? windowAlias._settings : [];
+_settings.push(["setTrackingCookies"])
+_settings.push(["trackPageView"]);
+_settings.push(["enableLinkTracking"]);
+_settings.push(["enableRouteHistoryTracking"]);
+_settings.push(["enableButtonClickTracking"]);
+_settings.push(["enableFormTracking"]);
 // TODO: update to point to eave backend
 // TODO: switch on env whether to send to prod or stage
-_paq.push(["setTrackerUrl", "http://localhost:3000/matomo"]);
-// _paq.push(['setSiteId', '1']); // TODO: this isnt necessary
+// TODO: update post to send data in body
+
+// _settings.push(["setTrackerUrl", "https://api.eave.dev/public/ingest/browser"]);
+// _settings.push(["setEaveClientId", eaveClientId]);
 
 globalThis.eave = {
   expireDateTime: undefined,
-  _paq,
+  _settings,
   /* plugins */
   plugins: {},
   eventHandlers: {},
