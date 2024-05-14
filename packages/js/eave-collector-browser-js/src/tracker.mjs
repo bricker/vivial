@@ -1788,7 +1788,7 @@ export function Tracker(trackerUrl, siteId) {
       sourceHostName,
     );
 
-    // track all link types (internal)
+    // track all link types (including internal)
     var linkType = getLinkType(
       sourceElement.className,
       sourceHref,
@@ -2158,8 +2158,10 @@ export function Tracker(trackerUrl, siteId) {
    * Log the link or click with the server
    */
   function logLink(url, linkType, customData, callback, sourceElement) {
-    var linkParams =
-      linkType + "=" + globalThis.eave.encodeWrapper(purify(url));
+    var linkParams = [
+      "link=" + globalThis.eave.encodeWrapper(purify(url)),
+      "type=" + linkType,
+    ].join("&");
 
     var interaction = getContentInteractionToRequestIfPossible(
       sourceElement,
@@ -2345,22 +2347,9 @@ export function Tracker(trackerUrl, siteId) {
    */
   function processLinkClick(sourceElement) {
     var link = getLinkIfShouldBeProcessed(sourceElement);
-
-    // not a link to same domain or the same website (as set in setDomains())
     if (link && link.type) {
       link.href = h.safeDecodeWrapper(link.href);
       logLink(link.href, link.type, undefined, null, sourceElement);
-      return;
-    }
-
-    // a link to same domain or the same website (as set in setDomains())
-    if (crossDomainTrackingEnabled) {
-      // in case the clicked element is within the <a> (for example there is a <div> within the <a>) this will get the actual <a> link element
-      sourceElement = getTargetNode(isLinkNode, sourceElement);
-
-      if (isLinkToDifferentDomainButSameEaveWebsite(sourceElement)) {
-        replaceHrefForCrossDomainLink(sourceElement);
-      }
     }
   }
 
