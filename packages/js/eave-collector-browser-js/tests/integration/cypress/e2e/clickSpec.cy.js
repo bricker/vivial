@@ -121,8 +121,24 @@ describe("eave click atom collection", () => {
 
     // THEN a button click event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response).to.exist;
       expect(interception.response.body.data.e_n).to.match(/button click/);
     });
   });
+
+  it("fires click event on img tag click", () => {
+    cy.interceptAtomIngestion();
+
+    // GIVEN site has an img tag
+    cy.visit(dummyAppRoot());
+    // wait for page view
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
+
+    // WHEN img is clicked
+    cy.get("#react-img").click();
+
+    // THEN an image click event is fired
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
+      expect(interception.response.body.data.e_n).to.match(/img tag clicked/);
+    })
+  })
 });
