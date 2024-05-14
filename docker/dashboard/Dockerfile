@@ -43,6 +43,7 @@ RUN apt-get update && apt-get install -y git
 # Copy relevant files
 RUN mkdir -p ${EAVE_HOME}
 COPY apps/dashboard ${EAVE_HOME}/apps/dashboard
+COPY develop ${EAVE_HOME}/develop
 COPY libs ${EAVE_HOME}/libs
 COPY packages ${EAVE_HOME}/packages
 
