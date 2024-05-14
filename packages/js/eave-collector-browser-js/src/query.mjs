@@ -1,20 +1,30 @@
+// @ts-check
 import * as h from "./helpers.mjs";
 
 export default {
+  /**
+   * @param {NodeListOf<Element> | HTMLCollectionOf<Element>} foundNodes
+   * @returns {Element[]}
+   */
   htmlCollectionToArray: function (foundNodes) {
-    var nodes = [],
-      index;
+    const nodes = [];
 
     if (!foundNodes || !foundNodes.length) {
       return nodes;
     }
 
+    let index;
     for (index = 0; index < foundNodes.length; index++) {
       nodes.push(foundNodes[index]);
     }
 
     return nodes;
   },
+
+  /**
+   * @param {string} selector
+   * @returns {Element[]}
+   */
   find: function (selector) {
     // we use querySelectorAll only on document, not on nodes because of its unexpected behavior. See for
     // instance http://stackoverflow.com/questions/11503534/jquery-vs-document-queryselectorall and
@@ -23,17 +33,21 @@ export default {
       return []; // we do not support all browsers
     }
 
-    var foundNodes = document.querySelectorAll(selector);
-
+    const foundNodes = document.querySelectorAll(selector);
     return this.htmlCollectionToArray(foundNodes);
   },
+
+  /**
+   * @param {string[]} selectors
+   * @returns {Element[]}
+   */
   findMultiple: function (selectors) {
     if (!selectors || !selectors.length) {
       return [];
     }
 
-    var index, foundNodes;
-    var nodes = [];
+    let index, foundNodes;
+    let nodes = [];
     for (index = 0; index < selectors.length; index++) {
       foundNodes = this.find(selectors[index]);
       nodes = nodes.concat(foundNodes);
@@ -43,24 +57,34 @@ export default {
 
     return nodes;
   },
+
+  /**
+   * @param {Element} node
+   * @param {string} tagName
+   * @returns {Element[]}
+   */
   findNodesByTagName: function (node, tagName) {
     if (!node || !tagName || !node.getElementsByTagName) {
       return [];
     }
 
-    var foundNodes = node.getElementsByTagName(tagName);
-
+    const foundNodes = node.getElementsByTagName(tagName);
     return this.htmlCollectionToArray(foundNodes);
   },
+
+  /**
+   * @param {Element[]} nodes
+   * @returns {Element[]}
+   */
   makeNodesUnique: function (nodes) {
-    var copy = [].concat(nodes);
+    const copy = [...nodes];
     nodes.sort(function (n1, n2) {
       if (n1 === n2) {
         return 0;
       }
 
-      var index1 = h.indexOfArray(copy, n1);
-      var index2 = h.indexOfArray(copy, n2);
+      const index1 = h.indexOfArray(copy, n1);
+      const index2 = h.indexOfArray(copy, n2);
 
       if (index1 === index2) {
         return 0;
@@ -73,10 +97,10 @@ export default {
       return nodes;
     }
 
-    var index = 0;
-    var numDuplicates = 0;
-    var duplicates = [];
-    var node;
+    let index = 0;
+    let numDuplicates = 0;
+    const duplicates = [];
+    let node;
 
     node = nodes[index++];
 
@@ -94,9 +118,15 @@ export default {
 
     return nodes;
   },
+
+  /**
+   * @param {Element} node
+   * @param {string} attributeName
+   * @returns {string | null}
+   */
   getAttributeValueFromNode: function (node, attributeName) {
     if (!this.hasNodeAttribute(node, attributeName)) {
-      return;
+      return null;
     }
 
     if (node && node.getAttribute) {
@@ -104,12 +134,12 @@ export default {
     }
 
     if (!node || !node.attributes) {
-      return;
+      return null;
     }
 
-    var typeOfAttr = typeof node.attributes[attributeName];
+    const typeOfAttr = typeof node.attributes[attributeName];
     if ("undefined" === typeOfAttr) {
-      return;
+      return null;
     }
 
     if (node.attributes[attributeName].value) {
@@ -120,11 +150,11 @@ export default {
       return node.attributes[attributeName].nodeValue;
     }
 
-    var index;
-    var attrs = node.attributes;
+    let index;
+    const attrs = node.attributes;
 
     if (!attrs) {
-      return;
+      return null;
     }
 
     for (index = 0; index < attrs.length; index++) {
@@ -135,26 +165,43 @@ export default {
 
     return null;
   },
-  hasNodeAttributeWithValue: function (node, attributeName) {
-    var value = this.getAttributeValueFromNode(node, attributeName);
 
+  /**
+   * @param {Element} node
+   * @param {string} attributeName
+   * @returns {boolean}
+   */
+  hasNodeAttributeWithValue: function (node, attributeName) {
+    const value = this.getAttributeValueFromNode(node, attributeName);
     return !!value;
   },
+
+  /**
+   * @param {Element} node
+   * @param {string} attributeName
+   * @returns {boolean}
+   */
   hasNodeAttribute: function (node, attributeName) {
     if (node && node.hasAttribute) {
       return node.hasAttribute(attributeName);
     }
 
     if (node && node.attributes) {
-      var typeOfAttr = typeof node.attributes[attributeName];
+      const typeOfAttr = typeof node.attributes[attributeName];
       return "undefined" !== typeOfAttr;
     }
 
     return false;
   },
+
+  /**
+   * @param {Element} node
+   * @param {string} klassName
+   * @returns {boolean}
+   */
   hasNodeCssClass: function (node, klassName) {
     if (node && klassName && node.className) {
-      var classes =
+      const classes =
         typeof node.className === "string" ? node.className.split(" ") : [];
       if (-1 !== h.indexOfArray(classes, klassName)) {
         return true;
@@ -163,6 +210,13 @@ export default {
 
     return false;
   },
+
+  /**
+   * @param {Element} nodeToSearch
+   * @param {string} attributeName
+   * @param {Element[]} [nodes]
+   * @returns {Element[]}
+   */
   findNodesHavingAttribute: function (nodeToSearch, attributeName, nodes) {
     if (!nodes) {
       nodes = [];
@@ -172,13 +226,13 @@ export default {
       return nodes;
     }
 
-    var children = h.getChildrenFromNode(nodeToSearch);
+    const children = h.getChildrenFromNode(nodeToSearch);
 
     if (!children || !children.length) {
       return nodes;
     }
 
-    var index, child;
+    let index, child;
     for (index = 0; index < children.length; index++) {
       child = children[index];
       if (this.hasNodeAttribute(child, attributeName)) {
@@ -190,6 +244,12 @@ export default {
 
     return nodes;
   },
+
+  /**
+   * @param {Element} node
+   * @param {string} attributeName
+   * @returns {Element | undefined}
+   */
   findFirstNodeHavingAttribute: function (node, attributeName) {
     if (!node || !attributeName) {
       return;
@@ -199,12 +259,18 @@ export default {
       return node;
     }
 
-    var nodes = this.findNodesHavingAttribute(node, attributeName);
+    const nodes = this.findNodesHavingAttribute(node, attributeName);
 
     if (nodes && nodes.length) {
       return nodes[0];
     }
   },
+
+  /**
+   * @param {Element} node
+   * @param {string} attributeName
+   * @returns {Element | undefined}
+   */
   findFirstNodeHavingAttributeWithValue: function (node, attributeName) {
     if (!node || !attributeName) {
       return;
@@ -214,19 +280,26 @@ export default {
       return node;
     }
 
-    var nodes = this.findNodesHavingAttribute(node, attributeName);
+    const nodes = this.findNodesHavingAttribute(node, attributeName);
 
     if (!nodes || !nodes.length) {
       return;
     }
 
-    var index;
+    let index;
     for (index = 0; index < nodes.length; index++) {
       if (this.getAttributeValueFromNode(nodes[index], attributeName)) {
         return nodes[index];
       }
     }
   },
+
+  /**
+   * @param {Element} nodeToSearch
+   * @param {string} className
+   * @param {Element[]} [nodes]
+   * @returns {Element[]}
+   */
   findNodesHavingCssClass: function (nodeToSearch, className, nodes) {
     if (!nodes) {
       nodes = [];
@@ -237,17 +310,17 @@ export default {
     }
 
     if (nodeToSearch.getElementsByClassName) {
-      var foundNodes = nodeToSearch.getElementsByClassName(className);
+      const foundNodes = nodeToSearch.getElementsByClassName(className);
       return this.htmlCollectionToArray(foundNodes);
     }
 
-    var children = h.getChildrenFromNode(nodeToSearch);
+    const children = h.getChildrenFromNode(nodeToSearch);
 
     if (!children || !children.length) {
       return [];
     }
 
-    var index, child;
+    let index, child;
     for (index = 0; index < children.length; index++) {
       child = children[index];
       if (this.hasNodeCssClass(child, className)) {
@@ -259,6 +332,12 @@ export default {
 
     return nodes;
   },
+
+  /**
+   * @param {Element} node
+   * @param {string} className
+   * @returns {Element | undefined}
+   */
   findFirstNodeHavingClass: function (node, className) {
     if (!node || !className) {
       return;
@@ -268,23 +347,34 @@ export default {
       return node;
     }
 
-    var nodes = this.findNodesHavingCssClass(node, className);
+    const nodes = this.findNodesHavingCssClass(node, className);
 
     if (nodes && nodes.length) {
       return nodes[0];
     }
   },
+
+  /**
+   * @param {Element} node
+   * @returns {boolean}
+   */
   isLinkElement: function (node) {
     if (!node) {
       return false;
     }
 
-    var elementName = String(node.nodeName).toLowerCase();
-    var linkElementNames = ["a", "area"];
-    var pos = h.indexOfArray(linkElementNames, elementName);
+    const elementName = String(node.nodeName).toLowerCase();
+    const linkElementNames = ["a", "area"];
+    const pos = h.indexOfArray(linkElementNames, elementName);
 
     return pos !== -1;
   },
+
+  /**
+   * @param {Element} node
+   * @param {string} attrName
+   * @param {string} attrValue
+   */
   setAnyAttribute: function (node, attrName, attrValue) {
     if (!node || !attrName) {
       return;
