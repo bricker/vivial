@@ -2,6 +2,7 @@ locals {
   enabled_services = toset([
     "artifactregistry.googleapis.com",    # Artifact Registry API
     "bigquery.googleapis.com",            # BigQuery API
+    "certificatemanager.googleapis.com",  # Certificate Manager API
     "cloudbuild.googleapis.com",          # Cloud Build API
     "cloudkms.googleapis.com",            # Cloud Key Management Service (KMS) API
     "compute.googleapis.com",             # Compute Engine API
@@ -10,6 +11,7 @@ locals {
     "dns.googleapis.com",                 # Cloud DNS API
     "domains.googleapis.com",             # Cloud Domains API
     "iam.googleapis.com",                 # Identity and Access Management (IAM) API
+    "iap.googleapis.com",                 # Identity-Aware Proxy API
     "iamcredentials.googleapis.com",      # IAM Service Account Credentials API
     "logging.googleapis.com",             # Cloud Logging API
     "monitoring.googleapis.com",          # Cloud Monitoring API
@@ -25,7 +27,6 @@ locals {
 
 resource "google_project_service" "services" {
   for_each = local.enabled_services
-  project  = local.project_id
   service  = each.value
 
   disable_dependent_services = false

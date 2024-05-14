@@ -10,14 +10,13 @@ from eave.stdlib.typing import JsonObject
 from eave.stdlib.util import ensure_str_or_none, redact
 
 from . import headers as eave_headers
-from . import signing
 from .logging import LogContext, eaveLogger
 
 
 class CommonRequestArgs(TypedDict):
     origin: Required[EaveApp]
     addl_headers: NotRequired[dict[str, str] | None]
-    ctx: NotRequired[LogContext | None]
+    ctx: NotRequired[LogContext]
     base_timeout_seconds: NotRequired[int]
 
 
@@ -29,25 +28,23 @@ async def make_request(
     *,
     config: EndpointConfiguration,
     input: pydantic.BaseModel | None,
-    team_id: uuid.UUID | str | None = None,
     access_token: str | None = None,
     account_id: uuid.UUID | str | None = None,
     allow_redirects: bool = True,
     **kwargs: Unpack[CommonRequestArgs],
 ) -> aiohttp.ClientResponse:
     base_timeout_seconds = kwargs.get("base_timeout_seconds", 600)
-    ctx = LogContext.wrap(kwargs.get("ctx"))
     origin = kwargs["origin"]
     addl_headers = kwargs.get("addl_headers", {}) or {}
+    ctx = kwargs.get("ctx", LogContext())
+
     # The indent and separators params here ensure that the payload is as compact as possible.
     # It's mostly a way to normalize the payload so services know what to expect.
     payload = input.json(exclude_unset=True, indent=None, separators=(",", ":")) if input else "{}"  # empty JSON object
 
     headers, request_params = build_headers(
         config=config,
-        payload=payload,
         ctx=ctx,
-        team_id=team_id,
         access_token=access_token,
         account_id=account_id,
         origin=origin,
@@ -86,20 +83,17 @@ async def make_request(
 
 def build_headers(
     config: EndpointConfiguration,
-    payload: str,
     origin: EaveApp,
     addl_headers: dict[str, str],
-    team_id: uuid.UUID | str | None = None,
+    ctx: LogContext,
     access_token: str | None = None,
     account_id: uuid.UUID | str | None = None,
-    ctx: LogContext | None = None,
 ) -> tuple[dict[str, str], JsonObject]:
     """
     Constructs Eave core api auth headers as required by `config`.
 
     returns tuple of headers dict, followed by JsonObject used to debug logging.
     """
-    ctx = LogContext.wrap(ctx=ctx)
     request_id = ctx.eave_request_id
 
     headers: dict[str, str] = {
@@ -121,44 +115,11 @@ def build_headers(
         headers[aiohttp.hdrs.AUTHORIZATION] = f"Bearer {access_token}"
         request_params["access_token"] = redact(access_token)
 
-        account_id = account_id or ctx.eave_account_id
+        account_id = account_id or ctx.eave_authed_account_id
         if not account_id:
             raise ValueError("missing account_id")
         headers[eave_headers.EAVE_ACCOUNT_ID_HEADER] = str(account_id)
         request_params["eave_account_id"] = ensure_str_or_none(account_id)
-
-    if config.team_id_required:
-        team_id = team_id or ctx.eave_team_id
-        if not team_id:
-            raise ValueError("missing team_id")
-        headers[eave_headers.EAVE_TEAM_ID_HEADER] = str(team_id)
-        request_params["eave_team_id"] = ensure_str_or_none(team_id)
-
-    if config.signature_required:
-        eave_sig_ts = signing.make_sig_ts()
-
-        signature_message = signing.build_message_to_sign(
-            method=config.method,
-            path=config.path,
-            request_id=request_id,
-            origin=origin,
-            audience=config.audience,
-            ts=eave_sig_ts,
-            team_id=team_id,
-            account_id=account_id,
-            payload=payload,
-            ctx=ctx,
-        )
-
-        signature = signing.sign_b64(
-            signing_key=signing.get_key(signer=origin.value),
-            data=signature_message,
-            ctx=ctx,
-        )
-
-        headers[eave_headers.EAVE_SIGNATURE_HEADER] = signature
-        headers[eave_headers.EAVE_SIG_TS_HEADER] = str(eave_sig_ts)
-        request_params["signature"] = redact(signature)
 
     if addl_headers:
         headers.update(addl_headers)

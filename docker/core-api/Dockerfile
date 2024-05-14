@@ -48,7 +48,7 @@ RUN adduser \
     --uid "10001" \
     appuser
 
-USER appuser
+USER 10001
 
 WORKDIR /app
 EXPOSE 8000
@@ -58,5 +58,5 @@ ENV PYTHONUNBUFFERED=1
 
 CMD PYTHONPATH=/vendor python -m gunicorn \
     --pythonpath /vendor \
-    --worker-class uvicorn.workers.UvicornWorker \
+    --worker-class eave.stdlib.uvicorn.EaveUvicornWorker \
     eave.core.app:app

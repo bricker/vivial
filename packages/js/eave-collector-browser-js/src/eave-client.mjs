@@ -78,7 +78,7 @@ if (typeof window.eaveTracker !== "object") {
                 h.logConsoleError(
                   "The method " +
                     methodName +
-                    ' is registered more than once in "globalThis.eave._paq" variable. Only the last call has an effect. Please have a look at the multiple eave trackers documentation: https://developer.matomo.org/guides/tracking-javascript-guide#multiple-piwik-trackers',
+                    ' is registered more than once in "globalThis.eave._settings" variable. Only the last call has an effect. Please have a look at the multiple eave trackers documentation: https://developer.matomo.org/guides/tracking-javascript-guide#multiple-piwik-trackers',
                 );
               }
 
@@ -127,24 +127,24 @@ if (typeof window.eaveTracker !== "object") {
       var tracker = new Tracker(eaveUrl, siteId);
       globalThis.eave.asyncTrackers.push(tracker);
 
-      globalThis.eave._paq = applyMethodsInOrder(
-        globalThis.eave._paq,
+      globalThis.eave._settings = applyMethodsInOrder(
+        globalThis.eave._settings,
         applyFirst,
       );
 
       // apply the queue of actions
       for (
         var iterator = 0;
-        iterator < globalThis.eave._paq.length;
+        iterator < globalThis.eave._settings.length;
         iterator++
       ) {
-        if (globalThis.eave._paq[iterator]) {
-          h.apply(globalThis.eave._paq[iterator]);
+        if (globalThis.eave._settings[iterator]) {
+          h.apply(globalThis.eave._settings[iterator]);
         }
       }
 
       // replace initialization array with proxy object
-      globalThis.eave._paq = new TrackerProxy();
+      globalThis.eave._settings = new TrackerProxy();
 
       globalThis.eave.eave.trigger("TrackerAdded", [tracker]);
 
@@ -153,7 +153,7 @@ if (typeof window.eaveTracker !== "object") {
 
     /************************************************************
      * Proxy object
-     * - this allows the caller to continue push()'ing to globalThis.eave._paq
+     * - this allows the caller to continue push()'ing to globalThis.eave._settings
      *   after the Tracker has been initialized and loaded
      ************************************************************/
 
@@ -522,9 +522,9 @@ if (typeof window.eaveTracker !== "object") {
 
       /**
        * NOTE: not sure if this is relevant since matomo fork
-       * When calling plugin methods via "globalThis.eave._paq.push(['...'])" and the plugin is loaded separately because
+       * When calling plugin methods via "globalThis.eave._settings.push(['...'])" and the plugin is loaded separately because
        * eave.js is not writable then there is a chance that first eave.js is loaded and later the plugin.
-       * In this case we would have already executed all "globalThis.eave._paq.push" methods and they would not have succeeded
+       * In this case we would have already executed all "globalThis.eave._settings.push" methods and they would not have succeeded
        * because the plugin will be loaded only later. In this case, once a plugin is loaded, it should call
        * "eave.retryMissedPluginCalls()" so they will be executed after all.
        */
@@ -555,16 +555,16 @@ if (typeof window.eaveTracker !== "object") {
   "use strict";
 
   function hasPaqConfiguration() {
-    if ("object" !== typeof globalThis.eave._paq) {
+    if ("object" !== typeof globalThis.eave._settings) {
       return false;
     }
     // needed to write it this way for jslint
-    var lengthType = typeof globalThis.eave._paq.length;
+    var lengthType = typeof globalThis.eave._settings.length;
     if ("undefined" === lengthType) {
       return false;
     }
 
-    return !!globalThis.eave._paq.length;
+    return !!globalThis.eave._settings.length;
   }
 
   if (
@@ -587,17 +587,17 @@ if (typeof window.eaveTracker !== "object") {
   if (!globalThis.eave.eave.getAsyncTrackers().length) {
     // we only create an initial tracker when no other async tracker has been created yet in eaveAsyncInit()
     if (hasPaqConfiguration()) {
-      // we only create an initial tracker if there is a configuration for it via globalThis.eave._paq. Otherwise
+      // we only create an initial tracker if there is a configuration for it via globalThis.eave._settings. Otherwise
       // eave.getAsyncTrackers() would return unconfigured trackers
       globalThis.eave.eave.addTracker();
     } else {
-      globalThis.eave._paq = {
+      globalThis.eave._settings = {
         push: function (args) {
           // needed to write it this way for jslint
           var consoleType = typeof console;
           if (consoleType !== "undefined" && console && console.error) {
             console.error(
-              "globalThis.eave._paq.push() was used but eave tracker was not initialized before the eave.js file was loaded. Make sure to configure the tracker via globalThis.eave._paq.push before loading eave.js. Alternatively, you can create a tracker via eave.addTracker() manually and then use globalThis.eave._paq.push but it may not fully work as tracker methods may not be executed in the correct order.",
+              "globalThis.eave._settings.push() was used but eave tracker was not initialized before the eave.js file was loaded. Make sure to configure the tracker via globalThis.eave._settings.push before loading eave.js. Alternatively, you can create a tracker via eave.addTracker() manually and then use globalThis.eave._settings.push but it may not fully work as tracker methods may not be executed in the correct order.",
               args,
             );
           }

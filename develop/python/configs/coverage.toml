@@ -1,0 +1,5 @@
+[tool.coverage.run]
+data_file = "$EAVE_HOME/.coverage/data"
+
+[tool.coverage.xml]
+output = "$EAVE_HOME/.coverage/coverage.xml"

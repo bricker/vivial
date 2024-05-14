@@ -18,19 +18,20 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
         return
 
     is_internal = re.search(r"\.internal\.eave\.", flow.request.host)
+    is_public = not is_internal
+
+    if is_public:
+        flow.request.headers["eave-lb"] = "1"
 
     # tld = flow.request.host.split(".")[-1]
     port = None
 
     if re.match(r"^dashboard\.", flow.request.host):
         port = 5000
+
     elif re.match(r"^api\.", flow.request.host):
         # Simulate Ingress rules. This should match the Core API Kubernetes Ingress configuration.
-        if (
-            not is_internal
-            and len(flow.request.path_components) > 0
-            and flow.request.path_components[0] not in ["status", "v1", "oauth", "favicon.ico"]
-        ):
+        if is_public and flow.request.path_components[0] not in ["status", "healthz", "public", "oauth", "favicon.ico"]:
             # The first path component is not whitelisted as a public endpoint.
             # In the real world, this would return something like a 404.
             flow.kill()
@@ -38,13 +39,22 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
                 "Private endpoints can't be accessed through public DNS. Use '.internal.eave.run' to simulate internal DNS."
             )
         port = 5100
-    elif re.match(r"^metabase\.", flow.request.host):
+
+    elif re.match(r"^embed\.", flow.request.host):
+        # Prepend /_/metabase to the original path. This goes to core API and then proxies to metabase.
+        if flow.request.path_components[0] not in ["auth", "dashboard", "app", "api"]:
+            flow.kill()
+            raise PrivateEndpointAccessError("Unsupported path for embed host.")
+        port = 5100
+
+    elif re.search(r"\.mb\.", flow.request.host):
+        # NOTE! During local development, any request to the ".mb" subdomain routes to the locally-running Metabase instance.
+        # This is so you can use one metabase instance for all teams in local development.
+        # When accessing it in your browser, the prefix doesn't matter, eg http://anything.mb.eave.run:8080 .
         port = 5400
+
     elif re.match(r"^playground-todoapp\.", flow.request.host):
         port = 5500
-    elif re.match(r"^apps\.", flow.request.host):
-        if re.match(r"(/_)?/github", flow.request.path):
-            port = 5300
 
     if not port:
         flow.kill()

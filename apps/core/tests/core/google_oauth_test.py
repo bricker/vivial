@@ -31,15 +31,15 @@ class TestGoogleOAuthHandler(BaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
-        def id_token() -> dict[str, str]:
+        def _id_token() -> dict[str, str | None]:
             return {
-                "sub": self.anystr("google.sub"),
-                "given_name": self.anystr("google.given_name"),
-                "email": self.anystr("google.email"),
+                "sub": self._google_userinfo_response.id,
+                "given_name": self._google_userinfo_response.given_name,
+                "email": self._google_userinfo_response.email,
             }
 
-        def _verify_oauth2_token(*args: Any, **kwargs: Any) -> dict[str, str]:
-            return id_token()
+        def _verify_oauth2_token(*args: Any, **kwargs: Any) -> dict[str, str | None]:
+            return _id_token()
 
         self.patch(unittest.mock.patch("google.oauth2.id_token.verify_oauth2_token", side_effect=_verify_oauth2_token))
 
@@ -47,7 +47,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
             return google.oauth2.credentials.Credentials(
                 token=self.anystr("google.token"),
                 refresh_token=self.anystr("google.refresh_token"),
-                id_token=id_token(),
+                id_token=_id_token(),
             )
 
         self.patch(
@@ -60,7 +60,6 @@ class TestGoogleOAuthHandler(BaseTestCase):
     async def test_google_authorize(self) -> None:
         response = await self.make_request(
             path=eave.core.internal.oauth.google.GOOGLE_OAUTH_AUTHORIZE_PATH,
-            sign=False,
             method="GET",
             payload=None,
         )
@@ -75,7 +74,6 @@ class TestGoogleOAuthHandler(BaseTestCase):
     async def test_google_authorize_with_utm_params(self) -> None:
         response = await self.make_request(
             path=eave.core.internal.oauth.google.GOOGLE_OAUTH_AUTHORIZE_PATH,
-            sign=False,
             method="GET",
             payload={
                 "utm_campaign": self.anystr("utm_campaign"),
@@ -95,14 +93,13 @@ class TestGoogleOAuthHandler(BaseTestCase):
 
         response = await self.make_request(
             path=eave.core.internal.oauth.google.GOOGLE_OAUTH_CALLBACK_PATH,
-            sign=False,
             method="GET",
             payload={
                 "code": self.anystr("code"),
                 "state": self.anystr("state"),
             },
             cookies={
-                f"{EAVE_OAUTH_STATE_COOKIE_PREFIX}{AuthProvider.google}": self.anystr("state"),
+                f"{EAVE_OAUTH_STATE_COOKIE_PREFIX}{AuthProvider.google}": self.getstr("state"),
                 f"{EAVE_COOKIE_PREFIX_UTM}utm_campaign": self.anystr("utm_campaign"),
                 f"{EAVE_COOKIE_PREFIX_UTM}gclid": self.anystr("gclid"),
             },
@@ -131,25 +128,24 @@ class TestGoogleOAuthHandler(BaseTestCase):
             assert eave_account.opaque_utm_params.get("utm_campaign") == self.getstr("utm_campaign")
             assert eave_account.opaque_utm_params.get("gclid") == self.getstr("gclid")
 
-            assert eave_account.access_token == self.anystr("google.token")
-            assert eave_account.refresh_token == self.anystr("google.refresh_token")
-            assert eave_account.auth_id == self.anystr("google.sub")
+            assert eave_account.access_token == self.getstr("google.token")
+            assert eave_account.refresh_token == self.getstr("google.refresh_token")
+            assert eave_account.auth_id == self._google_userinfo_response.id
             assert eave_account.auth_provider == AuthProvider.google
-            assert eave_team.name == f"{self.anystr('google.given_name')}'s Team"
+            assert eave_team.name == f"{self._google_userinfo_response.given_name}'s Team"
 
     async def test_google_callback_new_account_without_name_from_google(self) -> None:
-        self.testdata["google.given_name"] = None
+        self._google_userinfo_response.given_name = None
 
         response = await self.make_request(
             path=eave.core.internal.oauth.google.GOOGLE_OAUTH_CALLBACK_PATH,
-            sign=False,
             method="GET",
             payload={
                 "code": self.anystr("code"),
                 "state": self.anystr("state"),
             },
             cookies={
-                f"{EAVE_OAUTH_STATE_COOKIE_PREFIX}{AuthProvider.google}": self.anystr("state"),
+                f"{EAVE_OAUTH_STATE_COOKIE_PREFIX}{AuthProvider.google}": self.getstr("state"),
             },
         )
 
@@ -169,21 +165,20 @@ class TestGoogleOAuthHandler(BaseTestCase):
                 s,
                 team_id=eave_team.id,
                 auth_provider=AuthProvider.google,
-                auth_id=self.anystr("google.sub"),
+                auth_id=self._google_userinfo_response.id,
                 access_token=self.anystr("old_access_token"),
                 refresh_token=self.anystr("old_refresh_token"),
             )
 
         response = await self.make_request(
             path=eave.core.internal.oauth.google.GOOGLE_OAUTH_CALLBACK_PATH,
-            sign=False,
             method="GET",
             payload={
                 "code": self.anystr("code"),
                 "state": self.anystr("state"),
             },
             cookies={
-                f"{EAVE_OAUTH_STATE_COOKIE_PREFIX}{AuthProvider.google}": self.anystr("state"),
+                f"{EAVE_OAUTH_STATE_COOKIE_PREFIX}{AuthProvider.google}": self.getstr("state"),
             },
         )
 
@@ -194,8 +189,8 @@ class TestGoogleOAuthHandler(BaseTestCase):
             eave_account_after = await self.reload(s, eave_account_before)
             assert eave_account_after
             # Test that the tokens were updated
-            assert eave_account_after.access_token == self.anystr("google.token")
-            assert eave_account_after.refresh_token == self.anystr("google.refresh_token")
+            assert eave_account_after.access_token == self.getstr("google.token")
+            assert eave_account_after.refresh_token == self.getstr("google.refresh_token")
 
             # Test that the cookies were updated
             assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) == str(eave_account_after.id)
@@ -208,21 +203,20 @@ class TestGoogleOAuthHandler(BaseTestCase):
                 s,
                 team_id=eave_team.id,
                 auth_provider=AuthProvider.google,
-                auth_id=self.anystr("google.sub"),
+                auth_id=self.getstr("google.id"),
                 access_token=self.anystr("old_access_token"),
                 refresh_token=self.anystr("old_refresh_token"),
             )
 
         response = await self.make_request(
             path=eave.core.internal.oauth.google.GOOGLE_OAUTH_CALLBACK_PATH,
-            sign=False,
             method="GET",
             payload={
                 "code": self.anystr("code"),
                 "state": self.anystr("state"),
             },
             cookies={
-                f"{EAVE_OAUTH_STATE_COOKIE_PREFIX}{AuthProvider.google}": self.anystr("state"),
+                f"{EAVE_OAUTH_STATE_COOKIE_PREFIX}{AuthProvider.google}": self.getstr("state"),
                 EAVE_ACCOUNT_ID_COOKIE_NAME: str(eave_account_before.id),
                 EAVE_ACCESS_TOKEN_COOKIE_NAME: eave_account_before.access_token,
             },
@@ -234,8 +228,8 @@ class TestGoogleOAuthHandler(BaseTestCase):
             eave_account_after = await self.reload(s, eave_account_before)
             assert eave_account_after
             # Test that the tokens were updated
-            assert eave_account_after.access_token == self.anystr("google.token")
-            assert eave_account_after.refresh_token == self.anystr("google.refresh_token")
+            assert eave_account_after.access_token == self.getstr("google.token")
+            assert eave_account_after.refresh_token == self.getstr("google.refresh_token")
 
             # Test that the cookies were updated
             assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) == str(eave_account_after.id)
@@ -244,7 +238,6 @@ class TestGoogleOAuthHandler(BaseTestCase):
     async def test_google_callback_invalid_state(self) -> None:
         response = await self.make_request(
             path=eave.core.internal.oauth.google.GOOGLE_OAUTH_CALLBACK_PATH,
-            sign=False,
             method="GET",
             payload={
                 "code": self.anystr("code"),
@@ -266,5 +259,5 @@ class TestGoogleOAuthHandler(BaseTestCase):
         assert eave.core.internal.oauth.google.GOOGLE_OAUTH_CALLBACK_PATH == "/oauth/google/callback"
         assert (
             eave.core.internal.oauth.google.GOOGLE_OAUTH_CALLBACK_URI
-            == f"{SHARED_CONFIG.eave_public_api_base}/oauth/google/callback"
+            == f"{SHARED_CONFIG.eave_api_base_url_public}/oauth/google/callback"
         )

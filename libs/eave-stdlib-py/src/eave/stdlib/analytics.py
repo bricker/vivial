@@ -41,7 +41,7 @@ async def log_event(
         eave_account_id = eave_account.id
         eave_visitor_id = eave_account.visitor_id
     elif ctx:
-        eave_account_id = ctx.eave_account_id
+        eave_account_id = ctx.eave_authed_account_id
 
     if not eave_visitor_id and ctx:
         eave_visitor_id = ctx.eave_visitor_id
@@ -50,7 +50,7 @@ async def log_event(
     if eave_team:
         eave_team_id = eave_team.id
     elif ctx:
-        eave_team_id = ctx.eave_team_id
+        eave_team_id = ctx.eave_authed_team_id
 
     event = EaveEvent(
         event_name=event_name,
@@ -98,7 +98,7 @@ async def log_gpt_request(
         input_token_count=input_token_count,
         output_token_count=output_token_count,
         model=model,
-        eave_team_id=ctx.eave_team_id if ctx else "null",  # for consistency with TS code
+        eave_team_id=ctx.eave_authed_team_id if ctx else "null",  # for consistency with TS code
         document_id=document_id,
     )
 

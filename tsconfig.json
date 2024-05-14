@@ -1,3 +1,3 @@
 {
-  "extends": "./libs/eave-stdlib-ts/src/tsconfig-base.json"
+  "extends": "./develop/javascript/es-config/ts/tsconfig-base.json"
 }

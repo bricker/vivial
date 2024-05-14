@@ -1,5 +1,5 @@
 [tool.pytest.ini_options]
-addopts = "--capture=no" # --doctest-modules --doctest-ignore-import-errors
+addopts = "--capture=no"
 filterwarnings = [
   "ignore::DeprecationWarning"
 ]

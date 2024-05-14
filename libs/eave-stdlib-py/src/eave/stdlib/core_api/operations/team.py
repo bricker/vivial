@@ -1,6 +1,8 @@
 import uuid
 from typing import Unpack
 
+from aiohttp.hdrs import METH_POST
+
 from eave.stdlib.core_api.models.team import Team
 from eave.stdlib.endpoints import BaseResponseBody
 
@@ -8,10 +10,13 @@ from ... import requests_util
 from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
-class GetTeamRequest(CoreApiEndpoint):
+class GetMyTeamRequest(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
-        path="/_/team/query",
-        signature_required=False,
+        path="/_/me/team/query",
+        method=METH_POST,
+        auth_required=True,
+        origin_required=True,
+        is_public=False,
     )
 
     class ResponseBody(BaseResponseBody):
@@ -20,15 +25,14 @@ class GetTeamRequest(CoreApiEndpoint):
     @classmethod
     async def perform(
         cls,
-        team_id: uuid.UUID | str,
-        account_id: uuid.UUID | None,
-        access_token: str | None,
+        *,
+        account_id: uuid.UUID | str,
+        access_token: str,
         **kwargs: Unpack[requests_util.CommonRequestArgs],
     ) -> ResponseBody:
         response = await requests_util.make_request(
             config=cls.config,
             input=None,
-            team_id=team_id,
             account_id=account_id,
             access_token=access_token,
             **kwargs,

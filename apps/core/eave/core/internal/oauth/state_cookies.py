@@ -4,10 +4,9 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.cookies import EAVE_OAUTH_STATE_COOKIE_PREFIX
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.exceptions import UnexpectedMissingValueError
-
-EAVE_OAUTH_STATE_COOKIE_PREFIX = "ev_oauth_state_"
 
 
 def _build_cookie_name(provider: AuthProvider) -> str:

@@ -2,6 +2,7 @@ from typing import cast
 
 import google.oauth2.credentials
 import google.oauth2.id_token
+from asgiref.typing import HTTPScope
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
 
@@ -19,9 +20,7 @@ _AUTH_PROVIDER = AuthProvider.google
 
 
 class GoogleOAuthAuthorize(HTTPEndpoint):
-    async def get(self, request: Request) -> Response:
-        ctx = LogContext.wrap(scope=request.scope)
-
+    async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
         await analytics.log_event(
             event_name="oauth_flow_started",
             event_description="A user started the Oauth flow (login/register)",
@@ -52,9 +51,8 @@ class GoogleOAuthAuthorize(HTTPEndpoint):
 class GoogleOAuthCallback(base.BaseOAuthCallback):
     auth_provider = _AUTH_PROVIDER
 
-    async def get(self, request: Request) -> Response:
-        await super().get(request=request)
-        ctx = LogContext.wrap(scope=request.scope)
+    async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
+        await super().handle(request=request, scope=scope, ctx=ctx)
 
         if not self._check_valid_callback():
             return self.response
@@ -69,7 +67,7 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
             ctx=ctx,
         )
 
-        flow = eave.core.internal.oauth.google.build_flow(state=self.state)
+        flow = eave.core.internal.oauth.google.build_flow(state=self.oauth_state)
         flow.fetch_token(code=self.code)
 
         # flow.credentials returns a `google.auth.credentials.Credentials`, which is the base class of
@@ -83,7 +81,7 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
         eave_team_name = f"{google_token.given_name}'s Team" if google_token.given_name else shared.DEFAULT_TEAM_NAME
 
         await shared.get_or_create_eave_account(
-            request=self.request,
+            request=request,
             response=self.response,
             eave_team_name=eave_team_name,
             user_email=google_token.email,
@@ -91,6 +89,7 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
             auth_id=google_token.sub,
             access_token=credentials.token,
             refresh_token=credentials.refresh_token,
+            ctx=ctx,
         )
 
         return self.response

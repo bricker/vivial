@@ -1,3 +1,9 @@
+variable "project" {
+  type = object({
+    id = string
+  })
+}
+
 variable "base_roles" {
   type    = set(string)
   default = []
@@ -17,12 +23,16 @@ variable "description" {
   default  = null
 }
 
+variable "members" {
+  type = list(string)
+}
+
 data "google_iam_role" "base_roles" {
   for_each = var.base_roles
   name     = each.value
 }
 
-resource "google_project_iam_custom_role" "custom_role" {
+resource "google_project_iam_custom_role" "default" {
   role_id     = var.role_id
   title       = var.title
   description = var.description
@@ -32,6 +42,12 @@ resource "google_project_iam_custom_role" "custom_role" {
   )), ["resourcemanager.projects.list"])
 }
 
+resource "google_project_iam_binding" "default" {
+  project = var.project.id
+  role    = google_project_iam_custom_role.default.id
+  members = var.members
+}
+
 output "role" {
-  value = google_project_iam_custom_role.custom_role
+  value = google_project_iam_custom_role.default
 }

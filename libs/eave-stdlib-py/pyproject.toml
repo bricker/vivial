@@ -8,7 +8,6 @@ version = "0.1.0"
 requires-python = ">=3.12.0"
 dependencies = [
   "google-cloud-secret-manager",
-  "google-crc32c",
   "google-cloud-logging",
   "google-api-python-client",
   "google-cloud-pubsub",
@@ -21,12 +20,13 @@ dependencies = [
   "tiktoken==0.5.*",
   "slack-sdk",
   "pydantic[email]==1.10.6",
+  "uvicorn",
   "starlette",
-  "werkzeug==3.*",
   "asgiref>=3.5.2",
   "cryptography",
   "redis[hiredis]",
   "multidict",
   "aiohttp",
   "pyjwt",
+  "crc32c",
 ]

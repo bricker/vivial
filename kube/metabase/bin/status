@@ -1,5 +1,0 @@
-#!/usr/bin/env bash
-
-set -eu
-
-watch curl -is "https://metabase.eave.${1:-fyi}/api/health"

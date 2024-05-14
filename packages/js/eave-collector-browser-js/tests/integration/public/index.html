@@ -28,7 +28,12 @@
 
     <!-- Eave client tracing -->
     <script>
-      var _paq = window._paq = window._paq || [];
+      const qp = new URLSearchParams(window.location.search);
+
+      var _settings = window._settings = window._settings || [];
+      _settings.push(["setEaveClientId", qp.get("EAVE_CLIENT_ID")]);
+      _settings.push(["setTrackerUrl", qp.get("EAVE_ATOM_INGESTION_ENDPOINT")]);
+
       /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
       (function() {
         var scriptHostLocation = "%PUBLIC_URL%/eave-client.min.js";

@@ -25,9 +25,8 @@
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
 import {
-  ATOM_INGESTION_ROUTE,
   ATOM_INTERCEPTION_EVENT_NAME,
-  EAVE_API_ROOT,
+  EAVE_ATOM_INGESTION_ENDPOINT,
 } from "./constants";
 
 /**
@@ -37,7 +36,7 @@ import {
 Cypress.Commands.add("interceptAtomIngestion", () => {
   // Intercept the ingestion request and mock resp.
   // wildcard at end of intercept route to match any query params attached
-  cy.intercept("POST", `${EAVE_API_ROOT}${ATOM_INGESTION_ROUTE}*`, (req) => {
+  cy.intercept("POST", `${EAVE_ATOM_INGESTION_ENDPOINT}*`, (req) => {
     // in reality, the ingestion reply doesnt matter, so we'll use this stub
     // to reflect info about the request we want to assert (i.e. data being passed)
     const qp = new URL(req.url).searchParams;

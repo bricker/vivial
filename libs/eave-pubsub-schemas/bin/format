@@ -8,8 +8,5 @@ source "${EAVE_HOME}"/develop/functions.bash
 	cd "$(^parentpath)"
 
 	python-format .
-	node-format .
-
 	python/bin/format
-	typescript/bin/format
 )

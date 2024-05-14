@@ -1,3 +1,7 @@
 # Requirements that are vendored into /vendor during deployment.
 ${EAVE_HOME}/libs/eave-stdlib-py
 ${EAVE_HOME}/libs/eave-pubsub-schemas/python
+
+${EAVE_HOME}/packages/python/eave-collector-core-py
+${EAVE_HOME}/packages/python/eave-collector-sqlalchemy-py
+${EAVE_HOME}/packages/python/eave-collector-starlette-py

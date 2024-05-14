@@ -32,12 +32,14 @@ def upgrade() -> None:
 
     eave_db_name = os.environ["EAVE_DB_NAME"]
     eave_db_host = os.environ["EAVE_DB_HOST"]
+    eave_db_user = os.environ["EAVE_DB_USER"]
     google_cloud_project = os.environ["GOOGLE_CLOUD_PROJECT"]
 
     eaveLogger.fprint(logging.WARNING, "Running DB migrations!")
     eaveLogger.fprint(logging.WARNING, f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
-    eaveLogger.fprint(logging.WARNING, f"EAVE_DB_NAME={eave_db_name}")
     eaveLogger.fprint(logging.WARNING, f"EAVE_DB_HOST={eave_db_host}")
+    eaveLogger.fprint(logging.WARNING, f"EAVE_DB_NAME={eave_db_name}")
+    eaveLogger.fprint(logging.WARNING, f"EAVE_DB_USER={eave_db_user}")
 
     answer = input(eaveLogger.f(logging.WARNING, "Proceed? (Y/n) "))
 

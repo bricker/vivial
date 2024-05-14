@@ -1,44 +1,25 @@
-# variable "role_id" {
-#   type=string
-# }
-
-variable "app" {
-  type = string
-}
-
-variable "kube_namespace" {
-  type = string
-}
-
-variable "project_id" {
-  type = string
-}
-
-# data "google_iam_role" "app_role" {
-#   name = var.role_id
-# }
-
-data "google_iam_role" "workload_identity_role" {
-  name = "roles/iam.workloadIdentityUser"
-}
-
 resource "google_service_account" "app_service_account" {
-  account_id   = "gsa-app-${var.app}"
-  display_name = var.app
+  account_id   = substr("gsa-app-${var.kube_service_name}", 0, 26)
+  display_name = var.kube_service_name
+  description  = "KSA/GSA binding for ${var.kube_service_name}"
 }
 
-# resource "google_project_iam_member" "app_service_accounts_role_bindings" {
-#   project = var.project_id
-#   role    = data.google_iam_role.app_role.id
-#   member = "serviceAccount:${google_service_account.app_service_account.email}"
-# }
+resource "kubernetes_service_account" "app_ksa" {
+  metadata {
+    name      = substr("ksa-app-${var.kube_service_name}", 0, 26)
+    namespace = var.kube_namespace_name
+    annotations = {
+      "iam.gke.io/gcp-service-account" = google_service_account.app_service_account.email
+    }
+
+    labels = {
+      app = var.kube_service_name
+    }
+  }
+}
 
 resource "google_service_account_iam_member" "app_service_account_ksa_binding" {
   service_account_id = google_service_account.app_service_account.id
   role               = data.google_iam_role.workload_identity_role.id
-  member             = "serviceAccount:${var.project_id}.svc.id.goog[${var.kube_namespace}/ksa-app-${var.app}]"
-}
-
-output "service_account" {
-  value = google_service_account.app_service_account
+  member             = "serviceAccount:${var.project.id}.svc.id.goog[${var.kube_namespace_name}/${kubernetes_service_account.app_ksa.metadata[0].name}]"
 }

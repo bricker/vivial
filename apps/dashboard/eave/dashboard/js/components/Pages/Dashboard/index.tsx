@@ -1,6 +1,15 @@
 import React, { useEffect, useState } from "react";
 
+import GlossaryIcon from "$eave-dashboard/js/components/Icons/GlossaryIcon";
+import GraphIcon from "$eave-dashboard/js/components/Icons/GraphIcon";
+import SettingsCogIcon from "$eave-dashboard/js/components/Icons/SettingsCogIcon";
+import SignOutIcon from "$eave-dashboard/js/components/Icons/SignOutIcon";
+import TeamIcon from "$eave-dashboard/js/components/Icons/TeamIcon";
+import useAuth from "$eave-dashboard/js/hooks/useAuth";
+import { theme } from "$eave-dashboard/js/theme";
+import { CircularProgress } from "@mui/material";
 import { makeStyles } from "tss-react/mui";
+import NotFound from "../NotFound";
 import Glossary from "./Glossary";
 import Insights from "./Insights";
 import Settings from "./Settings";
@@ -8,13 +17,6 @@ import SidebarNav from "./SidebarNav";
 import Menu from "./SidebarNav/Menu";
 import MenuItem from "./SidebarNav/MenuItem";
 import TeamManagement from "./TeamManagement";
-import { theme } from "$eave-dashboard/js/theme";
-import GraphIcon from "$eave-dashboard/js/components/Icons/GraphIcon";
-import GlossaryIcon from "$eave-dashboard/js/components/Icons/GlossaryIcon";
-import SettingsCogIcon from "$eave-dashboard/js/components/Icons/SettingsCogIcon";
-import TeamIcon from "$eave-dashboard/js/components/Icons/TeamIcon";
-import SignOutIcon from "$eave-dashboard/js/components/Icons/SignOutIcon";
-import NotFound from "../NotFound";
 
 const makeClasses = makeStyles()(() => ({
   desktopContainer: {
@@ -31,6 +33,13 @@ const makeClasses = makeStyles()(() => ({
   spacer: {
     flexGrow: 1,
   },
+  loader: {
+    display: "flex",
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 32,
+  },
 }));
 
 function iconColor(isSelected: boolean): "white" | "black" {
@@ -43,6 +52,12 @@ const Dashboard = ({
   page?: "insights" | "glossary" | "settings" | "team";
 }) => {
   const { classes } = makeClasses();
+
+  const { userIsAuthed, validateUserAuth } = useAuth();
+
+  useEffect(() => {
+    validateUserAuth();
+  }, [page]);
 
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
   useEffect(() => {
@@ -138,12 +153,22 @@ const Dashboard = ({
       break;
   }
 
-  return (
-    <div className={container}>
-      {nav}
-      {pageComponent}
-    </div>
-  );
+  if (!userIsAuthed) {
+    return (
+      <div className={container}>
+        <div className={classes.loader}>
+          <CircularProgress color="secondary" />
+        </div>
+      </div>
+    );
+  } else {
+    return (
+      <div className={container}>
+        {nav}
+        {pageComponent}
+      </div>
+    );
+  }
 };
 
 export default Dashboard;

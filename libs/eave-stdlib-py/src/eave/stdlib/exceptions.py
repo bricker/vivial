@@ -70,6 +70,40 @@ class NotFoundError(HTTPException):
         super().__init__(status_code=HTTPStatus.NOT_FOUND, detail=detail, headers=headers, request_id=request_id)
 
 
+class LengthRequiredError(HTTPException):
+    def __init__(
+        self,
+        detail: str | None = None,
+        headers: dict[str, str] | None = None,
+        request_id: str | None = None,
+    ) -> None:
+        super().__init__(status_code=HTTPStatus.LENGTH_REQUIRED, detail=detail, headers=headers, request_id=request_id)
+
+
+class RequestEntityTooLargeError(HTTPException):
+    def __init__(
+        self,
+        detail: str | None = None,
+        headers: dict[str, str] | None = None,
+        request_id: str | None = None,
+    ) -> None:
+        super().__init__(
+            status_code=HTTPStatus.REQUEST_ENTITY_TOO_LARGE, detail=detail, headers=headers, request_id=request_id
+        )
+
+
+class UnprocessableEntityError(HTTPException):
+    def __init__(
+        self,
+        detail: str | None = None,
+        headers: dict[str, str] | None = None,
+        request_id: str | None = None,
+    ) -> None:
+        super().__init__(
+            status_code=HTTPStatus.UNPROCESSABLE_ENTITY, detail=detail, headers=headers, request_id=request_id
+        )
+
+
 class InternalServerError(HTTPException):
     def __init__(
         self,

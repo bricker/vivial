@@ -33,7 +33,7 @@ function main () (
 		exit 1
 	fi
 
-	kubectl rollout restart deployment/"$_appname"-deployment
+	kubectl rollout restart deployment/"$_appname"
 )
 
 main "$@"

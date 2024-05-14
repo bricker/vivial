@@ -8,9 +8,23 @@
         <title>{{ page_title|default("Eave Demo App") }}</title>
 
         <script defer src="/static/dist/main.js"></script>
+
+        <!-- Eave client tracing -->
+        <script>
+        var _settings = window._settings = window._settings || [];
+        _settings.push(["setEaveClientId", "a6724bbe-c237-4e66-9825-8cb5d51d697f"]);
+        _settings.push(["setTrackerUrl", "https://api.eave.dev/public/ingest/browser"]);
+
+        /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+        (function() {
+            var scriptHostLocation = "https://storage.googleapis.com/cdn.eave.dev/eave-client.min.js";
+            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+            g.async=true; g.src=scriptHostLocation; s.parentNode.insertBefore(g,s);
+        })();
+        </script>
+        <!-- End Eave client tracing Code -->
     </head>
     <body>
-        <noscript>You need to enable JavaScript to run this app.</noscript>
         <div id="root"></div>
     </body>
 </html>

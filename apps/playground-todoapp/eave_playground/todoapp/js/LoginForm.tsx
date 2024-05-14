@@ -13,7 +13,7 @@ const LoginForm = () => {
       window.location.assign("/");
     } catch (ex) {
       console.error("Login failed:", ex);
-      setError("Invalid login");
+      setError("System error.");
     }
   };
 

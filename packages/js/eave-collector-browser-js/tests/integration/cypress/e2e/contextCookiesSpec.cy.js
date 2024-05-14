@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-expressions */
 import {
   ATOM_INTERCEPTION_EVENT_NAME,
-  DUMMY_APP_ROOT,
+  dummyAppRoot,
 } from "../support/constants";
 
 describe("eave correlation context cookies", () => {
@@ -10,7 +10,7 @@ describe("eave correlation context cookies", () => {
     cy.interceptAtomIngestion();
 
     // WHEN site is visited for the first time w/o visitor/session id
-    cy.visit(DUMMY_APP_ROOT);
+    cy.visit(dummyAppRoot());
 
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       // THEN eave generated ctx cookie data is attached to events
@@ -29,7 +29,7 @@ describe("eave correlation context cookies", () => {
     cy.interceptAtomIngestion();
 
     // WHEN site is visited
-    cy.visit(DUMMY_APP_ROOT);
+    cy.visit(dummyAppRoot());
 
     // THEN page view event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {

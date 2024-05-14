@@ -42,8 +42,9 @@ RUN apt-get update && apt-get install -y git
 # Copy relevant files
 RUN mkdir -p ${EAVE_HOME}
 COPY apps/playground-todoapp ${EAVE_HOME}/apps/playground-todoapp
-COPY packages ${EAVE_HOME}/packages
+COPY develop ${EAVE_HOME}/develop
 COPY libs ${EAVE_HOME}/libs
+COPY packages ${EAVE_HOME}/packages
 
 WORKDIR ${EAVE_HOME}/apps/playground-todoapp
 
@@ -79,7 +80,7 @@ RUN adduser \
     --uid "10001" \
     appuser
 
-USER appuser
+USER 10001
 
 WORKDIR /app
 EXPOSE 8000

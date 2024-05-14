@@ -81,9 +81,6 @@ if __name__ == "__main__":
         case ".py":
             stdlib_config = os.path.join(os.environ["EAVE_HOME"], "libs/eave-stdlib-py/src/eave/stdlib/config.py")
             configs.append(stdlib_config)
-        case ".ts":
-            stdlib_config = os.path.join(os.environ["EAVE_HOME"], "libs/eave-stdlib-ts/src/config.ts")
-            configs.append(stdlib_config)
         case _:
             pass
 

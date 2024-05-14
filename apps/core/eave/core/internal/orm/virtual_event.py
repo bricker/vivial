@@ -66,7 +66,7 @@ class VirtualEventOrm(Base):
 
     @classmethod
     def _build_query(cls, params: QueryParams) -> Select[tuple[Self]]:
-        lookup = select(cls)
+        lookup = select(cls).order_by(cls.readable_name)
 
         if params.id is not None:
             lookup = lookup.where(cls.id == params.id)

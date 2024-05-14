@@ -2,7 +2,7 @@ import dataclasses
 import logging
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any, Self
+from typing import Any, ClassVar, Self
 
 from .json import JsonObject, compact_json
 
@@ -51,8 +51,19 @@ class DatabaseOperation(StrEnum):
                 return "Inspected"  # idk
 
 
-@dataclass
+class EventType(StrEnum):
+    db_event = "db_event"
+    http_server_event = "http_server_event"
+    http_client_event = "http_client_event"
+    function_call = "function_call"
+    function_return = "function_return"
+    browser_event = "browser_event"
+
+
+@dataclass(kw_only=True)
 class EventPayload:
+    event_type: ClassVar[EventType]
+
     context: dict[str, Any] | None
 
     def to_dict(self) -> JsonObject:
@@ -62,8 +73,10 @@ class EventPayload:
         return compact_json(self.to_dict())
 
 
-@dataclass
+@dataclass(kw_only=True)
 class DatabaseEventPayload(EventPayload):
+    event_type: ClassVar[EventType] = EventType.db_event
+
     statement: str | None
     db_name: str | None
     table_name: str | None
@@ -73,33 +86,112 @@ class DatabaseEventPayload(EventPayload):
     parameters: dict[str, Any] | None
 
 
-# @dataclass
-# class DatabaseInsertEventPayload(DatabaseEventPayload):
-#     inserted_records: list[dict[str, Any]]
+@dataclass(kw_only=True, init=False)
+class BrowserEventPayload(EventPayload):
+    event_type: ClassVar[EventType] = EventType.browser_event
 
-# @dataclass
-# class DatabaseUpdateEventPayload(EventPayload):
-#     updated_records: list[dict[str, Any]]
+    action_name: str | None
+    idsite: str | None
+    h: str | None
+    m: str | None
+    s: str | None
+    url: str | None
+    queryParams: str | None  # noqa: N815
+    _eave_visitor_id: str | None
+    _eave_session_id: str | None
+    pv_id: str | None
+    pf_net: str | None
+    pf_srv: str | None
+    pf_tfr: str | None
+    pf_dm1: str | None
+    eaveClientId: str | None  # noqa: N815
+    uadata: str | None
+    pdf: str | None
+    qt: str | None
+    realp: str | None
+    wma: str | None
+    fla: str | None
+    java: str | None
+    ag: str | None
+    cookie: str | None
+    res: str | None
 
-# @dataclass
-# class DatabaseDeleteEventPayload(EventPayload):
-#     deleted_records: list[dict[str, Any]]
+    _extra: dict[str, Any] | None = None
 
-# @dataclass
-# class DatabaseSelectEventPayload(EventPayload):
-#     selected_records: list[dict[str, Any]]
+    def __init__(self,
+        *,
+        context: dict[str, Any] | None = None,
+        action_name: str | None = None,
+        idsite: str | None = None,
+        h: str | None = None,
+        m: str | None = None,
+        s: str | None = None,
+        url: str | None = None,
+        queryParams: str | None   = None,  # noqa: N803
+        _eave_visitor_id: str | None = None,
+        _eave_session_id: str | None = None,
+        pv_id: str | None = None,
+        pf_net: str | None = None,
+        pf_srv: str | None = None,
+        pf_tfr: str | None = None,
+        pf_dm1: str | None = None,
+        eaveClientId: str | None  = None,  # noqa: N803
+        uadata: str | None = None,
+        pdf: str | None = None,
+        qt: str | None = None,
+        realp: str | None = None,
+        wma: str | None = None,
+        fla: str | None = None,
+        java: str | None = None,
+        ag: str | None = None,
+        cookie: str | None = None,
+        res: str | None = None,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(context=context)
 
+        self.action_name = action_name
+        self.idsite = idsite
+        self.h = h
+        self.m = m
+        self.s = s
+        self.url = url
+        self.queryParams = queryParams
+        self._eave_visitor_id = _eave_visitor_id
+        self._eave_session_id = _eave_session_id
+        self.pv_id = pv_id
+        self.pf_net = pf_net
+        self.pf_srv = pf_srv
+        self.pf_tfr = pf_tfr
+        self.pf_dm1 = pf_dm1
+        self.eaveClientId = eaveClientId
+        self.uadata = uadata
+        self.pdf = pdf
+        self.qt = qt
+        self.realp = realp
+        self.wma = wma
+        self.fla = fla
+        self.java = java
+        self.ag = ag
+        self.cookie = cookie
+        self.res = res
 
-@dataclass
+        self._extra = kwargs
+
+@dataclass(kw_only=True)
 class FunctionCallEventPayload(EventPayload):
+    event_type: ClassVar[EventType] = EventType.function_call
+
     function_module: str | None
     function_class: str | None
     function_name: str | None
     function_args: dict[str, Any] | None
 
 
-@dataclass
+@dataclass(kw_only=True)
 class FunctionReturnEventPayload(EventPayload):
+    event_type: ClassVar[EventType] = EventType.function_return
+
     function_module: str
     function_class: str
     function_name: str
@@ -107,10 +199,12 @@ class FunctionReturnEventPayload(EventPayload):
     function_return_value: str
 
 
-@dataclass
-class ServerRequestEventPayload(EventPayload):
+@dataclass(kw_only=True)
+class HttpServerEventPayload(EventPayload):
     """Data about a request being handled by server application code"""
 
+    event_type: ClassVar[EventType] = EventType.http_server_event
+
     request_method: str
     request_url: str
     request_headers: dict[str, str]
@@ -118,40 +212,25 @@ class ServerRequestEventPayload(EventPayload):
 
 
 @dataclass
-class NetworkRequestEventPayload(EventPayload):
+class HttpClientEventPayload(EventPayload):
     """Data about requests made by application code"""
+
+    event_type: ClassVar[EventType] = EventType.http_client_event
 
     request_method: str
     request_url: str
     request_headers: dict[str, str]
     request_payload: str
-
-
-class EventType(StrEnum):
-    db_event = "db_event"
-    server_event = "server_event"
-    request_event = "request_event"
-
-    @property
-    def payload_class(self) -> type[EventPayload]:
-        match self:
-            case EventType.db_event:
-                return DatabaseEventPayload
-            case EventType.server_event:
-                return ServerRequestEventPayload
-            case EventType.request_event:
-                return NetworkRequestEventPayload
 
 
 @dataclass
 class DataIngestRequestBody:
-    event_type: EventType
-    events: list[str]
+    events: dict[str, list[JsonObject]]
+    """map from event_type name to list of events of that type"""
 
     @classmethod
     def from_json(cls, data: dict[str, Any]) -> Self:
         return cls(
-            event_type=EventType(value=data["event_type"]),
             events=data["events"],
         )
 

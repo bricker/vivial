@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from eave.stdlib.core_api.operations.account import GetAuthenticatedAccount
+from eave.stdlib.core_api.operations.account import GetMyAccountRequest
 
 from .base import BaseTestCase
 
@@ -14,16 +14,15 @@ class TestAuthedAccountRequests(BaseTestCase):
             account = await self.make_account(s)
 
         response = await self.make_request(
-            path="/me/query",
+            path=GetMyAccountRequest.config.path,
             payload=None,
-            team_id=account.team_id,
             account_id=account.id,
             access_token=account.access_token,
         )
 
         assert response.status_code == HTTPStatus.OK
 
-        response_obj = GetAuthenticatedAccount.ResponseBody(**response.json())
+        response_obj = GetMyAccountRequest.ResponseBody(**response.json())
 
-        assert response_obj.account.id == account.id
+        assert response_obj.account.email == account.email
         assert response_obj.team.id == account.team_id

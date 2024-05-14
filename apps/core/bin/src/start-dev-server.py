@@ -2,6 +2,7 @@ import os
 import sys
 
 import uvicorn
+import uvicorn.workers
 
 from eave.dev_tooling.constants import EAVE_HOME
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
@@ -17,6 +18,7 @@ if __name__ == "__main__":
         app="eave.core.app:app",
         port=5100,
         reload=True,
+        lifespan="on",
         log_level="debug",
         reload_includes=[
             "eave",
