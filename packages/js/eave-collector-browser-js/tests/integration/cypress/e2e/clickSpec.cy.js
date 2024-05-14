@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-expressions */
 import {
   ATOM_INTERCEPTION_EVENT_NAME,
-  DUMMY_APP_ROOT,
+  dummyAppRoot,
 } from "../support/constants";
 
 describe("eave click atom collection", () => {
@@ -9,7 +9,7 @@ describe("eave click atom collection", () => {
     cy.interceptAtomIngestion();
 
     // GIVEN site has a button
-    cy.visit(DUMMY_APP_ROOT);
+    cy.visit(dummyAppRoot());
     // wait for pageview to fire
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
 
@@ -27,7 +27,7 @@ describe("eave click atom collection", () => {
     cy.interceptAtomIngestion();
 
     // GIVEN site has a external
-    cy.visit(DUMMY_APP_ROOT);
+    cy.visit(dummyAppRoot());
     // wait for pageview to fire
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
 
@@ -47,7 +47,7 @@ describe("eave click atom collection", () => {
     cy.interceptAtomIngestion();
 
     // GIVEN site has a internal link
-    cy.visit(DUMMY_APP_ROOT);
+    cy.visit(dummyAppRoot());
     // wait for pageview to fire
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
 
@@ -74,7 +74,7 @@ describe("eave click atom collection", () => {
   //   cy.interceptAtomIngestion();
 
   //   // GIVEN site has a wrapped button
-  //   cy.visit(DUMMY_APP_ROOT);
+  //   cy.visit(dummyAppRoot());
   //   // wait for pageview to fire
   //   cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
 
@@ -92,7 +92,7 @@ describe("eave click atom collection", () => {
     cy.interceptAtomIngestion();
 
     // GIVEN site has a wrapped button
-    cy.visit(DUMMY_APP_ROOT);
+    cy.visit(dummyAppRoot());
     // wait for pageview to fire
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
 
@@ -112,7 +112,7 @@ describe("eave click atom collection", () => {
     cy.interceptAtomIngestion();
 
     // GIVEN site has a form w/ a submit button
-    cy.visit(DUMMY_APP_ROOT + "/form");
+    cy.visit(dummyAppRoot({ path: "/form" }));
     // wait for pageview to fire
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
 
