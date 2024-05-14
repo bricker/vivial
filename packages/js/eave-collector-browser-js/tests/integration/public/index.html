@@ -27,9 +27,9 @@
     <title>React App</title>
 
     <!-- Eave client tracing -->
-    <!-- <script src="%PUBLIC_URL%/eave-client.min.js"></script> -->
     <script>
-      var eaveClientId = "94ebaf29-35ee-4b11-821f-132a581e5796";
+      const qp = new URLSearchParams(window.location.search);
+      const eaveClientId = qp.get("EAVE_CLIENT_ID");
 
       var _settings = window._settings = window._settings || [];
       _settings.push(["setEaveClientId", eaveClientId]);
@@ -39,8 +39,6 @@
         var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
         g.async=true; g.src=scriptHostLocation; s.parentNode.insertBefore(g,s);
       })();
-
-      // initEave("94ebaf29-35ee-4b11-821f-132a581e5796"); // TODO: dummy value
     </script>
     <!-- End Eave client tracing Code -->
   </head>

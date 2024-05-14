@@ -1,6 +1,6 @@
 import json
 from collections.abc import Mapping, Sequence
-from typing import Any
+from typing import Any, Dict
 
 import google.api_core.exceptions
 from google.cloud import bigquery
@@ -51,8 +51,8 @@ class BigQueryClient:
         )
         return r
 
-    def append_rows(self, *, table: bigquery.Table, rows: Sequence[Mapping[str, Any]]) -> None:
-        self._bq_client.insert_rows(
+    def append_rows(self, *, table: bigquery.Table, rows: Sequence[Mapping[str, Any]]) -> Sequence[dict[str, Any]]:
+        return self._bq_client.insert_rows(
             table=table,
             rows=rows,
             ignore_unknown_values=False,  # error if any row contains unknown values
