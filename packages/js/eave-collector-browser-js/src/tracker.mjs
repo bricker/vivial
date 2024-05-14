@@ -147,8 +147,6 @@ export function Tracker(trackerUrl, siteId) {
     configExcludedQueryParams = [],
     // HTML anchor element classes to treat as downloads
     configDownloadClasses = [],
-    // HTML anchor element classes to treat at outlinks
-    configLinkClasses = [],
     // Maximum delay to wait for web bug image to be fetched (in milliseconds)
     configTrackerPause = 500,
     // If enabled, always use sendBeacon if the browser supports it
@@ -1690,26 +1688,23 @@ export function Tracker(trackerUrl, siteId) {
     );
   }
 
-  /*
-   * Link or Download?
+  /**
+   * Determines what type of link an anchor element is from various attributes.
+   *
+   * @returns {string}
    */
   function getLinkType(className, href, isInLink, hasDownloadAttribute) {
-    if (startsUrlWithTrackerUrl(href)) {
-      return 0;
+    if (isInLink) {
+      return "internal";
     }
 
     // does class indicate whether it is an (explicit/forced) outlink or a download?
     var downloadPattern = getClassesRegExp(configDownloadClasses, "download"),
-      linkPattern = getClassesRegExp(configLinkClasses, "link"),
       // does file extension indicate that it is a download?
       downloadExtensionsPattern = new RegExp(
         "\\.(" + configDownloadExtensions.join("|") + ")([?&#]|$)",
         "i",
       );
-
-    if (linkPattern.test(className)) {
-      return "link";
-    }
 
     if (
       hasDownloadAttribute ||
@@ -1719,11 +1714,26 @@ export function Tracker(trackerUrl, siteId) {
       return "download";
     }
 
-    if (isInLink) {
-      return 0;
+    // browsers, such as Safari, don't downcase hostname and href
+    const scriptProtocol = new RegExp(
+      "^(javascript|vbscript|jscript|mocha|livescript|ecmascript):",
+      "i",
+    );
+    if (scriptProtocol.test(href)) {
+      return "script";
     }
 
-    return "link";
+    const mailProtocol = new RegExp("^mailto:", "i");
+    if (mailProtocol.test(href)) {
+      return "email";
+    }
+
+    const telephoneProtocol = new RegExp("^tel:", "i");
+    if (telephoneProtocol.test(href)) {
+      return "telephone";
+    }
+
+    return "external";
   }
 
   /**
@@ -1749,15 +1759,21 @@ export function Tracker(trackerUrl, siteId) {
     return undefined;
   }
 
+  /**
+   * Get anchor tag data if the link click is not to be ignored.
+   *
+   * @param {Element} sourceElement
+   * @returns {object|undefined} undefined if link should not be processed
+   */
   function getLinkIfShouldBeProcessed(sourceElement) {
     sourceElement = getTargetNode(isLinkNode, sourceElement);
 
     if (!query.hasNodeAttribute(sourceElement, "href")) {
-      return;
+      return undefined;
     }
 
     if (!h.isDefined(sourceElement.href)) {
-      return;
+      return undefined;
     }
 
     var originalSourcePath =
@@ -1772,28 +1788,18 @@ export function Tracker(trackerUrl, siteId) {
       sourceHostName,
     );
 
-    // browsers, such as Safari, don't downcase hostname and href
-    var scriptProtocol = new RegExp(
-      "^(javascript|vbscript|jscript|mocha|livescript|ecmascript|mailto|tel):",
-      "i",
+    // track all link types (internal)
+    var linkType = getLinkType(
+      sourceElement.className,
+      sourceHref,
+      isSiteHostPath(sourceHostName, originalSourcePath),
+      query.hasNodeAttribute(sourceElement, "download"),
     );
 
-    if (!scriptProtocol.test(sourceHref)) {
-      // track outlinks and all downloads
-      var linkType = getLinkType(
-        sourceElement.className,
-        sourceHref,
-        isSiteHostPath(sourceHostName, originalSourcePath),
-        query.hasNodeAttribute(sourceElement, "download"),
-      );
-
-      if (linkType) {
-        return {
-          type: linkType,
-          href: sourceHref,
-        };
-      }
-    }
+    return {
+      type: linkType,
+      href: sourceHref,
+    };
   }
 
   function buildContentInteractionRequest(interaction, name, piece, target) {
@@ -3581,15 +3587,6 @@ export function Tracker(trackerUrl, siteId) {
     configDownloadClasses = h.isString(downloadClasses)
       ? [downloadClasses]
       : downloadClasses;
-  };
-
-  /**
-   * Set array of classes to be treated as outlinks
-   *
-   * @param {string|Array} linkClasses
-   */
-  this.setLinkClasses = function (linkClasses) {
-    configLinkClasses = h.isString(linkClasses) ? [linkClasses] : linkClasses;
   };
 
   /**
