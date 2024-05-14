@@ -10,7 +10,12 @@ describe("eave UTM and query parameter collection", () => {
     cy.interceptAtomIngestion();
 
     // WHEN site is initially visited including some query/utm params
-    cy.visit(dummyAppRoot("/page", "utm_source=tickletok&utm_campaign=gogole"));
+    cy.visit(
+      dummyAppRoot({
+        path: "/page",
+        qp: "utm_source=tickletok&utm_campaign=gogole",
+      }),
+    );
 
     // THEN utm params are included in fired events
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
@@ -33,7 +38,12 @@ describe("eave UTM and query parameter collection", () => {
     cy.interceptAtomIngestion();
 
     // GIVEN initial visit URL contains query/utm params
-    cy.visit(dummyAppRoot({ path: "/page", qp: "utm_source=tickletok&utm_campaign=gogole" }));
+    cy.visit(
+      dummyAppRoot({
+        path: "/page",
+        qp: "utm_source=tickletok&utm_campaign=gogole",
+      }),
+    );
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
 
     // WHEN performing some other event triggering action
@@ -57,7 +67,12 @@ describe("eave UTM and query parameter collection", () => {
     cy.interceptAtomIngestion();
 
     // GIVEN initial visit URL contains query/utm params
-    cy.visit(dummyAppRoot({ path: "/page", qp: "utm_source=tickletok&utm_campaign=gogole" }));
+    cy.visit(
+      dummyAppRoot({
+        path: "/page",
+        qp: "utm_source=tickletok&utm_campaign=gogole",
+      }),
+    );
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
 
     // WHEN navigating to a page w/ different query params
@@ -101,7 +116,12 @@ describe("eave UTM and query parameter collection", () => {
     cy.interceptAtomIngestion();
 
     // WHEN site is initially visited including some query/utm params
-    cy.visit(dummyAppRoot({ path: "/page", qp: "utm_source=tickletok&utm_campaign=gogole" }));
+    cy.visit(
+      dummyAppRoot({
+        path: "/page",
+        qp: "utm_source=tickletok&utm_campaign=gogole",
+      }),
+    );
 
     // THEN utm params are included in fired events
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
@@ -111,7 +131,8 @@ describe("eave UTM and query parameter collection", () => {
         utm_campaign: "gogole",
       });
       // referrer data not set
-      expect(interception.response.body.data._eave_referrer_query_params).to.not.exist;
+      expect(interception.response.body.data._eave_referrer_query_params).to.not
+        .exist;
     });
   });
 });
