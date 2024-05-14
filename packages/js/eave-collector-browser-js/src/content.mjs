@@ -69,7 +69,7 @@ export default {
     var node = anyNode;
     var counter = 0;
 
-    while (node && node !== globalThis.eave.documentAlias && node.parentNode) {
+    while (node && node !== document && node.parentNode) {
       if (query.hasNodeAttribute(node, this.CONTENT_ATTR)) {
         return node;
       }
@@ -326,7 +326,7 @@ export default {
     }
 
     var rect = node.getBoundingClientRect();
-    var html = globalThis.eave.documentAlias.documentElement || {};
+    var html = document.documentElement || {};
 
     var wasVisible = rect.top < 0;
     if (wasVisible && node.offsetTop) {
@@ -336,19 +336,19 @@ export default {
     var docWidth = html.clientWidth; // The clientWidth attribute returns the viewport width excluding the size of a rendered scroll bar
 
     if (
-      globalThis.eave.windowAlias.innerWidth &&
-      docWidth > globalThis.eave.windowAlias.innerWidth
+      window.innerWidth &&
+      docWidth > window.innerWidth
     ) {
-      docWidth = globalThis.eave.windowAlias.innerWidth; // The innerWidth attribute must return the viewport width including the size of a rendered scroll bar
+      docWidth = window.innerWidth; // The innerWidth attribute must return the viewport width including the size of a rendered scroll bar
     }
 
     var docHeight = html.clientHeight; // The clientWidth attribute returns the viewport width excluding the size of a rendered scroll bar
 
     if (
-      globalThis.eave.windowAlias.innerHeight &&
-      docHeight > globalThis.eave.windowAlias.innerHeight
+      window.innerHeight &&
+      docHeight > window.innerHeight
     ) {
-      docHeight = globalThis.eave.windowAlias.innerHeight; // The innerWidth attribute must return the viewport width including the size of a rendered scroll bar
+      docHeight = window.innerHeight; // The innerWidth attribute must return the viewport width including the size of a rendered scroll bar
     }
 
     return (
@@ -367,25 +367,25 @@ export default {
     var params = "";
 
     if (interaction) {
-      params += "c_i=" + globalThis.eave.encodeWrapper(interaction);
+      params += "c_i=" + encodeURIComponent(interaction);
     }
     if (name) {
       if (params) {
         params += "&";
       }
-      params += "c_n=" + globalThis.eave.encodeWrapper(name);
+      params += "c_n=" + encodeURIComponent(name);
     }
     if (piece) {
       if (params) {
         params += "&";
       }
-      params += "c_p=" + globalThis.eave.encodeWrapper(piece);
+      params += "c_p=" + encodeURIComponent(piece);
     }
     if (target) {
       if (params) {
         params += "&";
       }
-      params += "c_t=" + globalThis.eave.encodeWrapper(target);
+      params += "c_t=" + encodeURIComponent(target);
     }
 
     if (params) {
@@ -397,12 +397,12 @@ export default {
   buildImpressionRequestParams: function (name, piece, target) {
     var params =
       "c_n=" +
-      globalThis.eave.encodeWrapper(name) +
+      encodeURIComponent(name) +
       "&c_p=" +
-      globalThis.eave.encodeWrapper(piece);
+      encodeURIComponent(piece);
 
     if (target) {
-      params += "&c_t=" + globalThis.eave.encodeWrapper(target);
+      params += "&c_t=" + encodeURIComponent(target);
     }
 
     if (params) {
@@ -451,7 +451,7 @@ export default {
     this.location = location;
   },
   getLocation: function () {
-    var locationAlias = this.location || globalThis.eave.windowAlias.location;
+    var locationAlias = this.location || window.location;
 
     if (!locationAlias.origin) {
       locationAlias.origin =

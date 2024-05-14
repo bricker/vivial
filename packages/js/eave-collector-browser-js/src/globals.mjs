@@ -1,52 +1,33 @@
-// have to do this check on browser globals to make Node.js env happy
-var documentAlias = typeof document !== "undefined" ? document : {},
-  navigatorAlias = typeof navigator !== "undefined" ? navigator : {},
-  screenAlias = typeof screen !== "undefined" ? screen : {},
-  windowAlias = typeof window !== "undefined" ? window : {};
+// @ts-check
+import * as Types from "./types.js";
 
 // use existing _settings settings if available
-var _settings =
-  typeof windowAlias._settings !== "undefined" ? windowAlias._settings : [];
+
+const _settings = [];
 _settings.push(["setTrackingCookies"]);
 _settings.push(["trackPageView"]);
 _settings.push(["enableLinkTracking"]);
 _settings.push(["enableRouteHistoryTracking"]);
 _settings.push(["enableButtonClickTracking"]);
 _settings.push(["enableFormTracking"]);
+
 // PRODUCTION is a custom webpack plugin defined in the webpack.config.cjs file as
 // a boolean describing whether the script was compiled with mode=production
-// eslint-disable-next-line no-undef
-const trackerUrl = PRODUCTION
+// @ts-ignore
+const trackerUrl = PRODUCTION // eslint-disable-line no-undef
   ? "https://api.eave.dev/public/ingest/browser"
   : "http://api.eave.run:8080/public/ingest/browser";
 _settings.push(["setTrackerUrl", trackerUrl]);
 
-globalThis.eave = {
+/** @type {Types.GlobalEaveWindow} */
+const _globalThis = globalThis;
+
+_globalThis._eave = {
   expireDateTime: undefined,
-  _settings,
-  /* plugins */
+  settings: _settings,
   plugins: {},
   eventHandlers: {},
-  /* alias frequently used globals for added minification (NOT CURRENTLY WORKING, JUST MAKING ACCESS PATH LONGER) */
-  documentAlias,
-  navigatorAlias,
-  windowAlias,
-  screenAlias,
-  /* performance timing */
-  performanceAlias:
-    windowAlias.performance ||
-    windowAlias.mozPerformance ||
-    windowAlias.msPerformance ||
-    windowAlias.webkitPerformance,
-  /* encode */
-  encodeWrapper: windowAlias.encodeURIComponent,
-  /* decode */
-  decodeWrapper: windowAlias.decodeURIComponent,
-  /* urldecode */
-  urldecode: unescape,
-  /* asynchronous tracker */
   asyncTrackers: [],
-  /* local eave */
   eave: undefined,
   missedPluginTrackerCalls: [],
   coreConsentCounter: 0,

@@ -16,8 +16,8 @@ export function isVisible(node) {
 
   //-- Cross browser method to get style properties:
   function _getStyle(el, property) {
-    if (globalThis.eave.windowAlias.getComputedStyle) {
-      return globalThis.eave.documentAlias.defaultView.getComputedStyle(
+    if (window.getComputedStyle) {
+      return document.defaultView.getComputedStyle(
         el,
         null,
       )[property];
@@ -31,7 +31,7 @@ export function isVisible(node) {
     element = element.parentNode;
 
     while (element) {
-      if (element === globalThis.eave.documentAlias) {
+      if (element === document) {
         return true;
       }
       element = element.parentNode;

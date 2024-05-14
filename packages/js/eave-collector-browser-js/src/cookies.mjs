@@ -61,9 +61,9 @@ export class CookieManager {
     }
 
     var cookiePattern = new RegExp("(^|;)[ ]*" + cookieName + "=([^;]*)"),
-      cookieMatch = cookiePattern.exec(globalThis.eave.documentAlias.cookie);
+      cookieMatch = cookiePattern.exec(document.cookie);
 
-    return cookieMatch ? globalThis.eave.decodeWrapper(cookieMatch[2]) : 0;
+    return cookieMatch ? decodeURIComponent(cookieMatch[2]) : 0;
   }
 
   /**
@@ -105,13 +105,13 @@ export class CookieManager {
     }
 
     if (h.isObject(value)) {
-      value = globalThis.eave.windowAlias.JSON.stringify(value);
+      value = window.JSON.stringify(value);
     }
 
-    globalThis.eave.documentAlias.cookie =
+    document.cookie =
       cookieName +
       "=" +
-      globalThis.eave.encodeWrapper(value) +
+      encodeURIComponent(value) +
       (msToExpire ? ";expires=" + expiryDate.toGMTString() : "") +
       ";path=" +
       (path || "/") +
@@ -141,7 +141,7 @@ export class CookieManager {
 
     if (cookie && cookie.length) {
       try {
-        cookie = globalThis.eave.windowAlias.JSON.parse(cookie);
+        cookie = window.JSON.parse(cookie);
 
         if (h.isObject(cookie)) {
           return cookie;
@@ -182,7 +182,7 @@ export class CookieManager {
   getEaveCookies() {
     const eaveCookies = [];
 
-    const urlParamifiedCookies = globalThis.eave.documentAlias.cookie.replace(
+    const urlParamifiedCookies = document.cookie.replace(
       /;[ ]*/g,
       "&",
     );
@@ -245,10 +245,10 @@ export class CookieManager {
     }
 
     if (
-      !h.isDefined(globalThis.eave.windowAlias.showModalDialog) &&
-      h.isDefined(globalThis.eave.navigatorAlias.cookieEnabled)
+      !h.isDefined(window.showModalDialog) &&
+      h.isDefined(navigator.cookieEnabled)
     ) {
-      return Boolean(globalThis.eave.navigatorAlias.cookieEnabled);
+      return Boolean(navigator.cookieEnabled);
     }
 
     // for IE we want to actually set the cookie to avoid trigger a warning eg in IE see #11507

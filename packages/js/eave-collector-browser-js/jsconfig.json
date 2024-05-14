@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "jsx": "react",
+    "noEmit": true,
+    "allowJs": true,
+    "strictNullChecks": true
+  },
+  "include": ["src/**/*.js", "src/**/*.mjs"]
+}

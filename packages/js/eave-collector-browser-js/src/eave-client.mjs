@@ -9,7 +9,7 @@
  */
 
 /*
-modified from 
+modified from
  * https://github.com/matomo-org/tag-manager/ (GPLv3)
  * https://github.com/matomo-org/matomo/js/piwik.js (BSD-3)
 */
@@ -159,13 +159,13 @@ if (typeof window.eaveTracker !== "object") {
 
     // initialize the eave singleton
     h.addEventListener(
-      globalThis.eave.windowAlias,
+      window,
       "beforeunload",
       h.beforeUnloadHandler,
       false,
     );
     h.addEventListener(
-      globalThis.eave.windowAlias,
+      window,
       "visibilitychange",
       function () {
         // if unloaded, return
@@ -173,18 +173,18 @@ if (typeof window.eaveTracker !== "object") {
           return;
         }
         // if not visible
-        if (globalThis.eave.documentAlias.visibilityState === "hidden") {
+        if (document.visibilityState === "hidden") {
           h.executePluginMethod("unload");
         }
       },
       false,
     );
     h.addEventListener(
-      globalThis.eave.windowAlias,
+      window,
       "online",
       function () {
-        if (h.isDefined(globalThis.eave.navigatorAlias.serviceWorker)) {
-          globalThis.eave.navigatorAlias.serviceWorker.ready.then(
+        if (h.isDefined(navigator.serviceWorker)) {
+          navigator.serviceWorker.ready.then(
             function (swRegistration) {
               if (swRegistration && swRegistration.sync) {
                 return swRegistration.sync.register("eaveSync");
@@ -200,7 +200,7 @@ if (typeof window.eaveTracker !== "object") {
     );
 
     h.addEventListener(
-      globalThis.eave.windowAlias,
+      window,
       "message",
       function (e) {
         if (!e || !e.origin) {
@@ -241,7 +241,7 @@ if (typeof window.eaveTracker !== "object") {
         function postMessageToCorrectFrame(postMessage) {
           // Find the iframe with the right URL to send it back to
           var iframes =
-            globalThis.eave.documentAlias.getElementsByTagName("iframe");
+            document.getElementsByTagName("iframe");
           for (i = 0; i < iframes.length; i++) {
             var iframe = iframes[i];
             var iframeHost = h.getHostName(iframe.src);
@@ -303,7 +303,7 @@ if (typeof window.eaveTracker !== "object") {
     globalThis.eave.eave = {
       initialized: false,
 
-      JSON: globalThis.eave.windowAlias.JSON,
+      JSON: window.JSON,
 
       /**
        * DOM Document related methods
@@ -406,7 +406,7 @@ if (typeof window.eaveTracker !== "object") {
         var i = 0;
         for (i; i < globalThis.eave.eventHandlers[event].length; i++) {
           globalThis.eave.eventHandlers[event][i].apply(
-            context || globalThis.eave.windowAlias,
+            context || window,
             extraParameters,
           );
         }

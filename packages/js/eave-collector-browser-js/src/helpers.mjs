@@ -9,7 +9,7 @@ import "./globals.mjs";
  */
 export function safeDecodeWrapper(url) {
   try {
-    return globalThis.eave.decodeWrapper(url);
+    return decodeURIComponent(url);
   } catch (e) {
     return unescape(url);
   }
@@ -206,22 +206,22 @@ export function addEventListener(element, eventType, eventHandler, useCapture) {
 }
 
 export function trackCallbackOnLoad(callback) {
-  if (globalThis.eave.documentAlias.readyState === "complete") {
+  if (document.readyState === "complete") {
     callback();
-  } else if (globalThis.eave.windowAlias.addEventListener) {
-    globalThis.eave.windowAlias.addEventListener("load", callback, false);
-  } else if (globalThis.eave.windowAlias.attachEvent) {
-    globalThis.eave.windowAlias.attachEvent("onload", callback);
+  } else if (window.addEventListener) {
+    window.addEventListener("load", callback, false);
+  } else if (window.attachEvent) {
+    window.attachEvent("onload", callback);
   }
 }
 
 export function trackCallbackOnReady(callback) {
   var loaded = false;
 
-  if (globalThis.eave.documentAlias.attachEvent) {
-    loaded = globalThis.eave.documentAlias.readyState === "complete";
+  if (document.attachEvent) {
+    loaded = document.readyState === "complete";
   } else {
-    loaded = globalThis.eave.documentAlias.readyState !== "loading";
+    loaded = document.readyState !== "loading";
   }
 
   if (loaded) {
@@ -231,12 +231,12 @@ export function trackCallbackOnReady(callback) {
 
   var _timer;
 
-  if (globalThis.eave.documentAlias.addEventListener) {
+  if (document.addEventListener) {
     addEventListener(
-      globalThis.eave.documentAlias,
+      document,
       "DOMContentLoaded",
       function ready() {
-        globalThis.eave.documentAlias.removeEventListener(
+        document.removeEventListener(
           "DOMContentLoaded",
           ready,
           false,
@@ -247,12 +247,12 @@ export function trackCallbackOnReady(callback) {
         }
       },
     );
-  } else if (globalThis.eave.documentAlias.attachEvent) {
-    globalThis.eave.documentAlias.attachEvent(
+  } else if (document.attachEvent) {
+    document.attachEvent(
       "onreadystatechange",
       function ready() {
-        if (globalThis.eave.documentAlias.readyState === "complete") {
-          globalThis.eave.documentAlias.detachEvent(
+        if (document.readyState === "complete") {
+          document.detachEvent(
             "onreadystatechange",
             ready,
           );
@@ -265,13 +265,13 @@ export function trackCallbackOnReady(callback) {
     );
 
     if (
-      globalThis.eave.documentAlias.documentElement.doScroll &&
-      globalThis.eave.windowAlias === globalThis.eave.windowAlias.top
+      document.documentElement.doScroll &&
+      window === window.top
     ) {
       (function ready() {
         if (!loaded) {
           try {
-            globalThis.eave.documentAlias.documentElement.doScroll("left");
+            document.documentElement.doScroll("left");
           } catch (error) {
             setTimeout(ready, 0);
 
@@ -286,7 +286,7 @@ export function trackCallbackOnReady(callback) {
 
   // fallback
   addEventListener(
-    globalThis.eave.windowAlias,
+    window,
     "load",
     function () {
       if (!loaded) {
@@ -367,7 +367,7 @@ export function beforeUnloadHandler(event) {
  * Load JavaScript file (asynchronously)
  */
 export function loadScript(src, onLoad) {
-  var script = globalThis.eave.documentAlias.createElement("script");
+  var script = document.createElement("script");
 
   script.type = "text/javascript";
   script.src = src;
@@ -385,7 +385,7 @@ export function loadScript(src, onLoad) {
     script.onload = onLoad;
   }
 
-  globalThis.eave.documentAlias
+  document
     .getElementsByTagName("head")[0]
     .appendChild(script);
 }
@@ -397,11 +397,11 @@ export function getReferrer() {
   var referrer = "";
 
   try {
-    referrer = globalThis.eave.windowAlias.top.document.referrer;
+    referrer = window.top.document.referrer;
   } catch (e) {
-    if (globalThis.eave.windowAlias.parent) {
+    if (window.parent) {
       try {
-        referrer = globalThis.eave.windowAlias.parent.document.referrer;
+        referrer = window.parent.document.referrer;
       } catch (e2) {
         referrer = "";
       }
@@ -409,7 +409,7 @@ export function getReferrer() {
   }
 
   if (referrer === "") {
-    referrer = globalThis.eave.documentAlias.referrer;
+    referrer = document.referrer;
   }
 
   return referrer;
@@ -481,9 +481,9 @@ export function queryStringify(data) {
     if (data.hasOwnProperty(k)) {
       queryString +=
         "&" +
-        globalThis.eave.encodeWrapper(k) +
+        encodeURIComponent(k) +
         "=" +
-        globalThis.eave.encodeWrapper(data[k]);
+        encodeURIComponent(data[k]);
     }
   }
   return queryString;
@@ -541,9 +541,9 @@ export function addUrlParameter(url, name, value) {
 
   return (
     baseUrl +
-    globalThis.eave.encodeWrapper(name) +
+    encodeURIComponent(name) +
     "=" +
-    globalThis.eave.encodeWrapper(value) +
+    encodeURIComponent(value) +
     urlHash
   );
 }
@@ -623,7 +623,7 @@ export function trim(text) {
  * UTF-8 encoding
  */
 export function utf8_encode(argString) {
-  return unescape(globalThis.eave.encodeWrapper(argString));
+  return unescape(encodeURIComponent(argString));
 }
 
 /************************************************************
@@ -820,7 +820,7 @@ export function urlFixup(hostName, href, referrer) {
     hostName === "webcache.googleusercontent.com" || // Google
     hostName.slice(0, 5) === "74.6." // Yahoo (via Inktomi 74.6.0.0/16)
   ) {
-    href = globalThis.eave.documentAlias.links[0].href;
+    href = document.links[0].href;
     hostName = getHostName(href);
   }
 
@@ -857,7 +857,7 @@ export function titleFixup(title) {
   title = title && title.text ? title.text : title;
 
   if (!isString(title)) {
-    var tmp = globalThis.eave.documentAlias.getElementsByTagName("title");
+    var tmp = document.getElementsByTagName("title");
 
     if (tmp && isDefined(tmp[0])) {
       title = tmp[0].text;
@@ -1122,8 +1122,8 @@ export function isSitePath(path, pathAlias) {
  * @returns {string} query params to attach to a request URL
  */
 export function argsToQueryParameters(args) {
-  const makeURLSafe = isFunction(globalThis.eave.encodeWrapper)
-    ? globalThis.eave.encodeWrapper
+  const makeURLSafe = isFunction(encodeURIComponent)
+    ? encodeURIComponent
     : function (x) {
         return x;
       };
