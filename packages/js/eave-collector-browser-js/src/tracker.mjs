@@ -220,6 +220,7 @@ export function Tracker(trackerUrl, siteId) {
     // Guard against installing the link tracker more than once per Tracker instance
     clickListenerInstalled = false,
     linkTrackingEnabled = false,
+    imageClickTrackingEnabled = false,
     crossDomainTrackingEnabled = false,
     // Guard against installing route history tracker more than once per instance
     routeHistoryTrackingEnabled = false,
@@ -513,7 +514,7 @@ export function Tracker(trackerUrl, siteId) {
           : globalThis.eave.windowAlias.ActiveXObject
           ? new globalThis.eave.windowAlias.ActiveXObject("Microsoft.XMLHTTP")
           : null;
-        
+
         xhr.open("POST", configTrackerUrl, true);
 
         // fallback on error
@@ -2457,18 +2458,27 @@ export function Tracker(trackerUrl, siteId) {
         */
     var trackers = [
       {
-        trackingEnabled: function () {
-          return linkTrackingEnabled;
-        },
+        trackingEnabled: () => linkTrackingEnabled,
         nodeFilter: isLinkNode,
         clickProcessor: processLinkClick,
       },
       {
-        trackingEnabled: function () {
-          return buttonClickTrackingEnabled;
-        },
+        trackingEnabled: () => buttonClickTrackingEnabled,
         nodeFilter: isButtonNode,
         clickProcessor: processButtonClick,
+      },
+      {
+        trackingEnabled: () => imageClickTrackingEnabled,
+        nodeFilter: (nodeName) => nodeName === "IMG",
+        clickProcessor: (sourceElement) =>
+          logEvent(
+            "click",
+            "img",
+            "img tag clicked",
+            sourceElement.outerHtml,
+            undefined,
+            undefined,
+          ),
       },
     ];
     var activeTracker;
@@ -2909,12 +2919,12 @@ export function Tracker(trackerUrl, siteId) {
    * Specify the eave client ID for the specific customer.
    * This value is needed to authenticate requests to send atoms,
    * so it is vital!
-   * 
+   *
    * @param {string} eaveClientId
    */
   this.setEaveClientId = function (clientId) {
     eaveClientId = clientId;
-  }
+  };
 
   /**
    * Specify the eave tracking URL
@@ -3886,6 +3896,24 @@ export function Tracker(trackerUrl, siteId) {
       return;
     }
     buttonClickTrackingEnabled = true;
+
+    if (!clickListenerInstalled) {
+      clickListenerInstalled = true;
+      h.trackCallbackOnReady(function () {
+        var element = globalThis.eave.documentAlias.body;
+        addClickListener(element, enable, true);
+      });
+    }
+  };
+
+  /**
+   * Track img element clicks
+   */
+  this.enableImageClickTracking = function (enable) {
+    if (imageClickTrackingEnabled) {
+      return;
+    }
+    imageClickTrackingEnabled = true;
 
     if (!clickListenerInstalled) {
       clickListenerInstalled = true;
