@@ -1,14 +1,3 @@
-/**
- * 
- * @param {string} clientId 
- * 
- * @example
- * <script src="https://cdn.eave.fyi/browser.js"></script>
- * <script>
- *   initEave("your client id");
- * </script>
- */
-
 // have to do this check on browser globals to make Node.js env happy
 var documentAlias = typeof document !== "undefined" ? document : {},
   navigatorAlias = typeof navigator !== "undefined" ? navigator : {},
@@ -64,7 +53,3 @@ globalThis.eave = {
   isPageUnloading: false,
   trackerInstallCheckNonce: "",
 };
-
-function initEave(clientId) {
-  _settings.push(["setEaveClientId", clientId]);
-}
