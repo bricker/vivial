@@ -1,39 +1,48 @@
-const path = require('path');
+const webpack = require("webpack");
+const path = require("path");
 const TerserPlugin = require("terser-webpack-plugin");
 
-module.exports = {
-  mode: 'development',
-  entry: {
-    index: './src/eave-client.mjs',
-  },
-  output: {
-    filename: 'eave-client.min.js',
-    path: path.resolve(__dirname, 'dist'),
-  },
-  optimization: {
-    minimize: true,
-    minimizer: [
-      new TerserPlugin({
-        terserOptions: {
-          mangle: true,
-          compress: true,
+module.exports = (env, argv) => {
+  const mode = argv.mode || "development";
+  return {
+    mode,
+    entry: {
+      index: "./src/eave-client.mjs",
+    },
+    output: {
+      filename: "eave-client.min.js",
+      path: path.resolve(__dirname, "dist"),
+    },
+    optimization: {
+      minimize: true,
+      minimizer: [
+        new TerserPlugin({
+          terserOptions: {
+            mangle: true,
+            compress: true,
+          },
+          extractComments: false,
+        }),
+      ],
+    },
+    module: {
+      rules: [
+        {
+          test: /\.js$/,
+          exclude: /node_modules/,
+          use: {
+            loader: "babel-loader",
+            options: {
+              presets: ["@babel/preset-env"],
+            },
+          },
         },
-        extractComments: false,
+      ],
+    },
+    plugins: [
+      new webpack.DefinePlugin({
+        PRODUCTION: mode === "production",
       }),
     ],
-  },
-  module: {
-    rules: [
-      {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: ['@babel/preset-env']
-          }
-        }
-      },
-    ]
-  },
+  };
 };

@@ -5,20 +5,21 @@ var documentAlias = typeof document !== "undefined" ? document : {},
   windowAlias = typeof window !== "undefined" ? window : {};
 
 // use existing _settings settings if available
-// eslint-disable-next-line no-use-before-define
-var _settings = typeof windowAlias._settings !== "undefined" ? windowAlias._settings : [];
-_settings.push(["setTrackingCookies"])
+var _settings =
+  typeof windowAlias._settings !== "undefined" ? windowAlias._settings : [];
+_settings.push(["setTrackingCookies"]);
 _settings.push(["trackPageView"]);
 _settings.push(["enableLinkTracking"]);
 _settings.push(["enableRouteHistoryTracking"]);
 _settings.push(["enableButtonClickTracking"]);
 _settings.push(["enableFormTracking"]);
-// TODO: update to point to eave backend
-// TODO: switch on env whether to send to prod or stage
-// TODO: update post to send data in body
-
-// _settings.push(["setTrackerUrl", "https://api.eave.dev/public/ingest/browser"]);
-// _settings.push(["setEaveClientId", eaveClientId]);
+// PRODUCTION is a custom webpack plugin defined in the webpack.config.cjs file as
+// a boolean describing whether the script was compiled with mode=production
+// eslint-disable-next-line no-undef
+const trackerUrl = PRODUCTION
+  ? "https://api.eave.dev/public/ingest/browser"
+  : "http://api.eave.run:8080/public/ingest/browser";
+_settings.push(["setTrackerUrl", trackerUrl]);
 
 globalThis.eave = {
   expireDateTime: undefined,
