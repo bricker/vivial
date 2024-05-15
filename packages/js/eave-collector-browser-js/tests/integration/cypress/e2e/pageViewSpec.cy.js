@@ -30,6 +30,8 @@ describe("eave page view atom collection", () => {
 
     // WHEN navigating to a subpage/route
     cy.get("#page-link").click();
+    // await btn click
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
 
     // THEN page view event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {

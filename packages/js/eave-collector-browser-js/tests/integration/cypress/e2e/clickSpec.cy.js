@@ -36,14 +36,13 @@ describe("eave click atom collection", () => {
 
     // THEN a link click event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response).to.exist;
       expect(interception.response.body.data.link).to.deep.equal(
         "https://google.com/",
       );
     });
   });
 
-  it("doesn't fire link click atoms on internal links", () => {
+  it("fires link click atoms on internal links", () => {
     cy.interceptAtomIngestion();
 
     // GIVEN site has a internal link
@@ -55,38 +54,34 @@ describe("eave click atom collection", () => {
     cy.get("#page-internal-link").click();
 
     // THEN no atoms are fired
-    // (symbolized by not needing to wait and consume an atom before the next one)
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
+      expect(interception.response.body.data.link).to.exist;
+      expect(interception.response.body.data.type).to.deep.equal("internal");
+    });
+  });
+
+  it("fires link click atoms in addition to SPA navigation page views", () => {
+    cy.interceptAtomIngestion();
+
+    // GIVEN site has a internal link
+    cy.visit(dummyAppRoot());
+    // wait for pageview to fire
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
 
     // WHEN a internal SPA navigation link is clicked
     cy.get("#page-link").click();
 
-    // THEN only the navigation event is fired
+    // THEN a click event is fired before page view
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response).to.exist;
-      expect(interception.response.body.data.data.event).to.match(/HistoryChange/);
+      expect(interception.response.body.data.link).to.exist;
+      expect(interception.response.body.data.type).to.deep.equal("internal");
+    });
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
+      expect(interception.response.body.data.data.event).to.match(
+        /HistoryChange/,
+      );
     });
   });
-
-  // NOTE: test failing bcus wrapping link is identified as the primary, but then
-  //       the link ends up being internal, so no atom is fired despite click event
-  //       being consumed by the handler.
-  // it("fires button atom when a internal link wraps a button", () => {
-  //   cy.interceptAtomIngestion();
-
-  //   // GIVEN site has a wrapped button
-  //   cy.visit(dummyAppRoot());
-  //   // wait for pageview to fire
-  //   cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
-
-  //   // WHEN a button tag inside an anchor tag is clicked
-  //   cy.get("#btn-internal-link").click();
-
-  //   // THEN a button click atom is fired, since internal links are not logged
-  //   cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-  //     expect(interception.response).to.exist;
-  //     expect(interception.response.body.data.e_n).to.match(/button click/);
-  //   });
-  // });
 
   it("fires link atom when a external link wraps a button", () => {
     cy.interceptAtomIngestion();
@@ -121,8 +116,25 @@ describe("eave click atom collection", () => {
 
     // THEN a button click event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response).to.exist;
       expect(interception.response.body.data.e_n).to.match(/button click/);
+    });
+  });
+
+  it("fires click event on img tag click", () => {
+    cy.interceptAtomIngestion();
+
+    // GIVEN site has an img tag
+    cy.visit(dummyAppRoot());
+    // wait for page view
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
+
+    // WHEN img is clicked
+    cy.get("#react-img").click();
+
+    // THEN an image click event is fired
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
+      expect(interception.response.body.data.e_n).to.match(/img tag clicked/);
+      expect(interception.response.body.data.data.src).to.match(/logo.*svg/);
     });
   });
 });

@@ -112,6 +112,7 @@ if (typeof eaveWindow.eave.tracker !== "object") {
       "disableBrowserFeatureDetection",
       "disableCampaignParameters",
       "disableCookies",
+      "setTrackingCookies",
       "setTrackerUrl",
       "setAPIUrl",
       "enableCrossDomainLinking",

@@ -154,8 +154,6 @@ export function Tracker(trackerUrl, siteId) {
     configExcludedQueryParams = [],
     // HTML anchor element classes to treat as downloads
     configDownloadClasses = [],
-    // HTML anchor element classes to treat at outlinks
-    configLinkClasses = [],
     // Maximum delay to wait for web bug image to be fetched (in milliseconds)
     configTrackerPause = 500,
     // If enabled, always use sendBeacon if the browser supports it
@@ -227,6 +225,7 @@ export function Tracker(trackerUrl, siteId) {
     // Guard against installing the link tracker more than once per Tracker instance
     clickListenerInstalled = false,
     linkTrackingEnabled = false,
+    imageClickTrackingEnabled = false,
     crossDomainTrackingEnabled = false,
     // Guard against installing route history tracker more than once per instance
     routeHistoryTrackingEnabled = false,
@@ -1765,31 +1764,28 @@ export function Tracker(trackerUrl, siteId) {
   }
 
   /**
-   * Link or Download?
+   * Determines what type of link an anchor element is from various attributes.
    *
    * @param {string} className
    * @param {string} href
    * @param {boolean} isInLink
    * @param {boolean} hasDownloadAttribute
+   *
    * @returns {number | string}
    */
   function getLinkType(className, href, isInLink, hasDownloadAttribute) {
-    if (startsUrlWithTrackerUrl(href)) {
-      return 0;
+    if (isInLink) {
+      return "internal";
     }
 
     // does class indicate whether it is an (explicit/forced) outlink or a download?
-    const downloadPattern = getClassesRegExp(configDownloadClasses, "download"),
-      linkPattern = getClassesRegExp(configLinkClasses, "link"),
-      // does file extension indicate that it is a download?
-      downloadExtensionsPattern = new RegExp(
-        "\\.(" + configDownloadExtensions.join("|") + ")([?&#]|$)",
-        "i",
-      );
+    const downloadPattern = getClassesRegExp(configDownloadClasses, "download");
 
-    if (linkPattern.test(className)) {
-      return "link";
-    }
+    // does file extension indicate that it is a download?
+    const downloadExtensionsPattern = new RegExp(
+      "\\.(" + configDownloadExtensions.join("|") + ")([?&#]|$)",
+      "i",
+    );
 
     if (
       hasDownloadAttribute ||
@@ -1799,11 +1795,26 @@ export function Tracker(trackerUrl, siteId) {
       return "download";
     }
 
-    if (isInLink) {
-      return 0;
+    // browsers, such as Safari, don't downcase hostname and href
+    const scriptProtocol = new RegExp(
+      "^(javascript|vbscript|jscript|mocha|livescript|ecmascript):",
+      "i",
+    );
+    if (scriptProtocol.test(href)) {
+      return "script";
     }
 
-    return "link";
+    const mailProtocol = new RegExp("^mailto:", "i");
+    if (mailProtocol.test(href)) {
+      return "email";
+    }
+
+    const telephoneProtocol = new RegExp("^tel:", "i");
+    if (telephoneProtocol.test(href)) {
+      return "telephone";
+    }
+
+    return "external";
   }
 
   /**
@@ -1831,7 +1842,10 @@ export function Tracker(trackerUrl, siteId) {
   }
 
   /**
+   * Get anchor tag data if the link click is not to be ignored.
+   *
    * @param {HTMLElement} sourceElement
+   *
    * @returns {{type: string | number, href: string} | undefined}
    */
   function getLinkIfShouldBeProcessed(sourceElement) {
@@ -1886,6 +1900,19 @@ export function Tracker(trackerUrl, siteId) {
         };
       }
     }
+
+    // track all link types (including internal)
+    const linkType = getLinkType(
+      sourceElement.className,
+      sourceHref,
+      isSiteHostPath(sourceHostName, originalSourcePath),
+      query.hasNodeAttribute(sourceElement, "download"),
+    );
+
+    return {
+      type: linkType,
+      href: sourceHref,
+    };
   }
 
   /**
@@ -1893,6 +1920,7 @@ export function Tracker(trackerUrl, siteId) {
    * @param {string} name
    * @param {any} piece
    * @param {any} target
+   *
    * @returns {string | undefined}
    */
   function buildContentInteractionRequest(interaction, name, piece, target) {
@@ -1913,6 +1941,7 @@ export function Tracker(trackerUrl, siteId) {
   /**
    * @param {Node} contentNode
    * @param {Node} interactedNode
+   *
    * @returns {boolean}
    */
   function isNodeAuthorizedToTriggerInteraction(contentNode, interactedNode) {
@@ -1945,6 +1974,7 @@ export function Tracker(trackerUrl, siteId) {
    * @param {string} interaction
    * @param {string} fallbackTarget
    * @param {Node} [anyNode]
+   *
    * @returns {string | undefined}
    */
   function getContentInteractionToRequestIfPossible(
@@ -2326,7 +2356,10 @@ export function Tracker(trackerUrl, siteId) {
    * @param {Types.RequestCallback | null} [callback]
    */
   function logLink(url, linkType, customData, sourceElement, callback) {
-    let linkParams = linkType + "=" + encodeURIComponent(purify(url));
+    let linkParams = [
+      "link=" + encodeURIComponent(purify(url)),
+      "type=" + linkType,
+    ].join("&");
 
       const interaction = getContentInteractionToRequestIfPossible(
         "click",
@@ -2535,23 +2568,9 @@ export function Tracker(trackerUrl, siteId) {
    */
   function processLinkClick(sourceElement) {
     const link = getLinkIfShouldBeProcessed(sourceElement);
-
-    // not a link to same domain or the same website (as set in setDomains())
     if (link && link.type) {
       link.href = h.safeDecodeWrapper(link.href);
-      logLink(link.href, link.type, undefined, sourceElement, null);
-      return;
-    }
-
-    // a link to same domain or the same website (as set in setDomains())
-    if (crossDomainTrackingEnabled) {
-      // in case the clicked element is within the <a> (for example there is a <div> within the <a>) this will get the actual <a> link element
-      // @ts-ignore - force-cast
-      const /** @type {HTMLLinkElement} */ sourceElementNode = getTargetNode(isLinkNode, sourceElement);
-
-      if (isLinkToDifferentDomainButSameEaveWebsite(sourceElementNode)) {
-        replaceHrefForCrossDomainLink(sourceElement);
-      }
+      logLink(link.href, link.type, undefined, sourceElement);
     }
   }
 
@@ -2627,18 +2646,30 @@ export function Tracker(trackerUrl, siteId) {
       */
       const trackers = [
       {
-        trackingEnabled: function () {
-          return linkTrackingEnabled;
-        },
+        trackingEnabled: () => linkTrackingEnabled,
         nodeFilter: isLinkNode,
         clickProcessor: processLinkClick,
       },
       {
-        trackingEnabled: function () {
-          return buttonClickTrackingEnabled;
-        },
+        trackingEnabled: () => buttonClickTrackingEnabled,
         nodeFilter: isButtonNode,
         clickProcessor: processButtonClick,
+      },
+      {
+        trackingEnabled: () => imageClickTrackingEnabled,
+        nodeFilter: (nodeName) => nodeName === "IMG",
+        clickProcessor: (sourceElement) =>
+          logEvent(
+            "click",
+            "img",
+            "img tag clicked",
+            sourceElement.id,
+            {
+              src: sourceElement.src,
+              full_html: sourceElement.outerHTML,
+            },
+            undefined,
+          ),
       },
     ];
     var activeTracker;
@@ -3292,7 +3323,7 @@ export function Tracker(trackerUrl, siteId) {
    */
   this.setEaveClientId = function (clientId) {
     eaveClientId = clientId;
-  }
+  };
 
   /**
    * Specify the eave tracking URL
@@ -3842,6 +3873,7 @@ export function Tracker(trackerUrl, siteId) {
    * Set array of classes to be ignored if present in link
    *
    * @param {string | string[]} ignoreClasses
+   *
    * @noreturn
    */
   this.setIgnoreClasses = function (ignoreClasses) {
@@ -3854,6 +3886,7 @@ export function Tracker(trackerUrl, siteId) {
    * Set request method. If you specify GET then it will automatically disable sendBeacon.
    *
    * @param {string} method GET or POST; default is GET
+   *
    * @noreturn
    */
   this.setRequestMethod = function (method) {
@@ -3875,6 +3908,7 @@ export function Tracker(trackerUrl, siteId) {
    * @link http://dvcs.w3.org/hg/xhr/raw-file/tip/Overview.html
    *
    * @param {string} requestContentType; default is 'application/x-www-form-urlencoded; charset=UTF-8'
+   *
    * @noreturn
    */
   this.setRequestContentType = function (requestContentType) {
@@ -3890,6 +3924,7 @@ export function Tracker(trackerUrl, siteId) {
    * @param {number} domProcessingTimeInMs
    * @param {number} domCompletionTimeInMs
    * @param {number} onloadTimeInMs
+   *
    * @noreturn
    */
   this.setPagePerformanceTiming = function (
@@ -3950,6 +3985,7 @@ export function Tracker(trackerUrl, siteId) {
    * Override document.title
    *
    * @param {string} title
+   *
    * @noreturn
    */
   this.setDocumentTitle = function (title) {
@@ -3961,6 +3997,7 @@ export function Tracker(trackerUrl, siteId) {
    * multiple times during tracking (if, for example, you are tracking a single page application).
    *
    * @param {string} pageView
+   *
    * @noreturn
    */
   this.setPageViewId = function (pageView) {
@@ -3983,6 +4020,7 @@ export function Tracker(trackerUrl, siteId) {
    * Set array of classes to be treated as downloads
    *
    * @param {string | string[]} downloadClasses
+   *
    * @noreturn
    */
   this.setDownloadClasses = function (downloadClasses) {
@@ -3992,19 +4030,10 @@ export function Tracker(trackerUrl, siteId) {
   };
 
   /**
-   * Set array of classes to be treated as outlinks
-   *
-   * @param {string | string[]} linkClasses
-   * @noreturn
-   */
-  this.setLinkClasses = function (linkClasses) {
-    configLinkClasses = h.isString(linkClasses) ? [linkClasses] : linkClasses;
-  };
-
-  /**
    * Set an array of query parameters to be excluded if in the url
    *
    * @param {string | string[]} excludedQueryParams  'uid' or ['uid', 'sid']
+   *
    * @noreturn
    */
   this.setExcludedQueryParams = function (excludedQueryParams) {
@@ -4320,6 +4349,24 @@ export function Tracker(trackerUrl, siteId) {
       clickListenerInstalled = true;
       h.trackCallbackOnReady(function () {
         const element = document.body;
+        addClickListener(element, enable, true);
+      });
+    }
+  };
+
+  /**
+   * Track img element clicks
+   */
+  this.enableImageClickTracking = function (enable) {
+    if (imageClickTrackingEnabled) {
+      return;
+    }
+    imageClickTrackingEnabled = true;
+
+    if (!clickListenerInstalled) {
+      clickListenerInstalled = true;
+      h.trackCallbackOnReady(function () {
+        var element = globalThis.eave.documentAlias.body;
         addClickListener(element, enable, true);
       });
     }

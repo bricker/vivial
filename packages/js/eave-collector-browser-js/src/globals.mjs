@@ -10,6 +10,7 @@ _settings.push(["enableLinkTracking"]);
 _settings.push(["enableRouteHistoryTracking"]);
 _settings.push(["enableButtonClickTracking"]);
 _settings.push(["enableFormTracking"]);
+_settings.push(["enableImageClickTracking"]);
 
 // PRODUCTION is a custom webpack plugin defined in the webpack.config.cjs file as
 // a boolean describing whether the script was compiled with mode=production

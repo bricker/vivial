@@ -48,6 +48,8 @@ describe("eave UTM and query parameter collection", () => {
 
     // WHEN performing some other event triggering action
     cy.get("#page-link").click();
+    // await btn click
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
 
     // THEN query/utm params are still included in the following event
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
