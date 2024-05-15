@@ -1,4 +1,12 @@
+// @ts-check
+
 import "./globals.mjs";
+// eslint-disable-next-line no-unused-vars
+import * as Types from "./types.js";
+
+/** @type {Types.GlobalEaveWindow} */
+// @ts-ignore
+const eaveWindow = window;
 
 /**
  * See https://github.com/matomo-org/matomo/issues/8413
@@ -6,6 +14,20 @@ import "./globals.mjs";
  * instead of decodeWrapper if a text could contain any non UTF-8 encoded characters eg
  * a URL like http://apache.matomo/test.html?%F6%E4%FC or a link like
  * <a href="test-with-%F6%E4%FC/story/0">(encoded iso-8859-1 URL)</a>
+ */
+
+/**
+ * Safely decodes a URI component. If decoding using `decodeURIComponent` fails,
+ * it falls back to `unescape`.
+ *
+ * See https://github.com/matomo-org/matomo/issues/8413
+ * To prevent Javascript Error: Uncaught URIError: URI malformed when encoding is not UTF-8. Use this method
+ * instead of decodeWrapper if a text could contain any non UTF-8 encoded characters eg
+ * a URL like http://apache.matomo/test.html?%F6%E4%FC or a link like
+ * <a href="test-with-%F6%E4%FC/story/0">(encoded iso-8859-1 URL)</a>
+ *
+ * @param {string} url - The URL or URI component to decode.
+ * @returns {string} Returns the decoded URL or URI component.
  */
 export function safeDecodeWrapper(url) {
   try {
@@ -15,48 +37,57 @@ export function safeDecodeWrapper(url) {
   }
 }
 
-/*
- * Is property defined?
+/**
+ * Checks if a property is defined.
+ * @param {any} property - The property to check.
+ * @returns {boolean} Returns true if the property is defined, false otherwise.
  */
 export function isDefined(property) {
   // workaround https://github.com/douglascrockford/JSLint/commit/24f63ada2f9d7ad65afc90e6d949f631935c2480
-  var propertyType = typeof property;
-
+  const propertyType = typeof property;
   return propertyType !== "undefined";
 }
 
-/*
- * Is property a function?
+/**
+ * Checks if a property is a function.
+ * @param {any} property - The property to check.
+ * @returns {boolean} Returns true if the property is a function, false otherwise.
  */
 export function isFunction(property) {
   return typeof property === "function";
 }
 
-/*
- * Is property an object?
- *
- * @returns {boolean} Returns true if property is null, an Object, or subclass of Object (i.e., an instanceof String, Date, etc.)
+/**
+ * Checks if a property is an object.
+ * @param {any} property - The property to check.
+ * @returns {boolean} Returns true if the property is an object, false otherwise.
  */
 export function isObject(property) {
   return typeof property === "object";
 }
 
-/*
- * Is property a string?
+/**
+ * Checks if a property is a string.
+ * @param {any} property - The property to check.
+ * @returns {boolean} Returns true if the property is a string, false otherwise.
  */
 export function isString(property) {
   return typeof property === "string" || property instanceof String;
 }
 
-/*
- * Is property a string?
+/**
+ * Checks if a property is a number.
+ * @param {any} property - The property to check.
+ * @returns {boolean} Returns true if the property is a number, false otherwise.
  */
 export function isNumber(property) {
   return typeof property === "number" || property instanceof Number;
 }
 
-/*
- * Is property a string?
+/**
+ * Checks if a property is a number or has a length (in the case of strings or arrays).
+ * @param {any} property - The property to check.
+ * @returns {boolean} Returns true if the property is a number or has a length, false otherwise.
  */
 export function isNumberOrHasLength(property) {
   return (
@@ -65,25 +96,24 @@ export function isNumberOrHasLength(property) {
   );
 }
 
+/**
+ * Checks if an object is empty.
+ * @param {Object} property - The object to check.
+ * @returns {boolean} Returns true if the object is empty, false otherwise.
+ */
 export function isObjectEmpty(property) {
   if (!property) {
     return true;
   }
 
-  var i;
-  for (i in property) {
-    if (Object.prototype.hasOwnProperty.call(property, i)) {
-      return false;
-    }
-  }
-
-  return true;
+  return Object.keys(property).length === 0;
 }
 
+
 /**
- * Logs an error in the console.
- *  Note: it does not generate a JavaScript error, so make sure to also generate an error if needed.
- * @param message
+ * Logs an error message to the console.
+ * Note: It does not generate a JavaScript error.
+ * @param {string} message - The error message to log.
  */
 export function logConsoleError(message) {
   // needed to write it this way for jslint
@@ -161,7 +191,7 @@ export function apply() {
             var message =
               "The method '" +
               f +
-              '\' was not found in "_settings" variable.  Please have a look at the eave tracker documentation: https://developer.matomo.org/api-reference/tracking-javascript';
+              '\' was not found in "settings" variable.  Please have a look at the eave tracker documentation: https://developer.matomo.org/api-reference/tracking-javascript';
             logConsoleError(message);
 
             if (!isPluginTrackerCall) {
@@ -188,105 +218,49 @@ export function apply() {
   }
 }
 
-/*
- * Cross-browser helper function to add event handler
+/**
+ * @param {() => void} callback
+ *
+ * @noreturn
  */
-export function addEventListener(element, eventType, eventHandler, useCapture) {
-  if (element.addEventListener) {
-    element.addEventListener(eventType, eventHandler, useCapture);
-
-    return true;
-  }
-
-  if (element.attachEvent) {
-    return element.attachEvent("on" + eventType, eventHandler);
-  }
-
-  element["on" + eventType] = eventHandler;
-}
-
 export function trackCallbackOnLoad(callback) {
   if (document.readyState === "complete") {
     callback();
-  } else if (window.addEventListener) {
+  } else {
     window.addEventListener("load", callback, false);
-  } else if (window.attachEvent) {
-    window.attachEvent("onload", callback);
   }
 }
 
+/**
+ * @param {() => void} callback
+ *
+ * @noreturn
+ */
 export function trackCallbackOnReady(callback) {
-  var loaded = false;
-
-  if (document.attachEvent) {
-    loaded = document.readyState === "complete";
-  } else {
-    loaded = document.readyState !== "loading";
-  }
+  let loaded = document.readyState !== "loading";
 
   if (loaded) {
     callback();
     return;
   }
 
-  var _timer;
-
-  if (document.addEventListener) {
-    addEventListener(
-      document,
-      "DOMContentLoaded",
-      function ready() {
-        document.removeEventListener(
-          "DOMContentLoaded",
-          ready,
-          false,
-        );
-        if (!loaded) {
-          loaded = true;
-          callback();
-        }
-      },
-    );
-  } else if (document.attachEvent) {
-    document.attachEvent(
-      "onreadystatechange",
-      function ready() {
-        if (document.readyState === "complete") {
-          document.detachEvent(
-            "onreadystatechange",
-            ready,
-          );
-          if (!loaded) {
-            loaded = true;
-            callback();
-          }
-        }
-      },
-    );
-
-    if (
-      document.documentElement.doScroll &&
-      window === window.top
-    ) {
-      (function ready() {
-        if (!loaded) {
-          try {
-            document.documentElement.doScroll("left");
-          } catch (error) {
-            setTimeout(ready, 0);
-
-            return;
-          }
-          loaded = true;
-          callback();
-        }
-      })();
-    }
-  }
+  document.addEventListener(
+    "DOMContentLoaded",
+    function ready() {
+      document.removeEventListener(
+        "DOMContentLoaded",
+        ready,
+        false,
+      );
+      if (!loaded) {
+        loaded = true;
+        callback();
+      }
+    },
+  );
 
   // fallback
-  addEventListener(
-    window,
+  window.addEventListener(
     "load",
     function () {
       if (!loaded) {
@@ -298,33 +272,36 @@ export function trackCallbackOnReady(callback) {
   );
 }
 
-/*
+/**
  * Call plugin hook methods
+ *
+ * @param {string} methodName
+ * @param {object} [params]
+ * @param {(hookName: string, userHook: object | string) => object | null} [callback]
+ *
+ * @returns {string}
  */
 export function executePluginMethod(methodName, params, callback) {
   if (!methodName) {
     return "";
   }
 
-  var result = "",
-    i,
-    pluginMethod,
-    value,
-    isFunction;
+  let result = "";
+  let pluginMethod;
+  let value;
+  let isFunction;
 
-  for (i in globalThis.eave.plugins) {
-    if (Object.prototype.hasOwnProperty.call(globalThis.eave.plugins, i)) {
-      isFunction =
-        globalThis.eave.plugins[i] &&
-        "function" === typeof globalThis.eave.plugins[i][methodName];
+  for (const i of Object.keys(globalThis.eave.plugins)) {
+    isFunction =
+      globalThis.eave.plugins[i] &&
+      "function" === typeof globalThis.eave.plugins[i][methodName];
 
-      if (isFunction) {
-        pluginMethod = globalThis.eave.plugins[i][methodName];
-        value = pluginMethod(params || {}, callback);
+    if (isFunction) {
+      pluginMethod = globalThis.eave.plugins[i][methodName];
+      value = pluginMethod(params || {}, callback);
 
-        if (value) {
-          result += value;
-        }
+      if (value) {
+        result += value;
       }
     }
   }
@@ -332,22 +309,24 @@ export function executePluginMethod(methodName, params, callback) {
   return result;
 }
 
-/*
+/**
  * Handle beforeunload event
  *
  * Subject to Safari's "Runaway JavaScript Timer" and
  * Chrome V8 extension that terminates JS that exhibits
  * "slow unload", i.e., calling getTime() > 1000 times
+ *
+ * @param {Event} _event
  */
-export function beforeUnloadHandler(event) {
-  var now;
+export function beforeUnloadHandler(_event) {
   globalThis.eave.isPageUnloading = true;
 
   executePluginMethod("unload");
-  now = new Date();
-  var aliasTime = now.getTimeAlias();
-  if (globalThis.eave.expireDateTime - aliasTime > 3000) {
-    globalThis.eave.expireDateTime = aliasTime + 3000;
+  let now = new Date();
+  const time = now.getTime();
+
+  if (globalThis.eave.expireDateTime - time > 3000) {
+    globalThis.eave.expireDateTime = time + 3000;
   }
 
   /*
@@ -359,31 +338,24 @@ export function beforeUnloadHandler(event) {
     //     while (Date.now() < globalThis.eave.expireDateTime) { }
     do {
       now = new Date();
-    } while (now.getTimeAlias() < globalThis.eave.expireDateTime);
+    } while (now.getTime() < globalThis.eave.expireDateTime);
   }
 }
 
-/*
+/**
  * Load JavaScript file (asynchronously)
+ *
+ * @param {string} src
+ * @param {() => void} onLoad
+ *
+ * @noreturn
  */
 export function loadScript(src, onLoad) {
-  var script = document.createElement("script");
+  const script = document.createElement("script");
 
   script.type = "text/javascript";
   script.src = src;
-
-  if (script.readyState) {
-    script.onreadystatechange = function () {
-      var state = this.readyState;
-
-      if (state === "loaded" || state === "complete") {
-        script.onreadystatechange = null;
-        onLoad();
-      }
-    };
-  } else {
-    script.onload = onLoad;
-  }
+  script.onload = onLoad;
 
   document
     .getElementsByTagName("head")[0]
@@ -392,12 +364,14 @@ export function loadScript(src, onLoad) {
 
 /**
  * Get page referrer
+ *
+ * @returns {string}
  */
 export function getReferrer() {
-  var referrer = "";
+  let /** @type {string | null | undefined} */ referrer = "";
 
   try {
-    referrer = window.top.document.referrer;
+    referrer = window.top?.document.referrer;
   } catch (e) {
     if (window.parent) {
       try {
@@ -408,102 +382,152 @@ export function getReferrer() {
     }
   }
 
-  if (referrer === "") {
+  if (!referrer) {
     referrer = document.referrer;
   }
 
   return referrer;
 }
 
-/*
+/**
  * Extract scheme/protocol from URL
+ *
+ * @param {string} url
+ *
+ * @returns {string | null}
  */
 export function getProtocolScheme(url) {
-  var e = new RegExp("^([a-z]+):"),
-    matches = e.exec(url);
+  const e = new RegExp("^([a-z]+):");
+  const matches = e.exec(url);
 
   return matches ? matches[1] : null;
 }
 
 /**
  * Extract hostname from URL
+ *
+ * @param {string} url
+ *
+ * @returns {string} The hostname if found, otherwise the unmodified input
  */
 export function getHostName(url) {
   // scheme : // [username [: password] @] hostame [: port] [/ [path] [? query] [# fragment]]
-  var e = new RegExp("^(?:(?:https?|ftp):)/*(?:[^@]+@)?([^:/#]+)"),
-    matches = e.exec(url);
+  const e = new RegExp("^(?:(?:https?|ftp):)/*(?:[^@]+@)?([^:/#]+)");
+  const matches = e.exec(url);
 
   return matches ? matches[1] : url;
 }
 
+/**
+ * @param {string} str
+ *
+ * @returns {boolean}
+ */
 export function isPositiveNumberString(str) {
   // !isNaN(str) could be used but does not cover '03' (octal) and '0xA' (hex)
   // nor negative numbers
   return /^[0-9][0-9]*(\.[0-9]+)?$/.test(str);
 }
 
+/**
+ * @param {object} object
+ * @param {(object: object) => boolean} byFunction
+ *
+ * @returns {object}
+ */
 export function filterIn(object, byFunction) {
-  var result = {},
-    k;
-  for (k in object) {
-    if (object.hasOwnProperty(k) && byFunction(object[k])) {
+  const result = {};
+
+  for (const k of Object.keys(object)) {
+    if (byFunction(object[k])) {
       result[k] = object[k];
     }
   }
   return result;
 }
 
+/**
+ * @param {object} data
+ *
+ * @returns {object}
+ */
 export function onlyPositiveIntegers(data) {
-  var result = {},
-    k;
-  for (k in data) {
-    if (data.hasOwnProperty(k)) {
-      if (isPositiveNumberString(data[k])) {
-        result[k] = Math.round(data[k]);
-      } else {
-        throw new Error(
-          'Parameter "' +
-            k +
-            '" provided value "' +
-            data[k] +
-            '" is not valid. Please provide a numeric value.',
-        );
-      }
+  const result = {};
+
+  for (const k of Object.keys(data)) {
+    if (isPositiveNumberString(data[k])) {
+      result[k] = Math.round(data[k]);
+    } else {
+      throw new Error(
+        'Parameter "' +
+          k +
+          '" provided value "' +
+          data[k] +
+          '" is not valid. Please provide a numeric value.',
+      );
     }
   }
+
   return result;
 }
 
+/**
+ * @param {object} data
+ *
+ * @returns {string}
+ */
 export function queryStringify(data) {
-  var queryString = "",
-    k;
-  for (k in data) {
-    if (data.hasOwnProperty(k)) {
-      queryString +=
-        "&" +
-        encodeURIComponent(k) +
-        "=" +
-        encodeURIComponent(data[k]);
-    }
+  let queryString = "";
+
+  for (const k of Object.keys(data)) {
+    queryString +=
+      "&" +
+      encodeURIComponent(k) +
+      "=" +
+      encodeURIComponent(data[k]);
   }
   return queryString;
 }
 
+/**
+ * @param {string} str
+ * @param {string} prefix
+ *
+ * @returns {boolean}
+ */
 export function stringStartsWith(str, prefix) {
   str = String(str);
   return str.lastIndexOf(prefix, 0) === 0;
 }
 
+/**
+ * @param {string} str
+ * @param {string} suffix
+ *
+ * @returns {boolean}
+ */
 export function stringEndsWith(str, suffix) {
   str = String(str);
   return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
 
+/**
+ * @param {string} str
+ * @param {string} needle
+ *
+ * @returns {boolean}
+ */
 export function stringContains(str, needle) {
   str = String(str);
   return str.indexOf(needle) !== -1;
 }
 
+/**
+ * @param {string} str
+ * @param {number} numCharactersToRemove
+ *
+ * @returns {string}
+ */
 export function removeCharactersFromEndOfString(str, numCharactersToRemove) {
   str = String(str);
   return str.substr(0, str.length - numCharactersToRemove);
@@ -514,6 +538,12 @@ export function removeCharactersFromEndOfString(str, numCharactersToRemove) {
  * before calling this method.
  * This method makes sure to append URL parameters before a possible hash. Will escape (encode URI component)
  * the set name and value
+ *
+ * @param {string} url
+ * @param {string} name
+ * @param {string} value
+ *
+ * @returns {string}
  */
 export function addUrlParameter(url, name, value) {
   url = String(url);
@@ -522,15 +552,15 @@ export function addUrlParameter(url, name, value) {
     value = "";
   }
 
-  var hashPos = url.indexOf("#");
-  var urlLength = url.length;
+  let hashPos = url.indexOf("#");
+  const urlLength = url.length;
 
   if (hashPos === -1) {
     hashPos = urlLength;
   }
 
-  var baseUrl = url.substr(0, hashPos);
-  var urlHash = url.substr(hashPos, urlLength - hashPos);
+  let baseUrl = url.substr(0, hashPos);
+  const urlHash = url.substr(hashPos, urlLength - hashPos);
 
   if (baseUrl.indexOf("?") === -1) {
     baseUrl += "?";
@@ -548,6 +578,12 @@ export function addUrlParameter(url, name, value) {
   );
 }
 
+/**
+ * @param {string} url
+ * @param {string} name
+ *
+ * @returns {string}
+ */
 export function removeUrlParameter(url, name) {
   url = String(url);
 
@@ -559,26 +595,26 @@ export function removeUrlParameter(url, name) {
     return url;
   }
 
-  var searchPos = url.indexOf("?");
+  const searchPos = url.indexOf("?");
   if (searchPos === -1) {
     // nothing to remove, no query parameters
     return url;
   }
 
-  var queryString = url.substr(searchPos + 1);
-  var baseUrl = url.substr(0, searchPos);
+  let queryString = url.substr(searchPos + 1);
+  let baseUrl = url.substr(0, searchPos);
 
   if (queryString) {
-    var urlHash = "";
-    var hashPos = queryString.indexOf("#");
+    let urlHash = "";
+    const hashPos = queryString.indexOf("#");
     if (hashPos !== -1) {
       urlHash = queryString.substr(hashPos + 1);
       queryString = queryString.substr(0, hashPos);
     }
 
-    var param;
-    var paramsArr = queryString.split("&");
-    var i = paramsArr.length - 1;
+    let param;
+    const paramsArr = queryString.split("&");
+    let i = paramsArr.length - 1;
 
     for (i; i >= 0; i--) {
       param = paramsArr[i].split("=")[0];
@@ -587,7 +623,7 @@ export function removeUrlParameter(url, name) {
       }
     }
 
-    var newQueryString = paramsArr.join("&");
+    const newQueryString = paramsArr.join("&");
 
     if (newQueryString) {
       baseUrl = baseUrl + "?" + newQueryString;
@@ -601,16 +637,26 @@ export function removeUrlParameter(url, name) {
   return baseUrl;
 }
 
-/*
+/**
  * Extract parameter from URL
+ *
+ * @param {string} url
+ * @param {string} name
+ *
+ * @returns {string}
  */
 export function getUrlParameter(url, name) {
-  var regexSearch = "[\\?&#]" + name + "=([^&#]*)";
-  var regex = new RegExp(regexSearch);
-  var results = regex.exec(url);
+  const regexSearch = "[\\?&#]" + name + "=([^&#]*)";
+  const regex = new RegExp(regexSearch);
+  const results = regex.exec(url);
   return results ? safeDecodeWrapper(results[1]) : "";
 }
 
+/**
+ * @param {string} text
+ *
+ * @returns {string}
+ */
 export function trim(text) {
   if (text && String(text) === text) {
     return text.replace(/^\s+|\s+$/g, "");
@@ -619,8 +665,12 @@ export function trim(text) {
   return text;
 }
 
-/*
+/**
  * UTF-8 encoding
+ *
+ * @param {string} argString
+ *
+ * @returns {string}
  */
 export function utf8_encode(argString) {
   return unescape(encodeURIComponent(argString));
@@ -631,6 +681,11 @@ export function utf8_encode(argString) {
  * - based on sha1 from http://phpjs.org/functions/sha1:512 (MIT / GPL v2)
  ************************************************************/
 
+/**
+ * @param {string} str
+ *
+ * @returns {string}
+ */
 export function sha1(str) {
   // +   original by: Webtoolkit.info (http://www.webtoolkit.info/)
   // + namespaced by: Michael White (http://getsprink.com)
@@ -703,6 +758,9 @@ export function sha1(str) {
         (str.charCodeAt(str_len - 1) << 8) |
         0x80;
       break;
+    default:
+      // Copy the 0 case
+      i = 0x080000000;
   }
 
   word_array.push(i);
@@ -796,7 +854,11 @@ export function sha1(str) {
  * returning the actual page URL components, stripping any search engine junk
  * from the URL.
  *
- * @returns {Array[3]} "fixed" versions of the passed in parameters
+ * @param {string} hostName
+ * @param {string} href
+ * @param {string} referrer
+ *
+ * @returns {string[]} "fixed" versions of the passed in parameters
  */
 export function urlFixup(hostName, href, referrer) {
   if (!hostName) {
@@ -829,9 +891,13 @@ export function urlFixup(hostName, href, referrer) {
 
 /**
  * Fix-up domain
+ *
+ * @param {string} domain
+ *
+ * @returns {string}
  */
 export function domainFixup(domain) {
-  var dl = domain.length;
+  let dl = domain.length;
 
   // remove trailing '.'
   if (domain.charAt(--dl) === ".") {
@@ -850,39 +916,49 @@ export function domainFixup(domain) {
   return domain;
 }
 
-/*
+/**
  * Title fixup
- */
+ *
+ * @param {string | { text: string }} title
+ *
+ * @returns {string}
+*/
 export function titleFixup(title) {
-  title = title && title.text ? title.text : title;
+  // @ts-ignore - title.text may not exist, depending on what was passed in.
+  let _title = title?.text || title;
 
   if (!isString(title)) {
-    var tmp = document.getElementsByTagName("title");
+    const tmp = document.getElementsByTagName("title");
 
     if (tmp && isDefined(tmp[0])) {
-      title = tmp[0].text;
+      _title = tmp[0].text;
     }
   }
 
-  return title;
+  return _title;
 }
 
+/**
+ * @param {Node | ParentNode} node
+ *
+ * @returns {NodeListOf<ChildNode>}
+ */
 export function getChildrenFromNode(node) {
   if (!node) {
-    return [];
+    new NodeList();
   }
 
-  if (!isDefined(node.children) && isDefined(node.childNodes)) {
-    return node.children;
-  }
-
-  if (isDefined(node.children)) {
-    return node.children;
-  }
-
-  return [];
+  return node.childNodes;
 }
 
+/**
+ * Checks if a node contains another node element within it.
+ *
+ * @param {Node} node - The node to check if it contains the other node.
+ * @param {Node} containedNode - The node to check if it's contained within the first node.
+ *
+ * @returns {boolean} Returns true if the first node contains the other node, false otherwise.
+ */
 export function containsNodeElement(node, containedNode) {
   if (!node || !containedNode) {
     return false;
@@ -903,141 +979,128 @@ export function containsNodeElement(node, containedNode) {
   return false;
 }
 
-// Polyfill for IndexOf for IE6-IE8
+/**
+ * Returns the first index at which a given element can be found in the array, or -1 if it is not present.
+ *
+ * @param {Array} theArray - The array to search in.
+ * @param {any} searchElement - The element to search for within the array.
+ *
+ * @returns {number} Returns the index of the first occurrence of the specified element in the array, or -1 if not found.
+ */
 export function indexOfArray(theArray, searchElement) {
-  if (theArray && theArray.indexOf) {
-    return theArray.indexOf(searchElement);
-  }
-
-  // 1. Let O be the result of calling ToObject passing
-  //    the this value as the argument.
-  if (!isDefined(theArray) || theArray === null) {
+  if (!theArray) {
     return -1;
   }
-
-  if (!theArray.length) {
-    return -1;
-  }
-
-  var len = theArray.length;
-
-  if (len === 0) {
-    return -1;
-  }
-
-  var k = 0;
-
-  // 9. Repeat, while k < len
-  while (k < len) {
-    // a. Let Pk be ToString(k).
-    //   This is implicit for LHS operands of the in operator
-    // b. Let kPresent be the result of calling the
-    //    HasProperty internal method of O with argument Pk.
-    //   This step can be combined with c
-    // c. If kPresent is true, then
-    //    i.  Let elementK be the result of calling the Get
-    //        internal method of O with the argument ToString(k).
-    //   ii.  Let same be the result of applying the
-    //        Strict Equality Comparison Algorithm to
-    //        searchElement and elementK.
-    //  iii.  If same is true, return k.
-    if (theArray[k] === searchElement) {
-      return k;
-    }
-    k++;
-  }
-  return -1;
+  return theArray.indexOf(searchElement);
 }
 
+/**
+ * Generates a UUID (Universally Unique Identifier) using the v4 variant.
+ *
+ * @returns {string} Returns a randomly generated UUID.
+ */
 export function uuidv4() {
-  if (isDefined(crypto) && isDefined(crypto.randomUUID)) {
-    return crypto.randomUUID();
-  }
-  // we are in an insecure env or this is an incompatible browser!
-  // fallback on some manual uuid jank
-  // https://stackoverflow.com/a/2117523/9718199
-  return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) =>
-    (
-      +c ^
-      (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (+c / 4)))
-    ).toString(16),
-  );
+  return crypto.randomUUID();
 }
 
+/**
+ * Retrieves the current timestamp in seconds.
+ *
+ * @returns {number} Returns the current timestamp in seconds.
+ */
 export function getCurrentTimestampInSeconds() {
   return Math.floor(new Date().getTime() / 1000);
 }
 
+/**
+ * Sorts the keys of an object alphabetically and returns a new object with the sorted keys.
+ *
+ * @param {Object} value - The object whose keys are to be sorted.
+ *
+ * @returns {Object|undefined} Returns a new object with sorted keys, or undefined if the input value is falsy or not an object.
+ */
 export function sortObjectsByKeys(value) {
   if (!value || !isObject(value)) {
     return;
   }
 
-  // Object.keys(value) is not supported by all browsers, we get the keys manually
-  var keys = [];
-  var key;
+  const keys = Object.keys(value).sort();
 
-  for (key in value) {
-    if (Object.prototype.hasOwnProperty.call(value, key)) {
-      keys.push(key);
-    }
-  }
+  const normalized = {};
 
-  var normalized = {};
-  keys.sort();
-  var len = keys.length;
-  var i;
-
-  for (i = 0; i < len; i++) {
-    normalized[keys[i]] = value[keys[i]];
+  for (const key of keys) {
+    normalized[key] = value[key];
   }
 
   return normalized;
 }
 
+/**
+ * Generates a unique identifier consisting of 6 random alphanumeric characters.
+ *
+ * @returns {string} Returns a unique identifier.
+ */
 export function generateUniqueId() {
-  var id = "";
-  var chars = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-  var charLen = chars.length;
-  var i;
+  let id = "";
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const charLen = chars.length;
 
-  for (i = 0; i < 6; i++) {
+  for (let i = 0; i < 6; i++) {
     id += chars.charAt(Math.floor(Math.random() * charLen));
   }
 
   return id;
 }
 
+/**
+ * Splits an array into chunks of a specified size.
+ *
+ * @param {Array} theArray - The array to be split into chunks.
+ * @param {number} chunkSize - The size of each chunk.
+ *
+ * @returns {Array} Returns an array containing chunks of the original array.
+ */
 export function arrayChunk(theArray, chunkSize) {
   if (!chunkSize || chunkSize >= theArray.length) {
     return [theArray];
   }
 
-  var index = 0;
-  var arrLength = theArray.length;
-  var chunks = [];
+  const chunks = [];
 
-  for (index; index < arrLength; index += chunkSize) {
+  for (let index = 0; index < theArray.length; index += chunkSize) {
     chunks.push(theArray.slice(index, index + chunkSize));
   }
 
   return chunks;
 }
 
+/**
+ * Sets the expiration date and time for a global variable if it's not already set or if the new time is greater.
+ *
+ * @param {number} delay - The delay in milliseconds from the current time.
+ */
 export function setExpireDateTime(delay) {
-  var now = new Date();
-  var time = now.getTime() + delay;
+  const now = new Date();
+  const time = now.getTime() + delay;
 
   if (
-    !globalThis.eave.expireDateTime ||
-    time > globalThis.eave.expireDateTime
+    !eaveWindow.eave.expireDateTime ||
+    time > eaveWindow.eave.expireDateTime
   ) {
-    globalThis.eave.expireDateTime = time;
+    eaveWindow.eave.expireDateTime = time;
   }
 }
 
+/**
+ * Checks if two host names are the same, considering aliases and wildcard subdomains.
+ *
+ * @param {string} hostName - The host name to compare.
+ * @param {string} alias - The alias or domain to compare against.
+ *
+ * @returns {boolean} Returns true if the host names are the same, false otherwise.
+ */
 export function isSameHost(hostName, alias) {
-  var offset;
+  let offset;
 
   hostName = String(hostName).toLowerCase();
   alias = String(alias).toLowerCase();
@@ -1061,6 +1124,14 @@ export function isSameHost(hostName, alias) {
   return false;
 }
 
+/**
+ * Checks if a path matches a path alias, supporting wildcards and case insensitivity.
+ *
+ * @param {string} path - The path to check.
+ * @param {string} pathAlias - The path alias to match against.
+ *
+ * @returns {boolean} Returns true if the path matches the path alias, false otherwise.
+ */
 export function isSitePath(path, pathAlias) {
   if (!stringStartsWith(pathAlias, "/")) {
     pathAlias = "/" + pathAlias;
@@ -1070,7 +1141,7 @@ export function isSitePath(path, pathAlias) {
     path = "/" + path;
   }
 
-  var matchesAnyPath = pathAlias === "/" || pathAlias === "/*";
+  let matchesAnyPath = pathAlias === "/" || pathAlias === "/*";
 
   if (matchesAnyPath) {
     return true;
@@ -1119,18 +1190,13 @@ export function isSitePath(path, pathAlias) {
  * Convert an object to a query params string
  *
  * @param {object} args
+ *
  * @returns {string} query params to attach to a request URL
  */
 export function argsToQueryParameters(args) {
-  const makeURLSafe = isFunction(encodeURIComponent)
-    ? encodeURIComponent
-    : function (x) {
-        return x;
-      };
   let qp = "";
-  let key;
-  for (key of Object.keys(args)) {
-    qp += "&" + makeURLSafe(key) + "=" + makeURLSafe(String(args[key]));
+  for (const key of Object.keys(args)) {
+    qp += "&" + encodeURIComponent(key) + "=" + encodeURIComponent(String(args[key]));
   }
   return qp;
 }

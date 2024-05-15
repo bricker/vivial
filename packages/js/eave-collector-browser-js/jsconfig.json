@@ -3,7 +3,8 @@
     "jsx": "react",
     "noEmit": true,
     "allowJs": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "target": "ES2015"
   },
   "include": ["src/**/*.js", "src/**/*.mjs"]
 }

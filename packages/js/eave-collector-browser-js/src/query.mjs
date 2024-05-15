@@ -177,7 +177,7 @@ export default {
   },
 
   /**
-   * @param {Element} node
+   * @param {Element | undefined} node
    * @param {string} attributeName
    * @returns {boolean}
    */

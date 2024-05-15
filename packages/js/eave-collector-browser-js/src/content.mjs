@@ -61,13 +61,18 @@ export default {
 
     return nodes1;
   },
+
+  /**
+   * @param {Node} anyNode
+   * @returns {Node | undefined}
+   */
   findParentContentNode: function (anyNode) {
     if (!anyNode) {
       return;
     }
 
-    var node = anyNode;
-    var counter = 0;
+    let node = anyNode;
+    let counter = 0;
 
     while (node && node !== document && node.parentNode) {
       if (query.hasNodeAttribute(node, this.CONTENT_ATTR)) {
@@ -317,9 +322,19 @@ export default {
       }
     }
   },
+
+  /**
+   * @param {string} text
+   * @returns {string}
+   */
   trim: function (text) {
     return h.trim(text);
   },
+
+  /**
+   * @param {HTMLElement} node
+   * @returns {boolean}
+   */
   isOrWasNodeInViewport: function (node) {
     if (!node || !node.getBoundingClientRect || node.nodeType !== 1) {
       return true;
@@ -358,11 +373,17 @@ export default {
       (rect.top < docHeight || wasVisible) // rect.top < 0 we assume user has seen all the ones that are above the current viewport
     );
   },
+
+  /**
+   * @param {HTMLElement} node
+   * @returns {boolean}
+   */
   isNodeVisible: function (node) {
     var isItVisible = isVisible(node);
     var isInViewport = this.isOrWasNodeInViewport(node);
     return isItVisible && isInViewport;
   },
+
   buildInteractionRequestParams: function (interaction, name, piece, target) {
     var params = "";
 
@@ -539,6 +560,11 @@ export default {
 
     query.setAnyAttribute(node, "href", url);
   },
+
+  /**
+   * @param {Node} targetNode
+   * @returns {boolean}
+   */
   shouldIgnoreInteraction: function (targetNode) {
     if (
       query.hasNodeAttribute(targetNode, this.CONTENT_IGNOREINTERACTION_ATTR)

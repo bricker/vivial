@@ -20,9 +20,10 @@ const trackerUrl = PRODUCTION // eslint-disable-line no-undef
 _settings.push(["setTrackerUrl", trackerUrl]);
 
 /** @type {Types.GlobalEaveWindow} */
-const _globalThis = globalThis;
+// @ts-ignore - This line just declares the type of this variable for the typescript compiler. The `eave` property is missing, but we'll add it next.
+const _window = window;
 
-_globalThis._eave = {
+_window.eave = {
   expireDateTime: undefined,
   settings: _settings,
   plugins: {},

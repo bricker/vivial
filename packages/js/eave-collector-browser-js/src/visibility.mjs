@@ -1,5 +1,5 @@
+// @ts-check
 import "./globals.mjs";
-import * as helpers from "./helpers.mjs";
 
 /**
  * Author: Jason Farrell
@@ -9,32 +9,41 @@ import * as helpers from "./helpers.mjs";
  * Package URL: https://github.com/UseAllFive/true-visibility
  * License: MIT (https://github.com/UseAllFive/true-visibility/blob/master/LICENSE.txt)
  */
+
+/**
+ * @param {HTMLElement} node
+ * @returns {boolean}
+ */
 export function isVisible(node) {
   if (!node) {
     return false;
   }
 
-  //-- Cross browser method to get style properties:
+  /**
+   * Cross browser method to get style properties
+   * @param {Element} el
+   * @param {string} property
+   * @returns {string | undefined}
+   */
   function _getStyle(el, property) {
-    if (window.getComputedStyle) {
-      return document.defaultView.getComputedStyle(
-        el,
-        null,
-      )[property];
-    }
-    if (el.currentStyle) {
-      return el.currentStyle[property];
-    }
+    return document.defaultView?.getComputedStyle(
+      el,
+      null,
+    )[property];
   }
 
+  /**
+   * @param {Element} element
+   * @returns {boolean}
+   */
   function _elementInDocument(element) {
-    element = element.parentNode;
+    let _element = element.parentNode;
 
-    while (element) {
-      if (element === document) {
+    while (_element) {
+      if (_element === document) {
         return true;
       }
-      element = element.parentNode;
+      _element = _element.parentNode;
     }
     return false;
   }
@@ -43,28 +52,33 @@ export function isVisible(node) {
    * Checks if a DOM element is visible. Takes into
    * consideration its parents and overflow.
    *
-   * @param (el)      the DOM element to check if is visible
+   * @param {HTMLElement} el      the DOM element to check if is visible
    *
    * These params are optional that are sent in recursively,
    * you typically won't use these:
    *
-   * @param (t)       Top corner position number
-   * @param (r)       Right corner position number
-   * @param (b)       Bottom corner position number
-   * @param (l)       Left corner position number
-   * @param (w)       Element width number
-   * @param (h)       Element height number
+   * @param {number} [t]       Top corner position number
+   * @param {number} [r]       Right corner position number
+   * @param {number} [b]       Bottom corner position number
+   * @param {number} [l]       Left corner position number
+   * @param {number} [w]       Element width number
+   * @param {number} [h]       Element height number
+   *
+   * @returns {boolean}
    */
   function _isVisible(el, t, r, b, l, w, h) {
-    var p = el.parentNode,
-      VISIBLE_PADDING = 1; // has to be visible at least one px of the element
+
+    /** @type {HTMLElement | null} */
+    // @ts-ignore
+    const p = el.parentNode;
+    const VISIBLE_PADDING = 1; // has to be visible at least one px of the element
 
     if (!_elementInDocument(el)) {
       return false;
     }
 
     //-- Return true for document node
-    if (9 === p.nodeType) {
+    if (9 === p?.nodeType) {
       return true;
     }
 
@@ -78,12 +92,12 @@ export function isVisible(node) {
     }
 
     if (
-      !helpers.isDefined(t) ||
-      !helpers.isDefined(r) ||
-      !helpers.isDefined(b) ||
-      !helpers.isDefined(l) ||
-      !helpers.isDefined(w) ||
-      !helpers.isDefined(h)
+      t === undefined||
+      r === undefined ||
+      b === undefined ||
+      l === undefined ||
+      w === undefined ||
+      h === undefined
     ) {
       t = el.offsetTop;
       l = el.offsetLeft;
