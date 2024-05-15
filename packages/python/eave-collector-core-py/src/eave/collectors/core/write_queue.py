@@ -75,7 +75,7 @@ async def _process_queue(q: multiprocessing.Queue, params: QueueParams, queue_cl
 
         now = time.time()
 
-        if force_flush or buflen >= params.maxsize or now - last_flush >= params.flush_frequency_seconds:
+        if buflen > 0 and (force_flush or buflen >= params.maxsize or now - last_flush >= params.flush_frequency_seconds):
             try:
                 await send_batch(events=buffer)
                 buffer.clear()
