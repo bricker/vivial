@@ -147,8 +147,6 @@ export function Tracker(trackerUrl, siteId) {
     configExcludedQueryParams = [],
     // HTML anchor element classes to treat as downloads
     configDownloadClasses = [],
-    // HTML anchor element classes to treat at outlinks
-    configLinkClasses = [],
     // Maximum delay to wait for web bug image to be fetched (in milliseconds)
     configTrackerPause = 500,
     // If enabled, always use sendBeacon if the browser supports it
@@ -220,6 +218,7 @@ export function Tracker(trackerUrl, siteId) {
     // Guard against installing the link tracker more than once per Tracker instance
     clickListenerInstalled = false,
     linkTrackingEnabled = false,
+    imageClickTrackingEnabled = false,
     crossDomainTrackingEnabled = false,
     // Guard against installing route history tracker more than once per instance
     routeHistoryTrackingEnabled = false,
@@ -513,7 +512,7 @@ export function Tracker(trackerUrl, siteId) {
           : globalThis.eave.windowAlias.ActiveXObject
           ? new globalThis.eave.windowAlias.ActiveXObject("Microsoft.XMLHTTP")
           : null;
-        
+
         xhr.open("POST", configTrackerUrl, true);
 
         // fallback on error
@@ -1689,26 +1688,23 @@ export function Tracker(trackerUrl, siteId) {
     );
   }
 
-  /*
-   * Link or Download?
+  /**
+   * Determines what type of link an anchor element is from various attributes.
+   *
+   * @returns {string}
    */
   function getLinkType(className, href, isInLink, hasDownloadAttribute) {
-    if (startsUrlWithTrackerUrl(href)) {
-      return 0;
+    if (isInLink) {
+      return "internal";
     }
 
     // does class indicate whether it is an (explicit/forced) outlink or a download?
     var downloadPattern = getClassesRegExp(configDownloadClasses, "download"),
-      linkPattern = getClassesRegExp(configLinkClasses, "link"),
       // does file extension indicate that it is a download?
       downloadExtensionsPattern = new RegExp(
         "\\.(" + configDownloadExtensions.join("|") + ")([?&#]|$)",
         "i",
       );
-
-    if (linkPattern.test(className)) {
-      return "link";
-    }
 
     if (
       hasDownloadAttribute ||
@@ -1718,11 +1714,26 @@ export function Tracker(trackerUrl, siteId) {
       return "download";
     }
 
-    if (isInLink) {
-      return 0;
+    // browsers, such as Safari, don't downcase hostname and href
+    const scriptProtocol = new RegExp(
+      "^(javascript|vbscript|jscript|mocha|livescript|ecmascript):",
+      "i",
+    );
+    if (scriptProtocol.test(href)) {
+      return "script";
     }
 
-    return "link";
+    const mailProtocol = new RegExp("^mailto:", "i");
+    if (mailProtocol.test(href)) {
+      return "email";
+    }
+
+    const telephoneProtocol = new RegExp("^tel:", "i");
+    if (telephoneProtocol.test(href)) {
+      return "telephone";
+    }
+
+    return "external";
   }
 
   /**
@@ -1748,15 +1759,21 @@ export function Tracker(trackerUrl, siteId) {
     return undefined;
   }
 
+  /**
+   * Get anchor tag data if the link click is not to be ignored.
+   *
+   * @param {Element} sourceElement
+   * @returns {object|undefined} undefined if link should not be processed
+   */
   function getLinkIfShouldBeProcessed(sourceElement) {
     sourceElement = getTargetNode(isLinkNode, sourceElement);
 
     if (!query.hasNodeAttribute(sourceElement, "href")) {
-      return;
+      return undefined;
     }
 
     if (!h.isDefined(sourceElement.href)) {
-      return;
+      return undefined;
     }
 
     var originalSourcePath =
@@ -1771,28 +1788,18 @@ export function Tracker(trackerUrl, siteId) {
       sourceHostName,
     );
 
-    // browsers, such as Safari, don't downcase hostname and href
-    var scriptProtocol = new RegExp(
-      "^(javascript|vbscript|jscript|mocha|livescript|ecmascript|mailto|tel):",
-      "i",
+    // track all link types (including internal)
+    var linkType = getLinkType(
+      sourceElement.className,
+      sourceHref,
+      isSiteHostPath(sourceHostName, originalSourcePath),
+      query.hasNodeAttribute(sourceElement, "download"),
     );
 
-    if (!scriptProtocol.test(sourceHref)) {
-      // track outlinks and all downloads
-      var linkType = getLinkType(
-        sourceElement.className,
-        sourceHref,
-        isSiteHostPath(sourceHostName, originalSourcePath),
-        query.hasNodeAttribute(sourceElement, "download"),
-      );
-
-      if (linkType) {
-        return {
-          type: linkType,
-          href: sourceHref,
-        };
-      }
-    }
+    return {
+      type: linkType,
+      href: sourceHref,
+    };
   }
 
   function buildContentInteractionRequest(interaction, name, piece, target) {
@@ -2151,8 +2158,10 @@ export function Tracker(trackerUrl, siteId) {
    * Log the link or click with the server
    */
   function logLink(url, linkType, customData, callback, sourceElement) {
-    var linkParams =
-      linkType + "=" + globalThis.eave.encodeWrapper(purify(url));
+    var linkParams = [
+      "link=" + globalThis.eave.encodeWrapper(purify(url)),
+      "type=" + linkType,
+    ].join("&");
 
     var interaction = getContentInteractionToRequestIfPossible(
       sourceElement,
@@ -2338,22 +2347,9 @@ export function Tracker(trackerUrl, siteId) {
    */
   function processLinkClick(sourceElement) {
     var link = getLinkIfShouldBeProcessed(sourceElement);
-
-    // not a link to same domain or the same website (as set in setDomains())
     if (link && link.type) {
       link.href = h.safeDecodeWrapper(link.href);
       logLink(link.href, link.type, undefined, null, sourceElement);
-      return;
-    }
-
-    // a link to same domain or the same website (as set in setDomains())
-    if (crossDomainTrackingEnabled) {
-      // in case the clicked element is within the <a> (for example there is a <div> within the <a>) this will get the actual <a> link element
-      sourceElement = getTargetNode(isLinkNode, sourceElement);
-
-      if (isLinkToDifferentDomainButSameEaveWebsite(sourceElement)) {
-        replaceHrefForCrossDomainLink(sourceElement);
-      }
     }
   }
 
@@ -2457,18 +2453,30 @@ export function Tracker(trackerUrl, siteId) {
         */
     var trackers = [
       {
-        trackingEnabled: function () {
-          return linkTrackingEnabled;
-        },
+        trackingEnabled: () => linkTrackingEnabled,
         nodeFilter: isLinkNode,
         clickProcessor: processLinkClick,
       },
       {
-        trackingEnabled: function () {
-          return buttonClickTrackingEnabled;
-        },
+        trackingEnabled: () => buttonClickTrackingEnabled,
         nodeFilter: isButtonNode,
         clickProcessor: processButtonClick,
+      },
+      {
+        trackingEnabled: () => imageClickTrackingEnabled,
+        nodeFilter: (nodeName) => nodeName === "IMG",
+        clickProcessor: (sourceElement) =>
+          logEvent(
+            "click",
+            "img",
+            "img tag clicked",
+            sourceElement.id,
+            {
+              src: sourceElement.src,
+              full_html: sourceElement.outerHTML,
+            },
+            undefined,
+          ),
       },
     ];
     var activeTracker;
@@ -2909,12 +2917,12 @@ export function Tracker(trackerUrl, siteId) {
    * Specify the eave client ID for the specific customer.
    * This value is needed to authenticate requests to send atoms,
    * so it is vital!
-   * 
+   *
    * @param {string} eaveClientId
    */
   this.setEaveClientId = function (clientId) {
     eaveClientId = clientId;
-  }
+  };
 
   /**
    * Specify the eave tracking URL
@@ -3571,15 +3579,6 @@ export function Tracker(trackerUrl, siteId) {
   };
 
   /**
-   * Set array of classes to be treated as outlinks
-   *
-   * @param {string|Array} linkClasses
-   */
-  this.setLinkClasses = function (linkClasses) {
-    configLinkClasses = h.isString(linkClasses) ? [linkClasses] : linkClasses;
-  };
-
-  /**
    * Set an array of query parameters to be excluded if in the url
    *
    * @param {string|Array} excludedQueryParams  'uid' or ['uid', 'sid']
@@ -3886,6 +3885,24 @@ export function Tracker(trackerUrl, siteId) {
       return;
     }
     buttonClickTrackingEnabled = true;
+
+    if (!clickListenerInstalled) {
+      clickListenerInstalled = true;
+      h.trackCallbackOnReady(function () {
+        var element = globalThis.eave.documentAlias.body;
+        addClickListener(element, enable, true);
+      });
+    }
+  };
+
+  /**
+   * Track img element clicks
+   */
+  this.enableImageClickTracking = function (enable) {
+    if (imageClickTrackingEnabled) {
+      return;
+    }
+    imageClickTrackingEnabled = true;
 
     if (!clickListenerInstalled) {
       clickListenerInstalled = true;

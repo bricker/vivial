@@ -104,6 +104,7 @@ if (typeof window.eaveTracker !== "object") {
       "disableBrowserFeatureDetection",
       "disableCampaignParameters",
       "disableCookies",
+      "setTrackingCookies",
       "setTrackerUrl",
       "setAPIUrl",
       "enableCrossDomainLinking",
