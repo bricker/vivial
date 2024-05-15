@@ -1,4 +1,4 @@
-from django_orm.private.collector import DjangoOrmCollector
+from eave.collectors.django_orm.private.collector import DjangoOrmCollector
 
 _collector: DjangoOrmCollector | None = None
 
