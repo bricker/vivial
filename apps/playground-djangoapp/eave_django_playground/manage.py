@@ -2,7 +2,7 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
-from eave.collectors.django_orm
+from eave.collectors.django_orm import DjangoOrmCollectorManager
 
 
 def main():
