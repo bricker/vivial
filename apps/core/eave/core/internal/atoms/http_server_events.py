@@ -98,7 +98,7 @@ class HttpServerEventsTableHandle(BigQueryTableHandle):
             dataset_id=self.team.bq_dataset_id,
         )
 
-        table = self._bq_client.get_or_create_table(
+        table = self._bq_client.get_and_sync_or_create_table(
             dataset_id=dataset.dataset_id,
             table_id=self.table_def.table_id,
             schema=self.table_def.schema,

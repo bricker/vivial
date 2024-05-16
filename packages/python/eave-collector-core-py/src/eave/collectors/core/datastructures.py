@@ -78,11 +78,11 @@ class DatabaseEventPayload(EventPayload):
     event_type: ClassVar[EventType] = EventType.db_event
 
     statement: str | None
+    db_structure: DatabaseStructure
     db_name: str | None
     table_name: str | None
     operation: str | None
     timestamp: float
-    db_structure: DatabaseStructure
     parameters: dict[str, Any] | None
 
 

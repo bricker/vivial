@@ -29,17 +29,28 @@ class BigQueryClient:
         )
         return r
 
-    def get_or_create_table(
+    def get_and_sync_or_create_table(
         self, *, dataset_id: str, table_id: str, schema: list[bigquery.SchemaField]
     ) -> bigquery.Table:
-        table = self._construct_table(dataset_id=dataset_id, table_id=table_id)
-        table.schema = schema  # Doing this instead of passing into the initializer because the initializer doesn't have a type for the schema param.
+        new_table = self._construct_table(dataset_id=dataset_id, table_id=table_id)
+        new_table.schema = self._sort_schema_fields(schema)  # Doing this instead of passing into the initializer because the initializer doesn't have a type for the schema param.
 
-        r = self._bq_client.create_table(
-            table=table,
+        api_table = self._bq_client.create_table(
+            table=new_table,
             exists_ok=True,
         )
-        return r
+
+        # sorted_api_table_schema = self._sort_schema_fields(api_table.schema)
+
+        # if self._field_names(sorted_api_table_schema) != self._field_names(new_table.schema):
+        #     # The schemas don't match. Update the server schema to match the client schema.
+        #     api_table.schema = new_table.schema
+        #     api_table = self._bq_client.update_table(
+        #         api_table,
+        #         fields=["schema"],
+        #     )
+
+        return api_table
 
     def get_or_create_view(self, *, dataset_id: str, view_id: str, view_query: str) -> bigquery.Table:
         table = self._construct_table(dataset_id=dataset_id, table_id=view_id)
@@ -107,6 +118,11 @@ class BigQueryClient:
         table = bigquery.Table(table_ref=table_ref)
         return table
 
+    def _sort_schema_fields(self, fields: list[bigquery.SchemaField]) -> list[bigquery.SchemaField]:
+        return sorted(fields, key=lambda f: f.name)
+
+    def _field_names(self, fields: list[bigquery.SchemaField]) -> list[str]:
+        return [f.name for f in fields]
 
 EAVE_INTERNAL_BIGQUERY_ATOMS_DATASET_ID = "eave_atoms"
 EAVE_INTERNAL_BIGQUERY_CLIENT = BigQueryClient()

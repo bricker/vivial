@@ -1,9 +1,9 @@
 from textwrap import dedent
-from typing import Any, override
+from typing import Any, Type, get_args, override
 
 from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
 
-from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseStructure
+from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseStructure, EventPayload
 from eave.core.internal import database
 from eave.core.internal.orm.virtual_event import VirtualEventOrm, make_virtual_event_readable_name
 from eave.stdlib.logging import LOGGER
@@ -11,6 +11,31 @@ from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, ta
 
 from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 
+# _python_to_sql_type: dict[type, str] = {
+#     str: StandardSqlTypeNames.STRING,
+#     float: StandardSqlTypeNames.TIMESTAMP,
+#     dict: StandardSqlTypeNames.JSON,
+# }
+
+# def _make_schema_from_annotations(type_: type[EventPayload]) -> list[SchemaField]:
+#     fields: list[SchemaField] = []
+#     for name, annotype in type_.__annotations__.items():
+#         args = get_args(annotype)
+
+#         if len(args) > 0:
+#             real_type = args[0]
+#         else:
+#             real_type = annotype
+
+#         fields.append(
+#             SchemaField(
+#                 name=name,
+#                 field_type=_python_to_sql_type.get(real_type, StandardSqlTypeNames.STRING),
+#                 mode=BigQueryFieldMode.NULLABLE,
+#             )
+#         )
+
+#     return fields
 
 class DatabaseEventsTableHandle(BigQueryTableHandle):
     table_def = BigQueryTableDefinition(
@@ -48,6 +73,11 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
             ),
             SchemaField(
                 name="parameters",
+                field_type=StandardSqlTypeNames.JSON,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="context",
                 field_type=StandardSqlTypeNames.JSON,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
@@ -117,7 +147,7 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
             dataset_id=self.team.bq_dataset_id,
         )
 
-        table = self._bq_client.get_or_create_table(
+        table = self._bq_client.get_and_sync_or_create_table(
             dataset_id=dataset.dataset_id,
             table_id=self.table_def.table_id,
             schema=self.table_def.schema,
