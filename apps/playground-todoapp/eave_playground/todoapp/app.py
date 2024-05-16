@@ -1,3 +1,5 @@
+import logging
+import google.cloud.logging
 import contextlib
 import os
 from collections.abc import AsyncGenerator
@@ -16,6 +18,11 @@ from eave.collectors.sqlalchemy import start_eave_sqlalchemy_collector, stop_eav
 
 from .orm import TodoListItemOrm, UserOrm, async_engine, async_session
 
+if os.getenv("EAVE_ENV", "development") == "production":
+    # https://cloud.google.com/python/docs/reference/logging/latest/std-lib-integration
+    _gcp_log_client = google.cloud.logging.Client()
+    log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+    _gcp_log_client.setup_logging(log_level=logging.getLevelNamesMapping().get(log_level) or logging.INFO)
 
 async def get_todos(request: Request) -> Response:
     user_id = request.cookies.get("user_id")
