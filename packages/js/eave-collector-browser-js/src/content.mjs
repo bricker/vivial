@@ -1,3 +1,5 @@
+// @ts-check
+
 import './globals.mjs';
 import * as h from "./helpers.mjs";
 import query from "./query.mjs";

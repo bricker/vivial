@@ -36,6 +36,7 @@ import "./globals.mjs";
 import * as h from "./helpers.mjs";
 import { Tracker } from "./tracker.mjs";
 import { isVisible } from "./visibility.mjs";
+// eslint-disable-next-line no-unused-vars
 import * as Types from "./types.js";
 
 /** @type {Types.GlobalEaveWindow} */
@@ -60,6 +61,7 @@ if (typeof eaveWindow.eave.tracker !== "object") {
      * @param {Array} paq
      * @param {Array} methodsToApply an array containing method names in the order that they should be applied
      *                 eg ['setSiteId', 'setTrackerUrl']
+     *
      * @returns {Array} the modified paq array with the methods that were already applied set to undefined
      */
     function applyMethodsInOrder(paq, methodsToApply) {
@@ -168,14 +170,12 @@ if (typeof eaveWindow.eave.tracker !== "object") {
      ************************************************************/
 
     // initialize the eave singleton
-    h.addEventListener(
-      window,
+    window.addEventListener(
       "beforeunload",
       h.beforeUnloadHandler,
       false,
     );
-    h.addEventListener(
-      window,
+    window.addEventListener(
       "visibilitychange",
       function () {
         // if unloaded, return
@@ -189,8 +189,7 @@ if (typeof eaveWindow.eave.tracker !== "object") {
       },
       false,
     );
-    h.addEventListener(
-      window,
+    window.addEventListener(
       "online",
       function () {
         if (h.isDefined(navigator.serviceWorker)) {
@@ -211,8 +210,7 @@ if (typeof eaveWindow.eave.tracker !== "object") {
       false,
     );
 
-    h.addEventListener(
-      window,
+    window.addEventListener(
       "message",
       function (e) {
         if (!e || !e.origin) {
@@ -244,7 +242,7 @@ if (typeof eaveWindow.eave.tracker !== "object") {
           return;
         }
 
-        var data = null;
+        let data = null;
         try {
           data = JSON.parse(e.data);
         } catch (ex) {
@@ -257,18 +255,18 @@ if (typeof eaveWindow.eave.tracker !== "object") {
 
         function postMessageToCorrectFrame(postMessage) {
           // Find the iframe with the right URL to send it back to
-          var iframes =
+          const iframes =
             document.getElementsByTagName("iframe");
           for (let i = 0; i < iframes.length; i++) {
-            var iframe = iframes[i];
-            var iframeHost = h.getHostName(iframe.src);
+            const iframe = iframes[i];
+            const iframeHost = h.getHostName(iframe.src);
 
             if (
               iframe.contentWindow &&
               h.isDefined(iframe.contentWindow.postMessage) &&
               iframeHost === originHost
             ) {
-              var jsonMessage = JSON.stringify(postMessage);
+              const jsonMessage = JSON.stringify(postMessage);
               iframe.contentWindow.postMessage(jsonMessage, e.origin);
             }
           }
@@ -339,12 +337,12 @@ if (typeof eaveWindow.eave.tracker !== "object") {
           eventHandler,
           useCapture,
         ) {
-          var captureType = typeof useCapture;
+          const captureType = typeof useCapture;
           if (captureType === "undefined") {
             useCapture = false;
           }
 
-          h.addEventListener(element, eventType, eventHandler, useCapture);
+          element.addEventListener(eventType, eventHandler, useCapture);
         },
         /**
          * Specify a function to execute when the DOM is fully loaded.
@@ -420,8 +418,7 @@ if (typeof eaveWindow.eave.tracker !== "object") {
           return;
         }
 
-        var i = 0;
-        for (i; i < eaveWindow.eave.eventHandlers[event].length; i++) {
+        for (let i = 0; i < eaveWindow.eave.eventHandlers[event].length; i++) {
           eaveWindow.eave.eventHandlers[event][i].apply(
             context || window,
             extraParameters,
@@ -443,7 +440,7 @@ if (typeof eaveWindow.eave.tracker !== "object") {
        * Get Tracker (factory method)
        *
        * @param {string} eaveUrl
-       * @param {int|string} siteId
+       * @param {number | string} siteId
        * @returns {Tracker}
        */
       getTracker: function (eaveUrl, siteId) {
@@ -471,11 +468,11 @@ if (typeof eaveWindow.eave.tracker !== "object") {
        * If eaveUrl is not set, current url will be used.
        *
        * @param {null|string} eaveUrl  If null, will reuse the same tracker URL of the current tracker instance
-       * @param {int|string} siteId
+       * @param {number | string} siteId
        * @returns {Tracker}
        */
       addTracker: function (eaveUrl, siteId) {
-        var tracker;
+        let tracker;
         if (!eaveWindow.eave.asyncTrackers.length) {
           tracker = createFirstTracker(eaveUrl, siteId);
         } else {
@@ -494,11 +491,11 @@ if (typeof eaveWindow.eave.tracker !== "object") {
        * is given, it will try to find an optional
        *
        * @param {string} eaveUrl
-       * @param {int|string} siteId
+       * @param {number | string} siteId
        * @returns {Tracker}
        */
       getAsyncTracker: function (eaveUrl, siteId) {
-        var firstTracker;
+        let firstTracker;
         if (
           eaveWindow.eave.asyncTrackers &&
           eaveWindow.eave.asyncTrackers.length &&
@@ -523,9 +520,9 @@ if (typeof eaveWindow.eave.tracker !== "object") {
           eaveUrl = firstTracker.getTrackerUrl();
         }
 
-        var tracker,
-          i = 0;
-        for (i; i < eaveWindow.eave.asyncTrackers.length; i++) {
+        let tracker;
+
+        for (let i = 0; i < eaveWindow.eave.asyncTrackers.length; i++) {
           tracker = eaveWindow.eave.asyncTrackers[i];
           if (
             tracker &&
@@ -546,10 +543,9 @@ if (typeof eaveWindow.eave.tracker !== "object") {
        * "eave.retryMissedPluginCalls()" so they will be executed after all.
        */
       retryMissedPluginCalls: function () {
-        var missedCalls = eaveWindow.eave.missedPluginTrackerCalls;
+        const missedCalls = eaveWindow.eave.missedPluginTrackerCalls;
         eaveWindow.eave.missedPluginTrackerCalls = [];
-        var i = 0;
-        for (i; i < missedCalls.length; i++) {
+        for (let i = 0; i < missedCalls.length; i++) {
           h.apply(missedCalls[i]);
         }
       },
@@ -576,7 +572,7 @@ if (typeof eaveWindow.eave.tracker !== "object") {
       return false;
     }
     // needed to write it this way for jslint
-    var lengthType = typeof eaveWindow.eave.settings.length;
+    const lengthType = typeof eaveWindow.eave.settings.length;
     if ("undefined" === lengthType) {
       return false;
     }
@@ -589,8 +585,7 @@ if (typeof eaveWindow.eave.tracker !== "object") {
     "object" === typeof eaveWindow.eave.trackerPluginAsyncInit &&
     eaveWindow.eave.trackerPluginAsyncInit.length
   ) {
-    var i = 0;
-    for (i; i < eaveWindow.eave.trackerPluginAsyncInit.length; i++) {
+    for (let i = 0; i < eaveWindow.eave.trackerPluginAsyncInit.length; i++) {
       if (typeof eaveWindow.eave.trackerPluginAsyncInit[i] === "function") {
         eaveWindow.eave.trackerPluginAsyncInit[i]();
       }

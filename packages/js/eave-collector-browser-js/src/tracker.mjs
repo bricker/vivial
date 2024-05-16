@@ -1163,6 +1163,7 @@ export function Tracker(trackerUrl, siteId) {
 
   /**
    * @param {string} request
+   *
    * @returns {string} the modified request
    */
   function appendAvailablePerformanceMetrics(request) {
@@ -1176,7 +1177,7 @@ export function Tracker(trackerUrl, siteId) {
       return request;
     }
 
-    var performanceData =
+    let performanceData =
       typeof performance.timing === "object" &&
       performance.timing
         ? performance.timing
@@ -1568,10 +1569,12 @@ export function Tracker(trackerUrl, siteId) {
     }
 
     // tracker plugin hook
-    request += h.executePluginMethod(pluginMethod, {
-      tracker: trackerInstance,
-      request: request,
-    });
+    if (pluginMethod) {
+      request += h.executePluginMethod(pluginMethod, {
+        tracker: trackerInstance,
+        request: request,
+      });
+    }
 
     if (configAppendToTrackingUrl.length) {
       request += "&" + configAppendToTrackingUrl;
@@ -3665,6 +3668,7 @@ export function Tracker(trackerUrl, siteId) {
    * Set delay for link tracking (in milliseconds)
    *
    * @param {number} delay Delay [ms]
+   *
    * @noreturn
    */
   this.setLinkTrackingTimer = function (delay) {
@@ -3684,10 +3688,11 @@ export function Tracker(trackerUrl, siteId) {
    * Set list of file extensions to be recognized as downloads
    *
    * @param {string | string[]} extensions
+   *
    * @noreturn
    */
   this.setDownloadExtensions = function (extensions) {
-    if (h.isString(extensions)) {
+    if (typeof extensions === "string") {
       extensions = extensions.split("|");
     }
     configDownloadExtensions = extensions;
@@ -3697,11 +3702,12 @@ export function Tracker(trackerUrl, siteId) {
    * Specify additional file extensions to be recognized as downloads
    *
    * @param {string | string[]} extensions  for example 'custom' or ['custom1','custom2','custom3']
+   *
    * @noreturn
    */
   this.addDownloadExtensions = function (extensions) {
     var i;
-    if (h.isString(extensions)) {
+    if (typeof extensions === "string") {
       extensions = extensions.split("|");
     }
     for (i = 0; i < extensions.length; i++) {
@@ -3713,12 +3719,13 @@ export function Tracker(trackerUrl, siteId) {
    * Removes specified file extensions from the list of recognized downloads
    *
    * @param {string | string[]} extensions  for example 'custom' or ['custom1','custom2','custom3']
+   *
    * @noreturn
    */
   this.removeDownloadExtensions = function (extensions) {
     var i,
       newExtensions = [];
-    if (h.isString(extensions)) {
+    if (typeof extensions === "string") {
       extensions = extensions.split("|");
     }
     for (i = 0; i < configDownloadExtensions.length; i++) {
@@ -3748,10 +3755,11 @@ export function Tracker(trackerUrl, siteId) {
    * manually.
    *
    * @param {string | string[]} hostsAlias
+   *
    * @noreturn
    */
   this.setDomains = function (hostsAlias) {
-    configHostsAlias = h.isString(hostsAlias) ? [hostsAlias] : hostsAlias;
+    configHostsAlias = typeof hostsAlias === "string" ? [hostsAlias] : hostsAlias;
 
     let hasDomainAliasAlready = false,
       i = 0,
@@ -3793,10 +3801,11 @@ export function Tracker(trackerUrl, siteId) {
    * Domains added with setDomains will automatically be excluded as referrers.
    *
    * @param {string | string[]} excludedReferrers
+   *
    * @noreturn
    */
   this.setExcludedReferrers = function (excludedReferrers) {
-    configExcludedReferrers = h.isString(excludedReferrers)
+    configExcludedReferrers = typeof excludedReferrers === "string"
       ? [excludedReferrers]
       : excludedReferrers;
   };
@@ -3876,7 +3885,7 @@ export function Tracker(trackerUrl, siteId) {
    * @noreturn
    */
   this.setIgnoreClasses = function (ignoreClasses) {
-    configIgnoreClasses = h.isString(ignoreClasses)
+    configIgnoreClasses = typeof ignoreClasses === "string"
       ? [ignoreClasses]
       : ignoreClasses;
   };
@@ -4023,7 +4032,7 @@ export function Tracker(trackerUrl, siteId) {
    * @noreturn
    */
   this.setDownloadClasses = function (downloadClasses) {
-    configDownloadClasses = h.isString(downloadClasses)
+    configDownloadClasses = typeof downloadClasses === "string"
       ? [downloadClasses]
       : downloadClasses;
   };
@@ -4036,7 +4045,7 @@ export function Tracker(trackerUrl, siteId) {
    * @noreturn
    */
   this.setExcludedQueryParams = function (excludedQueryParams) {
-    configExcludedQueryParams = h.isString(excludedQueryParams)
+    configExcludedQueryParams = typeof excludedQueryParams === "string"
       ? [excludedQueryParams]
       : excludedQueryParams;
   };

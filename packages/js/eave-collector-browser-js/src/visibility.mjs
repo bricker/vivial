@@ -1,4 +1,5 @@
 // @ts-check
+
 import "./globals.mjs";
 
 /**
@@ -12,6 +13,7 @@ import "./globals.mjs";
 
 /**
  * @param {HTMLElement} node
+ *
  * @returns {boolean}
  */
 export function isVisible(node) {
@@ -23,6 +25,7 @@ export function isVisible(node) {
    * Cross browser method to get style properties
    * @param {Element} el
    * @param {string} property
+   *
    * @returns {string | undefined}
    */
   function _getStyle(el, property) {
@@ -34,6 +37,7 @@ export function isVisible(node) {
 
   /**
    * @param {Element} element
+   *
    * @returns {boolean}
    */
   function _elementInDocument(element) {
