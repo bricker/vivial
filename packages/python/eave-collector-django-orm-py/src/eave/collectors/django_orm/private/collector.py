@@ -1,14 +1,14 @@
-from typing import Any
-from collections.abc import Callable
 import time
+from collections.abc import Callable
 from contextlib import contextmanager
+from typing import Any
 
 from django.db.backends.utils import CursorWrapper
 
-from eave.collectors.core.write_queue import WriteQueue
 from eave.collectors.core.base_collector import BaseCollector
-from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseStructure, DatabaseOperation
 from eave.collectors.core.correlation_context import corr_ctx
+from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure
+from eave.collectors.core.write_queue import WriteQueue
 
 
 class EaveCursorWrapper(CursorWrapper):
