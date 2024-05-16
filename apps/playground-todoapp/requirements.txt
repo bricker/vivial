@@ -4,3 +4,4 @@ SQLAlchemy[asyncio]
 asyncpg
 starlette
 jinja2
+google-cloud-logging

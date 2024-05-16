@@ -2264,10 +2264,9 @@ export function Tracker(trackerUrl, siteId) {
    */
   function buildEventRequest(category, action, name, value) {
     return (
-      "e_c=" +
-      encodeURIComponent(category) +
-      "&e_a=" +
-      encodeURIComponent(action) +
+      "e_ts=" + String(new Date().getTime() / 1000) +
+      "&e_c=" + encodeURIComponent(category) +
+      "&e_a=" + encodeURIComponent(action) +
       (name ? "&e_n=" + encodeURIComponent(name) : "") +
       (value
         ? "&e_v=" + encodeURIComponent(value)
