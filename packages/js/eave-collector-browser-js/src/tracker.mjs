@@ -431,6 +431,7 @@ export function Tracker(trackerUrl, siteId) {
     );
   }
 
+  // [bcr] Supported in all major browsers.
   // function supportsSendBeacon() {
   //   return (
   //     "object" === typeof navigator &&
@@ -447,6 +448,7 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {boolean}
    */
   function sendPostRequestViaSendBeacon(request, fallbackToGet, callback) {
+    // [bcr] supported in all major browsers
     // let isSupported = supportsSendBeacon();
 
     // if (!isSupported) {
@@ -490,112 +492,113 @@ export function Tracker(trackerUrl, siteId) {
     return success;
   }
 
-  /**
-   * POST request to eave server using XMLHttpRequest.
-   *
-   * @param {string} request
-   * @param {boolean} [fallbackToGet]
-   * @param {Types.RequestCallback | null} [callback]
-   */
-  function sendXmlHttpRequest(request, fallbackToGet, callback) {
-    if (!h.isDefined(fallbackToGet) || null === fallbackToGet) {
-      fallbackToGet = true;
-    }
+  // [bcr] We always use sendBeacon
+  // /**
+  //  * POST request to eave server using XMLHttpRequest.
+  //  *
+  //  * @param {string} request
+  //  * @param {boolean} [fallbackToGet]
+  //  * @param {Types.RequestCallback | null} [callback]
+  //  */
+  // function sendXmlHttpRequest(request, fallbackToGet, callback) {
+  //   if (!h.isDefined(fallbackToGet) || null === fallbackToGet) {
+  //     fallbackToGet = true;
+  //   }
 
-    if (
-      eaveWindow.eave.isPageUnloading &&
-      sendPostRequestViaSendBeacon(request, fallbackToGet, callback)
-    ) {
-      return;
-    }
+  //   if (
+  //     eaveWindow.eave.isPageUnloading &&
+  //     sendPostRequestViaSendBeacon(request, fallbackToGet, callback)
+  //   ) {
+  //     return;
+  //   }
 
-    setTimeout(function () {
-      // we execute it with a little delay in case the unload event occurred just after sending this request
-      // this is to avoid the following behaviour: Eg on form submit a tracking request is sent via POST
-      // in this method. Then a few ms later the browser wants to navigate to the new page and the unload
-      // event occurs and the browser cancels the just triggered POST request. This causes or fallback
-      // method to be triggered and we execute the same request again (either as fallbackGet or sendBeacon).
-      // The problem is that we do not know whether the initial POST request was already fully transferred
-      // to the server or not when the onreadystatechange callback is executed and we might execute the
-      // same request a second time. To avoid this, we delay the actual execution of this POST request just
-      // by 50ms which gives it usually enough time to detect the unload event in most cases.
+  //   setTimeout(function () {
+  //     // we execute it with a little delay in case the unload event occurred just after sending this request
+  //     // this is to avoid the following behaviour: Eg on form submit a tracking request is sent via POST
+  //     // in this method. Then a few ms later the browser wants to navigate to the new page and the unload
+  //     // event occurs and the browser cancels the just triggered POST request. This causes or fallback
+  //     // method to be triggered and we execute the same request again (either as fallbackGet or sendBeacon).
+  //     // The problem is that we do not know whether the initial POST request was already fully transferred
+  //     // to the server or not when the onreadystatechange callback is executed and we might execute the
+  //     // same request a second time. To avoid this, we delay the actual execution of this POST request just
+  //     // by 50ms which gives it usually enough time to detect the unload event in most cases.
 
-      if (
-        eaveWindow.eave.isPageUnloading &&
-        sendPostRequestViaSendBeacon(request, fallbackToGet, callback)
-      ) {
-        return;
-      }
-      var sentViaBeacon;
+  //     if (
+  //       eaveWindow.eave.isPageUnloading &&
+  //       sendPostRequestViaSendBeacon(request, fallbackToGet, callback)
+  //     ) {
+  //       return;
+  //     }
+  //     var sentViaBeacon;
 
-      try {
-        // we use the progid Microsoft.XMLHTTP because
-        // IE5.5 included MSXML 2.5; the progid MSXML2.XMLHTTP
-        // is pinned to MSXML2.XMLHTTP.3.0
-        const xhr = window.XMLHttpRequest
-          ? new window.XMLHttpRequest()
-          : window.ActiveXObject
-          ? new window.ActiveXObject("Microsoft.XMLHTTP")
-          : null;
+  //     try {
+  //       // we use the progid Microsoft.XMLHTTP because
+  //       // IE5.5 included MSXML 2.5; the progid MSXML2.XMLHTTP
+  //       // is pinned to MSXML2.XMLHTTP.3.0
+  //       const xhr = window.XMLHttpRequest
+  //         ? new window.XMLHttpRequest()
+  //         : window.ActiveXObject
+  //         ? new window.ActiveXObject("Microsoft.XMLHTTP")
+  //         : null;
 
-        xhr.open("POST", configTrackerUrl, true);
+  //       xhr.open("POST", configTrackerUrl, true);
 
-        // fallback on error
-        xhr.onreadystatechange = function () {
-          if (
-            this.readyState === 4 &&
-            !(this.status >= 200 && this.status < 300)
-          ) {
-            const sentViaBeacon =
-              eaveWindow.eave.isPageUnloading &&
-              sendPostRequestViaSendBeacon(request, fallbackToGet, callback);
+  //       // fallback on error
+  //       xhr.onreadystatechange = function () {
+  //         if (
+  //           this.readyState === 4 &&
+  //           !(this.status >= 200 && this.status < 300)
+  //         ) {
+  //           const sentViaBeacon =
+  //             eaveWindow.eave.isPageUnloading &&
+  //             sendPostRequestViaSendBeacon(request, fallbackToGet, callback);
 
-            // if (!sentViaBeacon && fallbackToGet) {
-            //   getImage(request, callback);
-            if (callback) {
-              callback({
-                request: request,
-                trackerUrl: configTrackerUrl,
-                success: false,
-                xhr: this,
-              });
-            }
-          } else {
-            if (this.readyState === 4 && callback) {
-              callback({
-                request: request,
-                trackerUrl: configTrackerUrl,
-                success: true,
-                xhr: this,
-              });
-            }
-          }
-        };
+  //           // if (!sentViaBeacon && fallbackToGet) {
+  //           //   getImage(request, callback);
+  //           if (callback) {
+  //             callback({
+  //               request: request,
+  //               trackerUrl: configTrackerUrl,
+  //               success: false,
+  //               xhr: this,
+  //             });
+  //           }
+  //         } else {
+  //           if (this.readyState === 4 && callback) {
+  //             callback({
+  //               request: request,
+  //               trackerUrl: configTrackerUrl,
+  //               success: true,
+  //               xhr: this,
+  //             });
+  //           }
+  //         }
+  //       };
 
-        xhr.setRequestHeader("Content-Type", configRequestContentType);
+  //       xhr.setRequestHeader("Content-Type", configRequestContentType);
 
-        xhr.withCredentials = true;
+  //       xhr.withCredentials = true;
 
-        xhr.send(request);
-      } catch (e) {
-        sentViaBeacon =
-          eaveWindow.eave.isPageUnloading &&
-          sendPostRequestViaSendBeacon(request, fallbackToGet, callback);
-        // if (!sentViaBeacon && fallbackToGet) {
-        //   getImage(request, callback);
-        if (callback) {
-          callback({
-            request: request,
-            trackerUrl: configTrackerUrl,
-            success: false,
-          });
-        }
-      }
+  //       xhr.send(request);
+  //     } catch (e) {
+  //       sentViaBeacon =
+  //         eaveWindow.eave.isPageUnloading &&
+  //         sendPostRequestViaSendBeacon(request, fallbackToGet, callback);
+  //       // if (!sentViaBeacon && fallbackToGet) {
+  //       //   getImage(request, callback);
+  //       if (callback) {
+  //         callback({
+  //           request: request,
+  //           trackerUrl: configTrackerUrl,
+  //           success: false,
+  //         });
+  //       }
+  //     }
 
-      // // If the query parameter indicating this is a test exists, close after first request is sent
-      // closeWindowIfJsTrackingCodeInstallCheck();
-    }, 50);
-  }
+  //     // // If the query parameter indicating this is a test exists, close after first request is sent
+  //     // closeWindowIfJsTrackingCodeInstallCheck();
+  //   }, 50);
+  // }
 
   function heartBeatOnFocus() {
     hadWindowFocusAtLeastOnce = true;
@@ -842,7 +845,7 @@ export function Tracker(trackerUrl, siteId) {
   }
 
   function supportsClientHints() {
-    // Not widely supported - https://developer.mozilla.org/en-US/docs/Web/API/Navigator/userAgentData
+    // [bcr] Not widely supported - https://developer.mozilla.org/en-US/docs/Web/API/Navigator/userAgentData
     return (
       // @ts-ignore
       h.isDefined(navigator.userAgentData) &&
@@ -1068,20 +1071,22 @@ export function Tracker(trackerUrl, siteId) {
       makeSureThereIsAGapAfterFirstTrackingRequestToPreventMultipleVisitorCreation(
         function () {
           if (
-            configAlwaysUseSendBeacon &&
+            // [bcr] we always use beacon
+            // configAlwaysUseSendBeacon &&
             sendPostRequestViaSendBeacon(request, true, callback)
           ) {
             h.setExpireDateTime(100);
             return;
           }
 
-          if (shouldForcePost(request)) {
-            sendXmlHttpRequest(request, undefined, callback);
+          // [bcr] we always use beacon
+          // if (shouldForcePost(request)) {
+          //   sendXmlHttpRequest(request, undefined, callback);
           // } else {
           //   getImage(request, callback);
-          }
-
-          h.setExpireDateTime(delay);
+          // }
+          //
+          // h.setExpireDateTime(delay);
         },
       );
     }
@@ -1133,22 +1138,24 @@ export function Tracker(trackerUrl, siteId) {
       function () {
         const chunks = h.arrayChunk(requests, 50);
 
-        let i = 0,
-          bulk;
-        for (i; i < chunks.length; i++) {
+        let bulk;
+
+        for (let i = 0; i < chunks.length; i++) {
           bulk =
             '{"requests":["?' +
             injectBrowserFeaturesAndClientHints(chunks[i]).join('","?') +
             '"],"send_image":0}';
           if (
-            configAlwaysUseSendBeacon &&
+            // [bcr] we always use beacon
+            // configAlwaysUseSendBeacon &&
             sendPostRequestViaSendBeacon(bulk, false, null)
           ) {
             // makes sure to load the next page faster by not waiting as long
             // we apply this once we know send beacon works
             h.setExpireDateTime(100);
-          } else {
-            sendXmlHttpRequest(bulk, false, null);
+          // [bcr] we always use beacon
+          // } else {
+          //   sendXmlHttpRequest(bulk, false, null);
           }
         }
 
@@ -1157,6 +1164,7 @@ export function Tracker(trackerUrl, siteId) {
     );
   }
 
+  // [bcr] siteId not relevant for us
   // function setSiteId(siteId) {
   //   configTrackerSiteId = siteId;
   // }
@@ -2405,52 +2413,60 @@ export function Tracker(trackerUrl, siteId) {
    * @param {() => void} callback
    */
   function trackCallback(callback) {
-    var isPreRendered,
-      i,
-      // Chrome 13, IE10, FF10
-      prefixes = ["", "webkit", "ms", "moz"],
-      prefix;
+    /**
+     * [bcr] It's unclear to me how this function is working. According to the ECMA specification, `document.visibilityState` will never be "prerender".
+     * `WindowClient.visibilityState` can be "prerender", but this function is only looking at `document`.
+     * So as far as I can tell, `isPreRendered` is never true.
+     * It may be that "document.webkitVisibilityState" etc. were introduced before `document.visibilityState` was standardized, and those _could_ return "prerender".
+     *
+     * https://developer.mozilla.org/en-US/docs/Web/API/Document/visibilityState
+     */
 
-    if (!configCountPreRendered) {
-      for (i = 0; i < prefixes.length; i++) {
-        prefix = prefixes[i];
+    // let isPreRendered;
 
-        // does this browser support the page visibility API?
-        if (
-          Object.prototype.hasOwnProperty.call(
-            document,
-            prefixPropertyName(prefix, "hidden"),
-          )
-        ) {
-          // if pre-rendered, then defer callback until page visibility changes
-          if (
-            document[
-              prefixPropertyName(prefix, "visibilityState")
-            ] === "prerender"
-          ) {
-            isPreRendered = true;
-          }
-          break;
-        }
-      }
-    }
+    // // Chrome 13, IE10, FF10
+    // const prefixes = ["", "webkit", "ms", "moz"];
+    // let prefix;
 
-    if (isPreRendered) {
-      // note: the event name doesn't follow the same naming convention as vendor properties
-      document.addEventListener(
-        prefix + "visibilitychange",
-        function ready() {
-          document.removeEventListener(
-            prefix + "visibilitychange",
-            ready,
-            false,
-          );
-          callback();
-        },
-      );
+    // if (!configCountPreRendered) {
+    //   for (let i = 0; i < prefixes.length; i++) {
+    //     prefix = prefixes[i];
 
-      return;
-    }
+    //     // does this browser support the page visibility API?
+    //     if (
+    //       Object.prototype.hasOwnProperty.call(
+    //         document,
+    //         prefixPropertyName(prefix, "hidden"),
+    //       )
+    //     ) {
+    //       // if pre-rendered, then defer callback until page visibility changes
+    //       if (document[
+    //           prefixPropertyName(prefix, "visibilityState")
+    //         ] === "prerender"
+    //       ) {
+    //         isPreRendered = true;
+    //       }
+    //       break;
+    //     }
+    //   }
+    // }
+
+    // if (isPreRendered) {
+    //   // note: the event name doesn't follow the same naming convention as vendor properties
+    //   document.addEventListener(
+    //     prefix + "visibilitychange",
+    //     function ready() {
+    //       document.removeEventListener(
+    //         prefix + "visibilitychange",
+    //         ready,
+    //         false,
+    //       );
+    //       callback();
+    //     },
+    //   );
+
+    //   return;
+    // }
 
     // configCountPreRendered === true || isPreRendered === false
     callback();
@@ -4766,6 +4782,7 @@ export function Tracker(trackerUrl, siteId) {
     configCountPreRendered = enable;
   };
 
+  // [bcr] we don't use the goals feature
   // /**
   //  * Trigger a goal
   //  *
@@ -5128,6 +5145,8 @@ export function Tracker(trackerUrl, siteId) {
     });
   };
 
+  // [bcr] we don't use any of the e-commerce features
+
   // /**
   //  * Used to record that the current page view is an item (product) page view, or a Ecommerce Category page view.
   //  * This must be called before trackPageView() on the product/category page.
@@ -5189,57 +5208,6 @@ export function Tracker(trackerUrl, siteId) {
   //   param = "_pkn";
   //   ecommerceProductView[param] = name;
   // };
-
-  /**
-   * Track form submission events
-   *
-   * @noreturn
-   */
-  this.enableFormTracking = function () {
-    if (formTrackingEnabled) {
-      return;
-    }
-    formTrackingEnabled = true;
-
-    if (!formTrackerInstalled) {
-      formTrackerInstalled = true;
-      h.trackCallbackOnReady(function () {
-        document.body.addEventListener(
-          "submit",
-          function (event) {
-            if (!event.target) {
-              return;
-            }
-            const target = event.target;
-            if (target.nodeName === "FORM") {
-              const formAction =
-                target.getAttribute("action") ||
-                window.location.href;
-
-              logEvent(
-                // TODO: details
-                "form",
-                "submit",
-                "form submitted",
-                formAction,
-                {
-                  // custom data
-                  event: "FormSubmit",
-                  formElement: target.outerHtml,
-                  formElementId: target.getAttribute("id"),
-                  formElementName: target.getAttribute("name"),
-                  formElementClasses: target.className.split(" "),
-                  formElementAction: formAction,
-                },
-                undefined, // callback
-              );
-            }
-          },
-          true,
-        );
-      });
-    }
-  };
 
   // /**
   //  * Returns the list of ecommerce items that will be sent when a cart update or order is tracked.
@@ -5336,7 +5304,58 @@ export function Tracker(trackerUrl, siteId) {
   //   logEcommerceCartUpdate(grandTotal);
   // };
 
-  /**
+    /**
+   * Track form submission events
+   *
+   * @noreturn
+   */
+    this.enableFormTracking = function () {
+      if (formTrackingEnabled) {
+        return;
+      }
+      formTrackingEnabled = true;
+
+      if (!formTrackerInstalled) {
+        formTrackerInstalled = true;
+        h.trackCallbackOnReady(function () {
+          document.body.addEventListener(
+            "submit",
+            function (event) {
+              if (!event.target) {
+                return;
+              }
+              const target = event.target;
+              if (target.nodeName === "FORM") {
+                const formAction =
+                  target.getAttribute("action") ||
+                  window.location.href;
+
+                logEvent(
+                  // TODO: details
+                  "form",
+                  "submit",
+                  "form submitted",
+                  formAction,
+                  {
+                    // custom data
+                    event: "FormSubmit",
+                    formElement: target.outerHtml,
+                    formElementId: target.getAttribute("id"),
+                    formElementName: target.getAttribute("name"),
+                    formElementClasses: target.className.split(" "),
+                    formElementAction: formAction,
+                  },
+                  undefined, // callback
+                );
+              }
+            },
+            true,
+          );
+        });
+      }
+    };
+
+    /**
    * Sends a tracking request with custom request parameters.
    * eave will prepend the hostname and path to eave, as well as all other needed tracking request
    * parameters prior to sending the request. Useful eg if you track custom dimensions via a plugin.
