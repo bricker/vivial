@@ -247,10 +247,12 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
 
         for e in browser_events:
             # unique_operations.add((e.request_method, e.request_url))
-            formatted_rows.append({
-                "timestamp": time.time(),
-                **e.to_dict(),
-            })
+            formatted_rows.append(
+                {
+                    "timestamp": time.time(),
+                    **e.to_dict(),
+                }
+            )
 
         self._bq_client.append_rows(
             table=table,

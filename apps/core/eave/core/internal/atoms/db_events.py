@@ -1,5 +1,5 @@
 from textwrap import dedent
-from typing import Any, override
+from typing import Any, cast, override
 
 from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
 
@@ -139,10 +139,17 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
                     # TODO: handle noSQL
                     raise NotImplementedError("noSQL not implemented")
 
-        self._bq_client.append_rows(
+        LOGGER.debug(
+            "inserting records", {"table": table.table_id, "dataset": table.dataset_id, "rows": formatted_rows}
+        )
+
+        result = self._bq_client.append_rows(
             table=table,
             rows=formatted_rows,
         )
+
+        result = cast(list[dict[str, Any]], result)
+        LOGGER.debug("insert results", {"table": table.table_id, "dataset": table.dataset_id, "result": result})
 
         # FIXME: This is vulnerable to a DoS where unique `table_name` is generated and inserted on a loop.
         for operation, table_name in unique_operations:

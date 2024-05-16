@@ -1,6 +1,6 @@
 import json
 from collections.abc import Mapping, Sequence
-from typing import Any, Dict
+from typing import Any
 
 import google.api_core.exceptions
 from google.cloud import bigquery

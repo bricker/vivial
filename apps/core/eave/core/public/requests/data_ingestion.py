@@ -1,4 +1,3 @@
-import aiohttp
 from asgiref.typing import HTTPScope
 from starlette.requests import Request
 from starlette.responses import Response
@@ -25,19 +24,11 @@ class BrowserDataIngestionEndpoint(HTTPEndpoint):
         # origin_header = get_header_value_or_exception(scope=scope, name=aiohttp.hdrs.ORIGIN)
 
         # body = await request.json()
-        qp = request.query_params._dict
+        qp = request.query_params._dict  # noqa: SLF001
         print(qp)
         client_id = qp["eaveClientId"]
 
-        body = {
-            "events": {
-                "browser_event": [
-                    {
-                        **qp
-                    }
-                ]
-            }
-        }
+        body = {"events": {"browser_event": [{**qp}]}}
 
         input = DataIngestRequestBody.from_json(data=body)
 
