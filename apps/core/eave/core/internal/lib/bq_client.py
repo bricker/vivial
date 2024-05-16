@@ -55,8 +55,8 @@ class BigQueryClient:
         return self._bq_client.insert_rows(
             table=table,
             rows=rows,
-            ignore_unknown_values=False,  # error if any row contains unknown values
-            skip_invalid_rows=False,  # error if any row is invalid
+            ignore_unknown_values=True,  # do not error if any row contains unknown values
+            skip_invalid_rows=True,  # do not error if any row is invalid
         )
 
     def query(self, *, query: str) -> RowIterator:

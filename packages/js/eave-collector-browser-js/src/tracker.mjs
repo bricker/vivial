@@ -2091,7 +2091,8 @@ export function Tracker(trackerUrl, siteId) {
 
   function buildEventRequest(category, action, name, value) {
     return (
-      "e_c=" +
+      "e_ts=" + new Date().getTime() / 1000,
+      "&e_c=" +
       globalThis.eave.encodeWrapper(category) +
       "&e_a=" +
       globalThis.eave.encodeWrapper(action) +
