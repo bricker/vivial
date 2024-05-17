@@ -1,6 +1,7 @@
 import time
 from collections.abc import Callable
 from contextlib import contextmanager
+import re
 from typing import Any
 
 from django.db.backends.utils import CursorWrapper
@@ -13,6 +14,9 @@ from eave.collectors.core.write_queue import WriteQueue
 
 class EaveCursorWrapper(CursorWrapper):
     # altered from django.db.backends.utils.CursorDebugWrapper
+
+    _leading_comment_remover = re.compile(r"^/\*.*?\*/")
+    _white_space_reducer = re.compile(r"\s+")
 
     def __init__(self, write_queue: WriteQueue, cursor: Any, db: Any) -> None:
         super().__init__(cursor, db)
@@ -28,39 +32,67 @@ class EaveCursorWrapper(CursorWrapper):
 
     @contextmanager
     def capture_sql(self, sql=None, params=None, use_last_executed_query=False, many=False):
-        start = time.monotonic()
+        # start = time.monotonic()
         try:
             # yield execution to wrapped context
             yield
         finally:
-            stop = time.monotonic()
-            duration = stop - start
+            # stop = time.monotonic()
+            # duration = stop - start
             if use_last_executed_query:
                 sql = self.db.ops.last_executed_query(self.cursor, sql, params)
-            try:
-                times = len(params) if many else ""
-            except TypeError:
-                # params could be an iterator.
-                times = "?"
+            # try:
+            #     times = len(params) if many else ""
+            # except TypeError:
+            #     # params could be an iterator.
+            #     times = "?"
 
-            record = DatabaseEventPayload(
-                timestamp=time.time(),
-                db_structure=DatabaseStructure.SQL,
-                operation=DatabaseOperation.INSERT,  # TODO: parse op from sql
-                db_name=self.db.alias,
-                statement=sql,
-                table_name="TODO",  # TODO: parse table name from sql
-                parameters=params,  # TODO: params is usually None; django doesnt remove param values from the statement
-                context=corr_ctx.to_dict(),
-            )
+            if sql is not None:
+                sql = self._leading_comment_remover.sub("", sql)
+                sql = self._white_space_reducer.sub(" ", sql)
 
-            self.write_queue.put(record)
+                op = self._get_operation_name(sql)
+                table_name = self._get_table_name(sql, op)
+
+                record = DatabaseEventPayload(
+                    timestamp=time.time(),
+                    db_structure=DatabaseStructure.SQL,
+                    operation=op,
+                    db_name=self.db.alias,
+                    statement=sql,
+                    table_name=table_name,
+                    parameters=params,  # TODO: params is usually None; django doesnt remove param values from the statement
+                    context=corr_ctx.to_dict(),
+                )
+
+                self.write_queue.put(record)
             # print(
             #     {
             #         "sql": "%s times: %s" % (times, sql) if many else sql,
             #         "time": "%.3f" % duration,
             #     }
             # )
+
+    def _get_operation_name(self, sql: str) -> DatabaseOperation:
+        op_str = sql.split()[0]
+        return DatabaseOperation.from_str(op_str) or DatabaseOperation.UNKNOWN
+
+    def _get_table_name(self, sql: str, op: DatabaseOperation) -> str:
+        unknown = "__unknown"  # TODO: placeholder?
+        parts = sql.split()
+
+        match op:
+            case DatabaseOperation.SELECT:
+                for i, part in enumerate(parts):
+                    if part.upper() == "FROM" and len(parts) > i + 1:
+                        return parts[i + 1]
+            case DatabaseOperation.INSERT | DatabaseOperation.DELETE:
+                if len(parts) >= 3:
+                    return parts[2]
+            case DatabaseOperation.UPDATE:
+                if len(parts) >= 2:
+                    return parts[1]
+        return unknown
 
 
 class DjangoOrmCollector(BaseCollector):
