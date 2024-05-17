@@ -24,249 +24,270 @@ export function Tracker(trackerUrl, siteId) {
    * Private members
    ************************************************************/
 
-  var /*<DEBUG>*/
-    /*
-     * registered test hooks
-     */
-    registeredHooks = {},
-    /*</DEBUG>*/
+  /*<DEBUG>*/
+  /*
+    * registered test hooks
+    */
+  const registeredHooks = {};
+  /*</DEBUG>*/
 
-    // constants
-    trackerInstance = this,
-    // Current URL and Referrer URL
-    locationArray = h.urlFixup(
-      document.domain,
-      window.location.href,
-      h.getReferrer(),
-    ),
-    domainAlias = h.domainFixup(locationArray[0]),
-    configReferrerUrl = h.safeDecodeWrapper(locationArray[2]),
-    enableJSErrorTracking = false,
-    defaultRequestMethod = "GET",
-    // Request method (GET or POST)
-    configRequestMethod = defaultRequestMethod,
-    defaultRequestContentType =
-      "application/x-www-form-urlencoded; charset=UTF-8",
-    // Request Content-Type header value; applicable when POST request method is used for submitting tracking events
-    configRequestContentType = defaultRequestContentType,
-    // Tracker URL
-    configTrackerUrl = trackerUrl || "",
-    // This string is appended to the Tracker URL Request (eg. to send data that is not handled by the existing setters/getters)
-    configAppendToTrackingUrl = "",
-    // setPagePerformanceTiming sets this manually for SPAs
-    customPagePerformanceTiming = "",
-    // Site ID
-    configTrackerSiteId = siteId || "",
-    // Document title
-    configTitle = "",
-    // Extensions to be treated as download links
-    configDownloadExtensions = [
-      "7z",
-      "aac",
-      "apk",
-      "arc",
-      "arj",
-      "asc",
-      "asf",
-      "asx",
-      "avi",
-      "azw3",
-      "bin",
-      "csv",
-      "deb",
-      "dmg",
-      "doc",
-      "docx",
-      "epub",
-      "exe",
-      "flv",
-      "gif",
-      "gz",
-      "gzip",
-      "hqx",
-      "ibooks",
-      "jar",
-      "jpg",
-      "jpeg",
-      "js",
-      "md5",
-      "mobi",
-      "mp2",
-      "mp3",
-      "mp4",
-      "mpg",
-      "mpeg",
-      "mov",
-      "movie",
-      "msi",
-      "msp",
-      "odb",
-      "odf",
-      "odg",
-      "ods",
-      "odt",
-      "ogg",
-      "ogv",
-      "pdf",
-      "phps",
-      "png",
-      "ppt",
-      "pptx",
-      "qt",
-      "qtm",
-      "ra",
-      "ram",
-      "rar",
-      "rpm",
-      "rtf",
-      "sea",
-      "sha",
-      "sha256",
-      "sha512",
-      "sig",
-      "sit",
-      "tar",
-      "tbz",
-      "tbz2",
-      "bz",
-      "bz2",
-      "tgz",
-      "torrent",
-      "txt",
-      "wav",
-      "wma",
-      "wmv",
-      "wpd",
-      "xls",
-      "xlsx",
-      "xml",
-      "xz",
-      "z",
-      "zip",
-    ],
-    // Hosts or alias(es) to not treat as outlinks
-    configHostsAlias = [domainAlias],
-    // HTML anchor element classes to not track
-    configIgnoreClasses = [],
-    // Referrer URLs that should be excluded
-    configExcludedReferrers = [".paypal.com"],
-    // Query parameters to be excluded
-    configExcludedQueryParams = [],
-    // HTML anchor element classes to treat as downloads
-    configDownloadClasses = [],
-    // Maximum delay to wait for web bug image to be fetched (in milliseconds)
-    configTrackerPause = 500,
-    // If enabled, always use sendBeacon if the browser supports it
-    configAlwaysUseSendBeacon = true,
-    // Recurring heart beat after initial ping (in milliseconds)
-    configHeartBeatDelay,
-    // alias to circumvent circular function dependency (JSLint requires this)
-    heartBeatPingIfActivityAlias,
-    // Disallow hash tags in URL
-    configDiscardHashTag,
-    // Custom data
-    configCustomData,
-    // the URL parameter that will store the visitorId if cross domain linking is enabled
-    // ev_vid = visitor ID
-    // first part of this URL parameter will be 16 char visitor Id.
-    // The second part is the 10 char current timestamp and the third and last part will be a 6 characters deviceId
-    // timestamp is needed to prevent reusing the visitorId when the URL is shared. The visitorId will be
-    // only reused if the timestamp is less than 45 seconds old.
-    // deviceId parameter is needed to prevent reusing the visitorId when the URL is shared. The visitorId
-    // will be only reused if the device is still the same when opening the link.
-    // VDI = visitor device identifier
-    configVisitorIdUrlParameter = "ev_vid",
-    configReferralQueryParamsKey = "referrer_query_params",
-    configReferralTimestampKey = "referrer_timestamp",
-    configReferralUrlKey = "referrer_url",
-    // Is performance tracking enabled
-    configPerformanceTrackingEnabled = true,
-    // will be set to true automatically once the onload event has finished
-    performanceAvailable = false,
-    // indicates if performance metrics for the page view have been sent with a request
-    performanceTracked = false,
-    // Whether Custom Variables scope "visit" should be stored in a cookie during the time of the visit
-    configStoreCustomVariablesInCookie = false,
-    // Custom Variables read from cookie, scope "visit"
-    customVariables = false,
-    configCustomRequestContentProcessing,
-    // Do Not Track
-    configDoNotTrack,
-    // Count sites which are pre-rendered
-    configCountPreRendered,
-    // Enable sending campaign parameters to backend.
-    configEnableCampaignParameters = true,
-    // Custom Variables, scope "page"
-    customVariablesPage = {},
-    // Custom Variables, scope "event"
-    customVariablesEvent = {},
-    // Custom Dimensions (can be any scope)
-    customDimensions = {},
-    // Custom Variables names and values are each truncated before being sent in the request or recorded in the cookie
-    customVariableMaximumLength = 200,
-    // // Ecommerce product view
-    // ecommerceProductView = {},
-    // // Ecommerce items
-    // ecommerceItems = {},
-    // Browser features via client-side data collection
-    browserFeatures = {},
-    // Browser client hints
-    clientHints = {},
-    clientHintsRequestQueue = [],
-    clientHintsResolved = false,
-    clientHintsResolving = false,
-    // Keeps track of previously tracked content impressions
-    trackedContentImpressions = [],
-    isTrackOnlyVisibleContentEnabled = false,
-    // Guard to prevent empty visits see #6415. If there is a new visitor and the first 2 (or 3 or 4)
-    // tracking requests are at nearly same time (eg trackPageView and trackContentImpression) 2 or more
-    // visits will be created
-    timeNextTrackingRequestCanBeExecutedImmediately = -1,
-    // Guard against installing the link tracker more than once per Tracker instance
-    clickListenerInstalled = false,
-    linkTrackingEnabled = false,
-    imageClickTrackingEnabled = false,
-    crossDomainTrackingEnabled = false,
-    // Guard against installing route history tracker more than once per instance
-    routeHistoryTrackingEnabled = false,
-    // Guard against installing button click tracker more than once per instance
-    buttonClickTrackingEnabled = false,
-    // Guard against double installing form tracking
-    formTrackingEnabled = false,
-    formTrackerInstalled = false,
-    // Guard against installing the activity tracker more than once per Tracker instance
-    heartBeatSetUp = false,
-    hadWindowFocusAtLeastOnce = false,
-    timeWindowLastFocused = null,
-    // Timestamp of last tracker request sent to eave
-    lastTrackerRequestTime = null,
-    // Internal state of the pseudo click handler
-    lastButton,
-    lastTarget,
-    configIdPageView,
-    // Boolean indicating that a page view ID has been set manually
-    configIdPageViewSetManually = false,
-    // we measure how many pageviews have been tracked so plugins can use it to eg detect if a
-    // pageview was already tracked or not
-    numTrackedPageviews = 0,
-    // whether requireConsent() was called or not
-    configConsentRequired = false,
-    // we always have the concept of consent. by default consent is assumed unless the end user removes it,
-    // or unless a eave user explicitly requires consent (via requireConsent())
-    configHasConsent = null, // initialized below
-    // holds all pending tracking requests that have not been tracked because we need consent
-    consentRequestsQueue = [],
-    // holds the actual javascript errors if enableJSErrorTracking is on, if the very same error is
-    // happening multiple times, then it will be tracked only once within the same page view
-    javaScriptErrors = [],
-    // a unique ID for this tracker during this request
-    uniqueTrackerId = eaveWindow.eave.trackerIdCounter++,
-    // whether a tracking request has been sent yet during this page view
-    hasSentTrackingRequestYet = false,
-    configBrowserFeatureDetection = true,
-    cookieManager = new CookieManager(),
-    configFileTracking = false,
-    eaveClientId = null;
+  // constants
+  const trackerInstance = this;
+  // Current URL and Referrer URL
+  const locationArray = h.urlFixup(
+    document.domain,
+    window.location.href,
+    h.getReferrer(),
+  );
+  const domainAlias = h.domainFixup(locationArray[0]);
+  const configReferrerUrl = h.safeDecodeWrapper(locationArray[2]);
+  let enableJSErrorTracking = false;
+  const defaultRequestMethod = "GET";
+  // Request method (GET or POST)
+  let configRequestMethod = defaultRequestMethod;
+  const defaultRequestContentType = "application/x-www-form-urlencoded; charset=UTF-8";
+  // Request Content-Type header value; applicable when POST request method is used for submitting tracking events
+  const configRequestContentType = defaultRequestContentType;
+  // Tracker URL
+  let configTrackerUrl = trackerUrl || "";
+  // This string is appended to the Tracker URL Request (eg. to send data that is not handled by the existing setters/getters)
+  let configAppendToTrackingUrl = "";
+  // setPagePerformanceTiming sets this manually for SPAs
+  let customPagePerformanceTiming = "";
+  // Site ID
+  const configTrackerSiteId = siteId || "";
+  // Document title
+  let configTitle = "";
+  // Extensions to be treated as download links
+  let configDownloadExtensions = [
+    "7z",
+    "aac",
+    "apk",
+    "arc",
+    "arj",
+    "asc",
+    "asf",
+    "asx",
+    "avi",
+    "azw3",
+    "bin",
+    "csv",
+    "deb",
+    "dmg",
+    "doc",
+    "docx",
+    "epub",
+    "exe",
+    "flv",
+    "gif",
+    "gz",
+    "gzip",
+    "hqx",
+    "ibooks",
+    "jar",
+    "jpg",
+    "jpeg",
+    "js",
+    "md5",
+    "mobi",
+    "mp2",
+    "mp3",
+    "mp4",
+    "mpg",
+    "mpeg",
+    "mov",
+    "movie",
+    "msi",
+    "msp",
+    "odb",
+    "odf",
+    "odg",
+    "ods",
+    "odt",
+    "ogg",
+    "ogv",
+    "pdf",
+    "phps",
+    "png",
+    "ppt",
+    "pptx",
+    "qt",
+    "qtm",
+    "ra",
+    "ram",
+    "rar",
+    "rpm",
+    "rtf",
+    "sea",
+    "sha",
+    "sha256",
+    "sha512",
+    "sig",
+    "sit",
+    "tar",
+    "tbz",
+    "tbz2",
+    "bz",
+    "bz2",
+    "tgz",
+    "torrent",
+    "txt",
+    "wav",
+    "wma",
+    "wmv",
+    "wpd",
+    "xls",
+    "xlsx",
+    "xml",
+    "xz",
+    "z",
+    "zip",
+  ];
+  // Hosts or alias(es) to not treat as outlinks
+  let configHostsAlias = [domainAlias];
+  // HTML anchor element classes to not track
+  let configIgnoreClasses = [];
+  // Referrer URLs that should be excluded
+  let configExcludedReferrers = [".paypal.com"];
+  // Query parameters to be excluded
+  let configExcludedQueryParams = [];
+  // HTML anchor element classes to treat as downloads
+  let configDownloadClasses = [];
+  // Maximum delay to wait for web bug image to be fetched (in milliseconds)
+  let configTrackerPause = 500;
+  // If enabled, always use sendBeacon if the browser supports it
+  let configAlwaysUseSendBeacon = true;
+  // Recurring heart beat after initial ping (in milliseconds)
+  let configHeartBeatDelay;
+  // alias to circumvent circular function dependency (JSLint requires this)
+  let heartBeatPingIfActivityAlias;
+  // Disallow hash tags in URL
+  let configDiscardHashTag;
+  // Custom data
+  let configCustomData;
+  // the URL parameter that will store the visitorId if cross domain linking is enabled
+  // ev_vid = visitor ID
+  // first part of this URL parameter will be 16 char visitor Id.
+  // The second part is the 10 char current timestamp and the third and last part will be a 6 characters deviceId
+  // timestamp is needed to prevent reusing the visitorId when the URL is shared. The visitorId will be
+  // only reused if the timestamp is less than 45 seconds old.
+  // deviceId parameter is needed to prevent reusing the visitorId when the URL is shared. The visitorId
+  // will be only reused if the device is still the same when opening the link.
+  // VDI = visitor device identifier
+  const configVisitorIdUrlParameter = "ev_vid";
+  const configReferralQueryParamsKey = "referrer_query_params";
+  const configReferralTimestampKey = "referrer_timestamp";
+  const configReferralUrlKey = "referrer_url";
+  // Is performance tracking enabled
+  let configPerformanceTrackingEnabled = true;
+  // will be set to true automatically once the onload event has finished
+  let performanceAvailable = false;
+  // indicates if performance metrics for the page view have been sent with a request
+  let performanceTracked = false;
+  // Whether Custom Variables scope "visit" should be stored in a cookie during the time of the visit
+  let configStoreCustomVariablesInCookie = false;
+  // Custom Variables read from cookie, scope "visit"
+  let customVariables = false;
+  let configCustomRequestContentProcessing;
+  // Do Not Track
+  let configDoNotTrack;
+  // Count sites which are pre-rendered
+  let configCountPreRendered;
+  // Enable sending campaign parameters to backend.
+  let configEnableCampaignParameters = true;
+  // Custom Variables, scope "page"
+  let customVariablesPage = {};
+  // Custom Variables, scope "event"
+  let customVariablesEvent = {};
+  // Custom Dimensions (can be any scope)
+  const customDimensions = {};
+  // Custom Variables names and values are each truncated before being sent in the request or recorded in the cookie
+  const customVariableMaximumLength = 200;
+  // // Ecommerce product view
+  // ecommerceProductView = {},
+  // // Ecommerce items
+  // ecommerceItems = {},
+
+  /**
+   * Browser features via client-side data collection
+   *
+   * @type {{[key:string]: string}}
+   */
+  let browserFeatures = {};
+
+  /**
+   * Browser client hints
+   *
+   * @type {{[key:string]: string}}
+   */
+  let clientHints = {};
+
+  /**
+   * @type {[Types.RequestPayload, Types.RequestCallback | null | undefined][]}
+   */
+  const clientHintsRequestQueue = [];
+
+  let clientHintsResolved = false;
+  let clientHintsResolving = false;
+  // Keeps track of previously tracked content impressions
+  let trackedContentImpressions = [];
+  let isTrackOnlyVisibleContentEnabled = false;
+  // Guard to prevent empty visits see #6415. If there is a new visitor and the first 2 (or 3 or 4)
+  // tracking requests are at nearly same time (eg trackPageView and trackContentImpression) 2 or more
+  // visits will be created
+  let timeNextTrackingRequestCanBeExecutedImmediately = -1;
+  // Guard against installing the link tracker more than once per Tracker instance
+  let clickListenerInstalled = false;
+  let linkTrackingEnabled = false;
+  let imageClickTrackingEnabled = false;
+  let crossDomainTrackingEnabled = false;
+  // Guard against installing route history tracker more than once per instance
+  let routeHistoryTrackingEnabled = false;
+  // Guard against installing button click tracker more than once per instance
+  let buttonClickTrackingEnabled = false;
+  // Guard against double installing form tracking
+  let formTrackingEnabled = false;
+  let formTrackerInstalled = false;
+  // Guard against installing the activity tracker more than once per Tracker instance
+  let heartBeatSetUp = false;
+  let hadWindowFocusAtLeastOnce = false;
+  let timeWindowLastFocused = null;
+  // Timestamp of last tracker request sent to eave
+  let lastTrackerRequestTime = null;
+  // Internal state of the pseudo click handler
+  let lastButton;
+  let lastTarget;
+  let configIdPageView;
+  // Boolean indicating that a page view ID has been set manually
+  let configIdPageViewSetManually = false;
+  // we measure how many pageviews have been tracked so plugins can use it to eg detect if a
+  // pageview was already tracked or not
+  let numTrackedPageviews = 0;
+  // whether requireConsent() was called or not
+  let configConsentRequired = false;
+  // we always have the concept of consent. by default consent is assumed unless the end user removes it,
+  // or unless a eave user explicitly requires consent (via requireConsent())
+  let configHasConsent = null; // initialized below
+
+  /**
+   * holds all pending tracking requests that have not been tracked because we need consent
+   *
+   * @type {[Types.RequestPayload, Types.RequestCallback | null | undefined][]}
+   */
+  const consentRequestsQueue = [];
+
+
+  // holds the actual javascript errors if enableJSErrorTracking is on, if the very same error is
+  // happening multiple times, then it will be tracked only once within the same page view
+  let javaScriptErrors = [];
+  // a unique ID for this tracker during this request
+  const uniqueTrackerId = eaveWindow.eave.trackerIdCounter++;
+  // whether a tracking request has been sent yet during this page view
+  let hasSentTrackingRequestYet = false;
+  let configBrowserFeatureDetection = true;
+  const cookieManager = new CookieManager();
+  let configFileTracking = false;
+  let eaveClientId = null;
 
   configTitle = document.title;
 
@@ -274,74 +295,80 @@ export function Tracker(trackerUrl, siteId) {
     cookieManager.CONSENT_REMOVED_COOKIE_NAME,
   );
 
-  /**
-   * Extract pathname from URL. element.pathname is actually supported by pretty much all browsers including
-   * IE6 apart from some rare very old ones
-   *
-   * @param {string} url
-   *
-   * @returns {string}
-   */
-  function getPathName(url) {
-    const parser = document.createElement("a");
-    if (url.indexOf("//") !== 0 && url.indexOf("http") !== 0) {
-      if (url.indexOf("*") === 0) {
-        url = url.substr(1);
-      }
-      if (url.indexOf(".") === 0) {
-        url = url.substr(1);
-      }
-      url = "http://" + url;
-    }
+  // [bcr] use native URL parsing
+  // /**
+  //  * Extract pathname from URL. element.pathname is actually supported by pretty much all browsers including
+  //  * IE6 apart from some rare very old ones
+  //  *
+  //  * @param {string} url
+  //  *
+  //  * @returns {string}
+  //  */
+  // function getPathName(url) {
+  //   const parser = document.createElement("a");
+  //   if (url.indexOf("//") !== 0 && url.indexOf("http") !== 0) {
+  //     if (url.indexOf("*") === 0) {
+  //       url = url.substr(1);
+  //     }
+  //     if (url.indexOf(".") === 0) {
+  //       url = url.substr(1);
+  //     }
+  //     url = "http://" + url;
+  //   }
 
-    parser.href = content.toAbsoluteUrl(url);
+  //   parser.href = content.toAbsoluteUrl(url);
 
-    if (parser.pathname) {
-      return parser.pathname;
-    }
+  //   if (parser.pathname) {
+  //     return parser.pathname;
+  //   }
 
-    return "";
-  }
+  //   return "";
+  // }
 
-  /**
-   * Whether the specified referrer url matches one of the configured excluded referrers.
-   *
-   * @param {string} referrerUrl
-   *
-   * @returns {boolean}
-   */
-  function isReferrerExcluded(referrerUrl) {
-    var i, host, path, aliasHost, aliasPath;
+  // [bcr] we don't support this configuration
+  // /**
+  //  * Whether the specified referrer url matches one of the configured excluded referrers.
+  //  *
+  //  * @param {string} referrerUrl
+  //  *
+  //  * @returns {boolean}
+  //  */
+  // function isReferrerExcluded(referrerUrl) {
+  //   if (!referrerUrl.length || !configExcludedReferrers.length) {
+  //     return false;
+  //   }
 
-    if (!referrerUrl.length || !configExcludedReferrers.length) {
-      return false;
-    }
+  //   const url = new URL(referrerUrl);
+  //   const host = url.hostname;
+  //   const path = url.pathname;
 
-    host = h.getHostName(referrerUrl);
-    path = getPathName(referrerUrl);
+  //   // [bcr] why?
+  //   // // ignore www subdomain
+  //   // if (host.indexOf("www.") === 0) {
+  //   //   host = host.substr(4);
+  //   // }
 
-    // ignore www subdomain
-    if (host.indexOf("www.") === 0) {
-      host = host.substr(4);
-    }
+  //   let aliasHost;
+  //   let aliasPath;
 
-    for (i = 0; i < configExcludedReferrers.length; i++) {
-      aliasHost = h.domainFixup(configExcludedReferrers[i]);
-      aliasPath = getPathName(configExcludedReferrers[i]);
+  //   for (let i = 0; i < configExcludedReferrers.length; i++) {
+  //     aliasHost = h.domainFixup(configExcludedReferrers[i]);
+  //     aliasPath = getPathName(configExcludedReferrers[i]);
 
-      // ignore www subdomain
-      if (aliasHost.indexOf("www.") === 0) {
-        aliasHost = aliasHost.substr(4);
-      }
+  //     // ignore www subdomain
+  //     if (aliasHost.indexOf("www.") === 0) {
+  //       aliasHost = aliasHost.substr(4);
+  //     }
 
-      if (h.isSameHost(host, aliasHost) && h.isSitePath(path, aliasPath)) {
-        return true;
-      }
-    }
+  //     if (h.isSameHost(host, aliasHost) && h.isSitePath(path, aliasPath)) {
+  //       return true;
+  //     }
+  //   }
 
-    return false;
-  }
+  //   return false;
+  // }
 
+  // [bcr] we don't support install check feature
   // /**
   //  * Checks if the special query parameter was included in the current URL indicating this
   //  * is supposed to be a tracking code install test.
@@ -380,6 +407,7 @@ export function Tracker(trackerUrl, siteId) {
   //   }
   // }
 
+  // [bcr] we don't support pixel impressions
   // /*
   //  * Send image request to eave server using GET.
   //  * The infamous web bug (or beacon) is a transparent, single pixel (1x1) image
@@ -416,20 +444,21 @@ export function Tracker(trackerUrl, siteId) {
   //   closeWindowIfJsTrackingCodeInstallCheck();
   // }
 
-  /**
-   * @param {string} request
-   *
-   * @returns {boolean}
-   */
-  function shouldForcePost(request) {
-    if (configRequestMethod === "POST") {
-      return true;
-    }
-    // we force long single request urls and bulk requests over post
-    return (
-      !!request && (request.length > 2000 || request.indexOf('{"requests"') === 0)
-    );
-  }
+  // [bcr] we only ever use beacon
+  // /**
+  //  * @param {string} request
+  //  *
+  //  * @returns {boolean}
+  //  */
+  // function shouldForcePost(request) {
+  //   if (configRequestMethod === "POST") {
+  //     return true;
+  //   }
+  //   // we force long single request urls and bulk requests over post
+  //   return (
+  //     !!request && (request.length > 2000 || request.indexOf('{"requests"') === 0)
+  //   );
+  // }
 
   // [bcr] Supported in all major browsers.
   // function supportsSendBeacon() {
@@ -441,13 +470,12 @@ export function Tracker(trackerUrl, siteId) {
   // }
 
   /**
-   * @param {string} request
-   * @param {boolean} [fallbackToGet]
+   * @param {Types.RequestPayload[]} payloads
    * @param {Types.RequestCallback | null} [callback]
    *
    * @returns {boolean}
    */
-  function sendPostRequestViaSendBeacon(request, fallbackToGet, callback) {
+  function sendPostRequestViaSendBeacon(payloads, callback) {
     // [bcr] supported in all major browsers
     // let isSupported = supportsSendBeacon();
 
@@ -460,14 +488,25 @@ export function Tracker(trackerUrl, siteId) {
     };
     let success = false;
 
-    let url = configTrackerUrl;
+    const url = configTrackerUrl;
 
     try {
-      let blob = new Blob([request], headers);
+      const json = JSON.stringify({
+        events: {
+          browser_event: payloads,
+        }
+      });
 
-      if (fallbackToGet && !shouldForcePost(request)) {
-        blob = new Blob([], headers);
-        url = url + (url.indexOf("?") < 0 ? "?" : "&") + request;
+      const blob = new Blob([json], headers);
+
+      // [bcr] we only support POST
+      // if (fallbackToGet && !shouldForcePost(request)) {
+      //   blob = new Blob([], headers);
+      //   url = url + (url.indexOf("?") < 0 ? "?" : "&") + request;
+      // }
+
+      if (configDoNotTrack) {
+        return false;
       }
 
       success = navigator.sendBeacon(url, blob);
@@ -479,13 +518,15 @@ export function Tracker(trackerUrl, siteId) {
 
     if (success && callback) {
       callback({
-        request: request,
+        payload,
         trackerUrl: configTrackerUrl,
         success: true,
-        isSendBeacon: true,
+        // [bcr] we always use beacon
+        // isSendBeacon: true,
       });
     }
 
+    // [bcr] check feature not currently supported
     // // If the query parameter indicating this is a test exists, close after first request is sent
     // closeWindowIfJsTrackingCodeInstallCheck();
 
@@ -814,34 +855,26 @@ export function Tracker(trackerUrl, siteId) {
   }
 
   /**
-   * @param {string | string[]} request
-   * @returns {string | string[]} the modified request
+   * Modifies the input to add browser feature and client hint attributes.
+   *
+   * @param {Types.RequestPayload} payload
+   *
+   * @noreturn
    */
-  function injectBrowserFeaturesAndClientHints(request) {
-    let appendix = "";
-    let bfAppendix = "";
+  function injectBrowserFeaturesAndClientHints(payload) {
+    payload.browserFeatures = browserFeatures;
+    payload.uadata = clientHints;
 
-    for (const i of Object.keys(browserFeatures)) {
-      bfAppendix += "&" + i + "=" + browserFeatures[i];
-    }
+    // [bcr] unnecessary
+    // if (request instanceof Array) {
+    //   for (let i = 0; i < request.length; i++) {
+    //     request[i] += appendix + bfAppendix;
+    //   }
+    // } else {
+    // request += appendix + bfAppendix;
+    // }
 
-    if (clientHints) {
-      appendix =
-        "&uadata=" +
-        encodeURIComponent(
-          JSON.stringify(clientHints),
-        );
-    }
-
-    if (request instanceof Array) {
-      for (let i = 0; i < request.length; i++) {
-        request[i] += appendix + bfAppendix;
-      }
-    } else {
-      request += appendix + bfAppendix;
-    }
-
-    return request;
+    return payload;
   }
 
   function supportsClientHints() {
@@ -944,12 +977,14 @@ export function Tracker(trackerUrl, siteId) {
    * Is the host local? (i.e., not an outlink)
    *
    * @param {string} hostName
+   *
    * @returns {boolean}
    */
   function isSiteHostName(hostName) {
-    var i, alias, offset;
+    let alias;
+    let offset;
 
-    for (i = 0; i < configHostsAlias.length; i++) {
+    for (let i = 0; i < configHostsAlias.length; i++) {
       alias = h.domainFixup(configHostsAlias[i].toLowerCase());
 
       if (hostName === alias) {
@@ -982,9 +1017,10 @@ export function Tracker(trackerUrl, siteId) {
    * @returns {boolean}
    */
   function isSiteHostPath(host, path) {
-    var i, aliasHost, aliasPath;
+    let aliasHost;
+    let aliasPath;
 
-    for (i = 0; i < configHostsAlias.length; i++) {
+    for (let i = 0; i < configHostsAlias.length; i++) {
       aliasHost = h.domainFixup(configHostsAlias[i]);
       aliasPath = getPathName(configHostsAlias[i]);
 
@@ -1034,18 +1070,18 @@ export function Tracker(trackerUrl, siteId) {
   /**
    * Send request
    *
-   * @param {string} request
+   * @param {Types.RequestPayload} payload
    * @param {number} delay
    * @param {Types.RequestCallback | null} [callback]
    */
-  function sendRequest(request, delay, callback) {
+  function sendRequest(payload, delay, callback) {
     if (eaveClientId) {
-      request += "&eaveClientId=" + eaveClientId;
+      payload.eaveClientId = eaveClientId
     }
 
     refreshConsentStatus();
     if (!configHasConsent) {
-      consentRequestsQueue.push([request, callback]);
+      consentRequestsQueue.push([payload, callback]);
       return;
     }
 
@@ -1054,26 +1090,26 @@ export function Tracker(trackerUrl, siteId) {
       !clientHintsResolved &&
       supportsClientHints()
     ) {
-      clientHintsRequestQueue.push([request, callback]);
+      clientHintsRequestQueue.push([payload, callback]);
       return;
     }
 
     hasSentTrackingRequestYet = true;
 
-    if (!configDoNotTrack && request) {
+    if (!configDoNotTrack) {
       if (configConsentRequired && configHasConsent) {
         // send a consent=1 when explicit consent is given for the apache logs
-        request += "&consent=1";
+        payload.consent = "1";
       }
 
-      request = injectBrowserFeaturesAndClientHints(request);
+      injectBrowserFeaturesAndClientHints(payload);
 
       makeSureThereIsAGapAfterFirstTrackingRequestToPreventMultipleVisitorCreation(
         function () {
           if (
             // [bcr] we always use beacon
             // configAlwaysUseSendBeacon &&
-            sendPostRequestViaSendBeacon(request, true, callback)
+            sendPostRequestViaSendBeacon(payload, callback)
           ) {
             h.setExpireDateTime(100);
             return;
@@ -1095,26 +1131,29 @@ export function Tracker(trackerUrl, siteId) {
     }
   }
 
-  /**
-   * @param {string[]} requests
-   * @returns {boolean}
-   */
-  function canSendBulkRequest(requests) {
-    if (configDoNotTrack) {
-      return false;
-    }
+  // [bcr] unnecessary helper function
+  // /**
+  //  * @param {string[]} requests
+  //  * @returns {boolean}
+  //  */
+  // function canSendBulkRequest(requests) {
+  //   if (configDoNotTrack) {
+  //     return false;
+  //   }
 
-    return requests.length > 0;
-  }
+  //   return requests.length > 0;
+  // }
 
   /**
    * Send requests using bulk
    *
-   * @param {string[]} requests
+   * @param {Types.RequestPayload[]} payloads
    * @param {number} delay
+   *
+   * @noreturn
    */
-  function sendBulkRequest(requests, delay) {
-    if (!canSendBulkRequest(requests)) {
+  function sendBulkRequest(payloads, delay) {
+    if (payloads.length === 0) {
       return;
     }
 
@@ -1123,12 +1162,16 @@ export function Tracker(trackerUrl, siteId) {
       !clientHintsResolved &&
       supportsClientHints()
     ) {
-      clientHintsRequestQueue.push([requests, null]);
+      for (const payload of payloads) {
+        clientHintsRequestQueue.push([payload, null]);
+      }
       return;
     }
 
     if (!configHasConsent) {
-      consentRequestsQueue.push([requests, null]);
+      for (const payload of payloads) {
+        consentRequestsQueue.push([payload, null]);
+      }
       return;
     }
 
@@ -1148,7 +1191,7 @@ export function Tracker(trackerUrl, siteId) {
           if (
             // [bcr] we always use beacon
             // configAlwaysUseSendBeacon &&
-            sendPostRequestViaSendBeacon(bulk, false, null)
+            sendPostRequestViaSendBeacon(bulk, null)
           ) {
             // makes sure to load the next page faster by not waiting as long
             // we apply this once we know send beacon works
@@ -1374,8 +1417,8 @@ export function Tracker(trackerUrl, siteId) {
   /**
    * Build args to pass with event request being fired
    *
-   * @param {object} customData
-   * @returns {object}
+   * @param {{[key:string]: any}} customData
+   * @returns {Types.RequestPayload}
    */
   function buildRequest(customData) {
     const now = new Date();
@@ -1385,22 +1428,14 @@ export function Tracker(trackerUrl, siteId) {
     // of urls will be the same as this and not utf-8, which will cause problems
     // do not send charset if it is utf8 since it's assumed by default in eave
 
-    /** @type {string | null} */
-    let charSet =
-      document.characterSet ||
-      document.charset;
-    if (!charSet || charSet.toLowerCase() === "utf-8") {
-      charSet = null;
-    }
     let i;
     const customVariablesCopy = customVariables;
 
-    const args = {
-      idsite: configTrackerSiteId,
-      h: now.getHours(),
-      m: now.getMinutes(),
-      s: now.getSeconds(),
-      url: encodeURIComponent(purify(currentUrl)),
+    const /** @type {Types.RequestPayload} */ args = {
+      clientTs: now.getTime() / 1000,
+      currentPageUrl: purify(currentUrl),
+      charSet: document.characterSet,
+      customData,
     };
 
     // add current query params
@@ -1409,11 +1444,7 @@ export function Tracker(trackerUrl, siteId) {
         window.location.search,
       );
       const params = Object.fromEntries(urlSearchParams.entries());
-      args.queryParams = JSON.stringify(params);
-    }
-
-    if (charSet) {
-      args["cs"] = encodeURIComponent(charSet);
+      args.currentQueryParams = params;
     }
 
     // add eave cookie context data
@@ -1421,27 +1452,27 @@ export function Tracker(trackerUrl, siteId) {
       args[cookieName] = cookieValue;
     }
 
-    const customDimensionIdsAlreadyHandled = [];
-    if (customData) {
-      for (i in customData) {
-        if (
-          Object.prototype.hasOwnProperty.call(customData, i) &&
-          /^dimension\d+$/.test(i)
-        ) {
-          const index = i.replace("dimension", "");
-          customDimensionIdsAlreadyHandled.push(parseInt(index, 10));
-          customDimensionIdsAlreadyHandled.push(String(index));
-          args[i] = encodeURIComponent(customData[i]);
-          delete customData[i];
-        }
-      }
-    }
+    // [bcr] we don't support custom dimensions
+    // const customDimensionIdsAlreadyHandled = [];
+    // if (customData) {
+    //   for (const key, value of customData.entries()) {
+    //     if (/^dimension\d+$/.test(key)) {
+    //       const index = i.replace("dimension", "");
+    //       customDimensionIdsAlreadyHandled.push(parseInt(index, 10));
+    //       customDimensionIdsAlreadyHandled.push(String(index));
+    //       args[i] = encodeURIComponent(customData[i]);
+    //       delete customData[i];
+    //     }
+    //   }
+    // }
 
-    if (customData && h.isObjectEmpty(customData)) {
-      customData = null;
-      // we deleted all keys from custom data
-    }
+    // [bcr] don't care about this
+    // if (customData && h.isObjectEmpty(customData)) {
+    //   customData = null;
+    //   // we deleted all keys from custom data
+    // }
 
+    // [bcr] no product page tracking
     // // product page view
     // for (i in ecommerceProductView) {
     //   if (Object.prototype.hasOwnProperty.call(ecommerceProductView, i)) {
@@ -1449,29 +1480,29 @@ export function Tracker(trackerUrl, siteId) {
     //   }
     // }
 
-    // custom dimensions
-    for (i in customDimensions) {
-      if (Object.prototype.hasOwnProperty.call(customDimensions, i)) {
-        const isNotSetYet =
-          -1 === h.indexOfArray(customDimensionIdsAlreadyHandled, i);
-        if (isNotSetYet) {
-          args["dimension" + i] = encodeURIComponent(
-            customDimensions[i],
-          );
-        }
-      }
-    }
+    // [bcr] no custom dimensions
+    // // custom dimensions
+    // for (i in customDimensions) {
+    //   if (Object.prototype.hasOwnProperty.call(customDimensions, i)) {
+    //     const isNotSetYet =
+    //       -1 === h.indexOfArray(customDimensionIdsAlreadyHandled, i);
+    //     if (isNotSetYet) {
+    //       args["dimension" + i] = encodeURIComponent(
+    //         customDimensions[i],
+    //       );
+    //     }
+    //   }
+    // }
 
-    // custom data
-    if (customData) {
-      args["data"] = encodeURIComponent(
-        JSON.stringify(customData),
-      );
-    } else if (configCustomData) {
-      args["data"] = encodeURIComponent(
-        JSON.stringify(configCustomData),
-      );
-    }
+    // // custom data
+    // if (customData) {
+    //   args.customData = customData
+    //   );
+    // } else if (configCustomData) {
+    //   args["data"] = encodeURIComponent(
+    //     JSON.stringify(configCustomData),
+    //   );
+    // }
 
     // Custom Variables, scope "page"
     function appendCustomVariablesToArgs(args, customVariables, parameterName) {
@@ -1530,13 +1561,13 @@ export function Tracker(trackerUrl, siteId) {
    * with the standard parameters (plugins, resolution, url, referrer, etc.).
    * Sends the pageview and browser settings with every request in case of race conditions.
    *
-   * @param {string} request any initial query params to attach to the request
+   * @param {Types.RequestPayload} payload any initial query params to attach to the request
    * @param {object} [customData] additional key-value data to attach to the request
    * @param {string} [pluginMethod] name of a function that builds on request query params
    *
-   * @returns {string} built up query parameters to send with the request
+   * @returns {Types.RequestPayload} built up query parameters to send with the request
    */
-  function getRequest(request, customData, pluginMethod) {
+  function getRequest(payload, customData, pluginMethod) {
     const currentUrl = getCurrentUrl();
 
     if (cookieManager.configCookiesDisabled) {
@@ -1544,7 +1575,7 @@ export function Tracker(trackerUrl, siteId) {
     }
 
     if (configDoNotTrack) {
-      return "";
+      return {};
     }
 
     const fileRegex = new RegExp("^file://", "i");
@@ -1553,7 +1584,7 @@ export function Tracker(trackerUrl, siteId) {
       (window.location.protocol === "file:" ||
         fileRegex.test(currentUrl))
     ) {
-      return "";
+      return {};
     }
 
     // trigger detection of browser feature to ensure a request might not end up in the client hints queue without being processed
@@ -2338,23 +2369,24 @@ export function Tracker(trackerUrl, siteId) {
     sendRequest(request, configTrackerPause);
   }
 
-  /**
-   * Log the goal with the server
-   *
-   * @param {string} idGoal
-   * @param {string} customRevenue
-   * @param {object} customData
-   * @param {() => void} callback
-   */
-  function logGoal(idGoal, customRevenue, customData, callback) {
-    const request = getRequest(
-      "idgoal=" + idGoal + (customRevenue ? "&revenue=" + customRevenue : ""),
-      customData,
-      "goal",
-    );
+  // [bcr] we don't support the goal feature
+  // /**
+  //  * Log the goal with the server
+  //  *
+  //  * @param {string} idGoal
+  //  * @param {string} customRevenue
+  //  * @param {object} customData
+  //  * @param {() => void} callback
+  //  */
+  // function logGoal(idGoal, customRevenue, customData, callback) {
+  //   const request = getRequest(
+  //     "idgoal=" + idGoal + (customRevenue ? "&revenue=" + customRevenue : ""),
+  //     customData,
+  //     "goal",
+  //   );
 
-    sendRequest(request, configTrackerPause, callback);
-  }
+  //   sendRequest(request, configTrackerPause, callback);
+  // }
 
   /**
    * Log the link or click with the server

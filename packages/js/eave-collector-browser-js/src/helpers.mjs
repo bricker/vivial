@@ -403,20 +403,21 @@ export function getProtocolScheme(url) {
   return matches ? matches[1] : null;
 }
 
-/**
- * Extract hostname from URL
- *
- * @param {string} url
- *
- * @returns {string} The hostname if found, otherwise the unmodified input
- */
-export function getHostName(url) {
-  // scheme : // [username [: password] @] hostame [: port] [/ [path] [? query] [# fragment]]
-  const e = new RegExp("^(?:(?:https?|ftp):)/*(?:[^@]+@)?([^:/#]+)");
-  const matches = e.exec(url);
+// [bcr] use native URL parsing
+// /**
+//  * Extract hostname from URL
+//  *
+//  * @param {string} url
+//  *
+//  * @returns {string} The hostname if found, otherwise the unmodified input
+//  */
+// export function getHostName(url) {
+//   // scheme : // [username [: password] @] hostame [: port] [/ [path] [? query] [# fragment]]
+//   const e = new RegExp("^(?:(?:https?|ftp):)/*(?:[^@]+@)?([^:/#]+)");
+//   const matches = e.exec(url);
 
-  return matches ? matches[1] : url;
-}
+//   return matches ? matches[1] : url;
+// }
 
 /**
  * @param {string} str
@@ -938,18 +939,19 @@ export function titleFixup(title) {
   return _title;
 }
 
-/**
- * @param {Node | ParentNode} node
- *
- * @returns {NodeListOf<ChildNode>}
- */
-export function getChildrenFromNode(node) {
-  if (!node) {
-    new NodeList();
-  }
+// [bcr] unnecessary helper function
+// /**
+//  * @param {Node | ParentNode} node
+//  *
+//  * @returns {NodeListOf<ChildNode>}
+//  */
+// export function getChildrenFromNode(node) {
+//   if (!node) {
+//     new NodeList();
+//   }
 
-  return node.childNodes;
-}
+//   return node.childNodes;
+// }
 
 /**
  * Checks if a node contains another node element within it.
@@ -1199,4 +1201,18 @@ export function argsToQueryParameters(args) {
     qp += "&" + encodeURIComponent(key) + "=" + encodeURIComponent(String(args[key]));
   }
   return qp;
+}
+
+/**
+ * @param {Node} node
+ *
+ * @returns {Element | null}
+ */
+export function castNodeToElement(node) {
+  if (node.nodeType === Node.ELEMENT_NODE) {
+    const element = /** @type {Element} */ (node);
+    return element;
+  } else {
+    return null;
+  }
 }

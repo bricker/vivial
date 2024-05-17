@@ -120,8 +120,9 @@ export default {
   },
 
   /**
-   * @param {Element} node
+   * @param {Node} node
    * @param {string} attributeName
+   *
    * @returns {string | null}
    */
   getAttributeValueFromNode: function (node, attributeName) {
@@ -167,8 +168,9 @@ export default {
   },
 
   /**
-   * @param {Element} node
+   * @param {Node} node
    * @param {string} attributeName
+   *
    * @returns {boolean}
    */
   hasNodeAttributeWithValue: function (node, attributeName) {
@@ -177,64 +179,52 @@ export default {
   },
 
   /**
-   * @param {Element | undefined} node
+   * @param {Node} node
    * @param {string} attributeName
+   *
    * @returns {boolean}
    */
   hasNodeAttribute: function (node, attributeName) {
-    if (node && node.hasAttribute) {
-      return node.hasAttribute(attributeName);
+    const element = h.castNodeToElement(node);
+    if (!element) {
+      return false;
     }
-
-    if (node && node.attributes) {
-      const typeOfAttr = typeof node.attributes[attributeName];
-      return "undefined" !== typeOfAttr;
-    }
-
-    return false;
+    return element.hasAttribute(attributeName);
   },
 
   /**
-   * @param {Element} node
+   * @param {Node} node
    * @param {string} klassName
+   *
    * @returns {boolean}
    */
   hasNodeCssClass: function (node, klassName) {
-    if (node && klassName && node.className) {
-      const classes =
-        typeof node.className === "string" ? node.className.split(" ") : [];
-      if (-1 !== h.indexOfArray(classes, klassName)) {
-        return true;
-      }
+    const element = h.castNodeToElement(node);
+    if (!element) {
+      return false;
     }
 
-    return false;
+    const classes = typeof element.className === "string" ? element.className.split(" ") : [];
+    return h.indexOfArray(classes, klassName) !== -1;
   },
 
   /**
-   * @param {Element} nodeToSearch
+   * @param {Node} nodeToSearch
    * @param {string} attributeName
-   * @param {Element[]} [nodes]
-   * @returns {Element[]}
+   * @param {Node[]} [nodes]
+   *
+   * @returns {Node[]}
    */
   findNodesHavingAttribute: function (nodeToSearch, attributeName, nodes) {
     if (!nodes) {
       nodes = [];
     }
 
-    if (!nodeToSearch || !attributeName) {
+    if (!attributeName) {
       return nodes;
     }
 
-    const children = h.getChildrenFromNode(nodeToSearch);
-
-    if (!children || !children.length) {
-      return nodes;
-    }
-
-    let index, child;
-    for (index = 0; index < children.length; index++) {
-      child = children[index];
+    for (const child of nodeToSearch.childNodes) {
       if (this.hasNodeAttribute(child, attributeName)) {
         nodes.push(child);
       }
@@ -246,13 +236,14 @@ export default {
   },
 
   /**
-   * @param {Element} node
+   * @param {Node} node
    * @param {string} attributeName
-   * @returns {Element | undefined}
+   *
+   * @returns {Node | null}
    */
   findFirstNodeHavingAttribute: function (node, attributeName) {
     if (!node || !attributeName) {
-      return;
+      return null;
     }
 
     if (this.hasNodeAttribute(node, attributeName)) {
@@ -261,19 +252,22 @@ export default {
 
     const nodes = this.findNodesHavingAttribute(node, attributeName);
 
-    if (nodes && nodes.length) {
+    if (nodes.length > 0) {
       return nodes[0];
     }
+
+    return null;
   },
 
   /**
-   * @param {Element} node
+   * @param {Node} node
    * @param {string} attributeName
-   * @returns {Element | undefined}
+   *
+   * @returns {Node | null}
    */
   findFirstNodeHavingAttributeWithValue: function (node, attributeName) {
     if (!node || !attributeName) {
-      return;
+      return null;
     }
 
     if (this.hasNodeAttributeWithValue(node, attributeName)) {
@@ -282,22 +276,22 @@ export default {
 
     const nodes = this.findNodesHavingAttribute(node, attributeName);
 
-    if (!nodes || !nodes.length) {
-      return;
+    if (nodes.length === 0) {
+      return null;
     }
 
-    let index;
-    for (index = 0; index < nodes.length; index++) {
-      if (this.getAttributeValueFromNode(nodes[index], attributeName)) {
-        return nodes[index];
+    for (const node of nodes) {
+      if (this.getAttributeValueFromNode(node, attributeName)) {
+        return node;
       }
     }
   },
 
   /**
-   * @param {Element} nodeToSearch
+   * @param {Node} nodeToSearch
    * @param {string} className
    * @param {Element[]} [nodes]
+   *
    * @returns {Element[]}
    */
   findNodesHavingCssClass: function (nodeToSearch, className, nodes) {
@@ -309,20 +303,13 @@ export default {
       return nodes;
     }
 
-    if (nodeToSearch.getElementsByClassName) {
-      const foundNodes = nodeToSearch.getElementsByClassName(className);
+    if (nodeToSearch.nodeType === Node.ELEMENT_NODE) {
+      const element = h.castNodeToElement(nodeToSearch);
+      const foundNodes = element.getElementsByClassName(className);
       return this.htmlCollectionToArray(foundNodes);
     }
 
-    const children = h.getChildrenFromNode(nodeToSearch);
-
-    if (!children || !children.length) {
-      return [];
-    }
-
-    let index, child;
-    for (index = 0; index < children.length; index++) {
-      child = children[index];
+    for (const child of nodeToSearch.childNodes) {
       if (this.hasNodeCssClass(child, className)) {
         nodes.push(child);
       }

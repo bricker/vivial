@@ -17,11 +17,14 @@ export default {
   CONTENT_IGNOREINTERACTION_CLASS: "eaveContentIgnoreInteraction",
   location: undefined,
 
+  /**
+   * @returns {Element[]}
+   */
   findContentNodes: function () {
-    var cssSelector = "." + this.CONTENT_CLASS;
-    var cssSelector2 = "." + this.LEGACY_CONTENT_CLASS;
-    var attrSelector = "[" + this.CONTENT_ATTR + "]";
-    var contentNodes = query.findMultiple([
+    const cssSelector = "." + this.CONTENT_CLASS;
+    const cssSelector2 = "." + this.LEGACY_CONTENT_CLASS;
+    const attrSelector = "[" + this.CONTENT_ATTR + "]";
+    const contentNodes = query.findMultiple([
       cssSelector,
       cssSelector2,
       attrSelector,
@@ -29,6 +32,12 @@ export default {
 
     return contentNodes;
   },
+
+  /**
+   * @param {Node} node
+   *
+   * @returns {Element[]}
+   */
   findContentNodesWithinNode: function (node) {
     if (!node) {
       return [];

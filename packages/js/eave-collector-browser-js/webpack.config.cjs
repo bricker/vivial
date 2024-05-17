@@ -20,6 +20,10 @@ module.exports = (env, argv) => {
           terserOptions: {
             mangle: true,
             compress: true,
+            format: {
+              comments: false,
+              ecma: "2015",
+            },
           },
           extractComments: false,
         }),
