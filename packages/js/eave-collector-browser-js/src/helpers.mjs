@@ -16,26 +16,27 @@ const eaveWindow = window;
  * <a href="test-with-%F6%E4%FC/story/0">(encoded iso-8859-1 URL)</a>
  */
 
-/**
- * Safely decodes a URI component. If decoding using `decodeURIComponent` fails,
- * it falls back to `unescape`.
- *
- * See https://github.com/matomo-org/matomo/issues/8413
- * To prevent Javascript Error: Uncaught URIError: URI malformed when encoding is not UTF-8. Use this method
- * instead of decodeWrapper if a text could contain any non UTF-8 encoded characters eg
- * a URL like http://apache.matomo/test.html?%F6%E4%FC or a link like
- * <a href="test-with-%F6%E4%FC/story/0">(encoded iso-8859-1 URL)</a>
- *
- * @param {string} url - The URL or URI component to decode.
- * @returns {string} Returns the decoded URL or URI component.
- */
-export function safeDecodeWrapper(url) {
-  try {
-    return decodeURIComponent(url);
-  } catch (e) {
-    return unescape(url);
-  }
-}
+// [bcr] probably not necessary
+// /**
+//  * Safely decodes a URI component. If decoding using `decodeURIComponent` fails,
+//  * it falls back to `unescape`.
+//  *
+//  * See https://github.com/matomo-org/matomo/issues/8413
+//  * To prevent Javascript Error: Uncaught URIError: URI malformed when encoding is not UTF-8. Use this method
+//  * instead of decodeWrapper if a text could contain any non UTF-8 encoded characters eg
+//  * a URL like http://apache.matomo/test.html?%F6%E4%FC or a link like
+//  * <a href="test-with-%F6%E4%FC/story/0">(encoded iso-8859-1 URL)</a>
+//  *
+//  * @param {string} url - The URL or URI component to decode.
+//  * @returns {string} Returns the decoded URL or URI component.
+//  */
+// export function safeDecodeWrapper(url) {
+//   try {
+//     return decodeURIComponent(url);
+//   } catch (e) {
+//     return unescape(url);
+//   }
+// }
 
 /**
  * Checks if a property is defined.
@@ -110,18 +111,19 @@ export function isObjectEmpty(property) {
 }
 
 
-/**
- * Logs an error message to the console.
- * Note: It does not generate a JavaScript error.
- * @param {string} message - The error message to log.
- */
-export function logConsoleError(message) {
-  // needed to write it this way for jslint
-  var consoleType = typeof console;
-  if (consoleType !== "undefined" && console && console.error) {
-    console.error(message);
-  }
-}
+// [bcr] unnecessary helper function
+// /**
+//  * Logs an error message to the console.
+//  * Note: It does not generate a JavaScript error.
+//  * @param {string} message - The error message to log.
+//  */
+// export function logConsoleError(message) {
+//   // needed to write it this way for jslint
+//   var consoleType = typeof console;
+//   if (consoleType !== "undefined" && console && console.error) {
+//     console.error(message);
+//   }
+// }
 
 /*
  * apply wrapper
@@ -368,40 +370,23 @@ export function loadScript(src, onLoad) {
  * @returns {string}
  */
 export function getReferrer() {
-  let /** @type {string | null | undefined} */ referrer = "";
-
-  try {
-    referrer = window.top?.document.referrer;
-  } catch (e) {
-    if (window.parent) {
-      try {
-        referrer = window.parent.document.referrer;
-      } catch (e2) {
-        referrer = "";
-      }
-    }
-  }
-
-  if (!referrer) {
-    referrer = document.referrer;
-  }
-
-  return referrer;
+  return window.top?.document.referrer || window.parent.document.referrer || document.referrer;
 }
 
-/**
- * Extract scheme/protocol from URL
- *
- * @param {string} url
- *
- * @returns {string | null}
- */
-export function getProtocolScheme(url) {
-  const e = new RegExp("^([a-z]+):");
-  const matches = e.exec(url);
+// [bcr] use native URL parsing
+// /**
+//  * Extract scheme/protocol from URL
+//  *
+//  * @param {string} url
+//  *
+//  * @returns {string | null}
+//  */
+// export function getProtocolScheme(url) {
+//   const e = new RegExp("^([a-z]+):");
+//   const matches = e.exec(url);
 
-  return matches ? matches[1] : null;
-}
+//   return matches ? matches[1] : null;
+// }
 
 // [bcr] use native URL parsing
 // /**
@@ -638,20 +623,21 @@ export function removeUrlParameter(url, name) {
   return baseUrl;
 }
 
-/**
- * Extract parameter from URL
- *
- * @param {string} url
- * @param {string} name
- *
- * @returns {string}
- */
-export function getUrlParameter(url, name) {
-  const regexSearch = "[\\?&#]" + name + "=([^&#]*)";
-  const regex = new RegExp(regexSearch);
-  const results = regex.exec(url);
-  return results ? safeDecodeWrapper(results[1]) : "";
-}
+// [bcr] use native URL parsing
+// /**
+//  * Extract parameter from URL
+//  *
+//  * @param {string} url
+//  * @param {string} name
+//  *
+//  * @returns {string}
+//  */
+// export function getUrlParameter(url, name) {
+//   const regexSearch = "[\\?&#]" + name + "=([^&#]*)";
+//   const regex = new RegExp(regexSearch);
+//   const results = regex.exec(url);
+//   return results ? safeDecodeWrapper(results[1]) : "";
+// }
 
 /**
  * @param {string} text
@@ -855,39 +841,32 @@ export function sha1(str) {
  * returning the actual page URL components, stripping any search engine junk
  * from the URL.
  *
- * @param {string} hostName
  * @param {string} href
  * @param {string} referrer
  *
- * @returns {string[]} "fixed" versions of the passed in parameters
+ * @returns {URL[]} "fixed" versions of the passed in parameters
  */
-export function urlFixup(hostName, href, referrer) {
-  if (!hostName) {
-    hostName = "";
-  }
+export function urlFixup(href, referrer) {
+  const url = new URL(href);
+  let resolvedHref = href;
 
-  if (!href) {
-    href = "";
-  }
-
-  if (hostName === "translate.googleusercontent.com") {
+  if (url.hostname === "translate.googleusercontent.com") {
     // Google
     if (referrer === "") {
       referrer = href;
     }
 
-    href = getUrlParameter(href, "u");
-    hostName = getHostName(href);
+    resolvedHref = url.searchParams.get("u") || "";
   } else if (
-    hostName === "cc.bingj.com" || // Bing
-    hostName === "webcache.googleusercontent.com" || // Google
-    hostName.slice(0, 5) === "74.6." // Yahoo (via Inktomi 74.6.0.0/16)
+    url.hostname === "cc.bingj.com" || // Bing
+    url.hostname === "webcache.googleusercontent.com" || // Google
+    url.hostname.slice(0, 5) === "74.6." // Yahoo (via Inktomi 74.6.0.0/16)
   ) {
-    href = document.links[0].href;
-    hostName = getHostName(href);
+    resolvedHref = document.links[0].href;
   }
 
-  return [hostName, href, referrer];
+  const resolvedUrl = new URL(resolvedHref);
+  return [resolvedUrl, referrer];
 }
 
 /**
@@ -1188,22 +1167,25 @@ export function isSitePath(path, pathAlias) {
   return path.indexOf(pathAlias) === 0;
 }
 
-/**
- * Convert an object to a query params string
- *
- * @param {object} args
- *
- * @returns {string} query params to attach to a request URL
- */
-export function argsToQueryParameters(args) {
-  let qp = "";
-  for (const key of Object.keys(args)) {
-    qp += "&" + encodeURIComponent(key) + "=" + encodeURIComponent(String(args[key]));
-  }
-  return qp;
-}
+// [bcr] We're no longer doing query parameter string building
+// /**
+//  * Convert an object to a query params string
+//  *
+//  * @param {object} args
+//  *
+//  * @returns {string} query params to attach to a request URL
+//  */
+// export function argsToQueryParameters(args) {
+//   let qp = "";
+//   for (const key of Object.keys(args)) {
+//     qp += "&" + encodeURIComponent(key) + "=" + encodeURIComponent(String(args[key]));
+//   }
+//   return qp;
+// }
 
 /**
+ * Helper for typechecking
+ *
  * @param {Node} node
  *
  * @returns {Element | null}

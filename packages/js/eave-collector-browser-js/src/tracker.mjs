@@ -34,13 +34,12 @@ export function Tracker(trackerUrl, siteId) {
   // constants
   const trackerInstance = this;
   // Current URL and Referrer URL
-  const locationArray = h.urlFixup(
-    document.domain,
+  const [currentHostnameResolved, currentHrefResolved, currentReferrerResolved] = h.urlFixup(
     window.location.href,
     h.getReferrer(),
   );
-  const domainAlias = h.domainFixup(locationArray[0]);
-  const configReferrerUrl = h.safeDecodeWrapper(locationArray[2]);
+  const domainAlias = h.domainFixup(currentHostnameResolved);
+  const configReferrerUrl = currentReferrerResolved;
   let enableJSErrorTracking = false;
   const defaultRequestMethod = "GET";
   // Request method (GET or POST)
@@ -223,9 +222,16 @@ export function Tracker(trackerUrl, siteId) {
   let clientHints = {};
 
   /**
-   * @type {[Types.RequestPayload, Types.RequestCallback | null | undefined][]}
+   * @type {Types.RequestPayload[]}
    */
-  const clientHintsRequestQueue = [];
+  let clientHintsRequestQueue = [];
+
+  /**
+   * holds all pending tracking requests that have not been tracked because we need consent
+   *
+   * @type {Types.RequestPayload[]}
+   */
+  let consentRequestsQueue = [];
 
   let clientHintsResolved = false;
   let clientHintsResolving = false;
@@ -268,14 +274,6 @@ export function Tracker(trackerUrl, siteId) {
   // we always have the concept of consent. by default consent is assumed unless the end user removes it,
   // or unless a eave user explicitly requires consent (via requireConsent())
   let configHasConsent = null; // initialized below
-
-  /**
-   * holds all pending tracking requests that have not been tracked because we need consent
-   *
-   * @type {[Types.RequestPayload, Types.RequestCallback | null | undefined][]}
-   */
-  const consentRequestsQueue = [];
-
 
   // holds the actual javascript errors if enableJSErrorTracking is on, if the very same error is
   // happening multiple times, then it will be tracked only once within the same page view
@@ -471,11 +469,10 @@ export function Tracker(trackerUrl, siteId) {
 
   /**
    * @param {Types.RequestPayload[]} payloads
-   * @param {Types.RequestCallback | null} [callback]
    *
    * @returns {boolean}
    */
-  function sendPostRequestViaSendBeacon(payloads, callback) {
+  function sendPostRequestViaSendBeacon(payloads) {
     // [bcr] supported in all major browsers
     // let isSupported = supportsSendBeacon();
 
@@ -484,7 +481,7 @@ export function Tracker(trackerUrl, siteId) {
     // }
 
     const headers = {
-      type: "application/x-www-form-urlencoded; charset=UTF-8",
+      type: "application/json; charset=UTF-8",
     };
     let success = false;
 
@@ -506,31 +503,38 @@ export function Tracker(trackerUrl, siteId) {
       // }
 
       if (configDoNotTrack) {
-        return false;
+        console.debug("[eave]", "dnt prevented analytics.");
+        // Return true to indicate to the caller that the function worked as expected.
+        return true;
       }
 
-      success = navigator.sendBeacon(url, blob);
+      const success = navigator.sendBeacon(url, blob);
+      if (success) {
+        return true;
+      } else {
+        console.warn("[eave]", "failed to send analytics.");
+        return false;
+      }
       // returns true if the user agent is able to successfully queue the data for transfer,
       // Otherwise it returns false and we need to try the regular way
     } catch (e) {
+      console.error("[eave]", e);
       return false;
     }
 
-    if (success && callback) {
-      callback({
-        payload,
-        trackerUrl: configTrackerUrl,
-        success: true,
-        // [bcr] we always use beacon
-        // isSendBeacon: true,
-      });
-    }
+    // if (success && callback) {
+    //   callback({
+    //     payload,
+    //     trackerUrl: configTrackerUrl,
+    //     success: true,
+    //     // [bcr] we always use beacon
+    //     // isSendBeacon: true,
+    //   });
+    // }
 
     // [bcr] check feature not currently supported
     // // If the query parameter indicating this is a test exists, close after first request is sent
     // closeWindowIfJsTrackingCodeInstallCheck();
-
-    return success;
   }
 
   // [bcr] We always use sendBeacon
@@ -719,63 +723,62 @@ export function Tracker(trackerUrl, siteId) {
     );
   }
 
-  /**
-   * @param {() => void} callback
-   *
-   * @noreturn
-   */
-  function makeSureThereIsAGapAfterFirstTrackingRequestToPreventMultipleVisitorCreation(
-    callback,
-  ) {
-    const now = new Date();
-    const timeNow = now.getTime();
+  // /**
+  //  * @param {() => void} callback
+  //  *
+  //  * @noreturn
+  //  */
+  // function makeSureThereIsAGapAfterFirstTrackingRequestToPreventMultipleVisitorCreation(
+  //   callback,
+  // ) {
+  //   const now = new Date();
+  //   const timeNow = now.getTime();
 
-    lastTrackerRequestTime = timeNow;
+  //   lastTrackerRequestTime = timeNow;
 
-    if (
-      timeNextTrackingRequestCanBeExecutedImmediately !== -1 &&
-      timeNow < timeNextTrackingRequestCanBeExecutedImmediately
-    ) {
-      // we are in the time frame shortly after the first request. we have to delay this request a bit to make sure
-      // a visitor has been created meanwhile.
+  //   if (
+  //     timeNextTrackingRequestCanBeExecutedImmediately !== -1 &&
+  //     timeNow < timeNextTrackingRequestCanBeExecutedImmediately
+  //   ) {
+  //     // we are in the time frame shortly after the first request. we have to delay this request a bit to make sure
+  //     // a visitor has been created meanwhile.
 
-      const timeToWait = timeNextTrackingRequestCanBeExecutedImmediately - timeNow;
+  //     const timeToWait = timeNextTrackingRequestCanBeExecutedImmediately - timeNow;
 
-      setTimeout(callback, timeToWait);
-      h.setExpireDateTime(timeToWait + 50); // set timeout is not necessarily executed at timeToWait so delay a bit more
-      timeNextTrackingRequestCanBeExecutedImmediately += 50; // delay next tracking request by further 50ms to next execute them at same time
+  //     setTimeout(callback, timeToWait);
+  //     h.setExpireDateTime(timeToWait + 50); // set timeout is not necessarily executed at timeToWait so delay a bit more
+  //     timeNextTrackingRequestCanBeExecutedImmediately += 50; // delay next tracking request by further 50ms to next execute them at same time
 
-      return;
-    }
+  //     return;
+  //   }
 
-    if (timeNextTrackingRequestCanBeExecutedImmediately === -1) {
-      // it is the first request, we want to execute this one directly and delay all the next one(s) within a delay.
-      // All requests after this delay can be executed as usual again
-      const delayInMs = 800;
-      timeNextTrackingRequestCanBeExecutedImmediately = timeNow + delayInMs;
-    }
+  //   if (timeNextTrackingRequestCanBeExecutedImmediately === -1) {
+  //     // it is the first request, we want to execute this one directly and delay all the next one(s) within a delay.
+  //     // All requests after this delay can be executed as usual again
+  //     const delayInMs = 800;
+  //     timeNextTrackingRequestCanBeExecutedImmediately = timeNow + delayInMs;
+  //   }
 
-    callback();
-  }
+  //   callback();
+  // }
 
   /**
    * @noreturn
    */
   function processClientHintsQueue() {
-    let requestType;
-
-    for (let i = 0; i < clientHintsRequestQueue.length; i++) {
-      requestType = typeof clientHintsRequestQueue[i][0];
-      if (requestType === "string") {
-        sendRequest(
-          clientHintsRequestQueue[i][0],
-          configTrackerPause,
-          clientHintsRequestQueue[i][1],
-        );
-      } else if (requestType === "object") {
-        sendBulkRequest(clientHintsRequestQueue[i][0], configTrackerPause);
-      }
-    }
+    sendRequest(clientHintsRequestQueue);
+    // for (let i = 0; i < clientHintsRequestQueue.length; i++) {
+    //   requestType = typeof clientHintsRequestQueue[i][0];
+    //   if (requestType === "string") {
+    //     sendRequest(
+    //       clientHintsRequestQueue[i][0],
+    //       configTrackerPause,
+    //       clientHintsRequestQueue[i][1],
+    //     );
+    //   } else if (requestType === "object") {
+    //     sendBulkRequest(clientHintsRequestQueue[i][0], configTrackerPause);
+    //   }
+    // }
     clientHintsRequestQueue = [];
   }
 
@@ -797,56 +800,63 @@ export function Tracker(trackerUrl, siteId) {
     if (h.isDefined(browserFeatures.res)) {
       return browserFeatures;
     }
-    var i,
-      mimeType,
-      pluginMap = {
-        // document types
-        pdf: "application/pdf",
 
-        // media players
-        qt: "video/quicktime",
-        realp: "audio/x-pn-realaudio-plugin",
-        wma: "application/x-mplayer2",
+    // [bcr] This whole block is using deprecated features or gathering irrelevant information
 
-        // interactive multimedia
-        fla: "application/x-shockwave-flash",
+    // var i,
+    //   mimeType,
+    //   pluginMap = {
+    //     // document types
+    //     pdf: "application/pdf",
 
-        // RIA
-        java: "application/x-java-vm",
-        ag: "application/x-silverlight",
-      };
+    //     // media players
+    //     qt: "video/quicktime",
+    //     realp: "audio/x-pn-realaudio-plugin",
+    //     wma: "application/x-mplayer2",
 
-    // detect browser features except IE < 11 (IE 11 user agent is no longer MSIE)
-    if (!new RegExp("MSIE").test(navigator.userAgent)) {
-      // general plugin detection
-      if (
-        navigator.mimeTypes &&
-        navigator.mimeTypes.length
-      ) {
-        for (const i of Object.keys(pluginMap)) {
-          mimeType = navigator.mimeTypes[pluginMap[i]];
-          browserFeatures[i] = mimeType && mimeType.enabledPlugin ? "1" : "0";
-        }
-      }
+    //     // interactive multimedia
+    //     fla: "application/x-shockwave-flash",
 
-      // Safari and Opera
-      // IE6/IE7 navigator.javaEnabled can't be aliased, so test directly
-      // on Edge navigator.javaEnabled() always returns `true`, so ignore it
-      if (
-        !new RegExp("Edge[ /](\\d+[\\.\\d]+)").test(
-          navigator.userAgent,
-        ) &&
-        typeof navigator.javaEnabled !== "undefined" &&
-        h.isDefined(navigator.javaEnabled) &&
-        navigator.javaEnabled()
-      ) {
-        browserFeatures.java = "1";
-      }
+    //     // RIA
+    //     java: "application/x-java-vm",
+    //     ag: "application/x-silverlight",
+    //   };
 
-      browserFeatures.cookie = navigator.cookieEnabled
-        ? "1"
-        : "0";
-    }
+    // // detect browser features except IE < 11 (IE 11 user agent is no longer MSIE)
+    // if (!new RegExp("MSIE").test(navigator.userAgent)) {
+    //   // general plugin detection
+    //   if (
+    //     navigator.mimeTypes &&
+    //     navigator.mimeTypes.length
+    //   ) {
+    //     for (const i of Object.keys(pluginMap)) {
+    //       mimeType = navigator.mimeTypes[pluginMap[i]];
+    //       browserFeatures[i] = mimeType && mimeType.enabledPlugin ? "1" : "0";
+    //     }
+    //   }
+
+    //   // Safari and Opera
+    //   // IE6/IE7 navigator.javaEnabled can't be aliased, so test directly
+    //   // on Edge navigator.javaEnabled() always returns `true`, so ignore it
+    //   if (
+    //     !new RegExp("Edge[ /](\\d+[\\.\\d]+)").test(
+    //       navigator.userAgent,
+    //     ) &&
+    //     typeof navigator.javaEnabled !== "undefined" &&
+    //     h.isDefined(navigator.javaEnabled) &&
+    //     navigator.javaEnabled()
+    //   ) {
+    //     browserFeatures.java = "1";
+    //   }
+
+    //   browserFeatures.cookie = navigator.cookieEnabled
+    //     ? "1"
+    //     : "0";
+    // }
+
+    browserFeatures.cookie = navigator.cookieEnabled
+      ? "1"
+      : "0";
 
     const width = screen.width;
     const height = screen.height;
@@ -1070,18 +1080,14 @@ export function Tracker(trackerUrl, siteId) {
   /**
    * Send request
    *
-   * @param {Types.RequestPayload} payload
-   * @param {number} delay
-   * @param {Types.RequestCallback | null} [callback]
+   * @param {Types.RequestPayload[]} payloads
+   *
+   * @noreturn
    */
-  function sendRequest(payload, delay, callback) {
-    if (eaveClientId) {
-      payload.eaveClientId = eaveClientId
-    }
-
+  function sendRequest(payloads) {
     refreshConsentStatus();
     if (!configHasConsent) {
-      consentRequestsQueue.push([payload, callback]);
+      consentRequestsQueue.push(...payloads);
       return;
     }
 
@@ -1090,42 +1096,42 @@ export function Tracker(trackerUrl, siteId) {
       !clientHintsResolved &&
       supportsClientHints()
     ) {
-      clientHintsRequestQueue.push([payload, callback]);
+      clientHintsRequestQueue.push(...payloads);
       return;
     }
 
     hasSentTrackingRequestYet = true;
 
-    if (!configDoNotTrack) {
+    for (const payload of payloads) {
       if (configConsentRequired && configHasConsent) {
         // send a consent=1 when explicit consent is given for the apache logs
         payload.consent = "1";
       }
 
       injectBrowserFeaturesAndClientHints(payload);
-
-      makeSureThereIsAGapAfterFirstTrackingRequestToPreventMultipleVisitorCreation(
-        function () {
-          if (
-            // [bcr] we always use beacon
-            // configAlwaysUseSendBeacon &&
-            sendPostRequestViaSendBeacon(payload, callback)
-          ) {
-            h.setExpireDateTime(100);
-            return;
-          }
-
-          // [bcr] we always use beacon
-          // if (shouldForcePost(request)) {
-          //   sendXmlHttpRequest(request, undefined, callback);
-          // } else {
-          //   getImage(request, callback);
-          // }
-          //
-          // h.setExpireDateTime(delay);
-        },
-      );
     }
+
+    // [bcr] this delay is irrelevant for eave
+    // makeSureThereIsAGapAfterFirstTrackingRequestToPreventMultipleVisitorCreation(
+    //   function () {
+    if (
+      // [bcr] we always use beacon
+      // configAlwaysUseSendBeacon &&
+      sendPostRequestViaSendBeacon(payloads)
+    ) {
+      h.setExpireDateTime(100);
+      return;
+    }
+
+    // [bcr] we always use beacon
+    // if (shouldForcePost(request)) {
+    //   sendXmlHttpRequest(request, undefined, callback);
+    // } else {
+    //   getImage(request, callback);
+    // }
+
+    // h.setExpireDateTime(delay);
+
     if (!heartBeatSetUp) {
       setUpHeartBeat(); // setup window events too, but only once
     }
@@ -1144,68 +1150,67 @@ export function Tracker(trackerUrl, siteId) {
   //   return requests.length > 0;
   // }
 
-  /**
-   * Send requests using bulk
-   *
-   * @param {Types.RequestPayload[]} payloads
-   * @param {number} delay
-   *
-   * @noreturn
-   */
-  function sendBulkRequest(payloads, delay) {
-    if (payloads.length === 0) {
-      return;
-    }
+  // [bcr] we always send batches
+  // /**
+  //  * Send requests using bulk
+  //  *
+  //  * @param {Types.RequestPayload[]} payloads
+  //  * @param {number} delay
+  //  *
+  //  * @noreturn
+  //  */
+  // function sendBulkRequest(payloads, delay) {
+  //   if (payloads.length === 0) {
+  //     return;
+  //   }
 
-    if (
-      configBrowserFeatureDetection &&
-      !clientHintsResolved &&
-      supportsClientHints()
-    ) {
-      for (const payload of payloads) {
-        clientHintsRequestQueue.push([payload, null]);
-      }
-      return;
-    }
+  //   if (
+  //     configBrowserFeatureDetection &&
+  //     !clientHintsResolved &&
+  //     supportsClientHints()
+  //   ) {
+  //     for (const payload of payloads) {
+  //       clientHintsRequestQueue.push([payload, null]);
+  //     }
+  //     return;
+  //   }
 
-    if (!configHasConsent) {
-      for (const payload of payloads) {
-        consentRequestsQueue.push([payload, null]);
-      }
-      return;
-    }
+  //   if (!configHasConsent) {
+  //     for (const payload of payloads) {
+  //       consentRequestsQueue.push([payload, null]);
+  //     }
+  //     return;
+  //   }
 
-    hasSentTrackingRequestYet = true;
+  //   hasSentTrackingRequestYet = true;
 
-    makeSureThereIsAGapAfterFirstTrackingRequestToPreventMultipleVisitorCreation(
-      function () {
-        const chunks = h.arrayChunk(requests, 50);
+  //   makeSureThereIsAGapAfterFirstTrackingRequestToPreventMultipleVisitorCreation(
+  //     function () {
+  //       const chunks = h.arrayChunk(payloads, 50);
 
-        let bulk;
+  //       for (let i = 0; i < chunks.length; i++) {
+  //         // bulk =
+  //         //   '{"requests":["?' +
+  //           // injectBrowserFeaturesAndClientHints(chunks[i]).join('","?') +
+  //         //   '"],"send_image":0}';
+  //         if (
+  //           // [bcr] we always use beacon
+  //           // configAlwaysUseSendBeacon &&
+  //           sendPostRequestViaSendBeacon(chunks[i], null)
+  //         ) {
+  //           // makes sure to load the next page faster by not waiting as long
+  //           // we apply this once we know send beacon works
+  //           h.setExpireDateTime(100);
+  //         // [bcr] we always use beacon
+  //         // } else {
+  //         //   sendXmlHttpRequest(bulk, false, null);
+  //         }
+  //       }
 
-        for (let i = 0; i < chunks.length; i++) {
-          bulk =
-            '{"requests":["?' +
-            injectBrowserFeaturesAndClientHints(chunks[i]).join('","?') +
-            '"],"send_image":0}';
-          if (
-            // [bcr] we always use beacon
-            // configAlwaysUseSendBeacon &&
-            sendPostRequestViaSendBeacon(bulk, null)
-          ) {
-            // makes sure to load the next page faster by not waiting as long
-            // we apply this once we know send beacon works
-            h.setExpireDateTime(100);
-          // [bcr] we always use beacon
-          // } else {
-          //   sendXmlHttpRequest(bulk, false, null);
-          }
-        }
-
-        h.setExpireDateTime(delay);
-      },
-    );
-  }
+  //       h.setExpireDateTime(delay);
+  //     },
+  //   );
+  // }
 
   // [bcr] siteId not relevant for us
   // function setSiteId(siteId) {
@@ -1418,6 +1423,7 @@ export function Tracker(trackerUrl, siteId) {
    * Build args to pass with event request being fired
    *
    * @param {{[key:string]: any}} customData
+   *
    * @returns {Types.RequestPayload}
    */
   function buildRequest(customData) {
@@ -1428,10 +1434,10 @@ export function Tracker(trackerUrl, siteId) {
     // of urls will be the same as this and not utf-8, which will cause problems
     // do not send charset if it is utf8 since it's assumed by default in eave
 
-    let i;
     const customVariablesCopy = customVariables;
 
     const /** @type {Types.RequestPayload} */ args = {
+      eaveClientId,
       clientTs: now.getTime() / 1000,
       currentPageUrl: purify(currentUrl),
       charSet: document.characterSet,
@@ -1567,7 +1573,7 @@ export function Tracker(trackerUrl, siteId) {
    *
    * @returns {Types.RequestPayload} built up query parameters to send with the request
    */
-  function getRequest(payload, customData, pluginMethod) {
+  function getRequest(customData, pluginMethod) {
     const currentUrl = getCurrentUrl();
 
     if (cookieManager.configCookiesDisabled) {
@@ -1591,7 +1597,7 @@ export function Tracker(trackerUrl, siteId) {
     detectBrowserFeatures();
 
     // build out the rest of the request
-    request += h.argsToQueryParameters(buildRequest(customData));
+    const payload = buildRequest(customData);
 
     if (h.isFunction(configCustomRequestContentProcessing)) {
       request = configCustomRequestContentProcessing(request);
@@ -3476,50 +3482,53 @@ export function Tracker(trackerUrl, siteId) {
     return configCustomData;
   };
 
-  /**
-   * Configure function with custom request content processing logic.
-   * It gets called after request content in form of query parameters string has been prepared and before request content gets sent.
-   *
-   * Examples:
-   *   tracker.setCustomRequestProcessing(function(request){
-   *     let pairs = request.split('&');
-   *     let result = {};
-   *     pairs.forEach(function(pair) {
-   *       pair = pair.split('=');
-   *       result[pair[0]] = decodeURIComponent(pair[1] || '');
-   *     });
-   *     return JSON.stringify(result);
-   *   });
-   *
-   * @param {Function} customRequestContentProcessingLogic
-   */
-  this.setCustomRequestProcessing = function (
-    customRequestContentProcessingLogic,
-  ) {
-    configCustomRequestContentProcessing = customRequestContentProcessingLogic;
-  };
+  // [bcr] not used
+  // /**
+  //  * Configure function with custom request content processing logic.
+  //  * It gets called after request content in form of query parameters string has been prepared and before request content gets sent.
+  //  *
+  //  * Examples:
+  //  *   tracker.setCustomRequestProcessing(function(request){
+  //  *     let pairs = request.split('&');
+  //  *     let result = {};
+  //  *     pairs.forEach(function(pair) {
+  //  *       pair = pair.split('=');
+  //  *       result[pair[0]] = decodeURIComponent(pair[1] || '');
+  //  *     });
+  //  *     return JSON.stringify(result);
+  //  *   });
+  //  *
+  //  * @param {Function} customRequestContentProcessingLogic
+  //  */
+  // this.setCustomRequestProcessing = function (
+  //   customRequestContentProcessingLogic,
+  // ) {
+  //   configCustomRequestContentProcessing = customRequestContentProcessingLogic;
+  // };
 
-  /**
-   * Appends the specified query string to the Tracking API URL
-   *
-   * @param {string} queryString eg. 'lat=140&long=100'
-   * @noreturn
-   */
-  this.appendToTrackingUrl = function (queryString) {
-    configAppendToTrackingUrl = queryString;
-  };
+  // [bcr] not used
+  // /**
+  //  * Appends the specified query string to the Tracking API URL
+  //  *
+  //  * @param {string} queryString eg. 'lat=140&long=100'
+  //  * @noreturn
+  //  */
+  // this.appendToTrackingUrl = function (queryString) {
+  //   configAppendToTrackingUrl = queryString;
+  // };
 
-  /**
-   * Returns the query string for the current HTTP Tracking API request.
-   * eave would prepend the hostname and path to eave: http://example.org/eave/api?
-   * prior to sending the request.
-   *
-   * @param request eg. "param=value&param2=value2"
-   * @returns {string}
-   */
-  this.getRequest = function (request) {
-    return getRequest(request);
-  };
+  // [bcr] not used
+  // /**
+  //  * Returns the query string for the current HTTP Tracking API request.
+  //  * eave would prepend the hostname and path to eave: http://example.org/eave/api?
+  //  * prior to sending the request.
+  //  *
+  //  * @param request eg. "param=value&param2=value2"
+  //  * @returns {string}
+  //  */
+  // this.getRequest = function (request) {
+  //   return getRequest(request);
+  // };
 
   /**
    * Add plugin defined by a name and a callback function.
@@ -3546,171 +3555,173 @@ export function Tracker(trackerUrl, siteId) {
     }
   }
 
-  /**
-   * Set Custom Dimensions. Set Custom Dimensions will not be cleared after a tracked pageview and will
-   * be sent along all following tracking requests. It is possible to remove/clear a value via `deleteCustomDimension`.
-   *
-   * @param {number} customDimensionId A Custom Dimension index
-   * @param {string} value
-   *
-   * @noreturn
-   */
-  this.setCustomDimension = function (customDimensionId, value) {
-    if (customDimensionId > 0) {
-      if (!h.isDefined(value)) {
-        value = "";
-      }
-      if (!h.isString(value)) {
-        value = String(value);
-      }
-      customDimensions[customDimensionId] = value;
-    }
-  };
+  // [bcr] custom dimensions not supported
+  // /**
+  //  * Set Custom Dimensions. Set Custom Dimensions will not be cleared after a tracked pageview and will
+  //  * be sent along all following tracking requests. It is possible to remove/clear a value via `deleteCustomDimension`.
+  //  *
+  //  * @param {number} customDimensionId A Custom Dimension index
+  //  * @param {string} value
+  //  *
+  //  * @noreturn
+  //  */
+  // this.setCustomDimension = function (customDimensionId, value) {
+  //   if (customDimensionId > 0) {
+  //     if (!h.isDefined(value)) {
+  //       value = "";
+  //     }
+  //     if (!h.isString(value)) {
+  //       value = String(value);
+  //     }
+  //     customDimensions[customDimensionId] = value;
+  //   }
+  // };
 
-  /**
-   * Get a stored value for a specific Custom Dimension index.
-   *
-   * @param {number} customDimensionId A Custom Dimension index
-   * @returns {object}
-   */
-  this.getCustomDimension = function (customDimensionId) {
-    if (
-      customDimensionId > 0 &&
-      Object.prototype.hasOwnProperty.call(customDimensions, customDimensionId)
-    ) {
-      return customDimensions[customDimensionId];
-    }
-  };
+  // /**
+  //  * Get a stored value for a specific Custom Dimension index.
+  //  *
+  //  * @param {number} customDimensionId A Custom Dimension index
+  //  * @returns {object}
+  //  */
+  // this.getCustomDimension = function (customDimensionId) {
+  //   if (
+  //     customDimensionId > 0 &&
+  //     Object.prototype.hasOwnProperty.call(customDimensions, customDimensionId)
+  //   ) {
+  //     return customDimensions[customDimensionId];
+  //   }
+  // };
 
-  /**
-   * Delete a custom dimension.
-   *
-   * @param {number} customDimensionId Custom dimension Id
-   * @noreturn
-   */
-  this.deleteCustomDimension = function (customDimensionId) {
-    if (customDimensionId > 0) {
-      delete customDimensions[customDimensionId];
-    }
-  };
+  // /**
+  //  * Delete a custom dimension.
+  //  *
+  //  * @param {number} customDimensionId Custom dimension Id
+  //  * @noreturn
+  //  */
+  // this.deleteCustomDimension = function (customDimensionId) {
+  //   if (customDimensionId > 0) {
+  //     delete customDimensions[customDimensionId];
+  //   }
+  // };
 
-  /**
-   * Set custom variable within this visit
-   *
-   * @param {number} index Custom variable slot ID from 1-5
-   * @param {string} name
-   * @param {string} value
-   * @param {string | number} scope Scope of Custom Variable:
-   *                     - "visit" will store the name/value in the visit and will persist it in the cookie for the duration of the visit,
-   *                     - "page" will store the name/value in the next page view tracked.
-   *                     - "event" will store the name/value in the next event tracked.
-   *
-   * @noreturn
-   */
-  this.setCustomVariable = function (index, name, value, scope) {
-    var toRecord;
+  // [bcr] custom variables not supported
+  // /**
+  //  * Set custom variable within this visit
+  //  *
+  //  * @param {number} index Custom variable slot ID from 1-5
+  //  * @param {string} name
+  //  * @param {string} value
+  //  * @param {string | number} scope Scope of Custom Variable:
+  //  *                     - "visit" will store the name/value in the visit and will persist it in the cookie for the duration of the visit,
+  //  *                     - "page" will store the name/value in the next page view tracked.
+  //  *                     - "event" will store the name/value in the next event tracked.
+  //  *
+  //  * @noreturn
+  //  */
+  // this.setCustomVariable = function (index, name, value, scope) {
+  //   var toRecord;
 
-    if (!h.isDefined(scope)) {
-      scope = "visit";
-    }
-    if (!h.isDefined(name)) {
-      return;
-    }
-    if (!h.isDefined(value)) {
-      value = "";
-    }
-    if (index > 0) {
-      name = !h.isString(name) ? String(name) : name;
-      value = !h.isString(value) ? String(value) : value;
-      toRecord = [
-        name.slice(0, customVariableMaximumLength),
-        value.slice(0, customVariableMaximumLength),
-      ];
-      // numeric scope is there for GA compatibility
-      if (scope === "visit" || scope === 2) {
-        loadCustomVariables();
-        customVariables[index] = toRecord;
-      } else if (scope === "page" || scope === 3) {
-        customVariablesPage[index] = toRecord;
-      } else if (scope === "event") {
-        /* GA does not have 'event' scope but we do */
-        customVariablesEvent[index] = toRecord;
-      }
-    }
-  };
+  //   if (!h.isDefined(scope)) {
+  //     scope = "visit";
+  //   }
+  //   if (!h.isDefined(name)) {
+  //     return;
+  //   }
+  //   if (!h.isDefined(value)) {
+  //     value = "";
+  //   }
+  //   if (index > 0) {
+  //     name = !h.isString(name) ? String(name) : name;
+  //     value = !h.isString(value) ? String(value) : value;
+  //     toRecord = [
+  //       name.slice(0, customVariableMaximumLength),
+  //       value.slice(0, customVariableMaximumLength),
+  //     ];
+  //     // numeric scope is there for GA compatibility
+  //     if (scope === "visit" || scope === 2) {
+  //       loadCustomVariables();
+  //       customVariables[index] = toRecord;
+  //     } else if (scope === "page" || scope === 3) {
+  //       customVariablesPage[index] = toRecord;
+  //     } else if (scope === "event") {
+  //       /* GA does not have 'event' scope but we do */
+  //       customVariablesEvent[index] = toRecord;
+  //     }
+  //   }
+  // };
 
-  /**
-   * Get custom variable
-   *
-   * @param {number} index Custom variable slot ID from 1-5
-   * @param {string | number} scope Scope of Custom Variable: "visit" or "page" or "event"
-   *
-   * @returns {unknown | boolean}
-   */
-  this.getCustomVariable = function (index, scope) {
-    var cvar;
+  // /**
+  //  * Get custom variable
+  //  *
+  //  * @param {number} index Custom variable slot ID from 1-5
+  //  * @param {string | number} scope Scope of Custom Variable: "visit" or "page" or "event"
+  //  *
+  //  * @returns {unknown | boolean}
+  //  */
+  // this.getCustomVariable = function (index, scope) {
+  //   var cvar;
 
-    if (!h.isDefined(scope)) {
-      scope = "visit";
-    }
+  //   if (!h.isDefined(scope)) {
+  //     scope = "visit";
+  //   }
 
-    if (scope === "page" || scope === 3) {
-      cvar = customVariablesPage[index];
-    } else if (scope === "event") {
-      cvar = customVariablesEvent[index];
-    } else if (scope === "visit" || scope === 2) {
-      loadCustomVariables();
-      cvar = customVariables[index];
-    }
+  //   if (scope === "page" || scope === 3) {
+  //     cvar = customVariablesPage[index];
+  //   } else if (scope === "event") {
+  //     cvar = customVariablesEvent[index];
+  //   } else if (scope === "visit" || scope === 2) {
+  //     loadCustomVariables();
+  //     cvar = customVariables[index];
+  //   }
 
-    if (!h.isDefined(cvar) || (cvar && cvar[0] === "")) {
-      return false;
-    }
+  //   if (!h.isDefined(cvar) || (cvar && cvar[0] === "")) {
+  //     return false;
+  //   }
 
-    return cvar;
-  };
+  //   return cvar;
+  // };
 
-  /**
-   * Delete custom variable
-   *
-   * @param {number} index Custom variable slot ID from 1-5
-   * @param {string} scope
-   * @noreturn
-   */
-  this.deleteCustomVariable = function (index, scope) {
-    // Only delete if it was there already
-    if (this.getCustomVariable(index, scope)) {
-      this.setCustomVariable(index, "", "", scope);
-    }
-  };
+  // /**
+  //  * Delete custom variable
+  //  *
+  //  * @param {number} index Custom variable slot ID from 1-5
+  //  * @param {string} scope
+  //  * @noreturn
+  //  */
+  // this.deleteCustomVariable = function (index, scope) {
+  //   // Only delete if it was there already
+  //   if (this.getCustomVariable(index, scope)) {
+  //     this.setCustomVariable(index, "", "", scope);
+  //   }
+  // };
 
-  /**
-   * Deletes all custom variables for a certain scope.
-   *
-   * @param {string | number} scope
-   * @noreturn
-   */
-  this.deleteCustomVariables = function (scope) {
-    if (scope === "page" || scope === 3) {
-      customVariablesPage = {};
-    } else if (scope === "event") {
-      customVariablesEvent = {};
-    } else if (scope === "visit" || scope === 2) {
-      customVariables = {};
-    }
-  };
+  // /**
+  //  * Deletes all custom variables for a certain scope.
+  //  *
+  //  * @param {string | number} scope
+  //  * @noreturn
+  //  */
+  // this.deleteCustomVariables = function (scope) {
+  //   if (scope === "page" || scope === 3) {
+  //     customVariablesPage = {};
+  //   } else if (scope === "event") {
+  //     customVariablesEvent = {};
+  //   } else if (scope === "visit" || scope === 2) {
+  //     customVariables = {};
+  //   }
+  // };
 
-  /**
-   * When called then the Custom Variables of scope "visit" will be stored (persisted) in a first party cookie
-   * for the duration of the visit. This is useful if you want to call getCustomVariable later in the visit.
-   *
-   * By default, Custom Variables of scope "visit" are not stored on the visitor's computer.
-   *
-   * @noreturn
-   */
-  this.storeCustomVariablesInCookie = function () {
-    configStoreCustomVariablesInCookie = true;
-  };
+  // /**
+  //  * When called then the Custom Variables of scope "visit" will be stored (persisted) in a first party cookie
+  //  * for the duration of the visit. This is useful if you want to call getCustomVariable later in the visit.
+  //  *
+  //  * By default, Custom Variables of scope "visit" are not stored on the visitor's computer.
+  //  *
+  //  * @noreturn
+  //  */
+  // this.storeCustomVariablesInCookie = function () {
+  //   configStoreCustomVariablesInCookie = true;
+  // };
 
   /**
    * Set delay for link tracking (in milliseconds)
@@ -4028,7 +4039,6 @@ export function Tracker(trackerUrl, siteId) {
    */
   function getCurrentUrl() {
     return h.urlFixup(
-      document.domain,
       window.location.href,
       h.getReferrer(),
     )[1];
