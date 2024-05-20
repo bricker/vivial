@@ -16,7 +16,7 @@ from sqlalchemy.event import (
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 from eave.collectors.core.base_collector import BaseCollector
-from eave.collectors.core.correlation_context import corr_ctx
+from eave.collectors.core.correlation_context import corr_ctx, save_identification_data
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure
 from eave.collectors.core.write_queue import WriteQueue
 
@@ -122,6 +122,9 @@ class SQLAlchemyCollector(BaseCollector):
             if isinstance(clauseelement.table, sqlalchemy.Table):
                 tablename = clauseelement.table.fullname
 
+            for params in rparams:
+                save_identification_data(tablename, params)
+
             if isinstance(clauseelement, sqlalchemy.Insert):
                 for idx, rparam in enumerate(rparams):
                     pkey = None
@@ -143,7 +146,6 @@ class SQLAlchemyCollector(BaseCollector):
                     )
 
                     self.write_queue.put(record)
-                    return
 
             elif isinstance(clauseelement, sqlalchemy.Update):
                 for idx, rparam in enumerate(rparams):
