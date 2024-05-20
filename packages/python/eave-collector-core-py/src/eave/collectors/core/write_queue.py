@@ -41,6 +41,8 @@ class QueueItem:
 
 # TODO: sigterm handler
 async def _process_queue(q: multiprocessing.Queue, params: QueueParams, queue_closed_event: threading.Event) -> int:
+    EAVE_LOGGER.info("Eave queue processor started.")
+
     buffer: dict[str, list[JsonObject]] = {}
     buflen = 0
     last_flush = time.time()
@@ -75,8 +77,9 @@ async def _process_queue(q: multiprocessing.Queue, params: QueueParams, queue_cl
 
         now = time.time()
 
-        if force_flush or buflen >= params.maxsize or now - last_flush >= params.flush_frequency_seconds:
+        if buflen > 0 and (force_flush or buflen >= params.maxsize or now - last_flush >= params.flush_frequency_seconds):
             try:
+                EAVE_LOGGER.debug("Sending event batch to Eave.")
                 await send_batch(events=buffer)
                 buffer.clear()
                 buflen = 0
@@ -99,6 +102,7 @@ async def _process_queue(q: multiprocessing.Queue, params: QueueParams, queue_cl
 
 def _queue_processor_event_loop(*args, **kwargs) -> None:
     result = asyncio.run(_process_queue(*args, **kwargs))
+    EAVE_LOGGER.info("Eave queue processor ended.")
     sys.exit(result)
 
 

@@ -1,3 +1,4 @@
+import time
 from typing import Any, override
 
 from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
@@ -36,6 +37,31 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
             SchemaField(
                 name="s",
                 field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="e_a",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="e_c",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="e_n",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="e_v",
+                field_type=StandardSqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="e_ts",
+                field_type=StandardSqlTypeNames.TIMESTAMP,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
             SchemaField(
@@ -143,6 +169,11 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                 field_type=StandardSqlTypeNames.JSON,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
+            SchemaField(
+                name="timestamp",
+                field_type=StandardSqlTypeNames.TIMESTAMP,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
         ],
     )
 
@@ -216,7 +247,12 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
 
         for e in browser_events:
             # unique_operations.add((e.request_method, e.request_url))
-            formatted_rows.append(e.to_dict())
+            formatted_rows.append(
+                {
+                    "timestamp": time.time(),
+                    **e.to_dict(),
+                }
+            )
 
         self._bq_client.append_rows(
             table=table,

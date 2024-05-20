@@ -95,6 +95,11 @@ class BrowserEventPayload(EventPayload):
     h: str | None
     m: str | None
     s: str | None
+    e_c: str | None
+    e_a: str | None
+    e_n: str | None
+    e_v: str | None
+    e_ts: str | None
     url: str | None
     queryParams: str | None  # noqa: N815
     _eave_visitor_id: str | None
@@ -126,6 +131,11 @@ class BrowserEventPayload(EventPayload):
         h: str | None = None,
         m: str | None = None,
         s: str | None = None,
+        e_c: str | None = None,
+        e_a: str | None = None,
+        e_n: str | None = None,
+        e_v: str | None = None,
+        e_ts: str | None = None,
         url: str | None = None,
         queryParams: str | None   = None,  # noqa: N803
         _eave_visitor_id: str | None = None,
@@ -155,6 +165,11 @@ class BrowserEventPayload(EventPayload):
         self.h = h
         self.m = m
         self.s = s
+        self.e_c = e_c
+        self.e_a = e_a
+        self.e_n = e_n
+        self.e_v = e_v
+        self.e_ts = e_ts
         self.url = url
         self.queryParams = queryParams
         self._eave_visitor_id = _eave_visitor_id
