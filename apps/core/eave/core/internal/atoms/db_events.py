@@ -51,6 +51,11 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
                 field_type=StandardSqlTypeNames.JSON,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
+            SchemaField(
+                name="context",
+                field_type=StandardSqlTypeNames.JSON,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
         ],
     )
 
