@@ -118,10 +118,20 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
 
         tablename = "__unknown"
 
-        if isinstance(clauseelement, (sqlalchemy.Insert, sqlalchemy.Update, sqlalchemy.Delete)):
-            if isinstance(clauseelement.table, sqlalchemy.Table):
+        if isinstance(clauseelement, (sqlalchemy.Select, sqlalchemy.Insert, sqlalchemy.Update, sqlalchemy.Delete)):
+            if isinstance(clauseelement, sqlalchemy.Select):
+                # attempt to get table name from a FromClause
+                # TODO: (this doesnt really work for complex select statements w/ joins)
+                from_clause = clauseelement.get_final_froms()
+                if len(from_clause) > 0:
+                    candidate_name = getattr(from_clause[0], "name", None)
+                    if candidate_name is not None:
+                        tablename = candidate_name
+            elif isinstance(clauseelement.table, sqlalchemy.Table):
                 tablename = clauseelement.table.fullname
 
+            if isinstance(clauseelement, sqlalchemy.Select):
+                pass # TODO: collect event
             if isinstance(clauseelement, sqlalchemy.Insert):
                 for idx, rparam in enumerate(rparams):
                     pkeys = None
