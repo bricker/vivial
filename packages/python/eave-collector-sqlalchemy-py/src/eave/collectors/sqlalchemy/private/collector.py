@@ -15,15 +15,15 @@ from sqlalchemy.event import (
 )
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from eave.collectors.core.base_collector import BaseCollector
-from eave.collectors.core.correlation_context import corr_ctx, save_identification_data
+from eave.collectors.core.base_database_collector import BaseDatabaseCollector, save_identification_data
+from eave.collectors.core.correlation_context import corr_ctx
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure
 from eave.collectors.core.write_queue import WriteQueue
 
 type SupportedEngine = sqlalchemy.Engine | AsyncEngine
 
 
-class SQLAlchemyCollector(BaseCollector):
+class SQLAlchemyCollector(BaseDatabaseCollector):
     _event_listeners: list[tuple[weakref.ReferenceType[sqlalchemy.Engine], str, Callable[..., Any]]]
     _db_metadata: sqlalchemy.MetaData | None
 
@@ -122,17 +122,17 @@ class SQLAlchemyCollector(BaseCollector):
             if isinstance(clauseelement.table, sqlalchemy.Table):
                 tablename = clauseelement.table.fullname
 
-            for params in rparams:
-                save_identification_data(tablename, params)
-
             if isinstance(clauseelement, sqlalchemy.Insert):
                 for idx, rparam in enumerate(rparams):
-                    pkey = None
+                    pkeys = None
                     if isinstance(result, sqlalchemy.CursorResult) and len(result.inserted_primary_key_rows) > idx:
                         row = result.inserted_primary_key_rows[idx]
-                        pkey = list(row.tuple())
+                        pkeys = list(row.tuple())
 
-                    rparam["__primary_key"] = pkey
+                    rparam["__primary_key"] = pkeys
+
+                    if pkeys:
+                        save_identification_data(table_name=tablename, primary_keys=pkeys)
 
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
