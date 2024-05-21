@@ -1,0 +1,17 @@
+{% extends 'admin/base.html' %}
+<!-- the name of this file (base_site.html) matters, 
+  as does app registration order in settings.py:INSTALLED_APPS (user app must come before admin)-->
+{% block extrahead %}{{ block.super }}
+    <!-- Eave client tracing -->
+    <script>
+      // var _settings = window._settings = window._settings || [];
+      // // _settings.push(["setEaveClientId", "dummy_client_id"]);
+      // (function() {
+      //   // TODO: update script location
+      //   var scriptHostLocation = "cdn/eave-client.min.js";
+      //   var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+      //   g.async=true; g.src=scriptHostLocation; s.parentNode.insertBefore(g,s);
+      // })();
+    </script>
+    <!-- End Eave client tracing Code -->
+{% endblock %}

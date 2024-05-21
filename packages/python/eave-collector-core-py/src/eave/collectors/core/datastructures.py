@@ -8,9 +8,9 @@ from .json import JsonObject, compact_json
 
 
 class DatabaseStructure(StrEnum):
-    UNKNOWN = "unknown"
+    UNKNOWN = "UNKNOWN"
     SQL = "SQL"
-    NO_SQL = "noSQL"
+    NO_SQL = "NO_SQL"
 
     @classmethod
     def from_str(cls, s: str) -> Self | None:
