@@ -17,6 +17,7 @@ keys_of_interest = {
     "account_id",
 }
 
+
 def save_identification_data(table_name: str, primary_keys: list[Any]) -> None:
     """
     Saves into correlation context global any database values that may be useful for
@@ -33,13 +34,6 @@ def save_identification_data(table_name: str, primary_keys: list[Any]) -> None:
     if table_name.lower() in tables_of_interest:
         user_id = primary_keys[0]
         corr_ctx.set("user_id", str(user_id))
-
-    # for key, value in data.items():
-    #     if key.lower() in keys_of_interest:
-
-    #         # accounts_id = abc123
-    #         corr_ctx.set(f"{table_name}_{key}".lower(), value)
-
 
 
 class BaseDatabaseCollector(BaseCollector):
