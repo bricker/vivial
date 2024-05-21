@@ -1,18 +1,13 @@
 // @ts-check
 
-import "./globals.mjs";
+import "./main.mjs";
 import * as h from "./helpers.mjs";
 
 /**
  * CookieManager class
  */
-export class CookieManager {
+class CookieManager {
   constructor() {
-    this.SESSION_ID_COOKIE_NAME = "session_id";
-    this.VISITOR_ID_COOKIE_NAME = "visitor_id";
-    this.CONSENT_COOKIE_NAME = "consent";
-    this.COOKIE_CONSENT_COOKIE_NAME = "cookie_consent";
-    this.CONSENT_REMOVED_COOKIE_NAME = "consent_removed";
     // First-party cookie name prefix
     this.configCookieNamePrefix = "_eave_";
     // Life of the visitor cookie (in milliseconds)
@@ -133,32 +128,10 @@ export class CookieManager {
         "There was an error setting cookie `" +
         cookieName +
         "`. Please check domain and path.";
-      h.logConsoleError(msg);
+      console.error("[eave]", msg);
     }
   }
 
-  /**
-   * Inits the custom variables object
-   *
-   * @returns {object}
-   */
-  getCustomVariablesFromCookie() {
-    let cookie = this.getCookie("cvar");
-
-    if (cookie && cookie.length) {
-      try {
-        cookie = JSON.parse(cookie);
-
-        if (h.isObject(cookie)) {
-          return cookie;
-        }
-      } catch (ignore) {
-        //ignore
-      }
-    }
-
-    return {};
-  }
 
   /**
    * @param {string} domainToTest
@@ -262,41 +235,7 @@ export class CookieManager {
 
     return navigator.cookieEnabled;
   }
-
-  /**
-   * @returns {string | undefined}
-   */
-  getSession() {
-    return this.getCookie(this.SESSION_ID_COOKIE_NAME);
-  }
-
-  /**
-   * Resets the expiration of the session cookie, or sets a new
-   * value if there was no existing session cookie.
-   *
-   * @noreturn
-   */
-  resetOrExtendSession() {
-    const sessionId = this.getSession() || h.uuidv4();
-    this.setCookie(
-      this.SESSION_ID_COOKIE_NAME,
-      sessionId,
-      this.configSessionCookieTimeout,
-      this.configCookiePath,
-      this.configCookieDomain,
-      this.configCookieIsSecure,
-      this.configCookieSameSite,
-    );
-  }
-
-  /**
-   * Set visitor ID if it hasnt yet been set.
-   *
-   * @noreturn
-   */
-  setVisitorId() {
-    if (!this.getCookie(this.VISITOR_ID_COOKIE_NAME)) {
-      this.setCookie(this.VISITOR_ID_COOKIE_NAME, h.uuidv4());
-    }
-  }
 }
+
+
+export const cookieManager = new CookieManager();

@@ -1,600 +1,582 @@
 // @ts-check
 
-import './globals.mjs';
+import './main.mjs';
 import * as h from "./helpers.mjs";
-import query from "./query.mjs";
+import * as query from "./query.mjs";
 import { isVisible } from "./visibility.mjs";
 
-export default {
-  CONTENT_ATTR: "data-track-content",
-  CONTENT_CLASS: "eaveTrackContent",
-  CONTENT_NAME_ATTR: "data-content-name",
-  CONTENT_PIECE_ATTR: "data-content-piece",
-  CONTENT_PIECE_CLASS: "eaveContentPiece",
-  CONTENT_TARGET_ATTR: "data-content-target",
-  CONTENT_TARGET_CLASS: "eaveContentTarget",
-  CONTENT_IGNOREINTERACTION_ATTR: "data-content-ignoreinteraction",
-  CONTENT_IGNOREINTERACTION_CLASS: "eaveContentIgnoreInteraction",
-  location: undefined,
+export const CONTENT_ATTR = "data-track-content";
+export const CONTENT_CLASS = "eaveTrackContent";
+export const CONTENT_NAME_ATTR = "data-content-name";
+export const CONTENT_PIECE_ATTR = "data-content-piece";
+export const CONTENT_PIECE_CLASS = "eaveContentPiece";
+export const CONTENT_TARGET_ATTR = "data-content-target";
+export const CONTENT_TARGET_CLASS = "eaveContentTarget";
+export const CONTENT_IGNOREINTERACTION_ATTR = "data-content-ignoreinteraction";
+export const CONTENT_IGNOREINTERACTION_CLASS = "eaveContentIgnoreInteraction";
 
-  /**
-   * @returns {Element[]}
-   */
-  findContentNodes: function () {
-    const cssSelector = "." + this.CONTENT_CLASS;
-    const cssSelector2 = "." + this.LEGACY_CONTENT_CLASS;
-    const attrSelector = "[" + this.CONTENT_ATTR + "]";
-    const contentNodes = query.findMultiple([
-      cssSelector,
-      cssSelector2,
-      attrSelector,
-    ]);
+/**
+ * @returns {Node[]}
+ */
+export function findContentNodes() {
+  const cssSelector = "." + CONTENT_CLASS;
+  const cssSelector2 = "." + LEGACY_CONTENT_CLASS;
+  const attrSelector = "[" + CONTENT_ATTR + "]";
+  const contentNodes = query.findMultiple([
+    cssSelector,
+    cssSelector2,
+    attrSelector,
+  ]);
 
-    return contentNodes;
-  },
+  return contentNodes;
+}
 
-  /**
-   * @param {Node} node
-   *
-   * @returns {Element[]}
-   */
-  findContentNodesWithinNode: function (node) {
-    if (!node) {
-      return [];
+/**
+ * @param {Node} node
+ *
+ * @returns {Node[]}
+ */
+export function findContentNodesWithinNode(node) {
+  if (!node) {
+    return [];
+  }
+
+  // NOTE: we do not use query.findMultiple here as querySelectorAll would most likely not deliver the result we want
+
+  let nodes1 = query.findNodesHavingCssClass(node, CONTENT_CLASS);
+  nodes1 = query.findNodesHavingCssClass(
+    node,
+    LEGACY_CONTENT_CLASS,
+    nodes1,
+  );
+  const nodes2 = query.findNodesHavingAttribute(node, CONTENT_ATTR);
+
+  if (nodes2 && nodes2.length) {
+    nodes1.push(...nodes2);
+  }
+
+  if (query.hasNodeAttribute(node, CONTENT_ATTR)) {
+    nodes1.push(node);
+  } else if (query.hasNodeCssClass(node, CONTENT_CLASS)) {
+    nodes1.push(node);
+  } else if (query.hasNodeCssClass(node, LEGACY_CONTENT_CLASS)) {
+    nodes1.push(node);
+  }
+
+  nodes1 = query.makeNodesUnique(nodes1);
+
+  return nodes1;
+}
+
+/**
+ * @param {Node} anyNode
+ *
+ * @returns {Node | undefined}
+ */
+export function findParentContentNode(anyNode) {
+  if (!anyNode) {
+    return;
+  }
+
+  let node = anyNode;
+  let counter = 0;
+
+  while (node && node !== document && node.parentNode) {
+    if (query.hasNodeAttribute(node, CONTENT_ATTR)) {
+      return node;
+    }
+    if (query.hasNodeCssClass(node, CONTENT_CLASS)) {
+      return node;
+    }
+    if (query.hasNodeCssClass(node, LEGACY_CONTENT_CLASS)) {
+      return node;
     }
 
-    // NOTE: we do not use query.findMultiple here as querySelectorAll would most likely not deliver the result we want
+    node = node.parentNode;
 
-    var nodes1 = query.findNodesHavingCssClass(node, this.CONTENT_CLASS);
-    nodes1 = query.findNodesHavingCssClass(
+    if (counter > 1000) {
+      break; // prevent loop, should not happen anyway but better we do this
+    }
+    counter++;
+  }
+}
+
+export function findPieceNode(node) {
+  let contentPiece = query.findFirstNodeHavingAttribute(
+    node,
+    CONTENT_PIECE_ATTR,
+  );
+
+  if (!contentPiece) {
+    contentPiece = query.findFirstNodeHavingClass(
       node,
-      this.LEGACY_CONTENT_CLASS,
-      nodes1,
+      CONTENT_PIECE_CLASS,
     );
-    var nodes2 = query.findNodesHavingAttribute(node, this.CONTENT_ATTR);
-
-    if (nodes2 && nodes2.length) {
-      var index;
-      for (index = 0; index < nodes2.length; index++) {
-        nodes1.push(nodes2[index]);
-      }
-    }
-
-    if (query.hasNodeAttribute(node, this.CONTENT_ATTR)) {
-      nodes1.push(node);
-    } else if (query.hasNodeCssClass(node, this.CONTENT_CLASS)) {
-      nodes1.push(node);
-    } else if (query.hasNodeCssClass(node, this.LEGACY_CONTENT_CLASS)) {
-      nodes1.push(node);
-    }
-
-    nodes1 = query.makeNodesUnique(nodes1);
-
-    return nodes1;
-  },
-
-  /**
-   * @param {Node} anyNode
-   * @returns {Node | undefined}
-   */
-  findParentContentNode: function (anyNode) {
-    if (!anyNode) {
-      return;
-    }
-
-    let node = anyNode;
-    let counter = 0;
-
-    while (node && node !== document && node.parentNode) {
-      if (query.hasNodeAttribute(node, this.CONTENT_ATTR)) {
-        return node;
-      }
-      if (query.hasNodeCssClass(node, this.CONTENT_CLASS)) {
-        return node;
-      }
-      if (query.hasNodeCssClass(node, this.LEGACY_CONTENT_CLASS)) {
-        return node;
-      }
-
-      node = node.parentNode;
-
-      if (counter > 1000) {
-        break; // prevent loop, should not happen anyway but better we do this
-      }
-      counter++;
-    }
-  },
-  findPieceNode: function (node) {
-    var contentPiece;
-
-    contentPiece = query.findFirstNodeHavingAttribute(
+  }
+  if (!contentPiece) {
+    contentPiece = query.findFirstNodeHavingClass(
       node,
-      this.CONTENT_PIECE_ATTR,
+      LEGACY_CONTENT_PIECE_CLASS,
     );
+  }
 
-    if (!contentPiece) {
-      contentPiece = query.findFirstNodeHavingClass(
-        node,
-        this.CONTENT_PIECE_CLASS,
-      );
-    }
-    if (!contentPiece) {
-      contentPiece = query.findFirstNodeHavingClass(
-        node,
-        this.LEGACY_CONTENT_PIECE_CLASS,
-      );
-    }
+  if (contentPiece) {
+    return contentPiece;
+  }
 
-    if (contentPiece) {
-      return contentPiece;
-    }
+  return node;
+}
 
-    return node;
-  },
-  findTargetNodeNoDefault: function (node) {
-    if (!node) {
-      return;
-    }
+export function findTargetNodeNoDefault(node) {
+  if (!node) {
+    return;
+  }
 
-    var target = query.findFirstNodeHavingAttributeWithValue(
-      node,
-      this.CONTENT_TARGET_ATTR,
+  let target = query.findFirstNodeHavingAttributeWithValue(
+    node,
+    CONTENT_TARGET_ATTR,
+  );
+  if (target) {
+    return target;
+  }
+
+  target = query.findFirstNodeHavingAttribute(node, CONTENT_TARGET_ATTR);
+  if (target) {
+    return target;
+  }
+
+  target = query.findFirstNodeHavingClass(node, CONTENT_TARGET_CLASS);
+  if (target) {
+    return target;
+  }
+
+  target = query.findFirstNodeHavingClass(
+    node,
+    LEGACY_CONTENT_TARGET_CLASS,
+  );
+  if (target) {
+    return target;
+  }
+}
+
+export function findTargetNode(node) {
+  return findTargetNodeNoDefault(node) || node;
+}
+
+export function findContentName(node) {
+  if (!node) {
+    return;
+  }
+
+  const nameNode = query.findFirstNodeHavingAttributeWithValue(
+    node,
+    CONTENT_NAME_ATTR,
+  );
+
+  if (nameNode) {
+    return query.getAttributeValueFromNode(nameNode, CONTENT_NAME_ATTR);
+  }
+
+  const contentPiece = findContentPiece(node);
+  if (contentPiece) {
+    return removeDomainIfIsInLink(contentPiece);
+  }
+
+  if (query.hasNodeAttributeWithValue(node, "title")) {
+    return query.getAttributeValueFromNode(node, "title");
+  }
+
+  const clickUrlNode = findPieceNode(node);
+
+  if (query.hasNodeAttributeWithValue(clickUrlNode, "title")) {
+    return query.getAttributeValueFromNode(clickUrlNode, "title");
+  }
+
+  const targetNode = findTargetNode(node);
+
+  if (query.hasNodeAttributeWithValue(targetNode, "title")) {
+    return query.getAttributeValueFromNode(targetNode, "title");
+  }
+}
+
+export function findContentPiece(node) {
+  if (!node) {
+    return;
+  }
+
+  const nameNode = query.findFirstNodeHavingAttributeWithValue(
+    node,
+    CONTENT_PIECE_ATTR,
+  );
+
+  if (nameNode) {
+    return query.getAttributeValueFromNode(nameNode, CONTENT_PIECE_ATTR);
+  }
+
+  const contentNode = findPieceNode(node);
+
+  const media = findMediaUrlInNode(contentNode);
+  if (media) {
+    return toAbsoluteUrl(media);
+  }
+}
+
+export function findContentTarget(node) {
+  if (!node) {
+    return;
+  }
+
+  const targetNode = findTargetNode(node);
+
+  if (query.hasNodeAttributeWithValue(targetNode, CONTENT_TARGET_ATTR)) {
+    return query.getAttributeValueFromNode(
+      targetNode,
+      CONTENT_TARGET_ATTR,
     );
-    if (target) {
-      return target;
-    }
+  }
 
-    target = query.findFirstNodeHavingAttribute(node, this.CONTENT_TARGET_ATTR);
-    if (target) {
-      return target;
-    }
+  let href;
+  if (query.hasNodeAttributeWithValue(targetNode, "href")) {
+    href = query.getAttributeValueFromNode(targetNode, "href");
+    return toAbsoluteUrl(href);
+  }
 
-    target = query.findFirstNodeHavingClass(node, this.CONTENT_TARGET_CLASS);
-    if (target) {
-      return target;
-    }
+  const contentNode = findPieceNode(node);
 
-    target = query.findFirstNodeHavingClass(
-      node,
-      this.LEGACY_CONTENT_TARGET_CLASS,
-    );
-    if (target) {
-      return target;
-    }
-  },
-  findTargetNode: function (node) {
-    var target = this.findTargetNodeNoDefault(node);
-    if (target) {
-      return target;
-    }
+  if (query.hasNodeAttributeWithValue(contentNode, "href")) {
+    href = query.getAttributeValueFromNode(contentNode, "href");
+    return toAbsoluteUrl(href);
+  }
+}
 
-    return node;
-  },
-  findContentName: function (node) {
-    if (!node) {
-      return;
-    }
-
-    var nameNode = query.findFirstNodeHavingAttributeWithValue(
-      node,
-      this.CONTENT_NAME_ATTR,
-    );
-
-    if (nameNode) {
-      return query.getAttributeValueFromNode(nameNode, this.CONTENT_NAME_ATTR);
-    }
-
-    var contentPiece = this.findContentPiece(node);
-    if (contentPiece) {
-      return this.removeDomainIfIsInLink(contentPiece);
-    }
-
-    if (query.hasNodeAttributeWithValue(node, "title")) {
-      return query.getAttributeValueFromNode(node, "title");
-    }
-
-    var clickUrlNode = this.findPieceNode(node);
-
-    if (query.hasNodeAttributeWithValue(clickUrlNode, "title")) {
-      return query.getAttributeValueFromNode(clickUrlNode, "title");
-    }
-
-    var targetNode = this.findTargetNode(node);
-
-    if (query.hasNodeAttributeWithValue(targetNode, "title")) {
-      return query.getAttributeValueFromNode(targetNode, "title");
-    }
-  },
-  findContentPiece: function (node) {
-    if (!node) {
-      return;
-    }
-
-    var nameNode = query.findFirstNodeHavingAttributeWithValue(
-      node,
-      this.CONTENT_PIECE_ATTR,
-    );
-
-    if (nameNode) {
-      return query.getAttributeValueFromNode(nameNode, this.CONTENT_PIECE_ATTR);
-    }
-
-    var contentNode = this.findPieceNode(node);
-
-    var media = this.findMediaUrlInNode(contentNode);
-    if (media) {
-      return this.toAbsoluteUrl(media);
-    }
-  },
-  findContentTarget: function (node) {
-    if (!node) {
-      return;
-    }
-
-    var targetNode = this.findTargetNode(node);
-
-    if (query.hasNodeAttributeWithValue(targetNode, this.CONTENT_TARGET_ATTR)) {
-      return query.getAttributeValueFromNode(
-        targetNode,
-        this.CONTENT_TARGET_ATTR,
-      );
-    }
-
-    var href;
-    if (query.hasNodeAttributeWithValue(targetNode, "href")) {
-      href = query.getAttributeValueFromNode(targetNode, "href");
-      return this.toAbsoluteUrl(href);
-    }
-
-    var contentNode = this.findPieceNode(node);
-
-    if (query.hasNodeAttributeWithValue(contentNode, "href")) {
-      href = query.getAttributeValueFromNode(contentNode, "href");
-      return this.toAbsoluteUrl(href);
-    }
-  },
-  isSameDomain: function (url) {
-    if (!url || !url.indexOf) {
-      return false;
-    }
-
-    if (0 === url.indexOf(this.getLocation().origin)) {
-      return true;
-    }
-
-    var posHost = url.indexOf(this.getLocation().host);
-    if (8 >= posHost && 0 <= posHost) {
-      return true;
-    }
-
+export function isSameDomain(url) {
+  if (!url || !url.indexOf) {
     return false;
-  },
-  removeDomainIfIsInLink: function (text) {
-    // we will only remove if domain === location.origin meaning is not an outlink
-    var regexContainsProtocol = "^https?://[^/]+";
-    var regexReplaceDomain = "^.*//[^/]+";
+  }
 
-    if (
-      text &&
-      text.search &&
-      -1 !== text.search(new RegExp(regexContainsProtocol)) &&
-      this.isSameDomain(text)
-    ) {
-      text = text.replace(new RegExp(regexReplaceDomain), "");
-      if (!text) {
-        text = "/";
-      }
+  if (0 === url.indexOf(window.location.origin)) {
+    return true;
+  }
+
+  var posHost = url.indexOf(window.location.host);
+  if (8 >= posHost && 0 <= posHost) {
+    return true;
+  }
+
+  return false;
+}
+
+
+export function removeDomainIfIsInLink(text) {
+  // we will only remove if domain === location.origin meaning is not an outlink
+  const regexContainsProtocol = "^https?://[^/]+";
+  const regexReplaceDomain = "^.*//[^/]+";
+
+  if (
+    text &&
+    text.search &&
+    -1 !== text.search(new RegExp(regexContainsProtocol)) &&
+    isSameDomain(text)
+  ) {
+    text = text.replace(new RegExp(regexReplaceDomain), "");
+    if (!text) {
+      text = "/";
     }
+  }
 
-    return text;
-  },
-  findMediaUrlInNode: function (node) {
-    if (!node) {
-      return;
-    }
+  return text;
+}
 
-    var mediaElements = ["img", "embed", "video", "audio"];
-    var elementName = node.nodeName.toLowerCase();
 
-    if (
-      -1 !== h.indexOfArray(mediaElements, elementName) &&
-      query.findFirstNodeHavingAttributeWithValue(node, "src")
-    ) {
-      var sourceNode = query.findFirstNodeHavingAttributeWithValue(node, "src");
+export function findMediaUrlInNode(node) {
+  if (!node) {
+    return;
+  }
 
+  const mediaElements = ["img", "embed", "video", "audio"];
+  const elementName = node.nodeName.toLowerCase();
+
+  if (
+    -1 !== h.indexOfArray(mediaElements, elementName) &&
+    query.findFirstNodeHavingAttributeWithValue(node, "src")
+  ) {
+    const sourceNode = query.findFirstNodeHavingAttributeWithValue(node, "src");
+    if (sourceNode) {
       return query.getAttributeValueFromNode(sourceNode, "src");
+    } else {
+      return null;
     }
+  }
 
-    if (
-      elementName === "object" &&
-      query.hasNodeAttributeWithValue(node, "data")
-    ) {
-      return query.getAttributeValueFromNode(node, "data");
-    }
+  if (
+    elementName === "object" &&
+    query.hasNodeAttributeWithValue(node, "data")
+  ) {
+    return query.getAttributeValueFromNode(node, "data");
+  }
 
-    if (elementName === "object") {
-      var params = query.findNodesByTagName(node, "param");
-      if (params && params.length) {
-        var index;
-        for (index = 0; index < params.length; index++) {
-          if (
-            "movie" ===
-              query.getAttributeValueFromNode(params[index], "name") &&
-            query.hasNodeAttributeWithValue(params[index], "value")
-          ) {
-            return query.getAttributeValueFromNode(params[index], "value");
-          }
+  if (elementName === "object") {
+    const params = query.findNodesByTagName(node, "param");
+    if (params && params.length) {
+      for (const param of params) {
+        if (
+          "movie" ===
+            query.getAttributeValueFromNode(param, "name") &&
+          query.hasNodeAttributeWithValue(param, "value")
+        ) {
+          return query.getAttributeValueFromNode(param, "value");
         }
       }
-
-      var embed = query.findNodesByTagName(node, "embed");
-      if (embed && embed.length) {
-        return this.findMediaUrlInNode(embed[0]);
-      }
-    }
-  },
-
-  /**
-   * @param {string} text
-   * @returns {string}
-   */
-  trim: function (text) {
-    return h.trim(text);
-  },
-
-  /**
-   * @param {HTMLElement} node
-   * @returns {boolean}
-   */
-  isOrWasNodeInViewport: function (node) {
-    if (!node || !node.getBoundingClientRect || node.nodeType !== 1) {
-      return true;
     }
 
-    var rect = node.getBoundingClientRect();
-    var html = document.documentElement || {};
-
-    var wasVisible = rect.top < 0;
-    if (wasVisible && node.offsetTop) {
-      wasVisible = node.offsetTop + rect.height > 0;
+    const embed = query.findNodesByTagName(node, "embed");
+    if (embed && embed.length) {
+      return findMediaUrlInNode(embed[0]);
     }
+  }
+}
 
-    var docWidth = html.clientWidth; // The clientWidth attribute returns the viewport width excluding the size of a rendered scroll bar
+/**
+ * @param {Node} node
+ *
+ * @returns {boolean}
+ */
+export function isOrWasNodeInViewport(node) {
+  const element = h.castNodeToHtmlElement(node);
+  if (!element) {
+    return true;
+  }
 
-    if (
-      window.innerWidth &&
-      docWidth > window.innerWidth
-    ) {
-      docWidth = window.innerWidth; // The innerWidth attribute must return the viewport width including the size of a rendered scroll bar
-    }
+  const rect = element.getBoundingClientRect();
+  const html = document.documentElement || {};
 
-    var docHeight = html.clientHeight; // The clientWidth attribute returns the viewport width excluding the size of a rendered scroll bar
+  let wasVisible = rect.top < 0;
+  if (wasVisible && element.offsetTop) {
+    wasVisible = element.offsetTop + rect.height > 0;
+  }
 
-    if (
-      window.innerHeight &&
-      docHeight > window.innerHeight
-    ) {
-      docHeight = window.innerHeight; // The innerWidth attribute must return the viewport width including the size of a rendered scroll bar
-    }
+  let docWidth = html.clientWidth; // The clientWidth attribute returns the viewport width excluding the size of a rendered scroll bar
 
-    return (
-      (rect.bottom > 0 || wasVisible) &&
-      rect.right > 0 &&
-      rect.left < docWidth &&
-      (rect.top < docHeight || wasVisible) // rect.top < 0 we assume user has seen all the ones that are above the current viewport
-    );
-  },
+  if (
+    window.innerWidth &&
+    docWidth > window.innerWidth
+  ) {
+    docWidth = window.innerWidth; // The innerWidth attribute must return the viewport width including the size of a rendered scroll bar
+  }
 
-  /**
-   * @param {HTMLElement} node
-   * @returns {boolean}
-   */
-  isNodeVisible: function (node) {
-    var isItVisible = isVisible(node);
-    var isInViewport = this.isOrWasNodeInViewport(node);
-    return isItVisible && isInViewport;
-  },
+  let docHeight = html.clientHeight; // The clientWidth attribute returns the viewport width excluding the size of a rendered scroll bar
 
-  buildInteractionRequestParams: function (interaction, name, piece, target) {
-    var params = "";
+  if (
+    window.innerHeight &&
+    docHeight > window.innerHeight
+  ) {
+    docHeight = window.innerHeight; // The innerWidth attribute must return the viewport width including the size of a rendered scroll bar
+  }
 
-    if (interaction) {
-      params += "c_i=" + encodeURIComponent(interaction);
-    }
-    if (name) {
-      if (params) {
-        params += "&";
-      }
-      params += "c_n=" + encodeURIComponent(name);
-    }
-    if (piece) {
-      if (params) {
-        params += "&";
-      }
-      params += "c_p=" + encodeURIComponent(piece);
-    }
-    if (target) {
-      if (params) {
-        params += "&";
-      }
-      params += "c_t=" + encodeURIComponent(target);
-    }
+  return (
+    (rect.bottom > 0 || wasVisible) &&
+    rect.right > 0 &&
+    rect.left < docWidth &&
+    (rect.top < docHeight || wasVisible) // rect.top < 0 we assume user has seen all the ones that are above the current viewport
+  );
+}
 
+/**
+ * @param {Node} node
+ *
+ * @returns {boolean}
+ */
+export function isNodeVisible(node) {
+  const isItVisible = isVisible(node);
+  const isInViewport = isOrWasNodeInViewport(node);
+  return isItVisible && isInViewport;
+}
+
+export function buildInteractionRequestParams(interaction, name, piece, target) {
+  var params = "";
+
+  if (interaction) {
+    params += "c_i=" + encodeURIComponent(interaction);
+  }
+  if (name) {
     if (params) {
-      params += "&ca=1";
+      params += "&";
     }
-
-    return params;
-  },
-  buildImpressionRequestParams: function (name, piece, target) {
-    var params =
-      "c_n=" +
-      encodeURIComponent(name) +
-      "&c_p=" +
-      encodeURIComponent(piece);
-
-    if (target) {
-      params += "&c_t=" + encodeURIComponent(target);
-    }
-
+    params += "c_n=" + encodeURIComponent(name);
+  }
+  if (piece) {
     if (params) {
-      params += "&ca=1";
+      params += "&";
     }
-
-    return params;
-  },
-  buildContentBlock: function (node) {
-    if (!node) {
-      return;
+    params += "c_p=" + encodeURIComponent(piece);
+  }
+  if (target) {
+    if (params) {
+      params += "&";
     }
+    params += "c_t=" + encodeURIComponent(target);
+  }
 
-    var name = this.findContentName(node);
-    var piece = this.findContentPiece(node);
-    var target = this.findContentTarget(node);
+  if (params) {
+    params += "&ca=1";
+  }
 
-    name = this.trim(name);
-    piece = this.trim(piece);
-    target = this.trim(target);
+  return params;
+}
 
-    return {
-      name: name || "Unknown",
-      piece: piece || "Unknown",
-      target: target || "",
-    };
-  },
-  collectContent: function (contentNodes) {
-    if (!contentNodes || !contentNodes.length) {
-      return [];
+export function buildImpressionRequestParams(name, piece, target) {
+  var params =
+    "c_n=" +
+    encodeURIComponent(name) +
+    "&c_p=" +
+    encodeURIComponent(piece);
+
+  if (target) {
+    params += "&c_t=" + encodeURIComponent(target);
+  }
+
+  if (params) {
+    params += "&ca=1";
+  }
+
+  return params;
+}
+
+export function buildContentBlock(node) {
+  if (!node) {
+    return;
+  }
+
+  const name = h.trim(findContentName(node));
+  const piece = h.trim(findContentPiece(node));
+  const target = h.trim(findContentTarget(node));
+
+  return {
+    name: name || "Unknown",
+    piece: piece || "Unknown",
+    target: target || "",
+  };
+}
+
+export function collectContent(contentNodes) {
+  if (!contentNodes || !contentNodes.length) {
+    return [];
+  }
+
+  const contents = [];
+
+  for (const contentNode of contentNodes) {
+    const contentBlock = buildContentBlock(contentNode);
+    if (contentBlock) {
+      contents.push(contentBlock);
     }
+  }
 
-    var contents = [];
+  return contents;
+}
 
-    var index, contentBlock;
-    for (index = 0; index < contentNodes.length; index++) {
-      contentBlock = this.buildContentBlock(contentNodes[index]);
-      if (h.isDefined(contentBlock)) {
-        contents.push(contentBlock);
-      }
-    }
+export function toAbsoluteUrl(url) {
+  if ((!url || String(url) !== url) && url !== "") {
+    // we only handle strings
+    return url;
+  }
 
-    return contents;
-  },
-  setLocation: function (location) {
-    this.location = location;
-  },
-  getLocation: function () {
-    var locationAlias = this.location || window.location;
+  if ("" === url) {
+    return window.location.href;
+  }
 
-    if (!locationAlias.origin) {
-      locationAlias.origin =
-        locationAlias.protocol +
-        "//" +
-        locationAlias.hostname +
-        (locationAlias.port ? ":" + locationAlias.port : "");
-    }
+  // Eg //example.com/test.jpg
+  if (url.search(/^\/\//) !== -1) {
+    return window.location.protocol + url;
+  }
 
-    return locationAlias;
-  },
-  toAbsoluteUrl: function (url) {
-    if ((!url || String(url) !== url) && url !== "") {
-      // we only handle strings
-      return url;
-    }
+  // Eg http://example.com/test.jpg
+  if (url.search(/:\/\//) !== -1) {
+    return url;
+  }
 
-    if ("" === url) {
-      return this.getLocation().href;
-    }
+  // Eg #test.jpg
+  if (0 === url.indexOf("#")) {
+    return window.location.origin + window.location.pathname + url;
+  }
 
-    // Eg //example.com/test.jpg
-    if (url.search(/^\/\//) !== -1) {
-      return this.getLocation().protocol + url;
-    }
+  // Eg ?x=5
+  if (0 === url.indexOf("?")) {
+    return window.location.origin + window.location.pathname + url;
+  }
 
-    // Eg http://example.com/test.jpg
-    if (url.search(/:\/\//) !== -1) {
-      return url;
-    }
+  // Eg mailto:x@y.z tel:012345, ... market:... sms:..., javascript:... ecmascript: ... and many more
+  if (0 === url.search("^[a-zA-Z]{2,11}:")) {
+    return url;
+  }
 
-    // Eg #test.jpg
-    if (0 === url.indexOf("#")) {
-      return this.getLocation().origin + this.getLocation().pathname + url;
-    }
+  // Eg /test.jpg
+  if (url.search(/^\//) !== -1) {
+    return window.location.origin + url;
+  }
 
-    // Eg ?x=5
-    if (0 === url.indexOf("?")) {
-      return this.getLocation().origin + this.getLocation().pathname + url;
-    }
+  // Eg test.jpg
+  var regexMatchDir = "(.*/)";
+  var base =
+    window.location.origin +
+    window.location.pathname.match(new RegExp(regexMatchDir))[0];
+  return base + url;
+}
 
-    // Eg mailto:x@y.z tel:012345, ... market:... sms:..., javascript:... ecmascript: ... and many more
-    if (0 === url.search("^[a-zA-Z]{2,11}:")) {
-      return url;
-    }
+export function isUrlToCurrentDomain(url) {
+  var absoluteUrl = toAbsoluteUrl(url);
 
-    // Eg /test.jpg
-    if (url.search(/^\//) !== -1) {
-      return this.getLocation().origin + url;
-    }
-
-    // Eg test.jpg
-    var regexMatchDir = "(.*/)";
-    var base =
-      this.getLocation().origin +
-      this.getLocation().pathname.match(new RegExp(regexMatchDir))[0];
-    return base + url;
-  },
-  isUrlToCurrentDomain: function (url) {
-    var absoluteUrl = this.toAbsoluteUrl(url);
-
-    if (!absoluteUrl) {
-      return false;
-    }
-
-    var origin = this.getLocation().origin;
-    if (origin === absoluteUrl) {
-      return true;
-    }
-
-    if (0 === String(absoluteUrl).indexOf(origin)) {
-      if (":" === String(absoluteUrl).substr(origin.length, 1)) {
-        return false; // url has port whereas origin has not => different URL
-      }
-
-      return true;
-    }
-
+  if (!absoluteUrl) {
     return false;
-  },
-  setHrefAttribute: function (node, url) {
-    if (!node || !url) {
-      return;
+  }
+
+  var origin = window.location.origin;
+  if (origin === absoluteUrl) {
+    return true;
+  }
+
+  if (0 === String(absoluteUrl).indexOf(origin)) {
+    if (":" === String(absoluteUrl).substr(origin.length, 1)) {
+      return false; // url has port whereas origin has not => different URL
     }
 
-    query.setAnyAttribute(node, "href", url);
-  },
+    return true;
+  }
 
-  /**
-   * @param {Node} targetNode
-   * @returns {boolean}
-   */
-  shouldIgnoreInteraction: function (targetNode) {
-    if (
-      query.hasNodeAttribute(targetNode, this.CONTENT_IGNOREINTERACTION_ATTR)
-    ) {
-      return true;
-    }
-    if (
-      query.hasNodeCssClass(targetNode, this.CONTENT_IGNOREINTERACTION_CLASS)
-    ) {
-      return true;
-    }
-    if (
-      query.hasNodeCssClass(
-        targetNode,
-        this.LEGACY_CONTENT_IGNOREINTERACTION_CLASS,
-      )
-    ) {
-      return true;
-    }
-    return false;
-  },
-};
+  return false;
+}
+
+export function setHrefAttribute(node, url) {
+  if (!node || !url) {
+    return;
+  }
+
+  query.setAnyAttribute(node, "href", url);
+}
+
+/**
+ * @param {Node} targetNode
+ *
+ * @returns {boolean}
+ */
+export function shouldIgnoreInteraction(targetNode) {
+  if (
+    query.hasNodeAttribute(targetNode, CONTENT_IGNOREINTERACTION_ATTR)
+  ) {
+    return true;
+  }
+  if (
+    query.hasNodeCssClass(targetNode, CONTENT_IGNOREINTERACTION_CLASS)
+  ) {
+    return true;
+  }
+  if (
+    query.hasNodeCssClass(
+      targetNode,
+      LEGACY_CONTENT_IGNOREINTERACTION_CLASS,
+    )
+  ) {
+    return true;
+  }
+  return false;
+}

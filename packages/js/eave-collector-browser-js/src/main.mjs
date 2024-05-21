@@ -1,5 +1,5 @@
 // @ts-check
-import * as Types from "./types.js";
+import * as Types from "./types.mjs";
 
 // use existing _settings settings if available
 

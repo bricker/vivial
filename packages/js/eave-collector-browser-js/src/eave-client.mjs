@@ -32,12 +32,12 @@ modified from
  */
 
 import content from "./content.mjs";
-import "./globals.mjs";
+import "./main.mjs";
 import * as h from "./helpers.mjs";
 import { Tracker } from "./tracker.mjs";
 import { isVisible } from "./visibility.mjs";
 // eslint-disable-next-line no-unused-vars
-import * as Types from "./types.js";
+import * as Types from "./types.mjs";
 
 /** @type {Types.GlobalEaveWindow} */
 // @ts-ignore - We already set the `eave` property but this code doesn't know that.

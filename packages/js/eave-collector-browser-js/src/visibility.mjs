@@ -1,6 +1,7 @@
 // @ts-check
 
-import "./globals.mjs";
+import "./main.mjs";
+import { castNodeToElement, castNodeToHtmlElement } from "./helpers.mjs";
 
 /**
  * Author: Jason Farrell
@@ -12,7 +13,7 @@ import "./globals.mjs";
  */
 
 /**
- * @param {HTMLElement} node
+ * @param {Node} node
  *
  * @returns {boolean}
  */
@@ -23,7 +24,7 @@ export function isVisible(node) {
 
   /**
    * Cross browser method to get style properties
-   * @param {Element} el
+   * @param {HTMLElement} el
    * @param {string} property
    *
    * @returns {string | undefined}
@@ -36,7 +37,7 @@ export function isVisible(node) {
   }
 
   /**
-   * @param {Element} element
+   * @param {HTMLElement} element
    *
    * @returns {boolean}
    */
@@ -56,7 +57,7 @@ export function isVisible(node) {
    * Checks if a DOM element is visible. Takes into
    * consideration its parents and overflow.
    *
-   * @param {HTMLElement} el      the DOM element to check if is visible
+   * @param {Node} _node      the DOM element to check if is visible
    *
    * These params are optional that are sent in recursively,
    * you typically won't use these:
@@ -70,14 +71,16 @@ export function isVisible(node) {
    *
    * @returns {boolean}
    */
-  function _isVisible(el, t, r, b, l, w, h) {
+  function _isVisible(_node, t, r, b, l, w, h) {
+    const element = castNodeToHtmlElement(_node);
+    if (!element) {
+      return false;
+    }
 
-    /** @type {HTMLElement | null} */
-    // @ts-ignore
-    const p = el.parentNode;
+    const p = element.parentNode;
     const VISIBLE_PADDING = 1; // has to be visible at least one px of the element
 
-    if (!_elementInDocument(el)) {
+    if (!_elementInDocument(element)) {
       return false;
     }
 
@@ -88,9 +91,9 @@ export function isVisible(node) {
 
     //-- Return false if our element is invisible
     if (
-      "0" === _getStyle(el, "opacity") ||
-      "none" === _getStyle(el, "display") ||
-      "hidden" === _getStyle(el, "visibility")
+      "0" === _getStyle(element, "opacity") ||
+      "none" === _getStyle(element, "display") ||
+      "hidden" === _getStyle(element, "visibility")
     ) {
       return false;
     }
@@ -103,51 +106,55 @@ export function isVisible(node) {
       w === undefined ||
       h === undefined
     ) {
-      t = el.offsetTop;
-      l = el.offsetLeft;
-      b = t + el.offsetHeight;
-      r = l + el.offsetWidth;
-      w = el.offsetWidth;
-      h = el.offsetHeight;
+      t = element.offsetTop;
+      l = element.offsetLeft;
+      b = t + element.offsetHeight;
+      r = l + element.offsetWidth;
+      w = element.offsetWidth;
+      h = element.offsetHeight;
     }
 
     if (
-      node === el &&
+      node === element &&
       (0 === h || 0 === w) &&
-      "hidden" === _getStyle(el, "overflow")
+      "hidden" === _getStyle(element, "overflow")
     ) {
       return false;
     }
 
     //-- If we have a parent, let's continue:
     if (p) {
+      const parent = castNodeToHtmlElement(p);
+      if (!parent) {
+        return false;
+      }
       //-- Check if the parent can hide its children.
       if (
-        "hidden" === _getStyle(p, "overflow") ||
-        "scroll" === _getStyle(p, "overflow")
+        "hidden" === _getStyle(parent, "overflow") ||
+        "scroll" === _getStyle(parent, "overflow")
       ) {
         //-- Only check if the offset is different for the parent
         if (
           //-- If the target element is to the right of the parent elm
-          l + VISIBLE_PADDING > p.offsetWidth + p.scrollLeft ||
+          l + VISIBLE_PADDING > parent.offsetWidth + parent.scrollLeft ||
           //-- If the target element is to the left of the parent elm
-          l + w - VISIBLE_PADDING < p.scrollLeft ||
+          l + w - VISIBLE_PADDING < parent.scrollLeft ||
           //-- If the target element is under the parent elm
-          t + VISIBLE_PADDING > p.offsetHeight + p.scrollTop ||
+          t + VISIBLE_PADDING > parent.offsetHeight + parent.scrollTop ||
           //-- If the target element is above the parent elm
-          t + h - VISIBLE_PADDING < p.scrollTop
+          t + h - VISIBLE_PADDING < parent.scrollTop
         ) {
           //-- Our target element is out of bounds:
           return false;
         }
       }
       //-- Add the offset parent's left/top coords to our element's offset:
-      if (el.offsetParent === p) {
-        l += p.offsetLeft;
-        t += p.offsetTop;
+      if (element.offsetParent === p) {
+        l += parent.offsetLeft;
+        t += parent.offsetTop;
       }
       //-- Let's recursively check upwards:
-      return _isVisible(p, t, r, b, l, w, h);
+      return _isVisible(parent, t, r, b, l, w, h);
     }
     return true;
   }

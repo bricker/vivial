@@ -1,8 +1,8 @@
 // @ts-check
 
-import "./globals.mjs";
+import "./main.mjs";
 // eslint-disable-next-line no-unused-vars
-import * as Types from "./types.js";
+import * as Types from "./types.mjs";
 
 /** @type {Types.GlobalEaveWindow} */
 // @ts-ignore
@@ -846,28 +846,28 @@ export function sha1(str) {
  *
  * @returns {URL[]} "fixed" versions of the passed in parameters
  */
-export function urlFixup(href, referrer) {
-  const url = new URL(href);
-  let resolvedHref = href;
+// export function urlFixup(href, referrer) {
+//   const url = new URL(href);
+//   let resolvedHref = href;
 
-  if (url.hostname === "translate.googleusercontent.com") {
-    // Google
-    if (referrer === "") {
-      referrer = href;
-    }
+//   if (url.hostname === "translate.googleusercontent.com") {
+//     // Google
+//     if (referrer === "") {
+//       referrer = href;
+//     }
 
-    resolvedHref = url.searchParams.get("u") || "";
-  } else if (
-    url.hostname === "cc.bingj.com" || // Bing
-    url.hostname === "webcache.googleusercontent.com" || // Google
-    url.hostname.slice(0, 5) === "74.6." // Yahoo (via Inktomi 74.6.0.0/16)
-  ) {
-    resolvedHref = document.links[0].href;
-  }
+//     resolvedHref = url.searchParams.get("u") || "";
+//   } else if (
+//     url.hostname === "cc.bingj.com" || // Bing
+//     url.hostname === "webcache.googleusercontent.com" || // Google
+//     url.hostname.slice(0, 5) === "74.6." // Yahoo (via Inktomi 74.6.0.0/16)
+//   ) {
+//     resolvedHref = document.links[0].href;
+//   }
 
-  const resolvedUrl = new URL(resolvedHref);
-  return [resolvedUrl, referrer];
-}
+//   const resolvedUrl = new URL(resolvedHref);
+//   return [resolvedUrl, referrer];
+// }
 
 /**
  * Fix-up domain
@@ -1193,6 +1193,22 @@ export function isSitePath(path, pathAlias) {
 export function castNodeToElement(node) {
   if (node.nodeType === Node.ELEMENT_NODE) {
     const element = /** @type {Element} */ (node);
+    return element;
+  } else {
+    return null;
+  }
+}
+
+/**
+ * Helper for typechecking
+ *
+ * @param {Node} node
+ *
+ * @returns {HTMLElement | null}
+ */
+export function castNodeToHtmlElement(node) {
+  if (node.nodeType === Node.ELEMENT_NODE) {
+    const element = /** @type {HTMLElement} */ (node);
     return element;
   } else {
     return null;
