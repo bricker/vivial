@@ -24,18 +24,18 @@ class AsyncioCorrelationContext(BaseCorrelationContext):
             eave_ctx = contextvars.copy_context().get(_local_async_storage)
         return typing.cast(dict[str, typing.Any], eave_ctx)
 
-    def get(self, key: str) -> typing.Any:
+    def get(self, key: str) -> str:
         storage = self._get_storage()
         updated_value = storage.get(self.updated_context_key, {}).get(key, None)
         if updated_value is not None:
             return updated_value
         return storage.get(self.received_context_key, {}).get(key, None)
 
-    def set(self, key: str, value: typing.Any) -> None:
+    def set(self, key: str, value: str) -> None:
         storage = self._get_storage()
         storage[self.updated_context_key][key] = value
 
-    def to_dict(self) -> dict[str, typing.Any]:
+    def to_dict(self) -> dict[str, str]:
         storage = self._get_storage()
         # merge received and updated values together
         ctx_data = storage.get(self.received_context_key, {}).copy()

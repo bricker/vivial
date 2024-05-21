@@ -19,14 +19,14 @@ class ThreadedCorrelationContext(BaseCorrelationContext):
                 self.updated_context_key: {},
             }
 
-    def get(self, key: str) -> typing.Any:
+    def get(self, key: str) -> str:
         self._init_storage()
         updated_value = _local_thread_storage.eave.get(self.updated_context_key, {}).get(key, None)
         if updated_value is not None:
             return updated_value
         return _local_thread_storage.eave.get(self.received_context_key, {}).get(key, None)
 
-    def set(self, key: str, value: typing.Any) -> None:
+    def set(self, key: str, value: str) -> None:
         self._init_storage()
         _local_thread_storage.eave[self.updated_context_key][key] = value
 
