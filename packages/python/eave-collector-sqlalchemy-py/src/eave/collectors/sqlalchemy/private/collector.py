@@ -131,7 +131,20 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                 tablename = clauseelement.table.fullname
 
             if isinstance(clauseelement, sqlalchemy.Select):
-                pass # TODO: collect event
+                for idx, rparam in enumerate(rparams):
+                    record = DatabaseEventPayload(
+                        timestamp=time.time(),
+                        db_structure=DatabaseStructure.SQL,
+                        operation=DatabaseOperation.SELECT,
+                        db_name=conn.engine.url.database,
+                        statement=clauseelement.compile().string,
+                        table_name=tablename,
+                        parameters=rparam,
+                        context=corr_ctx.to_dict(),
+                    )
+
+                    self.write_queue.put(record)
+
             if isinstance(clauseelement, sqlalchemy.Insert):
                 for idx, rparam in enumerate(rparams):
                     pkeys = None

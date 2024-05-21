@@ -106,11 +106,17 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
 
         async with async_session.begin() as session:
             r = await session.get_one(entity=AccountOrm, ident=tuple(e0.parameters["__primary_key"]))
+            assert len(self._write_queue.queue) == 2
+            e = self._write_queue.queue[1]
+            assert isinstance(e, DatabaseEventPayload)
+            assert e.table_name == "accounts"
+            assert e.operation == DatabaseOperation.SELECT
+
             new_account_name = uuid.uuid4().hex
             r.name = new_account_name
 
-        assert len(self._write_queue.queue) == 2
-        e = self._write_queue.queue[1]
+        assert len(self._write_queue.queue) == 3
+        e = self._write_queue.queue[2]
         assert isinstance(e, DatabaseEventPayload)
         assert e.table_name == "accounts"
         assert e.operation == DatabaseOperation.UPDATE
