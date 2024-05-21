@@ -63,3 +63,7 @@ class BaseCorrelationContext(abc.ABC):
     def from_cookies(self, cookies: dict[str, str]) -> None:
         """Populate received_context storage from COOKIE_PREFIX prefixed cookies"""
         ...
+
+    @abc.abstractmethod
+    def clear(self) -> None:
+        ...
