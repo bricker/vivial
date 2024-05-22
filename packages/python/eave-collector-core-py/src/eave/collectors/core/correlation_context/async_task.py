@@ -35,7 +35,7 @@ class AsyncioCorrelationContext(BaseCorrelationContext):
 
     def set(self, key: str, value: str) -> None:
         storage = self._get_storage()
-        storage[self.updated_context_key][key] = value
+        storage[self.updated_context_key][key] = str(value)
 
     def to_dict(self) -> dict[str, str]:
         storage = self._get_storage()

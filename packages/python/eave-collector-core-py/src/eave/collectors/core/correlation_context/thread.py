@@ -31,7 +31,7 @@ class ThreadedCorrelationContext(BaseCorrelationContext):
 
     def set(self, key: str, value: str) -> None:
         self._lazy_init_storage()
-        _local_thread_storage.eave[self.updated_context_key][key] = value
+        _local_thread_storage.eave[self.updated_context_key][key] = str(value)
 
     def to_dict(self) -> dict[str, typing.Any]:
         self._lazy_init_storage()
