@@ -126,7 +126,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
         if isinstance(clauseelement, (sqlalchemy.Select, sqlalchemy.Insert, sqlalchemy.Update, sqlalchemy.Delete)):
             if isinstance(clauseelement, sqlalchemy.Select):
                 # attempt to get table name from a FromClause
-                # TODO: (this doesnt really work for complex select statements w/ joins)
+                # (this doesnt really work for complex select statements w/ joins)
                 from_clause = clauseelement.get_final_froms()
                 if len(from_clause) > 0:
                     candidate_name = getattr(from_clause[0], "name", None)
@@ -141,7 +141,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                     statement_params = rparam or dict(compiled_clause.params)
 
                     if is_user_table(tablename):
-                        # try to extract user ID from where clause
+                        # try to extract current user's ID from where clause
                         where_clause = clauseelement._whereclause
                         if where_clause is not None:
                             # extract terms as list of binary expressions
@@ -151,16 +151,21 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                                 where_clause = [where_clause]
 
                             for expr in where_clause:
-                                if not isinstance(expr, sqlalchemy.BinaryExpression):
+                                if not (
+                                    isinstance(expr, sqlalchemy.BinaryExpression)
+                                    and isinstance(expr.left, sqlalchemy.Column)
+                                ):
                                     # we only care about binary expressions comparing columns to a value
                                     continue
-                                field_name = expr.left.name if hasattr(expr.left, "name") else str(expr.left)
+                                field_name = expr.left.name
                                 if is_field_of_interest(field_name):
                                     # strip leading colon off param key (e.g. :id_1 -> id_1)
                                     param_key = str(expr.right)[1:]
                                     param_value = statement_params.get(param_key, None)
                                     if param_value is not None:
-                                        corr_ctx.set("user_id", param_value) # TODO: refactor to move this variabel write to the collector file w/ other one
+                                        # make sure the field actually corresponds to the table we're interested in
+                                        field_table = expr.left.table.name
+                                        save_identification_data(table_name=field_table, primary_key=param_value)
 
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
@@ -184,8 +189,8 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
 
                     rparam["__primary_key"] = pkeys
 
-                    if pkeys:
-                        save_identification_data(table_name=tablename, primary_keys=pkeys)
+                    if pkeys and len(pkeys) > 0:
+                        save_identification_data(table_name=tablename, primary_key=str(pkeys[0]))
 
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
