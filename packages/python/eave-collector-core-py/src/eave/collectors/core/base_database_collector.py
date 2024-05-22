@@ -24,7 +24,6 @@ def is_user_table(table_name: str) -> bool:
 
 
 def is_field_of_interest(field_name: str) -> bool:
-    # TODO: "accounts.id"
     return field_name.lower() in keys_of_interest
 
 

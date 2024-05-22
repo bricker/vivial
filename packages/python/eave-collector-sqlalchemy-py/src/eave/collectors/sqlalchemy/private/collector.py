@@ -15,7 +15,12 @@ from sqlalchemy.event import (
 )
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from eave.collectors.core.base_database_collector import BaseDatabaseCollector, save_identification_data
+from eave.collectors.core.base_database_collector import (
+    BaseDatabaseCollector,
+    is_field_of_interest,
+    is_user_table,
+    save_identification_data,
+)
 from eave.collectors.core.correlation_context import corr_ctx
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure
 from eave.collectors.core.write_queue import WriteQueue
@@ -132,14 +137,39 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
 
             if isinstance(clauseelement, sqlalchemy.Select):
                 for idx, rparam in enumerate(rparams):
+                    compiled_clause = clauseelement.compile()
+                    statement_params = rparam or dict(compiled_clause.params)
+
+                    if is_user_table(tablename):
+                        # try to extract user ID from where clause
+                        where_clause = clauseelement._whereclause
+                        if where_clause is not None:
+                            # extract terms as list of binary expressions
+                            if isinstance(where_clause, sqlalchemy.BooleanClauseList):
+                                where_clause = list(where_clause)
+                            else:
+                                where_clause = [where_clause]
+
+                            for expr in where_clause:
+                                if not isinstance(expr, sqlalchemy.BinaryExpression):
+                                    # we only care about binary expressions comparing columns to a value
+                                    continue
+                                field_name = expr.left.name if hasattr(expr.left, "name") else str(expr.left)
+                                if is_field_of_interest(field_name):
+                                    # strip leading colon off param key (e.g. :id_1 -> id_1)
+                                    param_key = str(expr.right)[1:]
+                                    param_value = statement_params.get(param_key, None)
+                                    if param_value is not None:
+                                        corr_ctx.set("user_id", param_value) # TODO: refactor to move this variabel write to the collector file w/ other one
+
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
                         db_structure=DatabaseStructure.SQL,
                         operation=DatabaseOperation.SELECT,
                         db_name=conn.engine.url.database,
-                        statement=clauseelement.compile().string,
+                        statement=compiled_clause.string,
                         table_name=tablename,
-                        parameters=rparam,
+                        parameters=statement_params,
                         context=corr_ctx.to_dict(),
                     )
 
