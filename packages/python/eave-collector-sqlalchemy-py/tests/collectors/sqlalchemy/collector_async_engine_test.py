@@ -152,18 +152,23 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert e.context is not None
         assert e.context.get("user_id") is None
 
-    async def test_select_from_account_table(self) -> None:
+    async def test_multi_condition_select_from_account_table(self) -> None:
         assert len(self._write_queue.queue) == 0
 
         # create an item to query
+        account_name = uuid.uuid4().hex
         async with async_session.begin() as session:
-            account = AccountOrm(name=uuid.uuid4().hex)
+            account = AccountOrm(name=account_name)
             session.add(account)
 
         assert len(self._write_queue.queue) == 1
+        # clear ctx to test context writing on SELECT queries
+        corr_ctx.clear()
 
-        lookup = sqlalchemy.select(AccountOrm).where(AccountOrm.id == account.id).limit(1)
-        result = await session.scalar(lookup)
+        # create multi condition where-clause
+        lookup = sqlalchemy.select(AccountOrm).where(AccountOrm.id == account.id).where(AccountOrm.name == account_name).limit(1)
+        async with async_session.begin() as session:
+            result = await session.scalar(lookup)
         assert result is not None
 
         assert len(self._write_queue.queue) == 2
@@ -171,3 +176,34 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert isinstance(e, DatabaseEventPayload)
         assert e.table_name == "accounts"
         assert e.operation == DatabaseOperation.SELECT
+        assert corr_ctx.get("user_id") == str(account.id)
+        assert e.context is not None
+        assert e.context.get("user_id") == str(account.id)
+
+    async def test_single_condition_select_from_account_table(self) -> None:
+        assert len(self._write_queue.queue) == 0
+
+        # create an item to query
+        account_name = uuid.uuid4().hex
+        async with async_session.begin() as session:
+            account = AccountOrm(name=account_name)
+            session.add(account)
+
+        assert len(self._write_queue.queue) == 1
+        # clear ctx to test context writing on SELECT queries
+        corr_ctx.clear()
+
+        # create single condition where-clause
+        lookup = sqlalchemy.select(AccountOrm).where(AccountOrm.id == account.id).limit(1)
+        async with async_session.begin() as session:
+            result = await session.scalar(lookup)
+        assert result is not None
+
+        assert len(self._write_queue.queue) == 2
+        e = self._write_queue.queue[1]
+        assert isinstance(e, DatabaseEventPayload)
+        assert e.table_name == "accounts"
+        assert e.operation == DatabaseOperation.SELECT
+        assert corr_ctx.get("user_id") == str(account.id)
+        assert e.context is not None
+        assert e.context.get("user_id") == str(account.id)
