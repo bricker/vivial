@@ -140,32 +140,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                     compiled_clause = clauseelement.compile()
                     statement_params = rparam or dict(compiled_clause.params)
 
-                    if is_user_table(tablename):
-                        # try to extract current user's ID from where clause
-                        where_clause = clauseelement._whereclause
-                        if where_clause is not None:
-                            # extract terms as list of binary expressions
-                            if isinstance(where_clause, sqlalchemy.BooleanClauseList):
-                                where_clause = list(where_clause)
-                            else:
-                                where_clause = [where_clause]
-
-                            for expr in where_clause:
-                                if not (
-                                    isinstance(expr, sqlalchemy.BinaryExpression)
-                                    and isinstance(expr.left, sqlalchemy.Column)
-                                ):
-                                    # we only care about binary expressions comparing columns to a value
-                                    continue
-                                field_name = expr.left.name
-                                if is_field_of_interest(field_name):
-                                    # strip leading colon off param key (e.g. :id_1 -> id_1)
-                                    param_key = str(expr.right)[1:]
-                                    param_value = statement_params.get(param_key, None)
-                                    if param_value is not None:
-                                        # make sure the field actually corresponds to the table we're interested in
-                                        field_table = expr.left.table.name
-                                        save_identification_data(table_name=field_table, primary_key=param_value)
+                    self._save_user_id(tablename, clauseelement)
 
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
@@ -207,6 +182,8 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
 
             elif isinstance(clauseelement, sqlalchemy.Update):
                 for idx, rparam in enumerate(rparams):
+                    self._save_user_id(tablename, clauseelement)
+
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
                         db_structure=DatabaseStructure.SQL,
@@ -234,3 +211,35 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                     )
 
                     self.write_queue.put(record)
+
+    def _save_user_id(self, tablename: str, clauseelement: sqlalchemy.Select | sqlalchemy.Update) -> None:
+        """
+        If the `tablename` the `clauseelement` is acting on is of interest (aka a user table),
+        search the statement WHERE clause for a user ID column comparison to extract the
+        compared ID value from, and save that value to the correlation context.
+        """
+        if is_user_table(tablename):
+            compiled_clause = clauseelement.compile()
+            statement_params = dict(compiled_clause.params)
+            # try to extract current user's ID from where clause
+            where_clause = clauseelement.whereclause
+            if where_clause is not None:
+                # extract terms as list of binary expressions
+                if isinstance(where_clause, sqlalchemy.BooleanClauseList):
+                    where_clause = list(where_clause)
+                else:
+                    where_clause = [where_clause]
+
+                for expr in where_clause:
+                    if not (isinstance(expr, sqlalchemy.BinaryExpression) and isinstance(expr.left, sqlalchemy.Column)):
+                        # we only care about binary expressions comparing columns to a value
+                        continue
+                    field_name = expr.left.name
+                    if is_field_of_interest(field_name):
+                        # strip leading colon off param key (e.g. :id_1 -> id_1)
+                        param_key = str(expr.right)[1:]
+                        param_value = statement_params.get(param_key, None)
+                        if param_value is not None:
+                            # make sure the field actually corresponds to the table we're interested in
+                            field_table = expr.left.table.name
+                            save_identification_data(table_name=field_table, primary_key=param_value)
