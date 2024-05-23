@@ -147,15 +147,28 @@ const Glossary = () => {
   const [selectedEvent, setSelectedEvent] = useState<VirtualEvent | null>(null);
   const [isOpen, _setIsOpen] = useState(true);
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
-  const { team, getTeamVirtualEvents } = useTeam();
-
-  const { glossaryNetworkStateCtx } = useContext(AppContext);
-  const [networkState] = glossaryNetworkStateCtx!;
+  // const { team, getTeamVirtualEvents } = useTeam();
+  const team = {
+    virtualEvents: [
+      {
+        readable_name: "event 1",
+        description: "a virtual event",
+        id: "0",
+      },
+      {
+        readable_name: "event 2 electric pbboogaloo",
+        description: "a virtual event with a really long description , i mean a REAALLLLY llng one. I'm looing at nuctx.com rin and i'm also ssinenenign a sapce ship that has a tie fighter and the person i typing o the computer or manyeb looking at thereir bphone i f i could spell anything at all. ow whell i guess this us ist jud  dumb ete xt anyway :)",
+        id: "1",
+      }
+    ]
+  }
+  // const { glossaryNetworkStateCtx } = useContext(AppContext);
+  // const [networkState] = glossaryNetworkStateCtx!;
 
   // initial data load
-  useEffect(() => {
-    getTeamVirtualEvents(null);
-  }, []);
+  // useEffect(() => {
+  //   getTeamVirtualEvents(null);
+  // }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -185,7 +198,7 @@ const Glossary = () => {
   // perform search for events
   useEffect(() => {
     // setIsOpen(false);
-    getTeamVirtualEvents(searchValue ? { search_term: searchValue } : null);
+    // getTeamVirtualEvents(searchValue ? { search_term: searchValue } : null);
   }, [searchValue]);
 
   // factored out as it's used in both the row onClick and onKeyPress actions
@@ -247,21 +260,21 @@ const Glossary = () => {
         </tbody>
       </table>
     );
-  } else if (networkState.virtualEventsAreLoading) {
-    // show loading state
-    component = (
-      <div className={classes.loader}>
-        <CircularProgress color="secondary" />
-      </div>
-    );
-  } else if (networkState.virtualEventsAreErroring) {
-    // show err state
-    component = (
-      <div className={classes.error}>
-        ERROR: Unable to fetch virtual events{" "}
-        {searchValue ? `for searched term "${searchValue}"` : ""}
-      </div>
-    );
+  // } else if (networkState.virtualEventsAreLoading) {
+  //   // show loading state
+  //   component = (
+  //     <div className={classes.loader}>
+  //       <CircularProgress color="secondary" />
+  //     </div>
+  //   );
+  // } else if (networkState.virtualEventsAreErroring) {
+  //   // show err state
+  //   component = (
+  //     <div className={classes.error}>
+  //       ERROR: Unable to fetch virtual events{" "}
+  //       {searchValue ? `for searched term "${searchValue}"` : ""}
+  //     </div>
+  //   );
   } else {
     // not loading/erroring and no events found
     component = (
