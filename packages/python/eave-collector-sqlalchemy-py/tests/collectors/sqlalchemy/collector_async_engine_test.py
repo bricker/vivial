@@ -126,6 +126,47 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert e.parameters is not None
         assert e.parameters["name"] == new_account_name
 
+    async def test_update_accounts_table_saves_id_to_corr_ctx(self) -> None:
+        assert len(self._write_queue.queue) == 0
+        account_name = uuid.uuid4().hex
+
+        # setup initial account to update
+        async with async_session.begin() as session:
+            account = AccountOrm(name=account_name)
+            session.add(account)
+
+        assert len(self._write_queue.queue) == 1
+        e = self._write_queue.queue[0]
+        assert isinstance(e, DatabaseEventPayload)
+        assert e.parameters is not None
+
+        async with async_session.begin() as session:
+            # fetch row to update
+            r = await session.get_one(entity=AccountOrm, ident=account.id)
+            assert len(self._write_queue.queue) == 2
+            e = self._write_queue.queue[1]
+            assert isinstance(e, DatabaseEventPayload)
+            assert e.table_name == "accounts"
+            assert e.operation == DatabaseOperation.SELECT
+            # clear ctx to ensure update sets user_id
+            corr_ctx.clear()
+
+            # do sql update
+            new_account_name = uuid.uuid4().hex
+            r.name = new_account_name
+
+        assert len(self._write_queue.queue) == 3
+        e = self._write_queue.queue[2]
+        assert isinstance(e, DatabaseEventPayload)
+        assert e.table_name == "accounts"
+        assert e.operation == DatabaseOperation.UPDATE
+        assert e.db_name == db_uri.database
+        assert e.parameters is not None
+        assert e.parameters["name"] == new_account_name
+        assert corr_ctx.get("user_id") == str(account.id)
+        assert e.context is not None
+        assert e.context.get("user_id") == str(account.id)
+
     async def test_after_execute_insert_account_table(self) -> None:
         assert len(self._write_queue.queue) == 0
 
