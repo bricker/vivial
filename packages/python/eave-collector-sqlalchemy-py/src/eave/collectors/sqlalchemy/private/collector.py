@@ -212,7 +212,9 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
 
                     self.write_queue.put(record)
 
-    def _save_user_id(self, tablename: str, clauseelement: sqlalchemy.Select | sqlalchemy.Update, params: dict[str, Any]) -> None:
+    def _save_user_id(
+        self, tablename: str, clauseelement: sqlalchemy.Select | sqlalchemy.Update, params: dict[str, Any]
+    ) -> None:
         """
         If the `tablename` the `clauseelement` is acting on is of interest (aka a user table),
         search the statement WHERE clause for a user ID column comparison to extract the
