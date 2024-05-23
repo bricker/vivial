@@ -1,7 +1,7 @@
 // @ts-check
 
 import content from "./content.mjs";
-import { CookieManager } from "./cookies.mjs";
+import { CookieManager } from "./managers/cookies.mjs";
 import "./main.mjs";
 import * as h from "./helpers.mjs";
 import query from "./query.mjs";
@@ -222,14 +222,14 @@ export function Tracker(trackerUrl, siteId) {
   let clientHints = {};
 
   /**
-   * @type {Types.RequestPayload[]}
+   * @type {Types.BrowserEventPayload[]}
    */
   let clientHintsRequestQueue = [];
 
   /**
    * holds all pending tracking requests that have not been tracked because we need consent
    *
-   * @type {Types.RequestPayload[]}
+   * @type {Types.BrowserEventPayload[]}
    */
   let consentRequestsQueue = [];
 
@@ -335,7 +335,7 @@ export function Tracker(trackerUrl, siteId) {
   /**
    * Modifies the input to add browser feature and client hint attributes.
    *
-   * @param {Types.RequestPayload} payload
+   * @param {Types.BrowserEventPayload} payload
    *
    * @noreturn
    */
@@ -345,75 +345,7 @@ export function Tracker(trackerUrl, siteId) {
     return payload;
   }
 
-  function supportsClientHints() {
-    // [bcr] Not widely supported - https://developer.mozilla.org/en-US/docs/Web/API/Navigator/userAgentData
-    return (
-      // @ts-ignore
-      h.isDefined(navigator.userAgentData) &&
-      h.isFunction(
-        // @ts-ignore
-        navigator.userAgentData.getHighEntropyValues,
-      )
-    );
-  }
 
-  /**
-   * @param {() => void} callback
-   */
-  function detectClientHints(callback) {
-    if (clientHintsResolved || clientHintsResolving) {
-      // skip if client hints were already resolved or a previous request already triggered it
-      return;
-    }
-
-    // @ts-ignore
-    if (navigator.userAgentData === undefined) {
-      return;
-    }
-
-    clientHintsResolving = true;
-
-    // Initialize with low entropy values that are always available
-    clientHints = {
-      // @ts-ignore
-      brands: navigator.userAgentData.brands,
-      // @ts-ignore
-      platform: navigator.userAgentData.platform,
-    };
-
-    // try to gather high entropy values
-    // currently this methods simply returns the requested values through a Promise
-    // In later versions it might require a user permission
-    // @ts-ignore
-    navigator.userAgentData
-      .getHighEntropyValues([
-        "brands",
-        "model",
-        "platform",
-        "platformVersion",
-        "uaFullVersion",
-        "fullVersionList",
-      ])
-      .then(
-        function (ua) {
-          if (ua.fullVersionList) {
-            // if fullVersionList is available, brands and uaFullVersion isn't needed
-            delete ua.brands;
-            delete ua.uaFullVersion;
-          }
-
-          clientHints = ua;
-          clientHintsResolved = true;
-          clientHintsResolving = false;
-          callback();
-        },
-        function (_message) {
-          clientHintsResolved = true;
-          clientHintsResolving = false;
-          callback();
-        },
-      );
-  }
 
 
   /**
@@ -1460,23 +1392,6 @@ export function Tracker(trackerUrl, siteId) {
    */
   this.deleteCookies = function () {
     cookieManager.deleteEaveCookies();
-  };
-
-  /**
-   * Handle do-not-track requests
-   *
-   * @param {boolean} enable If true, don't track if user agent sends 'do-not-track' header
-   *
-   * @noreturn
-   */
-  this.setDoNotTrack = function (enable) {
-    var dnt = navigator.doNotTrack;
-    configDoNotTrack = enable && (dnt === "yes" || dnt === "1");
-
-    // do not track also disables cookies and deletes existing cookies
-    if (configDoNotTrack) {
-      this.disableCookies();
-    }
   };
 
   /**

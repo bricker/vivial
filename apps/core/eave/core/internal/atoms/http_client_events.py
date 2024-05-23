@@ -1,3 +1,4 @@
+import time
 from typing import Any, override
 
 from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
@@ -36,7 +37,12 @@ class HttpClientEventsTableHandle(BigQueryTableHandle):
             SchemaField(
                 name="timestamp",
                 field_type=StandardSqlTypeNames.TIMESTAMP,
-                mode=BigQueryFieldMode.REQUIRED,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="_insert_timestamp",
+                field_type=StandardSqlTypeNames.TIMESTAMP,
+                mode=BigQueryFieldMode.NULLABLE,
             ),
         ],
     )
@@ -44,9 +50,7 @@ class HttpClientEventsTableHandle(BigQueryTableHandle):
     async def create_vevent_view(self, *, request_method: str, request_url: str) -> None:
         pass
         # vevent_readable_name = make_virtual_event_readable_name(operation=operation, table_name=source_table)
-        # vevent_view_id = "events_{event_name}".format(
-        #     event_name=tableize(vevent_readable_name),
-        # )
+        # vevent_view_id = tableize(vevent_readable_name)
 
         # async with database.async_session.begin() as db_session:
         #     vevent_query = await VirtualEventOrm.query(
@@ -109,9 +113,13 @@ class HttpClientEventsTableHandle(BigQueryTableHandle):
         unique_operations: set[tuple[str, str]] = set()
         formatted_rows: list[dict[str, Any]] = []
 
+        insert_timestamp = time.time()
+
         for e in http_client_events:
             unique_operations.add((e.request_method, e.request_url))
-            formatted_rows.append(e.to_dict())
+            row = e.to_dict()
+            row["_insert_timestamp"] = insert_timestamp
+            formatted_rows.append(row)
 
         self._bq_client.append_rows(
             table=table,

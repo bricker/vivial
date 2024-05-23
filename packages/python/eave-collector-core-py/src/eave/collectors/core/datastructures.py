@@ -64,6 +64,7 @@ class EventType(StrEnum):
 class EventPayload:
     event_type: ClassVar[EventType]
 
+    timestamp: float
     context: dict[str, Any] | None
 
     def to_dict(self) -> JsonObject:
@@ -82,7 +83,6 @@ class DatabaseEventPayload(EventPayload):
     db_name: str | None
     table_name: str | None
     operation: str | None
-    timestamp: float
     parameters: dict[str, Any] | None
 
 
@@ -90,6 +90,9 @@ class DatabaseEventPayload(EventPayload):
 class BrowserEventPayload(EventPayload):
     event_type: ClassVar[EventType] = EventType.browser_event
 
+
+
+    seconds_elapsed: int | None
     action_name: str | None
     idsite: str | None
     h: str | None
@@ -126,6 +129,7 @@ class BrowserEventPayload(EventPayload):
     def __init__(self,
         *,
         context: dict[str, Any] | None = None,
+        seconds_elapsed: int | None = None,
         action_name: str | None = None,
         idsite: str | None = None,
         h: str | None = None,
@@ -160,6 +164,7 @@ class BrowserEventPayload(EventPayload):
     ) -> None:
         super().__init__(context=context)
 
+        self.seconds_elapsed = seconds_elapsed
         self.action_name = action_name
         self.idsite = idsite
         self.h = h

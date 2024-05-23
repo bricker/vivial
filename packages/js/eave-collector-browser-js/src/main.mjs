@@ -1,40 +1,11 @@
 // @ts-check
-import * as Types from "./types.mjs";
 
-// use existing _settings settings if available
+import * as Types from "./types.mjs"; // eslint-disable-line no-unused-vars
 
-const _settings = [];
-_settings.push(["setTrackingCookies"]);
-_settings.push(["trackPageView"]);
-_settings.push(["enableLinkTracking"]);
-_settings.push(["enableRouteHistoryTracking"]);
-_settings.push(["enableButtonClickTracking"]);
-_settings.push(["enableFormTracking"]);
-_settings.push(["enableImageClickTracking"]);
+// @ts-ignore - this is a known global variable implicitly set on the window.
+export const /** @type {string | undefined} */ clientId = EAVE_CLIENT_ID; // eslint-disable-line no-undef
 
-// PRODUCTION is a custom webpack plugin defined in the webpack.config.cjs file as
-// a boolean describing whether the script was compiled with mode=production
-// @ts-ignore
-const trackerUrl = PRODUCTION // eslint-disable-line no-undef
-  ? "https://api.eave.dev/public/ingest/browser"
-  : "http://api.eave.run:8080/public/ingest/browser";
-_settings.push(["setTrackerUrl", trackerUrl]);
-
-/** @type {Types.GlobalEaveWindow} */
-// @ts-ignore - This line just declares the type of this variable for the typescript compiler. The `eave` property is missing, but we'll add it next.
-const _window = window;
-
-_window.eave = {
-  expireDateTime: undefined,
-  settings: _settings,
-  plugins: {},
-  eventHandlers: {},
-  asyncTrackers: [],
-  eave: undefined,
-  missedPluginTrackerCalls: [],
-  coreConsentCounter: 0,
-  coreHeartBeatCounter: 0,
-  trackerIdCounter: 0,
-  isPageUnloading: false,
-  trackerInstallCheckNonce: "",
+export const /** @type {Types.GlobalEaveProperties} */ eave = {
+  clientId,
+  pageViewId: crypto.randomUUID(),
 };

@@ -1,4 +1,5 @@
 from textwrap import dedent
+import time
 from typing import Any, Type, get_args, override
 
 from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
@@ -69,7 +70,7 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
             SchemaField(
                 name="timestamp",
                 field_type=StandardSqlTypeNames.TIMESTAMP,
-                mode=BigQueryFieldMode.REQUIRED,
+                mode=BigQueryFieldMode.NULLABLE,
             ),
             SchemaField(
                 name="parameters",
@@ -81,14 +82,17 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
                 field_type=StandardSqlTypeNames.JSON,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
+            SchemaField(
+                name="_insert_timestamp",
+                field_type=StandardSqlTypeNames.TIMESTAMP,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
         ],
     )
 
     async def create_vevent_view(self, *, operation: str, source_table: str) -> None:
         vevent_readable_name = make_virtual_event_readable_name(operation=operation, table_name=source_table)
-        vevent_view_id = "events_{event_name}".format(
-            event_name=tableize(vevent_readable_name),
-        )
+        vevent_view_id = tableize(vevent_readable_name)
 
         async with database.async_session.begin() as db_session:
             vevent_query = await VirtualEventOrm.query(
@@ -155,6 +159,7 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
 
         unique_operations: set[tuple[str, str]] = set()
         formatted_rows: list[dict[str, Any]] = []
+        insert_timestamp = time.time()
 
         for e in db_events:
             match e.db_structure:
@@ -164,7 +169,9 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
                         continue
 
                     unique_operations.add((e.operation, e.table_name))
-                    formatted_rows.append(e.to_dict())
+                    row = e.to_dict()
+                    row["_insert_timestamp"] = insert_timestamp
+                    formatted_rows.append(row)
                 case _:
                     # TODO: handle noSQL
                     raise NotImplementedError("noSQL not implemented")

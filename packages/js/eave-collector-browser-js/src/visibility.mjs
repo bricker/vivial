@@ -1,7 +1,7 @@
 // @ts-check
 
 import "./main.mjs";
-import { castNodeToElement, castNodeToHtmlElement } from "./helpers.mjs";
+import { castNodeToHtmlElement } from "./helpers.mjs";
 
 /**
  * Author: Jason Farrell

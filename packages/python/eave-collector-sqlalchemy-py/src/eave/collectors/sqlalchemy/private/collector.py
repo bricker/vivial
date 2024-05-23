@@ -24,19 +24,6 @@ from eave.collectors.core.write_queue import WriteQueue
 type SupportedEngine = sqlalchemy.Engine | AsyncEngine
 
 
-_ACCOUNT_TABLE_NAME_CANDIDIATES = [
-    r"^accounts?$",
-    r"^users?$",
-]
-
-_ACCOUNT_ID_COLUMN_NAME_CANDIDIATES = [
-    r"^id$",
-    r"^user_id$",
-    r"^account_id$",
-    r"^UserId$",
-    r"^AccountId$",
-]
-
 class SQLAlchemyCollector(BaseCollector):
     _event_listeners: list[tuple[weakref.ReferenceType[sqlalchemy.Engine], str, Callable[..., Any]]]
     _db_metadata: sqlalchemy.MetaData | None
@@ -146,7 +133,7 @@ class SQLAlchemyCollector(BaseCollector):
                     rparam["__primary_key"] = pkey
 
                     record = DatabaseEventPayload(
-                        timestamp=time.time(),
+                        timestampMs=time.time(),
                         db_structure=DatabaseStructure.SQL,
                         operation=DatabaseOperation.INSERT,
                         db_name=conn.engine.url.database,
@@ -157,22 +144,12 @@ class SQLAlchemyCollector(BaseCollector):
                     )
 
                     self.write_queue.put(record)
-
-
-                    # if any(account_table_candidates, lambda c: re.match(tablename, c.lower())):
-                    #     refreshed_record = table.get(primary_key)
-
-                    #     if any(account_id_candidates, lambda c: hasattr(refreshed_record, c)):
-                    #         corr_ctx.user_id = user_id
-
-
-
                     return
 
             elif isinstance(clauseelement, sqlalchemy.Update):
                 for idx, rparam in enumerate(rparams):
                     record = DatabaseEventPayload(
-                        timestamp=time.time(),
+                        timestampMs=time.time() * 1000,
                         db_structure=DatabaseStructure.SQL,
                         operation=DatabaseOperation.UPDATE,
                         db_name=conn.engine.url.database,
@@ -187,7 +164,7 @@ class SQLAlchemyCollector(BaseCollector):
             elif isinstance(clauseelement, sqlalchemy.Delete):
                 for idx, rparam in enumerate(rparams):
                     record = DatabaseEventPayload(
-                        timestamp=time.time(),
+                        timestampMs=time.time(),
                         db_structure=DatabaseStructure.SQL,
                         operation=DatabaseOperation.DELETE,
                         db_name=conn.engine.url.database,

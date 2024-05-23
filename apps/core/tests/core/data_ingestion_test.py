@@ -160,7 +160,7 @@ class TestDataIngestionEndpoints(BaseTestCase):
                         DatabaseEventPayload(
                             context=None,
                             db_structure=DatabaseStructure.SQL,
-                            timestamp=int(time.time()),
+                            timestampMs=int(time.time()),
                             db_name=self.anystr(),
                             statement="update my_table set a=$1, b=$2;",
                             operation=DatabaseOperation.INSERT,

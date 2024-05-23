@@ -1,27 +1,14 @@
 // @ts-check
-import { Tracker } from "./tracker.mjs";
 
 /**
  * @typedef EaveConfiguration
+ *
  * @property {string} [eaveClientId]
  */
 
 /**
- * @typedef EaveTrackerManager
- * @property {boolean} initialized
- * @property {(event: string, handler: function) => void} on
- * @property {(event: string, handler: function) => void} off
- * @property {(event: string, extraParameters?: object, context?: object) => void} trigger
- * @property {(pluginName: string, pluginObj: object) => void} addPlugin
- * @property {(eaveUrl?: string, siteId?: number) => Tracker} getTracker
- * @property {() => Tracker[]} getAsyncTrackers
- * @property {(eaveUrl: string, siteId: number) => Tracker} addTracker
- * @property {(eaveUrl?: string, siteId?: number) => Tracker} getAsyncTracker
- * @property {() => void} retryMissedPluginCalls
- */
-
-/**
  * @typedef EaveDOMManager
+ *
  * @property {(element: HTMLElement, eventType: string, eventHandler: function, useCapture: boolean) => void} addEventListener
  * @property {(callback: function) => void} onLoad
  * @property {(callback: function) => void} onReady
@@ -31,47 +18,85 @@ import { Tracker } from "./tracker.mjs";
 
 /**
  * @typedef GlobalEaveProperties
- * @property {number} [expireDateTime]
- * @property {string[][]} settings
- * @property {{[key: string]: any}} plugins
- * @property {{[key: string]: any}} [eventHandlers]
- * @property {any[]} asyncTrackers
- * @property {any[]} missedPluginTrackerCalls
- * @property {number} coreConsentCounter
- * @property {number} coreHeartBeatCounter
- * @property {number} trackerIdCounter
- * @property {boolean} isPageUnloading
- * @property {string} trackerInstallCheckNonce
- * @property {any[]} [trackerPluginAsyncInit]
- * @property {any} [tracker]
- * @property {() => void} [trackerAsyncInit]
- * @property {EaveTrackerManager} [eave]
+ *
+ * @property {string} pageViewId
+ * @property {string} [clientId]
  */
 
 /**
  * @typedef {Window & EaveConfiguration & { eave: GlobalEaveProperties }} GlobalEaveWindow
  */
 
+
 /**
- * @typedef RequestPayload
- * @property {string} [eaveClientId]
- * @property {number} [clientTs]
- * @property {string} [currentPageUrl]
- * @property {{[key:string]: string}} [currentQueryParams]
- * @property {string} [charSet]
- * @property {string} [consent]
- * @property {{[key:string]: string}} [browserFeatures]
- * @property {{[key:string]: string}} [uadata]
- * @property {string} [action]
- * @property {string} [target]
- * @property {string} [customData]
+ * @typedef ClientProperties
  *
- *
- * ... etc.
+ * @property {number} screen_width
+ * @property {number} screen_height
+ * @property {string} useragent
+ * @property {{brand: string, version: string}[]} [ua_brands]
+ * @property {string} [ua_platform]
+ * @property {boolean} [ua_mobile]
+ * @property {string} [ua_form_factor]
+ * @property {{brand: string, version: string}[]} [ua_full_version_list]
+ * @property {string} [ua_model]
+ * @property {string} [ua_platform_version]
  */
 
 /**
- * @typedef {(p: { payload: RequestPayload, trackerUrl: string, success: boolean }) => void} RequestCallback
+ * @typedef PageProperties
+ *
+ * @property {string} current_page_url
+ * @property {string} current_page_title
+ * @property {string} pageview_id
+ * @property {{[key:string]: string[]}} [current_query_params]
+ */
+
+/**
+ * @typedef SessionProperties
+ *
+ * @property {string} [session_id]
+ * @property {number} [session_start_ms]
+ * @property {number} [session_duration_ms]
+ */
+
+/**
+ * @typedef UserProperties
+ *
+ * @property {string} [visitor_id]
+ * @property {string} [user_id]
+ */
+
+/**
+ * @typedef TargetProperties
+ *
+ * @property {string} [target_type]
+ * @property {string} [target_id]
+ * @property {{[key:string]: string}} [target_attributes]
+ */
+
+/**
+ * @typedef PerformanceProperties
+ *
+ * @property {number} [perf_network_latency_ms]
+ * @property {number} [perf_dom_load_latency_ms]
+ */
+
+/**
+ * @typedef EventProperties
+ *
+ * @property {string} action
+ * @property {number} timestamp
+ * @property {number} [seconds_elapsed]
+ * @property {{[key:string]: string}} [extra]
+ */
+
+/**
+ * @typedef {ClientProperties & PerformanceProperties & PageProperties & SessionProperties & UserProperties & TargetProperties & EventProperties} BrowserEventPayload
+ */
+
+/**
+ * @typedef {(p: { payload: BrowserEventPayload, trackerUrl: string, success: boolean }) => void} RequestCallback
  */
 
 export const Types  = {};

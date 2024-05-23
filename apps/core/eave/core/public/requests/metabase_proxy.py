@@ -27,8 +27,8 @@ _METABASE_UI_QP = {
     "side_nav": "false",
     "breadcrumbs": "false",
     "search": "false",
-    "header": "false",
-    "action_buttons": "false",
+    "header": "true",
+    "action_buttons": "true",
 }
 
 _METABASE_SESSION_COOKIE_NAMES = [

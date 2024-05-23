@@ -1,13 +1,4 @@
 /**
- * Get the number of page views that have been tracked so far within the currently loaded page.
- *
- * @returns {number}
- */
-this.getNumTrackedPageViews = function () {
-  return numTrackedPageviews;
-};
-
-/**
  * Log visit to this page
  *
  * @param {string} customTitle

@@ -20,6 +20,11 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                 mode=BigQueryFieldMode.NULLABLE,
             ),
             SchemaField(
+                name="seconds_elapsed",
+                field_type=StandardSqlTypeNames.INT64,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
                 name="idsite",
                 field_type=StandardSqlTypeNames.STRING,
                 mode=BigQueryFieldMode.NULLABLE,
@@ -174,15 +179,18 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                 field_type=StandardSqlTypeNames.TIMESTAMP,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
+            SchemaField(
+                name="_insert_timestamp",
+                field_type=StandardSqlTypeNames.TIMESTAMP,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
         ],
     )
 
     async def create_vevent_view(self, *, request_method: str, request_url: str) -> None:
         pass
         # vevent_readable_name = make_virtual_event_readable_name(operation=operation, table_name=source_table)
-        # vevent_view_id = "events_{event_name}".format(
-        #     event_name=tableize(vevent_readable_name),
-        # )
+        # vevent_view_id = tableize(vevent_readable_name)
 
         # async with database.async_session.begin() as db_session:
         #     vevent_query = await VirtualEventOrm.query(
@@ -245,12 +253,13 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
         unique_operations: set[tuple[str, str]] = set()
         formatted_rows: list[dict[str, Any]] = []
 
+        insert_timestamp = time.time()
+
         for e in browser_events:
             # unique_operations.add((e.request_method, e.request_url))
-            formatted_rows.append({
-                "timestamp": time.time(),
-                **e.to_dict(),
-            })
+            row = e.to_dict()
+            row["_insert_timestamp"] = insert_timestamp
+            formatted_rows.append(row)
 
         self._bq_client.append_rows(
             table=table,
