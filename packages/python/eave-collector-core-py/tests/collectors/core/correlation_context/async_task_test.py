@@ -9,11 +9,11 @@ class AsyncioCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
     async def test_values_can_be_written_and_read(self) -> None:
         ctx = AsyncioCorrelationContext()
         assert ctx.get("key") is None, "Initial value was not None"
-        ctx.set("key", 1)
-        assert ctx.get("key") == 1, "Set value was not read"
-        ctx.set("key", 2)
-        assert ctx.get("key") == 2, "Set value was not overwritten"
-        assert ctx.to_json() == '{"key": 2}'
+        ctx.set("key", "1")
+        assert ctx.get("key") == "1", "Set value was not read"
+        ctx.set("key", "2")
+        assert ctx.get("key") == "2", "Set value was not overwritten"
+        assert ctx.to_json() == '{"key": "2"}'
 
     async def test_empty_state(self) -> None:
         ctx = AsyncioCorrelationContext()
@@ -24,9 +24,9 @@ class AsyncioCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
         async def _helper(keys) -> None:
             ctx = AsyncioCorrelationContext()
             for key in keys:
-                ctx.set(key, 1)
+                ctx.set(key, "1")
 
-            expected = "{" + ", ".join([f'"{k}": 1' for k in keys]) + "}"
+            expected = "{" + ", ".join([f'"{k}": "1"' for k in keys]) + "}"
             assert ctx.to_json() == expected, "Context contained other than expected values"
 
         t1 = asyncio.create_task(_helper(["k1", "k2", "k3"]))
@@ -36,21 +36,21 @@ class AsyncioCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
     async def test_child_tasks_inherit_parent_ctx_values(self) -> None:
         ctx = AsyncioCorrelationContext()
         # given values exist in parent context
-        ctx.set("parent", 0)
+        ctx.set("parent", "0")
 
         async def task1() -> None:
-            assert ctx.get("parent") == 0, "Parent value not present in child task t1"
-            ctx.set("t1", 1)
+            assert ctx.get("parent") == "0", "Parent value not present in child task t1"
+            ctx.set("t1", "1")
 
         async def task2() -> None:
-            assert ctx.get("parent") == 0, "Parent value not present in child task t2"
-            ctx.set("t2", 2)
+            assert ctx.get("parent") == "0", "Parent value not present in child task t2"
+            ctx.set("t2", "2")
 
         t1 = asyncio.create_task(task1())
         t2 = asyncio.create_task(task2())
         await asyncio.gather(t1, t2)
 
-        assert ctx.to_json() == '{"parent": 0, "t1": 1, "t2": 2}', "Values set by child tasks not found"
+        assert ctx.to_json() == '{"parent": "0", "t1": "1", "t2": "2"}', "Values set by child tasks not found"
 
     async def test_initialize_from_cookies_performs_union(self) -> None:
         ctx = AsyncioCorrelationContext()
