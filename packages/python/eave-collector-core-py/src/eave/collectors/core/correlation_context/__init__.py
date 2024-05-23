@@ -19,9 +19,10 @@ def _correlation_context_factory() -> BaseCorrelationContext:
 
     # check if process args include any hints at webserver running the app
     for arg in sys.argv:
-        if "uvicorn" in arg or "daphne" in arg or "hypercorn" in arg:
+        cleaned_arg = arg.lower()
+        if "uvicorn" in cleaned_arg or "daphne" in cleaned_arg or "hypercorn" in cleaned_arg:
             return AsyncioCorrelationContext()
-        if "gunicorn" in arg or "uwsgi" in arg:
+        if "gunicorn" in cleaned_arg or "uwsgi" in cleaned_arg:
             return ThreadedCorrelationContext()
 
     if "uwsgi" in sys.modules or "mod_wsgi" in sys.modules:
