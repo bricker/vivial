@@ -140,7 +140,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                     compiled_clause = clauseelement.compile()
                     statement_params = rparam or dict(compiled_clause.params)
 
-                    self._save_user_id(tablename, clauseelement)
+                    self._save_user_id(tablename, clauseelement, rparam)
 
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
@@ -182,7 +182,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
 
             elif isinstance(clauseelement, sqlalchemy.Update):
                 for idx, rparam in enumerate(rparams):
-                    self._save_user_id(tablename, clauseelement)
+                    self._save_user_id(tablename, clauseelement, rparam)
 
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
@@ -212,7 +212,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
 
                     self.write_queue.put(record)
 
-    def _save_user_id(self, tablename: str, clauseelement: sqlalchemy.Select | sqlalchemy.Update) -> None:
+    def _save_user_id(self, tablename: str, clauseelement: sqlalchemy.Select | sqlalchemy.Update, params: dict[str, Any]) -> None:
         """
         If the `tablename` the `clauseelement` is acting on is of interest (aka a user table),
         search the statement WHERE clause for a user ID column comparison to extract the
@@ -220,7 +220,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
         """
         if is_user_table(tablename):
             compiled_clause = clauseelement.compile()
-            statement_params = dict(compiled_clause.params)
+            statement_params = params or dict(compiled_clause.params)
             # try to extract current user's ID from where clause
             where_clause = clauseelement.whereclause
             if where_clause is not None:
