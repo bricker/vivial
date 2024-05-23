@@ -9,10 +9,10 @@ from sqlalchemy import NullPool, func, text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
+from eave.collectors.core.correlation_context import corr_ctx
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
 from eave.collectors.core.test_util import EphemeralWriteQueue
 from eave.collectors.sqlalchemy.private.collector import SQLAlchemyCollector
-from eave.collectors.core.correlation_context import corr_ctx
 
 db_uri = sqlalchemy.engine.url.URL.create(
     drivername="postgresql+asyncpg",
@@ -49,6 +49,7 @@ class AccountOrm(OrmBase):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
+
 class TodoItem(OrmBase):
     __tablename__ = "todo_items"
 
@@ -56,6 +57,7 @@ class TodoItem(OrmBase):
     text: Mapped[str]
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+
 
 class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
@@ -166,7 +168,12 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         corr_ctx.clear()
 
         # create multi condition where-clause
-        lookup = sqlalchemy.select(AccountOrm).where(AccountOrm.id == account.id).where(AccountOrm.name == account_name).limit(1)
+        lookup = (
+            sqlalchemy.select(AccountOrm)
+            .where(AccountOrm.id == account.id)
+            .where(AccountOrm.name == account_name)
+            .limit(1)
+        )
         async with async_session.begin() as session:
             result = await session.scalar(lookup)
         assert result is not None
