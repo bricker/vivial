@@ -53,11 +53,11 @@ const Dashboard = ({
 }) => {
   const { classes } = makeClasses();
 
-  const { userIsAuthed, validateUserAuth } = useAuth();
+  // const { userIsAuthed, validateUserAuth } = useAuth();
 
-  useEffect(() => {
-    validateUserAuth();
-  }, [page]);
+  // useEffect(() => {
+  //   validateUserAuth();
+  // }, [page]);
 
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
   useEffect(() => {
@@ -153,22 +153,22 @@ const Dashboard = ({
       break;
   }
 
-  if (!userIsAuthed) {
-    return (
-      <div className={container}>
-        <div className={classes.loader}>
-          <CircularProgress color="secondary" />
-        </div>
-      </div>
-    );
-  } else {
+  // if (!userIsAuthed) {
+  //   return (
+  //     <div className={container}>
+  //       <div className={classes.loader}>
+  //         <CircularProgress color="secondary" />
+  //       </div>
+  //     </div>
+  //   );
+  // } else {
     return (
       <div className={container}>
         {nav}
         {pageComponent}
       </div>
     );
-  }
+  // }
 };
 
 export default Dashboard;

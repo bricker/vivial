@@ -21,7 +21,7 @@ const App = () => {
           </Helmet>
           <BrowserRouter>
             <Routes>
-              <Route
+              {/* <Route
                 path="/signup"
                 element={<AuthenticationPage type="signup" />}
               />
@@ -31,12 +31,12 @@ const App = () => {
                 element={<AuthenticationPage type="login" />}
               />
 
-              <Route path="/insights" element={<Dashboard page="insights" />} />
+              <Route path="/insights" element={<Dashboard page="insights" />} /> */}
               <Route path="/glossary" element={<Dashboard page="glossary" />} />
-              <Route path="/settings" element={<Dashboard page="settings" />} />
-              <Route path="/team" element={<Dashboard page="team" />} />
+              {/* <Route path="/settings" element={<Dashboard page="settings" />} />
+              <Route path="/team" element={<Dashboard page="team" />} /> */}
 
-              <Route path="*" element={<Navigate to="/insights" />} />
+              {/* <Route path="*" element={<Navigate to="/insights" />} /> */}
             </Routes>
           </BrowserRouter>
         </ThemeProvider>
