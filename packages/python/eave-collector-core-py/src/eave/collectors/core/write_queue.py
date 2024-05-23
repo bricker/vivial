@@ -77,7 +77,9 @@ async def _process_queue(q: multiprocessing.Queue, params: QueueParams, queue_cl
 
         now = time.time()
 
-        if buflen > 0 and (force_flush or buflen >= params.maxsize or now - last_flush >= params.flush_frequency_seconds):
+        if buflen > 0 and (
+            force_flush or buflen >= params.maxsize or now - last_flush >= params.flush_frequency_seconds
+        ):
             try:
                 EAVE_LOGGER.debug("Sending event batch to Eave.")
                 await send_batch(events=buffer)
@@ -108,16 +110,13 @@ def _queue_processor_event_loop(*args, **kwargs) -> None:
 
 class WriteQueue(abc.ABC):
     @abc.abstractmethod
-    def start_autoflush(self) -> None:
-        ...
+    def start_autoflush(self) -> None: ...
 
     @abc.abstractmethod
-    def stop_autoflush(self) -> None:
-        ...
+    def stop_autoflush(self) -> None: ...
 
     @abc.abstractmethod
-    def put(self, payload: EventPayload) -> None:
-        ...
+    def put(self, payload: EventPayload) -> None: ...
 
 
 class BatchWriteQueue(WriteQueue):

@@ -18,7 +18,7 @@ class AsyncioCorrelationContext(BaseCorrelationContext):
                 self.updated_context_key: {},
             }
         )
-        return contextvars.copy_context().get(_local_async_storage) # type: ignore
+        return contextvars.copy_context().get(_local_async_storage)  # type: ignore
 
     def _get_storage(self) -> dict[str, typing.Any]:
         eave_ctx = contextvars.copy_context().get(_local_async_storage, None)
