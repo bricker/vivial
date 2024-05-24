@@ -75,5 +75,5 @@ class TeamOrm(Base):
         if not self.allowed_origins_csv:
             return []
 
-        split = ",".split(self.allowed_origins_csv)
+        split = self.allowed_origins_csv.split(",")
         return [o.strip() for o in split]

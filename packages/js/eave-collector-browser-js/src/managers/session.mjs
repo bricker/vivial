@@ -137,6 +137,7 @@ class SessionManager {
    * @noreturn
    */
   setReferrer(referrer) {
+    // window.top?.document.referrer || window.parent.document.referrer || document.referrer;
     if (consentManager.isCookieConsentRevoked()) {
       return;
     }

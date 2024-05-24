@@ -56,6 +56,8 @@ async function handleFormSubmit(event) {
  * @noreturn
  */
 export function enableFormTracking() {
+  eaveLogger.debug("enabling form tracking");
+
   document.body.addEventListener("submit", handleFormSubmit, {
     capture: true,
     passive: false, // This is set to false because a form submission may reload the document.

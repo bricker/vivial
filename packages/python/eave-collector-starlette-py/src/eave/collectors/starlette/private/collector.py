@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import time
 import urllib.parse
 from collections.abc import Callable
 from functools import wraps
@@ -245,6 +246,7 @@ class EaveASGIMiddleware:
             req_url = remove_url_credentials(http_url)
             self.write_queue.put(
                 HttpServerEventPayload(
+                    timestamp=time.time() * 1000,
                     request_method=req_method,
                     request_url=req_url,
                     request_headers=dict(request.headers.items()),
@@ -279,6 +281,7 @@ class EaveASGIMiddleware:
                         pass
                     self.write_queue.put(
                         HttpServerEventPayload(
+                            timestamp=time.time() * 1000,
                             request_method=req_method,
                             request_url=req_url,
                             request_headers=headers_ref[0],

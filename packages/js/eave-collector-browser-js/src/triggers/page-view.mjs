@@ -1,21 +1,24 @@
+import { requestManager } from "../managers/beacon.mjs";
+
 /**
  * Log visit to this page
  *
- * @param {string} customTitle
- * @param {object} customData
- * @param {() => void} callback
- *
  * @noreturn
  */
-this.trackPageView = function (customTitle, customData, callback) {
-  trackedContentImpressions = [];
-  consentRequestsQueue = [];
-  javaScriptErrors = [];
-
-  trackCallback(function () {
-    numTrackedPageviews++;
-    logPageView(customTitle, customData, callback);
+export async function trackPageView() {
+  const payload = await requestManager.buildPayloadFromEvent({
+    event,
+    timestamp,
+    target: {
+      target_type: targetElement?.nodeName.toUpperCase(),
+      target_id: targetElement?.id,
+      target_attributes: {
+        ...elementAttrs,
+      }
+    },
   });
+
+  requestManager.sendEvent(payload);
 };
 
 /**

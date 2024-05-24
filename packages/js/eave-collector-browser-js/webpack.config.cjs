@@ -4,17 +4,20 @@ const TerserPlugin = require("terser-webpack-plugin");
 
 module.exports = (env, argv) => {
   const mode = argv.mode || "development";
+  const logLevel = env.LOG_LEVEL?.toUpperCase();
+
   return {
     mode,
     entry: {
-      index: "./src/eave-client.mjs",
+      index: "./src/main.mjs",
     },
     output: {
-      filename: "eave-client.min.js",
+      filename: "collector.js",
       path: path.resolve(__dirname, "dist"),
     },
+    devtool: false,
     optimization: {
-      minimize: true,
+      minimize: mode !== "development",
       minimizer: [
         new TerserPlugin({
           terserOptions: {
@@ -32,7 +35,7 @@ module.exports = (env, argv) => {
     module: {
       rules: [
         {
-          test: /\.js$/,
+          test: /\.m?js$/,
           exclude: /node_modules/,
           use: {
             loader: "babel-loader",
@@ -46,7 +49,17 @@ module.exports = (env, argv) => {
     plugins: [
       new webpack.DefinePlugin({
         PRODUCTION: mode === "production",
+        LOG_LEVEL: JSON.stringify(logLevel.toUpperCase()),
       }),
     ],
+
+    devServer: {
+      server: "http",
+      allowedHosts: [
+        "localhost",
+        "127.0.0.1",
+        ".eave.run",
+      ],
+    },
   };
 };

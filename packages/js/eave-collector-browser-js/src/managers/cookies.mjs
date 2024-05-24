@@ -106,15 +106,19 @@ class CookieManager {
   /**
    * Gets all cookies with the `configCookieNamePrefix` prefix; a.k.a the ones Eave manages
    *
-   * @returns {string[][]} list of eave cookie key/value pairs, ["cookieName", "cookieValue"]
+   * NOTE: Although there may be multiple cookies with the same name (as mentioned in https://www.rfc-editor.org/rfc/rfc6265, for example),
+   * this function assumes cookie names are unique. However, because this function only returns Eave-managed cookies, we can be reasonably sure that the names are unique.
+   * The primary reason for returning a map instead of an array of arrays is for simpler table schemas and querying in the dashboards.
+   *
+   * @returns {{[key:string]: string}} map of cookie name -> value.
    */
   getEaveCookies() {
     const allCookies = this.#getAllCookies();
-    const /** @type {[string, string][]} */ eaveCookies = [];
+    const /** @type {{[key:string]: string}} */ eaveCookies = {};
 
     for (const [cookieName, cookieValue] of allCookies) {
       if (cookieName.startsWith(COOKIE_NAME_PREFIX)) {
-        eaveCookies.push([cookieName, cookieValue]);
+        eaveCookies[cookieName] = cookieValue;
       }
     }
 
@@ -127,18 +131,13 @@ class CookieManager {
    * @noreturn
    */
   deleteEaveCookies() {
-    var savedConfigCookiesDisabled = this.configCookiesDisabled;
+    const allCookies = this.#getAllCookies();
 
-    // Temporarily allow cookies just to delete the existing ones
-    this.configCookiesDisabled = false;
-
-    for (const [cookieName, _] of this.getEaveCookies()) {
-      this.deleteCookie({
-        name: cookieName,
-      });
+    for (const [name, _] of allCookies) {
+      if (name.startsWith(COOKIE_NAME_PREFIX)) {
+        this.deleteCookie({ name });
+      }
     }
-
-    this.configCookiesDisabled = savedConfigCookiesDisabled;
   }
 
   /**

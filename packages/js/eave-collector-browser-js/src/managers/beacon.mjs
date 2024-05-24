@@ -76,6 +76,13 @@ class RequestManager {
     this.#queue = new RequestQueue();
     window.addEventListener(COOKIE_CONSENT_GRANTED_EVENT_TYPE, this);
     document.addEventListener(VISIBILITY_CHANGE_EVENT_TYPE, this);
+
+    // @ts-ignore
+    if (navigator.userAgentData?.getHighEntropyValues === undefined) {
+      // navigator.userAgentData is not widely supported.
+      // Additionally, it is only available in secure contexts (https).
+      eaveLogger.warn("navigator.userAgentData not supported. Some user agent fields will be missing.");
+    }
   }
 
   /**
@@ -102,6 +109,41 @@ class RequestManager {
 
   /**
    * @param {object} args
+   * @param {Date} args.action
+   * @param {Date} args.timestamp
+   *
+   * @returns {Promise<Types.BrowserEventPayload>}
+   */
+  async buildPayload({ action, timestamp }) {
+    const clientProperties = await this.#getClientProperties();
+    const performanceProperties = this.#getPerformanceProperties();
+    const userProperties = this.#getUserProperties();
+    const sessionProperties = this.#getSessionProperties();
+    const pageProperties = this.#getPageProperties();
+
+    const /** @type {Types.BrowserEventPayload} */ payload = {
+      action: event.type,
+      timestamp: timestamp.getTime() / 1000,
+      seconds_elapsed: event.timeStamp,
+      extra,
+      ...target,
+      ...pageProperties,
+      ...clientProperties,
+      ...performanceProperties,
+      ...userProperties,
+      ...sessionProperties,
+    };
+
+    // add eave cookie context data
+    for (const [cookieName, cookieValue] of cookieManager.getEaveCookies()) {
+      payload[cookieName] = cookieValue;
+    }
+
+    return payload;
+  }
+
+  /**
+   * @param {object} args
    * @param {Event} args.event
    * @param {Types.TargetProperties} args.target
    * @param {Date} args.timestamp
@@ -110,40 +152,6 @@ class RequestManager {
    * @returns {Promise<Types.BrowserEventPayload>}
    */
   async buildPayloadFromEvent({ event, target, extra, timestamp }) {
-    const currentPageUrl = new URL(window.location.href);
-    const /** @type {{[key:string]: string[]}} */ current_query_params = {};
-    currentPageUrl.searchParams.forEach((value, key) => {
-      if (!current_query_params[key]) {
-        current_query_params[key] = [];
-      }
-      current_query_params[key].push(value);
-    });
-
-    const clientProperties = await this.#getClientProperties();
-    const performanceProperties = this.#getPerformanceProperties();
-
-    const /** @type {Types.BrowserEventPayload} */ payload = {
-      action: event.type,
-      timestamp: timestamp.getTime() / 1000,
-      seconds_elapsed: event.timeStamp,
-      current_page_url: currentPageUrl.toString(),
-      current_page_title: document.title,
-      pageview_id: eave.pageViewId,
-      current_query_params,
-      visitor_id: sessionManager.getVisitorId(),
-      session_id: sessionManager.getSessionId(),
-      session_start_ms: sessionManager.getSessionStartMs(),
-      session_duration_ms: sessionManager.getSessionDurationMs(),
-      extra,
-      ...target,
-      ...clientProperties,
-      ...performanceProperties,
-    };
-
-    // add eave cookie context data
-    for (const [cookieName, cookieValue] of cookieManager.getEaveCookies()) {
-      payload[cookieName] = cookieValue;
-    }
 
     return payload;
   }
@@ -179,8 +187,12 @@ class RequestManager {
         }
       });
 
+      // Important note: The `type` property here should be `application/x-www-form-urlencoded`, because that mimetype is CORS-safelisted as documented here:
+      // https://fetch.spec.whatwg.org/#cors-safelisted-request-header
+      // If set to a non-safe mimetype (eg application/json), sendBeacon will send a pre-flight CORS request (OPTIONS) to the server, and the server is then responsible
+      // for responding with CORS "access-control-allow-*" headers. That's okay, but it adds unnecessary overhead to both the client and the server.
       const blob = new Blob([json], {
-        type: "application/json; charset=UTF-8",
+        type: "application/x-www-form-urlencoded; charset=UTF-8",
       });
 
       if (!clientId) {
@@ -212,6 +224,49 @@ class RequestManager {
   }
 
   /**
+   * @returns {Types.PageProperties}
+   */
+  #getPageProperties() {
+    const currentPageUrl = new URL(window.location.href);
+
+    const /** @type {{[key:string]: string[]}} */ current_query_params = {};
+    currentPageUrl.searchParams.forEach((value, key) => {
+      if (!current_query_params[key]) {
+        current_query_params[key] = [];
+      }
+      current_query_params[key].push(value);
+    });
+
+    return {
+      current_page_url: currentPageUrl.toString(),
+      current_page_title: document.title,
+      pageview_id: eave.pageViewId,
+      current_query_params,
+    }
+  }
+
+  /**
+   * @returns {Types.SessionProperties}
+   */
+  #getSessionProperties() {
+    return {
+      session_id: sessionManager.getSessionId(),
+      session_start_ms: sessionManager.getSessionStartMs(),
+      session_duration_ms: sessionManager.getSessionDurationMs(),
+    }
+  }
+
+  /**
+   * @returns {Types.UserProperties}
+   */
+  #getUserProperties() {
+    return {
+      visitor_id: sessionManager.getVisitorId(),
+      user_id: undefined, // FIXME
+    }
+  }
+
+  /**
    * @returns {Promise<Types.ClientProperties>}
    */
   async #getClientProperties() {
@@ -229,7 +284,9 @@ class RequestManager {
 
     // @ts-ignore
     if (navigator.userAgentData?.getHighEntropyValues === undefined) {
-      eaveLogger.warn("navigator.userAgentData not supported. Some user agent fields will be missing.");
+      // navigator.userAgentData is not widely supported.
+      // Additionally, it is only available in secure contexts (https).
+      // A warning will have already been logged when this class was initialized. We don't warn here because it would spam the logs.
       return clientProperties;
     }
 

@@ -2,11 +2,13 @@ import abc
 import asyncio
 import atexit
 import multiprocessing
+import multiprocessing.synchronize
 import sys
 import threading
 import time
 from dataclasses import dataclass
 from queue import Empty
+from typing import Any
 
 from . import config
 from .datastructures import EventPayload
@@ -40,7 +42,7 @@ class QueueItem:
 
 
 # TODO: sigterm handler
-async def _process_queue(q: multiprocessing.Queue, params: QueueParams, queue_closed_event: threading.Event) -> int:
+async def _process_queue(q: multiprocessing.Queue, params: QueueParams, queue_closed_event: multiprocessing.synchronize.Event) -> int:
     EAVE_LOGGER.info("Eave queue processor started.")
 
     buffer: dict[str, list[JsonObject]] = {}
@@ -122,14 +124,14 @@ class WriteQueue(abc.ABC):
 
 class BatchWriteQueue(WriteQueue):
     _queue: multiprocessing.Queue
-    _queue_closed_event: threading.Event
+    _queue_closed_event: multiprocessing.synchronize.Event
     _process: multiprocessing.Process
 
     def __init__(self, queue_params: QueueParams | None = None) -> None:
         queue_params = queue_params or QueueParams()
 
         self._queue = multiprocessing.Queue()
-        self._queue_closed_event = threading.Event()
+        self._queue_closed_event = multiprocessing.Event()
         self._process = multiprocessing.Process(
             target=_queue_processor_event_loop,
             kwargs={
@@ -140,18 +142,29 @@ class BatchWriteQueue(WriteQueue):
         )
 
     def start_autoflush(self) -> None:
-        atexit.register(self.stop_autoflush)
-        self._process.start()
+        try:
+            atexit.register(self.stop_autoflush)
+            self._process.start()
+        except Exception as e:
+            EAVE_LOGGER.exception(e)
+            atexit.unregister(self.stop_autoflush)
+
 
     def stop_autoflush(self) -> None:
-        self._queue_closed_event.set()
-
-        EAVE_LOGGER.info("Waiting for queue processor to finish (timeout=10s)...")
-        self._process.join(timeout=10)
+        try:
+            if self._process.is_alive():
+                self._queue_closed_event.set()
+                EAVE_LOGGER.info("Waiting for queue processor to finish (timeout=10s)...")
+                self._process.join(timeout=10)
+        except Exception as e:
+            EAVE_LOGGER.exception(e)
 
     def put(self, payload: EventPayload) -> None:
-        if self._process.is_alive() and not self._queue_closed_event.is_set():
-            item = (str(payload.event_type), payload.to_dict())
-            self._queue.put(item, block=False)
-        else:
-            EAVE_LOGGER.warning("Queue processor is not alive; queueing failed.")
+        try:
+            if self._process.is_alive() and not self._queue_closed_event.is_set():
+                item = (str(payload.event_type), payload.to_dict())
+                self._queue.put(item, block=False)
+            else:
+                EAVE_LOGGER.warning("Queue processor is not alive; queueing failed.")
+        except Exception as e:
+            EAVE_LOGGER.exception(e)

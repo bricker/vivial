@@ -1,6 +1,7 @@
 // @ts-check
 
 import { castEventTargetToHtmlElement, getElementAttributes } from "../helpers.mjs";
+import { eaveLogger } from "../internal/logging.mjs";
 import { requestManager } from "../managers/beacon.mjs";
 
 /**
@@ -81,8 +82,10 @@ async function handleClick(event) {
  * @noreturn
  */
 export function enableClickTracking() {
+  eaveLogger.debug("enabling click tracking");
+
   document.body.addEventListener("click", handleClick, { capture: true, passive: true });
-  document.body.addEventListener("mouseup", handleClick, { capture: true, passive: true });
-  document.body.addEventListener("mousedown", handleClick, { capture: true, passive: true });
-  document.body.addEventListener("contextmenu", handleClick, { capture: true, passive: true });
+  // document.body.addEventListener("mouseup", handleClick, { capture: true, passive: true });
+  // document.body.addEventListener("mousedown", handleClick, { capture: true, passive: true });
+  // document.body.addEventListener("contextmenu", handleClick, { capture: true, passive: true });
 };

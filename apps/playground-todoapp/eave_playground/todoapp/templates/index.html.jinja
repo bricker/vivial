@@ -11,17 +11,21 @@
 
         <!-- Eave client tracing -->
         <script>
-        var _settings = window._settings = window._settings || [];
-        _settings.push(["setEaveClientId", "a6724bbe-c237-4e66-9825-8cb5d51d697f"]);
-        _settings.push(["setTrackerUrl", "https://api.eave.dev/public/ingest/browser"]);
+        const EAVE_CLIENT_ID = "{{EAVE_CLIENT_ID}}";
+        </script>
 
-        /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+        <script async src="http://127.0.0.1:3001/collector.js"></script>
+
+        <!--
+        <script>
         (function() {
-            var scriptHostLocation = "https://storage.googleapis.com/cdn.eave.dev/eave-client.min.js";
+            var scriptHostLocation = "http://localhost:3001/collector.js";
             var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
             g.async=true; g.src=scriptHostLocation; s.parentNode.insertBefore(g,s);
         })();
         </script>
+        -->
+
         <!-- End Eave client tracing Code -->
     </head>
     <body>

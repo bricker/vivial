@@ -122,7 +122,13 @@ templates = Jinja2Templates(directory="eave_playground/todoapp/templates")
 
 
 def web_app(request: Request) -> Response:
-    response = templates.TemplateResponse(request, "index.html.jinja")
+    response = templates.TemplateResponse(
+        request=request,
+        name="index.html.jinja",
+        context={
+            "EAVE_CLIENT_ID": os.getenv("PLAYGROUND_TODOAPP_EAVE_CLIENT_ID"),
+        }
+    )
     return response
 
 

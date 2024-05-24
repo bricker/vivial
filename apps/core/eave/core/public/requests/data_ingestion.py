@@ -22,24 +22,14 @@ from eave.stdlib.util import ensure_uuid
 class BrowserDataIngestionEndpoint(HTTPEndpoint):
     async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
         # client_id = get_header_value_or_exception(scope=scope, name=EAVE_CLIENT_ID_HEADER)
-        # origin_header = get_header_value_or_exception(scope=scope, name=aiohttp.hdrs.ORIGIN)
+        origin_header = get_header_value_or_exception(scope=scope, name=aiohttp.hdrs.ORIGIN)
+        response = Response()
 
         # body = await request.json()
         qp = request.query_params._dict
-        print(qp)
-        client_id = qp["eaveClientId"]
-
-        body = {
-            "events": {
-                "browser_event": [
-                    {
-                        **qp
-                    }
-                ]
-            }
-        }
-
-        input = DataIngestRequestBody.from_json(data=body)
+        client_id = qp.get("clientId")
+        if client_id is None:
+            raise UnauthorizedError("missing clientId query param")
 
         async with database.async_session.begin() as db_session:
             creds = (
@@ -59,18 +49,34 @@ class BrowserDataIngestionEndpoint(HTTPEndpoint):
 
             eave_team = await TeamOrm.one_or_exception(session=db_session, team_id=creds.team_id)
 
-            # if origin_header not in eave_team.allowed_origins:
-            #     raise ForbiddenError("Invalid origin")
+            if origin_header not in eave_team.allowed_origins:
+                raise ForbiddenError("Invalid origin")
+
+            # response.headers["access-control-allow-origin"] = origin_header
+            # response.headers["access-control-allow-credentials"] = "false"
+            # response.headers["access-control-allow-methods"] = "POST"
+            # if request.method.upper() == "OPTIONS":
+            #     return response
 
             await creds.touch(session=db_session)
+
+        body = {
+            "events": {
+                "browser_event": [
+                    {
+                        **qp
+                    }
+                ]
+            }
+        }
+
+        input = DataIngestRequestBody.from_json(data=body)
 
         if (events := input.events.get(EventType.browser_event)) and len(events) > 0:
             handle = BrowserEventsTableHandle(team=eave_team)
             await handle.insert(events=events)
 
         # Throw an error if there are any other event types in the payload?
-
-        response = Response(status_code=200)
         return response
 
 

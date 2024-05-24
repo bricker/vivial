@@ -160,7 +160,7 @@ class TestDataIngestionEndpoints(BaseTestCase):
                         DatabaseEventPayload(
                             context=None,
                             db_structure=DatabaseStructure.SQL,
-                            timestampMs=int(time.time()),
+                            timestamp=time.time() * 1000,
                             db_name=self.anystr(),
                             statement="update my_table set a=$1, b=$2;",
                             operation=DatabaseOperation.INSERT,
@@ -173,6 +173,7 @@ class TestDataIngestionEndpoints(BaseTestCase):
                     ],
                     EventType.http_server_event: [
                         HttpServerEventPayload(
+                            timestamp=time.time() * 1000,
                             context=None,
                             request_method="GET",
                             request_url="https://api.eave.fyi/status",
@@ -182,6 +183,7 @@ class TestDataIngestionEndpoints(BaseTestCase):
                     ],
                     EventType.http_client_event: [
                         HttpClientEventPayload(
+                            timestamp=time.time() * 1000,
                             context=None,
                             request_method="GET",
                             request_url="https://api.eave.fyi/status",
@@ -222,6 +224,7 @@ class TestDataIngestionEndpoints(BaseTestCase):
                 events={
                     EventType.http_server_event: [  # This should be ignored by the server
                         HttpServerEventPayload(
+                            timestamp=time.time() * 1000,
                             context=None,
                             request_method="GET",
                             request_url="https://api.eave.fyi/status",

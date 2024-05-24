@@ -3,28 +3,28 @@
 /**
  * @typedef EaveConfiguration
  *
- * @property {string} [eaveClientId]
+ * @property {string} [EAVE_CLIENT_ID]
  */
 
 /**
- * @typedef EaveDOMManager
+ * @typedef EaveInterface
  *
- * @property {(element: HTMLElement, eventType: string, eventHandler: function, useCapture: boolean) => void} addEventListener
- * @property {(callback: function) => void} onLoad
- * @property {(callback: function) => void} onReady
- * @property {(node: HTMLElement) => boolean} isNodeVisible
- * @property {(node: HTMLElement) => boolean} isOrWasNodeVisible
+ * @property {() => void} enableAll
+ * @property {() => void} disableAll
+ * @property {() => void} enableCookies
+ * @property {() => void} disableCookies
+ * @property {() => void} enableTracking
+ * @property {() => void} disableTracking
  */
 
 /**
- * @typedef GlobalEaveProperties
+ * @typedef GlobalEaveState
  *
  * @property {string} pageViewId
- * @property {string} [clientId]
  */
 
 /**
- * @typedef {Window & EaveConfiguration & { eave: GlobalEaveProperties }} GlobalEaveWindow
+ * @typedef {Window & EaveConfiguration & { eave: EaveInterface } } GlobalEaveWindow
  */
 
 
@@ -89,6 +89,7 @@
  * @property {number} timestamp
  * @property {number} [seconds_elapsed]
  * @property {{[key:string]: string}} [extra]
+ * @property {{[key:string]: string}} [cookies]
  */
 
 /**
