@@ -90,22 +90,24 @@ const makeClasses = makeStyles<void, "hoverIcon">()(
       overflowX: "hidden",
     },
     panelContainer: {
-      position: "sticky",
+      position: "fixed",
+      right: 0,
       display: "flex",
       flexDirection: "column",
       alignItems: "flex-start",
       height: "100vh",
-      maxWidth: "100vw / 4",
+      width: "100vw / 4",
       backgroundColor: "#e5e9f5",
       [theme.breakpoints.up("md")]: {
         transition: "1s cubic-bezier(.36,-0.01,0,.77)",
       },
       padding: 24,
       overflow: "auto",
-      flex: 1,
+      // flex: 1,
     },
     panelHidden: {
-      flex: 0,
+      // flex: 0,
+      left: "100%",
       padding: 0, // any padding keeps the panel visible
     },
     closeButton: {
