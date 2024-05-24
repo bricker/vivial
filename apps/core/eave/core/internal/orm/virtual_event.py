@@ -82,7 +82,6 @@ class VirtualEventOrm(Base):
             ## trigram
             lookup = lookup.order_by(
                 text("similarity(readable_name, :search_query) desc").bindparams(search_query=params.search_query)
-
             )
 
         if params.view_id is not None:
