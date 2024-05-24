@@ -17,7 +17,6 @@ class GetVirtualEventsEndpoint(HTTPEndpoint):
         input = ve.GetMyVirtualEventsRequest.RequestBody.parse_obj(body)
 
         async with database.async_session.begin() as db_session:
-            # TODO: some kind of fuzzy match or something
             vevents = await VirtualEventOrm.query(
                 session=db_session,
                 params=VirtualEventOrm.QueryParams(

@@ -80,6 +80,11 @@ if SHARED_CONFIG.eave_env in [EaveEnvironment.development, EaveEnvironment.test]
             await connection.execute(sqlalchemy.text(f'ALTER DATABASE "{db_name}" SET timezone TO "UTC"'))
 
             try:
+                await connection.execute(sqlalchemy.text("CREATE EXTENSION pg_trgm"))
+            except Exception as e:
+                print("pg_trgm already installed")
+
+            try:
                 await connection.execute(sqlalchemy.text("""CREATE ROLE "eave-agent" PASSWORD 'dev'"""))
             except Exception as e:
                 # FIXME: asyncpg.exceptions.DuplicateObjectError is the correct error to catch here, but masked by sqlalchemy
