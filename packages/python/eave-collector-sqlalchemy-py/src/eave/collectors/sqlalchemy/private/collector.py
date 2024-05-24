@@ -239,7 +239,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                     field_name = expr.left.name
                     if is_field_of_interest(field_name):
                         # strip leading colon off param key (e.g. :id_1 -> id_1)
-                        param_key = str(expr.right)[1:]
+                        param_key = str(expr.right).lstrip(":")
                         param_value = statement_params.get(param_key, None)
                         if param_value is not None:
                             # make sure the field actually corresponds to the table we're interested in
