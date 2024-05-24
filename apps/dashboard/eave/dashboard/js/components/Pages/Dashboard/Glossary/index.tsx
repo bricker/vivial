@@ -15,7 +15,7 @@ const makeClasses = makeStyles<void, "hoverIcon">()(
     glossary: {
       padding: "10px 24px",
       overflowY: "scroll",
-      flex: 3,
+      flexGrow: 1,
     },
     header: {
       fontSize: 34,
@@ -51,6 +51,7 @@ const makeClasses = makeStyles<void, "hoverIcon">()(
     },
     table: {
       borderCollapse: "collapse",
+      width: "100%",
       fontSize: 14,
       marginTop: 60,
     },
