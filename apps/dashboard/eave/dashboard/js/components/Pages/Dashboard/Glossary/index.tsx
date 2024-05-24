@@ -52,6 +52,7 @@ const makeClasses = makeStyles<void, "hoverIcon">()(
     table: {
       borderCollapse: "collapse",
       width: "100%",
+      maxWidth: 1000,
       fontSize: 14,
       marginTop: 60,
     },
