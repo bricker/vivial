@@ -31,12 +31,12 @@ class BaseCorrelationContext(abc.ABC):
         return urllib.parse.quote_plus(str(value))
 
     @abc.abstractmethod
-    def get(self, key: str) -> typing.Any:
+    def get(self, key: str) -> str:
         """Get a value from either storage"""
         ...
 
     @abc.abstractmethod
-    def set(self, key: str, value: typing.Any) -> None:
+    def set(self, key: str, value: str) -> None:
         """Set a value in updated_context storage"""
         ...
 
@@ -45,7 +45,7 @@ class BaseCorrelationContext(abc.ABC):
         return json.dumps(self.to_dict())
 
     @abc.abstractmethod
-    def to_dict(self) -> dict[str, typing.Any]:
+    def to_dict(self) -> dict[str, str]:
         """Convert entirity of storage to dict"""
         ...
 
@@ -63,3 +63,6 @@ class BaseCorrelationContext(abc.ABC):
     def from_cookies(self, cookies: dict[str, str]) -> None:
         """Populate received_context storage from COOKIE_PREFIX prefixed cookies"""
         ...
+
+    @abc.abstractmethod
+    def clear(self) -> None: ...

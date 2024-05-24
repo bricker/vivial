@@ -123,7 +123,8 @@ class BrowserEventPayload(EventPayload):
 
     _extra: dict[str, Any] | None = None
 
-    def __init__(self,
+    def __init__(
+        self,
         *,
         context: dict[str, Any] | None = None,
         action_name: str | None = None,
@@ -137,7 +138,7 @@ class BrowserEventPayload(EventPayload):
         e_v: str | None = None,
         e_ts: str | None = None,
         url: str | None = None,
-        queryParams: str | None   = None,  # noqa: N803
+        queryParams: str | None = None,  # noqa: N803
         _eave_visitor_id: str | None = None,
         _eave_session_id: str | None = None,
         pv_id: str | None = None,
@@ -145,7 +146,7 @@ class BrowserEventPayload(EventPayload):
         pf_srv: str | None = None,
         pf_tfr: str | None = None,
         pf_dm1: str | None = None,
-        eaveClientId: str | None  = None,  # noqa: N803
+        eaveClientId: str | None = None,  # noqa: N803
         uadata: str | None = None,
         pdf: str | None = None,
         qt: str | None = None,
@@ -192,6 +193,7 @@ class BrowserEventPayload(EventPayload):
         self.res = res
 
         self._extra = kwargs
+
 
 @dataclass(kw_only=True)
 class FunctionCallEventPayload(EventPayload):
