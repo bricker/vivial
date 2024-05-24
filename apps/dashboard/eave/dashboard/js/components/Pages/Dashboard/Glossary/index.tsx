@@ -96,20 +96,13 @@ const makeClasses = makeStyles<void, "hoverIcon">()(
       flexDirection: "column",
       alignItems: "flex-start",
       height: "100vh",
-      // width: 100,
       width: "calc(100vw / 4)",
       backgroundColor: "#e5e9f5",
-      // [theme.breakpoints.up("md")]: {
-      //   transition: "1s cubic-bezier(.36,-0.01,0,.77)",
-      // },
       padding: 24,
       overflow: "auto",
-      // flex: 1,
     },
     panelHidden: {
-      // flex: 0,
       left: "100%",
-      // padding: 0, // any padding keeps the panel visible
     },
     panelFullScreen: {
       width: "100%",
@@ -155,29 +148,15 @@ const Glossary = () => {
   const [selectedEvent, setSelectedEvent] = useState<VirtualEvent | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
-  // const { team, getTeamVirtualEvents } = useTeam();
-  const team = {
-    virtualEvents: [
-      {
-        description: "event dexriptions, good yes?",
-        id: '0',
-        readable_name: "event 1",
-      },
-      {
-        description: "event dexriptions, good no? the number of beans in this pburreito are toooo damn high. but perhaps low? idk what tht eheck i'm doing",
-        id: '2',
-        readable_name: "event 2",
-      },
-    ]
-  }
+  const { team, getTeamVirtualEvents } = useTeam();
 
-  // const { glossaryNetworkStateCtx } = useContext(AppContext);
-  // const [networkState] = glossaryNetworkStateCtx!;
+  const { glossaryNetworkStateCtx } = useContext(AppContext);
+  const [networkState] = glossaryNetworkStateCtx!;
 
-  // // initial data load
-  // useEffect(() => {
-  //   getTeamVirtualEvents(null);
-  // }, []);
+  // initial data load
+  useEffect(() => {
+    getTeamVirtualEvents(null);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -201,14 +180,13 @@ const Glossary = () => {
   if (!isOpen) {
     panelClasses.push(classes.panelHidden);
   } else if (usingMobileLayout) {
-    // glossaryClasses.push(classes.panelHidden); // this was setting flex 0, but now side panel isnt in the flex
     panelClasses.push(classes.panelFullScreen);
   }
 
   // perform search for events
   useEffect(() => {
     setIsOpen(false);
-    // getTeamVirtualEvents(searchValue ? { search_term: searchValue } : null);
+    getTeamVirtualEvents(searchValue ? { search_term: searchValue } : null);
   }, [searchValue]);
 
   // factored out as it's used in both the row onClick and onKeyPress actions
@@ -270,21 +248,21 @@ const Glossary = () => {
         </tbody>
       </table>
     );
-  // } else if (networkState.virtualEventsAreLoading) {
-  //   // show loading state
-  //   component = (
-  //     <div className={classes.loader}>
-  //       <CircularProgress color="secondary" />
-  //     </div>
-  //   );
-  // } else if (networkState.virtualEventsAreErroring) {
-  //   // show err state
-  //   component = (
-  //     <div className={classes.error}>
-  //       ERROR: Unable to fetch virtual events{" "}
-  //       {searchValue ? `for searched term "${searchValue}"` : ""}
-  //     </div>
-  //   );
+  } else if (networkState.virtualEventsAreLoading) {
+    // show loading state
+    component = (
+      <div className={classes.loader}>
+        <CircularProgress color="secondary" />
+      </div>
+    );
+  } else if (networkState.virtualEventsAreErroring) {
+    // show err state
+    component = (
+      <div className={classes.error}>
+        ERROR: Unable to fetch virtual events{" "}
+        {searchValue ? `for searched term "${searchValue}"` : ""}
+      </div>
+    );
   } else {
     // not loading/erroring and no events found
     component = (
