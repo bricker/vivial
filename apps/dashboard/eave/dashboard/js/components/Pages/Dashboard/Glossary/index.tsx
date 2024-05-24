@@ -1,3 +1,4 @@
+import CloseIcon from "$eave-dashboard/js/components/Icons/CloseIcon";
 import SearchIcon from "$eave-dashboard/js/components/Icons/SearchIcon";
 import SidePanelIcon from "$eave-dashboard/js/components/Icons/SidePanelIcon";
 import { AppContext } from "$eave-dashboard/js/context/Provider";
@@ -14,7 +15,7 @@ const makeClasses = makeStyles<void, "hoverIcon">()(
     glossary: {
       padding: "10px 24px",
       overflowY: "scroll",
-      flex: 3,
+      flexGrow: 1,
     },
     header: {
       fontSize: 34,
@@ -50,6 +51,7 @@ const makeClasses = makeStyles<void, "hoverIcon">()(
     },
     table: {
       borderCollapse: "collapse",
+      width: "100%",
       fontSize: 14,
       marginTop: 60,
     },
@@ -84,27 +86,27 @@ const makeClasses = makeStyles<void, "hoverIcon">()(
     root: {
       display: "flex",
       flexDirection: "row",
+      flexGrow: 1,
       wordWrap: "break-word",
       overflowX: "hidden",
     },
     panelContainer: {
-      position: "sticky",
+      position: "fixed",
+      right: 0,
       display: "flex",
       flexDirection: "column",
       alignItems: "flex-start",
       height: "100vh",
-      maxWidth: "100vw / 4",
+      width: "calc(100vw / 4)",
       backgroundColor: "#e5e9f5",
-      [theme.breakpoints.up("md")]: {
-        transition: "1s cubic-bezier(.36,-0.01,0,.77)",
-      },
       padding: 24,
       overflow: "auto",
-      flex: 1,
     },
     panelHidden: {
-      flex: 0,
-      padding: 0, // any padding keeps the panel visible
+      left: "100%",
+    },
+    panelFullScreen: {
+      width: "100%",
     },
     closeButton: {
       alignSelf: "flex-end",
@@ -145,7 +147,7 @@ const Glossary = () => {
   const { classes } = makeClasses();
   const [searchValue, setSearchValue] = useState("");
   const [selectedEvent, setSelectedEvent] = useState<VirtualEvent | null>(null);
-  const [isOpen, _setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
   const { team, getTeamVirtualEvents } = useTeam();
 
@@ -179,19 +181,19 @@ const Glossary = () => {
   if (!isOpen) {
     panelClasses.push(classes.panelHidden);
   } else if (usingMobileLayout) {
-    glossaryClasses.push(classes.panelHidden);
+    panelClasses.push(classes.panelFullScreen);
   }
 
   // perform search for events
   useEffect(() => {
-    // setIsOpen(false);
+    setIsOpen(false);
     getTeamVirtualEvents(searchValue ? { search_term: searchValue } : null);
   }, [searchValue]);
 
   // factored out as it's used in both the row onClick and onKeyPress actions
   const rowClicked = (event: VirtualEvent) => {
     setSelectedEvent(event);
-    // setIsOpen(true);
+    setIsOpen(true);
     // move kb focus to the sidepanel for a11y
     const sidepanel = document.getElementById("glos_sidepanel");
     sidepanel?.focus();
@@ -291,37 +293,38 @@ const Glossary = () => {
   }
 
   return (
-    <div className={classes.root}>
-      <div className={classNames(glossaryClasses)}>
-        <h1 className={classes.header}>Event Glossary</h1>
+    <>
+      <div className={classes.root}>
+        <div className={classNames(glossaryClasses)}>
+          <h1 className={classes.header}>Event Glossary</h1>
 
-        <div className={classes.searchBar}>
-          <i className={classes.searchIcon}>
-            <SearchIcon color="#33363f" />
-          </i>
-          <input
-            type="text"
-            className={classes.searchInput}
-            placeholder="Type to search events"
-            value={searchValue}
-            onChange={(elem) => setSearchValue(elem.target.value)}
-          />
+          <div className={classes.searchBar}>
+            <i className={classes.searchIcon}>
+              <SearchIcon color="#33363f" />
+            </i>
+            <input
+              type="text"
+              className={classes.searchInput}
+              placeholder="Type to search events"
+              value={searchValue}
+              onChange={(elem) => setSearchValue(elem.target.value)}
+            />
+          </div>
+
+          {component}
         </div>
-
-        {component}
       </div>
-
       {/* side panel */}
       <div id="glos_sidepanel" className={classNames(panelClasses)}>
-        {/* <button
+        <button
           className={classes.closeButton}
           onClick={() => setIsOpen(false)}
         >
           <CloseIcon stroke="#363636" />
-        </button> */}
+        </button>
         {sidepanelContent}
       </div>
-    </div>
+    </>
   );
 };
 
