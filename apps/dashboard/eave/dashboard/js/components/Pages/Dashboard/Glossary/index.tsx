@@ -84,6 +84,7 @@ const makeClasses = makeStyles<void, "hoverIcon">()(
     root: {
       display: "flex",
       flexDirection: "row",
+      flexGrow: 1,
       wordWrap: "break-word",
       overflowX: "hidden",
     },
