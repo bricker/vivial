@@ -96,11 +96,12 @@ const makeClasses = makeStyles<void, "hoverIcon">()(
       flexDirection: "column",
       alignItems: "flex-start",
       height: "100vh",
-      width: "100vw / 4",
+      // width: 100,
+      maxWidth: "calc(100vw / 4)",
       backgroundColor: "#e5e9f5",
-      [theme.breakpoints.up("md")]: {
-        transition: "1s cubic-bezier(.36,-0.01,0,.77)",
-      },
+      // [theme.breakpoints.up("md")]: {
+      //   transition: "1s cubic-bezier(.36,-0.01,0,.77)",
+      // },
       padding: 24,
       overflow: "auto",
       // flex: 1,
@@ -151,15 +152,29 @@ const Glossary = () => {
   const [selectedEvent, setSelectedEvent] = useState<VirtualEvent | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
-  const { team, getTeamVirtualEvents } = useTeam();
+  // const { team, getTeamVirtualEvents } = useTeam();
+  const team = {
+    virtualEvents: [
+      {
+        description: "event dexriptions, good yes?",
+        id: '0',
+        readable_name: "event 1",
+      },
+      {
+        description: "event dexriptions, good no? the number of beans in this pburreito are toooo damn high. but perhaps low? idk what tht eheck i'm doing",
+        id: '2',
+        readable_name: "event 2",
+      },
+    ]
+  }
 
-  const { glossaryNetworkStateCtx } = useContext(AppContext);
-  const [networkState] = glossaryNetworkStateCtx!;
+  // const { glossaryNetworkStateCtx } = useContext(AppContext);
+  // const [networkState] = glossaryNetworkStateCtx!;
 
-  // initial data load
-  useEffect(() => {
-    getTeamVirtualEvents(null);
-  }, []);
+  // // initial data load
+  // useEffect(() => {
+  //   getTeamVirtualEvents(null);
+  // }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -189,7 +204,7 @@ const Glossary = () => {
   // perform search for events
   useEffect(() => {
     setIsOpen(false);
-    getTeamVirtualEvents(searchValue ? { search_term: searchValue } : null);
+    // getTeamVirtualEvents(searchValue ? { search_term: searchValue } : null);
   }, [searchValue]);
 
   // factored out as it's used in both the row onClick and onKeyPress actions
@@ -251,21 +266,21 @@ const Glossary = () => {
         </tbody>
       </table>
     );
-  } else if (networkState.virtualEventsAreLoading) {
-    // show loading state
-    component = (
-      <div className={classes.loader}>
-        <CircularProgress color="secondary" />
-      </div>
-    );
-  } else if (networkState.virtualEventsAreErroring) {
-    // show err state
-    component = (
-      <div className={classes.error}>
-        ERROR: Unable to fetch virtual events{" "}
-        {searchValue ? `for searched term "${searchValue}"` : ""}
-      </div>
-    );
+  // } else if (networkState.virtualEventsAreLoading) {
+  //   // show loading state
+  //   component = (
+  //     <div className={classes.loader}>
+  //       <CircularProgress color="secondary" />
+  //     </div>
+  //   );
+  // } else if (networkState.virtualEventsAreErroring) {
+  //   // show err state
+  //   component = (
+  //     <div className={classes.error}>
+  //       ERROR: Unable to fetch virtual events{" "}
+  //       {searchValue ? `for searched term "${searchValue}"` : ""}
+  //     </div>
+  //   );
   } else {
     // not loading/erroring and no events found
     component = (
@@ -295,6 +310,7 @@ const Glossary = () => {
   }
 
   return (
+    <>
     <div className={classes.root}>
       <div className={classNames(glossaryClasses)}>
         <h1 className={classes.header}>Event Glossary</h1>
@@ -314,18 +330,18 @@ const Glossary = () => {
 
         {component}
       </div>
-
-      {/* side panel */}
-      <div id="glos_sidepanel" className={classNames(panelClasses)}>
-        <button
-          className={classes.closeButton}
-          onClick={() => setIsOpen(false)}
-        >
-          <CloseIcon stroke="#363636" />
-        </button>
-        {sidepanelContent}
-      </div>
     </div>
+          {/* side panel */}
+          <div id="glos_sidepanel" className={classNames(panelClasses)}>
+          <button
+            className={classes.closeButton}
+            onClick={() => setIsOpen(false)}
+          >
+            <CloseIcon stroke="#363636" />
+          </button>
+          {sidepanelContent}
+        </div>
+        </>
   );
 };
 
