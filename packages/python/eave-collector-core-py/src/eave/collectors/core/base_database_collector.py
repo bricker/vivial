@@ -1,29 +1,37 @@
+import re
 from .base_collector import BaseCollector
 from .correlation_context import corr_ctx
 
-user_table_names = {
-    "user",
-    "users",
-    "account",
-    "accounts",
-}
+user_table_name_patterns = [
+    r"user$",
+    r"users$",
+    r"account$",
+    r"accounts$",
+]
 
 
-keys_of_interest = {
-    "id",
-    "uid",
-    "user_id",
-    "account_id",
-}
+columns_of_interest_patterns = [
+    r"^id$",
+    r"^uid$",
+    r"^user_id$",
+    r"^account_id$",
+]
 
 
 def is_user_table(table_name: str) -> bool:
-    # TODO: what about grouped table names, like "production.core-db.accounts"
-    return table_name.lower() in user_table_names
+    table = table_name.lower()
+    for table_pattern in user_table_name_patterns:
+        if re.search(table_pattern, table):
+            return True
+    return False
 
 
 def is_field_of_interest(field_name: str) -> bool:
-    return field_name.lower() in keys_of_interest
+    field = field_name.lower()
+    for col_pattern in columns_of_interest_patterns:
+        if re.search(col_pattern, field):
+            return True
+    return False
 
 
 def save_identification_data(table_name: str, primary_key: str) -> None:
