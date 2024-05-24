@@ -1,3 +1,4 @@
+import CloseIcon from "$eave-dashboard/js/components/Icons/CloseIcon";
 import SearchIcon from "$eave-dashboard/js/components/Icons/SearchIcon";
 import SidePanelIcon from "$eave-dashboard/js/components/Icons/SidePanelIcon";
 import { AppContext } from "$eave-dashboard/js/context/Provider";
@@ -146,7 +147,7 @@ const Glossary = () => {
   const { classes } = makeClasses();
   const [searchValue, setSearchValue] = useState("");
   const [selectedEvent, setSelectedEvent] = useState<VirtualEvent | null>(null);
-  const [isOpen, _setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
   const { team, getTeamVirtualEvents } = useTeam();
 
@@ -185,14 +186,14 @@ const Glossary = () => {
 
   // perform search for events
   useEffect(() => {
-    // setIsOpen(false);
+    setIsOpen(false);
     getTeamVirtualEvents(searchValue ? { search_term: searchValue } : null);
   }, [searchValue]);
 
   // factored out as it's used in both the row onClick and onKeyPress actions
   const rowClicked = (event: VirtualEvent) => {
     setSelectedEvent(event);
-    // setIsOpen(true);
+    setIsOpen(true);
     // move kb focus to the sidepanel for a11y
     const sidepanel = document.getElementById("glos_sidepanel");
     sidepanel?.focus();
@@ -314,12 +315,12 @@ const Glossary = () => {
 
       {/* side panel */}
       <div id="glos_sidepanel" className={classNames(panelClasses)}>
-        {/* <button
+        <button
           className={classes.closeButton}
           onClick={() => setIsOpen(false)}
         >
           <CloseIcon stroke="#363636" />
-        </button> */}
+        </button>
         {sidepanelContent}
       </div>
     </div>
