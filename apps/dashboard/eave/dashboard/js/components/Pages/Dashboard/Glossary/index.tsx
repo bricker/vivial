@@ -97,7 +97,7 @@ const makeClasses = makeStyles<void, "hoverIcon">()(
       alignItems: "flex-start",
       height: "100vh",
       // width: 100,
-      maxWidth: "calc(100vw / 4)",
+      width: "calc(100vw / 4)",
       backgroundColor: "#e5e9f5",
       // [theme.breakpoints.up("md")]: {
       //   transition: "1s cubic-bezier(.36,-0.01,0,.77)",
@@ -109,7 +109,10 @@ const makeClasses = makeStyles<void, "hoverIcon">()(
     panelHidden: {
       // flex: 0,
       left: "100%",
-      padding: 0, // any padding keeps the panel visible
+      // padding: 0, // any padding keeps the panel visible
+    },
+    panelFullScreen: {
+      width: "100%",
     },
     closeButton: {
       alignSelf: "flex-end",
@@ -198,7 +201,8 @@ const Glossary = () => {
   if (!isOpen) {
     panelClasses.push(classes.panelHidden);
   } else if (usingMobileLayout) {
-    glossaryClasses.push(classes.panelHidden);
+    // glossaryClasses.push(classes.panelHidden); // this was setting flex 0, but now side panel isnt in the flex
+    panelClasses.push(classes.panelFullScreen);
   }
 
   // perform search for events
@@ -311,37 +315,37 @@ const Glossary = () => {
 
   return (
     <>
-    <div className={classes.root}>
-      <div className={classNames(glossaryClasses)}>
-        <h1 className={classes.header}>Event Glossary</h1>
+      <div className={classes.root}>
+        <div className={classNames(glossaryClasses)}>
+          <h1 className={classes.header}>Event Glossary</h1>
 
-        <div className={classes.searchBar}>
-          <i className={classes.searchIcon}>
-            <SearchIcon color="#33363f" />
-          </i>
-          <input
-            type="text"
-            className={classes.searchInput}
-            placeholder="Type to search events"
-            value={searchValue}
-            onChange={(elem) => setSearchValue(elem.target.value)}
-          />
+          <div className={classes.searchBar}>
+            <i className={classes.searchIcon}>
+              <SearchIcon color="#33363f" />
+            </i>
+            <input
+              type="text"
+              className={classes.searchInput}
+              placeholder="Type to search events"
+              value={searchValue}
+              onChange={(elem) => setSearchValue(elem.target.value)}
+            />
+          </div>
+
+          {component}
         </div>
-
-        {component}
       </div>
-    </div>
-          {/* side panel */}
-          <div id="glos_sidepanel" className={classNames(panelClasses)}>
-          <button
-            className={classes.closeButton}
-            onClick={() => setIsOpen(false)}
-          >
-            <CloseIcon stroke="#363636" />
-          </button>
-          {sidepanelContent}
-        </div>
-        </>
+      {/* side panel */}
+      <div id="glos_sidepanel" className={classNames(panelClasses)}>
+        <button
+          className={classes.closeButton}
+          onClick={() => setIsOpen(false)}
+        >
+          <CloseIcon stroke="#363636" />
+        </button>
+        {sidepanelContent}
+      </div>
+    </>
   );
 };
 
