@@ -1,11 +1,4 @@
-// @ts-check
-
-import { eaveLogger } from "./internal/logging.mjs";
 import { consentManager } from "./managers/consent.mjs";
-import { enableClickTracking } from "./triggers/click.mjs";
-import { enableFormTracking } from "./triggers/form-submit.mjs";
-import { trackPageView } from "./triggers/page-view.mjs";
-import * as Types from "./types.mjs"; // eslint-disable-line no-unused-vars
 
 /** @type {Types.EaveInterface} */
 const eaveInterface   = {
@@ -34,16 +27,7 @@ const eaveInterface   = {
   disableTracking() {
     consentManager.setIsTrackingConsentRevoked(true);
   },
-
-  setLogLevel(level) {
-    eaveLogger.level = level;
-  }
 };
 
 // @ts-ignore
 window.eave = eaveInterface;
-
-trackPageView();
-enableNavigationTracking();
-enableClickTracking();
-enableFormTracking();

@@ -1,8 +1,10 @@
 // @ts-check
 
 import { requestManager } from "../managers/beacon.mjs";
-import { castEventTargetToHtmlElement } from "../helpers.mjs";
 import { eaveLogger } from "../internal/logging.mjs";
+import { sessionManager } from "../managers/session.mjs";
+import { SESSION_EXTENDED_EVENT_TYPE, SUBMIT_EVENT_TYPE } from "../internal/event-types.mjs";
+import { castEventTargetToHtmlElement } from "../util/typechecking.mjs";
 import * as Types from "../types.mjs";
 
 /**
@@ -10,17 +12,11 @@ import * as Types from "../types.mjs";
  *
  * @noreturn
  */
-async function handleFormSubmit(event) {
+async function trackFormSubmit(event) {
   const timestamp = new Date();
-
   const target = event.target;
 
   if (!target) {
-    return;
-  }
-
-  if (event.type !== "submit") {
-    eaveLogger.warn("Invalid event type for form submit", event.type);
     return;
   }
 
@@ -31,7 +27,8 @@ async function handleFormSubmit(event) {
     return;
   }
 
-  const /** @type {{[key: string]: string}} */ attributes = {};
+  /** @type {Types.StringMap<string>} */
+  const attributes = {};
 
   for (const attr of element.attributes) {
     attributes[attr.name] = attr.value;
@@ -58,8 +55,6 @@ async function handleFormSubmit(event) {
 export function enableFormTracking() {
   eaveLogger.debug("enabling form tracking");
 
-  document.body.addEventListener("submit", handleFormSubmit, {
-    capture: true,
-    passive: false, // This is set to false because a form submission may reload the document.
-  });
+  document.body.addEventListener(SUBMIT_EVENT_TYPE, trackFormSubmit, { capture: true, passive: true });
+  document.body.addEventListener(SUBMIT_EVENT_TYPE, (_event) => sessionManager.resetOrExtendSession(), { capture: true, passive: true });
 };

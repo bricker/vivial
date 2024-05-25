@@ -22,11 +22,14 @@ class CookieManager {
    */
   handleEvent(event) {
     switch (event.type) {
-      case COOKIE_CONSENT_REVOKED_EVENT_TYPE:
+      case COOKIE_CONSENT_REVOKED_EVENT_TYPE: {
         this.deleteEaveCookies();
         break;
-      default:
+      }
+
+      default: {
         break;
+      }
     }
   }
 
@@ -110,11 +113,13 @@ class CookieManager {
    * this function assumes cookie names are unique. However, because this function only returns Eave-managed cookies, we can be reasonably sure that the names are unique.
    * The primary reason for returning a map instead of an array of arrays is for simpler table schemas and querying in the dashboards.
    *
-   * @returns {{[key:string]: string}} map of cookie name -> value.
+   * @returns {Types.StringMap<string>} map of cookie name -> value.
    */
   getEaveCookies() {
     const allCookies = this.#getAllCookies();
-    const /** @type {{[key:string]: string}} */ eaveCookies = {};
+
+    /** @type {Types.StringMap<string>} */
+    const eaveCookies = {};
 
     for (const [cookieName, cookieValue] of allCookies) {
       if (cookieName.startsWith(COOKIE_NAME_PREFIX)) {

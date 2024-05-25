@@ -9,69 +9,64 @@ const TRACKING_CONSENT_REVOKED_COOKIE_NAME = `${COOKIE_NAME_PREFIX}tracking_cons
 
 const CONSENT_REVOKED_COOKIE_MAX_AGE_SEC = 60 * 60 * 24 * 400; // 400 days (maximum allowed value)
 
-class ConsentManager {
-  /**
-   * @returns {boolean}
-   */
-  isCookieConsentRevoked() {
-    const cookie = cookieManager.getCookie(COOKIE_CONSENT_REVOKED_COOKIE_NAME);
-    return cookie !== undefined;
-  }
-
-  /**
-   * @param {boolean} isRevoked
-   *
-   * @noreturn
-   */
-  setIsCookieConsentRevoked(isRevoked) {
-    if (isRevoked) {
-      cookieManager.setCookie({
-        name: COOKIE_CONSENT_REVOKED_COOKIE_NAME,
-        value: "1",
-        maxAgeSeconds: CONSENT_REVOKED_COOKIE_MAX_AGE_SEC,
-      });
-
-      const event = new Event(COOKIE_CONSENT_REVOKED_EVENT_TYPE);
-      window.dispatchEvent(event);
-    } else {
-      cookieManager.deleteCookie({ name: COOKIE_CONSENT_REVOKED_COOKIE_NAME });
-
-      const event = new Event(COOKIE_CONSENT_GRANTED_EVENT_TYPE);
-      window.dispatchEvent(event);
-    }
-  }
-
-  /**
-   * @returns {boolean}
-   */
-  isTrackingConsentRevoked() {
-    const cookie = cookieManager.getCookie(TRACKING_CONSENT_REVOKED_COOKIE_NAME);
-    return cookie !== undefined;
-  }
-
-  /**
-   * @param {boolean} isRevoked
-   *
-   * @noreturn
-   */
-  setIsTrackingConsentRevoked(isRevoked) {
-    if (isRevoked) {
-      cookieManager.setCookie({
-        name: TRACKING_CONSENT_REVOKED_COOKIE_NAME,
-        value: "1",
-        maxAgeSeconds: CONSENT_REVOKED_COOKIE_MAX_AGE_SEC,
-      });
-
-      const event = new Event(TRACKING_CONSENT_REVOKED_EVENT_TYPE);
-      window.dispatchEvent(event);
-    } else {
-      cookieManager.deleteCookie({ name: TRACKING_CONSENT_REVOKED_COOKIE_NAME });
-
-      const event = new Event(TRACKING_CONSENT_GRANTED_EVENT_TYPE);
-      window.dispatchEvent(event);
-    }
-  }
-
+/**
+ * @returns {boolean}
+ */
+export function isCookieConsentRevoked() {
+  const cookie = cookieManager.getCookie(COOKIE_CONSENT_REVOKED_COOKIE_NAME);
+  return cookie !== undefined;
 }
 
-export const consentManager = new ConsentManager();
+/**
+ * @param {boolean} isRevoked
+ *
+ * @noreturn
+ */
+export function setIsCookieConsentRevoked(isRevoked) {
+  if (isRevoked) {
+    cookieManager.setCookie({
+      name: COOKIE_CONSENT_REVOKED_COOKIE_NAME,
+      value: "1",
+      maxAgeSeconds: CONSENT_REVOKED_COOKIE_MAX_AGE_SEC,
+    });
+
+    const event = new Event(COOKIE_CONSENT_REVOKED_EVENT_TYPE);
+    window.dispatchEvent(event);
+  } else {
+    cookieManager.deleteCookie({ name: COOKIE_CONSENT_REVOKED_COOKIE_NAME });
+
+    const event = new Event(COOKIE_CONSENT_GRANTED_EVENT_TYPE);
+    window.dispatchEvent(event);
+  }
+}
+
+/**
+ * @returns {boolean}
+ */
+export function isTrackingConsentRevoked() {
+  const cookie = cookieManager.getCookie(TRACKING_CONSENT_REVOKED_COOKIE_NAME);
+  return cookie !== undefined;
+}
+
+/**
+ * @param {boolean} isRevoked
+ *
+ * @noreturn
+ */
+export function setIsTrackingConsentRevoked(isRevoked) {
+  if (isRevoked) {
+    cookieManager.setCookie({
+      name: TRACKING_CONSENT_REVOKED_COOKIE_NAME,
+      value: "1",
+      maxAgeSeconds: CONSENT_REVOKED_COOKIE_MAX_AGE_SEC,
+    });
+
+    const event = new Event(TRACKING_CONSENT_REVOKED_EVENT_TYPE);
+    window.dispatchEvent(event);
+  } else {
+    cookieManager.deleteCookie({ name: TRACKING_CONSENT_REVOKED_COOKIE_NAME });
+
+    const event = new Event(TRACKING_CONSENT_GRANTED_EVENT_TYPE);
+    window.dispatchEvent(event);
+  }
+}

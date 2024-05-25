@@ -1,10 +1,12 @@
 // @ts-check
 
+import { LOG_LEVEL } from "./compile-config.mjs";
+
 /**
  * Wrapper functions to prepend the "[eave]" tag to logs.
  */
 
-const TAG = "[eave]";
+const LOG_TAG = "[eave]";
 
 const LOG_LEVELS = {
   DEBUG: 0,
@@ -14,22 +16,47 @@ const LOG_LEVELS = {
   SILENT: 99,
 }
 
-// @ts-ignore - LOG_LEVEL is defined by Webpack config during compilation
-let LOG_LEVEL_INT = LOG_LEVELS[LOG_LEVEL.toUpperCase()]; // eslint-disable-line no-undef
-if (LOG_LEVEL_INT === undefined) {
-  LOG_LEVEL_INT = LOG_LEVELS.INFO;
-}
-
 class EaveLogger {
+  /** @type {string} */
+  #level = "INFO";
+
   /** @type {Console} */
   #internalLogger = console;
+
+  /**
+   * @param {string} [level]
+   *
+   * @noreturn
+   */
+  constructor(level) {
+    if (level) {
+      this.level = level
+    }
+  }
+
+  get level() {
+    return this.#level;
+  }
+
+  set level(level) {
+    this.#level = level.toUpperCase();
+  }
+
+  get #levelInt() {
+    const levelInt = LOG_LEVELS[this.level];
+    if (levelInt === undefined) { // use undefined comparison because #levelInt may be 0, a falsey value in javascript
+      return LOG_LEVELS.INFO;
+    } else {
+      return levelInt;
+    }
+  }
 
   /**
    * @param {any[]} messages
    */
   debug(...messages) {
-    if (LOG_LEVEL_INT <= LOG_LEVELS.DEBUG) {
-      this.#internalLogger.debug(TAG, ...messages);
+    if (this.#levelInt <= LOG_LEVELS.DEBUG) {
+      this.#internalLogger.debug(LOG_TAG, ...messages);
     }
   }
 
@@ -37,8 +64,8 @@ class EaveLogger {
    * @param {any[]} messages
    */
   info(...messages) {
-    if (LOG_LEVEL_INT <= LOG_LEVELS.INFO) {
-      this.#internalLogger.info(TAG, ...messages);
+    if (this.#levelInt <= LOG_LEVELS.INFO) {
+      this.#internalLogger.info(LOG_TAG, ...messages);
     }
   }
 
@@ -46,8 +73,8 @@ class EaveLogger {
    * @param {any[]} messages
    */
   warn(...messages) {
-    if (LOG_LEVEL_INT <= LOG_LEVELS.WARN) {
-      this.#internalLogger.warn(TAG, ...messages);
+    if (this.#levelInt <= LOG_LEVELS.WARN) {
+      this.#internalLogger.warn(LOG_TAG, ...messages);
     }
   }
 
@@ -55,10 +82,10 @@ class EaveLogger {
    * @param {any[]} messages
    */
   error(...messages) {
-    if (LOG_LEVEL_INT <= LOG_LEVELS.ERROR) {
-      this.#internalLogger.error(TAG, ...messages);
+    if (this.#levelInt <= LOG_LEVELS.ERROR) {
+      this.#internalLogger.error(LOG_TAG, ...messages);
     }
   }
 }
 
-export const eaveLogger = new EaveLogger();
+export const eaveLogger = new EaveLogger(LOG_LEVEL);

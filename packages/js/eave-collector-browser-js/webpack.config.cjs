@@ -4,7 +4,8 @@ const TerserPlugin = require("terser-webpack-plugin");
 
 module.exports = (env, argv) => {
   const mode = argv.mode || "development";
-  const logLevel = env.LOG_LEVEL?.toUpperCase();
+  const logLevel = env.LOG_LEVEL?.toUpperCase() || "INFO";
+  const trackerUrl = env.TRACKER_URL || "https://api.eave.fyi/public/ingest/browser";
 
   return {
     mode,
@@ -48,8 +49,8 @@ module.exports = (env, argv) => {
     },
     plugins: [
       new webpack.DefinePlugin({
-        PRODUCTION: mode === "production",
-        LOG_LEVEL: JSON.stringify(logLevel.toUpperCase()),
+        WEBPACK_ENV_TRACKER_URL: JSON.stringify(trackerUrl.toUpperCase()),
+        WEBPACK_ENV_LOG_LEVEL: JSON.stringify(logLevel.toUpperCase()),
       }),
     ],
 

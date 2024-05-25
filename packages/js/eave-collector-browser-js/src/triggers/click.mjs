@@ -1,8 +1,12 @@
 // @ts-check
 
-import { castEventTargetToHtmlElement, getElementAttributes } from "../helpers.mjs";
+import { getElementAttributes } from "../util/helpers.mjs";
 import { eaveLogger } from "../internal/logging.mjs";
 import { requestManager } from "../managers/beacon.mjs";
+import { castEventTargetToHtmlElement } from "../types.mjs";
+import { sessionManager } from "../managers/session.mjs";
+import * as Types from "../types.mjs";
+import { CLICK_EVENT_TYPE } from "../internal/event-types.mjs";
 
 /**
  * https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
@@ -36,9 +40,12 @@ function getNameOfClickedMouseButton(event) {
  *
  * @noreturn
  */
-async function handleClick(event) {
+async function trackClick(event) {
   const timestamp = new Date();
-  let /** @type {{[key:string]: string}} */ elementAttrs = {};
+  sessionManager.resetOrExtendSession();
+
+  /** @type {Types.StringMap<string>} */
+  let elementAttrs = {};
 
   const targetElement = castEventTargetToHtmlElement(event.target);
 
@@ -84,7 +91,9 @@ async function handleClick(event) {
 export function enableClickTracking() {
   eaveLogger.debug("enabling click tracking");
 
-  document.body.addEventListener("click", handleClick, { capture: true, passive: true });
+  document.body.addEventListener(CLICK_EVENT_TYPE, trackClick, { capture: true, passive: true });
+  document.body.addEventListener(CLICK_EVENT_TYPE, sessionManager.resetOrExtendSession, { capture: true, passive: true });
+
   // document.body.addEventListener("mouseup", handleClick, { capture: true, passive: true });
   // document.body.addEventListener("mousedown", handleClick, { capture: true, passive: true });
   // document.body.addEventListener("contextmenu", handleClick, { capture: true, passive: true });

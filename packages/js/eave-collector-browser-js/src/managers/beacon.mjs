@@ -3,11 +3,11 @@
 import * as Types from "../types.mjs"; // eslint-disable-line no-unused-vars
 import { cookieManager } from "./cookies.mjs";
 import { consentManager } from "./consent.mjs";
-import { castPerformanceEntryToNavigationTiming, generateUniqueId, isFunction } from "../helpers.mjs";
 import { sessionManager } from "./session.mjs";
 import { eaveLogger } from "../internal/logging.mjs";
-import { COOKIE_CONSENT_GRANTED_EVENT_TYPE, VISIBILITY_CHANGE_EVENT_TYPE } from "../internal/event-types.mjs";
-import { clientId, eave } from "../main.mjs";
+import { COOKIE_CONSENT_GRANTED_EVENT_TYPE, TRACKING_CONSENT_GRANTED_EVENT_TYPE, VISIBILITY_CHANGE_EVENT_TYPE } from "../internal/event-types.mjs";
+import { TRACKER_URL } from "../internal/compile-config.mjs";
+import { castPerformanceEntryToNavigationTiming } from "../util/typechecking.mjs";
 
 /**
  * A Queue with a maximum size.
@@ -56,13 +56,6 @@ class RequestQueue {
   }
 }
 
-// PRODUCTION is a custom webpack plugin defined in the webpack.config.cjs file as
-// a boolean describing whether the script was compiled with mode=production
-// @ts-ignore
-const trackerUrl = PRODUCTION // eslint-disable-line no-undef
-  ? "https://api.eave.dev/public/ingest/browser"
-  : "http://api.eave.run:8080/public/ingest/browser";
-
 class RequestManager {
   /** @type {RequestQueue} */
   #queue;
@@ -94,27 +87,33 @@ class RequestManager {
    */
   handleEvent(event) {
     switch (event.type) {
-      case COOKIE_CONSENT_GRANTED_EVENT_TYPE:
+      case TRACKING_CONSENT_GRANTED_EVENT_TYPE: {
         this.#flushQueue();
         break;
-      case VISIBILITY_CHANGE_EVENT_TYPE:
+      }
+
+      case VISIBILITY_CHANGE_EVENT_TYPE: {
         if (document.visibilityState === "hidden") {
           this.#flushQueue();
         }
         break;
-      default:
+      }
+
+      default: {
         break;
+      }
     }
   }
 
   /**
    * @param {object} args
-   * @param {Date} args.action
+   * @param {string} args.action
    * @param {Date} args.timestamp
+   * @param {Map<string, string>} [args.extra]
    *
    * @returns {Promise<Types.BrowserEventPayload>}
    */
-  async buildPayload({ action, timestamp }) {
+  async buildPayload({ action, timestamp, extra }) {
     const clientProperties = await this.#getClientProperties();
     const performanceProperties = this.#getPerformanceProperties();
     const userProperties = this.#getUserProperties();
@@ -122,11 +121,9 @@ class RequestManager {
     const pageProperties = this.#getPageProperties();
 
     const /** @type {Types.BrowserEventPayload} */ payload = {
-      action: event.type,
+      action,
       timestamp: timestamp.getTime() / 1000,
-      seconds_elapsed: event.timeStamp,
       extra,
-      ...target,
       ...pageProperties,
       ...clientProperties,
       ...performanceProperties,
@@ -147,12 +144,19 @@ class RequestManager {
    * @param {Event} args.event
    * @param {Types.TargetProperties} args.target
    * @param {Date} args.timestamp
-   * @param {{[key:string]: string}} [args.extra]
+   * @param {Map<string, string>} [args.extra]
    *
    * @returns {Promise<Types.BrowserEventPayload>}
    */
   async buildPayloadFromEvent({ event, target, extra, timestamp }) {
+    const payload = await this.buildPayload({
+      action: event.type,
+      timestamp,
+    });
 
+    payload.seconds_elapsed = event.timeStamp;
+
+    payload
     return payload;
   }
 
@@ -175,7 +179,7 @@ class RequestManager {
    * @noreturn
    */
   async sendEventBatch(payloads) {
-    if (consentManager.isCookieConsentRevoked()) {
+    if (consentManager.isTrackingConsentRevoked()) {
       this.#queue.push(...payloads);
       return;
     }
@@ -195,26 +199,28 @@ class RequestManager {
         type: "application/x-www-form-urlencoded; charset=UTF-8",
       });
 
+      /** @type {string | undefined} */
+      // @ts-ignore - this is a known global variable implicitly set on the window.
+      const clientId = EAVE_CLIENT_ID; // eslint-disable-line no-undef
+
       if (!clientId) {
         eaveLogger.warn("EAVE_CLIENT_ID is not set. Analytics is disabled.");
-        return false;
+        return;
       }
 
       eaveLogger.debug("Sending events", payloads);
 
-      const success = navigator.sendBeacon(`${trackerUrl}?clientId=${clientId}`, blob);
+      const success = navigator.sendBeacon(`${TRACKER_URL}?clientId=${clientId}`, blob);
 
-      if (success) {
-        return true;
-      } else {
+      if (!success) {
         eaveLogger.warn("failed to send analytics.");
-        return false;
+        return;
       }
       // returns true if the user agent is able to successfully queue the data for transfer,
       // Otherwise it returns false and we need to try the regular way
     } catch (e) {
       eaveLogger.error(e);
-      return false;
+      return;
     }
   }
 
@@ -229,10 +235,11 @@ class RequestManager {
   #getPageProperties() {
     const currentPageUrl = new URL(window.location.href);
 
-    const /** @type {{[key:string]: string[]}} */ current_query_params = {};
+    /** @type {Map<string, string[]>} */
+    const current_query_params = new Map();
     currentPageUrl.searchParams.forEach((value, key) => {
       if (!current_query_params[key]) {
-        current_query_params[key] = [];
+        current_query_params[key] = "ok";
       }
       current_query_params[key].push(value);
     });

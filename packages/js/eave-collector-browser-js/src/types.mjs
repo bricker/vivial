@@ -1,6 +1,11 @@
 // @ts-check
 
 /**
+ * @template T
+ * @typedef {{[key: string]: T}} StringMap
+ */
+
+/**
  * @typedef EaveConfiguration
  *
  * @property {string} [EAVE_CLIENT_ID]
@@ -15,6 +20,7 @@
  * @property {() => void} disableCookies
  * @property {() => void} enableTracking
  * @property {() => void} disableTracking
+ * @property {(level: "debug" | "info" | "warn" | "error" | "silent") => void} setLogLevel
  */
 
 /**
@@ -49,7 +55,7 @@
  * @property {string} current_page_url
  * @property {string} current_page_title
  * @property {string} pageview_id
- * @property {{[key:string]: string[]}} [current_query_params]
+ * @property {StringMap<string[]>} [current_query_params]
  */
 
 /**
@@ -72,7 +78,7 @@
  *
  * @property {string} [target_type]
  * @property {string} [target_id]
- * @property {{[key:string]: string}} [target_attributes]
+ * @property {StringMap<string>} [target_attributes]
  */
 
 /**
@@ -88,8 +94,8 @@
  * @property {string} action
  * @property {number} timestamp
  * @property {number} [seconds_elapsed]
- * @property {{[key:string]: string}} [extra]
- * @property {{[key:string]: string}} [cookies]
+ * @property {StringMap<string>} [extra]
+ * @property {StringMap<string>} [cookies]
  */
 
 /**
