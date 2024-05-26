@@ -1,5 +1,5 @@
 {
-  "name": "eave-tracing-client",
+  "name": "eave-collector-browser",
   "version": "1.0.0",
   "description": "client-side web tracing",
   "type": "module",
@@ -22,6 +22,11 @@
     "terser-webpack-plugin": "^5.3.10",
     "webpack": "^5.91.0",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^5.0.4"
+    "webpack-dev-server": "^5.0.4",
+    "eslint-config-prettier": "9.x",
+    "prettier": "3.x",
+    "prettier-plugin-organize-imports": "3.x",
+    "eslint-plugin-import": "2.x",
+    "ts-loader": "^9.5.1"
   }
 }

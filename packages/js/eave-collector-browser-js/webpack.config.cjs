@@ -10,7 +10,7 @@ module.exports = (env, argv) => {
   return {
     mode,
     entry: {
-      index: "./src/main.mjs",
+      index: "./src/main.ts",
     },
     output: {
       filename: "collector.js",
@@ -36,20 +36,17 @@ module.exports = (env, argv) => {
     module: {
       rules: [
         {
-          test: /\.m?js$/,
+          test: /\.ts$/,
           exclude: /node_modules/,
           use: {
-            loader: "babel-loader",
-            options: {
-              presets: ["@babel/preset-env"],
-            },
+            loader: "ts-loader",
           },
         },
       ],
     },
     plugins: [
       new webpack.DefinePlugin({
-        WEBPACK_ENV_TRACKER_URL: JSON.stringify(trackerUrl.toUpperCase()),
+        WEBPACK_ENV_TRACKER_URL: JSON.stringify(trackerUrl),
         WEBPACK_ENV_LOG_LEVEL: JSON.stringify(logLevel.toUpperCase()),
       }),
     ],
