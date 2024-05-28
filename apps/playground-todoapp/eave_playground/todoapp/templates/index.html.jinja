@@ -14,18 +14,7 @@
         const EAVE_CLIENT_ID = "{{EAVE_CLIENT_ID}}";
         </script>
 
-        <script async src="http://127.0.0.1:3001/collector.js"></script>
-
-        <!--
-        <script>
-        (function() {
-            var scriptHostLocation = "http://localhost:3001/collector.js";
-            var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-            g.async=true; g.src=scriptHostLocation; s.parentNode.insertBefore(g,s);
-        })();
-        </script>
-        -->
-
+        <script async src="{{COLLECTOR_ASSET_BASE}}/collector.js"></script>
         <!-- End Eave client tracing Code -->
     </head>
     <body>

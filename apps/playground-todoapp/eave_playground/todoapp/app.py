@@ -135,6 +135,7 @@ def web_app(request: Request) -> Response:
         name="index.html.jinja",
         context={
             "EAVE_CLIENT_ID": os.getenv("PLAYGROUND_TODOAPP_EAVE_CLIENT_ID"),
+            "COLLECTOR_ASSET_BASE": os.getenv("COLLECTOR_ASSET_BASE", "https://storage.googleapis.com/cdn.eave.dev"),
         },
     )
     return response
