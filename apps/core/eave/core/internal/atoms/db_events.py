@@ -7,7 +7,7 @@ from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseStructure, EventPayload
 from eave.core.internal import database
 from eave.core.internal.orm.virtual_event import VirtualEventOrm, make_virtual_event_readable_name
-from eave.stdlib.logging import LOGGER
+from eave.stdlib.logging import LOGGER, LogContext
 from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize
 
 from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
@@ -40,8 +40,8 @@ from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTa
 
 class DatabaseEventsTableHandle(BigQueryTableHandle):
     table_def = BigQueryTableDefinition(
-        table_id="atoms_db",
-        schema=[
+        table_id="atoms_db_events_v1",
+        schema=(
             SchemaField(
                 name="statement",
                 field_type=StandardSqlTypeNames.STRING,
@@ -83,14 +83,15 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
                 mode=BigQueryFieldMode.NULLABLE,
             ),
             SchemaField(
-                name="_insert_timestamp",
+                name="insert_timestamp",
                 field_type=StandardSqlTypeNames.TIMESTAMP,
                 mode=BigQueryFieldMode.NULLABLE,
+                default_value_expression="CURRENT_TIMESTAMP",
             ),
-        ],
+        ),
     )
 
-    async def create_vevent_view(self, *, operation: str, source_table: str) -> None:
+    async def create_vevent_view(self, *, operation: str, source_table: str, ctx: LogContext) -> None:
         vevent_readable_name = make_virtual_event_readable_name(operation=operation, table_name=source_table)
         vevent_view_id = tableize(vevent_readable_name)
 
@@ -138,10 +139,10 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
                 except Exception as e:
                     # This may indicate a race condition, where two requests attempted to create the same view/virtual event at the same time.
                     # In that case, it's okay to ignore the failure.
-                    LOGGER.exception(e)
+                    LOGGER.exception(e, ctx)
 
     @override
-    async def insert(self, events: list[dict[str, Any]]) -> None:
+    async def insert(self, events: list[dict[str, Any]], ctx: LogContext) -> None:
         if len(events) == 0:
             return
 
@@ -155,6 +156,7 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
             dataset_id=dataset.dataset_id,
             table_id=self.table_def.table_id,
             schema=self.table_def.schema,
+            ctx=ctx,
         )
 
         unique_operations: set[tuple[str, str]] = set()
@@ -165,12 +167,12 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
             match e.db_structure:
                 case DatabaseStructure.SQL:
                     if not e.operation or not e.table_name:
-                        LOGGER.warning("Missing parameters e.operation and/or e.table_name")
+                        LOGGER.warning("Missing parameters e.operation and/or e.table_name", ctx)
                         continue
 
                     unique_operations.add((e.operation, e.table_name))
                     row = e.to_dict()
-                    row["_insert_timestamp"] = insert_timestamp
+                    row["insert_timestamp"] = insert_timestamp
                     formatted_rows.append(row)
                 case _:
                     # TODO: handle noSQL
@@ -183,4 +185,4 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
 
         # FIXME: This is vulnerable to a DoS where unique `table_name` is generated and inserted on a loop.
         for operation, table_name in unique_operations:
-            await self.create_vevent_view(operation=operation, source_table=table_name)
+            await self.create_vevent_view(operation=operation, source_table=table_name, ctx=ctx)

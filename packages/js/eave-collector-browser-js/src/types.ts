@@ -6,6 +6,11 @@ export type JSONValue = JSONScalar | JSONScalar[] | JSONObject | JSONObject[];
 
 export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR" | "SILENT";
 
+// These are just for clarity, because Javascript represents UTS in millis,
+// but the server needs them in seconds resolution.
+export type EpochTimeStampMillis = number;
+export type EpochTimeStampSeconds = number;
+
 export type EaveConfiguration = {
   EAVE_CLIENT_ID?: string;
 }
@@ -30,13 +35,6 @@ export type GlobalEaveWindow =
   & { eave: EaveInterface }
 ;
 
-export type ScreenProperties = {
-  width: number;
-  height: number;
-  avail_width: number;
-  avail_height: number;
-};
-
 export type UserAgentProperties = {
   ua_string: string;
   brands?: {
@@ -54,6 +52,18 @@ export type UserAgentProperties = {
   platform_version?: string;
 };
 
+export type ScreenProperties = {
+  width: number;
+  height: number;
+  avail_width: number;
+  avail_height: number;
+};
+
+export type PerformanceProperties = {
+  network_latency_ms: DOMHighResTimeStamp;
+  dom_load_latency_ms: DOMHighResTimeStamp;
+};
+
 export type PageProperties = {
  current_url: string;
  current_title: string;
@@ -63,8 +73,8 @@ export type PageProperties = {
 
 export type SessionProperties = {
  id: string | null;
- start_timestamp: number | null;
- duration_ms: number | null;
+ start_timestamp: EpochTimeStampSeconds | null;
+ duration_ms: DOMHighResTimeStamp | null;
 };
 
 export type UserProperties = {
@@ -74,7 +84,7 @@ export type UserProperties = {
 
 export type DiscoveryProperties = {
   // custom properties
-  timestamp: number;
+  timestamp: EpochTimeStampSeconds | null;
   browser_referrer: string | null;
 
   // Known params
@@ -86,29 +96,26 @@ export type DiscoveryProperties = {
   utm_params: StringMap<string>;
 };
 
-export type PerformanceProperties = {
- network_latency_ms: number;
- dom_load_latency_ms: number;
-};
-
 export type TargetProperties = {
   type: string | null;
   id: string | null;
+  text: string | null;
   attributes: StringMap<string> | null;
 };
 
 export type EventProperties = {
  action: string;
- timestamp: number;
- seconds_elapsed?: number;
+ timestamp: EpochTimeStampSeconds;
+ origin_elapsed_ms?: DOMHighResTimeStamp;
  target: TargetProperties | null;
 };
 
 export type BrowserEventPayload = {
   user_agent: UserAgentProperties;
+  screen: ScreenProperties;
   performance: PerformanceProperties | null;
   page: PageProperties;
-  session: SessionProperties;
+  session: SessionProperties | null;
   user: UserProperties;
   discovery: DiscoveryProperties | null;
   event: EventProperties;

@@ -1,5 +1,5 @@
-import { PerformanceProperties } from "../types.js";
-import { castPerformanceEntryToNavigationTiming } from "../util/typechecking.js";
+import { PerformanceProperties } from "../types";
+import { castPerformanceEntryToNavigationTiming } from "../util/typechecking";
 
 export function getPerformanceProperties(): PerformanceProperties | null {
   const entries = performance.getEntriesByType("navigation");

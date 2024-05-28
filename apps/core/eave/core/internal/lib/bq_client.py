@@ -1,7 +1,9 @@
 import json
 from collections.abc import Mapping, Sequence
-from typing import Any, Dict
+from typing import Any, Dict, Iterable
 
+from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.logging import LOGGER, LogContext
 import google.api_core.exceptions
 from google.cloud import bigquery
 from google.cloud.bigquery.table import RowIterator
@@ -30,27 +32,44 @@ class BigQueryClient:
         return r
 
     def get_and_sync_or_create_table(
-        self, *, dataset_id: str, table_id: str, schema: list[bigquery.SchemaField]
+        self, *, dataset_id: str, table_id: str, schema: list[bigquery.SchemaField], ctx: LogContext,
     ) -> bigquery.Table:
-        new_table = self._construct_table(dataset_id=dataset_id, table_id=table_id)
-        new_table.schema = self._sort_schema_fields(schema)  # Doing this instead of passing into the initializer because the initializer doesn't have a type for the schema param.
+        local_table = self._construct_table(dataset_id=dataset_id, table_id=table_id)
 
-        api_table = self._bq_client.create_table(
-            table=new_table,
+        # Manually adding schema instead of passing into the Table initializer because the initializer doesn't have a type for the schema param.
+        local_table.schema = schema
+
+        remote_table = self._bq_client.create_table(
+            table=local_table,
             exists_ok=True,
         )
 
-        # sorted_api_table_schema = self._sort_schema_fields(api_table.schema)
+        local_table_flattened_schema_fields = sorted(_flattened_schema_fields(local_table.schema))
+        remote_table_flattened_schema_fields = sorted(_flattened_schema_fields(remote_table.schema))
 
-        # if self._field_names(sorted_api_table_schema) != self._field_names(new_table.schema):
-        #     # The schemas don't match. Update the server schema to match the client schema.
-        #     api_table.schema = new_table.schema
-        #     api_table = self._bq_client.update_table(
-        #         api_table,
-        #         fields=["schema"],
-        #     )
+        if local_table_flattened_schema_fields != remote_table_flattened_schema_fields:
+            LOGGER.info("Schema mismatch. Updating remote schema.", { "table_id": table_id }, ctx)
 
-        return api_table
+            # The schemas don't match. Update the server schema to match the client schema.
+            remote_table.schema = local_table.schema
+
+            try:
+                remote_table = self._bq_client.update_table(
+                    remote_table,
+                    fields=["schema"],
+                )
+            except Exception as e:
+                # This may happen if a field was removed.
+                # That isn't supposed to happen, but in case it did (developer error),
+                # then we shouldn't prevent the insert.
+                if SHARED_CONFIG.is_production:
+                    # Log, but do not raise.
+                    LOGGER.exception(e, ctx)
+                else:
+                    # in non-prod envs, raise
+                    raise
+
+        return remote_table
 
     def get_or_create_view(self, *, dataset_id: str, view_id: str, view_query: str) -> bigquery.Table:
         table = self._construct_table(dataset_id=dataset_id, table_id=view_id)
@@ -63,12 +82,14 @@ class BigQueryClient:
         return r
 
     def append_rows(self, *, table: bigquery.Table, rows: Sequence[Mapping[str, Any]]) -> Sequence[dict[str, Any]]:
-        return self._bq_client.insert_rows(
+        errors = self._bq_client.insert_rows(
             table=table,
             rows=rows,
             ignore_unknown_values=True,  # do not error if any row contains unknown values
             skip_invalid_rows=True,  # do not error if any row is invalid
         )
+
+        return errors
 
     def query(self, *, query: str) -> RowIterator:
         results = self._bq_client.query_and_wait(
@@ -118,11 +139,19 @@ class BigQueryClient:
         table = bigquery.Table(table_ref=table_ref)
         return table
 
-    def _sort_schema_fields(self, fields: list[bigquery.SchemaField]) -> list[bigquery.SchemaField]:
-        return sorted(fields, key=lambda f: f.name)
+def _flattened_schema_fields(fields: Iterable[bigquery.SchemaField]) -> list[str]:
+    flattened_fields: list[str] = []
+    for field in fields:
+        flattened_fields.append(field.name)
 
-    def _field_names(self, fields: list[bigquery.SchemaField]) -> list[str]:
-        return [f.name for f in fields]
+        # Check for truthiness because the field.fields documentation says it's Optional, even though the typing doesn't reflect that.
+        if field.fields and len(field.fields) > 0:
+            flattened_fields.extend(_flattened_schema_fields(field.fields))
+
+    return flattened_fields
+
+def _field_names(fields: list[bigquery.SchemaField]) -> list[str]:
+    return [f.name for f in fields]
 
 EAVE_INTERNAL_BIGQUERY_ATOMS_DATASET_ID = "eave_atoms"
 EAVE_INTERNAL_BIGQUERY_CLIENT = BigQueryClient()

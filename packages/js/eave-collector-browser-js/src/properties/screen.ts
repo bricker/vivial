@@ -1,4 +1,4 @@
-import { ScreenProperties } from "../types.js";
+import { ScreenProperties } from "../types";
 
 export function getScreenProperties(): ScreenProperties {
   return {

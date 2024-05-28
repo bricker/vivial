@@ -1,39 +1,39 @@
-import { eaveLogger } from "./logging.js";
-import { setIsCookieConsentRevoked, setIsTrackingConsentRevoked } from "./consent.js";
-import { initializeCookieModule } from "./cookies.js";
-import { initializeSessionModule } from "./session.js";
-import { enableClickTracking } from "./triggers/click.js";
-import { enableFormTracking } from "./triggers/form-submit.js";
-import { enableNavigationTracking, trackPageLoad } from "./triggers/page-view.js";
-import { EaveInterface } from "./types.js";
-import { initializeDiscoveryModule } from "./properties/discovery.js";
-import { initializeUserModule } from "./properties/user.js";
+import { eaveLogger } from "./logging";
+import { ConsentChoice, setCookieConsentChoice, setTrackingConsentChoice } from "./consent";
+import { initializeCookieModule } from "./cookies";
+import { initializeSessionModule } from "./session";
+import { enableClickTracking } from "./triggers/click";
+import { enableFormTracking } from "./triggers/form-submit";
+import { enableNavigationTracking, trackPageLoad } from "./triggers/page-view";
+import { EaveInterface } from "./types";
+import { initializeDiscoveryModule } from "./properties/discovery";
+import { initializeUserModule } from "./properties/user";
 
 const eaveInterface: EaveInterface = {
   enableAll() {
-    setIsCookieConsentRevoked(false);
-    setIsTrackingConsentRevoked(false);
+    setCookieConsentChoice(ConsentChoice.ACCEPTED);
+    setTrackingConsentChoice(ConsentChoice.ACCEPTED);
   },
 
   disableAll() {
-    setIsCookieConsentRevoked(true);
-    setIsTrackingConsentRevoked(true);
+    setCookieConsentChoice(ConsentChoice.REJECTED);
+    setTrackingConsentChoice(ConsentChoice.REJECTED);
   },
 
   enableCookies() {
-    setIsCookieConsentRevoked(false);
+    setCookieConsentChoice(ConsentChoice.ACCEPTED);
   },
 
   disableCookies() {
-    setIsCookieConsentRevoked(true);
+    setCookieConsentChoice(ConsentChoice.REJECTED);
   },
 
   enableTracking() {
-    setIsTrackingConsentRevoked(false);
+    setTrackingConsentChoice(ConsentChoice.ACCEPTED);
   },
 
   disableTracking() {
-    setIsTrackingConsentRevoked(true);
+    setTrackingConsentChoice(ConsentChoice.REJECTED);
   },
 
   setLogLevel(level) {

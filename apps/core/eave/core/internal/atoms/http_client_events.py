@@ -1,6 +1,7 @@
 import time
 from typing import Any, override
 
+from eave.stdlib.logging import LogContext
 from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
 
 from eave.collectors.core.datastructures import (
@@ -12,8 +13,8 @@ from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTa
 
 class HttpClientEventsTableHandle(BigQueryTableHandle):
     table_def = BigQueryTableDefinition(
-        table_id="atoms_http_client_events",
-        schema=[
+        table_id="atoms_http_client_events_v1",
+        schema=(
             SchemaField(
                 name="request_method",
                 field_type=StandardSqlTypeNames.STRING,
@@ -40,11 +41,12 @@ class HttpClientEventsTableHandle(BigQueryTableHandle):
                 mode=BigQueryFieldMode.NULLABLE,
             ),
             SchemaField(
-                name="_insert_timestamp",
+                name="insert_timestamp",
                 field_type=StandardSqlTypeNames.TIMESTAMP,
                 mode=BigQueryFieldMode.NULLABLE,
+                default_value_expression="CURRENT_TIMESTAMP",
             ),
-        ],
+        ),
     )
 
     async def create_vevent_view(self, *, request_method: str, request_url: str) -> None:
@@ -94,7 +96,7 @@ class HttpClientEventsTableHandle(BigQueryTableHandle):
         #         )
 
     @override
-    async def insert(self, events: list[dict[str, Any]]) -> None:
+    async def insert(self, events: list[dict[str, Any]], ctx: LogContext) -> None:
         if len(events) == 0:
             return
 
@@ -108,6 +110,7 @@ class HttpClientEventsTableHandle(BigQueryTableHandle):
             dataset_id=dataset.dataset_id,
             table_id=self.table_def.table_id,
             schema=self.table_def.schema,
+            ctx=ctx,
         )
 
         unique_operations: set[tuple[str, str]] = set()
@@ -118,7 +121,7 @@ class HttpClientEventsTableHandle(BigQueryTableHandle):
         for e in http_client_events:
             unique_operations.add((e.request_method, e.request_url))
             row = e.to_dict()
-            row["_insert_timestamp"] = insert_timestamp
+            row["insert_timestamp"] = insert_timestamp
             formatted_rows.append(row)
 
         self._bq_client.append_rows(

@@ -44,7 +44,7 @@
 
 // function heartBeatOnFocus() {
 //   hadWindowFocusAtLeastOnce = true;
-//   timeWindowLastFocused = new Date().getTime();
+//   timeWindowLastFocused = getUTSSeconds();
 // }
 
 // /**
@@ -54,7 +54,7 @@
 //   // we ping on blur or unload only if user was active for more than configHeartBeatDelay seconds on
 //   // the page otherwise we can assume user was not really on the page and for example only switching
 //   // through tabs
-//   const now = new Date().getTime();
+//   const now = getUTSSeconds();
 //   return (
 //     !timeWindowLastFocused ||
 //     now - timeWindowLastFocused > configHeartBeatDelay
@@ -80,7 +80,7 @@
 //   ) {
 //     heartBeatPingIfActivityAlias();
 //   } else if (document.visibilityState === "visible") {
-//     timeWindowLastFocused = new Date().getTime();
+//     timeWindowLastFocused = getUTSSeconds();
 //   }
 // }
 
@@ -128,7 +128,7 @@
 //  * @returns {boolean} whether the heartbeat was sent
 //  */
 // heartBeatPingIfActivityAlias = function heartBeatPingIfActivity() {
-//   const now = new Date().getTime();
+//   const now = getUTSSeconds();
 
 //   if (!lastTrackerRequestTime) {
 //     return false; // no tracking request was ever sent so lets not send heartbeat now

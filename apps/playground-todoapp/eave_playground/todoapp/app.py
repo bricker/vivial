@@ -18,6 +18,10 @@ from eave.collectors.sqlalchemy import start_eave_sqlalchemy_collector, stop_eav
 
 from .orm import TodoListItemOrm, UserOrm, async_engine, async_session
 
+_COOKIE_PREFIX = "todoapp."
+_USER_ID_COOKIE_NAME = f"{_COOKIE_PREFIX}user_id"
+_USER_NAME_COOKIE_NAME = f"{_COOKIE_PREFIX}user_name"
+
 if os.getenv("EAVE_ENV", "development") == "production":
     # https://cloud.google.com/python/docs/reference/logging/latest/std-lib-integration
     _gcp_log_client = google.cloud.logging.Client()
@@ -25,7 +29,7 @@ if os.getenv("EAVE_ENV", "development") == "production":
     _gcp_log_client.setup_logging(log_level=logging.getLevelNamesMapping().get(log_level) or logging.INFO)
 
 async def get_todos(request: Request) -> Response:
-    user_id = request.cookies.get("user_id")
+    user_id = request.cookies.get(_USER_ID_COOKIE_NAME)
     if not user_id:
         return Response(content=HTTPStatus.UNAUTHORIZED.phrase, status_code=HTTPStatus.UNAUTHORIZED)
 
@@ -39,7 +43,7 @@ async def get_todos(request: Request) -> Response:
 
 
 async def add_todo(request: Request) -> Response:
-    user_id = request.cookies.get("user_id")
+    user_id = request.cookies.get(_USER_ID_COOKIE_NAME)
     if not user_id:
         return Response(content=HTTPStatus.UNAUTHORIZED.phrase, status_code=HTTPStatus.UNAUTHORIZED)
 
@@ -58,7 +62,7 @@ async def add_todo(request: Request) -> Response:
 
 
 async def delete_todo(request: Request) -> Response:
-    user_id = request.cookies.get("user_id")
+    user_id = request.cookies.get(_USER_ID_COOKIE_NAME)
     if not user_id:
         return Response(content=HTTPStatus.UNAUTHORIZED.phrase, status_code=HTTPStatus.UNAUTHORIZED)
 
@@ -73,7 +77,7 @@ async def delete_todo(request: Request) -> Response:
 
 
 async def update_todo(request: Request) -> Response:
-    user_id = request.cookies.get("user_id")
+    user_id = request.cookies.get(_USER_ID_COOKIE_NAME)
     if not user_id:
         return Response(content=HTTPStatus.UNAUTHORIZED.phrase, status_code=HTTPStatus.UNAUTHORIZED)
 
@@ -88,7 +92,6 @@ async def update_todo(request: Request) -> Response:
         )
 
     return Response(status_code=HTTPStatus.OK)
-
 
 async def login(request: Request) -> Response:
     body = await request.json()
@@ -106,15 +109,16 @@ async def login(request: Request) -> Response:
             await session.commit()
 
         response = Response(status_code=HTTPStatus.OK)
-        response.set_cookie("user_id", user.id.hex)
-        response.set_cookie("user_name", user.username)
+        response.set_cookie(_USER_ID_COOKIE_NAME, user.id.hex)
+        response.set_cookie(_USER_NAME_COOKIE_NAME, user.username)
 
     return response
 
 
 def logout(request: Request) -> Response:
     response = RedirectResponse(url="/login")
-    response.delete_cookie("user_id")
+    response.delete_cookie(_USER_ID_COOKIE_NAME)
+    response.delete_cookie(_USER_NAME_COOKIE_NAME)
     return response
 
 

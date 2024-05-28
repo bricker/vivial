@@ -1,5 +1,5 @@
-import { eaveLogger } from "../logging.js";
-import { JSONObject, JSONValue } from "../types.js";
+import { eaveLogger } from "../logging";
+import { JSONObject, JSONValue } from "../types";
 
 export function safeJSONParse<T extends JSONValue>(value: string | null): T | null {
   if (value === null) {

@@ -36,7 +36,7 @@ module.exports = (env, argv) => {
     module: {
       rules: [
         {
-          test: /\.ts$/,
+          test: /\.ts?$/,
           exclude: /node_modules/,
           use: {
             loader: "ts-loader",
@@ -50,6 +50,10 @@ module.exports = (env, argv) => {
         WEBPACK_ENV_LOG_LEVEL: JSON.stringify(logLevel.toUpperCase()),
       }),
     ],
+
+    resolve: {
+      extensions: [".ts", ".js"],
+    },
 
     devServer: {
       server: "http",

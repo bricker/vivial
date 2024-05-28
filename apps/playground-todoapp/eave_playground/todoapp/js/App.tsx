@@ -10,9 +10,10 @@ import {
 import "../static/css/app.css";
 import LoginForm from "./LoginForm";
 import TodoList from "./TodoList";
+import CookieConsentBanner from "./CookieBanner";
 
 const App = () => {
-  return (
+  return (<>
     <Router>
       <Routes>
         <Route path="/login" element={<LoginForm />} />
@@ -20,7 +21,8 @@ const App = () => {
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
-  );
+    <CookieConsentBanner />
+ </>);
 };
 
 const root = ReactDOM.createRoot(document.getElementById("root")!);

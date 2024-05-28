@@ -1,5 +1,5 @@
-import { GlobalEaveState } from "./types.js";
-import { uuidv4 } from "./util/uuid.js";
+import { GlobalEaveState } from "./types";
+import { uuidv4 } from "./util/uuid";
 
 export const eaveState: GlobalEaveState = {
   /**

@@ -1,9 +1,9 @@
-import { eaveLogger } from "../logging.js";
-import { UserProperties } from "../types.js";
-import { uuidv4 } from "../util/uuid.js";
-import { isCookieConsentRevoked } from "../consent.js";
-import { COOKIE_NAME_PREFIX, MAX_ALLOWED_COOKIE_AGE_SEC, getEaveCookie, setEaveCookie } from "../cookies.js";
-import { EAVE_TRIGGER_EVENT_TYPE } from "../internal/js-events.js";
+import { eaveLogger } from "../logging";
+import { UserProperties } from "../types";
+import { uuidv4 } from "../util/uuid";
+import { isCookieConsentRevoked } from "../consent";
+import { COOKIE_NAME_PREFIX, MAX_ALLOWED_COOKIE_AGE_SEC, getEaveCookie, setEaveCookie } from "../cookies";
+import { EAVE_TRIGGER_EVENT_TYPE } from "../internal/js-events";
 
 const USER_ID_COOKIE_NAME = `${COOKIE_NAME_PREFIX}user_id`;
 const VISITOR_ID_COOKIE_NAME = `${COOKIE_NAME_PREFIX}visitor_id`;

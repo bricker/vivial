@@ -1,12 +1,12 @@
-import { requestManager } from "../beacon.js";
-import { eaveLogger } from "../logging.js";
-import { SUBMIT_EVENT_TYPE, dispatchTriggerNotification } from "../internal/js-events.js";
-import { castEventTargetToHtmlElement } from "../util/typechecking.js";
-import { getElementAttributes } from "../util/dom-helpers.js";
-import { EventProperties } from "../types.js";
+import { requestManager } from "../beacon";
+import { eaveLogger } from "../logging";
+import { SUBMIT_EVENT_TYPE, dispatchTriggerNotification } from "../internal/js-events";
+import { castEventTargetToHtmlElement } from "../util/typechecking";
+import { getElementAttributes } from "../util/dom-helpers";
+import { EventProperties } from "../types";
 
 async function trackFormSubmit(event: SubmitEvent) {
-  const timestamp = new Date().getTime();
+  const timestamp = Date.now();
   const target = event.target;
 
   if (!target) {
@@ -14,7 +14,9 @@ async function trackFormSubmit(event: SubmitEvent) {
   }
 
   const element = castEventTargetToHtmlElement(target);
-  if (element?.nodeName.toUpperCase() !== "FORM") {
+  const nodeName = element?.nodeName.toUpperCase();
+
+  if (!element || nodeName !== "FORM") {
     // The target is not an Element
     eaveLogger.warn("Invalid event target for form submit");
     return;
@@ -22,19 +24,15 @@ async function trackFormSubmit(event: SubmitEvent) {
 
   const attributes = getElementAttributes(element);
 
-  const submitter = event.submitter;
-  if (submitter) {
-    attributes["button_text"] = submitter.innerText;
-  }
-
   const payload = await requestManager.buildPayload({
     event: {
       action: event.type,
-      timestamp,
-      seconds_elapsed: event.timeStamp,
+      timestamp: timestamp / 1000,
+      origin_elapsed_ms: event.timeStamp,
       target: {
-        type: element.nodeName,
+        type: nodeName,
         id: element.id,
+        text: event.submitter?.innerText || null,
         attributes: attributes,
       },
     },
@@ -49,7 +47,7 @@ let initialized = false;
  * Track form submission events
  */
 export function enableFormTracking() {
-  eaveLogger.debug("enabling form tracking");
+  eaveLogger.debug("Enabling form tracking.");
 
   if (!initialized) {
     // This ensures that the handler isn't added more than once.

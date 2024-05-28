@@ -1,8 +1,13 @@
 {
-  "name": "eave-client-tracing-test",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
+  "scripts": {
+    "start": "PORT=3300 react-scripts start",
+    "start-headless": "BROWSER=none npm start",
+    "test": "./bin/test",
+    "cy:test": "cypress run",
+    "cy:open": "cypress open"
+  },
+  "devDependencies": {
+    "eslint-plugin-cypress": "^3.0.0",
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^15.0.2",
     "@testing-library/user-event": "^14.5.2",
@@ -11,34 +16,5 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.3",
     "react-scripts": "5.0.1"
-  },
-  "scripts": {
-    "start": "PORT=3300 react-scripts start",
-    "start-headless": "BROWSER=none npm start",
-    "test": "./bin/test",
-    "cy:test": "cypress run",
-    "cy:open": "cypress open"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest",
-      "plugin:cypress/recommended"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "devDependencies": {
-    "eslint-plugin-cypress": "^3.0.0"
   }
 }

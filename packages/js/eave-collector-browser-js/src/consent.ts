@@ -1,56 +1,62 @@
-import { COOKIE_NAME_PREFIX, deleteEaveCookie, getEaveCookie, setEaveCookie } from "./cookies.js";
-import { EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE, EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE, EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE } from "./internal/js-events.js";
+import { COOKIE_NAME_PREFIX, deleteEaveCookie, getEaveCookie, setEaveCookie } from "./cookies";
+import { EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE, EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE, EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE } from "./internal/js-events";
+import { eaveLogger } from "./logging";
 
 // These cookies use a different prefix so that functions like deleteAllEaveCookies() don't affect these.
-const CONSENT_COOKIE_NAME_PREFIX = "eaveconsent.";
+const CONSENT_COOKIE_NAME_PREFIX = "_eaveconsent.";
 
-const COOKIE_CONSENT_REVOKED_COOKIE_NAME = `${CONSENT_COOKIE_NAME_PREFIX}cookie_consent_revoked`;
-const TRACKING_CONSENT_REVOKED_COOKIE_NAME = `${CONSENT_COOKIE_NAME_PREFIX}tracking_consent_revoked`;
+const COOKIE_CONSENT_CHOICE_COOKIE_NAME = `${CONSENT_COOKIE_NAME_PREFIX}cookie_consent`;
+const TRACKING_CONSENT_CHOICE_COOKIE_NAME = `${CONSENT_COOKIE_NAME_PREFIX}tracking_consent`;
 
-const CONSENT_REVOKED_COOKIE_MAX_AGE_SEC = 60 * 60 * 24 * 400; // 400 days (maximum allowed value)
+const CONSENT_COOKIE_MAX_AGE_SEC = 60 * 60 * 24 * 400; // 400 days (maximum allowed value)
 
-export function isCookieConsentRevoked(): boolean {
-  const cookie = getEaveCookie(COOKIE_CONSENT_REVOKED_COOKIE_NAME);
-  return !!cookie;
+export enum ConsentChoice {
+  ACCEPTED = "1",
+  REJECTED = "0"
 }
 
-export function setIsCookieConsentRevoked(isRevoked: boolean) {
-  if (isRevoked) {
-    setEaveCookie({
-      name: COOKIE_CONSENT_REVOKED_COOKIE_NAME,
-      value: "1",
-      maxAgeSeconds: CONSENT_REVOKED_COOKIE_MAX_AGE_SEC,
-    });
+export function isCookieConsentRevoked(): boolean {
+  const cookie = getEaveCookie(COOKIE_CONSENT_CHOICE_COOKIE_NAME);
+  return cookie === ConsentChoice.REJECTED;
+}
 
-    const event = new Event(EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE);
+export function setCookieConsentChoice(choice: ConsentChoice) {
+  setEaveCookie({
+    name: COOKIE_CONSENT_CHOICE_COOKIE_NAME,
+    value: choice,
+    maxAgeSeconds: CONSENT_COOKIE_MAX_AGE_SEC,
+  });
+
+  if (choice === ConsentChoice.ACCEPTED) {
+    eaveLogger.debug("Cookie consent granted.");
+    const event = new Event(EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE);
     window.dispatchEvent(event);
   } else {
-    deleteEaveCookie({ name: COOKIE_CONSENT_REVOKED_COOKIE_NAME });
-
-    const event = new Event(EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE);
+    eaveLogger.debug("Cookie consent revoked.");
+    const event = new Event(EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE);
     window.dispatchEvent(event);
   }
 }
 
 export function isTrackingConsentRevoked(): boolean {
-  const cookie = getEaveCookie(TRACKING_CONSENT_REVOKED_COOKIE_NAME);
-  return !!cookie;
+  const cookie = getEaveCookie(TRACKING_CONSENT_CHOICE_COOKIE_NAME);
+  return cookie === ConsentChoice.REJECTED;
 }
 
-export function setIsTrackingConsentRevoked(isRevoked: boolean) {
-  if (isRevoked) {
-    setEaveCookie({
-      name: TRACKING_CONSENT_REVOKED_COOKIE_NAME,
-      value: "1",
-      maxAgeSeconds: CONSENT_REVOKED_COOKIE_MAX_AGE_SEC,
-    });
+export function setTrackingConsentChoice(choice: ConsentChoice) {
+  setEaveCookie({
+    name: TRACKING_CONSENT_CHOICE_COOKIE_NAME,
+    value: choice,
+    maxAgeSeconds: CONSENT_COOKIE_MAX_AGE_SEC,
+  });
 
-    const event = new Event(EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE);
+  if (choice === ConsentChoice.ACCEPTED) {
+    eaveLogger.debug("Tracking consent granted.");
+    const event = new Event(EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE);
     window.dispatchEvent(event);
   } else {
-    deleteEaveCookie({ name: TRACKING_CONSENT_REVOKED_COOKIE_NAME });
-
-    const event = new Event(EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE);
+    eaveLogger.debug("Tracking consent revoked.");
+    const event = new Event(EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE);
     window.dispatchEvent(event);
   }
 }

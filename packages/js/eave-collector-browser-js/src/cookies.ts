@@ -1,9 +1,8 @@
-import { URLSearchParams } from "url";
-import { EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE } from "./internal/js-events.js";
-import { StringMap } from "./types.js";
-import { eaveLogger } from "./logging.js";
+import { EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE } from "./internal/js-events";
+import { eaveLogger } from "./logging";
+import { StringMap } from "./types";
 
-export const COOKIE_NAME_PREFIX = "eave.";
+export const COOKIE_NAME_PREFIX = "_eave.";
 export const MAX_ALLOWED_COOKIE_AGE_SEC = 60 * 60 * 24 * 400; // 400 days (maximum allowed value in Chrome)
 
 
@@ -41,47 +40,37 @@ export function setEaveCookie(
     sameSite?: "None" | "Lax" | "Strict";
   }
 ) {
-  if (!sameSite) {
-    sameSite = "Lax";
-  }
-
-  if (sameSite === "None") {
-    // SameSite None cookies must also be Secure, per spec
-    isSecure = true;
-  }
-
-  const cookieAttrs: [string, string | boolean][] = [[name, encodeURIComponent(value)]];
+  const cookieAttrs: [string, string | true][] = [[name, encodeURIComponent(value)]];
 
   if (maxAgeSeconds !== undefined) {
-    cookieAttrs.push(["max-age", `${maxAgeSeconds}`]);
+    cookieAttrs.push(["Max-Age", `${maxAgeSeconds}`]);
   }
 
   if (expires !== undefined) {
-    cookieAttrs.push(["expires", expires.toUTCString()]);
+    cookieAttrs.push(["Expires", expires.toUTCString()]);
   }
 
-  cookieAttrs.push(["path", path || "/"]);
+  cookieAttrs.push(["Path", path]);
 
-  if (domain) {
-    cookieAttrs.push(["domain", domain]);
+  if (!domain) {
+    const url = new URL(window.location.href);
+    domain = url.hostname;
   }
 
-  cookieAttrs.push(["SameSite", sameSite || "Lax"]);
+  cookieAttrs.push(["Domain", domain]);
+  cookieAttrs.push(["SameSite", sameSite]);
 
   if (sameSite === "None") {
     // SameSite None cookies must also be Secure, per spec
-    isSecure = true;
-  }
-
-  if (isSecure === undefined) {
     isSecure = true;
   }
 
   if (isSecure) {
-    cookieAttrs.push(["secure", true]);
+    cookieAttrs.push(["Secure", true]);
   }
 
-  document.cookie = cookieAttrs.map(([cookieName, cookieValue]) => cookieValue === true ? `${cookieName}` : `${cookieName}=${cookieValue}`).join(";");
+  const cookieValue = cookieAttrs.map(([attrName, attrValue]) => attrValue === true ? `${attrName}` : `${attrName}=${attrValue}`).join(";");
+  document.cookie = cookieValue;
 }
 
 

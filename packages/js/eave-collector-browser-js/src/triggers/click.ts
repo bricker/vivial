@@ -1,9 +1,9 @@
-import { eaveLogger } from "../logging.js";
-import { requestManager } from "../beacon.js";
-import { CLICK_EVENT_TYPE, dispatchTriggerNotification } from "../internal/js-events.js";
-import { StringMap, TargetProperties } from "../types.js";
-import { castEventTargetToHtmlElement } from "../util/typechecking.js";
-import { getElementAttributes } from "../util/dom-helpers.js";
+import { eaveLogger } from "../logging";
+import { requestManager } from "../beacon";
+import { CLICK_EVENT_TYPE, dispatchTriggerNotification } from "../internal/js-events";
+import { StringMap, TargetProperties } from "../types";
+import { castEventTargetToHtmlElement } from "../util/typechecking";
+import { getElementAttributes } from "../util/dom-helpers";
 
 /**
  * https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
@@ -25,38 +25,68 @@ function getNameOfClickedMouseButton(event: MouseEvent): string {
   }
 }
 
+const IGNORED_TAGS = new Set([
+  // "DIV",
+  // "SPAN",
+  // "EM",
+  // "STRONG",
+  // "B",
+  // "I",
+  // "BR",
+  // "BODY",
+  // "HR",
+  // "ARTICLE",
+  // "HEADER",
+  // "FOOTER",
+  // "TABLE",
+  // "LI",
+  // "OL",
+  // "UL",
+  // "P",
+  // "S",
+  // "SECTION",
+  // "SPAN",
+  // "SUB",
+  // "SUP",
+  // "TBODY",
+  // "TD",
+  // "TR",
+  // "TH",
+  // "THEAD",
+  // "TFOOT",
+  // "U",
+  // "WBR",
+]);
 
 /**
  * Handle click event
  */
 async function trackClick(event: MouseEvent) {
-  const timestamp = new Date().getTime();
+  const timestamp = Date.now();
   let eventTarget: TargetProperties | null = null;
 
   if (event.target) {
     const targetElement = castEventTargetToHtmlElement(event.target);
 
     if (targetElement) {
-      const elementAttrs = getElementAttributes(targetElement);
-
-      switch (targetElement.nodeName.toUpperCase()) {
-        case "IMG":
-          break;
-        case "A":
-          elementAttrs["innerText"] = targetElement.innerText;
-          break;
-        case "AREA":
-          break;
-        case "BUTTON":
-          elementAttrs["innerText"] = targetElement.innerText;
-          break;
-        default:
-          break;
+      if (targetElement.attributes.getNamedItem("type")?.value === "password") {
+        // never track a click on a password field.
+        return;
       }
 
+      const nodeName = targetElement.nodeName.toUpperCase();
+      // if (IGNORED_TAGS.has(nodeName)) {
+      //   return;
+      // }
+
+      const elementAttrs = getElementAttributes(targetElement);
+
+      // TODO: This is capturing the innerText for everything clicked, which is not OK.
+      // It should be limited to things like A and BUTTON. Things like form inputs and divs should be excluded.
       eventTarget = {
-        type: targetElement.nodeName.toUpperCase(),
+        type: nodeName,
         id: targetElement.id,
+        text: targetElement.innerText,
         attributes: elementAttrs,
       };
     }
@@ -65,8 +95,8 @@ async function trackClick(event: MouseEvent) {
   const payload = await requestManager.buildPayload({
     event: {
       action: event.type,
-      timestamp,
-      seconds_elapsed: event.timeStamp,
+      timestamp: timestamp / 1000,
+      origin_elapsed_ms: event.timeStamp,
       target: eventTarget,
     },
     extra: {
@@ -80,7 +110,7 @@ async function trackClick(event: MouseEvent) {
 let initialized = false;
 
 export function enableClickTracking() {
-  eaveLogger.debug("enabling click tracking");
+  eaveLogger.debug("Enabling click tracking.");
 
   if (!initialized) {
     // This ensures that the handler isn't added more than once.

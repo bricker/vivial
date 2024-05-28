@@ -1,16 +1,16 @@
-import { HASHCHANGE_EVENT_TYPE, POPSTATE_EVENT_TYPE, dispatchTriggerNotification } from "../internal/js-events.js";
-import { eaveLogger } from "../logging.js";
-import { requestManager } from "../beacon.js";
+import { HASHCHANGE_EVENT_TYPE, POPSTATE_EVENT_TYPE, dispatchTriggerNotification } from "../internal/js-events";
+import { eaveLogger } from "../logging";
+import { requestManager } from "../beacon";
 
 const NAVIGATION_ACTION_NAME = "navigation";
 
 export async function trackPageLoad() {
-  const timestamp = new Date().getTime();
+  const timestamp = Date.now();
 
   const payload = await requestManager.buildPayload({
     event: {
       action: NAVIGATION_ACTION_NAME,
-      timestamp,
+      timestamp: timestamp / 1000,
       target: null,
     },
     extra: {
@@ -22,13 +22,14 @@ export async function trackPageLoad() {
 }
 
 async function trackHashChange(event: HashChangeEvent) {
-  const timestamp = new Date().getTime();
+  const timestamp = Date.now();
 
   const payload = await requestManager.buildPayload({
     event: {
       action: NAVIGATION_ACTION_NAME,
-      timestamp,
+      timestamp: timestamp / 1000,
       target: null,
+      origin_elapsed_ms: event.timeStamp,
     },
     extra: {
       reason: event.type,
@@ -39,13 +40,14 @@ async function trackHashChange(event: HashChangeEvent) {
 }
 
 async function trackPopState(event: PopStateEvent) {
-  const timestamp = new Date().getTime();
+  const timestamp = Date.now();
 
   const payload = await requestManager.buildPayload({
     event: {
       action: NAVIGATION_ACTION_NAME,
-      timestamp,
+      timestamp: timestamp / 1000,
       target: null,
+      origin_elapsed_ms: event.timeStamp,
     },
     extra: {
       reason: event.type,
@@ -59,12 +61,12 @@ async function trackPopState(event: PopStateEvent) {
  * @param state - The `state` parameter given to history.pushState/replaceState. Any serializable object.
  */
 async function trackNavigationStateChange(state: any, url?: URL | string | null) {
-  const timestamp = new Date().getTime();
+  const timestamp = Date.now();
 
   const payload = await requestManager.buildPayload({
     event: {
       action: NAVIGATION_ACTION_NAME,
-      timestamp,
+      timestamp: timestamp / 1000,
       target: null,
     },
     extra: {
@@ -213,7 +215,7 @@ function wrapNavigationStateChangeFunctions() {
 let initialized = false;
 
 export function enableNavigationTracking() {
-  eaveLogger.debug("enabling navigation tracking");
+  eaveLogger.debug("Enabling navigation tracking.");
 
   if (!initialized) {
     wrapNavigationStateChangeFunctions();

@@ -1,16 +1,17 @@
-import { eaveLogger } from "./logging.js";
-import { EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE, VISIBILITY_CHANGE_EVENT_TYPE } from "./internal/js-events.js";
-import { TRACKER_URL } from "./internal/compile-config.js";
-import { castPerformanceEntryToNavigationTiming } from "./util/typechecking.js";
-import { getAllEaveCookies } from "./cookies.js";
-import { isTrackingConsentRevoked } from "./consent.js";
-import { getUserAgentProperties } from "./properties/user-agent.js";
-import { BrowserEventPayload, EventProperties, JSONObject, PageProperties, PerformanceProperties, StringMap, UserAgentProperties } from "./types.js";
-import { getPageProperties } from "./properties/page.js";
-import { getUserProperties } from "./properties/user.js";
-import { getPerformanceProperties } from "./properties/performance.js";
-import { getSessionProperties } from "./session.js";
-import { getDiscoveryProperties } from "./properties/discovery.js";
+import { eaveLogger } from "./logging";
+import { EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE, EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE, VISIBILITY_CHANGE_EVENT_TYPE } from "./internal/js-events";
+import { TRACKER_URL } from "./internal/compile-config";
+import { castPerformanceEntryToNavigationTiming } from "./util/typechecking";
+import { getAllEaveCookies } from "./cookies";
+import { isTrackingConsentRevoked } from "./consent";
+import { getUserAgentProperties } from "./properties/user-agent";
+import { BrowserEventPayload, EventProperties, JSONObject, PageProperties, PerformanceProperties, StringMap, UserAgentProperties } from "./types";
+import { getPageProperties } from "./properties/page";
+import { getUserProperties } from "./properties/user";
+import { getPerformanceProperties } from "./properties/performance";
+import { getSessionProperties } from "./session";
+import { getDiscoveryProperties } from "./properties/discovery";
+import { getScreenProperties } from "./properties/screen";
 
 /**
  * A Queue with a maximum size.
@@ -19,6 +20,7 @@ import { getDiscoveryProperties } from "./properties/discovery.js";
  */
 class RequestQueue {
   #maxsize = 20;
+  #overflow = 5;
 
   #queue: BrowserEventPayload[];
 
@@ -26,13 +28,21 @@ class RequestQueue {
     this.#queue = [];
   }
 
+  get isFull(): boolean {
+    return this.#queue.length >= this.#maxsize;
+  }
+
+  get length(): number {
+    return this.#queue.length;
+  }
+
   /**
    * Push a payload onto the queue.
-   * If the queue size is higher than the maxsize, then the oldest payloads are removed.
+   * If the queue size is higher than the maxsize + overflow, then the oldest payloads are removed.
    */
   push(...payloads: BrowserEventPayload[]) {
     this.#queue.unshift(...payloads);
-    if (this.#queue.length > this.#maxsize) {
+    if (this.#queue.length > this.#maxsize + this.#overflow) {
       this.#queue.splice(this.#maxsize);
     }
   }
@@ -53,10 +63,35 @@ class RequestManager {
 
   #memoUserAgentProperties?: UserAgentProperties;
 
+  #timerId?: number;
+
   constructor() {
     this.#queue = new RequestQueue();
     window.addEventListener(EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, this);
     document.addEventListener(VISIBILITY_CHANGE_EVENT_TYPE, this);
+    this.startAutoflush();
+  }
+
+  startAutoflush() {
+    if (this.#timerId) {
+      return;
+    }
+
+    if (isTrackingConsentRevoked()) {
+      eaveLogger.debug("Tracking consent not given, queue won't autoflush.");
+      return;
+    }
+
+    // this.#timerId = window.setInterval(() => {
+    //   this.#flushQueue();
+    // }, 1000 * 5);
+  }
+
+  stopAutoflush() {
+    if (this.#timerId !== undefined) {
+      window.clearInterval(this.#timerId);
+      this.#timerId = undefined;
+    }
   }
 
   /**
@@ -65,7 +100,12 @@ class RequestManager {
   async handleEvent(event: Event) {
     switch (event.type) {
       case EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE: {
-        await this.#flushQueue();
+        this.startAutoflush();
+        break;
+      }
+
+      case EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE: {
+        this.stopAutoflush();
         break;
       }
 
@@ -90,6 +130,7 @@ class RequestManager {
     { event: EventProperties; extra?: JSONObject; }
   ): Promise<BrowserEventPayload> {
     const userAgentProperties = await this.#getUserAgentProperties();
+    const screenProperties = getScreenProperties();
     const performanceProperties = getPerformanceProperties();
     const pageProperties = getPageProperties();
     const sessionProperties = getSessionProperties();
@@ -99,6 +140,7 @@ class RequestManager {
 
     const payload: BrowserEventPayload = {
       user_agent: userAgentProperties,
+      screen: screenProperties,
       performance: performanceProperties,
       page: pageProperties,
       session: sessionProperties,
@@ -116,17 +158,28 @@ class RequestManager {
    * Send single event
    */
   queueEvent(payload: BrowserEventPayload) {
-    this.queueEventBatch([payload]);
+    this.#queue.push(payload);
+    this.#flushQueue();
+    // eaveLogger.debug("Queued event", payload);
+
+    // if (this.#queue.isFull) {
+    //   this.#flushQueue();
+    // }
   }
 
   /**
    * Send batch of events
    */
-  queueEventBatch(payloads: BrowserEventPayload[]) {
-    if (isTrackingConsentRevoked()) {
-      this.#queue.push(...payloads);
+  #flushQueue() {
+    if (this.#queue.length === 0) {
       return;
     }
+
+    if (isTrackingConsentRevoked()) {
+      return;
+    }
+
+    const payloads = this.#queue.popAll();
 
     try {
       const json = JSON.stringify({
@@ -166,11 +219,6 @@ class RequestManager {
       eaveLogger.error(e);
       return;
     }
-  }
-
-  #flushQueue() {
-    const payloads = this.#queue.popAll();
-    this.queueEventBatch(payloads);
   }
 
   async #getUserAgentProperties(): Promise<UserAgentProperties> {

@@ -1,4 +1,4 @@
-import { StringMap } from "../types.js";
+import { StringMap } from "../types";
 
 export function getElementAttributes(element: Element): StringMap<string> {
   const attrs: StringMap<string> = {};

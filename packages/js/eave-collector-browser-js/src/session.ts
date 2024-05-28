@@ -1,10 +1,10 @@
-import { COOKIE_NAME_PREFIX, MAX_ALLOWED_COOKIE_AGE_SEC, getEaveCookie, setEaveCookie } from "./cookies.js";
-import { EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, EAVE_TRIGGER_EVENT_TYPE } from "./internal/js-events.js";
-import { isCookieConsentRevoked } from "./consent.js";
-import { eaveLogger } from "./logging.js";
-import { JSONObject, SessionProperties } from "./types.js";
-import { uuidv4 } from "./util/uuid.js";
-import { compactJSONStringify, safeJSONParse } from "./util/json.js";
+import { COOKIE_NAME_PREFIX,  getEaveCookie, setEaveCookie } from "./cookies";
+import { EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, EAVE_TRIGGER_EVENT_TYPE } from "./internal/js-events";
+import { isCookieConsentRevoked } from "./consent";
+import { EpochTimeStampMillis, SessionProperties } from "./types";
+import { uuidv4 } from "./util/uuid";
+import { compactJSONStringify, safeJSONParse } from "./util/json";
+import { eaveLogger } from "./logging";
 
 const SESSION_COOKIE_NAME = `${COOKIE_NAME_PREFIX}session`;
 
@@ -15,7 +15,7 @@ const SESSION_LENGTH_SEC = 30 * 60;
 
 type SessionCookie = {
   id: string;
-  start_timestamp: number;
+  start_timestamp_ms: EpochTimeStampMillis;
 }
 
 function getSessionCookie(): string | null {
@@ -55,14 +55,16 @@ function setSessionJSON(value: SessionCookie) {
 function startOrExtendSession() {
   const sessionCookie = getSessionCookie();
   if (sessionCookie) {
+    eaveLogger.debug("Extending session.");
     // If the session already exists, then refresh its expiry by setting it again with the same value.
     setSessionCookie(sessionCookie);
     return;
   } else {
     // Otherwise, build a new Session and set it.
+    eaveLogger.debug("Starting session.");
     const session: SessionCookie = {
       id: uuidv4(),
-      start_timestamp: new Date().getTime(),
+      start_timestamp_ms: Date.now(),
     };
 
     setSessionJSON(session);
@@ -73,19 +75,23 @@ function startOrExtendSession() {
  * Event handler for addEventListener
  */
 function handleEvent(_evt: Event) {
-  startOrExtendSession()
+  startOrExtendSession();
 }
 
-export function getSessionProperties(): SessionProperties {
+export function getSessionProperties(): SessionProperties | null {
   const json = getSessionJSON();
-  const now = new Date().getTime();
-  const startTimestamp = json?.start_timestamp;
-  const duration = startTimestamp ? now - startTimestamp : null;
+  if (!json) {
+    return null;
+  }
+
+  const now = Date.now();
+  const startTimestampMs = json.start_timestamp_ms;
+  const duration_ms = startTimestampMs ? (now - startTimestampMs) : null;
 
   return {
-    id: json?.id || null,
-    start_timestamp: startTimestamp || null,
-    duration_ms: duration,
+    id: json.id,
+    start_timestamp: startTimestampMs ? startTimestampMs / 1000 : null,
+    duration_ms,
   }
 }
 
@@ -95,6 +101,8 @@ let initialized = false;
  * Register event listeners. Call this only once, when the page loads.
  */
 export function initializeSessionModule() {
+  eaveLogger.debug("Initializing session module.");
+
   if (!initialized) {
     // This ensures that the handler isn't added more than once.
     // Although addEventListener won't add the same function object twice,

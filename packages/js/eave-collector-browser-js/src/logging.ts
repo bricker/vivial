@@ -1,5 +1,5 @@
-import { LOG_LEVEL } from "./internal/compile-config.js";
-import { LogLevel } from "./types.js";
+import { LOG_LEVEL } from "./internal/compile-config";
+import { LogLevel } from "./types";
 
 /**
  * Wrapper functions to prepend the "[eave]" tag to logs.

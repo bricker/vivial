@@ -1,4 +1,4 @@
-from typing import Literal, Union, override
+from typing import Literal, Sequence, Union, override
 
 from starlette.requests import Request as _StarletteRequest
 from starlette.responses import Response as _StarletteResponse

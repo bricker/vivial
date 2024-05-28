@@ -2,22 +2,18 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styles from "./TodoList.module.css";
-import { TodoListItem } from "./types.js";
-
-function parseCookies() {
-  const newCookieString = document.cookie.replaceAll(/; ?/g, "&");
-  return new URLSearchParams(newCookieString);
-}
+import { TodoListItem } from "./types";
+import { COOKIE_PREFIX, getCookie } from "./cookies";
 
 const TodoList = () => {
-  const cookies = parseCookies();
-  const userId = cookies.get("user_id");
+  const userId = getCookie(`${COOKIE_PREFIX}user_id`);
+
   if (!userId) {
     window.location.assign("/login");
     return;
   }
 
-  const username = cookies.get("user_name");
+  const username = getCookie(`${COOKIE_PREFIX}user_name`);
 
   const [todos, setTodos] = useState<TodoListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -132,6 +128,7 @@ const TodoList = () => {
                   <>
                     <input
                       type="text"
+                      autoFocus
                       value={editText}
                       onChange={(e) => setEditText(e.target.value)}
                       className={styles.editInput}
@@ -152,7 +149,7 @@ const TodoList = () => {
                 ) : (
                   <>
                     <span
-                      onClick={() => handleEdit(todo, todo.text)}
+                      onClick={() => { handleEdit(todo, todo.text) }}
                       className={styles.todoText}
                     >
                       {todo.text}

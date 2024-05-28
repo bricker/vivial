@@ -1,10 +1,10 @@
-import { EAVE_TRIGGER_EVENT_TYPE } from "../internal/js-events.js";
-import { DiscoveryProperties, JSONObject, StringMap } from "../types.js";
-import { uuidv4 } from "../util/uuid.js";
-import { isCookieConsentRevoked } from "../consent.js";
-import { COOKIE_NAME_PREFIX, MAX_ALLOWED_COOKIE_AGE_SEC, getEaveCookie, setEaveCookie } from "../cookies.js";
-import { eaveLogger } from "../logging.js";
-import { compactJSONStringify, safeJSONParse } from "../util/json.js";
+import { EAVE_TRIGGER_EVENT_TYPE } from "../internal/js-events";
+import { DiscoveryProperties, EpochTimeStampMillis, JSONObject, StringMap } from "../types";
+import { uuidv4 } from "../util/uuid";
+import { isCookieConsentRevoked } from "../consent";
+import { COOKIE_NAME_PREFIX, MAX_ALLOWED_COOKIE_AGE_SEC, getEaveCookie, setEaveCookie } from "../cookies";
+import { eaveLogger } from "../logging";
+import { compactJSONStringify, safeJSONParse } from "../util/json";
 
 const KNOWN_TRACKING_PARAMS = new Set([
   "campaign",
@@ -14,6 +14,15 @@ const KNOWN_TRACKING_PARAMS = new Set([
 
 const DISCOVERY_PARAMS_COOKIE_NAME = `${COOKIE_NAME_PREFIX}discovery`;
 const DISCOVERY_PARAMS_COOKIE_MAX_AGE = 60 * 60 * 24 * 180; // 180 days (approximately 6 months)
+
+type DiscoveryCookie = {
+  timestamp_ms: EpochTimeStampMillis | null;
+  browser_referrer: string | null;
+  campaign?: string;
+  gclid?: string;
+  fbclid?: string;
+  utm_params: StringMap<string>;
+}
 
 // The purpose of splitting these getters and setters into `getXCookie` and `getXJSON`
 // is to allow to avoid un-parsing and re-parsing JSON when we're just refreshing the cookie expiry.
@@ -34,15 +43,15 @@ function setDiscoveryParamsCookie(value: string) {
   });
 }
 
-function setDiscoveryParamsJSON(value: DiscoveryProperties) {
+function setDiscoveryParamsJSON(value: DiscoveryCookie) {
   const json = compactJSONStringify(value);
   setDiscoveryParamsCookie(json);
 }
 
-function buildDiscoveryParams(): DiscoveryProperties {
+function buildDiscoveryParams(): DiscoveryCookie {
   const currentPageUrl = new URL(window.location.href);
-  const discoveryParams: DiscoveryProperties = {
-    timestamp: new Date().getTime(),
+  const discoveryParams: DiscoveryCookie = {
+    timestamp_ms: Date.now(),
     // This is called "browser_referrer" instead of just "referrer" in case there is a query param called "referrer"
     browser_referrer: window.top?.document.referrer || window.parent.document.referrer || document.referrer,
     utm_params: {},
@@ -67,16 +76,14 @@ export function getDiscoveryProperties(): DiscoveryProperties | null {
     return null;
   }
 
-  const json = safeJSONParse<DiscoveryProperties>(value);
+  const json = safeJSONParse<DiscoveryCookie>(value);
   if (!json) {
     return null;
   }
 
-  // Just returning the json variable here would be okay, but I want to be explicit here for improved typechecking.
-  // Maybe unnecessary.
   return {
     browser_referrer: json.browser_referrer,
-    timestamp: json.timestamp,
+    timestamp: json.timestamp_ms ? json.timestamp_ms / 1000 : null,
     campaign: json.campaign,
     fbclid: json.fbclid,
     gclid: json.gclid,

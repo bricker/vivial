@@ -1,3 +1,4 @@
+from urllib.parse import urlparse
 import aiohttp
 from asgiref.typing import HTTPScope
 from starlette.requests import Request
@@ -26,8 +27,8 @@ class BrowserDataIngestionEndpoint(HTTPEndpoint):
         response = Response()
 
         # body = await request.json()
-        qp = request.query_params._dict
-        client_id = qp.get("clientId")
+        client_id = request.query_params.get("clientId")
+
         if client_id is None:
             raise UnauthorizedError("missing clientId query param")
 
@@ -45,38 +46,29 @@ class BrowserDataIngestionEndpoint(HTTPEndpoint):
                 raise UnauthorizedError("invalid credentials")
 
             if not (creds.scope & ClientScope.write) > 0:
-                raise ForbiddenError("invalid scopes")
+                raise ForbiddenError("invalid scope")
 
             eave_team = await TeamOrm.one_or_exception(session=db_session, team_id=creds.team_id)
 
-            if origin_header not in eave_team.allowed_origins:
-                raise ForbiddenError("Invalid origin")
-
-            # response.headers["access-control-allow-origin"] = origin_header
-            # response.headers["access-control-allow-credentials"] = "false"
-            # response.headers["access-control-allow-methods"] = "POST"
-            # if request.method.upper() == "OPTIONS":
-            #     return response
+            if not eave_team.origin_allowed(origin=origin_header):
+                raise ForbiddenError("invalid origin")
 
             await creds.touch(session=db_session)
 
-        body = {
-            "events": {
-                "browser_event": [
-                    {
-                        **qp
-                    }
-                ]
-            }
-        }
 
+        body = await request.json()
         input = DataIngestRequestBody.from_json(data=body)
 
         if (events := input.events.get(EventType.browser_event)) and len(events) > 0:
-            handle = BrowserEventsTableHandle(team=eave_team)
-            await handle.insert(events=events)
+            client_attrs = scope["client"]
+            if client_attrs is not None:
+                client_ip, _ = client_attrs
+            else:
+                client_ip = None
 
-        # Throw an error if there are any other event types in the payload?
+            handle = BrowserEventsTableHandle(team=eave_team)
+            await handle.insert_with_client_ip(events=events, client_ip=client_ip, ctx=ctx,)
+
         return response
 
 
@@ -112,19 +104,19 @@ class ServerDataIngestionEndpoint(HTTPEndpoint):
 
         if (events := input.events.get(EventType.db_event)) and len(events) > 0:
             handle = DatabaseEventsTableHandle(team=eave_team)
-            await handle.insert(events=events)
+            await handle.insert(events=events, ctx=ctx)
 
         if (events := input.events.get(EventType.http_server_event)) and len(events) > 0:
             handle = HttpServerEventsTableHandle(team=eave_team)
-            await handle.insert(events=events)
+            await handle.insert(events=events, ctx=ctx)
 
         if (events := input.events.get(EventType.http_client_event)) and len(events) > 0:
             handle = HttpClientEventsTableHandle(team=eave_team)
-            await handle.insert(events=events)
+            await handle.insert(events=events, ctx=ctx)
 
         if (events := input.events.get(EventType.browser_event)) and len(events) > 0:
             handle = BrowserEventsTableHandle(team=eave_team)
-            await handle.insert(events=events)
+            await handle.insert(events=events, ctx=ctx)
 
         response = Response(status_code=200)
         return response

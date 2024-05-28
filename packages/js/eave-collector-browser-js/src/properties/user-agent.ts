@@ -1,4 +1,4 @@
-import { UserAgentProperties } from "../types.js";
+import { UserAgentProperties } from "../types";
 
 export async function getUserAgentProperties(): Promise<UserAgentProperties> {
   const userAgentProperties: UserAgentProperties = {

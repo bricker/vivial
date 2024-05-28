@@ -1,5 +1,5 @@
-import { eaveState } from "../state.js";
-import { PageProperties, StringMap } from "../types.js";
+import { eaveState } from "../state";
+import { PageProperties, StringMap } from "../types";
 
 export function getPageProperties(): PageProperties {
   const currentPageUrl = new URL(window.location.href);

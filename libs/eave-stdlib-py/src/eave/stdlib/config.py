@@ -16,6 +16,7 @@ GITHUB_EVENT_QUEUE_NAME = "github-events-processor"
 class EaveEnvironment(enum.StrEnum):
     test = "test"
     development = "development"
+    staging = "staging"
     production = "production"
 
 
@@ -57,10 +58,20 @@ class _EaveConfig(ConfigBase):
                 return EaveEnvironment.test
             case "development":
                 return EaveEnvironment.development
+            case "staging":
+                return EaveEnvironment.staging
             case "production":
                 return EaveEnvironment.production
             case _:
                 return EaveEnvironment.production
+
+    @property
+    def is_production(self) -> bool:
+        return self.eave_env is EaveEnvironment.production
+
+    @property
+    def is_staging(self) -> bool:
+        return self.eave_env is EaveEnvironment.staging
 
     @property
     def is_development(self) -> bool:
