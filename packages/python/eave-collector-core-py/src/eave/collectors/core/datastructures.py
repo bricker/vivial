@@ -85,6 +85,7 @@ class DatabaseEventPayload(EventPayload):
     operation: str | None
     parameters: dict[str, Any] | None
 
+
 @dataclass(kw_only=True)
 class FunctionCallEventPayload(EventPayload):
     event_type: ClassVar[EventType] = EventType.function_call

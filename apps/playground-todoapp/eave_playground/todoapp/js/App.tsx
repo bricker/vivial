@@ -8,21 +8,23 @@ import {
 } from "react-router-dom";
 
 import "../static/css/app.css";
+import CookieConsentBanner from "./CookieBanner";
 import LoginForm from "./LoginForm";
 import TodoList from "./TodoList";
-import CookieConsentBanner from "./CookieBanner";
 
 const App = () => {
-  return (<>
-    <Router>
-      <Routes>
-        <Route path="/login" element={<LoginForm />} />
-        <Route path="/" element={<TodoList />} />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </Router>
-    <CookieConsentBanner />
- </>);
+  return (
+    <>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/" element={<TodoList />} />
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </Router>
+      <CookieConsentBanner />
+    </>
+  );
 };
 
 const root = ReactDOM.createRoot(document.getElementById("root")!);

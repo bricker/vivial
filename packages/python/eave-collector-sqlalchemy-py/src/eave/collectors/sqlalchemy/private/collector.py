@@ -1,4 +1,3 @@
-import re
 import time
 import weakref
 from collections.abc import Callable

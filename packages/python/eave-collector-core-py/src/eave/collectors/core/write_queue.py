@@ -4,11 +4,9 @@ import atexit
 import multiprocessing
 import multiprocessing.synchronize
 import sys
-import threading
 import time
 from dataclasses import dataclass
 from queue import Empty
-from typing import Any
 
 from . import config
 from .datastructures import EventPayload
@@ -42,7 +40,9 @@ class QueueItem:
 
 
 # TODO: sigterm handler
-async def _process_queue(q: multiprocessing.Queue, params: QueueParams, queue_closed_event: multiprocessing.synchronize.Event) -> int:
+async def _process_queue(
+    q: multiprocessing.Queue, params: QueueParams, queue_closed_event: multiprocessing.synchronize.Event
+) -> int:
     EAVE_LOGGER.info("Eave queue processor started.")
 
     buffer: dict[str, list[JsonObject]] = {}
@@ -112,13 +112,16 @@ def _queue_processor_event_loop(*args, **kwargs) -> None:
 
 class WriteQueue(abc.ABC):
     @abc.abstractmethod
-    def start_autoflush(self) -> None: ...
+    def start_autoflush(self) -> None:
+        ...
 
     @abc.abstractmethod
-    def stop_autoflush(self) -> None: ...
+    def stop_autoflush(self) -> None:
+        ...
 
     @abc.abstractmethod
-    def put(self, payload: EventPayload) -> None: ...
+    def put(self, payload: EventPayload) -> None:
+        ...
 
 
 class BatchWriteQueue(WriteQueue):
@@ -147,7 +150,6 @@ class BatchWriteQueue(WriteQueue):
         except Exception as e:
             EAVE_LOGGER.exception(e)
             atexit.unregister(self.stop_autoflush)
-
 
     def stop_autoflush(self) -> None:
         try:

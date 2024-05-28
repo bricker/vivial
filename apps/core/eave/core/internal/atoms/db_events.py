@@ -1,16 +1,17 @@
-from textwrap import dedent
 import time
-from typing import Any, Type, cast, get_args, override
+from textwrap import dedent
+from typing import Any, cast, override
 
 from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
 
-from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseStructure, EventPayload
+from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseStructure
 from eave.core.internal import database
 from eave.core.internal.orm.virtual_event import VirtualEventOrm, make_virtual_event_readable_name
 from eave.stdlib.logging import LOGGER, LogContext
 from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize
 
 from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
+
 
 class DatabaseEventsTableHandle(BigQueryTableHandle):
     table_def = BigQueryTableDefinition(
@@ -158,7 +159,7 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
         )
 
         if len(errors) > 0:
-            LOGGER.warning("BigQuery insert errors", { "errors": cast(list, errors)}, ctx)
+            LOGGER.warning("BigQuery insert errors", {"errors": cast(list, errors)}, ctx)
 
         # FIXME: This is vulnerable to a DoS where unique `table_name` is generated and inserted on a loop.
         for operation, table_name in unique_operations:

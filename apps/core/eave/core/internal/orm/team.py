@@ -1,15 +1,13 @@
 from datetime import datetime
-import re
 from typing import Self, TypedDict, Unpack
 from urllib.parse import urlparse
 from uuid import UUID
 
-from eave.stdlib.logging import LOGGER
-from sqlalchemy import Select, func, select, text
-import sqlalchemy.types
 import sqlalchemy.dialects.postgresql
+import sqlalchemy.types
+from sqlalchemy import Select, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Mapped, MappedColumn, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 
 import eave.stdlib.util
 from eave.stdlib.core_api.models.team import AnalyticsTeam, Team
@@ -84,7 +82,9 @@ class TeamOrm(Base):
     def origin_allowed(self, origin: str) -> bool:
         url = urlparse(url=origin)
         hostname = url.hostname or url.netloc.split(":", maxsplit=1)[0]
-        return any(self._hostname_matches(hostname=hostname, origin_pattern=pattern) for pattern in self.allowed_origins)
+        return any(
+            self._hostname_matches(hostname=hostname, origin_pattern=pattern) for pattern in self.allowed_origins
+        )
 
     def _hostname_matches(self, hostname: str, origin_pattern: str) -> bool:
         if origin_pattern == "*":

@@ -1,13 +1,14 @@
 import json
-from collections.abc import Mapping, Sequence
-from typing import Any, Dict, Iterable
+from collections.abc import Iterable, Mapping, Sequence
+from typing import Any
 
-from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.logging import LOGGER, LogContext
 import google.api_core.exceptions
 from google.cloud import bigquery
 from google.cloud.bigquery.table import RowIterator
 from google.oauth2 import service_account as _service_account
+
+from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.logging import LOGGER, LogContext
 
 
 class BigQueryClient:
@@ -32,7 +33,12 @@ class BigQueryClient:
         return r
 
     def get_and_sync_or_create_table(
-        self, *, dataset_id: str, table_id: str, schema: tuple[bigquery.SchemaField, ...], ctx: LogContext,
+        self,
+        *,
+        dataset_id: str,
+        table_id: str,
+        schema: tuple[bigquery.SchemaField, ...],
+        ctx: LogContext,
     ) -> bigquery.Table:
         local_table = self._construct_table(dataset_id=dataset_id, table_id=table_id)
 
@@ -48,7 +54,7 @@ class BigQueryClient:
         remote_table_flattened_schema_fields = sorted(_flattened_schema_fields(remote_table.schema))
 
         if local_table_flattened_schema_fields != remote_table_flattened_schema_fields:
-            LOGGER.info("Schema mismatch. Updating remote schema.", { "table_id": table_id }, ctx)
+            LOGGER.info("Schema mismatch. Updating remote schema.", {"table_id": table_id}, ctx)
 
             # The schemas don't match. Update the server schema to match the client schema.
             remote_table.schema = local_table.schema
@@ -139,6 +145,7 @@ class BigQueryClient:
         table = bigquery.Table(table_ref=table_ref)
         return table
 
+
 def _flattened_schema_fields(fields: Iterable[bigquery.SchemaField]) -> list[str]:
     flattened_fields: list[str] = []
     for field in fields:
@@ -150,8 +157,10 @@ def _flattened_schema_fields(fields: Iterable[bigquery.SchemaField]) -> list[str
 
     return flattened_fields
 
+
 def _field_names(fields: list[bigquery.SchemaField]) -> list[str]:
     return [f.name for f in fields]
+
 
 EAVE_INTERNAL_BIGQUERY_ATOMS_DATASET_ID = "eave_atoms"
 EAVE_INTERNAL_BIGQUERY_CLIENT = BigQueryClient()

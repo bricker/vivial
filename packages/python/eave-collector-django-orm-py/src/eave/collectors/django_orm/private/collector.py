@@ -1,7 +1,7 @@
+import re
 import time
 from collections.abc import Callable
 from contextlib import contextmanager
-import re
 from typing import Any
 
 from django.db.backends.utils import CursorWrapper

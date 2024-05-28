@@ -1,12 +1,11 @@
-import math
-import time
-from typing import Any, cast, override
+from typing import Any, cast
 
-from eave.stdlib.logging import LOGGER, LogContext
-from eave.stdlib.typing import JsonObject
 from google.cloud.bigquery import SchemaField, SqlTypeNames, StandardSqlTypeNames
 
+from eave.stdlib.logging import LOGGER, LogContext
+
 from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
+
 
 class BrowserEventsTableHandle(BigQueryTableHandle):
     table_def = BigQueryTableDefinition(
@@ -17,7 +16,7 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                 field_type=SqlTypeNames.RECORD,
                 mode=BigQueryFieldMode.NULLABLE,
                 fields=(
-                     SchemaField(
+                    SchemaField(
                         name="action",
                         field_type=SqlTypeNames.STRING,
                         mode=BigQueryFieldMode.NULLABLE,
@@ -61,7 +60,6 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                     ),
                 ),
             ),
-
             SchemaField(
                 name="session",
                 field_type=SqlTypeNames.RECORD,
@@ -84,7 +82,6 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                     ),
                 ),
             ),
-
             SchemaField(
                 name="user",
                 field_type=SqlTypeNames.RECORD,
@@ -102,8 +99,6 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                     ),
                 ),
             ),
-
-
             SchemaField(
                 name="page",
                 field_type=SqlTypeNames.RECORD,
@@ -131,7 +126,6 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                     ),
                 ),
             ),
-
             SchemaField(
                 name="ua",
                 field_type=SqlTypeNames.RECORD,
@@ -203,7 +197,6 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                     ),
                 ),
             ),
-
             SchemaField(
                 name="discovery",
                 field_type=SqlTypeNames.RECORD,
@@ -241,7 +234,6 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                     ),
                 ),
             ),
-
             SchemaField(
                 name="screen",
                 field_type=SqlTypeNames.RECORD,
@@ -269,7 +261,6 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                     ),
                 ),
             ),
-
             SchemaField(
                 name="perf",
                 field_type=SqlTypeNames.RECORD,
@@ -287,13 +278,11 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                     ),
                 ),
             ),
-
             SchemaField(
                 name="cookies",
                 field_type=StandardSqlTypeNames.JSON,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
-
             SchemaField(
                 name="extra",
                 field_type=StandardSqlTypeNames.JSON,
@@ -313,7 +302,7 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                 name="insert_timestamp",
                 field_type=SqlTypeNames.TIMESTAMP,
                 mode=BigQueryFieldMode.REQUIRED,
-                default_value_expression="CURRENT_TIMESTAMP"
+                default_value_expression="CURRENT_TIMESTAMP",
             ),
         ),
     )
@@ -396,7 +385,7 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
         )
 
         if len(errors) > 0:
-            LOGGER.warning("BigQuery insert errors", { "errors": cast(list, errors)}, ctx)
+            LOGGER.warning("BigQuery insert errors", {"errors": cast(list, errors)}, ctx)
 
         # FIXME: This is vulnerable to a DoS
         for request_method, request_url in unique_operations:

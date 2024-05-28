@@ -1,12 +1,11 @@
-import logging
-from eave.collectors.starlette import StarletteCollectorManager
-import google.cloud.logging
 import contextlib
+import logging
 import os
 from collections.abc import AsyncGenerator
 from http import HTTPStatus
 from uuid import UUID
 
+import google.cloud.logging
 from sqlalchemy import and_, delete, select, update
 from starlette.applications import Starlette
 from starlette.requests import Request
@@ -30,6 +29,7 @@ if os.getenv("EAVE_ENV", "development") == "production":
     _gcp_log_client = google.cloud.logging.Client()
     log_level = os.getenv("LOG_LEVEL", "INFO").upper()
     _gcp_log_client.setup_logging(log_level=logging.getLevelNamesMapping().get(log_level) or logging.INFO)
+
 
 async def get_todos(request: Request) -> Response:
     user_id = request.cookies.get(_USER_ID_COOKIE_NAME)
@@ -96,6 +96,7 @@ async def update_todo(request: Request) -> Response:
 
     return Response(status_code=HTTPStatus.OK)
 
+
 async def login(request: Request) -> Response:
     body = await request.json()
     username = body["username"]
@@ -134,7 +135,7 @@ def web_app(request: Request) -> Response:
         name="index.html.jinja",
         context={
             "EAVE_CLIENT_ID": os.getenv("PLAYGROUND_TODOAPP_EAVE_CLIENT_ID"),
-        }
+        },
     )
     return response
 

@@ -1,10 +1,10 @@
 import time
 from typing import Any, cast, override
 
-from eave.stdlib.logging import LOGGER, LogContext
 from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
 
 from eave.collectors.core.datastructures import HttpServerEventPayload
+from eave.stdlib.logging import LOGGER, LogContext
 
 from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 
@@ -128,7 +128,7 @@ class HttpServerEventsTableHandle(BigQueryTableHandle):
         )
 
         if len(errors) > 0:
-            LOGGER.warning("BigQuery insert errors", { "errors": cast(list, errors)}, ctx)
+            LOGGER.warning("BigQuery insert errors", {"errors": cast(list, errors)}, ctx)
 
         # FIXME: This is vulnerable to a DoS
         for request_method, request_url in unique_operations:

@@ -2,8 +2,8 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styles from "./TodoList.module.css";
-import { TodoListItem } from "./types";
 import { COOKIE_PREFIX, getCookie } from "./cookies";
+import { TodoListItem } from "./types";
 
 const TodoList = () => {
   const userId = getCookie(`${COOKIE_PREFIX}user_id`);
@@ -149,7 +149,9 @@ const TodoList = () => {
                 ) : (
                   <>
                     <span
-                      onClick={() => { handleEdit(todo, todo.text) }}
+                      onClick={() => {
+                        handleEdit(todo, todo.text);
+                      }}
                       className={styles.todoText}
                     >
                       {todo.text}

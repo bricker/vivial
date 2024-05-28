@@ -1,10 +1,10 @@
 from dataclasses import dataclass
 from enum import StrEnum
 
-from eave.stdlib.logging import LogContext
 from google.cloud.bigquery import SchemaField
 
 from eave.core.internal.orm.team import TeamOrm
+from eave.stdlib.logging import LogContext
 from eave.stdlib.typing import JsonObject
 
 from ..lib import bq_client

@@ -1,6 +1,11 @@
-import React, { useState } from 'react';
-import { COOKIE_PREFIX, deleteAllCookies, deleteCookie, getCookie, setCookie } from './cookies';
+import React, { useState } from "react";
 import styles from "./CookieBanner.module.css";
+import {
+  COOKIE_PREFIX,
+  deleteAllCookies,
+  getCookie,
+  setCookie,
+} from "./cookies";
 
 const consentCookieName = `${COOKIE_PREFIX}consent`;
 const consentCookieMaxAge = 2592000;
@@ -19,7 +24,11 @@ const CookieConsentBanner = () => {
     setConsentChoice(choiceValue);
 
     // This is for the Todoapp's record. Eave manages its own consent cookies.
-    setCookie({ name: consentCookieName, value: choiceValue, maxAge: consentCookieMaxAge });
+    setCookie({
+      name: consentCookieName,
+      value: choiceValue,
+      maxAge: consentCookieMaxAge,
+    });
 
     // @ts-expect-error: window.eave is defined by the Eave collector library
     window.eave?.enableAll();
@@ -31,7 +40,11 @@ const CookieConsentBanner = () => {
 
     // This is for the Todoapp's record. Eave manages its own consent cookies.
     deleteAllCookies();
-    setCookie({ name: consentCookieName, value: choiceValue, maxAge: consentCookieMaxAge });
+    setCookie({
+      name: consentCookieName,
+      value: choiceValue,
+      maxAge: consentCookieMaxAge,
+    });
 
     // @ts-expect-error: window.eave is defined by the Eave collector library
     window.eave?.disableAll();

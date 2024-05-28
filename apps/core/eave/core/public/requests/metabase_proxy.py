@@ -108,8 +108,8 @@ class MetabaseProxyEndpoint(HTTPEndpoint):
 
         LOGGER.info(
             "metabase response",
-            ctx,
             {"mb": {"headers": dict(mb_response.headers), "status": mb_response.status}},
+            ctx,
         )
 
         mb_response = Response(
@@ -180,8 +180,8 @@ class MetabaseAuthEndpoint(HTTPEndpoint):
 
         LOGGER.info(
             "metabase response",
-            ctx,
             {"mb": {"headers": dict(mb_response.headers), "status": mb_response.status}},
+            ctx,
         )
 
         response = RedirectResponse(

@@ -1,4 +1,3 @@
-from urllib.parse import urlparse
 import aiohttp
 from asgiref.typing import HTTPScope
 from starlette.requests import Request
@@ -55,7 +54,6 @@ class BrowserDataIngestionEndpoint(HTTPEndpoint):
 
             await creds.touch(session=db_session)
 
-
         body = await request.json()
         input = DataIngestRequestBody.from_json(data=body)
 
@@ -67,7 +65,11 @@ class BrowserDataIngestionEndpoint(HTTPEndpoint):
                 client_ip = None
 
             handle = BrowserEventsTableHandle(team=eave_team)
-            await handle.insert_with_client_ip(events=events, client_ip=client_ip, ctx=ctx,)
+            await handle.insert_with_client_ip(
+                events=events,
+                client_ip=client_ip,
+                ctx=ctx,
+            )
 
         return response
 
