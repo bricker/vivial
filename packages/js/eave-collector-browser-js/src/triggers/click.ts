@@ -1,9 +1,12 @@
-import { eaveLogger } from "../logging";
 import { requestManager } from "../beacon";
-import { CLICK_EVENT_TYPE, dispatchTriggerNotification } from "../internal/js-events";
-import { StringMap, TargetProperties } from "../types";
-import { castEventTargetToHtmlElement } from "../util/typechecking";
+import {
+  CLICK_EVENT_TYPE,
+  dispatchTriggerNotification,
+} from "../internal/js-events";
+import { eaveLogger } from "../logging";
+import { TargetProperties } from "../types";
 import { getElementAttributes } from "../util/dom-helpers";
+import { castEventTargetToHtmlElement } from "../util/typechecking";
 
 /**
  * https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
@@ -116,8 +119,15 @@ export function enableClickTracking() {
     // This ensures that the handler isn't added more than once.
     // Although addEventListener won't add the same function object twice,
     // it's easy to accidentally add duplicate handlers by passing an anonymous function (eg arrow function).
-    document.body.addEventListener(CLICK_EVENT_TYPE, trackClick, { capture: true, passive: true });
-    document.body.addEventListener(CLICK_EVENT_TYPE, dispatchTriggerNotification, { capture: true, passive: true });
+    document.body.addEventListener(CLICK_EVENT_TYPE, trackClick, {
+      capture: true,
+      passive: true,
+    });
+    document.body.addEventListener(
+      CLICK_EVENT_TYPE,
+      dispatchTriggerNotification,
+      { capture: true, passive: true },
+    );
   }
 
   // TODO: Are these needed? Maybe for some browsers?

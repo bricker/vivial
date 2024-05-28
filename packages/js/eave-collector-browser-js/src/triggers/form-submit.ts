@@ -1,9 +1,11 @@
 import { requestManager } from "../beacon";
+import {
+  SUBMIT_EVENT_TYPE,
+  dispatchTriggerNotification,
+} from "../internal/js-events";
 import { eaveLogger } from "../logging";
-import { SUBMIT_EVENT_TYPE, dispatchTriggerNotification } from "../internal/js-events";
-import { castEventTargetToHtmlElement } from "../util/typechecking";
 import { getElementAttributes } from "../util/dom-helpers";
-import { EventProperties } from "../types";
+import { castEventTargetToHtmlElement } from "../util/typechecking";
 
 async function trackFormSubmit(event: SubmitEvent) {
   const timestamp = Date.now();
@@ -53,8 +55,15 @@ export function enableFormTracking() {
     // This ensures that the handler isn't added more than once.
     // Although addEventListener won't add the same function object twice,
     // it's easy to accidentally add duplicate handlers by passing an anonymous function (eg arrow function).
-    document.body.addEventListener(SUBMIT_EVENT_TYPE, trackFormSubmit, { capture: true, passive: true });
-    document.body.addEventListener(SUBMIT_EVENT_TYPE, dispatchTriggerNotification, { capture: true, passive: true });
+    document.body.addEventListener(SUBMIT_EVENT_TYPE, trackFormSubmit, {
+      capture: true,
+      passive: true,
+    });
+    document.body.addEventListener(
+      SUBMIT_EVENT_TYPE,
+      dispatchTriggerNotification,
+      { capture: true, passive: true },
+    );
   }
 
   initialized = true;

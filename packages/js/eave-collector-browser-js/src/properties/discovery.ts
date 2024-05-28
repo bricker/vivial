@@ -1,16 +1,9 @@
-import { EAVE_TRIGGER_EVENT_TYPE } from "../internal/js-events";
-import { DiscoveryProperties, EpochTimeStampMillis, JSONObject, StringMap } from "../types";
-import { uuidv4 } from "../util/uuid";
 import { isCookieConsentRevoked } from "../consent";
-import { COOKIE_NAME_PREFIX, MAX_ALLOWED_COOKIE_AGE_SEC, getEaveCookie, setEaveCookie } from "../cookies";
-import { eaveLogger } from "../logging";
+import { COOKIE_NAME_PREFIX, getEaveCookie, setEaveCookie } from "../cookies";
+import { DiscoveryProperties, EpochTimeStampMillis, StringMap } from "../types";
 import { compactJSONStringify, safeJSONParse } from "../util/json";
 
-const KNOWN_TRACKING_PARAMS = new Set([
-  "campaign",
-  "gclid",
-  "fbclid",
-]);
+const KNOWN_TRACKING_PARAMS = new Set(["campaign", "gclid", "fbclid"]);
 
 const DISCOVERY_PARAMS_COOKIE_NAME = `${COOKIE_NAME_PREFIX}discovery`;
 const DISCOVERY_PARAMS_COOKIE_MAX_AGE = 60 * 60 * 24 * 180; // 180 days (approximately 6 months)
@@ -22,7 +15,7 @@ type DiscoveryCookie = {
   gclid?: string;
   fbclid?: string;
   utm_params: StringMap<string>;
-}
+};
 
 // The purpose of splitting these getters and setters into `getXCookie` and `getXJSON`
 // is to allow to avoid un-parsing and re-parsing JSON when we're just refreshing the cookie expiry.
@@ -53,9 +46,12 @@ function buildDiscoveryParams(): DiscoveryCookie {
   const discoveryParams: DiscoveryCookie = {
     timestamp_ms: Date.now(),
     // This is called "browser_referrer" instead of just "referrer" in case there is a query param called "referrer"
-    browser_referrer: window.top?.document.referrer || window.parent.document.referrer || document.referrer,
+    browser_referrer:
+      window.top?.document.referrer ||
+      window.parent.document.referrer ||
+      document.referrer,
     utm_params: {},
-  }
+  };
 
   // Note: query parameters can be repeated, but this only returns a single value per query param.
   // This loop takes the last value.

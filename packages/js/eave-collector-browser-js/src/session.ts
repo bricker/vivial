@@ -1,10 +1,13 @@
-import { COOKIE_NAME_PREFIX,  getEaveCookie, setEaveCookie } from "./cookies";
-import { EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, EAVE_TRIGGER_EVENT_TYPE } from "./internal/js-events";
 import { isCookieConsentRevoked } from "./consent";
-import { EpochTimeStampMillis, SessionProperties } from "./types";
-import { uuidv4 } from "./util/uuid";
-import { compactJSONStringify, safeJSONParse } from "./util/json";
+import { COOKIE_NAME_PREFIX, getEaveCookie, setEaveCookie } from "./cookies";
+import {
+  EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE,
+  EAVE_TRIGGER_EVENT_TYPE,
+} from "./internal/js-events";
 import { eaveLogger } from "./logging";
+import { EpochTimeStampMillis, SessionProperties } from "./types";
+import { compactJSONStringify, safeJSONParse } from "./util/json";
+import { uuidv4 } from "./util/uuid";
 
 const SESSION_COOKIE_NAME = `${COOKIE_NAME_PREFIX}session`;
 
@@ -16,7 +19,7 @@ const SESSION_LENGTH_SEC = 30 * 60;
 type SessionCookie = {
   id: string;
   start_timestamp_ms: EpochTimeStampMillis;
-}
+};
 
 function getSessionCookie(): string | null {
   return getEaveCookie(SESSION_COOKIE_NAME);
@@ -86,13 +89,13 @@ export function getSessionProperties(): SessionProperties | null {
 
   const now = Date.now();
   const startTimestampMs = json.start_timestamp_ms;
-  const duration_ms = startTimestampMs ? (now - startTimestampMs) : null;
+  const duration_ms = startTimestampMs ? now - startTimestampMs : null;
 
   return {
     id: json.id,
     start_timestamp: startTimestampMs ? startTimestampMs / 1000 : null,
     duration_ms,
-  }
+  };
 }
 
 let initialized = false;
@@ -107,8 +110,14 @@ export function initializeSessionModule() {
     // This ensures that the handler isn't added more than once.
     // Although addEventListener won't add the same function object twice,
     // it's easy to accidentally add duplicate handlers by passing an anonymous function (eg arrow function).
-    window.addEventListener(EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, handleEvent, { passive: true });
-    window.addEventListener(EAVE_TRIGGER_EVENT_TYPE, handleEvent, { passive: true });
+    window.addEventListener(
+      EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE,
+      handleEvent,
+      { passive: true },
+    );
+    window.addEventListener(EAVE_TRIGGER_EVENT_TYPE, handleEvent, {
+      passive: true,
+    });
   }
 
   startOrExtendSession();

@@ -15,5 +15,5 @@ export function getPageProperties(): PageProperties {
     current_title: document.title,
     pageview_id: eaveState.pageViewId,
     current_query_params,
-  }
+  };
 }

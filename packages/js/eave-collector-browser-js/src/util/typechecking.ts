@@ -25,7 +25,9 @@ export function castNodeToHtmlElement(node: Node): HTMLElement | null {
 /**
  * Helper for typechecking
  */
-export function castEventTargetToHtmlElement(target: EventTarget): HTMLElement | null {
+export function castEventTargetToHtmlElement(
+  target: EventTarget,
+): HTMLElement | null {
   if (!target) {
     return null;
   }
@@ -45,7 +47,9 @@ export function castEventTargetToHtmlElement(target: EventTarget): HTMLElement |
 /**
  * Helper for typechecking
  */
-export function castPerformanceEntryToNavigationTiming(entry: PerformanceEntry): PerformanceNavigationTiming | null {
+export function castPerformanceEntryToNavigationTiming(
+  entry: PerformanceEntry,
+): PerformanceNavigationTiming | null {
   if (entry.entryType === "navigation") {
     const timing = entry as PerformanceNavigationTiming;
     return timing;

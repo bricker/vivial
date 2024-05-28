@@ -1,11 +1,7 @@
 const config = {
   extends: ["eslint:recommended", "prettier"],
   plugins: [],
-  ignorePatterns: [
-    "node_modules",
-    "dist",
-    ".*",
-  ],
+  ignorePatterns: ["node_modules", "dist", ".*"],
   env: {
     browser: true,
     es2022: true,

@@ -6,5 +6,5 @@ export function getScreenProperties(): ScreenProperties {
     height: screen.height,
     avail_width: screen.availWidth,
     avail_height: screen.availHeight,
-  }
+  };
 }

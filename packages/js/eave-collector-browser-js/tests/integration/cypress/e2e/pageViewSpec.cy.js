@@ -36,7 +36,9 @@ describe("eave page view atom collection", () => {
     // THEN page view event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       expect(interception.response).to.exist;
-      expect(interception.response.body.data.data.event).to.match(/HistoryChange/);
+      expect(interception.response.body.data.data.event).to.match(
+        /HistoryChange/,
+      );
     });
   });
 });

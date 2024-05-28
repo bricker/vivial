@@ -1,5 +1,10 @@
-import { COOKIE_NAME_PREFIX, deleteEaveCookie, getEaveCookie, setEaveCookie } from "./cookies";
-import { EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE, EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE, EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE } from "./internal/js-events";
+import { getEaveCookie, setEaveCookie } from "./cookies";
+import {
+  EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE,
+  EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE,
+  EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE,
+  EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE,
+} from "./internal/js-events";
 import { eaveLogger } from "./logging";
 
 // These cookies use a different prefix so that functions like deleteAllEaveCookies() don't affect these.
@@ -12,7 +17,7 @@ const CONSENT_COOKIE_MAX_AGE_SEC = 60 * 60 * 24 * 400; // 400 days (maximum allo
 
 export enum ConsentChoice {
   ACCEPTED = "1",
-  REJECTED = "0"
+  REJECTED = "0",
 }
 
 export function isCookieConsentRevoked(): boolean {

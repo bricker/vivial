@@ -22,7 +22,7 @@ class EaveLogger {
 
   constructor(level?: LogLevel) {
     if (level) {
-      this.level = level
+      this.level = level;
     }
   }
 

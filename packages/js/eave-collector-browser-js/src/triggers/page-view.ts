@@ -1,6 +1,10 @@
-import { HASHCHANGE_EVENT_TYPE, POPSTATE_EVENT_TYPE, dispatchTriggerNotification } from "../internal/js-events";
-import { eaveLogger } from "../logging";
 import { requestManager } from "../beacon";
+import {
+  HASHCHANGE_EVENT_TYPE,
+  POPSTATE_EVENT_TYPE,
+  dispatchTriggerNotification,
+} from "../internal/js-events";
+import { eaveLogger } from "../logging";
 
 const NAVIGATION_ACTION_NAME = "navigation";
 
@@ -33,7 +37,7 @@ async function trackHashChange(event: HashChangeEvent) {
     },
     extra: {
       reason: event.type,
-    }
+    },
   });
 
   requestManager.queueEvent(payload);
@@ -60,7 +64,10 @@ async function trackPopState(event: PopStateEvent) {
 /**
  * @param state - The `state` parameter given to history.pushState/replaceState. Any serializable object.
  */
-async function trackNavigationStateChange(state: any, url?: URL | string | null) {
+async function trackNavigationStateChange(
+  state: any,
+  url?: URL | string | null,
+) {
   const timestamp = Date.now();
 
   const payload = await requestManager.buildPayload({
@@ -178,22 +185,22 @@ function wrapNavigationStateChangeFunctions() {
   //     }
   //   }
 
-    // function replaceHistoryMethod(methodNameToReplace) {
-    //   setMethodWrapIfNeeded(
-    //     window.history,
-    //     methodNameToReplace,
-    //     function (state, _title, _urlParam) {
-    //       trigger(methodNameToReplace, getCurrentUrl(), state);
-    //     },
-    //   );
-    // }
+  // function replaceHistoryMethod(methodNameToReplace) {
+  //   setMethodWrapIfNeeded(
+  //     window.history,
+  //     methodNameToReplace,
+  //     function (state, _title, _urlParam) {
+  //       trigger(methodNameToReplace, getCurrentUrl(), state);
+  //     },
+  //   );
+  // }
 
-    // React Router uses `pushState` and `replaceState` to update the history stack when it renders new pages.
-    // However, it's important to note that `pushState` nor `replaceState` actually do any navigation.
-    // Calling `pushState` or `replaceState` doesn't actually mean that the user has navigated to a new page.
-    // This is therefore an imprecise way to track navigation in a SPA.
-    // The "navigate" event would be a cleaner way to do this - but it is not widely supported yet (2024-05)
-    // https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate_event
+  // React Router uses `pushState` and `replaceState` to update the history stack when it renders new pages.
+  // However, it's important to note that `pushState` nor `replaceState` actually do any navigation.
+  // Calling `pushState` or `replaceState` doesn't actually mean that the user has navigated to a new page.
+  // This is therefore an imprecise way to track navigation in a SPA.
+  // The "navigate" event would be a cleaner way to do this - but it is not widely supported yet (2024-05)
+  // https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate_event
 
   const originalPushState = window.history.pushState;
   window.history.pushState = function (state, unused, url) {
@@ -209,7 +216,7 @@ function wrapNavigationStateChangeFunctions() {
     const proxyValue = originalReplaceState.call(this, state, unused, url);
     trackNavigationStateChange(state, url).catch((e) => eaveLogger.error(e));
     return proxyValue;
-  }
+  };
 }
 
 let initialized = false;
@@ -223,11 +230,24 @@ export function enableNavigationTracking() {
     // This ensures that the handler isn't added more than once.
     // Although addEventListener won't add the same function object twice,
     // it's easy to accidentally add duplicate handlers by passing an anonymous function (eg arrow function).
-    window.addEventListener(HASHCHANGE_EVENT_TYPE, trackHashChange, { capture: true, passive: true });
-    window.addEventListener(HASHCHANGE_EVENT_TYPE, dispatchTriggerNotification, { capture: true, passive: true });
+    window.addEventListener(HASHCHANGE_EVENT_TYPE, trackHashChange, {
+      capture: true,
+      passive: true,
+    });
+    window.addEventListener(
+      HASHCHANGE_EVENT_TYPE,
+      dispatchTriggerNotification,
+      { capture: true, passive: true },
+    );
 
-    window.addEventListener(POPSTATE_EVENT_TYPE, trackPopState, { capture: true, passive: true });
-    window.addEventListener(POPSTATE_EVENT_TYPE, dispatchTriggerNotification, { capture: true, passive: true });
+    window.addEventListener(POPSTATE_EVENT_TYPE, trackPopState, {
+      capture: true,
+      passive: true,
+    });
+    window.addEventListener(POPSTATE_EVENT_TYPE, dispatchTriggerNotification, {
+      capture: true,
+      passive: true,
+    });
   }
 
   initialized = true;

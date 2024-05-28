@@ -1,10 +1,14 @@
 /// Eave events
 
-export const EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE = "eave.cookie_consent_revoked";
-export const EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE = "eave.cookie_consent_granted";
+export const EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE =
+  "eave.cookie_consent_revoked";
+export const EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE =
+  "eave.cookie_consent_granted";
 
-export const EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE = "eave.tracking_consent_revoked";
-export const EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE = "eave.tracking_consent_granted";
+export const EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE =
+  "eave.tracking_consent_revoked";
+export const EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE =
+  "eave.tracking_consent_granted";
 
 export const EAVE_TRIGGER_EVENT_TYPE = "eave.trigger";
 

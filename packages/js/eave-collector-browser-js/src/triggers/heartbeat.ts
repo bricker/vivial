@@ -1,4 +1,3 @@
-
 // /**
 //  * Set heartbeat (in seconds)
 //  *
@@ -39,8 +38,6 @@
 //   configHeartBeatDelay = null;
 //   heartBeatSetUp = false;
 // };
-
-
 
 // function heartBeatOnFocus() {
 //   hadWindowFocusAtLeastOnce = true;
@@ -119,7 +116,6 @@
 //     },
 //   );
 // }
-
 
 // /**
 //  * If there was user activity since the last check, and it's been configHeartBeatDelay seconds

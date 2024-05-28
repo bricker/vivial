@@ -1,10 +1,8 @@
 import { EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE } from "./internal/js-events";
-import { eaveLogger } from "./logging";
 import { StringMap } from "./types";
 
 export const COOKIE_NAME_PREFIX = "_eave.";
 export const MAX_ALLOWED_COOKIE_AGE_SEC = 60 * 60 * 24 * 400; // 400 days (maximum allowed value in Chrome)
-
 
 /**
  * Get all first-party cookies
@@ -28,19 +26,28 @@ export function getEaveCookie(name: string): string | null {
  * Set an Eave-managed cookie
  * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
  */
-export function setEaveCookie(
-  { name, value, maxAgeSeconds, expires, path = "/", domain, isSecure = true, sameSite = "Lax"}:
-  { name: string;
-    value: string;
-    maxAgeSeconds?: number;
-    expires?: Date;
-    path?: string;
-    domain?: string;
-    isSecure?: boolean;
-    sameSite?: "None" | "Lax" | "Strict";
-  }
-) {
-  const cookieAttrs: [string, string | true][] = [[name, encodeURIComponent(value)]];
+export function setEaveCookie({
+  name,
+  value,
+  maxAgeSeconds,
+  expires,
+  path = "/",
+  domain,
+  isSecure = true,
+  sameSite = "Lax",
+}: {
+  name: string;
+  value: string;
+  maxAgeSeconds?: number;
+  expires?: Date;
+  path?: string;
+  domain?: string;
+  isSecure?: boolean;
+  sameSite?: "None" | "Lax" | "Strict";
+}) {
+  const cookieAttrs: [string, string | true][] = [
+    [name, encodeURIComponent(value)],
+  ];
 
   if (maxAgeSeconds !== undefined) {
     cookieAttrs.push(["Max-Age", `${maxAgeSeconds}`]);
@@ -69,22 +76,28 @@ export function setEaveCookie(
     cookieAttrs.push(["Secure", true]);
   }
 
-  const cookieValue = cookieAttrs.map(([attrName, attrValue]) => attrValue === true ? `${attrName}` : `${attrName}=${attrValue}`).join(";");
+  const cookieValue = cookieAttrs
+    .map(([attrName, attrValue]) =>
+      attrValue === true ? `${attrName}` : `${attrName}=${attrValue}`,
+    )
+    .join(";");
   document.cookie = cookieValue;
 }
-
 
 /**
  * Delete an Eave-managed cookie
  */
-export function deleteEaveCookie(args: { name: string; path?: string; domain?: string }) {
+export function deleteEaveCookie(args: {
+  name: string;
+  path?: string;
+  domain?: string;
+}) {
   setEaveCookie({
     ...args,
     value: "",
     expires: new Date(0),
   });
 }
-
 
 /**
  * Delete all Eave-managed cookies, except consent cookies
@@ -136,7 +149,11 @@ export function initializeCookieModule() {
     // This ensures that the handler isn't added more than once.
     // Although addEventListener won't add the same function object twice,
     // it's easy to accidentally add duplicate handlers by passing an anonymous function (eg arrow function).
-    window.addEventListener(EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE, handleEvent, { passive: true });
+    window.addEventListener(
+      EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE,
+      handleEvent,
+      { passive: true },
+    );
   }
 
   initialized = true;

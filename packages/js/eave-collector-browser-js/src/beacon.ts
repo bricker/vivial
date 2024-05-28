@@ -1,17 +1,26 @@
-import { eaveLogger } from "./logging";
-import { EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE, EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE, VISIBILITY_CHANGE_EVENT_TYPE } from "./internal/js-events";
-import { TRACKER_URL } from "./internal/compile-config";
-import { castPerformanceEntryToNavigationTiming } from "./util/typechecking";
-import { getAllEaveCookies } from "./cookies";
 import { isTrackingConsentRevoked } from "./consent";
-import { getUserAgentProperties } from "./properties/user-agent";
-import { BrowserEventPayload, EventProperties, JSONObject, PageProperties, PerformanceProperties, StringMap, UserAgentProperties } from "./types";
-import { getPageProperties } from "./properties/page";
-import { getUserProperties } from "./properties/user";
-import { getPerformanceProperties } from "./properties/performance";
-import { getSessionProperties } from "./session";
+import { getAllEaveCookies } from "./cookies";
+import { TRACKER_URL } from "./internal/compile-config";
+import {
+  EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE,
+  EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE,
+  EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE,
+  VISIBILITY_CHANGE_EVENT_TYPE,
+} from "./internal/js-events";
+import { eaveLogger } from "./logging";
 import { getDiscoveryProperties } from "./properties/discovery";
+import { getPageProperties } from "./properties/page";
+import { getPerformanceProperties } from "./properties/performance";
 import { getScreenProperties } from "./properties/screen";
+import { getUserProperties } from "./properties/user";
+import { getUserAgentProperties } from "./properties/user-agent";
+import { getSessionProperties } from "./session";
+import {
+  BrowserEventPayload,
+  EventProperties,
+  JSONObject,
+  UserAgentProperties,
+} from "./types";
 
 /**
  * A Queue with a maximum size.
@@ -125,10 +134,13 @@ class RequestManager {
   /**
    * Builds a payload, filling in standard attributes like user agent and session info.
    */
-  async buildPayload(
-    { event, extra }:
-    { event: EventProperties; extra?: JSONObject; }
-  ): Promise<BrowserEventPayload> {
+  async buildPayload({
+    event,
+    extra,
+  }: {
+    event: EventProperties;
+    extra?: JSONObject;
+  }): Promise<BrowserEventPayload> {
     const userAgentProperties = await this.#getUserAgentProperties();
     const screenProperties = getScreenProperties();
     const performanceProperties = getPerformanceProperties();
@@ -185,7 +197,7 @@ class RequestManager {
       const json = JSON.stringify({
         events: {
           browser_event: payloads,
-        }
+        },
       });
 
       // Important note: The `type` property here should be `application/x-www-form-urlencoded`, because that mimetype is CORS-safelisted as documented here:
@@ -207,7 +219,10 @@ class RequestManager {
 
       eaveLogger.debug("Sending events", payloads);
 
-      const success = navigator.sendBeacon(`${TRACKER_URL}?clientId=${clientId}`, blob);
+      const success = navigator.sendBeacon(
+        `${TRACKER_URL}?clientId=${clientId}`,
+        blob,
+      );
 
       if (!success) {
         eaveLogger.warn("failed to send analytics.");

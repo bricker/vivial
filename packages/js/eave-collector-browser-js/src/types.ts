@@ -1,7 +1,9 @@
-export type StringMap<T extends string | string[]> = {[key: string]: T}
+export type StringMap<T extends string | string[]> = { [key: string]: T };
 
 export type JSONScalar = string | number | boolean | null | undefined;
-export type JSONObject = {[key: string]: JSONScalar | JSONScalar[] | JSONObject | JSONObject[]};
+export type JSONObject = {
+  [key: string]: JSONScalar | JSONScalar[] | JSONObject | JSONObject[];
+};
 export type JSONValue = JSONScalar | JSONScalar[] | JSONObject | JSONObject[];
 
 export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR" | "SILENT";
@@ -13,7 +15,7 @@ export type EpochTimeStampSeconds = number;
 
 export type EaveConfiguration = {
   EAVE_CLIENT_ID?: string;
-}
+};
 
 export type EaveInterface = {
   enableAll: () => void;
@@ -23,17 +25,14 @@ export type EaveInterface = {
   enableTracking: () => void;
   disableTracking: () => void;
   setLogLevel: (level: LogLevel) => void;
-}
+};
 
 export type GlobalEaveState = {
   pageViewId: string;
 };
 
-export type GlobalEaveWindow =
-  Window
-  & EaveConfiguration
-  & { eave: EaveInterface }
-;
+export type GlobalEaveWindow = Window &
+  EaveConfiguration & { eave: EaveInterface };
 
 export type UserAgentProperties = {
   ua_string: string;
@@ -65,16 +64,16 @@ export type PerformanceProperties = {
 };
 
 export type PageProperties = {
- current_url: string;
- current_title: string;
- pageview_id: string;
- current_query_params: StringMap<string[]>;
+  current_url: string;
+  current_title: string;
+  pageview_id: string;
+  current_query_params: StringMap<string[]>;
 };
 
 export type SessionProperties = {
- id: string | null;
- start_timestamp: EpochTimeStampSeconds | null;
- duration_ms: DOMHighResTimeStamp | null;
+  id: string | null;
+  start_timestamp: EpochTimeStampSeconds | null;
+  duration_ms: DOMHighResTimeStamp | null;
 };
 
 export type UserProperties = {
@@ -104,10 +103,10 @@ export type TargetProperties = {
 };
 
 export type EventProperties = {
- action: string;
- timestamp: EpochTimeStampSeconds;
- origin_elapsed_ms?: DOMHighResTimeStamp;
- target: TargetProperties | null;
+  action: string;
+  timestamp: EpochTimeStampSeconds;
+  origin_elapsed_ms?: DOMHighResTimeStamp;
+  target: TargetProperties | null;
 };
 
 export type BrowserEventPayload = {

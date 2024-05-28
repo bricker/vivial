@@ -5,7 +5,8 @@ const TerserPlugin = require("terser-webpack-plugin");
 module.exports = (env, argv) => {
   const mode = argv.mode || "development";
   const logLevel = env.LOG_LEVEL?.toUpperCase() || "INFO";
-  const trackerUrl = env.TRACKER_URL || "https://api.eave.fyi/public/ingest/browser";
+  const trackerUrl =
+    env.TRACKER_URL || "https://api.eave.fyi/public/ingest/browser";
 
   return {
     mode,
@@ -57,11 +58,7 @@ module.exports = (env, argv) => {
 
     devServer: {
       server: "http",
-      allowedHosts: [
-        "localhost",
-        "127.0.0.1",
-        ".eave.run",
-      ],
+      allowedHosts: ["localhost", "127.0.0.1", ".eave.run"],
     },
   };
 };

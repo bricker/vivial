@@ -22,7 +22,9 @@ function App() {
           External link
         </a>
 
-        <a id="page-internal-link" href="#">To top of page</a>
+        <a id="page-internal-link" href="#">
+          To top of page
+        </a>
 
         <Link id="page-link" className="App-link" to="/page">
           Go to subpage

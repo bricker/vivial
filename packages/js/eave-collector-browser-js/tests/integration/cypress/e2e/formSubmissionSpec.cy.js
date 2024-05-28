@@ -17,7 +17,7 @@ describe("eave form atom collection", () => {
     cy.get("#message").type("hello there");
     cy.get("#formBtn").click();
     // wait for button click event
-    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`)
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
 
     // THEN an event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
