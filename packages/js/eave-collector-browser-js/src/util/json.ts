@@ -1,9 +1,7 @@
 import { eaveLogger } from "../logging";
 import { JSONValue } from "../types";
 
-export function safeJSONParse<T extends JSONValue>(
-  value: string | null,
-): T | null {
+export function safeJSONParse<T extends JSONValue>(value: string | null): T | null {
   if (value === null) {
     return null;
   }

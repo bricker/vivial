@@ -46,10 +46,7 @@ function buildDiscoveryParams(): DiscoveryCookie {
   const discoveryParams: DiscoveryCookie = {
     timestamp_ms: Date.now(),
     // This is called "browser_referrer" instead of just "referrer" in case there is a query param called "referrer"
-    browser_referrer:
-      window.top?.document.referrer ||
-      window.parent.document.referrer ||
-      document.referrer,
+    browser_referrer: window.top?.document.referrer || window.parent.document.referrer || document.referrer,
     utm_params: {},
   };
 

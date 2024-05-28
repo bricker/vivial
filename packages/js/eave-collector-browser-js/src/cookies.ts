@@ -45,9 +45,7 @@ export function setEaveCookie({
   isSecure?: boolean;
   sameSite?: "None" | "Lax" | "Strict";
 }) {
-  const cookieAttrs: [string, string | true][] = [
-    [name, encodeURIComponent(value)],
-  ];
+  const cookieAttrs: [string, string | true][] = [[name, encodeURIComponent(value)]];
 
   if (maxAgeSeconds !== undefined) {
     cookieAttrs.push(["Max-Age", `${maxAgeSeconds}`]);
@@ -77,9 +75,7 @@ export function setEaveCookie({
   }
 
   const cookieValue = cookieAttrs
-    .map(([attrName, attrValue]) =>
-      attrValue === true ? `${attrName}` : `${attrName}=${attrValue}`,
-    )
+    .map(([attrName, attrValue]) => (attrValue === true ? `${attrName}` : `${attrName}=${attrValue}`))
     .join(";");
   document.cookie = cookieValue;
 }
@@ -87,11 +83,7 @@ export function setEaveCookie({
 /**
  * Delete an Eave-managed cookie
  */
-export function deleteEaveCookie(args: {
-  name: string;
-  path?: string;
-  domain?: string;
-}) {
+export function deleteEaveCookie(args: { name: string; path?: string; domain?: string }) {
   setEaveCookie({
     ...args,
     value: "",
@@ -149,11 +141,7 @@ export function initializeCookieModule() {
     // This ensures that the handler isn't added more than once.
     // Although addEventListener won't add the same function object twice,
     // it's easy to accidentally add duplicate handlers by passing an anonymous function (eg arrow function).
-    window.addEventListener(
-      EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE,
-      handleEvent,
-      { passive: true },
-    );
+    window.addEventListener(EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE, handleEvent, { passive: true });
   }
 
   initialized = true;

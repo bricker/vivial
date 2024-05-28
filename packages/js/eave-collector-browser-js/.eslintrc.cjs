@@ -1,7 +1,7 @@
 const config = {
-  extends: ["eslint:recommended", "prettier"],
-  plugins: [],
-  ignorePatterns: ["node_modules", "dist", ".*"],
+  extends: ["eslint:recommended", "prettier", "plugin:cypress/recommended"],
+  plugins: ["cypress"],
+  ignorePatterns: ["node_modules", "dist", ".*", "*.min.js", "collector.js"],
   env: {
     browser: true,
     es2022: true,
@@ -71,6 +71,12 @@ const config = {
     {
       // Force eslint to lint the following additional extensions.
       files: ["*.cjs", "*.mjs"],
+    },
+    {
+      files: ["tests/**"],
+      rules: {
+        "no-unused-expressions": "off", // Chai assertions return a value but the return value isn't needed.
+      },
     },
     {
       files: ["*.test.js"],

@@ -31,8 +31,7 @@ export type GlobalEaveState = {
   pageViewId: string;
 };
 
-export type GlobalEaveWindow = Window &
-  EaveConfiguration & { eave: EaveInterface };
+export type GlobalEaveWindow = Window & EaveConfiguration & { eave: EaveInterface };
 
 export type UserAgentProperties = {
   ua_string: string;

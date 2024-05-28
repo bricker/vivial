@@ -1,9 +1,6 @@
 import { isCookieConsentRevoked } from "./consent";
 import { COOKIE_NAME_PREFIX, getEaveCookie, setEaveCookie } from "./cookies";
-import {
-  EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE,
-  EAVE_TRIGGER_EVENT_TYPE,
-} from "./internal/js-events";
+import { EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, EAVE_TRIGGER_EVENT_TYPE } from "./internal/js-events";
 import { eaveLogger } from "./logging";
 import { EpochTimeStampMillis, SessionProperties } from "./types";
 import { compactJSONStringify, safeJSONParse } from "./util/json";
@@ -110,11 +107,7 @@ export function initializeSessionModule() {
     // This ensures that the handler isn't added more than once.
     // Although addEventListener won't add the same function object twice,
     // it's easy to accidentally add duplicate handlers by passing an anonymous function (eg arrow function).
-    window.addEventListener(
-      EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE,
-      handleEvent,
-      { passive: true },
-    );
+    window.addEventListener(EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, handleEvent, { passive: true });
     window.addEventListener(EAVE_TRIGGER_EVENT_TYPE, handleEvent, {
       passive: true,
     });

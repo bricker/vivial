@@ -1,9 +1,5 @@
 import { requestManager } from "../beacon";
-import {
-  HASHCHANGE_EVENT_TYPE,
-  POPSTATE_EVENT_TYPE,
-  dispatchTriggerNotification,
-} from "../internal/js-events";
+import { HASHCHANGE_EVENT_TYPE, POPSTATE_EVENT_TYPE, dispatchTriggerNotification } from "../internal/js-events";
 import { eaveLogger } from "../logging";
 
 const NAVIGATION_ACTION_NAME = "navigation";
@@ -64,10 +60,7 @@ async function trackPopState(event: PopStateEvent) {
 /**
  * @param state - The `state` parameter given to history.pushState/replaceState. Any serializable object.
  */
-async function trackNavigationStateChange(
-  state: any,
-  url?: URL | string | null,
-) {
+async function trackNavigationStateChange(state: any, url?: URL | string | null) {
   const timestamp = Date.now();
 
   const payload = await requestManager.buildPayload({
@@ -234,11 +227,7 @@ export function enableNavigationTracking() {
       capture: true,
       passive: true,
     });
-    window.addEventListener(
-      HASHCHANGE_EVENT_TYPE,
-      dispatchTriggerNotification,
-      { capture: true, passive: true },
-    );
+    window.addEventListener(HASHCHANGE_EVENT_TYPE, dispatchTriggerNotification, { capture: true, passive: true });
 
     window.addEventListener(POPSTATE_EVENT_TYPE, trackPopState, {
       capture: true,

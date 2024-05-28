@@ -1,8 +1,5 @@
-/* eslint-disable no-unused-expressions */
-import {
-  ATOM_INTERCEPTION_EVENT_NAME,
-  dummyAppRoot,
-} from "../support/constants";
+import { describe, it } from "mocha";
+import { ATOM_INTERCEPTION_EVENT_NAME, dummyAppRoot } from "../support/constants";
 
 describe("eave correlation context cookies", () => {
   it("creates ctx and session cookies and attaches cookie data to events", () => {
@@ -34,12 +31,8 @@ describe("eave correlation context cookies", () => {
     // THEN page view event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       // THEN eave ctx cookie data is attached to events
-      expect(interception.response.body.data._eave_visitor_id).to.equal(
-        dummyVisitorId,
-      );
-      expect(interception.response.body.data._eave_session_id).to.equal(
-        dummySessionId,
-      );
+      expect(interception.response.body.data._eave_visitor_id).to.equal(dummyVisitorId);
+      expect(interception.response.body.data._eave_session_id).to.equal(dummySessionId);
     });
   });
 });

@@ -33,34 +33,22 @@ export function uuidv4(): string {
     // @ts-ignore: see above
     rnds[8] = (rnds[8] & 0x3f) | 0x80;
 
+    // prettier-ignore
     return (
       // @ts-ignore: see above
-      (
-        byteToHex[rnds[0]] +
-        byteToHex[rnds[1]] +
-        byteToHex[rnds[2]] +
-        byteToHex[rnds[3]] +
-        "-" +
-        // @ts-ignore: see above
-        byteToHex[rnds[4]] +
-        byteToHex[rnds[5]] +
-        "-" +
-        // @ts-ignore: see above
-        byteToHex[rnds[6]] +
-        byteToHex[rnds[7]] +
-        "-" +
-        // @ts-ignore: see above
-        byteToHex[rnds[8]] +
-        byteToHex[rnds[9]] +
-        "-" +
-        // @ts-ignore: see above
-        byteToHex[rnds[10]] +
-        byteToHex[rnds[11]] +
-        byteToHex[rnds[12]] +
-        byteToHex[rnds[13]] +
-        byteToHex[rnds[14]] +
-        byteToHex[rnds[15]]
-      ).toLowerCase()
-    );
+      byteToHex[rnds[0]] + byteToHex[rnds[1]] + byteToHex[rnds[2]] + byteToHex[rnds[3]] +
+      "-" +
+      // @ts-ignore: see above
+      byteToHex[rnds[4]] + byteToHex[rnds[5]] +
+      "-" +
+      // @ts-ignore: see above
+      byteToHex[rnds[6]] + byteToHex[rnds[7]] +
+      "-" +
+      // @ts-ignore: see above
+      byteToHex[rnds[8]] + byteToHex[rnds[9]] +
+      "-" +
+      // @ts-ignore: see above
+      byteToHex[rnds[10]] + byteToHex[rnds[11]] + byteToHex[rnds[12]] + byteToHex[rnds[13]] + byteToHex[rnds[14]] + byteToHex[rnds[15]]
+    ).toLowerCase();
   }
 }

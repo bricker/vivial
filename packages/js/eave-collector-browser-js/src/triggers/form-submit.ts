@@ -1,8 +1,5 @@
 import { requestManager } from "../beacon";
-import {
-  SUBMIT_EVENT_TYPE,
-  dispatchTriggerNotification,
-} from "../internal/js-events";
+import { SUBMIT_EVENT_TYPE, dispatchTriggerNotification } from "../internal/js-events";
 import { eaveLogger } from "../logging";
 import { getElementAttributes } from "../util/dom-helpers";
 import { castEventTargetToHtmlElement } from "../util/typechecking";
@@ -59,11 +56,7 @@ export function enableFormTracking() {
       capture: true,
       passive: true,
     });
-    document.body.addEventListener(
-      SUBMIT_EVENT_TYPE,
-      dispatchTriggerNotification,
-      { capture: true, passive: true },
-    );
+    document.body.addEventListener(SUBMIT_EVENT_TYPE, dispatchTriggerNotification, { capture: true, passive: true });
   }
 
   initialized = true;

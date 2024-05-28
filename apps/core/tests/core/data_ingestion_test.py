@@ -5,7 +5,6 @@ import aiohttp
 from google.cloud import bigquery
 
 from eave.collectors.core.datastructures import (
-    BrowserEventPayload,
     DatabaseEventPayload,
     DatabaseOperation,
     DatabaseStructure,
@@ -192,10 +191,12 @@ class TestDataIngestionEndpoints(BaseTestCase):
                         ).to_dict(),
                     ],
                     EventType.browser_event: [
-                        BrowserEventPayload(
-                            context=None,
-                            event="click",
-                        ).to_dict(),
+                        {
+                            "context": None,
+                            "event": {
+                                "action": "click",
+                            },
+                        },
                     ],
                 },
             ).to_dict(),
@@ -233,10 +234,12 @@ class TestDataIngestionEndpoints(BaseTestCase):
                         ).to_dict(),
                     ],
                     EventType.browser_event: [
-                        BrowserEventPayload(
-                            context=None,
-                            event="click",
-                        ).to_dict(),
+                        {
+                            "context": None,
+                            "event": {
+                                "action": "click",
+                            },
+                        },
                     ],
                 },
             ).to_dict(),
@@ -258,10 +261,12 @@ class TestDataIngestionEndpoints(BaseTestCase):
             payload=DataIngestRequestBody(
                 events={
                     EventType.browser_event: [
-                        BrowserEventPayload(
-                            context=None,
-                            event="click",
-                        ).to_dict(),
+                        {
+                            "context": None,
+                            "event": {
+                                "action": "click",
+                            },
+                        },
                     ],
                 },
             ).to_dict(),
@@ -281,10 +286,12 @@ class TestDataIngestionEndpoints(BaseTestCase):
             payload=DataIngestRequestBody(
                 events={
                     EventType.browser_event: [
-                        BrowserEventPayload(
-                            context=None,
-                            event="click",
-                        ).to_dict(),
+                        {
+                            "context": None,
+                            "event": {
+                                "action": "click",
+                            },
+                        },
                     ],
                 },
             ).to_dict(),

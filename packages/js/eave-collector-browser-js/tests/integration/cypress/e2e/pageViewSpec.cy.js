@@ -1,8 +1,6 @@
 /* eslint-disable no-unused-expressions */
-import {
-  ATOM_INTERCEPTION_EVENT_NAME,
-  dummyAppRoot,
-} from "../support/constants";
+import { describe, expect, it } from "mocha";
+import { ATOM_INTERCEPTION_EVENT_NAME, dummyAppRoot } from "../support/constants";
 
 describe("eave page view atom collection", () => {
   it("fires page view on site load", () => {
@@ -15,9 +13,7 @@ describe("eave page view atom collection", () => {
     // THEN an event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       expect(interception.response).to.exist;
-      expect(interception.response.body.data.action_name).to.deep.equal(
-        "React App",
-      ); // html title
+      expect(interception.response.body.data.action_name).to.deep.equal("React App"); // html title
     });
   });
 
@@ -36,9 +32,7 @@ describe("eave page view atom collection", () => {
     // THEN page view event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       expect(interception.response).to.exist;
-      expect(interception.response.body.data.data.event).to.match(
-        /HistoryChange/,
-      );
+      expect(interception.response.body.data.data.event).to.match(/HistoryChange/);
     });
   });
 });

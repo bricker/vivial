@@ -1,8 +1,5 @@
 import { requestManager } from "../beacon";
-import {
-  CLICK_EVENT_TYPE,
-  dispatchTriggerNotification,
-} from "../internal/js-events";
+import { CLICK_EVENT_TYPE, dispatchTriggerNotification } from "../internal/js-events";
 import { eaveLogger } from "../logging";
 import { TargetProperties } from "../types";
 import { getElementAttributes } from "../util/dom-helpers";
@@ -28,39 +25,6 @@ function getNameOfClickedMouseButton(event: MouseEvent): string {
   }
 }
 
-const IGNORED_TAGS = new Set([
-  // "DIV",
-  // "SPAN",
-  // "EM",
-  // "STRONG",
-  // "B",
-  // "I",
-  // "BR",
-  // "BODY",
-  // "HR",
-  // "ARTICLE",
-  // "HEADER",
-  // "FOOTER",
-  // "TABLE",
-  // "LI",
-  // "OL",
-  // "UL",
-  // "P",
-  // "S",
-  // "SECTION",
-  // "SPAN",
-  // "SUB",
-  // "SUP",
-  // "TBODY",
-  // "TD",
-  // "TR",
-  // "TH",
-  // "THEAD",
-  // "TFOOT",
-  // "U",
-  // "WBR",
-]);
-
 /**
  * Handle click event
  */
@@ -78,10 +42,6 @@ async function trackClick(event: MouseEvent) {
       }
 
       const nodeName = targetElement.nodeName.toUpperCase();
-      // if (IGNORED_TAGS.has(nodeName)) {
-      //   return;
-      // }
-
       const elementAttrs = getElementAttributes(targetElement);
 
       // TODO: This is capturing the innerText for everything clicked, which is not OK.
@@ -123,11 +83,7 @@ export function enableClickTracking() {
       capture: true,
       passive: true,
     });
-    document.body.addEventListener(
-      CLICK_EVENT_TYPE,
-      dispatchTriggerNotification,
-      { capture: true, passive: true },
-    );
+    document.body.addEventListener(CLICK_EVENT_TYPE, dispatchTriggerNotification, { capture: true, passive: true });
   }
 
   // TODO: Are these needed? Maybe for some browsers?

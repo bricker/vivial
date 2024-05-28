@@ -1,10 +1,5 @@
 import { isCookieConsentRevoked } from "../consent";
-import {
-  COOKIE_NAME_PREFIX,
-  MAX_ALLOWED_COOKIE_AGE_SEC,
-  getEaveCookie,
-  setEaveCookie,
-} from "../cookies";
+import { COOKIE_NAME_PREFIX, MAX_ALLOWED_COOKIE_AGE_SEC, getEaveCookie, setEaveCookie } from "../cookies";
 import { UserProperties } from "../types";
 import { uuidv4 } from "../util/uuid";
 

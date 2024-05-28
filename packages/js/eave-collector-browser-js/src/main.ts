@@ -1,8 +1,4 @@
-import {
-  ConsentChoice,
-  setCookieConsentChoice,
-  setTrackingConsentChoice,
-} from "./consent";
+import { ConsentChoice, setCookieConsentChoice, setTrackingConsentChoice } from "./consent";
 import { initializeCookieModule } from "./cookies";
 import { eaveLogger } from "./logging";
 import { initializeDiscoveryModule } from "./properties/discovery";

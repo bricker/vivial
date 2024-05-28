@@ -15,12 +15,7 @@ import { getScreenProperties } from "./properties/screen";
 import { getUserProperties } from "./properties/user";
 import { getUserAgentProperties } from "./properties/user-agent";
 import { getSessionProperties } from "./session";
-import {
-  BrowserEventPayload,
-  EventProperties,
-  JSONObject,
-  UserAgentProperties,
-} from "./types";
+import { BrowserEventPayload, EventProperties, JSONObject, UserAgentProperties } from "./types";
 
 /**
  * A Queue with a maximum size.
@@ -134,13 +129,7 @@ class RequestManager {
   /**
    * Builds a payload, filling in standard attributes like user agent and session info.
    */
-  async buildPayload({
-    event,
-    extra,
-  }: {
-    event: EventProperties;
-    extra?: JSONObject;
-  }): Promise<BrowserEventPayload> {
+  async buildPayload({ event, extra }: { event: EventProperties; extra?: JSONObject }): Promise<BrowserEventPayload> {
     const userAgentProperties = await this.#getUserAgentProperties();
     const screenProperties = getScreenProperties();
     const performanceProperties = getPerformanceProperties();
@@ -219,10 +208,7 @@ class RequestManager {
 
       eaveLogger.debug("Sending events", payloads);
 
-      const success = navigator.sendBeacon(
-        `${TRACKER_URL}?clientId=${clientId}`,
-        blob,
-      );
+      const success = navigator.sendBeacon(`${TRACKER_URL}?clientId=${clientId}`, blob);
 
       if (!success) {
         eaveLogger.warn("failed to send analytics.");
