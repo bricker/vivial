@@ -34,14 +34,7 @@ const Button = ({
   className: string;
   to?: string;
   target?: string;
-  color?:
-    | "inherit"
-    | "primary"
-    | "secondary"
-    | "success"
-    | "error"
-    | "info"
-    | "warning";
+  color?: "inherit" | "primary" | "secondary" | "success" | "error" | "info" | "warning";
   variant: "text" | "outlined" | "contained";
   [key: string]: any;
 }) => {

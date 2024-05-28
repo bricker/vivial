@@ -1,15 +1,24 @@
 import re
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Generator, Mapping, Sequence
 from contextlib import contextmanager
+from datetime import datetime
+from decimal import Decimal
 from typing import Any
+from uuid import UUID
 
+from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.utils import CursorWrapper
 
 from eave.collectors.core.base_collector import BaseCollector
 from eave.collectors.core.correlation_context import corr_ctx
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure
 from eave.collectors.core.write_queue import WriteQueue
+
+# Copied from Django
+_Mixed = None | bool | int | float | Decimal | str | bytes | datetime | UUID
+_SQLType = _Mixed | Sequence[_Mixed] | Mapping[str, _Mixed]
+_ParamsType = Sequence[_SQLType] | Mapping[str, _SQLType]
 
 
 class EaveCursorWrapper(CursorWrapper):
@@ -22,16 +31,24 @@ class EaveCursorWrapper(CursorWrapper):
         super().__init__(cursor, db)
         self.write_queue = write_queue
 
-    def execute(self, sql, params=None) -> None:
-        with self.capture_sql(sql, params, use_last_executed_query=True):
+    def execute(self, sql: str, params: _ParamsType | None = None) -> None:
+        with self.capture_sql(sql=sql, params=params, use_last_executed_query=True):
             return super().execute(sql, params)
 
-    def executemany(self, sql, param_list) -> None:
-        with self.capture_sql(sql, param_list, many=True):
+    def executemany(self, sql: str, param_list: Sequence[_ParamsType | None]) -> None:
+        with self.capture_sql(sql=sql, multiparams=param_list, many=True):
             return super().executemany(sql, param_list)
 
     @contextmanager
-    def capture_sql(self, sql=None, params=None, use_last_executed_query=False, many=False):
+    def capture_sql(
+        self,
+        *,
+        sql: str | None = None,
+        params: _ParamsType | None = None,
+        multiparams: Sequence[_ParamsType | None] | None = None,
+        use_last_executed_query: bool = False,
+        many: bool = True,
+    ) -> Generator[None, Any, None]:
         # start = time.monotonic()
         try:
             # yield execution to wrapped context
@@ -54,6 +71,13 @@ class EaveCursorWrapper(CursorWrapper):
                 op = self._get_operation_name(sql)
                 table_name = self._get_table_name(sql, op)
 
+                # FIXME: Resolve params vs. multiparams
+                # rparams: _ParamsType | None = None
+                # if params:
+                #     rparams = params
+                # elif multiparams and len(multiparams) > 0:
+                #     rparams = multiparams[0]
+
                 record = DatabaseEventPayload(
                     timestamp=time.time(),
                     db_structure=DatabaseStructure.SQL,
@@ -61,7 +85,7 @@ class EaveCursorWrapper(CursorWrapper):
                     db_name=self.db.alias,
                     statement=sql,
                     table_name=table_name,
-                    parameters=params,  # TODO: params is usually None; django doesnt remove param values from the statement
+                    parameters=None,  # TODO: params is usually None; django doesnt remove param values from the statement
                     context=corr_ctx.to_dict(),
                 )
 
@@ -103,8 +127,6 @@ class DjangoOrmCollector(BaseCollector):
         return cursor_creator
 
     def instrument(self) -> None:
-        from django.db.backends.base.base import BaseDatabaseWrapper
-
         if getattr(BaseDatabaseWrapper, "_is_instrumented_by_eave", False):
             return
 
@@ -114,15 +136,13 @@ class DjangoOrmCollector(BaseCollector):
         # monkey patch
         BaseDatabaseWrapper.make_debug_cursor = self._eave_cursor_factory()  # type: ignore
 
-        BaseDatabaseWrapper._is_instrumented_by_eave = True  # type: ignore
+        BaseDatabaseWrapper._is_instrumented_by_eave = True  # type: ignore  # noqa: SLF001
 
     def uninstrument(self) -> None:
-        from django.db.backends.base.base import BaseDatabaseWrapper
-
         if not getattr(BaseDatabaseWrapper, "_is_instrumented_by_eave", False):
             return
 
         # reset original method
         BaseDatabaseWrapper.make_debug_cursor = self._original_make_debug_cursor  # type: ignore
 
-        BaseDatabaseWrapper._is_instrumented_by_eave = False  # type: ignore
+        BaseDatabaseWrapper._is_instrumented_by_eave = False  # type: ignore  # noqa: SLF001

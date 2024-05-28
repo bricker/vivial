@@ -99,8 +99,7 @@ const TodoList = () => {
     <div className={styles.todoList}>
       <h2 className={styles.title}>TODO List</h2>
       <p>
-        Logged in as <strong>{username}</strong> (
-        <Link to="/login">Change</Link>)
+        Logged in as <strong>{username}</strong> (<Link to="/login">Change</Link>)
       </p>
 
       {loading ? (
@@ -133,16 +132,10 @@ const TodoList = () => {
                       onChange={(e) => setEditText(e.target.value)}
                       className={styles.editInput}
                     />
-                    <button
-                      onClick={() => updateTodo(todo)}
-                      className={styles.saveButton}
-                    >
+                    <button onClick={() => updateTodo(todo)} className={styles.saveButton}>
                       Save
                     </button>
-                    <button
-                      onClick={cancelEdit}
-                      className={styles.cancelButton}
-                    >
+                    <button onClick={cancelEdit} className={styles.cancelButton}>
                       Cancel
                     </button>
                   </>
@@ -156,10 +149,7 @@ const TodoList = () => {
                     >
                       {todo.text}
                     </span>
-                    <button
-                      onClick={() => removeTodo(todo)}
-                      className={styles.removeButton}
-                    >
+                    <button onClick={() => removeTodo(todo)} className={styles.removeButton}>
                       Remove
                     </button>
                   </>

@@ -1,11 +1,6 @@
 import React, { useState } from "react";
 import styles from "./CookieBanner.module.css";
-import {
-  COOKIE_PREFIX,
-  deleteAllCookies,
-  getCookie,
-  setCookie,
-} from "./cookies";
+import { COOKIE_PREFIX, deleteAllCookies, getCookie, setCookie } from "./cookies";
 
 const consentCookieName = `${COOKIE_PREFIX}consent`;
 const consentCookieMaxAge = 2592000;

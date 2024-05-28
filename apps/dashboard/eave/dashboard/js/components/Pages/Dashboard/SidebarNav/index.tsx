@@ -56,13 +56,7 @@ const makeClasses = makeStyles()(() => ({
   },
 }));
 
-const SidebarNav = ({
-  children,
-  hamburger = false,
-}: {
-  children: React.ReactNode;
-  hamburger?: boolean;
-}) => {
+const SidebarNav = ({ children, hamburger = false }: { children: React.ReactNode; hamburger?: boolean }) => {
   const { classes } = makeClasses();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -70,24 +64,15 @@ const SidebarNav = ({
     return (
       <div className={classes.hamburgerNav}>
         {!menuOpen && (
-          <button
-            className={classes.hamburgerButton}
-            onClick={() => setMenuOpen(true)}
-          >
+          <button className={classes.hamburgerButton} onClick={() => setMenuOpen(true)}>
             <HamburgerIcon stroke="#363636" />
           </button>
         )}
         {menuOpen && (
           <div className={classes.coverMenu}>
             <div className={classes.coverMenuHeader}>
-              <img
-                className={classes.logo}
-                src={imageUrl("eave-e-logo-round-3x.png")}
-              />
-              <button
-                className={classes.closeButton}
-                onClick={() => setMenuOpen(false)}
-              >
+              <img className={classes.logo} src={imageUrl("eave-e-logo-round-3x.png")} />
+              <button className={classes.closeButton} onClick={() => setMenuOpen(false)}>
                 <CloseIcon stroke="#363636" />
               </button>
             </div>
@@ -99,10 +84,7 @@ const SidebarNav = ({
   } else {
     return (
       <div className={classes.navbar}>
-        <img
-          className={classNames(classes.logo, classes.logoSeparation)}
-          src={imageUrl("eave-e-logo-round-3x.png")}
-        />
+        <img className={classNames(classes.logo, classes.logoSeparation)} src={imageUrl("eave-e-logo-round-3x.png")} />
         {children}
       </div>
     );

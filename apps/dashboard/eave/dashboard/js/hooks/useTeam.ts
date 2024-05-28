@@ -5,11 +5,7 @@ import {
   GetVirtualEventsResponseBody,
   VirtualEventQueryInput,
 } from "$eave-dashboard/js/types";
-import {
-  isHTTPError,
-  isUnauthorized,
-  logUserOut,
-} from "$eave-dashboard/js/util/http-util";
+import { isHTTPError, isUnauthorized, logUserOut } from "$eave-dashboard/js/util/http-util";
 import { useContext } from "react";
 
 export interface TeamHook {
@@ -19,8 +15,7 @@ export interface TeamHook {
 }
 
 const useTeam = (): TeamHook => {
-  const { teamCtx, dashboardNetworkStateCtx, glossaryNetworkStateCtx } =
-    useContext(AppContext);
+  const { teamCtx, dashboardNetworkStateCtx, glossaryNetworkStateCtx } = useContext(AppContext);
   const [team, setTeam] = teamCtx!;
   const [, setDashboardNetworkState] = dashboardNetworkStateCtx!;
   const [, setGlossaryNetworkState] = glossaryNetworkStateCtx!;
