@@ -34,6 +34,7 @@ def _correlation_context_factory() -> BaseCorrelationContext:
 
     # fallback to threaded
     from eave.collectors.core.logging import EAVE_LOGGER
+
     EAVE_LOGGER.warning("Eave unable to determine application webserver, falling back to WSGI context handler")
     return ThreadedCorrelationContext()
 

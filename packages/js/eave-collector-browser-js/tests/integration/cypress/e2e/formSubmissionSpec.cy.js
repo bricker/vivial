@@ -1,8 +1,6 @@
 /* eslint-disable no-unused-expressions */
-import {
-  ATOM_INTERCEPTION_EVENT_NAME,
-  dummyAppRoot,
-} from "../support/constants";
+import { describe, expect, it } from "mocha";
+import { ATOM_INTERCEPTION_EVENT_NAME, dummyAppRoot } from "../support/constants";
 
 describe("eave form atom collection", () => {
   it("fires atom on form submission", () => {
@@ -17,7 +15,7 @@ describe("eave form atom collection", () => {
     cy.get("#message").type("hello there");
     cy.get("#formBtn").click();
     // wait for button click event
-    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`)
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
 
     // THEN an event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {

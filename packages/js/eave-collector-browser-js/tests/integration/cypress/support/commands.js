@@ -1,3 +1,5 @@
+import Cypress from "cypress";
+
 // ***********************************************
 // This example commands.js shows you how to
 // create various custom commands and overwrite
@@ -24,10 +26,7 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
 
-import {
-  ATOM_INTERCEPTION_EVENT_NAME,
-  EAVE_ATOM_INGESTION_ENDPOINT,
-} from "./constants";
+import { ATOM_INTERCEPTION_EVENT_NAME, EAVE_ATOM_INGESTION_ENDPOINT } from "./constants";
 
 /**
  * This intercept helper MUST be called before the atoms we want to intercept are fired,
@@ -46,7 +45,9 @@ Cypress.Commands.add("interceptAtomIngestion", () => {
       // decode json to object if necessary
       try {
         data[key] = JSON.parse(data[key]);
-      } catch (ignore) {}
+      } catch (e) {
+        // ignore
+      }
     }
     req.reply({
       statusCode: 200,

@@ -12,10 +12,7 @@ const config = {
     "react/prefer-stateless-function": "off",
     "react/jsx-one-expression-per-line": "off",
     "react/no-unescaped-entities": "off",
-    "react/jsx-max-props-per-line": [
-      "error",
-      { maximum: 1, when: "multiline" },
-    ],
+    "react/jsx-max-props-per-line": ["error", { maximum: 1, when: "multiline" }],
   },
 };
 

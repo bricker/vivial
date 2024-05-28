@@ -4,6 +4,7 @@ from enum import StrEnum
 from google.cloud.bigquery import SchemaField
 
 from eave.core.internal.orm.team import TeamOrm
+from eave.stdlib.logging import LogContext
 from eave.stdlib.typing import JsonObject
 
 from ..lib import bq_client
@@ -18,7 +19,7 @@ class BigQueryFieldMode(StrEnum):
 @dataclass(frozen=True)
 class BigQueryTableDefinition:
     table_id: str
-    schema: list[SchemaField]
+    schema: tuple[SchemaField, ...]
 
 
 class BigQueryTableHandle:
@@ -33,5 +34,5 @@ class BigQueryTableHandle:
         self._bq_client = bq_client.EAVE_INTERNAL_BIGQUERY_CLIENT
         self.team = team
 
-    async def insert(self, events: list[JsonObject]) -> None:
+    async def insert(self, events: list[JsonObject], ctx: LogContext) -> None:
         ...

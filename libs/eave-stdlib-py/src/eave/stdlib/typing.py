@@ -3,7 +3,7 @@ from typing import Literal, Union, override
 from starlette.requests import Request as _StarletteRequest
 from starlette.responses import Response as _StarletteResponse
 
-JsonScalar = str | int | bool | None
+JsonScalar = str | int | float | bool | None
 JsonValue = Union[JsonScalar, "JsonObject", "JsonArray"]
 JsonObject = dict[str, JsonValue]
 JsonArray = list[JsonValue]

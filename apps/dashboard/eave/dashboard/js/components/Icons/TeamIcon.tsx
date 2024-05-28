@@ -2,21 +2,8 @@ import React from "react";
 
 const TeamIcon = ({ color = "black" }: { color?: string }) => {
   return (
-    <svg
-      width="48"
-      height="48"
-      viewBox="0 0 48 48"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle
-        cx="24"
-        cy="16"
-        r="6"
-        stroke={color}
-        strokeWidth="4"
-        strokeLinecap="round"
-      />
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="24" cy="16" r="6" stroke={color} strokeWidth="4" strokeLinecap="round" />
       <path
         d="M30.5359 16C31.0663 15.0813 31.94 14.4109 32.9647 14.1363C33.9894 13.8617 35.0813 14.0055 36 14.5359C36.9187 15.0663 37.5891 15.94 37.8637 16.9647C38.1383 17.9894 37.9945 19.0813 37.4641 20C36.9337 20.9187 36.06 21.5891 35.0353 21.8637C34.0106 22.1383 32.9187 21.9945 32 21.4641C31.0813 20.9337 30.4109 20.06 30.1363 19.0353C29.8617 18.0106 30.0055 16.9187 30.5359 16L30.5359 16Z"
         stroke={color}

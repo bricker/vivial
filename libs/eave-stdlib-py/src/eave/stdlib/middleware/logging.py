@@ -42,6 +42,6 @@ class LoggingASGIMiddleware(EaveASGIMiddleware):
 
         LOGGER.info(
             f"Server Request End: {ctx.eave_request_id}: {scope['method']} {scope['path']}",
-            ctx,
             {"request_duration": rend - rstart},
+            ctx,
         )

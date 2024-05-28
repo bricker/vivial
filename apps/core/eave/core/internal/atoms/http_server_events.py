@@ -1,16 +1,18 @@
-from typing import Any, override
+import time
+from typing import Any, cast, override
 
 from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
 
 from eave.collectors.core.datastructures import HttpServerEventPayload
+from eave.stdlib.logging import LOGGER, LogContext
 
 from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 
 
 class HttpServerEventsTableHandle(BigQueryTableHandle):
     table_def = BigQueryTableDefinition(
-        table_id="atoms_http_server_events",
-        schema=[
+        table_id="atoms_http_server_events_v1",
+        schema=(
             SchemaField(
                 name="request_method",
                 field_type=StandardSqlTypeNames.STRING,
@@ -34,17 +36,21 @@ class HttpServerEventsTableHandle(BigQueryTableHandle):
             SchemaField(
                 name="timestamp",
                 field_type=StandardSqlTypeNames.TIMESTAMP,
-                mode=BigQueryFieldMode.REQUIRED,
+                mode=BigQueryFieldMode.NULLABLE,
             ),
-        ],
+            SchemaField(
+                name="insert_timestamp",
+                field_type=StandardSqlTypeNames.TIMESTAMP,
+                mode=BigQueryFieldMode.NULLABLE,
+                default_value_expression="CURRENT_TIMESTAMP",
+            ),
+        ),
     )
 
     async def create_vevent_view(self, *, request_method: str, request_url: str) -> None:
         pass
         # vevent_readable_name = make_virtual_event_readable_name(operation=operation, table_name=source_table)
-        # vevent_view_id = "events_{event_name}".format(
-        #     event_name=tableize(vevent_readable_name),
-        # )
+        # vevent_view_id = tableize(vevent_readable_name)
 
         # async with database.async_session.begin() as db_session:
         #     vevent_query = await VirtualEventOrm.query(
@@ -88,7 +94,7 @@ class HttpServerEventsTableHandle(BigQueryTableHandle):
         #         )
 
     @override
-    async def insert(self, events: list[dict[str, Any]]) -> None:
+    async def insert(self, events: list[dict[str, Any]], ctx: LogContext) -> None:
         if len(events) == 0:
             return
 
@@ -98,23 +104,31 @@ class HttpServerEventsTableHandle(BigQueryTableHandle):
             dataset_id=self.team.bq_dataset_id,
         )
 
-        table = self._bq_client.get_or_create_table(
+        table = self._bq_client.get_and_sync_or_create_table(
             dataset_id=dataset.dataset_id,
             table_id=self.table_def.table_id,
             schema=self.table_def.schema,
+            ctx=ctx,
         )
 
         unique_operations: set[tuple[str, str]] = set()
         formatted_rows: list[dict[str, Any]] = []
 
+        insert_timestamp = time.time()
+
         for e in http_server_events:
             unique_operations.add((e.request_method, e.request_url))
-            formatted_rows.append(e.to_dict())
+            row = e.to_dict()
+            row["insert_timestamp"] = insert_timestamp
+            formatted_rows.append(row)
 
-        self._bq_client.append_rows(
+        errors = self._bq_client.append_rows(
             table=table,
             rows=formatted_rows,
         )
+
+        if len(errors) > 0:
+            LOGGER.warning("BigQuery insert errors", {"errors": cast(list, errors)}, ctx)
 
         # FIXME: This is vulnerable to a DoS
         for request_method, request_url in unique_operations:

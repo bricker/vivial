@@ -34,7 +34,6 @@
     "supertest": "7.x",
     "tsx": "3.x",
     "typescript": "5.x",
-    "yalc": "^1.0.0-pre.53",
     "mocha": "10.x"
   },
   "prettier": "./develop/javascript/es-config/prettier",

@@ -1,8 +1,4 @@
-import {
-  isHTTPError,
-  isUnauthorized,
-  logUserOut,
-} from "$eave-dashboard/js/util/http-util";
+import { isHTTPError, isUnauthorized, logUserOut } from "$eave-dashboard/js/util/http-util";
 import { useState } from "react";
 
 export interface AuthedUserHook {

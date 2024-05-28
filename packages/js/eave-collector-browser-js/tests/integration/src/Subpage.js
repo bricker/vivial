@@ -1,6 +1,7 @@
-import logo from './logo.svg';
-import {  Link } from 'react-router-dom';
-import './App.css';
+import React from "react";
+import { Link } from "react-router-dom";
+import "./App.css";
+import logo from "./logo.svg.tsx";
 
 function Subpage() {
   return (
@@ -10,11 +11,7 @@ function Subpage() {
         <p>
           Edit <code>src/App.js</code> and save to reload.
         </p>
-        <Link
-          id="page-link"
-          className="App-link"
-          to="/"
-        >
+        <Link id="page-link" className="App-link" to="/">
           Go home
         </Link>
       </header>
