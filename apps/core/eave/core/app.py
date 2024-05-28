@@ -212,10 +212,6 @@ routes = [
             is_public=True,
         ),
         endpoint=BrowserDataIngestionEndpoint,
-        # addl_methods=[
-        #     aiohttp.hdrs.METH_HEAD,
-        #     aiohttp.hdrs.METH_OPTIONS,
-        # ],
     ),
     make_route(
         config=CoreApiEndpointConfiguration(

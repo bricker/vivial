@@ -12,32 +12,6 @@ from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, ta
 
 from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 
-# _python_to_sql_type: dict[type, str] = {
-#     str: StandardSqlTypeNames.STRING,
-#     float: StandardSqlTypeNames.TIMESTAMP,
-#     dict: StandardSqlTypeNames.JSON,
-# }
-
-# def _make_schema_from_annotations(type_: type[EventPayload]) -> list[SchemaField]:
-#     fields: list[SchemaField] = []
-#     for name, annotype in type_.__annotations__.items():
-#         args = get_args(annotype)
-
-#         if len(args) > 0:
-#             real_type = args[0]
-#         else:
-#             real_type = annotype
-
-#         fields.append(
-#             SchemaField(
-#                 name=name,
-#                 field_type=_python_to_sql_type.get(real_type, StandardSqlTypeNames.STRING),
-#                 mode=BigQueryFieldMode.NULLABLE,
-#             )
-#         )
-
-#     return fields
-
 class DatabaseEventsTableHandle(BigQueryTableHandle):
     table_def = BigQueryTableDefinition(
         table_id="atoms_db_events_v1",
