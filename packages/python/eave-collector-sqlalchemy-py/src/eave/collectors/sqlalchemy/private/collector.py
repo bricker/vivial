@@ -16,7 +16,12 @@ from sqlalchemy.event import (
 )
 from sqlalchemy.ext.asyncio import AsyncEngine
 
-from eave.collectors.core.base_collector import BaseCollector
+from eave.collectors.core.base_database_collector import (
+    BaseDatabaseCollector,
+    is_field_of_interest,
+    is_user_table,
+    save_identification_data,
+)
 from eave.collectors.core.correlation_context import corr_ctx
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure
 from eave.collectors.core.write_queue import WriteQueue
@@ -24,7 +29,7 @@ from eave.collectors.core.write_queue import WriteQueue
 type SupportedEngine = sqlalchemy.Engine | AsyncEngine
 
 
-class SQLAlchemyCollector(BaseCollector):
+class SQLAlchemyCollector(BaseDatabaseCollector):
     _event_listeners: list[tuple[weakref.ReferenceType[sqlalchemy.Engine], str, Callable[..., Any]]]
     _db_metadata: sqlalchemy.MetaData | None
 
@@ -119,18 +124,49 @@ class SQLAlchemyCollector(BaseCollector):
 
         tablename = "__unknown"
 
-        if isinstance(clauseelement, (sqlalchemy.Insert, sqlalchemy.Update, sqlalchemy.Delete)):
-            if isinstance(clauseelement.table, sqlalchemy.Table):
+        if isinstance(clauseelement, (sqlalchemy.Select, sqlalchemy.Insert, sqlalchemy.Update, sqlalchemy.Delete)):
+            if isinstance(clauseelement, sqlalchemy.Select):
+                # attempt to get table name from a FromClause
+                # (this doesnt really work for complex select statements w/ joins)
+                from_clause = clauseelement.get_final_froms()
+                if len(from_clause) > 0:
+                    candidate_name = getattr(from_clause[0], "name", None)
+                    if candidate_name is not None:
+                        tablename = candidate_name
+            elif isinstance(clauseelement.table, sqlalchemy.Table):
                 tablename = clauseelement.table.fullname
+
+            if isinstance(clauseelement, sqlalchemy.Select):
+                for idx, rparam in enumerate(rparams):
+                    compiled_clause = clauseelement.compile()
+                    statement_params = rparam or dict(compiled_clause.params)
+
+                    self._save_user_id(tablename, clauseelement, rparam)
+
+                    record = DatabaseEventPayload(
+                        timestamp=time.time(),
+                        db_structure=DatabaseStructure.SQL,
+                        operation=DatabaseOperation.SELECT,
+                        db_name=conn.engine.url.database,
+                        statement=compiled_clause.string,
+                        table_name=tablename,
+                        parameters=statement_params,
+                        context=corr_ctx.to_dict(),
+                    )
+
+                    self.write_queue.put(record)
 
             if isinstance(clauseelement, sqlalchemy.Insert):
                 for idx, rparam in enumerate(rparams):
-                    pkey = None
+                    pkeys = None
                     if isinstance(result, sqlalchemy.CursorResult) and len(result.inserted_primary_key_rows) > idx:
                         row = result.inserted_primary_key_rows[idx]
-                        pkey = list(row.tuple())
+                        pkeys = list(row.tuple())
 
-                    rparam["__primary_key"] = pkey
+                    rparam["__primary_key"] = pkeys
+
+                    if pkeys and len(pkeys) > 0:
+                        save_identification_data(table_name=tablename, primary_key=str(pkeys[0]))
 
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
@@ -144,10 +180,11 @@ class SQLAlchemyCollector(BaseCollector):
                     )
 
                     self.write_queue.put(record)
-                    return
 
             elif isinstance(clauseelement, sqlalchemy.Update):
                 for idx, rparam in enumerate(rparams):
+                    self._save_user_id(tablename, clauseelement, rparam)
+
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
                         db_structure=DatabaseStructure.SQL,
@@ -175,3 +212,37 @@ class SQLAlchemyCollector(BaseCollector):
                     )
 
                     self.write_queue.put(record)
+
+    def _save_user_id(
+        self, tablename: str, clauseelement: sqlalchemy.Select | sqlalchemy.Update, params: dict[str, Any]
+    ) -> None:
+        """
+        If the `tablename` the `clauseelement` is acting on is of interest (aka a user table),
+        search the statement WHERE clause for a user ID column comparison to extract the
+        compared ID value from, and save that value to the correlation context.
+        """
+        if is_user_table(tablename):
+            compiled_clause = clauseelement.compile()
+            statement_params = params or dict(compiled_clause.params)
+            # try to extract current user's ID from where clause
+            where_clause = clauseelement.whereclause
+            if where_clause is not None:
+                # extract terms as list of binary expressions
+                if isinstance(where_clause, sqlalchemy.BooleanClauseList):
+                    where_clause = list(where_clause)
+                else:
+                    where_clause = [where_clause]
+
+                for expr in where_clause:
+                    if not (isinstance(expr, sqlalchemy.BinaryExpression) and isinstance(expr.left, sqlalchemy.Column)):
+                        # we only care about binary expressions comparing columns to a value
+                        continue
+                    field_name = expr.left.name
+                    if is_field_of_interest(field_name):
+                        # strip leading colon off param key (e.g. :id_1 -> id_1)
+                        param_key = str(expr.right).lstrip(":")
+                        param_value = statement_params.get(param_key, None)
+                        if param_value is not None:
+                            # make sure the field actually corresponds to the table we're interested in
+                            field_table = expr.left.table.name
+                            save_identification_data(table_name=field_table, primary_key=param_value)

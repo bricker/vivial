@@ -2,11 +2,17 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+from eave.collectors.django_orm import DjangoOrmCollectorManager
 
 
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'eave_django_playground.settings')
+
+    # instrument once settings module env var is configured
+    # (dummy instrumentation location; this file won't be run in a prod env)
+    DjangoOrmCollectorManager.start()
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

@@ -3,6 +3,7 @@ import time
 from typing import Any, cast, override
 
 from eave.stdlib.logging import LOGGER, LogContext
+from eave.stdlib.typing import JsonObject
 from google.cloud.bigquery import SchemaField, SqlTypeNames, StandardSqlTypeNames
 
 from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
@@ -298,13 +299,16 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                 field_type=StandardSqlTypeNames.JSON,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
-
             SchemaField(
                 name="client_ip",
                 field_type=SqlTypeNames.STRING,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
-
+            SchemaField(
+                name="context",
+                field_type=StandardSqlTypeNames.JSON,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
             SchemaField(
                 name="insert_timestamp",
                 field_type=SqlTypeNames.TIMESTAMP,
@@ -359,6 +363,9 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
         #             readable_name=vevent_readable_name,
         #             description=f"{operation} operation on the {source_table} table.",
         #         )
+
+    async def insert(self, events: list[dict[str, Any]], ctx: LogContext) -> None:
+        await self.insert_with_client_ip(events, client_ip=None, ctx=ctx)
 
     async def insert_with_client_ip(self, events: list[dict[str, Any]], client_ip: str | None, ctx: LogContext) -> None:
         if len(events) == 0:
