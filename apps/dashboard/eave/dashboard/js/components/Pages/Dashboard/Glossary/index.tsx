@@ -150,6 +150,7 @@ const Glossary = () => {
   const [selectedEvent, setSelectedEvent] = useState<VirtualEvent | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
+  const [timer, setTimer] = useState<NodeJS.Timeout | undefined>(undefined);
   const { team, getTeamVirtualEvents } = useTeam();
 
   const { glossaryNetworkStateCtx } = useContext(AppContext);
@@ -185,10 +186,22 @@ const Glossary = () => {
     panelClasses.push(classes.panelFullScreen);
   }
 
+  // debounced search on typing (only search if there is sarchValue and len >= 3)
+  const debouncedFilterEventsOnType = (searchTerm: string) => {
+    clearTimeout(timer); // TODO: deos timer need to be stat hook? will reseting it on every useEffect change of searchValue lead to extra re-renderings?
+    setTimer(
+      setTimeout(() => {
+        if (!searchTerm || searchTerm.length < 3) {
+          return;
+        }
+        getTeamVirtualEvents({ search_term: searchTerm });
+      }, 500),
+    );
+  };
+
   // perform search for events
   useEffect(() => {
-    setIsOpen(false);
-    getTeamVirtualEvents(searchValue ? { search_term: searchValue } : null);
+    debouncedFilterEventsOnType(searchValue);
   }, [searchValue]);
 
   // factored out as it's used in both the row onClick and onKeyPress actions
