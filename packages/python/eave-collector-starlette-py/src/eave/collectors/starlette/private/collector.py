@@ -246,7 +246,7 @@ class EaveASGIMiddleware:
             req_url = remove_url_credentials(http_url)
             self.write_queue.put(
                 HttpServerEventPayload(
-                    timestamp=time.time() * 1000,
+                    timestamp=time.time(),
                     request_method=req_method,
                     request_url=req_url,
                     request_headers=dict(request.headers.items()),
@@ -281,7 +281,7 @@ class EaveASGIMiddleware:
                         pass
                     self.write_queue.put(
                         HttpServerEventPayload(
-                            timestamp=time.time() * 1000,
+                            timestamp=time.time(),
                             request_method=req_method,
                             request_url=req_url,
                             request_headers=headers_ref[0],

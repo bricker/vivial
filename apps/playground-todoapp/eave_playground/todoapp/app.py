@@ -1,4 +1,5 @@
 import logging
+from eave.collectors.starlette import StarletteCollectorManager
 import google.cloud.logging
 import contextlib
 import os
@@ -21,6 +22,8 @@ from .orm import TodoListItemOrm, UserOrm, async_engine, async_session
 _COOKIE_PREFIX = "todoapp."
 _USER_ID_COOKIE_NAME = f"{_COOKIE_PREFIX}user_id"
 _USER_NAME_COOKIE_NAME = f"{_COOKIE_PREFIX}user_name"
+_VISITOR_ID_COOKIE_NAME = f"{_COOKIE_PREFIX}visitor_id"
+_UTM_PARAMS_COOKIE_NAME = f"{_COOKIE_PREFIX}utm_params"
 
 if os.getenv("EAVE_ENV", "development") == "production":
     # https://cloud.google.com/python/docs/reference/logging/latest/std-lib-integration
@@ -102,8 +105,8 @@ async def login(request: Request) -> Response:
         if not user:
             user = UserOrm(
                 username=username,
-                visitor_id=request.cookies.get("visitor_id"),
-                utm_params=request.cookies.get("utm_params"),
+                visitor_id=request.cookies.get(_VISITOR_ID_COOKIE_NAME),
+                utm_params=request.cookies.get(_UTM_PARAMS_COOKIE_NAME),
             )
             session.add(user)
             await session.commit()
@@ -175,3 +178,5 @@ app = Starlette(
     ],
     lifespan=lifespan,
 )
+
+# StarletteCollectorManager.start(app)

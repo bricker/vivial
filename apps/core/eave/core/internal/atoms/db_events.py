@@ -1,6 +1,6 @@
 from textwrap import dedent
 import time
-from typing import Any, Type, get_args, override
+from typing import Any, Type, cast, get_args, override
 
 from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
 
@@ -178,10 +178,13 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
                     # TODO: handle noSQL
                     raise NotImplementedError("noSQL not implemented")
 
-        self._bq_client.append_rows(
+        errors = self._bq_client.append_rows(
             table=table,
             rows=formatted_rows,
         )
+
+        if len(errors) > 0:
+            LOGGER.warning("BigQuery insert errors", { "errors": cast(list, errors)}, ctx)
 
         # FIXME: This is vulnerable to a DoS where unique `table_name` is generated and inserted on a loop.
         for operation, table_name in unique_operations:

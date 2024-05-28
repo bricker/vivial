@@ -32,7 +32,7 @@ class BigQueryClient:
         return r
 
     def get_and_sync_or_create_table(
-        self, *, dataset_id: str, table_id: str, schema: list[bigquery.SchemaField], ctx: LogContext,
+        self, *, dataset_id: str, table_id: str, schema: tuple[bigquery.SchemaField, ...], ctx: LogContext,
     ) -> bigquery.Table:
         local_table = self._construct_table(dataset_id=dataset_id, table_id=table_id)
 

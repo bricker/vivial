@@ -133,7 +133,7 @@ class SQLAlchemyCollector(BaseCollector):
                     rparam["__primary_key"] = pkey
 
                     record = DatabaseEventPayload(
-                        timestamp=time.time() * 1000,
+                        timestamp=time.time(),
                         db_structure=DatabaseStructure.SQL,
                         operation=DatabaseOperation.INSERT,
                         db_name=conn.engine.url.database,
@@ -149,7 +149,7 @@ class SQLAlchemyCollector(BaseCollector):
             elif isinstance(clauseelement, sqlalchemy.Update):
                 for idx, rparam in enumerate(rparams):
                     record = DatabaseEventPayload(
-                        timestamp=time.time() * 1000,
+                        timestamp=time.time(),
                         db_structure=DatabaseStructure.SQL,
                         operation=DatabaseOperation.UPDATE,
                         db_name=conn.engine.url.database,
@@ -164,7 +164,7 @@ class SQLAlchemyCollector(BaseCollector):
             elif isinstance(clauseelement, sqlalchemy.Delete):
                 for idx, rparam in enumerate(rparams):
                     record = DatabaseEventPayload(
-                        timestamp=time.time() * 1000,
+                        timestamp=time.time(),
                         db_structure=DatabaseStructure.SQL,
                         operation=DatabaseOperation.DELETE,
                         db_name=conn.engine.url.database,
