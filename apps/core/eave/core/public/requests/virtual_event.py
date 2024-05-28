@@ -20,7 +20,7 @@ class GetVirtualEventsEndpoint(HTTPEndpoint):
             vevents = await VirtualEventOrm.query(
                 session=db_session,
                 params=VirtualEventOrm.QueryParams(
-                    readable_name=input.virtual_events.search_term if input.virtual_events else None,
+                    search_query=input.virtual_events.search_term if input.virtual_events else None,
                     team_id=ensure_uuid(ctx.eave_authed_team_id),
                 ),
             )

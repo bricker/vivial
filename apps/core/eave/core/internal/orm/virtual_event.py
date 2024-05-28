@@ -1,10 +1,11 @@
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Self, Tuple
+from typing import Self
 from uuid import UUID
 
 from sqlalchemy import Index, ScalarResult, Select, func, select, text
+import sqlalchemy
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -79,11 +80,11 @@ class VirtualEventOrm(Base):
             lookup = lookup.where(cls.readable_name == params.readable_name)
 
         if params.search_query is not None:
-            ## trigram
-            lookup = lookup.order_by(
-                text("similarity(readable_name, :search_query) desc").bindparams(search_query=params.search_query)
-
+            ## TODO: test
+            lookup = lookup.where(
+                cls.readable_name.like(text("%:search_query%").bindparams(search_query=params.search_query))
             )
+            lookup = lookup.order_by(sqlalchemy.desc(func.similarity(cls.readable_name, params.search_query)))
 
         if params.view_id is not None:
             lookup = lookup.where(cls.view_id == params.view_id)
