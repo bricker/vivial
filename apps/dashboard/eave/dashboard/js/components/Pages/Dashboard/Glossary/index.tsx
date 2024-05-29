@@ -191,7 +191,13 @@ const Glossary = () => {
     clearTimeout(timer); // TODO: deos timer need to be stat hook? will reseting it on every useEffect change of searchValue lead to extra re-renderings?
     setTimer(
       setTimeout(() => {
-        if (!searchTerm || searchTerm.length < 3) {
+        if (!searchTerm) {
+          // refresh results w/ all events when search bar is emptied
+          getTeamVirtualEvents(null);
+          return;
+        }
+        if (searchTerm.length < 3) {
+          // wait for min 3 chars to be typed before doing a search
           return;
         }
         getTeamVirtualEvents({ search_term: searchTerm });

@@ -87,13 +87,12 @@ async def seed_table_entries_for_team(team_id: uuid.UUID, row: int, session: Asy
             description=rand_desc,
         )
 
-    await VirtualEventOrm.query(session=session, params=VirtualEventOrm.QueryParams(team_id=team_id))
-
 
 async def seed_database(db: AsyncEngine, team_id: uuid.UUID | None = None) -> None:
     session = AsyncSession(db)
 
-    num_rows = 100
+    # only need to create entries for 1 team if team_id to seed is provided
+    num_rows = 100 if team_id is None else 1
 
     # setup progress bar
     curr_progress = f"[0/{num_rows}] :: Seconds remaining: ???"
@@ -155,9 +154,12 @@ async def main() -> None:
     eaveLogger.fprint(logging.INFO, f"> GOOGLE_CLOUD_PROJECT: {_GOOGLE_CLOUD_PROJECT}")
     eaveLogger.fprint(logging.INFO, f"> Target Database: {seed_db.url.database}")
     eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {seed_db.url}")
-    eaveLogger.fprint(
-        logging.WARNING, f"\nThis script will insert junk seed data into the {seed_db.url.database} database."
-    )
+    if args.team_id:
+        eaveLogger.fprint(logging.WARNING, f"\nThis script will insert junk seed data for the {args.team_id} team.")
+    else:
+        eaveLogger.fprint(
+            logging.WARNING, f"\nThis script will insert junk seed data into the {seed_db.url.database} database."
+        )
 
     answer = input(
         eaveLogger.f(
