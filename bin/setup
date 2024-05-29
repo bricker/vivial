@@ -266,6 +266,23 @@ function installshellcheck() (
 	fi
 )
 
+function installcerts() (
+	statusmsg -pa "Creating/installing self-signed dev certs."
+	if ^confirm; then
+		if cd "${EAVE_HOME}/develop/certs"; then
+			statusmsg -e "Failed to enter ${EAVE_HOME}/develop/certs/ directory. It may have moved?"
+			statusmsg -w "Running Eave web app locally may not work as expected until dev certs are installed"
+			exit 1
+		fi
+		# delete old certs, if any
+		rm -rf "eave-run/"
+		# gen new certs
+		./bin/make-cert -n eave-run -d eave.run -s api -s dashboard -s api.internal -s embed
+		# install to machine (browser may require extra steps)
+		./bin/install-certs
+	fi
+)
+
 function setupapps() (
 	statusmsg -pa "Running setup scripts in develop, libs, packages, and apps."
 
@@ -294,9 +311,11 @@ function main() (
 	while getopts "fyh" argname; do
 		case "$argname" in
 		f)
-			export FORCE=1 ;;
+			export FORCE=1
+			;;
 		y)
-			export NOPROMPT=1 ;;
+			export NOPROMPT=1
+			;;
 		h)
 			^helpmsg
 			exit 0
@@ -325,6 +344,7 @@ function main() (
 	installterraform
 	installshfmt
 	installshellcheck
+	installcerts
 	setupapps
 
 	statusmsg -s "Done!"
