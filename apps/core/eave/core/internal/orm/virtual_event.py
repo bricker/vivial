@@ -80,12 +80,11 @@ class VirtualEventOrm(Base):
             lookup = lookup.where(cls.readable_name == params.readable_name)
 
         if params.search_query is not None:
-            # TODO: test + make sure `like` is case insensitive (or use ilike)
+            # TODO: unit test
             lookup = lookup.where(
-                cls.readable_name.like(f"%{params.search_query}%") #.bindparams(search_query=params.search_query))
+                cls.readable_name.ilike(f"%{params.search_query}%")
             )
             # lookup = lookup.order_by(sqlalchemy.desc(func.similarity(cls.readable_name, params.search_query))) # similarity not installed on my db
-            print(params.team_id)
 
         if params.view_id is not None:
             lookup = lookup.where(cls.view_id == params.view_id)
