@@ -4,6 +4,10 @@ set -eu
 
 source "$EAVE_HOME"/develop/functions.bash
 
+#
+# Usage:
+# ./bin/make-cert -n eave-run -d eave.run -s api -s dashboard -s api.internal -s embed
+#
 function make-cert() (
 	local organization="Eave Technologies, Inc"
 	local organizationalUnitName="Local Development"
