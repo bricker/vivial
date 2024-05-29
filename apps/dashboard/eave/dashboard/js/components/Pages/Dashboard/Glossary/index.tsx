@@ -7,7 +7,7 @@ import { theme as eaveTheme } from "$eave-dashboard/js/theme";
 import { VirtualEvent } from "$eave-dashboard/js/types.js";
 import { CircularProgress } from "@mui/material";
 import classNames from "classnames";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import { makeStyles } from "tss-react/mui";
 
 const makeClasses = makeStyles<void, "hoverIcon">()(
@@ -150,7 +150,6 @@ const Glossary = () => {
   const [selectedEvent, setSelectedEvent] = useState<VirtualEvent | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
-  const [timer, setTimer] = useState<NodeJS.Timeout | undefined>(undefined);
   const { team, getTeamVirtualEvents } = useTeam();
 
   const { glossaryNetworkStateCtx } = useContext(AppContext);
@@ -186,24 +185,30 @@ const Glossary = () => {
     panelClasses.push(classes.panelFullScreen);
   }
 
-  // debounced search on typing (only search if there is sarchValue and len >= 3)
-  const debouncedFilterEventsOnType = (searchTerm: string) => {
-    clearTimeout(timer); // TODO: deos timer need to be stat hook? will reseting it on every useEffect change of searchValue lead to extra re-renderings?
-    setTimer(
-      setTimeout(() => {
-        if (!searchTerm) {
-          // refresh results w/ all events when search bar is emptied
-          getTeamVirtualEvents(null);
-          return;
-        }
-        if (searchTerm.length < 3) {
-          // wait for min 3 chars to be typed before doing a search
-          return;
-        }
-        getTeamVirtualEvents({ search_term: searchTerm });
-      }, 500),
-    );
-  };
+  // useCallback to preserve timer variable across renders
+  const debouncedFilterEventsOnType = useCallback(
+    (() => {
+      const halfSecondMs = 500;
+      let timer: NodeJS.Timeout | undefined = undefined;
+
+      return (searchTerm: string) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          if (!searchTerm) {
+            // refresh results w/ all events when search bar is emptied
+            getTeamVirtualEvents(null);
+            return;
+          }
+          if (searchTerm.length < 3) {
+            // wait for min 3 chars to be typed before doing a search
+            return;
+          }
+          getTeamVirtualEvents({ search_term: searchTerm });
+        }, halfSecondMs);
+      };
+    })(),
+    [],
+  );
 
   // perform search for events
   useEffect(() => {
