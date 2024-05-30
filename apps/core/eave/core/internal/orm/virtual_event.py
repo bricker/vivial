@@ -68,7 +68,7 @@ class VirtualEventOrm(Base):
 
     @classmethod
     def _build_query(cls, params: QueryParams) -> Select[tuple[Self]]:
-        lookup = select(cls).order_by(cls.readable_name) # TODO: is double ordering going to be a problem? should we uinque by the readbale_name instead?
+        lookup = select(cls).order_by(cls.readable_name)
 
         if params.id is not None:
             lookup = lookup.where(cls.id == params.id)
@@ -80,11 +80,9 @@ class VirtualEventOrm(Base):
             lookup = lookup.where(cls.readable_name == params.readable_name)
 
         if params.search_query is not None:
-            # TODO: unit test
             lookup = lookup.where(
                 cls.readable_name.ilike(f"%{params.search_query}%")
             )
-            # lookup = lookup.order_by(sqlalchemy.desc(func.similarity(cls.readable_name, params.search_query))) # similarity not installed on my db
 
         if params.view_id is not None:
             lookup = lookup.where(cls.view_id == params.view_id)
