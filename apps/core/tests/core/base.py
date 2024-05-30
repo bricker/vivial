@@ -201,7 +201,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         return response
 
     async def make_team(self, session: AsyncSession) -> TeamOrm:
-        team = await TeamOrm.create(session=session, name=self.anystr(), allowed_origins_csv="eave.tests")
+        team = await TeamOrm.create(session=session, name=self.anystr(), allowed_origins=["eave.tests"])
 
         return team
 
