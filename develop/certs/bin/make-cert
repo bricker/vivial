@@ -31,15 +31,15 @@ function make-cert() (
 	dest="./$name"
 	mkdir "$dest"
 
-	local numSubdomains=${#subdomains[@]}
-	local subjectAltName=""
-	for i in "${!subdomains[@]}"; do
-		local subdomain=${subdomains[$i]}
-		subjectAltName="${subjectAltName}DNS:$subdomain.$domain"
-		if test $(("$i" + 1)) -lt "$numSubdomains"; then
-			subjectAltName="$subjectAltName,"
-		fi
-	done
+	# local numSubdomains=${#subdomains[@]}
+	local subjectAltName="DNS:*.$domain"
+	# for i in "${!subdomains[@]}"; do
+	# 	local subdomain=${subdomains[$i]}
+	# 	subjectAltName="${subjectAltName}DNS:$subdomain.$domain"
+	# 	if test $(("$i" + 1)) -lt "$numSubdomains"; then
+	# 		subjectAltName="$subjectAltName,"
+	# 	fi
+	# done
 
 	# Note: Wildcard Common Name can't be used here as Chrome doesn't support it.
 	# "subjectAltName" has to be used and explicitly define each subdomain.

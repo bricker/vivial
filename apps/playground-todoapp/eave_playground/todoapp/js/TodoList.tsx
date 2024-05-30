@@ -2,22 +2,18 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styles from "./TodoList.module.css";
-import { TodoListItem } from "./types.js";
-
-function parseCookies() {
-  const newCookieString = document.cookie.replaceAll(/; ?/g, "&");
-  return new URLSearchParams(newCookieString);
-}
+import { COOKIE_PREFIX, getCookie } from "./cookies";
+import { TodoListItem } from "./types";
 
 const TodoList = () => {
-  const cookies = parseCookies();
-  const userId = cookies.get("user_id");
+  const userId = getCookie(`${COOKIE_PREFIX}user_id`);
+
   if (!userId) {
     window.location.assign("/login");
     return;
   }
 
-  const username = cookies.get("user_name");
+  const username = getCookie(`${COOKIE_PREFIX}user_name`);
 
   const [todos, setTodos] = useState<TodoListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -103,8 +99,7 @@ const TodoList = () => {
     <div className={styles.todoList}>
       <h2 className={styles.title}>TODO List</h2>
       <p>
-        Logged in as <strong>{username}</strong> (
-        <Link to="/login">Change</Link>)
+        Logged in as <strong>{username}</strong> (<Link to="/login">Change</Link>)
       </p>
 
       {loading ? (
@@ -132,35 +127,29 @@ const TodoList = () => {
                   <>
                     <input
                       type="text"
+                      autoFocus
                       value={editText}
                       onChange={(e) => setEditText(e.target.value)}
                       className={styles.editInput}
                     />
-                    <button
-                      onClick={() => updateTodo(todo)}
-                      className={styles.saveButton}
-                    >
+                    <button onClick={() => updateTodo(todo)} className={styles.saveButton}>
                       Save
                     </button>
-                    <button
-                      onClick={cancelEdit}
-                      className={styles.cancelButton}
-                    >
+                    <button onClick={cancelEdit} className={styles.cancelButton}>
                       Cancel
                     </button>
                   </>
                 ) : (
                   <>
                     <span
-                      onClick={() => handleEdit(todo, todo.text)}
+                      onClick={() => {
+                        handleEdit(todo, todo.text);
+                      }}
                       className={styles.todoText}
                     >
                       {todo.text}
                     </span>
-                    <button
-                      onClick={() => removeTodo(todo)}
-                      className={styles.removeButton}
-                    >
+                    <button onClick={() => removeTodo(todo)} className={styles.removeButton}>
                       Remove
                     </button>
                   </>

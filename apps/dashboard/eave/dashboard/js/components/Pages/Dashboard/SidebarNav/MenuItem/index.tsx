@@ -43,9 +43,7 @@ const MenuItem = ({
 }) => {
   const { classes } = makeClasses();
 
-  const background = selected
-    ? classes.selectedBackground
-    : classes.unselectedBackground;
+  const background = selected ? classes.selectedBackground : classes.unselectedBackground;
 
   return (
     <Link

@@ -9,7 +9,10 @@ variable "MB_INSTANCE_SECRETS" {
 }
 
 variable "PLAYGROUND_TODOAPP_EAVE_CREDENTIALS" {
-  type      = string
+  type = object({
+    SERVER_CREDENTIALS = string,
+    CLIENT_ID          = string,
+  })
   sensitive = true
 }
 

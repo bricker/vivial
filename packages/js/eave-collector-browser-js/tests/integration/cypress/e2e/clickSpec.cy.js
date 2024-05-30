@@ -1,8 +1,5 @@
-/* eslint-disable no-unused-expressions */
-import {
-  ATOM_INTERCEPTION_EVENT_NAME,
-  dummyAppRoot,
-} from "../support/constants";
+import { describe, expect, it } from "mocha";
+import { ATOM_INTERCEPTION_EVENT_NAME, dummyAppRoot } from "../support/constants";
 
 describe("eave click atom collection", () => {
   it("fires atom on button tag click", () => {
@@ -36,9 +33,7 @@ describe("eave click atom collection", () => {
 
     // THEN a link click event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response.body.data.link).to.deep.equal(
-        "https://google.com/",
-      );
+      expect(interception.response.body.data.link).to.deep.equal("https://google.com/");
     });
   });
 
@@ -77,9 +72,7 @@ describe("eave click atom collection", () => {
       expect(interception.response.body.data.type).to.deep.equal("internal");
     });
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response.body.data.data.event).to.match(
-        /HistoryChange/,
-      );
+      expect(interception.response.body.data.data.event).to.match(/HistoryChange/);
     });
   });
 
@@ -97,9 +90,7 @@ describe("eave click atom collection", () => {
     // THEN a link atom is fired, since link click atoms have priority over button click atoms
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       expect(interception.response).to.exist;
-      expect(interception.response.body.data.link).to.deep.equal(
-        "https://google.com/",
-      );
+      expect(interception.response.body.data.link).to.deep.equal("https://google.com/");
     });
   });
 

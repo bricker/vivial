@@ -1,8 +1,6 @@
 /* eslint-disable no-unused-expressions */
-import {
-  ATOM_INTERCEPTION_EVENT_NAME,
-  dummyAppRoot,
-} from "../support/constants";
+import { describe, expect, it } from "mocha";
+import { ATOM_INTERCEPTION_EVENT_NAME, dummyAppRoot } from "../support/constants";
 
 describe("eave UTM and query parameter collection", () => {
   it("includes query params in every atom", () => {
@@ -25,9 +23,7 @@ describe("eave UTM and query parameter collection", () => {
         utm_campaign: "gogole",
       });
       // saved referrer storage
-      expect(
-        interception.response.body.data._eave_referrer_query_params,
-      ).to.deep.equal({
+      expect(interception.response.body.data._eave_referrer_query_params).to.deep.equal({
         utm_source: "tickletok",
         utm_campaign: "gogole",
       });
@@ -53,12 +49,8 @@ describe("eave UTM and query parameter collection", () => {
 
     // THEN query/utm params are still included in the following event
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response.body.data.data.event).to.match(
-        /HistoryChange/,
-      );
-      expect(
-        interception.response.body.data._eave_referrer_query_params,
-      ).to.deep.equal({
+      expect(interception.response.body.data.data.event).to.match(/HistoryChange/);
+      expect(interception.response.body.data._eave_referrer_query_params).to.deep.equal({
         utm_source: "tickletok",
         utm_campaign: "gogole",
       });
@@ -82,9 +74,7 @@ describe("eave UTM and query parameter collection", () => {
 
     // THEN current query params AND initial saved query/utm params included in the event
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(
-        interception.response.body.data._eave_referrer_query_params,
-      ).to.deep.equal({
+      expect(interception.response.body.data._eave_referrer_query_params).to.deep.equal({
         utm_source: "tickletok",
         utm_campaign: "gogole",
       });
@@ -99,9 +89,7 @@ describe("eave UTM and query parameter collection", () => {
 
     // THEN current query params included in the event, prev qp not included
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(
-        interception.response.body.data._eave_referrer_query_params,
-      ).to.deep.equal({
+      expect(interception.response.body.data._eave_referrer_query_params).to.deep.equal({
         utm_source: "tickletok",
         utm_campaign: "gogole",
       });
@@ -133,8 +121,7 @@ describe("eave UTM and query parameter collection", () => {
         utm_campaign: "gogole",
       });
       // referrer data not set
-      expect(interception.response.body.data._eave_referrer_query_params).to.not
-        .exist;
+      expect(interception.response.body.data._eave_referrer_query_params).to.not.exist;
     });
   });
 });

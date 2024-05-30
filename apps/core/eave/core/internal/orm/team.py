@@ -1,8 +1,11 @@
 from datetime import datetime
 from typing import Self, TypedDict, Unpack
+from urllib.parse import urlparse
 from uuid import UUID
 
-from sqlalchemy import Select, func, select
+import sqlalchemy.dialects.postgresql
+import sqlalchemy.types
+from sqlalchemy import Select, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -18,7 +21,13 @@ class TeamOrm(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=UUID_DEFAULT_EXPR)
     name: Mapped[str]
-    allowed_origins_csv: Mapped[str | None] = mapped_column()
+    allowed_origins: Mapped[list[str]] = mapped_column(
+        type_=sqlalchemy.dialects.postgresql.ARRAY(
+            item_type=sqlalchemy.types.String,
+            dimensions=1,
+        ),
+        server_default=text("'{}'"),
+    )
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -70,10 +79,25 @@ class TeamOrm(Base):
         result = await session.scalar(lookup)
         return result
 
-    @property
-    def allowed_origins(self) -> list[str]:
-        if not self.allowed_origins_csv:
-            return []
+    def origin_allowed(self, origin: str) -> bool:
+        url = urlparse(url=origin)
+        hostname = url.hostname or url.netloc.split(":", maxsplit=1)[0]
+        return any(
+            self._hostname_matches(hostname=hostname, origin_pattern=pattern) for pattern in self.allowed_origins
+        )
 
-        split = ",".split(self.allowed_origins_csv)
-        return [o.strip() for o in split]
+    def _hostname_matches(self, hostname: str, origin_pattern: str) -> bool:
+        if origin_pattern == "*":
+            # All origins allowed.
+            return True
+
+        if origin_pattern.startswith("*."):
+            # Wildcard prefix was given.
+            # Match the base domain with the END of the hostname, eg:
+            #   hostname = dashboard.eave.run
+            #   origin_pattern = *.eave.run
+            basedomain = origin_pattern.removeprefix("*.")
+            return hostname.endswith(basedomain)
+
+        # Otherwise, the hostname must exactly match the origin pattern.
+        return hostname == origin_pattern

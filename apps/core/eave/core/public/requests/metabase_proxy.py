@@ -27,8 +27,8 @@ _METABASE_UI_QP = {
     "side_nav": "false",
     "breadcrumbs": "false",
     "search": "false",
-    "header": "false",
-    "action_buttons": "false",
+    "header": "true",
+    "action_buttons": "true",
 }
 
 _METABASE_SESSION_COOKIE_NAMES = [
@@ -108,8 +108,8 @@ class MetabaseProxyEndpoint(HTTPEndpoint):
 
         LOGGER.info(
             "metabase response",
-            ctx,
             {"mb": {"headers": dict(mb_response.headers), "status": mb_response.status}},
+            ctx,
         )
 
         mb_response = Response(
@@ -180,8 +180,8 @@ class MetabaseAuthEndpoint(HTTPEndpoint):
 
         LOGGER.info(
             "metabase response",
-            ctx,
             {"mb": {"headers": dict(mb_response.headers), "status": mb_response.status}},
+            ctx,
         )
 
         response = RedirectResponse(

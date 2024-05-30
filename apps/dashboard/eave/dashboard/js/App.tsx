@@ -21,15 +21,9 @@ const App = () => {
           </Helmet>
           <BrowserRouter>
             <Routes>
-              <Route
-                path="/signup"
-                element={<AuthenticationPage type="signup" />}
-              />
+              <Route path="/signup" element={<AuthenticationPage type="signup" />} />
 
-              <Route
-                path="/login"
-                element={<AuthenticationPage type="login" />}
-              />
+              <Route path="/login" element={<AuthenticationPage type="login" />} />
 
               <Route path="/insights" element={<Dashboard page="insights" />} />
               <Route path="/glossary" element={<Dashboard page="glossary" />} />

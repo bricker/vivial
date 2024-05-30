@@ -2,13 +2,7 @@ import React from "react";
 
 const SignOutIcon = ({ color = "black" }: { color?: string }) => {
   return (
-    <svg
-      width="48"
-      height="48"
-      viewBox="0 0 48 48"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
+    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
         d="M4 24L2.43826 22.7506L1.43875 24L2.43826 25.2494L4 24ZM22 26C23.1046 26 24 25.1046 24 24C24 22.8954 23.1046 22 22 22V26ZM10.4383 12.7506L2.43826 22.7506L5.56174 25.2494L13.5617 15.2494L10.4383 12.7506ZM2.43826 25.2494L10.4383 35.2494L13.5617 32.7506L5.56174 22.7506L2.43826 25.2494ZM4 26H22V22H4V26Z"
         fill={color}

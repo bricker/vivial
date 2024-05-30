@@ -118,27 +118,13 @@ const AuthenticationPage = ({ type }: { type: "signup" | "login" }) => {
           <>Continue with Google</>
         </Button>
         <Typography className={classes.disclaimer} variant="caption">
-          {!isLoginMode && (
-            <Typography variant="inherit">
-              By clicking “Continue” you agree to Eave's
-            </Typography>
-          )}
+          {!isLoginMode && <Typography variant="inherit">By clicking “Continue” you agree to Eave's</Typography>}
           <Typography variant="inherit">
-            <a
-              className={classes.link}
-              href="/terms"
-              rel="noreferrer"
-              target="_blank"
-            >
+            <a className={classes.link} href="/terms" rel="noreferrer" target="_blank">
               TOS
             </a>{" "}
             and{" "}
-            <a
-              className={classes.link}
-              href="/privacy"
-              rel="noreferrer"
-              target="_blank"
-            >
+            <a className={classes.link} href="/privacy" rel="noreferrer" target="_blank">
               Privacy Policy.
             </a>
           </Typography>

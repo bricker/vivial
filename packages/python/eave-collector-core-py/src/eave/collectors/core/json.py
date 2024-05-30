@@ -2,7 +2,7 @@ import json
 import uuid
 from typing import Any, Union
 
-JsonScalar = str | int | bool | None
+JsonScalar = str | int | float | bool | None
 JsonValue = Union[JsonScalar, "JsonObject", "JsonArray"]
 JsonObject = dict[str, JsonValue]
 JsonArray = list[JsonValue]

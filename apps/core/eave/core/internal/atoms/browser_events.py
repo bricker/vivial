@@ -1,177 +1,296 @@
-import time
-from typing import Any, override
+from typing import Any, cast
 
-from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
+from google.cloud.bigquery import SchemaField, SqlTypeNames, StandardSqlTypeNames
 
-from eave.collectors.core.datastructures import (
-    BrowserEventPayload,
-)
+from eave.stdlib.logging import LOGGER, LogContext
 
 from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 
 
 class BrowserEventsTableHandle(BigQueryTableHandle):
     table_def = BigQueryTableDefinition(
-        table_id="atoms_browser_events",
-        schema=[
+        table_id="atoms_browser_events_v1",
+        schema=(
             SchemaField(
-                name="action_name",
-                field_type=StandardSqlTypeNames.STRING,
+                name="event",
+                field_type=SqlTypeNames.RECORD,
                 mode=BigQueryFieldMode.NULLABLE,
+                fields=(
+                    SchemaField(
+                        name="action",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="timestamp",
+                        field_type=SqlTypeNames.TIMESTAMP,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="origin_elapsed_ms",
+                        field_type=SqlTypeNames.FLOAT,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="target",
+                        field_type=SqlTypeNames.RECORD,
+                        mode=BigQueryFieldMode.NULLABLE,
+                        fields=(
+                            SchemaField(
+                                name="type",
+                                field_type=SqlTypeNames.STRING,
+                                mode=BigQueryFieldMode.NULLABLE,
+                            ),
+                            SchemaField(
+                                name="id",
+                                field_type=SqlTypeNames.STRING,
+                                mode=BigQueryFieldMode.NULLABLE,
+                            ),
+                            SchemaField(
+                                name="text",
+                                field_type=SqlTypeNames.STRING,
+                                mode=BigQueryFieldMode.NULLABLE,
+                            ),
+                            SchemaField(
+                                name="attributes",
+                                field_type=StandardSqlTypeNames.JSON,
+                                mode=BigQueryFieldMode.NULLABLE,
+                            ),
+                        ),
+                    ),
+                ),
             ),
             SchemaField(
-                name="idsite",
-                field_type=StandardSqlTypeNames.STRING,
+                name="session",
+                field_type=SqlTypeNames.RECORD,
                 mode=BigQueryFieldMode.NULLABLE,
+                fields=(
+                    SchemaField(
+                        name="id",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="start_timestamp",
+                        field_type=SqlTypeNames.TIMESTAMP,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="duration_ms",
+                        field_type=SqlTypeNames.INTEGER,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                ),
             ),
             SchemaField(
-                name="h",
-                field_type=StandardSqlTypeNames.STRING,
+                name="user",
+                field_type=SqlTypeNames.RECORD,
                 mode=BigQueryFieldMode.NULLABLE,
+                fields=(
+                    SchemaField(
+                        name="id",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="visitor_id",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                ),
             ),
             SchemaField(
-                name="m",
-                field_type=StandardSqlTypeNames.STRING,
+                name="page",
+                field_type=SqlTypeNames.RECORD,
                 mode=BigQueryFieldMode.NULLABLE,
+                fields=(
+                    SchemaField(
+                        name="current_url",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="current_title",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="pageview_id",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="current_query_params",
+                        field_type=StandardSqlTypeNames.JSON,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                ),
             ),
             SchemaField(
-                name="s",
-                field_type=StandardSqlTypeNames.STRING,
+                name="ua",
+                field_type=SqlTypeNames.RECORD,
                 mode=BigQueryFieldMode.NULLABLE,
+                fields=(
+                    SchemaField(
+                        name="ua_string",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="brands",
+                        field_type=SqlTypeNames.RECORD,
+                        mode=BigQueryFieldMode.REPEATED,
+                        fields=(
+                            SchemaField(
+                                name="brand",
+                                field_type=SqlTypeNames.STRING,
+                                mode=BigQueryFieldMode.NULLABLE,
+                            ),
+                            SchemaField(
+                                name="version",
+                                field_type=SqlTypeNames.STRING,
+                                mode=BigQueryFieldMode.NULLABLE,
+                            ),
+                        ),
+                    ),
+                    SchemaField(
+                        name="platform",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="mobile",
+                        field_type=SqlTypeNames.BOOLEAN,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="form_factor",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="full_version_list",
+                        field_type=SqlTypeNames.RECORD,
+                        mode=BigQueryFieldMode.REPEATED,
+                        fields=(
+                            SchemaField(
+                                name="brand",
+                                field_type=SqlTypeNames.STRING,
+                                mode=BigQueryFieldMode.NULLABLE,
+                            ),
+                            SchemaField(
+                                name="version",
+                                field_type=SqlTypeNames.STRING,
+                                mode=BigQueryFieldMode.NULLABLE,
+                            ),
+                        ),
+                    ),
+                    SchemaField(
+                        name="model",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="platform_version",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                ),
             ),
             SchemaField(
-                name="e_a",
-                field_type=StandardSqlTypeNames.STRING,
+                name="discovery",
+                field_type=SqlTypeNames.RECORD,
                 mode=BigQueryFieldMode.NULLABLE,
+                fields=(
+                    SchemaField(
+                        name="timestamp",
+                        field_type=SqlTypeNames.TIMESTAMP,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="browser_referrer",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="campaign",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="gclid",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="fbclid",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="utm_params",
+                        field_type=StandardSqlTypeNames.JSON,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                ),
             ),
             SchemaField(
-                name="e_c",
-                field_type=StandardSqlTypeNames.STRING,
+                name="screen",
+                field_type=SqlTypeNames.RECORD,
                 mode=BigQueryFieldMode.NULLABLE,
+                fields=(
+                    SchemaField(
+                        name="width",
+                        field_type=SqlTypeNames.INTEGER,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="height",
+                        field_type=SqlTypeNames.INTEGER,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="avail_width",
+                        field_type=SqlTypeNames.INTEGER,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="avail_height",
+                        field_type=SqlTypeNames.INTEGER,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                ),
             ),
             SchemaField(
-                name="e_n",
-                field_type=StandardSqlTypeNames.STRING,
+                name="perf",
+                field_type=SqlTypeNames.RECORD,
                 mode=BigQueryFieldMode.NULLABLE,
+                fields=(
+                    SchemaField(
+                        name="network_latency_ms",
+                        field_type=SqlTypeNames.FLOAT,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="dom_load_latency_ms",
+                        field_type=SqlTypeNames.FLOAT,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                ),
             ),
             SchemaField(
-                name="e_v",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="e_ts",
-                field_type=StandardSqlTypeNames.TIMESTAMP,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="url",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="queryParams",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="_eave_visitor_id",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="_eave_session_id",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="pv_id",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="pf_net",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="pf_srv",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="pf_tfr",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="pf_dm1",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="eaveClientId",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="uadata",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="pdf",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="qt",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="realp",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="wma",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="fla",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="java",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="ag",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="cookie",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="res",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="_extra",
+                name="cookies",
                 field_type=StandardSqlTypeNames.JSON,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
             SchemaField(
-                name="timestamp",
-                field_type=StandardSqlTypeNames.TIMESTAMP,
+                name="extra",
+                field_type=StandardSqlTypeNames.JSON,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="client_ip",
+                field_type=SqlTypeNames.STRING,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
             SchemaField(
@@ -179,15 +298,19 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                 field_type=StandardSqlTypeNames.JSON,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
-        ],
+            SchemaField(
+                name="insert_timestamp",
+                field_type=SqlTypeNames.TIMESTAMP,
+                mode=BigQueryFieldMode.REQUIRED,
+                default_value_expression="CURRENT_TIMESTAMP",
+            ),
+        ),
     )
 
-    async def create_vevent_view(self, *, request_method: str, request_url: str) -> None:
+    async def create_vevent_view(self, *, request_method: str, request_url: str, ctx: LogContext) -> None:
         pass
         # vevent_readable_name = make_virtual_event_readable_name(operation=operation, table_name=source_table)
-        # vevent_view_id = "events_{event_name}".format(
-        #     event_name=tableize(vevent_readable_name),
-        # )
+        # vevent_view_id = tableize(vevent_readable_name)
 
         # async with database.async_session.begin() as db_session:
         #     vevent_query = await VirtualEventOrm.query(
@@ -230,40 +353,40 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
         #             description=f"{operation} operation on the {source_table} table.",
         #         )
 
-    @override
-    async def insert(self, events: list[dict[str, Any]]) -> None:
+    async def insert(self, events: list[dict[str, Any]], ctx: LogContext) -> None:
+        await self.insert_with_client_ip(events, client_ip=None, ctx=ctx)
+
+    async def insert_with_client_ip(self, events: list[dict[str, Any]], client_ip: str | None, ctx: LogContext) -> None:
         if len(events) == 0:
             return
-
-        browser_events = [BrowserEventPayload(**e) for e in events]
 
         dataset = self._bq_client.get_or_create_dataset(
             dataset_id=self.team.bq_dataset_id,
         )
 
-        table = self._bq_client.get_or_create_table(
+        table = self._bq_client.get_and_sync_or_create_table(
             dataset_id=dataset.dataset_id,
             table_id=self.table_def.table_id,
             schema=self.table_def.schema,
+            ctx=ctx,
         )
 
         unique_operations: set[tuple[str, str]] = set()
         formatted_rows: list[dict[str, Any]] = []
 
-        for e in browser_events:
+        for e in events:
             # unique_operations.add((e.request_method, e.request_url))
-            formatted_rows.append(
-                {
-                    "timestamp": time.time(),
-                    **e.to_dict(),
-                }
-            )
+            e["client_ip"] = client_ip
+            formatted_rows.append(e)
 
-        self._bq_client.append_rows(
+        errors = self._bq_client.append_rows(
             table=table,
             rows=formatted_rows,
         )
 
+        if len(errors) > 0:
+            LOGGER.warning("BigQuery insert errors", {"errors": cast(list, errors)}, ctx)
+
         # FIXME: This is vulnerable to a DoS
         for request_method, request_url in unique_operations:
-            await self.create_vevent_view(request_method=request_method, request_url=request_url)
+            await self.create_vevent_view(request_method=request_method, request_url=request_url, ctx=ctx)

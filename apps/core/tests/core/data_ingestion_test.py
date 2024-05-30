@@ -5,7 +5,6 @@ import aiohttp
 from google.cloud import bigquery
 
 from eave.collectors.core.datastructures import (
-    BrowserEventPayload,
     DatabaseEventPayload,
     DatabaseOperation,
     DatabaseStructure,
@@ -160,7 +159,7 @@ class TestDataIngestionEndpoints(BaseTestCase):
                         DatabaseEventPayload(
                             context=None,
                             db_structure=DatabaseStructure.SQL,
-                            timestamp=int(time.time()),
+                            timestamp=time.time(),
                             db_name=self.anystr(),
                             statement="update my_table set a=$1, b=$2;",
                             operation=DatabaseOperation.INSERT,
@@ -173,6 +172,7 @@ class TestDataIngestionEndpoints(BaseTestCase):
                     ],
                     EventType.http_server_event: [
                         HttpServerEventPayload(
+                            timestamp=time.time(),
                             context=None,
                             request_method="GET",
                             request_url="https://api.eave.fyi/status",
@@ -182,6 +182,7 @@ class TestDataIngestionEndpoints(BaseTestCase):
                     ],
                     EventType.http_client_event: [
                         HttpClientEventPayload(
+                            timestamp=time.time(),
                             context=None,
                             request_method="GET",
                             request_url="https://api.eave.fyi/status",
@@ -190,10 +191,12 @@ class TestDataIngestionEndpoints(BaseTestCase):
                         ).to_dict(),
                     ],
                     EventType.browser_event: [
-                        BrowserEventPayload(
-                            context=None,
-                            event="click",
-                        ).to_dict(),
+                        {
+                            "context": None,
+                            "event": {
+                                "action": "click",
+                            },
+                        },
                     ],
                 },
             ).to_dict(),
@@ -222,6 +225,7 @@ class TestDataIngestionEndpoints(BaseTestCase):
                 events={
                     EventType.http_server_event: [  # This should be ignored by the server
                         HttpServerEventPayload(
+                            timestamp=time.time(),
                             context=None,
                             request_method="GET",
                             request_url="https://api.eave.fyi/status",
@@ -230,10 +234,12 @@ class TestDataIngestionEndpoints(BaseTestCase):
                         ).to_dict(),
                     ],
                     EventType.browser_event: [
-                        BrowserEventPayload(
-                            context=None,
-                            event="click",
-                        ).to_dict(),
+                        {
+                            "context": None,
+                            "event": {
+                                "action": "click",
+                            },
+                        },
                     ],
                 },
             ).to_dict(),
@@ -255,10 +261,12 @@ class TestDataIngestionEndpoints(BaseTestCase):
             payload=DataIngestRequestBody(
                 events={
                     EventType.browser_event: [
-                        BrowserEventPayload(
-                            context=None,
-                            event="click",
-                        ).to_dict(),
+                        {
+                            "context": None,
+                            "event": {
+                                "action": "click",
+                            },
+                        },
                     ],
                 },
             ).to_dict(),
@@ -278,10 +286,12 @@ class TestDataIngestionEndpoints(BaseTestCase):
             payload=DataIngestRequestBody(
                 events={
                     EventType.browser_event: [
-                        BrowserEventPayload(
-                            context=None,
-                            event="click",
-                        ).to_dict(),
+                        {
+                            "context": None,
+                            "event": {
+                                "action": "click",
+                            },
+                        },
                     ],
                 },
             ).to_dict(),

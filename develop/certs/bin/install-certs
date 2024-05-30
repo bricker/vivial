@@ -19,9 +19,13 @@ function install-certs() (
 	# https://docs.mitmproxy.org/stable/concepts-certificates/
 	local kernel
 	kernel=$(get-kernel-name)
+
 	case "$kernel" in
 	"linux")
-		case "$(get-os)" in
+		local os
+		os=$(get-os)
+
+		case "$os" in
 		"manjarolinux")
 			local certDestDir=/etc/ca-certificates/trust-source/anchors/extra
 			local certDestFile="$certDestDir/$certFileName"
@@ -37,13 +41,24 @@ function install-certs() (
 			sudo update-ca-certificates --fresh
 			;;
 		*)
-			statusmsg -e "Your linux flavor is not supported. Please add support!"
+			statusmsg -e "This script does not support your linux flavor ($os). Please add support!"
 			exit 1
 			;;
 		esac
-		sudo certutil -d "sql:$HOME/.pki/nssdb" -D -n "$certName" &>/dev/null || true
-		sudo certutil -d "sql:$HOME/.pki/nssdb" -A -t "C,," -n "$certName" -i "$certDestFile"
+
+		if command -v certutil > /dev/null; then
+			# Delete any existing cert with the same name.
+			sudo certutil -d "sql:$HOME/.pki/nssdb" -D -n "$certName" &>/dev/null || true
+
+			# Add the new cert.
+			sudo certutil -d "sql:$HOME/.pki/nssdb" -A -t "C,," -n "$certName" -i "$certDestFile"
+		else
+			statusmsg -w "certutil command not found."
+			statusmsg -w "certutil is used to automatically add the certs to the cert database."
+			statusmsg -w "It is provided by the 'libnss3-tools' package."
+		fi
 		;;
+
 	"darwin")
 		sudo security add-trusted-cert \
 			-d \
@@ -53,11 +68,10 @@ function install-certs() (
 			"$certFileTemp"
 		;;
 	*)
-		statusmsg -e "This script does not support your operating system. Please add support!"
+		statusmsg -e "This script does not support your operating system ($kernel). Please add support!"
 		exit 1
 		;;
 	esac
-
 )
 
 for cert in "${EAVE_HOME}"/develop/certs/**/*.crt; do
@@ -81,6 +95,7 @@ function setenv() (
 )
 setenv
 
-statusmsg -i "You may have to manually add certificates to Chrome. You can also enable the Chrome flag chrome://flags/#allow-insecure-localhost"
+statusmsg -i "You may have to manually add certificates to Chrome."
+statusmsg -i "You can also enable the Chrome flag chrome://flags/#allow-insecure-localhost"
 
 # Firefox: Load `/usr/lib/x86_64-linux-gnu/pkcs11/p11-kit-trust.so` to the list of security modules under firefox Certificate settings.

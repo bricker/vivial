@@ -1,14 +1,11 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
+    <meta name="description" content="Web site created using create-react-app" />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <!--
       manifest.json provides metadata used when your web app is installed on a
@@ -28,12 +25,16 @@
 
     <!-- Eave client tracing -->
     <script>
-      var _settings = window._settings = window._settings || [];
+      var _settings = (window._settings = window._settings || []);
       // _settings.push(["setEaveClientId", "dummy_client_id"]);
-      (function() {
+      (function () {
         var scriptHostLocation = "%PUBLIC_URL%/eave-client.min.js";
-        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-        g.async=true; g.src=scriptHostLocation; s.parentNode.insertBefore(g,s);
+        var d = document,
+          g = d.createElement("script"),
+          s = d.getElementsByTagName("script")[0];
+        g.async = true;
+        g.src = scriptHostLocation;
+        s.parentNode.insertBefore(g, s);
       })();
     </script>
     <!-- End Eave client tracing Code -->

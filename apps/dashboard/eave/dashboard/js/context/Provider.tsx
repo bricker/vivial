@@ -1,23 +1,10 @@
-import {
-  DashboardNetworkState,
-  DashboardTeam,
-  GlossaryNetworkState,
-} from "$eave-dashboard/js/types";
+import { DashboardNetworkState, DashboardTeam, GlossaryNetworkState } from "$eave-dashboard/js/types";
 import React, { createContext, useState } from "react";
 
 export type AppContextProps = {
-  teamCtx?: [
-    DashboardTeam | null,
-    React.Dispatch<React.SetStateAction<DashboardTeam | null>>,
-  ];
-  dashboardNetworkStateCtx?: [
-    DashboardNetworkState,
-    React.Dispatch<React.SetStateAction<DashboardNetworkState>>,
-  ];
-  glossaryNetworkStateCtx?: [
-    GlossaryNetworkState,
-    React.Dispatch<React.SetStateAction<GlossaryNetworkState>>,
-  ];
+  teamCtx?: [DashboardTeam | null, React.Dispatch<React.SetStateAction<DashboardTeam | null>>];
+  dashboardNetworkStateCtx?: [DashboardNetworkState, React.Dispatch<React.SetStateAction<DashboardNetworkState>>];
+  glossaryNetworkStateCtx?: [GlossaryNetworkState, React.Dispatch<React.SetStateAction<GlossaryNetworkState>>];
 };
 
 export const AppContext = createContext<AppContextProps>({});

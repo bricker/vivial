@@ -37,9 +37,7 @@ function loadStandardDotenvFiles() {
  *
  * @param {import("dotenv").DotenvPopulateInput} parsed - The parsed input to populate the environment variables with.
  */
-function populateEnv(
-  /** @type {import("dotenv").DotenvPopulateInput} */ parsed,
-) {
+function populateEnv(/** @type {import("dotenv").DotenvPopulateInput} */ parsed) {
   dotenv.populate(process.env, parsed, { override: true });
 }
 
