@@ -36,11 +36,11 @@ class TeamOrm(Base):
         cls,
         session: AsyncSession,
         name: str,
-        allowed_origins_csv: str | None = None,
+        allowed_origins: list[str] | None = None,
     ) -> Self:
         obj = cls(
             name=name,
-            allowed_origins_csv=allowed_origins_csv,
+            allowed_origins=allowed_origins,
         )
         session.add(obj)
         await session.flush()
