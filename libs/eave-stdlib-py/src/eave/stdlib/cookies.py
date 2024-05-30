@@ -38,7 +38,7 @@ def delete_cookies_with_prefix(
     httponly: bool | None = None,
     samesite: Literal["lax", "strict", "none"] | None = None,
 ) -> None:
-    for name, value in get_cookies_with_prefix(request=request, prefix=prefix):
+    for name, value in get_cookies_with_prefix(request=request, prefix=prefix).items():
         delete_http_cookie(
             response=response,
             key=name,
