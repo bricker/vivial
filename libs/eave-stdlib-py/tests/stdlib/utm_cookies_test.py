@@ -38,9 +38,9 @@ class UtmCookiesTestBase(StdlibBaseTestCase):
         self.data_visitor_id = self.anystr("visitor_id")
         self.data_ignored_param = self.anystr("ignored_param")
 
-        self.mock_scope[
-            "query_string"
-        ] = f"utm_campaign={self.data_campaign}&UTM_TERM={self.data_term}&gclid={self.data_gclid}&ignored_param={self.data_ignored_param}"
+        self.mock_scope["query_string"] = (
+            f"utm_campaign={self.data_campaign}&UTM_TERM={self.data_term}&gclid={self.data_gclid}&ignored_param={self.data_ignored_param}"
+        )
 
 
 class UtmCookiesTest(UtmCookiesTestBase):
