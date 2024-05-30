@@ -267,17 +267,13 @@ function installshellcheck() (
 )
 
 function installcerts() (
-	statusmsg -pa "Creating/installing self-signed dev certs."
+	statusmsg -pa "Installing self-signed dev certs."
 	if ^confirm; then
 		if cd "${EAVE_HOME}/develop/certs"; then
 			statusmsg -e "Failed to enter ${EAVE_HOME}/develop/certs/ directory. It may have moved?"
 			statusmsg -w "Running Eave web app locally may not work as expected until dev certs are installed"
 			exit 1
 		fi
-		# delete old certs, if any
-		rm -rf "eave-run/"
-		# gen new certs
-		./bin/make-cert -n eave-run -d eave.run -s api -s dashboard -s api.internal -s embed
 		# install to machine (browser may require extra steps)
 		./bin/install-certs
 	fi

@@ -6,7 +6,7 @@ source "$EAVE_HOME"/develop/functions.bash
 
 #
 # Usage:
-# ./bin/make-cert -n eave-run -d eave.run -s api -s dashboard -s api.internal -s embed
+# ./bin/make-cert -n eave-run -d eave.run
 #
 function make-cert() (
 	local organization="Eave Technologies, Inc"
@@ -31,18 +31,8 @@ function make-cert() (
 	dest="./$name"
 	mkdir "$dest"
 
-	# local numSubdomains=${#subdomains[@]}
 	local subjectAltName="DNS:*.$domain"
-	# for i in "${!subdomains[@]}"; do
-	# 	local subdomain=${subdomains[$i]}
-	# 	subjectAltName="${subjectAltName}DNS:$subdomain.$domain"
-	# 	if test $(("$i" + 1)) -lt "$numSubdomains"; then
-	# 		subjectAltName="$subjectAltName,"
-	# 	fi
-	# done
 
-	# Note: Wildcard Common Name can't be used here as Chrome doesn't support it.
-	# "subjectAltName" has to be used and explicitly define each subdomain.
 	openssl req \
 		-x509 \
 		-newkey rsa:4096 \
