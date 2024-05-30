@@ -81,8 +81,9 @@ class VirtualEventOrm(Base):
 
         if params.search_query is not None:
             lookup = lookup.where(
-                cls.readable_name.ilike(f"%{params.search_query}%")
+                cls.readable_name.ilike(f"%{params.search_query}%") # TODO: use readable_name % search_query
             )
+            # TODO: order by readable_name <-> search_query ?
 
         if params.view_id is not None:
             lookup = lookup.where(cls.view_id == params.view_id)
