@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+function _print_help() (
+	statusmsg -o "Usage: deploy -e ENVIRONMENT"
+	statusmsg -o "  -e ENVIRONMENT: Required: The environment to deploy to: 'staging' or 'production'"
+	statusmsg -o "  -h : Print this message."
+)
+
+function deploy () (
+	local environment=""
+
+	while getopts "e:h" argname; do
+		case "$argname" in
+		e) environment=$OPTARG ;;
+		h)
+			_print_help
+			exit 0
+			;;
+		*)
+			statusmsg -e "unknown option: $argname"
+			_print_help
+			exit 1
+			;;
+		esac
+	done
+
+	if test -z "$environment"; then
+		statusmsg -e "environment must be provided."
+		_print_help
+		exit 1
+	fi
+
+	local tracker_url
+	local bucket_name
+
+	case "$environment" in
+	"staging")
+		tracker_url="https://api.eave.dev/public/ingest/browser"
+		bucket_name="cdn.eave.dev"
+		;;
+	"production")
+		tracker_url="https://api.eave.fyi/public/ingest/browser"
+		bucket_name="cdn.eave.fyi"
+		;;
+	*)
+		statusmsg -e "Invalid environment: $environment."
+		_print_help
+		exit 1
+		;;
+	esac
+
+	npx webpack \
+		--mode=production \
+		--no-devtool \
+		--env "TRACKER_URL=$tracker_url"
+
+	gsutil cp dist/collector.js "gs://$bucket_name"
+)
+
+deploy "$@"

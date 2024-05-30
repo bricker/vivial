@@ -46,6 +46,18 @@ variable "certificate_map_name" {
   type = string
 }
 
+variable "cdn_base_url" {
+  type=string
+}
+
 variable "kube_namespace_name" {
   type = string
+}
+
+variable "EAVE_CREDENTIALS" {
+  type = object({
+    SERVER_CREDENTIALS = string,
+    CLIENT_ID          = string,
+  })
+  sensitive = true
 }

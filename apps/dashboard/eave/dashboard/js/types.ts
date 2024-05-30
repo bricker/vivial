@@ -24,7 +24,7 @@ export type GetTeamResponseBody = {
 
 export type GlobalEaveWindow = Window &
   typeof globalThis & {
-    eave: {
+    eavedash: {
       apiBase?: string;
       embedBase?: string;
       assetBase?: string;

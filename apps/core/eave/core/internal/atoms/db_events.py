@@ -84,6 +84,7 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
                     self._bq_client.get_or_create_view(
                         dataset_id=self.team.bq_dataset_id,
                         view_id=vevent_view_id,
+                        description=vevent_readable_name,
                         view_query=dedent(
                             """
                             SELECT

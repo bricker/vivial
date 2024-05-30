@@ -1,6 +1,6 @@
 import { ConsentChoice, setCookieConsentChoice, setTrackingConsentChoice } from "./consent";
 import { initializeCookieModule } from "./cookies";
-import { eaveLogger } from "./logging";
+import { LOG_TAG } from "./internal/constants.js";
 import { initializeDiscoveryModule } from "./properties/discovery";
 import { initializeUserModule } from "./properties/user";
 import { initializeSessionModule } from "./session";
@@ -35,10 +35,6 @@ const eaveInterface: EaveInterface = {
   disableTracking() {
     setTrackingConsentChoice(ConsentChoice.REJECTED);
   },
-
-  setLogLevel(level) {
-    eaveLogger.level = level;
-  },
 };
 
 // @ts-ignore: Adding an unknown property onto window (globalThis)
@@ -54,4 +50,4 @@ enableClickTracking();
 enableFormTracking();
 
 // Track this page view. This happens once, when this script loads.
-trackPageLoad().catch((e) => eaveLogger.error(e));
+trackPageLoad().catch((e) => console.error(LOG_TAG, e));

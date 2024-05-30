@@ -1,7 +1,7 @@
 import { isCookieConsentRevoked } from "./consent";
 import { COOKIE_NAME_PREFIX, getEaveCookie, setEaveCookie } from "./cookies";
+import { LOG_TAG } from "./internal/constants.js";
 import { EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, EAVE_TRIGGER_EVENT_TYPE } from "./internal/js-events";
-import { eaveLogger } from "./logging";
 import { EpochTimeStampMillis, SessionProperties } from "./types";
 import { compactJSONStringify, safeJSONParse } from "./util/json";
 import { uuidv4 } from "./util/uuid";
@@ -55,13 +55,13 @@ function setSessionJSON(value: SessionCookie) {
 function startOrExtendSession() {
   const sessionCookie = getSessionCookie();
   if (sessionCookie) {
-    eaveLogger.debug("Extending session.");
+    console.debug(LOG_TAG, "Extending session.");
     // If the session already exists, then refresh its expiry by setting it again with the same value.
     setSessionCookie(sessionCookie);
     return;
   } else {
     // Otherwise, build a new Session and set it.
-    eaveLogger.debug("Starting session.");
+    console.debug(LOG_TAG, "Starting session.");
     const session: SessionCookie = {
       id: uuidv4(),
       start_timestamp_ms: Date.now(),
@@ -101,7 +101,7 @@ let initialized = false;
  * Register event listeners. Call this only once, when the page loads.
  */
 export function initializeSessionModule() {
-  eaveLogger.debug("Initializing session module.");
+  console.debug(LOG_TAG, "Initializing session module.");
 
   if (!initialized) {
     // This ensures that the handler isn't added more than once.

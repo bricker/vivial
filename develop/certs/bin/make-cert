@@ -37,8 +37,6 @@ function make-cert() (
 	# 	fi
 	# done
 
-	# Note: Wildcard Common Name can't be used here as Chrome doesn't support it.
-	# "subjectAltName" has to be used and explicitly define each subdomain.
 	openssl req \
 		-x509 \
 		-newkey rsa:4096 \

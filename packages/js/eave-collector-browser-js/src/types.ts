@@ -6,8 +6,6 @@ export type JSONObject = {
 };
 export type JSONValue = JSONScalar | JSONScalar[] | JSONObject | JSONObject[];
 
-export type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR" | "SILENT";
-
 // These are just for clarity, because Javascript represents UTS in millis,
 // but the server needs them in seconds resolution.
 export type EpochTimeStampMillis = number;
@@ -24,7 +22,6 @@ export type EaveInterface = {
   disableCookies: () => void;
   enableTracking: () => void;
   disableTracking: () => void;
-  setLogLevel: (level: LogLevel) => void;
 };
 
 export type GlobalEaveState = {
@@ -57,16 +54,11 @@ export type ScreenProperties = {
   avail_height: number;
 };
 
-export type PerformanceProperties = {
-  network_latency_ms: DOMHighResTimeStamp;
-  dom_load_latency_ms: DOMHighResTimeStamp;
-};
-
 export type PageProperties = {
   current_url: string;
   current_title: string;
   pageview_id: string;
-  current_query_params: StringMap<string[]>;
+  current_query_params: [string, string][];
 };
 
 export type SessionProperties = {
@@ -86,37 +78,35 @@ export type DiscoveryProperties = {
   browser_referrer: string | null;
 
   // Known params
-  campaign?: string;
   gclid?: string;
   fbclid?: string;
+  msclkid?: string;
+  campaign?: string;
+  source?: string;
+  medium?: string;
+  term?: string;
+  content?: string;
 
   // catch-all for additional UTM params
-  utm_params: StringMap<string>;
+  extra_utm_params: [string, string][] | null;
 };
 
 export type TargetProperties = {
   type: string | null;
   id: string | null;
   text: string | null;
-  attributes: StringMap<string> | null;
-};
-
-export type EventProperties = {
-  action: string;
-  timestamp: EpochTimeStampSeconds;
-  origin_elapsed_ms?: DOMHighResTimeStamp;
-  target: TargetProperties | null;
+  attributes: [string, string][] | null;
 };
 
 export type BrowserEventPayload = {
+  action: string;
+  timestamp: EpochTimeStampSeconds;
+  target: TargetProperties | null;
   user_agent: UserAgentProperties;
   screen: ScreenProperties;
-  performance: PerformanceProperties | null;
   page: PageProperties;
   session: SessionProperties | null;
   user: UserProperties;
   discovery: DiscoveryProperties | null;
-  event: EventProperties;
-  cookies: StringMap<string> | null;
   extra?: JSONObject;
 };

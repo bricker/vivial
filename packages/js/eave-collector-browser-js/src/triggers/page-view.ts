@@ -1,6 +1,6 @@
 import { requestManager } from "../beacon";
+import { LOG_TAG } from "../internal/constants.js";
 import { HASHCHANGE_EVENT_TYPE, POPSTATE_EVENT_TYPE, dispatchTriggerNotification } from "../internal/js-events";
-import { eaveLogger } from "../logging";
 
 const NAVIGATION_ACTION_NAME = "navigation";
 
@@ -8,11 +8,9 @@ export async function trackPageLoad() {
   const timestamp = Date.now();
 
   const payload = await requestManager.buildPayload({
-    event: {
-      action: NAVIGATION_ACTION_NAME,
-      timestamp: timestamp / 1000,
-      target: null,
-    },
+    action: NAVIGATION_ACTION_NAME,
+    timestamp: timestamp / 1000,
+    target: null,
     extra: {
       reason: "pageload",
     },
@@ -25,12 +23,9 @@ async function trackHashChange(event: HashChangeEvent) {
   const timestamp = Date.now();
 
   const payload = await requestManager.buildPayload({
-    event: {
-      action: NAVIGATION_ACTION_NAME,
-      timestamp: timestamp / 1000,
-      target: null,
-      origin_elapsed_ms: event.timeStamp,
-    },
+    action: NAVIGATION_ACTION_NAME,
+    timestamp: timestamp / 1000,
+    target: null,
     extra: {
       reason: event.type,
     },
@@ -43,12 +38,9 @@ async function trackPopState(event: PopStateEvent) {
   const timestamp = Date.now();
 
   const payload = await requestManager.buildPayload({
-    event: {
-      action: NAVIGATION_ACTION_NAME,
-      timestamp: timestamp / 1000,
-      target: null,
-      origin_elapsed_ms: event.timeStamp,
-    },
+    action: NAVIGATION_ACTION_NAME,
+    timestamp: timestamp / 1000,
+    target: null,
     extra: {
       reason: event.type,
     },
@@ -64,11 +56,9 @@ async function trackNavigationStateChange(state: any, url?: URL | string | null)
   const timestamp = Date.now();
 
   const payload = await requestManager.buildPayload({
-    event: {
-      action: NAVIGATION_ACTION_NAME,
-      timestamp: timestamp / 1000,
-      target: null,
-    },
+    action: NAVIGATION_ACTION_NAME,
+    timestamp: timestamp / 1000,
+    target: null,
     extra: {
       reason: "statechange",
       state,
@@ -199,7 +189,7 @@ function wrapNavigationStateChangeFunctions() {
   window.history.pushState = function (state, unused, url) {
     // We use apply() here for the rare case where this function is called on a different object than is bound to `originalPushState`.
     const proxyValue = originalPushState.call(this, state, unused, url);
-    trackNavigationStateChange(state, url).catch((e) => eaveLogger.error(e));
+    trackNavigationStateChange(state, url).catch((e) => console.error(LOG_TAG, e));
     return proxyValue;
   };
 
@@ -207,7 +197,7 @@ function wrapNavigationStateChangeFunctions() {
   window.history.replaceState = function (state, unused, url) {
     // We use apply() here for the rare case where this function is called on a different object than is bound to `originalReplaceState`.
     const proxyValue = originalReplaceState.call(this, state, unused, url);
-    trackNavigationStateChange(state, url).catch((e) => eaveLogger.error(e));
+    trackNavigationStateChange(state, url).catch((e) => console.error(LOG_TAG, e));
     return proxyValue;
   };
 }
@@ -215,7 +205,7 @@ function wrapNavigationStateChangeFunctions() {
 let initialized = false;
 
 export function enableNavigationTracking() {
-  eaveLogger.debug("Enabling navigation tracking.");
+  console.debug(LOG_TAG, "Enabling navigation tracking.");
 
   if (!initialized) {
     wrapNavigationStateChangeFunctions();

@@ -1,6 +1,6 @@
 import { requestManager } from "../beacon";
+import { LOG_TAG } from "../internal/constants.js";
 import { CLICK_EVENT_TYPE, dispatchTriggerNotification } from "../internal/js-events";
-import { eaveLogger } from "../logging";
 import { TargetProperties } from "../types";
 import { getElementAttributes } from "../util/dom-helpers";
 import { castEventTargetToHtmlElement } from "../util/typechecking";
@@ -56,12 +56,9 @@ async function trackClick(event: MouseEvent) {
   }
 
   const payload = await requestManager.buildPayload({
-    event: {
-      action: event.type,
-      timestamp: timestamp / 1000,
-      origin_elapsed_ms: event.timeStamp,
-      target: eventTarget,
-    },
+    action: event.type,
+    timestamp: timestamp / 1000,
+    target: eventTarget,
     extra: {
       mouse_button: getNameOfClickedMouseButton(event),
     },
@@ -73,7 +70,7 @@ async function trackClick(event: MouseEvent) {
 let initialized = false;
 
 export function enableClickTracking() {
-  eaveLogger.debug("Enabling click tracking.");
+  console.debug(LOG_TAG, "Enabling click tracking.");
 
   if (!initialized) {
     // This ensures that the handler isn't added more than once.

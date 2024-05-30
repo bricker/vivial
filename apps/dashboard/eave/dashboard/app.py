@@ -112,6 +112,8 @@ def web_app_endpoint(request: Request) -> Response:
         "index.html.jinja",
         context={
             "asset_base": SHARED_CONFIG.asset_base,
+            "collector_asset_base": DASHBOARD_APP_CONFIG.collector_asset_base,
+            "eave_client_id": DASHBOARD_APP_CONFIG.eave_client_id,
             "api_base": SHARED_CONFIG.eave_api_base_url_public,
             "embed_base": SHARED_CONFIG.eave_embed_base_url_public,
             "analytics_enabled": SHARED_CONFIG.analytics_enabled,

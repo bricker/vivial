@@ -1,6 +1,6 @@
 import { requestManager } from "../beacon";
+import { LOG_TAG } from "../internal/constants.js";
 import { SUBMIT_EVENT_TYPE, dispatchTriggerNotification } from "../internal/js-events";
-import { eaveLogger } from "../logging";
 import { getElementAttributes } from "../util/dom-helpers";
 import { castEventTargetToHtmlElement } from "../util/typechecking";
 
@@ -17,23 +17,20 @@ async function trackFormSubmit(event: SubmitEvent) {
 
   if (!element || nodeName !== "FORM") {
     // The target is not an Element
-    eaveLogger.warn("Invalid event target for form submit");
+    console.warn(LOG_TAG, "Invalid event target for form submit");
     return;
   }
 
   const attributes = getElementAttributes(element);
 
   const payload = await requestManager.buildPayload({
-    event: {
-      action: event.type,
-      timestamp: timestamp / 1000,
-      origin_elapsed_ms: event.timeStamp,
-      target: {
-        type: nodeName,
-        id: element.id,
-        text: event.submitter?.innerText || null,
-        attributes: attributes,
-      },
+    action: event.type,
+    timestamp: timestamp / 1000,
+    target: {
+      type: nodeName,
+      id: element.id,
+      text: event.submitter?.innerText || null,
+      attributes: attributes,
     },
   });
 
@@ -46,7 +43,7 @@ let initialized = false;
  * Track form submission events
  */
 export function enableFormTracking() {
-  eaveLogger.debug("Enabling form tracking.");
+  console.debug(LOG_TAG, "Enabling form tracking.");
 
   if (!initialized) {
     // This ensures that the handler isn't added more than once.

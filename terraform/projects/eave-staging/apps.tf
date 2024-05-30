@@ -19,6 +19,8 @@ module "core_api_app" {
 
   release_date    = "unknown"
   release_version = "latest"
+
+  EAVE_CREDENTIALS = var.INTERNAL_EAVE_CREDENTIALS
 }
 
 module "playground_todoapp" {
@@ -30,6 +32,7 @@ module "playground_todoapp" {
   docker_repository      = module.docker_registry.repository
   ssl_policy_name        = module.ssl_policy.policy_name
   certificate_map_name   = google_certificate_manager_certificate_map.default.name
+  cdn_base_url = "https://storage.googleapis.com/${google_storage_bucket.cdn.name}"
 
   kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
@@ -39,7 +42,7 @@ module "playground_todoapp" {
   release_date    = "unknown"
   release_version = "latest"
 
-  PLAYGROUND_TODOAPP_EAVE_CREDENTIALS = var.PLAYGROUND_TODOAPP_EAVE_CREDENTIALS
+  EAVE_CREDENTIALS = var.PLAYGROUND_TODOAPP_EAVE_CREDENTIALS
 }
 
 module "dashboard_app" {
@@ -50,6 +53,7 @@ module "dashboard_app" {
   docker_repository    = module.docker_registry.repository
   ssl_policy_name      = module.ssl_policy.policy_name
   certificate_map_name = google_certificate_manager_certificate_map.default.name
+  cdn_base_url = "https://storage.googleapis.com/${google_storage_bucket.cdn.name}"
 
   kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
@@ -58,6 +62,8 @@ module "dashboard_app" {
 
   release_date    = "unknown"
   release_version = "latest"
+
+  EAVE_CREDENTIALS = var.INTERNAL_EAVE_CREDENTIALS
 }
 
 module "metabase" {
@@ -71,6 +77,10 @@ module "metabase" {
     "b1b08034" = {
       metabase_instance_id = "b1b08034"
       team_id              = "f409e437dfa74364ab8fae00e77ce42b"
+    },
+    "40115f0c" = {
+      metabase_instance_id = "40115f0c"
+      team_id              = "4d734b7a106c46159bb1013f4caeb463"
     },
   }
 

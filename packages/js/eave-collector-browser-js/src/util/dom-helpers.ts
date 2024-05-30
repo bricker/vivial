@@ -1,11 +1,3 @@
-import { StringMap } from "../types";
-
-export function getElementAttributes(element: Element): StringMap<string> {
-  const attrs: StringMap<string> = {};
-
-  for (const attr of Array.from(element.attributes)) {
-    attrs[attr.name] = attr.value;
-  }
-
-  return attrs;
+export function getElementAttributes(element: Element): [string, string][] {
+  return Array.from(element.attributes).map((attr) => [attr.name, attr.value]);
 }

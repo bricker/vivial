@@ -3,7 +3,11 @@ import { COOKIE_NAME_PREFIX, getEaveCookie, setEaveCookie } from "../cookies";
 import { DiscoveryProperties, EpochTimeStampMillis, StringMap } from "../types";
 import { compactJSONStringify, safeJSONParse } from "../util/json";
 
-const KNOWN_TRACKING_PARAMS = new Set(["campaign", "gclid", "fbclid"]);
+const KNOWN_TRACKING_PARAMS = new Set([
+  "gclid",
+  "fbclid",
+  "msclkid",
+]);
 
 const DISCOVERY_PARAMS_COOKIE_NAME = `${COOKIE_NAME_PREFIX}discovery`;
 const DISCOVERY_PARAMS_COOKIE_MAX_AGE = 60 * 60 * 24 * 180; // 180 days (approximately 6 months)
@@ -11,9 +15,6 @@ const DISCOVERY_PARAMS_COOKIE_MAX_AGE = 60 * 60 * 24 * 180; // 180 days (approxi
 type DiscoveryCookie = {
   timestamp_ms: EpochTimeStampMillis | null;
   browser_referrer: string | null;
-  campaign?: string;
-  gclid?: string;
-  fbclid?: string;
   utm_params: StringMap<string>;
 };
 
@@ -54,11 +55,12 @@ function buildDiscoveryParams(): DiscoveryCookie {
   // This loop takes the last value.
   // It is uncommon for a UTM param to be repeated.
   // The goal is more intuitive querying server-side.
-  currentPageUrl.searchParams.forEach((key, value) => {
-    if (key.startsWith("utm_") || KNOWN_TRACKING_PARAMS.has(key)) {
-      discoveryParams.utm_params[key] = value;
+  for (const [key, value] of currentPageUrl.searchParams) {
+    const k = key.toLowerCase();
+    if (k.startsWith("utm_") || KNOWN_TRACKING_PARAMS.has(k)) {
+      discoveryParams.utm_params[k] = value;
     }
-  });
+  }
 
   return discoveryParams;
 }
@@ -74,13 +76,30 @@ export function getDiscoveryProperties(): DiscoveryProperties | null {
     return null;
   }
 
+  const {
+    fbclid,
+    gclid,
+    msclkid,
+    utm_campaign,
+    utm_source,
+    utm_medium,
+    utm_term,
+    utm_content,
+    ...extra_utm_params
+  } = json.utm_params;
+
   return {
     browser_referrer: json.browser_referrer,
     timestamp: json.timestamp_ms ? json.timestamp_ms / 1000 : null,
-    campaign: json.campaign,
-    fbclid: json.fbclid,
-    gclid: json.gclid,
-    utm_params: json.utm_params,
+    fbclid,
+    gclid,
+    msclkid,
+    campaign: utm_campaign,
+    source: utm_source,
+    medium: utm_medium,
+    term: utm_term,
+    content: utm_content,
+    extra_utm_params: Object.entries(extra_utm_params),
   };
 }
 

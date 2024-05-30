@@ -77,8 +77,9 @@ class BigQueryClient:
 
         return remote_table
 
-    def get_or_create_view(self, *, dataset_id: str, view_id: str, view_query: str) -> bigquery.Table:
+    def get_or_create_view(self, *, dataset_id: str, view_id: str, description: str, view_query: str) -> bigquery.Table:
         table = self._construct_table(dataset_id=dataset_id, table_id=view_id)
+        table.description = description
         table.view_query = view_query
 
         r = self._bq_client.create_table(

@@ -1,4 +1,4 @@
-import { eaveLogger } from "../logging";
+import { LOG_TAG } from "../internal/constants.js";
 import { JSONValue } from "../types";
 
 export function safeJSONParse<T extends JSONValue>(value: string | null): T | null {
@@ -9,7 +9,7 @@ export function safeJSONParse<T extends JSONValue>(value: string | null): T | nu
   try {
     return JSON.parse(value);
   } catch (e) {
-    eaveLogger.error(e);
+    console.error(LOG_TAG, e);
     return null;
   }
 }

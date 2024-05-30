@@ -1,11 +1,11 @@
 import { getEaveCookie, setEaveCookie } from "./cookies";
+import { LOG_TAG } from "./internal/constants.js";
 import {
   EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE,
   EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE,
   EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE,
   EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE,
 } from "./internal/js-events";
-import { eaveLogger } from "./logging";
 
 // These cookies use a different prefix so that functions like deleteAllEaveCookies() don't affect these.
 const CONSENT_COOKIE_NAME_PREFIX = "_eaveconsent.";
@@ -33,11 +33,12 @@ export function setCookieConsentChoice(choice: ConsentChoice) {
   });
 
   if (choice === ConsentChoice.ACCEPTED) {
-    eaveLogger.debug("Cookie consent granted.");
+    console.debug(LOG_TAG, "Cookie consent granted.");
+
     const event = new Event(EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE);
     window.dispatchEvent(event);
   } else {
-    eaveLogger.debug("Cookie consent revoked.");
+    console.debug(LOG_TAG, "Cookie consent revoked.");
     const event = new Event(EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE);
     window.dispatchEvent(event);
   }
@@ -56,11 +57,11 @@ export function setTrackingConsentChoice(choice: ConsentChoice) {
   });
 
   if (choice === ConsentChoice.ACCEPTED) {
-    eaveLogger.debug("Tracking consent granted.");
+    console.debug(LOG_TAG, "Tracking consent granted.");
     const event = new Event(EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE);
     window.dispatchEvent(event);
   } else {
-    eaveLogger.debug("Tracking consent revoked.");
+    console.debug(LOG_TAG, "Tracking consent revoked.");
     const event = new Event(EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE);
     window.dispatchEvent(event);
   }

@@ -12,54 +12,57 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
         table_id="atoms_browser_events_v1",
         schema=(
             SchemaField(
-                name="event",
+                name="action",
+                field_type=SqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="timestamp",
+                field_type=SqlTypeNames.TIMESTAMP,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+
+            SchemaField(
+                name="target",
                 field_type=SqlTypeNames.RECORD,
                 mode=BigQueryFieldMode.NULLABLE,
                 fields=(
                     SchemaField(
-                        name="action",
+                        name="type",
                         field_type=SqlTypeNames.STRING,
                         mode=BigQueryFieldMode.NULLABLE,
                     ),
                     SchemaField(
-                        name="timestamp",
-                        field_type=SqlTypeNames.TIMESTAMP,
+                        name="id",
+                        field_type=SqlTypeNames.STRING,
                         mode=BigQueryFieldMode.NULLABLE,
                     ),
                     SchemaField(
-                        name="origin_elapsed_ms",
-                        field_type=SqlTypeNames.FLOAT,
+                        name="text",
+                        field_type=SqlTypeNames.STRING,
                         mode=BigQueryFieldMode.NULLABLE,
                     ),
+
                     SchemaField(
-                        name="target",
+                        name="attributes",
                         field_type=SqlTypeNames.RECORD,
-                        mode=BigQueryFieldMode.NULLABLE,
+                        mode=BigQueryFieldMode.REPEATED,
                         fields=(
                             SchemaField(
-                                name="type",
+                                name="key",
                                 field_type=SqlTypeNames.STRING,
-                                mode=BigQueryFieldMode.NULLABLE,
+                                mode=BigQueryFieldMode.REQUIRED,
                             ),
                             SchemaField(
-                                name="id",
+                                name="value",
                                 field_type=SqlTypeNames.STRING,
-                                mode=BigQueryFieldMode.NULLABLE,
-                            ),
-                            SchemaField(
-                                name="text",
-                                field_type=SqlTypeNames.STRING,
-                                mode=BigQueryFieldMode.NULLABLE,
-                            ),
-                            SchemaField(
-                                name="attributes",
-                                field_type=StandardSqlTypeNames.JSON,
                                 mode=BigQueryFieldMode.NULLABLE,
                             ),
                         ),
                     ),
                 ),
             ),
+
             SchemaField(
                 name="session",
                 field_type=SqlTypeNames.RECORD,
@@ -82,6 +85,7 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                     ),
                 ),
             ),
+
             SchemaField(
                 name="user",
                 field_type=SqlTypeNames.RECORD,
@@ -99,6 +103,7 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                     ),
                 ),
             ),
+
             SchemaField(
                 name="page",
                 field_type=SqlTypeNames.RECORD,
@@ -121,11 +126,24 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                     ),
                     SchemaField(
                         name="current_query_params",
-                        field_type=StandardSqlTypeNames.JSON,
-                        mode=BigQueryFieldMode.NULLABLE,
+                        field_type=SqlTypeNames.RECORD,
+                        mode=BigQueryFieldMode.REPEATED,
+                        fields=(
+                            SchemaField(
+                                name="key",
+                                field_type=SqlTypeNames.STRING,
+                                mode=BigQueryFieldMode.REQUIRED,
+                            ),
+                            SchemaField(
+                                name="value",
+                                field_type=SqlTypeNames.STRING,
+                                mode=BigQueryFieldMode.NULLABLE,
+                            ),
+                        ),
                     ),
                 ),
             ),
+
             SchemaField(
                 name="ua",
                 field_type=SqlTypeNames.RECORD,
@@ -197,6 +215,7 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                     ),
                 ),
             ),
+
             SchemaField(
                 name="discovery",
                 field_type=SqlTypeNames.RECORD,
@@ -213,11 +232,6 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                         mode=BigQueryFieldMode.NULLABLE,
                     ),
                     SchemaField(
-                        name="campaign",
-                        field_type=SqlTypeNames.STRING,
-                        mode=BigQueryFieldMode.NULLABLE,
-                    ),
-                    SchemaField(
                         name="gclid",
                         field_type=SqlTypeNames.STRING,
                         mode=BigQueryFieldMode.NULLABLE,
@@ -228,12 +242,56 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                         mode=BigQueryFieldMode.NULLABLE,
                     ),
                     SchemaField(
-                        name="utm_params",
-                        field_type=StandardSqlTypeNames.JSON,
+                        name="msclkid",
+                        field_type=SqlTypeNames.STRING,
                         mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="campaign",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="source",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="medium",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="term",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                    SchemaField(
+                        name="content",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+
+                    SchemaField(
+                        name="extra_utm_params",
+                        field_type=SqlTypeNames.RECORD,
+                        mode=BigQueryFieldMode.REPEATED,
+                        fields=(
+                            SchemaField(
+                                name="key",
+                                field_type=SqlTypeNames.STRING,
+                                mode=BigQueryFieldMode.REQUIRED,
+                            ),
+                            SchemaField(
+                                name="value",
+                                field_type=SqlTypeNames.STRING,
+                                mode=BigQueryFieldMode.NULLABLE,
+                            ),
+                        ),
                     ),
                 ),
             ),
+
             SchemaField(
                 name="screen",
                 field_type=SqlTypeNames.RECORD,
@@ -261,43 +319,49 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                     ),
                 ),
             ),
+
             SchemaField(
-                name="perf",
+                name="extra",
                 field_type=SqlTypeNames.RECORD,
-                mode=BigQueryFieldMode.NULLABLE,
+                mode=BigQueryFieldMode.REPEATED,
                 fields=(
                     SchemaField(
-                        name="network_latency_ms",
-                        field_type=SqlTypeNames.FLOAT,
-                        mode=BigQueryFieldMode.NULLABLE,
+                        name="key",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.REQUIRED,
                     ),
                     SchemaField(
-                        name="dom_load_latency_ms",
-                        field_type=SqlTypeNames.FLOAT,
+                        name="value",
+                        field_type=SqlTypeNames.STRING,
                         mode=BigQueryFieldMode.NULLABLE,
                     ),
                 ),
             ),
-            SchemaField(
-                name="cookies",
-                field_type=StandardSqlTypeNames.JSON,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="extra",
-                field_type=StandardSqlTypeNames.JSON,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
+
             SchemaField(
                 name="client_ip",
                 field_type=SqlTypeNames.STRING,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
+
             SchemaField(
                 name="context",
-                field_type=StandardSqlTypeNames.JSON,
-                mode=BigQueryFieldMode.NULLABLE,
+                field_type=SqlTypeNames.RECORD,
+                mode=BigQueryFieldMode.REPEATED,
+                fields=(
+                    SchemaField(
+                        name="key",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.REQUIRED,
+                    ),
+                    SchemaField(
+                        name="value",
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                    ),
+                ),
             ),
+
             SchemaField(
                 name="insert_timestamp",
                 field_type=SqlTypeNames.TIMESTAMP,

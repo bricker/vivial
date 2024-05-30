@@ -14,6 +14,7 @@ resource "kubernetes_config_map" "app" {
     GAE_VERSION                       = var.release_version
     GAE_RELEASE_DATE                  = var.release_date
     LOG_LEVEL                         = var.LOG_LEVEL
-    PLAYGROUND_TODOAPP_EAVE_CLIENT_ID = var.PLAYGROUND_TODOAPP_EAVE_CREDENTIALS.CLIENT_ID
+    PLAYGROUND_TODOAPP_EAVE_CLIENT_ID = var.EAVE_CREDENTIALS.CLIENT_ID
+    COLLECTOR_ASSET_BASE = var.cdn_base_url
   }
 }

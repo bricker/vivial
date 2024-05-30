@@ -104,29 +104,6 @@ export function deleteAllEaveCookies() {
   }
 }
 
-/**
- * Get all Eave-managed cookies, except consent cookies
- *
- * NOTE: Although there may be multiple cookies with the same name (as mentioned in https://www.rfc-editor.org/rfc/rfc6265, for example),
- * this function assumes cookie names are unique. However, because this function only returns Eave-managed cookies, we can be reasonably sure that the names are unique.
- * The primary reason for returning a map instead of an array of arrays is for simpler table schemas and querying in the dashboards.
- *
- * @returns a map of cookie name -> value.
- */
-export function getAllEaveCookies() {
-  const allCookies = getAllCookies();
-
-  const eaveCookies: StringMap<string> = {};
-
-  for (const [cookieName, cookieValue] of allCookies) {
-    if (cookieName.startsWith(COOKIE_NAME_PREFIX)) {
-      eaveCookies[cookieName] = cookieValue;
-    }
-  }
-
-  return eaveCookies;
-}
-
 function handleEvent(_evt: Event) {
   deleteAllEaveCookies();
 }

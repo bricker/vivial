@@ -4,25 +4,25 @@ from .base_collector import BaseCollector
 from .correlation_context import corr_ctx
 
 user_table_name_patterns = [
-    r"user$",
-    r"users$",
-    r"account$",
-    r"accounts$",
+    r"users?$",
+    r"accounts?$",
+    r"customers?$",
 ]
 
 
 columns_of_interest_patterns = [
     r"^id$",
     r"^uid$",
-    r"^user_id$",
-    r"^account_id$",
+    r"^user_?id$", # eg. user_id, userid, UserId
+    r"^account_?id$",
+    r"^customer_?id$",
 ]
 
 
 def is_user_table(table_name: str) -> bool:
     table = table_name.lower()
     for table_pattern in user_table_name_patterns:
-        if re.search(table_pattern, table):
+        if re.search(table_pattern, table, flags=re.IGNORECASE):
             return True
     return False
 
@@ -30,7 +30,7 @@ def is_user_table(table_name: str) -> bool:
 def is_field_of_interest(field_name: str) -> bool:
     field = field_name.lower()
     for col_pattern in columns_of_interest_patterns:
-        if re.search(col_pattern, field):
+        if re.search(col_pattern, string=field, flags=re.IGNORECASE):
             return True
     return False
 
