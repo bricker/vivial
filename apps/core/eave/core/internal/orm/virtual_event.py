@@ -81,18 +81,15 @@ class VirtualEventOrm(Base):
 
         if params.search_query is not None:
             lookup = lookup.where(
-                sqlalchemy.or_(
                     cls.readable_name.op("%")(params.search_query),
-                    cls.readable_name.ilike(f"%{params.search_query}%"),
-                )
             )
             lookup = lookup.order_by(sqlalchemy.asc(cls.readable_name.op("<->")(params.search_query)))
-        else:
-            # provide alphabetical name order if not ordering by query similarity
-            lookup = lookup.order_by(cls.readable_name)
 
         if params.view_id is not None:
             lookup = lookup.where(cls.view_id == params.view_id)
+
+        # order results (or similarity score ties) alphabetically
+        lookup = lookup.order_by(cls.readable_name)
 
         assert lookup.whereclause is not None, "Invalid parameters"
         return lookup
@@ -103,7 +100,7 @@ class VirtualEventOrm(Base):
 
     @classmethod
     async def query(cls, session: AsyncSession, params: QueryParams) -> ScalarResult[Self]:
-        await session.execute(text("SET pg_trgm.similarity_threshold = 0.5;"))
+        # await session.execute(text("SET pg_trgm.similarity_threshold = 0.5;"))
         lookup = cls._build_query(params=params)
         result = await session.scalars(lookup)
         return result
