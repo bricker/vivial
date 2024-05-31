@@ -66,7 +66,7 @@ if SHARED_CONFIG.eave_env in [EaveEnvironment.development, EaveEnvironment.test]
         postgres_engine = create_async_engine(
             postgres_uri,
             isolation_level="AUTOCOMMIT",
-            echo=True,
+            echo=False,
             connect_args={
                 "server_settings": {
                     "timezone": "UTC",
@@ -92,7 +92,7 @@ if SHARED_CONFIG.eave_env in [EaveEnvironment.development, EaveEnvironment.test]
         target_engine = create_async_engine(
             target_db_uri,
             isolation_level="AUTOCOMMIT",
-            echo=True,
+            echo=False,
             connect_args={
                 "server_settings": {
                     "timezone": "UTC",
@@ -104,15 +104,8 @@ if SHARED_CONFIG.eave_env in [EaveEnvironment.development, EaveEnvironment.test]
             # create tables in empty db
             await connection.run_sync(get_base_metadata().create_all)
 
-            # await connection.execute(sqlalchemy.text('CREATE ROLE "eave-agent"'))
-            # await connection.execute(sqlalchemy.text('GRANT CREATE ON SCHEMA "public" to "eave-agent"'))
-            # await connection.execute(sqlalchemy.text('GRANT TRIGGER ON ALL TABLES IN SCHEMA "public" to "eave-agent"'))
-            # await connection.execute(
-            #     sqlalchemy.text('GRANT EXECUTE ON ALL ROUTINES IN SCHEMA "public" to "eave-agent"')
-            # )
-
-            # try:
-            #     # Because the dbchange triggers are installed when the pg agent boots up, we need to re-install them here after dropping and re-creating the tables.
-            #     await connection.execute(sqlalchemy.text("CALL eave_install_triggers()"))
-            # except Exception as e:
-            #     print("Warning: installing triggers failed", e)
+            # install pg_trgm extension (used for some fuzzy match operations)
+            try:
+                await connection.execute(sqlalchemy.text("CREATE EXTENSION pg_trgm"))
+            except Exception as e:
+                print("pg_trgm already installed.", e)
