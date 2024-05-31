@@ -43,11 +43,11 @@ const SearchBar = () => {
   const debouncedFilterEventsOnType = useCallback(
     (() => {
       const halfSecondMs = 500;
-      let timer: NodeJS.Timeout | undefined = undefined;
+      let timer: number | undefined = undefined;
 
       return (searchTerm: string) => {
-        clearTimeout(timer);
-        timer = setTimeout(() => {
+        window.clearTimeout(timer);
+        timer = window.setTimeout(() => {
           if (!searchTerm) {
             // refresh results w/ all events when search bar is emptied
             getTeamVirtualEvents(null);
