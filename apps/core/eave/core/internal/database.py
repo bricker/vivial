@@ -66,7 +66,7 @@ if SHARED_CONFIG.eave_env in [EaveEnvironment.development, EaveEnvironment.test]
         postgres_engine = create_async_engine(
             postgres_uri,
             isolation_level="AUTOCOMMIT",
-            echo=True,
+            echo=False,
             connect_args={
                 "server_settings": {
                     "timezone": "UTC",
@@ -92,7 +92,7 @@ if SHARED_CONFIG.eave_env in [EaveEnvironment.development, EaveEnvironment.test]
         target_engine = create_async_engine(
             target_db_uri,
             isolation_level="AUTOCOMMIT",
-            echo=True,
+            echo=False,
             connect_args={
                 "server_settings": {
                     "timezone": "UTC",

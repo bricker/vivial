@@ -68,7 +68,7 @@ class VirtualEventOrm(Base):
 
     @classmethod
     def _build_query(cls, params: QueryParams) -> Select[tuple[Self]]:
-        lookup = select(cls).order_by(cls.readable_name)
+        lookup = select(cls)
 
         if params.id is not None:
             lookup = lookup.where(cls.id == params.id)
@@ -81,9 +81,15 @@ class VirtualEventOrm(Base):
 
         if params.search_query is not None:
             lookup = lookup.where(
-                cls.readable_name.ilike(f"%{params.search_query}%") # TODO: use readable_name % search_query
+                sqlalchemy.or_(
+                    cls.readable_name.op("%")(params.search_query),
+                    cls.readable_name.ilike(f"%{params.search_query}%"),
+                )
             )
-            # TODO: order by readable_name <-> search_query ?
+            lookup = lookup.order_by(sqlalchemy.asc(cls.readable_name.op("<->")(params.search_query)))
+        else:
+            # provide alphabetical name order if not ordering by query similarity
+            lookup = lookup.order_by(cls.readable_name)
 
         if params.view_id is not None:
             lookup = lookup.where(cls.view_id == params.view_id)
@@ -97,6 +103,7 @@ class VirtualEventOrm(Base):
 
     @classmethod
     async def query(cls, session: AsyncSession, params: QueryParams) -> ScalarResult[Self]:
+        await session.execute(text("SET pg_trgm.similarity_threshold = 0.5;"))
         lookup = cls._build_query(params=params)
         result = await session.scalars(lookup)
         return result
