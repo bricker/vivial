@@ -29,24 +29,15 @@ class TestVirtualEventOrm(BaseTestCase):
                 await VirtualEventOrm.query(
                     db_session,
                     params=VirtualEventOrm.QueryParams(
-                        search_query="Account",
-                    ),
-                )
-            ).all()
-
-        assert len(result) == num_events, "prefix did not capture all events"
-
-        async with eave_db.async_session.begin() as db_session:
-            result = (
-                await VirtualEventOrm.query(
-                    db_session,
-                    params=VirtualEventOrm.QueryParams(
                         search_query="created",
                     ),
                 )
             ).all()
 
-        assert len(result) == num_events // 2, "partial match results not found"
+        for i in range(num_events // 2):
+            assert (
+                result[i].readable_name == f"Account Created {i}"
+            ), "First matches were not the events containing the search term"
 
         async with eave_db.async_session.begin() as db_session:
             result = (
@@ -58,7 +49,10 @@ class TestVirtualEventOrm(BaseTestCase):
                 )
             ).all()
 
-        assert len(result) == num_events // 2, "mispelling not corrected by fuzzy match"
+        for i in range(num_events // 2):
+            assert (
+                result[i].readable_name == f"Account Created {i}"
+            ), "First matches were not the best match for the mispelled search term"
 
     async def test_find_one_with_exception(self) -> None:
         with self.assertRaises(sqlalchemy.exc.NoResultFound):
@@ -83,14 +77,14 @@ class TestVirtualEventOrm(BaseTestCase):
                 description=self.anystr(),
                 view_id=self.anystr(),
             )
-            await VirtualEventOrm.create(
+            e4 = await VirtualEventOrm.create(
                 session=s,
                 team_id=team.id,
                 readable_name="Account was deleted1",
                 description=self.anystr(),
                 view_id=self.anystr(),
             )
-            await VirtualEventOrm.create(
+            e5 = await VirtualEventOrm.create(
                 session=s,
                 team_id=team.id,
                 readable_name="Account was deleted2",
@@ -115,10 +109,12 @@ class TestVirtualEventOrm(BaseTestCase):
                 )
             ).all()
 
-        assert len(result) == 3, "query returned incorrect number of results"
+        assert len(result) == 5, "query returned incorrect number of results"
         assert result[0].id == e1.id, "query result events were out of order"
         assert result[1].id == e2.id, "query result events were out of order"
         assert result[2].id == e3.id, "query result events were out of order"
+        assert result[3].id == e4.id, "query result events were out of order"
+        assert result[4].id == e5.id, "query result events were out of order"
 
         async with eave_db.async_session.begin() as db_session:
             result = (
@@ -131,4 +127,4 @@ class TestVirtualEventOrm(BaseTestCase):
             ).all()
 
         assert len(result) >= 1
-        assert result[0].readable_name == "Account was deleted2", "exact match was not first result"
+        assert result[0].readable_name == "Account was deleted2", "best match was not first result"
