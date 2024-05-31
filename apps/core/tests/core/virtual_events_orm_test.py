@@ -130,6 +130,5 @@ class TestVirtualEventOrm(BaseTestCase):
                 )
             ).all()
 
-
         assert len(result) >= 1
         assert result[0].readable_name == "Account was deleted2", "exact match was not first result"

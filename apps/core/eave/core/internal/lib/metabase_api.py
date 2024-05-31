@@ -34,7 +34,9 @@ class MetabaseDatabase(TypedDict, total=False):
     cache_ttl: int | None
     engine: str | None
     details: dict[str, Any] | None
-    schedules: Any | None  # dict[str, dict[str, Any]] | None # Using Any to be safe because this field isn't documented.
+    schedules: (
+        Any | None
+    )  # dict[str, dict[str, Any]] | None # Using Any to be safe because this field isn't documented.
     initial_sync_status: str | None
 
 

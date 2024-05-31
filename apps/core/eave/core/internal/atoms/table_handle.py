@@ -34,5 +34,4 @@ class BigQueryTableHandle:
         self._bq_client = bq_client.EAVE_INTERNAL_BIGQUERY_CLIENT
         self.team = team
 
-    async def insert(self, events: list[JsonObject], ctx: LogContext) -> None:
-        ...
+    async def insert(self, events: list[JsonObject], ctx: LogContext) -> None: ...

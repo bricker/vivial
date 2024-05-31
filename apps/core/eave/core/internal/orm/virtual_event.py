@@ -4,8 +4,8 @@ from datetime import datetime
 from typing import Self
 from uuid import UUID
 
-from sqlalchemy import Index, ScalarResult, Select, func, select, text
 import sqlalchemy
+from sqlalchemy import Index, ScalarResult, Select, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 

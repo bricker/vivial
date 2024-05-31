@@ -8,8 +8,9 @@ import eave.stdlib.time
 
 eave.stdlib.time.set_utc()
 
-from eave.stdlib.config import SHARED_CONFIG
 import os
+
+from eave.stdlib.config import SHARED_CONFIG
 
 os.environ["EAVE_ENV"] = "test"
 
