@@ -22,7 +22,7 @@ class ThreadedCorrelationContext(BaseCorrelationContext):
         if not getattr(_local_thread_storage, "eave", None):
             self._init_storage()
 
-    def get(self, key: str) -> str:
+    def get(self, key: str) -> str | None:
         self._lazy_init_storage()
         updated_value = _local_thread_storage.eave.get(self.updated_context_key, {}).get(key, None)
         if updated_value is not None:
