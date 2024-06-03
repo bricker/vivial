@@ -41,7 +41,7 @@ class TestDataIngestionEndpoints(BaseTestCase):
             )
 
         client.delete_dataset(
-            dataset=self._team.bq_dataset_id,
+            dataset=self._team.id.hex,
             delete_contents=True,
             not_found_ok=True,
         )
@@ -49,14 +49,14 @@ class TestDataIngestionEndpoints(BaseTestCase):
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
         client.delete_dataset(
-            dataset=self._team.bq_dataset_id,
+            dataset=self._team.id.hex,
             delete_contents=True,
             not_found_ok=True,
         )
 
     def _bq_team_dataset_exists(self) -> bool:
         try:
-            dataset = client.get_dataset(dataset_ref=self._team.bq_dataset_id)
+            dataset = client.get_dataset(dataset_ref=self._team.id.hex)
         except Exception as e:
             print(f"Google Cloud Error: {e}")
             return False
@@ -65,7 +65,7 @@ class TestDataIngestionEndpoints(BaseTestCase):
 
     def _bq_table_exists(self, table_name: str) -> bool:
         table = EAVE_INTERNAL_BIGQUERY_CLIENT.get_table_or_none(
-            dataset_id=self._team.bq_dataset_id, table_id=table_name
+            dataset_id=self._team.id.hex, table_id=table_name
         )
         return table is not None
 

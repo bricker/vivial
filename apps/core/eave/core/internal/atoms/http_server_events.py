@@ -64,7 +64,7 @@ class HttpServerEventsTableHandle(BigQueryTableHandle):
 
         #     if not vevent_query.one_or_none():
         #         self._bq_client.get_or_create_view(
-        #             dataset_id=self.team.bq_dataset_id,
+        #             dataset_id=self.team.id.hex,
         #             view_id=vevent_view_id,
         #             view_query=dedent(
         #                 """
@@ -78,7 +78,7 @@ class HttpServerEventsTableHandle(BigQueryTableHandle):
         #                 ORDER BY
         #                     `timestamp` ASC
         #                 """.format(
-        #                     dataset_id=sql_sanitized_identifier(self.team.bq_dataset_id),
+        #                     dataset_id=sql_sanitized_identifier(self.team.id.hex),
         #                     atom_table_id=sql_sanitized_identifier(self.table_def.table_id),
         #                     source_table=sql_sanitized_literal(source_table),
         #                     operation=sql_sanitized_literal(operation),
@@ -102,7 +102,7 @@ class HttpServerEventsTableHandle(BigQueryTableHandle):
         http_server_events = [HttpServerEventPayload(**e) for e in events]
 
         dataset = self._bq_client.get_or_create_dataset(
-            dataset_id=self.team.bq_dataset_id,
+            dataset_id=self.team.id.hex,
         )
 
         table = self._bq_client.get_and_sync_or_create_table(

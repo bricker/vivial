@@ -4,7 +4,6 @@ from asgiref.typing import HTTPScope
 from starlette.requests import Request
 from starlette.responses import Response
 
-from eave.collectors.core.datastructures import DataIngestRequestBody, EventType, Geolocation
 from eave.core.internal import database
 from eave.core.internal.atoms.browser_events import BrowserEventsTableHandle
 from eave.core.internal.atoms.db_events import DatabaseEventsTableHandle

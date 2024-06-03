@@ -15,7 +15,6 @@ from eave.stdlib.core_api.models.team import AnalyticsTeam, Team
 from .base import Base
 from .util import UUID_DEFAULT_EXPR
 
-
 class TeamOrm(Base):
     __tablename__ = "teams"
 
@@ -53,10 +52,6 @@ class TeamOrm(Base):
     @property
     def analytics_model(self) -> AnalyticsTeam:
         return AnalyticsTeam.from_orm(self)
-
-    @property
-    def bq_dataset_id(self) -> str:
-        return f"team_{self.id.hex}"
 
     class QueryParams(TypedDict):
         team_id: UUID | str

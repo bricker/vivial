@@ -66,7 +66,7 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
         db_events = [DatabaseEventPayload(**e) for e in events]
 
         dataset = self._bq_client.get_or_create_dataset(
-            dataset_id=self.team.bq_dataset_id,
+            dataset_id=self.team.id.hex,
         )
 
         table = self._bq_client.get_and_sync_or_create_table(
@@ -119,13 +119,13 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
             )).one_or_none()
 
             try:
-                sanitized_dataset_id = sql_sanitized_identifier(self.team.bq_dataset_id)
+                sanitized_dataset_id = sql_sanitized_identifier(self.team.id.hex)
                 sanitized_atom_table_id = sql_sanitized_identifier(self.table_def.table_id)
                 sanitized_source_table = sql_sanitized_literal(sanitized_source_table)
                 sanitized_operation = sql_sanitized_literal(sanitized_operation)
 
                 self._bq_client.get_and_sync_or_create_view(
-                    dataset_id=self.team.bq_dataset_id,
+                    dataset_id=self.team.id.hex,
                     view_id=vevent_view_id,
                     description=vevent_readable_name,
                     mview_query=dedent(

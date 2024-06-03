@@ -173,7 +173,7 @@ async def create_new_account_and_team(
             email=user_email,
         )
 
-        EAVE_INTERNAL_BIGQUERY_CLIENT.get_or_create_dataset(dataset_id=eave_team.bq_dataset_id)
+        EAVE_INTERNAL_BIGQUERY_CLIENT.get_or_create_dataset(dataset_id=eave_team.id.hex)
 
     eaveLogger.debug(
         "created new account",

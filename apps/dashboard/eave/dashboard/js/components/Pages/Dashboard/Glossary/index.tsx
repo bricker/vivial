@@ -4,7 +4,7 @@ import SidePanelIcon from "$eave-dashboard/js/components/Icons/SidePanelIcon";
 import { AppContext } from "$eave-dashboard/js/context/Provider";
 import useTeam from "$eave-dashboard/js/hooks/useTeam";
 import { theme as eaveTheme } from "$eave-dashboard/js/theme";
-import { VirtualEvent } from "$eave-dashboard/js/types.js";
+import { VirtualEventPeek } from "$eave-dashboard/js/types.js";
 import { CircularProgress } from "@mui/material";
 import classNames from "classnames";
 import React, { useContext, useEffect, useState } from "react";
@@ -144,7 +144,7 @@ const makeClasses = makeStyles<void, "hoverIcon">()((theme, _params, classes) =>
 const Glossary = () => {
   const { classes } = makeClasses();
   const [searchValue, setSearchValue] = useState("");
-  const [selectedEvent, setSelectedEvent] = useState<VirtualEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<VirtualEventPeek | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
   const { team, getTeamVirtualEvents } = useTeam();
@@ -187,7 +187,7 @@ const Glossary = () => {
   }, [searchValue]);
 
   // factored out as it's used in both the row onClick and onKeyPress actions
-  const rowClicked = (event: VirtualEvent) => {
+  const rowClicked = (event: VirtualEventPeek) => {
     setSelectedEvent(event);
     setIsOpen(true);
     // move kb focus to the sidepanel for a11y

@@ -1,16 +1,27 @@
+from typing import Self
 import uuid
 
 from eave.stdlib.core_api.models import BaseInputModel, BaseResponseModel
-from google.cloud.bigquery import SqlTypeNames
+from google.cloud.bigquery import SchemaField, SqlTypeNames
 
 from eave.core.internal.atoms.table_handle import BigQueryFieldMode
 
 class VirtualEventField(BaseResponseModel):
     name: str
-    description: str
-    type: SqlTypeNames
-    mode: BigQueryFieldMode
+    description: str | None
+    field_type: SqlTypeNames
+    mode: BigQueryFieldMode | None
     fields: list["VirtualEventField"] | None = None
+
+    @classmethod
+    def from_bq_field(cls, field: SchemaField) -> "VirtualEventField":
+        return cls(
+            name=field.name,
+            description=field.description,
+            field_type=field.field_type,
+            mode=field.mode,
+            fields=[VirtualEventField.from_bq_field(cfield) for cfield in field.fields] if field.field_type == SqlTypeNames.RECORD else None
+        )
 
 class VirtualEventPeek(BaseResponseModel):
     id: uuid.UUID
@@ -25,5 +36,5 @@ class VirtualEventDetails(BaseResponseModel):
     description: str | None
     fields: list[VirtualEventField]
 
-class VirtualEventQueryInput(BaseInputModel):
-    search_term: str
+class VirtualEventDetailsQueryInput(BaseInputModel):
+    id: uuid.UUID

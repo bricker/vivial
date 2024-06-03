@@ -1,9 +1,10 @@
 import { AppContext } from "$eave-dashboard/js/context/Provider";
 import {
   DashboardTeam,
+  GetMyVirtualEventDetailsResponseBody,
   GetTeamResponseBody,
-  GetVirtualEventsResponseBody,
-  VirtualEventQueryInput,
+  ListMyVirtualEventsResponseBody,
+  eaveWindow,
 } from "$eave-dashboard/js/types";
 import { isHTTPError, isUnauthorized, logUserOut } from "$eave-dashboard/js/util/http-util";
 import { useContext } from "react";
@@ -11,7 +12,8 @@ import { useContext } from "react";
 export interface TeamHook {
   team: DashboardTeam | null;
   getTeam: () => void;
-  getTeamVirtualEvents: (input: VirtualEventQueryInput | null) => void;
+  listVirtualEvents: (query: string | null) => void;
+  getVirtualEventDetails: (id: string) => void;
 }
 
 const useTeam = (): TeamHook => {
@@ -34,10 +36,11 @@ const useTeam = (): TeamHook => {
       teamIsLoading: true,
       teamIsErroring: false,
     }));
-    fetch("/api/team", {
+    fetch(`${eaveWindow.eavedash.apiBase}/public/me/team/query`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "eave-origin": "eave_dashboard",
       },
       body: JSON.stringify({}),
     })
@@ -80,18 +83,19 @@ const useTeam = (): TeamHook => {
    * The `input` parameter is passed along for event filtering on the backend.
    * If null is provided, no filtering is expected to be done.
    */
-  function getTeamVirtualEvents(input: VirtualEventQueryInput | null) {
+  function listVirtualEvents(query: string | null) {
     setGlossaryNetworkState((prev) => ({
       ...prev,
       virtualEventsAreLoading: true,
       virtualEventsAreErroring: false,
     }));
-    fetch("/api/team/virtual-events", {
+    fetch(`${eaveWindow.eavedash.apiBase}/public/me/virtual-events/list`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "eave-origin": "eave_dashboard",
       },
-      body: JSON.stringify({ query: input }),
+      body: JSON.stringify({ query }),
     })
       .then((resp) => {
         if (isUnauthorized(resp)) {
@@ -102,7 +106,7 @@ const useTeam = (): TeamHook => {
         if (isHTTPError(resp)) {
           throw resp;
         }
-        return resp.json().then((data: GetVirtualEventsResponseBody) => {
+        return resp.json().then((data: ListMyVirtualEventsResponseBody) => {
           setTeam((prev) => ({
             ...prev,
             virtualEvents: data.virtual_events,
@@ -124,10 +128,56 @@ const useTeam = (): TeamHook => {
       });
   }
 
+  function getVirtualEventDetails(id: string | null) {
+    // setGlossaryNetworkState((prev) => ({
+    //   ...prev,
+    //   virtualEventsAreLoading: true,
+    //   virtualEventsAreErroring: false,
+    // }));
+    fetch(`${eaveWindow.eavedash.apiBase}/public/me/virtual-events/query`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "eave-origin": "eave_dashboard",
+      },
+      body: JSON.stringify({ id }),
+    })
+      .then((resp) => {
+        if (isUnauthorized(resp)) {
+          logUserOut();
+          return;
+        }
+
+        if (isHTTPError(resp)) {
+          throw resp;
+        }
+        return resp.json().then((data: GetMyVirtualEventDetailsResponseBody) => {
+          setTeam((prev) => ({
+            ...prev,
+            virtualEvents: data.virtual_events,
+          }));
+
+          // setGlossaryNetworkState((prev) => ({
+          //   ...prev,
+          //   virtualEventsAreErroring: false,
+          //   virtualEventsAreLoading: false,
+          // }));
+        });
+      })
+      .catch(() => {
+        // setGlossaryNetworkState((prev) => ({
+        //   ...prev,
+        //   virtualEventsAreErroring: true,
+        //   virtualEventsAreLoading: false,
+        // }));
+      });
+  }
+
   return {
     team,
     getTeam,
-    getTeamVirtualEvents,
+    listVirtualEvents,
+    getVirtualEventDetails,
   };
 };
 

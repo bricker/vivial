@@ -3,27 +3,27 @@ from typing import Unpack
 
 from aiohttp.hdrs import METH_POST
 
-from eave.stdlib.core_api.models.virtual_event import VirtualEvent, VirtualEventQueryInput
+from eave.stdlib.core_api.models.virtual_event import VirtualEventDetails, VirtualEventDetailsQueryInput, VirtualEventPeek
 from eave.stdlib.endpoints import BaseRequestBody, BaseResponseBody
 
 from ... import requests_util
 from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
-class QueryMyVirtualEventsRequest(CoreApiEndpoint):
+class ListMyVirtualEventsRequest(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
-        path="/_/me/virtual-events/query",
+        path="/public/me/virtual-events/list",
         method=METH_POST,
         auth_required=True,
         origin_required=True,
-        is_public=False,
+        is_public=True,
     )
 
     class RequestBody(BaseRequestBody):
         query: str | None = None
 
     class ResponseBody(BaseResponseBody):
-        virtual_events: list[VirtualEvent]
+        virtual_events: list[VirtualEventPeek]
 
     @classmethod
     async def perform(
@@ -45,20 +45,20 @@ class QueryMyVirtualEventsRequest(CoreApiEndpoint):
         body = await cls.make_response(response, cls.ResponseBody)
         return body
 
-class GetMyVirtualEventByIdRequest(CoreApiEndpoint):
+class GetMyVirtualEventDetailsRequest(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
-        path="/_/me/virtual-events/query/id",
+        path="/public/me/virtual-events/query",
         method=METH_POST,
         auth_required=True,
         origin_required=True,
-        is_public=False,
+        is_public=True,
     )
 
     class RequestBody(BaseRequestBody):
-        virtual_events: VirtualEventQueryInput | None = None
+        virtual_event: VirtualEventDetailsQueryInput
 
     class ResponseBody(BaseResponseBody):
-        virtual_events: list[VirtualEvent]
+        virtual_event: VirtualEventDetails
 
     @classmethod
     async def perform(

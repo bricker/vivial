@@ -248,7 +248,7 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
             return
 
         dataset = self._bq_client.get_or_create_dataset(
-            dataset_id=self.team.bq_dataset_id,
+            dataset_id=self.team.id.hex,
         )
 
         table = self._bq_client.get_and_sync_or_create_table(
@@ -304,7 +304,7 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                 ),
             )).one_or_none()
 
-            sanitized_dataset_id=sql_sanitized_identifier(self.team.bq_dataset_id)
+            sanitized_dataset_id=sql_sanitized_identifier(self.team.id.hex)
             sanitized_atom_table_id=sql_sanitized_identifier(self.table_def.table_id)
             sanitized_action=sql_sanitized_literal(action)
 
@@ -316,7 +316,7 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                 )
             )
 
-            table = self._bq_client.construct_table(dataset_id=self.team.bq_dataset_id, table_id=vevent_view_id)
+            table = self._bq_client.construct_table(dataset_id=self.team.id.hex, table_id=vevent_view_id)
             table.friendly_name = vevent_readable_name
             table.description=vevent_readable_name
             table.mview_query = dedent(
@@ -357,7 +357,7 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
             )
 
             # self._bq_client.get_and_sync_or_create_view(
-            #     dataset_id=self.team.bq_dataset_id,
+            #     dataset_id=self.team.id.hex,
             #     view_id=vevent_view_id,
             #     description=vevent_readable_name,
             #     mview_query=dedent(
@@ -390,7 +390,6 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                 view_id=vevent_view_id,
                 readable_name=vevent_readable_name,
                 description=f"User {vevent_readable_name} in the browser.",
-                fields=[]
             )
 
 def _action_readable_verb_past_tense(action: str) -> str:

@@ -9,8 +9,6 @@ from sqlalchemy import JSON, Index, ScalarResult, Select, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.collectors.core.datastructures import DatabaseOperation
-from eave.stdlib.core_api.models.virtual_event import VirtualEvent
 from eave.stdlib.util import titleize
 
 from .base import Base
@@ -46,14 +44,12 @@ class VirtualEventOrm(Base):
         readable_name: str,
         description: str | None,
         view_id: str,
-        fields: list[JsonObject]
     ) -> Self:
         obj = cls(
             team_id=team_id,
             readable_name=readable_name,
             description=description,
             view_id=view_id,
-            fields=fields,
         )
 
         session.add(obj)
@@ -85,10 +81,6 @@ class VirtualEventOrm(Base):
 
         assert lookup.whereclause is not None, "Invalid parameters"
         return lookup
-
-    @property
-    def api_model(self) -> VirtualEvent:
-        return VirtualEvent.from_orm(self)
 
     @classmethod
     async def query(cls, session: AsyncSession, params: QueryParams) -> ScalarResult[Self]:

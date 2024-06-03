@@ -15,14 +15,14 @@ import eave.stdlib.requests_util
 import eave.stdlib.time
 from eave.stdlib.auth_cookies import AuthCookies, delete_auth_cookies, get_auth_cookies, set_auth_cookies
 from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.core_api.models.virtual_event import VirtualEventQueryInput
+from eave.stdlib.core_api.models.virtual_event import VirtualEventDetailsQueryInput, VirtualEventQueryInput
 from eave.stdlib.core_api.operations import team, virtual_event
 from eave.stdlib.core_api.operations.account import GetMyAccountRequest
 from eave.stdlib.core_api.operations.status import status_payload
 from eave.stdlib.endpoints import BaseResponseBody
-from eave.stdlib.exceptions import UnauthorizedError
+from eave.stdlib.exceptions import BadRequestError, UnauthorizedError
 from eave.stdlib.headers import MIME_TYPE_JSON
-from eave.stdlib.util import unwrap
+from eave.stdlib.util import ensure_uuid, unwrap
 from eave.stdlib.utm_cookies import set_tracking_cookies
 
 from .config import DASHBOARD_APP_CONFIG
@@ -72,20 +72,40 @@ async def validate_user_auth_endpoint(request: Request, auth_cookies: AuthCookie
 @_auth_handler
 async def get_virtual_events_endpoint(request: Request, auth_cookies: AuthCookies) -> Response:
     body = await request.json()
-    query_input: VirtualEventQueryInput | None = body.get("query")
+    query: str | None = body.get("query")
 
-    eave_response = await virtual_event.GetMyVirtualEventsRequest.perform(
+    eave_response = await virtual_event.ListMyVirtualEventsRequest.perform(
         origin=DASHBOARD_APP_CONFIG.eave_origin,
         account_id=unwrap(auth_cookies.account_id),
         access_token=unwrap(auth_cookies.access_token),
-        input=virtual_event.GetMyVirtualEventsRequest.RequestBody(virtual_events=query_input),
+        input=virtual_event.ListMyVirtualEventsRequest.RequestBody(query=query),
+    )
+
+    return _make_response(eave_response)
+
+@_auth_handler
+async def get_virtual_event_details_endpoint(request: Request, auth_cookies: AuthCookies) -> Response:
+    body = await request.json()
+    vevent_id: str | None = body.get("id")
+    if vevent_id is None:
+        raise BadRequestError()
+
+    eave_response = await virtual_event.GetMyVirtualEventDetailsRequest.perform(
+        origin=DASHBOARD_APP_CONFIG.eave_origin,
+        account_id=unwrap(auth_cookies.account_id),
+        access_token=unwrap(auth_cookies.access_token),
+        input=virtual_event.GetMyVirtualEventDetailsRequest.RequestBody(
+            virtual_event=VirtualEventDetailsQueryInput(
+                id=ensure_uuid(vevent_id),
+            ),
+        ),
     )
 
     return _make_response(eave_response)
 
 
 @_auth_handler
-async def get_team_endpoint(request: Request, auth_cookies: AuthCookies) -> Response:
+async def get_team_endpoint(request: Request, auth_cookies: AuthCookies) -> Response
     eave_response = await team.GetMyTeamRequest.perform(
         origin=DASHBOARD_APP_CONFIG.eave_origin,
         account_id=unwrap(auth_cookies.account_id),

@@ -1,16 +1,32 @@
-export type VirtualEvent = {
+export type VirtualEventField = {
+  name: string;
+  description?: string | null;
+  field_type: string;
+  mode: string | null;
+  fields: VirtualEventField[] | null;
+};
+
+export type VirtualEventPeek = {
   id: string;
+  view_id: string;
   readable_name: string;
   description?: string;
-  fields?: string[];
 };
 
-export type VirtualEventQueryInput = {
-  search_term: string;
+export type VirtualEventDetails = {
+  id: string;
+  view_id: string;
+  readable_name: string;
+  description?: string | null;
+  fields: VirtualEventField[] | null;
 };
 
-export type GetVirtualEventsResponseBody = {
-  virtual_events: Array<VirtualEvent>;
+export type ListMyVirtualEventsResponseBody = {
+  virtual_events: Array<VirtualEventPeek>;
+};
+
+export type GetMyVirtualEventDetailsResponseBody = {
+  virtual_events: Array<VirtualEventPeek>;
 };
 
 export type Team = {
@@ -34,7 +50,7 @@ export type GlobalEaveWindow = Window &
 export type DashboardTeam = {
   id?: string;
   name?: string;
-  virtualEvents?: VirtualEvent[];
+  virtualEvents?: VirtualEventPeek[];
 };
 
 export type DashboardNetworkState = {
