@@ -10,7 +10,7 @@ from ... import requests_util
 from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
-class GetMyVirtualEventsRequest(CoreApiEndpoint):
+class QueryMyVirtualEventsRequest(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
         path="/_/me/virtual-events/query",
         method=METH_POST,
@@ -45,7 +45,7 @@ class GetMyVirtualEventsRequest(CoreApiEndpoint):
         body = await cls.make_response(response, cls.ResponseBody)
         return body
 
-class GetMyVirtualEventsRequest(CoreApiEndpoint):
+class GetMyVirtualEventByIdRequest(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
         path="/_/me/virtual-events/query/id",
         method=METH_POST,
