@@ -118,7 +118,6 @@ async def login(request: Request) -> Response:
 
     return response
 
-
 def logout(request: Request) -> Response:
     response = RedirectResponse(url="/login")
     response.delete_cookie(_USER_ID_COOKIE_NAME)

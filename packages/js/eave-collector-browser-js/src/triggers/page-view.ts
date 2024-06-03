@@ -1,6 +1,7 @@
 import { requestManager } from "../beacon";
-import { LOG_TAG } from "../internal/constants.js";
+import { LOG_TAG } from "../internal/constants";
 import { HASHCHANGE_EVENT_TYPE, POPSTATE_EVENT_TYPE, dispatchTriggerNotification } from "../internal/js-events";
+import { toKeyValueArray } from "../util/type-helpers";
 
 const NAVIGATION_ACTION_NAME = "navigation";
 
@@ -11,9 +12,9 @@ export async function trackPageLoad() {
     action: NAVIGATION_ACTION_NAME,
     timestamp: timestamp / 1000,
     target: null,
-    extra: {
+    extra: toKeyValueArray({
       reason: "pageload",
-    },
+    }),
   });
 
   requestManager.queueEvent(payload);
@@ -26,9 +27,9 @@ async function trackHashChange(event: HashChangeEvent) {
     action: NAVIGATION_ACTION_NAME,
     timestamp: timestamp / 1000,
     target: null,
-    extra: {
+    extra: toKeyValueArray({
       reason: event.type,
-    },
+    }),
   });
 
   requestManager.queueEvent(payload);
@@ -41,9 +42,9 @@ async function trackPopState(event: PopStateEvent) {
     action: NAVIGATION_ACTION_NAME,
     timestamp: timestamp / 1000,
     target: null,
-    extra: {
+    extra: toKeyValueArray({
       reason: event.type,
-    },
+    }),
   });
 
   requestManager.queueEvent(payload);
@@ -59,11 +60,11 @@ async function trackNavigationStateChange(state: any, url?: URL | string | null)
     action: NAVIGATION_ACTION_NAME,
     timestamp: timestamp / 1000,
     target: null,
-    extra: {
+    extra: toKeyValueArray({
       reason: "statechange",
       state,
-      url: url?.toString(),
-    },
+      url: url?.toString() || null,
+    }),
   });
 
   requestManager.queueEvent(payload);

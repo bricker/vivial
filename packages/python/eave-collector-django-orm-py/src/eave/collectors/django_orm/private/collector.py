@@ -80,22 +80,14 @@ class EaveCursorWrapper(CursorWrapper):
 
                 record = DatabaseEventPayload(
                     timestamp=time.time(),
-                    db_structure=DatabaseStructure.SQL,
                     operation=op,
                     db_name=self.db.alias,
                     statement=sql,
                     table_name=table_name,
                     parameters=None,  # TODO: params is usually None; django doesnt remove param values from the statement
-                    context=corr_ctx.to_dict(),
                 )
 
                 self.write_queue.put(record)
-            # print(
-            #     {
-            #         "sql": "%s times: %s" % (times, sql) if many else sql,
-            #         "time": "%.3f" % duration,
-            #     }
-            # )
 
     def _get_operation_name(self, sql: str) -> DatabaseOperation:
         op_str = sql.split()[0]

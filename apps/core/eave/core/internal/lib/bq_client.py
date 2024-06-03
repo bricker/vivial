@@ -4,7 +4,7 @@ from typing import Any
 
 import google.api_core.exceptions
 from google.cloud import bigquery
-from google.cloud.bigquery.table import RowIterator
+from google.cloud.bigquery.table import RowIterator, TableListItem
 from google.oauth2 import service_account as _service_account
 
 from eave.stdlib.config import SHARED_CONFIG
@@ -38,12 +38,12 @@ class BigQueryClient:
         dataset_id: str,
         table_id: str,
         schema: tuple[bigquery.SchemaField, ...],
+        description: str,
         ctx: LogContext,
     ) -> bigquery.Table:
-        local_table = self._construct_table(dataset_id=dataset_id, table_id=table_id)
-
-        # Manually adding schema instead of passing into the Table initializer because the initializer doesn't have a type for the schema param.
+        local_table = self.construct_table(dataset_id=dataset_id, table_id=table_id)
         local_table.schema = schema
+        local_table.description = description
 
         remote_table = self._bq_client.create_table(
             table=local_table,
@@ -61,7 +61,7 @@ class BigQueryClient:
 
             try:
                 remote_table = self._bq_client.update_table(
-                    remote_table,
+                    table=remote_table,
                     fields=["schema"],
                 )
             except Exception as e:
@@ -77,16 +77,25 @@ class BigQueryClient:
 
         return remote_table
 
-    def get_or_create_view(self, *, dataset_id: str, view_id: str, description: str, view_query: str) -> bigquery.Table:
-        table = self._construct_table(dataset_id=dataset_id, table_id=view_id)
-        table.description = description
-        table.view_query = view_query
+    def get_and_sync_or_create_view(self, *, dataset_id: str, view_id: str, friendly_name: str, description: str, mview_query: str, schema: tuple[bigquery.SchemaField, ...]) -> bigquery.Table:
+        local_table = self.construct_table(dataset_id=dataset_id, table_id=view_id)
+        local_table.friendly_name = friendly_name
+        local_table.description = description
+        local_table.mview_query = mview_query
+        local_table.schema = schema
 
-        r = self._bq_client.create_table(
-            table=table,
+        remote_table = self._bq_client.create_table(
+            table=local_table,
             exists_ok=True,
         )
-        return r
+
+        if remote_table.to_api_repr() != local_table.to_api_repr():
+            self._bq_client.update_table(
+                table=remote_table,
+                fields=["materializedView", "schema", "description", "friendlyName"],
+            )
+
+        return remote_table
 
     def append_rows(self, *, table: bigquery.Table, rows: Sequence[Mapping[str, Any]]) -> Sequence[dict[str, Any]]:
         errors = self._bq_client.insert_rows(
@@ -103,6 +112,19 @@ class BigQueryClient:
             query=query,
         )
         return results
+
+    def list_tables(self, *, dataset_id: str) -> list[TableListItem]:
+        dataset_ref = self._construct_dataset_ref(dataset_id=dataset_id)
+
+        iterator = self._bq_client.list_tables(
+            dataset=dataset_ref,
+        )
+
+        tables: list[TableListItem] = []
+        for table in iterator:
+            tables.append(table)
+
+        return tables
 
     def get_dataset_or_none(self, *, dataset_id: str) -> bigquery.Dataset | None:
         dataset_ref = self._construct_dataset_ref(dataset_id=dataset_id)
@@ -123,7 +145,7 @@ class BigQueryClient:
             return None
 
     def get_table_or_exception(self, *, dataset_id: str, table_id: str) -> bigquery.Table:
-        table = self._construct_table(dataset_id=dataset_id, table_id=table_id)
+        table = self.construct_table(dataset_id=dataset_id, table_id=table_id)
         result = self._bq_client.get_table(table=table)
         return result
 
@@ -141,7 +163,7 @@ class BigQueryClient:
         dataset = bigquery.Dataset(dataset_ref=dataset_ref)
         return dataset
 
-    def _construct_table(self, *, dataset_id: str, table_id: str) -> bigquery.Table:
+    def construct_table(self, *, dataset_id: str, table_id: str) -> bigquery.Table:
         table_ref = self._construct_table_ref(dataset_id=dataset_id, table_id=table_id)
         table = bigquery.Table(table_ref=table_ref)
         return table
@@ -163,5 +185,4 @@ def _field_names(fields: list[bigquery.SchemaField]) -> list[str]:
     return [f.name for f in fields]
 
 
-EAVE_INTERNAL_BIGQUERY_ATOMS_DATASET_ID = "eave_atoms"
 EAVE_INTERNAL_BIGQUERY_CLIENT = BigQueryClient()

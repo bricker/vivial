@@ -19,4 +19,6 @@ resource "google_storage_bucket" "tfstate" {
   versioning {
     enabled = true
   }
+
+  uniform_bucket_level_access = true
 }

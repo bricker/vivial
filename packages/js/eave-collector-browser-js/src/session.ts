@@ -1,6 +1,6 @@
 import { isCookieConsentRevoked } from "./consent";
 import { COOKIE_NAME_PREFIX, getEaveCookie, setEaveCookie } from "./cookies";
-import { LOG_TAG } from "./internal/constants.js";
+import { LOG_TAG } from "./internal/constants";
 import { EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, EAVE_TRIGGER_EVENT_TYPE } from "./internal/js-events";
 import { EpochTimeStampMillis, SessionProperties } from "./types";
 import { compactJSONStringify, safeJSONParse } from "./util/json";

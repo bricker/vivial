@@ -2,24 +2,11 @@ import dataclasses
 import logging
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any, ClassVar, Self
+from typing import Any, ClassVar, Literal, Self
+
+from eave.collectors.core.logging import EAVE_LOGGER
 
 from .json import JsonObject, compact_json
-
-
-class DatabaseStructure(StrEnum):
-    UNKNOWN = "UNKNOWN"
-    SQL = "SQL"
-    NO_SQL = "NO_SQL"
-
-    @classmethod
-    def from_str(cls, s: str) -> Self | None:
-        try:
-            return cls.__call__(value=s.upper())
-        except ValueError as e:
-            logging.getLogger().warning(e)
-            return None
-
 
 class DatabaseOperation(StrEnum):
     INSERT = "INSERT"
@@ -33,31 +20,106 @@ class DatabaseOperation(StrEnum):
         try:
             return cls.__call__(value=s.upper())
         except ValueError as e:
-            logging.getLogger().warning(e)
+            EAVE_LOGGER.warning(e)
             return None
 
-    @property
-    def hr_past_tense(self) -> str:
-        match self:
-            case DatabaseOperation.INSERT:
-                return "Created"
-            case DatabaseOperation.UPDATE:
-                return "Updated"
-            case DatabaseOperation.DELETE:
-                return "Deleted"
-            case DatabaseOperation.SELECT:
-                return "Queried"
-            case _:
-                return "Inspected"  # idk
+class BrowserAction(StrEnum):
+    CLICK = "CLICK"
+    FORM_SUBMIT = "FORM_SUBMIT"
+    NAVIGATION = "NAVIGATION"
 
+    @classmethod
+    def from_str(cls, s: str) -> Self | None:
+        try:
+            return cls.__call__(value=s.upper())
+        except ValueError as e:
+            EAVE_LOGGER.warning(e)
+            return None
 
 class EventType(StrEnum):
     db_event = "db_event"
     http_server_event = "http_server_event"
     http_client_event = "http_client_event"
-    function_call = "function_call"
-    function_return = "function_return"
     browser_event = "browser_event"
+
+@dataclass
+class KeyValueDict:
+    key: str
+    value: str | None
+
+    @classmethod
+    def list_from_dict(cls, d: dict[str, Any]) -> list[Self]:
+        return [cls(k, v) for k, v in d.items()]
+
+@dataclass(kw_only=True)
+class Geolocation:
+    region: str | None = None
+    subdivision: str | None = None
+    city: str | None = None
+    coordinates: str | None = None
+
+@dataclass(kw_only=True)
+class DeviceBrandProperties:
+    brand: str | None = None
+    version: str | None = None
+
+@dataclass(kw_only=True)
+class DeviceProperties:
+  user_agent: str | None = None
+  brands: list[DeviceBrandProperties] | None = None
+  platform: str | None = None
+  mobile: bool | None = None
+  form_factor: str | None = None
+  model: str | None = None
+  platform_version: str | None = None
+  screen_width: int | None = None
+  screen_height: int | None = None
+  screen_avail_width: int | None = None
+  screen_avail_height: int | None = None
+
+
+@dataclass(kw_only=True)
+class PageProperties:
+  current_url: str | None = None
+  current_title: str | None = None
+  pageview_id: str | None = None
+  current_query_params: list[KeyValueDict] | None = None
+
+
+@dataclass(kw_only=True)
+class SessionProperties:
+  id: str | None = None
+  start_timestamp: int | None = None
+  duration_ms: int | None = None
+
+
+@dataclass(kw_only=True)
+class UserProperties:
+  id: str | None = None
+  visitor_id: str | None = None
+
+
+@dataclass(kw_only=True)
+class DiscoveryProperties:
+  timestamp: int | None = None
+  browser_referrer: str | None = None
+  gclid: str | None = None
+  fbclid: str | None = None
+  msclkid: str | None = None
+  campaign: str | None = None
+  source: str | None = None
+  medium: str | None = None
+  term: str | None = None
+  content: str | None = None
+  extra_utm_params: list[KeyValueDict] | None = None
+
+
+@dataclass(kw_only=True)
+class TargetProperties:
+  type: str | None = None
+  id: str | None = None
+  text: str | None = None
+  attributes: list[KeyValueDict] | None = None
 
 
 @dataclass(kw_only=True)
@@ -65,7 +127,9 @@ class EventPayload:
     event_type: ClassVar[EventType]
 
     timestamp: float | None
-    context: dict[str, Any] | None
+    session: SessionProperties | None = None
+    user: UserProperties | None = None
+    discovery: DiscoveryProperties | None = None
 
     def to_dict(self) -> JsonObject:
         return dataclasses.asdict(self)
@@ -75,60 +139,48 @@ class EventPayload:
 
 
 @dataclass(kw_only=True)
+class BrowserEventPayload(EventPayload):
+    event_type: ClassVar[EventType] = EventType.browser_event
+
+    action: str | None = None
+    target: TargetProperties | None = None
+    device: DeviceProperties | None = None
+    page: PageProperties | None = None
+    extra: list[KeyValueDict] | None = None
+    geo: Geolocation | None = None
+    client_ip: str | None = None
+
+@dataclass(kw_only=True)
 class DatabaseEventPayload(EventPayload):
     event_type: ClassVar[EventType] = EventType.db_event
 
-    statement: str | None
-    db_structure: DatabaseStructure
-    db_name: str | None
-    table_name: str | None
-    operation: str | None
-    parameters: dict[str, Any] | None
-
-
-@dataclass(kw_only=True)
-class FunctionCallEventPayload(EventPayload):
-    event_type: ClassVar[EventType] = EventType.function_call
-
-    function_module: str | None
-    function_class: str | None
-    function_name: str | None
-    function_args: dict[str, Any] | None
-
-
-@dataclass(kw_only=True)
-class FunctionReturnEventPayload(EventPayload):
-    event_type: ClassVar[EventType] = EventType.function_return
-
-    function_module: str
-    function_class: str
-    function_name: str
-    function_args: dict[str, str]
-    function_return_value: str
+    statement: str | None = None
+    db_name: str | None = None
+    table_name: str | None = None
+    operation: str | None = None
+    parameters: list[KeyValueDict] | None = None
 
 
 @dataclass(kw_only=True)
 class HttpServerEventPayload(EventPayload):
     """Data about a request being handled by server application code"""
-
     event_type: ClassVar[EventType] = EventType.http_server_event
 
-    request_method: str
-    request_url: str
-    request_headers: dict[str, str]
-    request_payload: str
+    request_method: str | None = None
+    request_url: str | None = None
+    request_headers: list[KeyValueDict] | None = None
+    request_payload: str | None = None
 
 
 @dataclass
 class HttpClientEventPayload(EventPayload):
     """Data about requests made by application code"""
-
     event_type: ClassVar[EventType] = EventType.http_client_event
 
-    request_method: str
-    request_url: str
-    request_headers: dict[str, str]
-    request_payload: str
+    request_method: str | None = None
+    request_url: str | None = None
+    request_headers: list[KeyValueDict] | None = None
+    request_payload: str | None = None
 
 
 @dataclass

@@ -1,8 +1,8 @@
 import { requestManager } from "../beacon";
-import { LOG_TAG } from "../internal/constants.js";
+import { LOG_TAG } from "../internal/constants";
 import { SUBMIT_EVENT_TYPE, dispatchTriggerNotification } from "../internal/js-events";
 import { getElementAttributes } from "../util/dom-helpers";
-import { castEventTargetToHtmlElement } from "../util/typechecking";
+import { castEventTargetToHtmlElement } from "../util/type-helpers";
 
 async function trackFormSubmit(event: SubmitEvent) {
   const timestamp = Date.now();

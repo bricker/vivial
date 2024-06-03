@@ -56,7 +56,7 @@ function setOrRefreshUserCookies() {
 }
 
 /**
- * Register event listeners. Call this only once, when the page loads.
+ * Call this only once, when the page loads.
  */
 export function initializeUserModule() {
   setOrRefreshUserCookies();

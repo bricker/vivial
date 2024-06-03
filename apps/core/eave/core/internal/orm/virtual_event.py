@@ -4,7 +4,8 @@ from datetime import datetime
 from typing import Self
 from uuid import UUID
 
-from sqlalchemy import Index, ScalarResult, Select, func, select
+from eave.stdlib.typing import JsonObject
+from sqlalchemy import JSON, Index, ScalarResult, Select, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -45,12 +46,14 @@ class VirtualEventOrm(Base):
         readable_name: str,
         description: str | None,
         view_id: str,
+        fields: list[JsonObject]
     ) -> Self:
         obj = cls(
             team_id=team_id,
             readable_name=readable_name,
             description=description,
             view_id=view_id,
+            fields=fields,
         )
 
         session.add(obj)
@@ -92,17 +95,3 @@ class VirtualEventOrm(Base):
         lookup = cls._build_query(params=params)
         result = await session.scalars(lookup)
         return result
-
-
-def make_virtual_event_readable_name(*, operation: str, table_name: str) -> str:
-    """
-    >>> make_virtual_event_readable_name(operation="INSERT", table_name="accounts")
-    'Account Created'
-    >>> make_virtual_event_readable_name(operation="UPDATE", table_name="github_installations")
-    'Github Installation Updated'
-    >>> make_virtual_event_readable_name(operation="DELETE", table_name="UserAccounts")
-    'User Account Deleted'
-    """
-    obj_hr = titleize(table_name)
-    op_hr = DatabaseOperation(value=operation.upper()).hr_past_tense
-    return f"{obj_hr} {op_hr}"

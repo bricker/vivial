@@ -14,6 +14,7 @@ from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTa
 class HttpClientEventsTableHandle(BigQueryTableHandle):
     table_def = BigQueryTableDefinition(
         table_id="atoms_http_client_events_v1",
+        description="HTTP Client atoms",
         schema=(
             SchemaField(
                 name="request_method",
@@ -110,6 +111,7 @@ class HttpClientEventsTableHandle(BigQueryTableHandle):
             dataset_id=dataset.dataset_id,
             table_id=self.table_def.table_id,
             schema=self.table_def.schema,
+            description=self.table_def.description,
             ctx=ctx,
         )
 

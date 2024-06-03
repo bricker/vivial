@@ -1,6 +1,6 @@
 import { ConsentChoice, setCookieConsentChoice, setTrackingConsentChoice } from "./consent";
 import { initializeCookieModule } from "./cookies";
-import { LOG_TAG } from "./internal/constants.js";
+import { LOG_TAG } from "./internal/constants";
 import { initializeDiscoveryModule } from "./properties/discovery";
 import { initializeUserModule } from "./properties/user";
 import { initializeSessionModule } from "./session";

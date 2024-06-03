@@ -1,4 +1,4 @@
-import { LOG_TAG } from "../internal/constants.js";
+import { LOG_TAG } from "../internal/constants";
 import { JSONValue } from "../types";
 
 export function safeJSONParse<T extends JSONValue>(value: string | null): T | null {

@@ -262,25 +262,13 @@ def titleize(string: str) -> str:
     'Git Hub Installation'
     """
 
-    # split on underscores
-    p0 = string.split("_")
-
-    parts: list[str] = []
-
-    for a in p0:
-        p1: list[str] = re.findall("[A-Z][^A-Z]*", a)
-        if len(p1) > 0:
-            parts.extend(p1)
-        else:
-            parts.append(a)
-
-    if len(parts) == 0:
-        return "UNKNOWN"
+    words = re.findall("([A-Z][a-z0-9]*|[a-z0-9]+)", string)
+    words = [w.title() for w in words]
+    title = " ".join(words)
 
     # FIXME: This is an incorrect way to singularize a word
-    parts[-1] = parts[-1].rstrip("s")
-    parts = [a.capitalize() for a in parts]
-    return " ".join(parts)
+    title = title.rstrip("s")
+    return title
 
 
 def tableize(string: str) -> str:

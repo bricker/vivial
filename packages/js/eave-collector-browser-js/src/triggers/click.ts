@@ -1,9 +1,9 @@
 import { requestManager } from "../beacon";
-import { LOG_TAG } from "../internal/constants.js";
+import { LOG_TAG } from "../internal/constants";
 import { CLICK_EVENT_TYPE, dispatchTriggerNotification } from "../internal/js-events";
 import { TargetProperties } from "../types";
 import { getElementAttributes } from "../util/dom-helpers";
-import { castEventTargetToHtmlElement } from "../util/typechecking";
+import { castEventTargetToHtmlElement } from "../util/type-helpers";
 
 /**
  * https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
@@ -59,9 +59,9 @@ async function trackClick(event: MouseEvent) {
     action: event.type,
     timestamp: timestamp / 1000,
     target: eventTarget,
-    extra: {
-      mouse_button: getNameOfClickedMouseButton(event),
-    },
+    extra: [
+      { key: "mouse_button", value: getNameOfClickedMouseButton(event) },
+    ],
   });
 
   requestManager.queueEvent(payload);

@@ -276,15 +276,15 @@ routes = [
     ##
     make_route(
         config=GetMyTeamRequest.config,
-        endpoint=team.GetTeamEndpoint,
+        endpoint=team.GetMyTeamEndpoint,
     ),
     make_route(
         config=GetMyVirtualEventsRequest.config,
-        endpoint=virtual_event.GetVirtualEventsEndpoint,
+        endpoint=virtual_event.GetMyVirtualEventsEndpoint,
     ),
     make_route(
         config=GetMyAccountRequest.config,
-        endpoint=authed_account.GetAccountEndpoint,
+        endpoint=authed_account.GetMyAccountEndpoint,
     ),
 ]
 

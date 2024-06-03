@@ -1,3 +1,5 @@
+import { KeyValueArray, NullableStringMap, StringMap } from "../types.js";
+
 /**
  * Helper for typechecking
  */
@@ -52,4 +54,12 @@ export function castPerformanceEntryToNavigationTiming(entry: PerformanceEntry):
   } else {
     return null;
   }
+}
+
+export function toKeyValueArray(map: NullableStringMap<string>): KeyValueArray {
+  return Object.entries(map).map(([key, value]) => ({ key, value }));
+}
+
+export function pairsToKeyValueArray(pairs: [string, string][]): KeyValueArray {
+  return pairs.map(([key, value]) => ({ key, value }));
 }

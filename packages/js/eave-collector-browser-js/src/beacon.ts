@@ -1,6 +1,6 @@
 import { isTrackingConsentRevoked } from "./consent";
 import { TRACKER_URL } from "./internal/compile-config";
-import { LOG_TAG } from "./internal/constants.js";
+import { LOG_TAG } from "./internal/constants";
 import {
   EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE,
   EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE,
@@ -9,11 +9,10 @@ import {
 } from "./internal/js-events";
 import { getDiscoveryProperties } from "./properties/discovery";
 import { getPageProperties } from "./properties/page";
-import { getScreenProperties } from "./properties/screen";
 import { getUserProperties } from "./properties/user";
-import { getUserAgentProperties } from "./properties/user-agent";
+import { getUserAgentProperties } from "./properties/device";
 import { getSessionProperties } from "./session";
-import { BrowserEventPayload, EpochTimeStampSeconds, JSONObject, TargetProperties, UserAgentProperties } from "./types";
+import { BrowserEventPayload, EpochTimeStampSeconds, JSONObject, KeyValueArray, TargetProperties, DeviceProperties } from "./types";
 
 /**
  * A Queue with a maximum size.
@@ -63,7 +62,7 @@ class RequestQueue {
 class RequestManager {
   #queue: RequestQueue;
 
-  #memoUserAgentProperties?: UserAgentProperties;
+  #memoDeviceProperties?: DeviceProperties;
 
   #timerId?: number;
 
@@ -91,9 +90,9 @@ class RequestManager {
       return;
     }
 
-    // this.#timerId = window.setInterval(() => {
-    //   this.#flushQueue();
-    // }, 1000 * 5);
+    this.#timerId = window.setInterval(() => {
+      this.#flushQueue();
+    }, 1000 * 5);
   }
 
   stopAutoflush() {
@@ -134,9 +133,8 @@ class RequestManager {
   /**
    * Builds a payload, filling in standard attributes like user agent and session info.
    */
-  async buildPayload({ action, timestamp, target, extra }: { action: string; timestamp: EpochTimeStampSeconds; target: TargetProperties | null; extra?: JSONObject }): Promise<BrowserEventPayload> {
-    const userAgentProperties = await this.#getUserAgentProperties();
-    const screenProperties = getScreenProperties();
+  async buildPayload({ action, timestamp, target, extra }: { action: string; timestamp: EpochTimeStampSeconds; target: TargetProperties | null; extra?: KeyValueArray }): Promise<BrowserEventPayload> {
+    const deviceProperties = await this.#getDeviceProperties();
     const pageProperties = getPageProperties();
     const sessionProperties = getSessionProperties();
     const userProperties = getUserProperties();
@@ -146,8 +144,7 @@ class RequestManager {
       action,
       timestamp,
       target,
-      user_agent: userAgentProperties,
-      screen: screenProperties,
+      device: deviceProperties,
       page: pageProperties,
       session: sessionProperties,
       user: userProperties,
@@ -163,12 +160,11 @@ class RequestManager {
    */
   queueEvent(payload: BrowserEventPayload) {
     this.#queue.push(payload);
-    this.#flushQueue();
-    // console.debug(LOG_TAG, "Queued event", payload);
+    console.debug(LOG_TAG, "Queued event", payload);
 
-    // if (this.#queue.isFull) {
-    //   this.#flushQueue();
-    // }
+    if (this.#queue.isFull) {
+      this.#flushQueue();
+    }
   }
 
   /**
@@ -219,13 +215,13 @@ class RequestManager {
     }
   }
 
-  async #getUserAgentProperties(): Promise<UserAgentProperties> {
-    if (this.#memoUserAgentProperties !== undefined) {
-      return this.#memoUserAgentProperties;
+  async #getDeviceProperties(): Promise<DeviceProperties> {
+    if (this.#memoDeviceProperties !== undefined) {
+      return this.#memoDeviceProperties;
     }
 
     const properties = await getUserAgentProperties();
-    this.#memoUserAgentProperties = properties;
+    this.#memoDeviceProperties = properties;
     return properties;
   }
 }

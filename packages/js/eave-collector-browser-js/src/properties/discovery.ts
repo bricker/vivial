@@ -2,6 +2,7 @@ import { isCookieConsentRevoked } from "../consent";
 import { COOKIE_NAME_PREFIX, getEaveCookie, setEaveCookie } from "../cookies";
 import { DiscoveryProperties, EpochTimeStampMillis, StringMap } from "../types";
 import { compactJSONStringify, safeJSONParse } from "../util/json";
+import { toKeyValueArray } from "../util/type-helpers";
 
 const KNOWN_TRACKING_PARAMS = new Set([
   "gclid",
@@ -37,32 +38,18 @@ function setDiscoveryParamsCookie(value: string) {
   });
 }
 
+function getDiscoveryParamsJSON(): DiscoveryCookie | null {
+  const value = getDiscoveryParamsCookie();
+  if (!value) {
+    return null;
+  }
+
+  return safeJSONParse(value);
+}
+
 function setDiscoveryParamsJSON(value: DiscoveryCookie) {
   const json = compactJSONStringify(value);
   setDiscoveryParamsCookie(json);
-}
-
-function buildDiscoveryParams(): DiscoveryCookie {
-  const currentPageUrl = new URL(window.location.href);
-  const discoveryParams: DiscoveryCookie = {
-    timestamp_ms: Date.now(),
-    // This is called "browser_referrer" instead of just "referrer" in case there is a query param called "referrer"
-    browser_referrer: window.top?.document.referrer || window.parent.document.referrer || document.referrer,
-    utm_params: {},
-  };
-
-  // Note: query parameters can be repeated, but this only returns a single value per query param.
-  // This loop takes the last value.
-  // It is uncommon for a UTM param to be repeated.
-  // The goal is more intuitive querying server-side.
-  for (const [key, value] of currentPageUrl.searchParams) {
-    const k = key.toLowerCase();
-    if (k.startsWith("utm_") || KNOWN_TRACKING_PARAMS.has(k)) {
-      discoveryParams.utm_params[k] = value;
-    }
-  }
-
-  return discoveryParams;
 }
 
 export function getDiscoveryProperties(): DiscoveryProperties | null {
@@ -89,7 +76,7 @@ export function getDiscoveryProperties(): DiscoveryProperties | null {
   } = json.utm_params;
 
   return {
-    browser_referrer: json.browser_referrer,
+    browser_referrer: json.browser_referrer || null,
     timestamp: json.timestamp_ms ? json.timestamp_ms / 1000 : null,
     fbclid,
     gclid,
@@ -99,25 +86,46 @@ export function getDiscoveryProperties(): DiscoveryProperties | null {
     medium: utm_medium,
     term: utm_term,
     content: utm_content,
-    extra_utm_params: Object.entries(extra_utm_params),
+    extra_utm_params: toKeyValueArray(extra_utm_params),
   };
 }
 
-function setOrRefreshDiscoveryParamsCookie() {
-  const discoveryParamsCookie = getDiscoveryParamsCookie();
-  if (discoveryParamsCookie) {
-    // Already exists; refresh it.
-    setDiscoveryParamsCookie(discoveryParamsCookie);
-    return;
-  } else {
-    const discoveryParams = buildDiscoveryParams();
-    setDiscoveryParamsJSON(discoveryParams);
+function getCurrentUtmParams(): StringMap<string> {
+  const currentPageUrl = new URL(window.location.href);
+  const utmParams: StringMap<string> = {};
+
+  // Note: query parameters can be repeated, but this only returns a single value per query param.
+  // This loop takes the last value.
+  // It is uncommon for a UTM param to be repeated.
+  // The goal is more intuitive querying server-side.
+  for (const [key, value] of currentPageUrl.searchParams) {
+    const k = key.toLowerCase();
+    if (k.startsWith("utm_") || KNOWN_TRACKING_PARAMS.has(k)) {
+      utmParams[k] = value;
+    }
   }
+
+  return utmParams;
 }
 
 /**
- * Register event listeners. Call this only once, when the page loads.
+ * Call this only once, when the page loads.
  */
 export function initializeDiscoveryModule() {
-  setOrRefreshDiscoveryParamsCookie();
+  const currentUtmParams = getCurrentUtmParams();
+  const existingCookie = getDiscoveryParamsCookie();
+
+  // If there are UTM parameters in the current URL, then we'll overwrite any existing cookie with the new parameters.
+  // If there are no UTM parameters, and there IS NOT an existing cookie, then we'll set the cookie with some basic info.
+  // If there are no UTM parameters, and there IS an existing cookie, then the existing cookie will remain as-is.
+  if (Object.keys(currentUtmParams).length > 0 || existingCookie === null) {
+    const discoveryParams: DiscoveryCookie = {
+      timestamp_ms: Date.now(),
+      // This is called "browser_referrer" instead of just "referrer" in case there is a query param called "referrer"
+      browser_referrer: window.top?.document.referrer || window.parent.document.referrer || document.referrer || null,
+      utm_params: currentUtmParams,
+    };
+    setDiscoveryParamsJSON(discoveryParams);
+  } else if (existingCookie !== null) {
+  }
 }

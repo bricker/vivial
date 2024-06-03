@@ -1,5 +1,5 @@
 import { getEaveCookie, setEaveCookie } from "./cookies";
-import { LOG_TAG } from "./internal/constants.js";
+import { LOG_TAG } from "./internal/constants";
 import {
   EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE,
   EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE,

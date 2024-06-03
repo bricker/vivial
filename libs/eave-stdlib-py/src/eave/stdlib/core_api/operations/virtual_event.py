@@ -20,6 +20,41 @@ class GetMyVirtualEventsRequest(CoreApiEndpoint):
     )
 
     class RequestBody(BaseRequestBody):
+        query: str | None = None
+
+    class ResponseBody(BaseResponseBody):
+        virtual_events: list[VirtualEvent]
+
+    @classmethod
+    async def perform(
+        cls,
+        *,
+        account_id: uuid.UUID | str,
+        access_token: str,
+        input: RequestBody,
+        **kwargs: Unpack[requests_util.CommonRequestArgs],
+    ) -> ResponseBody:
+        response = await requests_util.make_request(
+            config=cls.config,
+            input=input,
+            access_token=access_token,
+            account_id=account_id,
+            **kwargs,
+        )
+
+        body = await cls.make_response(response, cls.ResponseBody)
+        return body
+
+class GetMyVirtualEventsRequest(CoreApiEndpoint):
+    config = CoreApiEndpointConfiguration(
+        path="/_/me/virtual-events/query/id",
+        method=METH_POST,
+        auth_required=True,
+        origin_required=True,
+        is_public=False,
+    )
+
+    class RequestBody(BaseRequestBody):
         virtual_events: VirtualEventQueryInput | None = None
 
     class ResponseBody(BaseResponseBody):
