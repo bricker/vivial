@@ -31,7 +31,7 @@ class BaseCorrelationContext(abc.ABC):
         return urllib.parse.quote_plus(str(value))
 
     @abc.abstractmethod
-    def get(self, key: str) -> str:
+    def get(self, key: str) -> str | None:
         """Get a value from either storage"""
         ...
 
