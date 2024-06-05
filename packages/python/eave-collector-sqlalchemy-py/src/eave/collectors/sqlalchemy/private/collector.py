@@ -17,9 +17,9 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from eave.collectors.core.base_database_collector import (
     BaseDatabaseCollector,
-    is_column_of_interest,
-    is_table_of_interest,
-    save_data_of_interest,
+    is_field_of_interest,
+    is_user_table,
+    save_identification_data,
 )
 from eave.collectors.core.correlation_context import corr_ctx
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure
@@ -140,7 +140,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                     compiled_clause = clauseelement.compile()
                     statement_params = rparam or dict(compiled_clause.params)
 
-                    self._save_data_of_interest(tablename, clauseelement, rparam)
+                    self._save_user_id(tablename, clauseelement, rparam)
 
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
@@ -165,7 +165,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                     rparam["__primary_key"] = pkeys
 
                     if pkeys and len(pkeys) > 0:
-                        save_data_of_interest(table_name=tablename, column_name=, column_value=str(pkeys[0]))
+                        save_identification_data(table_name=tablename, primary_key=str(pkeys[0]))
 
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
@@ -182,7 +182,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
 
             elif isinstance(clauseelement, sqlalchemy.Update):
                 for idx, rparam in enumerate(rparams):
-                    self._save_data_of_interest(tablename, clauseelement, rparam)
+                    self._save_user_id(tablename, clauseelement, rparam)
 
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
@@ -212,18 +212,18 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
 
                     self.write_queue.put(record)
 
-    def _save_data_of_interest(
+    def _save_user_id(
         self, tablename: str, clauseelement: sqlalchemy.Select | sqlalchemy.Update, params: dict[str, Any]
     ) -> None:
         """
-        If the `tablename` the `clauseelement` is acting on is of interest (e.g. a user table),
-        search the statement WHERE clause for a ID column comparison to extract the
+        If the `tablename` the `clauseelement` is acting on is of interest (aka a user table),
+        search the statement WHERE clause for a user ID column comparison to extract the
         compared ID value from, and save that value to the correlation context.
         """
-        if is_table_of_interest(tablename):
+        if is_user_table(tablename):
             compiled_clause = clauseelement.compile()
             statement_params = params or dict(compiled_clause.params)
-            # try to extract column values of interest from where clause
+            # try to extract current user's ID from where clause
             where_clause = clauseelement.whereclause
             if where_clause is not None:
                 # extract terms as list of binary expressions
@@ -236,12 +236,12 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                     if not (isinstance(expr, sqlalchemy.BinaryExpression) and isinstance(expr.left, sqlalchemy.Column)):
                         # we only care about binary expressions comparing columns to a value
                         continue
-                    col_name = expr.left.name
-                    if is_column_of_interest(col_name):
+                    field_name = expr.left.name
+                    if is_field_of_interest(field_name):
                         # strip leading colon off param key (e.g. :id_1 -> id_1)
                         param_key = str(expr.right).lstrip(":")
                         param_value = statement_params.get(param_key, None)
                         if param_value is not None:
                             # make sure the field actually corresponds to the table we're interested in
                             field_table = expr.left.table.name
-                            save_data_of_interest(table_name=field_table, column_name=col_name, column_value=param_value)
+                            save_identification_data(table_name=field_table, primary_key=param_value)
