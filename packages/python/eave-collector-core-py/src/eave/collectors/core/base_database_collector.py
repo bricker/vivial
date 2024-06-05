@@ -3,49 +3,56 @@ import re
 from .base_collector import BaseCollector
 from .correlation_context import corr_ctx
 
-user_table_name_patterns = [
-    r"user$",
-    r"users$",
-    r"account$",
-    r"accounts$",
+# no start string matcher ^ because names may have path prefix
+# (e.g. production.coredb.users)
+common_tables_of_interest_patterns = [
+    r"users?$",
+    r"accounts?$",
 ]
 
+# TODO: load from network
+extended_tables_of_interest_patterns = []
 
-columns_of_interest_patterns = [
+
+common_columns_of_interest_patterns = [
     r"^id$",
     r"^uid$",
     r"^user_id$",
     r"^account_id$",
 ]
 
+# TODO: from network
+extended_columns_of_interest_patterns = []
 
-def is_user_table(table_name: str) -> bool:
+
+def is_table_of_interest(table_name: str) -> bool:
     table = table_name.lower()
-    for table_pattern in user_table_name_patterns:
+    for table_pattern in common_tables_of_interest_patterns + extended_tables_of_interest_patterns:
         if re.search(table_pattern, table):
             return True
     return False
 
 
-def is_field_of_interest(field_name: str) -> bool:
-    field = field_name.lower()
-    for col_pattern in columns_of_interest_patterns:
-        if re.search(col_pattern, field):
+def is_column_of_interest(column_name: str) -> bool:
+    column = column_name.lower()
+    for col_pattern in common_columns_of_interest_patterns + extended_columns_of_interest_patterns:
+        if re.search(col_pattern, column):
             return True
     return False
 
 
-def save_identification_data(table_name: str, primary_key: str) -> None:
+def save_data_of_interest(table_name: str, column_name: str, column_value: str) -> None:
     """
-    Saves into correlation context global any database values that may be useful for
-    user identification.
+    Saves into correlation context global any value where the provided table column
+    is of interest (usually for user identification).
 
         Parameters:
             table_name (str): name of database table
-            primary_key (str): primary key value for relevant row in `table_name`
+            column_name (str): name of table column
+            column_value (str): primary key value for relevant row in `table_name`
     """
-    if is_user_table(table_name):
-        corr_ctx.set("user_id", primary_key)
+    if is_table_of_interest(table_name) and is_column_of_interest(column_name):
+        corr_ctx.set(f"{table_name}_{column_name}", column_value)
 
 
 class BaseDatabaseCollector(BaseCollector):
