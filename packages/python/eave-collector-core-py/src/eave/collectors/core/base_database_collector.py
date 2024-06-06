@@ -44,7 +44,7 @@ def save_identification_data(table_name: str, column_value_map: dict[str, Any]) 
         for key, value in column_value_map.items():
             lower_key = key.lower()
             if any(re.search(pat, lower_key) for pat in primary_key_patterns):
-                corr_ctx.set(f"{table_name}_{lower_key}", str(value))
+                corr_ctx.set("account_id", str(value))
                 continue
             # casing matters for matching camelCase, so no lower_key
             if any(re.search(pat, key) for pat in foreign_key_patterns):
