@@ -17,7 +17,6 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from eave.collectors.core.base_database_collector import (
     BaseDatabaseCollector,
-    is_field_of_interest,
     is_user_table,
     save_identification_data,
 )
@@ -140,7 +139,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                     compiled_clause = clauseelement.compile()
                     statement_params = rparam or dict(compiled_clause.params)
 
-                    self._save_user_id(tablename, clauseelement, rparam)
+                    self._save_user_identification_data(tablename, clauseelement, rparam)
 
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
@@ -157,15 +156,21 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
 
             if isinstance(clauseelement, sqlalchemy.Insert):
                 for idx, rparam in enumerate(rparams):
-                    pkeys = None
+                    pk_map_list = None
                     if isinstance(result, sqlalchemy.CursorResult) and len(result.inserted_primary_key_rows) > idx:
                         row = result.inserted_primary_key_rows[idx]
-                        pkeys = list(row.tuple())
+                        # sqlalchemy should put these in the same order in the case of composite pk
+                        pk_names = [col.name for col in clauseelement.table.primary_key]
+                        pk_values = [str(pk) for pk in row._tuple()]  # noqa: SLF001
+                        pk_map_list = tuple(zip(pk_names, pk_values))
 
-                    rparam["__primary_key"] = pkeys
+                    if pk_map_list:
+                        # add pk values to rparam's column->value mapping
+                        column_data = rparam.copy()
+                        column_data.update(dict(pk_map_list))
+                        save_identification_data(table_name=tablename, column_value_map=column_data)
 
-                    if pkeys and len(pkeys) > 0:
-                        save_identification_data(table_name=tablename, primary_key=str(pkeys[0]))
+                    rparam["__primary_keys"] = pk_map_list
 
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
@@ -182,7 +187,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
 
             elif isinstance(clauseelement, sqlalchemy.Update):
                 for idx, rparam in enumerate(rparams):
-                    self._save_user_id(tablename, clauseelement, rparam)
+                    self._save_user_identification_data(tablename, clauseelement, rparam)
 
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
@@ -212,18 +217,30 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
 
                     self.write_queue.put(record)
 
-    def _save_user_id(
+    def _save_user_identification_data(
         self, tablename: str, clauseelement: sqlalchemy.Select | sqlalchemy.Update, params: dict[str, Any]
     ) -> None:
         """
-        If the `tablename` the `clauseelement` is acting on is of interest (aka a user table),
-        search the statement WHERE clause for a user ID column comparison to extract the
-        compared ID value from, and save that value to the correlation context.
+        Preserves user/account table (suspected) primary and foreign key names + values
+        to correlation context.
+
+        Combines WHERE clause equivalence ('=') expression column->value mapping with
+        remaining statment `params` which were not part of the WHERE clause (implying
+        they should be part of an UPDATE statement column assignment, which may also
+        contain data we are interested in persisting.)
+
+        e.g. `UPDATE accounts SET team_id=:team_id, name=:name WHERE accounts.id = :accounts_id AND accounts.created < :last_week`
+        should extract and save the mappings `{"id": "accounts_id_value", "team_id": "team_id_value"}`
         """
         if is_user_table(tablename):
+            # construct statement_params from passed in and clause; SELECT statements
+            # always has empty params and full clause.params, but UPDATE etc. always
+            # has full params and empty clause.params. So we join them together here.
             compiled_clause = clauseelement.compile()
-            statement_params = params or dict(compiled_clause.params)
-            # try to extract current user's ID from where clause
+            statement_params = params.copy()
+            non_none_clause_params = {k: v for k, v in dict(compiled_clause.params).items() if v is not None}
+            statement_params.update(non_none_clause_params)
+
             where_clause = clauseelement.whereclause
             if where_clause is not None:
                 # extract terms as list of binary expressions
@@ -232,16 +249,37 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                 else:
                     where_clause = [where_clause]
 
+                # build col name -> value mapping from where clause expressions
+                column_value_map = {}
                 for expr in where_clause:
-                    if not (isinstance(expr, sqlalchemy.BinaryExpression) and isinstance(expr.left, sqlalchemy.Column)):
-                        # we only care about binary expressions comparing columns to a value
+                    if not (
+                        isinstance(expr, sqlalchemy.BinaryExpression)
+                        and expr.operator == sqlalchemy.sql.operators.eq  # type: ignore
+                        and isinstance(expr.left, sqlalchemy.Column)
+                    ):
+                        # we only care about binary expressions comparing if
+                        # columns are equal to a value; otherwise we can't make assumptions
+                        # about where clause values equating to the column value.
+                        # TODO: delete values from statement_params for expr that doesn't match
                         continue
-                    field_name = expr.left.name
-                    if is_field_of_interest(field_name):
-                        # strip leading colon off param key (e.g. :id_1 -> id_1)
-                        param_key = str(expr.right).lstrip(":")
-                        param_value = statement_params.get(param_key, None)
-                        if param_value is not None:
-                            # make sure the field actually corresponds to the table we're interested in
-                            field_table = expr.left.table.name
-                            save_identification_data(table_name=field_table, primary_key=param_value)
+
+                    col_name = expr.left.name
+                    # strip leading colon off param key (e.g. :id_1 -> id_1)
+                    param_key = str(expr.right).lstrip(":")
+                    param_value = statement_params.get(param_key, None)
+                    field_table = expr.left.table.name
+                    if param_value is not None and field_table == tablename:
+                        column_value_map[col_name] = param_value
+
+                    # delete where-clause param key from statement dict; we've
+                    # now added the correct col name mapping to `column_value_map`,
+                    # so we don't want to pollute it later with keys that aren't
+                    # actual column names
+                    del statement_params[param_key]
+
+                # combine proper where-clause column->value mapping with
+                # remaining value mappings from `statement_params`
+                # (mostly to make sure UPDATE values get saved along w/
+                # values from the WHERE filter)
+                column_value_map.update(statement_params)
+                save_identification_data(table_name=tablename, column_value_map=column_value_map)

@@ -5,7 +5,7 @@ from datetime import datetime
 from uuid import UUID
 
 import sqlalchemy
-from sqlalchemy import NullPool, func, text
+from sqlalchemy import NullPool, PrimaryKeyConstraint, func, text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -49,12 +49,44 @@ class AccountOrm(OrmBase):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
+    # un-official foreign keys
+    snake_team_id: Mapped[UUID | None] = mapped_column(server_default=None)
+    camelTeamId: Mapped[UUID | None] = mapped_column(server_default=None)  # noqa: N815
+
+
+class UserComposite(OrmBase):
+    __tablename__ = "users"
+    __table_args__ = (
+        PrimaryKeyConstraint(
+            "secondary_id",
+            "id",
+            name="pk_secondary_id_id",
+        ),
+    )
+    # composite pk
+    id: Mapped[UUID] = mapped_column(primary_key=True, server_default=text("(gen_random_uuid())"))
+    secondary_id: Mapped[UUID] = mapped_column(primary_key=True, server_default=text("(gen_random_uuid())"))
+    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+
 
 class TodoItem(OrmBase):
     __tablename__ = "todo_items"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=text("(gen_random_uuid())"))
     text: Mapped[str]
+    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+
+    # un-official foreign key
+    checklist_id: Mapped[UUID | None] = mapped_column(server_default=None)
+
+
+class Team(OrmBase):
+    __tablename__ = "test_teams"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, server_default=text("(gen_random_uuid())"))
+    name: Mapped[str]
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -91,7 +123,7 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert e.db_name == db_uri.database
         assert e.parameters is not None
         assert e.parameters["name"] == account_name
-        assert "__primary_key" in e.parameters
+        assert "__primary_keys" in e.parameters
 
     async def test_after_execute_update(self) -> None:
         assert len(self._write_queue.queue) == 0
@@ -107,7 +139,9 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert e0.parameters is not None
 
         async with async_session.begin() as session:
-            r = await session.get_one(entity=AccountOrm, ident=tuple(e0.parameters["__primary_key"]))
+            # (("id", "1234567.."),)
+            pk = e0.parameters["__primary_keys"][0][1]
+            r = await session.get_one(entity=AccountOrm, ident=(pk,))
             assert len(self._write_queue.queue) == 2
             e = self._write_queue.queue[1]
             assert isinstance(e, DatabaseEventPayload)
@@ -141,31 +175,25 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert e.parameters is not None
 
         async with async_session.begin() as session:
-            # fetch row to update
-            r = await session.get_one(entity=AccountOrm, ident=account.id)
-            assert len(self._write_queue.queue) == 2
-            e = self._write_queue.queue[1]
-            assert isinstance(e, DatabaseEventPayload)
-            assert e.table_name == "accounts"
-            assert e.operation == DatabaseOperation.SELECT
-            # clear ctx to ensure update sets user_id
+            # clear ctx to ensure update was the op to set account_id
             corr_ctx.clear()
 
             # do sql update
             new_account_name = uuid.uuid4().hex
-            r.name = new_account_name
+            account.name = new_account_name
+            session.add(account)
 
-        assert len(self._write_queue.queue) == 3
-        e = self._write_queue.queue[2]
+        assert len(self._write_queue.queue) == 2
+        e = self._write_queue.queue[1]
         assert isinstance(e, DatabaseEventPayload)
         assert e.table_name == "accounts"
         assert e.operation == DatabaseOperation.UPDATE
         assert e.db_name == db_uri.database
         assert e.parameters is not None
         assert e.parameters["name"] == new_account_name
-        assert corr_ctx.get("user_id") == str(account.id)
+        assert corr_ctx.get("account_id") == str(account.id)
         assert e.context is not None
-        assert e.context.get("user_id") == str(account.id)
+        assert e.context.get("account_id") == str(account.id)
 
     async def test_after_execute_insert_account_table(self) -> None:
         assert len(self._write_queue.queue) == 0
@@ -177,9 +205,9 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert len(self._write_queue.queue) == 1
         e = self._write_queue.queue[0]
 
-        assert corr_ctx.get("user_id") == str(account.id)
+        assert corr_ctx.get("account_id") == str(account.id)
         assert e.context is not None
-        assert e.context.get("user_id") == str(account.id)
+        assert e.context.get("account_id") == str(account.id)
 
     async def test_after_execute_insert_not_account_table(self) -> None:
         assert len(self._write_queue.queue) == 0
@@ -191,9 +219,9 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert len(self._write_queue.queue) == 1
         e = self._write_queue.queue[0]
 
-        assert corr_ctx.get("user_id") is None
+        assert corr_ctx.get("account_id") is None
         assert e.context is not None
-        assert e.context.get("user_id") is None
+        assert e.context.get("account_id") is None
 
     async def test_multi_condition_select_from_account_table(self) -> None:
         assert len(self._write_queue.queue) == 0
@@ -224,9 +252,9 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert isinstance(e, DatabaseEventPayload)
         assert e.table_name == "accounts"
         assert e.operation == DatabaseOperation.SELECT
-        assert corr_ctx.get("user_id") == str(account.id)
+        assert corr_ctx.get("account_id") == str(account.id)
         assert e.context is not None
-        assert e.context.get("user_id") == str(account.id)
+        assert e.context.get("account_id") == str(account.id)
 
     async def test_single_condition_select_from_account_table(self) -> None:
         assert len(self._write_queue.queue) == 0
@@ -252,6 +280,210 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert isinstance(e, DatabaseEventPayload)
         assert e.table_name == "accounts"
         assert e.operation == DatabaseOperation.SELECT
-        assert corr_ctx.get("user_id") == str(account.id)
+        assert corr_ctx.get("account_id") == str(account.id)
         assert e.context is not None
-        assert e.context.get("user_id") == str(account.id)
+        assert e.context.get("account_id") == str(account.id)
+
+    async def test_account_foreign_keys_captured_in_context_after_insert(self):
+        assert len(self._write_queue.queue) == 0
+
+        # insert "fk" model
+        async with async_session.begin() as session:
+            team = Team(name=uuid.uuid4().hex)
+            session.add(team)
+
+        assert len(self._write_queue.queue) == 1
+        e = self._write_queue.queue[0]
+        # no context data should be written yet
+        assert e.context == {}
+
+        # insert account w/ foreign keys
+        async with async_session.begin() as session:
+            account = AccountOrm(name=uuid.uuid4().hex, snake_team_id=team.id, camelTeamId=team.id)
+            session.add(account)
+
+        assert len(self._write_queue.queue) == 2
+        e = self._write_queue.queue[1]
+
+        # pk and fk values should be present in contexts
+        assert isinstance(e, DatabaseEventPayload)
+        assert e.table_name == "accounts"
+        assert e.operation == DatabaseOperation.INSERT
+        assert corr_ctx.get("account_id") == str(account.id)
+        assert corr_ctx.get("snake_team_id") == str(team.id)
+        assert corr_ctx.get("camelTeamId") == str(team.id)
+        assert e.context is not None
+        assert e.context.get("account_id") == str(account.id)
+        assert e.context.get("snake_team_id") == str(team.id)
+        assert e.context.get("camelTeamId") == str(team.id)
+
+    async def test_account_foreign_keys_captured_in_context_after_update(self):
+        assert len(self._write_queue.queue) == 0
+
+        # insert "fk" model
+        async with async_session.begin() as session:
+            team = Team(name=uuid.uuid4().hex)
+            session.add(team)
+        assert len(self._write_queue.queue) == 1
+
+        # insert account to update
+        async with async_session.begin() as session:
+            account = AccountOrm(name=uuid.uuid4().hex)
+            session.add(account)
+        assert len(self._write_queue.queue) == 2
+        # clear for update assertions
+        corr_ctx.clear()
+
+        # update the account
+        async with async_session.begin() as session:
+            account.snake_team_id = team.id
+            account.camelTeamId = team.id
+            session.add(account)
+
+        # pk and fk values should be present in contexts
+        assert len(self._write_queue.queue) == 3
+        e = self._write_queue.queue[2]
+        assert isinstance(e, DatabaseEventPayload)
+        assert e.table_name == "accounts"
+        assert e.operation == DatabaseOperation.UPDATE
+        assert corr_ctx.get("account_id") == str(account.id)
+        assert corr_ctx.get("snake_team_id") == str(team.id)
+        assert corr_ctx.get("camelTeamId") == str(team.id)
+        assert e.context is not None
+        assert e.context.get("account_id") == str(account.id)
+        assert e.context.get("snake_team_id") == str(team.id)
+        assert e.context.get("camelTeamId") == str(team.id)
+
+    async def test_account_foreign_keys_captured_in_context_after_select(self):
+        assert len(self._write_queue.queue) == 0
+
+        # create an item to query
+        async with async_session.begin() as session:
+            team = Team(name=uuid.uuid4().hex)
+            session.add(team)
+
+        async with async_session.begin() as session:
+            account = AccountOrm(name=uuid.uuid4().hex, snake_team_id=team.id, camelTeamId=team.id)
+            session.add(account)
+
+        assert len(self._write_queue.queue) == 2
+        # clear ctx to test context writing on SELECT queries
+        corr_ctx.clear()
+
+        # create SELECT lookup using pk and fk equalities
+        lookup = (
+            sqlalchemy.select(AccountOrm)
+            .where(AccountOrm.id == account.id)
+            .where(AccountOrm.snake_team_id == team.id)
+            .where(AccountOrm.camelTeamId == team.id)
+            .limit(1)
+        )
+        async with async_session.begin() as session:
+            result = await session.scalar(lookup)
+        assert result is not None
+
+        # select event should save pk and fk data in context
+        assert len(self._write_queue.queue) == 3
+        e = self._write_queue.queue[2]
+        assert isinstance(e, DatabaseEventPayload)
+        assert e.table_name == "accounts"
+        assert e.operation == DatabaseOperation.SELECT
+        assert corr_ctx.get("account_id") == str(account.id)
+        assert corr_ctx.get("snake_team_id") == str(team.id)
+        assert corr_ctx.get("camelTeamId") == str(team.id)
+        assert e.context is not None
+        assert e.context.get("account_id") == str(account.id)
+        assert e.context.get("snake_team_id") == str(team.id)
+        assert e.context.get("camelTeamId") == str(team.id)
+
+    async def test_non_eq_binary_comparisons_in_where_clause_stripped_from_considered_values(self):
+        assert len(self._write_queue.queue) == 0
+
+        # create an item to query
+        async with async_session.begin() as session:
+            team = Team(name=uuid.uuid4().hex)
+            session.add(team)
+
+        async with async_session.begin() as session:
+            account = AccountOrm(name=uuid.uuid4().hex, snake_team_id=team.id, camelTeamId=team.id)
+            session.add(account)
+
+        assert len(self._write_queue.queue) == 2
+        # clear ctx to test context writing on SELECT queries
+        corr_ctx.clear()
+
+        # create SELECT lookup comparing a pk/fk with non-equal operator
+        max_uuid = uuid.UUID("ffffffff-ffff-4fff-bfff-ffffffffffff")
+        lookup = (
+            sqlalchemy.select(AccountOrm)
+            .where(AccountOrm.id == account.id)
+            .where(AccountOrm.snake_team_id == team.id)
+            .where(AccountOrm.camelTeamId < max_uuid)
+            .limit(1)
+        )
+        async with async_session.begin() as session:
+            result = await session.scalar(lookup)
+        assert result is not None
+
+        # select event should not save pk and fk data that
+        # was compared with non-eq operator
+        assert len(self._write_queue.queue) == 3
+        e = self._write_queue.queue[2]
+        assert isinstance(e, DatabaseEventPayload)
+        assert e.table_name == "accounts"
+        assert e.operation == DatabaseOperation.SELECT
+        assert corr_ctx.get("account_id") == str(account.id)
+        assert corr_ctx.get("snake_team_id") == str(team.id)
+        assert corr_ctx.get("camelTeamId") is None
+        assert e.context is not None
+        assert e.context.get("account_id") == str(account.id)
+        assert e.context.get("snake_team_id") == str(team.id)
+        assert e.context.get("camelTeamId") is None
+
+    async def test_composite_pk_order_preserved_in_atom(self):
+        assert len(self._write_queue.queue) == 0
+
+        # insert user table w/ composite pk
+        async with async_session.begin() as session:
+            user = UserComposite()
+            session.add(user)
+
+        assert len(self._write_queue.queue) == 1
+        e = self._write_queue.queue[0]
+
+        # pk values should both be present in contexts
+        assert isinstance(e, DatabaseEventPayload)
+        assert e.table_name == "users"
+        assert e.operation == DatabaseOperation.INSERT
+        assert corr_ctx.get("account_id") == str(user.id)
+        assert corr_ctx.get("secondary_id") == str(user.secondary_id)
+        assert e.context is not None
+        assert e.context.get("account_id") == str(user.id)
+        assert e.context.get("secondary_id") == str(user.secondary_id)
+
+        # __primary_keys order should match table composite pk order
+        assert e.parameters is not None
+        assert "__primary_keys" in e.parameters
+        assert e.parameters["__primary_keys"] == (("secondary_id", str(user.secondary_id)), ("id", str(user.id)))
+
+    async def test_fk_on_non_accounts_table_is_not_added_to_context(self):
+        assert len(self._write_queue.queue) == 0
+
+        # insert non account table row that has a fk
+        async with async_session.begin() as session:
+            item = TodoItem(
+                text=uuid.uuid4().hex,
+                checklist_id=uuid.uuid4(),
+            )
+            session.add(item)
+
+        assert len(self._write_queue.queue) == 1
+        e = self._write_queue.queue[0]
+
+        # context should be empty, even though row has fk, since it's a non-account table
+        assert isinstance(e, DatabaseEventPayload)
+        assert e.table_name == "todo_items"
+        assert e.operation == DatabaseOperation.INSERT
+        assert e.context == {}
+
+    # TODO: test inserting multiple records at once w/ one statment. how does code handle that?
