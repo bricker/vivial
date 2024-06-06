@@ -51,7 +51,7 @@ class AccountOrm(OrmBase):
 
     # un-official foreign keys
     snake_team_id: Mapped[UUID | None] = mapped_column(server_default=None)
-    camelTeamId: Mapped[UUID | None] = mapped_column(server_default=None)
+    camelTeamId: Mapped[UUID | None] = mapped_column(server_default=None)  # noqa: N815
 
 
 class UserComposite(OrmBase):

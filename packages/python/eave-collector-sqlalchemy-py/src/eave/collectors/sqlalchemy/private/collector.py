@@ -254,7 +254,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                 for expr in where_clause:
                     if not (
                         isinstance(expr, sqlalchemy.BinaryExpression)
-                        and expr.operator == sqlalchemy.sql.operators.eq # type: ignore
+                        and expr.operator == sqlalchemy.sql.operators.eq  # type: ignore
                         and isinstance(expr.left, sqlalchemy.Column)
                     ):
                         # we only care about binary expressions comparing if
