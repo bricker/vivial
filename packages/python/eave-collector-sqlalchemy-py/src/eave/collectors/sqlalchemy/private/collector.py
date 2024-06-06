@@ -159,10 +159,9 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                     pk_map_list = None
                     if isinstance(result, sqlalchemy.CursorResult) and len(result.inserted_primary_key_rows) > idx:
                         row = result.inserted_primary_key_rows[idx]
-                        # fingers crossed sqlalchemy puts these in the same order in the case of composite pk!
-                        # TODO: test this
+                        # sqlalchemy should put these in the same order in the case of composite pk
                         pk_names = [col.name for col in clauseelement.table.primary_key]
-                        pk_values = [str(pk) for pk in row.tuple()]
+                        pk_values = [str(pk) for pk in row._tuple()]  # noqa: SLF001
                         pk_map_list = tuple(zip(pk_names, pk_values))
 
                     if pk_map_list:
@@ -171,7 +170,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                         column_data.update(dict(pk_map_list))
                         save_identification_data(table_name=tablename, column_value_map=column_data)
 
-                    rparam["__primary_key"] = pk_map_list
+                    rparam["__primary_keys"] = pk_map_list
 
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
