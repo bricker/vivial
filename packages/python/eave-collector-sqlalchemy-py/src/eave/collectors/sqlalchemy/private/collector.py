@@ -17,7 +17,6 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from eave.collectors.core.base_database_collector import (
     BaseDatabaseCollector,
-    is_field_of_interest,
     is_user_table,
     save_identification_data,
 )
@@ -157,15 +156,21 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
 
             if isinstance(clauseelement, sqlalchemy.Insert):
                 for idx, rparam in enumerate(rparams):
-                    pkeys = None
+                    pk_map = None
                     if isinstance(result, sqlalchemy.CursorResult) and len(result.inserted_primary_key_rows) > idx:
                         row = result.inserted_primary_key_rows[idx]
-                        pkeys = list(row.tuple())
+                        # fingers crossed sqlalchemy puts these in the same order in the case of composite pk!
+                        # TODO: test this
+                        pk_names = [col.name for col in clauseelement.table.primary_key]
+                        pk_values = [str(pk) for pk in row.tuple()]
+                        pk_map = dict(zip(pk_names, pk_values))
 
-                    rparam["__primary_key"] = pkeys
+                    if pk_map:
+                        # add pk values to rparam column->value mapping
+                        rparam.update(pk_map)
+                        save_identification_data(table_name=tablename, column_value_map=rparam)
 
-                    if pkeys and len(pkeys) > 0:
-                        save_identification_data(table_name=tablename, primary_key=str(pkeys[0]))
+                    rparam["__primary_key"] = pk_map #list(result.inserted_primary_key_rows[idx].tuple())
 
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
@@ -220,10 +225,16 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
         search the statement WHERE clause for a user ID column comparison to extract the
         compared ID value from, and save that value to the correlation context.
         """
+        # TODO: this only takes into account where clause... can we get col names for just params values?? not only where clause (e.g. update name='tim' where id=1)
         if is_user_table(tablename):
+            # construct statement_params from passed in and clause; SELECT statements
+            # always has empty params and full clause.params, but UPDATE etc. always
+            # has full params and empty clause.params. So we join them together here.
             compiled_clause = clauseelement.compile()
-            statement_params = params or dict(compiled_clause.params)
-            # try to extract current user's ID from where clause
+            statement_params = params
+            non_none_clause_params = {k: v for k, v in dict(compiled_clause.params).items() if v is not None}
+            statement_params.update(non_none_clause_params)
+
             where_clause = clauseelement.whereclause
             if where_clause is not None:
                 # extract terms as list of binary expressions
@@ -232,16 +243,25 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                 else:
                     where_clause = [where_clause]
 
+                # build value mapping from where clause
+                column_value_map = {}
                 for expr in where_clause:
-                    if not (isinstance(expr, sqlalchemy.BinaryExpression) and isinstance(expr.left, sqlalchemy.Column)):
-                        # we only care about binary expressions comparing columns to a value
+                    if not (
+                        isinstance(expr, sqlalchemy.BinaryExpression)
+                        and expr.operator == sqlalchemy.sql.operators.eq
+                        and isinstance(expr.left, sqlalchemy.Column)
+                    ):
+                        # we only care about binary expressions comparing if
+                        # columns are equal to a value; otherwise we can't make assumptions
+                        # about where clause values equating to the column value
                         continue
-                    field_name = expr.left.name
-                    if is_field_of_interest(field_name):
-                        # strip leading colon off param key (e.g. :id_1 -> id_1)
-                        param_key = str(expr.right).lstrip(":")
-                        param_value = statement_params.get(param_key, None)
-                        if param_value is not None:
-                            # make sure the field actually corresponds to the table we're interested in
-                            field_table = expr.left.table.name
-                            save_identification_data(table_name=field_table, primary_key=param_value)
+
+                    col_name = expr.left.name
+                    # strip leading colon off param key (e.g. :id_1 -> id_1)
+                    param_key = str(expr.right).lstrip(":")
+                    param_value = statement_params.get(param_key, None)
+                    field_table = expr.left.table.name
+                    if param_value is not None and field_table == tablename:
+                        column_value_map[col_name] = param_value
+
+                save_identification_data(table_name=tablename, column_value_map=column_value_map)
