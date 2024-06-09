@@ -12,6 +12,7 @@ from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTa
 class HttpServerEventsTableHandle(BigQueryTableHandle):
     table_def = BigQueryTableDefinition(
         table_id="atoms_http_server_events_v1",
+        friendly_name="HTTP Server atoms",
         description="HTTP Server atoms",
         schema=(
             SchemaField(
@@ -64,7 +65,7 @@ class HttpServerEventsTableHandle(BigQueryTableHandle):
 
         #     if not vevent_query.one_or_none():
         #         self._bq_client.get_or_create_view(
-        #             dataset_id=self.team.id.hex,
+        #             dataset_id=self.dataset_id,
         #             view_id=vevent_view_id,
         #             view_query=dedent(
         #                 """
@@ -78,7 +79,7 @@ class HttpServerEventsTableHandle(BigQueryTableHandle):
         #                 ORDER BY
         #                     `timestamp` ASC
         #                 """.format(
-        #                     dataset_id=sql_sanitized_identifier(self.team.id.hex),
+        #                     dataset_id=sql_sanitized_identifier(self.dataset_id),
         #                     atom_table_id=sql_sanitized_identifier(self.table_def.table_id),
         #                     source_table=sql_sanitized_literal(source_table),
         #                     operation=sql_sanitized_literal(operation),
@@ -101,15 +102,10 @@ class HttpServerEventsTableHandle(BigQueryTableHandle):
 
         http_server_events = [HttpServerEventPayload(**e) for e in events]
 
-        dataset = self._bq_client.get_or_create_dataset(
-            dataset_id=self.team.id.hex,
-        )
+        self._bq_client.get_or_create_dataset(dataset_id=self.dataset_id)
 
-        table = self._bq_client.get_and_sync_or_create_table(
-            dataset_id=dataset.dataset_id,
-            table_id=self.table_def.table_id,
-            schema=self.table_def.schema,
-            description=self.table_def.description,
+        remote_table = self._bq_client.get_and_sync_or_create_table(
+            table=self.construct_bq_table(),
             ctx=ctx,
         )
 
@@ -119,13 +115,17 @@ class HttpServerEventsTableHandle(BigQueryTableHandle):
         insert_timestamp = time.time()
 
         for e in http_server_events:
+            if e.request_method is None or e.request_url is None:
+                LOGGER.warning("e.request_method or e.request_url unexpectedly missing", ctx)
+                continue
+
             unique_operations.add((e.request_method, e.request_url))
             row = e.to_dict()
             row["insert_timestamp"] = insert_timestamp
             formatted_rows.append(row)
 
         errors = self._bq_client.append_rows(
-            table=table,
+            table=remote_table,
             rows=formatted_rows,
         )
 

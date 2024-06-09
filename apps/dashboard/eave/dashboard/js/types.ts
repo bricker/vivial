@@ -1,3 +1,5 @@
+export const eaveOrigin = "eave_dashboard";
+
 export type VirtualEventField = {
   name: string;
   description?: string | null;
@@ -6,27 +8,24 @@ export type VirtualEventField = {
   fields: VirtualEventField[] | null;
 };
 
-export type VirtualEventPeek = {
-  id: string;
-  view_id: string;
-  readable_name: string;
-  description?: string;
-};
-
 export type VirtualEventDetails = {
   id: string;
   view_id: string;
   readable_name: string;
   description?: string | null;
-  fields: VirtualEventField[] | null;
+  fields?: VirtualEventField[] | null;
 };
 
 export type ListMyVirtualEventsResponseBody = {
-  virtual_events: Array<VirtualEventPeek>;
+  // This endpoint returns VirtualEventPeek[], but in the UI we keep a list of virtual events
+  // and lazily populate the fields.
+  // This endpoint will return Virtual Events _without_ fields.
+  virtual_events: Array<VirtualEventDetails>;
 };
 
 export type GetMyVirtualEventDetailsResponseBody = {
-  virtual_events: Array<VirtualEventPeek>;
+  // This endpoint returns a single virtual event _with_ fields.
+  virtual_event: VirtualEventDetails;
 };
 
 export type Team = {
@@ -50,7 +49,7 @@ export type GlobalEaveWindow = Window &
 export type DashboardTeam = {
   id?: string;
   name?: string;
-  virtualEvents?: VirtualEventPeek[];
+  virtualEvents?: VirtualEventDetails[];
 };
 
 export type DashboardNetworkState = {

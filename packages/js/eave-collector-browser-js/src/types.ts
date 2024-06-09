@@ -1,16 +1,16 @@
-export type StringMap<T extends string | string[]> = { [key: string]: T };
-export type NullableStringMap<T extends string | string[]> = { [key: string]: T | null };
 
-export type JSONScalar = string | number | boolean | null | undefined;
-export type JSONObject = {
-  [key: string]: JSONScalar | JSONScalar[] | JSONObject | JSONObject[];
+export type JsonScalar = string | number | boolean | null | undefined;
+export type JsonObject = {
+  [key: string]: JsonScalar | JsonScalar[] | JsonObject | JsonObject[];
 };
-export type JSONValue = JSONScalar | JSONScalar[] | JSONObject | JSONObject[];
+export type JsonValue = JsonScalar | JsonScalar[] | JsonObject | JsonObject[];
 
-export type KeyValueArray = {
-  key: string;
-  value: string | null;
-}[];
+export type ScalarMap<T extends JsonScalar> = { [key: string]: T };
+
+// export type KeyValueDict = {
+//   key: string;
+//   value: JsonScalar;
+// };
 
 // These are just for clarity, because Javascript represents UTS in millis,
 // but the server needs them in seconds resolution.
@@ -39,7 +39,7 @@ export type GlobalEaveWindow = Window & EaveConfiguration & { eave: EaveInterfac
 export type DeviceBrandProperties = {
   brand: string;
   version: string;
-}
+};
 
 export type DeviceProperties = {
   user_agent: string;
@@ -55,58 +55,68 @@ export type DeviceProperties = {
   screen_avail_height: number;
 };
 
-export type PageProperties = {
-  current_url: string;
-  current_title: string;
+export type UrlProperties = {
+  raw: string;
+  protocol: string;
+  domain: string;
+  path: string;
+  hash: string;
+  query_params: ScalarMap<string>;
+};
+
+export type CurrentPageProperties = {
+  url: UrlProperties;
+  title: string;
   pageview_id: string;
-  current_query_params: KeyValueArray;
 };
 
 export type SessionProperties = {
   id: string | null;
   start_timestamp: EpochTimeStampSeconds | null;
-  duration_ms: DOMHighResTimeStamp | null;
 };
 
 export type UserProperties = {
-  id: string | null;
+  account_id: string | null;
   visitor_id: string | null;
 };
 
-export type DiscoveryProperties = {
-  // custom properties
+export type TrafficSourceProperties = {
   timestamp: EpochTimeStampSeconds | null;
   browser_referrer: string | null;
-
-  // Known params
-  gclid?: string;
-  fbclid?: string;
-  msclkid?: string;
-  campaign?: string;
-  source?: string;
-  medium?: string;
-  term?: string;
-  content?: string;
-
-  // catch-all for additional UTM params
-  extra_utm_params: KeyValueArray | null;
+  gclid: string | null;
+  fbclid: string | null;
+  msclkid: string | null;
+  dclid: string | null;
+  ko_click_id: string | null;
+  rtd_cid: string | null;
+  li_fat_id: string | null;
+  ttclid: string | null;
+  twclid: string | null;
+  wbraid: string | null;
+  gbraid: string | null;
+  utm_campaign: string | null;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_term: string | null;
+  utm_content: string | null;
+  other_utm_params: ScalarMap<string> | null;
 };
 
 export type TargetProperties = {
   type: string | null;
   id: string | null;
-  text: string | null;
-  attributes: KeyValueArray | null;
+  content: string | null;
+  attributes: ScalarMap<string> | null;
 };
 
 export type BrowserEventPayload = {
   action: string;
   timestamp: EpochTimeStampSeconds;
   target: TargetProperties | null;
-  device: DeviceProperties;
-  page: PageProperties;
+  device: DeviceProperties | null;
+  current_page: CurrentPageProperties | null;
   session: SessionProperties | null;
-  user: UserProperties;
-  discovery: DiscoveryProperties | null;
-  extra?: KeyValueArray;
+  user: UserProperties | null;
+  traffic_source: TrafficSourceProperties | null;
+  extra?: ScalarMap<JsonScalar> | null;
 };

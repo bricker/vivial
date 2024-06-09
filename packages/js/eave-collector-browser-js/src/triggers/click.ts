@@ -1,8 +1,9 @@
 import { requestManager } from "../beacon";
 import { LOG_TAG } from "../internal/constants";
-import { CLICK_EVENT_TYPE, dispatchTriggerNotification } from "../internal/js-events";
+import { startOrExtendSession } from "../session.js";
 import { TargetProperties } from "../types";
 import { getElementAttributes } from "../util/dom-helpers";
+import { currentTimestampSeconds } from "../util/timestamp.js";
 import { castEventTargetToHtmlElement } from "../util/type-helpers";
 
 /**
@@ -28,8 +29,8 @@ function getNameOfClickedMouseButton(event: MouseEvent): string {
 /**
  * Handle click event
  */
-async function trackClick(event: MouseEvent) {
-  const timestamp = Date.now();
+export async function clickEventHandler(event: MouseEvent) {
+  const timestamp = currentTimestampSeconds();
   let eventTarget: TargetProperties | null = null;
 
   if (event.target) {
@@ -49,7 +50,7 @@ async function trackClick(event: MouseEvent) {
       eventTarget = {
         type: nodeName,
         id: targetElement.id,
-        text: targetElement.innerText,
+        content: targetElement.innerText,
         attributes: elementAttrs,
       };
     }
@@ -57,36 +58,12 @@ async function trackClick(event: MouseEvent) {
 
   const payload = await requestManager.buildPayload({
     action: event.type,
-    timestamp: timestamp / 1000,
+    timestamp,
     target: eventTarget,
-    extra: [
-      { key: "mouse_button", value: getNameOfClickedMouseButton(event) },
-    ],
+    extra: {
+      mouse_button: getNameOfClickedMouseButton(event),
+    },
   });
 
   requestManager.queueEvent(payload);
-}
-
-let initialized = false;
-
-export function enableClickTracking() {
-  console.debug(LOG_TAG, "Enabling click tracking.");
-
-  if (!initialized) {
-    // This ensures that the handler isn't added more than once.
-    // Although addEventListener won't add the same function object twice,
-    // it's easy to accidentally add duplicate handlers by passing an anonymous function (eg arrow function).
-    document.body.addEventListener(CLICK_EVENT_TYPE, trackClick, {
-      capture: true,
-      passive: true,
-    });
-    document.body.addEventListener(CLICK_EVENT_TYPE, dispatchTriggerNotification, { capture: true, passive: true });
-  }
-
-  // TODO: Are these needed? Maybe for some browsers?
-  // document.body.addEventListener("mouseup", handleClick, { capture: true, passive: true });
-  // document.body.addEventListener("mousedown", handleClick, { capture: true, passive: true });
-  // document.body.addEventListener("contextmenu", handleClick, { capture: true, passive: true });
-
-  initialized = true;
 }

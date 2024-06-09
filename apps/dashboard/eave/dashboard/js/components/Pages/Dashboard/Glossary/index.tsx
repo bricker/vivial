@@ -4,7 +4,7 @@ import SidePanelIcon from "$eave-dashboard/js/components/Icons/SidePanelIcon";
 import { AppContext } from "$eave-dashboard/js/context/Provider";
 import useTeam from "$eave-dashboard/js/hooks/useTeam";
 import { theme as eaveTheme } from "$eave-dashboard/js/theme";
-import { VirtualEventPeek } from "$eave-dashboard/js/types.js";
+import { VirtualEventDetails } from "$eave-dashboard/js/types.js";
 import { CircularProgress } from "@mui/material";
 import classNames from "classnames";
 import React, { useContext, useEffect, useState } from "react";
@@ -144,17 +144,17 @@ const makeClasses = makeStyles<void, "hoverIcon">()((theme, _params, classes) =>
 const Glossary = () => {
   const { classes } = makeClasses();
   const [searchValue, setSearchValue] = useState("");
-  const [selectedEvent, setSelectedEvent] = useState<VirtualEventPeek | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<VirtualEventDetails | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
-  const { team, getTeamVirtualEvents } = useTeam();
+  const { team, listVirtualEvents } = useTeam();
 
   const { glossaryNetworkStateCtx } = useContext(AppContext);
   const [networkState] = glossaryNetworkStateCtx!;
 
   // initial data load
   useEffect(() => {
-    getTeamVirtualEvents(null);
+    listVirtualEvents({ query: null });
   }, []);
 
   useEffect(() => {
@@ -183,11 +183,11 @@ const Glossary = () => {
   // perform search for events
   useEffect(() => {
     setIsOpen(false);
-    getTeamVirtualEvents(searchValue ? { search_term: searchValue } : null);
+    listVirtualEvents({ query: searchValue });
   }, [searchValue]);
 
   // factored out as it's used in both the row onClick and onKeyPress actions
-  const rowClicked = (event: VirtualEventPeek) => {
+  const rowClicked = (event: VirtualEventDetails) => {
     setSelectedEvent(event);
     setIsOpen(true);
     // move kb focus to the sidepanel for a11y

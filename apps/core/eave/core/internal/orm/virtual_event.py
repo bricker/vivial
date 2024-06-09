@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.stdlib.util import titleize
+from sqlalchemy.sql.functions import count
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
@@ -64,26 +65,32 @@ class VirtualEventOrm(Base):
         view_id: str | None = None
 
     @classmethod
-    def _build_query(cls, params: QueryParams) -> Select[tuple[Self]]:
-        lookup = select(cls).order_by(cls.readable_name)
-
+    def _build_query[T: Select](cls, builder: T, params: QueryParams) -> T:
         if params.id is not None:
-            lookup = lookup.where(cls.id == params.id)
+            builder = builder.where(cls.id == params.id)
 
         if params.team_id is not None:
-            lookup = lookup.where(cls.team_id == params.team_id)
+            builder = builder.where(cls.team_id == params.team_id)
 
         if params.readable_name is not None:
-            lookup = lookup.where(cls.readable_name == params.readable_name)
+            builder = builder.where(cls.readable_name == params.readable_name)
 
         if params.view_id is not None:
-            lookup = lookup.where(cls.view_id == params.view_id)
+            builder = builder.where(cls.view_id == params.view_id)
 
-        assert lookup.whereclause is not None, "Invalid parameters"
-        return lookup
+        assert builder.whereclause is not None, "Invalid parameters"
+        return builder
 
     @classmethod
     async def query(cls, session: AsyncSession, params: QueryParams) -> ScalarResult[Self]:
-        lookup = cls._build_query(params=params)
+        builder = select(cls).order_by(cls.readable_name)
+        lookup = cls._build_query(builder, params=params)
         result = await session.scalars(lookup)
         return result
+
+    @classmethod
+    async def count(cls, session: AsyncSession, params: QueryParams) -> int:
+        builder = select(count(cls.id))
+        lookup = cls._build_query(builder, params=params)
+        result = await session.scalars(lookup)
+        return result.one()

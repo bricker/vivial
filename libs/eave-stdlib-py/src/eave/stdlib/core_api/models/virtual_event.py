@@ -9,9 +9,9 @@ from eave.core.internal.atoms.table_handle import BigQueryFieldMode
 class VirtualEventField(BaseResponseModel):
     name: str
     description: str | None
-    field_type: SqlTypeNames
-    mode: BigQueryFieldMode | None
-    fields: list["VirtualEventField"] | None = None
+    field_type: SqlTypeNames # STRING, INTEGER, RECORD, etc.
+    mode: BigQueryFieldMode | None # NULLABLE, REQUIRED, REPEATED
+    fields: list["VirtualEventField"] | None = None # recursive nested fields
 
     @classmethod
     def from_bq_field(cls, field: SchemaField) -> "VirtualEventField":

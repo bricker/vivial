@@ -18,7 +18,7 @@ from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.core.internal.orm.metabase_instance import MetabaseInstanceOrm
-from eave.core.internal.orm.team import TeamOrm
+from eave.core.internal.orm.team import TeamOrm, bq_dataset_id
 from eave.stdlib import auth_cookies, utm_cookies
 from eave.stdlib.api_util import set_redirect
 from eave.stdlib.config import SHARED_CONFIG
@@ -173,7 +173,7 @@ async def create_new_account_and_team(
             email=user_email,
         )
 
-        EAVE_INTERNAL_BIGQUERY_CLIENT.get_or_create_dataset(dataset_id=eave_team.id.hex)
+        EAVE_INTERNAL_BIGQUERY_CLIENT.get_or_create_dataset(dataset_id=bq_dataset_id(eave_team.id))
 
     eaveLogger.debug(
         "created new account",

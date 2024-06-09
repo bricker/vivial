@@ -13,6 +13,7 @@ from eave.stdlib.logging import LOGGER, LogContext
 
 class BigQueryClient:
     _bq_client: bigquery.Client
+    project: str
 
     def __init__(self, service_account: str | None = None) -> None:
         if service_account:
@@ -22,6 +23,7 @@ class BigQueryClient:
             credentials = None
 
         self._bq_client = bigquery.Client(credentials=credentials)
+        self.project = self._bq_client.project
 
     def get_or_create_dataset(self, *, dataset_id: str) -> bigquery.Dataset:
         dataset = self._construct_dataset(dataset_id=dataset_id)
@@ -32,70 +34,95 @@ class BigQueryClient:
         )
         return r
 
-    def get_and_sync_or_create_table(
+    def get_or_create_table(
         self,
         *,
-        dataset_id: str,
-        table_id: str,
-        schema: tuple[bigquery.SchemaField, ...],
-        description: str,
+        table: bigquery.Table,
         ctx: LogContext,
     ) -> bigquery.Table:
-        local_table = self.construct_table(dataset_id=dataset_id, table_id=table_id)
-        local_table.schema = schema
-        local_table.description = description
-
         remote_table = self._bq_client.create_table(
-            table=local_table,
+            table=table,
             exists_ok=True,
         )
 
-        local_table_flattened_schema_fields = sorted(_flattened_schema_fields(local_table.schema))
-        remote_table_flattened_schema_fields = sorted(_flattened_schema_fields(remote_table.schema))
+        # if remote_table.to_api_repr() != table.to_api_repr():
+        #     LOGGER.info("Schema mismatch. Updating remote schema.", {"table_id": remote_table.table_id}, ctx)
 
-        if local_table_flattened_schema_fields != remote_table_flattened_schema_fields:
-            LOGGER.info("Schema mismatch. Updating remote schema.", {"table_id": table_id}, ctx)
+        #     remote_table.friendly_name = table.friendly_name
+        #     remote_table.description = table.description
+        #     remote_table.schema = table.schema
+        #     remote_table.mview_query = table.mview_query
 
-            # The schemas don't match. Update the server schema to match the client schema.
-            remote_table.schema = local_table.schema
-
-            try:
-                remote_table = self._bq_client.update_table(
-                    table=remote_table,
-                    fields=["schema"],
-                )
-            except Exception as e:
-                # This may happen if a field was removed.
-                # That isn't supposed to happen, but in case it did (developer error),
-                # then we shouldn't prevent the insert.
-                if SHARED_CONFIG.is_production:
-                    # Log, but do not raise.
-                    LOGGER.exception(e, ctx)
-                else:
-                    # in non-prod envs, raise
-                    raise
+        #     try:
+        #         remote_table = self._bq_client.update_table(
+        #             table=remote_table,
+        #             fields=["friendlyName", "description", "schema", "materializedView"],
+        #         )
+        #     except Exception as e:
+        #         # This may happen if the schema was invalid.
+        #         # Either a field was removed, or the materialized view query and schema don't match.
+        #         # Regardless, this shouldn't prevent the data from being inserted in production.
+        #         # In development, it should fail.
+        #         if SHARED_CONFIG.is_production:
+        #             LOGGER.exception(e)
+        #         else:
+        #             raise
 
         return remote_table
 
-    def get_and_sync_or_create_view(self, *, dataset_id: str, view_id: str, friendly_name: str, description: str, mview_query: str, schema: tuple[bigquery.SchemaField, ...]) -> bigquery.Table:
-        local_table = self.construct_table(dataset_id=dataset_id, table_id=view_id)
-        local_table.friendly_name = friendly_name
-        local_table.description = description
-        local_table.mview_query = mview_query
-        local_table.schema = schema
+        # local_table_flattened_schema_fields = sorted(_flattened_schema_fields(table.schema))
+        # remote_table_flattened_schema_fields = sorted(_flattened_schema_fields(remote_table.schema))
 
-        remote_table = self._bq_client.create_table(
-            table=local_table,
-            exists_ok=True,
+        # if local_table_flattened_schema_fields != remote_table_flattened_schema_fields:
+        #     LOGGER.info("Schema mismatch. Updating remote schema.", {"table_id": remote_table.table_id}, ctx)
+
+        #     # The schemas don't match. Update the server schema to match the client schema.
+        #     remote_table.schema = table.schema
+
+        #     try:
+        #         remote_table = self._bq_client.update_table(
+        #             table=remote_table,
+        #             fields=["schema"],
+        #         )
+        #     except Exception as e:
+        #         # This may happen if a field was removed.
+        #         # That isn't supposed to happen, but in case it did (developer error),
+        #         # then we shouldn't prevent the insert.
+        #         if SHARED_CONFIG.is_production:
+        #             # Log, but do not raise.
+        #             LOGGER.exception(e, ctx)
+        #         else:
+        #             # in non-prod envs, raise
+        #             raise
+
+        # return remote_table
+
+    def update_table(self, *, table: bigquery.Table, ctx: LogContext) -> bigquery.Table:
+        remote_table = self._bq_client.update_table(
+            table=table,
+            fields=["materializedView", "schema", "description", "friendlyName"],
         )
 
-        if remote_table.to_api_repr() != local_table.to_api_repr():
-            self._bq_client.update_table(
-                table=remote_table,
-                fields=["materializedView", "schema", "description", "friendlyName"],
-            )
-
         return remote_table
+    # def get_and_sync_or_create_view(self, *, dataset_id: str, view_id: str, friendly_name: str, description: str, mview_query: str, schema: tuple[bigquery.SchemaField, ...]) -> bigquery.Table:
+    #     local_table = self.construct_table(dataset_id=dataset_id, table_id=view_id)
+    #     local_table.friendly_name = friendly_name
+    #     local_table.description = description
+    #     local_table.mview_query = mview_query
+    #     local_table.schema = schema
+
+    #     remote_table = self._bq_client.create_table(
+    #         table=local_table,
+    #         exists_ok=True,
+    #     )
+
+    #     if remote_table.to_api_repr() != local_table.to_api_repr():
+    #         self._bq_client.update_table(
+    #             table=remote_table,
+    #             fields=["materializedView", "schema", "description", "friendlyName"],
+    #         )
+
+    #     return remote_table
 
     def append_rows(self, *, table: bigquery.Table, rows: Sequence[Mapping[str, Any]]) -> Sequence[dict[str, Any]]:
         errors = self._bq_client.insert_rows(
@@ -149,6 +176,11 @@ class BigQueryClient:
         result = self._bq_client.get_table(table=table)
         return result
 
+    def construct_table(self, *, dataset_id: str, table_id: str) -> bigquery.Table:
+        table_ref = self._construct_table_ref(dataset_id=dataset_id, table_id=table_id)
+        table = bigquery.Table(table_ref=table_ref)
+        return table
+
     def _construct_dataset_ref(self, *, dataset_id: str) -> bigquery.DatasetReference:
         dataset_ref = bigquery.DatasetReference(project=self._bq_client.project, dataset_id=dataset_id)
         return dataset_ref
@@ -162,11 +194,6 @@ class BigQueryClient:
         dataset_ref = self._construct_dataset_ref(dataset_id=dataset_id)
         dataset = bigquery.Dataset(dataset_ref=dataset_ref)
         return dataset
-
-    def construct_table(self, *, dataset_id: str, table_id: str) -> bigquery.Table:
-        table_ref = self._construct_table_ref(dataset_id=dataset_id, table_id=table_id)
-        table = bigquery.Table(table_ref=table_ref)
-        return table
 
 
 def _flattened_schema_fields(fields: Iterable[bigquery.SchemaField]) -> list[str]:

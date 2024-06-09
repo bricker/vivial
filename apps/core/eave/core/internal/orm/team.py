@@ -96,3 +96,6 @@ class TeamOrm(Base):
 
         # Otherwise, the hostname must exactly match the origin pattern.
         return hostname == origin_pattern
+
+def bq_dataset_id(id: UUID) -> str:
+    return f"team_{id.hex}"

@@ -1,7 +1,7 @@
 import { LOG_TAG } from "../internal/constants";
-import { JSONValue } from "../types";
+import { JsonValue } from "../types";
 
-export function safeJSONParse<T extends JSONValue>(value: string | null): T | null {
+export function safeJSONParse<T extends JsonValue>(value: string | null): T | null {
   if (value === null) {
     return null;
   }
@@ -14,6 +14,6 @@ export function safeJSONParse<T extends JSONValue>(value: string | null): T | nu
   }
 }
 
-export function compactJSONStringify(json: JSONValue): string {
+export function compactJSONStringify(json: JsonValue): string {
   return JSON.stringify(json, undefined, 0); // 0 is default; being explicit because cookie size is important
 }

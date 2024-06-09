@@ -22,6 +22,8 @@ from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, Clie
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
 
+from eave.core.internal.orm.team import bq_dataset_id
+
 from .base import BaseTestCase
 
 client = bigquery.Client(project=SHARED_CONFIG.google_cloud_project)
@@ -41,7 +43,7 @@ class TestDataIngestionEndpoints(BaseTestCase):
             )
 
         client.delete_dataset(
-            dataset=self._team.id.hex,
+            dataset=bq_dataset_id(self._team.id),
             delete_contents=True,
             not_found_ok=True,
         )
@@ -49,14 +51,14 @@ class TestDataIngestionEndpoints(BaseTestCase):
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
         client.delete_dataset(
-            dataset=self._team.id.hex,
+            dataset=bq_dataset_id(self._team.id),
             delete_contents=True,
             not_found_ok=True,
         )
 
     def _bq_team_dataset_exists(self) -> bool:
         try:
-            dataset = client.get_dataset(dataset_ref=self._team.id.hex)
+            dataset = client.get_dataset(dataset_ref=bq_dataset_id(self._team.id))
         except Exception as e:
             print(f"Google Cloud Error: {e}")
             return False
@@ -65,7 +67,7 @@ class TestDataIngestionEndpoints(BaseTestCase):
 
     def _bq_table_exists(self, table_name: str) -> bool:
         table = EAVE_INTERNAL_BIGQUERY_CLIENT.get_table_or_none(
-            dataset_id=self._team.id.hex, table_id=table_name
+            dataset_id=bq_dataset_id(self._team.id), table_id=table_name
         )
         return table is not None
 

@@ -1,15 +1,36 @@
 import { eaveState } from "../state";
-import { PageProperties, StringMap } from "../types";
-import { pairsToKeyValueArray, toKeyValueArray } from "../util/type-helpers";
+import { CurrentPageProperties, ScalarMap } from "../types";
 
-export function getPageProperties(): PageProperties {
+export function currentQueryParams(): ScalarMap<string> {
   const currentPageUrl = new URL(window.location.href);
-  const current_query_params = pairsToKeyValueArray(Array.from(currentPageUrl.searchParams.entries()));
+  const queryParams: ScalarMap<string> = {};
+
+  for (const [key, value] of currentPageUrl.searchParams) {
+    queryParams[key] = value;
+  }
+
+  return queryParams;
+}
+
+export function getCurrentPageProperties(): CurrentPageProperties {
+  const currentPageUrl = new URL(window.location.href);
+  const query_params = currentQueryParams();
+
+  // Remove potentially sensitive properties
+  currentPageUrl.username = "";
+  currentPageUrl.password = "";
 
   return {
-    current_url: currentPageUrl.toString(),
-    current_title: document.title,
+    url: {
+      // This is done instead of toString() to remove username
+      raw: currentPageUrl.toString(),
+      protocol: currentPageUrl.protocol.replace(":$", ""),
+      domain: currentPageUrl.hostname,
+      path: currentPageUrl.pathname,
+      hash: currentPageUrl.hash,
+      query_params,
+    },
+    title: document.title,
     pageview_id: eaveState.pageViewId,
-    current_query_params,
   };
 }

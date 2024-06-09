@@ -1,5 +1,4 @@
 import { EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE } from "./internal/js-events";
-import { StringMap } from "./types";
 
 export const COOKIE_NAME_PREFIX = "_eave.";
 export const MAX_ALLOWED_COOKIE_AGE_SEC = 60 * 60 * 24 * 400; // 400 days (maximum allowed value in Chrome)
@@ -104,22 +103,6 @@ export function deleteAllEaveCookies() {
   }
 }
 
-function handleEvent(_evt: Event) {
+export function cookiesEventHandler(_evt: Event) {
   deleteAllEaveCookies();
-}
-
-let initialized = false;
-
-/**
- * Register event listeners. Call this only once, when the page loads.
- */
-export function initializeCookieModule() {
-  if (!initialized) {
-    // This ensures that the handler isn't added more than once.
-    // Although addEventListener won't add the same function object twice,
-    // it's easy to accidentally add duplicate handlers by passing an anonymous function (eg arrow function).
-    window.addEventListener(EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE, handleEvent, { passive: true });
-  }
-
-  initialized = true;
 }

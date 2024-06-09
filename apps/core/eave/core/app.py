@@ -271,9 +271,7 @@ routes = [
         ),
         endpoint=noop.NoopEndpoint,
     ),
-    ##
-    ## Internal Endpoints
-    ##
+
     make_route(
         config=GetMyTeamRequest.config,
         endpoint=team.GetMyTeamEndpoint,

@@ -1,50 +1,50 @@
 import { requestManager } from "../beacon";
 import { LOG_TAG } from "../internal/constants";
-import { HASHCHANGE_EVENT_TYPE, POPSTATE_EVENT_TYPE, dispatchTriggerNotification } from "../internal/js-events";
-import { toKeyValueArray } from "../util/type-helpers";
+import { startOrExtendSession } from "../session.js";
+import { currentTimestampSeconds } from "../util/timestamp.js";
 
 const NAVIGATION_ACTION_NAME = "navigation";
 
 export async function trackPageLoad() {
-  const timestamp = Date.now();
+  const timestamp = currentTimestampSeconds();
 
   const payload = await requestManager.buildPayload({
     action: NAVIGATION_ACTION_NAME,
-    timestamp: timestamp / 1000,
+    timestamp,
     target: null,
-    extra: toKeyValueArray({
+    extra: {
       reason: "pageload",
-    }),
+    },
   });
 
   requestManager.queueEvent(payload);
 }
 
-async function trackHashChange(event: HashChangeEvent) {
-  const timestamp = Date.now();
+export async function hashChangeEventHandler(evt: Event) {
+  const timestamp = currentTimestampSeconds();
 
   const payload = await requestManager.buildPayload({
     action: NAVIGATION_ACTION_NAME,
-    timestamp: timestamp / 1000,
+    timestamp,
     target: null,
-    extra: toKeyValueArray({
-      reason: event.type,
-    }),
+    extra: {
+      reason: evt.type,
+    },
   });
 
   requestManager.queueEvent(payload);
 }
 
-async function trackPopState(event: PopStateEvent) {
-  const timestamp = Date.now();
+export async function popStateEventHandler(evt: PopStateEvent) {
+  const timestamp = currentTimestampSeconds();
 
   const payload = await requestManager.buildPayload({
     action: NAVIGATION_ACTION_NAME,
-    timestamp: timestamp / 1000,
+    timestamp,
     target: null,
-    extra: toKeyValueArray({
-      reason: event.type,
-    }),
+    extra: {
+      reason: evt.type,
+    },
   });
 
   requestManager.queueEvent(payload);
@@ -54,17 +54,17 @@ async function trackPopState(event: PopStateEvent) {
  * @param state - The `state` parameter given to history.pushState/replaceState. Any serializable object.
  */
 async function trackNavigationStateChange(state: any, url?: URL | string | null) {
-  const timestamp = Date.now();
+  const timestamp = currentTimestampSeconds();
 
   const payload = await requestManager.buildPayload({
     action: NAVIGATION_ACTION_NAME,
-    timestamp: timestamp / 1000,
+    timestamp,
     target: null,
-    extra: toKeyValueArray({
+    extra: {
       reason: "statechange",
       state,
       url: url?.toString() || null,
-    }),
+    },
   });
 
   requestManager.queueEvent(payload);
@@ -105,7 +105,7 @@ async function trackNavigationStateChange(state: any, url?: URL | string | null)
  * Tracks route-change history for single page applications, since
  * normal page view events aren't triggered for navigation without a GET request.
  */
-function wrapNavigationStateChangeFunctions() {
+export function wrapNavigationStateChangeFunctions() {
   // h.trackCallbackOnReady(function () {
   //   const initialUrl = getCurrentUrl();
 
@@ -201,34 +201,4 @@ function wrapNavigationStateChangeFunctions() {
     trackNavigationStateChange(state, url).catch((e) => console.error(LOG_TAG, e));
     return proxyValue;
   };
-}
-
-let initialized = false;
-
-export function enableNavigationTracking() {
-  console.debug(LOG_TAG, "Enabling navigation tracking.");
-
-  if (!initialized) {
-    wrapNavigationStateChangeFunctions();
-
-    // This ensures that the handler isn't added more than once.
-    // Although addEventListener won't add the same function object twice,
-    // it's easy to accidentally add duplicate handlers by passing an anonymous function (eg arrow function).
-    window.addEventListener(HASHCHANGE_EVENT_TYPE, trackHashChange, {
-      capture: true,
-      passive: true,
-    });
-    window.addEventListener(HASHCHANGE_EVENT_TYPE, dispatchTriggerNotification, { capture: true, passive: true });
-
-    window.addEventListener(POPSTATE_EVENT_TYPE, trackPopState, {
-      capture: true,
-      passive: true,
-    });
-    window.addEventListener(POPSTATE_EVENT_TYPE, dispatchTriggerNotification, {
-      capture: true,
-      passive: true,
-    });
-  }
-
-  initialized = true;
 }

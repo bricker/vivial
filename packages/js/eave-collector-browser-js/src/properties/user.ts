@@ -3,20 +3,20 @@ import { COOKIE_NAME_PREFIX, MAX_ALLOWED_COOKIE_AGE_SEC, getEaveCookie, setEaveC
 import { UserProperties } from "../types";
 import { uuidv4 } from "../util/uuid";
 
-const USER_ID_COOKIE_NAME = `${COOKIE_NAME_PREFIX}user_id`;
+const ACCOUNT_ID_COOKIE_NAME = `${COOKIE_NAME_PREFIX}account_id`;
 const VISITOR_ID_COOKIE_NAME = `${COOKIE_NAME_PREFIX}visitor_id`;
 
-function getUserId(): string | null {
-  return getEaveCookie(USER_ID_COOKIE_NAME);
+function getAccountId(): string | null {
+  return getEaveCookie(ACCOUNT_ID_COOKIE_NAME);
 }
 
-function setUserId(value: string) {
+function setAccountId(value: string) {
   if (isCookieConsentRevoked()) {
     return;
   }
 
   setEaveCookie({
-    name: USER_ID_COOKIE_NAME,
+    name: ACCOUNT_ID_COOKIE_NAME,
     value,
     maxAgeSeconds: MAX_ALLOWED_COOKIE_AGE_SEC,
   });
@@ -40,24 +40,17 @@ function setVisitorId(value: string) {
 
 export function getUserProperties(): UserProperties {
   return {
-    id: getUserId(),
+    account_id: getAccountId(),
     visitor_id: getVisitorId(),
   };
 }
 
-function setOrRefreshUserCookies() {
-  const userId = getUserId();
-  if (userId) {
-    setUserId(userId);
+export function setOrTouchUserCookies() {
+  const accountId = getAccountId();
+  if (accountId) {
+    setAccountId(accountId);
   }
 
   const visitorId = getVisitorId() || uuidv4();
   setVisitorId(visitorId);
-}
-
-/**
- * Call this only once, when the page loads.
- */
-export function initializeUserModule() {
-  setOrRefreshUserCookies();
 }

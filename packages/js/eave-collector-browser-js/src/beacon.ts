@@ -7,12 +7,12 @@ import {
   EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE,
   VISIBILITY_CHANGE_EVENT_TYPE,
 } from "./internal/js-events";
-import { getDiscoveryProperties } from "./properties/discovery";
-import { getPageProperties } from "./properties/page";
+import { getTrafficSourceProperties } from "./properties/traffic_source";
+import { getCurrentPageProperties } from "./properties/page";
 import { getUserProperties } from "./properties/user";
 import { getUserAgentProperties } from "./properties/device";
 import { getSessionProperties } from "./session";
-import { BrowserEventPayload, EpochTimeStampSeconds, JSONObject, KeyValueArray, TargetProperties, DeviceProperties } from "./types";
+import { BrowserEventPayload, EpochTimeStampSeconds, TargetProperties, DeviceProperties, ScalarMap, JsonScalar } from "./types";
 
 /**
  * A Queue with a maximum size.
@@ -133,22 +133,22 @@ class RequestManager {
   /**
    * Builds a payload, filling in standard attributes like user agent and session info.
    */
-  async buildPayload({ action, timestamp, target, extra }: { action: string; timestamp: EpochTimeStampSeconds; target: TargetProperties | null; extra?: KeyValueArray }): Promise<BrowserEventPayload> {
+  async buildPayload({ action, timestamp, target, extra }: { action: string; timestamp: EpochTimeStampSeconds; target: TargetProperties | null; extra?: ScalarMap<JsonScalar> }): Promise<BrowserEventPayload> {
     const deviceProperties = await this.#getDeviceProperties();
-    const pageProperties = getPageProperties();
+    const currentPageProperties = getCurrentPageProperties();
     const sessionProperties = getSessionProperties();
     const userProperties = getUserProperties();
-    const discoveryProperties = getDiscoveryProperties();
+    const trafficSourceProperties = getTrafficSourceProperties();
 
     const payload: BrowserEventPayload = {
       action,
       timestamp,
       target,
       device: deviceProperties,
-      page: pageProperties,
+      current_page: currentPageProperties,
       session: sessionProperties,
       user: userProperties,
-      discovery: discoveryProperties,
+      traffic_source: trafficSourceProperties,
       extra,
     };
 
