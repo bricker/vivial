@@ -1,10 +1,10 @@
 # These classes are representations of the API payload from the Browser collector.
 # We don't use dataclasses because we want to ignore any unexpected attributes, which dataclasses don't natively allow.
 
-from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, Self
-from eave.stdlib.typing import JsonObject, JsonScalar
+
+from eave.stdlib.typing import JsonScalar
 
 
 class BrowserAction(StrEnum):
@@ -16,8 +16,9 @@ class BrowserAction(StrEnum):
     def from_str(cls, s: str) -> Self | None:
         try:
             return cls.__call__(value=s.upper())
-        except ValueError as e:
+        except ValueError:
             return None
+
 
 class DeviceBrandProperties:
     brand: str | None = None
@@ -26,6 +27,7 @@ class DeviceBrandProperties:
     def __init__(self, data: dict[str, str]) -> None:
         self.brand = data.get("brand")
         self.version = data.get("version")
+
 
 class DeviceProperties:
     user_agent: str | None = None
@@ -55,6 +57,7 @@ class DeviceProperties:
         if (v := data.get("brands")) and isinstance(v, list):
             self.brands = [DeviceBrandProperties(d) for d in v]
 
+
 class UrlProperties:
     raw: str | None = None
     protocol: str | None = None
@@ -71,6 +74,7 @@ class UrlProperties:
         self.hash = data.get("hash")
         self.query_params = data.get("query_params")
 
+
 class CurrentPageProperties:
     url: UrlProperties | None = None
     title: str | None = None
@@ -83,6 +87,7 @@ class CurrentPageProperties:
         if (v := data.get("url")) and isinstance(v, dict):
             self.url = UrlProperties(v)
 
+
 class SessionProperties:
     id: str | None = None
     start_timestamp: float | None = None
@@ -91,6 +96,7 @@ class SessionProperties:
         self.id = data.get("id")
         self.start_timestamp = data.get("start_timestamp")
 
+
 class UserProperties:
     account_id: str | None = None
     visitor_id: str | None = None
@@ -98,6 +104,7 @@ class UserProperties:
     def __init__(self, data: dict[str, Any]) -> None:
         self.account_id = data.get("account_id")
         self.visitor_id = data.get("visitor_id")
+
 
 class TrafficSourceProperties:
     timestamp: float | None = None
@@ -141,6 +148,7 @@ class TrafficSourceProperties:
         self.utm_content = data.get("utm_content")
         self.other_utm_params = data.get("other_utm_params")
 
+
 class TargetProperties:
     type: str | None = None
     id: str | None = None
@@ -152,6 +160,7 @@ class TargetProperties:
         self.id = data.get("id")
         self.content = data.get("content")
         self.attributes = data.get("attributes")
+
 
 class BrowserEventPayload:
     action: BrowserAction | None = None
@@ -188,4 +197,3 @@ class BrowserEventPayload:
 
         if (v := data.get("traffic_source")) and isinstance(v, dict):
             self.traffic_source = TrafficSourceProperties(v)
-

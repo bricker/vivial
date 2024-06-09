@@ -51,7 +51,7 @@ variable "certificate_map_name" {
 }
 
 variable "cdn_base_url" {
-  type=string
+  type = string
 }
 
 variable "kube_namespace_name" {

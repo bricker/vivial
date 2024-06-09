@@ -271,7 +271,6 @@ routes = [
         ),
         endpoint=noop.NoopEndpoint,
     ),
-
     make_route(
         config=GetMyTeamRequest.config,
         endpoint=team.GetMyTeamEndpoint,

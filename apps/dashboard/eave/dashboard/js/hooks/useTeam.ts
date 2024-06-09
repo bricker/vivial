@@ -4,7 +4,6 @@ import {
   GetMyVirtualEventDetailsResponseBody,
   GetTeamResponseBody,
   ListMyVirtualEventsResponseBody,
-  VirtualEventDetails,
   eaveOrigin,
   eaveWindow,
 } from "$eave-dashboard/js/types";

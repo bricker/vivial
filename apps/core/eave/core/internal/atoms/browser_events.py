@@ -1,23 +1,27 @@
-from collections import namedtuple
-from dataclasses import dataclass
 import dataclasses
+from dataclasses import dataclass
 from textwrap import dedent
-from typing import Any, ClassVar, NamedTuple, cast
+from typing import Any, cast
 
-from eave.stdlib.typing import JsonObject
+from google.cloud.bigquery import SchemaField, SqlTypeNames
 
 from eave.core.internal import database
-
-from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize, titleize
-from google.cloud.bigquery import SchemaField, SqlTypeNames, StandardSqlTypeNames, Table
-
-from eave.stdlib.logging import LOGGER, LogContext
-
 from eave.core.internal.atoms.api_types import BrowserAction, BrowserEventPayload
-from eave.core.internal.atoms.record_fields import BrandsRecordField, DeviceRecordField, MultiTypeKeyValueRecordField, CurrentPageRecordField, SingleTypeKeyValueRecordField, TargetRecordField, TrafficSourceRecordField, GeoRecordField, SessionRecordField, UrlRecordField, UserRecordField
-from .shared import common_event_timestamp_field, common_bq_insert_timestamp_field
+from eave.core.internal.atoms.record_fields import (
+    CurrentPageRecordField,
+    DeviceRecordField,
+    GeoRecordField,
+    MultiTypeKeyValueRecordField,
+    SessionRecordField,
+    TargetRecordField,
+    TrafficSourceRecordField,
+    UserRecordField,
+)
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
+from eave.stdlib.logging import LOGGER, LogContext
+from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize, titleize
 
+from .shared import common_bq_insert_timestamp_field, common_event_timestamp_field
 from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 
 _HTML_TAG_READABLE_NAMES = {
@@ -33,6 +37,7 @@ _HTML_TAG_READABLE_NAMES = {
     "P": "Text",
 }
 
+
 @dataclass(kw_only=True)
 class BrowserEventAtom:
     @staticmethod
@@ -44,9 +49,7 @@ class BrowserEventAtom:
                 field_type=SqlTypeNames.STRING,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
-
             common_event_timestamp_field(),
-
             SessionRecordField.schema(),
             UserRecordField.schema(),
             TrafficSourceRecordField.schema(),
@@ -54,19 +57,16 @@ class BrowserEventAtom:
             CurrentPageRecordField.schema(),
             DeviceRecordField.schema(),
             GeoRecordField.schema(),
-
             MultiTypeKeyValueRecordField.schema(
                 name="extra",
                 description="Arbitrary event-specific parameters.",
             ),
-
             SchemaField(
                 name="client_ip",
                 description="The user's IP address.",
                 field_type=SqlTypeNames.STRING,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
-
             common_bq_insert_timestamp_field(),
         )
 
@@ -82,6 +82,7 @@ class BrowserEventAtom:
     extra: list[MultiTypeKeyValueRecordField] | None
     client_ip: str | None
 
+
 class BrowserEventsTableHandle(BigQueryTableHandle):
     table_def = BigQueryTableDefinition(
         table_id="atoms_browser_events",
@@ -90,7 +91,9 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
         schema=BrowserEventAtom.schema(),
     )
 
-    async def insert_with_geolocation(self, events: list[dict[str, Any]], geolocation: GeoRecordField | None, client_ip: str | None, ctx: LogContext) -> None:
+    async def insert_with_geolocation(
+        self, events: list[dict[str, Any]], geolocation: GeoRecordField | None, client_ip: str | None, ctx: LogContext
+    ) -> None:
         if len(events) == 0:
             return
 
@@ -107,7 +110,7 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
         for payload in events:
             e = BrowserEventPayload(payload)
             if not e.action:
-                LOGGER.warning("Unexpected event action", { "event": payload }, ctx)
+                LOGGER.warning("Unexpected event action", {"event": payload}, ctx)
                 continue
 
             unique_operations.add(e.action)
@@ -115,9 +118,13 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
             atom = BrowserEventAtom(
                 action=e.action,
                 timestamp=e.timestamp,
-                session=SessionRecordField.from_api_resource(resource=e.session, event_timestamp=e.timestamp) if e.session else None,
+                session=SessionRecordField.from_api_resource(resource=e.session, event_timestamp=e.timestamp)
+                if e.session
+                else None,
                 user=UserRecordField.from_api_resource(e.user) if e.user else None,
-                traffic_source=TrafficSourceRecordField.from_api_resource(e.traffic_source) if e.traffic_source else None,
+                traffic_source=TrafficSourceRecordField.from_api_resource(e.traffic_source)
+                if e.traffic_source
+                else None,
                 target=TargetRecordField.from_api_resource(e.target) if e.target else None,
                 current_page=CurrentPageRecordField.from_api_resource(e.current_page) if e.current_page else None,
                 device=DeviceRecordField.from_api_resource(e.device) if e.device else None,
@@ -145,20 +152,22 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
         vevent_view_id = tableize(vevent_readable_name)
 
         async with database.async_session.begin() as db_session:
-            existing_vevent = (await VirtualEventOrm.query(
-                session=db_session,
-                params=VirtualEventOrm.QueryParams(
-                    team_id=self.team.id,
-                    view_id=vevent_view_id,
-                ),
-            )).one_or_none()
+            existing_vevent = (
+                await VirtualEventOrm.query(
+                    session=db_session,
+                    params=VirtualEventOrm.QueryParams(
+                        team_id=self.team.id,
+                        view_id=vevent_view_id,
+                    ),
+                )
+            ).one_or_none()
 
             if existing_vevent:
                 return
 
-            sanitized_dataset_id=sql_sanitized_identifier(self.dataset_id)
-            sanitized_atom_table_id=sql_sanitized_identifier(self.table_def.table_id)
-            sanitized_action=sql_sanitized_literal(action)
+            sanitized_dataset_id = sql_sanitized_identifier(self.dataset_id)
+            sanitized_atom_table_id = sql_sanitized_identifier(self.table_def.table_id)
+            sanitized_action = sql_sanitized_literal(action)
             sanitized_readable_name = sql_sanitized_literal(vevent_readable_name)
 
             view = self._bq_client.construct_table(dataset_id=self.dataset_id, table_id=vevent_view_id)
@@ -237,4 +246,3 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
             except Exception as e:
                 # Likely a race condition: Two events came in separate requests that tried to create the same virtual event.
                 LOGGER.exception(e)
-

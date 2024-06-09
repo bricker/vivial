@@ -1,12 +1,7 @@
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
-import dataclasses
-from typing import Any, ClassVar, Self
-from eave.stdlib.logging import LOGGER
-from eave.stdlib.typing import JsonObject, JsonScalar
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
 from eave.core.internal.atoms.table_handle import BigQueryFieldMode
+
 
 def common_bq_insert_timestamp_field() -> SchemaField:
     return SchemaField(
@@ -16,6 +11,7 @@ def common_bq_insert_timestamp_field() -> SchemaField:
         mode=BigQueryFieldMode.REQUIRED,
         default_value_expression="CURRENT_TIMESTAMP",
     )
+
 
 def common_event_timestamp_field() -> SchemaField:
     return SchemaField(

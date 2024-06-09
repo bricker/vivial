@@ -1,10 +1,9 @@
-from dataclasses import dataclass
 import aiohttp
 from asgiref.typing import HTTPScope
-from eave.collectors.core.datastructures import DataIngestRequestBody, EventType
 from starlette.requests import Request
 from starlette.responses import Response
 
+from eave.collectors.core.datastructures import DataIngestRequestBody, EventType
 from eave.core.internal import database
 from eave.core.internal.atoms.browser_events import BrowserEventsTableHandle
 from eave.core.internal.atoms.db_events import DatabaseEventsTableHandle
@@ -17,8 +16,9 @@ from eave.stdlib.api_util import get_header_value, get_header_value_or_exception
 from eave.stdlib.exceptions import ForbiddenError, UnauthorizedError
 from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
 from eave.stdlib.http_endpoint import HTTPEndpoint
-from eave.stdlib.logging import LOGGER, LogContext
+from eave.stdlib.logging import LogContext
 from eave.stdlib.util import ensure_uuid
+
 
 class BrowserDataIngestionEndpoint(HTTPEndpoint):
     async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:

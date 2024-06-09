@@ -31,9 +31,7 @@ export async function getUserAgentProperties(): Promise<DeviceProperties> {
   // In later versions it might require a user permission.
   // https://developer.mozilla.org/en-US/docs/Web/API/NavigatorUAData/getHighEntropyValues
   try {
-    const {
-      formFactor, fullVersionList, model, platformVersion,
-    } = await userAgentData.getHighEntropyValues([
+    const { formFactor, fullVersionList, model, platformVersion } = await userAgentData.getHighEntropyValues([
       "formFactor",
       "fullVersionList",
       "model",

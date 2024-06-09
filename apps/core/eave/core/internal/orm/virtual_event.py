@@ -4,12 +4,9 @@ from datetime import datetime
 from typing import Self
 from uuid import UUID
 
-from eave.stdlib.typing import JsonObject
-from sqlalchemy import JSON, Index, ScalarResult, Select, func, select, text
+from sqlalchemy import Index, ScalarResult, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
-
-from eave.stdlib.util import titleize
 from sqlalchemy.sql.functions import count
 
 from .base import Base

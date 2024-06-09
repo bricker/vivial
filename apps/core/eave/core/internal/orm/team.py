@@ -15,6 +15,7 @@ from eave.stdlib.core_api.models.team import AnalyticsTeam, Team
 from .base import Base
 from .util import UUID_DEFAULT_EXPR
 
+
 class TeamOrm(Base):
     __tablename__ = "teams"
 
@@ -96,6 +97,7 @@ class TeamOrm(Base):
 
         # Otherwise, the hostname must exactly match the origin pattern.
         return hostname == origin_pattern
+
 
 def bq_dataset_id(id: UUID) -> str:
     return f"team_{id.hex}"

@@ -5,7 +5,7 @@
 
 resource "google_compute_firewall" "default_allow_ssh" {
   # Must be DISABLED for SOC-2 compliance
-  disabled                = true
+  disabled = true
 
   description             = "Allow SSH from anywhere"
   destination_ranges      = []
@@ -26,7 +26,7 @@ resource "google_compute_firewall" "default_allow_ssh" {
 
 resource "google_compute_firewall" "default_allow_rdp" {
   # Must be DISABLED for SOC-2 compliance
-  disabled                = true
+  disabled = true
 
   description             = "Allow RDP from anywhere"
   destination_ranges      = []

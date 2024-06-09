@@ -1,13 +1,25 @@
 import { ConsentChoice, setCookieConsentChoice, setTrackingConsentChoice } from "./consent";
 import { cookiesEventHandler } from "./cookies";
 import { LOG_TAG } from "./internal/constants";
-import { CLICK_EVENT_TYPE, EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE, EAVE_TRIGGER_EVENT_TYPE, HASHCHANGE_EVENT_TYPE, POPSTATE_EVENT_TYPE, SUBMIT_EVENT_TYPE } from "./internal/js-events";
+import {
+  CLICK_EVENT_TYPE,
+  EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE,
+  EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE,
+  HASHCHANGE_EVENT_TYPE,
+  POPSTATE_EVENT_TYPE,
+  SUBMIT_EVENT_TYPE,
+} from "./internal/js-events";
 import { setTrafficSourceCookieIfNecessary } from "./properties/traffic_source";
 import { setOrTouchUserCookies } from "./properties/user";
 import { sessionEventHandler, startOrExtendSession } from "./session";
 import { clickEventHandler } from "./triggers/click";
 import { formSubmitEventHandler } from "./triggers/form-submit";
-import { hashChangeEventHandler, popStateEventHandler, trackPageLoad, wrapNavigationStateChangeFunctions } from "./triggers/navigation";
+import {
+  hashChangeEventHandler,
+  popStateEventHandler,
+  trackPageLoad,
+  wrapNavigationStateChangeFunctions,
+} from "./triggers/navigation";
 import { EaveInterface } from "./types";
 
 const eaveInterface: EaveInterface = {

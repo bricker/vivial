@@ -1,5 +1,3 @@
-import { EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE } from "./internal/js-events";
-
 export const COOKIE_NAME_PREFIX = "_eave.";
 export const MAX_ALLOWED_COOKIE_AGE_SEC = 60 * 60 * 24 * 400; // 400 days (maximum allowed value in Chrome)
 

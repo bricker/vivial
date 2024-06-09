@@ -1,13 +1,12 @@
 import dataclasses
-import logging
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any, ClassVar, Literal, Self
+from typing import Any, ClassVar, Self
 
 from eave.collectors.core.logging import EAVE_LOGGER
-from eave.stdlib.typing import JsonScalar
 
 from .json import JsonObject, compact_json
+
 
 class DatabaseOperation(StrEnum):
     INSERT = "INSERT"
@@ -24,16 +23,19 @@ class DatabaseOperation(StrEnum):
             EAVE_LOGGER.warning(e)
             return None
 
+
 class EventType(StrEnum):
     db_event = "db_event"
     http_server_event = "http_server_event"
     http_client_event = "http_client_event"
     browser_event = "browser_event"
 
+
 @dataclass(kw_only=True)
 class UserProperties:
     account_id: str | None = None
     visitor_id: str | None = None
+
 
 @dataclass(kw_only=True)
 class EventPayload:
@@ -63,22 +65,24 @@ class DatabaseEventPayload(EventPayload):
 @dataclass(kw_only=True)
 class HttpServerEventPayload(EventPayload):
     """Data about a request being handled by server application code"""
+
     event_type: ClassVar[EventType] = EventType.http_server_event
 
     request_method: str | None = None
     request_url: str | None = None
-    request_headers: dict[str,str] | None = None
+    request_headers: dict[str, str] | None = None
     request_payload: str | None = None
 
 
 @dataclass
 class HttpClientEventPayload(EventPayload):
     """Data about requests made by application code"""
+
     event_type: ClassVar[EventType] = EventType.http_client_event
 
     request_method: str | None = None
     request_url: str | None = None
-    request_headers: dict[str,str] | None = None
+    request_headers: dict[str, str] | None = None
     request_payload: str | None = None
 
 

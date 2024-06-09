@@ -1,8 +1,7 @@
 import { isCookieConsentRevoked } from "./consent";
 import { COOKIE_NAME_PREFIX, getEaveCookie, setEaveCookie } from "./cookies";
 import { LOG_TAG } from "./internal/constants";
-import { EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, EAVE_TRIGGER_EVENT_TYPE } from "./internal/js-events";
-import { EpochTimeStampMillis, SessionProperties } from "./types";
+import { SessionProperties } from "./types";
 import { compactJSONStringify, safeJSONParse } from "./util/json";
 import { currentTimestampSeconds } from "./util/timestamp.js";
 import { uuidv4 } from "./util/uuid";
@@ -26,7 +25,6 @@ function setSessionCookie(value: string) {
     maxAgeSeconds: SESSION_LENGTH_SEC,
   });
 }
-
 
 export function getSessionProperties(): SessionProperties | null {
   const value = getSessionCookie();

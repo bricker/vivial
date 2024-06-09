@@ -6,7 +6,6 @@ import {
   EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE,
   EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE,
 } from "./internal/js-events";
-import { startOrExtendSession } from "./session.js";
 
 // These cookies use a different prefix so that functions like deleteAllEaveCookies() don't affect these.
 const CONSENT_COOKIE_NAME_PREFIX = "_eaveconsent.";

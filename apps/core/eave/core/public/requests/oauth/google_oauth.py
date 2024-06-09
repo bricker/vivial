@@ -8,7 +8,7 @@ from starlette.responses import RedirectResponse, Response
 
 import eave.core.internal.oauth.google
 from eave.core.internal.oauth import state_cookies as oauth_cookies
-from eave.stdlib import analytics, utm_cookies
+from eave.stdlib import utm_cookies
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
 from eave.stdlib.http_endpoint import HTTPEndpoint

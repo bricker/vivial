@@ -7,8 +7,7 @@ from google.cloud import bigquery
 from google.cloud.bigquery.table import RowIterator, TableListItem
 from google.oauth2 import service_account as _service_account
 
-from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.logging import LOGGER, LogContext
+from eave.stdlib.logging import LogContext
 
 
 class BigQueryClient:
@@ -104,6 +103,7 @@ class BigQueryClient:
         )
 
         return remote_table
+
     # def get_and_sync_or_create_view(self, *, dataset_id: str, view_id: str, friendly_name: str, description: str, mview_query: str, schema: tuple[bigquery.SchemaField, ...]) -> bigquery.Table:
     #     local_table = self.construct_table(dataset_id=dataset_id, table_id=view_id)
     #     local_table.friendly_name = friendly_name

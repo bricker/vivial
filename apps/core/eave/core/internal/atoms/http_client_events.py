@@ -1,4 +1,3 @@
-import time
 from typing import Any, cast, override
 
 from google.cloud.bigquery import SchemaField, StandardSqlTypeNames

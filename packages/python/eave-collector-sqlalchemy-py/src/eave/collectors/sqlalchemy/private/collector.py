@@ -21,7 +21,6 @@ from eave.collectors.core.base_database_collector import (
     is_user_table,
     save_identification_data,
 )
-from eave.collectors.core.correlation_context import corr_ctx
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, KeyValueDict
 from eave.collectors.core.write_queue import WriteQueue
 

@@ -1,4 +1,3 @@
-
 /**
  * Helper for typechecking
  */

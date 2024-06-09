@@ -1,13 +1,22 @@
-
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-import dataclasses
-from typing import Any, Self, TypeVar
+from typing import Any
+
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
-from eave.core.internal.atoms.api_types import CurrentPageProperties, DeviceBrandProperties, DeviceProperties, SessionProperties, TargetProperties, TrafficSourceProperties, UrlProperties, UserProperties
+from eave.core.internal.atoms.api_types import (
+    CurrentPageProperties,
+    DeviceBrandProperties,
+    DeviceProperties,
+    SessionProperties,
+    TargetProperties,
+    TrafficSourceProperties,
+    UrlProperties,
+    UserProperties,
+)
 from eave.core.internal.atoms.table_handle import BigQueryFieldMode
 from eave.stdlib.typing import JsonScalar
+
 
 @dataclass(kw_only=True)
 class RecordField(ABC):
@@ -54,6 +63,7 @@ class TypedValueRecordField(RecordField):
     float_value: float | None = None
     bool_value: bool | None = None
 
+
 @dataclass(kw_only=True)
 class MultiTypeKeyValueRecordField(RecordField):
     @staticmethod
@@ -69,7 +79,6 @@ class MultiTypeKeyValueRecordField(RecordField):
                     field_type=SqlTypeNames.STRING,
                     mode=BigQueryFieldMode.REQUIRED,
                 ),
-
                 TypedValueRecordField.schema(),
             ),
         )
@@ -103,6 +112,7 @@ class MultiTypeKeyValueRecordField(RecordField):
 
     key: str
     value: TypedValueRecordField | None
+
 
 @dataclass(kw_only=True)
 class SingleTypeKeyValueRecordField[T: str | bool | int | float](RecordField):
@@ -139,6 +149,7 @@ class SingleTypeKeyValueRecordField[T: str | bool | int | float](RecordField):
 
     key: str
     value: T | None
+
 
 @dataclass(kw_only=True)
 class SessionRecordField(RecordField):
@@ -187,6 +198,7 @@ class SessionRecordField(RecordField):
             start_timestamp=resource.start_timestamp,
             duration_ms=duration_ms,
         )
+
 
 @dataclass(kw_only=True)
 class UserRecordField(RecordField):
@@ -391,8 +403,11 @@ class TrafficSourceRecordField(RecordField):
             utm_medium=resource.utm_medium,
             utm_term=resource.utm_term,
             utm_content=resource.utm_content,
-            other_utm_params=SingleTypeKeyValueRecordField[str].list_from_scalar_dict(resource.other_utm_params) if resource.other_utm_params else None,
+            other_utm_params=SingleTypeKeyValueRecordField[str].list_from_scalar_dict(resource.other_utm_params)
+            if resource.other_utm_params
+            else None,
         )
+
 
 @dataclass(kw_only=True)
 class GeoRecordField(RecordField):
@@ -489,9 +504,7 @@ class DeviceRecordField(RecordField):
                     field_type=SqlTypeNames.STRING,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
-
                 BrandsRecordField.schema(),
-
                 SchemaField(
                     name="platform",
                     description="https://developer.mozilla.org/en-US/docs/Web/API/NavigatorUAData/platform",
@@ -577,6 +590,7 @@ class DeviceRecordField(RecordField):
             screen_avail_height=resource.screen_avail_height,
         )
 
+
 @dataclass(kw_only=True)
 class TargetRecordField(RecordField):
     @staticmethod
@@ -605,7 +619,6 @@ class TargetRecordField(RecordField):
                     field_type=SqlTypeNames.STRING,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
-
                 SingleTypeKeyValueRecordField.schema(
                     name="attributes",
                     description="All attributes explicitly defined on this target in the DOM.",
@@ -625,8 +638,11 @@ class TargetRecordField(RecordField):
             type=resource.type,
             id=resource.id,
             content=resource.content,
-            attributes=SingleTypeKeyValueRecordField[str].list_from_scalar_dict(resource.attributes) if resource.attributes else None,
+            attributes=SingleTypeKeyValueRecordField[str].list_from_scalar_dict(resource.attributes)
+            if resource.attributes
+            else None,
         )
+
 
 @dataclass(kw_only=True)
 class UrlRecordField(RecordField):
@@ -691,8 +707,11 @@ class UrlRecordField(RecordField):
             domain=resource.domain,
             path=resource.path,
             hash=resource.hash,
-            query_params=SingleTypeKeyValueRecordField[str].list_from_scalar_dict(resource.query_params) if resource.query_params else None,
+            query_params=SingleTypeKeyValueRecordField[str].list_from_scalar_dict(resource.query_params)
+            if resource.query_params
+            else None,
         )
+
 
 @dataclass(kw_only=True)
 class CurrentPageRecordField(RecordField):
@@ -705,7 +724,6 @@ class CurrentPageRecordField(RecordField):
             mode=BigQueryFieldMode.NULLABLE,
             fields=(
                 UrlRecordField.schema(),
-
                 SchemaField(
                     name="title",
                     description="The page title when this event occurred.",

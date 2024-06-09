@@ -1,18 +1,19 @@
-from dataclasses import dataclass
 import dataclasses
-import time
+from dataclasses import dataclass
 from textwrap import dedent
-from typing import Any, cast, override
+from typing import Any, cast
 
-from eave.stdlib.typing import JsonObject
 from google.cloud.bigquery import SchemaField, SqlTypeNames, StandardSqlTypeNames
 
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
-from sqlalchemy import select
-from sqlalchemy.sql.functions import count
 from eave.core.internal import database
 from eave.core.internal.atoms.api_types import SessionProperties, TrafficSourceProperties, UserProperties
-from eave.core.internal.atoms.record_fields import MultiTypeKeyValueRecordField, SessionRecordField, TrafficSourceRecordField, UserRecordField
+from eave.core.internal.atoms.record_fields import (
+    MultiTypeKeyValueRecordField,
+    SessionRecordField,
+    TrafficSourceRecordField,
+    UserRecordField,
+)
 from eave.core.internal.atoms.shared import common_bq_insert_timestamp_field, common_event_timestamp_field
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
 from eave.stdlib.logging import LOGGER, LogContext
@@ -44,21 +45,17 @@ class DatabaseEventAtom:
                 field_type=StandardSqlTypeNames.STRING,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
-
             common_event_timestamp_field(),
-
             SchemaField(
                 name="statement",
                 description="The full database statement.",
                 field_type=StandardSqlTypeNames.STRING,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
-
             MultiTypeKeyValueRecordField.schema(
                 name="statement_values",
                 description="The SQL parameter values passed into the statement.",
             ),
-
             SessionRecordField.schema(),
             UserRecordField.schema(),
             TrafficSourceRecordField.schema(),
@@ -75,12 +72,13 @@ class DatabaseEventAtom:
     user: UserRecordField | None
     traffic_source: TrafficSourceRecordField | None
 
+
 class DatabaseEventsTableHandle(BigQueryTableHandle):
     table_def = BigQueryTableDefinition(
         table_id="atoms_db_events",
         friendly_name="Database atoms",
         description="Database atoms",
-        schema=DatabaseEventAtom.schema()
+        schema=DatabaseEventAtom.schema(),
     )
 
     async def insert(self, events: list[dict[str, Any]], ctx: LogContext) -> None:
@@ -112,7 +110,7 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
 
             db_operation = DatabaseOperation.from_str(e.operation)
             if not db_operation:
-                LOGGER.warning("Unknown database operation", {"operation": e.operation }, ctx)
+                LOGGER.warning("Unknown database operation", {"operation": e.operation}, ctx)
                 continue
 
             unique_operations.add((e.operation, e.table_name))
@@ -123,7 +121,9 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
                 table_name=e.table_name,
                 timestamp=e.timestamp,
                 statement=e.statement,
-                statement_values=MultiTypeKeyValueRecordField.list_from_scalar_dict(e.statement_values) if e.statement_values else None,
+                statement_values=MultiTypeKeyValueRecordField.list_from_scalar_dict(e.statement_values)
+                if e.statement_values
+                else None,
                 session=None,
                 user=None,
                 traffic_source=None,
@@ -141,7 +141,6 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
                 if (traffic_source_ctx := corr_ctx.get("traffic_source")) and isinstance(traffic_source_ctx, dict):
                     traffic_source_properties = TrafficSourceProperties(traffic_source_ctx)
                     atom.traffic_source = TrafficSourceRecordField.from_api_resource(traffic_source_properties)
-
 
             atoms.append(atom)
 
@@ -185,13 +184,15 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
         vevent_view_id = tableize(vevent_readable_name)
 
         async with database.async_session.begin() as db_session:
-            existing_vevent = (await VirtualEventOrm.query(
-                session=db_session,
-                params=VirtualEventOrm.QueryParams(
-                    team_id=self.team.id,
-                    view_id=vevent_view_id,
-                ),
-            )).one_or_none()
+            existing_vevent = (
+                await VirtualEventOrm.query(
+                    session=db_session,
+                    params=VirtualEventOrm.QueryParams(
+                        team_id=self.team.id,
+                        view_id=vevent_view_id,
+                    ),
+                )
+            ).one_or_none()
 
             if existing_vevent:
                 return
@@ -255,6 +256,7 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
             except Exception as e:
                 # Likely a race condition: Two events came in separate requests that tried to create the same virtual event.
                 LOGGER.exception(e)
+
 
 def _operation_readable_verb_past_tense(operation: str) -> str:
     db_operation = DatabaseOperation.from_str(operation)

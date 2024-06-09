@@ -1,6 +1,4 @@
 import { requestManager } from "../beacon";
-import { LOG_TAG } from "../internal/constants";
-import { startOrExtendSession } from "../session.js";
 import { TargetProperties } from "../types";
 import { getElementAttributes } from "../util/dom-helpers";
 import { currentTimestampSeconds } from "../util/timestamp.js";

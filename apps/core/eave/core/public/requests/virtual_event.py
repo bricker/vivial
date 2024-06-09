@@ -1,14 +1,13 @@
 from asgiref.typing import HTTPScope
-from eave.stdlib.core_api.models.virtual_event import VirtualEventDetails, VirtualEventField, VirtualEventPeek
 from starlette.requests import Request
 from starlette.responses import Response
 
 import eave.stdlib.core_api.operations.virtual_event as ve
 from eave.core.internal import database
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
-from eave.core.internal.orm.team import TeamOrm
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
 from eave.stdlib.api_util import json_response
+from eave.stdlib.core_api.models.virtual_event import VirtualEventDetails, VirtualEventField, VirtualEventPeek
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.logging import LogContext
 from eave.stdlib.util import ensure_uuid
@@ -43,13 +42,15 @@ class GetMyVirtualEventDetailsEndpoint(HTTPEndpoint):
         team_id = ensure_uuid(ctx.eave_authed_team_id)
 
         async with database.async_session.begin() as db_session:
-            vevent = (await VirtualEventOrm.query(
-                session=db_session,
-                params=VirtualEventOrm.QueryParams(
-                    id=input.virtual_event.id,
-                    team_id=team_id,
-                ),
-            )).one()
+            vevent = (
+                await VirtualEventOrm.query(
+                    session=db_session,
+                    params=VirtualEventOrm.QueryParams(
+                        id=input.virtual_event.id,
+                        team_id=team_id,
+                    ),
+                )
+            ).one()
 
         bq_table = EAVE_INTERNAL_BIGQUERY_CLIENT.get_table_or_exception(dataset_id=team_id.hex, table_id=vevent.view_id)
 
@@ -60,10 +61,7 @@ class GetMyVirtualEventDetailsEndpoint(HTTPEndpoint):
                     view_id=vevent.view_id,
                     readable_name=vevent.readable_name,
                     description=vevent.description,
-                    fields=[
-                        VirtualEventField.from_bq_field(field)
-                        for field in bq_table.schema
-                    ],
+                    fields=[VirtualEventField.from_bq_field(field) for field in bq_table.schema],
                 ),
             )
         )

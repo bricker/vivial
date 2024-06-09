@@ -15,7 +15,7 @@ const useAuth = (): AuthedUserHook => {
       method: "POST",
       headers: {
         "eave-origin": eaveOrigin,
-      }
+      },
     })
       .then((resp) => {
         if (isUnauthorized(resp)) {

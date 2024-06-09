@@ -1,4 +1,3 @@
-
 export type JsonScalar = string | number | boolean | null | undefined;
 export type JsonObject = {
   [key: string]: JsonScalar | JsonScalar[] | JsonObject | JsonObject[];

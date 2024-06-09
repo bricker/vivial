@@ -99,7 +99,11 @@ const TodoList = () => {
     <div className={styles.todoList}>
       <h2 className={styles.title}>TODO List</h2>
       <p>
-        Logged in as <strong>{username}</strong> (<Link to="/logout" reloadDocument>Change</Link>)
+        Logged in as <strong>{username}</strong> (
+        <Link to="/logout" reloadDocument>
+          Change
+        </Link>
+        )
       </p>
 
       {loading ? (

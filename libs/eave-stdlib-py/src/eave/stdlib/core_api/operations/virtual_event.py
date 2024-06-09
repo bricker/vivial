@@ -3,7 +3,11 @@ from typing import Unpack
 
 from aiohttp.hdrs import METH_POST
 
-from eave.stdlib.core_api.models.virtual_event import VirtualEventDetails, VirtualEventDetailsQueryInput, VirtualEventPeek
+from eave.stdlib.core_api.models.virtual_event import (
+    VirtualEventDetails,
+    VirtualEventDetailsQueryInput,
+    VirtualEventPeek,
+)
 from eave.stdlib.endpoints import BaseRequestBody, BaseResponseBody
 
 from ... import requests_util
@@ -44,6 +48,7 @@ class ListMyVirtualEventsRequest(CoreApiEndpoint):
 
         body = await cls.make_response(response, cls.ResponseBody)
         return body
+
 
 class GetMyVirtualEventDetailsRequest(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(

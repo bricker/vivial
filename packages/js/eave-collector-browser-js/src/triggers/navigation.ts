@@ -1,6 +1,5 @@
 import { requestManager } from "../beacon";
 import { LOG_TAG } from "../internal/constants";
-import { startOrExtendSession } from "../session.js";
 import { currentTimestampSeconds } from "../util/timestamp.js";
 
 const NAVIGATION_ACTION_NAME = "navigation";

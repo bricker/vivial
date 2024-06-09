@@ -1,12 +1,9 @@
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any
 
-from google.cloud.bigquery import Dataset, DatasetReference, SchemaField, Table, TableReference
+from google.cloud.bigquery import SchemaField, Table
 
 from eave.core.internal.orm.team import TeamOrm, bq_dataset_id
-from eave.stdlib.logging import LogContext
-from eave.stdlib.typing import JsonObject
 
 from ..lib import bq_client
 
@@ -23,6 +20,7 @@ class BigQueryTableDefinition:
     schema: tuple[SchemaField, ...]
     friendly_name: str
     description: str
+
 
 class BigQueryTableHandle:
     dataset_id: str

@@ -7,12 +7,19 @@ import {
   EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE,
   VISIBILITY_CHANGE_EVENT_TYPE,
 } from "./internal/js-events";
-import { getTrafficSourceProperties } from "./properties/traffic_source";
-import { getCurrentPageProperties } from "./properties/page";
-import { getUserProperties } from "./properties/user";
 import { getUserAgentProperties } from "./properties/device";
+import { getCurrentPageProperties } from "./properties/page";
+import { getTrafficSourceProperties } from "./properties/traffic_source";
+import { getUserProperties } from "./properties/user";
 import { getSessionProperties } from "./session";
-import { BrowserEventPayload, EpochTimeStampSeconds, TargetProperties, DeviceProperties, ScalarMap, JsonScalar } from "./types";
+import {
+  BrowserEventPayload,
+  DeviceProperties,
+  EpochTimeStampSeconds,
+  JsonScalar,
+  ScalarMap,
+  TargetProperties,
+} from "./types";
 
 /**
  * A Queue with a maximum size.
@@ -70,7 +77,8 @@ class RequestManager {
     this.#queue = new RequestQueue();
 
     // @ts-ignore: this is a known global variable implicitly set on the window.
-    if (!EAVE_CLIENT_ID) { // eslint-disable-line no-undef
+    if (!EAVE_CLIENT_ID) {
+      // eslint-disable-line no-undef
       console.warn(LOG_TAG, "EAVE_CLIENT_ID is not set.");
       return;
     }
@@ -133,7 +141,17 @@ class RequestManager {
   /**
    * Builds a payload, filling in standard attributes like user agent and session info.
    */
-  async buildPayload({ action, timestamp, target, extra }: { action: string; timestamp: EpochTimeStampSeconds; target: TargetProperties | null; extra?: ScalarMap<JsonScalar> }): Promise<BrowserEventPayload> {
+  async buildPayload({
+    action,
+    timestamp,
+    target,
+    extra,
+  }: {
+    action: string;
+    timestamp: EpochTimeStampSeconds;
+    target: TargetProperties | null;
+    extra?: ScalarMap<JsonScalar>;
+  }): Promise<BrowserEventPayload> {
     const deviceProperties = await this.#getDeviceProperties();
     const currentPageProperties = getCurrentPageProperties();
     const sessionProperties = getSessionProperties();

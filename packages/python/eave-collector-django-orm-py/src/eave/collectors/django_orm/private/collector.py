@@ -11,8 +11,7 @@ from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.utils import CursorWrapper
 
 from eave.collectors.core.base_collector import BaseCollector
-from eave.collectors.core.correlation_context import corr_ctx
-from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure
+from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
 from eave.collectors.core.write_queue import WriteQueue
 
 # Copied from Django

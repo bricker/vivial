@@ -13,7 +13,7 @@ user_table_name_patterns = [
 columns_of_interest_patterns = [
     r"^id$",
     r"^uid$",
-    r"^user_?id$", # eg. user_id, userid, UserId
+    r"^user_?id$",  # eg. user_id, userid, UserId
     r"^account_?id$",
     r"^customer_?id$",
 ]

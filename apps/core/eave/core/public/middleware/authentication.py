@@ -48,9 +48,7 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
             if account_id is None or access_token is None:
                 raise UnauthorizedError("missing auth")
 
-            account = await self._verify_auth(
-                account_id=account_id, access_token=access_token, ctx=ctx
-            )
+            account = await self._verify_auth(account_id=account_id, access_token=access_token, ctx=ctx)
             ctx.eave_authed_account_id = str(account.id)
             ctx.eave_authed_team_id = str(account.team_id)
 

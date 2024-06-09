@@ -1,6 +1,6 @@
 import { isCookieConsentRevoked } from "../consent";
 import { COOKIE_NAME_PREFIX, getEaveCookie, setEaveCookie } from "../cookies";
-import { TrafficSourceProperties, EpochTimeStampMillis, ScalarMap } from "../types";
+import { ScalarMap, TrafficSourceProperties } from "../types";
 import { compactJSONStringify, safeJSONParse } from "../util/json";
 import { currentTimestampSeconds } from "../util/timestamp.js";
 
