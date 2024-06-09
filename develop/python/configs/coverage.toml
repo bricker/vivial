@@ -1,11 +1,14 @@
+[tool.coverage.report]
+include_namespace_packages = true
+
 [tool.coverage.run]
 data_file = "$EAVE_HOME/.coverage/data"
+dynamic_context = "test_function"
+branch = true
 
 [tool.coverage.xml]
 output = "$EAVE_HOME/.coverage/coverage.xml"
 
 [tool.coverage.html]
-output = "$EAVE_HOME/.coverage/coverage_html"
-
-[tool.coverage.annotate]
-output = "$EAVE_HOME/.coverage/coverage_annotate"
+directory = "$EAVE_HOME/.coverage/coverage_html"
+show_contexts = true
