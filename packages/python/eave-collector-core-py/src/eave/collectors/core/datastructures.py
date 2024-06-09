@@ -42,7 +42,7 @@ class EventPayload:
     event_type: ClassVar[EventType]
 
     timestamp: float | None
-    corr_ctx: JsonObject | None
+    corr_ctx: dict[str, str] | None
 
     def to_dict(self) -> JsonObject:
         return dataclasses.asdict(self)

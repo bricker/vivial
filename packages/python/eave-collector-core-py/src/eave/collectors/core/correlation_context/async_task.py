@@ -26,7 +26,7 @@ class AsyncioCorrelationContext(BaseCorrelationContext):
             return self._set_storage_default()
         return typing.cast(dict[str, typing.Any], eave_ctx)
 
-    def get(self, key: str) -> str:
+    def get(self, key: str) -> str | None:
         storage = self._get_storage()
         updated_value = storage.get(self.updated_context_key, {}).get(key, None)
         if updated_value is not None:

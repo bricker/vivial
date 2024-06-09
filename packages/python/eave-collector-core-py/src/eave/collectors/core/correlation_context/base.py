@@ -5,8 +5,19 @@ import urllib.parse
 
 # These values are dependent on the eave browser js client implementation and MUST change
 # if those values change in the js client
-COOKIE_PREFIX = "_eave_"
+COOKIE_PREFIX = "_eave."
 
+class CorrCtxStorage:
+    received: dict[str, str]
+    updated: dict[str, str]
+
+    def __init__(self) -> None:
+        self.received = {}
+        self.updated = {}
+
+    def merged(self) -> dict[str, str]:
+        """merge received and updated values together"""
+        return {**self.received, **self.updated}
 
 class BaseCorrelationContext(abc.ABC):
     """
@@ -31,7 +42,7 @@ class BaseCorrelationContext(abc.ABC):
         return urllib.parse.quote_plus(str(value))
 
     @abc.abstractmethod
-    def get(self, key: str) -> str:
+    def get(self, key: str) -> str | None:
         """Get a value from either storage"""
         ...
 
@@ -41,12 +52,12 @@ class BaseCorrelationContext(abc.ABC):
         ...
 
     def to_json(self) -> str:
-        """Convert entirity of storage to JSON string"""
+        """Convert entirety of storage to JSON string"""
         return json.dumps(self.to_dict())
 
     @abc.abstractmethod
     def to_dict(self) -> dict[str, str]:
-        """Convert entirity of storage to dict"""
+        """Convert entirety of storage to dict"""
         ...
 
     @abc.abstractmethod

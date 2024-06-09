@@ -1,60 +1,53 @@
+from dataclasses import dataclass
 import threading
 import typing
 import urllib.parse
 
-from .base import COOKIE_PREFIX, BaseCorrelationContext
+from .base import COOKIE_PREFIX, BaseCorrelationContext, CorrCtxStorage
 
 # TODO: customer child threads wont share this storage
 _local_thread_storage = threading.local()
 
-
 class ThreadedCorrelationContext(BaseCorrelationContext):
-    received_context_key = "received"
-    updated_context_key = "updated"
-
     def _init_storage(self) -> None:
-        _local_thread_storage.eave = {
-            self.received_context_key: {},
-            self.updated_context_key: {},
-        }
+        _local_thread_storage.eave = CorrCtxStorage()
 
-    def _lazy_init_storage(self) -> None:
-        if not getattr(_local_thread_storage, "eave", None):
+    def _lazy_init_storage(self) -> CorrCtxStorage:
+        if not hasattr(_local_thread_storage, "eave"):
             self._init_storage()
 
-    def get(self, key: str) -> str:
-        self._lazy_init_storage()
-        updated_value = _local_thread_storage.eave.get(self.updated_context_key, {}).get(key, None)
+        return _local_thread_storage.eave
+
+    def get(self, key: str) -> str | None:
+        storage = self._lazy_init_storage()
+        updated_value = storage.updated.get(key)
         if updated_value is not None:
             return updated_value
-        return _local_thread_storage.eave.get(self.received_context_key, {}).get(key, None)
+        return storage.received.get(key)
 
     def set(self, key: str, value: str) -> None:
-        self._lazy_init_storage()
-        _local_thread_storage.eave[self.updated_context_key][key] = str(value)
+        storage = self._lazy_init_storage()
+        storage.updated[key] = str(value)
 
-    def to_dict(self) -> dict[str, typing.Any]:
-        self._lazy_init_storage()
-        # merge received and updated values together
-        ctx_data = _local_thread_storage.eave.get(self.received_context_key, {}).copy()
-        ctx_data.update(_local_thread_storage.eave.get(self.updated_context_key, {}))
-        return ctx_data
+    def to_dict(self) -> dict[str, str]:
+        storage = self._lazy_init_storage()
+        return storage.merged()
 
     def get_updated_values_cookies(self) -> list[str]:
-        self._lazy_init_storage()
+        storage = self._lazy_init_storage()
         # URL encode the cookie value
         # TODO: cookie settings? expiration?
         return [
             f"{self._ensure_prefix(key)}={self._cookify(value)}"
-            for key, value in _local_thread_storage.eave[self.updated_context_key].items()
+            for key, value in storage.updated.items()
         ]
 
     def from_cookies(self, cookies: dict[str, str]) -> None:
-        self._lazy_init_storage()
+        storage = self._lazy_init_storage()
         for cookie_name, value in [(k, v) for k, v in cookies.items() if k.startswith(COOKIE_PREFIX)]:
             # URL decode cookie values
             decoded_value = urllib.parse.unquote(value)
-            _local_thread_storage.eave[self.received_context_key][cookie_name] = decoded_value
+            storage.received[cookie_name] = decoded_value
 
     def clear(self) -> None:
         self._init_storage()

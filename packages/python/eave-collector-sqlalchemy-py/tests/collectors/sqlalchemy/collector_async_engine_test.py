@@ -9,7 +9,7 @@ from sqlalchemy import NullPool, func, text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-from eave.collectors.core.correlation_context import corr_ctx
+from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
 from eave.collectors.core.test_util import EphemeralWriteQueue
 from eave.collectors.sqlalchemy.private.collector import SQLAlchemyCollector
@@ -73,7 +73,7 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
-        corr_ctx.clear()
+        CORR_CTX.clear()
 
     async def test_after_execute_insert(self) -> None:
         assert len(self._write_queue.queue) == 0
@@ -149,7 +149,7 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
             assert e.table_name == "accounts"
             assert e.operation == DatabaseOperation.SELECT
             # clear ctx to ensure update sets user_id
-            corr_ctx.clear()
+            CORR_CTX.clear()
 
             # do sql update
             new_account_name = uuid.uuid4().hex
@@ -163,7 +163,7 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert e.db_name == db_uri.database
         assert e.parameters is not None
         assert e.parameters["name"] == new_account_name
-        assert corr_ctx.get("user_id") == str(account.id)
+        assert CORR_CTX.get("user_id") == str(account.id)
         assert e.context is not None
         assert e.context.get("user_id") == str(account.id)
 
@@ -177,7 +177,7 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert len(self._write_queue.queue) == 1
         e = self._write_queue.queue[0]
 
-        assert corr_ctx.get("user_id") == str(account.id)
+        assert CORR_CTX.get("user_id") == str(account.id)
         assert e.context is not None
         assert e.context.get("user_id") == str(account.id)
 
@@ -191,7 +191,7 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert len(self._write_queue.queue) == 1
         e = self._write_queue.queue[0]
 
-        assert corr_ctx.get("user_id") is None
+        assert CORR_CTX.get("user_id") is None
         assert e.context is not None
         assert e.context.get("user_id") is None
 
@@ -206,7 +206,7 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
 
         assert len(self._write_queue.queue) == 1
         # clear ctx to test context writing on SELECT queries
-        corr_ctx.clear()
+        CORR_CTX.clear()
 
         # create multi condition where-clause
         lookup = (
@@ -224,7 +224,7 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert isinstance(e, DatabaseEventPayload)
         assert e.table_name == "accounts"
         assert e.operation == DatabaseOperation.SELECT
-        assert corr_ctx.get("user_id") == str(account.id)
+        assert CORR_CTX.get("user_id") == str(account.id)
         assert e.context is not None
         assert e.context.get("user_id") == str(account.id)
 
@@ -239,7 +239,7 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
 
         assert len(self._write_queue.queue) == 1
         # clear ctx to test context writing on SELECT queries
-        corr_ctx.clear()
+        CORR_CTX.clear()
 
         # create single condition where-clause
         lookup = sqlalchemy.select(AccountOrm).where(AccountOrm.id == account.id).limit(1)
@@ -252,6 +252,6 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert isinstance(e, DatabaseEventPayload)
         assert e.table_name == "accounts"
         assert e.operation == DatabaseOperation.SELECT
-        assert corr_ctx.get("user_id") == str(account.id)
+        assert CORR_CTX.get("user_id") == str(account.id)
         assert e.context is not None
         assert e.context.get("user_id") == str(account.id)

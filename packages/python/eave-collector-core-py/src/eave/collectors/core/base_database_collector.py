@@ -1,7 +1,7 @@
 import re
 
 from .base_collector import BaseCollector
-from .correlation_context import corr_ctx
+from .correlation_context import CORR_CTX
 
 user_table_name_patterns = [
     r"users?$",
@@ -45,7 +45,7 @@ def save_identification_data(table_name: str, primary_key: str) -> None:
             primary_key (str): primary key value for relevant row in `table_name`
     """
     if is_user_table(table_name):
-        corr_ctx.set("user_id", primary_key)
+        CORR_CTX.set("user_id", primary_key)
 
 
 class BaseDatabaseCollector(BaseCollector):

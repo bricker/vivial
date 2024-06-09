@@ -6,7 +6,7 @@ from starlette.responses import PlainTextResponse
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
-from eave.collectors.core.correlation_context import corr_ctx
+from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.correlation_context.base import COOKIE_PREFIX
 from eave.collectors.core.datastructures import EventPayload, EventType, HttpServerEventPayload
 from eave.collectors.core.write_queue import BatchWriteQueue, QueueParams
@@ -42,7 +42,7 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
         async def ctx_set_endpoint(request):
             body = request.query_params
             for k, v in body.items():
-                corr_ctx.set(k, v)
+                CORR_CTX.set(k, v)
             return PlainTextResponse("cookies changed")
 
         app = Starlette(

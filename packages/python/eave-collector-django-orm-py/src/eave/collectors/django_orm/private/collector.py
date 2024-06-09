@@ -11,6 +11,7 @@ from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.utils import CursorWrapper
 
 from eave.collectors.core.base_collector import BaseCollector
+from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
 from eave.collectors.core.write_queue import WriteQueue
 
@@ -71,11 +72,11 @@ class EaveCursorWrapper(CursorWrapper):
                 table_name = self._get_table_name(sql, op)
 
                 # FIXME: Resolve params vs. multiparams
-                # rparams: _ParamsType | None = None
-                # if params:
-                #     rparams = params
-                # elif multiparams and len(multiparams) > 0:
-                #     rparams = multiparams[0]
+                rparams: _ParamsType | None = None
+                if params:
+                    rparams = params
+                elif multiparams and len(multiparams) > 0:
+                    rparams = multiparams[0]
 
                 record = DatabaseEventPayload(
                     timestamp=time.time(),
@@ -83,7 +84,8 @@ class EaveCursorWrapper(CursorWrapper):
                     db_name=self.db.alias,
                     statement=sql,
                     table_name=table_name,
-                    parameters=None,  # TODO: params is usually None; django doesnt remove param values from the statement
+                    statement_values=rparams, # TODO: params is usually None; django doesnt remove param values from the statement
+                    corr_ctx=CORR_CTX.to_dict()
                 )
 
                 self.write_queue.put(record)
