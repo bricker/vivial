@@ -3,7 +3,6 @@ include_namespace_packages = true
 
 [tool.coverage.run]
 data_file = "$EAVE_HOME/.coverage/data"
-dynamic_context = "test_function"
 branch = true
 
 [tool.coverage.xml]
