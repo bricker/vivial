@@ -6,7 +6,7 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 function setup() (
 	local eavepwd
-	eavepwd=$(^eavepwd)
+	eavepwd=$(e.pwd)
 
 	if test -f "package.json"; then
 		node-activate-venv

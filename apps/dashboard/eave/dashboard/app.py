@@ -14,7 +14,6 @@ from eave.stdlib.auth_cookies import delete_auth_cookies
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.operations.status import status_payload
 from eave.stdlib.headers import MIME_TYPE_JSON
-from eave.stdlib.utm_cookies import set_tracking_cookies
 
 from .config import DASHBOARD_APP_CONFIG
 
@@ -133,7 +132,6 @@ def web_app_endpoint(request: Request) -> Response:
         },
     )
 
-    set_tracking_cookies(response=response, request=request)
     return response
 
 

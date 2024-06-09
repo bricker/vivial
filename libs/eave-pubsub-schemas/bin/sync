@@ -3,4 +3,4 @@
 set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
-run-with-dotenv python sync_schemas.py
+e.run-with-dotenv python sync_schemas.py

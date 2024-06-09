@@ -4,7 +4,7 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-cd "$(^parentpath)/eave_django_playground"
+cd "$(e.parentpath)/eave_django_playground"
 
 python manage.py runserver
 

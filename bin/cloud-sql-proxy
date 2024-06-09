@@ -38,16 +38,16 @@ function run-cloud-sql-proxy() (
 		exit 1
 	fi
 
-	local gcloudproject; gcloudproject="$(^gcloudproject)"
+	local gcloudproject; gcloudproject="$(e.gcloudproject)"
 
-	if ! ^cmd-exists "cloud-sql-proxy"; then
+	if ! e.cmd-exists "cloud-sql-proxy"; then
 		statusmsg -pa "Downloading and installing the Cloud SQL Proxy for your system."
 		statusmsg -i "Cloud SQL Proxy is used to connect to Cloud SQL from your local machine using IAM auth."
 
-		if ^confirm; then
+		if e.confirm; then
 			(
 				cd "$(mktemp -d)"
-				if ^cmd-exists "gcloud"; then
+				if e.cmd-exists "gcloud"; then
 					cloudsqlproxypath=$(dirname "$(which gcloud)")
 				else
 					cloudsqlproxypath="/usr/local/bin"
@@ -55,7 +55,7 @@ function run-cloud-sql-proxy() (
 
 				local proxyversion="2.2.0"
 				local arch
-				arch=$(get-cpu-arch-normalized-alt)
+				arch=$(e.get-cpu-arch-normalized-alt)
 
 				curl -o cloud-sql-proxy "https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v$proxyversion/cloud-sql-proxy.$kernel.$arch"
 				# see if we got an error back instead of binary content
