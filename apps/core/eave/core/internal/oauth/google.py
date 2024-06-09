@@ -74,7 +74,9 @@ class GoogleOAuthV2GetResponse:
     locale: str | None = None  # The user's preferred locale.
     name: str | None = None  # The user's full name.
     picture: str | None = None  # URL of the user's picture image.
-    verified_email: bool | None = None  # Boolean flag which is true if the email address is verified. Always verified because we only return the user's primary email address.
+    verified_email: bool | None = (
+        None  # Boolean flag which is true if the email address is verified. Always verified because we only return the user's primary email address.
+    )
 
 
 def get_userinfo(credentials: google.oauth2.credentials.Credentials) -> GoogleOAuthV2GetResponse:

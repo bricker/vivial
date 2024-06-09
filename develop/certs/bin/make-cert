@@ -4,6 +4,10 @@ set -eu
 
 source "$EAVE_HOME"/develop/functions.bash
 
+#
+# Usage:
+# ./bin/make-cert -n eave-run -d eave.run
+#
 function make-cert() (
 	local organization="Eave Technologies, Inc"
 	local organizationalUnitName="Local Development"
@@ -27,15 +31,7 @@ function make-cert() (
 	dest="./$name"
 	mkdir "$dest"
 
-	# local numSubdomains=${#subdomains[@]}
 	local subjectAltName="DNS:*.$domain"
-	# for i in "${!subdomains[@]}"; do
-	# 	local subdomain=${subdomains[$i]}
-	# 	subjectAltName="${subjectAltName}DNS:$subdomain.$domain"
-	# 	if test $(("$i" + 1)) -lt "$numSubdomains"; then
-	# 		subjectAltName="$subjectAltName,"
-	# 	fi
-	# done
 
 	openssl req \
 		-x509 \

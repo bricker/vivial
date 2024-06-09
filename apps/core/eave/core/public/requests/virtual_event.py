@@ -19,11 +19,10 @@ class ListMyVirtualEventsEndpoint(HTTPEndpoint):
         input = ve.ListMyVirtualEventsRequest.RequestBody.parse_obj(body)
 
         async with database.async_session.begin() as db_session:
-            # TODO: some kind of fuzzy match or something
             vevents = await VirtualEventOrm.query(
                 session=db_session,
                 params=VirtualEventOrm.QueryParams(
-                    readable_name=input.query if input.query else None,
+                    search_query=input.query if input.query else None,
                     team_id=ensure_uuid(ctx.eave_authed_team_id),
                 ),
             )

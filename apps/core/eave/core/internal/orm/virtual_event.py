@@ -4,7 +4,8 @@ from datetime import datetime
 from typing import Self
 from uuid import UUID
 
-from sqlalchemy import Index, ScalarResult, Select, func, select
+import sqlalchemy
+from sqlalchemy import Index, ScalarResult, Select, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.functions import count
@@ -59,6 +60,7 @@ class VirtualEventOrm(Base):
         id: uuid.UUID | None = None
         team_id: uuid.UUID | None = None
         readable_name: str | None = None
+        search_query: str | None = None
         view_id: str | None = None
 
     @classmethod
@@ -72,6 +74,13 @@ class VirtualEventOrm(Base):
         if params.readable_name is not None:
             builder = builder.where(cls.readable_name == params.readable_name)
 
+        if params.search_query is not None:
+            builder = builder.where(
+                cls.readable_name.op("%")(params.search_query),
+            ).order_by(
+                sqlalchemy.asc(cls.readable_name.op("<->")(params.search_query))
+            )
+
         if params.view_id is not None:
             builder = builder.where(cls.view_id == params.view_id)
 
@@ -80,9 +89,13 @@ class VirtualEventOrm(Base):
 
     @classmethod
     async def query(cls, session: AsyncSession, params: QueryParams) -> ScalarResult[Self]:
-        builder = select(cls).order_by(cls.readable_name)
-        lookup = cls._build_query(builder, params=params)
-        result = await session.scalars(lookup)
+        builder = select(cls)
+        builder = cls._build_query(builder, params=params)
+
+        # order results (or similarity score ties) alphabetically
+        # This is added _after_ the query is built so that readable_name is the secondary sort.
+        builder = builder.order_by(cls.readable_name)
+        result = await session.scalars(builder)
         return result
 
     @classmethod

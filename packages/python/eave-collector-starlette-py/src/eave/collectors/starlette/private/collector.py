@@ -208,6 +208,7 @@ class EaveASGIMiddleware:
         try:
             request = Request(scope=scope, receive=receive)
 
+            # init ctx
             CORR_CTX.from_cookies(request.cookies)
 
             # event collection
@@ -251,7 +252,7 @@ class EaveASGIMiddleware:
                     request_url=req_url,
                     request_headers=dict(request.headers.items()),
                     request_payload=str(req_body),
-                    context=CORR_CTX.to_dict(),
+                    corr_ctx=CORR_CTX.to_dict(),
                 )
             )
 
@@ -286,9 +287,11 @@ class EaveASGIMiddleware:
                             request_url=req_url,
                             request_headers=headers_ref[0],
                             request_payload=str(resp_body),
-                            context=CORR_CTX.to_dict(),
+                            corr_ctx=CORR_CTX.to_dict(),
                         )
                     )
+                    # destroy ctx now that we're done with it
+                    CORR_CTX.clear()
                 await send(message)
 
             await self.app(scope, receive, response_interceptor)

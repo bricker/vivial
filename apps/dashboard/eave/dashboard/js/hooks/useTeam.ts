@@ -13,7 +13,7 @@ import { useContext } from "react";
 export interface TeamHook {
   team: DashboardTeam | null;
   getTeam: () => void;
-  listVirtualEvents: (args: { query?: string | null }) => void;
+  listVirtualEvents: (args?: { query?: string | null }) => void;
   getVirtualEventDetails: (id: string) => void;
 }
 
@@ -85,7 +85,7 @@ const useTeam = (): TeamHook => {
    * The `input` parameter is passed along for event filtering on the backend.
    * If null is provided, no filtering is expected to be done.
    */
-  function listVirtualEvents({ query }: { query?: string | null }) {
+  function listVirtualEvents({ query }: { query?: string | null } = {}) {
     setGlossaryNetworkState((prev) => ({
       ...prev,
       virtualEventsAreLoading: true,
