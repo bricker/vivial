@@ -9,7 +9,6 @@ from starlette.responses import Response
 
 import eave.core.internal.oauth.state_cookies
 import eave.pubsub_schemas
-import eave.stdlib.analytics
 import eave.stdlib.config
 import eave.stdlib.cookies
 import eave.stdlib.exceptions
@@ -19,7 +18,7 @@ from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.core.internal.orm.metabase_instance import MetabaseInstanceOrm
 from eave.core.internal.orm.team import TeamOrm, bq_dataset_id
-from eave.stdlib import auth_cookies, utm_cookies
+from eave.stdlib import auth_cookies
 from eave.stdlib.api_util import set_redirect
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.models.account import AuthProvider
@@ -141,8 +140,6 @@ async def create_new_account_and_team(
     refresh_token: str | None,
     ctx: LogContext,
 ) -> AccountOrm:
-    tracking_cookies = utm_cookies.get_tracking_cookies(request=request)
-
     async with eave.core.internal.database.async_session.begin() as db_session:
         eave_team = await TeamOrm.create(
             session=db_session,
@@ -164,8 +161,6 @@ async def create_new_account_and_team(
         eave_account = await AccountOrm.create(
             session=db_session,
             team_id=eave_team.id,
-            visitor_id=tracking_cookies.visitor_id,
-            opaque_utm_params=tracking_cookies.utm_params,
             auth_provider=auth_provider,
             auth_id=auth_id,
             access_token=access_token,

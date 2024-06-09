@@ -92,7 +92,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		# python -m coverage lcov --rcfile=$configfile
 		python -m pytest \
 			--cov \
-			--cov-report=xml \
+			--cov-report=annotate \
 			--cov-config="${EAVE_HOME}/develop/python/configs/coverage.toml" \
 			--config-file="${EAVE_HOME}/develop/python/configs/pytest.pyproject.toml" \
 			--rootdir="${EAVE_HOME}" $exitfirst "$testfile"

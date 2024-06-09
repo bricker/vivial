@@ -19,6 +19,12 @@ const KNOWN_TRACKING_PARAMS = new Set([
   "twclid",
   "wbraid",
   "gbraid",
+  "keyword",
+  "matchtype",
+  "campaign",
+  "campaign_id",
+  "pid",
+  "cid",
 ]);
 
 // The purpose of splitting these getters and setters into `getXCookie` and `getXJSON`
@@ -80,46 +86,10 @@ export function setTrafficSourceCookieIfNecessary() {
   // If there are no UTM parameters, and there IS NOT an existing cookie, then we'll set the cookie with some basic info.
   // If there are no UTM parameters, and there IS an existing cookie, then leave the cookie as-is.
   if (Object.keys(currentTrackingParams).length > 0 || existingCookie === null) {
-    const {
-      gclid = null,
-      fbclid = null,
-      msclkid = null,
-      dclid = null,
-      ko_click_id = null,
-      rtd_cid = null,
-      li_fat_id = null,
-      ttclid = null,
-      twclid = null,
-      wbraid = null,
-      gbraid = null,
-      utm_campaign = null,
-      utm_source = null,
-      utm_medium = null,
-      utm_term = null,
-      utm_content = null,
-      ...other_utm_params
-    } = currentTrackingParams;
-
     const trafficSourceProperties: TrafficSourceProperties = {
       timestamp: currentTimestampSeconds(),
       browser_referrer: window.top?.document.referrer || window.parent.document.referrer || document.referrer || null,
-      gclid,
-      fbclid,
-      msclkid,
-      dclid,
-      ko_click_id,
-      rtd_cid,
-      li_fat_id,
-      ttclid,
-      twclid,
-      wbraid,
-      gbraid,
-      utm_campaign,
-      utm_source,
-      utm_medium,
-      utm_term,
-      utm_content,
-      other_utm_params,
+      tracking_params: currentTrackingParams,
     };
 
     setTrafficSourceProperties(trafficSourceProperties);

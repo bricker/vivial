@@ -221,8 +221,6 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         account = await AccountOrm.create(
             session=session,
             team_id=team_id,
-            visitor_id=self.anyuuid(),
-            opaque_utm_params=self.anydict(deterministic_keys=True),
             auth_provider=auth_provider or AuthProvider.google,
             auth_id=auth_id or self.anystr(),
             access_token=access_token or self.anystr(),

@@ -8,7 +8,6 @@ from starlette.responses import RedirectResponse, Response
 
 import eave.core.internal.oauth.google
 from eave.core.internal.oauth import state_cookies as oauth_cookies
-from eave.stdlib import utm_cookies
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
 from eave.stdlib.http_endpoint import HTTPEndpoint
@@ -23,11 +22,6 @@ class GoogleOAuthAuthorize(HTTPEndpoint):
     async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
         oauth_flow_info = eave.core.internal.oauth.google.get_oauth_flow_info()
         response = RedirectResponse(url=oauth_flow_info.authorization_url)
-
-        utm_cookies.set_tracking_cookies(
-            response=response,
-            request=request,
-        )
 
         oauth_cookies.save_state_cookie(
             response=response,

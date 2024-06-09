@@ -324,6 +324,36 @@ class TrafficSourceRecordField(RecordField):
                     field_type=SqlTypeNames.STRING,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
+                # SchemaField(
+                #     name="keyword",
+                #     description="Non-standard query parameter",
+                #     field_type=SqlTypeNames.STRING,
+                #     mode=BigQueryFieldMode.NULLABLE,
+                # ),
+                # SchemaField(
+                #     name="matchtype",
+                #     description="Non-standard query parameter",
+                #     field_type=SqlTypeNames.STRING,
+                #     mode=BigQueryFieldMode.NULLABLE,
+                # ),
+                # SchemaField(
+                #     name="campaign_id",
+                #     description="Non-standard query parameter",
+                #     field_type=SqlTypeNames.STRING,
+                #     mode=BigQueryFieldMode.NULLABLE,
+                # ),
+                # SchemaField(
+                #     name="pid",
+                #     description="Non-standard query parameter",
+                #     field_type=SqlTypeNames.STRING,
+                #     mode=BigQueryFieldMode.NULLABLE,
+                # ),
+                # SchemaField(
+                #     name="cid",
+                #     description="Non-standard query parameter",
+                #     field_type=SqlTypeNames.STRING,
+                #     mode=BigQueryFieldMode.NULLABLE,
+                # ),
                 SchemaField(
                     name="utm_campaign",
                     description="Query parameter utm_campaign",
@@ -375,6 +405,12 @@ class TrafficSourceRecordField(RecordField):
     twclid: str | None
     wbraid: str | None
     gbraid: str | None
+    # keyword: str | None
+    # matchtype: str | None
+    # campaign: str | None
+    # campaign_id: str | None
+    # pid: str | None
+    # cid: str | None
     utm_campaign: str | None
     utm_source: str | None
     utm_medium: str | None
@@ -384,28 +420,28 @@ class TrafficSourceRecordField(RecordField):
 
     @classmethod
     def from_api_resource(cls, resource: TrafficSourceProperties) -> "TrafficSourceRecordField":
+        tp = resource.tracking_params.copy() if resource.tracking_params else None
+
         return cls(
             timestamp=resource.timestamp,
             browser_referrer=resource.browser_referrer,
-            gclid=resource.gclid,
-            fbclid=resource.fbclid,
-            msclkid=resource.msclkid,
-            dclid=resource.dclid,
-            ko_click_id=resource.ko_click_id,
-            rtd_cid=resource.rtd_cid,
-            li_fat_id=resource.li_fat_id,
-            ttclid=resource.ttclid,
-            twclid=resource.twclid,
-            wbraid=resource.wbraid,
-            gbraid=resource.gbraid,
-            utm_campaign=resource.utm_campaign,
-            utm_source=resource.utm_source,
-            utm_medium=resource.utm_medium,
-            utm_term=resource.utm_term,
-            utm_content=resource.utm_content,
-            other_utm_params=SingleTypeKeyValueRecordField[str].list_from_scalar_dict(resource.other_utm_params)
-            if resource.other_utm_params
-            else None,
+            gclid=tp.pop("gclid", None) if tp else None,
+            fbclid=tp.pop("fbclid", None) if tp else None,
+            msclkid=tp.pop("msclkid", None) if tp else None,
+            dclid=tp.pop("dclid", None) if tp else None,
+            ko_click_id=tp.pop("ko_click_id", None) if tp else None,
+            rtd_cid=tp.pop("rtd_cid", None) if tp else None,
+            li_fat_id=tp.pop("li_fat_id", None) if tp else None,
+            ttclid=tp.pop("ttclid", None) if tp else None,
+            twclid=tp.pop("twclid", None) if tp else None,
+            wbraid=tp.pop("wbraid", None) if tp else None,
+            gbraid=tp.pop("gbraid", None) if tp else None,
+            utm_campaign=tp.pop("utm_campaign", None) if tp else None,
+            utm_source=tp.pop("utm_source", None) if tp else None,
+            utm_medium=tp.pop("utm_medium", None) if tp else None,
+            utm_term=tp.pop("utm_term", None) if tp else None,
+            utm_content=tp.pop("utm_content", None) if tp else None,
+            other_utm_params=SingleTypeKeyValueRecordField[str].list_from_scalar_dict(tp) if tp else None,
         )
 
 

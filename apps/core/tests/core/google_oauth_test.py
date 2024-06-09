@@ -22,7 +22,6 @@ from eave.stdlib.auth_cookies import (
 )
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.models.account import AuthProvider
-from eave.stdlib.utm_cookies import EAVE_COOKIE_PREFIX_UTM
 
 from .base import BaseTestCase
 
@@ -71,22 +70,6 @@ class TestGoogleOAuthHandler(BaseTestCase):
         redirect_uri = urllib.parse.quote(eave.core.internal.oauth.google.GOOGLE_OAUTH_CALLBACK_URI, safe="")
         assert re.search(redirect_uri, response.headers[aiohttp.hdrs.LOCATION])
 
-    async def test_google_authorize_with_utm_params(self) -> None:
-        response = await self.make_request(
-            path=eave.core.internal.oauth.google.GOOGLE_OAUTH_AUTHORIZE_PATH,
-            method="GET",
-            payload={
-                "utm_campaign": self.anystr("utm_campaign"),
-                "gclid": self.anystr("gclid"),
-                "ignored_param": self.anystr(),
-            },
-        )
-
-        assert response.status_code == http.HTTPStatus.TEMPORARY_REDIRECT
-        assert response.cookies.get(f"{EAVE_COOKIE_PREFIX_UTM}utm_campaign") == self.getstr("utm_campaign")
-        assert response.cookies.get(f"{EAVE_COOKIE_PREFIX_UTM}gclid") == self.getstr("gclid")
-        assert response.cookies.get(f"{EAVE_COOKIE_PREFIX_UTM}ignored_param") is None
-
     async def test_google_callback_new_account(self) -> None:
         async with self.db_session.begin() as s:
             assert (await self.count(s, AccountOrm)) == 0
@@ -100,8 +83,6 @@ class TestGoogleOAuthHandler(BaseTestCase):
             },
             cookies={
                 f"{EAVE_OAUTH_STATE_COOKIE_PREFIX}{AuthProvider.google}": self.getstr("state"),
-                f"{EAVE_COOKIE_PREFIX_UTM}utm_campaign": self.anystr("utm_campaign"),
-                f"{EAVE_COOKIE_PREFIX_UTM}gclid": self.anystr("gclid"),
             },
         )
 

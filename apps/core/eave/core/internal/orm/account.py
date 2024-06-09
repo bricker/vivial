@@ -15,8 +15,6 @@ import eave.stdlib.exceptions
 from eave.stdlib.core_api.models.account import AnalyticsAccount, AuthenticatedAccount, AuthProvider
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
 from eave.stdlib.logging import LogContext
-from eave.stdlib.typing import JsonObject
-from eave.stdlib.util import ensure_uuid_or_none
 
 from .base import Base
 from .team import TeamOrm
@@ -45,9 +43,13 @@ class AccountOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+
     visitor_id: Mapped[UUID | None] = mapped_column()
+    """DEPRECATED"""
+
     opaque_utm_params: Mapped[dict[str, Any] | None] = mapped_column(JSONB)
-    """Opaque, JSON-encoded utm params."""
+    """DEPRECATED"""
+
     auth_provider: Mapped[AuthProvider] = mapped_column()
     """3rd party login provider"""
     auth_id: Mapped[str] = mapped_column()
@@ -68,8 +70,6 @@ class AccountOrm(Base):
         cls,
         session: AsyncSession,
         team_id: UUID,
-        visitor_id: UUID | str | None,
-        opaque_utm_params: JsonObject | None,
         auth_provider: AuthProvider,
         auth_id: str,
         access_token: str,
@@ -78,8 +78,6 @@ class AccountOrm(Base):
     ) -> Self:
         obj = cls(
             team_id=team_id,
-            visitor_id=ensure_uuid_or_none(visitor_id),
-            opaque_utm_params=opaque_utm_params,
             auth_provider=auth_provider,
             auth_id=auth_id,
             access_token=access_token,

@@ -43,7 +43,6 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self.mock_google_services()
         self.mock_google_auth()
         self.mock_slack_client()
-        self.mock_analytics()
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
@@ -328,9 +327,6 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     def mock_slack_client(self) -> None:
         self.patch(name="slack client", patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient"))
-
-    def mock_analytics(self) -> None:
-        self.patch(name="analytics", patch=unittest.mock.patch("eave.stdlib.analytics.log_event"))
 
     def logged_event(self, *args: Any, **kwargs: Any) -> bool:
         mock = self.get_mock("analytics")
