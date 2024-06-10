@@ -6,7 +6,7 @@ from typing import Any, cast
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
 from eave.core.internal import database
-from eave.core.internal.atoms.api_types import BrowserAction, BrowserEventPayload
+from eave.core.internal.atoms.api_types import BrowserAction, BrowserEventPayload, CorrelationContext
 from eave.core.internal.atoms.record_fields import (
     CurrentPageRecordField,
     DeviceRecordField,
@@ -115,21 +115,26 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
 
             unique_operations.add(e.action)
 
+            corr_ctx = CorrelationContext(e.corr_ctx) if e.corr_ctx else None
+            session = (
+                SessionRecordField.from_api_resource(resource=corr_ctx.session, event_timestamp=e.timestamp)
+                if corr_ctx
+                else None
+            )
+            traffic_source = TrafficSourceRecordField.from_api_resource(corr_ctx.traffic_source) if corr_ctx else None
+            user = UserRecordField(account_id=corr_ctx.account_id, visitor_id=corr_ctx.visitor_id) if corr_ctx else None
+
             atom = BrowserEventAtom(
                 action=e.action,
                 timestamp=e.timestamp,
-                session=SessionRecordField.from_api_resource(resource=e.session, event_timestamp=e.timestamp)
-                if e.session
-                else None,
-                user=UserRecordField.from_api_resource(e.user) if e.user else None,
-                traffic_source=TrafficSourceRecordField.from_api_resource(e.traffic_source)
-                if e.traffic_source
-                else None,
-                target=TargetRecordField.from_api_resource(e.target) if e.target else None,
-                current_page=CurrentPageRecordField.from_api_resource(e.current_page) if e.current_page else None,
-                device=DeviceRecordField.from_api_resource(e.device) if e.device else None,
+                session=session,
+                user=user,
+                traffic_source=traffic_source,
+                target=TargetRecordField.from_api_resource(e.target),
+                current_page=CurrentPageRecordField.from_api_resource(e.current_page),
+                device=DeviceRecordField.from_api_resource(e.device),
                 geo=geolocation,
-                extra=MultiTypeKeyValueRecordField.list_from_scalar_dict(e.extra) if e.extra else None,
+                extra=MultiTypeKeyValueRecordField.list_from_scalar_dict(e.extra),
                 client_ip=client_ip,
             )
 

@@ -1,9 +1,12 @@
 # These classes are representations of the API payload from the Browser collector.
 # We don't use dataclasses because we want to ignore any unexpected attributes, which dataclasses don't natively allow.
 
+import json
 from enum import StrEnum
 from typing import Any, Self
 
+from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_COOKIE_PREFIX
+from eave.stdlib.logging import LOGGER
 from eave.stdlib.typing import JsonScalar
 
 
@@ -164,20 +167,50 @@ class TargetProperties:
         self.attributes = data.get("attributes")
 
 
+class CorrelationContext:
+    session: SessionProperties | None = None
+    traffic_source: TrafficSourceProperties | None = None
+    account_id: str | None = None
+    visitor_id: str | None = None
+
+    def __init__(self, data: dict[str, str]) -> None:
+        if (v := data.get(f"{EAVE_COLLECTOR_COOKIE_PREFIX}traffic_source")) and isinstance(v, str):
+            try:
+                us = json.loads(v)
+                self.traffic_source = TrafficSourceProperties(us)
+            except Exception as e:
+                LOGGER.exception(e)
+
+        if (v := data.get(f"{EAVE_COLLECTOR_COOKIE_PREFIX}session")) and isinstance(v, str):
+            try:
+                us = json.loads(v)
+                self.session = SessionProperties(us)
+            except Exception as e:
+                LOGGER.exception(e)
+
+        if (v := data.get(f"{EAVE_COLLECTOR_COOKIE_PREFIX}account_id")) and isinstance(v, str):
+            self.account_id = v
+
+        if (v := data.get(f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id")) and isinstance(v, str):
+            self.visitor_id = v
+
+
 class BrowserEventPayload:
     action: BrowserAction | None = None
     timestamp: float | None = None
     target: TargetProperties | None = None
     device: DeviceProperties | None = None
     current_page: CurrentPageProperties | None = None
-    session: SessionProperties | None = None
-    user: UserProperties | None = None
-    traffic_source: TrafficSourceProperties | None = None
     extra: dict[str, JsonScalar | None] | None = None
+    corr_ctx: dict[str, str] | None = None
+    # session: SessionProperties | None = None
+    # user: UserProperties | None = None
+    # traffic_source: TrafficSourceProperties | None = None
 
     def __init__(self, data: dict[str, Any]) -> None:
         self.timestamp = data.get("timestamp")
         self.extra = data.get("extra")
+        self.corr_ctx = data.get("corr_ctx")
 
         if v := data.get("action"):
             self.action = BrowserAction.from_str(v)
@@ -191,11 +224,11 @@ class BrowserEventPayload:
         if (v := data.get("current_page")) and isinstance(v, dict):
             self.current_page = CurrentPageProperties(v)
 
-        if (v := data.get("session")) and isinstance(v, dict):
-            self.session = SessionProperties(v)
+        # if (v := data.get("session")) and isinstance(v, dict):
+        #     self.session = SessionProperties(v)
 
-        if (v := data.get("user")) and isinstance(v, dict):
-            self.user = UserProperties(v)
+        # if (v := data.get("user")) and isinstance(v, dict):
+        #     self.user = UserProperties(v)
 
-        if (v := data.get("traffic_source")) and isinstance(v, dict):
-            self.traffic_source = TrafficSourceProperties(v)
+        # if (v := data.get("traffic_source")) and isinstance(v, dict):
+        #     self.traffic_source = TrafficSourceProperties(v)

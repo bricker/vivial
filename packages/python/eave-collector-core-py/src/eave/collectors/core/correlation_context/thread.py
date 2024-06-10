@@ -1,12 +1,10 @@
-from dataclasses import dataclass
 import threading
-import typing
-import urllib.parse
 
-from .base import COOKIE_PREFIX, STORAGE_ATTR, BaseCorrelationContext, CorrCtxStorage
+from .base import STORAGE_ATTR, BaseCorrelationContext, CorrCtxStorage
 
 # TODO: customer child threads wont share this storage
 _local_thread_storage = threading.local()
+
 
 class ThreadedCorrelationContext(BaseCorrelationContext):
     def init_storage(self) -> None:

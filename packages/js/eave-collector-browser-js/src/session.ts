@@ -1,5 +1,5 @@
 import { isCookieConsentRevoked } from "./consent";
-import { COOKIE_NAME_PREFIX, getEaveCookie, setEaveCookie } from "./cookies";
+import { COOKIE_NAME_PREFIX, getCookie, setCookie } from "./cookies";
 import { LOG_TAG } from "./internal/constants";
 import { SessionProperties } from "./types";
 import { compactJSONStringify, safeJSONParse } from "./util/json";
@@ -11,7 +11,7 @@ const SESSION_COOKIE_NAME = `${COOKIE_NAME_PREFIX}session`;
 const SESSION_LENGTH_SEC = 30 * 60;
 
 function getSessionCookie(): string | null {
-  return getEaveCookie(SESSION_COOKIE_NAME);
+  return getCookie(SESSION_COOKIE_NAME);
 }
 
 function setSessionCookie(value: string) {
@@ -19,7 +19,7 @@ function setSessionCookie(value: string) {
     return;
   }
 
-  setEaveCookie({
+  setCookie({
     name: SESSION_COOKIE_NAME,
     value: value,
     maxAgeSeconds: SESSION_LENGTH_SEC,

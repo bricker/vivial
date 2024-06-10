@@ -121,8 +121,9 @@ export type BrowserEventPayload = {
   target: TargetProperties | null;
   device: DeviceProperties | null;
   current_page: CurrentPageProperties | null;
-  session: SessionProperties | null;
-  user: UserProperties | null;
-  traffic_source: TrafficSourceProperties | null;
   extra?: ScalarMap<JsonScalar> | null;
+  corr_ctx: ScalarMap<string>;
+  // session: SessionProperties | null;
+  // user: UserProperties | null;
+  // traffic_source: TrafficSourceProperties | null;
 };

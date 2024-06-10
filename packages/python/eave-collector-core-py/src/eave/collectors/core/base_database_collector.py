@@ -18,7 +18,7 @@ primary_key_patterns = [
 foreign_key_patterns = [
     # We don't want to capture fields that in "id" but aren't foreign keys, like "kool-aid" or "mermaid".
     # We therefore make an assumption that anything ending it "id" with _some_ delimeter is a foreign key.
-    r".[_-]id$", # delimeter = _, -. Only matches when "id" is lower-case.
+    r".[_-]id$",  # delimeter = _, -. Only matches when "id" is lower-case.
     r".I[Dd]$",  # delimeter = capital "I" (eg UserId). This also handles underscores/hyphens when the "I" is capital.
 ]
 
@@ -26,6 +26,7 @@ foreign_key_patterns = [
 def is_user_table(table_name: str) -> bool:
     table = table_name.lower()
     return any(re.search(table_pattern, table, flags=re.IGNORECASE) for table_pattern in user_table_name_patterns)
+
 
 def save_identification_data(table_name: str, column_value_map: dict[str, Any]) -> None:
     """
@@ -51,6 +52,7 @@ def save_identification_data(table_name: str, column_value_map: dict[str, Any]) 
             if any(re.search(pat, key) for pat in foreign_key_patterns):
                 CORR_CTX.set(key, str(value))
                 continue
+
 
 class BaseDatabaseCollector(BaseCollector):
     pass

@@ -3,7 +3,6 @@ import weakref
 from collections.abc import Callable
 from typing import Any
 
-from eave.collectors.core.correlation_context import CORR_CTX
 import sqlalchemy
 from sqlalchemy.engine.interfaces import (
     _CoreMultiExecuteParams,
@@ -21,7 +20,8 @@ from eave.collectors.core.base_database_collector import (
     is_user_table,
     save_identification_data,
 )
-from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, KeyValueDict
+from eave.collectors.core.correlation_context import CORR_CTX
+from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
 from eave.collectors.core.write_queue import WriteQueue
 
 type SupportedEngine = sqlalchemy.Engine | AsyncEngine
@@ -147,7 +147,8 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                         db_name=conn.engine.url.database,
                         statement=compiled_clause.string,
                         table_name=tablename,
-                        parameters=KeyValueDict.list_from_dict(statement_params),
+                        statement_values=statement_params,
+                        corr_ctx=CORR_CTX.to_dict(),
                     )
 
                     self.write_queue.put(record)
@@ -177,6 +178,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                         statement=clauseelement.compile().string,
                         table_name=tablename,
                         statement_values=rparam,
+                        corr_ctx=CORR_CTX.to_dict(),
                     )
 
                     self.write_queue.put(record)
@@ -192,6 +194,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                         statement=clauseelement.compile().string,
                         table_name=tablename,
                         statement_values=rparam,
+                        corr_ctx=CORR_CTX.to_dict(),
                     )
 
                     self.write_queue.put(record)

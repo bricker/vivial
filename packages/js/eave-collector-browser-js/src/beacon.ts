@@ -7,11 +7,9 @@ import {
   EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE,
   VISIBILITY_CHANGE_EVENT_TYPE,
 } from "./internal/js-events";
+import { getCorrelationContext } from "./properties/correlation-context.js";
 import { getUserAgentProperties } from "./properties/device";
 import { getCurrentPageProperties } from "./properties/page";
-import { getTrafficSourceProperties } from "./properties/traffic_source";
-import { getUserProperties } from "./properties/user";
-import { getSessionProperties } from "./session";
 import {
   BrowserEventPayload,
   DeviceProperties,
@@ -154,9 +152,10 @@ class RequestManager {
   }): Promise<BrowserEventPayload> {
     const deviceProperties = await this.#getDeviceProperties();
     const currentPageProperties = getCurrentPageProperties();
-    const sessionProperties = getSessionProperties();
-    const userProperties = getUserProperties();
-    const trafficSourceProperties = getTrafficSourceProperties();
+    const corrCtx = getCorrelationContext();
+    // const sessionProperties = getSessionProperties();
+    // const userProperties = getUserProperties();
+    // const trafficSourceProperties = getTrafficSourceProperties();
 
     const payload: BrowserEventPayload = {
       action,
@@ -164,10 +163,11 @@ class RequestManager {
       target,
       device: deviceProperties,
       current_page: currentPageProperties,
-      session: sessionProperties,
-      user: userProperties,
-      traffic_source: trafficSourceProperties,
       extra,
+      corr_ctx: corrCtx,
+      // session: sessionProperties,
+      // user: userProperties,
+      // traffic_source: trafficSourceProperties,
     };
 
     return payload;

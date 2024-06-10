@@ -7,7 +7,9 @@ from google.cloud.bigquery import SchemaField, SqlTypeNames, StandardSqlTypeName
 
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
 from eave.core.internal import database
-from eave.core.internal.atoms.api_types import SessionProperties, TrafficSourceProperties, UserProperties
+from eave.core.internal.atoms.api_types import (
+    CorrelationContext,
+)
 from eave.core.internal.atoms.record_fields import (
     MultiTypeKeyValueRecordField,
     SessionRecordField,
@@ -115,32 +117,30 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
 
             unique_operations.add((e.operation, e.table_name))
 
+            statement_values = (
+                MultiTypeKeyValueRecordField.list_from_scalar_dict(e.statement_values) if e.statement_values else None
+            )
+
+            corr_ctx = CorrelationContext(e.corr_ctx) if e.corr_ctx else None
+            session = (
+                SessionRecordField.from_api_resource(resource=corr_ctx.session, event_timestamp=e.timestamp)
+                if corr_ctx
+                else None
+            )
+            traffic_source = TrafficSourceRecordField.from_api_resource(corr_ctx.traffic_source) if corr_ctx else None
+            user = UserRecordField(account_id=corr_ctx.account_id, visitor_id=corr_ctx.visitor_id) if corr_ctx else None
+
             atom = DatabaseEventAtom(
                 operation=e.operation,
                 db_name=e.db_name,
                 table_name=e.table_name,
                 timestamp=e.timestamp,
                 statement=e.statement,
-                statement_values=MultiTypeKeyValueRecordField.list_from_scalar_dict(e.statement_values)
-                if e.statement_values
-                else None,
-                session=None,
-                user=None,
-                traffic_source=None,
+                statement_values=statement_values,
+                session=session,
+                user=user,
+                traffic_source=traffic_source,
             )
-
-            if (corr_ctx := e.corr_ctx) and isinstance(corr_ctx, dict):
-                if (session_ctx := corr_ctx.get("session")) and isinstance(session_ctx, dict):
-                    session_properties = SessionProperties(session_ctx)
-                    atom.session = SessionRecordField.from_api_resource(session_properties, event_timestamp=e.timestamp)
-
-                if (user_ctx := corr_ctx.get("user")) and isinstance(user_ctx, dict):
-                    user_properties = UserProperties(user_ctx)
-                    atom.user = UserRecordField.from_api_resource(user_properties)
-
-                if (traffic_source_ctx := corr_ctx.get("traffic_source")) and isinstance(traffic_source_ctx, dict):
-                    traffic_source_properties = TrafficSourceProperties(traffic_source_ctx)
-                    atom.traffic_source = TrafficSourceRecordField.from_api_resource(traffic_source_properties)
 
             atoms.append(atom)
 

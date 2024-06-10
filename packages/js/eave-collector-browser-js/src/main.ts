@@ -9,7 +9,7 @@ import {
   POPSTATE_EVENT_TYPE,
   SUBMIT_EVENT_TYPE,
 } from "./internal/js-events";
-import { setTrafficSourceCookieIfNecessary } from "./properties/traffic_source";
+import { setTrafficSourceCookieIfNecessary } from "./properties/traffic-source";
 import { setOrTouchUserCookies } from "./properties/user";
 import { sessionEventHandler, startOrExtendSession } from "./session";
 import { clickEventHandler } from "./triggers/click";

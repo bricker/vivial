@@ -11,19 +11,34 @@ function getAllCookies(): URLSearchParams {
 }
 
 /**
- * Get an Eave-managed cookie
+ * Get all Eave-managed cookies, except consent cookies.
  */
-export function getEaveCookie(name: string): string | null {
+export function getAllEaveCookies(): URLSearchParams {
+  const allCookies = getAllCookies();
+  const eaveCookies = new URLSearchParams();
+
+  for (const [name, value] of allCookies) {
+    if (name.startsWith(COOKIE_NAME_PREFIX)) {
+      eaveCookies.append(name, value);
+    }
+  }
+
+  return eaveCookies;
+}
+
+/**
+ * Get a cookie
+ */
+export function getCookie(name: string): string | null {
   const cookies = getAllCookies();
   const cookie = cookies.get(name);
   return cookie ? decodeURIComponent(cookie) : null;
 }
 
 /**
- * Set an Eave-managed cookie
  * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
  */
-export function setEaveCookie({
+export function setCookie({
   name,
   value,
   maxAgeSeconds,
@@ -80,8 +95,8 @@ export function setEaveCookie({
 /**
  * Delete an Eave-managed cookie
  */
-export function deleteEaveCookie(args: { name: string; path?: string; domain?: string }) {
-  setEaveCookie({
+export function deleteCookie(args: { name: string; path?: string; domain?: string }) {
+  setCookie({
     ...args,
     value: "",
     expires: new Date(0),
@@ -92,12 +107,10 @@ export function deleteEaveCookie(args: { name: string; path?: string; domain?: s
  * Delete all Eave-managed cookies, except consent cookies
  */
 export function deleteAllEaveCookies() {
-  const allCookies = getAllCookies();
+  const allEaveCookies = getAllEaveCookies();
 
-  for (const [name, _] of allCookies) {
-    if (name.startsWith(COOKIE_NAME_PREFIX)) {
-      deleteEaveCookie({ name });
-    }
+  for (const [name, _] of allEaveCookies) {
+    deleteCookie({ name });
   }
 }
 

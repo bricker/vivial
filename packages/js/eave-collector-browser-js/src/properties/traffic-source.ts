@@ -1,7 +1,7 @@
-import { isCookieConsentRevoked } from "../consent";
-import { COOKIE_NAME_PREFIX, getEaveCookie, setEaveCookie } from "../cookies";
-import { ScalarMap, TrafficSourceProperties } from "../types";
-import { compactJSONStringify, safeJSONParse } from "../util/json";
+import { isCookieConsentRevoked } from "../consent.js";
+import { COOKIE_NAME_PREFIX, getCookie, setCookie } from "../cookies.js";
+import { ScalarMap, TrafficSourceProperties } from "../types.js";
+import { compactJSONStringify, safeJSONParse } from "../util/json.js";
 import { currentTimestampSeconds } from "../util/timestamp.js";
 
 const TRAFFIC_SOURCE_COOKIE_NAME = `${COOKIE_NAME_PREFIX}traffic_source`;
@@ -31,7 +31,7 @@ const KNOWN_TRACKING_PARAMS = new Set([
 // is to allow to avoid un-parsing and re-parsing JSON when we're just refreshing the cookie expiry.
 
 function getTrafficSourceCookie(): string | null {
-  return getEaveCookie(TRAFFIC_SOURCE_COOKIE_NAME);
+  return getCookie(TRAFFIC_SOURCE_COOKIE_NAME);
 }
 
 function setTrafficSourceCookie(value: string) {
@@ -39,7 +39,7 @@ function setTrafficSourceCookie(value: string) {
     return;
   }
 
-  setEaveCookie({
+  setCookie({
     name: TRAFFIC_SOURCE_COOKIE_NAME,
     value,
     maxAgeSeconds: TRAFFIC_SOURCE_COOKIE_MAX_AGE,

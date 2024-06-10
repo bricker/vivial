@@ -5,7 +5,7 @@ from typing import Self
 from uuid import UUID
 
 import sqlalchemy
-from sqlalchemy import Index, ScalarResult, Select, func, select, text
+from sqlalchemy import Index, ScalarResult, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.functions import count
@@ -77,9 +77,7 @@ class VirtualEventOrm(Base):
         if params.search_query is not None:
             builder = builder.where(
                 cls.readable_name.op("%")(params.search_query),
-            ).order_by(
-                sqlalchemy.asc(cls.readable_name.op("<->")(params.search_query))
-            )
+            ).order_by(sqlalchemy.asc(cls.readable_name.op("<->")(params.search_query)))
 
         if params.view_id is not None:
             builder = builder.where(cls.view_id == params.view_id)

@@ -1,8 +1,6 @@
 import contextvars
-import typing
-import urllib.parse
 
-from .base import COOKIE_PREFIX, STORAGE_ATTR, BaseCorrelationContext, CorrCtxStorage
+from .base import STORAGE_ATTR, BaseCorrelationContext, CorrCtxStorage
 
 _local_async_storage = contextvars.ContextVar[CorrCtxStorage](STORAGE_ATTR)
 

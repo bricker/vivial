@@ -1,4 +1,4 @@
-import { getEaveCookie, setEaveCookie } from "./cookies";
+import { getCookie, setCookie } from "./cookies";
 import { LOG_TAG } from "./internal/constants";
 import {
   EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE,
@@ -21,12 +21,12 @@ export enum ConsentChoice {
 }
 
 export function isCookieConsentRevoked(): boolean {
-  const cookie = getEaveCookie(COOKIE_CONSENT_CHOICE_COOKIE_NAME);
+  const cookie = getCookie(COOKIE_CONSENT_CHOICE_COOKIE_NAME);
   return cookie === ConsentChoice.REJECTED;
 }
 
 export function setCookieConsentChoice(choice: ConsentChoice) {
-  setEaveCookie({
+  setCookie({
     name: COOKIE_CONSENT_CHOICE_COOKIE_NAME,
     value: choice,
     maxAgeSeconds: CONSENT_COOKIE_MAX_AGE_SEC,
@@ -44,12 +44,12 @@ export function setCookieConsentChoice(choice: ConsentChoice) {
 }
 
 export function isTrackingConsentRevoked(): boolean {
-  const cookie = getEaveCookie(TRACKING_CONSENT_CHOICE_COOKIE_NAME);
+  const cookie = getCookie(TRACKING_CONSENT_CHOICE_COOKIE_NAME);
   return cookie === ConsentChoice.REJECTED;
 }
 
 export function setTrackingConsentChoice(choice: ConsentChoice) {
-  setEaveCookie({
+  setCookie({
     name: TRACKING_CONSENT_CHOICE_COOKIE_NAME,
     value: choice,
     maxAgeSeconds: CONSENT_COOKIE_MAX_AGE_SEC,

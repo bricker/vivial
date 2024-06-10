@@ -7,7 +7,7 @@ from starlette.routing import Route
 from starlette.testclient import TestClient
 
 from eave.collectors.core.correlation_context import CORR_CTX
-from eave.collectors.core.correlation_context.base import COOKIE_PREFIX
+from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_COOKIE_PREFIX
 from eave.collectors.core.datastructures import EventPayload, EventType, HttpServerEventPayload
 from eave.collectors.core.write_queue import BatchWriteQueue, QueueParams
 from eave.collectors.starlette.private.collector import StarletteCollector
@@ -83,8 +83,8 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
 
     async def test_eave_ctx_set_from_cookies(self) -> None:
         # GIVEN eave cookies set on request
-        valid_cookie = f"{COOKIE_PREFIX}test_cookie"
-        json_cookie = f"{COOKIE_PREFIX}json"
+        valid_cookie = f"{EAVE_COLLECTOR_COOKIE_PREFIX}test_cookie"
+        json_cookie = f"{EAVE_COLLECTOR_COOKIE_PREFIX}json"
         non_eave_cookie = "no_eave_prefix"
         ctx_key = "some_ctx_key"
         self._client.cookies.set(valid_cookie, "valid")
@@ -105,9 +105,9 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
 
     async def test_response_cookie_ctx_set(self) -> None:
         # GIVEN there is some ctx cookies that can be changed
-        unchanged_cookie = f"{COOKIE_PREFIX}cookie"
-        changed_cookie = f"{COOKIE_PREFIX}mutable"
-        new_cookie = f"{COOKIE_PREFIX}new"
+        unchanged_cookie = f"{EAVE_COLLECTOR_COOKIE_PREFIX}cookie"
+        changed_cookie = f"{EAVE_COLLECTOR_COOKIE_PREFIX}mutable"
+        new_cookie = f"{EAVE_COLLECTOR_COOKIE_PREFIX}new"
         self._client.cookies.set(unchanged_cookie, "valid")
         self._client.cookies.set(changed_cookie, "change_me")
 

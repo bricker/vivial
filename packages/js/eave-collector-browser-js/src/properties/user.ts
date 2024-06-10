@@ -1,5 +1,5 @@
 import { isCookieConsentRevoked } from "../consent";
-import { COOKIE_NAME_PREFIX, MAX_ALLOWED_COOKIE_AGE_SEC, getEaveCookie, setEaveCookie } from "../cookies";
+import { COOKIE_NAME_PREFIX, MAX_ALLOWED_COOKIE_AGE_SEC, getCookie, setCookie } from "../cookies";
 import { UserProperties } from "../types";
 import { uuidv4 } from "../util/uuid";
 
@@ -7,7 +7,7 @@ const ACCOUNT_ID_COOKIE_NAME = `${COOKIE_NAME_PREFIX}account_id`;
 const VISITOR_ID_COOKIE_NAME = `${COOKIE_NAME_PREFIX}visitor_id`;
 
 function getAccountId(): string | null {
-  return getEaveCookie(ACCOUNT_ID_COOKIE_NAME);
+  return getCookie(ACCOUNT_ID_COOKIE_NAME);
 }
 
 function setAccountId(value: string) {
@@ -15,7 +15,7 @@ function setAccountId(value: string) {
     return;
   }
 
-  setEaveCookie({
+  setCookie({
     name: ACCOUNT_ID_COOKIE_NAME,
     value,
     maxAgeSeconds: MAX_ALLOWED_COOKIE_AGE_SEC,
@@ -23,7 +23,7 @@ function setAccountId(value: string) {
 }
 
 function getVisitorId(): string | null {
-  return getEaveCookie(VISITOR_ID_COOKIE_NAME);
+  return getCookie(VISITOR_ID_COOKIE_NAME);
 }
 
 function setVisitorId(value: string) {
@@ -31,7 +31,7 @@ function setVisitorId(value: string) {
     return;
   }
 
-  setEaveCookie({
+  setCookie({
     name: VISITOR_ID_COOKIE_NAME,
     value: value,
     maxAgeSeconds: MAX_ALLOWED_COOKIE_AGE_SEC,

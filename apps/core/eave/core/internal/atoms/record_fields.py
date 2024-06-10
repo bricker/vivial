@@ -12,7 +12,6 @@ from eave.core.internal.atoms.api_types import (
     TargetProperties,
     TrafficSourceProperties,
     UrlProperties,
-    UserProperties,
 )
 from eave.core.internal.atoms.table_handle import BigQueryFieldMode
 from eave.stdlib.typing import JsonScalar
@@ -84,7 +83,10 @@ class MultiTypeKeyValueRecordField(RecordField):
         )
 
     @classmethod
-    def list_from_scalar_dict(cls, d: dict[str, JsonScalar]) -> list["MultiTypeKeyValueRecordField"]:
+    def list_from_scalar_dict(cls, d: dict[str, JsonScalar] | None) -> list["MultiTypeKeyValueRecordField"]:
+        if not d:
+            return []
+
         containers: list[MultiTypeKeyValueRecordField] = []
 
         for [key, value] in d.items():
@@ -138,7 +140,10 @@ class SingleTypeKeyValueRecordField[T: str | bool | int | float](RecordField):
         )
 
     @classmethod
-    def list_from_scalar_dict(cls, d: dict[str, T | None]) -> list["SingleTypeKeyValueRecordField[T]"]:
+    def list_from_scalar_dict(cls, d: dict[str, T | None] | None) -> list["SingleTypeKeyValueRecordField[T]"]:
+        if not d:
+            return []
+
         containers: list[SingleTypeKeyValueRecordField[T]] = []
 
         for [key, value] in d.items():
@@ -187,7 +192,12 @@ class SessionRecordField(RecordField):
     duration_ms: float | None
 
     @classmethod
-    def from_api_resource(cls, resource: SessionProperties, event_timestamp: float | None) -> "SessionRecordField":
+    def from_api_resource(
+        cls, resource: SessionProperties | None, event_timestamp: float | None
+    ) -> "SessionRecordField | None":
+        if not resource:
+            return None
+
         if event_timestamp is not None and resource.start_timestamp is not None:
             duration_ms = (event_timestamp - resource.start_timestamp) * 1000
         else:
@@ -227,13 +237,6 @@ class UserRecordField(RecordField):
 
     account_id: str | None
     visitor_id: str | None
-
-    @classmethod
-    def from_api_resource(cls, resource: UserProperties) -> "UserRecordField":
-        return cls(
-            account_id=resource.account_id,
-            visitor_id=resource.visitor_id,
-        )
 
 
 @dataclass(kw_only=True)
@@ -419,7 +422,10 @@ class TrafficSourceRecordField(RecordField):
     other_utm_params: list[SingleTypeKeyValueRecordField[str]] | None
 
     @classmethod
-    def from_api_resource(cls, resource: TrafficSourceProperties) -> "TrafficSourceRecordField":
+    def from_api_resource(cls, resource: TrafficSourceProperties | None) -> "TrafficSourceRecordField | None":
+        if not resource:
+            return None
+
         tp = resource.tracking_params.copy() if resource.tracking_params else None
 
         return cls(
@@ -611,7 +617,10 @@ class DeviceRecordField(RecordField):
     screen_avail_height: int | None
 
     @classmethod
-    def from_api_resource(cls, resource: DeviceProperties) -> "DeviceRecordField":
+    def from_api_resource(cls, resource: DeviceProperties | None) -> "DeviceRecordField | None":
+        if not resource:
+            return None
+
         return cls(
             user_agent=resource.user_agent,
             brands=[BrandsRecordField.from_api_resource(b) for b in resource.brands] if resource.brands else None,
@@ -669,7 +678,10 @@ class TargetRecordField(RecordField):
     attributes: list[SingleTypeKeyValueRecordField[str]] | None
 
     @classmethod
-    def from_api_resource(cls, resource: TargetProperties) -> "TargetRecordField":
+    def from_api_resource(cls, resource: TargetProperties | None) -> "TargetRecordField | None":
+        if not resource:
+            return None
+
         return cls(
             type=resource.type,
             id=resource.id,
@@ -736,7 +748,10 @@ class UrlRecordField(RecordField):
     query_params: list[SingleTypeKeyValueRecordField[str]] | None
 
     @classmethod
-    def from_api_resource(cls, resource: UrlProperties) -> "UrlRecordField":
+    def from_api_resource(cls, resource: UrlProperties | None) -> "UrlRecordField | None":
+        if not resource:
+            return None
+
         return cls(
             raw=resource.raw,
             protocol=resource.protocol,
@@ -780,7 +795,10 @@ class CurrentPageRecordField(RecordField):
     pageview_id: str | None
 
     @classmethod
-    def from_api_resource(cls, resource: CurrentPageProperties) -> "CurrentPageRecordField":
+    def from_api_resource(cls, resource: CurrentPageProperties | None) -> "CurrentPageRecordField | None":
+        if not resource:
+            return None
+
         return cls(
             url=UrlRecordField.from_api_resource(resource.url) if resource.url else None,
             title=resource.title,
