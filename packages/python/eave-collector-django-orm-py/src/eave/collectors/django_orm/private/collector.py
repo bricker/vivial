@@ -84,7 +84,7 @@ class EaveCursorWrapper(CursorWrapper):
                     db_name=self.db.alias,
                     statement=sql,
                     table_name=table_name,
-                    statement_values=rparams,  # TODO: params is usually None; django doesnt remove param values from the statement
+                    statement_values=rparams,  # TODO: params is usually None; django doesnt remove param values from the statement # type: ignore
                     corr_ctx=CORR_CTX.to_dict(),
                 )
 

@@ -98,10 +98,10 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert len(self._write_queue.queue) > 0
         e = self._write_queue.queue[0]
         assert isinstance(e, HttpServerEventPayload)
-        assert e.context is not None, "Eave context was expected to be set in the network event"
-        assert e.context.get(valid_cookie) == "valid"
-        assert e.context.get(non_eave_cookie) is None
-        assert e.context.get(json_cookie) == f'{{"{ctx_key}": 123}}'
+        assert e.corr_ctx is not None, "Eave context was expected to be set in the network event"
+        assert e.corr_ctx.get(valid_cookie) == "valid"
+        assert e.corr_ctx.get(non_eave_cookie) is None
+        assert e.corr_ctx.get(json_cookie) == f'{{"{ctx_key}": 123}}'
 
     async def test_response_cookie_ctx_set(self) -> None:
         # GIVEN there is some ctx cookies that can be changed
