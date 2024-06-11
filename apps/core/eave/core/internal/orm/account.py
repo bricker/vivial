@@ -12,7 +12,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 import eave.core.internal
 import eave.stdlib.exceptions
-from eave.stdlib.core_api.models.account import AnalyticsAccount, AuthenticatedAccount, AuthProvider
+from eave.stdlib.core_api.models.account import AuthenticatedAccount, AuthProvider
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
 from eave.stdlib.logging import LogContext
 
@@ -205,7 +205,3 @@ class AccountOrm(Base):
     @property
     def api_model(self) -> AuthenticatedAccount:
         return AuthenticatedAccount.from_orm(self)
-
-    @property
-    def analytics_model(self) -> AnalyticsAccount:
-        return AnalyticsAccount.from_orm(self)

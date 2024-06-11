@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 import eave.stdlib.util
-from eave.stdlib.core_api.models.team import AnalyticsTeam, Team
+from eave.stdlib.core_api.models.team import Team
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR
@@ -49,10 +49,6 @@ class TeamOrm(Base):
     @property
     def api_model(self) -> Team:
         return Team.from_orm(self)
-
-    @property
-    def analytics_model(self) -> AnalyticsTeam:
-        return AnalyticsTeam.from_orm(self)
 
     class QueryParams(TypedDict):
         team_id: UUID | str
