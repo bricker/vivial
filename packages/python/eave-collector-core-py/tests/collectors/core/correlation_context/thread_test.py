@@ -1,7 +1,7 @@
 import threading
 import unittest
 
-from eave.collectors.core.correlation_context import ThreadedCorrelationContext
+from eave.collectors.core.correlation_context import CORR_CTX, ThreadedCorrelationContext
 from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_COOKIE_PREFIX
 from eave.collectors.core.correlation_context.thread import _local_thread_storage
 
@@ -10,7 +10,7 @@ class ThreadedCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
     async def asyncTearDown(self) -> None:
         super().tearDown()
         # manually reset private thread storage since asyncio tests are all launched from same thread
-        _local_thread_storage.eave = {}
+        CORR_CTX.clear()
 
     async def test_values_can_be_written_and_read(self) -> None:
         ctx = ThreadedCorrelationContext()
@@ -44,6 +44,8 @@ class ThreadedCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
         t2.join()
 
     async def test_child_threads_inherit_parent_ctx_values(self) -> None:
+        self.fail("Not Implemented")
+
         ctx = ThreadedCorrelationContext()
         # given values exist in parent context
         ctx.set("parent", "0")

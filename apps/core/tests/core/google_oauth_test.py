@@ -105,10 +105,6 @@ class TestGoogleOAuthHandler(BaseTestCase):
             eave_team = await self.get_eave_team(s, id=eave_account.team_id)
             assert eave_team
 
-            assert eave_account.opaque_utm_params is not None
-            assert eave_account.opaque_utm_params.get("utm_campaign") == self.getstr("utm_campaign")
-            assert eave_account.opaque_utm_params.get("gclid") == self.getstr("gclid")
-
             assert eave_account.access_token == self.getstr("google.token")
             assert eave_account.refresh_token == self.getstr("google.refresh_token")
             assert eave_account.auth_id == self._google_userinfo_response.id

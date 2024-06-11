@@ -10,9 +10,8 @@ class AsyncioCorrelationContext(BaseCorrelationContext):
         _local_async_storage.set(CorrCtxStorage())
 
     def get_storage(self) -> CorrCtxStorage | None:
-        current_context = contextvars.copy_context()
-        eave_ctx = current_context.get(_local_async_storage)
+        eave_ctx = _local_async_storage.get(None)
         if not eave_ctx:
             self.init_storage()
 
-        return current_context.get(_local_async_storage)
+        return _local_async_storage.get(None)

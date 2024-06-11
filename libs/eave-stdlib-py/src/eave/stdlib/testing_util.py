@@ -2,6 +2,7 @@
 
 import base64
 import json
+import os
 import random
 import unittest.mock
 import uuid
@@ -365,7 +366,21 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return m
 
     def patch_env(self, values: dict[str, str | None], clear: bool = False) -> unittest.mock.Mock:
-        m = self.patch_dict(name="env", patch=unittest.mock.patch.dict("os.environ", values, clear=clear))
+        # This method is the way it is so that we can pass in `None` to implicitly delete keys from os.environ.
+        # Otherwise, os.environ only accepts string values, and setting an environment variable to an empty string is not the same as removing an environment variable.
+        # i.e., an empty value is treated differently than a missing key in many cases.
+        if clear:
+            newenv: dict[str, str] = {}
+        else:
+            newenv = os.environ.copy()
+
+        for k, v in values.items():
+            if v is None:
+                newenv.pop(k, None)
+            else:
+                newenv[k] = v
+
+        m = self.patch_dict(name="env", patch=unittest.mock.patch.dict("os.environ", newenv, clear=True))
         return m
 
     def patch_dict(self, patch: unittest.mock._patch_dict, name: str | None = None) -> unittest.mock.Mock:

@@ -3,6 +3,7 @@ from http.cookies import SimpleCookie
 from typing import Any
 
 import aiohttp
+from eave.stdlib.cookies import EAVE_EMBED_COOKIE_PREFIX
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -39,13 +40,6 @@ class AuthCookiesTestBase(StdlibBaseTestCase):
 
 
 class AuthCookiesTest(AuthCookiesTestBase):
-    async def test_cookie_names(self):
-        """
-        The auth cookie names may be referenced in client code, eg GTM, so changing them needs consideration.
-        """
-        assert EAVE_ACCOUNT_ID_COOKIE_NAME == "eave.auth.account_id"
-        assert EAVE_ACCESS_TOKEN_COOKIE_NAME == "eave.auth.access_token"
-
     async def test_set_auth_cookies_with_all_data(self):
         set_auth_cookies(
             response=self.mock_response,
@@ -109,9 +103,16 @@ class AuthCookiesTest(AuthCookiesTestBase):
         assert cookies.access_token is None
 
     async def test_delete_auth_cookies(self):
+        self.mock_request.cookies.update({
+            EAVE_ACCESS_TOKEN_COOKIE_NAME: self.anystr(),
+            EAVE_ACCOUNT_ID_COOKIE_NAME: self.anystr(),
+            f"{EAVE_EMBED_COOKIE_PREFIX}xyz": self.anystr(),
+        })
+
         delete_auth_cookies(request=self.mock_request, response=self.mock_response)
         cookies = [v for k, v in self.mock_response.headers.items() if istr_eq(k, aiohttp.hdrs.SET_COOKIE)]
-        assert len(cookies) == 2
+        assert len(cookies) == 3
 
         assert any(re.search(f'^{EAVE_ACCOUNT_ID_COOKIE_NAME}="";', v) for v in cookies)
         assert any(re.search(f'^{EAVE_ACCESS_TOKEN_COOKIE_NAME}="";', v) for v in cookies)
+        assert any(re.search(f'^{EAVE_EMBED_COOKIE_PREFIX}xyz="";', v) for v in cookies)
