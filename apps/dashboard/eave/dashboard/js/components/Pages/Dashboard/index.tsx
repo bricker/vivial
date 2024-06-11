@@ -8,6 +8,8 @@ import TeamIcon from "$eave-dashboard/js/components/Icons/TeamIcon";
 import useAuth from "$eave-dashboard/js/hooks/useAuth";
 import { theme } from "$eave-dashboard/js/theme";
 import { CircularProgress } from "@mui/material";
+import classNames from "classnames";
+import { Outlet } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 import NotFound from "../NotFound";
 import Glossary from "./Glossary";
@@ -19,6 +21,11 @@ import MenuItem from "./SidebarNav/MenuItem";
 import TeamManagement from "./TeamManagement";
 
 const makeClasses = makeStyles()(() => ({
+  sharedContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+  },
   desktopContainer: {
     display: "flex",
     flexDirection: "row",
@@ -51,6 +58,15 @@ const Dashboard = ({ page = "insights" }: { page?: "insights" | "glossary" | "se
 
   const { userIsAuthed, validateUserAuth } = useAuth();
 
+  // hide insights
+  if (window.location.pathname !== "/insights") {
+    const insightUI = document.getElementById("insights");
+    if (insightUI) {
+      insightUI.style.visibility = "hidden";
+      // this gets unhidden in App.tsx by the /insights route
+    }
+  }
+
   useEffect(() => {
     validateUserAuth();
   }, [page]);
@@ -71,7 +87,11 @@ const Dashboard = ({ page = "insights" }: { page?: "insights" | "glossary" | "se
     };
   }, []);
 
-  const container = usingMobileLayout ? classes.mobileContainer : classes.desktopContainer;
+  const container = classNames({
+    [classes.sharedContainer]: true,
+    [classes.mobileContainer]: usingMobileLayout,
+    [classes.desktopContainer]: !usingMobileLayout,
+  });
 
   const nav = (
     <SidebarNav hamburger={usingMobileLayout}>
@@ -131,10 +151,13 @@ const Dashboard = ({ page = "insights" }: { page?: "insights" | "glossary" | "se
     );
   } else {
     return (
-      <div className={container}>
-        {nav}
-        {pageComponent}
-      </div>
+      <>
+        <div id={page} className={container}>
+          {nav}
+          {pageComponent}
+        </div>
+        <Outlet />
+      </>
     );
   }
 };
