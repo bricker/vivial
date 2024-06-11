@@ -1,6 +1,5 @@
 import { isCookieConsentRevoked } from "../consent";
 import { COOKIE_NAME_PREFIX, MAX_ALLOWED_COOKIE_AGE_SEC, getCookie, setCookie } from "../cookies";
-import { UserProperties } from "../types";
 import { uuidv4 } from "../util/uuid";
 
 const ACCOUNT_ID_COOKIE_NAME = `${COOKIE_NAME_PREFIX}account_id`;
@@ -38,12 +37,12 @@ function setVisitorId(value: string) {
   });
 }
 
-export function getUserProperties(): UserProperties {
-  return {
-    account_id: getAccountId(),
-    visitor_id: getVisitorId(),
-  };
-}
+// export function getUserProperties(): UserProperties {
+//   return {
+//     account_id: getAccountId(),
+//     visitor_id: getVisitorId(),
+//   };
+// }
 
 export function setOrTouchUserCookies() {
   const accountId = getAccountId();

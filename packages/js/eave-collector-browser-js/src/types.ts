@@ -54,17 +54,8 @@ export type DeviceProperties = {
   screen_avail_height: number;
 };
 
-export type UrlProperties = {
-  raw: string;
-  protocol: string;
-  domain: string;
-  path: string;
-  hash: string;
-  query_params: ScalarMap<string>;
-};
-
 export type CurrentPageProperties = {
-  url: UrlProperties;
+  url: string;
   title: string;
   pageview_id: string;
 };
@@ -74,10 +65,10 @@ export type SessionProperties = {
   start_timestamp: EpochTimeStampSeconds | null;
 };
 
-export type UserProperties = {
-  account_id: string | null;
-  visitor_id: string | null;
-};
+// export type UserProperties = {
+//   account_id: string | null;
+//   visitor_id: string | null;
+// };
 
 export type TrafficSourceProperties = {
   timestamp: EpochTimeStampSeconds | null;

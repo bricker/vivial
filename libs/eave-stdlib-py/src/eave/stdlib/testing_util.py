@@ -4,6 +4,7 @@ import base64
 import json
 import os
 import random
+import time
 import unittest.mock
 import uuid
 from datetime import datetime, timedelta
@@ -160,7 +161,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         assert name in self.testdata, f"test value {name} has not been set. Use anyjson() to set it."
         return self.testdata[name]
 
-    def anydict(self, name: str | None = None, deterministic_keys: bool = False) -> JsonObject:
+    def anydict(self, name: str | None = None, deterministic_keys: bool = False) -> dict[str, Any]:
         if name is None:
             name = str(uuid.uuid4())
 
@@ -174,7 +175,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self.testdata[name] = data
         return self.getdict(name)
 
-    def getdict(self, name: str) -> JsonObject:
+    def getdict(self, name: str) -> dict[str, Any]:
         assert name in self.testdata, f"test value {name} has not been set. Use anydict() to set it."
         return self.testdata[name]
 
@@ -206,6 +207,20 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         assert name in self.testdata, f"test value {name} has not been set. Use anyint() to set it."
         return self.testdata[name]
 
+    def anyfloat(self, name: str | None = None) -> float:
+        if name is None:
+            name = str(uuid.uuid4())
+
+        assert name not in self.testdata, f"test value {name} is already in use. Use getfloat() to retrieve it."
+
+        data = random.random() * 1000
+        self.testdata[name] = data
+        return self.getfloat(name)
+
+    def getfloat(self, name: str) -> float:
+        assert name in self.testdata, f"test value {name} has not been set. Use anyfloat() to set it."
+        return self.testdata[name]
+
     def anybytes(self, name: str | None = None, encoding: str = "utf-8") -> bytes:
         if name is None:
             name = str(uuid.uuid4())
@@ -218,6 +233,35 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     def getbytes(self, name: str) -> bytes:
         assert name in self.testdata, f"test value {name} has not been set. Use anybytes() to set it."
+        return self.testdata[name]
+
+    def anytime(self, name: str) -> float:
+        if name is None:
+            name = str(uuid.uuid4())
+
+        assert name not in self.testdata, f"test value {name} is already in use. Use gettime() to retrieve it."
+
+        offset = random.randint(0, 999999)
+        data = time.time() - offset
+        self.testdata[name] = data
+        return self.gettime(name)
+
+    def gettime(self, name: str) -> float:
+        assert name in self.testdata, f"test value {name} has not been set. Use anytime() to set it."
+        return self.testdata[name]
+
+    def anybool(self, name: str) -> bool:
+        if name is None:
+            name = str(uuid.uuid4())
+
+        assert name not in self.testdata, f"test value {name} is already in use. Use getbool() to retrieve it."
+
+        data = random.random() > 0.5
+        self.testdata[name] = data
+        return self.getbool(name)
+
+    def getbool(self, name: str) -> bool:
+        assert name in self.testdata, f"test value {name} has not been set. Use anybool() to set it."
         return self.testdata[name]
 
     def b64encode(self, value: str, urlsafe: bool = False) -> str:

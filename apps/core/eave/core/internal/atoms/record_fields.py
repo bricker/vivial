@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
+from urllib.parse import parse_qs, parse_qsl, urlparse
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
@@ -11,7 +12,6 @@ from eave.core.internal.atoms.api_types import (
     SessionProperties,
     TargetProperties,
     TrafficSourceProperties,
-    UrlProperties,
 )
 from eave.core.internal.atoms.table_handle import BigQueryFieldMode
 from eave.stdlib.typing import JsonScalar
@@ -82,6 +82,10 @@ class MultiTypeKeyValueRecordField(RecordField):
             ),
         )
 
+
+    key: str
+    value: TypedValueRecordField | None
+
     @classmethod
     def list_from_scalar_dict(cls, d: dict[str, JsonScalar] | None) -> list["MultiTypeKeyValueRecordField"]:
         if not d:
@@ -112,12 +116,9 @@ class MultiTypeKeyValueRecordField(RecordField):
 
         return containers
 
-    key: str
-    value: TypedValueRecordField | None
-
 
 @dataclass(kw_only=True)
-class SingleTypeKeyValueRecordField[T: str | bool | int | float](RecordField):
+class SingleScalarTypeKeyValueRecordField[T: str | bool | int | float](RecordField):
     @staticmethod
     def schema(*, name: str, description: str, value_type: SqlTypeNames) -> SchemaField:
         return SchemaField(
@@ -139,21 +140,35 @@ class SingleTypeKeyValueRecordField[T: str | bool | int | float](RecordField):
             ),
         )
 
+
+    key: str
+    value: T | None
+
     @classmethod
-    def list_from_scalar_dict(cls, d: dict[str, T | None] | None) -> list["SingleTypeKeyValueRecordField[T]"]:
+    def list_from_scalar_dict(cls, d: dict[str, T | None] | None) -> list["SingleScalarTypeKeyValueRecordField[T]"]:
         if not d:
             return []
 
-        containers: list[SingleTypeKeyValueRecordField[T]] = []
+        containers: list[SingleScalarTypeKeyValueRecordField[T]] = []
 
-        for [key, value] in d.items():
-            container = SingleTypeKeyValueRecordField(key=key, value=value)
+        for key, value in d.items():
+            container = SingleScalarTypeKeyValueRecordField(key=key, value=value)
             containers.append(container)
 
         return containers
 
-    key: str
-    value: T | None
+    @classmethod
+    def list_from_kv_tuples(cls, d: list[tuple[str, T]] | None) -> list["SingleScalarTypeKeyValueRecordField[T]"]:
+        if not d:
+            return []
+
+        containers: list[SingleScalarTypeKeyValueRecordField[T]] = []
+
+        for key, value in d:
+            container = SingleScalarTypeKeyValueRecordField(key=key, value=value)
+            containers.append(container)
+
+        return containers
 
 
 @dataclass(kw_only=True)
@@ -387,9 +402,9 @@ class TrafficSourceRecordField(RecordField):
                     field_type=SqlTypeNames.STRING,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
-                SingleTypeKeyValueRecordField.schema(
-                    name="other_utm_params",
-                    description="Catch-all for additional utm_* query params.",
+                SingleScalarTypeKeyValueRecordField.schema(
+                    name="other_tracking_params",
+                    description="Catch-all for additional tracking query params.",
                     value_type=SqlTypeNames.STRING,
                 ),
             ),
@@ -419,7 +434,7 @@ class TrafficSourceRecordField(RecordField):
     utm_medium: str | None
     utm_term: str | None
     utm_content: str | None
-    other_utm_params: list[SingleTypeKeyValueRecordField[str]] | None
+    other_tracking_params: list[SingleScalarTypeKeyValueRecordField[str]] | None
 
     @classmethod
     def from_api_resource(cls, resource: TrafficSourceProperties | None) -> "TrafficSourceRecordField | None":
@@ -447,7 +462,7 @@ class TrafficSourceRecordField(RecordField):
             utm_medium=tp.pop("utm_medium", None) if tp else None,
             utm_term=tp.pop("utm_term", None) if tp else None,
             utm_content=tp.pop("utm_content", None) if tp else None,
-            other_utm_params=SingleTypeKeyValueRecordField[str].list_from_scalar_dict(tp) if tp else None,
+            other_tracking_params=SingleScalarTypeKeyValueRecordField[str].list_from_scalar_dict(tp) if tp else None,
         )
 
 
@@ -664,7 +679,7 @@ class TargetRecordField(RecordField):
                     field_type=SqlTypeNames.STRING,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
-                SingleTypeKeyValueRecordField.schema(
+                SingleScalarTypeKeyValueRecordField.schema(
                     name="attributes",
                     description="All attributes explicitly defined on this target in the DOM.",
                     value_type=SqlTypeNames.STRING,
@@ -675,7 +690,7 @@ class TargetRecordField(RecordField):
     type: str | None
     id: str | None
     content: str | None
-    attributes: list[SingleTypeKeyValueRecordField[str]] | None
+    attributes: list[SingleScalarTypeKeyValueRecordField[str]] | None
 
     @classmethod
     def from_api_resource(cls, resource: TargetProperties | None) -> "TargetRecordField | None":
@@ -686,7 +701,7 @@ class TargetRecordField(RecordField):
             type=resource.type,
             id=resource.id,
             content=resource.content,
-            attributes=SingleTypeKeyValueRecordField[str].list_from_scalar_dict(resource.attributes)
+            attributes=SingleScalarTypeKeyValueRecordField[str].list_from_scalar_dict(resource.attributes)
             if resource.attributes
             else None,
         )
@@ -704,7 +719,7 @@ class UrlRecordField(RecordField):
             fields=(
                 SchemaField(
                     name="raw",
-                    description="The raw URL. Includes all parts except username or password. This is primarily for reference; the other fields in this record are more useful for queries. eg: https://dashboard.eave.fyi:9090/insights#footer?query=users",
+                    description="The full, unmodified URL. This is primarily for reference; the other fields in this record are more useful for queries. eg: https://dashboard.eave.fyi:9090/insights?query=users#footer",
                     field_type=SqlTypeNames.STRING,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
@@ -716,7 +731,7 @@ class UrlRecordField(RecordField):
                 ),
                 SchemaField(
                     name="domain",
-                    description="The URL domain (aka hostname). Does not include the protocol, path, or port. eg: eave.fyi, dashboard.eave.fyi",
+                    description="The URL domain (aka hostname). Does not include the protocol, port, or path. eg: eave.fyi, dashboard.eave.fyi",
                     field_type=SqlTypeNames.STRING,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
@@ -728,13 +743,13 @@ class UrlRecordField(RecordField):
                 ),
                 SchemaField(
                     name="hash",
-                    description="The URL hash (aka anchor). Includes the leading hash symbol. eg: #header1, #lowkeyme",
+                    description="The URL hash (aka fragment or anchor). Does NOT include the leading hash symbol. eg: header1, lowkeyme",
                     field_type=SqlTypeNames.STRING,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
-                SingleTypeKeyValueRecordField.schema(
+                SingleScalarTypeKeyValueRecordField.schema(
                     name="query_params",
-                    description="A list of the URL query parameter names and values.",
+                    description="A list of the URL query parameter names and values. Names are NOT unique per record.",
                     value_type=SqlTypeNames.STRING,
                 ),
             ),
@@ -745,21 +760,24 @@ class UrlRecordField(RecordField):
     domain: str | None
     path: str | None
     hash: str | None
-    query_params: list[SingleTypeKeyValueRecordField[str]] | None
+    query_params: list[SingleScalarTypeKeyValueRecordField[str]] | None
 
     @classmethod
-    def from_api_resource(cls, resource: UrlProperties | None) -> "UrlRecordField | None":
+    def from_api_resource(cls, resource: str | None) -> "UrlRecordField | None":
         if not resource:
             return None
 
+        parsed = urlparse(resource, allow_fragments=True)
+        qsl = parse_qsl(parsed.query, keep_blank_values=True)
+
         return cls(
-            raw=resource.raw,
-            protocol=resource.protocol,
-            domain=resource.domain,
-            path=resource.path,
-            hash=resource.hash,
-            query_params=SingleTypeKeyValueRecordField[str].list_from_scalar_dict(resource.query_params)
-            if resource.query_params
+            raw=resource,
+            protocol=parsed.scheme,
+            domain=parsed.hostname,
+            path=parsed.path,
+            hash=parsed.fragment,
+            query_params=SingleScalarTypeKeyValueRecordField[str].list_from_kv_tuples(qsl)
+            if parsed.query
             else None,
         )
 
