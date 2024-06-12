@@ -1,26 +1,15 @@
 import React from "react";
 import { CookiesProvider, withCookies } from "react-cookie";
 import { Helmet } from "react-helmet";
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import "../static/css/app.css";
 import AuthenticationPage from "./components/Pages/AuthenticationPage";
-import Dashboard from "./components/Pages/Dashboard";
+import { Dashboard, TabRevealer } from "./components/Pages/Dashboard";
 import AppContextProvider from "./context/Provider";
 import { theme } from "./theme";
 
-const InsightsTabRevealer = () => {
-  const location = useLocation();
-  if (location.pathname === "/insights") {
-    const insightUI = document.getElementById("insights");
-    if (insightUI) {
-      insightUI.style.visibility = "visible";
-    }
-  }
-  // return empty html so as to not cover the visible insights tab
-  return <></>;
-};
 
 const App = () => {
   return (
@@ -37,11 +26,11 @@ const App = () => {
 
               <Route path="/login" element={<AuthenticationPage type="login" />} />
 
-              <Route element={<Dashboard page="insights" />}>
-                <Route path="/glossary" element={<Dashboard page="glossary" />} />
-                <Route path="/settings" element={<Dashboard page="settings" />} />
-                <Route path="/team" element={<Dashboard page="team" />} />
-                <Route path="/insights" element={<InsightsTabRevealer />} />
+              <Route element={<Dashboard />}>
+                <Route path="/insights" element={<TabRevealer name="insights" />} />
+                <Route path="/glossary" element={<TabRevealer name="glossary" />} />
+                <Route path="/settings" element={<TabRevealer name="settings" />} />
+                <Route path="/team" element={<TabRevealer name="team" />} />
               </Route>
 
               <Route path="*" element={<Navigate to="/insights" />} />

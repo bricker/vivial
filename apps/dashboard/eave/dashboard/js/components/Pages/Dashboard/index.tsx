@@ -1,23 +1,15 @@
 import React, { useEffect, useState } from "react";
 
-import GlossaryIcon from "$eave-dashboard/js/components/Icons/GlossaryIcon";
-import GraphIcon from "$eave-dashboard/js/components/Icons/GraphIcon";
-import SettingsCogIcon from "$eave-dashboard/js/components/Icons/SettingsCogIcon";
-import SignOutIcon from "$eave-dashboard/js/components/Icons/SignOutIcon";
-import TeamIcon from "$eave-dashboard/js/components/Icons/TeamIcon";
 import useAuth from "$eave-dashboard/js/hooks/useAuth";
 import { theme } from "$eave-dashboard/js/theme";
 import { CircularProgress } from "@mui/material";
 import classNames from "classnames";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
-import NotFound from "../NotFound";
 import Glossary from "./Glossary";
 import Insights from "./Insights";
 import Settings from "./Settings";
-import SidebarNav from "./SidebarNav";
-import Menu from "./SidebarNav/Menu";
-import MenuItem from "./SidebarNav/MenuItem";
+import TabbedNav from "./TabbedNav";
 import TeamManagement from "./TeamManagement";
 
 const makeClasses = makeStyles()(() => ({
@@ -40,9 +32,6 @@ const makeClasses = makeStyles()(() => ({
     height: "100vh",
     width: "100%",
   },
-  spacer: {
-    flexGrow: 1,
-  },
   loader: {
     display: "flex",
     width: "100%",
@@ -52,27 +41,22 @@ const makeClasses = makeStyles()(() => ({
   },
 }));
 
-function iconColor(isSelected: boolean): "white" | "black" {
-  return isSelected ? "white" : "black";
-}
+// tab pages that should be rendered
+const tabs = {
+  insights: <Insights />,
+  glossary: <Glossary />,
+  settings: <Settings />,
+  team: <TeamManagement />,
+};
 
-const Dashboard = ({ page = "insights" }: { page?: "insights" | "glossary" | "settings" | "team" }) => {
+const Dashboard = () => {
   const { classes } = makeClasses();
 
   const { userIsAuthed, validateUserAuth } = useAuth();
 
-  // hide insights
-  if (window.location.pathname !== "/insights") {
-    const insightUI = document.getElementById("insights");
-    if (insightUI) {
-      insightUI.style.visibility = "hidden";
-      // this gets unhidden in App.tsx by the /insights route
-    }
-  }
-
   useEffect(() => {
     validateUserAuth();
-  }, [page]);
+  }, []);
 
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
   useEffect(() => {
@@ -96,54 +80,6 @@ const Dashboard = ({ page = "insights" }: { page?: "insights" | "glossary" | "se
     [classes.desktopContainer]: !usingMobileLayout,
   });
 
-  const nav = (
-    <SidebarNav hamburger={usingMobileLayout}>
-      <Menu>
-        <MenuItem label="Insights" to="/insights" selected={page === "insights"} expanded={usingMobileLayout}>
-          <GraphIcon color={iconColor(page === "insights")} />
-        </MenuItem>
-
-        <MenuItem label="Event Glossary" to="/glossary" selected={page === "glossary"} expanded={usingMobileLayout}>
-          <GlossaryIcon color={iconColor(page === "glossary")} />
-        </MenuItem>
-
-        {!usingMobileLayout && <div className={classes.spacer}></div>}
-
-        <MenuItem label="Settings" to="/settings" selected={page === "settings"} expanded={usingMobileLayout}>
-          <SettingsCogIcon color={iconColor(page === "settings")} />
-        </MenuItem>
-
-        <MenuItem label="Team Management" to="/team" selected={page === "team"} expanded={usingMobileLayout}>
-          <TeamIcon color={iconColor(page === "team")} />
-        </MenuItem>
-
-        <MenuItem label="Log Out" to="/logout" reloadDocument={true} selected={false} expanded={usingMobileLayout}>
-          <SignOutIcon color={iconColor(false)} />
-        </MenuItem>
-      </Menu>
-    </SidebarNav>
-  );
-
-  let pageComponent: React.ReactElement;
-
-  switch (page) {
-    case "insights":
-      pageComponent = <Insights />;
-      break;
-    case "glossary":
-      pageComponent = <Glossary />;
-      break;
-    case "settings":
-      pageComponent = <Settings />;
-      break;
-    case "team":
-      pageComponent = <TeamManagement />;
-      break;
-    default:
-      pageComponent = <NotFound />;
-      break;
-  }
-
   if (!userIsAuthed) {
     return (
       <div className={container}>
@@ -155,14 +91,32 @@ const Dashboard = ({ page = "insights" }: { page?: "insights" | "glossary" | "se
   } else {
     return (
       <>
-        <div id={page} className={container}>
-          {nav}
-          {pageComponent}
-        </div>
+        {Object.entries(tabs).map(([key, component]) => (
+          <div id={key} key={key} className={container}>
+            <TabbedNav />
+            {component}
+          </div>
+        ))}
         <Outlet />
       </>
     );
   }
 };
 
-export default Dashboard;
+type TabKey = keyof typeof tabs;
+const TabRevealer = ({ name }: { name: TabKey }) => {
+  const location = useLocation();
+  if (location.pathname === `/${name}`) {
+    for (const tabKey of Object.keys(tabs)) {
+      const tabUI = document.getElementById(tabKey);
+      if (tabUI) {
+        // hide all tabs that don't match name
+        tabUI.style.visibility = tabKey === name ? "visible" : "hidden";
+      }
+    }
+  }
+  // return empty html so as to not cover the visible insights tab
+  return <></>;
+};
+
+export { Dashboard, TabRevealer };
