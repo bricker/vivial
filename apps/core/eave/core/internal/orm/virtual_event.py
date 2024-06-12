@@ -80,9 +80,6 @@ class VirtualEventOrm(Base):
             lookup = lookup.where(cls.readable_name == params.readable_name)
 
         if params.search_query is not None:
-            lookup = lookup.where(
-                    cls.readable_name.op("%")(params.search_query),
-            )
             lookup = lookup.order_by(sqlalchemy.asc(cls.readable_name.op("<->")(params.search_query)))
 
         if params.view_id is not None:
