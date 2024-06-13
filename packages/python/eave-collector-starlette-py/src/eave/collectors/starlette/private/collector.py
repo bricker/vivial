@@ -20,6 +20,7 @@ from collections.abc import Callable
 from functools import wraps
 
 # from timeit import default_timer
+from eave.collectors.core.logging import EAVE_LOGGER
 import starlette.types
 from asgiref.compatibility import guarantee_single_callable
 from starlette import applications
@@ -214,7 +215,7 @@ class EaveASGIMiddleware:
             # event collection
             # NOTE: this removes ability for further middleware/processing to request streaming by consuming the body
             # TODO: Fix this, it causes hanging later when attempting to read the body.
-            # req_body = (await request.body()).decode("utf-8")
+            req_body = await request.body()
 
             server_host, port, http_url = get_host_port_url_tuple(scope)
             query_string = scope.get("query_string")
@@ -252,7 +253,7 @@ class EaveASGIMiddleware:
                     request_method=req_method,
                     request_url=req_url,
                     request_headers=dict(request.headers.items()),
-                    request_payload=None, # FIXME
+                    request_payload=req_body.decode("utf-8"),
                     corr_ctx=CORR_CTX.to_dict(),
                 )
             )
@@ -275,8 +276,6 @@ class EaveASGIMiddleware:
                     for cookie in CORR_CTX.get_updated_values_cookies():
                         headers.append("Set-Cookie", cookie)
                 elif message["type"] == "http.response.body":
-                    # TODO: Do we need this?
-                    pass
                     # TODO: Fix this, it needs to check for `more_body=True`
                     # resp_body = None
                     # try:
@@ -294,11 +293,23 @@ class EaveASGIMiddleware:
                     #     )
                     # )
 
-                # destroy ctx now that we're done with it
-                CORR_CTX.clear()
+                    # destroy ctx now that we're done with it
+                    CORR_CTX.clear()
+
                 await send(message)
 
-            await self.app(scope, receive, response_interceptor)
+            # Then overwrite ASGI receive messages to set the body for all downstream request handlers.
+            async def receive_interceptor() -> starlette.types.Message:
+                # FIXME: This disregards any other event type (eg http.disconnect)
+                # To fix this, this interceptor function should check the type of the original receive event,
+                # and return accordingly.
+                return {
+                    "type": "http.request",
+                    "body": req_body,
+                    "more_body": False,
+                }
+
+            await self.app(scope, receive_interceptor, response_interceptor)
 
             # if scope["type"] == "http":
             #     target = _censored_url(scope)
@@ -311,9 +322,12 @@ class EaveASGIMiddleware:
             #         except ValueError:
             #             pass
 
-        except UnicodeDecodeError:
+        except UnicodeDecodeError as e:
             # ignore json decoding errors
-            pass
+            EAVE_LOGGER.warning(e)
+        except Exception as e:
+            # Don't prevent the request from going through
+            EAVE_LOGGER.exception(e)
 
 
 class StarletteCollector(BaseCollector):
