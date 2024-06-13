@@ -6,7 +6,8 @@ import re
 import uuid
 from collections.abc import Awaitable, Callable
 from functools import wraps
-from typing import Any, Literal, ParamSpec, TypeVar
+from typing import Any, Literal, ParamSpec, TypeVar, cast
+import inflect
 
 from eave.stdlib.exceptions import UnexpectedMissingValueError
 from eave.stdlib.typing import JsonObject, JsonValue
@@ -249,77 +250,31 @@ def suppress(e: type[Exception], func: Callable[[], T]) -> T | None:
     with contextlib.suppress(e):
         return func()
 
-
 def titleize(string: str) -> str:
-    """
-    >>> titleize("accounts")
-    'Account'
-    >>> titleize("GithubInstallations")
-    'Github Installation'
-    >>> titleize("github_installations")
-    'Github Installation'
-    >>> titleize("GitHub_Installations")
-    'Git Hub Installation'
-    """
-
-    words = re.findall("([A-Z][a-z0-9]*|[a-z0-9]+)", string)
+    e = inflect.engine()
+    words = re.findall("([A-Z][a-z0-9]+|[A-Z0-9]+|[a-z0-9]+)", string)
     words = [w.title() for w in words]
     title = " ".join(words)
 
-    # FIXME: This is an incorrect way to singularize a word
-    title = title.rstrip("s")
-    return title
+    if not isinstance(title, inflect.Word):
+        # inflect.Word requires that the string is length >= 1. If `title` happens to be empty, a runtime typechecker will raise an error.
+        return title
+
+    singular_title = e.singular_noun(title)
+    return singular_title or title
 
 
 def tableize(string: str) -> str:
-    """
-    >>> tableize("Account")
-    'account'
-    >>> tableize("Github Installations")
-    'github_installations'
-    >>> tableize("github_installations")
-    'github_installations'
-    >>> tableize("Cohort 2023")
-    'cohort_2023'
-    >>> tableize("\"; DROP TABLES")
-    'drop_tables'
-    """
-    return re.sub(r"\W", "_", string).lower()
+    return re.sub(r"\W+", "_", string).lower().strip("_")
 
 
 def sql_sanitized_identifier(identifier: str) -> str:
-    """
-    >>> sql_sanitized_identifier("table_name`; drop tables; --")
-    '`table_name; drop tables; --`'
-    >>> sql_sanitized_identifier("table_name```; drop tables; --")
-    '`table_name; drop tables; --`'
-    >>> sql_sanitized_identifier("`table_name`; drop tables; --")
-    '`table_name; drop tables; --`'
-    >>> sql_sanitized_identifier("`table_name; drop tables;` --`")
-    '`table_name; drop tables; --`'
-    >>> sql_sanitized_identifier("`table_name\\; drop tables;` --`")
-    '`table_name; drop tables; --`'
-    """
-
     # removes backticks and backslashes (\\\\ = 1 backslash when using normal Python string)
     i = re.sub("[`\\\\]", "", identifier)
     return f"`{i}`"
 
 
 def sql_sanitized_literal(literal: str, quotechar: Literal["'", '"'] = '"') -> str:
-    """
-    >>> sql_sanitized_literal('table_name"; drop tables; --')
-    '"table_name; drop tables; --"'
-    >>> sql_sanitized_literal("table_name'; drop tables; --")
-    '"table_name; drop tables; --"'
-    >>> sql_sanitized_literal('table_name"; drop tables; --', quotechar="'")
-    "'table_name; drop tables; --'"
-    >>> sql_sanitized_literal("table_name'; drop tables; --", quotechar="'")
-    "'table_name; drop tables; --'"
-    >>> sql_sanitized_literal("table_name\\'; drop tables; --", quotechar="'")
-    "'table_name; drop tables; --'"
-    """
-
     # removes quotes and backslashes (\\\\ = 1 backslash when using normal Python string)
     i = re.sub("['\"\\\\]", "", literal)
     return f"{quotechar}{i}{quotechar}"

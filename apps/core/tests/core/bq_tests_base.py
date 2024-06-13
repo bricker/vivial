@@ -3,7 +3,7 @@ from google.cloud import bigquery
 from eave.stdlib.config import SHARED_CONFIG
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.orm.team import TeamOrm, bq_dataset_id
-from tests.core.base import BaseTestCase
+from .base import BaseTestCase
 
 class BigQueryTestsBase(BaseTestCase):
     bq_client: bigquery.Client

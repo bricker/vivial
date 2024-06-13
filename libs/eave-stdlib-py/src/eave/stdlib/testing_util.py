@@ -235,7 +235,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         assert name in self.testdata, f"test value {name} has not been set. Use anybytes() to set it."
         return self.testdata[name]
 
-    def anytime(self, name: str) -> float:
+    def anytime(self, name: str | None = None) -> float:
         if name is None:
             name = str(uuid.uuid4())
 
@@ -250,7 +250,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         assert name in self.testdata, f"test value {name} has not been set. Use anytime() to set it."
         return self.testdata[name]
 
-    def anybool(self, name: str) -> bool:
+    def anybool(self, name: str | None = None) -> bool:
         if name is None:
             name = str(uuid.uuid4())
 

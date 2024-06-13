@@ -130,3 +130,6 @@ class TestVirtualEventRequests(BaseTestCase):
         response_obj = ListMyVirtualEventsRequest.ResponseBody(**response.json())
         assert len(response_obj.virtual_events) == 1
         assert response_obj.virtual_events[0].id == self._team2_virtual_events[-1].id
+
+    async def test_get_virtual_event_details(self):
+        self.fail("TODO")

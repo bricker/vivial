@@ -8,7 +8,7 @@ def common_bq_insert_timestamp_field() -> SchemaField:
         name="__bq_insert_timestamp",
         description="When this record was inserted into BigQuery. This is an internal field and not reliable for exploring user journeys.",
         field_type=SqlTypeNames.TIMESTAMP,
-        mode=BigQueryFieldMode.REQUIRED,
+        mode=BigQueryFieldMode.NULLABLE,
         default_value_expression="CURRENT_TIMESTAMP",
     )
 

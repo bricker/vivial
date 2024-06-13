@@ -11,7 +11,7 @@ from eave.core.internal.atoms.api_types import (
     CorrelationContext,
 )
 from eave.core.internal.atoms.record_fields import (
-    MultiTypeKeyValueRecordField,
+    MultiScalarTypeKeyValueRecordField,
     SessionRecordField,
     TrafficSourceRecordField,
     UserRecordField,
@@ -54,7 +54,7 @@ class DatabaseEventAtom:
                 field_type=StandardSqlTypeNames.STRING,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
-            MultiTypeKeyValueRecordField.schema(
+            MultiScalarTypeKeyValueRecordField.schema(
                 name="statement_values",
                 description="The SQL parameter values passed into the statement.",
             ),
@@ -69,7 +69,7 @@ class DatabaseEventAtom:
     table_name: str | None
     timestamp: float | None
     statement: str | None
-    statement_values: list[MultiTypeKeyValueRecordField] | None
+    statement_values: list[MultiScalarTypeKeyValueRecordField] | None
     session: SessionRecordField | None
     user: UserRecordField | None
     traffic_source: TrafficSourceRecordField | None
@@ -118,7 +118,7 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
             unique_operations.add((e.operation, e.table_name))
 
             statement_values = (
-                MultiTypeKeyValueRecordField.list_from_scalar_dict(e.statement_values) if e.statement_values else None
+                MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(e.statement_values) if e.statement_values else None
             )
 
             corr_ctx = CorrelationContext(e.corr_ctx) if e.corr_ctx else None

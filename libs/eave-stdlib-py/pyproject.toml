@@ -30,4 +30,5 @@ dependencies = [
   "aiohttp",
   "pyjwt",
   "crc32c",
+  "inflect",
 ]

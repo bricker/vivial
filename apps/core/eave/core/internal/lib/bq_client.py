@@ -99,7 +99,7 @@ class BigQueryClient:
     def update_table(self, *, table: bigquery.Table, ctx: LogContext) -> bigquery.Table:
         remote_table = self._bq_client.update_table(
             table=table,
-            fields=["materializedView", "schema", "description", "friendlyName"],
+            fields=["view", "schema", "description", "friendlyName"],
         )
 
         return remote_table

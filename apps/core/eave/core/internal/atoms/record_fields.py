@@ -36,22 +36,26 @@ class TypedValueRecordField(RecordField):
             fields=(
                 SchemaField(
                     name="string_value",
+                    description="The value for the key, if the value is a string. Otherwise, null.",
                     field_type=SqlTypeNames.STRING,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
                 SchemaField(
-                    name="bool_value",
-                    field_type=SqlTypeNames.BOOLEAN,
-                    mode=BigQueryFieldMode.NULLABLE,
-                ),
-                SchemaField(
                     name="int_value",
+                    description="The value for the key, if the value is an integer. Otherwise, null.",
                     field_type=SqlTypeNames.INTEGER,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
                 SchemaField(
                     name="float_value",
+                    description="The value for the key, if the value is a float. Otherwise, null.",
                     field_type=SqlTypeNames.FLOAT,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="bool_value",
+                    description="The value for the key, if the value is a boolean. Otherwise, null.",
+                    field_type=SqlTypeNames.BOOLEAN,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
             ),
@@ -64,7 +68,7 @@ class TypedValueRecordField(RecordField):
 
 
 @dataclass(kw_only=True)
-class MultiTypeKeyValueRecordField(RecordField):
+class MultiScalarTypeKeyValueRecordField(RecordField):
     @staticmethod
     def schema(*, name: str, description: str) -> SchemaField:
         return SchemaField(
@@ -76,7 +80,7 @@ class MultiTypeKeyValueRecordField(RecordField):
                 SchemaField(
                     name="key",
                     field_type=SqlTypeNames.STRING,
-                    mode=BigQueryFieldMode.REQUIRED,
+                    mode=BigQueryFieldMode.NULLABLE,
                 ),
                 TypedValueRecordField.schema(),
             ),
@@ -87,31 +91,31 @@ class MultiTypeKeyValueRecordField(RecordField):
     value: TypedValueRecordField | None
 
     @classmethod
-    def list_from_scalar_dict(cls, d: dict[str, JsonScalar] | None) -> list["MultiTypeKeyValueRecordField"]:
+    def list_from_scalar_dict(cls, d: dict[str, JsonScalar] | None) -> list["MultiScalarTypeKeyValueRecordField"]:
         if not d:
             return []
 
-        containers: list[MultiTypeKeyValueRecordField] = []
+        containers: list[MultiScalarTypeKeyValueRecordField] = []
 
         for [key, value] in d.items():
             typed_value = TypedValueRecordField()
 
             if isinstance(value, str):
                 typed_value.string_value = value
-            elif isinstance(value, int):
-                typed_value.int_value = value
             elif isinstance(value, float):
                 typed_value.float_value = value
             elif isinstance(value, bool):
+                # Reminder: bool is a subclass of int! bool check must come before the int check.
                 typed_value.bool_value = value
-            elif value is None:
+            elif isinstance(value, int):
+                # Reminder: bool is a subclass of int! bool check must come before the int check.
+                typed_value.int_value = value
+            else:
+                # Handles None, as well as any future unhandled types.
                 # All fields are initialized with None, nothing to do here.
                 pass
-            else:
-                # This is for safety, in case another type is added to the JsonScalar union
-                typed_value.string_value = str(value)
 
-            container = MultiTypeKeyValueRecordField(key=key, value=typed_value)
+            container = MultiScalarTypeKeyValueRecordField(key=key, value=typed_value)
             containers.append(container)
 
         return containers
@@ -130,7 +134,7 @@ class SingleScalarTypeKeyValueRecordField[T: str | bool | int | float](RecordFie
                 SchemaField(
                     name="key",
                     field_type=SqlTypeNames.STRING,
-                    mode=BigQueryFieldMode.REQUIRED,
+                    mode=BigQueryFieldMode.NULLABLE,
                 ),
                 SchemaField(
                     name="value",
@@ -770,12 +774,15 @@ class UrlRecordField(RecordField):
         parsed = urlparse(resource, allow_fragments=True)
         qsl = parse_qsl(parsed.query, keep_blank_values=True)
 
+        # Normalize the path
+        path = parsed.path.removesuffix("/")
+
         return cls(
             raw=resource,
             protocol=parsed.scheme,
             domain=parsed.hostname,
-            path=parsed.path,
-            hash=parsed.fragment,
+            path=path or None,
+            hash=parsed.fragment or None,
             query_params=SingleScalarTypeKeyValueRecordField[str].list_from_kv_tuples(qsl)
             if parsed.query
             else None,
@@ -787,7 +794,7 @@ class CurrentPageRecordField(RecordField):
     @staticmethod
     def schema() -> SchemaField:
         return SchemaField(
-            name="page",
+            name="current_page",
             description="Properties about the current page at the time this event occurred.",
             field_type=SqlTypeNames.RECORD,
             mode=BigQueryFieldMode.NULLABLE,
