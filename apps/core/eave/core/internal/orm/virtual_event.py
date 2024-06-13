@@ -75,9 +75,7 @@ class VirtualEventOrm(Base):
             builder = builder.where(cls.readable_name == params.readable_name)
 
         if params.search_query is not None:
-            builder = builder.where(
-                cls.readable_name.op("%")(params.search_query),
-            ).order_by(sqlalchemy.asc(cls.readable_name.op("<->")(params.search_query)))
+            builder = builder.order_by(sqlalchemy.asc(cls.readable_name.op("<->")(params.search_query)))
 
         if params.view_id is not None:
             builder = builder.where(cls.view_id == params.view_id)
