@@ -20,7 +20,7 @@ db_uri = sqlalchemy.engine.url.URL.create(
     port=int(os.getenv("EAVE_DB_PORT", "5432")),
     username=os.getenv("EAVE_DB_USER", None),
     password=os.getenv("EAVE_DB_PASS", None),
-    database=os.getenv("EAVE_DB_NAME", "eave-sqlalchemy-tests"),
+    database="eave-sqlalchemy-tests",
 )
 
 async_engine = create_async_engine(
