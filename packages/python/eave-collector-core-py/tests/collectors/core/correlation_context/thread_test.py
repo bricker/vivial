@@ -3,7 +3,6 @@ import unittest
 
 from eave.collectors.core.correlation_context import CORR_CTX, ThreadedCorrelationContext
 from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_COOKIE_PREFIX
-from eave.collectors.core.correlation_context.thread import _local_thread_storage
 
 
 class ThreadedCorrelationContextTest(unittest.IsolatedAsyncioTestCase):

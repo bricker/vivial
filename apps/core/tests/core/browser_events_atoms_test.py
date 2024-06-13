@@ -1,69 +1,64 @@
 import datetime
-from http import HTTPStatus
-from typing import Any
 
-from eave.stdlib.logging import LogContext
 from google.cloud.bigquery import SchemaField, SqlTypeNames
-import google.oauth2.credentials
-from aiohttp.hdrs import AUTHORIZATION
-from httpx import Response
 
-from eave.core.internal.atoms.api_types import BrowserEventPayload
 from eave.core.internal.atoms.browser_events import BrowserEventAtom, BrowserEventsTableHandle
-from eave.core.internal.atoms.record_fields import CurrentPageRecordField, DeviceRecordField, GeoRecordField, MultiScalarTypeKeyValueRecordField, SessionRecordField, TargetRecordField, TrafficSourceRecordField, UserRecordField
+from eave.core.internal.atoms.record_fields import (
+    CurrentPageRecordField,
+    DeviceRecordField,
+    GeoRecordField,
+    MultiScalarTypeKeyValueRecordField,
+    SessionRecordField,
+    TargetRecordField,
+    TrafficSourceRecordField,
+    UserRecordField,
+)
 from eave.core.internal.atoms.shared import common_bq_insert_timestamp_field, common_event_timestamp_field
 from eave.core.internal.atoms.table_handle import BigQueryFieldMode
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
-from eave.core.internal.oauth.google import GoogleOAuthV2GetResponse
-from eave.core.internal.orm.account import AccountOrm
-from eave.stdlib.auth_cookies import (
-    EAVE_ACCESS_TOKEN_COOKIE_NAME,
-    EAVE_ACCOUNT_ID_COOKIE_NAME,
-)
-from eave.stdlib.core_api.models.account import AuthProvider
-from eave.stdlib.core_api.operations.account import GetMyAccountRequest
-from eave.stdlib.headers import EAVE_ACCOUNT_ID_HEADER
-
 from eave.core.internal.orm.team import bq_dataset_id
+from eave.stdlib.logging import LogContext
 
+from .base import assert_schemas_match
 from .bq_tests_base import BigQueryTestsBase
 
-from .base import BaseTestCase, assert_schemas_match
-
 empty_ctx = LogContext()
+
 
 class TestBrowserEventsAtoms(BigQueryTestsBase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
     async def test_schema(self):
-        assert_schemas_match(BrowserEventAtom.schema(), (
-            SchemaField(
-                name="action",
-                description="The user action that caused this event.",
-                field_type=SqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
+        assert_schemas_match(
+            BrowserEventAtom.schema(),
+            (
+                SchemaField(
+                    name="action",
+                    description="The user action that caused this event.",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                common_event_timestamp_field(),
+                SessionRecordField.schema(),
+                UserRecordField.schema(),
+                TrafficSourceRecordField.schema(),
+                TargetRecordField.schema(),
+                CurrentPageRecordField.schema(),
+                DeviceRecordField.schema(),
+                GeoRecordField.schema(),
+                MultiScalarTypeKeyValueRecordField.schema(
+                    name="extra",
+                    description=self.anystr(),
+                ),
+                SchemaField(
+                    name="client_ip",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                common_bq_insert_timestamp_field(),
             ),
-            common_event_timestamp_field(),
-            SessionRecordField.schema(),
-            UserRecordField.schema(),
-            TrafficSourceRecordField.schema(),
-            TargetRecordField.schema(),
-            CurrentPageRecordField.schema(),
-            DeviceRecordField.schema(),
-            GeoRecordField.schema(),
-            MultiScalarTypeKeyValueRecordField.schema(
-                name="extra",
-                description=self.anystr(),
-            ),
-            SchemaField(
-                name="client_ip",
-                field_type=SqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            common_bq_insert_timestamp_field(),
         )
-    )
 
     async def test_insert(self) -> None:
         table = BrowserEventsTableHandle(team=self.eave_team)
@@ -79,7 +74,9 @@ class TestBrowserEventsAtoms(BigQueryTestsBase):
                         "id": self.anystr("event.target.id"),
                         "content": self.anystr("event.target.content"),
                         "attributes": {
-                            self.anystr("event.target.attributes.0.key"): self.anystr("event.target.attributes.0.value"),
+                            self.anystr("event.target.attributes.0.key"): self.anystr(
+                                "event.target.attributes.0.value"
+                            ),
                         },
                     },
                     "device": {
@@ -122,7 +119,9 @@ class TestBrowserEventsAtoms(BigQueryTestsBase):
                             "tracking_params": {
                                 "gclid": self.anystr("event.traffic_source.tracking_params.gclid"),
                                 "utm_campaign": self.anystr("event.traffic_source.tracking_params.utm_campaign"),
-                                self.anystr("event.traffic_source.tracking_params.unrecognized.key"): self.anystr("event.traffic_source.tracking_params.unrecognized.value"),
+                                self.anystr("event.traffic_source.tracking_params.unrecognized.key"): self.anystr(
+                                    "event.traffic_source.tracking_params.unrecognized.value"
+                                ),
                             },
                         },
                         "account_id": self.anystr("event.user.account_id"),
@@ -150,7 +149,9 @@ class TestBrowserEventsAtoms(BigQueryTestsBase):
         assert first_row is not None
 
         assert first_row.get("action") == "CLICK"
-        assert first_row.get("timestamp") == datetime.datetime.fromtimestamp(self.gettime("event timestamp"), tz=datetime.UTC)
+        assert first_row.get("timestamp") == datetime.datetime.fromtimestamp(
+            self.gettime("event timestamp"), tz=datetime.UTC
+        )
 
         assert first_row.get("target") == {
             "type": self.getstr("event.target.type"),
@@ -203,12 +204,16 @@ class TestBrowserEventsAtoms(BigQueryTestsBase):
 
         assert first_row.get("session") == {
             "id": self.getstr("event.session.id"),
-            "start_timestamp": datetime.datetime.fromtimestamp(self.gettime("event.session.start_timestamp"), tz=datetime.UTC),
+            "start_timestamp": datetime.datetime.fromtimestamp(
+                self.gettime("event.session.start_timestamp"), tz=datetime.UTC
+            ),
             "duration_ms": (self.gettime("event timestamp") - self.gettime("event.session.start_timestamp")) * 1000,
         }
 
         assert first_row.get("traffic_source") == {
-            "timestamp": datetime.datetime.fromtimestamp(self.gettime("event.traffic_source.timestamp"), tz=datetime.UTC),
+            "timestamp": datetime.datetime.fromtimestamp(
+                self.gettime("event.traffic_source.timestamp"), tz=datetime.UTC
+            ),
             "browser_referrer": self.getstr("event.traffic_source.browser_referrer"),
             "gclid": self.getstr("event.traffic_source.tracking_params.gclid"),
             "utm_campaign": self.getstr("event.traffic_source.tracking_params.utm_campaign"),

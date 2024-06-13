@@ -6,7 +6,8 @@ import re
 import uuid
 from collections.abc import Awaitable, Callable
 from functools import wraps
-from typing import Any, Literal, ParamSpec, TypeVar, cast
+from typing import Any, Literal, ParamSpec, TypeVar
+
 import inflect
 
 from eave.stdlib.exceptions import UnexpectedMissingValueError
@@ -249,6 +250,7 @@ def suppress(e: type[Exception], func: Callable[[], T]) -> T | None:
     """
     with contextlib.suppress(e):
         return func()
+
 
 def titleize(string: str) -> str:
     e = inflect.engine()

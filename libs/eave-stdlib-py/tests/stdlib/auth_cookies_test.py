@@ -3,7 +3,6 @@ from http.cookies import SimpleCookie
 from typing import Any
 
 import aiohttp
-from eave.stdlib.cookies import EAVE_EMBED_COOKIE_PREFIX
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -14,6 +13,7 @@ from eave.stdlib.auth_cookies import (
     get_auth_cookies,
     set_auth_cookies,
 )
+from eave.stdlib.cookies import EAVE_EMBED_COOKIE_PREFIX
 from eave.stdlib.util import istr_eq
 
 from .base import StdlibBaseTestCase
@@ -50,11 +50,15 @@ class AuthCookiesTest(AuthCookiesTestBase):
 
         assert len(cookies) == 2
 
-        account_id_cookie = next(v for v in cookies if re.search(f"^{EAVE_ACCOUNT_ID_COOKIE_NAME}={self.data_account_id};", v))
+        account_id_cookie = next(
+            v for v in cookies if re.search(f"^{EAVE_ACCOUNT_ID_COOKIE_NAME}={self.data_account_id};", v)
+        )
         assert re.search("Secure;", account_id_cookie, flags=re.IGNORECASE)
         assert re.search("SameSite=None;", account_id_cookie, flags=re.IGNORECASE)
 
-        access_token_cookie = next(v for v in cookies if re.search(f"^{EAVE_ACCESS_TOKEN_COOKIE_NAME}={self.data_access_token};", v))
+        access_token_cookie = next(
+            v for v in cookies if re.search(f"^{EAVE_ACCESS_TOKEN_COOKIE_NAME}={self.data_access_token};", v)
+        )
         assert re.search("Secure;", access_token_cookie, flags=re.IGNORECASE)
         assert re.search("SameSite=None;", access_token_cookie, flags=re.IGNORECASE)
 
@@ -109,11 +113,13 @@ class AuthCookiesTest(AuthCookiesTestBase):
         assert cookies.access_token is None
 
     async def test_delete_auth_cookies(self):
-        self.mock_request.cookies.update({
-            EAVE_ACCESS_TOKEN_COOKIE_NAME: self.anystr(),
-            EAVE_ACCOUNT_ID_COOKIE_NAME: self.anystr(),
-            f"{EAVE_EMBED_COOKIE_PREFIX}xyz": self.anystr(),
-        })
+        self.mock_request.cookies.update(
+            {
+                EAVE_ACCESS_TOKEN_COOKIE_NAME: self.anystr(),
+                EAVE_ACCOUNT_ID_COOKIE_NAME: self.anystr(),
+                f"{EAVE_EMBED_COOKIE_PREFIX}xyz": self.anystr(),
+            }
+        )
 
         delete_auth_cookies(request=self.mock_request, response=self.mock_response)
         cookies = [v for k, v in self.mock_response.headers.items() if istr_eq(k, aiohttp.hdrs.SET_COOKIE)]

@@ -1,15 +1,6 @@
 import logging
-import unittest.mock
-import re
-from typing import Any
-
-import aiohttp
-from starlette.requests import Request
-from starlette.responses import Response
 
 from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.cookies import delete_http_cookie, set_http_cookie
-from eave.stdlib.util import istr_eq
 
 from .base import StdlibBaseTestCase
 
@@ -44,24 +35,30 @@ class ConfigTest(StdlibBaseTestCase):
         assert SHARED_CONFIG.eave_api_base_url_public == url
 
     async def test_eave_api_base_url_public_fallback(self):
-        self.patch_env({
-            "EAVE_API_BASE_URL_PUBLIC": None,
-            "EAVE_BASE_URL_PUBLIC": "https://finny.com:8080",
-        })
+        self.patch_env(
+            {
+                "EAVE_API_BASE_URL_PUBLIC": None,
+                "EAVE_BASE_URL_PUBLIC": "https://finny.com:8080",
+            }
+        )
         assert SHARED_CONFIG.eave_api_base_url_public == "https://api.finny.com:8080"
 
     async def test_eave_api_base_url_public_fallback_noport(self):
-        self.patch_env({
-            "EAVE_API_BASE_URL_PUBLIC": None,
-            "EAVE_BASE_URL_PUBLIC": "https://finny.com",
-        })
+        self.patch_env(
+            {
+                "EAVE_API_BASE_URL_PUBLIC": None,
+                "EAVE_BASE_URL_PUBLIC": "https://finny.com",
+            }
+        )
         assert SHARED_CONFIG.eave_api_base_url_public == "https://api.finny.com"
 
     async def test_eave_api_base_url_public_default(self):
-        self.patch_env({
-            "EAVE_API_BASE_URL_PUBLIC": None,
-            "EAVE_BASE_URL_PUBLIC": None,
-        })
+        self.patch_env(
+            {
+                "EAVE_API_BASE_URL_PUBLIC": None,
+                "EAVE_BASE_URL_PUBLIC": None,
+            }
+        )
         assert SHARED_CONFIG.eave_api_base_url_public == "https://api.eave.fyi"
 
     async def test_eave_api_base_url_internal_with_env(self):
@@ -70,17 +67,21 @@ class ConfigTest(StdlibBaseTestCase):
         assert SHARED_CONFIG.eave_api_base_url_internal == url
 
     async def test_eave_api_base_url_internal_fallback(self):
-        self.patch_env({
-            "EAVE_API_BASE_URL_INTERNAL": None,
-            "EAVE_BASE_URL_INTERNAL": "https://internal.finny.com",
-        })
+        self.patch_env(
+            {
+                "EAVE_API_BASE_URL_INTERNAL": None,
+                "EAVE_BASE_URL_INTERNAL": "https://internal.finny.com",
+            }
+        )
         assert SHARED_CONFIG.eave_api_base_url_internal == "https://core-api.internal.finny.com"
 
     async def test_eave_api_base_url_internal_default(self):
-        self.patch_env({
-            "EAVE_API_BASE_URL_INTERNAL": None,
-            "EAVE_BASE_URL_INTERNAL": None,
-        })
+        self.patch_env(
+            {
+                "EAVE_API_BASE_URL_INTERNAL": None,
+                "EAVE_BASE_URL_INTERNAL": None,
+            }
+        )
         assert SHARED_CONFIG.eave_api_base_url_internal == "http://core-api.eave.svc.cluster.local"
 
     async def test_eave_dashboard_base_url_public_with_env(self):
@@ -89,19 +90,22 @@ class ConfigTest(StdlibBaseTestCase):
         assert SHARED_CONFIG.eave_dashboard_base_url_public == url
 
     async def test_eave_dashboard_base_url_public_fallback(self):
-        self.patch_env({
-            "EAVE_DASHBOARD_BASE_URL_PUBLIC": None,
-            "EAVE_BASE_URL_PUBLIC": "https://finny.com",
-        })
+        self.patch_env(
+            {
+                "EAVE_DASHBOARD_BASE_URL_PUBLIC": None,
+                "EAVE_BASE_URL_PUBLIC": "https://finny.com",
+            }
+        )
         assert SHARED_CONFIG.eave_dashboard_base_url_public == "https://dashboard.finny.com"
 
     async def test_eave_dashboard_base_url_public_default(self):
-        self.patch_env({
-            "EAVE_DASHBOARD_BASE_URL_PUBLIC": None,
-            "EAVE_BASE_URL_PUBLIC": None,
-        })
+        self.patch_env(
+            {
+                "EAVE_DASHBOARD_BASE_URL_PUBLIC": None,
+                "EAVE_BASE_URL_PUBLIC": None,
+            }
+        )
         assert SHARED_CONFIG.eave_dashboard_base_url_public == "https://dashboard.eave.fyi"
-
 
     async def test_eave_embed_base_url_public_with_env(self):
         self.patch_env({"EAVE_EMBED_BASE_URL_PUBLIC": "https://embed.finny.com:8080"})
@@ -110,23 +114,26 @@ class ConfigTest(StdlibBaseTestCase):
         assert SHARED_CONFIG.eave_embed_netloc_public == "embed.finny.com:8080"
 
     async def test_eave_embed_base_url_public_fallback(self):
-        self.patch_env({
-            "EAVE_EMBED_BASE_URL_PUBLIC": None,
-            "EAVE_BASE_URL_PUBLIC": "https://finnyfinance.com",
-        })
+        self.patch_env(
+            {
+                "EAVE_EMBED_BASE_URL_PUBLIC": None,
+                "EAVE_BASE_URL_PUBLIC": "https://finnyfinance.com",
+            }
+        )
         assert SHARED_CONFIG.eave_embed_base_url_public == "https://embed.finnyfinance.com"
         assert SHARED_CONFIG.eave_embed_hostname_public == "embed.finnyfinance.com"
         assert SHARED_CONFIG.eave_embed_netloc_public == "embed.finnyfinance.com"
 
     async def test_eave_embed_base_url_public_default(self):
-        self.patch_env({
-            "EAVE_EMBED_BASE_URL_PUBLIC": None,
-            "EAVE_BASE_URL_PUBLIC": None,
-        })
+        self.patch_env(
+            {
+                "EAVE_EMBED_BASE_URL_PUBLIC": None,
+                "EAVE_BASE_URL_PUBLIC": None,
+            }
+        )
         assert SHARED_CONFIG.eave_embed_base_url_public == "https://embed.eave.fyi"
         assert SHARED_CONFIG.eave_embed_hostname_public == "embed.eave.fyi"
         assert SHARED_CONFIG.eave_embed_netloc_public == "embed.eave.fyi"
-
 
     async def test_eave_embed_base_url_internal_with_env(self):
         self.patch_env({"EAVE_EMBED_BASE_URL_INTERNAL": "http://internal.embed.finny.com:8080"})
@@ -258,7 +265,9 @@ class ConfigTest(StdlibBaseTestCase):
         assert SHARED_CONFIG.asset_base == "/static"
 
     async def test_google_cloud_project_with_env(self):
-        self.patch_env({"GOOGLE_CLOUD_PROJECT": "google"}) # not using anystr() here to avoid accidentally hitting someone else's project
+        self.patch_env(
+            {"GOOGLE_CLOUD_PROJECT": "google"}
+        )  # not using anystr() here to avoid accidentally hitting someone else's project
         assert SHARED_CONFIG.google_cloud_project == "google"
 
     async def test_google_cloud_project_not_set(self):

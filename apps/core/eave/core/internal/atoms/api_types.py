@@ -1,8 +1,8 @@
 # These classes are representations of the API payload from the Browser collector.
 # We don't use dataclasses because we want to ignore any unexpected attributes, which dataclasses don't natively allow.
 
-from dataclasses import dataclass
 import json
+from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, Self
 
@@ -23,6 +23,7 @@ class BrowserAction(StrEnum):
         except ValueError:
             return None
 
+
 @dataclass(kw_only=True)
 class DeviceBrandProperties:
     brand: str | None
@@ -34,6 +35,7 @@ class DeviceBrandProperties:
             brand=data.get("brand"),
             version=data.get("version"),
         )
+
 
 @dataclass(kw_only=True)
 class DeviceProperties:
@@ -62,8 +64,11 @@ class DeviceProperties:
             screen_height=data.get("screen_height"),
             screen_avail_width=data.get("screen_avail_width"),
             screen_avail_height=data.get("screen_avail_height"),
-            brands=[DeviceBrandProperties.from_api_payload(d) for d in v] if (v := data.get("brands")) and isinstance(v, list) else None,
+            brands=[DeviceBrandProperties.from_api_payload(d) for d in v]
+            if (v := data.get("brands")) and isinstance(v, list)
+            else None,
         )
+
 
 @dataclass(kw_only=True)
 class CurrentPageProperties:
@@ -92,6 +97,7 @@ class SessionProperties:
             start_timestamp=data.get("start_timestamp"),
         )
 
+
 # @dataclass(kw_only=True)
 # class UserProperties:
 #     account_id: str | None
@@ -103,6 +109,7 @@ class SessionProperties:
 #             account_id=data.get("account_id"),
 #             visitor_id=data.get("visitor_id"),
 #         )
+
 
 @dataclass(kw_only=True)
 class TrafficSourceProperties:
@@ -152,6 +159,7 @@ class TrafficSourceProperties:
             # other_utm_params=data.get("other_utm_params"),
         )
 
+
 @dataclass(kw_only=True)
 class TargetProperties:
     type: str | None
@@ -167,6 +175,7 @@ class TargetProperties:
             content=data.get("content"),
             attributes=data.get("attributes"),
         )
+
 
 @dataclass(kw_only=True)
 class CorrelationContext:
@@ -211,6 +220,7 @@ class CorrelationContext:
             visitor_id=visitor_id,
         )
 
+
 @dataclass(kw_only=True)
 class BrowserEventPayload:
     action: BrowserAction | None
@@ -231,9 +241,13 @@ class BrowserEventPayload:
             timestamp=data.get("timestamp"),
             target=TargetProperties.from_api_payload(v) if (v := data.get("target")) and isinstance(v, dict) else None,
             device=DeviceProperties.from_api_payload(v) if (v := data.get("device")) and isinstance(v, dict) else None,
-            current_page=CurrentPageProperties.from_api_payload(v) if (v := data.get("current_page")) and isinstance(v, dict) else None,
+            current_page=CurrentPageProperties.from_api_payload(v)
+            if (v := data.get("current_page")) and isinstance(v, dict)
+            else None,
             extra=data.get("extra"),
-            corr_ctx=CorrelationContext.from_api_payload(v) if (v := data.get("corr_ctx")) and isinstance(v, dict) else None,
+            corr_ctx=CorrelationContext.from_api_payload(v)
+            if (v := data.get("corr_ctx")) and isinstance(v, dict)
+            else None,
         )
 
         # if (v := data.get("session")) and isinstance(v, dict):

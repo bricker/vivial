@@ -1,7 +1,6 @@
 import enum
 import logging
 import os
-import sys
 from functools import cached_property
 from urllib.parse import urlparse
 
@@ -138,17 +137,23 @@ class _EaveConfig(ConfigBase):
 
     @property
     def eave_api_base_url_internal(self) -> str:
-        return os.getenv("EAVE_API_BASE_URL_INTERNAL") or _prefix_hostname(url=self.eave_base_url_internal, prefix="core-api.")
+        return os.getenv("EAVE_API_BASE_URL_INTERNAL") or _prefix_hostname(
+            url=self.eave_base_url_internal, prefix="core-api."
+        )
 
     @property
     def eave_dashboard_base_url_public(self) -> str:
-        return os.getenv("EAVE_DASHBOARD_BASE_URL_PUBLIC") or _prefix_hostname(url=self.eave_base_url_public, prefix="dashboard.")
+        return os.getenv("EAVE_DASHBOARD_BASE_URL_PUBLIC") or _prefix_hostname(
+            url=self.eave_base_url_public, prefix="dashboard."
+        )
 
     ## Embed URLs
 
     @property
     def eave_embed_base_url_public(self) -> str:
-        return os.getenv("EAVE_EMBED_BASE_URL_PUBLIC") or _prefix_hostname(url=self.eave_base_url_public, prefix="embed.")
+        return os.getenv("EAVE_EMBED_BASE_URL_PUBLIC") or _prefix_hostname(
+            url=self.eave_base_url_public, prefix="embed."
+        )
 
     @property
     def eave_embed_hostname_public(self) -> str:
@@ -281,6 +286,7 @@ def _prefix_hostname(url: str, prefix: str) -> str:
     p = urlparse(url)
     p = p._replace(netloc=f"{prefix}{p.netloc}")
     return p.geturl()
+
 
 # TODO: Can/should we use Runtime Config? It's nifty but adds extra network requests.
 # def get_runtimeconfig(self, name: str) -> str | None:

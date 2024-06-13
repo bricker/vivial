@@ -2,8 +2,8 @@ import dataclasses
 from dataclasses import dataclass
 from textwrap import dedent
 from typing import Any, cast
-import inflect
 
+import inflect
 from google.cloud.bigquery import SchemaField, SqlTypeNames, StandardSqlTypeNames
 
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
@@ -119,7 +119,9 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
             unique_operations.add((e.operation, e.table_name))
 
             statement_values = (
-                MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(e.statement_values) if e.statement_values else None
+                MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(e.statement_values)
+                if e.statement_values
+                else None
             )
 
             corr_ctx = CorrelationContext.from_api_payload(e.corr_ctx) if e.corr_ctx else None

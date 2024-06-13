@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
-from urllib.parse import parse_qs, parse_qsl, urlparse
+from urllib.parse import parse_qsl, urlparse
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
@@ -86,7 +86,6 @@ class MultiScalarTypeKeyValueRecordField(RecordField):
             ),
         )
 
-
     key: str
     value: TypedValueRecordField | None
 
@@ -143,7 +142,6 @@ class SingleScalarTypeKeyValueRecordField[T: str | bool | int | float](RecordFie
                 ),
             ),
         )
-
 
     key: str
     value: T | None
@@ -783,9 +781,7 @@ class UrlRecordField(RecordField):
             domain=parsed.hostname,
             path=path or None,
             hash=parsed.fragment or None,
-            query_params=SingleScalarTypeKeyValueRecordField[str].list_from_kv_tuples(qsl)
-            if parsed.query
-            else None,
+            query_params=SingleScalarTypeKeyValueRecordField[str].list_from_kv_tuples(qsl) if parsed.query else None,
         )
 
 

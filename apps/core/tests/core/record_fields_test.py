@@ -1,88 +1,101 @@
 import dataclasses
-from http import HTTPStatus
-import json
 
-from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_COOKIE_PREFIX
-from eave.stdlib.logging import LogContext
 from google.cloud.bigquery import SchemaField, SqlTypeNames
-import google.oauth2.credentials
-from aiohttp.hdrs import AUTHORIZATION
-from httpx import Response
 
-from eave.core.internal.atoms.api_types import BrowserAction, BrowserEventPayload, CorrelationContext, CurrentPageProperties, DeviceBrandProperties, DeviceProperties, SessionProperties, TargetProperties, TrafficSourceProperties
-from eave.core.internal.atoms.browser_events import BrowserEventsTableHandle
-from eave.core.internal.atoms.record_fields import BrandsRecordField, CurrentPageRecordField, DeviceRecordField, GeoRecordField, MultiScalarTypeKeyValueRecordField, SessionRecordField, SingleScalarTypeKeyValueRecordField, TargetRecordField, TrafficSourceRecordField, TypedValueRecordField, UrlRecordField, UserRecordField
-from eave.core.internal.atoms.table_handle import BigQueryFieldMode
-from eave.core.internal.oauth.google import GoogleOAuthV2GetResponse
-from eave.core.internal.orm.account import AccountOrm
-from eave.stdlib.auth_cookies import (
-    EAVE_ACCESS_TOKEN_COOKIE_NAME,
-    EAVE_ACCOUNT_ID_COOKIE_NAME,
+from eave.core.internal.atoms.api_types import (
+    CurrentPageProperties,
+    DeviceBrandProperties,
+    DeviceProperties,
+    SessionProperties,
+    TargetProperties,
+    TrafficSourceProperties,
 )
-from eave.stdlib.core_api.models.account import AuthProvider
-from eave.stdlib.core_api.operations.account import GetMyAccountRequest
-from eave.stdlib.headers import EAVE_ACCOUNT_ID_HEADER
+from eave.core.internal.atoms.record_fields import (
+    BrandsRecordField,
+    CurrentPageRecordField,
+    DeviceRecordField,
+    GeoRecordField,
+    MultiScalarTypeKeyValueRecordField,
+    SessionRecordField,
+    SingleScalarTypeKeyValueRecordField,
+    TargetRecordField,
+    TrafficSourceRecordField,
+    TypedValueRecordField,
+    UrlRecordField,
+    UserRecordField,
+)
+from eave.core.internal.atoms.table_handle import BigQueryFieldMode
 
 from .base import BaseTestCase, assert_schemas_match
 
+
 class TestTypedValueRecordField(BaseTestCase):
     async def test_schema(self) -> None:
-        assert_schemas_match((TypedValueRecordField.schema(),), (
-            SchemaField(
-                name="value",
-                field_type=SqlTypeNames.RECORD,
-                mode=BigQueryFieldMode.NULLABLE,
-                fields=(
-                    SchemaField(
-                        name="string_value",
-                        field_type=SqlTypeNames.STRING,
-                        mode=BigQueryFieldMode.NULLABLE,
-                    ),
-                    SchemaField(
-                        name="int_value",
-                        field_type=SqlTypeNames.INTEGER,
-                        mode=BigQueryFieldMode.NULLABLE,
-                    ),
-                    SchemaField(
-                        name="float_value",
-                        field_type=SqlTypeNames.FLOAT,
-                        mode=BigQueryFieldMode.NULLABLE,
-                    ),
-                    SchemaField(
-                        name="bool_value",
-                        field_type=SqlTypeNames.BOOLEAN,
-                        mode=BigQueryFieldMode.NULLABLE,
+        assert_schemas_match(
+            (TypedValueRecordField.schema(),),
+            (
+                SchemaField(
+                    name="value",
+                    field_type=SqlTypeNames.RECORD,
+                    mode=BigQueryFieldMode.NULLABLE,
+                    fields=(
+                        SchemaField(
+                            name="string_value",
+                            field_type=SqlTypeNames.STRING,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        SchemaField(
+                            name="int_value",
+                            field_type=SqlTypeNames.INTEGER,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        SchemaField(
+                            name="float_value",
+                            field_type=SqlTypeNames.FLOAT,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        SchemaField(
+                            name="bool_value",
+                            field_type=SqlTypeNames.BOOLEAN,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
                     ),
                 ),
             ),
-        ))
+        )
+
 
 class TestMultiTypeKeyValueRecordField(BaseTestCase):
     async def test_schema(self) -> None:
-        assert_schemas_match((MultiScalarTypeKeyValueRecordField.schema(name=self.anystr("record"), description=self.anystr()),), (
-            SchemaField(
-                name=self.getstr("record"),
-                field_type=SqlTypeNames.RECORD,
-                mode=BigQueryFieldMode.REPEATED,
-                fields=(
-                    SchemaField(
-                        name="key",
-                        field_type=SqlTypeNames.STRING,
-                        mode=BigQueryFieldMode.REQUIRED,
+        assert_schemas_match(
+            (MultiScalarTypeKeyValueRecordField.schema(name=self.anystr("record"), description=self.anystr()),),
+            (
+                SchemaField(
+                    name=self.getstr("record"),
+                    field_type=SqlTypeNames.RECORD,
+                    mode=BigQueryFieldMode.REPEATED,
+                    fields=(
+                        SchemaField(
+                            name="key",
+                            field_type=SqlTypeNames.STRING,
+                            mode=BigQueryFieldMode.REQUIRED,
+                        ),
+                        TypedValueRecordField.schema(),
                     ),
-                    TypedValueRecordField.schema(),
                 ),
             ),
-        ))
+        )
 
     async def test_field(self) -> None:
-        e = MultiScalarTypeKeyValueRecordField.list_from_scalar_dict({
-            self.anystr("key for str"): self.anystr("str value"),
-            self.anystr("key for int"): self.anyint("int value"),
-            self.anystr("key for float"): self.anyfloat("float value"),
-            self.anystr("key for bool"): self.anybool("bool value"),
-            self.anystr("key for None"): None,
-        })
+        e = MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(
+            {
+                self.anystr("key for str"): self.anystr("str value"),
+                self.anystr("key for int"): self.anyint("int value"),
+                self.anystr("key for float"): self.anyfloat("float value"),
+                self.anystr("key for bool"): self.anybool("bool value"),
+                self.anystr("key for None"): None,
+            }
+        )
 
         assert len(e) == 5
         assert e[0].key == self.getstr("key for str")
@@ -134,43 +147,50 @@ class TestMultiTypeKeyValueRecordField(BaseTestCase):
         e = MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(None)
         assert e == []
 
+
 class TestSingleScalarTypeKeyValueRecordField(BaseTestCase):
     async def test_schema(self) -> None:
-        assert_schemas_match((SingleScalarTypeKeyValueRecordField.schema(
-            name=self.anystr("record"),
-            description=self.anystr(),
-            value_type=SqlTypeNames.INTEGER,
-        ),), (
-            SchemaField(
-                name=self.getstr("record"),
-                field_type=SqlTypeNames.RECORD,
-                mode=BigQueryFieldMode.REPEATED,
-                fields=(
-                    SchemaField(
-                        name="key",
-                        field_type=SqlTypeNames.STRING,
-                        mode=BigQueryFieldMode.REQUIRED,
-                    ),
-                    SchemaField(
-                        name="value",
-                        field_type=SqlTypeNames.INTEGER,
-                        mode=BigQueryFieldMode.NULLABLE,
+        assert_schemas_match(
+            (
+                SingleScalarTypeKeyValueRecordField.schema(
+                    name=self.anystr("record"),
+                    description=self.anystr(),
+                    value_type=SqlTypeNames.INTEGER,
+                ),
+            ),
+            (
+                SchemaField(
+                    name=self.getstr("record"),
+                    field_type=SqlTypeNames.RECORD,
+                    mode=BigQueryFieldMode.REPEATED,
+                    fields=(
+                        SchemaField(
+                            name="key",
+                            field_type=SqlTypeNames.STRING,
+                            mode=BigQueryFieldMode.REQUIRED,
+                        ),
+                        SchemaField(
+                            name="value",
+                            field_type=SqlTypeNames.INTEGER,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
                     ),
                 ),
             ),
-        ))
+        )
 
     async def test_field(self) -> None:
-        e = SingleScalarTypeKeyValueRecordField.list_from_scalar_dict({
-            self.anystr("key for int"): self.anyint("int value"),
-            self.anystr("key for None"): None,
-        })
+        e = SingleScalarTypeKeyValueRecordField.list_from_scalar_dict(
+            {
+                self.anystr("key for int"): self.anyint("int value"),
+                self.anystr("key for None"): None,
+            }
+        )
 
         assert len(e) == 2
 
         assert e[0].key == self.getstr("key for int")
         assert e[0].value == self.getint("int value")
-
 
         assert e[1].key == self.getstr("key for None")
         assert e[1].value is None
@@ -189,38 +209,42 @@ class TestSingleScalarTypeKeyValueRecordField(BaseTestCase):
         e = SingleScalarTypeKeyValueRecordField.list_from_scalar_dict(None)
         assert e == []
 
+
 class TestSessionRecordField(BaseTestCase):
     async def test_schema(self) -> None:
         # idk... is this test useful? It's important that the schemas don't accidentally change.
         # But defining every schema twice (once in tests, once in source) sounds horrible.
-        assert_schemas_match((SessionRecordField.schema(),), (
-            SchemaField(
-                name="session",
-                field_type=SqlTypeNames.RECORD,
-                mode=BigQueryFieldMode.NULLABLE,
-                fields=(
-                    SchemaField(
-                        name="id",
-                        field_type=SqlTypeNames.STRING,
-                        mode=BigQueryFieldMode.NULLABLE,
-                    ),
-                    SchemaField(
-                        name="start_timestamp",
-                        field_type=SqlTypeNames.TIMESTAMP,
-                        mode=BigQueryFieldMode.NULLABLE,
-                    ),
-                    SchemaField(
-                        name="duration_ms",
-                        field_type=SqlTypeNames.FLOAT,
-                        mode=BigQueryFieldMode.NULLABLE,
+        assert_schemas_match(
+            (SessionRecordField.schema(),),
+            (
+                SchemaField(
+                    name="session",
+                    field_type=SqlTypeNames.RECORD,
+                    mode=BigQueryFieldMode.NULLABLE,
+                    fields=(
+                        SchemaField(
+                            name="id",
+                            field_type=SqlTypeNames.STRING,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        SchemaField(
+                            name="start_timestamp",
+                            field_type=SqlTypeNames.TIMESTAMP,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        SchemaField(
+                            name="duration_ms",
+                            field_type=SqlTypeNames.FLOAT,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
                     ),
                 ),
             ),
-        ))
+        )
 
     async def test_field(self) -> None:
         start_timestamp_sec = self.anytime()
-        event_timestamp_sec = start_timestamp_sec + 60 # + 1 minute
+        event_timestamp_sec = start_timestamp_sec + 60  # + 1 minute
         expected_duration_ms = 60 * 1000
 
         e = SessionRecordField.from_api_resource(
@@ -271,6 +295,7 @@ class TestSessionRecordField(BaseTestCase):
         assert e.start_timestamp == self.getstr("session.start_timestamp")
         assert e.duration_ms is None
 
+
 class TestUserRecordField(BaseTestCase):
     async def test_schema(self) -> None:
         expected_fields = [
@@ -278,23 +303,26 @@ class TestUserRecordField(BaseTestCase):
             "visitor_id",
         ]
 
-        assert_schemas_match((UserRecordField.schema(),), (
-            SchemaField(
-                name="user",
-                field_type=SqlTypeNames.RECORD,
-                mode=BigQueryFieldMode.NULLABLE,
-                fields=(
-                    *[
-                        SchemaField(
-                            name=k,
-                            field_type=SqlTypeNames.STRING,
-                            mode=BigQueryFieldMode.NULLABLE,
-                        )
-                        for k in expected_fields
-                    ],
+        assert_schemas_match(
+            (UserRecordField.schema(),),
+            (
+                SchemaField(
+                    name="user",
+                    field_type=SqlTypeNames.RECORD,
+                    mode=BigQueryFieldMode.NULLABLE,
+                    fields=(
+                        *[
+                            SchemaField(
+                                name=k,
+                                field_type=SqlTypeNames.STRING,
+                                mode=BigQueryFieldMode.NULLABLE,
+                            )
+                            for k in expected_fields
+                        ],
+                    ),
                 ),
             ),
-        ))
+        )
 
     async def test_field(self) -> None:
         e = UserRecordField(
@@ -309,6 +337,7 @@ class TestUserRecordField(BaseTestCase):
             "account_id": self.getstr("user.account_id"),
             "visitor_id": self.getstr("user.visitor_id"),
         }
+
 
 class TestTrafficSourceRecordField(BaseTestCase):
     async def test_schema(self) -> None:
@@ -332,33 +361,36 @@ class TestTrafficSourceRecordField(BaseTestCase):
             "utm_content",
         ]
 
-        assert_schemas_match((TrafficSourceRecordField.schema(),), (
-            SchemaField(
-                name="traffic_source",
-                field_type=SqlTypeNames.RECORD,
-                mode=BigQueryFieldMode.NULLABLE,
-                fields=(
-                    SchemaField(
-                        name="timestamp",
-                        field_type=SqlTypeNames.TIMESTAMP,
-                        mode=BigQueryFieldMode.NULLABLE,
-                    ),
-                    *[
+        assert_schemas_match(
+            (TrafficSourceRecordField.schema(),),
+            (
+                SchemaField(
+                    name="traffic_source",
+                    field_type=SqlTypeNames.RECORD,
+                    mode=BigQueryFieldMode.NULLABLE,
+                    fields=(
                         SchemaField(
-                            name=k,
-                            field_type=SqlTypeNames.STRING,
+                            name="timestamp",
+                            field_type=SqlTypeNames.TIMESTAMP,
                             mode=BigQueryFieldMode.NULLABLE,
-                        )
-                        for k in expected_tracking_params
-                    ],
-                    SingleScalarTypeKeyValueRecordField.schema(
-                        name="other_tracking_params",
-                        description=self.anystr(),
-                        value_type=SqlTypeNames.STRING,
+                        ),
+                        *[
+                            SchemaField(
+                                name=k,
+                                field_type=SqlTypeNames.STRING,
+                                mode=BigQueryFieldMode.NULLABLE,
+                            )
+                            for k in expected_tracking_params
+                        ],
+                        SingleScalarTypeKeyValueRecordField.schema(
+                            name="other_tracking_params",
+                            description=self.anystr(),
+                            value_type=SqlTypeNames.STRING,
+                        ),
                     ),
                 ),
             ),
-        ))
+        )
 
     async def test_field(self) -> None:
         e = TrafficSourceRecordField.from_api_resource(
@@ -405,9 +437,11 @@ class TestTrafficSourceRecordField(BaseTestCase):
         assert e.utm_medium == self.getstr("traffic_source.tracking_params.utm_medium")
         assert e.utm_term == self.getstr("traffic_source.tracking_params.utm_term")
         assert e.utm_content == self.getstr("traffic_source.tracking_params.utm_content")
-        assert e.other_tracking_params == SingleScalarTypeKeyValueRecordField[str].list_from_scalar_dict({
-            self.getstr("extra tracking param key"): self.getstr("extra tracking param value"),
-        })
+        assert e.other_tracking_params == SingleScalarTypeKeyValueRecordField[str].list_from_scalar_dict(
+            {
+                self.getstr("extra tracking param key"): self.getstr("extra tracking param value"),
+            }
+        )
 
         assert dataclasses.asdict(e) == {
             "timestamp": self.gettime("traffic_source.timestamp"),
@@ -446,11 +480,13 @@ class TestTrafficSourceRecordField(BaseTestCase):
                 timestamp=None,
                 browser_referrer=None,
                 tracking_params=None,
-            ))
+            )
+        )
         assert e is not None
         assert e.timestamp is None
         assert e.browser_referrer is None
-        assert e.gclid is None # etc. for other tracking params
+        assert e.gclid is None  # etc. for other tracking params
+
 
 class TestGeoRecordField(BaseTestCase):
     async def test_schema(self) -> None:
@@ -461,24 +497,26 @@ class TestGeoRecordField(BaseTestCase):
             "coordinates",
         ]
 
-        assert_schemas_match((GeoRecordField.schema(),), (
-            SchemaField(
-                name="geo",
-                field_type=SqlTypeNames.RECORD,
-                mode=BigQueryFieldMode.NULLABLE,
-                fields=(
-                    *[
-                        SchemaField(
-                            name=k,
-                            field_type=SqlTypeNames.STRING,
-                            mode=BigQueryFieldMode.NULLABLE,
-                        )
-                        for k in expected_fields
-                    ],
+        assert_schemas_match(
+            (GeoRecordField.schema(),),
+            (
+                SchemaField(
+                    name="geo",
+                    field_type=SqlTypeNames.RECORD,
+                    mode=BigQueryFieldMode.NULLABLE,
+                    fields=(
+                        *[
+                            SchemaField(
+                                name=k,
+                                field_type=SqlTypeNames.STRING,
+                                mode=BigQueryFieldMode.NULLABLE,
+                            )
+                            for k in expected_fields
+                        ],
+                    ),
                 ),
             ),
-        ))
-
+        )
 
     async def test_field(self) -> None:
         e = GeoRecordField(
@@ -494,11 +532,12 @@ class TestGeoRecordField(BaseTestCase):
         assert e.coordinates == self.getstr("geo.coordinates")
 
         assert dataclasses.asdict(e) == {
-            "region":self.getstr("geo.region"),
-            "subdivision":self.getstr("geo.subdivision"),
-            "city":self.getstr("geo.city"),
-            "coordinates":self.getstr("geo.coordinates"),
+            "region": self.getstr("geo.region"),
+            "subdivision": self.getstr("geo.subdivision"),
+            "city": self.getstr("geo.city"),
+            "coordinates": self.getstr("geo.coordinates"),
         }
+
 
 class TestBrandsRecordField(BaseTestCase):
     async def test_schema(self) -> None:
@@ -507,23 +546,26 @@ class TestBrandsRecordField(BaseTestCase):
             "version",
         ]
 
-        assert_schemas_match((BrandsRecordField.schema(),), (
-            SchemaField(
-                name="brands",
-                field_type=SqlTypeNames.RECORD,
-                mode=BigQueryFieldMode.REPEATED,
-                fields=(
-                    *[
-                        SchemaField(
-                            name=k,
-                            field_type=SqlTypeNames.STRING,
-                            mode=BigQueryFieldMode.NULLABLE,
-                        )
-                        for k in expected_fields
-                    ],
+        assert_schemas_match(
+            (BrandsRecordField.schema(),),
+            (
+                SchemaField(
+                    name="brands",
+                    field_type=SqlTypeNames.RECORD,
+                    mode=BigQueryFieldMode.REPEATED,
+                    fields=(
+                        *[
+                            SchemaField(
+                                name=k,
+                                field_type=SqlTypeNames.STRING,
+                                mode=BigQueryFieldMode.NULLABLE,
+                            )
+                            for k in expected_fields
+                        ],
+                    ),
                 ),
             ),
-        ))
+        )
 
     async def test_field(self) -> None:
         e = BrandsRecordField.from_api_resource(
@@ -552,77 +594,83 @@ class TestBrandsRecordField(BaseTestCase):
         assert e.brand is None
         assert e.version is None
 
+
 class TestDeviceRecordField(BaseTestCase):
     async def test_schema(self) -> None:
-        assert_schemas_match((DeviceRecordField.schema(),), (
-            SchemaField(
-                name="device",
-                field_type=SqlTypeNames.RECORD,
-                mode=BigQueryFieldMode.NULLABLE,
-                fields=(
-                    SchemaField(
-                        name="user_agent",
-                        field_type=SqlTypeNames.STRING,
-                        mode=BigQueryFieldMode.NULLABLE,
-                    ),
-                    BrandsRecordField.schema(),
-                    SchemaField(
-                        name="platform",
-                        field_type=SqlTypeNames.STRING,
-                        mode=BigQueryFieldMode.NULLABLE,
-                    ),
-                    SchemaField(
-                        name="platform_version",
-                        field_type=SqlTypeNames.STRING,
-                        mode=BigQueryFieldMode.NULLABLE,
-                    ),
-                    SchemaField(
-                        name="mobile",
-                        field_type=SqlTypeNames.BOOLEAN,
-                        mode=BigQueryFieldMode.NULLABLE,
-                    ),
-                    SchemaField(
-                        name="form_factor",
-                        field_type=SqlTypeNames.STRING,
-                        mode=BigQueryFieldMode.NULLABLE,
-                    ),
-                    SchemaField(
-                        name="model",
-                        field_type=SqlTypeNames.STRING,
-                        mode=BigQueryFieldMode.NULLABLE,
-                    ),
-                    SchemaField(
-                        name="screen_width",
-                        field_type=SqlTypeNames.INTEGER,
-                        mode=BigQueryFieldMode.NULLABLE,
-                    ),
-                    SchemaField(
-                        name="screen_height",
-                        field_type=SqlTypeNames.INTEGER,
-                        mode=BigQueryFieldMode.NULLABLE,
-                    ),
-                    SchemaField(
-                        name="screen_avail_width",
-                        field_type=SqlTypeNames.INTEGER,
-                        mode=BigQueryFieldMode.NULLABLE,
-                    ),
-                    SchemaField(
-                        name="screen_avail_height",
-                        field_type=SqlTypeNames.INTEGER,
-                        mode=BigQueryFieldMode.NULLABLE,
+        assert_schemas_match(
+            (DeviceRecordField.schema(),),
+            (
+                SchemaField(
+                    name="device",
+                    field_type=SqlTypeNames.RECORD,
+                    mode=BigQueryFieldMode.NULLABLE,
+                    fields=(
+                        SchemaField(
+                            name="user_agent",
+                            field_type=SqlTypeNames.STRING,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        BrandsRecordField.schema(),
+                        SchemaField(
+                            name="platform",
+                            field_type=SqlTypeNames.STRING,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        SchemaField(
+                            name="platform_version",
+                            field_type=SqlTypeNames.STRING,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        SchemaField(
+                            name="mobile",
+                            field_type=SqlTypeNames.BOOLEAN,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        SchemaField(
+                            name="form_factor",
+                            field_type=SqlTypeNames.STRING,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        SchemaField(
+                            name="model",
+                            field_type=SqlTypeNames.STRING,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        SchemaField(
+                            name="screen_width",
+                            field_type=SqlTypeNames.INTEGER,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        SchemaField(
+                            name="screen_height",
+                            field_type=SqlTypeNames.INTEGER,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        SchemaField(
+                            name="screen_avail_width",
+                            field_type=SqlTypeNames.INTEGER,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        SchemaField(
+                            name="screen_avail_height",
+                            field_type=SqlTypeNames.INTEGER,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
                     ),
                 ),
             ),
-        ))
+        )
 
     async def test_field(self) -> None:
         e = DeviceRecordField.from_api_resource(
             resource=DeviceProperties(
                 user_agent=self.anystr("device.user_agent"),
-                brands=[DeviceBrandProperties(
-                    brand=self.anystr("device.brands[0].brand"),
-                    version=self.anystr("device.brands[0].version"),
-                )],
+                brands=[
+                    DeviceBrandProperties(
+                        brand=self.anystr("device.brands[0].brand"),
+                        version=self.anystr("device.brands[0].version"),
+                    )
+                ],
                 platform=self.anystr("device.platform"),
                 mobile=self.anybool("device.mobile"),
                 form_factor=self.anystr("device.form_factor"),
@@ -652,10 +700,12 @@ class TestDeviceRecordField(BaseTestCase):
 
         assert dataclasses.asdict(e) == {
             "user_agent": self.getstr("device.user_agent"),
-            "brands": [{
-                "brand":self.getstr("device.brands[0].brand"),
-                "version":self.getstr("device.brands[0].version"),
-            }],
+            "brands": [
+                {
+                    "brand": self.getstr("device.brands[0].brand"),
+                    "version": self.getstr("device.brands[0].version"),
+                }
+            ],
             "platform": self.getstr("device.platform"),
             "mobile": self.getbool("device.mobile"),
             "form_factor": self.getstr("device.form_factor"),
@@ -709,30 +759,34 @@ class TestTargetRecordField(BaseTestCase):
             "content",
         ]
 
-        assert_schemas_match((TargetRecordField.schema(),), (
-            SchemaField(
-                name="target",
-                field_type=SqlTypeNames.RECORD,
-                mode=BigQueryFieldMode.NULLABLE,
-                fields=(
-                    *[
-                        SchemaField(
-                            name=k,
-                            field_type=SqlTypeNames.STRING,
-                            mode=BigQueryFieldMode.NULLABLE,
-                        ) for k in expected_fields
-                    ],
-                    SingleScalarTypeKeyValueRecordField.schema(
-                        name="attributes",
-                        description=self.anystr(),
-                        value_type=SqlTypeNames.STRING,
+        assert_schemas_match(
+            (TargetRecordField.schema(),),
+            (
+                SchemaField(
+                    name="target",
+                    field_type=SqlTypeNames.RECORD,
+                    mode=BigQueryFieldMode.NULLABLE,
+                    fields=(
+                        *[
+                            SchemaField(
+                                name=k,
+                                field_type=SqlTypeNames.STRING,
+                                mode=BigQueryFieldMode.NULLABLE,
+                            )
+                            for k in expected_fields
+                        ],
+                        SingleScalarTypeKeyValueRecordField.schema(
+                            name="attributes",
+                            description=self.anystr(),
+                            value_type=SqlTypeNames.STRING,
+                        ),
                     ),
                 ),
             ),
-        ))
+        )
 
     async def test_field(self) -> None:
-        attrs: dict[str, str|None] = {
+        attrs: dict[str, str | None] = {
             self.anystr("attributes[0].key"): self.anystr("attributes[0].value"),
             self.anystr("attributes[1].key"): self.anystr("attributes[1].value"),
         }
@@ -786,6 +840,7 @@ class TestTargetRecordField(BaseTestCase):
         assert e.content is None
         assert e.attributes is None
 
+
 class TestUrlRecordField(BaseTestCase):
     async def test_schema(self) -> None:
         expected_fields = [
@@ -796,46 +851,50 @@ class TestUrlRecordField(BaseTestCase):
             "hash",
         ]
 
-        assert_schemas_match((UrlRecordField.schema(),), (
-            SchemaField(
-                name="url",
-                field_type=SqlTypeNames.RECORD,
-                mode=BigQueryFieldMode.NULLABLE,
-                fields=(
-                    *[
-                        SchemaField(
-                            name=k,
-                            field_type=SqlTypeNames.STRING,
-                            mode=BigQueryFieldMode.NULLABLE,
-                        ) for k in expected_fields
-                    ],
-                    SingleScalarTypeKeyValueRecordField.schema(
-                        name="query_params",
-                        description=self.anystr(),
-                        value_type=SqlTypeNames.STRING,
+        assert_schemas_match(
+            (UrlRecordField.schema(),),
+            (
+                SchemaField(
+                    name="url",
+                    field_type=SqlTypeNames.RECORD,
+                    mode=BigQueryFieldMode.NULLABLE,
+                    fields=(
+                        *[
+                            SchemaField(
+                                name=k,
+                                field_type=SqlTypeNames.STRING,
+                                mode=BigQueryFieldMode.NULLABLE,
+                            )
+                            for k in expected_fields
+                        ],
+                        SingleScalarTypeKeyValueRecordField.schema(
+                            name="query_params",
+                            description=self.anystr(),
+                            value_type=SqlTypeNames.STRING,
+                        ),
                     ),
                 ),
             ),
-        ))
+        )
 
     async def test_field(self) -> None:
         url = "https://dashboard.eave.fyi:8080/insights/abc?q1=v1.0&q1=v1.1&q2=v2&q3#footer"
 
-        e = UrlRecordField.from_api_resource(
-            resource=url
-        )
+        e = UrlRecordField.from_api_resource(resource=url)
         assert e is not None
         assert e.raw == url
         assert e.protocol == "https"
         assert e.domain == "dashboard.eave.fyi"
         assert e.path == "/insights/abc"
         assert e.hash == "footer"
-        assert e.query_params == SingleScalarTypeKeyValueRecordField[str].list_from_kv_tuples([
-            ("q1", "v1.0"),
-            ("q1", "v1.1"),
-            ("q2", "v2"),
-            ("q3", ""),
-        ])
+        assert e.query_params == SingleScalarTypeKeyValueRecordField[str].list_from_kv_tuples(
+            [
+                ("q1", "v1.0"),
+                ("q1", "v1.1"),
+                ("q2", "v2"),
+                ("q3", ""),
+            ]
+        )
 
         assert dataclasses.asdict(e) == {
             "raw": url,
@@ -868,39 +927,28 @@ class TestUrlRecordField(BaseTestCase):
         assert e is None
 
     async def test_field_no_query(self) -> None:
-        e = UrlRecordField.from_api_resource(
-            resource="https://dashboard.eave.fyi/insights/abc"
-        )
+        e = UrlRecordField.from_api_resource(resource="https://dashboard.eave.fyi/insights/abc")
         assert e is not None
         assert e.query_params is None
 
     async def test_field_no_fragment(self) -> None:
-        e = UrlRecordField.from_api_resource(
-            resource="https://dashboard.eave.fyi/insights/abc?q1=v1"
-        )
+        e = UrlRecordField.from_api_resource(resource="https://dashboard.eave.fyi/insights/abc?q1=v1")
         assert e is not None
         assert e.hash is None
 
     async def test_field_no_path(self) -> None:
-        e = UrlRecordField.from_api_resource(
-            resource="https://dashboard.eave.fyi"
-        )
+        e = UrlRecordField.from_api_resource(resource="https://dashboard.eave.fyi")
         assert e is not None
         assert e.path is None
 
     async def test_field_path_trailing_slash(self) -> None:
-        e = UrlRecordField.from_api_resource(
-            resource="https://dashboard.eave.fyi/"
-        )
+        e = UrlRecordField.from_api_resource(resource="https://dashboard.eave.fyi/")
         assert e is not None
         assert e.path is None
 
-        e = UrlRecordField.from_api_resource(
-            resource="https://dashboard.eave.fyi/insights/"
-        )
+        e = UrlRecordField.from_api_resource(resource="https://dashboard.eave.fyi/insights/")
         assert e is not None
         assert e.path == "/insights"
-
 
 
 class TestCurrentPageRecordField(BaseTestCase):
@@ -910,23 +958,27 @@ class TestCurrentPageRecordField(BaseTestCase):
             "pageview_id",
         ]
 
-        assert_schemas_match((CurrentPageRecordField.schema(),), (
-            SchemaField(
-                name="current_page",
-                field_type=SqlTypeNames.RECORD,
-                mode=BigQueryFieldMode.NULLABLE,
-                fields=(
-                    UrlRecordField.schema(),
-                    *[
-                        SchemaField(
-                            name=k,
-                            field_type=SqlTypeNames.STRING,
-                            mode=BigQueryFieldMode.NULLABLE,
-                        ) for k in expected_fields
-                    ],
+        assert_schemas_match(
+            (CurrentPageRecordField.schema(),),
+            (
+                SchemaField(
+                    name="current_page",
+                    field_type=SqlTypeNames.RECORD,
+                    mode=BigQueryFieldMode.NULLABLE,
+                    fields=(
+                        UrlRecordField.schema(),
+                        *[
+                            SchemaField(
+                                name=k,
+                                field_type=SqlTypeNames.STRING,
+                                mode=BigQueryFieldMode.NULLABLE,
+                            )
+                            for k in expected_fields
+                        ],
+                    ),
                 ),
             ),
-        ))
+        )
 
     async def test_field(self) -> None:
         url = "https://dashboard.eave.fyi:8080/insights?q1=v1#footer"

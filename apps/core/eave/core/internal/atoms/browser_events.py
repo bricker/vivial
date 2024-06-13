@@ -2,12 +2,11 @@ import dataclasses
 from dataclasses import dataclass
 from textwrap import dedent
 from typing import Any, cast
-import inflect
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
 from eave.core.internal import database
-from eave.core.internal.atoms.api_types import BrowserAction, BrowserEventPayload, CorrelationContext
+from eave.core.internal.atoms.api_types import BrowserAction, BrowserEventPayload
 from eave.core.internal.atoms.record_fields import (
     CurrentPageRecordField,
     DeviceRecordField,
@@ -24,7 +23,6 @@ from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, ta
 
 from .shared import common_bq_insert_timestamp_field, common_event_timestamp_field
 from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
-
 
 
 @dataclass(kw_only=True)
@@ -109,8 +107,14 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                 if e.corr_ctx
                 else None
             )
-            traffic_source = TrafficSourceRecordField.from_api_resource(e.corr_ctx.traffic_source) if e.corr_ctx else None
-            user = UserRecordField(account_id=e.corr_ctx.account_id, visitor_id=e.corr_ctx.visitor_id) if e.corr_ctx else None
+            traffic_source = (
+                TrafficSourceRecordField.from_api_resource(e.corr_ctx.traffic_source) if e.corr_ctx else None
+            )
+            user = (
+                UserRecordField(account_id=e.corr_ctx.account_id, visitor_id=e.corr_ctx.visitor_id)
+                if e.corr_ctx
+                else None
+            )
 
             atom = BrowserEventAtom(
                 action=e.action,
@@ -235,6 +239,7 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                 # Likely a race condition: Two events came in separate requests that tried to create the same virtual event.
                 LOGGER.exception(e)
 
+
 # _HTML_TAG_READABLE_NAMES = {
 #     "A": "link",
 #     "BUTTON": "button",
@@ -247,6 +252,7 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
 #     "H6": "header",
 #     "P": "text",
 # }
+
 
 def _make_vevent_description(action: str) -> str | None:
     browser_action = BrowserAction.from_str(action)
