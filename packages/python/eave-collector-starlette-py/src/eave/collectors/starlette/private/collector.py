@@ -299,7 +299,7 @@ class EaveASGIMiddleware:
 
                 await send(message)
 
-            # Then overwrite ASGI receive messages to set the body for all downstream request handlers.
+            # Overwrite ASGI receive messages to set the body for all downstream request handlers.
             async def receive_interceptor() -> starlette.types.Message:
                 # FIXME: This disregards any other event type (eg http.disconnect)
                 # To fix this, this interceptor function should check the type of the original receive event,
