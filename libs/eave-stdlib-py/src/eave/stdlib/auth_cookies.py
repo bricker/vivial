@@ -43,12 +43,33 @@ def set_auth_cookies(
     access_token: str | None = None,
 ) -> None:
     if account_id:
-        set_http_cookie(response=response, key=EAVE_ACCOUNT_ID_COOKIE_NAME, value=str(account_id))
+        set_http_cookie(
+            response=response,
+            key=EAVE_ACCOUNT_ID_COOKIE_NAME,
+            value=str(account_id),
+            secure=True,
+            samesite="none" # required for CORS-enabled cookies
+        )
 
     if access_token:
-        set_http_cookie(response=response, key=EAVE_ACCESS_TOKEN_COOKIE_NAME, value=access_token)
+        set_http_cookie(
+            response=response,
+            key=EAVE_ACCESS_TOKEN_COOKIE_NAME,
+            value=access_token,
+            secure=True,
+            samesite="none", # required for CORS-enabled cookies
+        )
 
 
 def delete_auth_cookies(request: HTTPFrameworkRequest, response: HTTPFrameworkResponse) -> None:
-    delete_cookies_with_prefix(request=request, response=response, prefix=EAVE_AUTH_COOKIE_PREFIX)
-    delete_cookies_with_prefix(request=request, response=response, prefix=EAVE_EMBED_COOKIE_PREFIX)
+    delete_cookies_with_prefix(
+        request=request,
+        response=response,
+        prefix=EAVE_AUTH_COOKIE_PREFIX,
+        samesite="none", # required for CORS-enabled cookies
+    )
+    delete_cookies_with_prefix(
+        request=request,
+        response=response,
+        prefix=EAVE_EMBED_COOKIE_PREFIX,
+    )

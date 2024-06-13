@@ -54,9 +54,18 @@ def set_http_cookie(
     expires: datetime | int | str | None = None,
     path: str = "/",
     domain: str | None = None,
+    secure: bool | None = None,
     httponly: bool = True,
     samesite: Literal["lax", "strict", "none"] | None = "lax",
 ) -> None:
+    if secure is None:
+        if samesite == "none" or not SHARED_CONFIG.is_development:
+            rsecure = True
+        else:
+            rsecure = False
+    else:
+        rsecure = secure
+
     response.set_cookie(
         key=key,
         value=value,
@@ -64,7 +73,7 @@ def set_http_cookie(
         expires=expires,
         path=path,
         domain=domain if domain is not None else SHARED_CONFIG.eave_cookie_domain,
-        secure=(not SHARED_CONFIG.is_development),
+        secure=rsecure,
         httponly=httponly,
         samesite=samesite,
     )

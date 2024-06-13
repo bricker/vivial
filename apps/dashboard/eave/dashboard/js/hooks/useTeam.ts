@@ -43,6 +43,7 @@ const useTeam = (): TeamHook => {
         "Content-Type": "application/json",
         "eave-origin": eaveOrigin,
       },
+      credentials: "include",
       body: JSON.stringify({}),
     })
       .then((resp) => {
@@ -97,6 +98,7 @@ const useTeam = (): TeamHook => {
         "Content-Type": "application/json",
         "eave-origin": eaveOrigin,
       },
+      credentials: "include",
       body: JSON.stringify({ query }),
     })
       .then((resp) => {
@@ -167,6 +169,7 @@ const useTeam = (): TeamHook => {
         "Content-Type": "application/json",
         "eave-origin": eaveOrigin,
       },
+      credentials: "include",
       body: JSON.stringify({ id }),
     })
       .then((resp) => {

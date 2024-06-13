@@ -1,9 +1,12 @@
 import aiohttp.hdrs
+from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.headers import EAVE_ACCOUNT_ID_HEADER, EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER, EAVE_LB_HEADER, EAVE_ORIGIN_HEADER, EAVE_REQUEST_ID_HEADER
 import starlette.applications
 import starlette.endpoints
 from asgiref.typing import ASGI3Application
 from starlette.middleware import Middleware
 from starlette.routing import Route
+from starlette.middleware.cors import CORSMiddleware
 
 import eave.stdlib.time
 from eave.core.internal.oauth.google import (
@@ -274,6 +277,7 @@ routes = [
     make_route(
         config=GetMyTeamRequest.config,
         endpoint=team.GetMyTeamEndpoint,
+
     ),
     make_route(
         config=ListMyVirtualEventsRequest.config,
@@ -303,6 +307,28 @@ async def graceful_shutdown() -> None:
 app = starlette.applications.Starlette(
     routes=routes,
     exception_handlers=exception_handlers,
-    middleware=[Middleware(MetabaseProxyRouter)],
+    middleware=[
+        # CORS is needed only for dashboard to API communications.
+        # This is irrelevant for the browser collector, because the collector sends data with a content type (application/x-www-form-urlencoded) that is CORS-safelisted.
+        Middleware(CORSMiddleware,
+            allow_origins=[
+                SHARED_CONFIG.eave_dashboard_base_url_public,
+            ],
+            allow_methods=[
+                aiohttp.hdrs.METH_GET,
+                aiohttp.hdrs.METH_POST,
+                aiohttp.hdrs.METH_PUT,
+                aiohttp.hdrs.METH_PATCH,
+                aiohttp.hdrs.METH_DELETE,
+                aiohttp.hdrs.METH_HEAD,
+                aiohttp.hdrs.METH_OPTIONS,
+            ],
+            allow_headers=[
+                EAVE_ORIGIN_HEADER,
+            ],
+            allow_credentials=True,
+        ),
+        Middleware(MetabaseProxyRouter)
+    ],
     on_shutdown=[graceful_shutdown],
 )
