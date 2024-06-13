@@ -48,6 +48,7 @@ def set_auth_cookies(
             key=EAVE_ACCOUNT_ID_COOKIE_NAME,
             value=str(account_id),
             secure=True,
+            httponly=True,
             samesite="none" # required for CORS-enabled cookies
         )
 
@@ -57,6 +58,7 @@ def set_auth_cookies(
             key=EAVE_ACCESS_TOKEN_COOKIE_NAME,
             value=access_token,
             secure=True,
+            httponly=True,
             samesite="none", # required for CORS-enabled cookies
         )
 
