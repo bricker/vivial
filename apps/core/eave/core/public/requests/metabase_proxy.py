@@ -60,7 +60,7 @@ class MetabaseProxyRouter:
         await self.app(scope, receive, send)
 
 
-class MetabaseProxyEndpoint(HTTPEndpoint):
+class MetabaseProxyEndpoint(HTTPEndpoint): # TODO: optimize
     async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
         async with database.async_session.begin() as db_session:
             metabase_instance = await MetabaseInstanceOrm.one_or_exception(
@@ -104,13 +104,7 @@ class MetabaseProxyEndpoint(HTTPEndpoint):
             mb_response.raise_for_status()
 
             # Consume the body while the session is still open
-            body = await mb_response.read()
-
-        LOGGER.info(
-            "metabase response",
-            {"mb": {"headers": dict(mb_response.headers), "status": mb_response.status}},
-            ctx,
-        )
+            body = await mb_response.read() # TODO: this is reading huge static assets into mem
 
         mb_response = Response(
             status_code=mb_response.status,
@@ -122,6 +116,8 @@ class MetabaseProxyEndpoint(HTTPEndpoint):
 
 
 class MetabaseAuthEndpoint(HTTPEndpoint):
+    location_cookie_name = f"{EAVE_EMBED_COOKIE_PREFIX}location"
+
     async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
         """
         Redirects request to the authenticated user's metabase instance to set SSO
@@ -143,8 +139,19 @@ class MetabaseAuthEndpoint(HTTPEndpoint):
                 team_id=account.team_id,
             )
 
-        if not metabase_instance.jwt_signing_key or not metabase_instance.jwt_signing_key:
+        if not metabase_instance.jwt_signing_key:
             raise NotFoundError("Metabase instance can't be reached.")
+
+        # if self.location_cookie_name in request.cookies:
+        #     # TODO: check eave.embed.SESSION cookie, bypass /auth/sso if present
+        #     # https://embed.eave.fyi/dashboard/1
+        #     # TODO and location cookie matches metabase_instance.default_dashboard_id
+        #     # TODO: check if session cookie exists instead
+        #     location_url = request.cookies[self.location_cookie_name]
+        #     if metabase_instance.instance_id != 
+        #     return RedirectResponse(
+        #         url=self.location_cookie_name,
+        #     )
 
         email = account.email or "unknown"
 
@@ -178,18 +185,23 @@ class MetabaseAuthEndpoint(HTTPEndpoint):
 
             mb_response.raise_for_status()
 
-        LOGGER.info(
-            "metabase response",
-            {"mb": {"headers": dict(mb_response.headers), "status": mb_response.status}},
-            ctx,
-        )
-
         response = RedirectResponse(
             status_code=mb_response.status,
             url=mb_response.headers[aiohttp.hdrs.LOCATION],
         )
 
+        # cache redirect location to save time on reloads
+        # set_http_cookie(
+        #     response=response,
+        #     key=self.location_cookie_name,
+        #     value=mb_response.headers[aiohttp.hdrs.LOCATION],
+        #     max_age=morsel.get("max_age"),
+        #     expires=morsel.get("expires"),
+        #     httponly=True,
+        # )
+
         for cookie_name in _METABASE_SESSION_COOKIE_NAMES:
+            # TODO: check eave.embed.SESSION cookie max_age
             # Replace `metabase.SESSION` etc. with `eave.embed.SESSION`
             # The purpose is to obfuscate the backend embed implementation (metabase)
             if morsel := mb_response.cookies.get(f"{_METABASE_COOKIE_PREFIX}{cookie_name}"):
