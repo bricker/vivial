@@ -9,7 +9,6 @@ const makeClasses = makeStyles()((theme) => ({
     fontFamily: theme.typography.fontFamily,
     position: "relative",
     minHeight: "100vh",
-    zIndex: 1, // this keeps the hero bg image behind the nav bar
   },
   sections: {
     minHeight: `calc(100vh - ${theme.header.height}px - ${theme.header.marginBottom}px - ${theme.footer.height}px)`,
