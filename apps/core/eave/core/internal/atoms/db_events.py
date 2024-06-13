@@ -288,13 +288,15 @@ def _make_vevent_description(operation: str, source_table: str) -> str:
 
     match db_operation:
         case DatabaseOperation.INSERT:
-            return f"{aresource} was created."
+            description = f"{aresource} was created."
         case DatabaseOperation.UPDATE:
-            return f"{aresource} as updated."
+            description = f"{aresource} as updated."
         case DatabaseOperation.DELETE:
-            return f"{aresource} was deleted."
+            description = f"{aresource} was deleted."
         case DatabaseOperation.SELECT:
-            return f"{aresource} was fetched."
+            description = f"{aresource} was fetched."
         case _:
             # TODO: What verb to use for an invalid DatabaseOperation value?
-            return f"{aresource} was inspected."
+            description = f"{aresource} was inspected."
+
+    return description.title()
