@@ -7,7 +7,7 @@ import {
   EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE,
   VISIBILITY_CHANGE_EVENT_TYPE,
 } from "./internal/js-events";
-import { getCorrelationContext } from "./properties/correlation-context.js";
+import { getCorrelationContext } from "./properties/correlation-context";
 import { getUserAgentProperties } from "./properties/device";
 import { getCurrentPageProperties } from "./properties/page";
 import {

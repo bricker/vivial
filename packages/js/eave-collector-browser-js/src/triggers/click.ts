@@ -1,7 +1,7 @@
 import { requestManager } from "../beacon";
 import { TargetProperties } from "../types";
 import { getElementAttributes } from "../util/dom-helpers";
-import { currentTimestampSeconds } from "../util/timestamp.js";
+import { currentTimestampSeconds } from "../util/timestamp";
 import { castEventTargetToHtmlElement } from "../util/type-helpers";
 
 /**

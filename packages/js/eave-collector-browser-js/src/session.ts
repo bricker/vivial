@@ -3,7 +3,7 @@ import { COOKIE_NAME_PREFIX, getCookie, setCookie } from "./cookies";
 import { LOG_TAG } from "./internal/constants";
 import { SessionProperties } from "./types";
 import { compactJSONStringify, safeJSONParse } from "./util/json";
-import { currentTimestampSeconds } from "./util/timestamp.js";
+import { currentTimestampSeconds } from "./util/timestamp";
 import { uuidv4 } from "./util/uuid";
 
 const SESSION_COOKIE_NAME = `${COOKIE_NAME_PREFIX}session`;

@@ -1,6 +1,6 @@
 import { requestManager } from "../beacon";
 import { LOG_TAG } from "../internal/constants";
-import { currentTimestampSeconds } from "../util/timestamp.js";
+import { currentTimestampSeconds } from "../util/timestamp";
 
 const NAVIGATION_ACTION_NAME = "navigation";
 

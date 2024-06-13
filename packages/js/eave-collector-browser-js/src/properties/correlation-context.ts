@@ -1,5 +1,5 @@
-import { getAllEaveCookies } from "../cookies.js";
-import { ScalarMap } from "../types.js";
+import { getAllEaveCookies } from "../cookies";
+import { ScalarMap } from "../types";
 
 export function getCorrelationContext() {
   const eaveCookies = getAllEaveCookies();

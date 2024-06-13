@@ -1,7 +1,7 @@
 import { requestManager } from "../beacon";
 import { LOG_TAG } from "../internal/constants";
 import { getElementAttributes } from "../util/dom-helpers";
-import { currentTimestampSeconds } from "../util/timestamp.js";
+import { currentTimestampSeconds } from "../util/timestamp";
 import { castEventTargetToHtmlElement } from "../util/type-helpers";
 
 export async function formSubmitEventHandler(event: SubmitEvent) {

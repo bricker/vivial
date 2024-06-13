@@ -1,8 +1,8 @@
-import { isCookieConsentRevoked } from "../consent.js";
-import { COOKIE_NAME_PREFIX, getCookie, setCookie } from "../cookies.js";
-import { ScalarMap, TrafficSourceProperties } from "../types.js";
-import { compactJSONStringify, safeJSONParse } from "../util/json.js";
-import { currentTimestampSeconds } from "../util/timestamp.js";
+import { isCookieConsentRevoked } from "../consent";
+import { COOKIE_NAME_PREFIX, getCookie, setCookie } from "../cookies";
+import { ScalarMap, TrafficSourceProperties } from "../types";
+import { compactJSONStringify, safeJSONParse } from "../util/json";
+import { currentTimestampSeconds } from "../util/timestamp";
 
 const TRAFFIC_SOURCE_COOKIE_NAME = `${COOKIE_NAME_PREFIX}traffic_source`;
 const TRAFFIC_SOURCE_COOKIE_MAX_AGE = 60 * 60 * 24 * 180; // 180 days (approximately 6 months)
