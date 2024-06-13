@@ -6,8 +6,8 @@ from starlette.responses import PlainTextResponse
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
-from eave.collectors.core.correlation_context import corr_ctx
-from eave.collectors.core.correlation_context.base import COOKIE_PREFIX
+from eave.collectors.core.correlation_context import CORR_CTX
+from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_COOKIE_PREFIX
 from eave.collectors.core.datastructures import EventPayload, EventType, HttpServerEventPayload
 from eave.collectors.core.write_queue import BatchWriteQueue, QueueParams
 from eave.collectors.starlette.private.collector import StarletteCollector
@@ -42,7 +42,7 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
         async def ctx_set_endpoint(request):
             body = request.query_params
             for k, v in body.items():
-                corr_ctx.set(k, v)
+                CORR_CTX.set(k, v)
             return PlainTextResponse("cookies changed")
 
         app = Starlette(
@@ -83,8 +83,8 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
 
     async def test_eave_ctx_set_from_cookies(self) -> None:
         # GIVEN eave cookies set on request
-        valid_cookie = f"{COOKIE_PREFIX}test_cookie"
-        json_cookie = f"{COOKIE_PREFIX}json"
+        valid_cookie = f"{EAVE_COLLECTOR_COOKIE_PREFIX}test_cookie"
+        json_cookie = f"{EAVE_COLLECTOR_COOKIE_PREFIX}json"
         non_eave_cookie = "no_eave_prefix"
         ctx_key = "some_ctx_key"
         self._client.cookies.set(valid_cookie, "valid")
@@ -98,16 +98,16 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert len(self._write_queue.queue) > 0
         e = self._write_queue.queue[0]
         assert isinstance(e, HttpServerEventPayload)
-        assert e.context is not None, "Eave context was expected to be set in the network event"
-        assert e.context.get(valid_cookie) == "valid"
-        assert e.context.get(non_eave_cookie) is None
-        assert e.context.get(json_cookie) == f'{{"{ctx_key}": 123}}'
+        assert e.corr_ctx is not None, "Eave context was expected to be set in the network event"
+        assert e.corr_ctx.get(valid_cookie) == "valid"
+        assert e.corr_ctx.get(non_eave_cookie) is None
+        assert e.corr_ctx.get(json_cookie) == f'{{"{ctx_key}": 123}}'
 
     async def test_response_cookie_ctx_set(self) -> None:
         # GIVEN there is some ctx cookies that can be changed
-        unchanged_cookie = f"{COOKIE_PREFIX}cookie"
-        changed_cookie = f"{COOKIE_PREFIX}mutable"
-        new_cookie = f"{COOKIE_PREFIX}new"
+        unchanged_cookie = f"{EAVE_COLLECTOR_COOKIE_PREFIX}cookie"
+        changed_cookie = f"{EAVE_COLLECTOR_COOKIE_PREFIX}mutable"
+        new_cookie = f"{EAVE_COLLECTOR_COOKIE_PREFIX}new"
         self._client.cookies.set(unchanged_cookie, "valid")
         self._client.cookies.set(changed_cookie, "change_me")
 

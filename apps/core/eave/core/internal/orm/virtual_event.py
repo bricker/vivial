@@ -5,13 +5,10 @@ from typing import Self
 from uuid import UUID
 
 import sqlalchemy
-from sqlalchemy import Index, ScalarResult, Select, func, select, text
+from sqlalchemy import Index, ScalarResult, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
-
-from eave.collectors.core.datastructures import DatabaseOperation
-from eave.stdlib.core_api.models.virtual_event import VirtualEvent
-from eave.stdlib.util import titleize
+from sqlalchemy.sql.functions import count
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
@@ -67,51 +64,39 @@ class VirtualEventOrm(Base):
         view_id: str | None = None
 
     @classmethod
-    def _build_query(cls, params: QueryParams) -> Select[tuple[Self]]:
-        lookup = select(cls)
-
+    def _build_query[T: Select](cls, builder: T, params: QueryParams) -> T:
         if params.id is not None:
-            lookup = lookup.where(cls.id == params.id)
+            builder = builder.where(cls.id == params.id)
 
         if params.team_id is not None:
-            lookup = lookup.where(cls.team_id == params.team_id)
+            builder = builder.where(cls.team_id == params.team_id)
 
         if params.readable_name is not None:
-            lookup = lookup.where(cls.readable_name == params.readable_name)
+            builder = builder.where(cls.readable_name == params.readable_name)
 
         if params.search_query is not None:
-            lookup = lookup.order_by(sqlalchemy.asc(cls.readable_name.op("<->")(params.search_query)))
+            builder = builder.order_by(sqlalchemy.asc(cls.readable_name.op("<->")(params.search_query)))
 
         if params.view_id is not None:
-            lookup = lookup.where(cls.view_id == params.view_id)
+            builder = builder.where(cls.view_id == params.view_id)
 
-        # order results (or similarity score ties) alphabetically
-        lookup = lookup.order_by(cls.readable_name)
-
-        assert lookup.whereclause is not None, "Invalid parameters"
-        return lookup
-
-    @property
-    def api_model(self) -> VirtualEvent:
-        return VirtualEvent.from_orm(self)
+        assert builder.whereclause is not None, "Invalid parameters"
+        return builder
 
     @classmethod
     async def query(cls, session: AsyncSession, params: QueryParams) -> ScalarResult[Self]:
-        # await session.execute(text("SET pg_trgm.similarity_threshold = 0.5;"))
-        lookup = cls._build_query(params=params)
-        result = await session.scalars(lookup)
+        builder = select(cls)
+        builder = cls._build_query(builder, params=params)
+
+        # order results (or similarity score ties) alphabetically
+        # This is added _after_ the query is built so that readable_name is the secondary sort.
+        builder = builder.order_by(cls.readable_name)
+        result = await session.scalars(builder)
         return result
 
-
-def make_virtual_event_readable_name(*, operation: str, table_name: str) -> str:
-    """
-    >>> make_virtual_event_readable_name(operation="INSERT", table_name="accounts")
-    'Account Created'
-    >>> make_virtual_event_readable_name(operation="UPDATE", table_name="github_installations")
-    'Github Installation Updated'
-    >>> make_virtual_event_readable_name(operation="DELETE", table_name="UserAccounts")
-    'User Account Deleted'
-    """
-    obj_hr = titleize(table_name)
-    op_hr = DatabaseOperation(value=operation.upper()).hr_past_tense
-    return f"{obj_hr} {op_hr}"
+    @classmethod
+    async def count(cls, session: AsyncSession, params: QueryParams) -> int:
+        builder = select(count(cls.id))
+        lookup = cls._build_query(builder, params=params)
+        result = await session.scalars(lookup)
+        return result.one()

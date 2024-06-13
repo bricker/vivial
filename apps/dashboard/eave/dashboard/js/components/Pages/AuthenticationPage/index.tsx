@@ -110,7 +110,7 @@ const AuthenticationPage = ({ type }: { type: "signup" | "login" }) => {
             : "Early access is only available via Google. Additional account options coming soon."}
         </Typography>
         <Button
-          to={`${eaveWindow.eave.apiBase}/oauth/google/authorize`}
+          to={`${eaveWindow.eavedash.apiBase}/oauth/google/authorize`}
           className={classes.loginButton}
           variant="outlined"
           startIcon={<GoogleIcon className={classes.authIcon} />}

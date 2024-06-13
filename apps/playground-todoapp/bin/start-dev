@@ -9,7 +9,7 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 	python-activate-venv
 	node-activate-venv
-	cd "$(^parentpath)"
+	cd "$(e.parentpath)"
 
 	python ./bin/src/start-dev-server.py &
 	bash ./bin/src/start-dev-webpack.bash &

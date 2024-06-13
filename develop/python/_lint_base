@@ -6,7 +6,7 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 (
 	python-lint .
-	if ! ^onlythismodule; then
+	if ! e.onlythismodule; then
 		"${EAVE_HOME}"/libs/eave-stdlib-py/bin/lint
 		"${EAVE_HOME}"/libs/eave-pubsub-schemas/python/bin/lint
 	fi

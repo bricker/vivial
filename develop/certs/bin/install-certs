@@ -18,12 +18,12 @@ function install-certs() (
 
 	# https://docs.mitmproxy.org/stable/concepts-certificates/
 	local kernel
-	kernel=$(get-kernel-name)
+	kernel=$(e.get-kernel-name)
 
 	case "$kernel" in
 	"linux")
 		local os
-		os=$(get-os)
+		os=$(e.get-os)
 
 		case "$os" in
 		"manjarolinux")
@@ -81,7 +81,7 @@ done
 function setenv() (
 	local bundleOut=/etc/ssl/certs/ca-certificates.crt
 
-	case "$(get-kernel-name)" in
+	case "$(e.get-kernel-name)" in
 	"linux") ;;
 	"darwin")
 		security export -t certs -f pemseq -k /System/Library/Keychains/SystemRootCertificates.keychain -o /tmp/rootcabundle.pem
@@ -90,8 +90,8 @@ function setenv() (
 		;;
 	esac
 
-	^add-shell-variable REQUESTS_CA_BUNDLE $bundleOut
-	^add-shell-variable SSL_CERT_FILE $bundleOut
+	e.add-shell-variable REQUESTS_CA_BUNDLE $bundleOut
+	e.add-shell-variable SSL_CERT_FILE $bundleOut
 )
 setenv
 

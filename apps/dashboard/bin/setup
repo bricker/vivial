@@ -4,11 +4,7 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-cd "$(^parentpath)"
+cd "$(e.parentpath)"
 
 "${EAVE_HOME}"/develop/python/_setup_base
 "${EAVE_HOME}"/develop/javascript/_setup_base
-
-if ! ^ci; then
-	"${EAVE_HOME}"/develop/shared/bin/build-dotenv eave/dashboard/config.py
-fi

@@ -1,9 +1,11 @@
 import { AppContext } from "$eave-dashboard/js/context/Provider";
 import {
   DashboardTeam,
+  GetMyVirtualEventDetailsResponseBody,
   GetTeamResponseBody,
-  GetVirtualEventsResponseBody,
-  VirtualEventQueryInput,
+  ListMyVirtualEventsResponseBody,
+  eaveOrigin,
+  eaveWindow,
 } from "$eave-dashboard/js/types";
 import { isHTTPError, isUnauthorized, logUserOut } from "$eave-dashboard/js/util/http-util";
 import { useContext } from "react";
@@ -11,7 +13,8 @@ import { useContext } from "react";
 export interface TeamHook {
   team: DashboardTeam | null;
   getTeam: () => void;
-  getTeamVirtualEvents: (input: VirtualEventQueryInput | null) => void;
+  listVirtualEvents: (args?: { query?: string | null }) => void;
+  getVirtualEventDetails: (id: string) => void;
 }
 
 const useTeam = (): TeamHook => {
@@ -34,10 +37,11 @@ const useTeam = (): TeamHook => {
       teamIsLoading: true,
       teamIsErroring: false,
     }));
-    fetch("/api/team", {
+    fetch(`${eaveWindow.eavedash.apiBase}/public/me/team/query`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "eave-origin": eaveOrigin,
       },
       body: JSON.stringify({}),
     })
@@ -63,7 +67,8 @@ const useTeam = (): TeamHook => {
           }));
         });
       })
-      .catch(() => {
+      .catch((e) => {
+        console.error(e);
         setDashboardNetworkState((prev) => ({
           ...prev,
           teamIsLoading: false,
@@ -80,33 +85,52 @@ const useTeam = (): TeamHook => {
    * The `input` parameter is passed along for event filtering on the backend.
    * If null is provided, no filtering is expected to be done.
    */
-  function getTeamVirtualEvents(input: VirtualEventQueryInput | null) {
+  function listVirtualEvents({ query }: { query?: string | null } = {}) {
     setGlossaryNetworkState((prev) => ({
       ...prev,
       virtualEventsAreLoading: true,
       virtualEventsAreErroring: false,
     }));
-    fetch("/api/team/virtual-events", {
+    fetch(`${eaveWindow.eavedash.apiBase}/public/me/virtual-events/list`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "eave-origin": eaveOrigin,
       },
-      body: JSON.stringify({ query: input }),
+      body: JSON.stringify({ query }),
     })
       .then((resp) => {
         if (isUnauthorized(resp)) {
           logUserOut();
           return;
         }
-
         if (isHTTPError(resp)) {
           throw resp;
         }
-        return resp.json().then((data: GetVirtualEventsResponseBody) => {
-          setTeam((prev) => ({
-            ...prev,
-            virtualEvents: data.virtual_events,
-          }));
+        return resp.json().then((data: ListMyVirtualEventsResponseBody) => {
+          setTeam((prev) => {
+            const virtualEvents = prev?.virtualEvents;
+            if (!virtualEvents) {
+              return {
+                ...prev,
+                virtualEvents: data.virtual_events,
+              };
+            }
+
+            for (const incoming of data.virtual_events) {
+              const existing = virtualEvents.find((current) => current.id === incoming.id);
+              // If the virtual event hasn't been loaded, append it to the list.
+              // Otherwise, leave it without overwriting, because it might have fields already populated.
+              if (!existing) {
+                virtualEvents.push(incoming);
+              }
+            }
+
+            return {
+              ...prev,
+              virtualEvents,
+            };
+          });
 
           setGlossaryNetworkState((prev) => ({
             ...prev,
@@ -115,7 +139,8 @@ const useTeam = (): TeamHook => {
           }));
         });
       })
-      .catch(() => {
+      .catch((e) => {
+        console.error(e);
         setGlossaryNetworkState((prev) => ({
           ...prev,
           virtualEventsAreErroring: true,
@@ -124,10 +149,82 @@ const useTeam = (): TeamHook => {
       });
   }
 
+  function getVirtualEventDetails(id: string | null) {
+    const existingVirtualEvent = team?.virtualEvents?.find((ve) => ve.id === id);
+    if (existingVirtualEvent && existingVirtualEvent.fields) {
+      // The virtual event already has its fields loaded.
+      return;
+    }
+
+    // setGlossaryNetworkState((prev) => ({
+    //   ...prev,
+    //   virtualEventsAreLoading: true,
+    //   virtualEventsAreErroring: false,
+    // }));
+    fetch(`${eaveWindow.eavedash.apiBase}/public/me/virtual-events/query`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "eave-origin": eaveOrigin,
+      },
+      body: JSON.stringify({ id }),
+    })
+      .then((resp) => {
+        if (isUnauthorized(resp)) {
+          logUserOut();
+          return;
+        }
+        if (isHTTPError(resp)) {
+          throw resp;
+        }
+        return resp.json().then((data: GetMyVirtualEventDetailsResponseBody) => {
+          setTeam((prev) => {
+            const virtualEvents = prev?.virtualEvents;
+            if (!virtualEvents) {
+              // No virtual events were previously loaded. Set the array to the virtual event from the response.
+              return {
+                ...prev,
+                virtualEvents: [data.virtual_event],
+              };
+            }
+
+            const idx = virtualEvents.findIndex((ve) => ve.id === id);
+            if (idx > -1) {
+              // The virtual event is already in the list. Replace it with the virtual event from the response.
+              virtualEvents[idx] = data.virtual_event;
+            } else {
+              // The virtual event was not in the list. Append it to the list.
+              virtualEvents.push(data.virtual_event);
+            }
+
+            return {
+              ...prev,
+              virtualEvents,
+            };
+          });
+
+          // setGlossaryNetworkState((prev) => ({
+          //   ...prev,
+          //   virtualEventsAreErroring: false,
+          //   virtualEventsAreLoading: false,
+          // }));
+        });
+      })
+      .catch((e) => {
+        console.error(e);
+        // setGlossaryNetworkState((prev) => ({
+        //   ...prev,
+        //   virtualEventsAreErroring: true,
+        //   virtualEventsAreLoading: false,
+        // }));
+      });
+  }
+
   return {
     team,
     getTeam,
-    getTeamVirtualEvents,
+    listVirtualEvents,
+    getVirtualEventDetails,
   };
 };
 

@@ -5,14 +5,10 @@ from .config import SHARED_CONFIG
 from .time import ONE_YEAR_IN_MS
 from .typing import HTTPFrameworkRequest, HTTPFrameworkResponse
 
-EAVE_COOKIE_PREFIX = "eave."
+EAVE_COOKIE_PREFIX = "eavedash."
 EAVE_AUTH_COOKIE_PREFIX = f"{EAVE_COOKIE_PREFIX}auth."
 EAVE_OAUTH_COOKIE_PREFIX = f"{EAVE_COOKIE_PREFIX}oauth."
 EAVE_EMBED_COOKIE_PREFIX = f"{EAVE_COOKIE_PREFIX}embed."
-
-# DON'T RENAME THESE, they are referenced in GTM by name. Changing them will break tracking.
-EAVE_COOKIE_PREFIX_UTM = f"{EAVE_COOKIE_PREFIX}utm_"
-EAVE_VISITOR_ID_COOKIE_NAME = f"{EAVE_COOKIE_PREFIX}visitor_id"
 
 EAVE_ACCOUNT_ID_COOKIE_NAME = f"{EAVE_AUTH_COOKIE_PREFIX}account_id"
 EAVE_ACCESS_TOKEN_COOKIE_NAME = f"{EAVE_AUTH_COOKIE_PREFIX}access_token"
@@ -38,7 +34,7 @@ def delete_cookies_with_prefix(
     httponly: bool | None = None,
     samesite: Literal["lax", "strict", "none"] | None = None,
 ) -> None:
-    for name, value in get_cookies_with_prefix(request=request, prefix=prefix).items():
+    for name, _ in get_cookies_with_prefix(request=request, prefix=prefix).items():
         delete_http_cookie(
             response=response,
             key=name,

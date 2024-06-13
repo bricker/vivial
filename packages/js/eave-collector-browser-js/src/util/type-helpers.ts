@@ -25,7 +25,7 @@ export function castNodeToHtmlElement(node: Node): HTMLElement | null {
 /**
  * Helper for typechecking
  */
-export function castEventTargetToHtmlElement(target: EventTarget): HTMLElement | null {
+export function castEventTargetToHtmlElement<T extends HTMLElement>(target: EventTarget): T | null {
   if (!target) {
     return null;
   }
@@ -35,7 +35,7 @@ export function castEventTargetToHtmlElement(target: EventTarget): HTMLElement |
   if (node.nodeType === Node.ELEMENT_NODE) {
     // We're given an EventTarget, which is an interface implemented by many things, commonly Window or Node.
     // If this function is being called, then the caller should be pretty sure that the event target is an HTMLElement.
-    const element = node as HTMLElement;
+    const element = node as T;
     return element;
   } else {
     return null;

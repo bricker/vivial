@@ -20,8 +20,8 @@ from eave.collectors.core.base_database_collector import (
     is_user_table,
     save_identification_data,
 )
-from eave.collectors.core.correlation_context import corr_ctx
-from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure
+from eave.collectors.core.correlation_context import CORR_CTX
+from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
 from eave.collectors.core.write_queue import WriteQueue
 
 type SupportedEngine = sqlalchemy.Engine | AsyncEngine
@@ -143,13 +143,12 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
 
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
-                        db_structure=DatabaseStructure.SQL,
                         operation=DatabaseOperation.SELECT,
                         db_name=conn.engine.url.database,
                         statement=compiled_clause.string,
                         table_name=tablename,
-                        parameters=statement_params,
-                        context=corr_ctx.to_dict(),
+                        statement_values=statement_params,
+                        corr_ctx=CORR_CTX.to_dict(),
                     )
 
                     self.write_queue.put(record)
@@ -174,13 +173,12 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
 
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
-                        db_structure=DatabaseStructure.SQL,
                         operation=DatabaseOperation.INSERT,
                         db_name=conn.engine.url.database,
                         statement=clauseelement.compile().string,
                         table_name=tablename,
-                        parameters=rparam,
-                        context=corr_ctx.to_dict(),
+                        statement_values=rparam,
+                        corr_ctx=CORR_CTX.to_dict(),
                     )
 
                     self.write_queue.put(record)
@@ -191,13 +189,12 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
 
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
-                        db_structure=DatabaseStructure.SQL,
                         operation=DatabaseOperation.UPDATE,
                         db_name=conn.engine.url.database,
                         statement=clauseelement.compile().string,
                         table_name=tablename,
-                        parameters=rparam,
-                        context=corr_ctx.to_dict(),
+                        statement_values=rparam,
+                        corr_ctx=CORR_CTX.to_dict(),
                     )
 
                     self.write_queue.put(record)
@@ -206,13 +203,12 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                 for idx, rparam in enumerate(rparams):
                     record = DatabaseEventPayload(
                         timestamp=time.time(),
-                        db_structure=DatabaseStructure.SQL,
                         operation=DatabaseOperation.DELETE,
                         db_name=conn.engine.url.database,
                         statement=clauseelement.compile().string,
                         table_name=tablename,
-                        parameters=rparam,
-                        context=corr_ctx.to_dict(),
+                        statement_values=rparam,
+                        corr_ctx=CORR_CTX.to_dict(),
                     )
 
                     self.write_queue.put(record)

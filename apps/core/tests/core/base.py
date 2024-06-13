@@ -6,6 +6,7 @@ from typing import Any, Protocol, TypeVar
 from uuid import UUID
 
 import aiohttp
+from google.cloud.bigquery import SchemaField
 import pydantic
 import sqlalchemy
 import sqlalchemy.orm
@@ -221,8 +222,6 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         account = await AccountOrm.create(
             session=session,
             team_id=team_id,
-            visitor_id=self.anyuuid(),
-            opaque_utm_params=self.anydict(deterministic_keys=True),
             auth_provider=auth_provider or AuthProvider.google,
             auth_id=auth_id or self.anystr(),
             access_token=access_token or self.anystr(),
@@ -238,3 +237,12 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
     async def get_eave_team(self, session: AsyncSession, /, id: UUID) -> TeamOrm | None:
         acct = await TeamOrm.one_or_none(session=session, team_id=id)
         return acct
+
+
+def assert_schemas_match(a: tuple[SchemaField, ...], b: tuple[SchemaField, ...]) -> None:
+    for idx, fielda in enumerate(a):
+        fieldb = b[idx]
+        assert fieldb.name == fielda.name
+        assert fieldb.field_type == fielda.field_type
+        assert fieldb.mode == fielda.mode
+        assert_schemas_match(fielda.fields, fieldb.fields)

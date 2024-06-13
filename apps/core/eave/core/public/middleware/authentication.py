@@ -32,31 +32,23 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
         ctx: LogContext,
         continue_request: Callable[[], Awaitable[None]],
     ) -> None:
-        # Auth can come from either:
-        # 1. Headers: Authorization, eave-account-id
-        # 2. Cookies: ev_access_token, ev_account_id
+        # Auth can come from either Headers or Cookies:
         # Any mix is acceptable. Headers take precedence over Cookies.
-        auth_cookies = get_auth_cookies(cookies=request.cookies)
 
         account_id_header = eave.stdlib.api_util.get_header_value(
             scope=scope, name=eave.stdlib.headers.EAVE_ACCOUNT_ID_HEADER
         )
-
-        if account_id_header is None:
-            account_id_header = auth_cookies.account_id
-
         access_token_header = get_bearer_token(scope=scope)
+        auth_cookies = get_auth_cookies(cookies=request.cookies)
 
-        if access_token_header is None:
-            access_token_header = auth_cookies.access_token
+        account_id = account_id_header or auth_cookies.account_id
+        access_token = access_token_header or auth_cookies.access_token
 
         try:
-            if account_id_header is None or access_token_header is None:
+            if account_id is None or access_token is None:
                 raise UnauthorizedError("missing auth")
 
-            account = await self._verify_auth(
-                account_id_header=account_id_header, access_token=access_token_header, ctx=ctx
-            )
+            account = await self._verify_auth(account_id=account_id, access_token=access_token, ctx=ctx)
             ctx.eave_authed_account_id = str(account.id)
             ctx.eave_authed_team_id = str(account.team_id)
 
@@ -70,6 +62,12 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
                 await send(event)
                 return
 
+            # 1. Get the headers
+            # 1. Create a dummy Response object
+            # 1. Set the cookie header on the dummy Response
+            # 1. Get the new headers from the dummy Response
+            # 1. Set the new headers on the SendEvent
+            # We do this so that we can use the `Response.set_cookie` method, which handles formatting the Set-Cookie header.
             headers = MutableHeaders(raw=list(event["headers"]))
             response = Response(headers=headers)
 
@@ -84,15 +82,15 @@ class AuthASGIMiddleware(EaveASGIMiddleware):
             event["headers"] = response.headers.raw
             await send(event)
 
-        sendfunc = _send_with_auth_cookie if account.access_token != access_token_header else send
+        sendfunc = _send_with_auth_cookie if access_token != account.access_token else send
         await self.app(scope, receive, sendfunc)
 
-    async def _verify_auth(self, account_id_header: str, access_token: str, ctx: LogContext) -> AccountOrm:
+    async def _verify_auth(self, account_id: str, access_token: str, ctx: LogContext) -> AccountOrm:
         async with eave.core.internal.database.async_session.begin() as db_session:
             eave_account = await AccountOrm.one_or_none(
                 session=db_session,
                 params=AccountOrm.QueryParams(
-                    id=ensure_uuid(account_id_header),
+                    id=ensure_uuid(account_id),
                     access_token=access_token,
                 ),
             )

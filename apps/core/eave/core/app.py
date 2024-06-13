@@ -17,7 +17,7 @@ from eave.stdlib import cache, logging
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.core_api.operations.account import GetMyAccountRequest
 from eave.stdlib.core_api.operations.team import GetMyTeamRequest
-from eave.stdlib.core_api.operations.virtual_event import GetMyVirtualEventsRequest
+from eave.stdlib.core_api.operations.virtual_event import GetMyVirtualEventDetailsRequest, ListMyVirtualEventsRequest
 from eave.stdlib.middleware.deny_public_request import DenyPublicRequestASGIMiddleware
 from eave.stdlib.middleware.exception_handling import ExceptionHandlingASGIMiddleware
 from eave.stdlib.middleware.logging import LoggingASGIMiddleware
@@ -271,20 +271,21 @@ routes = [
         ),
         endpoint=noop.NoopEndpoint,
     ),
-    ##
-    ## Internal Endpoints
-    ##
     make_route(
         config=GetMyTeamRequest.config,
-        endpoint=team.GetTeamEndpoint,
+        endpoint=team.GetMyTeamEndpoint,
     ),
     make_route(
-        config=GetMyVirtualEventsRequest.config,
-        endpoint=virtual_event.GetVirtualEventsEndpoint,
+        config=ListMyVirtualEventsRequest.config,
+        endpoint=virtual_event.ListMyVirtualEventsEndpoint,
+    ),
+    make_route(
+        config=GetMyVirtualEventDetailsRequest.config,
+        endpoint=virtual_event.GetMyVirtualEventDetailsEndpoint,
     ),
     make_route(
         config=GetMyAccountRequest.config,
-        endpoint=authed_account.GetAccountEndpoint,
+        endpoint=authed_account.GetMyAccountEndpoint,
     ),
 ]
 

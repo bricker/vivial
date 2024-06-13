@@ -1,11 +1,9 @@
 from dataclasses import dataclass
 from enum import StrEnum
 
-from google.cloud.bigquery import SchemaField
+from google.cloud.bigquery import SchemaField, Table
 
-from eave.core.internal.orm.team import TeamOrm
-from eave.stdlib.logging import LogContext
-from eave.stdlib.typing import JsonObject
+from eave.core.internal.orm.team import TeamOrm, bq_dataset_id
 
 from ..lib import bq_client
 
@@ -20,9 +18,12 @@ class BigQueryFieldMode(StrEnum):
 class BigQueryTableDefinition:
     table_id: str
     schema: tuple[SchemaField, ...]
+    friendly_name: str
+    description: str
 
 
 class BigQueryTableHandle:
+    dataset_id: str
     table_def: BigQueryTableDefinition
     team: TeamOrm
     _bq_client: bq_client.BigQueryClient
@@ -33,5 +34,16 @@ class BigQueryTableHandle:
         """
         self._bq_client = bq_client.EAVE_INTERNAL_BIGQUERY_CLIENT
         self.team = team
+        self.dataset_id = bq_dataset_id(team.id)
+        self.bq_table = self.construct_bq_table()
 
-    async def insert(self, events: list[JsonObject], ctx: LogContext) -> None: ...
+    def construct_bq_table(self) -> Table:
+        # Although the returned Table is always the same,
+        # I've chosen to make this a separate function instead of a static instance property
+        # because the returned Table is mutable.
+
+        table = self._bq_client.construct_table(dataset_id=self.dataset_id, table_id=self.table_def.table_id)
+        table.description = self.table_def.description
+        table.friendly_name = self.table_def.friendly_name
+        table.schema = self.table_def.schema
+        return table

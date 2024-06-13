@@ -1,8 +1,5 @@
 [tool.pytest.ini_options]
 addopts = "--capture=no"
-filterwarnings = [
-  "ignore::DeprecationWarning"
-]
 pythonpath = [
   "../../../apps/core",
   "../../../apps/dashboard",

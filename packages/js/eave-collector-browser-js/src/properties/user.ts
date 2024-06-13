@@ -1,29 +1,28 @@
 import { isCookieConsentRevoked } from "../consent";
-import { COOKIE_NAME_PREFIX, MAX_ALLOWED_COOKIE_AGE_SEC, getEaveCookie, setEaveCookie } from "../cookies";
-import { UserProperties } from "../types";
+import { COOKIE_NAME_PREFIX, MAX_ALLOWED_COOKIE_AGE_SEC, getCookie, setCookie } from "../cookies";
 import { uuidv4 } from "../util/uuid";
 
-const USER_ID_COOKIE_NAME = `${COOKIE_NAME_PREFIX}user_id`;
+const ACCOUNT_ID_COOKIE_NAME = `${COOKIE_NAME_PREFIX}account_id`;
 const VISITOR_ID_COOKIE_NAME = `${COOKIE_NAME_PREFIX}visitor_id`;
 
-function getUserId(): string | null {
-  return getEaveCookie(USER_ID_COOKIE_NAME);
+function getAccountId(): string | null {
+  return getCookie(ACCOUNT_ID_COOKIE_NAME);
 }
 
-function setUserId(value: string) {
+function setAccountId(value: string) {
   if (isCookieConsentRevoked()) {
     return;
   }
 
-  setEaveCookie({
-    name: USER_ID_COOKIE_NAME,
+  setCookie({
+    name: ACCOUNT_ID_COOKIE_NAME,
     value,
     maxAgeSeconds: MAX_ALLOWED_COOKIE_AGE_SEC,
   });
 }
 
 function getVisitorId(): string | null {
-  return getEaveCookie(VISITOR_ID_COOKIE_NAME);
+  return getCookie(VISITOR_ID_COOKIE_NAME);
 }
 
 function setVisitorId(value: string) {
@@ -31,33 +30,26 @@ function setVisitorId(value: string) {
     return;
   }
 
-  setEaveCookie({
+  setCookie({
     name: VISITOR_ID_COOKIE_NAME,
     value: value,
     maxAgeSeconds: MAX_ALLOWED_COOKIE_AGE_SEC,
   });
 }
 
-export function getUserProperties(): UserProperties {
-  return {
-    id: getUserId(),
-    visitor_id: getVisitorId(),
-  };
-}
+// export function getUserProperties(): UserProperties {
+//   return {
+//     account_id: getAccountId(),
+//     visitor_id: getVisitorId(),
+//   };
+// }
 
-function setOrRefreshUserCookies() {
-  const userId = getUserId();
-  if (userId) {
-    setUserId(userId);
+export function setOrTouchUserCookies() {
+  const accountId = getAccountId();
+  if (accountId) {
+    setAccountId(accountId);
   }
 
   const visitorId = getVisitorId() || uuidv4();
   setVisitorId(visitorId);
-}
-
-/**
- * Register event listeners. Call this only once, when the page loads.
- */
-export function initializeUserModule() {
-  setOrRefreshUserCookies();
 }

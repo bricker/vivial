@@ -4,7 +4,7 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-cd "$(^parentpath)"
+cd "$(e.parentpath)"
 
 "${EAVE_HOME}"/develop/python/_setup_base
 

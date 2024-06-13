@@ -13,11 +13,3 @@ class AuthProvider(enum.StrEnum):
 class AuthenticatedAccount(BaseResponseModel):
     auth_provider: AuthProvider
     email: str | None
-
-
-class AnalyticsAccount(BaseResponseModel):
-    id: uuid.UUID
-    auth_provider: AuthProvider
-    visitor_id: uuid.UUID | None
-    team_id: uuid.UUID
-    opaque_utm_params: Mapping[str, Any] | None

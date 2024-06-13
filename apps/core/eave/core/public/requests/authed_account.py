@@ -15,7 +15,7 @@ from eave.stdlib.logging import LogContext
 from eave.stdlib.util import ensure_uuid
 
 
-class GetAccountEndpoint(HTTPEndpoint):
+class GetMyAccountEndpoint(HTTPEndpoint):
     async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
         async with eave.core.internal.database.async_session.begin() as db_session:
             eave_account_orm = await AccountOrm.one_or_exception(

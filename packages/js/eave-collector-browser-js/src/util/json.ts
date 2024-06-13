@@ -1,7 +1,7 @@
-import { eaveLogger } from "../logging";
-import { JSONValue } from "../types";
+import { LOG_TAG } from "../internal/constants";
+import { JsonValue } from "../types";
 
-export function safeJSONParse<T extends JSONValue>(value: string | null): T | null {
+export function safeJSONParse<T extends JsonValue>(value: string | null): T | null {
   if (value === null) {
     return null;
   }
@@ -9,11 +9,11 @@ export function safeJSONParse<T extends JSONValue>(value: string | null): T | nu
   try {
     return JSON.parse(value);
   } catch (e) {
-    eaveLogger.error(e);
+    console.error(LOG_TAG, e);
     return null;
   }
 }
 
-export function compactJSONStringify(json: JSONValue): string {
+export function compactJSONStringify(json: JsonValue): string {
   return JSON.stringify(json, undefined, 0); // 0 is default; being explicit because cookie size is important
 }

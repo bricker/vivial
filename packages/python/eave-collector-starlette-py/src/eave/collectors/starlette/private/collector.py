@@ -28,7 +28,7 @@ from starlette.requests import Request
 
 # from starlette.routing import Match
 from eave.collectors.core.base_collector import BaseCollector
-from eave.collectors.core.correlation_context import corr_ctx
+from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import HttpServerEventPayload
 from eave.collectors.core.write_queue import WriteQueue
 
@@ -209,7 +209,7 @@ class EaveASGIMiddleware:
             request = Request(scope=scope, receive=receive)
 
             # init ctx
-            corr_ctx.from_cookies(request.cookies)
+            CORR_CTX.from_cookies(request.cookies)
 
             # event collection
             # NOTE: this removes ability for further middleware/processing to request streaming by consuming the body
@@ -252,7 +252,7 @@ class EaveASGIMiddleware:
                     request_url=req_url,
                     request_headers=dict(request.headers.items()),
                     request_payload=str(req_body),
-                    context=corr_ctx.to_dict(),
+                    corr_ctx=CORR_CTX.to_dict(),
                 )
             )
 
@@ -271,7 +271,7 @@ class EaveASGIMiddleware:
                     # save current headers for event
                     headers_ref[0] = dict(headers.items())
                     # add our eave ctx cookie to the response
-                    for cookie in corr_ctx.get_updated_values_cookies():
+                    for cookie in CORR_CTX.get_updated_values_cookies():
                         headers.append("Set-Cookie", cookie)
                 elif message["type"] == "http.response.body":
                     resp_body = None
@@ -287,11 +287,11 @@ class EaveASGIMiddleware:
                             request_url=req_url,
                             request_headers=headers_ref[0],
                             request_payload=str(resp_body),
-                            context=corr_ctx.to_dict(),
+                            corr_ctx=CORR_CTX.to_dict(),
                         )
                     )
                     # destroy ctx now that we're done with it
-                    corr_ctx.clear()
+                    CORR_CTX.clear()
                 await send(message)
 
             await self.app(scope, receive, response_interceptor)

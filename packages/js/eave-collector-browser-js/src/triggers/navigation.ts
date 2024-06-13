@@ -1,18 +1,16 @@
 import { requestManager } from "../beacon";
-import { HASHCHANGE_EVENT_TYPE, POPSTATE_EVENT_TYPE, dispatchTriggerNotification } from "../internal/js-events";
-import { eaveLogger } from "../logging";
+import { LOG_TAG } from "../internal/constants";
+import { currentTimestampSeconds } from "../util/timestamp.js";
 
 const NAVIGATION_ACTION_NAME = "navigation";
 
 export async function trackPageLoad() {
-  const timestamp = Date.now();
+  const timestamp = currentTimestampSeconds();
 
   const payload = await requestManager.buildPayload({
-    event: {
-      action: NAVIGATION_ACTION_NAME,
-      timestamp: timestamp / 1000,
-      target: null,
-    },
+    action: NAVIGATION_ACTION_NAME,
+    timestamp,
+    target: null,
     extra: {
       reason: "pageload",
     },
@@ -21,36 +19,30 @@ export async function trackPageLoad() {
   requestManager.queueEvent(payload);
 }
 
-async function trackHashChange(event: HashChangeEvent) {
-  const timestamp = Date.now();
+export async function hashChangeEventHandler(evt: Event) {
+  const timestamp = currentTimestampSeconds();
 
   const payload = await requestManager.buildPayload({
-    event: {
-      action: NAVIGATION_ACTION_NAME,
-      timestamp: timestamp / 1000,
-      target: null,
-      origin_elapsed_ms: event.timeStamp,
-    },
+    action: NAVIGATION_ACTION_NAME,
+    timestamp,
+    target: null,
     extra: {
-      reason: event.type,
+      reason: evt.type,
     },
   });
 
   requestManager.queueEvent(payload);
 }
 
-async function trackPopState(event: PopStateEvent) {
-  const timestamp = Date.now();
+export async function popStateEventHandler(evt: PopStateEvent) {
+  const timestamp = currentTimestampSeconds();
 
   const payload = await requestManager.buildPayload({
-    event: {
-      action: NAVIGATION_ACTION_NAME,
-      timestamp: timestamp / 1000,
-      target: null,
-      origin_elapsed_ms: event.timeStamp,
-    },
+    action: NAVIGATION_ACTION_NAME,
+    timestamp,
+    target: null,
     extra: {
-      reason: event.type,
+      reason: evt.type,
     },
   });
 
@@ -61,18 +53,16 @@ async function trackPopState(event: PopStateEvent) {
  * @param state - The `state` parameter given to history.pushState/replaceState. Any serializable object.
  */
 async function trackNavigationStateChange(state: any, url?: URL | string | null) {
-  const timestamp = Date.now();
+  const timestamp = currentTimestampSeconds();
 
   const payload = await requestManager.buildPayload({
-    event: {
-      action: NAVIGATION_ACTION_NAME,
-      timestamp: timestamp / 1000,
-      target: null,
-    },
+    action: NAVIGATION_ACTION_NAME,
+    timestamp,
+    target: null,
     extra: {
       reason: "statechange",
       state,
-      url: url?.toString(),
+      url: url?.toString() || null,
     },
   });
 
@@ -114,7 +104,7 @@ async function trackNavigationStateChange(state: any, url?: URL | string | null)
  * Tracks route-change history for single page applications, since
  * normal page view events aren't triggered for navigation without a GET request.
  */
-function wrapNavigationStateChangeFunctions() {
+export function wrapNavigationStateChangeFunctions() {
   // h.trackCallbackOnReady(function () {
   //   const initialUrl = getCurrentUrl();
 
@@ -199,7 +189,7 @@ function wrapNavigationStateChangeFunctions() {
   window.history.pushState = function (state, unused, url) {
     // We use apply() here for the rare case where this function is called on a different object than is bound to `originalPushState`.
     const proxyValue = originalPushState.call(this, state, unused, url);
-    trackNavigationStateChange(state, url).catch((e) => eaveLogger.error(e));
+    trackNavigationStateChange(state, url).catch((e) => console.error(LOG_TAG, e));
     return proxyValue;
   };
 
@@ -207,37 +197,7 @@ function wrapNavigationStateChangeFunctions() {
   window.history.replaceState = function (state, unused, url) {
     // We use apply() here for the rare case where this function is called on a different object than is bound to `originalReplaceState`.
     const proxyValue = originalReplaceState.call(this, state, unused, url);
-    trackNavigationStateChange(state, url).catch((e) => eaveLogger.error(e));
+    trackNavigationStateChange(state, url).catch((e) => console.error(LOG_TAG, e));
     return proxyValue;
   };
-}
-
-let initialized = false;
-
-export function enableNavigationTracking() {
-  eaveLogger.debug("Enabling navigation tracking.");
-
-  if (!initialized) {
-    wrapNavigationStateChangeFunctions();
-
-    // This ensures that the handler isn't added more than once.
-    // Although addEventListener won't add the same function object twice,
-    // it's easy to accidentally add duplicate handlers by passing an anonymous function (eg arrow function).
-    window.addEventListener(HASHCHANGE_EVENT_TYPE, trackHashChange, {
-      capture: true,
-      passive: true,
-    });
-    window.addEventListener(HASHCHANGE_EVENT_TYPE, dispatchTriggerNotification, { capture: true, passive: true });
-
-    window.addEventListener(POPSTATE_EVENT_TYPE, trackPopState, {
-      capture: true,
-      passive: true,
-    });
-    window.addEventListener(POPSTATE_EVENT_TYPE, dispatchTriggerNotification, {
-      capture: true,
-      passive: true,
-    });
-  }
-
-  initialized = true;
 }

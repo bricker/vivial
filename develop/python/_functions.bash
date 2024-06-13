@@ -11,7 +11,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 	}
 
 	function python-activate-venv() {
-		if ! ^ci; then
+		if ! e.ci; then
 			local ved="${EAVE_HOME}/.venv"
 			if ! test -d "$ved"; then
 				statusmsg -e "Python virtualenv not installed in $EAVE_HOME. Run $EAVE_HOME/bin/setup to create it."
@@ -33,7 +33,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		cd "$target" || exit 1
 		local logtarget
-		logtarget=$(^eavepwd)
+		logtarget=$(e.pwd)
 
 		local verboseflag=""
 		if verbose; then
@@ -59,7 +59,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 
 		cd "$target" || exit 1
 		local logtarget
-		logtarget=$(^eavepwd)
+		logtarget=$(e.pwd)
 
 		local verboseflag=""
 		if verbose; then
@@ -83,16 +83,17 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		local target=$1
 		local testfile=${2:-.}
 		local exitfirst=""
-		if ^ci; then
+		if e.ci; then
 			exitfirst="--exitfirst"
 		fi
 
 		cd "$target" || exit 1
-		# run-with-dotenv python -m coverage run --rcfile=$configfile -m pytest -c=$configfile $target
+		# e.run-with-dotenv python -m coverage run --rcfile=$configfile -m pytest -c=$configfile $target
 		# python -m coverage lcov --rcfile=$configfile
 		python -m pytest \
 			--cov \
-			--cov-report=xml \
+			--cov-report=html \
+			--cov-context=test \
 			--cov-config="${EAVE_HOME}/develop/python/configs/coverage.toml" \
 			--config-file="${EAVE_HOME}/develop/python/configs/pytest.pyproject.toml" \
 			--rootdir="${EAVE_HOME}" $exitfirst "$testfile"
