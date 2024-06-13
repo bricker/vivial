@@ -177,7 +177,9 @@ class TestAuthenticationMiddlewareRequiredValidRequest(TestAuthenticationMiddlew
 
         self._assert_valid_account_response(response)
 
-        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) is None # Cookie isn't set when token isn't refreshed.
+        assert (
+            response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) is None
+        )  # Cookie isn't set when token isn't refreshed.
         assert eave_account.access_token == access_token_before
 
     async def test_access_token_refreshed(self) -> None:

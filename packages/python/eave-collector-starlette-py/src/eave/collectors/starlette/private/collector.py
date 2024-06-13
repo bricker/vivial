@@ -19,8 +19,6 @@ import urllib.parse
 from collections.abc import Callable
 from functools import wraps
 
-# from timeit import default_timer
-from eave.collectors.core.logging import EAVE_LOGGER
 import starlette.types
 from asgiref.compatibility import guarantee_single_callable
 from starlette import applications
@@ -31,6 +29,9 @@ from starlette.requests import Request
 from eave.collectors.core.base_collector import BaseCollector
 from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import HttpServerEventPayload
+
+# from timeit import default_timer
+from eave.collectors.core.logging import EAVE_LOGGER
 from eave.collectors.core.write_queue import WriteQueue
 
 # class ASGIGetter:
@@ -298,7 +299,7 @@ class EaveASGIMiddleware:
 
                 await send(message)
 
-            # Then overwrite ASGI receive messages to set the body for all downstream request handlers.
+            # Overwrite ASGI receive messages to set the body for all downstream request handlers.
             async def receive_interceptor() -> starlette.types.Message:
                 # FIXME: This disregards any other event type (eg http.disconnect)
                 # To fix this, this interceptor function should check the type of the original receive event,

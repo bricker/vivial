@@ -1,28 +1,23 @@
-from http import HTTPStatus
 import json
 
 from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_COOKIE_PREFIX
-from eave.stdlib.logging import LogContext
-import google.oauth2.credentials
-from aiohttp.hdrs import AUTHORIZATION
-from httpx import Response
-
-from eave.core.internal.atoms.api_types import BrowserAction, BrowserEventPayload, CorrelationContext, CurrentPageProperties, DeviceBrandProperties, DeviceProperties, SessionProperties, TargetProperties, TrafficSourceProperties
-from eave.core.internal.atoms.browser_events import BrowserEventsTableHandle
-from eave.core.internal.atoms.record_fields import GeoRecordField
-from eave.core.internal.oauth.google import GoogleOAuthV2GetResponse
-from eave.core.internal.orm.account import AccountOrm
-from eave.stdlib.auth_cookies import (
-    EAVE_ACCESS_TOKEN_COOKIE_NAME,
-    EAVE_ACCOUNT_ID_COOKIE_NAME,
+from eave.core.internal.atoms.api_types import (
+    BrowserAction,
+    BrowserEventPayload,
+    CorrelationContext,
+    CurrentPageProperties,
+    DeviceBrandProperties,
+    DeviceProperties,
+    SessionProperties,
+    TargetProperties,
+    TrafficSourceProperties,
 )
-from eave.stdlib.core_api.models.account import AuthProvider
-from eave.stdlib.core_api.operations.account import GetMyAccountRequest
-from eave.stdlib.headers import EAVE_ACCOUNT_ID_HEADER
+from eave.stdlib.logging import LogContext
 
 from .base import BaseTestCase
 
 empty_ctx = LogContext()
+
 
 class TestAtomApiTypes(BaseTestCase):
     async def asyncSetUp(self) -> None:
@@ -33,11 +28,13 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.brand is None
         assert e.version is None
 
-        e = DeviceBrandProperties.from_api_payload({
-            "brand": self.anystr("device_brand.brand"),
-            "version": self.anystr("device_brand.version"),
-            self.anystr("unrecognized attribute"): self.anystr(),
-        })
+        e = DeviceBrandProperties.from_api_payload(
+            {
+                "brand": self.anystr("device_brand.brand"),
+                "version": self.anystr("device_brand.version"),
+                self.anystr("unrecognized attribute"): self.anystr(),
+            }
+        )
         assert e.brand == self.getstr("device_brand.brand")
         assert e.version == self.getstr("device_brand.version")
 
@@ -55,24 +52,28 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.screen_avail_width is None
         assert e.screen_avail_height is None
 
-        e = DeviceProperties.from_api_payload({
-            "user_agent": self.anystr("device.user_agent"),
-            "brands": [{
-                "brand": self.anystr("device.brands[0].brand"),
-                "version": self.anystr("device.brands[0].version"),
-                self.anystr("unrecognized attribute 1"): self.anystr(),
-            }],
-            "platform": self.anystr("device.platform"),
-            "mobile": self.anybool("device.mobile"),
-            "form_factor": self.anystr("device.form_factor"),
-            "model": self.anystr("device.model"),
-            "platform_version": self.anystr("device.platform_version"),
-            "screen_width": self.anyint("device.screen_width"),
-            "screen_height": self.anyint("device.screen_height"),
-            "screen_avail_width": self.anyint("device.screen_avail_width"),
-            "screen_avail_height": self.anyint("device.screen_avail_height"),
-            self.anystr("unrecognized attribute 2"): self.anystr(),
-        })
+        e = DeviceProperties.from_api_payload(
+            {
+                "user_agent": self.anystr("device.user_agent"),
+                "brands": [
+                    {
+                        "brand": self.anystr("device.brands[0].brand"),
+                        "version": self.anystr("device.brands[0].version"),
+                        self.anystr("unrecognized attribute 1"): self.anystr(),
+                    }
+                ],
+                "platform": self.anystr("device.platform"),
+                "mobile": self.anybool("device.mobile"),
+                "form_factor": self.anystr("device.form_factor"),
+                "model": self.anystr("device.model"),
+                "platform_version": self.anystr("device.platform_version"),
+                "screen_width": self.anyint("device.screen_width"),
+                "screen_height": self.anyint("device.screen_height"),
+                "screen_avail_width": self.anyint("device.screen_avail_width"),
+                "screen_avail_height": self.anyint("device.screen_avail_height"),
+                self.anystr("unrecognized attribute 2"): self.anystr(),
+            }
+        )
         assert e.user_agent == self.getstr("device.user_agent")
         assert e.brands is not None
         assert len(e.brands) == 1
@@ -88,19 +89,20 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.screen_avail_width == self.getint("device.screen_avail_width")
         assert e.screen_avail_height == self.getint("device.screen_avail_height")
 
-
     async def test_current_page_properties(self):
         e = CurrentPageProperties.from_api_payload({})
         assert e.url is None
         assert e.title is None
         assert e.pageview_id is None
 
-        e = CurrentPageProperties.from_api_payload({
-            "url": self.anyurl("current_page.url"),
-            "title": self.anystr("current_page.title"),
-            "pageview_id": self.anystr("current_page.pageview_id"),
-            self.anystr("unrecognized attribute"): self.anystr(),
-        })
+        e = CurrentPageProperties.from_api_payload(
+            {
+                "url": self.anyurl("current_page.url"),
+                "title": self.anystr("current_page.title"),
+                "pageview_id": self.anystr("current_page.pageview_id"),
+                self.anystr("unrecognized attribute"): self.anystr(),
+            }
+        )
         assert e.url == self.geturl("current_page.url")
         assert e.title == self.getstr("current_page.title")
         assert e.pageview_id == self.getstr("current_page.pageview_id")
@@ -110,11 +112,13 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.id is None
         assert e.start_timestamp is None
 
-        e = SessionProperties.from_api_payload({
-            "id": self.anystr("session.id"),
-            "start_timestamp": self.anytime("session.start_timestamp"),
-            self.anystr("unrecognized attribute"): self.anystr(),
-        })
+        e = SessionProperties.from_api_payload(
+            {
+                "id": self.anystr("session.id"),
+                "start_timestamp": self.anytime("session.start_timestamp"),
+                self.anystr("unrecognized attribute"): self.anystr(),
+            }
+        )
         assert e.id == self.getstr("session.id")
         assert e.start_timestamp == self.gettime("session.start_timestamp")
 
@@ -124,12 +128,14 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.browser_referrer is None
         assert e.tracking_params is None
 
-        e = TrafficSourceProperties.from_api_payload({
-            "timestamp": self.anytime("traffic_source.timestamp"),
-            "browser_referrer": self.anystr("traffic_source.browser_referrer"),
-            "tracking_params": self.anydict("traffic_source.tracking_params"),
-            self.anystr("unrecognized attribute"): self.anystr(),
-        })
+        e = TrafficSourceProperties.from_api_payload(
+            {
+                "timestamp": self.anytime("traffic_source.timestamp"),
+                "browser_referrer": self.anystr("traffic_source.browser_referrer"),
+                "tracking_params": self.anydict("traffic_source.tracking_params"),
+                self.anystr("unrecognized attribute"): self.anystr(),
+            }
+        )
         assert e.timestamp == self.gettime("traffic_source.timestamp")
         assert e.browser_referrer == self.getstr("traffic_source.browser_referrer")
         assert e.tracking_params == self.getdict("traffic_source.tracking_params")
@@ -141,13 +147,15 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.content is None
         assert e.attributes is None
 
-        e = TargetProperties.from_api_payload({
-            "type": self.anystr("target.type"),
-            "id": self.anystr("target.id"),
-            "content": self.anystr("target.content"),
-            "attributes": self.anydict("target.attributes"),
-            self.anystr("unrecognized attribute"): self.anystr(),
-        })
+        e = TargetProperties.from_api_payload(
+            {
+                "type": self.anystr("target.type"),
+                "id": self.anystr("target.id"),
+                "content": self.anystr("target.content"),
+                "attributes": self.anydict("target.attributes"),
+                self.anystr("unrecognized attribute"): self.anystr(),
+            }
+        )
         assert e.type == self.getstr("target.type")
         assert e.id == self.getstr("target.id")
         assert e.content == self.getstr("target.content")
@@ -160,19 +168,25 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.account_id is None
         assert e.visitor_id is None
 
-        e = CorrelationContext.from_api_payload({
-            f"{EAVE_COLLECTOR_COOKIE_PREFIX}session": json.dumps({
-                "id": self.anystr("corr_ctx.session.id"),
-                self.anystr("unrecognized attribute 1"): self.anystr(),
-            }),
-            f"{EAVE_COLLECTOR_COOKIE_PREFIX}traffic_source": json.dumps({
-                "browser_referrer": self.anystr("corr_ctx.traffic_source.browser_referrer"),
-                self.anystr("unrecognized attribute 2"): self.anystr(),
-            }),
-            f"{EAVE_COLLECTOR_COOKIE_PREFIX}account_id": self.anystr("corr_ctx.account_id"),
-            f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": self.anystr("corr_ctx.visitor_id"),
-            self.anystr("unrecognized attribute 3"): self.anystr(),
-        })
+        e = CorrelationContext.from_api_payload(
+            {
+                f"{EAVE_COLLECTOR_COOKIE_PREFIX}session": json.dumps(
+                    {
+                        "id": self.anystr("corr_ctx.session.id"),
+                        self.anystr("unrecognized attribute 1"): self.anystr(),
+                    }
+                ),
+                f"{EAVE_COLLECTOR_COOKIE_PREFIX}traffic_source": json.dumps(
+                    {
+                        "browser_referrer": self.anystr("corr_ctx.traffic_source.browser_referrer"),
+                        self.anystr("unrecognized attribute 2"): self.anystr(),
+                    }
+                ),
+                f"{EAVE_COLLECTOR_COOKIE_PREFIX}account_id": self.anystr("corr_ctx.account_id"),
+                f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": self.anystr("corr_ctx.visitor_id"),
+                self.anystr("unrecognized attribute 3"): self.anystr(),
+            }
+        )
         assert e.session is not None
         assert e.session.id == self.getstr("corr_ctx.session.id")
         assert e.traffic_source is not None
@@ -181,12 +195,14 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.visitor_id == self.getstr("corr_ctx.visitor_id")
 
         # test with JSON errors
-        e = CorrelationContext.from_api_payload({
-            f"{EAVE_COLLECTOR_COOKIE_PREFIX}session": self.anystr("bad json 1"),
-            f"{EAVE_COLLECTOR_COOKIE_PREFIX}traffic_source": self.anystr("bad json 2"),
-            f"{EAVE_COLLECTOR_COOKIE_PREFIX}account_id": self.anystr("corr_ctx.account_id 2"),
-            f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": self.anystr("corr_ctx.visitor_id 2"),
-        })
+        e = CorrelationContext.from_api_payload(
+            {
+                f"{EAVE_COLLECTOR_COOKIE_PREFIX}session": self.anystr("bad json 1"),
+                f"{EAVE_COLLECTOR_COOKIE_PREFIX}traffic_source": self.anystr("bad json 2"),
+                f"{EAVE_COLLECTOR_COOKIE_PREFIX}account_id": self.anystr("corr_ctx.account_id 2"),
+                f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": self.anystr("corr_ctx.visitor_id 2"),
+            }
+        )
         assert e.session is None
         assert e.traffic_source is None
         assert e.account_id == self.getstr("corr_ctx.account_id 2")
@@ -202,28 +218,30 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.extra is None
         assert e.corr_ctx is None
 
-        e = BrowserEventPayload.from_api_payload({
-            "action": BrowserAction.CLICK,
-            "timestamp": self.anytime("event.timestamp"),
-            "target": {
-                "id": self.anystr("event.target.id"),
-                self.anystr("unrecognized attribute 1"): self.anystr(),
-            },
-            "device": {
-                "user_agent": self.anystr("event.device.user_agent"),
-                self.anystr("unrecognized attribute 2"): self.anystr(),
-            },
-            "current_page": {
-                "url": self.anyurl("event.current_page.url"),
-                self.anystr("unrecognized attribute 3"): self.anystr(),
-            },
-            "extra": self.anydict("event.extra"),
-            "corr_ctx": {
-                f"{EAVE_COLLECTOR_COOKIE_PREFIX}account_id": self.anystr("event.corr_ctx.account_id"),
-                self.anystr("unrecognized attribute 4"): self.anystr(),
-            },
-            self.anystr("unrecognized attribute 5"): self.anystr(),
-        })
+        e = BrowserEventPayload.from_api_payload(
+            {
+                "action": BrowserAction.CLICK,
+                "timestamp": self.anytime("event.timestamp"),
+                "target": {
+                    "id": self.anystr("event.target.id"),
+                    self.anystr("unrecognized attribute 1"): self.anystr(),
+                },
+                "device": {
+                    "user_agent": self.anystr("event.device.user_agent"),
+                    self.anystr("unrecognized attribute 2"): self.anystr(),
+                },
+                "current_page": {
+                    "url": self.anyurl("event.current_page.url"),
+                    self.anystr("unrecognized attribute 3"): self.anystr(),
+                },
+                "extra": self.anydict("event.extra"),
+                "corr_ctx": {
+                    f"{EAVE_COLLECTOR_COOKIE_PREFIX}account_id": self.anystr("event.corr_ctx.account_id"),
+                    self.anystr("unrecognized attribute 4"): self.anystr(),
+                },
+                self.anystr("unrecognized attribute 5"): self.anystr(),
+            }
+        )
         assert e.action == BrowserAction.CLICK
         assert e.timestamp == self.gettime("event.timestamp")
         assert e.target is not None
@@ -237,7 +255,9 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.corr_ctx.account_id == self.getstr("event.corr_ctx.account_id")
 
         # invalid action
-        e = BrowserEventPayload.from_api_payload({
-            "action": self.anystr("invalid action"),
-        })
+        e = BrowserEventPayload.from_api_payload(
+            {
+                "action": self.anystr("invalid action"),
+            }
+        )
         assert e.action is None

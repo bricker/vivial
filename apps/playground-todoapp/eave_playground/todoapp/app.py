@@ -5,7 +5,6 @@ from collections.abc import AsyncGenerator
 from http import HTTPStatus
 from uuid import UUID
 
-from eave.collectors.starlette import StarletteCollectorManager
 import google.cloud.logging
 from sqlalchemy import and_, delete, select, update
 from starlette.applications import Starlette
@@ -16,6 +15,7 @@ from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
 from eave.collectors.sqlalchemy import start_eave_sqlalchemy_collector, stop_eave_sqlalchemy_collector
+from eave.collectors.starlette import StarletteCollectorManager
 
 from .orm import TodoListItemOrm, UserOrm, async_engine, async_session
 

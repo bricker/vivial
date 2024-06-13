@@ -6,11 +6,11 @@ from typing import Any, Protocol, TypeVar
 from uuid import UUID
 
 import aiohttp
-from google.cloud.bigquery import SchemaField
 import pydantic
 import sqlalchemy
 import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
+from google.cloud.bigquery import SchemaField
 from httpx import AsyncClient, Response
 from sqlalchemy import literal_column, select, text
 from sqlalchemy.ext.asyncio import AsyncSession

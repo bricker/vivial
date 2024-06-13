@@ -49,7 +49,7 @@ def set_auth_cookies(
             value=str(account_id),
             secure=True,
             httponly=True,
-            samesite="none" # required for CORS-enabled cookies
+            samesite="none",  # required for CORS-enabled cookies
         )
 
     if access_token:
@@ -59,7 +59,7 @@ def set_auth_cookies(
             value=access_token,
             secure=True,
             httponly=True,
-            samesite="none", # required for CORS-enabled cookies
+            samesite="none",  # required for CORS-enabled cookies
         )
 
 
@@ -68,7 +68,7 @@ def delete_auth_cookies(request: HTTPFrameworkRequest, response: HTTPFrameworkRe
         request=request,
         response=response,
         prefix=EAVE_AUTH_COOKIE_PREFIX,
-        samesite="none", # required for CORS-enabled cookies
+        samesite="none",  # required for CORS-enabled cookies
     )
     delete_cookies_with_prefix(
         request=request,

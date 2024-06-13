@@ -1,5 +1,5 @@
 import { eaveState } from "../state";
-import { CurrentPageProperties, ScalarMap } from "../types";
+import { CurrentPageProperties } from "../types";
 
 export function getCurrentPageProperties(): CurrentPageProperties {
   return {
