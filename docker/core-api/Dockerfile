@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-ARG PYTHON_VERSION=3.12
+ARG PYTHON_VERSION=3.12.3
 ARG GAE_RELEASE_DATE="unknown"
 
 
