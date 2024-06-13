@@ -59,6 +59,7 @@ def web_app_endpoint(request: Request) -> Response:
 
     return response
 
+
 app = Starlette(
     routes=[
         Mount("/static", StaticFiles(directory="eave/dashboard/static")),

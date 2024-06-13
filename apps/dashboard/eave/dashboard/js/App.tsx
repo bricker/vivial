@@ -10,7 +10,6 @@ import { Dashboard, TabRevealer } from "./components/Pages/Dashboard";
 import AppContextProvider from "./context/Provider";
 import { theme } from "./theme";
 
-
 const App = () => {
   return (
     <CookiesProvider>
