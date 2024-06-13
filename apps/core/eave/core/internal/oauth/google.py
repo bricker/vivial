@@ -64,17 +64,28 @@ class GoogleOAuthV2GetResponse:
     https://googleapis.github.io/google-api-python-client/docs/dyn/oauth2_v2.userinfo.html#get
     """
 
-    email: str | None = None  # The user's email address.
-    family_name: str | None = None  # The user's last name.
-    gender: str | None = None  # The user's gender.
-    given_name: str | None = None  # The user's first name.
-    hd: str | None = None  # The hosted domain e.g. example.com if the user is Google apps user.
-    id: str | None = None  # The obfuscated ID of the user.
-    link: str | None = None  # URL of the profile page.
-    locale: str | None = None  # The user's preferred locale.
-    name: str | None = None  # The user's full name.
-    picture: str | None = None  # URL of the user's picture image.
-    verified_email: bool | None = None  # Boolean flag which is true if the email address is verified. Always verified because we only return the user's primary email address.
+    email: str | None = None
+    """The user's email address."""
+    family_name: str | None = None
+    """The user's last name."""
+    gender: str | None = None
+    """The user's gender."""
+    given_name: str | None = None
+    """The user's first name."""
+    hd: str | None = None
+    """The hosted domain e.g. example.com if the user is Google apps user."""
+    id: str | None = None
+    """The obfuscated ID of the user."""
+    link: str | None = None
+    """URL of the profile page."""
+    locale: str | None = None
+    """The user's preferred locale."""
+    name: str | None = None
+    """The user's full name."""
+    picture: str | None = None
+    """URL of the user's picture image."""
+    verified_email: bool | None = None
+    """Boolean flag which is true if the email address is verified. Always verified because we only return the user's primary email address."""
 
 
 def get_userinfo(credentials: google.oauth2.credentials.Credentials) -> GoogleOAuthV2GetResponse:
