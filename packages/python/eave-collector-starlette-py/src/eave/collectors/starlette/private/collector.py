@@ -213,7 +213,8 @@ class EaveASGIMiddleware:
 
             # event collection
             # NOTE: this removes ability for further middleware/processing to request streaming by consuming the body
-            req_body = (await request.body()).decode("utf-8")
+            # TODO: Fix this, it causes hanging later when attempting to read the body.
+            # req_body = (await request.body()).decode("utf-8")
 
             server_host, port, http_url = get_host_port_url_tuple(scope)
             query_string = scope.get("query_string")
@@ -251,7 +252,7 @@ class EaveASGIMiddleware:
                     request_method=req_method,
                     request_url=req_url,
                     request_headers=dict(request.headers.items()),
-                    request_payload=str(req_body),
+                    request_payload=None, # FIXME
                     corr_ctx=CORR_CTX.to_dict(),
                 )
             )
@@ -274,24 +275,27 @@ class EaveASGIMiddleware:
                     for cookie in CORR_CTX.get_updated_values_cookies():
                         headers.append("Set-Cookie", cookie)
                 elif message["type"] == "http.response.body":
-                    resp_body = None
-                    try:
-                        # NOTE: if message["more_body"] == True, then we wont get the whole body here
-                        resp_body = message["body"].decode("utf-8")
-                    except UnicodeDecodeError:
-                        pass
-                    self.write_queue.put(
-                        HttpServerEventPayload(
-                            timestamp=time.time(),
-                            request_method=req_method,
-                            request_url=req_url,
-                            request_headers=headers_ref[0],
-                            request_payload=str(resp_body),
-                            corr_ctx=CORR_CTX.to_dict(),
-                        )
-                    )
-                    # destroy ctx now that we're done with it
-                    CORR_CTX.clear()
+                    # TODO: Do we need this?
+                    pass
+                    # TODO: Fix this, it needs to check for `more_body=True`
+                    # resp_body = None
+                    # try:
+                    #     resp_body = message["body"].decode("utf-8")
+                    # except UnicodeDecodeError:
+                    #     pass
+                    # self.write_queue.put(
+                    #     HttpServerEventPayload(
+                    #         timestamp=time.time(),
+                    #         request_method=req_method,
+                    #         request_url=req_url,
+                    #         request_headers=headers_ref[0],
+                    #         request_payload=str(resp_body),
+                    #         corr_ctx=CORR_CTX.to_dict(),
+                    #     )
+                    # )
+
+                # destroy ctx now that we're done with it
+                CORR_CTX.clear()
                 await send(message)
 
             await self.app(scope, receive, response_interceptor)

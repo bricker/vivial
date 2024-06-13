@@ -5,6 +5,7 @@ from collections.abc import AsyncGenerator
 from http import HTTPStatus
 from uuid import UUID
 
+from eave.collectors.starlette import StarletteCollectorManager
 import google.cloud.logging
 from sqlalchemy import and_, delete, select, update
 from starlette.applications import Starlette
@@ -181,4 +182,4 @@ app = Starlette(
     lifespan=lifespan,
 )
 
-# StarletteCollectorManager.start(app)
+StarletteCollectorManager.start(app)
