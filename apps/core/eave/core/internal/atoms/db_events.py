@@ -237,7 +237,7 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
                     name="event_name",
                     description=f"A readable name for this event. Always '{vevent_readable_name}'.",
                     field_type=SqlTypeNames.STRING,
-                    mode=BigQueryFieldMode.REQUIRED,
+                    mode=BigQueryFieldMode.NULLABLE,
                 ),
                 common_event_timestamp_field(),
                 UserRecordField.schema(),
