@@ -80,6 +80,8 @@ const Dashboard = () => {
     [classes.desktopContainer]: !usingMobileLayout,
   });
 
+  const initialLocation = window.location.pathname;
+
   if (!userIsAuthed) {
     return (
       <div className={container}>
@@ -92,7 +94,12 @@ const Dashboard = () => {
     return (
       <>
         {Object.entries(tabs).map(([key, component]) => (
-          <div id={key} key={key} className={container}>
+          <div
+            id={key}
+            key={key}
+            className={container}
+            style={{ visibility: `/${key}` === initialLocation ? "visible" : "hidden" }}
+          >
             <TabbedNav />
             {component}
           </div>
