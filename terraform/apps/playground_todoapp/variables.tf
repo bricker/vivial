@@ -10,10 +10,6 @@ variable "release_version" {
   type = string
 }
 
-variable "release_date" {
-  type = string
-}
-
 variable "shared_config_map_name" {
   type = string
 }

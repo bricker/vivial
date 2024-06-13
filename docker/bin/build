@@ -43,12 +43,14 @@ function build() (
 	local gcloudproject; gcloudproject="$(e.gcloudproject)"
 	local gitsha; gitsha="$(git rev-parse --short HEAD)"
 	local imagename="us-central1-docker.pkg.dev/${gcloudproject}/docker/${_dirname}"
+	local release_date; release_date=$(date --utc)
 
 	docker build \
 		--no-cache \
 		-t "$imagename:latest" \
 		-t "$imagename:$gitsha" \
 		-f "$EAVE_HOME/docker/${_dirname}/Dockerfile" \
+		--build-arg GAE_RELEASE_DATE="$release_date" \
 		"$EAVE_HOME"
 
 	if $_dopush; then

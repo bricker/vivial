@@ -17,7 +17,6 @@ module "core_api_app" {
 
   LOG_LEVEL = "DEBUG"
 
-  release_date    = "unknown"
   release_version = "latest"
 
   EAVE_CREDENTIALS = var.INTERNAL_EAVE_CREDENTIALS
@@ -39,7 +38,6 @@ module "playground_todoapp" {
 
   LOG_LEVEL = "DEBUG"
 
-  release_date    = "unknown"
   release_version = "latest"
 
   EAVE_CREDENTIALS = var.PLAYGROUND_TODOAPP_EAVE_CREDENTIALS
@@ -60,7 +58,6 @@ module "dashboard_app" {
 
   LOG_LEVEL = "DEBUG"
 
-  release_date    = "unknown"
   release_version = "latest"
 
   EAVE_CREDENTIALS = var.INTERNAL_EAVE_CREDENTIALS
