@@ -21,8 +21,7 @@ from eave.stdlib.typing import JsonScalar
 class RecordField(ABC):
     @staticmethod
     @abstractmethod
-    def schema(*args: Any, **kwargs: Any) -> SchemaField:
-        ...
+    def schema(*args: Any, **kwargs: Any) -> SchemaField: ...
 
 
 @dataclass(kw_only=True)

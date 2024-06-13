@@ -68,12 +68,10 @@ class BaseCorrelationContext(abc.ABC):
     """
 
     @abc.abstractmethod
-    def init_storage(self) -> None:
-        ...
+    def init_storage(self) -> None: ...
 
     @abc.abstractmethod
-    def get_storage(self) -> CorrCtxStorage | None:
-        ...
+    def get_storage(self) -> CorrCtxStorage | None: ...
 
     def get(self, key: str) -> str | None:
         """Get a value from either storage"""
