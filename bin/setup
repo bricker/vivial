@@ -19,62 +19,62 @@ fi
 
 source "${EAVE_HOME}/develop/functions.bash"
 
-kernel=$(get-kernel-name)
-opsys=$(get-os)
+kernel=$(e.get-kernel-name)
+opsys=$(e.get-os)
 tmpdir=/tmp/eave-setup
 mkdir -p $tmpdir
 
 function setenvvars() (
-	if ! ^force && test -n "$XDG_CONFIG_HOME"; then
+	if ! e.force && test -n "$XDG_CONFIG_HOME"; then
 		statusmsg -o "XDG_CONFIG_HOME already set."
 	else
 		local value="\$HOME/.config"
 		statusmsg -pa "Adding XDG_CONFIG_HOME=$value to your environment."
 		statusmsg -i "XDG_CONFIG_HOME is a standard environment variable that many programs use to store configuration."
-		if ^confirm; then
-			^add-shell-variable XDG_CONFIG_HOME "$value"
+		if e.confirm; then
+			e.add-shell-variable XDG_CONFIG_HOME "$value"
 		fi
 	fi
 
-	if ! ^force && test -n "$XDG_DATA_HOME"; then
+	if ! e.force && test -n "$XDG_DATA_HOME"; then
 		statusmsg -o "XDG_DATA_HOME already set."
 	else
 		local value="\$HOME/.local/share"
 		statusmsg -pa "Adding XDG_DATA_HOME=$value to your environment."
 		statusmsg -i "XDG_DATA_HOME is a standard environment variable that many programs use to store data."
-		if ^confirm; then
-			^add-shell-variable XDG_DATA_HOME "$value"
+		if e.confirm; then
+			e.add-shell-variable XDG_DATA_HOME "$value"
 		fi
 	fi
 
-	if ! ^force && test -n "$XDG_RUNTIME_DIR"; then
+	if ! e.force && test -n "$XDG_RUNTIME_DIR"; then
 		statusmsg -o "XDG_RUNTIME_DIR already set."
 	else
 		local value="/run/user/1000"
 		statusmsg -pa "Adding XDG_RUNTIME_DIR=$value to your environment."
 		statusmsg -i "XDG_RUNTIME_DIR is a standard environment variable that many programs use to store Unix sockets."
-		if ^confirm; then
-			^add-shell-variable XDG_RUNTIME_DIR "$value"
+		if e.confirm; then
+			e.add-shell-variable XDG_RUNTIME_DIR "$value"
 		fi
 	fi
 
-	if ! ^force && test -n "$EAVE_HOME"; then
+	if ! e.force && test -n "$EAVE_HOME"; then
 		statusmsg -o "EAVE_HOME already set."
 	else
 		local value
 		value=$(pwd)
 		statusmsg -pa "Adding EAVE_HOME=$value to your environment."
 		statusmsg -i "EAVE_HOME is the root of the Eave monorepo, and is used all over the place when loading files."
-		if ^confirm; then
-			^add-shell-variable EAVE_HOME "$value"
+		if e.confirm; then
+			e.add-shell-variable EAVE_HOME "$value"
 		fi
 	fi
 )
 
 function setuppython() (
 	statusmsg -pa "Setting up Python virtual environment"
-	if ^confirm; then
-		if ! ^cmd-exists pyenv; then
+	if e.confirm; then
+		if ! e.cmd-exists pyenv; then
 			pythonpath="$(which python)"
 			statusmsg -w "It is recommended to install and use pyenv to manage the python version for this project."
 			statusmsg -w "With pyenv installed, this project can automatically install and select the correct python version."
@@ -109,7 +109,7 @@ function setuppython() (
 
 function setupnode() (
 	statusmsg -pa "Setting up Node virtual environment"
-	if ^confirm; then
+	if e.confirm; then
 		node-activate-venv
 		rm -rf node_modules
 		npm install
@@ -117,16 +117,16 @@ function setupnode() (
 )
 
 function setupgcloud() (
-	if ! ^force && ^cmd-exists "gcloud"; then
+	if ! e.force && e.cmd-exists "gcloud"; then
 		statusmsg -o "gcloud CLI already installed."
 	else
 		statusmsg -pa "Downloading and installing the gcloud CLI into $HOME/google-cloud-sdk."
 		statusmsg -i "The gcloud CLI connects your local machine to our Google Cloud project, and is used in many development scripts."
-		if ^confirm; then
+		if e.confirm; then
 			cd "$tmpdir" || exit 1
 			local gcloudversion="426.0.0"
 			local arch
-			arch=$(get-cpu-arch-normalized)
+			arch=$(e.get-cpu-arch-normalized)
 			local filename="google-cloud-cli-$gcloudversion-$kernel-$arch.tar.gz"
 			curl -O "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/$filename"
 			tar -xf "$filename"
@@ -139,13 +139,13 @@ function setupgcloud() (
 )
 
 function installterraform() (
-	if ! ^force && ^cmd-exists "terraform"; then
+	if ! e.force && e.cmd-exists "terraform"; then
 		statusmsg -o "terraform already installed."
 	else
 		statusmsg -pa "Installing the 'terraform' command line utility."
 		statusmsg -i "The terraform CLI is used in various utility scripts in this repository."
 
-		if ^confirm; then
+		if e.confirm; then
 			case "$kernel" in
 			"linux")
 				case "$opsys" in
@@ -164,7 +164,7 @@ function installterraform() (
 				;;
 
 			"darwin")
-				if ^cmd-exists "brew"; then
+				if e.cmd-exists "brew"; then
 					brew install terraform
 				else
 					statusmsg -e "command 'brew' not found. Install homebrew if you want to, and re-run this script."
@@ -176,13 +176,13 @@ function installterraform() (
 )
 
 function installjq() (
-	if ! ^force && ^cmd-exists "jq"; then
+	if ! e.force && e.cmd-exists "jq"; then
 		statusmsg -o "jq already installed."
 	else
 		statusmsg -pa "Installing the 'jq' command line utility."
 		statusmsg -i "The jq program is used in many utility scripts in this repository."
 
-		if ^confirm; then
+		if e.confirm; then
 			case "$kernel" in
 			"linux")
 				case "$opsys" in
@@ -201,7 +201,7 @@ function installjq() (
 				;;
 
 			"darwin")
-				if ^cmd-exists "brew"; then
+				if e.cmd-exists "brew"; then
 					brew install jq
 				else
 					statusmsg -e "command 'brew' not found. Install homebrew if you want to, and re-run this script."
@@ -213,14 +213,14 @@ function installjq() (
 )
 
 function installyq() (
-	if ! ^force && ^cmd-exists "yq"; then
+	if ! e.force && e.cmd-exists "yq"; then
 		statusmsg -o "yq already installed."
 	else
 		statusmsg -pa "Installing the 'yq' command line utility."
 		statusmsg -i "The yq program is used to parse Google Cloud configuration files (eg app.yaml and build.yaml)"
 
-		if ^confirm; then
-			if ^cmd-exists "brew"; then
+		if e.confirm; then
+			if e.cmd-exists "brew"; then
 				brew install yq
 			else
 				statusmsg -e "yq is installed via Homebrew, which wasn't found in your PATH."
@@ -231,14 +231,14 @@ function installyq() (
 )
 
 function installshfmt() (
-	if ! ^force && ^cmd-exists "shfmt"; then
+	if ! e.force && e.cmd-exists "shfmt"; then
 		statusmsg -o "shfmt already installed."
 	else
 		statusmsg -pa "Installing the 'shfmt' command line utility."
 		statusmsg -i "The shfmt program is used to auto-format shell scripts"
 
-		if ^confirm; then
-			if ^cmd-exists "brew"; then
+		if e.confirm; then
+			if e.cmd-exists "brew"; then
 				brew install shfmt
 			else
 				statusmsg -e "shfmt is installed via Homebrew, which wasn't found in your PATH."
@@ -249,14 +249,14 @@ function installshfmt() (
 )
 
 function installshellcheck() (
-	if ! ^force && ^cmd-exists "shellcheck"; then
+	if ! e.force && e.cmd-exists "shellcheck"; then
 		statusmsg -o "shellcheck already installed."
 	else
 		statusmsg -pa "Installing the 'shellcheck' command line utility."
 		statusmsg -i "The shellcheck program is used to lint shell scripts"
 
-		if ^confirm; then
-			if ^cmd-exists "brew"; then
+		if e.confirm; then
+			if e.cmd-exists "brew"; then
 				brew install shellcheck
 			else
 				statusmsg -e "shellcheck is installed via Homebrew, which wasn't found in your PATH."
@@ -282,13 +282,13 @@ function installcerts() (
 function setupapps() (
 	statusmsg -pa "Running setup scripts in develop, libs, packages, and apps."
 
-	if ^confirm; then
+	if e.confirm; then
 		cd "${EAVE_HOME}" || exit 1
 		python-activate-venv
 		node-activate-venv
 
 		for ss in {apps,libs,packages,develop,terraform}/**/bin/setup; do
-			if ^norecurse "$ss"; then
+			if e.norecurse "$ss"; then
 				continue
 			fi
 			statusmsg -d "Running $ss"
@@ -297,7 +297,7 @@ function setupapps() (
 	fi
 )
 
-function ^helpmsg() (
+function _helpmsg() (
 	statusmsg -o "Usage: bin/setup [-f] [-y]"
 	statusmsg -o "  -f : force (bypass checks for existing tools)"
 	statusmsg -o "  -y : no prompts (automatically answer Y to all prompts)"
@@ -313,11 +313,11 @@ function main() (
 			export NOPROMPT=1
 			;;
 		h)
-			^helpmsg
+			_helpmsg
 			exit 0
 			;;
 		*)
-			^helpmsg
+			_helpmsg
 			exit 1
 			;;
 		esac

@@ -41,10 +41,6 @@ class ConfigBase:
 
 class _EaveConfig(ConfigBase):
     @property
-    def dev_mode(self) -> bool:
-        return sys.flags.dev_mode
-
-    @property
     def log_level(self) -> int:
         level = os.getenv("LOG_LEVEL") or "INFO"
         mapping = logging.getLevelNamesMapping()
@@ -84,11 +80,11 @@ class _EaveConfig(ConfigBase):
     @property
     def raise_app_exceptions(self) -> bool:
         """
-        This is intended for using during development.
+        This is intended for use during development.
         When set to True, unhandled exceptions raised during the request won't be handled.
         In production (i.e. when this flag is False), unhandled exceptions are caught, logged, and return a 500.
         """
-        return self.is_development or self.eave_env is EaveEnvironment.test
+        return self.is_development or self.is_test
 
     @property
     def monitoring_enabled(self) -> bool:
@@ -115,10 +111,6 @@ class _EaveConfig(ConfigBase):
         return os.getenv("GAE_RELEASE_DATE") or "unknown"
 
     @property
-    def app_location(self) -> str:
-        return os.getenv("GAE_LOCATION") or "us-central1"
-
-    @property
     def asset_base(self) -> str:
         return os.getenv("EAVE_ASSET_BASE", "/static")
 
@@ -142,25 +134,25 @@ class _EaveConfig(ConfigBase):
 
     @property
     def eave_api_base_url_public(self) -> str:
-        return os.getenv("EAVE_API_BASE_URL_PUBLIC") or "https://api.eave.fyi"
+        return os.getenv("EAVE_API_BASE_URL_PUBLIC") or _prefix_hostname(url=self.eave_base_url_public, prefix="api.")
 
     @property
     def eave_api_base_url_internal(self) -> str:
-        return os.getenv("EAVE_API_BASE_URL_INTERNAL") or "http://core-api.eave.svc.cluster.local"
+        return os.getenv("EAVE_API_BASE_URL_INTERNAL") or _prefix_hostname(url=self.eave_base_url_internal, prefix="core-api.")
 
     @property
     def eave_dashboard_base_url_public(self) -> str:
-        return os.getenv("EAVE_DASHBOARD_BASE_URL_PUBLIC") or "https://dashboard.eave.fyi"
+        return os.getenv("EAVE_DASHBOARD_BASE_URL_PUBLIC") or _prefix_hostname(url=self.eave_base_url_public, prefix="dashboard.")
 
     ## Embed URLs
 
     @property
     def eave_embed_base_url_public(self) -> str:
-        return os.getenv("EAVE_EMBED_BASE_URL_PUBLIC") or "https://embed.eave.fyi"
+        return os.getenv("EAVE_EMBED_BASE_URL_PUBLIC") or _prefix_hostname(url=self.eave_base_url_public, prefix="embed.")
 
     @property
     def eave_embed_hostname_public(self) -> str:
-        return urlparse(self.eave_embed_base_url_public).hostname or "embed.eave.fyi"
+        return urlparse(self.eave_embed_base_url_public).hostname or f"embed.{self.eave_hostname_public}"
 
     @property
     def eave_embed_netloc_public(self) -> str:
@@ -168,6 +160,7 @@ class _EaveConfig(ConfigBase):
 
     @property
     def eave_embed_base_url_internal(self) -> str:
+        # This can't use `eave_base_url_internal` because this is a different Kubernetes namespace.
         return os.getenv("EAVE_EMBED_BASE_URL_INTERNAL") or "http://metabase.svc.cluster.local"
 
     @property
@@ -283,6 +276,11 @@ def get_required_env(name: str) -> str:
 
     return os.environ[name]
 
+
+def _prefix_hostname(url: str, prefix: str) -> str:
+    p = urlparse(url)
+    p = p._replace(netloc=f"{prefix}{p.netloc}")
+    return p.geturl()
 
 # TODO: Can/should we use Runtime Config? It's nifty but adds extra network requests.
 # def get_runtimeconfig(self, name: str) -> str | None:

@@ -4,6 +4,6 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-cd "$(^parentpath)"
+cd "$(e.parentpath)"
 python-activate-venv
 python "${EAVE_HOME}/apps/core/bin/src/run-db-migration.py" "$@"

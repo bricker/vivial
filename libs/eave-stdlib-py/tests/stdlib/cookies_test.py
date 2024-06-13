@@ -40,7 +40,20 @@ class CookiesTest(CookiesTestBase):
         cookie = next((v for v in cookies if re.search(f"^{key}={value}", v)), None)
         assert cookie
         assert re.search(f"Domain={SHARED_CONFIG.eave_cookie_domain};", cookie)
-        assert re.search("HttpOnly;", cookie)
+        assert re.search("HttpOnly;", cookie, flags=re.IGNORECASE)
+
+    async def test_set_http_cookie_with_samesite_none(self):
+        key = self.anystr("cookie_key")
+        value = self.anystr("cookie_value")
+        set_http_cookie(key=key, value=value, response=self.mock_response, samesite="none")
+        cookies = [v for k, v in self.mock_response.headers.items() if istr_eq(k, aiohttp.hdrs.SET_COOKIE)]
+
+        assert len(cookies) == 1
+
+        cookie = next((v for v in cookies if re.search(f"^{key}={value}", v)), None)
+        assert cookie
+        assert re.search("SameSite=None;", cookie, flags=re.IGNORECASE)
+        assert re.search("Secure;", cookie, flags=re.IGNORECASE)
 
     async def test_set_http_cookie_with_domain(self):
         key = self.anystr("cookie_key")
@@ -64,7 +77,7 @@ class CookiesTest(CookiesTestBase):
         cookie = next((v for v in cookies if re.search(f'^{key}=""', v)), None)
         assert cookie
         assert re.search(f"Domain={SHARED_CONFIG.eave_cookie_domain};", cookie)
-        assert re.search("HttpOnly;", cookie)
+        assert re.search("HttpOnly;", cookie, flags=re.IGNORECASE)
 
     async def test_set_analytics_cookie(self):
         key = self.anystr("cookie_key")

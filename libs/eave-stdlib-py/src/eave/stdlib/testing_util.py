@@ -2,7 +2,9 @@
 
 import base64
 import json
+import os
 import random
+import time
 import unittest.mock
 import uuid
 from datetime import datetime, timedelta
@@ -43,7 +45,6 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self.mock_google_services()
         self.mock_google_auth()
         self.mock_slack_client()
-        self.mock_analytics()
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
@@ -160,7 +161,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         assert name in self.testdata, f"test value {name} has not been set. Use anyjson() to set it."
         return self.testdata[name]
 
-    def anydict(self, name: str | None = None, deterministic_keys: bool = False) -> JsonObject:
+    def anydict(self, name: str | None = None, deterministic_keys: bool = False) -> dict[str, Any]:
         if name is None:
             name = str(uuid.uuid4())
 
@@ -174,7 +175,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self.testdata[name] = data
         return self.getdict(name)
 
-    def getdict(self, name: str) -> JsonObject:
+    def getdict(self, name: str) -> dict[str, Any]:
         assert name in self.testdata, f"test value {name} has not been set. Use anydict() to set it."
         return self.testdata[name]
 
@@ -206,6 +207,20 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         assert name in self.testdata, f"test value {name} has not been set. Use anyint() to set it."
         return self.testdata[name]
 
+    def anyfloat(self, name: str | None = None) -> float:
+        if name is None:
+            name = str(uuid.uuid4())
+
+        assert name not in self.testdata, f"test value {name} is already in use. Use getfloat() to retrieve it."
+
+        data = random.random() * 1000
+        self.testdata[name] = data
+        return self.getfloat(name)
+
+    def getfloat(self, name: str) -> float:
+        assert name in self.testdata, f"test value {name} has not been set. Use anyfloat() to set it."
+        return self.testdata[name]
+
     def anybytes(self, name: str | None = None, encoding: str = "utf-8") -> bytes:
         if name is None:
             name = str(uuid.uuid4())
@@ -218,6 +233,35 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     def getbytes(self, name: str) -> bytes:
         assert name in self.testdata, f"test value {name} has not been set. Use anybytes() to set it."
+        return self.testdata[name]
+
+    def anytime(self, name: str | None = None) -> float:
+        if name is None:
+            name = str(uuid.uuid4())
+
+        assert name not in self.testdata, f"test value {name} is already in use. Use gettime() to retrieve it."
+
+        offset = random.randint(0, 999999)
+        data = time.time() - offset
+        self.testdata[name] = data
+        return self.gettime(name)
+
+    def gettime(self, name: str) -> float:
+        assert name in self.testdata, f"test value {name} has not been set. Use anytime() to set it."
+        return self.testdata[name]
+
+    def anybool(self, name: str | None = None) -> bool:
+        if name is None:
+            name = str(uuid.uuid4())
+
+        assert name not in self.testdata, f"test value {name} is already in use. Use getbool() to retrieve it."
+
+        data = random.random() > 0.5
+        self.testdata[name] = data
+        return self.getbool(name)
+
+    def getbool(self, name: str) -> bool:
+        assert name in self.testdata, f"test value {name} has not been set. Use anybool() to set it."
         return self.testdata[name]
 
     def b64encode(self, value: str, urlsafe: bool = False) -> str:
@@ -329,9 +373,6 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def mock_slack_client(self) -> None:
         self.patch(name="slack client", patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient"))
 
-    def mock_analytics(self) -> None:
-        self.patch(name="analytics", patch=unittest.mock.patch("eave.stdlib.analytics.log_event"))
-
     def logged_event(self, *args: Any, **kwargs: Any) -> bool:
         mock = self.get_mock("analytics")
         if not mock.called:
@@ -369,7 +410,21 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return m
 
     def patch_env(self, values: dict[str, str | None], clear: bool = False) -> unittest.mock.Mock:
-        m = self.patch_dict(name="env", patch=unittest.mock.patch.dict("os.environ", values, clear=clear))
+        # This method is the way it is so that we can pass in `None` to implicitly delete keys from os.environ.
+        # Otherwise, os.environ only accepts string values, and setting an environment variable to an empty string is not the same as removing an environment variable.
+        # i.e., an empty value is treated differently than a missing key in many cases.
+        if clear:
+            newenv: dict[str, str] = {}
+        else:
+            newenv = os.environ.copy()
+
+        for k, v in values.items():
+            if v is None:
+                newenv.pop(k, None)
+            else:
+                newenv[k] = v
+
+        m = self.patch_dict(name="env", patch=unittest.mock.patch.dict("os.environ", newenv, clear=True))
         return m
 
     def patch_dict(self, patch: unittest.mock._patch_dict, name: str | None = None) -> unittest.mock.Mock:

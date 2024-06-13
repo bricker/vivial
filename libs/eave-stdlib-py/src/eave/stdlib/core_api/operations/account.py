@@ -13,11 +13,11 @@ from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 class GetMyAccountRequest(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
-        path="/_/me/account/query",
+        path="/public/me/account/query",
         method=METH_POST,
         auth_required=True,
         origin_required=True,
-        is_public=False,
+        is_public=True,
     )
 
     class ResponseBody(BaseResponseBody):

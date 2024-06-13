@@ -3,15 +3,15 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 	export CHAR_CHECK=" ✔ "
 	export CHAR_X=" X "
 
-	function ^ci() {
+	function e.ci() {
 		test -n "${CI:-}"
 	}
 
-	function ^onlythismodule() {
+	function e.onlythismodule() {
 		test -n "${_ONLY_THIS_MODULE:-}"
 	}
 
-	function ^norecurse() (
+	function e.norecurse() (
 		grep -qE "node_modules|\.venv|vendor" <<<"$1"
 	)
 
@@ -76,7 +76,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 
 		local _cc_reset=""
 
-		if ! ^ci && command -v tput >/dev/null && test -v TERM && test -n "$TERM"; then
+		if ! e.ci && command -v tput >/dev/null && test -v TERM && test -n "$TERM"; then
 			local _cc_black=0
 			local _cc_red=1
 			local _cc_green=2
@@ -152,13 +152,13 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		return 0
 	)
 
-	function shellname() {
+	function e.shellname() {
 		echo -n "$(basename "$SHELL")"
 	}
 
-	function shloginfile() {
+	function e.shloginfile() {
 		local usershell
-		usershell=$(shellname)
+		usershell=$(e.shellname)
 		case $usershell in
 		"bash")
 			if test -f "$HOME/.bash_profile"; then
@@ -180,16 +180,16 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		esac
 	}
 
-	function import-loginfile() {
+	function e.import-loginfile() {
 		local loginfile
-		loginfile=$(shloginfile)
+		loginfile=$(e.shloginfile)
 		if test -n "$loginfile"; then
 			# shellcheck disable=SC1090
 			source "$loginfile"
 		fi
 	}
 
-	function ^cmd-exists() {
+	function e.cmd-exists() {
 		if command -v "$1" >/dev/null; then
 			return 0
 		fi
@@ -201,7 +201,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		return 1
 	}
 
-	function run-in-path() (
+	function e.run-in-path() (
 		local path=$1
 		local cmd=$2
 
@@ -213,9 +213,9 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		fi
 	)
 
-	function get-os() {
+	function e.get-os() {
 		local kernel
-		kernel=$(get-kernel-name)
+		kernel=$(e.get-kernel-name)
 		case "$kernel" in
 		"linux")
 			lsb_release -is | tr '[:upper:]' '[:lower:]'
@@ -230,11 +230,11 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		esac
 	}
 
-	function get-kernel-name() {
+	function e.get-kernel-name() {
 		uname -s | tr '[:upper:]' '[:lower:]'
 	}
 
-	function get-cpu-arch() {
+	function e.get-cpu-arch() {
 		local arch
 		arch=$(uname -m)
 		if test "$arch" = "unknown"; then
@@ -246,9 +246,9 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		fi
 	}
 
-	function get-cpu-arch-normalized() {
+	function e.get-cpu-arch-normalized() {
 		local arch
-		arch=$(get-cpu-arch)
+		arch=$(e.get-cpu-arch)
 		case $arch in
 		"arm64")
 			echo -n "arm"
@@ -265,9 +265,9 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		esac
 	}
 
-	function get-cpu-arch-normalized-alt() {
+	function e.get-cpu-arch-normalized-alt() {
 		local arch
-		arch=$(get-cpu-arch)
+		arch=$(e.get-cpu-arch)
 		case $arch in
 		"arm")
 			echo -n "arm64"
@@ -281,17 +281,17 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		esac
 	}
 
-	function ^add-shell-variable() {
+	function e.add-shell-variable() {
 		local varname=$1
 		local value=$2
 		local usershell
-		usershell=$(shellname)
+		usershell=$(e.shellname)
 		local varcmd=("export $varname=\"$value\"")
 
 		case $usershell in
 		"bash" | "zsh")
 			local loginfile
-			loginfile=$(shloginfile)
+			loginfile=$(e.shloginfile)
 
 			if grep "export $varname" "$loginfile"; then
 				statusmsg -w "variable $varname already set in $loginfile."
@@ -316,8 +316,8 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		esac
 	}
 
-	function run-with-dotenv() (
-		local usage="Usage: run-with-dotenv [-f filename ...] [-h]"
+	function e.run-with-dotenv() (
+		local usage="Usage: e.run-with-dotenv [-f filename ...] [-h]"
 		local files=""
 		while getopts "f:h" argname; do
 			case "$argname" in
@@ -348,61 +348,28 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		PYTHONPATH=. python -m dotenv $files run --no-override -- "$@"
 	)
 
-	function run-appengine-dev-server() (
-		statusmsg -i "This script requires the gcloud SDK to be installed and in your path"
-		statusmsg -i "Additionally, a python2 program must be installed and in your PATH."
-		statusmsg -i "https://cloud.google.com/appengine/docs/legacy/standard/python/tools/using-local-server"
-
-		local usage="Usage: run-appengine-dev-server -p PORT"
-		local port=""
-		while getopts "p:h" argname; do
-			case "$argname" in
-			p) port=$OPTARG ;;
-			h)
-				statusmsg -i "$usage"
-				exit 0
-				;;
-			*)
-				statusmsg -i "$usage"
-				exit 1
-				;;
-			esac
-		done
-
-		if test -z "$port"; then
-			statusmsg -e "$usage"
-			exit 1
-		fi
-
-		run-with-dotenv \
-			dev_appserver.py \
-			--host localhost \
-			--port "$port" \
-			app.yaml
-	)
-
 	function verbose() {
 		test -n "${VERBOSE:-}"
 	}
 
 	# Returns the absolute path to the dir of the program currently running
-	function ^abspath() (
+	function e.abspath() (
 		cd "$(dirname "$0")" && pwd -P
 	)
 
 	# Returns the parent path of the currently _executing_ file.
 	# This is useful for things in bin directories especially, when you want to call another script.
-	# eg: "$(^parentpath)/bin/lint"
-	function ^parentpath() (
+	# eg: "$(e.parentpath)/bin/lint"
+	function e.parentpath() (
 		cd "$(dirname "$0")/.." && pwd -P
 	)
 
-	function ^eavepwd() (
+	function e.pwd() (
 		# Returns the absolute path to the working directory, with the value of EAVE_HOME replaced with the literal "$EAVE_HOME", to be evaluated later.
 		echo -n "\$EAVE_HOME${PWD#"$EAVE_HOME"}"
 	)
 
-	function ^gcloudproject() (
+	function e.gcloudproject() (
 		if test -n "${GOOGLE_CLOUD_PROJECT:-}"; then
 			echo -n "$GOOGLE_CLOUD_PROJECT"
 		else
@@ -410,7 +377,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		fi
 	)
 
-	function ^confirm() (
+	function e.confirm() (
 		if test -n "${NOPROMPT:-}"; then
 			exit 0
 		fi
@@ -421,7 +388,7 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 		test "$proceed" = "y"
 	)
 
-	function ^force() {
+	function e.force() {
 		test -n "${FORCE:-}"
 	}
 

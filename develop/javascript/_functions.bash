@@ -1,4 +1,4 @@
-if ! ^cmd-exists "nvm"; then
+if ! e.cmd-exists "nvm"; then
 	_nvm_dir="${NVM_DIR:-$XDG_CONFIG_HOME/nvm}"
 	# load nvm (or-ed with true to force non-error return value)
 	if test -s "$_nvm_dir/nvm.sh"; then
@@ -8,7 +8,7 @@ fi
 
 if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 	function node-activate-venv() {
-		if ! ^cmd-exists "nvm"; then
+		if ! e.cmd-exists "nvm"; then
 			statusmsg -w "Automatic environment management is disabled because nvm isn't available from this bash script. nvm-sh (https://github.com/nvm-sh/nvm) must be installed for this to work (even if you use an incompatible shell)."
 			return 0
 		fi
@@ -22,7 +22,7 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		local target=$1
 		cd "$target" || exit 1
 		local logtarget
-		logtarget=$(^eavepwd)
+		logtarget=$(e.pwd)
 
 		statusmsg -i "Linting $logtarget (js/ts)..."
 		npx eslint \
@@ -59,7 +59,7 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		local target=$1
 		cd "$target" || exit 1
 		local logtarget
-		logtarget=$(^eavepwd)
+		logtarget=$(e.pwd)
 
 		statusmsg -i "Formatting $logtarget (js/ts)..."
 
@@ -87,7 +87,7 @@ if test -z "${_JAVASCRIPT_FUNCTIONS_LOADED:-}"; then
 		local targetpath
 		local testfile=""
 
-		targetpath="$(^parentpath)"
+		targetpath="$(e.parentpath)"
 
 		while getopts "p:f:h" argname; do
 			case "$argname" in

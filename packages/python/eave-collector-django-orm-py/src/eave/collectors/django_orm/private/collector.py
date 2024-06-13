@@ -11,8 +11,8 @@ from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.utils import CursorWrapper
 
 from eave.collectors.core.base_collector import BaseCollector
-from eave.collectors.core.correlation_context import corr_ctx
-from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, DatabaseStructure
+from eave.collectors.core.correlation_context import CORR_CTX
+from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
 from eave.collectors.core.write_queue import WriteQueue
 
 # Copied from Django
@@ -72,30 +72,23 @@ class EaveCursorWrapper(CursorWrapper):
                 table_name = self._get_table_name(sql, op)
 
                 # FIXME: Resolve params vs. multiparams
-                # rparams: _ParamsType | None = None
-                # if params:
-                #     rparams = params
-                # elif multiparams and len(multiparams) > 0:
-                #     rparams = multiparams[0]
+                rparams: _ParamsType | None = None
+                if params:
+                    rparams = params
+                elif multiparams and len(multiparams) > 0:
+                    rparams = multiparams[0]
 
                 record = DatabaseEventPayload(
                     timestamp=time.time(),
-                    db_structure=DatabaseStructure.SQL,
                     operation=op,
                     db_name=self.db.alias,
                     statement=sql,
                     table_name=table_name,
-                    parameters=None,  # TODO: params is usually None; django doesnt remove param values from the statement
-                    context=corr_ctx.to_dict(),
+                    statement_values=rparams,  # TODO: params is usually None; django doesnt remove param values from the statement # type: ignore
+                    corr_ctx=CORR_CTX.to_dict(),
                 )
 
                 self.write_queue.put(record)
-            # print(
-            #     {
-            #         "sql": "%s times: %s" % (times, sql) if many else sql,
-            #         "time": "%.3f" % duration,
-            #     }
-            # )
 
     def _get_operation_name(self, sql: str) -> DatabaseOperation:
         op_str = sql.split()[0]

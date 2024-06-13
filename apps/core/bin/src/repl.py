@@ -21,7 +21,6 @@ import eave.core.internal.orm.base
 from eave.core.internal import CORE_API_APP_CONFIG  # noqa
 from eave.stdlib.config import SHARED_CONFIG  # noqa
 from eave.stdlib.logging import eaveLogger  # noqa
-import eave.stdlib.analytics as analytics  # noqa
 
 eave.core.internal.orm.base._load_all()  # noqa: SLF001
 

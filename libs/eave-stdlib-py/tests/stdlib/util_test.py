@@ -37,6 +37,22 @@ class StdlibUtilTest(StdlibBaseTestCase):
             == "'table_name; drop tables; --'"
         )
 
+    async def test_titleize(self):
+        assert mut.titleize("accounts") == "Account"
+        assert mut.titleize("GithubInstallations") == "Github Installation"
+        assert mut.titleize("github_installations") == "Github Installation"
+        assert mut.titleize("GitHub_Installations") == "Git Hub Installation"
+        assert mut.titleize("CLICK") == "Click"
+        assert mut.titleize("FORM_SUBMIT") == "Form Submit"
+
+    async def test_tableize(self):
+        assert mut.tableize("Account") == "account"
+        assert mut.tableize("Github Installations") == "github_installations"
+        assert mut.tableize("github_installations") == "github_installations"
+        assert mut.tableize("Cohort 2023") == "cohort_2023"
+        assert mut.tableize("--ab &&& c--") == "ab_c"
+        assert mut.tableize('"; DROP TABLES') == "drop_tables"
+
     async def test_ensure_bytes(self):
         string = self.anystr()
         bytez = string.encode()

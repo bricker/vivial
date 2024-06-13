@@ -5,10 +5,10 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 (
-	cd "$(^parentpath)"
+	cd "$(e.parentpath)"
 	"${EAVE_HOME}"/develop/python/_setup_base
 )
 (
-	cd "$(^parentpath)/python"
+	cd "$(e.parentpath)/python"
 	"${EAVE_HOME}"/develop/python/_setup_base
 )

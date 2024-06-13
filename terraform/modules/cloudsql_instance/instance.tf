@@ -52,6 +52,21 @@ resource "google_sql_database_instance" "default" {
       name  = "max_connections"
       value = "100"
     }
+    database_flags {
+      # Mandatory for SOC-2 compliance
+      name  = "log_connections"
+      value = "on"
+    }
+    database_flags {
+      # Mandatory for SOC-2 compliance
+      name  = "log_disconnections"
+      value = "on"
+    }
+    database_flags {
+      # Mandatory for SOC-2 compliance
+      name  = "log_statement"
+      value = "ddl"
+    }
     insights_config {
       query_insights_enabled  = true
       record_application_tags = true

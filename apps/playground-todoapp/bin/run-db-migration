@@ -4,6 +4,6 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-cd "$(^parentpath)"
+cd "$(e.parentpath)"
 python-activate-venv
 python -m dotenv -f "$EAVE_HOME"/.env run alembic upgrade head

@@ -1,5 +1,13 @@
+[tool.coverage.report]
+include_namespace_packages = true
+
 [tool.coverage.run]
 data_file = "$EAVE_HOME/.coverage/data"
+branch = true
 
 [tool.coverage.xml]
 output = "$EAVE_HOME/.coverage/coverage.xml"
+
+[tool.coverage.html]
+directory = "$EAVE_HOME/.coverage/coverage_html"
+show_contexts = true

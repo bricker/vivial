@@ -5,12 +5,12 @@ set -eu
 source "$EAVE_HOME"/develop/functions.bash
 
 function _print_help() (
-		statusmsg -o "Usage: cloud-sql-proxy -i instancename [-s serviceaccount]"
-		statusmsg -o "  -i instance_name: Required: The instance name."
-		statusmsg -o "  -s service_account_name: Optional: The service account name to impersonate, up to @."
-		statusmsg -o "       Eg: for 'gsa-app-core-api@eave-staging.iam.gserviceaccount.com', pass 'gsa-app-core-api'."
-		statusmsg -o "       If this option is omitted, gcloud CLI auth will be used."
-		statusmsg -o "  -h : Print this message."
+	statusmsg -o "Usage: cloud-sql-proxy -i instancename [-s serviceaccount]"
+	statusmsg -o "  -i instance_name: Required: The instance name."
+	statusmsg -o "  -s service_account_name: Optional: The service account name to impersonate, up to @."
+	statusmsg -o "       Eg: for 'gsa-app-core-api@eave-staging.iam.gserviceaccount.com', pass 'gsa-app-core-api'."
+	statusmsg -o "       If this option is omitted, gcloud CLI auth will be used."
+	statusmsg -o "  -h : Print this message."
 )
 
 function run-cloud-sql-proxy() (
@@ -38,16 +38,16 @@ function run-cloud-sql-proxy() (
 		exit 1
 	fi
 
-	local gcloudproject; gcloudproject="$(^gcloudproject)"
+	local gcloudproject; gcloudproject="$(e.gcloudproject)"
 
-	if ! ^cmd-exists "cloud-sql-proxy"; then
+	if ! e.cmd-exists "cloud-sql-proxy"; then
 		statusmsg -pa "Downloading and installing the Cloud SQL Proxy for your system."
 		statusmsg -i "Cloud SQL Proxy is used to connect to Cloud SQL from your local machine using IAM auth."
 
-		if ^confirm; then
+		if e.confirm; then
 			(
 				cd "$(mktemp -d)"
-				if ^cmd-exists "gcloud"; then
+				if e.cmd-exists "gcloud"; then
 					cloudsqlproxypath=$(dirname "$(which gcloud)")
 				else
 					cloudsqlproxypath="/usr/local/bin"
@@ -55,7 +55,7 @@ function run-cloud-sql-proxy() (
 
 				local proxyversion="2.2.0"
 				local arch
-				arch=$(get-cpu-arch-normalized-alt)
+				arch=$(e.get-cpu-arch-normalized-alt)
 
 				curl -o cloud-sql-proxy "https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v$proxyversion/cloud-sql-proxy.$kernel.$arch"
 				# see if we got an error back instead of binary content

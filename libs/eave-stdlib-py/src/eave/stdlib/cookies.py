@@ -5,14 +5,10 @@ from .config import SHARED_CONFIG
 from .time import ONE_YEAR_IN_MS
 from .typing import HTTPFrameworkRequest, HTTPFrameworkResponse
 
-EAVE_COOKIE_PREFIX = "eave."
+EAVE_COOKIE_PREFIX = "eavedash."
 EAVE_AUTH_COOKIE_PREFIX = f"{EAVE_COOKIE_PREFIX}auth."
 EAVE_OAUTH_COOKIE_PREFIX = f"{EAVE_COOKIE_PREFIX}oauth."
 EAVE_EMBED_COOKIE_PREFIX = f"{EAVE_COOKIE_PREFIX}embed."
-
-# DON'T RENAME THESE, they are referenced in GTM by name. Changing them will break tracking.
-EAVE_COOKIE_PREFIX_UTM = f"{EAVE_COOKIE_PREFIX}utm_"
-EAVE_VISITOR_ID_COOKIE_NAME = f"{EAVE_COOKIE_PREFIX}visitor_id"
 
 EAVE_ACCOUNT_ID_COOKIE_NAME = f"{EAVE_AUTH_COOKIE_PREFIX}account_id"
 EAVE_ACCESS_TOKEN_COOKIE_NAME = f"{EAVE_AUTH_COOKIE_PREFIX}access_token"
@@ -38,7 +34,7 @@ def delete_cookies_with_prefix(
     httponly: bool | None = None,
     samesite: Literal["lax", "strict", "none"] | None = None,
 ) -> None:
-    for name, value in get_cookies_with_prefix(request=request, prefix=prefix).items():
+    for name, _ in get_cookies_with_prefix(request=request, prefix=prefix).items():
         delete_http_cookie(
             response=response,
             key=name,
@@ -58,9 +54,18 @@ def set_http_cookie(
     expires: datetime | int | str | None = None,
     path: str = "/",
     domain: str | None = None,
+    secure: bool | None = None,
     httponly: bool = True,
     samesite: Literal["lax", "strict", "none"] | None = "lax",
 ) -> None:
+    if secure is None:
+        if samesite == "none" or not SHARED_CONFIG.is_development:
+            rsecure = True
+        else:
+            rsecure = False
+    else:
+        rsecure = secure
+
     response.set_cookie(
         key=key,
         value=value,
@@ -68,7 +73,7 @@ def set_http_cookie(
         expires=expires,
         path=path,
         domain=domain if domain is not None else SHARED_CONFIG.eave_cookie_domain,
-        secure=(not SHARED_CONFIG.is_development),
+        secure=rsecure,
         httponly=httponly,
         samesite=samesite,
     )

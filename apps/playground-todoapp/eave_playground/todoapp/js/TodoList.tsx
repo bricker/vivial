@@ -9,7 +9,7 @@ const TodoList = () => {
   const userId = getCookie(`${COOKIE_PREFIX}user_id`);
 
   if (!userId) {
-    window.location.assign("/login");
+    window.location.pathname = "/login";
     return;
   }
 
@@ -99,7 +99,11 @@ const TodoList = () => {
     <div className={styles.todoList}>
       <h2 className={styles.title}>TODO List</h2>
       <p>
-        Logged in as <strong>{username}</strong> (<Link to="/login">Change</Link>)
+        Logged in as <strong>{username}</strong> (
+        <Link to="/logout" reloadDocument>
+          Change
+        </Link>
+        )
       </p>
 
       {loading ? (

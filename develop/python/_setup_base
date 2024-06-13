@@ -9,7 +9,7 @@ function setup() (
 	python-activate-venv
 
 	local piploc=""
-	if ^ci; then
+	if e.ci; then
 		piploc="--user"
 	fi
 
@@ -19,7 +19,7 @@ function setup() (
 	fi
 
 	local eavepwd
-	eavepwd=$(^eavepwd)
+	eavepwd=$(e.pwd)
 	statusmsg -on "Setting up python in $eavepwd..."
 
 	shopt -s nullglob

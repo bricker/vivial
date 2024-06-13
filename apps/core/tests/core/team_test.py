@@ -1,7 +1,7 @@
 import sqlalchemy.exc
 
 import eave.core.internal.database as eave_db
-from eave.core.internal.orm.team import TeamOrm
+from eave.core.internal.orm.team import TeamOrm, bq_dataset_id
 
 from .base import BaseTestCase
 
@@ -69,3 +69,7 @@ class TestTeamOrm(BaseTestCase):
             team.allowed_origins = ["*"]
 
         assert team.origin_allowed(origin=self.anyurl())
+
+    async def test_bq_dataset_id(self):
+        u = self.anyuuid()
+        assert bq_dataset_id(id=u) == f"team_{u.hex}"

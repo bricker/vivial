@@ -1,8 +1,7 @@
 from http import HTTPStatus
 
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
-from eave.stdlib.core_api.models.virtual_event import VirtualEventQueryInput
-from eave.stdlib.core_api.operations.virtual_event import GetMyVirtualEventsRequest
+from eave.stdlib.core_api.operations.virtual_event import ListMyVirtualEventsRequest
 
 from .base import BaseTestCase
 
@@ -55,35 +54,31 @@ class TestVirtualEventRequests(BaseTestCase):
 
     async def test_get_virtual_events_with_search_term_match(self) -> None:
         response = await self.make_request(
-            path=GetMyVirtualEventsRequest.config.path,
-            payload=GetMyVirtualEventsRequest.RequestBody(
-                virtual_events=VirtualEventQueryInput(
-                    search_term=self.getstr("readable_name 0"),
-                )
+            path=ListMyVirtualEventsRequest.config.path,
+            payload=ListMyVirtualEventsRequest.RequestBody(
+                query=self.getstr("readable_name 0"),
             ),
             account_id=self._account_team1.id,
             access_token=self._account_team1.access_token,
         )
 
         assert response.status_code == HTTPStatus.OK
-        response_obj = GetMyVirtualEventsRequest.ResponseBody(**response.json())
+        response_obj = ListMyVirtualEventsRequest.ResponseBody(**response.json())
         assert len(response_obj.virtual_events) == 1
         assert response_obj.virtual_events[0].id == self._team1_virtual_events[0].id
 
     async def test_get_virtual_events_with_search_term_no_match(self) -> None:
         response = await self.make_request(
-            path=GetMyVirtualEventsRequest.config.path,
-            payload=GetMyVirtualEventsRequest.RequestBody(
-                virtual_events=VirtualEventQueryInput(
-                    search_term=self.anystr(),
-                )
+            path=ListMyVirtualEventsRequest.config.path,
+            payload=ListMyVirtualEventsRequest.RequestBody(
+                query=self.anystr(),
             ),
             account_id=self._account_team1.id,
             access_token=self._account_team1.access_token,
         )
 
         assert response.status_code == HTTPStatus.OK
-        response_obj = GetMyVirtualEventsRequest.ResponseBody(**response.json())
+        response_obj = ListMyVirtualEventsRequest.ResponseBody(**response.json())
         assert len(response_obj.virtual_events) == 0
 
     async def test_get_virtual_events_with_no_search_term(self) -> None:
@@ -92,14 +87,14 @@ class TestVirtualEventRequests(BaseTestCase):
         """
 
         response = await self.make_request(
-            path=GetMyVirtualEventsRequest.config.path,
-            payload=GetMyVirtualEventsRequest.RequestBody(),
+            path=ListMyVirtualEventsRequest.config.path,
+            payload=ListMyVirtualEventsRequest.RequestBody(),
             account_id=self._account_team1.id,
             access_token=self._account_team1.access_token,
         )
 
         assert response.status_code == HTTPStatus.OK
-        response_obj = GetMyVirtualEventsRequest.ResponseBody(**response.json())
+        response_obj = ListMyVirtualEventsRequest.ResponseBody(**response.json())
         assert len(response_obj.virtual_events) == 2
         assert sorted(e.id for e in response_obj.virtual_events) == sorted(e.id for e in self._team1_virtual_events)
 
@@ -110,32 +105,31 @@ class TestVirtualEventRequests(BaseTestCase):
         """
 
         response = await self.make_request(
-            path=GetMyVirtualEventsRequest.config.path,
-            payload=GetMyVirtualEventsRequest.RequestBody(
-                virtual_events=VirtualEventQueryInput(
-                    search_term=self.getstr("team2 readable_name"),
-                )
+            path=ListMyVirtualEventsRequest.config.path,
+            payload=ListMyVirtualEventsRequest.RequestBody(
+                query=self.getstr("team2 readable_name"),
             ),
             account_id=self._account_team1.id,
             access_token=self._account_team1.access_token,
         )
 
         assert response.status_code == HTTPStatus.OK
-        response_obj = GetMyVirtualEventsRequest.ResponseBody(**response.json())
+        response_obj = ListMyVirtualEventsRequest.ResponseBody(**response.json())
         assert len(response_obj.virtual_events) == 0
 
         response = await self.make_request(
-            path=GetMyVirtualEventsRequest.config.path,
-            payload=GetMyVirtualEventsRequest.RequestBody(
-                virtual_events=VirtualEventQueryInput(
-                    search_term=self.getstr("team2 readable_name"),
-                )
+            path=ListMyVirtualEventsRequest.config.path,
+            payload=ListMyVirtualEventsRequest.RequestBody(
+                query=self.getstr("team2 readable_name"),
             ),
             account_id=self._account_team2.id,
             access_token=self._account_team2.access_token,
         )
 
         assert response.status_code == HTTPStatus.OK
-        response_obj = GetMyVirtualEventsRequest.ResponseBody(**response.json())
+        response_obj = ListMyVirtualEventsRequest.ResponseBody(**response.json())
         assert len(response_obj.virtual_events) == 1
         assert response_obj.virtual_events[0].id == self._team2_virtual_events[-1].id
+
+    async def test_get_virtual_event_details(self):
+        self.fail("TODO")

@@ -2,7 +2,7 @@ import asyncio
 import unittest
 
 from eave.collectors.core.correlation_context import AsyncioCorrelationContext
-from eave.collectors.core.correlation_context.base import COOKIE_PREFIX
+from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_COOKIE_PREFIX
 
 
 class AsyncioCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
@@ -56,30 +56,33 @@ class AsyncioCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
         ctx = AsyncioCorrelationContext()
         cookies = {
             "other_cookie": "yummy",
-            f"{COOKIE_PREFIX}session_id": "ses",
-            f"{COOKIE_PREFIX}key": "value",
+            f"{EAVE_COLLECTOR_COOKIE_PREFIX}session_id": "ses",
+            f"{EAVE_COLLECTOR_COOKIE_PREFIX}key": "value",
         }
         ctx.from_cookies(cookies)
 
         # non eave cookies should be skipped
         assert (
-            ctx.to_json() == f'{{"{COOKIE_PREFIX}session_id": "ses", "{COOKIE_PREFIX}key": "value"}}'
+            ctx.to_json()
+            == f'{{"{EAVE_COLLECTOR_COOKIE_PREFIX}session_id": "ses", "{EAVE_COLLECTOR_COOKIE_PREFIX}key": "value"}}'
         ), "Cookie conversion did not include only the expected cookies"
 
         # cookies should join join if existing ctx
-        ctx.from_cookies({f"{COOKIE_PREFIX}visitor_id": "123", f"{COOKIE_PREFIX}key": "new val"})
+        ctx.from_cookies(
+            {f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": "123", f"{EAVE_COLLECTOR_COOKIE_PREFIX}key": "new val"}
+        )
         assert (
             ctx.to_json()
-            == f'{{"{COOKIE_PREFIX}session_id": "ses", "{COOKIE_PREFIX}key": "new val", "{COOKIE_PREFIX}visitor_id": "123"}}'
+            == f'{{"{EAVE_COLLECTOR_COOKIE_PREFIX}session_id": "ses", "{EAVE_COLLECTOR_COOKIE_PREFIX}key": "new val", "{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": "123"}}'
         ), "Context did not join as expected"
 
     async def test_convert_ctx_to_cookies_creates_valid_cookie(self) -> None:
         ctx = AsyncioCorrelationContext()
         ctx.set("session_id", "ses")
-        ctx.set(f"{COOKIE_PREFIX}key", '"value"')
+        ctx.set(f"{EAVE_COLLECTOR_COOKIE_PREFIX}key", '"value"')
 
         # expect URL encoded
         assert ctx.get_updated_values_cookies() == [
-            f"{COOKIE_PREFIX}session_id=ses",
-            f"{COOKIE_PREFIX}key=%22value%22",
+            f"{EAVE_COLLECTOR_COOKIE_PREFIX}session_id=ses",
+            f"{EAVE_COLLECTOR_COOKIE_PREFIX}key=%22value%22",
         ], "Context cookie was converted incorrectly"

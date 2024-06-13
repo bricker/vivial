@@ -3,23 +3,15 @@
     <head>
         <!-- window -->
         <script>
-        window.dataLayer = window.dataLayer || [];
-        window.eave = {
+        window.eavedash = {
             apiBase: '{{api_base}}',
             embedBase: '{{embed_base}}',
             assetBase: '{{asset_base}}',
         };
         </script>
 
-        {% if analytics_enabled %}
-        <!-- Google Tag Manager -->
-        <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-        })(window,document,'script','dataLayer','GTM-WWSBJ4T');</script>
-        <!-- End Google Tag Manager -->
-        {% endif %}
+        <script>const EAVE_CLIENT_ID = "{{eave_client_id}}";</script>
+        <script async src="{{collector_asset_base}}/collector.js"></script>
 
         <!-- Google Fonts (DM Sans, Pattaya) -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,18 +23,11 @@
         <link rel="icon" type="image/x-icon" href="{{asset_base}}/images/eave-logo-favicon.png">
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="description" content="Eave: The next generation of product intelligence." />
-        <title>{{ page_title|default("Eave, for your information.") }}</title>
+        <title>{{ page_title|default("Eave - for your information.") }}</title>
 
         <script defer src="{{asset_base}}/dist/main.js"></script>
     </head>
     <body>
-
-        {% if analytics_enabled %}
-        <!-- Google Tag Manager (noscript) -->
-        <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WWSBJ4T"
-        height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-        <!-- End Google Tag Manager (noscript) -->
-        {% endif %}
         <div id="root"></div>
     </body>
 </html>

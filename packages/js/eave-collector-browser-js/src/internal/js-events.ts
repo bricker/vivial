@@ -24,12 +24,3 @@ export const SUBMIT_EVENT_TYPE = "submit";
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Element/click_event
 export const CLICK_EVENT_TYPE = "click";
-
-/**
- * Dispatches the EAVE_TRIGGER_EVENT_TYPE event on the window.
- * This function is meant to be passed directly to addEventListener.
- */
-export function dispatchTriggerNotification(_evt: Event) {
-  const event = new Event(EAVE_TRIGGER_EVENT_TYPE);
-  window.dispatchEvent(event);
-}
