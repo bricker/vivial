@@ -4,6 +4,7 @@ import {
   GetMyVirtualEventDetailsResponseBody,
   GetTeamResponseBody,
   ListMyVirtualEventsResponseBody,
+  VirtualEventDetails,
   eaveOrigin,
   eaveWindow,
 } from "$eave-dashboard/js/types";
@@ -111,26 +112,30 @@ const useTeam = (): TeamHook => {
         }
         return resp.json().then((data: ListMyVirtualEventsResponseBody) => {
           setTeam((prev) => {
-            const virtualEvents = prev?.virtualEvents;
-            if (!virtualEvents) {
+            const prevVirtualEvents = prev?.virtualEvents;
+            if (!prevVirtualEvents) {
               return {
                 ...prev,
                 virtualEvents: data.virtual_events,
               };
             }
 
+            const newVirtualEvents: VirtualEventDetails[] = [];
+
             for (const incoming of data.virtual_events) {
-              const existing = virtualEvents.find((current) => current.id === incoming.id);
+              const existing = prevVirtualEvents.find((current) => current.id === incoming.id);
               // If the virtual event hasn't been loaded, append it to the list.
               // Otherwise, leave it without overwriting, because it might have fields already populated.
-              if (!existing) {
-                virtualEvents.push(incoming);
+              if (existing) {
+                newVirtualEvents.push(existing);
+              } else {
+                newVirtualEvents.push(incoming);
               }
             }
 
             return {
               ...prev,
-              virtualEvents,
+              virtualEvents: newVirtualEvents,
             };
           });
 
