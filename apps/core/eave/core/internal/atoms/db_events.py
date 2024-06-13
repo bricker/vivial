@@ -2,6 +2,7 @@ import dataclasses
 from dataclasses import dataclass
 from textwrap import dedent
 from typing import Any, cast
+import inflect
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames, StandardSqlTypeNames
 
@@ -121,7 +122,7 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
                 MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(e.statement_values) if e.statement_values else None
             )
 
-            corr_ctx = CorrelationContext(e.corr_ctx) if e.corr_ctx else None
+            corr_ctx = CorrelationContext.from_api_payload(e.corr_ctx) if e.corr_ctx else None
             session = (
                 SessionRecordField.from_api_resource(resource=corr_ctx.session, event_timestamp=e.timestamp)
                 if corr_ctx
@@ -181,6 +182,7 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
         table_resource = titleize(source_table)
         operation_verb = _operation_readable_verb_past_tense(operation)
         vevent_readable_name = f"{operation_verb} {table_resource}"
+        vevent_description = _make_vevent_description(operation=operation, source_table=source_table)
         vevent_view_id = tableize(vevent_readable_name)
 
         async with database.async_session.begin() as db_session:
@@ -205,9 +207,9 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
 
             view = self._bq_client.construct_table(dataset_id=self.dataset_id, table_id=vevent_view_id)
             view.friendly_name = vevent_readable_name
-            view.description = vevent_readable_name
+            view.description = vevent_description
 
-            view.mview_query = dedent(
+            view.view_query = dedent(
                 f"""
                 SELECT
                     {sanitized_readable_name} as `event_name`,
@@ -243,7 +245,7 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
                 TrafficSourceRecordField.schema(),
             )
 
-            self._bq_client.update_table(table=view, ctx=ctx)
+            view = self._bq_client.update_table(table=view, ctx=ctx)
 
             try:
                 await VirtualEventOrm.create(
@@ -251,7 +253,7 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
                     team_id=self.team.id,
                     view_id=view.table_id,
                     readable_name=vevent_readable_name,
-                    description=vevent_readable_name,
+                    description=vevent_description,
                 )
             except Exception as e:
                 # Likely a race condition: Two events came in separate requests that tried to create the same virtual event.
@@ -272,3 +274,27 @@ def _operation_readable_verb_past_tense(operation: str) -> str:
         case _:
             # TODO: What verb to use for an invalid DatabaseOperation value?
             return "Inspected"
+
+
+def _make_vevent_description(operation: str, source_table: str) -> str:
+    e = inflect.engine()
+
+    db_operation = DatabaseOperation.from_str(operation)
+    resource = titleize(source_table)
+    if not isinstance(resource, inflect.Word):
+        aresource = resource
+    else:
+        aresource = e.a(resource)
+
+    match db_operation:
+        case DatabaseOperation.INSERT:
+            return f"{aresource} was created."
+        case DatabaseOperation.UPDATE:
+            return f"{aresource} as updated."
+        case DatabaseOperation.DELETE:
+            return f"{aresource} was deleted."
+        case DatabaseOperation.SELECT:
+            return f"{aresource} was fetched."
+        case _:
+            # TODO: What verb to use for an invalid DatabaseOperation value?
+            return f"{aresource} was inspected."

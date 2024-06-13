@@ -229,7 +229,7 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                     team_id=self.team.id,
                     view_id=view.table_id,
                     readable_name=vevent_readable_name,
-                    description=vevent_readable_name,
+                    description=vevent_description,
                 )
             except Exception as e:
                 # Likely a race condition: Two events came in separate requests that tried to create the same virtual event.
@@ -249,7 +249,8 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
 # }
 
 def _make_vevent_description(action: str) -> str | None:
-    match action:
+    browser_action = BrowserAction.from_str(action)
+    match browser_action:
         case BrowserAction.CLICK:
             return "A user clicked an element."
         case BrowserAction.FORM_SUBMIT:
