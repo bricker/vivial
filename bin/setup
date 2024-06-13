@@ -268,7 +268,7 @@ function installshellcheck() (
 
 function installcerts() (
 	statusmsg -pa "Installing self-signed dev certs."
-	if ^confirm; then
+	if e.confirm; then
 		if cd "${EAVE_HOME}/develop/certs"; then
 			statusmsg -e "Failed to enter ${EAVE_HOME}/develop/certs/ directory. It may have moved?"
 			statusmsg -w "Running Eave web app locally may not work as expected until dev certs are installed"
