@@ -9,7 +9,7 @@ from sqlalchemy import NullPool, PrimaryKeyConstraint, func, text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-from eave.collectors.core.correlation_context import corr_ctx
+from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
 from eave.collectors.core.test_util import EphemeralWriteQueue
 from eave.collectors.sqlalchemy.private.collector import SQLAlchemyCollector
@@ -20,7 +20,7 @@ db_uri = sqlalchemy.engine.url.URL.create(
     port=int(os.getenv("EAVE_DB_PORT", "5432")),
     username=os.getenv("EAVE_DB_USER", None),
     password=os.getenv("EAVE_DB_PASS", None),
-    database=os.getenv("EAVE_DB_NAME", "eave-sqlalchemy-tests"),
+    database="eave-sqlalchemy-tests",
 )
 
 async_engine = create_async_engine(
@@ -105,7 +105,7 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
-        corr_ctx.clear()
+        CORR_CTX.clear()
 
     async def test_after_execute_insert(self) -> None:
         assert len(self._write_queue.queue) == 0
@@ -121,9 +121,9 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert e.table_name == "accounts"
         assert e.operation == DatabaseOperation.INSERT
         assert e.db_name == db_uri.database
-        assert e.parameters is not None
-        assert e.parameters["name"] == account_name
-        assert "__primary_keys" in e.parameters
+        assert e.statement_values is not None
+        assert e.statement_values["name"] == account_name
+        assert "__primary_keys" in e.statement_values
 
     async def test_after_execute_update(self) -> None:
         assert len(self._write_queue.queue) == 0
@@ -136,11 +136,11 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert len(self._write_queue.queue) == 1
         e0 = self._write_queue.queue[0]
         assert isinstance(e0, DatabaseEventPayload)
-        assert e0.parameters is not None
+        assert e0.statement_values is not None
 
         async with async_session.begin() as session:
             # (("id", "1234567.."),)
-            pk = e0.parameters["__primary_keys"][0][1]
+            pk = e0.statement_values["__primary_keys"][0][1]
             r = await session.get_one(entity=AccountOrm, ident=(pk,))
             assert len(self._write_queue.queue) == 2
             e = self._write_queue.queue[1]
@@ -157,8 +157,8 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert e.table_name == "accounts"
         assert e.operation == DatabaseOperation.UPDATE
         assert e.db_name == db_uri.database
-        assert e.parameters is not None
-        assert e.parameters["name"] == new_account_name
+        assert e.statement_values is not None
+        assert e.statement_values["name"] == new_account_name
 
     async def test_update_accounts_table_saves_id_to_corr_ctx(self) -> None:
         assert len(self._write_queue.queue) == 0
@@ -172,11 +172,11 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert len(self._write_queue.queue) == 1
         e = self._write_queue.queue[0]
         assert isinstance(e, DatabaseEventPayload)
-        assert e.parameters is not None
+        assert e.statement_values is not None
 
         async with async_session.begin() as session:
             # clear ctx to ensure update was the op to set account_id
-            corr_ctx.clear()
+            CORR_CTX.clear()
 
             # do sql update
             new_account_name = uuid.uuid4().hex
@@ -189,11 +189,11 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert e.table_name == "accounts"
         assert e.operation == DatabaseOperation.UPDATE
         assert e.db_name == db_uri.database
-        assert e.parameters is not None
-        assert e.parameters["name"] == new_account_name
-        assert corr_ctx.get("account_id") == str(account.id)
-        assert e.context is not None
-        assert e.context.get("account_id") == str(account.id)
+        assert e.statement_values is not None
+        assert e.statement_values["name"] == new_account_name
+        assert CORR_CTX.get("account_id") == str(account.id)
+        assert e.corr_ctx is not None
+        assert e.corr_ctx.get("account_id") == str(account.id)
 
     async def test_after_execute_insert_account_table(self) -> None:
         assert len(self._write_queue.queue) == 0
@@ -205,9 +205,9 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert len(self._write_queue.queue) == 1
         e = self._write_queue.queue[0]
 
-        assert corr_ctx.get("account_id") == str(account.id)
-        assert e.context is not None
-        assert e.context.get("account_id") == str(account.id)
+        assert CORR_CTX.get("account_id") == str(account.id)
+        assert e.corr_ctx is not None
+        assert e.corr_ctx.get("account_id") == str(account.id)
 
     async def test_after_execute_insert_not_account_table(self) -> None:
         assert len(self._write_queue.queue) == 0
@@ -219,9 +219,9 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert len(self._write_queue.queue) == 1
         e = self._write_queue.queue[0]
 
-        assert corr_ctx.get("account_id") is None
-        assert e.context is not None
-        assert e.context.get("account_id") is None
+        assert CORR_CTX.get("account_id") is None
+        assert e.corr_ctx is not None
+        assert e.corr_ctx.get("account_id") is None
 
     async def test_multi_condition_select_from_account_table(self) -> None:
         assert len(self._write_queue.queue) == 0
@@ -234,7 +234,7 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
 
         assert len(self._write_queue.queue) == 1
         # clear ctx to test context writing on SELECT queries
-        corr_ctx.clear()
+        CORR_CTX.clear()
 
         # create multi condition where-clause
         lookup = (
@@ -252,9 +252,9 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert isinstance(e, DatabaseEventPayload)
         assert e.table_name == "accounts"
         assert e.operation == DatabaseOperation.SELECT
-        assert corr_ctx.get("account_id") == str(account.id)
-        assert e.context is not None
-        assert e.context.get("account_id") == str(account.id)
+        assert CORR_CTX.get("account_id") == str(account.id)
+        assert e.corr_ctx is not None
+        assert e.corr_ctx.get("account_id") == str(account.id)
 
     async def test_single_condition_select_from_account_table(self) -> None:
         assert len(self._write_queue.queue) == 0
@@ -267,7 +267,7 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
 
         assert len(self._write_queue.queue) == 1
         # clear ctx to test context writing on SELECT queries
-        corr_ctx.clear()
+        CORR_CTX.clear()
 
         # create single condition where-clause
         lookup = sqlalchemy.select(AccountOrm).where(AccountOrm.id == account.id).limit(1)
@@ -280,9 +280,9 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert isinstance(e, DatabaseEventPayload)
         assert e.table_name == "accounts"
         assert e.operation == DatabaseOperation.SELECT
-        assert corr_ctx.get("account_id") == str(account.id)
-        assert e.context is not None
-        assert e.context.get("account_id") == str(account.id)
+        assert CORR_CTX.get("account_id") == str(account.id)
+        assert e.corr_ctx is not None
+        assert e.corr_ctx.get("account_id") == str(account.id)
 
     async def test_account_foreign_keys_captured_in_context_after_insert(self):
         assert len(self._write_queue.queue) == 0
@@ -295,7 +295,7 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert len(self._write_queue.queue) == 1
         e = self._write_queue.queue[0]
         # no context data should be written yet
-        assert e.context == {}
+        assert e.corr_ctx == {}
 
         # insert account w/ foreign keys
         async with async_session.begin() as session:
@@ -309,13 +309,13 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert isinstance(e, DatabaseEventPayload)
         assert e.table_name == "accounts"
         assert e.operation == DatabaseOperation.INSERT
-        assert corr_ctx.get("account_id") == str(account.id)
-        assert corr_ctx.get("snake_team_id") == str(team.id)
-        assert corr_ctx.get("camelTeamId") == str(team.id)
-        assert e.context is not None
-        assert e.context.get("account_id") == str(account.id)
-        assert e.context.get("snake_team_id") == str(team.id)
-        assert e.context.get("camelTeamId") == str(team.id)
+        assert CORR_CTX.get("account_id") == str(account.id)
+        assert CORR_CTX.get("snake_team_id") == str(team.id)
+        assert CORR_CTX.get("camelTeamId") == str(team.id)
+        assert e.corr_ctx is not None
+        assert e.corr_ctx.get("account_id") == str(account.id)
+        assert e.corr_ctx.get("snake_team_id") == str(team.id)
+        assert e.corr_ctx.get("camelTeamId") == str(team.id)
 
     async def test_account_foreign_keys_captured_in_context_after_update(self):
         assert len(self._write_queue.queue) == 0
@@ -332,7 +332,7 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
             session.add(account)
         assert len(self._write_queue.queue) == 2
         # clear for update assertions
-        corr_ctx.clear()
+        CORR_CTX.clear()
 
         # update the account
         async with async_session.begin() as session:
@@ -346,13 +346,13 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert isinstance(e, DatabaseEventPayload)
         assert e.table_name == "accounts"
         assert e.operation == DatabaseOperation.UPDATE
-        assert corr_ctx.get("account_id") == str(account.id)
-        assert corr_ctx.get("snake_team_id") == str(team.id)
-        assert corr_ctx.get("camelTeamId") == str(team.id)
-        assert e.context is not None
-        assert e.context.get("account_id") == str(account.id)
-        assert e.context.get("snake_team_id") == str(team.id)
-        assert e.context.get("camelTeamId") == str(team.id)
+        assert CORR_CTX.get("account_id") == str(account.id)
+        assert CORR_CTX.get("snake_team_id") == str(team.id)
+        assert CORR_CTX.get("camelTeamId") == str(team.id)
+        assert e.corr_ctx is not None
+        assert e.corr_ctx.get("account_id") == str(account.id)
+        assert e.corr_ctx.get("snake_team_id") == str(team.id)
+        assert e.corr_ctx.get("camelTeamId") == str(team.id)
 
     async def test_account_foreign_keys_captured_in_context_after_select(self):
         assert len(self._write_queue.queue) == 0
@@ -368,7 +368,7 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
 
         assert len(self._write_queue.queue) == 2
         # clear ctx to test context writing on SELECT queries
-        corr_ctx.clear()
+        CORR_CTX.clear()
 
         # create SELECT lookup using pk and fk equalities
         lookup = (
@@ -388,13 +388,13 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert isinstance(e, DatabaseEventPayload)
         assert e.table_name == "accounts"
         assert e.operation == DatabaseOperation.SELECT
-        assert corr_ctx.get("account_id") == str(account.id)
-        assert corr_ctx.get("snake_team_id") == str(team.id)
-        assert corr_ctx.get("camelTeamId") == str(team.id)
-        assert e.context is not None
-        assert e.context.get("account_id") == str(account.id)
-        assert e.context.get("snake_team_id") == str(team.id)
-        assert e.context.get("camelTeamId") == str(team.id)
+        assert CORR_CTX.get("account_id") == str(account.id)
+        assert CORR_CTX.get("snake_team_id") == str(team.id)
+        assert CORR_CTX.get("camelTeamId") == str(team.id)
+        assert e.corr_ctx is not None
+        assert e.corr_ctx.get("account_id") == str(account.id)
+        assert e.corr_ctx.get("snake_team_id") == str(team.id)
+        assert e.corr_ctx.get("camelTeamId") == str(team.id)
 
     async def test_non_eq_binary_comparisons_in_where_clause_stripped_from_considered_values(self):
         assert len(self._write_queue.queue) == 0
@@ -410,7 +410,7 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
 
         assert len(self._write_queue.queue) == 2
         # clear ctx to test context writing on SELECT queries
-        corr_ctx.clear()
+        CORR_CTX.clear()
 
         # create SELECT lookup comparing a pk/fk with non-equal operator
         max_uuid = uuid.UUID("ffffffff-ffff-4fff-bfff-ffffffffffff")
@@ -432,13 +432,13 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert isinstance(e, DatabaseEventPayload)
         assert e.table_name == "accounts"
         assert e.operation == DatabaseOperation.SELECT
-        assert corr_ctx.get("account_id") == str(account.id)
-        assert corr_ctx.get("snake_team_id") == str(team.id)
-        assert corr_ctx.get("camelTeamId") is None
-        assert e.context is not None
-        assert e.context.get("account_id") == str(account.id)
-        assert e.context.get("snake_team_id") == str(team.id)
-        assert e.context.get("camelTeamId") is None
+        assert CORR_CTX.get("account_id") == str(account.id)
+        assert CORR_CTX.get("snake_team_id") == str(team.id)
+        assert CORR_CTX.get("camelTeamId") is None
+        assert e.corr_ctx is not None
+        assert e.corr_ctx.get("account_id") == str(account.id)
+        assert e.corr_ctx.get("snake_team_id") == str(team.id)
+        assert e.corr_ctx.get("camelTeamId") is None
 
     async def test_composite_pk_order_preserved_in_atom(self):
         assert len(self._write_queue.queue) == 0
@@ -455,16 +455,16 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert isinstance(e, DatabaseEventPayload)
         assert e.table_name == "users"
         assert e.operation == DatabaseOperation.INSERT
-        assert corr_ctx.get("account_id") == str(user.id)
-        assert corr_ctx.get("secondary_id") == str(user.secondary_id)
-        assert e.context is not None
-        assert e.context.get("account_id") == str(user.id)
-        assert e.context.get("secondary_id") == str(user.secondary_id)
+        assert CORR_CTX.get("account_id") == str(user.id)
+        assert CORR_CTX.get("secondary_id") == str(user.secondary_id)
+        assert e.corr_ctx is not None
+        assert e.corr_ctx.get("account_id") == str(user.id)
+        assert e.corr_ctx.get("secondary_id") == str(user.secondary_id)
 
         # __primary_keys order should match table composite pk order
-        assert e.parameters is not None
-        assert "__primary_keys" in e.parameters
-        assert e.parameters["__primary_keys"] == (("secondary_id", str(user.secondary_id)), ("id", str(user.id)))
+        assert e.statement_values is not None
+        assert "__primary_keys" in e.statement_values
+        assert e.statement_values["__primary_keys"] == (("secondary_id", str(user.secondary_id)), ("id", str(user.id)))
 
     async def test_fk_on_non_accounts_table_is_not_added_to_context(self):
         assert len(self._write_queue.queue) == 0
@@ -484,6 +484,6 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert isinstance(e, DatabaseEventPayload)
         assert e.table_name == "todo_items"
         assert e.operation == DatabaseOperation.INSERT
-        assert e.context == {}
+        assert e.corr_ctx == {}
 
     # TODO: test inserting multiple records at once w/ one statment. how does code handle that?

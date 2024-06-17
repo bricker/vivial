@@ -1,12 +1,8 @@
-import time
-from typing import Any, cast, override
+from typing import Any
 
 from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
 
-from eave.collectors.core.datastructures import (
-    HttpClientEventPayload,
-)
-from eave.stdlib.logging import LOGGER, LogContext
+from eave.stdlib.logging import LogContext
 
 from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 
@@ -14,6 +10,8 @@ from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTa
 class HttpClientEventsTableHandle(BigQueryTableHandle):
     table_def = BigQueryTableDefinition(
         table_id="atoms_http_client_events_v1",
+        friendly_name="HTTP Client atoms",
+        description="HTTP Client atoms",
         schema=(
             SchemaField(
                 name="request_method",
@@ -65,7 +63,7 @@ class HttpClientEventsTableHandle(BigQueryTableHandle):
 
         #     if not vevent_query.one_or_none():
         #         self._bq_client.get_or_create_view(
-        #             dataset_id=self.team.bq_dataset_id,
+        #             dataset_id=self.dataset_id,
         #             view_id=vevent_view_id,
         #             view_query=dedent(
         #                 """
@@ -79,7 +77,7 @@ class HttpClientEventsTableHandle(BigQueryTableHandle):
         #                 ORDER BY
         #                     `timestamp` ASC
         #                 """.format(
-        #                     dataset_id=sql_sanitized_identifier(self.team.bq_dataset_id),
+        #                     dataset_id=sql_sanitized_identifier(self.dataset_id),
         #                     atom_table_id=sql_sanitized_identifier(self.table_def.table_id),
         #                     source_table=sql_sanitized_literal(source_table),
         #                     operation=sql_sanitized_literal(operation),
@@ -95,43 +93,40 @@ class HttpClientEventsTableHandle(BigQueryTableHandle):
         #             description=f"{operation} operation on the {source_table} table.",
         #         )
 
-    @override
     async def insert(self, events: list[dict[str, Any]], ctx: LogContext) -> None:
-        if len(events) == 0:
-            return
+        pass
+        # if len(events) == 0:
+        #     return
 
-        http_client_events = [HttpClientEventPayload(**e) for e in events]
+        # http_client_events = [HttpClientEventPayload(**e) for e in events]
 
-        dataset = self._bq_client.get_or_create_dataset(
-            dataset_id=self.team.bq_dataset_id,
-        )
+        # self._bq_client.get_or_create_dataset(dataset_id=self.dataset_id)
 
-        table = self._bq_client.get_and_sync_or_create_table(
-            dataset_id=dataset.dataset_id,
-            table_id=self.table_def.table_id,
-            schema=self.table_def.schema,
-            ctx=ctx,
-        )
+        # remote_table = self._bq_client.get_and_sync_or_create_table(
+        #     table=self.construct_bq_table(),
+        #     ctx=ctx,
+        # )
 
-        unique_operations: set[tuple[str, str]] = set()
-        formatted_rows: list[dict[str, Any]] = []
+        # unique_operations: set[tuple[str, str]] = set()
+        # formatted_rows: list[dict[str, Any]] = []
 
-        insert_timestamp = time.time()
+        # for e in http_client_events:
+        #     if e.request_method is None or e.request_url is None:
+        #         LOGGER.warning("e.request_method or e.request_url unexpectedly missing", ctx)
+        #         continue
 
-        for e in http_client_events:
-            unique_operations.add((e.request_method, e.request_url))
-            row = e.to_dict()
-            row["insert_timestamp"] = insert_timestamp
-            formatted_rows.append(row)
+        #     unique_operations.add((e.request_method, e.request_url))
+        #     row = e.to_dict()
+        #     formatted_rows.append(row)
 
-        errors = self._bq_client.append_rows(
-            table=table,
-            rows=formatted_rows,
-        )
+        # errors = self._bq_client.append_rows(
+        #     table=remote_table,
+        #     rows=formatted_rows,
+        # )
 
-        if len(errors) > 0:
-            LOGGER.warning("BigQuery insert errors", {"errors": cast(list, errors)}, ctx)
+        # if len(errors) > 0:
+        #     LOGGER.warning("BigQuery insert errors", {"errors": cast(list, errors)}, ctx)
 
-        # FIXME: This is vulnerable to a DoS
-        for request_method, request_url in unique_operations:
-            await self.create_vevent_view(request_method=request_method, request_url=request_url)
+        # # FIXME: This is vulnerable to a DoS
+        # for request_method, request_url in unique_operations:
+        #     await self.create_vevent_view(request_method=request_method, request_url=request_url)

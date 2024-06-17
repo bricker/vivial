@@ -43,10 +43,10 @@ const makeClasses = makeStyles()(() => ({
 
 // tab pages that should be rendered
 const tabs = {
-  insights: <Insights />,
-  glossary: <Glossary />,
-  settings: <Settings />,
-  team: <TeamManagement />,
+  insightsTab: { path: "/insights", component: <Insights /> },
+  glossaryTab: { path: "/glossary", component: <Glossary /> },
+  settingsTab: { path: "/settings", component: <Settings /> },
+  teamTab: { path: "/team", component: <TeamManagement /> },
 };
 
 const Dashboard = () => {
@@ -80,6 +80,8 @@ const Dashboard = () => {
     [classes.desktopContainer]: !usingMobileLayout,
   });
 
+  const initialLocation = window.location.pathname;
+
   if (!userIsAuthed) {
     return (
       <div className={container}>
@@ -91,10 +93,15 @@ const Dashboard = () => {
   } else {
     return (
       <>
-        {Object.entries(tabs).map(([key, component]) => (
-          <div id={key} key={key} className={container}>
+        {Object.entries(tabs).map(([key, tab]) => (
+          <div
+            id={key}
+            key={key}
+            className={container}
+            style={{ visibility: tab.path === initialLocation ? "visible" : "hidden" }}
+          >
             <TabbedNav />
-            {component}
+            {tab.component}
           </div>
         ))}
         <Outlet />
@@ -104,9 +111,9 @@ const Dashboard = () => {
 };
 
 type TabKey = keyof typeof tabs;
-const TabRevealer = ({ name }: { name: TabKey }) => {
+const TabRevealer = ({ name, pathname }: { name: TabKey; pathname: string }) => {
   const location = useLocation();
-  if (location.pathname === `/${name}`) {
+  if (location.pathname === pathname) {
     for (const tabKey of Object.keys(tabs)) {
       const tabUI = document.getElementById(tabKey);
       if (tabUI) {

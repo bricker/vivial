@@ -2,6 +2,7 @@ from http import HTTPStatus
 
 import google.oauth2.credentials
 from aiohttp.hdrs import AUTHORIZATION
+from httpx import Response
 
 from eave.core.internal.oauth.google import GoogleOAuthV2GetResponse
 from eave.core.internal.orm.account import AccountOrm
@@ -34,6 +35,12 @@ class TestAuthenticationMiddlewareBase(BaseTestCase):
         self, credentials: google.oauth2.credentials.Credentials
     ) -> GoogleOAuthV2GetResponse:
         return self._google_userinfo_response
+
+    def _assert_valid_account_response(self, response: Response) -> None:
+        assert response.status_code == HTTPStatus.OK
+        body = response.json()
+        response_body = GetMyAccountRequest.ResponseBody(**body)
+        assert response_body.account.email == self._eave_account.email
 
 
 class TestAuthenticationMiddlewareNotRequired(TestAuthenticationMiddlewareBase):
@@ -129,9 +136,7 @@ class TestAuthenticationMiddlewareRequiredValidRequest(TestAuthenticationMiddlew
             },
         )
 
-        assert response.status_code == HTTPStatus.OK
-        assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) is None
-        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) == self._eave_account.access_token
+        self._assert_valid_account_response(response)
 
     async def test_previous_access_token_accepted(self) -> None:
         async with self.db_session.begin() as s:
@@ -147,7 +152,8 @@ class TestAuthenticationMiddlewareRequiredValidRequest(TestAuthenticationMiddlew
             },
         )
 
-        assert response.status_code == HTTPStatus.OK
+        self._assert_valid_account_response(response)
+
         assert self._eave_account.access_token == self.getstr("current_token")
         assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) is None
         assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) == self.getstr("current_token")
@@ -169,7 +175,11 @@ class TestAuthenticationMiddlewareRequiredValidRequest(TestAuthenticationMiddlew
             eave_account = await self.reload(s, obj=self._eave_account)
             assert eave_account
 
-        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) == access_token_before
+        self._assert_valid_account_response(response)
+
+        assert (
+            response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) is None
+        )  # Cookie isn't set when token isn't refreshed.
         assert eave_account.access_token == access_token_before
 
     async def test_access_token_refreshed(self) -> None:
@@ -187,6 +197,8 @@ class TestAuthenticationMiddlewareRequiredValidRequest(TestAuthenticationMiddlew
             eave_account = await self.reload(s, obj=self._eave_account)
             assert eave_account
 
+        self._assert_valid_account_response(response)
+
         assert eave_account.access_token == self.getstr("refreshed_token")
         assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) == self.getstr("refreshed_token")
 
@@ -201,9 +213,7 @@ class TestAuthenticationMiddlewareWithCookies(TestAuthenticationMiddlewareBase):
             },
         )
 
-        assert response.status_code == HTTPStatus.OK
-        assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) is None
-        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) == self._eave_account.access_token
+        self._assert_valid_account_response(response)
 
     async def test_auth_header_precedence(self) -> None:
         response = await self.make_request(
@@ -218,9 +228,7 @@ class TestAuthenticationMiddlewareWithCookies(TestAuthenticationMiddlewareBase):
             },
         )
 
-        assert response.status_code == HTTPStatus.OK
-        assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) is None
-        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) == self._eave_account.access_token
+        self._assert_valid_account_response(response)
 
     async def test_access_token_not_refreshed(self) -> None:
         self.get_mock("google_get_userinfo").side_effect = self._mock_get_userinfo_token_not_refreshed
@@ -239,7 +247,9 @@ class TestAuthenticationMiddlewareWithCookies(TestAuthenticationMiddlewareBase):
             eave_account = await self.reload(s, obj=self._eave_account)
             assert eave_account
 
-        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) == access_token_before
+        self._assert_valid_account_response(response)
+
+        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) is None
         assert eave_account.access_token == access_token_before
 
     async def test_access_token_refreshed(self) -> None:
@@ -256,6 +266,8 @@ class TestAuthenticationMiddlewareWithCookies(TestAuthenticationMiddlewareBase):
         async with self.db_session.begin() as s:
             eave_account = await self.reload(s, obj=self._eave_account)
             assert eave_account
+
+        self._assert_valid_account_response(response)
 
         assert eave_account.access_token == self.getstr("refreshed_token")
         assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) == self.getstr("refreshed_token")

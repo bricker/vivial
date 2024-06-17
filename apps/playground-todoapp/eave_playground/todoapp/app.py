@@ -15,6 +15,7 @@ from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
 from eave.collectors.sqlalchemy import start_eave_sqlalchemy_collector, stop_eave_sqlalchemy_collector
+from eave.collectors.starlette import StarletteCollectorManager
 
 from .orm import TodoListItemOrm, UserOrm, async_engine, async_session
 
@@ -181,4 +182,4 @@ app = Starlette(
     lifespan=lifespan,
 )
 
-# StarletteCollectorManager.start(app)
+StarletteCollectorManager.start(app)

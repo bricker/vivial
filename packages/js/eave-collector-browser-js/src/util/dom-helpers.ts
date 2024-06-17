@@ -1,11 +1,11 @@
-import { StringMap } from "../types";
+import { ScalarMap } from "../types.js";
 
-export function getElementAttributes(element: Element): StringMap<string> {
-  const attrs: StringMap<string> = {};
+export function getElementAttributes(element: Element): ScalarMap<string> {
+  const attributes: ScalarMap<string> = {};
 
-  for (const attr of Array.from(element.attributes)) {
-    attrs[attr.name] = attr.value;
+  for (const attr of element.attributes) {
+    attributes[attr.name] = attr.value;
   }
 
-  return attrs;
+  return attributes;
 }

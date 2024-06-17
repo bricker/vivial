@@ -37,7 +37,7 @@ const makeClasses = makeStyles()((_theme, _params, _classes) => ({
 const SearchBar = () => {
   const { classes } = makeClasses();
   const [searchValue, setSearchValue] = useState("");
-  const { getTeamVirtualEvents } = useTeam();
+  const { listVirtualEvents } = useTeam();
 
   // useCallback to preserve timer variable across renders
   const debouncedFilterEventsOnType = useCallback(
@@ -50,14 +50,14 @@ const SearchBar = () => {
         timer = window.setTimeout(() => {
           if (!searchTerm) {
             // refresh results w/ all events when search bar is emptied
-            getTeamVirtualEvents(null);
+            listVirtualEvents({ query: null });
             return;
           }
           if (searchTerm.length < 3) {
             // wait for min 3 chars to be typed before doing a search
             return;
           }
-          getTeamVirtualEvents({ search_term: searchTerm });
+          listVirtualEvents({ query: searchTerm });
         }, halfSecondMs);
       };
     })(),

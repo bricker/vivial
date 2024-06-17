@@ -1,6 +1,10 @@
 # syntax=docker/dockerfile:1
 
-ARG PYTHON_VERSION=3.12
+ARG PYTHON_VERSION=3.12.3
+ARG GAE_RELEASE_DATE="unknown"
+
+
+
 
 ## Builder
 FROM python:${PYTHON_VERSION}-slim as builder
@@ -24,6 +28,9 @@ RUN python -m pip install \
     -t /vendor \
     -r requirements.txt \
     -r requirements-vendor.txt
+
+
+
 
 
 ## Base
@@ -55,6 +62,7 @@ EXPOSE 8000
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV GAE_RELEASE_DATE="$GAE_RELEASE_DATE"
 
 CMD PYTHONPATH=/vendor python -m gunicorn \
     --pythonpath /vendor \

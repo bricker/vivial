@@ -1,11 +1,11 @@
-import { getEaveCookie, setEaveCookie } from "./cookies";
+import { getCookie, setCookie } from "./cookies";
+import { LOG_TAG } from "./internal/constants";
 import {
   EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE,
   EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE,
   EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE,
   EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE,
 } from "./internal/js-events";
-import { eaveLogger } from "./logging";
 
 // These cookies use a different prefix so that functions like deleteAllEaveCookies() don't affect these.
 const CONSENT_COOKIE_NAME_PREFIX = "_eaveconsent.";
@@ -21,46 +21,46 @@ export enum ConsentChoice {
 }
 
 export function isCookieConsentRevoked(): boolean {
-  const cookie = getEaveCookie(COOKIE_CONSENT_CHOICE_COOKIE_NAME);
+  const cookie = getCookie(COOKIE_CONSENT_CHOICE_COOKIE_NAME);
   return cookie === ConsentChoice.REJECTED;
 }
 
 export function setCookieConsentChoice(choice: ConsentChoice) {
-  setEaveCookie({
+  setCookie({
     name: COOKIE_CONSENT_CHOICE_COOKIE_NAME,
     value: choice,
     maxAgeSeconds: CONSENT_COOKIE_MAX_AGE_SEC,
   });
 
   if (choice === ConsentChoice.ACCEPTED) {
-    eaveLogger.debug("Cookie consent granted.");
+    console.debug(LOG_TAG, "Cookie consent granted.");
     const event = new Event(EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE);
     window.dispatchEvent(event);
   } else {
-    eaveLogger.debug("Cookie consent revoked.");
+    console.debug(LOG_TAG, "Cookie consent revoked.");
     const event = new Event(EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE);
     window.dispatchEvent(event);
   }
 }
 
 export function isTrackingConsentRevoked(): boolean {
-  const cookie = getEaveCookie(TRACKING_CONSENT_CHOICE_COOKIE_NAME);
+  const cookie = getCookie(TRACKING_CONSENT_CHOICE_COOKIE_NAME);
   return cookie === ConsentChoice.REJECTED;
 }
 
 export function setTrackingConsentChoice(choice: ConsentChoice) {
-  setEaveCookie({
+  setCookie({
     name: TRACKING_CONSENT_CHOICE_COOKIE_NAME,
     value: choice,
     maxAgeSeconds: CONSENT_COOKIE_MAX_AGE_SEC,
   });
 
   if (choice === ConsentChoice.ACCEPTED) {
-    eaveLogger.debug("Tracking consent granted.");
+    console.debug(LOG_TAG, "Tracking consent granted.");
     const event = new Event(EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE);
     window.dispatchEvent(event);
   } else {
-    eaveLogger.debug("Tracking consent revoked.");
+    console.debug(LOG_TAG, "Tracking consent revoked.");
     const event = new Event(EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE);
     window.dispatchEvent(event);
   }

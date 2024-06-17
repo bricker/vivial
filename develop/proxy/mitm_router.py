@@ -29,7 +29,7 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
     if re.match(r"^dashboard\.", flow.request.host):
         port = 5000
 
-    elif re.match(r"^api\.", flow.request.host):
+    elif re.match(r"^(core-)?api\.", flow.request.host):
         # Simulate Ingress rules. This should match the Core API Kubernetes Ingress configuration.
         if is_public:
             if len(flow.request.path_components) == 0 or flow.request.path_components[0] not in [

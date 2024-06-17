@@ -7,11 +7,6 @@ class TeamQueryInput(BaseInputModel):
     id: uuid.UUID
 
 
-class AnalyticsTeam(BaseResponseModel):
-    id: uuid.UUID
-    name: str
-
-
 class Team(BaseResponseModel):
     id: uuid.UUID
     name: str

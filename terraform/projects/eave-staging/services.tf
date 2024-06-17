@@ -1,5 +1,6 @@
 locals {
   enabled_services = toset([
+    "aiplatform.googleapis.com",          # Vertex AI API
     "artifactregistry.googleapis.com",    # Artifact Registry API
     "bigquery.googleapis.com",            # BigQuery API
     "certificatemanager.googleapis.com",  # Certificate Manager API
@@ -8,6 +9,7 @@ locals {
     "compute.googleapis.com",             # Compute Engine API
     "container.googleapis.com",           # Kubernetes Engine API
     "containerregistry.googleapis.com",   # Container Registry API
+    "dataflow.googleapis.com",            # Dataflow API
     "dns.googleapis.com",                 # Cloud DNS API
     "domains.googleapis.com",             # Cloud Domains API
     "iam.googleapis.com",                 # Identity and Access Management (IAM) API

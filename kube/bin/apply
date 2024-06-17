@@ -16,7 +16,7 @@ function _print_help () (
 )
 
 function main () (
-	local gcloudproject; gcloudproject="$(^gcloudproject)"
+	local gcloudproject; gcloudproject="$(e.gcloudproject)"
 	local _dirname=""
 	local _dryrun=""
 	local _rollout=false
@@ -54,7 +54,7 @@ function main () (
 						| kubectl apply $_dryrun -f -
 
 	if $_rollout; then
-		"$(^parentpath)"/bin/rollout -d "$_dirname"
+		"$(e.parentpath)"/bin/rollout -d "$_dirname"
 	fi
 )
 

@@ -27,10 +27,10 @@ const App = () => {
               <Route path="/login" element={<AuthenticationPage type="login" />} />
 
               <Route element={<Dashboard />}>
-                <Route path="/insights" element={<TabRevealer name="insights" />} />
-                <Route path="/glossary" element={<TabRevealer name="glossary" />} />
-                <Route path="/settings" element={<TabRevealer name="settings" />} />
-                <Route path="/team" element={<TabRevealer name="team" />} />
+                <Route path="/insights" element={<TabRevealer name="insightsTab" pathname="/insights" />} />
+                <Route path="/glossary" element={<TabRevealer name="glossaryTab" pathname="/glossary" />} />
+                <Route path="/settings" element={<TabRevealer name="settingsTab" pathname="/settings" />} />
+                <Route path="/team" element={<TabRevealer name="teamTab" pathname="/team" />} />
               </Route>
 
               <Route path="*" element={<Navigate to="/insights" />} />

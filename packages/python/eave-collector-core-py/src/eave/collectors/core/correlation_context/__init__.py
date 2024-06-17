@@ -39,4 +39,4 @@ def _correlation_context_factory() -> BaseCorrelationContext:
     return ThreadedCorrelationContext()
 
 
-corr_ctx = _correlation_context_factory()
+CORR_CTX = _correlation_context_factory()

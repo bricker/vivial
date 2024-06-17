@@ -1,21 +1,23 @@
 import { isTrackingConsentRevoked } from "./consent";
-import { getAllEaveCookies } from "./cookies";
 import { TRACKER_URL } from "./internal/compile-config";
+import { LOG_TAG } from "./internal/constants";
 import {
   EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE,
   EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE,
   EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE,
   VISIBILITY_CHANGE_EVENT_TYPE,
 } from "./internal/js-events";
-import { eaveLogger } from "./logging";
-import { getDiscoveryProperties } from "./properties/discovery";
-import { getPageProperties } from "./properties/page";
-import { getPerformanceProperties } from "./properties/performance";
-import { getScreenProperties } from "./properties/screen";
-import { getUserProperties } from "./properties/user";
-import { getUserAgentProperties } from "./properties/user-agent";
-import { getSessionProperties } from "./session";
-import { BrowserEventPayload, EventProperties, JSONObject, UserAgentProperties } from "./types";
+import { getCorrelationContext } from "./properties/correlation-context";
+import { getUserAgentProperties } from "./properties/device";
+import { getCurrentPageProperties } from "./properties/page";
+import {
+  BrowserEventPayload,
+  DeviceProperties,
+  EpochTimeStampSeconds,
+  JsonScalar,
+  ScalarMap,
+  TargetProperties,
+} from "./types";
 
 /**
  * A Queue with a maximum size.
@@ -65,12 +67,20 @@ class RequestQueue {
 class RequestManager {
   #queue: RequestQueue;
 
-  #memoUserAgentProperties?: UserAgentProperties;
+  #memoDeviceProperties?: DeviceProperties;
 
   #timerId?: number;
 
   constructor() {
     this.#queue = new RequestQueue();
+
+    // @ts-ignore: this is a known global variable implicitly set on the window.
+    if (!EAVE_CLIENT_ID) {
+      // eslint-disable-line no-undef
+      console.warn(LOG_TAG, "EAVE_CLIENT_ID is not set.");
+      return;
+    }
+
     window.addEventListener(EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, this);
     document.addEventListener(VISIBILITY_CHANGE_EVENT_TYPE, this);
     this.startAutoflush();
@@ -82,13 +92,13 @@ class RequestManager {
     }
 
     if (isTrackingConsentRevoked()) {
-      eaveLogger.debug("Tracking consent not given, queue won't autoflush.");
+      console.debug(LOG_TAG, "Tracking consent not given, queue won't autoflush.");
       return;
     }
 
-    // this.#timerId = window.setInterval(() => {
-    //   this.#flushQueue();
-    // }, 1000 * 5);
+    this.#timerId = window.setInterval(() => {
+      this.#flushQueue();
+    }, 1000 * 5);
   }
 
   stopAutoflush() {
@@ -129,27 +139,35 @@ class RequestManager {
   /**
    * Builds a payload, filling in standard attributes like user agent and session info.
    */
-  async buildPayload({ event, extra }: { event: EventProperties; extra?: JSONObject }): Promise<BrowserEventPayload> {
-    const userAgentProperties = await this.#getUserAgentProperties();
-    const screenProperties = getScreenProperties();
-    const performanceProperties = getPerformanceProperties();
-    const pageProperties = getPageProperties();
-    const sessionProperties = getSessionProperties();
-    const userProperties = getUserProperties();
-    const discoveryProperties = getDiscoveryProperties();
-    const cookies = getAllEaveCookies();
+  async buildPayload({
+    action,
+    timestamp,
+    target,
+    extra,
+  }: {
+    action: string;
+    timestamp: EpochTimeStampSeconds;
+    target: TargetProperties | null;
+    extra?: ScalarMap<JsonScalar>;
+  }): Promise<BrowserEventPayload> {
+    const deviceProperties = await this.#getDeviceProperties();
+    const currentPageProperties = getCurrentPageProperties();
+    const corrCtx = getCorrelationContext();
+    // const sessionProperties = getSessionProperties();
+    // const userProperties = getUserProperties();
+    // const trafficSourceProperties = getTrafficSourceProperties();
 
     const payload: BrowserEventPayload = {
-      user_agent: userAgentProperties,
-      screen: screenProperties,
-      performance: performanceProperties,
-      page: pageProperties,
-      session: sessionProperties,
-      user: userProperties,
-      discovery: discoveryProperties,
-      event,
-      cookies,
+      action,
+      timestamp,
+      target,
+      device: deviceProperties,
+      current_page: currentPageProperties,
       extra,
+      corr_ctx: corrCtx,
+      // session: sessionProperties,
+      // user: userProperties,
+      // traffic_source: trafficSourceProperties,
     };
 
     return payload;
@@ -160,12 +178,11 @@ class RequestManager {
    */
   queueEvent(payload: BrowserEventPayload) {
     this.#queue.push(payload);
-    this.#flushQueue();
-    // eaveLogger.debug("Queued event", payload);
+    console.debug(LOG_TAG, "Queued event", payload);
 
-    // if (this.#queue.isFull) {
-    //   this.#flushQueue();
-    // }
+    if (this.#queue.isFull) {
+      this.#flushQueue();
+    }
   }
 
   /**
@@ -197,38 +214,32 @@ class RequestManager {
         type: "application/x-www-form-urlencoded; charset=UTF-8",
       });
 
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore - this is a known global variable implicitly set on the window.
+      // @ts-ignore: this is a known global variable implicitly set on the window.
       const clientId: string | undefined = EAVE_CLIENT_ID; // eslint-disable-line no-undef
 
-      if (!clientId) {
-        eaveLogger.warn("EAVE_CLIENT_ID is not set. Analytics is disabled.");
-        return;
-      }
-
-      eaveLogger.debug("Sending events", payloads);
+      console.debug(LOG_TAG, "Sending events", payloads);
 
       const success = navigator.sendBeacon(`${TRACKER_URL}?clientId=${clientId}`, blob);
 
       if (!success) {
-        eaveLogger.warn("failed to send analytics.");
+        console.warn(LOG_TAG, "failed to send analytics.");
         return;
       }
       // returns true if the user agent is able to successfully queue the data for transfer,
       // Otherwise it returns false and we need to try the regular way
     } catch (e) {
-      eaveLogger.error(e);
+      console.error(LOG_TAG, e);
       return;
     }
   }
 
-  async #getUserAgentProperties(): Promise<UserAgentProperties> {
-    if (this.#memoUserAgentProperties !== undefined) {
-      return this.#memoUserAgentProperties;
+  async #getDeviceProperties(): Promise<DeviceProperties> {
+    if (this.#memoDeviceProperties !== undefined) {
+      return this.#memoDeviceProperties;
     }
 
     const properties = await getUserAgentProperties();
-    this.#memoUserAgentProperties = properties;
+    this.#memoDeviceProperties = properties;
     return properties;
   }
 }

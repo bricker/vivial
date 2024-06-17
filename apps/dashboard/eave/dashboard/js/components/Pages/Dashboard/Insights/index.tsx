@@ -13,7 +13,7 @@ const makeClasses = makeStyles()(() => ({
 const Insights = () => {
   const { classes } = makeClasses();
 
-  return <iframe src={`${eaveWindow.eave.embedBase}/auth/sso`} className={classes.embedding}></iframe>;
+  return <iframe src={`${eaveWindow.eavedash.embedBase}/auth/sso`} className={classes.embedding}></iframe>;
 };
 
 export default Insights;

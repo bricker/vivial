@@ -9,9 +9,10 @@ from eave.core.internal.atoms.browser_events import BrowserEventsTableHandle
 from eave.core.internal.atoms.db_events import DatabaseEventsTableHandle
 from eave.core.internal.atoms.http_client_events import HttpClientEventsTableHandle
 from eave.core.internal.atoms.http_server_events import HttpServerEventsTableHandle
+from eave.core.internal.atoms.record_fields import GeoRecordField
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.core.internal.orm.team import TeamOrm
-from eave.stdlib.api_util import get_header_value_or_exception
+from eave.stdlib.api_util import get_header_value, get_header_value_or_exception
 from eave.stdlib.exceptions import ForbiddenError, UnauthorizedError
 from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
 from eave.stdlib.http_endpoint import HTTPEndpoint
@@ -58,15 +59,30 @@ class BrowserDataIngestionEndpoint(HTTPEndpoint):
         input = DataIngestRequestBody.from_json(data=body)
 
         if (events := input.events.get(EventType.browser_event)) and len(events) > 0:
-            client_attrs = scope["client"]
-            if client_attrs is not None:
-                client_ip, _ = client_attrs
-            else:
-                client_ip = None
+            # These headers are set by the GCP Load Balancer.
+            # They will not be present during local development.
+            geo_region = get_header_value(scope=scope, name="eave-lb-geo-region")
+            geo_subdivision = get_header_value(scope=scope, name="eave-lb-geo-subdivision")
+            geo_city = get_header_value(scope=scope, name="eave-lb-geo-city")
+            geo_coordinates = get_header_value(scope=scope, name="eave-lb-geo-coordinates")
+            client_ip = get_header_value(scope=scope, name="eave-lb-client-ip")
+
+            if client_ip is None:
+                client_attrs = scope["client"]
+                if client_attrs is not None:
+                    client_ip, _ = client_attrs
+
+            geolocation = GeoRecordField(
+                region=geo_region,
+                subdivision=geo_subdivision,
+                city=geo_city,
+                coordinates=geo_coordinates,
+            )
 
             handle = BrowserEventsTableHandle(team=eave_team)
-            await handle.insert_with_client_ip(
+            await handle.insert_with_geolocation(
                 events=events,
+                geolocation=geolocation,
                 client_ip=client_ip,
                 ctx=ctx,
             )
@@ -114,10 +130,6 @@ class ServerDataIngestionEndpoint(HTTPEndpoint):
 
         if (events := input.events.get(EventType.http_client_event)) and len(events) > 0:
             handle = HttpClientEventsTableHandle(team=eave_team)
-            await handle.insert(events=events, ctx=ctx)
-
-        if (events := input.events.get(EventType.browser_event)) and len(events) > 0:
-            handle = BrowserEventsTableHandle(team=eave_team)
             await handle.insert(events=events, ctx=ctx)
 
         response = Response(status_code=200)

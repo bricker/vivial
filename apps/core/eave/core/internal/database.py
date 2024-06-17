@@ -79,11 +79,11 @@ if SHARED_CONFIG.eave_env in [EaveEnvironment.development, EaveEnvironment.test]
             await connection.execute(sqlalchemy.text(f'CREATE DATABASE "{db_name}"'))
             await connection.execute(sqlalchemy.text(f'ALTER DATABASE "{db_name}" SET timezone TO "UTC"'))
 
-            try:
-                await connection.execute(sqlalchemy.text("""CREATE ROLE "eave-agent" PASSWORD 'dev'"""))
-            except Exception as e:
-                # FIXME: asyncpg.exceptions.DuplicateObjectError is the correct error to catch here, but masked by sqlalchemy
-                print("eave-agent user already exists.", e)
+            # try:
+            #     await connection.execute(sqlalchemy.text("""CREATE ROLE "eave-agent" PASSWORD 'dev'"""))
+            # except Exception as e:
+            #     # FIXME: asyncpg.exceptions.DuplicateObjectError is the correct error to catch here, but masked by sqlalchemy
+            #     print("eave-agent user already exists.", e)
 
         await postgres_engine.dispose()
 

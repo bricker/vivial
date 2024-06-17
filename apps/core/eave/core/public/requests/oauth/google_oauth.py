@@ -8,7 +8,6 @@ from starlette.responses import RedirectResponse, Response
 
 import eave.core.internal.oauth.google
 from eave.core.internal.oauth import state_cookies as oauth_cookies
-from eave.stdlib import analytics, utm_cookies
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
 from eave.stdlib.http_endpoint import HTTPEndpoint
@@ -21,23 +20,8 @@ _AUTH_PROVIDER = AuthProvider.google
 
 class GoogleOAuthAuthorize(HTTPEndpoint):
     async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
-        await analytics.log_event(
-            event_name="oauth_flow_started",
-            event_description="A user started the Oauth flow (login/register)",
-            event_source="google oauth authorize endpoint",
-            opaque_params={
-                "auth_provider": _AUTH_PROVIDER,
-            },
-            ctx=ctx,
-        )
-
         oauth_flow_info = eave.core.internal.oauth.google.get_oauth_flow_info()
         response = RedirectResponse(url=oauth_flow_info.authorization_url)
-
-        utm_cookies.set_tracking_cookies(
-            response=response,
-            request=request,
-        )
 
         oauth_cookies.save_state_cookie(
             response=response,
@@ -56,16 +40,6 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
 
         if not self._check_valid_callback():
             return self.response
-
-        await analytics.log_event(
-            event_name="oauth_flow_completed",
-            event_description="A user completed the Oauth flow (login/register)",
-            event_source="google oauth authorize endpoint",
-            opaque_params={
-                "auth_provider": _AUTH_PROVIDER,
-            },
-            ctx=ctx,
-        )
 
         flow = eave.core.internal.oauth.google.build_flow(state=self.oauth_state)
         flow.fetch_token(code=self.code)

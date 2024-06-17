@@ -19,7 +19,6 @@ import urllib.parse
 from collections.abc import Callable
 from functools import wraps
 
-# from timeit import default_timer
 import starlette.types
 from asgiref.compatibility import guarantee_single_callable
 from starlette import applications
@@ -28,8 +27,11 @@ from starlette.requests import Request
 
 # from starlette.routing import Match
 from eave.collectors.core.base_collector import BaseCollector
-from eave.collectors.core.correlation_context import corr_ctx
+from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import HttpServerEventPayload
+
+# from timeit import default_timer
+from eave.collectors.core.logging import EAVE_LOGGER
 from eave.collectors.core.write_queue import WriteQueue
 
 # class ASGIGetter:
@@ -209,11 +211,12 @@ class EaveASGIMiddleware:
             request = Request(scope=scope, receive=receive)
 
             # init ctx
-            corr_ctx.from_cookies(request.cookies)
+            CORR_CTX.from_cookies(request.cookies)
 
             # event collection
             # NOTE: this removes ability for further middleware/processing to request streaming by consuming the body
-            req_body = (await request.body()).decode("utf-8")
+            # TODO: Fix this, it causes hanging later when attempting to read the body.
+            req_body = await request.body()
 
             server_host, port, http_url = get_host_port_url_tuple(scope)
             query_string = scope.get("query_string")
@@ -251,8 +254,8 @@ class EaveASGIMiddleware:
                     request_method=req_method,
                     request_url=req_url,
                     request_headers=dict(request.headers.items()),
-                    request_payload=str(req_body),
-                    context=corr_ctx.to_dict(),
+                    request_payload=req_body.decode("utf-8"),
+                    corr_ctx=CORR_CTX.to_dict(),
                 )
             )
 
@@ -271,30 +274,43 @@ class EaveASGIMiddleware:
                     # save current headers for event
                     headers_ref[0] = dict(headers.items())
                     # add our eave ctx cookie to the response
-                    for cookie in corr_ctx.get_updated_values_cookies():
+                    for cookie in CORR_CTX.get_updated_values_cookies():
                         headers.append("Set-Cookie", cookie)
                 elif message["type"] == "http.response.body":
-                    resp_body = None
-                    try:
-                        # NOTE: if message["more_body"] == True, then we wont get the whole body here
-                        resp_body = message["body"].decode("utf-8")
-                    except UnicodeDecodeError:
-                        pass
-                    self.write_queue.put(
-                        HttpServerEventPayload(
-                            timestamp=time.time(),
-                            request_method=req_method,
-                            request_url=req_url,
-                            request_headers=headers_ref[0],
-                            request_payload=str(resp_body),
-                            context=corr_ctx.to_dict(),
-                        )
-                    )
+                    # TODO: Fix this, it needs to check for `more_body=True`
+                    # resp_body = None
+                    # try:
+                    #     resp_body = message["body"].decode("utf-8")
+                    # except UnicodeDecodeError:
+                    #     pass
+                    # self.write_queue.put(
+                    #     HttpServerEventPayload(
+                    #         timestamp=time.time(),
+                    #         request_method=req_method,
+                    #         request_url=req_url,
+                    #         request_headers=headers_ref[0],
+                    #         request_payload=str(resp_body),
+                    #         corr_ctx=CORR_CTX.to_dict(),
+                    #     )
+                    # )
+
                     # destroy ctx now that we're done with it
-                    corr_ctx.clear()
+                    CORR_CTX.clear()
+
                 await send(message)
 
-            await self.app(scope, receive, response_interceptor)
+            # Overwrite ASGI receive messages to set the body for all downstream request handlers.
+            async def receive_interceptor() -> starlette.types.Message:
+                # FIXME: This disregards any other event type (eg http.disconnect)
+                # To fix this, this interceptor function should check the type of the original receive event,
+                # and return accordingly.
+                return {
+                    "type": "http.request",
+                    "body": req_body,
+                    "more_body": False,
+                }
+
+            await self.app(scope, receive_interceptor, response_interceptor)
 
             # if scope["type"] == "http":
             #     target = _censored_url(scope)
@@ -307,9 +323,12 @@ class EaveASGIMiddleware:
             #         except ValueError:
             #             pass
 
-        except UnicodeDecodeError:
+        except UnicodeDecodeError as e:
             # ignore json decoding errors
-            pass
+            EAVE_LOGGER.warning(e)
+        except Exception as e:
+            # Don't prevent the request from going through
+            EAVE_LOGGER.exception(e)
 
 
 class StarletteCollector(BaseCollector):

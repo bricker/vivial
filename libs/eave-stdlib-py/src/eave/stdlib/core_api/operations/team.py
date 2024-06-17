@@ -12,11 +12,11 @@ from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 class GetMyTeamRequest(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
-        path="/_/me/team/query",
+        path="/public/me/team/query",
         method=METH_POST,
         auth_required=True,
         origin_required=True,
-        is_public=False,
+        is_public=True,
     )
 
     class ResponseBody(BaseResponseBody):

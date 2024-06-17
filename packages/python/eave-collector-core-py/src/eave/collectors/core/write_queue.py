@@ -112,16 +112,13 @@ def _queue_processor_event_loop(*args, **kwargs) -> None:
 
 class WriteQueue(abc.ABC):
     @abc.abstractmethod
-    def start_autoflush(self) -> None:
-        ...
+    def start_autoflush(self) -> None: ...
 
     @abc.abstractmethod
-    def stop_autoflush(self) -> None:
-        ...
+    def stop_autoflush(self) -> None: ...
 
     @abc.abstractmethod
-    def put(self, payload: EventPayload) -> None:
-        ...
+    def put(self, payload: EventPayload) -> None: ...
 
 
 class BatchWriteQueue(WriteQueue):

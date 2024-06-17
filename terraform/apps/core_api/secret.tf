@@ -10,5 +10,6 @@ resource "kubernetes_secret" "app" {
 
   type = "Opaque"
   data = {
+    EAVE_CREDENTIALS = var.EAVE_CREDENTIALS.SERVER_CREDENTIALS
   }
 }

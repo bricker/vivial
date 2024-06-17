@@ -1,53 +1,39 @@
+import json
 import unittest
 import urllib.parse
 
 from starlette.applications import Starlette
-from starlette.responses import PlainTextResponse
+from starlette.requests import Request
+from starlette.responses import JSONResponse, PlainTextResponse, Response
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
-from eave.collectors.core.correlation_context import corr_ctx
-from eave.collectors.core.correlation_context.base import COOKIE_PREFIX
-from eave.collectors.core.datastructures import EventPayload, EventType, HttpServerEventPayload
-from eave.collectors.core.write_queue import BatchWriteQueue, QueueParams
+from eave.collectors.core.correlation_context import CORR_CTX
+from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_COOKIE_PREFIX
+from eave.collectors.core.datastructures import HttpServerEventPayload
+from eave.collectors.core.test_util import EphemeralWriteQueue
 from eave.collectors.starlette.private.collector import StarletteCollector
-
-
-class ConsoleOutputBatchWriteQueue(BatchWriteQueue):
-    _running: bool = False
-    queue: list[EventPayload]
-
-    def __init__(self, event_type: EventType) -> None:
-        super().__init__(queue_params=QueueParams())
-        self.queue = []
-
-    def start_autoflush(self) -> None:
-        self._running = True
-
-    def stop_autoflush(self) -> None:
-        self._running = False
-
-    def put(self, payload: EventPayload) -> None:
-        if not self._running:
-            raise RuntimeError("queue processor not running")
-
-        self.queue.append(payload)
 
 
 class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
     def _create_starlette_app(self) -> Starlette:
-        async def test_endpoint(request):
+        async def test_endpoint(request: Request) -> Response:
             return PlainTextResponse("Hello!")
 
-        async def ctx_set_endpoint(request):
+        async def test_json_endpoint(request: Request) -> Response:
+            body = await request.json()
+            return JSONResponse(body)
+
+        async def ctx_set_endpoint(request: Request) -> Response:
             body = request.query_params
             for k, v in body.items():
-                corr_ctx.set(k, v)
+                CORR_CTX.set(k, v)
             return PlainTextResponse("cookies changed")
 
         app = Starlette(
             routes=[
                 Route("/test", test_endpoint, methods=["GET"]),
+                Route("/json", test_json_endpoint, methods=["POST"]),
                 Route("/set_ctx", ctx_set_endpoint, methods=["GET"]),
             ]
         )
@@ -56,7 +42,7 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
         self._collector = StarletteCollector()
-        self._write_queue = ConsoleOutputBatchWriteQueue(EventType.http_server_event)
+        self._write_queue = EphemeralWriteQueue()
         self._collector.write_queue = self._write_queue
         self._app = self._create_starlette_app()
         self._collector.instrument_app(self._app)
@@ -72,19 +58,31 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
         # WHEN get request is made to instrumented app
         self._client.get("/test")
 
-        # THEN network events (request + response) are pushed to write_queue
-        assert len(self._write_queue.queue) == 2
+        # THEN network event is pushed to write_queue
+        assert len(self._write_queue.queue) == 1
         e1 = self._write_queue.queue[0]
-        e2 = self._write_queue.queue[1]
         assert isinstance(e1, HttpServerEventPayload), "First event was not a server network event"
-        assert isinstance(e2, HttpServerEventPayload), "Second event was not a server network event"
         assert e1.request_payload == "", "GET request has unexpected payload"
-        assert e2.request_payload == "Hello!", "Response body was not recorded"
+
+    async def test_body_read(self) -> None:
+        assert len(self._write_queue.queue) == 0
+
+        body = {"foo": "bar"}
+
+        # WHEN post request is made to instrumented app
+        response = self._client.post("/json", json=body)
+
+        # THEN network event is pushed to write_queue
+        assert response.status_code == 200
+        assert len(self._write_queue.queue) == 1
+        e1 = self._write_queue.queue[0]
+        assert isinstance(e1, HttpServerEventPayload), "First event was not a server network event"
+        assert e1.request_payload == json.dumps(body), "POST request has unexpected payload"
 
     async def test_eave_ctx_set_from_cookies(self) -> None:
         # GIVEN eave cookies set on request
-        valid_cookie = f"{COOKIE_PREFIX}test_cookie"
-        json_cookie = f"{COOKIE_PREFIX}json"
+        valid_cookie = f"{EAVE_COLLECTOR_COOKIE_PREFIX}test_cookie"
+        json_cookie = f"{EAVE_COLLECTOR_COOKIE_PREFIX}json"
         non_eave_cookie = "no_eave_prefix"
         ctx_key = "some_ctx_key"
         self._client.cookies.set(valid_cookie, "valid")
@@ -98,16 +96,16 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert len(self._write_queue.queue) > 0
         e = self._write_queue.queue[0]
         assert isinstance(e, HttpServerEventPayload)
-        assert e.context is not None, "Eave context was expected to be set in the network event"
-        assert e.context.get(valid_cookie) == "valid"
-        assert e.context.get(non_eave_cookie) is None
-        assert e.context.get(json_cookie) == f'{{"{ctx_key}": 123}}'
+        assert e.corr_ctx is not None, "Eave context was expected to be set in the network event"
+        assert e.corr_ctx.get(valid_cookie) == "valid"
+        assert e.corr_ctx.get(non_eave_cookie) is None
+        assert e.corr_ctx.get(json_cookie) == f'{{"{ctx_key}": 123}}'
 
     async def test_response_cookie_ctx_set(self) -> None:
         # GIVEN there is some ctx cookies that can be changed
-        unchanged_cookie = f"{COOKIE_PREFIX}cookie"
-        changed_cookie = f"{COOKIE_PREFIX}mutable"
-        new_cookie = f"{COOKIE_PREFIX}new"
+        unchanged_cookie = f"{EAVE_COLLECTOR_COOKIE_PREFIX}cookie"
+        changed_cookie = f"{EAVE_COLLECTOR_COOKIE_PREFIX}mutable"
+        new_cookie = f"{EAVE_COLLECTOR_COOKIE_PREFIX}new"
         self._client.cookies.set(unchanged_cookie, "valid")
         self._client.cookies.set(changed_cookie, "change_me")
 

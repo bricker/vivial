@@ -10,10 +10,6 @@ variable "release_version" {
   type = string
 }
 
-variable "release_date" {
-  type = string
-}
-
 variable "shared_config_map_name" {
   type = string
 }
@@ -52,4 +48,12 @@ variable "certificate_map_name" {
 
 variable "kube_namespace_name" {
   type = string
+}
+
+variable "EAVE_CREDENTIALS" {
+  type = object({
+    SERVER_CREDENTIALS = string,
+    CLIENT_ID          = string,
+  })
+  sensitive = true
 }

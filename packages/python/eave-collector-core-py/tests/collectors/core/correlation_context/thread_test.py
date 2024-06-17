@@ -1,16 +1,15 @@
 import threading
 import unittest
 
-from eave.collectors.core.correlation_context import ThreadedCorrelationContext
-from eave.collectors.core.correlation_context.base import COOKIE_PREFIX
-from eave.collectors.core.correlation_context.thread import _local_thread_storage
+from eave.collectors.core.correlation_context import CORR_CTX, ThreadedCorrelationContext
+from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_COOKIE_PREFIX
 
 
 class ThreadedCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
     async def asyncTearDown(self) -> None:
         super().tearDown()
         # manually reset private thread storage since asyncio tests are all launched from same thread
-        _local_thread_storage.eave = {}
+        CORR_CTX.clear()
 
     async def test_values_can_be_written_and_read(self) -> None:
         ctx = ThreadedCorrelationContext()
@@ -44,6 +43,8 @@ class ThreadedCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
         t2.join()
 
     async def test_child_threads_inherit_parent_ctx_values(self) -> None:
+        self.fail("Not Implemented")
+
         ctx = ThreadedCorrelationContext()
         # given values exist in parent context
         ctx.set("parent", "0")
@@ -70,30 +71,33 @@ class ThreadedCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
         ctx = ThreadedCorrelationContext()
         cookies = {
             "other_cookie": "yummy",
-            f"{COOKIE_PREFIX}session_id": "ses",
-            f"{COOKIE_PREFIX}key": "value",
+            f"{EAVE_COLLECTOR_COOKIE_PREFIX}session_id": "ses",
+            f"{EAVE_COLLECTOR_COOKIE_PREFIX}key": "value",
         }
         ctx.from_cookies(cookies)
 
         # non eave cookies should be skipped
         assert (
-            ctx.to_json() == f'{{"{COOKIE_PREFIX}session_id": "ses", "{COOKIE_PREFIX}key": "value"}}'
+            ctx.to_json()
+            == f'{{"{EAVE_COLLECTOR_COOKIE_PREFIX}session_id": "ses", "{EAVE_COLLECTOR_COOKIE_PREFIX}key": "value"}}'
         ), "Cookie conversion did not include only the expected cookies"
 
         # cookies should join join if existing ctx
-        ctx.from_cookies({f"{COOKIE_PREFIX}visitor_id": "123", f"{COOKIE_PREFIX}key": "new val"})
+        ctx.from_cookies(
+            {f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": "123", f"{EAVE_COLLECTOR_COOKIE_PREFIX}key": "new val"}
+        )
         assert (
             ctx.to_json()
-            == f'{{"{COOKIE_PREFIX}session_id": "ses", "{COOKIE_PREFIX}key": "new val", "{COOKIE_PREFIX}visitor_id": "123"}}'
+            == f'{{"{EAVE_COLLECTOR_COOKIE_PREFIX}session_id": "ses", "{EAVE_COLLECTOR_COOKIE_PREFIX}key": "new val", "{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": "123"}}'
         ), "Context did not join as expected"
 
     async def test_convert_ctx_to_cookies_creates_valid_cookie(self) -> None:
         ctx = ThreadedCorrelationContext()
         ctx.set("session_id", "ses")
-        ctx.set(f"{COOKIE_PREFIX}key", '"value"')
+        ctx.set(f"{EAVE_COLLECTOR_COOKIE_PREFIX}key", '"value"')
 
         # expect URL encoded
         assert ctx.get_updated_values_cookies() == [
-            f"{COOKIE_PREFIX}session_id=ses",
-            f"{COOKIE_PREFIX}key=%22value%22",
+            f"{EAVE_COLLECTOR_COOKIE_PREFIX}session_id=ses",
+            f"{EAVE_COLLECTOR_COOKIE_PREFIX}key=%22value%22",
         ], "Context cookie was converted incorrectly"

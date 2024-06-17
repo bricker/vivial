@@ -2,7 +2,8 @@ import CloseIcon from "$eave-dashboard/js/components/Icons/CloseIcon";
 import HamburgerIcon from "$eave-dashboard/js/components/Icons/HamburgerIcon";
 import { imageUrl } from "$eave-dashboard/js/util/asset-util";
 import classNames from "classnames";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 
 const makeClasses = makeStyles()(() => ({
@@ -57,8 +58,13 @@ const makeClasses = makeStyles()(() => ({
 }));
 
 const SidebarNav = ({ children, hamburger = false }: { children: React.ReactNode; hamburger?: boolean }) => {
+  const location = useLocation();
   const { classes } = makeClasses();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location]);
 
   if (hamburger) {
     return (

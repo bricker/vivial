@@ -59,6 +59,22 @@
       "console": "integratedTerminal"
     },
     {
+      "name": "Browser Collector (Webpack)",
+      "consoleTitle": "Browser Collector (Webpack)",
+      "cwd": "${workspaceFolder}/packages/js/eave-collector-browser-js",
+      "type": "node",
+      "request": "launch",
+      "program": "./node_modules/.bin/webpack",
+      "args": [
+        "serve",
+        "--mode=development",
+        "--env=TRACKER_URL=http://api.eave.run:8080/public/ingest/browser",
+        "--port=3001",
+        "--host=127.0.0.1",
+      ],
+      "console": "integratedTerminal"
+    },
+    {
       "name": "Debug AVA test file",
       "envFile": "${workspaceFolder}/.env",
       "type": "node",

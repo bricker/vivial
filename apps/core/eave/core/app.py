@@ -3,6 +3,7 @@ import starlette.applications
 import starlette.endpoints
 from asgiref.typing import ASGI3Application
 from starlette.middleware import Middleware
+from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Route
 
 import eave.stdlib.time
@@ -14,10 +15,14 @@ from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.core.public.requests.data_ingestion import BrowserDataIngestionEndpoint, ServerDataIngestionEndpoint
 from eave.core.public.requests.metabase_proxy import MetabaseAuthEndpoint, MetabaseProxyEndpoint, MetabaseProxyRouter
 from eave.stdlib import cache, logging
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.core_api.operations.account import GetMyAccountRequest
 from eave.stdlib.core_api.operations.team import GetMyTeamRequest
-from eave.stdlib.core_api.operations.virtual_event import GetMyVirtualEventsRequest
+from eave.stdlib.core_api.operations.virtual_event import GetMyVirtualEventDetailsRequest, ListMyVirtualEventsRequest
+from eave.stdlib.headers import (
+    EAVE_ORIGIN_HEADER,
+)
 from eave.stdlib.middleware.deny_public_request import DenyPublicRequestASGIMiddleware
 from eave.stdlib.middleware.exception_handling import ExceptionHandlingASGIMiddleware
 from eave.stdlib.middleware.logging import LoggingASGIMiddleware
@@ -271,20 +276,21 @@ routes = [
         ),
         endpoint=noop.NoopEndpoint,
     ),
-    ##
-    ## Internal Endpoints
-    ##
     make_route(
         config=GetMyTeamRequest.config,
-        endpoint=team.GetTeamEndpoint,
+        endpoint=team.GetMyTeamEndpoint,
     ),
     make_route(
-        config=GetMyVirtualEventsRequest.config,
-        endpoint=virtual_event.GetVirtualEventsEndpoint,
+        config=ListMyVirtualEventsRequest.config,
+        endpoint=virtual_event.ListMyVirtualEventsEndpoint,
+    ),
+    make_route(
+        config=GetMyVirtualEventDetailsRequest.config,
+        endpoint=virtual_event.GetMyVirtualEventDetailsEndpoint,
     ),
     make_route(
         config=GetMyAccountRequest.config,
-        endpoint=authed_account.GetAccountEndpoint,
+        endpoint=authed_account.GetMyAccountEndpoint,
     ),
 ]
 
@@ -302,6 +308,29 @@ async def graceful_shutdown() -> None:
 app = starlette.applications.Starlette(
     routes=routes,
     exception_handlers=exception_handlers,
-    middleware=[Middleware(MetabaseProxyRouter)],
+    middleware=[
+        # CORS is needed only for dashboard to API communications.
+        # This is irrelevant for the browser collector, because the collector sends data with a content type (application/x-www-form-urlencoded) that is CORS-safelisted.
+        Middleware(
+            CORSMiddleware,
+            allow_origins=[
+                SHARED_CONFIG.eave_dashboard_base_url_public,
+            ],
+            allow_methods=[
+                aiohttp.hdrs.METH_GET,
+                aiohttp.hdrs.METH_POST,
+                aiohttp.hdrs.METH_PUT,
+                aiohttp.hdrs.METH_PATCH,
+                aiohttp.hdrs.METH_DELETE,
+                aiohttp.hdrs.METH_HEAD,
+                aiohttp.hdrs.METH_OPTIONS,
+            ],
+            allow_headers=[
+                EAVE_ORIGIN_HEADER,
+            ],
+            allow_credentials=True,
+        ),
+        Middleware(MetabaseProxyRouter),
+    ],
     on_shutdown=[graceful_shutdown],
 )

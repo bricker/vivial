@@ -5,5 +5,5 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 statusmsg -w "no tests"
-# cd "$(^parentpath)"
+# cd "$(e.parentpath)"
 # "${EAVE_HOME}"/develop/javascript/_test_base "$@"
