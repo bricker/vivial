@@ -17,7 +17,7 @@ from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.cookies import EAVE_EMBED_COOKIE_PREFIX, set_http_cookie
 from eave.stdlib.exceptions import NotFoundError
 from eave.stdlib.http_endpoint import HTTPEndpoint
-from eave.stdlib.logging import LOGGER, LogContext
+from eave.stdlib.logging import LogContext
 from eave.stdlib.util import ensure_uuid
 
 _METABASE_UI_QP = {
@@ -106,12 +106,6 @@ class MetabaseProxyEndpoint(HTTPEndpoint):
             # Consume the body while the session is still open
             body = await mb_response.read()
 
-        LOGGER.info(
-            "metabase response",
-            {"mb": {"headers": dict(mb_response.headers), "status": mb_response.status}},
-            ctx,
-        )
-
         mb_response = Response(
             status_code=mb_response.status,
             content=body,
@@ -143,8 +137,20 @@ class MetabaseAuthEndpoint(HTTPEndpoint):
                 team_id=account.team_id,
             )
 
-        if not metabase_instance.jwt_signing_key or not metabase_instance.jwt_signing_key:
+        if not metabase_instance.jwt_signing_key:
             raise NotFoundError("Metabase instance can't be reached.")
+
+        # FIXME: Default "1" isn't logical
+        dashboard_id = (
+            metabase_instance.default_dashboard_id if metabase_instance.default_dashboard_id is not None else "1"
+        )
+
+        sess_cookie =  f"{EAVE_EMBED_COOKIE_PREFIX}SESSION"
+        if sess_cookie in request.cookies:
+            # skip auth if user is already authed, for improved performance
+            return RedirectResponse(
+                url=f"{SHARED_CONFIG.eave_embed_base_url_public}/dashboard/{dashboard_id}?{urlencode(_METABASE_UI_QP)}",
+            )
 
         email = account.email or "unknown"
 
@@ -155,11 +161,6 @@ class MetabaseAuthEndpoint(HTTPEndpoint):
                 "exp": round(time.time()) + (60 * 10),  # 10min
             },
             key=metabase_instance.jwt_signing_key,
-        )
-
-        # FIXME: Default "1" isn't logical
-        dashboard_id = (
-            metabase_instance.default_dashboard_id if metabase_instance.default_dashboard_id is not None else "1"
         )
 
         async with aiohttp.ClientSession() as session:
@@ -177,12 +178,6 @@ class MetabaseAuthEndpoint(HTTPEndpoint):
             )
 
             mb_response.raise_for_status()
-
-        LOGGER.info(
-            "metabase response",
-            {"mb": {"headers": dict(mb_response.headers), "status": mb_response.status}},
-            ctx,
-        )
 
         response = RedirectResponse(
             status_code=mb_response.status,
