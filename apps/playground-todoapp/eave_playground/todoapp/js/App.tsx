@@ -14,7 +14,18 @@ const App = () => {
         <Routes>
           <Route path="/login" element={<LoginForm />} />
           <Route path="/" element={<TodoList />} />
-          <Route path="*" element={<Navigate to="/" />} />
+          <Route
+            path="*"
+            element={
+              <Navigate
+                to={{
+                  pathname: "/",
+                  search: window.location.search,
+                }}
+                replace
+              />
+            }
+          />
         </Routes>
       </Router>
       <CookieConsentBanner />
