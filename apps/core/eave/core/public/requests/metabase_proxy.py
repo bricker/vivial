@@ -140,14 +140,16 @@ class MetabaseAuthEndpoint(HTTPEndpoint):
         if not metabase_instance.jwt_signing_key:
             raise NotFoundError("Metabase instance can't be reached.")
 
-        sess_cookie =  f"{_METABASE_COOKIE_PREFIX}SESSION"
+        # FIXME: Default "1" isn't logical
+        dashboard_id = (
+            metabase_instance.default_dashboard_id if metabase_instance.default_dashboard_id is not None else "1"
+        )
+
+        sess_cookie =  f"{EAVE_EMBED_COOKIE_PREFIX}SESSION"
         if sess_cookie in request.cookies:
-            # TODO: check eave.embed.SESSION cookie, bypass /auth/sso if present
-            # https://embed.eave.fyi/dashboard/1
-            # TODO and location cookie matches metabase_instance.default_dashboard_id
-            # TODO: check if session cookie exists instead
+            # skip auth if user is already authed, for improved performance
             return RedirectResponse(
-                url=self.location_cookie_name,
+                url=f"{SHARED_CONFIG.eave_embed_base_url_public}/dashboard/{dashboard_id}?{urlencode(_METABASE_UI_QP)}",
             )
 
         email = account.email or "unknown"
@@ -159,11 +161,6 @@ class MetabaseAuthEndpoint(HTTPEndpoint):
                 "exp": round(time.time()) + (60 * 10),  # 10min
             },
             key=metabase_instance.jwt_signing_key,
-        )
-
-        # FIXME: Default "1" isn't logical
-        dashboard_id = (
-            metabase_instance.default_dashboard_id if metabase_instance.default_dashboard_id is not None else "1"
         )
 
         async with aiohttp.ClientSession() as session:
@@ -186,16 +183,6 @@ class MetabaseAuthEndpoint(HTTPEndpoint):
             status_code=mb_response.status,
             url=mb_response.headers[aiohttp.hdrs.LOCATION],
         )
-
-        # cache redirect location to save time on reloads
-        # set_http_cookie(
-        #     response=response,
-        #     key=self.location_cookie_name,
-        #     value=mb_response.headers[aiohttp.hdrs.LOCATION],
-        #     max_age=morsel.get("max_age"),
-        #     expires=morsel.get("expires"),
-        #     httponly=True,
-        # )
 
         for cookie_name in _METABASE_SESSION_COOKIE_NAMES:
             # Replace `metabase.SESSION` etc. with `eave.embed.SESSION`
