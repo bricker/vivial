@@ -4,7 +4,7 @@ import SearchBar from "$eave-dashboard/js/components/Pages/Dashboard/Glossary/Se
 import { AppContext } from "$eave-dashboard/js/context/Provider";
 import useTeam from "$eave-dashboard/js/hooks/useTeam";
 import { theme as eaveTheme } from "$eave-dashboard/js/theme";
-import { VirtualEventDetails } from "$eave-dashboard/js/types.js";
+import { VirtualEventDetails, VirtualEventField } from "$eave-dashboard/js/types.js";
 import { CircularProgress } from "@mui/material";
 import classNames from "classnames";
 import React, { useContext, useEffect, useState } from "react";
@@ -119,7 +119,7 @@ const Glossary = () => {
   const [selectedEvent, setSelectedEvent] = useState<VirtualEventDetails | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
-  const { team, listVirtualEvents } = useTeam();
+  const { team, listVirtualEvents, getVirtualEventDetails } = useTeam();
 
   const { glossaryNetworkStateCtx } = useContext(AppContext);
   const [networkState] = glossaryNetworkStateCtx!;
@@ -128,6 +128,13 @@ const Glossary = () => {
   useEffect(() => {
     listVirtualEvents({ query: null });
   }, []);
+
+  // load up event details when a new one is selected
+  useEffect(() => {
+    if (selectedEvent) {
+      getVirtualEventDetails(selectedEvent?.id);
+    }
+  }, [selectedEvent]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -219,17 +226,33 @@ const Glossary = () => {
 
   let sidepanelContent: React.ReactElement;
 
+  function fieldGenerator(fields: VirtualEventField[] | null | undefined): React.ReactNode {
+    return (fields ?? []).map((field) => (
+      <div key={field.name} style={{ marginLeft: 10 }}>
+        <p>{field.name}</p>
+        <p>{field.description || "None"}</p>
+        <p>{field.field_type}</p>
+        {fieldGenerator(field.fields)}
+      </div>
+    ));
+  }
+
   if (selectedEvent) {
     sidepanelContent = (
       <>
         <h1 className={classes.panelTitle}>{selectedEvent.readable_name}</h1>
         <p>{selectedEvent.description}</p>
-        <div>
-          TODO add fields column to VirtualEventOrm
-          {/* {selectedEvent.fields.map((field) => {
-          return <p key={field}>{field}</p>;
-        })} */}
-        </div>
+        {selectedEvent.fields?.length ? (
+          <div>{fieldGenerator(selectedEvent.fields)}</div>
+        ) : networkState.virtualEventDetailsAreLoading ? (
+          <div className={classes.loader}>
+            <CircularProgress color="secondary" />
+          </div>
+        ) : networkState.virtualEventDetailsAreErroring ? (
+          <div className={classes.error}>ERROR: Unable to fetch virtual event details</div>
+        ) : (
+          <p>No field details</p>
+        )}
       </>
     );
   } else {

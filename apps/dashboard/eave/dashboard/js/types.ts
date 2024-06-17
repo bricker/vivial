@@ -61,6 +61,8 @@ export type DashboardNetworkState = {
 export type GlossaryNetworkState = {
   virtualEventsAreLoading: boolean;
   virtualEventsAreErroring: boolean;
+  virtualEventDetailsAreLoading: boolean;
+  virtualEventDetailsAreErroring: boolean;
 };
 
 // The additional properties are set in the template header, so we know they exist.

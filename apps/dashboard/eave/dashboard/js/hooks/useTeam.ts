@@ -163,11 +163,11 @@ const useTeam = (): TeamHook => {
       return;
     }
 
-    // setGlossaryNetworkState((prev) => ({
-    //   ...prev,
-    //   virtualEventsAreLoading: true,
-    //   virtualEventsAreErroring: false,
-    // }));
+    setGlossaryNetworkState((prev) => ({
+      ...prev,
+      virtualEventDetailsAreLoading: true,
+      virtualEventDetailsAreErroring: false,
+    }));
     fetch(`${eaveWindow.eavedash.apiBase}/public/me/virtual-events/query`, {
       method: "POST",
       headers: {
@@ -211,20 +211,20 @@ const useTeam = (): TeamHook => {
             };
           });
 
-          // setGlossaryNetworkState((prev) => ({
-          //   ...prev,
-          //   virtualEventsAreErroring: false,
-          //   virtualEventsAreLoading: false,
-          // }));
+          setGlossaryNetworkState((prev) => ({
+            ...prev,
+            virtualEventDetailsAreErroring: false,
+            virtualEventDetailsAreLoading: false,
+          }));
         });
       })
       .catch((e) => {
         console.error(e);
-        // setGlossaryNetworkState((prev) => ({
-        //   ...prev,
-        //   virtualEventsAreErroring: true,
-        //   virtualEventsAreLoading: false,
-        // }));
+        setGlossaryNetworkState((prev) => ({
+          ...prev,
+          virtualEventDetailsAreErroring: true,
+          virtualEventDetailsAreLoading: false,
+        }));
       });
   }
 
