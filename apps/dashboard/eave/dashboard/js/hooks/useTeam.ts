@@ -187,27 +187,9 @@ const useTeam = (): TeamHook => {
         }
         return resp.json().then((data: GetMyVirtualEventDetailsResponseBody) => {
           setTeam((prev) => {
-            const virtualEvents = prev?.virtualEvents;
-            if (!virtualEvents) {
-              // No virtual events were previously loaded. Set the array to the virtual event from the response.
-              return {
-                ...prev,
-                virtualEvents: [data.virtual_event],
-              };
-            }
-
-            const idx = virtualEvents.findIndex((ve) => ve.id === id);
-            if (idx > -1) {
-              // The virtual event is already in the list. Replace it with the virtual event from the response.
-              virtualEvents[idx] = data.virtual_event;
-            } else {
-              // The virtual event was not in the list. Append it to the list.
-              virtualEvents.push(data.virtual_event);
-            }
-
             return {
               ...prev,
-              virtualEvents,
+              virtualEventDetail: data.virtual_event,
             };
           });
 

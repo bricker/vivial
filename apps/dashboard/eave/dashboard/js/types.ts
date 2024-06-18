@@ -50,6 +50,7 @@ export type DashboardTeam = {
   id?: string;
   name?: string;
   virtualEvents?: VirtualEventDetails[];
+  virtualEventDetail?: VirtualEventDetails;
 };
 
 export type DashboardNetworkState = {

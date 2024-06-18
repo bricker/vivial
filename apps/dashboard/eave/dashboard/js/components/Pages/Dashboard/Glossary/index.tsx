@@ -112,6 +112,13 @@ const makeClasses = makeStyles<void, "hoverIcon">()((theme, _params, classes) =>
     textAlign: "center",
     fontSize: "26px",
   },
+  fieldContainer: {
+    margin: 2,
+    marginLeft: 10,
+    padding: 6,
+    border: '2px solid gray',
+    borderRadius: 5,
+  },
 }));
 
 const Glossary = () => {
@@ -228,10 +235,10 @@ const Glossary = () => {
 
   function fieldGenerator(fields: VirtualEventField[] | null | undefined): React.ReactNode {
     return (fields ?? []).map((field) => (
-      <div key={field.name} style={{ marginLeft: 10 }}>
-        <p>{field.name}</p>
-        <p>{field.description || "None"}</p>
-        <p>{field.field_type}</p>
+      <div key={field.name} className={classes.fieldContainer}>
+        <h4>{field.name}</h4>
+        <p>{field.field_type} ({field.mode})</p>
+        <p>{field.description || "(No description)"}</p>
         {fieldGenerator(field.fields)}
       </div>
     ));
@@ -242,8 +249,9 @@ const Glossary = () => {
       <>
         <h1 className={classes.panelTitle}>{selectedEvent.readable_name}</h1>
         <p>{selectedEvent.description}</p>
-        {selectedEvent.fields?.length ? (
-          <div>{fieldGenerator(selectedEvent.fields)}</div>
+        {team?.virtualEventDetail ? (
+          // left -10 to counter record nesting indent for the first layer
+          <div style={{marginLeft: -10}}>{fieldGenerator(team?.virtualEventDetail?.fields)}</div>
         ) : networkState.virtualEventDetailsAreLoading ? (
           <div className={classes.loader}>
             <CircularProgress color="secondary" />
