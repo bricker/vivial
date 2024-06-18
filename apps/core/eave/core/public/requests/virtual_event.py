@@ -5,6 +5,7 @@ from starlette.responses import Response
 import eave.stdlib.core_api.operations.virtual_event as ve
 from eave.core.internal import database
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
+from eave.core.internal.orm.team import bq_dataset_id
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
 from eave.stdlib.api_util import json_response
 from eave.stdlib.core_api.models.virtual_event import VirtualEventDetails, VirtualEventField, VirtualEventPeek
@@ -51,7 +52,9 @@ class GetMyVirtualEventDetailsEndpoint(HTTPEndpoint):
                 )
             ).one()
 
-        bq_table = EAVE_INTERNAL_BIGQUERY_CLIENT.get_table_or_exception(dataset_id=team_id.hex, table_id=vevent.view_id)
+        bq_table = EAVE_INTERNAL_BIGQUERY_CLIENT.get_table_or_exception(
+            dataset_id=bq_dataset_id(team_id), table_id=vevent.view_id
+        )
 
         return json_response(
             ve.GetMyVirtualEventDetailsRequest.ResponseBody(
