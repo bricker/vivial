@@ -123,17 +123,13 @@ const makeClasses = makeStyles<void, "hoverIcon">()((theme, _params, classes) =>
 
 const Glossary = () => {
   const { classes } = makeClasses();
-  const [selectedEventIndex, setSelectedEventIndex] = useState<number | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<VirtualEventDetails | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
   const { team, listVirtualEvents, getVirtualEventDetails } = useTeam();
 
   const { glossaryNetworkStateCtx } = useContext(AppContext);
   const [networkState] = glossaryNetworkStateCtx!;
-  let selectedEvent: VirtualEventDetails | undefined = undefined;
-  if (selectedEventIndex !== null && team?.virtualEvents) {
-    selectedEvent = team.virtualEvents[selectedEventIndex];
-  }
 
   // initial data load
   useEffect(() => {
@@ -171,8 +167,8 @@ const Glossary = () => {
   }
 
   // factored out as it's used in both the row onClick and onKeyPress actions
-  const rowClicked = (eventIndex: number) => {
-    setSelectedEventIndex(eventIndex);
+  const rowClicked = (event: VirtualEventDetails) => {
+    setSelectedEvent(event);
     setIsOpen(true);
     // move kb focus to the sidepanel for a11y
     const sidepanel = document.getElementById("glos_sidepanel");
@@ -190,17 +186,17 @@ const Glossary = () => {
             <th className={classNames(classes.tableValue, classes.tableHeader)}>Event Name</th>
             <th className={classNames(classes.tableValue, classes.tableHeader)}>Event Description</th>
           </tr>
-          {team.virtualEvents.map((event, index) => (
+          {team.virtualEvents.map((event) => (
             <tr
               className={classNames(classes.tableRow, classes.rowHighlight)}
               key={event.readable_name}
               tabIndex={0}
               aria-label={`${event.readable_name}: ${event.description}`}
               role="button"
-              onClick={() => rowClicked(index)}
+              onClick={() => rowClicked(event)}
               onKeyDown={(pressed) => {
                 if (pressed.key === "Enter" || pressed.key === " ") {
-                  rowClicked(index);
+                  rowClicked(event);
                 }
               }}
             >
@@ -254,13 +250,17 @@ const Glossary = () => {
   }
 
   if (selectedEvent) {
+    // selectedEvent can become stale, as it is a copy of the element in team.virtualEvents,
+    // not a direct reference. When details are finished loading and the event that
+    // selectedEvent copied is updated, selectedEvent remains with empty fields.
+    const freshEvent = team?.virtualEvents?.find((e) => e.id === selectedEvent.id);
     sidepanelContent = (
       <>
         <h1 className={classes.panelTitle}>{selectedEvent.readable_name}</h1>
         <p>{selectedEvent.description}</p>
-        {selectedEvent.fields?.length ? (
+        {freshEvent?.fields?.length ? (
           // left -10 to counter record nesting indent for the first layer
-          <div style={{ marginLeft: -10 }}>{fieldGenerator(selectedEvent.fields)}</div>
+          <div style={{ marginLeft: -10 }}>{fieldGenerator(freshEvent.fields)}</div>
         ) : networkState.virtualEventsAreLoading ? (
           <div className={classes.loader}>
             <CircularProgress color="secondary" />
