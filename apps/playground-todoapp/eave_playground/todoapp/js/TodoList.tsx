@@ -1,16 +1,22 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import styles from "./TodoList.module.css";
 import { COOKIE_PREFIX, getCookie } from "./cookies";
 import { TodoListItem } from "./types";
 
 const TodoList = () => {
   const userId = getCookie(`${COOKIE_PREFIX}user_id`);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!userId) {
+      navigate({ pathname: "/login", search: window.location.search }, { replace: true });
+    }
+  }, [userId]);
 
   if (!userId) {
-    window.location.pathname = "/login";
-    return;
+    return null;
   }
 
   const username = getCookie(`${COOKIE_PREFIX}user_name`);
