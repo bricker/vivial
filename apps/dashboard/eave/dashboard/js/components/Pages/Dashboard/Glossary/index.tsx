@@ -233,8 +233,11 @@ const Glossary = () => {
 
   let sidepanelContent: React.ReactElement;
 
-  function fieldGenerator(fields: VirtualEventField[] | null | undefined): React.ReactNode {
-    return (fields ?? []).map((field) => (
+  function fieldGenerator(fields: VirtualEventField[] | null | undefined): React.ReactElement[] | null {
+    if (!fields) {
+      return null;
+    }
+    return fields.map((field) => (
       <div key={field.name} className={classes.fieldContainer}>
         <h4>{field.name}</h4>
         <p>
@@ -253,7 +256,7 @@ const Glossary = () => {
         <p>{selectedEvent.description}</p>
         {team?.virtualEventDetail ? (
           // left -10 to counter record nesting indent for the first layer
-          <div style={{ marginLeft: -10 }}>{fieldGenerator(team?.virtualEventDetail?.fields)}</div>
+          <div style={{ marginLeft: -10 }}>{fieldGenerator(team.virtualEventDetail.fields)}</div>
         ) : networkState.virtualEventDetailsAreLoading ? (
           <div className={classes.loader}>
             <CircularProgress color="secondary" />
