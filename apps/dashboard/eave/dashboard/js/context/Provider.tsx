@@ -21,8 +21,6 @@ const AppContextProvider = ({ children }: { children: React.ReactNode }) => {
   const glossaryNetworkStateCtx = useState<GlossaryNetworkState>({
     virtualEventsAreErroring: false,
     virtualEventsAreLoading: true,
-    virtualEventDetailsAreErroring: false,
-    virtualEventDetailsAreLoading: true,
   });
 
   const ctx: AppContextProps = {
