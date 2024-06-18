@@ -116,7 +116,7 @@ const makeClasses = makeStyles<void, "hoverIcon">()((theme, _params, classes) =>
     margin: 2,
     marginLeft: 10,
     padding: 6,
-    border: '2px solid gray',
+    border: "2px solid gray",
     borderRadius: 5,
   },
 }));
@@ -237,7 +237,9 @@ const Glossary = () => {
     return (fields ?? []).map((field) => (
       <div key={field.name} className={classes.fieldContainer}>
         <h4>{field.name}</h4>
-        <p>{field.field_type} ({field.mode})</p>
+        <p>
+          {field.field_type} ({field.mode})
+        </p>
         <p>{field.description || "(No description)"}</p>
         {fieldGenerator(field.fields)}
       </div>
@@ -251,7 +253,7 @@ const Glossary = () => {
         <p>{selectedEvent.description}</p>
         {team?.virtualEventDetail ? (
           // left -10 to counter record nesting indent for the first layer
-          <div style={{marginLeft: -10}}>{fieldGenerator(team?.virtualEventDetail?.fields)}</div>
+          <div style={{ marginLeft: -10 }}>{fieldGenerator(team?.virtualEventDetail?.fields)}</div>
         ) : networkState.virtualEventDetailsAreLoading ? (
           <div className={classes.loader}>
             <CircularProgress color="secondary" />
