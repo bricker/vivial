@@ -175,7 +175,7 @@ const useTeam = (): TeamHook => {
         "eave-origin": eaveOrigin,
       },
       credentials: "include",
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ virtual_event: { id }}),
     })
       .then((resp) => {
         if (isUnauthorized(resp)) {

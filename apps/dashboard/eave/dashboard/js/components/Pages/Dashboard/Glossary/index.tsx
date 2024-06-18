@@ -132,7 +132,7 @@ const Glossary = () => {
   // load up event details when a new one is selected
   useEffect(() => {
     if (selectedEvent) {
-      getVirtualEventDetails(selectedEvent?.id);
+      getVirtualEventDetails(selectedEvent.id);
     }
   }, [selectedEvent]);
 
