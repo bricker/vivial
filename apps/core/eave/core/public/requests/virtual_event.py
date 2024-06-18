@@ -51,7 +51,7 @@ class GetMyVirtualEventDetailsEndpoint(HTTPEndpoint):
                 )
             ).one()
 
-        bq_table = EAVE_INTERNAL_BIGQUERY_CLIENT.get_table_or_exception(dataset_id=team_id.hex, table_id=vevent.view_id)
+        bq_table = EAVE_INTERNAL_BIGQUERY_CLIENT.get_table_or_exception(dataset_id=f"team_{team_id.hex}", table_id=vevent.view_id)
 
         return json_response(
             ve.GetMyVirtualEventDetailsRequest.ResponseBody(
