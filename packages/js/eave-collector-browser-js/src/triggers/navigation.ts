@@ -2,7 +2,7 @@ import { requestManager } from "../beacon";
 import { LOG_TAG } from "../internal/constants";
 import { currentTimestampSeconds } from "../util/timestamp";
 
-const NAVIGATION_ACTION_NAME = "navigation";
+const NAVIGATION_ACTION_NAME = "PAGE_VIEW";
 
 export async function trackPageLoad() {
   const timestamp = currentTimestampSeconds();

@@ -2,7 +2,7 @@ import uuid
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
-from eave.core.internal.atoms.table_handle import BigQueryFieldMode
+from eave.core.internal.atoms.shared import BigQueryFieldMode
 from eave.stdlib.core_api.models import BaseInputModel, BaseResponseModel
 
 

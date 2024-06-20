@@ -4,6 +4,8 @@ import { getElementAttributes } from "../util/dom-helpers";
 import { currentTimestampSeconds } from "../util/timestamp";
 import { castEventTargetToHtmlElement } from "../util/type-helpers";
 
+const FORM_SUBMISSION_ACTION_NAME = "FORM_SUBMISSION";
+
 export async function formSubmitEventHandler(event: SubmitEvent) {
   const timestamp = currentTimestampSeconds();
   const target = event.target;
@@ -24,7 +26,7 @@ export async function formSubmitEventHandler(event: SubmitEvent) {
   const attributes = getElementAttributes(element);
 
   const payload = await requestManager.buildPayload({
-    action: event.type,
+    action: FORM_SUBMISSION_ACTION_NAME,
     timestamp,
     target: {
       type: nodeName,

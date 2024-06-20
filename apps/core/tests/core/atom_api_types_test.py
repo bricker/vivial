@@ -24,11 +24,11 @@ class TestAtomApiTypes(BaseTestCase):
         await super().asyncSetUp()
 
     async def test_device_brand_properties(self) -> None:
-        e = DeviceBrandProperties.from_api_payload({})
+        e = DeviceBrandProperties({})
         assert e.brand is None
         assert e.version is None
 
-        e = DeviceBrandProperties.from_api_payload(
+        e = DeviceBrandProperties(
             {
                 "brand": self.anystr("device_brand.brand"),
                 "version": self.anystr("device_brand.version"),
@@ -39,7 +39,7 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.version == self.getstr("device_brand.version")
 
     async def test_device_properties(self) -> None:
-        e = DeviceProperties.from_api_payload({})
+        e = DeviceProperties({})
         assert e.user_agent is None
         assert e.brands is None
         assert e.platform is None
@@ -52,7 +52,7 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.screen_avail_width is None
         assert e.screen_avail_height is None
 
-        e = DeviceProperties.from_api_payload(
+        e = DeviceProperties(
             {
                 "user_agent": self.anystr("device.user_agent"),
                 "brands": [
@@ -90,12 +90,12 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.screen_avail_height == self.getint("device.screen_avail_height")
 
     async def test_current_page_properties(self):
-        e = CurrentPageProperties.from_api_payload({})
+        e = CurrentPageProperties({})
         assert e.url is None
         assert e.title is None
         assert e.pageview_id is None
 
-        e = CurrentPageProperties.from_api_payload(
+        e = CurrentPageProperties(
             {
                 "url": self.anyurl("current_page.url"),
                 "title": self.anystr("current_page.title"),
@@ -108,11 +108,11 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.pageview_id == self.getstr("current_page.pageview_id")
 
     async def test_session_properties(self):
-        e = SessionProperties.from_api_payload({})
+        e = SessionProperties({})
         assert e.id is None
         assert e.start_timestamp is None
 
-        e = SessionProperties.from_api_payload(
+        e = SessionProperties(
             {
                 "id": self.anystr("session.id"),
                 "start_timestamp": self.anytime("session.start_timestamp"),
@@ -123,12 +123,12 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.start_timestamp == self.gettime("session.start_timestamp")
 
     async def test_traffic_source_properties(self):
-        e = TrafficSourceProperties.from_api_payload({})
+        e = TrafficSourceProperties({})
         assert e.timestamp is None
         assert e.browser_referrer is None
         assert e.tracking_params is None
 
-        e = TrafficSourceProperties.from_api_payload(
+        e = TrafficSourceProperties(
             {
                 "timestamp": self.anytime("traffic_source.timestamp"),
                 "browser_referrer": self.anystr("traffic_source.browser_referrer"),
@@ -141,13 +141,13 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.tracking_params == self.getdict("traffic_source.tracking_params")
 
     async def test_target_properties(self):
-        e = TargetProperties.from_api_payload({})
+        e = TargetProperties({})
         assert e.type is None
         assert e.id is None
         assert e.content is None
         assert e.attributes is None
 
-        e = TargetProperties.from_api_payload(
+        e = TargetProperties(
             {
                 "type": self.anystr("target.type"),
                 "id": self.anystr("target.id"),
@@ -162,13 +162,13 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.attributes == self.getdict("target.attributes")
 
     async def test_correlation_context(self):
-        e = CorrelationContext.from_api_payload({})
+        e = CorrelationContext({})
         assert e.session is None
         assert e.traffic_source is None
         assert e.account_id is None
         assert e.visitor_id is None
 
-        e = CorrelationContext.from_api_payload(
+        e = CorrelationContext(
             {
                 f"{EAVE_COLLECTOR_COOKIE_PREFIX}session": json.dumps(
                     {
@@ -195,7 +195,7 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.visitor_id == self.getstr("corr_ctx.visitor_id")
 
         # test with JSON errors
-        e = CorrelationContext.from_api_payload(
+        e = CorrelationContext(
             {
                 f"{EAVE_COLLECTOR_COOKIE_PREFIX}session": self.anystr("bad json 1"),
                 f"{EAVE_COLLECTOR_COOKIE_PREFIX}traffic_source": self.anystr("bad json 2"),
@@ -209,7 +209,7 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.visitor_id == self.getstr("corr_ctx.visitor_id 2")
 
     async def test_browser_event_payload(self):
-        e = BrowserEventPayload.from_api_payload({})
+        e = BrowserEventPayload({})
         assert e.action is None
         assert e.timestamp is None
         assert e.target is None
@@ -218,7 +218,7 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.extra is None
         assert e.corr_ctx is None
 
-        e = BrowserEventPayload.from_api_payload(
+        e = BrowserEventPayload(
             {
                 "action": BrowserAction.CLICK,
                 "timestamp": self.anytime("event.timestamp"),
@@ -255,7 +255,7 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.corr_ctx.account_id == self.getstr("event.corr_ctx.account_id")
 
         # invalid action
-        e = BrowserEventPayload.from_api_payload(
+        e = BrowserEventPayload(
             {
                 "action": self.anystr("invalid action"),
             }

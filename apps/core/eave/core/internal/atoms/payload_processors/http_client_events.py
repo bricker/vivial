@@ -1,52 +1,11 @@
 from typing import Any
 
-from google.cloud.bigquery import SchemaField, StandardSqlTypeNames
-
 from eave.stdlib.logging import LogContext
 
-from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
+from ..table_handle import BigQueryTableHandle
 
 
-class HttpServerEventsTableHandle(BigQueryTableHandle):
-    table_def = BigQueryTableDefinition(
-        table_id="atoms_http_server_events_v1",
-        friendly_name="HTTP Server atoms",
-        description="HTTP Server atoms",
-        schema=(
-            SchemaField(
-                name="request_method",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="request_url",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="request_headers",
-                field_type=StandardSqlTypeNames.JSON,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="request_payload",
-                field_type=StandardSqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="timestamp",
-                field_type=StandardSqlTypeNames.TIMESTAMP,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
-            SchemaField(
-                name="insert_timestamp",
-                field_type=StandardSqlTypeNames.TIMESTAMP,
-                mode=BigQueryFieldMode.NULLABLE,
-                default_value_expression="CURRENT_TIMESTAMP",
-            ),
-        ),
-    )
-
+class HttpClientEventsTableHandle(BigQueryTableHandle):
     async def create_vevent_view(self, *, request_method: str, request_url: str) -> None:
         pass
         # vevent_readable_name = make_virtual_event_readable_name(operation=operation, table_name=source_table)
@@ -98,7 +57,7 @@ class HttpServerEventsTableHandle(BigQueryTableHandle):
         # if len(events) == 0:
         #     return
 
-        # http_server_events = [HttpServerEventPayload(**e) for e in events]
+        # http_client_events = [HttpClientEventPayload(**e) for e in events]
 
         # self._bq_client.get_or_create_dataset(dataset_id=self.dataset_id)
 
@@ -110,16 +69,13 @@ class HttpServerEventsTableHandle(BigQueryTableHandle):
         # unique_operations: set[tuple[str, str]] = set()
         # formatted_rows: list[dict[str, Any]] = []
 
-        # insert_timestamp = time.time()
-
-        # for e in http_server_events:
+        # for e in http_client_events:
         #     if e.request_method is None or e.request_url is None:
         #         LOGGER.warning("e.request_method or e.request_url unexpectedly missing", ctx)
         #         continue
 
         #     unique_operations.add((e.request_method, e.request_url))
         #     row = e.to_dict()
-        #     row["insert_timestamp"] = insert_timestamp
         #     formatted_rows.append(row)
 
         # errors = self._bq_client.append_rows(

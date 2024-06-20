@@ -1,6 +1,13 @@
-from abc import ABC, abstractmethod
+"""
+Class representations of BigQuery data. These convert the API payloads into datastructures ready to insert into BigQuery.
+Many of these classes are not dataclasses, because they accept a payload class, not individual properties, and convert it into a BigQuery Record field.
+The fields that _are_ dataclasses are so because they don't have a respective API payload class, and are therefore initialized with individual properties.
+
+Additionally, the BigQuery record field schemas are defined on these classes.
+These schemas are authoritative: changing these will change the respective schema in BigQuery.
+"""
+
 from dataclasses import dataclass
-from typing import Any
 from urllib.parse import parse_qsl, urlparse
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
@@ -13,19 +20,12 @@ from eave.core.internal.atoms.api_types import (
     TargetProperties,
     TrafficSourceProperties,
 )
-from eave.core.internal.atoms.table_handle import BigQueryFieldMode
+from eave.core.internal.atoms.shared import BigQueryFieldMode
 from eave.stdlib.typing import JsonScalar
 
 
 @dataclass(kw_only=True)
-class RecordField(ABC):
-    @staticmethod
-    @abstractmethod
-    def schema(*args: Any, **kwargs: Any) -> SchemaField: ...
-
-
-@dataclass(kw_only=True)
-class TypedValueRecordField(RecordField):
+class TypedValueRecordField:
     @staticmethod
     def schema() -> SchemaField:
         return SchemaField(
@@ -40,15 +40,9 @@ class TypedValueRecordField(RecordField):
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
                 SchemaField(
-                    name="int_value",
-                    description="The value for the key, if the value is an integer. Otherwise, null.",
-                    field_type=SqlTypeNames.INTEGER,
-                    mode=BigQueryFieldMode.NULLABLE,
-                ),
-                SchemaField(
-                    name="float_value",
-                    description="The value for the key, if the value is a float. Otherwise, null.",
-                    field_type=SqlTypeNames.FLOAT,
+                    name="numeric_value",
+                    description="The value for the key, if the value is a number type (eg int or float). Otherwise, null.",
+                    field_type=SqlTypeNames.NUMERIC,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
                 SchemaField(
@@ -61,13 +55,30 @@ class TypedValueRecordField(RecordField):
         )
 
     string_value: str | None = None
-    int_value: int | None = None
-    float_value: float | None = None
     bool_value: bool | None = None
+    numeric_value: int | float | None = None
+
+    def __init__(self, value: str | int | float | bool | None) -> None:
+        if isinstance(value, str):
+            self.string_value = value
+        elif isinstance(value, bool):
+            # Reminder: bool is a subclass of int! bool check must come before the int check.
+            self.bool_value = value
+        elif isinstance(value, (float, int)):
+            # Reminder: bool is a subclass of int! bool check must come before the int check.
+            self.numeric_value = value
+        else:
+            # Handles None, as well as any future unhandled types.
+            # All fields are initialized with None, nothing to do here.
+            pass
 
 
 @dataclass(kw_only=True)
-class MultiScalarTypeKeyValueRecordField(RecordField):
+class MultiScalarTypeKeyValueRecordField:
+    """
+    This is a dataclass because it doesn't come from an API payload
+    """
+
     @staticmethod
     def schema(*, name: str, description: str) -> SchemaField:
         return SchemaField(
@@ -89,30 +100,11 @@ class MultiScalarTypeKeyValueRecordField(RecordField):
     value: TypedValueRecordField | None
 
     @classmethod
-    def list_from_scalar_dict(cls, d: dict[str, JsonScalar] | None) -> list["MultiScalarTypeKeyValueRecordField"]:
-        if not d:
-            return []
-
+    def list_from_scalar_dict(cls, d: dict[str, JsonScalar]) -> list["MultiScalarTypeKeyValueRecordField"]:
         containers: list[MultiScalarTypeKeyValueRecordField] = []
 
         for [key, value] in d.items():
-            typed_value = TypedValueRecordField()
-
-            if isinstance(value, str):
-                typed_value.string_value = value
-            elif isinstance(value, float):
-                typed_value.float_value = value
-            elif isinstance(value, bool):
-                # Reminder: bool is a subclass of int! bool check must come before the int check.
-                typed_value.bool_value = value
-            elif isinstance(value, int):
-                # Reminder: bool is a subclass of int! bool check must come before the int check.
-                typed_value.int_value = value
-            else:
-                # Handles None, as well as any future unhandled types.
-                # All fields are initialized with None, nothing to do here.
-                pass
-
+            typed_value = TypedValueRecordField(value)
             container = MultiScalarTypeKeyValueRecordField(key=key, value=typed_value)
             containers.append(container)
 
@@ -120,7 +112,11 @@ class MultiScalarTypeKeyValueRecordField(RecordField):
 
 
 @dataclass(kw_only=True)
-class SingleScalarTypeKeyValueRecordField[T: str | bool | int | float](RecordField):
+class SingleScalarTypeKeyValueRecordField[T: str | bool | int | float]:
+    """
+    This is a dataclass because it doesn't come from an API payload
+    """
+
     @staticmethod
     def schema(*, name: str, description: str, value_type: SqlTypeNames) -> SchemaField:
         return SchemaField(
@@ -146,10 +142,7 @@ class SingleScalarTypeKeyValueRecordField[T: str | bool | int | float](RecordFie
     value: T | None
 
     @classmethod
-    def list_from_scalar_dict(cls, d: dict[str, T | None] | None) -> list["SingleScalarTypeKeyValueRecordField[T]"]:
-        if not d:
-            return []
-
+    def list_from_scalar_dict(cls, d: dict[str, T | None]) -> list["SingleScalarTypeKeyValueRecordField[T]"]:
         containers: list[SingleScalarTypeKeyValueRecordField[T]] = []
 
         for key, value in d.items():
@@ -159,10 +152,7 @@ class SingleScalarTypeKeyValueRecordField[T: str | bool | int | float](RecordFie
         return containers
 
     @classmethod
-    def list_from_kv_tuples(cls, d: list[tuple[str, T]] | None) -> list["SingleScalarTypeKeyValueRecordField[T]"]:
-        if not d:
-            return []
-
+    def list_from_kv_tuples(cls, d: list[tuple[str, T]]) -> list["SingleScalarTypeKeyValueRecordField[T]"]:
         containers: list[SingleScalarTypeKeyValueRecordField[T]] = []
 
         for key, value in d:
@@ -172,8 +162,7 @@ class SingleScalarTypeKeyValueRecordField[T: str | bool | int | float](RecordFie
         return containers
 
 
-@dataclass(kw_only=True)
-class SessionRecordField(RecordField):
+class SessionRecordField:
     @classmethod
     def schema(cls) -> SchemaField:
         return SchemaField(
@@ -203,31 +192,24 @@ class SessionRecordField(RecordField):
             ),
         )
 
-    id: str | None
-    start_timestamp: float | None
-    duration_ms: float | None
+    id: str | None = None
+    start_timestamp: float | None = None
+    duration_ms: float | None = None
 
-    @classmethod
-    def from_api_resource(
-        cls, resource: SessionProperties | None, event_timestamp: float | None
-    ) -> "SessionRecordField | None":
-        if not resource:
-            return None
+    def __init__(self, resource: SessionProperties, event_timestamp: float | None) -> None:
+        self.id = resource.id
+        self.start_timestamp = resource.start_timestamp
 
-        if event_timestamp is not None and resource.start_timestamp is not None:
-            duration_ms = (event_timestamp - resource.start_timestamp) * 1000
-        else:
-            duration_ms = None
-
-        return SessionRecordField(
-            id=resource.id,
-            start_timestamp=resource.start_timestamp,
-            duration_ms=duration_ms,
-        )
+        if event_timestamp and resource.start_timestamp:
+            self.duration_ms = (event_timestamp - resource.start_timestamp) * 1000
 
 
 @dataclass(kw_only=True)
-class UserRecordField(RecordField):
+class UserRecordField:
+    """
+    This is a dataclass because it doesn't come from an API payload
+    """
+
     @classmethod
     def schema(cls) -> SchemaField:
         return SchemaField(
@@ -255,8 +237,7 @@ class UserRecordField(RecordField):
     visitor_id: str | None
 
 
-@dataclass(kw_only=True)
-class TrafficSourceRecordField(RecordField):
+class TrafficSourceRecordField:
     @classmethod
     def schema(cls) -> SchemaField:
         return SchemaField(
@@ -411,64 +392,64 @@ class TrafficSourceRecordField(RecordField):
             ),
         )
 
-    timestamp: float | None
-    browser_referrer: str | None
-    gclid: str | None
-    fbclid: str | None
-    msclkid: str | None
-    dclid: str | None
-    ko_click_id: str | None
-    rtd_cid: str | None
-    li_fat_id: str | None
-    ttclid: str | None
-    twclid: str | None
-    wbraid: str | None
-    gbraid: str | None
-    # keyword: str | None
-    # matchtype: str | None
-    # campaign: str | None
-    # campaign_id: str | None
-    # pid: str | None
-    # cid: str | None
-    utm_campaign: str | None
-    utm_source: str | None
-    utm_medium: str | None
-    utm_term: str | None
-    utm_content: str | None
-    other_tracking_params: list[SingleScalarTypeKeyValueRecordField[str]] | None
+    timestamp: float | None = None
+    browser_referrer: str | None = None
+    gclid: str | None = None
+    fbclid: str | None = None
+    msclkid: str | None = None
+    dclid: str | None = None
+    ko_click_id: str | None = None
+    rtd_cid: str | None = None
+    li_fat_id: str | None = None
+    ttclid: str | None = None
+    twclid: str | None = None
+    wbraid: str | None = None
+    gbraid: str | None = None
+    # keyword: str | None = None
+    # matchtype: str | None = None
+    # campaign: str | None = None
+    # campaign_id: str | None = None
+    # pid: str | None = None
+    # cid: str | None = None
+    utm_campaign: str | None = None
+    utm_source: str | None = None
+    utm_medium: str | None = None
+    utm_term: str | None = None
+    utm_content: str | None = None
+    other_tracking_params: list[SingleScalarTypeKeyValueRecordField[str]] | None = None
 
-    @classmethod
-    def from_api_resource(cls, resource: TrafficSourceProperties | None) -> "TrafficSourceRecordField | None":
-        if not resource:
-            return None
+    def __init__(self, resource: TrafficSourceProperties) -> None:
+        self.timestamp = resource.timestamp
+        self.browser_referrer = resource.browser_referrer
 
-        tp = resource.tracking_params.copy() if resource.tracking_params else None
+        if resource.tracking_params:
+            tp = resource.tracking_params.copy()
 
-        return cls(
-            timestamp=resource.timestamp,
-            browser_referrer=resource.browser_referrer,
-            gclid=tp.pop("gclid", None) if tp else None,
-            fbclid=tp.pop("fbclid", None) if tp else None,
-            msclkid=tp.pop("msclkid", None) if tp else None,
-            dclid=tp.pop("dclid", None) if tp else None,
-            ko_click_id=tp.pop("ko_click_id", None) if tp else None,
-            rtd_cid=tp.pop("rtd_cid", None) if tp else None,
-            li_fat_id=tp.pop("li_fat_id", None) if tp else None,
-            ttclid=tp.pop("ttclid", None) if tp else None,
-            twclid=tp.pop("twclid", None) if tp else None,
-            wbraid=tp.pop("wbraid", None) if tp else None,
-            gbraid=tp.pop("gbraid", None) if tp else None,
-            utm_campaign=tp.pop("utm_campaign", None) if tp else None,
-            utm_source=tp.pop("utm_source", None) if tp else None,
-            utm_medium=tp.pop("utm_medium", None) if tp else None,
-            utm_term=tp.pop("utm_term", None) if tp else None,
-            utm_content=tp.pop("utm_content", None) if tp else None,
-            other_tracking_params=SingleScalarTypeKeyValueRecordField[str].list_from_scalar_dict(tp) if tp else None,
-        )
+            self.gclid = tp.pop("gclid", None)
+            self.fbclid = tp.pop("fbclid", None)
+            self.msclkid = tp.pop("msclkid", None)
+            self.dclid = tp.pop("dclid", None)
+            self.ko_click_id = tp.pop("ko_click_id", None)
+            self.rtd_cid = tp.pop("rtd_cid", None)
+            self.li_fat_id = tp.pop("li_fat_id", None)
+            self.ttclid = tp.pop("ttclid", None)
+            self.twclid = tp.pop("twclid", None)
+            self.wbraid = tp.pop("wbraid", None)
+            self.gbraid = tp.pop("gbraid", None)
+            self.utm_campaign = tp.pop("utm_campaign", None)
+            self.utm_source = tp.pop("utm_source", None)
+            self.utm_medium = tp.pop("utm_medium", None)
+            self.utm_term = tp.pop("utm_term", None)
+            self.utm_content = tp.pop("utm_content", None)
+            self.other_tracking_params = SingleScalarTypeKeyValueRecordField[str].list_from_scalar_dict(tp)
 
 
 @dataclass(kw_only=True)
-class GeoRecordField(RecordField):
+class GeoRecordField:
+    """
+    This is a dataclass because it doesn't come from an API payload.
+    """
+
     @staticmethod
     def schema() -> SchemaField:
         return SchemaField(
@@ -510,8 +491,7 @@ class GeoRecordField(RecordField):
     coordinates: str | None
 
 
-@dataclass(kw_only=True)
-class BrandsRecordField(RecordField):
+class BrandsRecordField:
     @staticmethod
     def schema() -> SchemaField:
         return SchemaField(
@@ -535,19 +515,15 @@ class BrandsRecordField(RecordField):
             ),
         )
 
-    brand: str | None
-    version: str | None
+    brand: str | None = None
+    version: str | None = None
 
-    @classmethod
-    def from_api_resource(cls, resource: DeviceBrandProperties) -> "BrandsRecordField":
-        return cls(
-            brand=resource.brand,
-            version=resource.version,
-        )
+    def __init__(self, resource: DeviceBrandProperties) -> None:
+        self.brand = resource.brand
+        self.version = resource.version
 
 
-@dataclass(kw_only=True)
-class DeviceRecordField(RecordField):
+class DeviceRecordField:
     @staticmethod
     def schema() -> SchemaField:
         return SchemaField(
@@ -620,40 +596,35 @@ class DeviceRecordField(RecordField):
             ),
         )
 
-    user_agent: str | None
-    brands: list[BrandsRecordField] | None
-    platform: str | None
-    platform_version: str | None
-    mobile: bool | None
-    form_factor: str | None
-    model: str | None
-    screen_width: int | None
-    screen_height: int | None
-    screen_avail_width: int | None
-    screen_avail_height: int | None
+    user_agent: str | None = None
+    brands: list[BrandsRecordField] | None = None
+    platform: str | None = None
+    platform_version: str | None = None
+    mobile: bool | None = None
+    form_factor: str | None = None
+    model: str | None = None
+    screen_width: int | None = None
+    screen_height: int | None = None
+    screen_avail_width: int | None = None
+    screen_avail_height: int | None = None
 
-    @classmethod
-    def from_api_resource(cls, resource: DeviceProperties | None) -> "DeviceRecordField | None":
-        if not resource:
-            return None
+    def __init__(self, resource: DeviceProperties) -> None:
+        self.user_agent = resource.user_agent
+        self.form_factor = resource.form_factor
+        self.mobile = resource.mobile
+        self.model = resource.model
+        self.platform = resource.platform
+        self.platform_version = resource.platform_version
+        self.screen_width = resource.screen_width
+        self.screen_height = resource.screen_height
+        self.screen_avail_width = resource.screen_avail_width
+        self.screen_avail_height = resource.screen_avail_height
 
-        return cls(
-            user_agent=resource.user_agent,
-            brands=[BrandsRecordField.from_api_resource(b) for b in resource.brands] if resource.brands else None,
-            form_factor=resource.form_factor,
-            mobile=resource.mobile,
-            model=resource.model,
-            platform=resource.platform,
-            platform_version=resource.platform_version,
-            screen_width=resource.screen_width,
-            screen_height=resource.screen_height,
-            screen_avail_width=resource.screen_avail_width,
-            screen_avail_height=resource.screen_avail_height,
-        )
+        if resource.brands:
+            self.brands = [BrandsRecordField(b) for b in resource.brands]
 
 
-@dataclass(kw_only=True)
-class TargetRecordField(RecordField):
+class TargetRecordField:
     @staticmethod
     def schema() -> SchemaField:
         return SchemaField(
@@ -688,28 +659,21 @@ class TargetRecordField(RecordField):
             ),
         )
 
-    type: str | None
-    id: str | None
-    content: str | None
-    attributes: list[SingleScalarTypeKeyValueRecordField[str]] | None
+    type: str | None = None
+    id: str | None = None
+    content: str | None = None
+    attributes: list[SingleScalarTypeKeyValueRecordField[str]] | None = None
 
-    @classmethod
-    def from_api_resource(cls, resource: TargetProperties | None) -> "TargetRecordField | None":
-        if not resource:
-            return None
+    def __init__(self, resource: TargetProperties) -> None:
+        self.type = resource.type
+        self.id = resource.id
+        self.content = resource.content
 
-        return cls(
-            type=resource.type,
-            id=resource.id,
-            content=resource.content,
-            attributes=SingleScalarTypeKeyValueRecordField[str].list_from_scalar_dict(resource.attributes)
-            if resource.attributes
-            else None,
-        )
+        if resource.attributes:
+            self.attributes = SingleScalarTypeKeyValueRecordField[str].list_from_scalar_dict(resource.attributes)
 
 
-@dataclass(kw_only=True)
-class UrlRecordField(RecordField):
+class UrlRecordField:
     @staticmethod
     def schema() -> SchemaField:
         return SchemaField(
@@ -756,36 +720,31 @@ class UrlRecordField(RecordField):
             ),
         )
 
-    raw: str | None
-    protocol: str | None
-    domain: str | None
-    path: str | None
-    hash: str | None
-    query_params: list[SingleScalarTypeKeyValueRecordField[str]] | None
+    raw: str | None = None
+    protocol: str | None = None
+    domain: str | None = None
+    path: str | None = None
+    hash: str | None = None
+    query_params: list[SingleScalarTypeKeyValueRecordField[str]] | None = None
 
-    @classmethod
-    def from_api_resource(cls, resource: str | None) -> "UrlRecordField | None":
-        if not resource:
-            return None
-
+    def __init__(self, resource: str) -> None:
         parsed = urlparse(resource, allow_fragments=True)
-        qsl = parse_qsl(parsed.query, keep_blank_values=True)
 
         # Normalize the path
         path = parsed.path.removesuffix("/")
 
-        return cls(
-            raw=resource,
-            protocol=parsed.scheme,
-            domain=parsed.hostname,
-            path=path or None,
-            hash=parsed.fragment or None,
-            query_params=SingleScalarTypeKeyValueRecordField[str].list_from_kv_tuples(qsl) if parsed.query else None,
-        )
+        self.raw = resource
+        self.protocol = parsed.scheme
+        self.domain = parsed.hostname
+        self.path = path or None
+        self.hash = parsed.fragment or None
+
+        if parsed.query:
+            qsl = parse_qsl(parsed.query, keep_blank_values=True)
+            self.query_params = SingleScalarTypeKeyValueRecordField[str].list_from_kv_tuples(qsl)
 
 
-@dataclass(kw_only=True)
-class CurrentPageRecordField(RecordField):
+class CurrentPageRecordField:
     @staticmethod
     def schema() -> SchemaField:
         return SchemaField(
@@ -810,17 +769,13 @@ class CurrentPageRecordField(RecordField):
             ),
         )
 
-    url: UrlRecordField | None
-    title: str | None
-    pageview_id: str | None
+    url: UrlRecordField | None = None
+    title: str | None = None
+    pageview_id: str | None = None
 
-    @classmethod
-    def from_api_resource(cls, resource: CurrentPageProperties | None) -> "CurrentPageRecordField | None":
-        if not resource:
-            return None
+    def __init__(self, resource: CurrentPageProperties) -> None:
+        if resource.url:
+            self.url = UrlRecordField(resource.url)
 
-        return cls(
-            url=UrlRecordField.from_api_resource(resource.url) if resource.url else None,
-            title=resource.title,
-            pageview_id=resource.pageview_id,
-        )
+        self.title = resource.title
+        self.pageview_id = resource.pageview_id

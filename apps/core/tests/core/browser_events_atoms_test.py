@@ -2,8 +2,7 @@ import datetime
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
-from eave.core.internal.atoms.browser_events import BrowserEventAtom, BrowserEventsTableHandle
-from eave.core.internal.atoms.record_fields import (
+from eave.core.internal.atoms.db_record_fields import (
     CurrentPageRecordField,
     DeviceRecordField,
     GeoRecordField,
@@ -13,8 +12,9 @@ from eave.core.internal.atoms.record_fields import (
     TrafficSourceRecordField,
     UserRecordField,
 )
-from eave.core.internal.atoms.shared import common_bq_insert_timestamp_field, common_event_timestamp_field
-from eave.core.internal.atoms.table_handle import BigQueryFieldMode
+from eave.core.internal.atoms.db_tables import common_bq_insert_timestamp_field, common_event_timestamp_field
+from eave.core.internal.atoms.payload_processors.browser_events import BrowserEventAtom, BrowserEventsTableHandle
+from eave.core.internal.atoms.shared import BigQueryFieldMode
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.orm.team import bq_dataset_id
 from eave.stdlib.logging import LogContext
@@ -31,7 +31,7 @@ class TestBrowserEventsAtoms(BigQueryTestsBase):
 
     async def test_schema(self):
         assert_schemas_match(
-            BrowserEventAtom.schema(),
+            BrowserEventAtom.TABLE_DEF.schema,
             (
                 SchemaField(
                     name="action",
