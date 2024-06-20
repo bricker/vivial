@@ -25,10 +25,10 @@ class CorrCtxStorage:
             return updated_value
         return self.received.get(key)
 
-    def set(self, key: str, value: str) -> None:
+    def set(self, key: str, value: str | None) -> None:
         """Set a value in updated_context storage"""
-
-        self.updated[key] = str(value)
+        if value is not None:
+            self.updated[key] = str(value)
 
     def merged(self) -> dict[str, str]:
         """merge received and updated values together"""
