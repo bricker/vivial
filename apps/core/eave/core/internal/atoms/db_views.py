@@ -126,6 +126,7 @@ _COMMON_GEO_FIELDS = (
     ),
 )
 
+
 class BigQueryView(ABC):
     view_id: str
     """The BigQuery table ID"""

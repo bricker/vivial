@@ -161,6 +161,7 @@ class SingleScalarTypeKeyValueRecordField[T: str | bool | int | float]:
 
         return containers
 
+
 @dataclass(init=False)
 class SessionRecordField:
     @classmethod
@@ -491,6 +492,7 @@ class GeoRecordField:
     city: str | None
     coordinates: str | None
 
+
 @dataclass(init=False)
 class BrandsRecordField:
     @staticmethod
@@ -522,6 +524,7 @@ class BrandsRecordField:
     def __init__(self, resource: DeviceBrandProperties) -> None:
         self.brand = resource.brand
         self.version = resource.version
+
 
 @dataclass(init=False)
 class DeviceRecordField:
@@ -624,6 +627,7 @@ class DeviceRecordField:
         if resource.brands:
             self.brands = [BrandsRecordField(b) for b in resource.brands]
 
+
 @dataclass(init=False)
 class TargetRecordField:
     @staticmethod
@@ -672,6 +676,7 @@ class TargetRecordField:
 
         if resource.attributes:
             self.attributes = SingleScalarTypeKeyValueRecordField[str].list_from_scalar_dict(resource.attributes)
+
 
 @dataclass(init=False)
 class UrlRecordField:
@@ -743,6 +748,7 @@ class UrlRecordField:
         if parsed.query:
             qsl = parse_qsl(parsed.query, keep_blank_values=True)
             self.query_params = SingleScalarTypeKeyValueRecordField[str].list_from_kv_tuples(qsl)
+
 
 @dataclass(init=False)
 class CurrentPageRecordField:
