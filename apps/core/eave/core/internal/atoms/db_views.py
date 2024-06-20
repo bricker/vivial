@@ -36,94 +36,95 @@ class ViewField:
         )
 
 
-def _common_view_fields() -> tuple[ViewField, ...]:
-    return (
-        ViewField(
-            definition=sql_sanitized_identifier("timestamp"),
-            alias="event_timestamp",
-            description="The UTC date and time at which this event occurred.",
-            field_type=SqlTypeNames.TIMESTAMP,
-        ),
-        ViewField(
-            definition="user.account_id",
-            alias="account_id",
-            description="The logged-in account ID of the user who performed this action. For anonymous users, this is null.",
-            field_type=SqlTypeNames.STRING,
-        ),
-        ViewField(
-            definition="user.visitor_id",
-            alias="visitor_id",
-            description="The unique device ID of the user who performed this action. This is set on their first visit to the page.",
-            field_type=SqlTypeNames.STRING,
-        ),
-        ViewField(
-            definition="session.id",
-            alias="session_id",
-            description="The ID of the session during which this event occurred.",
-            field_type=SqlTypeNames.STRING,
-        ),
-        ViewField(
-            definition="session.start_timestamp",
-            alias="session_start_timestamp",
-            description="The start timestamp of the session during which this event occurred.",
-            field_type=SqlTypeNames.TIMESTAMP,
-        ),
-        ViewField(
-            definition="session.duration_ms",
-            alias="session_duration_ms",
-            description="The duration of the session at the time this event occurred.",
-            field_type=SqlTypeNames.FLOAT,
-        ),
-        ViewField(
-            definition="traffic_source.utm_campaign",
-            alias="utm_campaign",
-            description="Query parameter 'utm_campaign'.",
-            field_type=SqlTypeNames.STRING,
-        ),
-        ViewField(
-            definition="traffic_source.utm_medium",
-            alias="utm_medium",
-            description="Query parameter 'utm_medium'.",
-            field_type=SqlTypeNames.STRING,
-        ),
-        ViewField(
-            definition="traffic_source.utm_source",
-            alias="utm_source",
-            description="Query parameter 'utm_source'.",
-            field_type=SqlTypeNames.STRING,
-        ),
-        ViewField(
-            definition="traffic_source.utm_term",
-            alias="utm_term",
-            description="Query parameter 'utm_term'.",
-            field_type=SqlTypeNames.STRING,
-        ),
-        ViewField(
-            definition="traffic_source.utm_content",
-            alias="utm_content",
-            description="Query parameter 'utm_content'.",
-            field_type=SqlTypeNames.STRING,
-        ),
-        ViewField(
-            definition="geo.region",
-            alias="geo_region",
-            description="The country (or region) associated with the client's IP address. CLDR region code. https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2",
-            field_type=SqlTypeNames.STRING,
-        ),
-        ViewField(
-            definition="geo.subdivision",
-            alias="geo_subdivision",
-            description="Subdivision, for example, a province or state, of the country associated with the client's IP address. CLDR subdivision ID. https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2",
-            field_type=SqlTypeNames.STRING,
-        ),
-        ViewField(
-            definition="geo.city",
-            alias="geo_city",
-            description="Name of the city associated with the client's IP address.",
-            field_type=SqlTypeNames.STRING,
-        ),
-    )
+_COMMON_VIEW_FIELDS = (
+    ViewField(
+        definition=sql_sanitized_identifier("timestamp"),
+        alias="event_timestamp",
+        description="The UTC date and time at which this event occurred.",
+        field_type=SqlTypeNames.TIMESTAMP,
+    ),
+    ViewField(
+        definition="user.account_id",
+        alias="account_id",
+        description="The logged-in account ID of the user who performed this action. For anonymous users, this is null.",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="user.visitor_id",
+        alias="visitor_id",
+        description="The unique device ID of the user who performed this action. This is set on their first visit to the page.",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="session.id",
+        alias="session_id",
+        description="The ID of the session during which this event occurred.",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="session.start_timestamp",
+        alias="session_start_timestamp",
+        description="The start timestamp of the session during which this event occurred.",
+        field_type=SqlTypeNames.TIMESTAMP,
+    ),
+    ViewField(
+        definition="session.duration_ms",
+        alias="session_duration_ms",
+        description="The duration of the session at the time this event occurred.",
+        field_type=SqlTypeNames.FLOAT,
+    ),
+    ViewField(
+        definition="traffic_source.utm_campaign",
+        alias="utm_campaign",
+        description="Query parameter 'utm_campaign'.",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="traffic_source.utm_medium",
+        alias="utm_medium",
+        description="Query parameter 'utm_medium'.",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="traffic_source.utm_source",
+        alias="utm_source",
+        description="Query parameter 'utm_source'.",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="traffic_source.utm_term",
+        alias="utm_term",
+        description="Query parameter 'utm_term'.",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="traffic_source.utm_content",
+        alias="utm_content",
+        description="Query parameter 'utm_content'.",
+        field_type=SqlTypeNames.STRING,
+    ),
+)
 
+_COMMON_GEO_FIELDS = (
+    ViewField(
+        definition="geo.region",
+        alias="geo_region",
+        description="The country (or region) associated with the client's IP address. CLDR region code. https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="geo.subdivision",
+        alias="geo_subdivision",
+        description="Subdivision, for example, a province or state, of the country associated with the client's IP address. CLDR subdivision ID. https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="geo.city",
+        alias="geo_city",
+        description="Name of the city associated with the client's IP address.",
+        field_type=SqlTypeNames.STRING,
+    ),
+)
 
 class BigQueryView(ABC):
     view_id: str
@@ -173,7 +174,7 @@ class BigQueryView(ABC):
             ctx=ctx,
         )
 
-        bq_view.schema = self.schema
+        bq_view.schema = self.schema_fields
         bq_view = EAVE_INTERNAL_BIGQUERY_CLIENT.update_table(table=bq_view, ctx=ctx)
         return bq_view
 
@@ -228,7 +229,7 @@ class DatabaseEventView(BigQueryView):
                 description=f"The readable name for this event. Always {sanitized_friendly_name}.",
                 field_type=SqlTypeNames.STRING,
             ),
-            *_common_view_fields(),
+            *_COMMON_VIEW_FIELDS,
         )
 
     @property
@@ -275,7 +276,7 @@ class HttpServerEventView(BigQueryView):
                 description=f"The readable name for this event. Always {sanitized_friendly_name}.",
                 field_type=SqlTypeNames.STRING,
             ),
-            *_common_view_fields(),
+            *_COMMON_VIEW_FIELDS,
         )
 
     @property
@@ -366,7 +367,8 @@ class ClickView(BigQueryView):
                 description="For mobile devices, the model of the device that triggered this event. eg: 'Pixel 3'. For non-mobile devices, this is null.",
                 field_type=SqlTypeNames.STRING,
             ),
-            *_common_view_fields(),
+            *_COMMON_GEO_FIELDS,
+            *_COMMON_VIEW_FIELDS,
         )
 
     @property
@@ -441,7 +443,8 @@ class FormSubmissionView(BigQueryView):
                 description="The URL hash of the page on which the form was submitted.",
                 field_type=SqlTypeNames.STRING,
             ),
-            *_common_view_fields(),
+            *_COMMON_GEO_FIELDS,
+            *_COMMON_VIEW_FIELDS,
         )
 
     @property
@@ -504,7 +507,8 @@ class PageViewView(BigQueryView):
                 description="The URL hash of the viewed page.",
                 field_type=SqlTypeNames.STRING,
             ),
-            *_common_view_fields(),
+            *_COMMON_GEO_FIELDS,
+            *_COMMON_VIEW_FIELDS,
         )
 
     @property
