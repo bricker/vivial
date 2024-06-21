@@ -1,4 +1,3 @@
-import { describe, expect, it } from "mocha";
 import { ATOM_INTERCEPTION_EVENT_NAME, dummyAppRoot } from "../support/constants";
 
 describe("eave click atom collection", () => {

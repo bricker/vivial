@@ -1,5 +1,4 @@
 /* eslint-disable no-unused-expressions */
-import { describe, expect, it } from "mocha";
 import { ATOM_INTERCEPTION_EVENT_NAME, dummyAppRoot } from "../support/constants";
 
 describe("eave page view atom collection", () => {
