@@ -1,7 +1,7 @@
 import dataclasses
 from dataclasses import dataclass
 from textwrap import dedent
-from typing import Any, cast
+from typing import Any, Self, cast
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
@@ -21,12 +21,12 @@ from eave.core.internal.orm.virtual_event import VirtualEventOrm
 from eave.stdlib.logging import LOGGER, LogContext
 from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize, titleize
 
-from .shared import common_bq_insert_timestamp_field, common_event_timestamp_field
+from .shared import common_bq_insert_timestamp_field, common_event_timestamp_field, Redactable
 from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 
 
 @dataclass(kw_only=True)
-class BrowserEventAtom:
+class BrowserEventAtom(Redactable):
     @staticmethod
     def schema() -> tuple[SchemaField, ...]:
         return (
@@ -68,6 +68,21 @@ class BrowserEventAtom:
     geo: GeoRecordField | None
     extra: list[MultiScalarTypeKeyValueRecordField] | None
     client_ip: str | None
+
+    def redact_sensitive_content(self) -> Self:
+        if self.target:
+            self.target.redact_sensitive_content()
+        if self.current_page:
+            self.current_page.redact_sensitive_content()
+        # TODO: add some config for whether to do geo data redaction?
+        # if self.geo:
+        #     self.geo.redact_sensitive_content()
+        # if self.client_ip:
+        #     self.client_ip = "*****"
+        if self.extra:
+            for item in self.extra:
+                item.redact_sensitive_content()
+        return self
 
 
 class BrowserEventsTableHandle(BigQueryTableHandle):
@@ -129,6 +144,7 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                 extra=MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(e.extra),
                 client_ip=client_ip,
             )
+            atom.redact_sensitive_content()
 
             atoms.append(atom)
 

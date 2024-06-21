@@ -1,7 +1,7 @@
 import dataclasses
 from dataclasses import dataclass
 from textwrap import dedent
-from typing import Any, cast
+from typing import Any, Self, cast
 
 import inflect
 from google.cloud.bigquery import SchemaField, SqlTypeNames, StandardSqlTypeNames
@@ -17,16 +17,17 @@ from eave.core.internal.atoms.record_fields import (
     TrafficSourceRecordField,
     UserRecordField,
 )
-from eave.core.internal.atoms.shared import common_bq_insert_timestamp_field, common_event_timestamp_field
+from eave.core.internal.atoms.shared import Redactable, common_bq_insert_timestamp_field, common_event_timestamp_field
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
 from eave.stdlib.logging import LOGGER, LogContext
+from eave.stdlib.deidentification import redact
 from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize, titleize
 
 from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 
 
 @dataclass(kw_only=True)
-class DatabaseEventAtom:
+class DatabaseEventAtom(Redactable):
     @staticmethod
     def schema() -> tuple[SchemaField, ...]:
         return (
@@ -74,6 +75,14 @@ class DatabaseEventAtom:
     session: SessionRecordField | None
     user: UserRecordField | None
     traffic_source: TrafficSourceRecordField | None
+
+    def redact_sensitive_content(self) -> Self:
+        if self.statement:
+            self.statement = redact(self.statement)
+        if self.statement_values:
+            for value in self.statement_values:
+                value.redact_sensitive_content()
+        return self
 
 
 class DatabaseEventsTableHandle(BigQueryTableHandle):
@@ -144,6 +153,7 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
                 user=user,
                 traffic_source=traffic_source,
             )
+            atom.redact_sensitive_content()
 
             atoms.append(atom)
 

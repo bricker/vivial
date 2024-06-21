@@ -1,6 +1,13 @@
+import abc
+from typing import Self
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
 from eave.core.internal.atoms.table_handle import BigQueryFieldMode
+
+
+class Redactable(abc.ABC):
+    @abc.abstractmethod
+    def redact_sensitive_content(self) -> Self: ...
 
 
 def common_bq_insert_timestamp_field() -> SchemaField:
