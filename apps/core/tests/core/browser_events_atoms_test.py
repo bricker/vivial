@@ -10,7 +10,7 @@ from eave.core.internal.atoms.db_record_fields import (
     SessionRecordField,
     TargetRecordField,
     TrafficSourceRecordField,
-    UserRecordField,
+    AccountRecordField,
 )
 from eave.core.internal.atoms.db_tables import common_bq_insert_timestamp_field, common_event_timestamp_field
 from eave.core.internal.atoms.payload_processors.browser_events import BrowserEventAtom, BrowserEventsTableHandle
@@ -41,7 +41,7 @@ class TestBrowserEventsAtoms(BigQueryTestsBase):
                 ),
                 common_event_timestamp_field(),
                 SessionRecordField.schema(),
-                UserRecordField.schema(),
+                AccountRecordField.schema(),
                 TrafficSourceRecordField.schema(),
                 TargetRecordField.schema(),
                 CurrentPageRecordField.schema(),

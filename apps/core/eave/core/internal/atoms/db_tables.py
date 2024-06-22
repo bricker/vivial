@@ -13,7 +13,7 @@ from eave.core.internal.atoms.db_record_fields import (
     SingleScalarTypeKeyValueRecordField,
     TargetRecordField,
     TrafficSourceRecordField,
-    UserRecordField,
+    AccountRecordField,
 )
 from eave.core.internal.atoms.shared import BigQueryFieldMode
 
@@ -66,7 +66,7 @@ class BrowserEventAtom:
                 mode=BigQueryFieldMode.NULLABLE,
             ),
             SessionRecordField.schema(),
-            UserRecordField.schema(),
+            AccountRecordField.schema(),
             TrafficSourceRecordField.schema(),
             TargetRecordField.schema(),
             CurrentPageRecordField.schema(),
@@ -89,7 +89,7 @@ class BrowserEventAtom:
 
     action: str | None
     session: SessionRecordField | None
-    user: UserRecordField | None
+    user: AccountRecordField | None
     traffic_source: TrafficSourceRecordField | None
     target: TargetRecordField | None
     current_page: CurrentPageRecordField | None
@@ -136,7 +136,7 @@ class DatabaseEventAtom:
                 description="The SQL parameter values passed into the statement.",
             ),
             SessionRecordField.schema(),
-            UserRecordField.schema(),
+            AccountRecordField.schema(),
             TrafficSourceRecordField.schema(),
             common_event_timestamp_field(),
             common_bq_insert_timestamp_field(),
@@ -149,7 +149,7 @@ class DatabaseEventAtom:
     statement: str | None
     statement_values: list[MultiScalarTypeKeyValueRecordField] | None
     session: SessionRecordField | None
-    user: UserRecordField | None
+    user: AccountRecordField | None
     traffic_source: TrafficSourceRecordField | None
     timestamp: float | None
 
@@ -185,7 +185,7 @@ class HttpClientEventAtom:
                 mode=BigQueryFieldMode.NULLABLE,
             ),
             SessionRecordField.schema(),
-            UserRecordField.schema(),
+            AccountRecordField.schema(),
             TrafficSourceRecordField.schema(),
             common_event_timestamp_field(),
             common_bq_insert_timestamp_field(),
@@ -197,7 +197,7 @@ class HttpClientEventAtom:
     request_headers: list[SingleScalarTypeKeyValueRecordField[str]] | None
     request_payload: str | None
     session: SessionRecordField | None
-    user: UserRecordField | None
+    user: AccountRecordField | None
     traffic_source: TrafficSourceRecordField | None
     timestamp: float | None
 
@@ -233,7 +233,7 @@ class HttpServerEventAtom:
                 mode=BigQueryFieldMode.NULLABLE,
             ),
             SessionRecordField.schema(),
-            UserRecordField.schema(),
+            AccountRecordField.schema(),
             TrafficSourceRecordField.schema(),
             common_event_timestamp_field(),
             common_bq_insert_timestamp_field(),
@@ -245,6 +245,6 @@ class HttpServerEventAtom:
     request_headers: list[SingleScalarTypeKeyValueRecordField[str]] | None
     request_payload: str | None
     session: SessionRecordField | None
-    user: UserRecordField | None
+    user: AccountRecordField | None
     traffic_source: TrafficSourceRecordField | None
     timestamp: float | None

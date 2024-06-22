@@ -1,5 +1,9 @@
+import json
 import re
 from typing import Any
+
+from eave.collectors.core.correlation_context.base import EAVE_ENCRYPTED_ACCOUNT_COOKIE_NAME
+from eave.collectors.core.json import compact_json, JsonObject
 
 from .base_collector import BaseCollector
 from .correlation_context import CORR_CTX
@@ -16,9 +20,9 @@ primary_key_patterns = [
 ]
 
 foreign_key_patterns = [
-    # We don't want to capture fields that in "id" but aren't foreign keys, like "kool-aid" or "mermaid".
-    # We therefore make an assumption that anything ending it "id" with _some_ delimeter is a foreign key.
-    r".[_-]id$",  # delimeter = _, -. Only matches when "id" is lower-case.
+    # We don't want to capture fields that end in "id" but aren't foreign keys, like "kool_aid" or "mermaid".
+    # We therefore make an assumption that anything ending in "id" with SOME delimeter is a foreign key.
+    r".[_-]id$",  # delimeter = {_, -} Only matches when "id" is lower-case.
     r".I[Dd]$",  # delimeter = capital "I" (eg UserId). This also handles underscores/hyphens when the "I" is capital.
 ]
 
@@ -43,16 +47,23 @@ def save_identification_data(table_name: str, column_value_map: dict[str, Any]) 
             column_value_map (dict[str, str]): mapping from column name to value
     """
     if is_user_table(table_name):
+        acct_info: JsonObject = {}
+
         for key, value in column_value_map.items():
             lower_key = key.lower()
-            if any(re.search(pat, lower_key) for pat in primary_key_patterns):
-                CORR_CTX.set("account_id", str(value))
-                continue
+
             # casing matters for matching camelCase, so no lower_key
             if any(re.search(pat, key) for pat in foreign_key_patterns):
-                CORR_CTX.set(key, str(value))
+                acct_info[key] = str(value)
                 continue
 
+            if any(re.search(pat, lower_key) for pat in primary_key_patterns):
+                acct_info["account_id"] = str(value)
+                continue
+
+        if len(acct_info) > 0:
+            j = compact_json(acct_info)
+            CORR_CTX.set(EAVE_ENCRYPTED_ACCOUNT_COOKIE_NAME, j)
 
 class BaseDatabaseCollector(BaseCollector):
     pass

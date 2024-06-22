@@ -8,6 +8,7 @@ These schemas are authoritative: changing these will change the respective schem
 """
 
 from dataclasses import dataclass
+from typing import Self
 from urllib.parse import parse_qsl, urlparse
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
@@ -54,11 +55,13 @@ class TypedValueRecordField:
             ),
         )
 
-    string_value: str | None = None
-    bool_value: bool | None = None
-    numeric_value: int | float | None = None
+    string_value: str | None
+    bool_value: bool | None
+    numeric_value: int | float | None
 
     def __init__(self, value: str | int | float | bool | None) -> None:
+        # It is important to remember that these checks have to be exclusive - if multiple checks are done, it's possible
+        # for multiple fields to have a value set. This is especially likely when working with bools and numbers.
         if isinstance(value, str):
             self.string_value = value
         elif isinstance(value, bool):
@@ -67,18 +70,10 @@ class TypedValueRecordField:
         elif isinstance(value, (float, int)):
             # Reminder: bool is a subclass of int! bool check must come before the int check.
             self.numeric_value = value
-        else:
-            # Handles None, as well as any future unhandled types.
-            # All fields are initialized with None, nothing to do here.
-            pass
 
 
 @dataclass(kw_only=True)
 class MultiScalarTypeKeyValueRecordField:
-    """
-    This is a dataclass because it doesn't come from an API payload
-    """
-
     @staticmethod
     def schema(*, name: str, description: str) -> SchemaField:
         return SchemaField(
@@ -113,10 +108,6 @@ class MultiScalarTypeKeyValueRecordField:
 
 @dataclass(kw_only=True)
 class SingleScalarTypeKeyValueRecordField[T: str | bool | int | float]:
-    """
-    This is a dataclass because it doesn't come from an API payload
-    """
-
     @staticmethod
     def schema(*, name: str, description: str, value_type: SqlTypeNames) -> SchemaField:
         return SchemaField(
@@ -162,7 +153,7 @@ class SingleScalarTypeKeyValueRecordField[T: str | bool | int | float]:
         return containers
 
 
-@dataclass(init=False)
+@dataclass(kw_only=True)
 class SessionRecordField:
     @classmethod
     def schema(cls) -> SchemaField:
@@ -193,29 +184,30 @@ class SessionRecordField:
             ),
         )
 
-    id: str | None = None
-    start_timestamp: float | None = None
-    duration_ms: float | None = None
+    id: str | None
+    start_timestamp: float | None
+    duration_ms: float | None
 
-    def __init__(self, resource: SessionProperties, event_timestamp: float | None) -> None:
-        self.id = resource.id
-        self.start_timestamp = resource.start_timestamp
-
+    @classmethod
+    def from_api_resource(cls, resource: SessionProperties, event_timestamp: float | None) -> Self:
         if event_timestamp and resource.start_timestamp:
-            self.duration_ms = (event_timestamp - resource.start_timestamp) * 1000
+            duration_ms = (event_timestamp - resource.start_timestamp) * 1000
+        else:
+            duration_ms = None
 
+        return cls(
+            id=resource.id,
+            start_timestamp=resource.start_timestamp,
+            duration_ms=duration_ms,
+        )
 
 @dataclass(kw_only=True)
-class UserRecordField:
-    """
-    This is a dataclass because it doesn't come from an API payload
-    """
-
+class AccountRecordField:
     @classmethod
     def schema(cls) -> SchemaField:
         return SchemaField(
-            name="user",
-            description="User properties.",
+            name="account",
+            description="User account properties.",
             field_type=SqlTypeNames.RECORD,
             mode=BigQueryFieldMode.NULLABLE,
             fields=(
@@ -238,7 +230,7 @@ class UserRecordField:
     visitor_id: str | None
 
 
-@dataclass(init=False)
+@dataclass(kw_only=True)
 class TrafficSourceRecordField:
     @classmethod
     def schema(cls) -> SchemaField:
@@ -394,64 +386,75 @@ class TrafficSourceRecordField:
             ),
         )
 
-    timestamp: float | None = None
-    browser_referrer: str | None = None
-    gclid: str | None = None
-    fbclid: str | None = None
-    msclkid: str | None = None
-    dclid: str | None = None
-    ko_click_id: str | None = None
-    rtd_cid: str | None = None
-    li_fat_id: str | None = None
-    ttclid: str | None = None
-    twclid: str | None = None
-    wbraid: str | None = None
-    gbraid: str | None = None
-    # keyword: str | None = None
-    # matchtype: str | None = None
-    # campaign: str | None = None
-    # campaign_id: str | None = None
-    # pid: str | None = None
-    # cid: str | None = None
-    utm_campaign: str | None = None
-    utm_source: str | None = None
-    utm_medium: str | None = None
-    utm_term: str | None = None
-    utm_content: str | None = None
-    other_tracking_params: list[SingleScalarTypeKeyValueRecordField[str]] | None = None
+    timestamp: float | None
+    browser_referrer: str | None
+    gclid: str | None
+    fbclid: str | None
+    msclkid: str | None
+    dclid: str | None
+    ko_click_id: str | None
+    rtd_cid: str | None
+    li_fat_id: str | None
+    ttclid: str | None
+    twclid: str | None
+    wbraid: str | None
+    gbraid: str | None
+    utm_campaign: str | None
+    utm_source: str | None
+    utm_medium: str | None
+    utm_term: str | None
+    utm_content: str | None
+    other_tracking_params: list[SingleScalarTypeKeyValueRecordField[str]] | None
 
-    def __init__(self, resource: TrafficSourceProperties) -> None:
-        self.timestamp = resource.timestamp
-        self.browser_referrer = resource.browser_referrer
+    @classmethod
+    def from_api_resource(cls, resource: TrafficSourceProperties) -> Self:
+        tp = resource.tracking_params.copy() if resource.tracking_params else None
 
-        if resource.tracking_params:
-            tp = resource.tracking_params.copy()
+        gclid = tp.pop("gclid", None) if tp else None
+        fbclid = tp.pop("fbclid", None) if tp else None
+        msclkid = tp.pop("msclkid", None) if tp else None
+        dclid = tp.pop("dclid", None) if tp else None
+        ko_click_id = tp.pop("ko_click_id", None) if tp else None
+        rtd_cid = tp.pop("rtd_cid", None) if tp else None
+        li_fat_id = tp.pop("li_fat_id", None) if tp else None
+        ttclid = tp.pop("ttclid", None) if tp else None
+        twclid = tp.pop("twclid", None) if tp else None
+        wbraid = tp.pop("wbraid", None) if tp else None
+        gbraid = tp.pop("gbraid", None) if tp else None
+        utm_campaign = tp.pop("utm_campaign", None) if tp else None
+        utm_source = tp.pop("utm_source", None) if tp else None
+        utm_medium = tp.pop("utm_medium", None) if tp else None
+        utm_term = tp.pop("utm_term", None) if tp else None
+        utm_content = tp.pop("utm_content", None) if tp else None
+        other_tracking_params = (
+            SingleScalarTypeKeyValueRecordField[str].list_from_scalar_dict(tp)
+            if tp else None
+        )
 
-            self.gclid = tp.pop("gclid", None)
-            self.fbclid = tp.pop("fbclid", None)
-            self.msclkid = tp.pop("msclkid", None)
-            self.dclid = tp.pop("dclid", None)
-            self.ko_click_id = tp.pop("ko_click_id", None)
-            self.rtd_cid = tp.pop("rtd_cid", None)
-            self.li_fat_id = tp.pop("li_fat_id", None)
-            self.ttclid = tp.pop("ttclid", None)
-            self.twclid = tp.pop("twclid", None)
-            self.wbraid = tp.pop("wbraid", None)
-            self.gbraid = tp.pop("gbraid", None)
-            self.utm_campaign = tp.pop("utm_campaign", None)
-            self.utm_source = tp.pop("utm_source", None)
-            self.utm_medium = tp.pop("utm_medium", None)
-            self.utm_term = tp.pop("utm_term", None)
-            self.utm_content = tp.pop("utm_content", None)
-            self.other_tracking_params = SingleScalarTypeKeyValueRecordField[str].list_from_scalar_dict(tp)
-
+        return cls(
+            timestamp=resource.timestamp,
+            browser_referrer=resource.browser_referrer,
+            gclid=gclid,
+            fbclid=fbclid,
+            msclkid=msclkid,
+            dclid=dclid,
+            ko_click_id=ko_click_id,
+            rtd_cid=rtd_cid,
+            li_fat_id=li_fat_id,
+            ttclid=ttclid,
+            twclid=twclid,
+            wbraid=wbraid,
+            gbraid=gbraid,
+            utm_campaign=utm_campaign,
+            utm_source=utm_source,
+            utm_medium=utm_medium,
+            utm_term=utm_term,
+            utm_content=utm_content,
+            other_tracking_params=other_tracking_params,
+        )
 
 @dataclass(kw_only=True)
 class GeoRecordField:
-    """
-    This is a dataclass because it doesn't come from an API payload.
-    """
-
     @staticmethod
     def schema() -> SchemaField:
         return SchemaField(
@@ -493,7 +496,7 @@ class GeoRecordField:
     coordinates: str | None
 
 
-@dataclass(init=False)
+@dataclass(kw_only=True)
 class BrandsRecordField:
     @staticmethod
     def schema() -> SchemaField:
@@ -518,15 +521,18 @@ class BrandsRecordField:
             ),
         )
 
-    brand: str | None = None
-    version: str | None = None
+    brand: str | None
+    version: str | None
 
-    def __init__(self, resource: DeviceBrandProperties) -> None:
-        self.brand = resource.brand
-        self.version = resource.version
+    @classmethod
+    def from_api_resource(cls, resource: DeviceBrandProperties) -> Self:
+        return cls(
+            brand=resource.brand,
+            version=resource.version,
+        )
 
 
-@dataclass(init=False)
+@dataclass(kw_only=True)
 class DeviceRecordField:
     @staticmethod
     def schema() -> SchemaField:
@@ -600,35 +606,40 @@ class DeviceRecordField:
             ),
         )
 
-    user_agent: str | None = None
-    brands: list[BrandsRecordField] | None = None
-    platform: str | None = None
-    platform_version: str | None = None
-    mobile: bool | None = None
-    form_factor: str | None = None
-    model: str | None = None
-    screen_width: int | None = None
-    screen_height: int | None = None
-    screen_avail_width: int | None = None
-    screen_avail_height: int | None = None
+    user_agent: str | None
+    brands: list[BrandsRecordField] | None
+    platform: str | None
+    platform_version: str | None
+    mobile: bool | None
+    form_factor: str | None
+    model: str | None
+    screen_width: int | None
+    screen_height: int | None
+    screen_avail_width: int | None
+    screen_avail_height: int | None
 
-    def __init__(self, resource: DeviceProperties) -> None:
-        self.user_agent = resource.user_agent
-        self.form_factor = resource.form_factor
-        self.mobile = resource.mobile
-        self.model = resource.model
-        self.platform = resource.platform
-        self.platform_version = resource.platform_version
-        self.screen_width = resource.screen_width
-        self.screen_height = resource.screen_height
-        self.screen_avail_width = resource.screen_avail_width
-        self.screen_avail_height = resource.screen_avail_height
+    @classmethod
+    def from_api_resource(cls, resource: DeviceProperties) -> Self:
+        return cls(
+            user_agent=resource.user_agent,
+            form_factor=resource.form_factor,
+            mobile=resource.mobile,
+            model=resource.model,
+            platform=resource.platform,
+            platform_version=resource.platform_version,
+            screen_width=resource.screen_width,
+            screen_height=resource.screen_height,
+            screen_avail_width=resource.screen_avail_width,
+            screen_avail_height=resource.screen_avail_height,
+            brands=(
+                [BrandsRecordField.from_api_resource(b) for b in resource.brands]
+                if resource.brands
+                else None
+            ),
+        )
 
-        if resource.brands:
-            self.brands = [BrandsRecordField(b) for b in resource.brands]
 
-
-@dataclass(init=False)
+@dataclass(kw_only=True)
 class TargetRecordField:
     @staticmethod
     def schema() -> SchemaField:
@@ -664,21 +675,26 @@ class TargetRecordField:
             ),
         )
 
-    type: str | None = None
-    id: str | None = None
-    content: str | None = None
-    attributes: list[SingleScalarTypeKeyValueRecordField[str]] | None = None
+    type: str | None
+    id: str | None
+    content: str | None
+    attributes: list[SingleScalarTypeKeyValueRecordField[str]] | None
 
-    def __init__(self, resource: TargetProperties) -> None:
-        self.type = resource.type
-        self.id = resource.id
-        self.content = resource.content
+    @classmethod
+    def from_api_resource(cls, resource: TargetProperties) -> Self:
+        return cls(
+            type=resource.type,
+            id=resource.id,
+            content=resource.content,
+            attributes=(
+                SingleScalarTypeKeyValueRecordField[str].list_from_scalar_dict(resource.attributes)
+                if resource.attributes
+                else None
+            ),
+        )
 
-        if resource.attributes:
-            self.attributes = SingleScalarTypeKeyValueRecordField[str].list_from_scalar_dict(resource.attributes)
 
-
-@dataclass(init=False)
+@dataclass(kw_only=True)
 class UrlRecordField:
     @staticmethod
     def schema() -> SchemaField:
@@ -726,31 +742,38 @@ class UrlRecordField:
             ),
         )
 
-    raw: str | None = None
-    protocol: str | None = None
-    domain: str | None = None
-    path: str | None = None
-    hash: str | None = None
-    query_params: list[SingleScalarTypeKeyValueRecordField[str]] | None = None
+    raw: str | None
+    protocol: str | None
+    domain: str | None
+    path: str | None
+    hash: str | None
+    query_params: list[SingleScalarTypeKeyValueRecordField[str]] | None
 
-    def __init__(self, resource: str) -> None:
+    @classmethod
+    def from_api_resource(cls, resource: str) -> Self:
         parsed = urlparse(resource, allow_fragments=True)
 
         # Normalize the path
         path = parsed.path.removesuffix("/")
 
-        self.raw = resource
-        self.protocol = parsed.scheme
-        self.domain = parsed.hostname
-        self.path = path or None
-        self.hash = parsed.fragment or None
-
         if parsed.query:
             qsl = parse_qsl(parsed.query, keep_blank_values=True)
-            self.query_params = SingleScalarTypeKeyValueRecordField[str].list_from_kv_tuples(qsl)
+            query_params = SingleScalarTypeKeyValueRecordField[str].list_from_kv_tuples(qsl)
+        else:
+            query_params = None
+
+        return cls(
+            raw=resource,
+            protocol=parsed.scheme,
+            domain=parsed.hostname,
+            path=path or None,
+            hash=parsed.fragment or None,
+            query_params=query_params,
+        )
 
 
-@dataclass(init=False)
+
+@dataclass(kw_only=True)
 class CurrentPageRecordField:
     @staticmethod
     def schema() -> SchemaField:
@@ -776,13 +799,17 @@ class CurrentPageRecordField:
             ),
         )
 
-    url: UrlRecordField | None = None
-    title: str | None = None
-    pageview_id: str | None = None
+    url: UrlRecordField | None
+    title: str | None
+    pageview_id: str | None
 
-    def __init__(self, resource: CurrentPageProperties) -> None:
+    @classmethod
+    def from_api_resource(cls, resource: CurrentPageProperties) -> Self:
         if resource.url:
-            self.url = UrlRecordField(resource.url)
+            self.url =
 
-        self.title = resource.title
-        self.pageview_id = resource.pageview_id
+        return cls(
+            url=UrlRecordField.from_api_resource(resource.url) if resource.url else None,
+            title=resource.title,
+            pageview_id=resource.pageview_id,
+        )

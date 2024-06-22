@@ -1,5 +1,6 @@
 import secrets
 import uuid
+import hashlib
 from dataclasses import dataclass
 from datetime import datetime
 from enum import IntEnum
@@ -95,3 +96,11 @@ class ClientCredentialsOrm(Base):
 
     async def touch(self, session: AsyncSession) -> None:
         self.last_used = datetime.utcnow()
+
+    @property
+    def credentials_str(self) -> str:
+        return f"{self.id.hex}:{self.secret}"
+
+    @property
+    def symmetric_encryption_key(self) -> bytes:
+        return hashlib.sha256(bytes(self.credentials_str, "utf-8")).digest()

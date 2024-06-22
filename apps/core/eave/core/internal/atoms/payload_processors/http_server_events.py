@@ -7,7 +7,7 @@ from eave.core.internal.atoms.db_record_fields import (
     SessionRecordField,
     SingleScalarTypeKeyValueRecordField,
     TrafficSourceRecordField,
-    UserRecordField,
+    AccountRecordField,
 )
 from eave.core.internal.atoms.db_tables import HttpServerEventAtom
 from eave.core.internal.atoms.db_views import HttpServerEventView
@@ -51,7 +51,7 @@ class HttpServerEventsTableHandle(BigQueryTableHandle):
                     traffic_source = TrafficSourceRecordField(e.corr_ctx.traffic_source)
 
                 if e.corr_ctx.account_id or e.corr_ctx.visitor_id:
-                    user = UserRecordField(account_id=e.corr_ctx.account_id, visitor_id=e.corr_ctx.visitor_id)
+                    user = AccountRecordField(account_id=e.corr_ctx.account_id, visitor_id=e.corr_ctx.visitor_id)
 
             atom = HttpServerEventAtom(
                 request_method=e.request_method,

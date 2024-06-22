@@ -5,8 +5,12 @@ def eave_api_base_url() -> str:
     return os.getenv("EAVE_API_BASE_URL_PUBLIC", "https://api.eave.fyi")
 
 
+def get_eave_credentials() -> str | None:
+    return os.getenv("EAVE_CREDENTIALS")
+
+
 def eave_credentials_headers() -> dict[str, str]:
-    credentials_str = os.getenv("EAVE_CREDENTIALS")
+    credentials_str = get_eave_credentials()
     if not credentials_str:
         return {}
 

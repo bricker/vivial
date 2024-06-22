@@ -2,10 +2,14 @@ import abc
 import json
 import typing
 import urllib.parse
+from cryptography import fernet
+import hashlib
 
-# These values are dependent on the eave browser js client implementation and MUST change
-# if those values change in the js client
+from eave.collectors.core.config import get_eave_credentials
+
+# The cookie prefix MUST match the browser collector
 EAVE_COLLECTOR_COOKIE_PREFIX = "_eave."
+EAVE_ENCRYPTED_ACCOUNT_COOKIE_NAME = f"{EAVE_COLLECTOR_COOKIE_PREFIX}nca"
 STORAGE_ATTR = "_eave_corr_ctx"
 
 
@@ -28,7 +32,15 @@ class CorrCtxStorage:
     def set(self, key: str, value: str | None) -> None:
         """Set a value in updated_context storage"""
         if value is not None:
-            self.updated[key] = str(value)
+            creds = get_eave_credentials()
+            if creds:
+                encryption_key = hashlib.sha256(bytes(creds, "utf-8")).digest()
+                encryptor = fernet.Fernet(encryption_key)
+                key = encryptor.encrypt(bytes(value, "utf-8")).decode()
+                value = encryptor.encrypt(bytes(value, "utf-8")).decode()
+
+            self.updated[key] = value
+
 
     def merged(self) -> dict[str, str]:
         """merge received and updated values together"""
@@ -79,7 +91,7 @@ class BaseCorrelationContext(abc.ABC):
         storage = self.get_storage()
         if not storage:
             return None
-        return storage.get(key)
+        return storage.get(_ensure_prefix(key))
 
     def set(self, key: str, value: str) -> None:
         """Set a value in updated_context storage"""
@@ -87,7 +99,7 @@ class BaseCorrelationContext(abc.ABC):
         storage = self.get_storage()
         if not storage:
             return
-        storage.set(key, value)
+        storage.set(_ensure_prefix(key), value)
 
     def to_dict(self) -> dict[str, str]:
         """Convert entirety of storage to dict"""

@@ -10,7 +10,7 @@ from eave.core.internal.atoms.db_record_fields import (
     MultiScalarTypeKeyValueRecordField,
     SessionRecordField,
     TrafficSourceRecordField,
-    UserRecordField,
+    AccountRecordField,
 )
 from eave.core.internal.atoms.db_tables import DatabaseEventAtom
 from eave.core.internal.atoms.db_views import DatabaseEventView
@@ -55,7 +55,7 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
                     traffic_source = TrafficSourceRecordField(e.corr_ctx.traffic_source)
 
                 if e.corr_ctx.account_id or e.corr_ctx.visitor_id:
-                    user = UserRecordField(account_id=e.corr_ctx.account_id, visitor_id=e.corr_ctx.visitor_id)
+                    user = AccountRecordField(account_id=e.corr_ctx.account_id, visitor_id=e.corr_ctx.visitor_id)
 
             atom = DatabaseEventAtom(
                 operation=e.operation,
