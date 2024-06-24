@@ -17,17 +17,16 @@ from eave.core.internal.atoms.record_fields import (
     TrafficSourceRecordField,
     UserRecordField,
 )
-from eave.core.internal.atoms.shared import Redactable, common_bq_insert_timestamp_field, common_event_timestamp_field
+from eave.core.internal.atoms.shared import common_bq_insert_timestamp_field, common_event_timestamp_field
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
 from eave.stdlib.logging import LOGGER, LogContext
-from eave.stdlib.deidentification import redact
 from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize, titleize
 
 from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 
 
 @dataclass(kw_only=True)
-class DatabaseEventAtom(Redactable):
+class DatabaseEventAtom:
     @staticmethod
     def schema() -> tuple[SchemaField, ...]:
         return (

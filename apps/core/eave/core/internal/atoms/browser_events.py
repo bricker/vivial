@@ -21,14 +21,19 @@ from eave.core.internal.orm.virtual_event import VirtualEventOrm
 from eave.stdlib.logging import LOGGER, LogContext
 from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize, titleize
 
-from .shared import common_bq_insert_timestamp_field, common_event_timestamp_field, Redactable
+from .shared import common_bq_insert_timestamp_field, common_event_timestamp_field
 from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 
 
+class Atom:
+    @classmethod
+    def schema(cls) -> tuple[SchemaField, ...]:
+        ...
+
 @dataclass(kw_only=True)
-class BrowserEventAtom(Redactable):
-    @staticmethod
-    def schema() -> tuple[SchemaField, ...]:
+class BrowserEventAtom(Atom):
+    @classmethod
+    def schema(cls) -> tuple[SchemaField, ...]:
         return (
             SchemaField(
                 name="action",
@@ -68,22 +73,6 @@ class BrowserEventAtom(Redactable):
     geo: GeoRecordField | None
     extra: list[MultiScalarTypeKeyValueRecordField] | None
     client_ip: str | None
-
-    def redact_sensitive_content(self) -> Self:
-        if self.target:
-            self.target.redact_sensitive_content()
-        if self.current_page:
-            self.current_page.redact_sensitive_content()
-        # TODO: add some config for whether to do geo data redaction?
-        # if self.geo:
-        #     self.geo.redact_sensitive_content()
-        # if self.client_ip:
-        #     self.client_ip = "*****"
-        if self.extra:
-            for item in self.extra:
-                item.redact_sensitive_content()
-        return self
-
 
 class BrowserEventsTableHandle(BigQueryTableHandle):
     table_def = BigQueryTableDefinition(
@@ -144,9 +133,10 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                 extra=MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(e.extra),
                 client_ip=client_ip,
             )
-            atom.redact_sensitive_content()
 
             atoms.append(atom)
+
+        # formatted_rows = redact(atoms)
 
         formatted_rows = [dataclasses.asdict(atom) for atom in atoms]
         errors = self._bq_client.append_rows(
