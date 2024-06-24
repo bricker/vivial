@@ -21,13 +21,12 @@ def redact(
                     transformations=[
                         dlp.InfoTypeTransformations.InfoTypeTransformation(
                             primitive_transformation=dlp.PrimitiveTransformation(
-                                replace_config=dlp.ReplaceValueConfig(new_value=dlp.Value(string_value="*****"))
+                                replace_with_info_type_config=dlp.ReplaceWithInfoTypeConfig()
                             )
                         )
                     ]
                 )
             ),
-            # inspect_config=inspect_config,
             item=dlp.ContentItem(value=data),
         )
     )
