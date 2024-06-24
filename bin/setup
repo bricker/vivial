@@ -58,16 +58,15 @@ function setenvvars() (
 		fi
 	fi
 
-	if ! e.force && test -n "$EAVE_HOME"; then
-		statusmsg -o "EAVE_HOME already set."
-	else
-		local value
-		value=$(pwd)
-		statusmsg -pa "Adding EAVE_HOME=$value to your environment."
-		statusmsg -i "EAVE_HOME is the root of the Eave monorepo, and is used all over the place when loading files."
-		if e.confirm; then
-			e.add-shell-variable EAVE_HOME "$value"
-		fi
+  # since EAVE_HOME is locally exported at the top of the file,
+  # it will never be empty even when not saved in env/login file.
+  # So we'll always set it here.
+	local value
+	value=$(pwd)
+	statusmsg -pa "Adding EAVE_HOME=$value to your environment."
+	statusmsg -i "EAVE_HOME is the root of the Eave monorepo, and is used all over the place when loading files."
+	if e.confirm; then
+		e.add-shell-variable EAVE_HOME "$value"
 	fi
 )
 
