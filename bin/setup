@@ -58,9 +58,9 @@ function setenvvars() (
 		fi
 	fi
 
-  # since EAVE_HOME is locally exported at the top of the file,
-  # it will never be empty even when not saved in env/login file.
-  # So we'll always set it here.
+	# since EAVE_HOME is locally exported at the top of the file,
+	# it will never be empty even when not saved in env/login file.
+	# So we'll always set it here.
 	local value
 	value=$(pwd)
 	statusmsg -pa "Adding EAVE_HOME=$value to your environment."
