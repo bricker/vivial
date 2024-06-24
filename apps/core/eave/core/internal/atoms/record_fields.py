@@ -14,7 +14,6 @@ from eave.core.internal.atoms.api_types import (
     TargetProperties,
     TrafficSourceProperties,
 )
-from eave.core.internal.atoms.shared import Redactable
 from eave.core.internal.atoms.table_handle import BigQueryFieldMode
 from eave.stdlib.typing import JsonScalar
 
@@ -27,7 +26,7 @@ class RecordField(ABC):
 
 
 @dataclass(kw_only=True)
-class TypedValueRecordField(RecordField, Redactable):
+class TypedValueRecordField(RecordField):
     @staticmethod
     def schema() -> SchemaField:
         return SchemaField(
@@ -75,7 +74,7 @@ class TypedValueRecordField(RecordField, Redactable):
 
 
 @dataclass(kw_only=True)
-class MultiScalarTypeKeyValueRecordField(RecordField, Redactable):
+class MultiScalarTypeKeyValueRecordField(RecordField):
     @staticmethod
     def schema(*, name: str, description: str) -> SchemaField:
         return SchemaField(
@@ -133,7 +132,7 @@ class MultiScalarTypeKeyValueRecordField(RecordField, Redactable):
 
 
 @dataclass(kw_only=True)
-class SingleScalarTypeKeyValueRecordField[T: str | bool | int | float](RecordField, Redactable):
+class SingleScalarTypeKeyValueRecordField[T: str | bool | int | float](RecordField):
     @staticmethod
     def schema(*, name: str, description: str, value_type: SqlTypeNames) -> SchemaField:
         return SchemaField(
@@ -486,7 +485,7 @@ class TrafficSourceRecordField(RecordField):
 
 
 @dataclass(kw_only=True)
-class GeoRecordField(RecordField, Redactable):
+class GeoRecordField(RecordField):
     @staticmethod
     def schema() -> SchemaField:
         return SchemaField(
@@ -526,18 +525,6 @@ class GeoRecordField(RecordField, Redactable):
     subdivision: str | None
     city: str | None
     coordinates: str | None
-
-    def redact_sensitive_content(self) -> Self:
-        redacted = "*****"
-        if self.region:
-            self.region = redacted
-        if self.city:
-            self.city = redacted
-        if self.subdivision:
-            self.subdivision = redacted
-        if self.coordinates:
-            self.coordinates = redacted
-        return self
 
 
 @dataclass(kw_only=True)
@@ -683,7 +670,7 @@ class DeviceRecordField(RecordField):
 
 
 @dataclass(kw_only=True)
-class TargetRecordField(RecordField, Redactable):
+class TargetRecordField(RecordField):
     @staticmethod
     def schema() -> SchemaField:
         return SchemaField(
@@ -747,7 +734,7 @@ class TargetRecordField(RecordField, Redactable):
 
 
 @dataclass(kw_only=True)
-class UrlRecordField(RecordField, Redactable):
+class UrlRecordField(RecordField):
     @staticmethod
     def schema() -> SchemaField:
         return SchemaField(
@@ -831,7 +818,7 @@ class UrlRecordField(RecordField, Redactable):
 
 
 @dataclass(kw_only=True)
-class CurrentPageRecordField(RecordField, Redactable):
+class CurrentPageRecordField(RecordField):
     @staticmethod
     def schema() -> SchemaField:
         return SchemaField(
