@@ -1,17 +1,16 @@
-from base64 import b64encode
 import secrets
 import uuid
-import hashlib
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import IntEnum
 from typing import Self
 from uuid import UUID
 
-from eave.collectors.core.correlation_context.base import corr_ctx_symmetric_encryption_key
 from sqlalchemy import Index, ScalarResult, Select, SmallInteger, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+
+from eave.collectors.core.correlation_context.base import corr_ctx_symmetric_encryption_key
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk

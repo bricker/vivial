@@ -1,8 +1,7 @@
-from base64 import b64encode
 import datetime
 import hashlib
+from base64 import b64encode
 
-from eave.collectors.core.correlation_context.base import corr_ctx_symmetric_encryption_key
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 
 from .base import BaseTestCase

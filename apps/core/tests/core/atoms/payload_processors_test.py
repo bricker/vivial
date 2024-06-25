@@ -1,34 +1,25 @@
 import datetime
 import json
 
-from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME, EAVE_COLLECTOR_COOKIE_PREFIX, EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX, CorrelationContextAttr
-from eave.collectors.core.datastructures import DatabaseOperation, HttpRequestMethod
-from google.cloud.bigquery import SchemaField, SqlTypeNames
-
+from eave.collectors.core.correlation_context.base import (
+    EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
+    EAVE_COLLECTOR_COOKIE_PREFIX,
+    EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX,
+    CorrelationContextAttr,
+)
+from eave.collectors.core.datastructures import DatabaseOperation
 from eave.core.internal.atoms.api_types import BrowserAction
 from eave.core.internal.atoms.db_record_fields import (
-    CurrentPageRecordField,
-    DeviceRecordField,
     GeoRecordField,
-    MultiScalarTypeKeyValueRecordField,
-    SessionRecordField,
-    TargetRecordField,
-    TrafficSourceRecordField,
-    AccountRecordField,
 )
-from eave.core.internal.atoms.atom_types import Atom
-from eave.core.internal.atoms.payload_processors.browser_events import BrowserEventAtom, BrowserEventsTableHandle
+from eave.core.internal.atoms.payload_processors.browser_events import BrowserEventsTableHandle
 from eave.core.internal.atoms.payload_processors.db_events import DatabaseEventsTableHandle
 from eave.core.internal.atoms.payload_processors.http_server_events import HttpServerEventsTableHandle
-from eave.core.internal.atoms.shared import BigQueryFieldMode
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
-from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.core.internal.orm.team import bq_dataset_id
+from eave.core.internal.orm.virtual_event import VirtualEventOrm
 from eave.stdlib.logging import LogContext
 
-from eave.core.internal.orm.virtual_event import VirtualEventOrm
-
-from ..base import assert_schemas_match
 from ..bq_tests_base import BigQueryTestsBase
 
 empty_ctx = LogContext()
@@ -87,35 +78,39 @@ class TestBrowserEventsPayloadProcessor(BigQueryTestsBase):
                     },
                     "corr_ctx": {
                         f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": self.anystr("event.visitor_id"),
-                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}session": json.dumps({
-                            "id": self.anystr("event.session.id"),
-                            "start_timestamp": self.anytime("event.session.start_timestamp"),
-                        }),
-                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}traffic_source": json.dumps({
-                            "timestamp": self.anytime("event.traffic_source.timestamp"),
-                            "browser_referrer": self.anystr("event.traffic_source.browser_referrer"),
-                            "tracking_params": {
-                                "gclid": self.anystr("event.traffic_source.tracking_params.gclid"),
-                                "fbclid": self.anystr("event.traffic_source.tracking_params.fbclid"),
-                                "msclkid": self.anystr("event.traffic_source.tracking_params.msclkid"),
-                                "dclid": self.anystr("event.traffic_source.tracking_params.dclid"),
-                                "ko_click_id": self.anystr("event.traffic_source.tracking_params.ko_click_id"),
-                                "rtd_cid": self.anystr("event.traffic_source.tracking_params.rtd_cid"),
-                                "li_fat_id": self.anystr("event.traffic_source.tracking_params.li_fat_id"),
-                                "ttclid": self.anystr("event.traffic_source.tracking_params.ttclid"),
-                                "twclid": self.anystr("event.traffic_source.tracking_params.twclid"),
-                                "wbraid": self.anystr("event.traffic_source.tracking_params.wbraid"),
-                                "gbraid": self.anystr("event.traffic_source.tracking_params.gbraid"),
-                                "utm_campaign": self.anystr("event.traffic_source.tracking_params.utm_campaign"),
-                                "utm_source": self.anystr("event.traffic_source.tracking_params.utm_source"),
-                                "utm_medium": self.anystr("event.traffic_source.tracking_params.utm_medium"),
-                                "utm_term": self.anystr("event.traffic_source.tracking_params.utm_term"),
-                                "utm_content": self.anystr("event.traffic_source.tracking_params.utm_content"),
-                                self.anystr("event.traffic_source.tracking_params.unrecognized.key"): self.anystr(
-                                    "event.traffic_source.tracking_params.unrecognized.value"
-                                ),
-                            },
-                        }),
+                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}session": json.dumps(
+                            {
+                                "id": self.anystr("event.session.id"),
+                                "start_timestamp": self.anytime("event.session.start_timestamp"),
+                            }
+                        ),
+                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}traffic_source": json.dumps(
+                            {
+                                "timestamp": self.anytime("event.traffic_source.timestamp"),
+                                "browser_referrer": self.anystr("event.traffic_source.browser_referrer"),
+                                "tracking_params": {
+                                    "gclid": self.anystr("event.traffic_source.tracking_params.gclid"),
+                                    "fbclid": self.anystr("event.traffic_source.tracking_params.fbclid"),
+                                    "msclkid": self.anystr("event.traffic_source.tracking_params.msclkid"),
+                                    "dclid": self.anystr("event.traffic_source.tracking_params.dclid"),
+                                    "ko_click_id": self.anystr("event.traffic_source.tracking_params.ko_click_id"),
+                                    "rtd_cid": self.anystr("event.traffic_source.tracking_params.rtd_cid"),
+                                    "li_fat_id": self.anystr("event.traffic_source.tracking_params.li_fat_id"),
+                                    "ttclid": self.anystr("event.traffic_source.tracking_params.ttclid"),
+                                    "twclid": self.anystr("event.traffic_source.tracking_params.twclid"),
+                                    "wbraid": self.anystr("event.traffic_source.tracking_params.wbraid"),
+                                    "gbraid": self.anystr("event.traffic_source.tracking_params.gbraid"),
+                                    "utm_campaign": self.anystr("event.traffic_source.tracking_params.utm_campaign"),
+                                    "utm_source": self.anystr("event.traffic_source.tracking_params.utm_source"),
+                                    "utm_medium": self.anystr("event.traffic_source.tracking_params.utm_medium"),
+                                    "utm_term": self.anystr("event.traffic_source.tracking_params.utm_term"),
+                                    "utm_content": self.anystr("event.traffic_source.tracking_params.utm_content"),
+                                    self.anystr("event.traffic_source.tracking_params.unrecognized.key"): self.anystr(
+                                        "event.traffic_source.tracking_params.unrecognized.value"
+                                    ),
+                                },
+                            }
+                        ),
                         f"{EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX}{self.anystr()}": CorrelationContextAttr(
                             key=EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
                             value=self.anystr("event.account.account_id"),
@@ -271,10 +266,13 @@ class TestBrowserEventsPayloadProcessor(BigQueryTestsBase):
 
         async with self.db_session.begin() as s:
             for view_id in action_names:
-                vevent = await VirtualEventOrm.query(s, params=VirtualEventOrm.QueryParams(
-                    team_id=self.eave_team.id,
-                    view_id=view_id,
-                ))
+                vevent = await VirtualEventOrm.query(
+                    s,
+                    params=VirtualEventOrm.QueryParams(
+                        team_id=self.eave_team.id,
+                        view_id=view_id,
+                    ),
+                )
                 assert vevent.one_or_none() is None
                 assert not self.bq_table_exists(table_name=view_id)
 
@@ -296,10 +294,13 @@ class TestBrowserEventsPayloadProcessor(BigQueryTestsBase):
 
         async with self.db_session.begin() as s:
             for view_id in action_names:
-                vevent = await VirtualEventOrm.query(s, params=VirtualEventOrm.QueryParams(
-                    team_id=self.eave_team.id,
-                    view_id=view_id,
-                ))
+                vevent = await VirtualEventOrm.query(
+                    s,
+                    params=VirtualEventOrm.QueryParams(
+                        team_id=self.eave_team.id,
+                        view_id=view_id,
+                    ),
+                )
                 assert vevent.one_or_none() is not None
                 assert self.bq_table_exists(table_name=view_id)
 
@@ -325,35 +326,39 @@ class TestDatabaseEventsPayloadProcessor(BigQueryTestsBase):
                     },
                     "corr_ctx": {
                         f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": self.anystr("event.visitor_id"),
-                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}session": json.dumps({
-                            "id": self.anystr("event.session.id"),
-                            "start_timestamp": self.anytime("event.session.start_timestamp"),
-                        }),
-                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}traffic_source": json.dumps({
-                            "timestamp": self.anytime("event.traffic_source.timestamp"),
-                            "browser_referrer": self.anystr("event.traffic_source.browser_referrer"),
-                            "tracking_params": {
-                                "gclid": self.anystr("event.traffic_source.tracking_params.gclid"),
-                                "fbclid": self.anystr("event.traffic_source.tracking_params.fbclid"),
-                                "msclkid": self.anystr("event.traffic_source.tracking_params.msclkid"),
-                                "dclid": self.anystr("event.traffic_source.tracking_params.dclid"),
-                                "ko_click_id": self.anystr("event.traffic_source.tracking_params.ko_click_id"),
-                                "rtd_cid": self.anystr("event.traffic_source.tracking_params.rtd_cid"),
-                                "li_fat_id": self.anystr("event.traffic_source.tracking_params.li_fat_id"),
-                                "ttclid": self.anystr("event.traffic_source.tracking_params.ttclid"),
-                                "twclid": self.anystr("event.traffic_source.tracking_params.twclid"),
-                                "wbraid": self.anystr("event.traffic_source.tracking_params.wbraid"),
-                                "gbraid": self.anystr("event.traffic_source.tracking_params.gbraid"),
-                                "utm_campaign": self.anystr("event.traffic_source.tracking_params.utm_campaign"),
-                                "utm_source": self.anystr("event.traffic_source.tracking_params.utm_source"),
-                                "utm_medium": self.anystr("event.traffic_source.tracking_params.utm_medium"),
-                                "utm_term": self.anystr("event.traffic_source.tracking_params.utm_term"),
-                                "utm_content": self.anystr("event.traffic_source.tracking_params.utm_content"),
-                                self.anystr("event.traffic_source.tracking_params.unrecognized.key"): self.anystr(
-                                    "event.traffic_source.tracking_params.unrecognized.value"
-                                ),
-                            },
-                        }),
+                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}session": json.dumps(
+                            {
+                                "id": self.anystr("event.session.id"),
+                                "start_timestamp": self.anytime("event.session.start_timestamp"),
+                            }
+                        ),
+                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}traffic_source": json.dumps(
+                            {
+                                "timestamp": self.anytime("event.traffic_source.timestamp"),
+                                "browser_referrer": self.anystr("event.traffic_source.browser_referrer"),
+                                "tracking_params": {
+                                    "gclid": self.anystr("event.traffic_source.tracking_params.gclid"),
+                                    "fbclid": self.anystr("event.traffic_source.tracking_params.fbclid"),
+                                    "msclkid": self.anystr("event.traffic_source.tracking_params.msclkid"),
+                                    "dclid": self.anystr("event.traffic_source.tracking_params.dclid"),
+                                    "ko_click_id": self.anystr("event.traffic_source.tracking_params.ko_click_id"),
+                                    "rtd_cid": self.anystr("event.traffic_source.tracking_params.rtd_cid"),
+                                    "li_fat_id": self.anystr("event.traffic_source.tracking_params.li_fat_id"),
+                                    "ttclid": self.anystr("event.traffic_source.tracking_params.ttclid"),
+                                    "twclid": self.anystr("event.traffic_source.tracking_params.twclid"),
+                                    "wbraid": self.anystr("event.traffic_source.tracking_params.wbraid"),
+                                    "gbraid": self.anystr("event.traffic_source.tracking_params.gbraid"),
+                                    "utm_campaign": self.anystr("event.traffic_source.tracking_params.utm_campaign"),
+                                    "utm_source": self.anystr("event.traffic_source.tracking_params.utm_source"),
+                                    "utm_medium": self.anystr("event.traffic_source.tracking_params.utm_medium"),
+                                    "utm_term": self.anystr("event.traffic_source.tracking_params.utm_term"),
+                                    "utm_content": self.anystr("event.traffic_source.tracking_params.utm_content"),
+                                    self.anystr("event.traffic_source.tracking_params.unrecognized.key"): self.anystr(
+                                        "event.traffic_source.tracking_params.unrecognized.value"
+                                    ),
+                                },
+                            }
+                        ),
                         f"{EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX}{self.anystr()}": CorrelationContextAttr(
                             key=EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
                             value=self.anystr("event.account.account_id"),
@@ -456,10 +461,13 @@ class TestDatabaseEventsPayloadProcessor(BigQueryTestsBase):
         ]
         async with self.db_session.begin() as s:
             for view_id in expected_view_ids:
-                vevent = await VirtualEventOrm.query(s, params=VirtualEventOrm.QueryParams(
-                    team_id=self.eave_team.id,
-                    view_id=view_id,
-                ))
+                vevent = await VirtualEventOrm.query(
+                    s,
+                    params=VirtualEventOrm.QueryParams(
+                        team_id=self.eave_team.id,
+                        view_id=view_id,
+                    ),
+                )
                 assert vevent.one_or_none() is None
                 assert not self.bq_table_exists(table_name=view_id)
 
@@ -470,15 +478,12 @@ class TestDatabaseEventsPayloadProcessor(BigQueryTestsBase):
                 {"operation": "insert", "table_name": "accounts"},
                 {"operation": "insert", "table_name": "colors"},
                 {"operation": "insert", "table_name": "colors"},
-
                 {"operation": "update", "table_name": "accounts"},
                 {"operation": "update", "table_name": "colors"},
                 {"operation": "update", "table_name": "colors"},
-
                 {"operation": "delete", "table_name": "accounts"},
                 {"operation": "delete", "table_name": "colors"},
                 {"operation": "delete", "table_name": "colors"},
-
                 {"operation": "select", "table_name": "accounts"},
                 {"operation": "select", "table_name": "colors"},
                 {"operation": "select", "table_name": "colors"},
@@ -488,12 +493,16 @@ class TestDatabaseEventsPayloadProcessor(BigQueryTestsBase):
 
         async with self.db_session.begin() as s:
             for view_id in expected_view_ids:
-                vevent = await VirtualEventOrm.query(s, params=VirtualEventOrm.QueryParams(
-                    team_id=self.eave_team.id,
-                    view_id=view_id,
-                ))
+                vevent = await VirtualEventOrm.query(
+                    s,
+                    params=VirtualEventOrm.QueryParams(
+                        team_id=self.eave_team.id,
+                        view_id=view_id,
+                    ),
+                )
                 assert vevent.one_or_none() is not None
                 assert self.bq_table_exists(table_name=view_id)
+
 
 class TestHttpServerEventsPayloadProcessor(BigQueryTestsBase):
     async def asyncSetUp(self) -> None:
@@ -515,35 +524,39 @@ class TestHttpServerEventsPayloadProcessor(BigQueryTestsBase):
                     },
                     "corr_ctx": {
                         f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": self.anystr("event.visitor_id"),
-                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}session": json.dumps({
-                            "id": self.anystr("event.session.id"),
-                            "start_timestamp": self.anytime("event.session.start_timestamp"),
-                        }),
-                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}traffic_source": json.dumps({
-                            "timestamp": self.anytime("event.traffic_source.timestamp"),
-                            "browser_referrer": self.anystr("event.traffic_source.browser_referrer"),
-                            "tracking_params": {
-                                "gclid": self.anystr("event.traffic_source.tracking_params.gclid"),
-                                "fbclid": self.anystr("event.traffic_source.tracking_params.fbclid"),
-                                "msclkid": self.anystr("event.traffic_source.tracking_params.msclkid"),
-                                "dclid": self.anystr("event.traffic_source.tracking_params.dclid"),
-                                "ko_click_id": self.anystr("event.traffic_source.tracking_params.ko_click_id"),
-                                "rtd_cid": self.anystr("event.traffic_source.tracking_params.rtd_cid"),
-                                "li_fat_id": self.anystr("event.traffic_source.tracking_params.li_fat_id"),
-                                "ttclid": self.anystr("event.traffic_source.tracking_params.ttclid"),
-                                "twclid": self.anystr("event.traffic_source.tracking_params.twclid"),
-                                "wbraid": self.anystr("event.traffic_source.tracking_params.wbraid"),
-                                "gbraid": self.anystr("event.traffic_source.tracking_params.gbraid"),
-                                "utm_campaign": self.anystr("event.traffic_source.tracking_params.utm_campaign"),
-                                "utm_source": self.anystr("event.traffic_source.tracking_params.utm_source"),
-                                "utm_medium": self.anystr("event.traffic_source.tracking_params.utm_medium"),
-                                "utm_term": self.anystr("event.traffic_source.tracking_params.utm_term"),
-                                "utm_content": self.anystr("event.traffic_source.tracking_params.utm_content"),
-                                self.anystr("event.traffic_source.tracking_params.unrecognized.key"): self.anystr(
-                                    "event.traffic_source.tracking_params.unrecognized.value"
-                                ),
-                            },
-                        }),
+                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}session": json.dumps(
+                            {
+                                "id": self.anystr("event.session.id"),
+                                "start_timestamp": self.anytime("event.session.start_timestamp"),
+                            }
+                        ),
+                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}traffic_source": json.dumps(
+                            {
+                                "timestamp": self.anytime("event.traffic_source.timestamp"),
+                                "browser_referrer": self.anystr("event.traffic_source.browser_referrer"),
+                                "tracking_params": {
+                                    "gclid": self.anystr("event.traffic_source.tracking_params.gclid"),
+                                    "fbclid": self.anystr("event.traffic_source.tracking_params.fbclid"),
+                                    "msclkid": self.anystr("event.traffic_source.tracking_params.msclkid"),
+                                    "dclid": self.anystr("event.traffic_source.tracking_params.dclid"),
+                                    "ko_click_id": self.anystr("event.traffic_source.tracking_params.ko_click_id"),
+                                    "rtd_cid": self.anystr("event.traffic_source.tracking_params.rtd_cid"),
+                                    "li_fat_id": self.anystr("event.traffic_source.tracking_params.li_fat_id"),
+                                    "ttclid": self.anystr("event.traffic_source.tracking_params.ttclid"),
+                                    "twclid": self.anystr("event.traffic_source.tracking_params.twclid"),
+                                    "wbraid": self.anystr("event.traffic_source.tracking_params.wbraid"),
+                                    "gbraid": self.anystr("event.traffic_source.tracking_params.gbraid"),
+                                    "utm_campaign": self.anystr("event.traffic_source.tracking_params.utm_campaign"),
+                                    "utm_source": self.anystr("event.traffic_source.tracking_params.utm_source"),
+                                    "utm_medium": self.anystr("event.traffic_source.tracking_params.utm_medium"),
+                                    "utm_term": self.anystr("event.traffic_source.tracking_params.utm_term"),
+                                    "utm_content": self.anystr("event.traffic_source.tracking_params.utm_content"),
+                                    self.anystr("event.traffic_source.tracking_params.unrecognized.key"): self.anystr(
+                                        "event.traffic_source.tracking_params.unrecognized.value"
+                                    ),
+                                },
+                            }
+                        ),
                         f"{EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX}{self.anystr()}": CorrelationContextAttr(
                             key=EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
                             value=self.anystr("event.account.account_id"),
@@ -588,7 +601,6 @@ class TestHttpServerEventsPayloadProcessor(BigQueryTestsBase):
                 "value": self.getstr("event.request_headers.0.value"),
             },
         ]
-
 
         assert first_row.get("session") == {
             "id": self.getstr("event.session.id"),

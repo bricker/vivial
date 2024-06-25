@@ -1,16 +1,15 @@
 import dataclasses
 from typing import Any, cast
 
-from eave.collectors.core.datastructures import HttpRequestMethod
 from eave.core.internal.atoms.api_types import HttpServerEventPayload
+from eave.core.internal.atoms.atom_types import HttpServerEventAtom
 from eave.core.internal.atoms.db_record_fields import (
+    AccountRecordField,
     SessionRecordField,
     SingleScalarTypeKeyValueRecordField,
     TrafficSourceRecordField,
-    AccountRecordField,
     UrlRecordField,
 )
-from eave.core.internal.atoms.atom_types import HttpServerEventAtom
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.stdlib.logging import LOGGER, LogContext
 
@@ -46,7 +45,9 @@ class HttpServerEventsTableHandle(BigQueryTableHandle):
                 visitor_id = e.corr_ctx.visitor_id
 
                 if e.corr_ctx.session:
-                    session = SessionRecordField.from_api_resource(resource=e.corr_ctx.session, event_timestamp=e.timestamp)
+                    session = SessionRecordField.from_api_resource(
+                        resource=e.corr_ctx.session, event_timestamp=e.timestamp
+                    )
 
                 if e.corr_ctx.traffic_source:
                     traffic_source = TrafficSourceRecordField.from_api_resource(e.corr_ctx.traffic_source)

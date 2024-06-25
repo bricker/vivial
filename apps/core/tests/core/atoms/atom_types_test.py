@@ -1,7 +1,22 @@
 from google.cloud.bigquery import SchemaField, SqlTypeNames
-from eave.core.internal.atoms.atom_types import Atom, BrowserEventAtom, DatabaseEventAtom, HttpClientEventAtom, HttpServerEventAtom
-from eave.core.internal.atoms.db_record_fields import CurrentPageRecordField, DeviceRecordField, GeoRecordField, MultiScalarTypeKeyValueRecordField, SingleScalarTypeKeyValueRecordField, TargetRecordField
+
+from eave.core.internal.atoms.atom_types import (
+    Atom,
+    BrowserEventAtom,
+    DatabaseEventAtom,
+    HttpClientEventAtom,
+    HttpServerEventAtom,
+)
+from eave.core.internal.atoms.db_record_fields import (
+    CurrentPageRecordField,
+    DeviceRecordField,
+    GeoRecordField,
+    MultiScalarTypeKeyValueRecordField,
+    SingleScalarTypeKeyValueRecordField,
+    TargetRecordField,
+)
 from eave.core.internal.atoms.shared import BigQueryFieldMode
+
 from ..base import BaseTestCase, assert_schemas_match
 
 
@@ -33,6 +48,7 @@ class TestBrowserEventAtom(BaseTestCase):
                 *Atom.common_atom_schema_fields(),
             ),
         )
+
 
 class TestDatabaseEventAtom(BaseTestCase):
     async def test_schema(self):
@@ -68,6 +84,7 @@ class TestDatabaseEventAtom(BaseTestCase):
             ),
         )
 
+
 class TestHttpServerEventAtom(BaseTestCase):
     async def test_schema(self):
         assert HttpServerEventAtom.TABLE_DEF.table_id == "atoms_http_server_events"
@@ -97,6 +114,7 @@ class TestHttpServerEventAtom(BaseTestCase):
                 *Atom.common_atom_schema_fields(),
             ),
         )
+
 
 class TestHttpClickEventAtom(BaseTestCase):
     async def test_schema(self):

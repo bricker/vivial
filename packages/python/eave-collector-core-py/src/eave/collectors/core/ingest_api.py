@@ -9,7 +9,7 @@ async def send_batch(events: dict[str, list[JsonObject]]) -> None:
     body = DataIngestRequestBody(events=events)
 
     if creds := config.EaveCredentials.from_env():
-        headers = { **creds.to_headers }
+        headers = {**creds.to_headers}
     else:
         headers = None
 

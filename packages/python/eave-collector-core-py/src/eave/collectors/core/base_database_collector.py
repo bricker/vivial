@@ -1,9 +1,10 @@
-import json
 import re
 from typing import Any
 
-from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME, EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX, EAVE_COLLECTOR_ENCRYPTED_COOKIE_PREFIX
-from eave.collectors.core.json import compact_json, JsonObject
+from eave.collectors.core.correlation_context.base import (
+    EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
+    EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX,
+)
 
 from .base_collector import BaseCollector
 from .correlation_context import CORR_CTX
@@ -66,6 +67,7 @@ def save_identification_data(table_name: str, column_value_map: dict[str, Any]) 
                     value=value,
                 )
                 continue
+
 
 class BaseDatabaseCollector(BaseCollector):
     pass

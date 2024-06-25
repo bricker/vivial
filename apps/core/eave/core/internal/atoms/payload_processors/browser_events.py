@@ -2,7 +2,9 @@ import dataclasses
 from typing import Any, cast
 
 from eave.core.internal.atoms.api_types import BrowserAction, BrowserEventPayload
+from eave.core.internal.atoms.atom_types import BrowserEventAtom
 from eave.core.internal.atoms.db_record_fields import (
+    AccountRecordField,
     CurrentPageRecordField,
     DeviceRecordField,
     GeoRecordField,
@@ -10,9 +12,7 @@ from eave.core.internal.atoms.db_record_fields import (
     SessionRecordField,
     TargetRecordField,
     TrafficSourceRecordField,
-    AccountRecordField,
 )
-from eave.core.internal.atoms.atom_types import BrowserEventAtom
 from eave.core.internal.atoms.db_views import ClickView, FormSubmissionView, PageViewView
 from eave.core.internal.atoms.table_handle import BigQueryTableHandle
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
@@ -45,7 +45,9 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
                 visitor_id = e.corr_ctx.visitor_id
 
                 if e.corr_ctx.session:
-                    session = SessionRecordField.from_api_resource(resource=e.corr_ctx.session, event_timestamp=e.timestamp)
+                    session = SessionRecordField.from_api_resource(
+                        resource=e.corr_ctx.session, event_timestamp=e.timestamp
+                    )
 
                 if e.corr_ctx.traffic_source:
                     traffic_source = TrafficSourceRecordField.from_api_resource(e.corr_ctx.traffic_source)

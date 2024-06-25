@@ -1,7 +1,5 @@
-from base64 import b64encode
-from dataclasses import dataclass
-import hashlib
 import os
+from dataclasses import dataclass
 from typing import Self, TypedDict
 
 from eave.collectors.core.logging import EAVE_LOGGER
@@ -10,6 +8,7 @@ from eave.collectors.core.logging import EAVE_LOGGER
 def eave_api_base_url() -> str:
     return os.getenv("EAVE_API_BASE_URL_PUBLIC", "https://api.eave.fyi")
 
+
 EaveAuthHeaders = TypedDict(
     "EaveAuthHeaders",
     {
@@ -17,6 +16,7 @@ EaveAuthHeaders = TypedDict(
         "eave-client-secret": str,
     },
 )
+
 
 @dataclass(kw_only=True, frozen=True)
 class EaveCredentials:

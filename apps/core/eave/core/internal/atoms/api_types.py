@@ -6,13 +6,17 @@ Additionally, these are true representations; in other words, these class don't 
 That happens in the RecordField classes.
 """
 
-from dataclasses import dataclass
 import json
+from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, Self
-from cryptography import fernet
 
-from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME, EAVE_COLLECTOR_COOKIE_PREFIX, EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX, CorrelationContextAttr
+from eave.collectors.core.correlation_context.base import (
+    EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
+    EAVE_COLLECTOR_COOKIE_PREFIX,
+    EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX,
+    CorrelationContextAttr,
+)
 from eave.collectors.core.datastructures import DatabaseOperation, HttpRequestMethod
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.typing import JsonScalar
@@ -30,6 +34,7 @@ class BrowserAction(StrEnum):
         except ValueError:
             return None
 
+
 @dataclass(kw_only=True)
 class DeviceBrandProperties:
     brand: str | None
@@ -41,6 +46,7 @@ class DeviceBrandProperties:
             brand=data.get("brand"),
             version=data.get("version"),
         )
+
 
 @dataclass(kw_only=True)
 class DeviceProperties:
@@ -76,6 +82,7 @@ class DeviceProperties:
             ),
         )
 
+
 @dataclass(kw_only=True)
 class CurrentPageProperties:
     url: str | None
@@ -90,6 +97,7 @@ class CurrentPageProperties:
             url=data.get("url"),
         )
 
+
 @dataclass(kw_only=True)
 class SessionProperties:
     id: str | None
@@ -101,6 +109,7 @@ class SessionProperties:
             id=data.get("id"),
             start_timestamp=data.get("start_timestamp"),
         )
+
 
 @dataclass(kw_only=True)
 class TrafficSourceProperties:
@@ -115,6 +124,7 @@ class TrafficSourceProperties:
             browser_referrer=data.get("browser_referrer"),
             tracking_params=data.get("tracking_params"),
         )
+
 
 @dataclass(kw_only=True)
 class TargetProperties:
@@ -132,6 +142,7 @@ class TargetProperties:
             attributes=data.get("attributes"),
         )
 
+
 @dataclass(kw_only=True)
 class AccountProperties:
     account_id: str | None
@@ -142,8 +153,9 @@ class AccountProperties:
         data_copy = data.copy()
         return cls(
             account_id=data_copy.pop(EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME, None),
-            extra=data_copy if len(data_copy) > 0 else None, # Put everything else in `extra`. team_id, org_id, etc.
+            extra=data_copy if len(data_copy) > 0 else None,  # Put everything else in `extra`. team_id, org_id, etc.
         )
+
 
 @dataclass(kw_only=True)
 class CorrelationContext:
@@ -162,7 +174,9 @@ class CorrelationContext:
         account = None
         visitor_id = data_copy.pop(f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id", None)
 
-        if (session_str := data_copy.pop(f"{EAVE_COLLECTOR_COOKIE_PREFIX}session", None)) and isinstance(session_str, str):
+        if (session_str := data_copy.pop(f"{EAVE_COLLECTOR_COOKIE_PREFIX}session", None)) and isinstance(
+            session_str, str
+        ):
             try:
                 us = json.loads(session_str)
                 if isinstance(us, dict):
@@ -171,7 +185,9 @@ class CorrelationContext:
                 # Probably JSON parse error
                 LOGGER.exception(e)
 
-        if (tsrc_str := data_copy.pop(f"{EAVE_COLLECTOR_COOKIE_PREFIX}traffic_source", None)) and isinstance(tsrc_str, str):
+        if (tsrc_str := data_copy.pop(f"{EAVE_COLLECTOR_COOKIE_PREFIX}traffic_source", None)) and isinstance(
+            tsrc_str, str
+        ):
             try:
                 us = json.loads(tsrc_str)
                 if isinstance(us, dict):
@@ -207,10 +223,7 @@ class CorrelationContext:
         # Stuff anything else into self.extra, with the eave cookie prefix removed.
         # If the object is empty, then set to None.
         if len(data_copy) > 0:
-            extra = {
-                k.removeprefix(EAVE_COLLECTOR_COOKIE_PREFIX): v
-                for k, v in data_copy.items()
-            }
+            extra = {k.removeprefix(EAVE_COLLECTOR_COOKIE_PREFIX): v for k, v in data_copy.items()}
         else:
             extra = None
 
@@ -221,6 +234,7 @@ class CorrelationContext:
             account=account,
             extra=extra,
         )
+
 
 @dataclass(kw_only=True)
 class BrowserEventPayload:
@@ -237,20 +251,12 @@ class BrowserEventPayload:
         return cls(
             timestamp=data.get("timestamp"),
             extra=data.get("extra"),
-            action=(
-                BrowserAction.from_str(ba)
-                if (ba := data.get("action"))
-                else None
-            ),
+            action=(BrowserAction.from_str(ba) if (ba := data.get("action")) else None),
             target=(
-                TargetProperties.from_api_payload(tp)
-                if (tp := data.get("target")) and isinstance(tp, dict)
-                else None
+                TargetProperties.from_api_payload(tp) if (tp := data.get("target")) and isinstance(tp, dict) else None
             ),
             device=(
-                DeviceProperties.from_api_payload(dp)
-                if (dp := data.get("device")) and isinstance(dp, dict)
-                else None
+                DeviceProperties.from_api_payload(dp) if (dp := data.get("device")) and isinstance(dp, dict) else None
             ),
             current_page=(
                 CurrentPageProperties.from_api_payload(cp)
@@ -283,13 +289,14 @@ class DatabaseEventPayload:
             table_name=data.get("table_name"),
             statement=data.get("statement"),
             statement_values=data.get("statement_values"),
-            operation = DatabaseOperation.from_str(dbo) if (dbo := data.get("operation")) else None,
+            operation=DatabaseOperation.from_str(dbo) if (dbo := data.get("operation")) else None,
             corr_ctx=(
                 CorrelationContext.from_api_payload(cc, decryption_key=decryption_key)
                 if (cc := data.get("corr_ctx")) and isinstance(cc, dict)
                 else None
             ),
         )
+
 
 @dataclass(kw_only=True)
 class HttpServerEventPayload:
@@ -307,7 +314,7 @@ class HttpServerEventPayload:
             request_url=data.get("request_url"),
             request_headers=data.get("request_headers"),
             request_payload=data.get("request_payload"),
-            request_method = HttpRequestMethod.from_str(rm) if (rm := data.get("request_method")) else None,
+            request_method=HttpRequestMethod.from_str(rm) if (rm := data.get("request_method")) else None,
             corr_ctx=(
                 CorrelationContext.from_api_payload(cc, decryption_key=decryption_key)
                 if (cc := data.get("corr_ctx")) and isinstance(cc, dict)

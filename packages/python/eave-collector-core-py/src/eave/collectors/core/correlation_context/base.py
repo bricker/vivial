@@ -1,15 +1,15 @@
 import abc
-from base64 import b64encode
-from dataclasses import dataclass
+import hashlib
 import json
-import random
 import typing
 import urllib.parse
+from base64 import b64encode
+from dataclasses import dataclass
+
 from cryptography import fernet
-import hashlib
 
 from eave.collectors.core.config import EaveCredentials
-from eave.collectors.core.json import compact_json, JsonScalar
+from eave.collectors.core.json import JsonScalar, compact_json
 from eave.collectors.core.logging import EAVE_LOGGER
 
 # The cookie prefix MUST match the browser collector
@@ -19,8 +19,10 @@ EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX = f"{EAVE_COLLECTOR_ENCRYPTED_COO
 EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME = "account_id"
 STORAGE_ATTR = "_eave_corr_ctx"
 
+
 def corr_ctx_symmetric_encryption_key(credentials: str) -> bytes:
     return b64encode(hashlib.sha256(bytes(credentials, "utf-8")).digest())
+
 
 class CorrCtxStorage:
     received: dict[str, str]
@@ -64,7 +66,6 @@ class CorrCtxStorage:
         except Exception as e:
             EAVE_LOGGER.exception(e)
             return None
-
 
     def merged(self) -> dict[str, str]:
         """merge received and updated values together"""
@@ -170,6 +171,7 @@ def _cookify(value: typing.Any) -> str:
         value = json.dumps(value)
     return urllib.parse.quote_plus(str(value))
 
+
 @dataclass(kw_only=True)
 class CorrelationContextAttr:
     key: str
@@ -202,7 +204,7 @@ class CorrelationContextAttr:
     def to_encrypted(self, *, encryption_key: bytes) -> str | None:
         try:
             encryptor = fernet.Fernet(encryption_key)
-            jvalue = compact_json({ "key": self.key, "value": self.value })
+            jvalue = compact_json({"key": self.key, "value": self.value})
             encrypted_value = encryptor.encrypt(bytes(jvalue, "utf-8")).decode()
             return encrypted_value
         except Exception as e:

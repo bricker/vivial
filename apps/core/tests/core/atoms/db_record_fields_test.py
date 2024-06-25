@@ -1,6 +1,5 @@
 import dataclasses
 
-from eave.stdlib.typing import JsonScalar
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
 from eave.core.internal.atoms.api_types import (
@@ -13,6 +12,7 @@ from eave.core.internal.atoms.api_types import (
     TrafficSourceProperties,
 )
 from eave.core.internal.atoms.db_record_fields import (
+    AccountRecordField,
     BrandsRecordField,
     CurrentPageRecordField,
     DeviceRecordField,
@@ -24,9 +24,9 @@ from eave.core.internal.atoms.db_record_fields import (
     TrafficSourceRecordField,
     TypedValueRecordField,
     UrlRecordField,
-    AccountRecordField,
 )
 from eave.core.internal.atoms.shared import BigQueryFieldMode
+from eave.stdlib.typing import JsonScalar
 
 from ..base import BaseTestCase, assert_schemas_match
 
@@ -286,14 +286,14 @@ class TestAccountRecordField(BaseTestCase):
                         MultiScalarTypeKeyValueRecordField.schema(
                             name="extra",
                             description=self.anystr(),
-                        )
+                        ),
                     ),
                 ),
             ),
         )
 
     async def test_field(self) -> None:
-        extra: dict[str, JsonScalar] = { self.anystr("k1"): self.anystr("v1") }
+        extra: dict[str, JsonScalar] = {self.anystr("k1"): self.anystr("v1")}
         e = AccountRecordField.from_api_resource(
             resource=AccountProperties(
                 account_id=self.anystr("account.account_id"),

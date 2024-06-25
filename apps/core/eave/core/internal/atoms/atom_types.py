@@ -1,11 +1,12 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import dataclass
-from typing import ClassVar, Generic, Type, TypeVar
+from typing import ClassVar
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
 from eave.collectors.core.datastructures import DatabaseOperation, HttpRequestMethod
 from eave.core.internal.atoms.db_record_fields import (
+    AccountRecordField,
     CurrentPageRecordField,
     DeviceRecordField,
     GeoRecordField,
@@ -14,7 +15,6 @@ from eave.core.internal.atoms.db_record_fields import (
     SingleScalarTypeKeyValueRecordField,
     TargetRecordField,
     TrafficSourceRecordField,
-    AccountRecordField,
     UrlRecordField,
 )
 from eave.core.internal.atoms.shared import BigQueryFieldMode
@@ -40,6 +40,7 @@ class Atom(ABC):
     """
     Common fields for all Atom types.
     """
+
     session: SessionRecordField | None
     account: AccountRecordField | None
     traffic_source: TrafficSourceRecordField | None
@@ -72,6 +73,7 @@ class Atom(ABC):
                 default_value_expression="CURRENT_TIMESTAMP",
             ),
         )
+
 
 @dataclass(kw_only=True)
 class BrowserEventAtom(Atom):

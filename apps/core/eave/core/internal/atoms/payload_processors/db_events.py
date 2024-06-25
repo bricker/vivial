@@ -6,13 +6,13 @@ from eave.core.internal import database
 from eave.core.internal.atoms.api_types import (
     DatabaseEventPayload,
 )
+from eave.core.internal.atoms.atom_types import DatabaseEventAtom
 from eave.core.internal.atoms.db_record_fields import (
+    AccountRecordField,
     MultiScalarTypeKeyValueRecordField,
     SessionRecordField,
     TrafficSourceRecordField,
-    AccountRecordField,
 )
-from eave.core.internal.atoms.atom_types import DatabaseEventAtom
 from eave.core.internal.atoms.db_views import DatabaseEventView
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
@@ -52,7 +52,9 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
                 visitor_id = e.corr_ctx.visitor_id
 
                 if e.corr_ctx.session:
-                    session = SessionRecordField.from_api_resource(resource=e.corr_ctx.session, event_timestamp=e.timestamp)
+                    session = SessionRecordField.from_api_resource(
+                        resource=e.corr_ctx.session, event_timestamp=e.timestamp
+                    )
 
                 if e.corr_ctx.traffic_source:
                     traffic_source = TrafficSourceRecordField.from_api_resource(e.corr_ctx.traffic_source)

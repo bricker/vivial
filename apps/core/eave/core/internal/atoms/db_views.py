@@ -6,9 +6,9 @@ from typing import cast
 import inflect
 from google.cloud.bigquery import SchemaField, SqlTypeNames, Table
 
-from eave.collectors.core.datastructures import DatabaseOperation, HttpRequestMethod
+from eave.collectors.core.datastructures import DatabaseOperation
 from eave.core.internal.atoms.api_types import BrowserAction
-from eave.core.internal.atoms.atom_types import BrowserEventAtom, DatabaseEventAtom, HttpServerEventAtom
+from eave.core.internal.atoms.atom_types import BrowserEventAtom, DatabaseEventAtom
 from eave.core.internal.atoms.shared import BigQueryFieldMode
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.stdlib.logging import LogContext

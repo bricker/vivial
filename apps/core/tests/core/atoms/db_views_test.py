@@ -1,6 +1,7 @@
+from tests.core.bq_tests_base import BigQueryTestsBase
+
 from eave.collectors.core.datastructures import DatabaseOperation
 from eave.core.internal.atoms.db_views import ClickView, DatabaseEventView, FormSubmissionView, PageViewView
-from tests.core.bq_tests_base import BigQueryTestsBase
 
 
 class TestDatabaseEventView(BigQueryTestsBase):
@@ -9,9 +10,7 @@ class TestDatabaseEventView(BigQueryTestsBase):
 
     async def test_init(self) -> None:
         view = DatabaseEventView(
-            dataset_id=self.anystr(),
-            event_table_name=self.anystr(),
-            event_operation=DatabaseOperation.INSERT
+            dataset_id=self.anystr(), event_table_name=self.anystr(), event_operation=DatabaseOperation.INSERT
         )
 
         # Lazy checks for runtime errors.
@@ -24,6 +23,7 @@ class TestDatabaseEventView(BigQueryTestsBase):
         assert view.schema_fields
         assert view.compiled_selectors
         assert view.sql_sanitized_fq_table(table_id=self.anystr())
+
 
 class TestClickView(BigQueryTestsBase):
     async def asyncSetUp(self) -> None:
@@ -44,6 +44,7 @@ class TestClickView(BigQueryTestsBase):
         assert view.compiled_selectors
         assert view.sql_sanitized_fq_table(table_id=self.anystr())
 
+
 class TestFormSubmissionView(BigQueryTestsBase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
@@ -62,6 +63,7 @@ class TestFormSubmissionView(BigQueryTestsBase):
         assert view.schema_fields
         assert view.compiled_selectors
         assert view.sql_sanitized_fq_table(table_id=self.anystr())
+
 
 class TestPageViewView(BigQueryTestsBase):
     async def asyncSetUp(self) -> None:

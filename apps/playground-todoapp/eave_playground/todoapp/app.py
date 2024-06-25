@@ -42,6 +42,7 @@ async def echo_endpoint(request: Request) -> Response:
         },
     )
 
+
 async def get_todos(request: Request) -> Response:
     user_id = request.cookies.get(_USER_ID_COOKIE_NAME)
     if not user_id:

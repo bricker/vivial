@@ -202,6 +202,7 @@ class SessionRecordField:
             duration_ms=duration_ms,
         )
 
+
 @dataclass(kw_only=True)
 class AccountRecordField:
     @classmethod
@@ -233,10 +234,10 @@ class AccountRecordField:
         return cls(
             account_id=resource.account_id,
             extra=(
-                MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(resource.extra)
-                if resource.extra else None
-            )
+                MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(resource.extra) if resource.extra else None
+            ),
         )
+
 
 @dataclass(kw_only=True)
 class TrafficSourceRecordField:
@@ -404,10 +405,7 @@ class TrafficSourceRecordField:
         utm_medium = tp.pop("utm_medium", None) if tp else None
         utm_term = tp.pop("utm_term", None) if tp else None
         utm_content = tp.pop("utm_content", None) if tp else None
-        other_tracking_params = (
-            SingleScalarTypeKeyValueRecordField[str].list_from_scalar_dict(tp)
-            if tp else None
-        )
+        other_tracking_params = SingleScalarTypeKeyValueRecordField[str].list_from_scalar_dict(tp) if tp else None
 
         return cls(
             timestamp=resource.timestamp,
@@ -430,6 +428,7 @@ class TrafficSourceRecordField:
             utm_content=utm_content,
             other_tracking_params=other_tracking_params,
         )
+
 
 @dataclass(kw_only=True)
 class GeoRecordField:
@@ -609,11 +608,7 @@ class DeviceRecordField:
             screen_height=resource.screen_height,
             screen_avail_width=resource.screen_avail_width,
             screen_avail_height=resource.screen_avail_height,
-            brands=(
-                [BrandsRecordField.from_api_resource(b) for b in resource.brands]
-                if resource.brands
-                else None
-            ),
+            brands=([BrandsRecordField.from_api_resource(b) for b in resource.brands] if resource.brands else None),
         )
 
 
@@ -748,7 +743,6 @@ class UrlRecordField:
             hash=parsed.fragment or None,
             query_params=query_params,
         )
-
 
 
 @dataclass(kw_only=True)

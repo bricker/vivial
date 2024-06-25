@@ -1,6 +1,11 @@
 import json
 
-from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME, EAVE_COLLECTOR_COOKIE_PREFIX, EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX, CorrelationContextAttr
+from eave.collectors.core.correlation_context.base import (
+    EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
+    EAVE_COLLECTOR_COOKIE_PREFIX,
+    EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX,
+    CorrelationContextAttr,
+)
 from eave.collectors.core.datastructures import DatabaseOperation, HttpRequestMethod
 from eave.core.internal.atoms.api_types import (
     AccountProperties,
@@ -16,9 +21,8 @@ from eave.core.internal.atoms.api_types import (
     TargetProperties,
     TrafficSourceProperties,
 )
-from eave.stdlib.logging import LogContext
-
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
+from eave.stdlib.logging import LogContext
 
 from ..base import BaseTestCase
 
@@ -241,7 +245,6 @@ class TestAtomApiTypes(BaseTestCase):
             self.getstr("corr_ctx.extra.0.key"): self.getstr("corr_ctx.extra.0.value"),
         }
 
-
     async def test_correlation_context_invalid_data(self):
         # test with non-dict values
         e = CorrelationContext.from_api_payload(
@@ -268,9 +271,11 @@ class TestAtomApiTypes(BaseTestCase):
         # test with unencrypted account values
         e = CorrelationContext.from_api_payload(
             {
-                f"{EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX}{self.anystr()}": json.dumps({
-                    EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME: self.anystr(),
-                }),
+                f"{EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX}{self.anystr()}": json.dumps(
+                    {
+                        EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME: self.anystr(),
+                    }
+                ),
             },
             decryption_key=self._client_credentials.decryption_key,
         )
@@ -284,7 +289,7 @@ class TestAtomApiTypes(BaseTestCase):
                     value=self.anystr("corr_ctx.account.account_id"),
                 ).to_encrypted(encryption_key=self._client_credentials.decryption_key),
             },
-            decryption_key=self.anysha256()
+            decryption_key=self.anysha256(),
         )
         assert e.account is None
 

@@ -3,13 +3,13 @@
 import base64
 import hashlib
 import json
-from math import floor
 import os
 import random
 import time
 import unittest.mock
 import uuid
 from datetime import UTC, datetime, timedelta
+from math import floor
 from typing import Any, Literal, TypeVar
 
 from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
@@ -260,7 +260,9 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         assert name not in self.testdata, f"test value {name} is already in use. Use gettime() to retrieve it."
 
         offset = random.randint(0, 999999)
-        data = floor(time.time() - offset) # Use floor so we don't have to worry about microsecond discrepancies in tests
+        data = floor(
+            time.time() - offset
+        )  # Use floor so we don't have to worry about microsecond discrepancies in tests
         self.testdata[name] = data
         return self.gettime(name)
 
@@ -295,7 +297,6 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getsha256(self, name: str) -> bytes:
         assert name in self.testdata, f"test value {name} has not been set. Use anysha256() to set it."
         return self.testdata[name]
-
 
     def b64encode(self, value: str, urlsafe: bool = False) -> str:
         b = value.encode()
