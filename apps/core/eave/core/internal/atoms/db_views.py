@@ -8,7 +8,7 @@ from google.cloud.bigquery import SchemaField, SqlTypeNames, Table
 
 from eave.collectors.core.datastructures import DatabaseOperation, HttpRequestMethod
 from eave.core.internal.atoms.api_types import BrowserAction
-from eave.core.internal.atoms.db_tables import BrowserEventAtom, DatabaseEventAtom, HttpServerEventAtom
+from eave.core.internal.atoms.atom_types import BrowserEventAtom, DatabaseEventAtom, HttpServerEventAtom
 from eave.core.internal.atoms.shared import BigQueryFieldMode
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.stdlib.logging import LogContext
@@ -44,13 +44,13 @@ _COMMON_VIEW_FIELDS = (
         field_type=SqlTypeNames.TIMESTAMP,
     ),
     ViewField(
-        definition="user.account_id",
+        definition="account.account_id",
         alias="account_id",
         description="The logged-in account ID of the user who performed this action. For anonymous users, this is null.",
         field_type=SqlTypeNames.STRING,
     ),
     ViewField(
-        definition="user.visitor_id",
+        definition="visitor_id",
         alias="visitor_id",
         description="The unique device ID of the user who performed this action. This is set on their first visit to the page.",
         field_type=SqlTypeNames.STRING,
@@ -202,7 +202,7 @@ class DatabaseEventView(BigQueryView):
         operation_past_tense_verb: str | None = _db_operation_to_past_tense_verb.get(event_operation)
         name_verb = (operation_past_tense_verb or event_operation).title()
         friendly_name = f"{table_resource} {name_verb}"
-        view_id = tableize(friendly_name)
+        view_id = tableize(string=friendly_name)
 
         if operation_past_tense_verb:
             inflect_engine = inflect.engine()
@@ -250,51 +250,6 @@ class DatabaseEventView(BigQueryView):
             WHERE
                 `table_name` = {sanitized_db_event_table}
                 AND `operation` = {sanitized_db_event_operation}
-            ORDER BY
-                `event_timestamp` ASC
-            """
-        ).strip()
-
-
-class HttpServerEventView(BigQueryView):
-    _request_method: HttpRequestMethod
-
-    def __init__(self, *, dataset_id: str, request_method: HttpRequestMethod) -> None:
-        self.dataset_id = dataset_id
-        self.view_id = f"http_server_{request_method.lower()}"
-        self.friendly_name = f"HTTP Server {request_method} Request"
-        self.description = f"An HTTP {request_method} request was received by the server."
-        self._request_method = request_method
-
-    @property
-    def schema(self) -> tuple[ViewField, ...]:
-        sanitized_friendly_name = sql_sanitized_literal(self.friendly_name)
-
-        return (
-            ViewField(
-                definition=sanitized_friendly_name,
-                alias="event_name",
-                description=f"The readable name for this event. Always {sanitized_friendly_name}.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            *_COMMON_VIEW_FIELDS,
-        )
-
-    @property
-    def view_query(self) -> str:
-        sanitized_fq_source_table = self.sql_sanitized_fq_table(
-            table_id=HttpServerEventAtom.TABLE_DEF.table_id,
-        )
-        sanitized_request_method = sql_sanitized_literal(self._request_method)
-
-        return dedent(
-            f"""
-            SELECT
-                {self.compiled_selectors}
-            FROM
-                {sanitized_fq_source_table}
-            WHERE
-                `request_method` = {sanitized_request_method}
             ORDER BY
                 `event_timestamp` ASC
             """

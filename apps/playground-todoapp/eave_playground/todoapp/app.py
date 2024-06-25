@@ -32,6 +32,16 @@ if os.getenv("EAVE_ENV", "development") == "production":
     _gcp_log_client.setup_logging(log_level=logging.getLevelNamesMapping().get(log_level) or logging.INFO)
 
 
+async def echo_endpoint(request: Request) -> Response:
+    """This is for infrastructure experimentation, not actually related to this app."""
+    body = await request.body()
+    return JSONResponse(
+        content={
+            "request_headers": request.headers,
+            "request_body": body.decode(),
+        },
+    )
+
 async def get_todos(request: Request) -> Response:
     user_id = request.cookies.get(_USER_ID_COOKIE_NAME)
     if not user_id:
@@ -171,6 +181,7 @@ app = Starlette(
         Mount("/static", StaticFiles(directory="eave_playground/todoapp/static")),
         Route(path="/status", methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"], endpoint=status_endpoint),
         Route(path="/healthz", methods=["GET"], endpoint=health_endpoint),
+        Route(path="/echo", methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"], endpoint=echo_endpoint),
         Route(path="/api/todos", methods=["GET"], endpoint=get_todos),
         Route(path="/api/todos", methods=["POST"], endpoint=add_todo),
         Route(path="/api/todos/{todo_id}", methods=["DELETE"], endpoint=delete_todo),

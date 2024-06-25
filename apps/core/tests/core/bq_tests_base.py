@@ -1,6 +1,7 @@
 from google.cloud import bigquery
 
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
+from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.core.internal.orm.team import TeamOrm, bq_dataset_id
 from eave.stdlib.config import SHARED_CONFIG
 
@@ -10,12 +11,19 @@ from .base import BaseTestCase
 class BigQueryTestsBase(BaseTestCase):
     bq_client: bigquery.Client
     eave_team: TeamOrm
+    client_credentials: ClientCredentialsOrm
 
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
         async with self.db_session.begin() as s:
             self.eave_team = await self.make_team(session=s)
+            self.client_credentials = await ClientCredentialsOrm.create(
+                session=s,
+                team_id=self.eave_team.id,
+                description=self.anystr(),
+                scope=ClientScope.write,
+            )
 
         self.bq_client = bigquery.Client(project=SHARED_CONFIG.google_cloud_project)
 

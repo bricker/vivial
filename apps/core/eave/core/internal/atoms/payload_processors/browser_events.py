@@ -12,7 +12,7 @@ from eave.core.internal.atoms.db_record_fields import (
     TrafficSourceRecordField,
     AccountRecordField,
 )
-from eave.core.internal.atoms.db_tables import BrowserEventAtom
+from eave.core.internal.atoms.atom_types import BrowserEventAtom
 from eave.core.internal.atoms.db_views import ClickView, FormSubmissionView, PageViewView
 from eave.core.internal.atoms.table_handle import BigQueryTableHandle
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
@@ -31,37 +31,41 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
         atoms: list[BrowserEventAtom] = []
 
         for payload in events:
-            e = BrowserEventPayload(payload)
+            e = BrowserEventPayload.from_api_payload(payload, decryption_key=self._client_credentials.decryption_key)
             if not e.action:
                 LOGGER.warning("Unexpected event action", {"event": payload}, ctx)
                 continue
 
             session = None
             traffic_source = None
-            user = None
+            account = None
+            visitor_id = None
 
             if e.corr_ctx:
+                visitor_id = e.corr_ctx.visitor_id
+
                 if e.corr_ctx.session:
-                    session = SessionRecordField(resource=e.corr_ctx.session, event_timestamp=e.timestamp)
+                    session = SessionRecordField.from_api_resource(resource=e.corr_ctx.session, event_timestamp=e.timestamp)
 
                 if e.corr_ctx.traffic_source:
-                    traffic_source = TrafficSourceRecordField(e.corr_ctx.traffic_source)
+                    traffic_source = TrafficSourceRecordField.from_api_resource(e.corr_ctx.traffic_source)
 
-                if e.corr_ctx.account_id or e.corr_ctx.visitor_id:
-                    user = AccountRecordField(account_id=e.corr_ctx.account_id, visitor_id=e.corr_ctx.visitor_id)
+                if e.corr_ctx.account:
+                    account = AccountRecordField.from_api_resource(e.corr_ctx.account)
 
             atom = BrowserEventAtom(
                 action=e.action,
                 timestamp=e.timestamp,
                 session=session,
-                user=user,
+                account=account,
                 traffic_source=traffic_source,
-                target=TargetRecordField(e.target) if e.target else None,
-                current_page=CurrentPageRecordField(e.current_page) if e.current_page else None,
-                device=DeviceRecordField(e.device) if e.device else None,
+                target=TargetRecordField.from_api_resource(e.target) if e.target else None,
+                current_page=CurrentPageRecordField.from_api_resource(e.current_page) if e.current_page else None,
+                device=DeviceRecordField.from_api_resource(e.device) if e.device else None,
                 geo=geolocation,
                 extra=MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(e.extra) if e.extra else None,
                 client_ip=client_ip,
+                visitor_id=visitor_id,
             )
 
             atoms.append(atom)

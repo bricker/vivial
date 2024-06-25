@@ -2,7 +2,7 @@ import json
 import re
 from typing import Any
 
-from eave.collectors.core.correlation_context.base import EAVE_ENCRYPTED_ACCOUNT_COOKIE_NAME
+from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME, EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX, EAVE_COLLECTOR_ENCRYPTED_COOKIE_PREFIX
 from eave.collectors.core.json import compact_json, JsonObject
 
 from .base_collector import BaseCollector
@@ -47,23 +47,25 @@ def save_identification_data(table_name: str, column_value_map: dict[str, Any]) 
             column_value_map (dict[str, str]): mapping from column name to value
     """
     if is_user_table(table_name):
-        acct_info: JsonObject = {}
-
         for key, value in column_value_map.items():
             lower_key = key.lower()
 
             # casing matters for matching camelCase, so no lower_key
             if any(re.search(pat, key) for pat in foreign_key_patterns):
-                acct_info[key] = str(value)
+                CORR_CTX.set_encrypted(
+                    prefix=EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX,
+                    key=lower_key,
+                    value=value,
+                )
                 continue
 
             if any(re.search(pat, lower_key) for pat in primary_key_patterns):
-                acct_info["account_id"] = str(value)
+                CORR_CTX.set_encrypted(
+                    prefix=EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX,
+                    key=EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
+                    value=value,
+                )
                 continue
-
-        if len(acct_info) > 0:
-            j = compact_json(acct_info)
-            CORR_CTX.set(EAVE_ENCRYPTED_ACCOUNT_COOKIE_NAME, j)
 
 class BaseDatabaseCollector(BaseCollector):
     pass

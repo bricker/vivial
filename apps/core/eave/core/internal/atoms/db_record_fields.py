@@ -14,6 +14,7 @@ from urllib.parse import parse_qsl, urlparse
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
 from eave.core.internal.atoms.api_types import (
+    AccountProperties,
     CurrentPageProperties,
     DeviceBrandProperties,
     DeviceProperties,
@@ -55,9 +56,9 @@ class TypedValueRecordField:
             ),
         )
 
-    string_value: str | None
-    bool_value: bool | None
-    numeric_value: int | float | None
+    string_value: str | None = None
+    bool_value: bool | None = None
+    numeric_value: int | float | None = None
 
     def __init__(self, value: str | int | float | bool | None) -> None:
         # It is important to remember that these checks have to be exclusive - if multiple checks are done, it's possible
@@ -217,18 +218,25 @@ class AccountRecordField:
                     field_type=SqlTypeNames.STRING,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
-                SchemaField(
-                    name="visitor_id",
-                    description="A unique ID per device assigned by Eave. This ID is persisted across sessions on the same device.",
-                    field_type=SqlTypeNames.STRING,
-                    mode=BigQueryFieldMode.NULLABLE,
+                MultiScalarTypeKeyValueRecordField.schema(
+                    name="extra",
+                    description="Additional arbitrary account attributes.",
                 ),
             ),
         )
 
     account_id: str | None
-    visitor_id: str | None
+    extra: list[MultiScalarTypeKeyValueRecordField] | None
 
+    @classmethod
+    def from_api_resource(cls, resource: AccountProperties) -> Self:
+        return cls(
+            account_id=resource.account_id,
+            extra=(
+                MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(resource.extra)
+                if resource.extra else None
+            )
+        )
 
 @dataclass(kw_only=True)
 class TrafficSourceRecordField:
@@ -318,36 +326,6 @@ class TrafficSourceRecordField:
                     field_type=SqlTypeNames.STRING,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
-                # SchemaField(
-                #     name="keyword",
-                #     description="Non-standard query parameter",
-                #     field_type=SqlTypeNames.STRING,
-                #     mode=BigQueryFieldMode.NULLABLE,
-                # ),
-                # SchemaField(
-                #     name="matchtype",
-                #     description="Non-standard query parameter",
-                #     field_type=SqlTypeNames.STRING,
-                #     mode=BigQueryFieldMode.NULLABLE,
-                # ),
-                # SchemaField(
-                #     name="campaign_id",
-                #     description="Non-standard query parameter",
-                #     field_type=SqlTypeNames.STRING,
-                #     mode=BigQueryFieldMode.NULLABLE,
-                # ),
-                # SchemaField(
-                #     name="pid",
-                #     description="Non-standard query parameter",
-                #     field_type=SqlTypeNames.STRING,
-                #     mode=BigQueryFieldMode.NULLABLE,
-                # ),
-                # SchemaField(
-                #     name="cid",
-                #     description="Non-standard query parameter",
-                #     field_type=SqlTypeNames.STRING,
-                #     mode=BigQueryFieldMode.NULLABLE,
-                # ),
                 SchemaField(
                     name="utm_campaign",
                     description="Query parameter utm_campaign",
@@ -697,10 +675,10 @@ class TargetRecordField:
 @dataclass(kw_only=True)
 class UrlRecordField:
     @staticmethod
-    def schema() -> SchemaField:
+    def schema(name: str, description: str) -> SchemaField:
         return SchemaField(
-            name="url",
-            description="The page URL when this event occurred.",
+            name=name,
+            description=description,
             field_type=SqlTypeNames.RECORD,
             mode=BigQueryFieldMode.NULLABLE,
             fields=(
@@ -783,7 +761,7 @@ class CurrentPageRecordField:
             field_type=SqlTypeNames.RECORD,
             mode=BigQueryFieldMode.NULLABLE,
             fields=(
-                UrlRecordField.schema(),
+                UrlRecordField.schema(name="url", description="The page URL when this event occurred."),
                 SchemaField(
                     name="title",
                     description="The page title when this event occurred.",
@@ -805,9 +783,6 @@ class CurrentPageRecordField:
 
     @classmethod
     def from_api_resource(cls, resource: CurrentPageProperties) -> Self:
-        if resource.url:
-            self.url =
-
         return cls(
             url=UrlRecordField.from_api_resource(resource.url) if resource.url else None,
             title=resource.title,

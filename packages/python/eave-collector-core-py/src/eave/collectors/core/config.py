@@ -1,28 +1,58 @@
+from base64 import b64encode
+from dataclasses import dataclass
+import hashlib
 import os
+from typing import Self, TypedDict
+
+from eave.collectors.core.logging import EAVE_LOGGER
 
 
 def eave_api_base_url() -> str:
     return os.getenv("EAVE_API_BASE_URL_PUBLIC", "https://api.eave.fyi")
 
+EaveAuthHeaders = TypedDict(
+    "EaveAuthHeaders",
+    {
+        "eave-client-id": str,
+        "eave-client-secret": str,
+    },
+)
 
-def get_eave_credentials() -> str | None:
-    return os.getenv("EAVE_CREDENTIALS")
+@dataclass(kw_only=True, frozen=True)
+class EaveCredentials:
+    @classmethod
+    def from_env(cls) -> Self | None:
+        creds_str = os.getenv("EAVE_CREDENTIALS")
+        if not creds_str:
+            return None
 
+        parts = creds_str.split(":")
 
-def eave_credentials_headers() -> dict[str, str]:
-    credentials_str = get_eave_credentials()
-    if not credentials_str:
-        return {}
+        if len(parts) != 2:
+            EAVE_LOGGER.warning('invalid credentials format. Expected format: "client_id:client_secret"')
+            return None
 
-    credentials = credentials_str.split(":")
+        return cls(
+            client_id=parts[0],
+            client_secret=parts[1],
+        )
 
-    if len(credentials) != 2:
-        raise ValueError('invalid credentials format. Expected format: "client_id:client_secret"')
+    client_id: str
+    client_secret: str
 
-    return {
-        "eave-client-id": credentials[0],
-        "eave-client-secret": credentials[1],
-    }
+    @property
+    def combined(self) -> str:
+        return f"{self.client_id}:{self.client_secret}"
+
+    @property
+    def to_headers(self) -> EaveAuthHeaders:
+        return {
+            "eave-client-id": self.client_id,
+            "eave-client-secret": self.client_secret,
+        }
+
+    def __str__(self) -> str:
+        return self.combined
 
 
 def eave_env() -> str:

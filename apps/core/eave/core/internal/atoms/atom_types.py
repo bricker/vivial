@@ -1,5 +1,6 @@
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import ClassVar
+from typing import ClassVar, Generic, Type, TypeVar
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
@@ -14,27 +15,9 @@ from eave.core.internal.atoms.db_record_fields import (
     TargetRecordField,
     TrafficSourceRecordField,
     AccountRecordField,
+    UrlRecordField,
 )
 from eave.core.internal.atoms.shared import BigQueryFieldMode
-
-
-def common_bq_insert_timestamp_field() -> SchemaField:
-    return SchemaField(
-        name="__bq_insert_timestamp",
-        description="When this record was inserted into BigQuery. This is an internal field and not reliable for exploring user journeys.",
-        field_type=SqlTypeNames.TIMESTAMP,
-        mode=BigQueryFieldMode.NULLABLE,
-        default_value_expression="CURRENT_TIMESTAMP",
-    )
-
-
-def common_event_timestamp_field() -> SchemaField:
-    return SchemaField(
-        name="timestamp",
-        description="When this event occurred.",
-        field_type=SqlTypeNames.TIMESTAMP,
-        mode=BigQueryFieldMode.NULLABLE,
-    )
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -52,8 +35,46 @@ class BigQueryTableDefinition:
     """Table schema. This is authoritative."""
 
 
+@dataclass
+class Atom(ABC):
+    """
+    Common fields for all Atom types.
+    """
+    session: SessionRecordField | None
+    account: AccountRecordField | None
+    traffic_source: TrafficSourceRecordField | None
+    visitor_id: str | None
+    timestamp: float | None
+
+    @staticmethod
+    def common_atom_schema_fields() -> tuple[SchemaField, ...]:
+        return (
+            SessionRecordField.schema(),
+            AccountRecordField.schema(),
+            TrafficSourceRecordField.schema(),
+            SchemaField(
+                name="visitor_id",
+                description="A unique ID per device, assigned by Eave. This ID is persisted across sessions on the same device.",
+                field_type=SqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="timestamp",
+                description="When this event occurred.",
+                field_type=SqlTypeNames.TIMESTAMP,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="__bq_insert_timestamp",
+                description="When this record was inserted into BigQuery. This is an internal field and not reliable for exploring user journeys.",
+                field_type=SqlTypeNames.TIMESTAMP,
+                mode=BigQueryFieldMode.NULLABLE,
+                default_value_expression="CURRENT_TIMESTAMP",
+            ),
+        )
+
 @dataclass(kw_only=True)
-class BrowserEventAtom:
+class BrowserEventAtom(Atom):
     TABLE_DEF: ClassVar[BigQueryTableDefinition] = BigQueryTableDefinition(
         table_id="atoms_browser_events",
         friendly_name="Browser Atoms",
@@ -65,9 +86,6 @@ class BrowserEventAtom:
                 field_type=SqlTypeNames.STRING,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
-            SessionRecordField.schema(),
-            AccountRecordField.schema(),
-            TrafficSourceRecordField.schema(),
             TargetRecordField.schema(),
             CurrentPageRecordField.schema(),
             DeviceRecordField.schema(),
@@ -82,26 +100,21 @@ class BrowserEventAtom:
                 field_type=SqlTypeNames.STRING,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
-            common_event_timestamp_field(),
-            common_bq_insert_timestamp_field(),
+            *Atom.common_atom_schema_fields(),
         ),
     )
 
     action: str | None
-    session: SessionRecordField | None
-    user: AccountRecordField | None
-    traffic_source: TrafficSourceRecordField | None
     target: TargetRecordField | None
     current_page: CurrentPageRecordField | None
     device: DeviceRecordField | None
     geo: GeoRecordField | None
     extra: list[MultiScalarTypeKeyValueRecordField] | None
     client_ip: str | None
-    timestamp: float | None
 
 
 @dataclass(kw_only=True)
-class DatabaseEventAtom:
+class DatabaseEventAtom(Atom):
     TABLE_DEF: ClassVar[BigQueryTableDefinition] = BigQueryTableDefinition(
         table_id="atoms_db_events",
         friendly_name="Database Atoms",
@@ -135,11 +148,7 @@ class DatabaseEventAtom:
                 name="statement_values",
                 description="The SQL parameter values passed into the statement.",
             ),
-            SessionRecordField.schema(),
-            AccountRecordField.schema(),
-            TrafficSourceRecordField.schema(),
-            common_event_timestamp_field(),
-            common_bq_insert_timestamp_field(),
+            *Atom.common_atom_schema_fields(),
         ),
     )
 
@@ -148,16 +157,12 @@ class DatabaseEventAtom:
     table_name: str | None
     statement: str | None
     statement_values: list[MultiScalarTypeKeyValueRecordField] | None
-    session: SessionRecordField | None
-    user: AccountRecordField | None
-    traffic_source: TrafficSourceRecordField | None
-    timestamp: float | None
 
 
 @dataclass(kw_only=True)
-class HttpClientEventAtom:
+class HttpClientEventAtom(Atom):
     TABLE_DEF: ClassVar[BigQueryTableDefinition] = BigQueryTableDefinition(
-        table_id="atoms_http_client_events_v1",
+        table_id="atoms_http_client_events",
         friendly_name="HTTP Client Atoms",
         description="HTTP Client atoms",
         schema=(
@@ -167,12 +172,7 @@ class HttpClientEventAtom:
                 field_type=SqlTypeNames.STRING,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
-            SchemaField(
-                name="request_url",
-                description="The requested URL.",
-                field_type=SqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
+            UrlRecordField.schema(name="request_url", description="The requested URL."),
             SingleScalarTypeKeyValueRecordField[str].schema(
                 name="request_headers",
                 description="The headers for the outgoing request.",
@@ -184,28 +184,20 @@ class HttpClientEventAtom:
                 field_type=SqlTypeNames.STRING,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
-            SessionRecordField.schema(),
-            AccountRecordField.schema(),
-            TrafficSourceRecordField.schema(),
-            common_event_timestamp_field(),
-            common_bq_insert_timestamp_field(),
+            *Atom.common_atom_schema_fields(),
         ),
     )
 
     request_method: HttpRequestMethod | None
-    request_url: str | None
+    request_url: UrlRecordField | None
     request_headers: list[SingleScalarTypeKeyValueRecordField[str]] | None
     request_payload: str | None
-    session: SessionRecordField | None
-    user: AccountRecordField | None
-    traffic_source: TrafficSourceRecordField | None
-    timestamp: float | None
 
 
 @dataclass(kw_only=True)
-class HttpServerEventAtom:
+class HttpServerEventAtom(Atom):
     TABLE_DEF: ClassVar[BigQueryTableDefinition] = BigQueryTableDefinition(
-        table_id="atoms_http_server_events_v1",
+        table_id="atoms_http_server_events",
         friendly_name="HTTP Server Atoms",
         description="HTTP Server atoms",
         schema=(
@@ -215,12 +207,7 @@ class HttpServerEventAtom:
                 field_type=SqlTypeNames.STRING,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
-            SchemaField(
-                name="request_url",
-                description="The requested URL.",
-                field_type=SqlTypeNames.STRING,
-                mode=BigQueryFieldMode.NULLABLE,
-            ),
+            UrlRecordField.schema(name="request_url", description="The requested URL."),
             SingleScalarTypeKeyValueRecordField[str].schema(
                 name="request_headers",
                 description="The headers for the incoming request.",
@@ -232,19 +219,11 @@ class HttpServerEventAtom:
                 field_type=SqlTypeNames.STRING,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
-            SessionRecordField.schema(),
-            AccountRecordField.schema(),
-            TrafficSourceRecordField.schema(),
-            common_event_timestamp_field(),
-            common_bq_insert_timestamp_field(),
+            *Atom.common_atom_schema_fields(),
         ),
     )
 
     request_method: HttpRequestMethod | None
-    request_url: str | None
+    request_url: UrlRecordField | None
     request_headers: list[SingleScalarTypeKeyValueRecordField[str]] | None
     request_payload: str | None
-    session: SessionRecordField | None
-    user: AccountRecordField | None
-    traffic_source: TrafficSourceRecordField | None
-    timestamp: float | None

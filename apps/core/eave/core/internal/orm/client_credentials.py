@@ -1,12 +1,14 @@
+from base64 import b64encode
 import secrets
 import uuid
 import hashlib
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import IntEnum
 from typing import Self
 from uuid import UUID
 
+from eave.collectors.core.correlation_context.base import corr_ctx_symmetric_encryption_key
 from sqlalchemy import Index, ScalarResult, Select, SmallInteger, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -95,12 +97,12 @@ class ClientCredentialsOrm(Base):
         return result
 
     async def touch(self, session: AsyncSession) -> None:
-        self.last_used = datetime.utcnow()
+        self.last_used = datetime.now(UTC)
 
     @property
-    def credentials_str(self) -> str:
-        return f"{self.id.hex}:{self.secret}"
+    def combined(self) -> str:
+        return f"{self.id}:{self.secret}"
 
     @property
-    def symmetric_encryption_key(self) -> bytes:
-        return hashlib.sha256(bytes(self.credentials_str, "utf-8")).digest()
+    def decryption_key(self) -> bytes:
+        return corr_ctx_symmetric_encryption_key(self.combined)

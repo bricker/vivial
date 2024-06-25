@@ -12,7 +12,7 @@ from eave.core.internal.atoms.db_record_fields import (
     TrafficSourceRecordField,
     AccountRecordField,
 )
-from eave.core.internal.atoms.db_tables import DatabaseEventAtom
+from eave.core.internal.atoms.atom_types import DatabaseEventAtom
 from eave.core.internal.atoms.db_views import DatabaseEventView
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
@@ -31,7 +31,7 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
         atoms: list[DatabaseEventAtom] = []
 
         for payload in events:
-            e = DatabaseEventPayload(payload)
+            e = DatabaseEventPayload.from_api_payload(payload, decryption_key=self._client_credentials.decryption_key)
 
             if not e.operation or not e.table_name:
                 LOGGER.warning("Missing parameters e.operation and/or e.table_name", ctx)
@@ -45,17 +45,20 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
 
             session = None
             traffic_source = None
-            user = None
+            account = None
+            visitor_id = None
 
             if e.corr_ctx:
+                visitor_id = e.corr_ctx.visitor_id
+
                 if e.corr_ctx.session:
-                    session = SessionRecordField(resource=e.corr_ctx.session, event_timestamp=e.timestamp)
+                    session = SessionRecordField.from_api_resource(resource=e.corr_ctx.session, event_timestamp=e.timestamp)
 
                 if e.corr_ctx.traffic_source:
-                    traffic_source = TrafficSourceRecordField(e.corr_ctx.traffic_source)
+                    traffic_source = TrafficSourceRecordField.from_api_resource(e.corr_ctx.traffic_source)
 
-                if e.corr_ctx.account_id or e.corr_ctx.visitor_id:
-                    user = AccountRecordField(account_id=e.corr_ctx.account_id, visitor_id=e.corr_ctx.visitor_id)
+                if e.corr_ctx.account:
+                    account = AccountRecordField.from_api_resource(e.corr_ctx.account)
 
             atom = DatabaseEventAtom(
                 operation=e.operation,
@@ -65,8 +68,9 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
                 statement=e.statement,
                 statement_values=statement_values,
                 session=session,
-                user=user,
+                account=account,
                 traffic_source=traffic_source,
+                visitor_id=visitor_id,
             )
 
             atoms.append(atom)

@@ -8,9 +8,9 @@ from eave.core.internal.atoms.db_record_fields import (
     SingleScalarTypeKeyValueRecordField,
     TrafficSourceRecordField,
     AccountRecordField,
+    UrlRecordField,
 )
-from eave.core.internal.atoms.db_tables import HttpServerEventAtom
-from eave.core.internal.atoms.db_views import HttpServerEventView
+from eave.core.internal.atoms.atom_types import HttpServerEventAtom
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.stdlib.logging import LOGGER, LogContext
 
@@ -22,12 +22,10 @@ class HttpServerEventsTableHandle(BigQueryTableHandle):
 
     async def insert(self, events: list[dict[str, Any]], ctx: LogContext) -> None:
         table = self.get_or_create_table(ctx=ctx)
-
-        unique_operations: set[HttpRequestMethod] = set()
         atoms: list[HttpServerEventAtom] = []
 
         for payload in events:
-            e = HttpServerEventPayload(payload)
+            e = HttpServerEventPayload.from_api_payload(payload, decryption_key=self._client_credentials.decryption_key)
 
             if not e.request_method or not e.request_url:
                 LOGGER.warning("Invalid server event payload", ctx)
@@ -41,31 +39,34 @@ class HttpServerEventsTableHandle(BigQueryTableHandle):
 
             session = None
             traffic_source = None
-            user = None
+            account = None
+            visitor_id = None
 
             if e.corr_ctx:
+                visitor_id = e.corr_ctx.visitor_id
+
                 if e.corr_ctx.session:
-                    session = SessionRecordField(resource=e.corr_ctx.session, event_timestamp=e.timestamp)
+                    session = SessionRecordField.from_api_resource(resource=e.corr_ctx.session, event_timestamp=e.timestamp)
 
                 if e.corr_ctx.traffic_source:
-                    traffic_source = TrafficSourceRecordField(e.corr_ctx.traffic_source)
+                    traffic_source = TrafficSourceRecordField.from_api_resource(e.corr_ctx.traffic_source)
 
-                if e.corr_ctx.account_id or e.corr_ctx.visitor_id:
-                    user = AccountRecordField(account_id=e.corr_ctx.account_id, visitor_id=e.corr_ctx.visitor_id)
+                if e.corr_ctx.account:
+                    account = AccountRecordField.from_api_resource(e.corr_ctx.account)
 
             atom = HttpServerEventAtom(
                 request_method=e.request_method,
                 request_headers=request_headers,
-                request_url=e.request_url,
+                request_url=UrlRecordField.from_api_resource(e.request_url),
                 request_payload=e.request_payload,
                 timestamp=e.timestamp,
                 session=session,
-                user=user,
+                account=account,
                 traffic_source=traffic_source,
+                visitor_id=visitor_id,
             )
 
             atoms.append(atom)
-            unique_operations.add(e.request_method)
 
         errors = EAVE_INTERNAL_BIGQUERY_CLIENT.append_rows(
             table=table,
@@ -74,7 +75,3 @@ class HttpServerEventsTableHandle(BigQueryTableHandle):
 
         if len(errors) > 0:
             LOGGER.warning("BigQuery insert errors", {"errors": cast(list, errors)}, ctx)
-
-        for request_method in unique_operations:
-            handle = HttpServerEventView(dataset_id=self._dataset_id, request_method=request_method)
-            await self.create_bq_view(handle=handle, ctx=ctx)

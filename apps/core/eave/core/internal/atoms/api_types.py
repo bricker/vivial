@@ -12,7 +12,7 @@ from enum import StrEnum
 from typing import Any, Self
 from cryptography import fernet
 
-from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_COOKIE_PREFIX, EAVE_ENCRYPTED_ACCOUNT_COOKIE_NAME
+from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME, EAVE_COLLECTOR_COOKIE_PREFIX, EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX, CorrelationContextAttr
 from eave.collectors.core.datastructures import DatabaseOperation, HttpRequestMethod
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.typing import JsonScalar
@@ -70,8 +70,8 @@ class DeviceProperties:
             screen_avail_width=data.get("screen_avail_width"),
             screen_avail_height=data.get("screen_avail_height"),
             brands=(
-                [DeviceBrandProperties.from_api_payload(d) for d in v]
-                if (v := data.get("brands")) and isinstance(v, list)
+                [DeviceBrandProperties.from_api_payload(d) for d in bp]
+                if (bp := data.get("brands")) and isinstance(bp, list)
                 else None
             ),
         )
@@ -135,69 +135,84 @@ class TargetProperties:
 @dataclass(kw_only=True)
 class AccountProperties:
     account_id: str | None
-    extra: dict[str, str] | None
+    extra: dict[str, JsonScalar] | None
 
     @classmethod
-    def from_api_payload(cls, data: dict[str, str]) -> Self:
+    def from_api_payload(cls, data: dict[str, Any]) -> Self:
         data_copy = data.copy()
         return cls(
-            account_id=data_copy.pop("account_id", None),
-            extra=data_copy,
+            account_id=data_copy.pop(EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME, None),
+            extra=data_copy if len(data_copy) > 0 else None, # Put everything else in `extra`. team_id, org_id, etc.
         )
 
 @dataclass(kw_only=True)
 class CorrelationContext:
     session: SessionProperties | None
     traffic_source: TrafficSourceProperties | None
-    visitor_id: str | None
     account: AccountProperties | None
+    visitor_id: str | None
     extra: dict[str, Any] | None
 
     @classmethod
-    def from_api_payload(cls, data: dict[str, str], symmetric_encryption_key: bytes) -> Self:
+    def from_api_payload(cls, data: dict[str, str | None], *, decryption_key: bytes) -> Self:
+        data_copy = data.copy()
+
         session = None
         traffic_source = None
         account = None
-        visitor_id = None
+        visitor_id = data_copy.pop(f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id", None)
 
-        data_copy = data.copy()
-
-        if (v := data_copy.pop(f"{EAVE_COLLECTOR_COOKIE_PREFIX}session"), None) and isinstance(v, str):
+        if (session_str := data_copy.pop(f"{EAVE_COLLECTOR_COOKIE_PREFIX}session", None)) and isinstance(session_str, str):
             try:
-                us = json.loads(v)
+                us = json.loads(session_str)
                 if isinstance(us, dict):
                     session = SessionProperties.from_api_payload(us)
             except Exception as e:
                 # Probably JSON parse error
                 LOGGER.exception(e)
 
-        if (v := data_copy.pop(f"{EAVE_COLLECTOR_COOKIE_PREFIX}traffic_source"), None) and isinstance(v, str):
+        if (tsrc_str := data_copy.pop(f"{EAVE_COLLECTOR_COOKIE_PREFIX}traffic_source", None)) and isinstance(tsrc_str, str):
             try:
-                us = json.loads(v)
+                us = json.loads(tsrc_str)
                 if isinstance(us, dict):
                     traffic_source = TrafficSourceProperties.from_api_payload(us)
             except Exception as e:
                 # Probably JSON parse error
                 LOGGER.exception(e)
 
-        if (v := data_copy.pop(f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id"), None) and isinstance(v, str):
-            visitor_id = v
+        encrypted_account_attrs: set[str] = set()
 
-        if (v := data_copy.pop(EAVE_ENCRYPTED_ACCOUNT_COOKIE_NAME), None) and isinstance(v, str):
-            try:
-                # TTL should NOT be considered here, because the encrypted value may come from long-lived cookies.
-                # Regardless, this encryption is purely for obfuscation in the browser, not for message integrity, so TTL doesn't really matter anyways.
-                decrypted_val = fernet.Fernet(symmetric_encryption_key).decrypt(v, ttl=None).decode()
-                us = json.loads(decrypted_val)
-                if isinstance(us, dict):
-                    account = AccountProperties.from_api_payload(us)
-            except Exception as e:
-                # Either JSON parse error or decryption error.
-                # The account attribute will be empty.
-                LOGGER.exception(e)
+        # keys() is a view into the dict, not a copy of the keys, and so must be copied before mutating the dict.
+        for k in set(data_copy.keys()):
+            if k.startswith(EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX):
+                v = data_copy.pop(k, None)
+                if v is not None:
+                    encrypted_account_attrs.add(v)
+
+        if len(encrypted_account_attrs) > 0:
+            decrypted_account_attrs: dict[str, Any] = {}
+
+            for encrypted_value in encrypted_account_attrs:
+                if encrypted_value is not None:
+                    attr = CorrelationContextAttr.from_encrypted(
+                        decryption_key=decryption_key,
+                        encrypted_value=encrypted_value,
+                    )
+                    if attr is not None:
+                        decrypted_account_attrs[attr.key] = attr.value
+
+            if len(decrypted_account_attrs) > 0:
+                account = AccountProperties.from_api_payload(decrypted_account_attrs)
 
         # Stuff anything else into self.extra, with the eave cookie prefix removed.
-        extra = {k.removeprefix(EAVE_COLLECTOR_COOKIE_PREFIX): v for k, v in data_copy.items()}
+        # If the object is empty, then set to None.
+        if len(data_copy) > 0:
+            extra = {
+                k.removeprefix(EAVE_COLLECTOR_COOKIE_PREFIX): v
+                for k, v in data_copy.items()
+            }
+        else:
+            extra = None
 
         return cls(
             session=session,
@@ -218,33 +233,33 @@ class BrowserEventPayload:
     corr_ctx: CorrelationContext | None
 
     @classmethod
-    def from_api_payload(cls, data: dict[str, Any]) -> Self:
+    def from_api_payload(cls, data: dict[str, Any], *, decryption_key: bytes) -> Self:
         return cls(
             timestamp=data.get("timestamp"),
             extra=data.get("extra"),
             action=(
-                BrowserAction.from_str(v)
-                if (v := data.get("action"))
+                BrowserAction.from_str(ba)
+                if (ba := data.get("action"))
                 else None
             ),
             target=(
-                TargetProperties.from_api_payload(v)
-                if (v := data.get("target")) and isinstance(v, dict)
+                TargetProperties.from_api_payload(tp)
+                if (tp := data.get("target")) and isinstance(tp, dict)
                 else None
             ),
             device=(
-                DeviceProperties.from_api_payload(v)
-                if (v := data.get("device")) and isinstance(v, dict)
+                DeviceProperties.from_api_payload(dp)
+                if (dp := data.get("device")) and isinstance(dp, dict)
                 else None
             ),
             current_page=(
-                CurrentPageProperties.from_api_payload(v)
-                if (v := data.get("current_page")) and isinstance(v, dict)
+                CurrentPageProperties.from_api_payload(cp)
+                if (cp := data.get("current_page")) and isinstance(cp, dict)
                 else None
             ),
             corr_ctx=(
-                CorrelationContext.from_api_payload(v)
-                if (v := data.get("corr_ctx")) and isinstance(v, dict)
+                CorrelationContext.from_api_payload(cc, decryption_key=decryption_key)
+                if (cc := data.get("corr_ctx")) and isinstance(cc, dict)
                 else None
             ),
         )
@@ -261,17 +276,17 @@ class DatabaseEventPayload:
     corr_ctx: CorrelationContext | None
 
     @classmethod
-    def from_api_payload(cls, data: dict[str, Any]) -> Self:
+    def from_api_payload(cls, data: dict[str, Any], *, decryption_key: bytes) -> Self:
         return cls(
             timestamp=data.get("timestamp"),
             db_name=data.get("db_name"),
             table_name=data.get("table_name"),
             statement=data.get("statement"),
             statement_values=data.get("statement_values"),
-            operation = DatabaseOperation.from_str(v) if (v := data.get("operation")) else None,
+            operation = DatabaseOperation.from_str(dbo) if (dbo := data.get("operation")) else None,
             corr_ctx=(
-                CorrelationContext.from_api_payload(v)
-                if (v := data.get("corr_ctx")) and isinstance(v, dict)
+                CorrelationContext.from_api_payload(cc, decryption_key=decryption_key)
+                if (cc := data.get("corr_ctx")) and isinstance(cc, dict)
                 else None
             ),
         )
@@ -279,23 +294,23 @@ class DatabaseEventPayload:
 @dataclass(kw_only=True)
 class HttpServerEventPayload:
     timestamp: float | None
-    corr_ctx: CorrelationContext | None
     request_method: HttpRequestMethod | None
     request_url: str | None
     request_headers: dict[str, str | None] | None
     request_payload: str | None
+    corr_ctx: CorrelationContext | None
 
     @classmethod
-    def from_api_payload(cls, data: dict[str, Any]) -> Self:
+    def from_api_payload(cls, data: dict[str, Any], *, decryption_key: bytes) -> Self:
         return cls(
             timestamp=data.get("timestamp"),
             request_url=data.get("request_url"),
             request_headers=data.get("request_headers"),
             request_payload=data.get("request_payload"),
-            request_method = HttpRequestMethod.from_str(v) if (v := data.get("request_method")) else None,
+            request_method = HttpRequestMethod.from_str(rm) if (rm := data.get("request_method")) else None,
             corr_ctx=(
-                CorrelationContext.from_api_payload(v)
-                if (v := data.get("corr_ctx")) and isinstance(v, dict)
+                CorrelationContext.from_api_payload(cc, decryption_key=decryption_key)
+                if (cc := data.get("corr_ctx")) and isinstance(cc, dict)
                 else None
             ),
         )
