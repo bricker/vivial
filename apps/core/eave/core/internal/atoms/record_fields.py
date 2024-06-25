@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, Self
+from typing import Any
 from urllib.parse import parse_qsl, urlparse
 
-from eave.stdlib.deidentification import redact
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
 from eave.core.internal.atoms.api_types import (
@@ -66,12 +65,6 @@ class TypedValueRecordField(RecordField):
     float_value: float | None = None
     bool_value: bool | None = None
 
-    def redact_sensitive_content(self) -> Self:
-        if self.string_value:
-            self.string_value = redact(self.string_value)
-        # TODO: other data values are difficult to accurately identify w/o key name?
-        return self
-
 
 @dataclass(kw_only=True)
 class MultiScalarTypeKeyValueRecordField(RecordField):
@@ -94,11 +87,6 @@ class MultiScalarTypeKeyValueRecordField(RecordField):
 
     key: str
     value: TypedValueRecordField | None
-
-    def redact_sensitive_content(self) -> Self:
-        if self.value:
-            self.value.redact_sensitive_content()
-        return self
 
     @classmethod
     def list_from_scalar_dict(cls, d: dict[str, JsonScalar] | None) -> list["MultiScalarTypeKeyValueRecordField"]:
@@ -156,11 +144,6 @@ class SingleScalarTypeKeyValueRecordField[T: str | bool | int | float](RecordFie
 
     key: str
     value: T | None
-
-    def redact_sensitive_content(self) -> Self:
-        if self.value and isinstance(self.value, str):
-            self.value = redact(self.value)
-        return self
 
     @classmethod
     def list_from_scalar_dict(cls, d: dict[str, T | None] | None) -> list["SingleScalarTypeKeyValueRecordField[T]"]:
@@ -710,14 +693,6 @@ class TargetRecordField(RecordField):
     content: str | None
     attributes: list[SingleScalarTypeKeyValueRecordField[str]] | None
 
-    def redact_sensitive_content(self) -> Self:
-        if self.content:
-            self.content = redact(self.content)
-        if self.attributes:
-            for attr in self.attributes:
-                attr.redact_sensitive_content()
-        return self
-
     @classmethod
     def from_api_resource(cls, resource: TargetProperties | None) -> "TargetRecordField | None":
         if not resource:
@@ -788,14 +763,6 @@ class UrlRecordField(RecordField):
     hash: str | None
     query_params: list[SingleScalarTypeKeyValueRecordField[str]] | None
 
-    def redact_sensitive_content(self) -> Self:
-        if self.raw:
-            self.raw = redact(self.raw)
-        if self.query_params:
-            for qp in self.query_params:
-                qp.redact_sensitive_content()
-        return self
-
     @classmethod
     def from_api_resource(cls, resource: str | None) -> "UrlRecordField | None":
         if not resource:
@@ -846,14 +813,6 @@ class CurrentPageRecordField(RecordField):
     url: UrlRecordField | None
     title: str | None
     pageview_id: str | None
-
-    def redact_sensitive_content(self) -> Self:
-        if self.url:
-            self.url.redact_sensitive_content()
-        # TODO: does title really need redaction?
-        if self.title:
-            self.title = redact(self.title)
-        return self
 
     @classmethod
     def from_api_resource(cls, resource: CurrentPageProperties | None) -> "CurrentPageRecordField | None":

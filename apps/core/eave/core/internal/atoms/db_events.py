@@ -1,7 +1,7 @@
 import dataclasses
 from dataclasses import dataclass
 from textwrap import dedent
-from typing import Any, Self, cast
+from typing import Any, cast
 
 import inflect
 from google.cloud.bigquery import SchemaField, SqlTypeNames, StandardSqlTypeNames
@@ -75,14 +75,6 @@ class DatabaseEventAtom:
     user: UserRecordField | None
     traffic_source: TrafficSourceRecordField | None
 
-    def redact_sensitive_content(self) -> Self:
-        if self.statement:
-            self.statement = redact(self.statement)
-        if self.statement_values:
-            for value in self.statement_values:
-                value.redact_sensitive_content()
-        return self
-
 
 class DatabaseEventsTableHandle(BigQueryTableHandle):
     table_def = BigQueryTableDefinition(
@@ -152,9 +144,10 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
                 user=user,
                 traffic_source=traffic_source,
             )
-            atom.redact_sensitive_content()
 
             atoms.append(atom)
+
+        # TODO: redact atoms here
 
         errors = self._bq_client.append_rows(
             table=table,

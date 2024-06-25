@@ -1,7 +1,7 @@
 import dataclasses
 from dataclasses import dataclass
 from textwrap import dedent
-from typing import Any, Self, cast
+from typing import Any, cast
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
@@ -25,13 +25,8 @@ from .shared import common_bq_insert_timestamp_field, common_event_timestamp_fie
 from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTableHandle
 
 
-class Atom:
-    @classmethod
-    def schema(cls) -> tuple[SchemaField, ...]:
-        ...
-
 @dataclass(kw_only=True)
-class BrowserEventAtom(Atom):
+class BrowserEventAtom:
     @classmethod
     def schema(cls) -> tuple[SchemaField, ...]:
         return (
@@ -73,6 +68,7 @@ class BrowserEventAtom(Atom):
     geo: GeoRecordField | None
     extra: list[MultiScalarTypeKeyValueRecordField] | None
     client_ip: str | None
+
 
 class BrowserEventsTableHandle(BigQueryTableHandle):
     table_def = BigQueryTableDefinition(
@@ -136,12 +132,11 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
 
             atoms.append(atom)
 
-        # formatted_rows = redact(atoms)
+        # TODO: redact atoms here
 
-        formatted_rows = [dataclasses.asdict(atom) for atom in atoms]
         errors = self._bq_client.append_rows(
             table=table,
-            rows=formatted_rows,
+            rows=[dataclasses.asdict(atom) for atom in atoms],
         )
 
         if len(errors) > 0:
