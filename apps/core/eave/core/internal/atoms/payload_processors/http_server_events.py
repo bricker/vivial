@@ -24,7 +24,7 @@ class HttpServerEventsTableHandle(BigQueryTableHandle):
         atoms: list[HttpServerEventAtom] = []
 
         for payload in events:
-            e = HttpServerEventPayload.from_api_payload(payload, decryption_key=self._client_credentials.decryption_key)
+            e = HttpServerEventPayload.from_api_payload(payload, decryption_key=self._client.decryption_key)
 
             if not e.request_method or not e.request_url:
                 LOGGER.warning("Invalid server event payload", ctx)

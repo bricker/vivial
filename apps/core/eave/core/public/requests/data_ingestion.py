@@ -79,7 +79,7 @@ class BrowserDataIngestionEndpoint(HTTPEndpoint):
                 coordinates=geo_coordinates,
             )
 
-            handle = BrowserEventsTableHandle(team=eave_team)
+            handle = BrowserEventsTableHandle(client=creds)
             await handle.insert_with_geolocation(
                 events=events,
                 geolocation=geolocation,
@@ -118,18 +118,16 @@ class ServerDataIngestionEndpoint(HTTPEndpoint):
 
             await creds.touch(session=db_session)
 
-            eave_team = await TeamOrm.one_or_exception(session=db_session, team_id=creds.team_id)
-
         if (events := input.events.get(EventType.db_event)) and len(events) > 0:
-            handle = DatabaseEventsTableHandle(team=eave_team)
+            handle = DatabaseEventsTableHandle(client=creds)
             await handle.insert(events=events, ctx=ctx)
 
         if (events := input.events.get(EventType.http_server_event)) and len(events) > 0:
-            handle = HttpServerEventsTableHandle(team=eave_team)
+            handle = HttpServerEventsTableHandle(client=creds)
             await handle.insert(events=events, ctx=ctx)
 
         if (events := input.events.get(EventType.http_client_event)) and len(events) > 0:
-            handle = HttpClientEventsTableHandle(team=eave_team)
+            handle = HttpClientEventsTableHandle(client=creds)
             await handle.insert(events=events, ctx=ctx)
 
         response = Response(status_code=200)

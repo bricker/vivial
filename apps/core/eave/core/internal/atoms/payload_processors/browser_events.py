@@ -31,7 +31,7 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
         atoms: list[BrowserEventAtom] = []
 
         for payload in events:
-            e = BrowserEventPayload.from_api_payload(payload, decryption_key=self._client_credentials.decryption_key)
+            e = BrowserEventPayload.from_api_payload(payload, decryption_key=self._client.decryption_key)
             if not e.action:
                 LOGGER.warning("Unexpected event action", {"event": payload}, ctx)
                 continue

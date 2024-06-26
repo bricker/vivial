@@ -72,6 +72,11 @@ class CorrCtxStorage:
 
         return {**self.received, **self.updated}
 
+    def to_json(self) -> str:
+        """Convert entirety of storage to JSON string"""
+
+        return json.dumps(self.merged())
+
     def updated_values_cookies(self) -> list[str]:
         """
         Convert updated_context store to URL encoded cookie strings.
@@ -137,7 +142,10 @@ class BaseCorrelationContext(abc.ABC):
     def to_json(self) -> str:
         """Convert entirety of storage to JSON string"""
 
-        return json.dumps(self.to_dict())
+        storage = self.get_storage()
+        if not storage:
+            return "{}"
+        return storage.to_json()
 
     def get_updated_values_cookies(self) -> list[str]:
         """

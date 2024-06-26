@@ -31,7 +31,7 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
         atoms: list[DatabaseEventAtom] = []
 
         for payload in events:
-            e = DatabaseEventPayload.from_api_payload(payload, decryption_key=self._client_credentials.decryption_key)
+            e = DatabaseEventPayload.from_api_payload(payload, decryption_key=self._client.decryption_key)
 
             if not e.operation or not e.table_name:
                 LOGGER.warning("Missing parameters e.operation and/or e.table_name", ctx)
@@ -99,7 +99,7 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
             num_vevents = await VirtualEventOrm.count(
                 session=db_session,
                 params=VirtualEventOrm.QueryParams(
-                    team_id=self._team.id,
+                    team_id=self._client.team_id,
                 ),
             )
 

@@ -30,7 +30,7 @@ class TestBrowserEventsPayloadProcessor(BigQueryTestsBase):
         await super().asyncSetUp()
 
     async def test_insert(self) -> None:
-        table = BrowserEventsTableHandle(team=self.eave_team, client_credentials=self.client_credentials)
+        table = BrowserEventsTableHandle(client=self.client_credentials)
         url = "https://dashboard.eave.fyi:9090/insights?q1=v1#footer"
 
         await table.insert_with_geolocation(
@@ -276,7 +276,7 @@ class TestBrowserEventsPayloadProcessor(BigQueryTestsBase):
                 assert vevent.one_or_none() is None
                 assert not self.bq_table_exists(table_name=view_id)
 
-        table = BrowserEventsTableHandle(team=self.eave_team, client_credentials=self.client_credentials)
+        table = BrowserEventsTableHandle(client=self.client_credentials)
         await table.insert_with_geolocation(
             events=[
                 # Each is doubled to test that only unique views are created
@@ -310,7 +310,7 @@ class TestDatabaseEventsPayloadProcessor(BigQueryTestsBase):
         await super().asyncSetUp()
 
     async def test_insert(self) -> None:
-        table = DatabaseEventsTableHandle(team=self.eave_team, client_credentials=self.client_credentials)
+        table = DatabaseEventsTableHandle(client=self.client_credentials)
 
         await table.insert(
             events=[
@@ -471,7 +471,7 @@ class TestDatabaseEventsPayloadProcessor(BigQueryTestsBase):
                 assert vevent.one_or_none() is None
                 assert not self.bq_table_exists(table_name=view_id)
 
-        table = DatabaseEventsTableHandle(team=self.eave_team, client_credentials=self.client_credentials)
+        table = DatabaseEventsTableHandle(client=self.client_credentials)
         await table.insert(
             events=[
                 # Some of these are doubled to test that only unique views are created
@@ -509,7 +509,7 @@ class TestHttpServerEventsPayloadProcessor(BigQueryTestsBase):
         await super().asyncSetUp()
 
     async def test_insert(self) -> None:
-        table = HttpServerEventsTableHandle(team=self.eave_team, client_credentials=self.client_credentials)
+        table = HttpServerEventsTableHandle(client=self.client_credentials)
         url = "https://dashboard.eave.fyi:9090/insights?q1=v1#footer"
 
         await table.insert(
