@@ -28,8 +28,8 @@ from .table_handle import BigQueryFieldMode, BigQueryTableDefinition, BigQueryTa
 
 @dataclass(kw_only=True)
 class BrowserEventAtom:
-    @classmethod
-    def schema(cls) -> tuple[SchemaField, ...]:
+    @staticmethod
+    def schema() -> tuple[SchemaField, ...]:
         return (
             SchemaField(
                 name="action",
