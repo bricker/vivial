@@ -2,7 +2,15 @@ import hashlib
 import os
 import unittest
 
-from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME, EAVE_COLLECTOR_COOKIE_PREFIX, EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX, EAVE_COLLECTOR_ENCRYPTED_COOKIE_PREFIX, BaseCorrelationContext, CorrCtxStorage, CorrelationContextAttr
+from eave.collectors.core.correlation_context.base import (
+    EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
+    EAVE_COLLECTOR_COOKIE_PREFIX,
+    EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX,
+    EAVE_COLLECTOR_ENCRYPTED_COOKIE_PREFIX,
+    BaseCorrelationContext,
+    CorrCtxStorage,
+    CorrelationContextAttr,
+)
 
 
 class CorrelationContextAttrTest(unittest.IsolatedAsyncioTestCase):
@@ -30,6 +38,7 @@ class CorrelationContextAttrTest(unittest.IsolatedAsyncioTestCase):
         encrypted_attr = attr.to_encrypted(encryption_key=b"invalid")
         assert encrypted_attr is None
 
+
 class CorrelationContextConstantsTest(unittest.IsolatedAsyncioTestCase):
     async def test_constants(self) -> None:
         # These can't change or other stuff will break (eg browser collector)
@@ -37,6 +46,7 @@ class CorrelationContextConstantsTest(unittest.IsolatedAsyncioTestCase):
         assert EAVE_COLLECTOR_ENCRYPTED_COOKIE_PREFIX == "_eave.nc."
         assert EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX == "_eave.nc.act."
         assert EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME == "account_id"
+
 
 class CorrelationContextStorageTest(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
@@ -113,11 +123,11 @@ class CorrelationContextStorageTest(unittest.IsolatedAsyncioTestCase):
             == f'{{"{EAVE_COLLECTOR_COOKIE_PREFIX}session_id": "ses", "{EAVE_COLLECTOR_COOKIE_PREFIX}key": "new val", "{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": "123"}}'
         ), "Context did not join as expected"
 
-
         ctx.load_from_cookies(cookies={"_eave.a": "b", "c": "d"})
         assert ctx.received == {
             "_eave.a": "b",
         }
+
 
 class _ExampleCorrelationContext(BaseCorrelationContext):
     storage: CorrCtxStorage | None = None
@@ -131,6 +141,7 @@ class _ExampleCorrelationContext(BaseCorrelationContext):
 
         return self.storage
 
+
 class BaseCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
     def test_get(self) -> None:
         ctx = _ExampleCorrelationContext()
@@ -141,7 +152,7 @@ class BaseCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
         ctx.set("y", "z", prefix="a", encrypted=True)
         assert ctx.storage is not None
         assert len(ctx.storage.updated) == 1
-        assert ctx.get("ay") is None # key was hashed
+        assert ctx.get("ay") is None  # key was hashed
 
     def test_set_not_encrypted(self) -> None:
         ctx = _ExampleCorrelationContext()

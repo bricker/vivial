@@ -1,7 +1,14 @@
 import os
 import unittest
 
-from eave.collectors.core.config import EaveCredentials, eave_api_base_url, eave_env, is_development, queue_flush_frequency_seconds, queue_maxsize
+from eave.collectors.core.config import (
+    EaveCredentials,
+    eave_api_base_url,
+    eave_env,
+    is_development,
+    queue_flush_frequency_seconds,
+    queue_maxsize,
+)
 
 
 class ConfigTest(unittest.IsolatedAsyncioTestCase):
