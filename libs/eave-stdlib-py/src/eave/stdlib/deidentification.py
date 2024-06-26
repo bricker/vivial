@@ -4,7 +4,6 @@ import google.cloud.dlp_v2 as dlp
 
 from .config import SHARED_CONFIG
 
-client = dlp.DlpServiceAsyncClient()
 
 # Convert the project id into a full resource id.
 parent = f"projects/{SHARED_CONFIG.google_cloud_project}/locations/global"
@@ -12,6 +11,19 @@ _key_sep = "."
 
 
 def _flatten_to_dict(obj: Any) -> dict[str, str | bool | int | float]:
+    """
+    Convert an object and any nested fields to a flat dict where
+    keys describe the path of field reference to reach the value.
+
+    e.g.
+    Mammal(genus=Canis(common_names=["dog","wolf"]), quantity=10000)
+    ->
+    {
+        "genus.common_names.0": "dog",
+        "genus.common_names.1": "wolf",
+        "quantity": 10000
+    }
+    """
     flat = {}
     # (prefix, key/index, value)
     items: list[tuple[str, Any, Any]] = [("", k, v) for k, v in dataclasses.asdict(obj).items()]
@@ -32,15 +44,56 @@ def _flatten_to_dict(obj: Any) -> dict[str, str | bool | int | float]:
     return flat
 
 
+def _ensure_uniform_keys(flattened_objs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    if not flattened_objs:
+        return []
+
+    all_keys = set().union(*(d.keys() for d in flattened_objs))
+    # re-write all flat objs, adding None value for keys original obj didnt have
+    return [{key: d.get(key, None) for key in all_keys} for d in flattened_objs]
+
+
 def _write_flat_data_to_object(data: dict[str, Any], obj: Any) -> None:
-    pass
+    """Writes input `data` to the provided `obj` reference, using `data` keys
+    as the path to the property to write the dict value to."""
+    for key_path, value in data.items():
+        # TODO: will censored float/int values get screwed by this check?
+        if not value:
+            # no value present to write (or key_path may not be valid for this obj)
+            continue
+
+        path_segments = key_path.split(_key_sep)
+        obj_drill = obj
+        for i in range(len(path_segments)):
+            key = path_segments[i]
+            if isinstance(obj_drill, list):
+                # list key must be numeric
+                if key.isnumeric():
+                    key = int(key)
+                else:
+                    # TODO: something has gone horribly wrong
+                    break
+
+                if i == len(path_segments) - 1:
+                    # end of key path; assign value
+                    obj_drill[key] = value
+                else:
+                    obj_drill = obj_drill[key]
+            elif isinstance(obj_drill, dict):
+                if i == len(path_segments) - 1:
+                    # end of key path; assign value
+                    obj_drill[key] = value
+                else:
+                    obj_drill = obj_drill[key]
+            else:  # handle class object
+                if i == len(path_segments) - 1:
+                    # end of key path; assign value
+                    setattr(obj_drill, key, value)
+                else:
+                    obj_drill = getattr(obj_drill, key)
 
 
-async def redact_atoms(
-    atoms: list[
-        Any
-    ],  # TODO: we probs need ref to og type inorder to unflatten? or do we just write back to og obj w/ flat as mapping?
-) -> None:
+async def redact_atoms(atoms: list[Any]) -> None:
     # TODO: update docs
     """Uses the Data Loss Prevention API to deidentify sensitive data in a
 
@@ -52,12 +105,12 @@ async def redact_atoms(
     if len(atoms) == 0:
         return
 
-    # flatten atom dict
-    flat_atoms = [_flatten_to_dict(atom) for atom in atoms]
+    # flatten atoms into list of uniform dicts, all w/ same keys
+    flat_atoms = _ensure_uniform_keys([_flatten_to_dict(atom) for atom in atoms])
 
     # map to dlp types
     # TODO: will empty lists, or None values fuck w/ the keys present for each entry?
-    all_columns_str = flat_atoms[0].keys()
+    all_columns_str = list(flat_atoms[0].keys())
     dlp_rows = []
     for flat_atom in flat_atoms:
         row_values = []
@@ -70,10 +123,11 @@ async def redact_atoms(
             elif isinstance(val, float):
                 row_values.append(dlp.Value(float_value=val))
             else:
-                row_values.append(dlp.Value(string_value=str(val)))
+                row_values.append(dlp.Value(string_value=str(val) if val else ""))
 
         dlp_rows.append(dlp.Table.Row(values=row_values))
 
+    client = dlp.DlpServiceAsyncClient()
     response = await client.deidentify_content(
         request=dlp.DeidentifyContentRequest(
             parent=parent,
@@ -82,7 +136,7 @@ async def redact_atoms(
                     field_transformations=[
                         dlp.FieldTransformation(
                             fields=[
-                                # TODO: fields to senseor
+                                # TODO: how to figure out which fields to senseor
                             ],
                             info_type_transformations=dlp.InfoTypeTransformations(
                                 transformations=[
@@ -107,10 +161,24 @@ async def redact_atoms(
         )
     )
 
-    # TODO: gotta convert back to atoms
-    print(response.item)
+    # write redacted response data back to original atoms
     for i in range(len(atoms)):
-        _write_flat_data_to_object(response.item.table.rows[i], atoms[i])
+        # convert dlp.Row back to plain dict
+        data = {}
+        for j in range(len(all_columns_str)):
+            v = response.item.table.rows[i].values[j]
+            data[all_columns_str[j]] = (
+                v.string_value
+                or v.integer_value
+                or v.float_value
+                or v.boolean_value
+                # or v.date_value
+                # or v.time_value
+                # or v.timestamp_value
+                # or v.day_of_week_value
+                or None
+            )
+        _write_flat_data_to_object(data, atoms[i])
 
 
 async def redact_str(
@@ -123,6 +191,8 @@ async def redact_str(
 
     e.g. "my ssn is [US_SOCIAL_SECURITY_NUMBER]"
     """
+    client = dlp.DlpServiceAsyncClient()
+
     response = await client.deidentify_content(
         request=dlp.DeidentifyContentRequest(
             parent=parent,
