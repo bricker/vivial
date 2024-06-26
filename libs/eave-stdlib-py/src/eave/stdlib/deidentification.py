@@ -94,9 +94,8 @@ def _write_flat_data_to_object(data: dict[str, Any], obj: Any) -> None:
 
 
 async def redact_atoms(atoms: list[Any]) -> None:
-    # TODO: update docs
     """Uses the Data Loss Prevention API to deidentify sensitive data in a
-
+    list of Atoms. Alters the list `atoms` in place.
 
     NOTE: 3000 redactions limit?
     https://cloud.google.com/sensitive-data-protection/docs/deidentify-sensitive-data#findings-limit
@@ -109,7 +108,6 @@ async def redact_atoms(atoms: list[Any]) -> None:
     flat_atoms = _ensure_uniform_keys([_flatten_to_dict(atom) for atom in atoms])
 
     # map to dlp types
-    # TODO: will empty lists, or None values fuck w/ the keys present for each entry?
     all_columns_str = list(flat_atoms[0].keys())
     dlp_rows = []
     for flat_atom in flat_atoms:
@@ -172,10 +170,6 @@ async def redact_atoms(atoms: list[Any]) -> None:
                 or v.integer_value
                 or v.float_value
                 or v.boolean_value
-                # or v.date_value
-                # or v.time_value
-                # or v.timestamp_value
-                # or v.day_of_week_value
                 or None
             )
         _write_flat_data_to_object(data, atoms[i])
