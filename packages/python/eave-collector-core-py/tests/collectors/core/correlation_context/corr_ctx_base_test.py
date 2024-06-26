@@ -47,8 +47,17 @@ class CorrelationContextStorageTest(unittest.IsolatedAsyncioTestCase):
         ctx = CorrCtxStorage()
         assert len(ctx.updated) == 0
 
-        ctx.set_encrypted(prefix="x.", key="y", value="z")
+        ctx.set(prefix="x.", key="y", value="z", encrypted=True)
         assert len(ctx.updated) == 1
+        assert ctx.get("x.y") is None
+
+    async def test_set_not_encrypted(self) -> None:
+        ctx = CorrCtxStorage()
+        assert len(ctx.updated) == 0
+
+        ctx.set(prefix="x.", key="y", value="z", encrypted=False)
+        assert len(ctx.updated) == 1
+        assert ctx.get("x.y") == "z"
 
     async def test_set_encrypted_invalid_creds(self) -> None:
         os.environ["EAVE_CREDENTIALS"] = "invalid"
@@ -56,7 +65,7 @@ class CorrelationContextStorageTest(unittest.IsolatedAsyncioTestCase):
         ctx = CorrCtxStorage()
         assert len(ctx.updated) == 0
 
-        ctx.set_encrypted(prefix="x.", key="y", value="z")
+        ctx.set(prefix="x.", key="y", value="z", encrypted=True)
         assert len(ctx.updated) == 0
 
     async def test_merged(self) -> None:
@@ -129,26 +138,40 @@ class BaseCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
 
     def test_set_encrypted(self) -> None:
         ctx = _ExampleCorrelationContext()
-        ctx.set_encrypted(prefix="x", key="y", value="z")
+        ctx.set("y", "z", prefix="a", encrypted=True)
         assert ctx.storage is not None
         assert len(ctx.storage.updated) == 1
+        assert ctx.get("ay") is None # key was hashed
+
+    def test_set_not_encrypted(self) -> None:
+        ctx = _ExampleCorrelationContext()
+        ctx.set("y", "z", prefix="a", encrypted=False)
+        assert ctx.storage is not None
+        assert len(ctx.storage.updated) == 1
+        assert ctx.get("ay") == "z"
+
+    def test_set_no_prefix(self) -> None:
+        ctx = _ExampleCorrelationContext()
+        ctx.set("y", "z", prefix=None, encrypted=False)
+        assert ctx.storage is not None
+        assert ctx.get("y") == "z"
 
     def test_to_dict(self) -> None:
         ctx = _ExampleCorrelationContext()
         assert len(ctx.to_dict()) == 0
-        ctx.set_encrypted(prefix="x", key="y", value="z")
+        ctx.set(prefix="x", key="y", value="z")
         assert len(ctx.to_dict()) == 1
 
     def test_to_json(self) -> None:
         ctx = _ExampleCorrelationContext()
         assert ctx.to_json() == "{}"
-        ctx.set_encrypted(prefix="x", key="y", value="z")
+        ctx.set(prefix="x", key="y", value="z")
         assert ctx.to_json() != "{}"
 
     def test_get_updated_values_cookies(self) -> None:
         ctx = _ExampleCorrelationContext()
         assert ctx.get_updated_values_cookies() == ""
-        ctx.set_encrypted(prefix="x", key="y", value="z")
+        ctx.set(prefix="x", key="y", value="z")
         assert ctx.get_updated_values_cookies() != ""
 
     def test_from_cookies(self) -> None:
@@ -162,7 +185,7 @@ class BaseCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
 
     def test_clear(self) -> None:
         ctx = _ExampleCorrelationContext()
-        ctx.set_encrypted(prefix="x", key="y", value="z")
+        ctx.set(prefix="x", key="y", value="z")
         assert ctx.storage is not None
         assert len(ctx.storage.updated) == 1
 

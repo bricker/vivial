@@ -53,18 +53,20 @@ def save_identification_data(table_name: str, column_value_map: dict[str, Any]) 
 
             # casing matters for matching camelCase, so no lower_key
             if any(re.search(pat, key) for pat in foreign_key_patterns):
-                CORR_CTX.set_encrypted(
+                CORR_CTX.set(
                     prefix=EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX,
                     key=lower_key,
                     value=value,
+                    encrypted=True,
                 )
                 continue
 
             if any(re.search(pat, lower_key) for pat in primary_key_patterns):
-                CORR_CTX.set_encrypted(
+                CORR_CTX.set(
                     prefix=EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX,
                     key=EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
                     value=value,
+                    encrypted=True,
                 )
                 continue
 

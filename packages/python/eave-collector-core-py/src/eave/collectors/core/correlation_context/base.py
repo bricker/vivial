@@ -25,24 +25,34 @@ def corr_ctx_symmetric_encryption_key(credentials: str) -> bytes:
 
 
 class CorrCtxStorage:
-    received: dict[str, str]
-    updated: dict[str, str]
+    received: dict[str, JsonScalar]
+    updated: dict[str, JsonScalar]
 
     def __init__(self) -> None:
         self.received = {}
         self.updated = {}
 
-    def get(self, key: str) -> str | None:
+    def get(self, key: str) -> JsonScalar | None:
         """Get a value from either storage"""
+
         updated_value = self.updated.get(key)
         if updated_value is not None:
             return updated_value
         return self.received.get(key)
 
-    def set_encrypted(self, *, prefix: str, key: str, value: JsonScalar | None) -> None:
+    def set(self, key: str, value: JsonScalar | None, *, prefix: str | None = None, encrypted: bool = True) -> None:
         """Set a value in updated_context storage"""
+
         if value is None:
             return None
+
+        if not encrypted:
+            if prefix:
+                finalkey = f"{prefix}{key}"
+            else:
+                finalkey = key
+            self.updated[finalkey] = value
+            return
 
         creds = EaveCredentials.from_env()
         if not creds:
@@ -67,7 +77,7 @@ class CorrCtxStorage:
             EAVE_LOGGER.exception(e)
             return None
 
-    def merged(self) -> dict[str, str]:
+    def merged(self) -> dict[str, JsonScalar]:
         """merge received and updated values together"""
 
         return {**self.received, **self.updated}
@@ -115,7 +125,7 @@ class BaseCorrelationContext(abc.ABC):
     @abc.abstractmethod
     def get_storage(self) -> CorrCtxStorage | None: ...
 
-    def get(self, key: str) -> str | None:
+    def get(self, key: str) -> JsonScalar | None:
         """Get a value from either storage"""
 
         storage = self.get_storage()
@@ -123,15 +133,15 @@ class BaseCorrelationContext(abc.ABC):
             return None
         return storage.get(key)
 
-    def set_encrypted(self, *, prefix: str, key: str, value: JsonScalar | None) -> None:
+    def set(self, key: str, value: JsonScalar | None, *, prefix: str | None = None, encrypted: bool = True) -> None:
         """Set a value in updated_context storage"""
 
         storage = self.get_storage()
         if not storage:
             return
-        storage.set_encrypted(prefix=prefix, key=key, value=value)
+        storage.set(key=key, value=value, prefix=prefix, encrypted=encrypted)
 
-    def to_dict(self) -> dict[str, str]:
+    def to_dict(self) -> dict[str, JsonScalar]:
         """Convert entirety of storage to dict"""
 
         storage = self.get_storage()
