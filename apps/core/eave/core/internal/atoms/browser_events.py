@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from textwrap import dedent
 from typing import Any, cast
 
+from eave.stdlib.deidentification import redact_atoms
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
 from eave.core.internal import database
@@ -132,7 +133,7 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
 
             atoms.append(atom)
 
-        # TODO: redact atoms here
+        await redact_atoms(atoms)
 
         errors = self._bq_client.append_rows(
             table=table,
