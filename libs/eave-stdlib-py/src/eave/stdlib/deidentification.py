@@ -2,7 +2,7 @@ import dataclasses
 from typing import Any
 import google.cloud.dlp_v2 as dlp
 
-from .config import SHARED_CONFIG
+from .config import SHARED_CONFIG, EaveEnvironment
 
 
 # Convert the project id into a full resource id.
@@ -101,6 +101,10 @@ async def redact_atoms(atoms: list[Any]) -> None:
     https://cloud.google.com/sensitive-data-protection/docs/deidentify-sensitive-data#findings-limit
     """
 
+    if SHARED_CONFIG.eave_env == EaveEnvironment.test:
+        print("skipping redaction...")
+        return
+
     if len(atoms) == 0:
         return
 
@@ -185,6 +189,10 @@ async def redact_str(
 
     e.g. "my ssn is [US_SOCIAL_SECURITY_NUMBER]"
     """
+    if SHARED_CONFIG.eave_env == EaveEnvironment.test:
+        print("skipping redaction...")
+        return data
+
     client = dlp.DlpServiceAsyncClient()
 
     response = await client.deidentify_content(
