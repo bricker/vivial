@@ -14,6 +14,7 @@ from eave.core.internal.atoms.db_record_fields import (
     MultiScalarTypeKeyValueRecordField,
     SingleScalarTypeKeyValueRecordField,
     TargetRecordField,
+    UrlRecordField,
 )
 from eave.core.internal.atoms.shared import BigQueryFieldMode
 
@@ -96,11 +97,7 @@ class TestHttpServerEventAtom(BaseTestCase):
                     field_type=SqlTypeNames.STRING,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
-                SchemaField(
-                    name="request_url",
-                    field_type=SqlTypeNames.STRING,
-                    mode=BigQueryFieldMode.NULLABLE,
-                ),
+                UrlRecordField.schema(name="request_url", description=self.anystr()),
                 SingleScalarTypeKeyValueRecordField[str].schema(
                     name="request_headers",
                     description=self.anystr(),
@@ -116,9 +113,9 @@ class TestHttpServerEventAtom(BaseTestCase):
         )
 
 
-class TestHttpClickEventAtom(BaseTestCase):
+class TestHttpClientEventAtom(BaseTestCase):
     async def test_schema(self):
-        assert HttpClientEventAtom.TABLE_DEF.table_id == "atoms_http_server_events"
+        assert HttpClientEventAtom.TABLE_DEF.table_id == "atoms_http_client_events"
         assert_schemas_match(
             HttpClientEventAtom.TABLE_DEF.schema,
             (
@@ -127,11 +124,7 @@ class TestHttpClickEventAtom(BaseTestCase):
                     field_type=SqlTypeNames.STRING,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
-                SchemaField(
-                    name="request_url",
-                    field_type=SqlTypeNames.STRING,
-                    mode=BigQueryFieldMode.NULLABLE,
-                ),
+                UrlRecordField.schema(name="request_url", description=self.anystr()),
                 SingleScalarTypeKeyValueRecordField[str].schema(
                     name="request_headers",
                     description=self.anystr(),

@@ -79,7 +79,7 @@ class AsyncioCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
     async def test_convert_ctx_to_cookies_creates_valid_cookie(self) -> None:
         ctx = AsyncioCorrelationContext()
         ctx.set("session_id", "ses", encrypt=False)
-        ctx.set(f"{EAVE_COLLECTOR_COOKIE_PREFIX}key", '"value"', encrypt=False)
+        ctx.set("key", '"value"', encrypt=False)
 
         # expect URL encoded
         assert ctx.get_updated_values_cookies() == [

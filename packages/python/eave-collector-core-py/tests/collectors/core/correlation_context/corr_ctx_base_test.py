@@ -69,6 +69,14 @@ class CorrelationContextStorageTest(unittest.IsolatedAsyncioTestCase):
         assert len(ctx.updated) == 1
         assert ctx.get("x.y") == "z"
 
+    async def test_set_default_prewfix(self) -> None:
+        ctx = CorrCtxStorage()
+        assert len(ctx.updated) == 0
+
+        ctx.set(key="y", value="z", encrypt=False)
+        assert len(ctx.updated) == 1
+        assert ctx.get(f"{EAVE_COLLECTOR_COOKIE_PREFIX}y") == "z"
+
     async def test_set_encrypted_invalid_creds(self) -> None:
         os.environ["EAVE_CREDENTIALS"] = "invalid"
 
@@ -181,9 +189,9 @@ class BaseCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
 
     def test_get_updated_values_cookies(self) -> None:
         ctx = _ExampleCorrelationContext()
-        assert ctx.get_updated_values_cookies() == ""
+        assert len(ctx.get_updated_values_cookies()) == 0
         ctx.set(prefix="x", key="y", value="z")
-        assert ctx.get_updated_values_cookies() != ""
+        assert len(ctx.get_updated_values_cookies()) == 1
 
     def test_from_cookies(self) -> None:
         ctx = _ExampleCorrelationContext()

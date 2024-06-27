@@ -40,7 +40,7 @@ class CorrCtxStorage:
             return updated_value
         return self.received.get(key)
 
-    def set(self, key: str, value: JsonScalar | None, *, prefix: str | None = None, encrypt: bool = True) -> None:
+    def set(self, key: str, value: JsonScalar | None, *, prefix: str = EAVE_COLLECTOR_COOKIE_PREFIX, encrypt: bool = True) -> None:
         """Set a value in updated_context storage"""
 
         if value is None:
@@ -133,7 +133,7 @@ class BaseCorrelationContext(abc.ABC):
             return None
         return storage.get(key)
 
-    def set(self, key: str, value: JsonScalar | None, *, prefix: str | None = None, encrypt: bool = True) -> None:
+    def set(self, key: str, value: JsonScalar | None, *, prefix: str = EAVE_COLLECTOR_COOKIE_PREFIX, encrypt: bool = True) -> None:
         """Set a value in updated_context storage"""
 
         storage = self.get_storage()

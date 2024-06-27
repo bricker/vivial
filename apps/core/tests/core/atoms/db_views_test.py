@@ -1,4 +1,4 @@
-from tests.core.bq_tests_base import BigQueryTestsBase
+from ..bq_tests_base import BigQueryTestsBase
 
 from eave.collectors.core.datastructures import DatabaseOperation
 from eave.core.internal.atoms.db_views import ClickView, DatabaseEventView, FormSubmissionView, PageViewView

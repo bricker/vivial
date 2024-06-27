@@ -34,6 +34,8 @@ class TestTeamOrm(BaseTestCase):
             team.allowed_origins = ["dashboard.eave.fyi"]
 
         assert team.origin_allowed(origin="https://dashboard.eave.fyi")
+        assert not team.origin_allowed(origin="https://www.eave.fyi")
+        assert not team.origin_allowed(origin=self.anyurl())
 
     async def test_origin_allowed_with_port(self) -> None:
         async with self.db_session.begin() as s:
@@ -69,6 +71,41 @@ class TestTeamOrm(BaseTestCase):
             team.allowed_origins = ["*"]
 
         assert team.origin_allowed(origin=self.anyurl())
+
+    # async def test_origin_allowed_with_scheme(self) -> None:
+    #     async with self.db_session.begin() as s:
+    #         team = await self.make_team(s)
+
+    #     team.allowed_origins = ["https://eave.test"]
+    #     assert team.origin_allowed(origin="https://eave.test")
+    #     assert team.origin_allowed(origin="http://eave.test")
+    #     assert not team.origin_allowed(origin="https://dashboard.eave.test")
+
+    #     team.allowed_origins = ["https://*.eave.test"]
+    #     assert team.origin_allowed(origin="https://eave.test")
+    #     assert team.origin_allowed(origin="https://dashboard.eave.test")
+
+    #     team.allowed_origins = ["//*.eave.test"]
+    #     assert team.origin_allowed(origin="https://eave.test")
+    #     assert not team.origin_allowed(origin=self.anyurl())
+
+    #     team.allowed_origins = ["*.eave.test:8080//patha"]
+    #     assert team.origin_allowed(origin="https://dashboard.eave.test:8080")
+    #     assert not team.origin_allowed(origin=self.anyurl())
+
+    #     team.allowed_origins = ["https://*.eave.test:8080/patha"]
+    #     assert team.origin_allowed(origin="https://dashboard.eave.test:8080")
+    #     assert not team.origin_allowed(origin="https://dashboard.eave.test:9999")
+    #     assert not team.origin_allowed(origin=self.anyurl())
+
+    #     team.allowed_origins = ["*.eave.test:8080/"]
+    #     assert team.origin_allowed(origin="https://dashboard.eave.test:8080")
+    #     assert not team.origin_allowed(origin=self.anyurl())
+
+    #     team.allowed_origins = ["//*.eave.test:8080//patha"]
+    #     assert team.origin_allowed(origin="https://dashboard.eave.test:8080")
+    #     assert not team.origin_allowed(origin=self.anyurl())
+
 
     async def test_bq_dataset_id(self):
         u = self.anyuuid()

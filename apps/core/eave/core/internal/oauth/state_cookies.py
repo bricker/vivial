@@ -13,22 +13,15 @@ def _build_cookie_name(provider: AuthProvider) -> str:
     return f"{EAVE_OAUTH_STATE_COOKIE_PREFIX}{provider.value}"
 
 
-def _build_cookie_params(provider: AuthProvider) -> dict[str, Any]:
-    # FIXME: This only works if provider.value matches the path for /oauth/{provider}/callback, which is a bold assumption!
-    return {
-        "domain": SHARED_CONFIG.eave_cookie_domain,
-        "path": f"/oauth/{provider.value}/callback",
-        "secure": not SHARED_CONFIG.is_development,
-        "httponly": True,
-        "samesite": "lax",
-    }
-
-
 def save_state_cookie(response: Response, state: str, provider: AuthProvider) -> None:
     response.set_cookie(
         key=_build_cookie_name(provider=provider),
         value=state,
-        **_build_cookie_params(provider=provider),
+        domain=SHARED_CONFIG.eave_cookie_domain,
+        path=f"/oauth/{provider.value}/callback",
+        secure=True,
+        httponly=True,
+        samesite="lax",
     )
 
 
@@ -41,4 +34,11 @@ def get_state_cookie(request: Request, provider: AuthProvider) -> str:
 
 
 def delete_state_cookie(response: Response, provider: AuthProvider) -> None:
-    response.delete_cookie(key=_build_cookie_name(provider=provider), **_build_cookie_params(provider))
+    response.delete_cookie(
+        key=_build_cookie_name(provider=provider),
+        domain=SHARED_CONFIG.eave_cookie_domain,
+        path=f"/oauth/{provider.value}/callback",
+        secure=True,
+        httponly=True,
+        samesite="lax",
+    )
