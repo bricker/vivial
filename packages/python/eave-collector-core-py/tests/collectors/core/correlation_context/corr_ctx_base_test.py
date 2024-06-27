@@ -57,7 +57,7 @@ class CorrelationContextStorageTest(unittest.IsolatedAsyncioTestCase):
         ctx = CorrCtxStorage()
         assert len(ctx.updated) == 0
 
-        ctx.set(prefix="x.", key="y", value="z", encrypted=True)
+        ctx.set(prefix="x.", key="y", value="z", encrypt=True)
         assert len(ctx.updated) == 1
         assert ctx.get("x.y") is None
 
@@ -65,7 +65,7 @@ class CorrelationContextStorageTest(unittest.IsolatedAsyncioTestCase):
         ctx = CorrCtxStorage()
         assert len(ctx.updated) == 0
 
-        ctx.set(prefix="x.", key="y", value="z", encrypted=False)
+        ctx.set(prefix="x.", key="y", value="z", encrypt=False)
         assert len(ctx.updated) == 1
         assert ctx.get("x.y") == "z"
 
@@ -75,7 +75,7 @@ class CorrelationContextStorageTest(unittest.IsolatedAsyncioTestCase):
         ctx = CorrCtxStorage()
         assert len(ctx.updated) == 0
 
-        ctx.set(prefix="x.", key="y", value="z", encrypted=True)
+        ctx.set(prefix="x.", key="y", value="z", encrypt=True)
         assert len(ctx.updated) == 0
 
     async def test_merged(self) -> None:
@@ -149,21 +149,21 @@ class BaseCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
 
     def test_set_encrypted(self) -> None:
         ctx = _ExampleCorrelationContext()
-        ctx.set("y", "z", prefix="a", encrypted=True)
+        ctx.set("y", "z", prefix="a", encrypt=True)
         assert ctx.storage is not None
         assert len(ctx.storage.updated) == 1
         assert ctx.get("ay") is None  # key was hashed
 
     def test_set_not_encrypted(self) -> None:
         ctx = _ExampleCorrelationContext()
-        ctx.set("y", "z", prefix="a", encrypted=False)
+        ctx.set("y", "z", prefix="a", encrypt=False)
         assert ctx.storage is not None
         assert len(ctx.storage.updated) == 1
         assert ctx.get("ay") == "z"
 
     def test_set_no_prefix(self) -> None:
         ctx = _ExampleCorrelationContext()
-        ctx.set("y", "z", prefix=None, encrypted=False)
+        ctx.set("y", "z", prefix=None, encrypt=False)
         assert ctx.storage is not None
         assert ctx.get("y") == "z"
 

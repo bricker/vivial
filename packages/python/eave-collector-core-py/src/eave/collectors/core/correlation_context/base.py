@@ -40,13 +40,13 @@ class CorrCtxStorage:
             return updated_value
         return self.received.get(key)
 
-    def set(self, key: str, value: JsonScalar | None, *, prefix: str | None = None, encrypted: bool = True) -> None:
+    def set(self, key: str, value: JsonScalar | None, *, prefix: str | None = None, encrypt: bool = True) -> None:
         """Set a value in updated_context storage"""
 
         if value is None:
             return None
 
-        if not encrypted:
+        if not encrypt:
             if prefix:
                 finalkey = f"{prefix}{key}"
             else:
@@ -133,13 +133,13 @@ class BaseCorrelationContext(abc.ABC):
             return None
         return storage.get(key)
 
-    def set(self, key: str, value: JsonScalar | None, *, prefix: str | None = None, encrypted: bool = True) -> None:
+    def set(self, key: str, value: JsonScalar | None, *, prefix: str | None = None, encrypt: bool = True) -> None:
         """Set a value in updated_context storage"""
 
         storage = self.get_storage()
         if not storage:
             return
-        storage.set(key=key, value=value, prefix=prefix, encrypted=encrypted)
+        storage.set(key=key, value=value, prefix=prefix, encrypt=encrypt)
 
     def to_dict(self) -> dict[str, JsonScalar]:
         """Convert entirety of storage to dict"""

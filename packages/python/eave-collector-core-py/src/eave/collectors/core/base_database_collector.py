@@ -57,7 +57,7 @@ def save_identification_data(table_name: str, column_value_map: dict[str, Any]) 
                     prefix=EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX,
                     key=lower_key,
                     value=value,
-                    encrypted=True,
+                    encrypt=True,
                 )
                 continue
 
@@ -66,7 +66,7 @@ def save_identification_data(table_name: str, column_value_map: dict[str, Any]) 
                     prefix=EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX,
                     key=EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
                     value=value,
-                    encrypted=True,
+                    encrypt=True,
                 )
                 continue
 

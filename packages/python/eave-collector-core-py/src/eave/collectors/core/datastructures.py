@@ -6,7 +6,7 @@ from typing import Any, ClassVar, Self
 
 from eave.collectors.core.logging import EAVE_LOGGER
 
-from .json import JsonObject, compact_json
+from .json import JsonObject, JsonScalar, compact_json
 
 
 class DatabaseOperation(StrEnum):
@@ -58,7 +58,7 @@ class UserProperties:
 class EventPayload(ABC):
     event_type: ClassVar[EventType]
     timestamp: float | None
-    corr_ctx: dict[str, str] | None
+    corr_ctx: dict[str, JsonScalar] | None
 
     def to_dict(self) -> JsonObject:
         return dataclasses.asdict(self)
