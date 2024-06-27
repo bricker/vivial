@@ -17,4 +17,4 @@ starlette
 asgiref @ git+https://github.com/django/asgiref@7c8d31c05957bd644f9cead04206f11a0011c3d4
 pyjwt
 inflect
-cryptopraphy
+cryptography
