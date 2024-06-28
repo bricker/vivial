@@ -147,7 +147,6 @@ const useTeam = (): TeamHook => {
         });
       })
       .catch((e) => {
-        console.error(e);
         setGlossaryNetworkState((prev) => ({
           ...prev,
           virtualEventsAreErroring: true,
@@ -163,11 +162,11 @@ const useTeam = (): TeamHook => {
       return;
     }
 
-    // setGlossaryNetworkState((prev) => ({
-    //   ...prev,
-    //   virtualEventsAreLoading: true,
-    //   virtualEventsAreErroring: false,
-    // }));
+    setGlossaryNetworkState((prev) => ({
+      ...prev,
+      virtualEventsAreLoading: true,
+      virtualEventsAreErroring: false,
+    }));
     fetch(`${eaveWindow.eavedash.apiBase}/public/me/virtual-events/query`, {
       method: "POST",
       headers: {
@@ -175,7 +174,7 @@ const useTeam = (): TeamHook => {
         "eave-origin": eaveOrigin,
       },
       credentials: "include",
-      body: JSON.stringify({ id }),
+      body: JSON.stringify({ virtual_event: { id }}),
     })
       .then((resp) => {
         if (isUnauthorized(resp)) {
@@ -186,6 +185,7 @@ const useTeam = (): TeamHook => {
           throw resp;
         }
         return resp.json().then((data: GetMyVirtualEventDetailsResponseBody) => {
+          // update the virt event list data entry with the fetched details
           setTeam((prev) => {
             const virtualEvents = prev?.virtualEvents;
             if (!virtualEvents) {
@@ -198,7 +198,7 @@ const useTeam = (): TeamHook => {
 
             const idx = virtualEvents.findIndex((ve) => ve.id === id);
             if (idx > -1) {
-              // The virtual event is already in the list. Replace it with the virtual event from the response.
+              // update the virtual event with the extra data from the response.
               virtualEvents[idx] = data.virtual_event;
             } else {
               // The virtual event was not in the list. Append it to the list.
@@ -211,20 +211,19 @@ const useTeam = (): TeamHook => {
             };
           });
 
-          // setGlossaryNetworkState((prev) => ({
-          //   ...prev,
-          //   virtualEventsAreErroring: false,
-          //   virtualEventsAreLoading: false,
-          // }));
+          setGlossaryNetworkState((prev) => ({
+            ...prev,
+            virtualEventsAreErroring: false,
+            virtualEventsAreLoading: false,
+          }));
         });
       })
       .catch((e) => {
-        console.error(e);
-        // setGlossaryNetworkState((prev) => ({
-        //   ...prev,
-        //   virtualEventsAreErroring: true,
-        //   virtualEventsAreLoading: false,
-        // }));
+        setGlossaryNetworkState((prev) => ({
+          ...prev,
+          virtualEventsAreErroring: true,
+          virtualEventsAreLoading: false,
+        }));
       });
   }
 
