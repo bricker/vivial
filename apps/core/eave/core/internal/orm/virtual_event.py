@@ -5,7 +5,7 @@ from typing import Self
 from uuid import UUID
 
 import sqlalchemy
-from sqlalchemy import Index, ScalarResult, Select, func, literal, select, text
+from sqlalchemy import Index, ScalarResult, Select, func, literal, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.functions import count

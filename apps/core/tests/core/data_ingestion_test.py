@@ -12,19 +12,14 @@ from eave.collectors.core.datastructures import (
     HttpRequestMethod,
     HttpServerEventPayload,
 )
-from eave.core.internal.atoms.api_types import BrowserEventPayload
 from eave.core.internal.atoms.payload_processors.browser_events import BrowserEventsTableHandle
 from eave.core.internal.atoms.payload_processors.db_events import DatabaseEventsTableHandle
 from eave.core.internal.atoms.payload_processors.http_server_events import HttpServerEventsTableHandle
-from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
-from eave.core.internal.orm.team import bq_dataset_id
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
 
 from .bq_tests_base import BigQueryTestsBase
-
-from .base import BaseTestCase
 
 client = bigquery.Client(project=SHARED_CONFIG.google_cloud_project)
 

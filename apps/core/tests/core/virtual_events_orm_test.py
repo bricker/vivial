@@ -94,7 +94,7 @@ class TestVirtualEventOrm(BaseTestCase):
             await VirtualEventOrm.create(
                 session=s,
                 team_id=team.id,
-                readable_name="User was created", # This one should fall below the threshold
+                readable_name="User was created",  # This one should fall below the threshold
                 description=self.anystr(),
                 view_id=self.anystr(),
             )

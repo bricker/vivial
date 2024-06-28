@@ -1,5 +1,4 @@
 from datetime import datetime
-import re
 from typing import Self, TypedDict, Unpack
 from urllib.parse import urlparse
 from uuid import UUID

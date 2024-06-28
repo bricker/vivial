@@ -1,4 +1,3 @@
-from typing import Any
 
 from starlette.requests import Request
 from starlette.responses import Response

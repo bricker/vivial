@@ -4,16 +4,19 @@ import uuid
 from datetime import datetime
 from uuid import UUID
 
-from eave.collectors.core.config import EaveCredentials
-from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX, CorrelationContextAttr, corr_ctx_symmetric_encryption_key
-from eave.collectors.core.json import JsonScalar
 import sqlalchemy
 from sqlalchemy import NullPool, PrimaryKeyConstraint, func, text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
+from eave.collectors.core.config import EaveCredentials
 from eave.collectors.core.correlation_context import CORR_CTX
+from eave.collectors.core.correlation_context.base import (
+    CorrelationContextAttr,
+    corr_ctx_symmetric_encryption_key,
+)
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
+from eave.collectors.core.json import JsonScalar
 from eave.collectors.core.test_util import EphemeralWriteQueue
 from eave.collectors.sqlalchemy.private.collector import SQLAlchemyCollector
 
@@ -120,7 +123,9 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         decrypted_attr = next((attr for attr in encrypted_attrs if attr and attr.key == attr_name), None)
         return decrypted_attr
 
-    def _encrypted_attr_was_set(self, attr_name: str, event_corr_ctx: dict[str, JsonScalar] | None, expected_value: str | None = None) -> bool:
+    def _encrypted_attr_was_set(
+        self, attr_name: str, event_corr_ctx: dict[str, JsonScalar] | None, expected_value: str | None = None
+    ) -> bool:
         assert event_corr_ctx is not None
         storage = CORR_CTX.get_storage()
         assert storage is not None
@@ -131,11 +136,14 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         if event_corr_ctx_attr is None or global_corr_ctx_attr is None:
             return False
 
-        if expected_value is not None and event_corr_ctx_attr.value != expected_value or global_corr_ctx_attr.value != expected_value:
+        if (
+            expected_value is not None
+            and event_corr_ctx_attr.value != expected_value
+            or global_corr_ctx_attr.value != expected_value
+        ):
             return False
 
         return True
-
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
@@ -225,7 +233,9 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert e.db_name == db_uri.database
         assert e.statement_values is not None
         assert e.statement_values["name"] == new_account_name
-        assert self._encrypted_attr_was_set(attr_name="account_id", expected_value=str(account.id), event_corr_ctx=e.corr_ctx)
+        assert self._encrypted_attr_was_set(
+            attr_name="account_id", expected_value=str(account.id), event_corr_ctx=e.corr_ctx
+        )
 
     async def test_after_execute_insert_account_table(self) -> None:
         assert len(self._write_queue.queue) == 0
@@ -236,7 +246,9 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
 
         assert len(self._write_queue.queue) == 1
         e = self._write_queue.queue[0]
-        assert self._encrypted_attr_was_set(attr_name="account_id", expected_value=str(account.id), event_corr_ctx=e.corr_ctx)
+        assert self._encrypted_attr_was_set(
+            attr_name="account_id", expected_value=str(account.id), event_corr_ctx=e.corr_ctx
+        )
 
     async def test_after_execute_insert_not_account_table(self) -> None:
         assert len(self._write_queue.queue) == 0
@@ -278,7 +290,9 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert isinstance(e, DatabaseEventPayload)
         assert e.table_name == "accounts"
         assert e.operation == DatabaseOperation.SELECT
-        assert self._encrypted_attr_was_set(attr_name="account_id", expected_value=str(account.id), event_corr_ctx=e.corr_ctx)
+        assert self._encrypted_attr_was_set(
+            attr_name="account_id", expected_value=str(account.id), event_corr_ctx=e.corr_ctx
+        )
 
     async def test_single_condition_select_from_account_table(self) -> None:
         assert len(self._write_queue.queue) == 0
@@ -304,7 +318,9 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert isinstance(e, DatabaseEventPayload)
         assert e.table_name == "accounts"
         assert e.operation == DatabaseOperation.SELECT
-        assert self._encrypted_attr_was_set(attr_name="account_id", expected_value=str(account.id), event_corr_ctx=e.corr_ctx)
+        assert self._encrypted_attr_was_set(
+            attr_name="account_id", expected_value=str(account.id), event_corr_ctx=e.corr_ctx
+        )
 
     async def test_account_foreign_keys_captured_in_context_after_insert(self):
         assert len(self._write_queue.queue) == 0
@@ -367,7 +383,6 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert self._encrypted_attr_was_set("account_id", expected_value=str(account.id), event_corr_ctx=e.corr_ctx)
         assert self._encrypted_attr_was_set("snake_team_id", expected_value=str(team.id), event_corr_ctx=e.corr_ctx)
         assert self._encrypted_attr_was_set("camelTeamId", expected_value=str(team.id), event_corr_ctx=e.corr_ctx)
-
 
     async def test_account_foreign_keys_captured_in_context_after_select(self):
         assert len(self._write_queue.queue) == 0
@@ -462,8 +477,10 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
         assert isinstance(e, DatabaseEventPayload)
         assert e.table_name == "users"
         assert e.operation == DatabaseOperation.INSERT
-        assert self._encrypted_attr_was_set("account_id", expected_value= str(user.id), event_corr_ctx=e.corr_ctx)
-        assert self._encrypted_attr_was_set("secondary_id", expected_value= str(user.secondary_id), event_corr_ctx=e.corr_ctx)
+        assert self._encrypted_attr_was_set("account_id", expected_value=str(user.id), event_corr_ctx=e.corr_ctx)
+        assert self._encrypted_attr_was_set(
+            "secondary_id", expected_value=str(user.secondary_id), event_corr_ctx=e.corr_ctx
+        )
 
         # __primary_keys order should match table composite pk order
         assert e.statement_values is not None

@@ -7,11 +7,10 @@ from .base import BaseTestCase
 
 _WORDS = ["abc def", "ghi jkl", "mno pqr", "stu vwx"]
 
+
 class TestVirtualEventRequests(BaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
-
-
 
         async with self.db_session.begin() as s:
             self._team1 = await self.make_team(s)

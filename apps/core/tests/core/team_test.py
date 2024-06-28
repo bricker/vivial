@@ -106,7 +106,6 @@ class TestTeamOrm(BaseTestCase):
     #     assert team.origin_allowed(origin="https://dashboard.eave.test:8080")
     #     assert not team.origin_allowed(origin=self.anyurl())
 
-
     async def test_bq_dataset_id(self):
         u = self.anyuuid()
         assert bq_dataset_id(id=u) == f"team_{u.hex}"
