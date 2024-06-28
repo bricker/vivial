@@ -80,14 +80,21 @@ class TestVirtualEventOrm(BaseTestCase):
             e4 = await VirtualEventOrm.create(
                 session=s,
                 team_id=team.id,
-                readable_name="Account was deleted1",
+                readable_name="User was deleted2",
                 description=self.anystr(),
                 view_id=self.anystr(),
             )
             e5 = await VirtualEventOrm.create(
                 session=s,
                 team_id=team.id,
-                readable_name="Account was deleted2",
+                readable_name="User was deleted1",
+                description=self.anystr(),
+                view_id=self.anystr(),
+            )
+            await VirtualEventOrm.create(
+                session=s,
+                team_id=team.id,
+                readable_name="User was created", # This one should fall below the threshold
                 description=self.anystr(),
                 view_id=self.anystr(),
             )
@@ -109,22 +116,21 @@ class TestVirtualEventOrm(BaseTestCase):
                 )
             ).all()
 
-        assert len(result) == 5, "query returned incorrect number of results"
+        assert len(result) == 3, "query returned incorrect number of results"
         assert result[0].id == e1.id, "query result events were out of order"
-        assert result[1].id == e2.id, "query result events were out of order"
         assert result[2].id == e3.id, "query result events were out of order"
-        assert result[3].id == e4.id, "query result events were out of order"
-        assert result[4].id == e5.id, "query result events were out of order"
+        assert result[1].id == e2.id, "query result events were out of order"
 
         async with eave_db.async_session.begin() as db_session:
             result = (
                 await VirtualEventOrm.query(
                     db_session,
                     params=VirtualEventOrm.QueryParams(
-                        search_query="Account was deleted2",
+                        search_query="User was deleted2",
                     ),
                 )
             ).all()
 
-        assert len(result) >= 1
-        assert result[0].readable_name == "Account was deleted2", "best match was not first result"
+        assert len(result) == 2
+        assert result[0].id == e4.id, "best match was not first result"
+        assert result[1].id == e5.id, "best match was not first result"

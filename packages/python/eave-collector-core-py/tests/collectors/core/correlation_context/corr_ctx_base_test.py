@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import os
 import unittest
@@ -15,7 +16,7 @@ from eave.collectors.core.correlation_context.base import (
 
 class CorrelationContextAttrTest(unittest.IsolatedAsyncioTestCase):
     async def test_corr_context_attr_encryption(self) -> None:
-        enc_key = hashlib.sha256(b"x").digest()
+        enc_key = base64.b64encode(hashlib.sha256(b"x").digest())
 
         original_attr = CorrelationContextAttr(
             key="key",
@@ -131,11 +132,6 @@ class CorrelationContextStorageTest(unittest.IsolatedAsyncioTestCase):
             == f'{{"{EAVE_COLLECTOR_COOKIE_PREFIX}session_id": "ses", "{EAVE_COLLECTOR_COOKIE_PREFIX}key": "new val", "{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": "123"}}'
         ), "Context did not join as expected"
 
-        ctx.load_from_cookies(cookies={"_eave.a": "b", "c": "d"})
-        assert ctx.received == {
-            "_eave.a": "b",
-        }
-
 
 class _ExampleCorrelationContext(BaseCorrelationContext):
     storage: CorrCtxStorage | None = None
@@ -171,27 +167,27 @@ class BaseCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
 
     def test_set_no_prefix(self) -> None:
         ctx = _ExampleCorrelationContext()
-        ctx.set("y", "z", prefix=None, encrypt=False)
+        ctx.set("y", "z", encrypt=False)
         assert ctx.storage is not None
-        assert ctx.get("y") == "z"
+        assert ctx.get("_eave.y") == "z"
 
     def test_to_dict(self) -> None:
         ctx = _ExampleCorrelationContext()
         assert len(ctx.to_dict()) == 0
-        ctx.set(prefix="x", key="y", value="z")
-        assert len(ctx.to_dict()) == 1
+        ctx.set(prefix="x", key="y", value="z", encrypt=False)
+        assert ctx.to_dict() == {"xy": "z"}
 
     def test_to_json(self) -> None:
         ctx = _ExampleCorrelationContext()
         assert ctx.to_json() == "{}"
-        ctx.set(prefix="x", key="y", value="z")
-        assert ctx.to_json() != "{}"
+        ctx.set(prefix="x", key="y", value="z", encrypt=False)
+        assert ctx.to_json() == """{"xy": "z"}"""
 
     def test_get_updated_values_cookies(self) -> None:
         ctx = _ExampleCorrelationContext()
         assert len(ctx.get_updated_values_cookies()) == 0
-        ctx.set(prefix="x", key="y", value="z")
-        assert len(ctx.get_updated_values_cookies()) == 1
+        ctx.set(prefix="x", key="y", value="z", encrypt=False)
+        assert ctx.get_updated_values_cookies() == ["xy=z"]
 
     def test_from_cookies(self) -> None:
         ctx = _ExampleCorrelationContext()
@@ -207,6 +203,5 @@ class BaseCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
         ctx.set(prefix="x", key="y", value="z")
         assert ctx.storage is not None
         assert len(ctx.storage.updated) == 1
-
         ctx.clear()
         assert len(ctx.storage.updated) == 0

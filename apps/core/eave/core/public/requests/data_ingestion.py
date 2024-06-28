@@ -53,7 +53,7 @@ class BrowserDataIngestionEndpoint(HTTPEndpoint):
             if not eave_team.origin_allowed(origin=origin_header):
                 raise ForbiddenError("invalid origin")
 
-            await creds.touch(session=db_session)
+            creds.touch(session=db_session)
 
         body = await request.json()
         input = DataIngestRequestBody.from_json(data=body)
@@ -116,19 +116,28 @@ class ServerDataIngestionEndpoint(HTTPEndpoint):
             if not (creds.scope & ClientScope.write) > 0:
                 raise ForbiddenError("invalid scopes")
 
-            await creds.touch(session=db_session)
+            creds.touch(session=db_session)
 
-        if (events := input.events.get(EventType.db_event)) and len(events) > 0:
+        if (db_events := input.events.get(EventType.db_event)) and len(db_events) > 0:
             handle = DatabaseEventsTableHandle(client=creds)
-            await handle.insert(events=events, ctx=ctx)
+            await handle.insert(events=db_events, ctx=ctx)
 
-        if (events := input.events.get(EventType.http_server_event)) and len(events) > 0:
+        if (http_server_events := input.events.get(EventType.http_server_event)) and len(http_server_events) > 0:
             handle = HttpServerEventsTableHandle(client=creds)
-            await handle.insert(events=events, ctx=ctx)
+            await handle.insert(events=http_server_events, ctx=ctx)
 
-        if (events := input.events.get(EventType.http_client_event)) and len(events) > 0:
+        if (http_client_events := input.events.get(EventType.http_client_event)) and len(http_client_events) > 0:
             handle = HttpClientEventsTableHandle(client=creds)
-            await handle.insert(events=events, ctx=ctx)
+            await handle.insert(events=http_client_events, ctx=ctx)
+
+        if (browser_events := input.events.get(EventType.browser_event)) and len(browser_events) > 0:
+            handle = BrowserEventsTableHandle(client=creds)
+            await handle.insert_with_geolocation(
+                events=browser_events,
+                geolocation=None,
+                client_ip=None,
+                ctx=ctx,
+            )
 
         response = Response(status_code=200)
         return response

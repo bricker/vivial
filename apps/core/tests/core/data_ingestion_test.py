@@ -165,7 +165,7 @@ class TestDataIngestionEndpoints(BigQueryTestsBase):
             method="POST",
             path=f"/public/ingest/browser?clientId={self.client_credentials.id}",
             headers={
-                aiohttp.hdrs.ORIGIN: self.eave_team.allowed_origins[0],
+                aiohttp.hdrs.ORIGIN: "https://eave.test",
             },
             payload=DataIngestRequestBody(
                 events={
@@ -197,7 +197,7 @@ class TestDataIngestionEndpoints(BigQueryTestsBase):
             method="POST",
             path=f"/public/ingest/browser?clientId={self.anyuuid()}",
             headers={
-                aiohttp.hdrs.ORIGIN: self.eave_team.allowed_origins[0],
+                aiohttp.hdrs.ORIGIN: "https://eave.test",
             },
             payload=DataIngestRequestBody(
                 events={
@@ -244,7 +244,7 @@ class TestDataIngestionEndpoints(BigQueryTestsBase):
         response = await self.make_request(
             method="POST",
             path=f"/public/ingest/browser?clientId={ro_creds.id}",
-            headers={aiohttp.hdrs.ORIGIN: self.eave_team.allowed_origins[0]},
+            headers={aiohttp.hdrs.ORIGIN: "https://eave.test"},
             payload=DataIngestRequestBody(events={}).to_dict(),
         )
 

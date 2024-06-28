@@ -124,7 +124,8 @@ async def get_existing_eave_account(
 
         if eave_account:
             # An account exists. Update the saved auth tokens and login date.
-            eave_account.last_login = datetime.datetime.utcnow()
+            # We have to remove the tzinfo because the database column is timezone-naive
+            eave_account.last_login = datetime.datetime.now(datetime.UTC).replace(tzinfo=None)
             eave_account.set_tokens(session=db_session, access_token=access_token, refresh_token=refresh_token)
 
     return eave_account

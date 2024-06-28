@@ -5,10 +5,13 @@ from eave.stdlib.core_api.operations.virtual_event import ListMyVirtualEventsReq
 
 from .base import BaseTestCase
 
+_WORDS = ["abc def", "ghi jkl", "mno pqr", "stu vwx"]
 
 class TestVirtualEventRequests(BaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
+
+
 
         async with self.db_session.begin() as s:
             self._team1 = await self.make_team(s)
@@ -20,9 +23,9 @@ class TestVirtualEventRequests(BaseTestCase):
                     team_id=self._team1.id,
                     view_id=self.anystr(f"view_id {i}"),
                     description=self.anystr(f"description {i}"),
-                    readable_name=self.anystr(f"readable_name {i}"),
+                    readable_name=word,
                 )
-                for i in range(2)
+                for i, word in enumerate(_WORDS)
             ]
 
             self._team2 = await self.make_team(s)
@@ -36,9 +39,9 @@ class TestVirtualEventRequests(BaseTestCase):
                     team_id=self._team2.id,
                     view_id=self.getstr(f"view_id {i}"),
                     description=self.getstr(f"description {i}"),
-                    readable_name=self.getstr(f"readable_name {i}"),
+                    readable_name=word,
                 )
-                for i in range(2)
+                for i, word in enumerate(_WORDS)
             ]
 
             self._team2_virtual_events.append(
@@ -46,9 +49,9 @@ class TestVirtualEventRequests(BaseTestCase):
                 await VirtualEventOrm.create(
                     session=s,
                     team_id=self._team2.id,
-                    view_id=self.anystr("team2 view_id"),
-                    description=self.anystr("team2 description"),
-                    readable_name=self.anystr("team2 readable_name"),
+                    view_id=self.anystr("team2 view_id 99"),
+                    description=self.anystr("team2 description 99"),
+                    readable_name="yz",
                 )
             )
 
@@ -56,7 +59,7 @@ class TestVirtualEventRequests(BaseTestCase):
         response = await self.make_request(
             path=ListMyVirtualEventsRequest.config.path,
             payload=ListMyVirtualEventsRequest.RequestBody(
-                query=self.getstr("readable_name 0"),
+                query="abc",
             ),
             account_id=self._account_team1.id,
             access_token=self._account_team1.access_token,
@@ -71,7 +74,7 @@ class TestVirtualEventRequests(BaseTestCase):
         response = await self.make_request(
             path=ListMyVirtualEventsRequest.config.path,
             payload=ListMyVirtualEventsRequest.RequestBody(
-                query=self.anystr(),
+                query="yz",
             ),
             account_id=self._account_team1.id,
             access_token=self._account_team1.access_token,
@@ -95,7 +98,7 @@ class TestVirtualEventRequests(BaseTestCase):
 
         assert response.status_code == HTTPStatus.OK
         response_obj = ListMyVirtualEventsRequest.ResponseBody(**response.json())
-        assert len(response_obj.virtual_events) == 2
+        assert len(response_obj.virtual_events) == len(_WORDS)
         assert sorted(e.id for e in response_obj.virtual_events) == sorted(e.id for e in self._team1_virtual_events)
 
     async def test_get_virtual_events_with_search_term_team_scope(self) -> None:
@@ -107,7 +110,7 @@ class TestVirtualEventRequests(BaseTestCase):
         response = await self.make_request(
             path=ListMyVirtualEventsRequest.config.path,
             payload=ListMyVirtualEventsRequest.RequestBody(
-                query=self.getstr("team2 readable_name"),
+                query="yz",
             ),
             account_id=self._account_team1.id,
             access_token=self._account_team1.access_token,
@@ -120,7 +123,7 @@ class TestVirtualEventRequests(BaseTestCase):
         response = await self.make_request(
             path=ListMyVirtualEventsRequest.config.path,
             payload=ListMyVirtualEventsRequest.RequestBody(
-                query=self.getstr("team2 readable_name"),
+                query="yz",
             ),
             account_id=self._account_team2.id,
             access_token=self._account_team2.access_token,

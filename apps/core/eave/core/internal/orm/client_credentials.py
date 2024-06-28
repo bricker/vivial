@@ -95,8 +95,9 @@ class ClientCredentialsOrm(Base):
         result = await session.scalars(lookup)
         return result
 
-    async def touch(self, session: AsyncSession) -> None:
-        self.last_used = datetime.now(UTC)
+    def touch(self, session: AsyncSession) -> None:
+        # The database column is timezone-naive, so we have to remove the timezone info before saving it to the database.
+        self.last_used = datetime.now(UTC).replace(tzinfo=None)
 
     @property
     def combined(self) -> str:

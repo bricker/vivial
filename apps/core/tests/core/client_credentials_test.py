@@ -53,7 +53,7 @@ class TestClientCredentialsOrmScopeQuery(BaseTestCase):
         assert creds.last_used is None
 
         async with self.db_session.begin() as s:
-            await creds.touch(s)
+            creds.touch(s)
 
         assert creds.last_used is not None
         assert creds.last_used > datetime.datetime.now(datetime.UTC) - datetime.timedelta(seconds=5)
