@@ -7,7 +7,7 @@ from eave.collectors.core.correlation_context.base import (
     CorrelationContextAttr,
 )
 from eave.collectors.core.datastructures import DatabaseOperation, HttpRequestMethod
-from eave.core.internal.atoms.api_types import (
+from eave.core.internal.atoms.models.api_payload_types import (
     AccountProperties,
     BrowserAction,
     BrowserEventPayload,
@@ -25,9 +25,6 @@ from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, Clie
 from eave.stdlib.logging import LogContext
 
 from ..base import BaseTestCase
-
-empty_ctx = LogContext()
-
 
 class TestAtomApiTypes(BaseTestCase):
     async def asyncSetUp(self) -> None:

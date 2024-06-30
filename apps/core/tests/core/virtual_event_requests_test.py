@@ -1,7 +1,14 @@
 from http import HTTPStatus
 
+from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode, VirtualEventDetailsQueryInput, VirtualEventField
+from google.cloud.bigquery import SchemaField, SqlTypeNames
+
+from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
+from eave.core.internal.orm.team import bq_dataset_id
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
-from eave.stdlib.core_api.operations.virtual_event import ListMyVirtualEventsRequest
+from eave.stdlib.core_api.operations.virtual_event import GetMyVirtualEventDetailsRequest, ListMyVirtualEventsRequest
+
+from eave.core.public.requests.virtual_event import GetMyVirtualEventDetailsEndpoint
 
 from .base import BaseTestCase
 
@@ -20,7 +27,7 @@ class TestVirtualEventRequests(BaseTestCase):
                 await VirtualEventOrm.create(
                     session=s,
                     team_id=self._team1.id,
-                    view_id=self.anystr(f"view_id {i}"),
+                    view_id=self.anyhex(f"view_id {i}"),
                     description=self.anystr(f"description {i}"),
                     readable_name=word,
                 )
@@ -36,7 +43,7 @@ class TestVirtualEventRequests(BaseTestCase):
                 await VirtualEventOrm.create(
                     session=s,
                     team_id=self._team2.id,
-                    view_id=self.getstr(f"view_id {i}"),
+                    view_id=self.gethex(f"view_id {i}"),
                     description=self.getstr(f"description {i}"),
                     readable_name=word,
                 )
@@ -48,7 +55,7 @@ class TestVirtualEventRequests(BaseTestCase):
                 await VirtualEventOrm.create(
                     session=s,
                     team_id=self._team2.id,
-                    view_id=self.anystr("team2 view_id 99"),
+                    view_id=self.anyhex("team2 view_id 99"),
                     description=self.anystr("team2 description 99"),
                     readable_name="yz",
                 )
@@ -133,5 +140,99 @@ class TestVirtualEventRequests(BaseTestCase):
         assert len(response_obj.virtual_events) == 1
         assert response_obj.virtual_events[0].id == self._team2_virtual_events[-1].id
 
-    async def test_get_virtual_event_details(self):
-        self.fail("TODO")
+    async def test_get_virtual_event_details_with_existing_view(self):
+        target_vevent = self._team1_virtual_events[0]
+
+        dataset = EAVE_INTERNAL_BIGQUERY_CLIENT.get_or_create_dataset(dataset_id=bq_dataset_id(self._team1.id))
+
+        bq_view = EAVE_INTERNAL_BIGQUERY_CLIENT.construct_table(dataset_id=dataset.dataset_id, table_id=target_vevent.view_id)
+        bq_view.view_query = f'SELECT STRUCT("{self.anyhex()}" as `{self.anyalpha("field name 1")}`, "{self.anyhex()}" as `{self.anyalpha("field name 2")}`) as `{self.anyalpha("field name 0")}`'
+
+        bq_view = EAVE_INTERNAL_BIGQUERY_CLIENT.get_or_create_table(table=bq_view, ctx=self.empty_ctx)
+        bq_view.schema = (
+            SchemaField(
+                name=self.getalpha("field name 0"),
+                field_type=SqlTypeNames.STRUCT,
+                mode=BigQueryFieldMode.NULLABLE,
+                description=self.anystr("field description 0"),
+                fields=(
+                    SchemaField(
+                        name=self.getalpha("field name 1"),
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                        description=self.anystr("field description 1"),
+                    ),
+                    SchemaField(
+                        name=self.getalpha("field name 2"),
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                        description=self.anystr("field description 2"),
+                    ),
+                ),
+            ),
+        )
+
+        bq_view = EAVE_INTERNAL_BIGQUERY_CLIENT.update_table(table=bq_view, ctx=self.empty_ctx, fields=["schema"])
+
+        response = await self.make_request(
+            path=GetMyVirtualEventDetailsRequest.config.path,
+            payload=GetMyVirtualEventDetailsRequest.RequestBody(
+                virtual_event=VirtualEventDetailsQueryInput(
+                    id=target_vevent.id,
+                )
+            ),
+            account_id=self._account_team1.id,
+            access_token=self._account_team1.access_token,
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        response_obj = GetMyVirtualEventDetailsRequest.ResponseBody(**response.json())
+        assert response_obj.virtual_event.id == target_vevent.id
+        assert response_obj.virtual_event.view_id == target_vevent.view_id
+        assert response_obj.virtual_event.readable_name == target_vevent.readable_name
+        assert response_obj.virtual_event.description == target_vevent.description
+        assert response_obj.virtual_event.fields == [
+            VirtualEventField(
+                name=self.gethex("field name 0"),
+                description=self.getstr("field description 0"),
+                field_type=SqlTypeNames.STRUCT,
+                mode=BigQueryFieldMode.NULLABLE,
+                fields=[
+                    VirtualEventField(
+                        name=self.gethex("field name 1"),
+                        description=self.getstr("field description 1"),
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                        fields=None,
+                    ),
+                    VirtualEventField(
+                        name=self.gethex("field name 2"),
+                        description=self.getstr("field description 2"),
+                        field_type=SqlTypeNames.STRING,
+                        mode=BigQueryFieldMode.NULLABLE,
+                        fields=None,
+                    ),
+                ],
+            ),
+        ]
+
+    async def test_get_virtual_event_details_with_missing_view(self):
+        target_vevent = self._team1_virtual_events[0]
+        response = await self.make_request(
+            path=GetMyVirtualEventDetailsRequest.config.path,
+            payload=GetMyVirtualEventDetailsRequest.RequestBody(
+                virtual_event=VirtualEventDetailsQueryInput(
+                    id=target_vevent.id,
+                )
+            ),
+            account_id=self._account_team1.id,
+            access_token=self._account_team1.access_token,
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        response_obj = GetMyVirtualEventDetailsRequest.ResponseBody(**response.json())
+        assert response_obj.virtual_event.id == target_vevent.id
+        assert response_obj.virtual_event.view_id == target_vevent.view_id
+        assert response_obj.virtual_event.readable_name == target_vevent.readable_name
+        assert response_obj.virtual_event.description == target_vevent.description
+        assert response_obj.virtual_event.fields is None

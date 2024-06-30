@@ -1,9 +1,9 @@
 import dataclasses
 from typing import Any, cast
 
-from eave.core.internal.atoms.api_types import HttpServerEventPayload
-from eave.core.internal.atoms.atom_types import HttpServerEventAtom
-from eave.core.internal.atoms.db_record_fields import (
+from eave.core.internal.atoms.models.api_payload_types import HttpServerEventPayload
+from eave.core.internal.atoms.models.atom_types import HttpServerEventAtom
+from eave.core.internal.atoms.models.db_record_fields import (
     AccountRecordField,
     SessionRecordField,
     SingleScalarTypeKeyValueRecordField,
@@ -13,14 +13,12 @@ from eave.core.internal.atoms.db_record_fields import (
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.stdlib.logging import LOGGER, LogContext
 
-from ..table_handle import BigQueryTableHandle
+from .base_atom_controller import BaseAtomController
 
 
-class HttpServerEventsTableHandle(BigQueryTableHandle):
-    table_def = HttpServerEventAtom.TABLE_DEF
-
+class HttpServerEventsController(BaseAtomController):
     async def insert(self, events: list[dict[str, Any]], ctx: LogContext) -> None:
-        table = self.get_or_create_table(ctx=ctx)
+        table = self.get_or_create_bq_table(table_def=HttpServerEventAtom.table_def(), ctx=ctx)
         atoms: list[HttpServerEventAtom] = []
 
         for payload in events:

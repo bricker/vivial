@@ -3,13 +3,13 @@ from dataclasses import dataclass
 from textwrap import dedent
 from typing import cast
 
+from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
 import inflect
 from google.cloud.bigquery import SchemaField, SqlTypeNames, Table
 
 from eave.collectors.core.datastructures import DatabaseOperation
-from eave.core.internal.atoms.api_types import BrowserAction
-from eave.core.internal.atoms.atom_types import BrowserEventAtom, DatabaseEventAtom
-from eave.core.internal.atoms.shared import BigQueryFieldMode
+from eave.core.internal.atoms.models.api_payload_types import BrowserAction
+from eave.core.internal.atoms.models.atom_types import BrowserEventAtom, DatabaseEventAtom
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.stdlib.logging import LogContext
 from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize, titleize
@@ -127,7 +127,7 @@ _COMMON_GEO_FIELDS = (
 )
 
 
-class BigQueryView(ABC):
+class BigQueryViewDefinition(ABC):
     view_id: str
     """The BigQuery table ID"""
 
@@ -137,18 +137,14 @@ class BigQueryView(ABC):
     description: str
     """Description for BigQuery table metadata"""
 
-    dataset_id: str
-    """The dataset for this view."""
-
     @property
     @abstractmethod
     def schema(self) -> tuple[ViewField, ...]:
         """The schema for the view query. Its only purpose is to provide field descriptions. Not authoritative. This must match the view query."""
         ...
 
-    @property
     @abstractmethod
-    def view_query(self) -> str:
+    def build_view_query(self, *, dataset_id: str) -> str:
         """The SQL query that defines this view. Authoritative for the schema."""
         ...
 
@@ -160,27 +156,8 @@ class BigQueryView(ABC):
     def compiled_selectors(self) -> str:
         return ",\n    ".join(f.selector for f in self.schema)
 
-    def sync(self, *, ctx: LogContext) -> Table:
-        bq_view = EAVE_INTERNAL_BIGQUERY_CLIENT.construct_table(
-            dataset_id=self.dataset_id,
-            table_id=self.view_id,
-        )
-
-        bq_view.friendly_name = self.friendly_name
-        bq_view.description = self.description
-        bq_view.view_query = self.view_query
-
-        bq_view = EAVE_INTERNAL_BIGQUERY_CLIENT.get_or_create_table(
-            table=bq_view,
-            ctx=ctx,
-        )
-
-        bq_view.schema = self.schema_fields
-        bq_view = EAVE_INTERNAL_BIGQUERY_CLIENT.update_table(table=bq_view, ctx=ctx)
-        return bq_view
-
-    def sql_sanitized_fq_table(self, *, table_id: str) -> str:
-        sanitized_dataset_id = sql_sanitized_identifier(self.dataset_id)
+    def sql_sanitized_fq_table(self, *, dataset_id: str, table_id: str) -> str:
+        sanitized_dataset_id = sql_sanitized_identifier(dataset_id)
         sanitized_table_id = sql_sanitized_identifier(table_id)
         return f"{sanitized_dataset_id}.{sanitized_table_id}"
 
@@ -193,11 +170,11 @@ _db_operation_to_past_tense_verb = {
 }
 
 
-class DatabaseEventView(BigQueryView):
+class DatabaseEventView(BigQueryViewDefinition):
     _event_table_name: str
     _event_operation: DatabaseOperation
 
-    def __init__(self, *, dataset_id: str, event_table_name: str, event_operation: DatabaseOperation) -> None:
+    def __init__(self, *, event_table_name: str, event_operation: DatabaseOperation) -> None:
         table_resource = titleize(event_table_name)
         operation_past_tense_verb: str | None = _db_operation_to_past_tense_verb.get(event_operation)
         name_verb = (operation_past_tense_verb or event_operation).title()
@@ -212,7 +189,6 @@ class DatabaseEventView(BigQueryView):
         else:
             description = friendly_name
 
-        self.dataset_id = dataset_id
         self.view_id = view_id
         self.friendly_name = friendly_name
         self.description = description
@@ -233,10 +209,10 @@ class DatabaseEventView(BigQueryView):
             *_COMMON_VIEW_FIELDS,
         )
 
-    @property
-    def view_query(self) -> str:
+    def build_view_query(self, *, dataset_id: str) -> str:
         sanitized_fq_source_table = self.sql_sanitized_fq_table(
-            table_id=DatabaseEventAtom.TABLE_DEF.table_id,
+            dataset_id=dataset_id,
+            table_id=DatabaseEventAtom.table_def().table_id,
         )
         sanitized_db_event_table = sql_sanitized_literal(self._event_table_name)
         sanitized_db_event_operation = sql_sanitized_literal(self._event_operation)
@@ -256,14 +232,11 @@ class DatabaseEventView(BigQueryView):
         ).strip()
 
 
-class ClickView(BigQueryView):
-    def __init__(self, *, dataset_id: str) -> None:
-        self.dataset_id = dataset_id
-
-        # This view is the same for all customers, so we hardcode the fields.
-        self.view_id = "click"
-        self.friendly_name = "Click Event"
-        self.description = "A user clicked an element."
+class ClickView(BigQueryViewDefinition):
+    # This view is the same for all customers, so we hardcode the fields.
+    view_id = "click"
+    friendly_name = "Click Event"
+    description = "A user clicked an element."
 
     @property
     def schema(self) -> tuple[ViewField, ...]:
@@ -327,10 +300,10 @@ class ClickView(BigQueryView):
             *_COMMON_VIEW_FIELDS,
         )
 
-    @property
-    def view_query(self) -> str:
+    def build_view_query(self, *, dataset_id: str) -> str:
         sanitized_fq_source_table = self.sql_sanitized_fq_table(
-            table_id=BrowserEventAtom.TABLE_DEF.table_id,
+            dataset_id=dataset_id,
+            table_id=BrowserEventAtom.table_def().table_id,
         )
 
         sanitized_action_name = sql_sanitized_literal(BrowserAction.CLICK)
@@ -349,14 +322,11 @@ class ClickView(BigQueryView):
         ).strip()
 
 
-class FormSubmissionView(BigQueryView):
-    def __init__(self, *, dataset_id: str) -> None:
-        self.dataset_id = dataset_id
-
-        # This view is the same for all customers, so we hardcode the fields.
-        self.view_id = "form_submission"
-        self.friendly_name = "Form Submission Event"
-        self.description = "A user submitted a form."
+class FormSubmissionView(BigQueryViewDefinition):
+    # This view is the same for all customers, so we hardcode the fields.
+    view_id = "form_submission"
+    friendly_name = "Form Submission Event"
+    description = "A user submitted a form."
 
     @property
     def schema(self) -> tuple[ViewField, ...]:
@@ -403,10 +373,10 @@ class FormSubmissionView(BigQueryView):
             *_COMMON_VIEW_FIELDS,
         )
 
-    @property
-    def view_query(self) -> str:
+    def build_view_query(self, *, dataset_id: str) -> str:
         sanitized_fq_source_table = self.sql_sanitized_fq_table(
-            table_id=BrowserEventAtom.TABLE_DEF.table_id,
+            dataset_id=dataset_id,
+            table_id=BrowserEventAtom.table_def().table_id,
         )
 
         sanitized_action_name = sql_sanitized_literal(BrowserAction.FORM_SUBMISSION)
@@ -425,14 +395,11 @@ class FormSubmissionView(BigQueryView):
         ).strip()
 
 
-class PageViewView(BigQueryView):
-    def __init__(self, *, dataset_id: str) -> None:
-        self.dataset_id = dataset_id
-
-        # This view is the same for all customers, so we hardcode the fields.
-        self.view_id = "page_view"
-        self.friendly_name = "Page View Event"
-        self.description = "A user navigated to a new location in their browser."
+class PageViewView(BigQueryViewDefinition):
+    # This view is the same for all customers, so we hardcode the fields.
+    view_id = "page_view"
+    friendly_name = "Page View Event"
+    description = "A user navigated to a new location in their browser."
 
     @property
     def schema(self) -> tuple[ViewField, ...]:
@@ -467,10 +434,10 @@ class PageViewView(BigQueryView):
             *_COMMON_VIEW_FIELDS,
         )
 
-    @property
-    def view_query(self) -> str:
+    def build_view_query(self, *, dataset_id: str) -> str:
         sanitized_fq_source_table = self.sql_sanitized_fq_table(
-            table_id=BrowserEventAtom.TABLE_DEF.table_id,
+            dataset_id=dataset_id,
+            table_id=BrowserEventAtom.table_def().table_id,
         )
 
         sanitized_action_name = sql_sanitized_literal(BrowserAction.PAGE_VIEW)

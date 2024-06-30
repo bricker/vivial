@@ -18,7 +18,7 @@ class ThreadedCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
         assert ctx.get("key") == "1", "Set value was not read"
         ctx.set("key", "2", encrypt=False)
         assert ctx.get("key") == "2", "Set value was not overwritten"
-        assert ctx.to_json() == '{"key": "2"}'
+        assert ctx.to_json() == '{"_eave.key": "2"}'
 
     async def test_empty_state(self) -> None:
         ctx = ThreadedCorrelationContext()
@@ -31,7 +31,7 @@ class ThreadedCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
             for key in keys:
                 ctx.set(key, "1", encrypt=False)
 
-            expected = "{" + ", ".join([f'"{k}": "1"' for k in keys]) + "}"
+            expected = "{" + ", ".join([f'"_eave.{k}": "1"' for k in keys]) + "}"
             assert ctx.to_json() == expected, "Context did not match expected content"
 
         t1 = threading.Thread(target=_helper, args=(["k1", "k2", "k3"],))

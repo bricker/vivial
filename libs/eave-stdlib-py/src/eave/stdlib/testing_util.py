@@ -10,8 +10,9 @@ import unittest.mock
 import uuid
 from datetime import UTC, datetime, timedelta
 from math import floor
-from typing import Any, Literal, TypeVar
+from typing import Any, Literal, Type, TypeVar, cast
 
+from eave.stdlib.logging import LogContext
 from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
 
 import eave.stdlib.exceptions
@@ -28,6 +29,7 @@ M = TypeVar("M", bound=unittest.mock.Mock)
 class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     testdata: dict[str, Any]
     active_mocks: dict[str, unittest.mock.Mock]
+    empty_ctx: LogContext
     _active_patches: dict[str, unittest.mock._patch]
     _active_patched_dicts: dict[str, unittest.mock._patch_dict]
 
@@ -43,6 +45,8 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
+
+        self.empty_ctx = LogContext()
         SHARED_CONFIG.reset_cached_properties()
         self.mock_google_services()
         self.mock_google_auth()
@@ -117,8 +121,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return self.geturl(name)
 
     def geturl(self, name: str) -> str:
-        assert name in self.testdata, f"test value {name} has not been set. Use anyurl() to set it."
-        return self.testdata[name]
+        return self.getstr(name)
 
     def anypath(self, name: str | None = None) -> str:
         if name is None:
@@ -131,8 +134,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return self.getpath(name)
 
     def getpath(self, name: str) -> str:
-        assert name in self.testdata, f"test value {name} has not been set. Use anypath() to set it."
-        return self.testdata[name]
+        return self.getstr(name)
 
     def anystr(self, name: str | None = None) -> str:
         if name is None:
@@ -146,7 +148,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return self.getstr(name)
 
     def getstr(self, name: str) -> str:
-        assert name in self.testdata, f"test value {name} has not been set. Use anystr() to set it."
+        assert name in self.testdata, f"test value {name} has not been set. Use anystr(), anyhex(), etc to set it."
         return self.testdata[name]
 
     def anyjson(self, name: str | None = None) -> str:
@@ -160,8 +162,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return self.getjson(name)
 
     def getjson(self, name: str) -> str:
-        assert name in self.testdata, f"test value {name} has not been set. Use anyjson() to set it."
-        return self.testdata[name]
+        return self.getstr(name)
 
     def anydict(self, name: str | None = None, deterministic_keys: bool = False) -> dict[str, Any]:
         if name is None:
@@ -210,6 +211,33 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getuuid(self, name: str) -> uuid.UUID:
         assert name in self.testdata, f"test value {name} has not been set. Use anyuuid() to set it."
         return self.testdata[name]
+
+    def anyhex(self, name: str | None = None) -> str:
+        if name is None:
+            name = uuid.uuid4().hex
+
+        assert name not in self.testdata, f"test value {name} is already in use. Use gethex() to retrieve it."
+
+        data = uuid.uuid4().hex
+        self.testdata[name] = data
+        return self.gethex(name)
+
+    def gethex(self, name: str) -> str:
+        return self.getstr(name)
+
+    def anyalpha(self, name: str | None = None) -> str:
+        if name is None:
+            name = uuid.uuid4().hex
+
+        assert name not in self.testdata, f"test value {name} is already in use. Use getalpha() to retrieve it."
+
+        alphas = "abcdefghijklmnopqrstuvwxyz"
+        data = "".join(random.sample(alphas, k=10))
+        self.testdata[name] = data
+        return self.getalpha(name)
+
+    def getalpha(self, name: str) -> str:
+        return self.getstr(name)
 
     def anyint(self, name: str | None = None) -> int:
         if name is None:
@@ -267,8 +295,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return self.gettime(name)
 
     def gettime(self, name: str) -> float:
-        assert name in self.testdata, f"test value {name} has not been set. Use anytime() to set it."
-        return self.testdata[name]
+        return self.getfloat(name)
 
     def anybool(self, name: str | None = None) -> bool:
         if name is None:
@@ -295,8 +322,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return self.getsha256(name)
 
     def getsha256(self, name: str) -> bytes:
-        assert name in self.testdata, f"test value {name} has not been set. Use anysha256() to set it."
-        return self.testdata[name]
+        return self.getbytes(name)
 
     def b64encode(self, value: str, urlsafe: bool = False) -> str:
         b = value.encode()

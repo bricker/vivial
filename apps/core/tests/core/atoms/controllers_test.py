@@ -1,5 +1,6 @@
 import datetime
 import json
+from textwrap import dedent
 
 from eave.collectors.core.correlation_context.base import (
     EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
@@ -8,13 +9,19 @@ from eave.collectors.core.correlation_context.base import (
     CorrelationContextAttr,
 )
 from eave.collectors.core.datastructures import DatabaseOperation
-from eave.core.internal.atoms.api_types import BrowserAction
-from eave.core.internal.atoms.db_record_fields import (
+from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
+from eave.stdlib.util import sql_sanitized_literal
+from google.cloud.bigquery import SchemaField, SqlTypeNames
+from eave.core.internal.atoms.controllers.base_atom_controller import BaseAtomController
+from eave.core.internal.atoms.controllers.browser_events import BrowserEventsController
+from eave.core.internal.atoms.controllers.db_events import DatabaseEventsController
+from eave.core.internal.atoms.controllers.http_server_events import HttpServerEventsController
+from eave.core.internal.atoms.models.api_payload_types import BrowserAction
+from eave.core.internal.atoms.models.atom_types import Atom, BigQueryTableDefinition, BrowserEventAtom
+from eave.core.internal.atoms.models.db_record_fields import (
     GeoRecordField,
 )
-from eave.core.internal.atoms.payload_processors.browser_events import BrowserEventsTableHandle
-from eave.core.internal.atoms.payload_processors.db_events import DatabaseEventsTableHandle
-from eave.core.internal.atoms.payload_processors.http_server_events import HttpServerEventsTableHandle
+from eave.core.internal.atoms.models.db_views import BigQueryViewDefinition, ViewField
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.orm.team import bq_dataset_id
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
@@ -22,15 +29,128 @@ from eave.stdlib.logging import LogContext
 
 from ..bq_tests_base import BigQueryTestsBase
 
-empty_ctx = LogContext()
+class _ExampleAtom(Atom):
+    @staticmethod
+    def table_def() -> BigQueryTableDefinition:
+        return BigQueryTableDefinition(
+            table_id="atoms_example",
+            friendly_name="Example Atoms",
+            description="Example atoms",
+            schema=(
+                SchemaField(
+                    name="some_field",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+            ),
+        )
 
+class _ExampleView(BigQueryViewDefinition):
+    view_id = "example_view"
+    friendly_name = "Example View"
+    description = "example view"
+
+    @property
+    def schema(self) -> tuple[ViewField, ...]:
+        return (
+            ViewField(
+                definition=sql_sanitized_literal("Example View"),
+                alias="event_name",
+                description="event name",
+                field_type=SqlTypeNames.STRING,
+            ),
+        )
+
+    def build_view_query(self, *, dataset_id: str) -> str:
+        sanitized_fq_source_table = self.sql_sanitized_fq_table(
+            dataset_id=dataset_id,
+            table_id=_ExampleAtom.table_def().table_id,
+        )
+
+        return dedent(
+            f"""
+            SELECT
+                {self.compiled_selectors}
+            FROM
+                {sanitized_fq_source_table}
+            """
+        ).strip()
+
+class TestBaseAtomController(BigQueryTestsBase):
+    async def asyncSetUp(self) -> None:
+        await super().asyncSetUp()
+
+
+    async def test_get_or_create_table(self):
+        controller = BaseAtomController(client=self.client_credentials)
+        table_def = BigQueryTableDefinition(
+            table_id=self.anyhex(),
+            friendly_name=self.anystr(),
+            description=self.anystr(),
+            schema=(
+                SchemaField(
+                    name=self.anyhex(),
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+            )
+        )
+
+        assert not self.team_bq_dataset_exists()
+        assert not self.team_bq_table_exists(table_name=table_def.table_id)
+
+        # Calling this twice to test idempotency
+        controller.get_or_create_bq_table(table_def=table_def, ctx=self.empty_ctx)
+        controller.get_or_create_bq_table(table_def=table_def, ctx=self.empty_ctx)
+
+        assert self.team_bq_dataset_exists()
+        assert self.team_bq_table_exists(table_name=table_def.table_id)
+
+    async def test_sync_bq_view(self):
+        controller = BaseAtomController(client=self.client_credentials)
+        view_def = _ExampleView()
+
+        async with self.db_session.begin() as s:
+            vevent = (await VirtualEventOrm.query(
+                s,
+                params=VirtualEventOrm.QueryParams(
+                    team_id=self.eave_team.id,
+                    view_id=view_def.view_id,
+                ),
+            )).one_or_none()
+
+            assert vevent is None
+
+        assert not self.team_bq_dataset_exists()
+        assert not self.team_bq_table_exists(table_name=view_def.view_id)
+
+        controller.get_or_create_bq_table(table_def=_ExampleAtom.table_def(), ctx=self.empty_ctx)
+
+        # Calling this twice to test that multiple VirtualEventOrms aren't created.
+        await controller.sync_bq_view(view_def=view_def, ctx=self.empty_ctx)
+        await controller.sync_bq_view(view_def=view_def, ctx=self.empty_ctx)
+
+        async with self.db_session.begin() as s:
+            vevents = (await VirtualEventOrm.query(
+                s,
+                params=VirtualEventOrm.QueryParams(
+                    team_id=self.eave_team.id,
+                    view_id=view_def.view_id,
+                ),
+            )).all()
+
+            assert len(vevents) == 1
+            assert vevents[0].view_id == view_def.view_id
+
+        assert self.team_bq_dataset_exists()
+        assert self.team_bq_table_exists(table_name=view_def.view_id)
 
 class TestBrowserEventsPayloadProcessor(BigQueryTestsBase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
     async def test_insert(self) -> None:
-        table = BrowserEventsTableHandle(client=self.client_credentials)
+        table = BrowserEventsController(client=self.client_credentials)
         url = "https://dashboard.eave.fyi:9090/insights?q1=v1#footer"
 
         await table.insert_with_geolocation(
@@ -125,10 +245,10 @@ class TestBrowserEventsPayloadProcessor(BigQueryTestsBase):
                 city=self.anystr("event.geo.city"),
                 coordinates=self.anystr("event.geo.coordinates"),
             ),
-            ctx=empty_ctx,
+            ctx=self.empty_ctx,
         )
 
-        assert self.bq_table_exists(table_name="atoms_browser_events")
+        assert self.team_bq_table_exists(table_name="atoms_browser_events")
         results = EAVE_INTERNAL_BIGQUERY_CLIENT.query(
             query=f"select * from {bq_dataset_id(self.eave_team.id)}.atoms_browser_events"
         )
@@ -274,9 +394,9 @@ class TestBrowserEventsPayloadProcessor(BigQueryTestsBase):
                     ),
                 )
                 assert vevent.one_or_none() is None
-                assert not self.bq_table_exists(table_name=view_id)
+                assert not self.team_bq_table_exists(table_name=view_id)
 
-        table = BrowserEventsTableHandle(client=self.client_credentials)
+        table = BrowserEventsController(client=self.client_credentials)
         await table.insert_with_geolocation(
             events=[
                 # Each is doubled to test that only unique views are created
@@ -289,7 +409,7 @@ class TestBrowserEventsPayloadProcessor(BigQueryTestsBase):
             ],
             client_ip=None,
             geolocation=None,
-            ctx=empty_ctx,
+            ctx=self.empty_ctx,
         )
 
         async with self.db_session.begin() as s:
@@ -302,7 +422,7 @@ class TestBrowserEventsPayloadProcessor(BigQueryTestsBase):
                     ),
                 )
                 assert vevent.one_or_none() is not None
-                assert self.bq_table_exists(table_name=view_id)
+                assert self.team_bq_table_exists(table_name=view_id)
 
 
 class TestDatabaseEventsPayloadProcessor(BigQueryTestsBase):
@@ -310,7 +430,7 @@ class TestDatabaseEventsPayloadProcessor(BigQueryTestsBase):
         await super().asyncSetUp()
 
     async def test_insert(self) -> None:
-        table = DatabaseEventsTableHandle(client=self.client_credentials)
+        table = DatabaseEventsController(client=self.client_credentials)
 
         await table.insert(
             events=[
@@ -366,10 +486,10 @@ class TestDatabaseEventsPayloadProcessor(BigQueryTestsBase):
                     },
                 },
             ],
-            ctx=empty_ctx,
+            ctx=self.empty_ctx,
         )
 
-        assert self.bq_table_exists(table_name="atoms_db_events")
+        assert self.team_bq_table_exists(table_name="atoms_db_events")
         results = EAVE_INTERNAL_BIGQUERY_CLIENT.query(
             query=f"select * from {bq_dataset_id(self.eave_team.id)}.atoms_db_events"
         )
@@ -469,9 +589,9 @@ class TestDatabaseEventsPayloadProcessor(BigQueryTestsBase):
                     ),
                 )
                 assert vevent.one_or_none() is None
-                assert not self.bq_table_exists(table_name=view_id)
+                assert not self.team_bq_table_exists(table_name=view_id)
 
-        table = DatabaseEventsTableHandle(client=self.client_credentials)
+        table = DatabaseEventsController(client=self.client_credentials)
         await table.insert(
             events=[
                 # Some of these are doubled to test that only unique views are created
@@ -488,7 +608,7 @@ class TestDatabaseEventsPayloadProcessor(BigQueryTestsBase):
                 {"operation": "select", "table_name": "colors"},
                 {"operation": "select", "table_name": "colors"},
             ],
-            ctx=empty_ctx,
+            ctx=self.empty_ctx,
         )
 
         async with self.db_session.begin() as s:
@@ -501,7 +621,7 @@ class TestDatabaseEventsPayloadProcessor(BigQueryTestsBase):
                     ),
                 )
                 assert vevent.one_or_none() is not None
-                assert self.bq_table_exists(table_name=view_id)
+                assert self.team_bq_table_exists(table_name=view_id)
 
 
 class TestHttpServerEventsPayloadProcessor(BigQueryTestsBase):
@@ -509,7 +629,7 @@ class TestHttpServerEventsPayloadProcessor(BigQueryTestsBase):
         await super().asyncSetUp()
 
     async def test_insert(self) -> None:
-        table = HttpServerEventsTableHandle(client=self.client_credentials)
+        table = HttpServerEventsController(client=self.client_credentials)
         url = "https://dashboard.eave.fyi:9090/insights?q1=v1#footer"
 
         await table.insert(
@@ -564,10 +684,10 @@ class TestHttpServerEventsPayloadProcessor(BigQueryTestsBase):
                     },
                 },
             ],
-            ctx=empty_ctx,
+            ctx=self.empty_ctx,
         )
 
-        assert self.bq_table_exists(table_name="atoms_http_server_events")
+        assert self.team_bq_table_exists(table_name="atoms_http_server_events")
         results = EAVE_INTERNAL_BIGQUERY_CLIENT.query(
             query=f"select * from {bq_dataset_id(self.eave_team.id)}.atoms_http_server_events"
         )

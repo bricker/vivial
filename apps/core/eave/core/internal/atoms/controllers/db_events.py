@@ -3,29 +3,27 @@ from typing import Any, cast
 
 from eave.collectors.core.datastructures import DatabaseOperation
 from eave.core.internal import database
-from eave.core.internal.atoms.api_types import (
+from eave.core.internal.atoms.models.api_payload_types import (
     DatabaseEventPayload,
 )
-from eave.core.internal.atoms.atom_types import DatabaseEventAtom
-from eave.core.internal.atoms.db_record_fields import (
+from eave.core.internal.atoms.models.atom_types import DatabaseEventAtom
+from eave.core.internal.atoms.models.db_record_fields import (
     AccountRecordField,
     MultiScalarTypeKeyValueRecordField,
     SessionRecordField,
     TrafficSourceRecordField,
 )
-from eave.core.internal.atoms.db_views import DatabaseEventView
+from eave.core.internal.atoms.models.db_views import DatabaseEventView
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
 from eave.stdlib.logging import LOGGER, LogContext
 
-from ..table_handle import BigQueryTableHandle
+from .base_atom_controller import BaseAtomController
 
 
-class DatabaseEventsTableHandle(BigQueryTableHandle):
-    table_def = DatabaseEventAtom.TABLE_DEF
-
+class DatabaseEventsController(BaseAtomController):
     async def insert(self, events: list[dict[str, Any]], ctx: LogContext) -> None:
-        table = self.get_or_create_table(ctx=ctx)
+        table = self.get_or_create_bq_table(table_def=DatabaseEventAtom.table_def(), ctx=ctx)
 
         unique_operations: set[tuple[DatabaseOperation, str]] = set()
         atoms: list[DatabaseEventAtom] = []
@@ -109,7 +107,7 @@ class DatabaseEventsTableHandle(BigQueryTableHandle):
                 return
 
         for operation, table_name in unique_operations:
-            handle = DatabaseEventView(
-                dataset_id=self._dataset_id, event_table_name=table_name, event_operation=operation
+            view_def = DatabaseEventView(
+                event_table_name=table_name, event_operation=operation
             )
-            await self.create_bq_view(handle=handle, ctx=ctx)
+            await self.sync_bq_view(view_def=view_def, ctx=ctx)

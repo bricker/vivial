@@ -5,11 +5,11 @@ from starlette.responses import Response
 
 from eave.collectors.core.datastructures import DataIngestRequestBody, EventType
 from eave.core.internal import database
-from eave.core.internal.atoms.db_record_fields import GeoRecordField
-from eave.core.internal.atoms.payload_processors.browser_events import BrowserEventsTableHandle
-from eave.core.internal.atoms.payload_processors.db_events import DatabaseEventsTableHandle
-from eave.core.internal.atoms.payload_processors.http_client_events import HttpClientEventsTableHandle
-from eave.core.internal.atoms.payload_processors.http_server_events import HttpServerEventsTableHandle
+from eave.core.internal.atoms.models.db_record_fields import GeoRecordField
+from eave.core.internal.atoms.controllers.browser_events import BrowserEventsController
+from eave.core.internal.atoms.controllers.db_events import DatabaseEventsController
+from eave.core.internal.atoms.controllers.http_client_events import HttpClientEventsController
+from eave.core.internal.atoms.controllers.http_server_events import HttpServerEventsController
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib.api_util import get_header_value, get_header_value_or_exception
@@ -79,7 +79,7 @@ class BrowserDataIngestionEndpoint(HTTPEndpoint):
                 coordinates=geo_coordinates,
             )
 
-            handle = BrowserEventsTableHandle(client=creds)
+            handle = BrowserEventsController(client=creds)
             await handle.insert_with_geolocation(
                 events=events,
                 geolocation=geolocation,
@@ -119,19 +119,19 @@ class ServerDataIngestionEndpoint(HTTPEndpoint):
             creds.touch(session=db_session)
 
         if (db_events := input.events.get(EventType.db_event)) and len(db_events) > 0:
-            handle = DatabaseEventsTableHandle(client=creds)
+            handle = DatabaseEventsController(client=creds)
             await handle.insert(events=db_events, ctx=ctx)
 
         if (http_server_events := input.events.get(EventType.http_server_event)) and len(http_server_events) > 0:
-            handle = HttpServerEventsTableHandle(client=creds)
+            handle = HttpServerEventsController(client=creds)
             await handle.insert(events=http_server_events, ctx=ctx)
 
         if (http_client_events := input.events.get(EventType.http_client_event)) and len(http_client_events) > 0:
-            handle = HttpClientEventsTableHandle(client=creds)
+            handle = HttpClientEventsController(client=creds)
             await handle.insert(events=http_client_events, ctx=ctx)
 
         if (browser_events := input.events.get(EventType.browser_event)) and len(browser_events) > 0:
-            handle = BrowserEventsTableHandle(client=creds)
+            handle = BrowserEventsController(client=creds)
             await handle.insert_with_geolocation(
                 events=browser_events,
                 geolocation=None,

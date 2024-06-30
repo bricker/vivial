@@ -42,17 +42,24 @@ class BigQueryTestsBase(BaseTestCase):
             not_found_ok=True,
         )
 
-    def bq_team_dataset_exists(self) -> bool:
+    def get_team_bq_dataset(self) -> bigquery.Dataset | None:
         try:
             dataset = self.bq_client.get_dataset(dataset_ref=bq_dataset_id(self.eave_team.id))
+            return dataset
         except Exception as e:
             print(f"Google Cloud Error: {e}")
-            return False
+            return None
 
+    def team_bq_dataset_exists(self) -> bool:
+        dataset = self.get_team_bq_dataset()
         return dataset is not None
 
-    def bq_table_exists(self, table_name: str) -> bool:
+    def get_team_bq_table(self, table_name: str) -> bigquery.Table | None:
         table = EAVE_INTERNAL_BIGQUERY_CLIENT.get_table_or_none(
             dataset_id=bq_dataset_id(self.eave_team.id), table_id=table_name
         )
+        return table
+
+    def team_bq_table_exists(self, table_name: str) -> bool:
+        table = self.get_team_bq_table(table_name)
         return table is not None

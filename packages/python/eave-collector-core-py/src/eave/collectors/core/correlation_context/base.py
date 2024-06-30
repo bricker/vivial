@@ -32,13 +32,14 @@ class CorrCtxStorage:
         self.received = {}
         self.updated = {}
 
-    def get(self, key: str) -> JsonScalar | None:
+    def get(self, key: str, *, prefix: str = EAVE_COLLECTOR_COOKIE_PREFIX) -> JsonScalar | None:
         """Get a value from either storage"""
 
-        updated_value = self.updated.get(key)
+        finalkey = f"{prefix}{key}"
+        updated_value = self.updated.get(finalkey)
         if updated_value is not None:
             return updated_value
-        return self.received.get(key)
+        return self.received.get(finalkey)
 
     def set(
         self, key: str, value: JsonScalar | None, *, prefix: str = EAVE_COLLECTOR_COOKIE_PREFIX, encrypt: bool = True
@@ -49,10 +50,7 @@ class CorrCtxStorage:
             return None
 
         if not encrypt:
-            if prefix:
-                finalkey = f"{prefix}{key}"
-            else:
-                finalkey = key
+            finalkey = f"{prefix}{key}"
             self.updated[finalkey] = value
             return
 
@@ -127,7 +125,7 @@ class BaseCorrelationContext(abc.ABC):
     @abc.abstractmethod
     def get_storage(self) -> CorrCtxStorage | None: ...
 
-    def get(self, key: str) -> JsonScalar | None:
+    def get(self, key: str, *, prefix: str = EAVE_COLLECTOR_COOKIE_PREFIX) -> JsonScalar | None:
         """Get a value from either storage"""
 
         storage = self.get_storage()

@@ -2,10 +2,10 @@ from typing import Any
 
 from eave.stdlib.logging import LogContext
 
-from ..table_handle import BigQueryTableHandle
+from .base_atom_controller import BaseAtomController
 
 
-class HttpClientEventsTableHandle(BigQueryTableHandle):
+class HttpClientEventsController(BaseAtomController):
     async def insert(self, events: list[dict[str, Any]], ctx: LogContext) -> None:
         pass
         # if len(events) == 0:

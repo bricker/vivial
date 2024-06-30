@@ -1,9 +1,9 @@
 import dataclasses
 from typing import Any, cast
 
-from eave.core.internal.atoms.api_types import BrowserAction, BrowserEventPayload
-from eave.core.internal.atoms.atom_types import BrowserEventAtom
-from eave.core.internal.atoms.db_record_fields import (
+from eave.core.internal.atoms.models.api_payload_types import BrowserAction, BrowserEventPayload
+from eave.core.internal.atoms.models.atom_types import BrowserEventAtom
+from eave.core.internal.atoms.models.db_record_fields import (
     AccountRecordField,
     CurrentPageRecordField,
     DeviceRecordField,
@@ -13,19 +13,17 @@ from eave.core.internal.atoms.db_record_fields import (
     TargetRecordField,
     TrafficSourceRecordField,
 )
-from eave.core.internal.atoms.db_views import ClickView, FormSubmissionView, PageViewView
-from eave.core.internal.atoms.table_handle import BigQueryTableHandle
+from eave.core.internal.atoms.models.db_views import ClickView, FormSubmissionView, PageViewView
+from eave.core.internal.atoms.controllers.base_atom_controller import BaseAtomController
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.stdlib.logging import LOGGER, LogContext
 
 
-class BrowserEventsTableHandle(BigQueryTableHandle):
-    table_def = BrowserEventAtom.TABLE_DEF
-
+class BrowserEventsController(BaseAtomController):
     async def insert_with_geolocation(
         self, events: list[dict[str, Any]], geolocation: GeoRecordField | None, client_ip: str | None, ctx: LogContext
     ) -> None:
-        table = self.get_or_create_table(ctx=ctx)
+        table = self.get_or_create_bq_table(table_def=BrowserEventAtom.table_def(), ctx=ctx)
 
         unique_operations: set[BrowserAction] = set()
         atoms: list[BrowserEventAtom] = []
@@ -85,13 +83,13 @@ class BrowserEventsTableHandle(BigQueryTableHandle):
         for action in unique_operations:
             match action:
                 case BrowserAction.CLICK:
-                    handle = ClickView(dataset_id=self._dataset_id)
+                    view_def = ClickView()
                 case BrowserAction.FORM_SUBMISSION:
-                    handle = FormSubmissionView(dataset_id=self._dataset_id)
+                    view_def = FormSubmissionView()
                 case BrowserAction.PAGE_VIEW:
-                    handle = PageViewView(dataset_id=self._dataset_id)
+                    view_def = PageViewView()
                 case _:
                     LOGGER.warning(f"Unsupported action: {action}", ctx)
                     return
 
-            await self.create_bq_view(handle=handle, ctx=ctx)
+            await self.sync_bq_view(view_def=view_def, ctx=ctx)

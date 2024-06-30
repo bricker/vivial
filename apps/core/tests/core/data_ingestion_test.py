@@ -12,9 +12,10 @@ from eave.collectors.core.datastructures import (
     HttpRequestMethod,
     HttpServerEventPayload,
 )
-from eave.core.internal.atoms.payload_processors.browser_events import BrowserEventsTableHandle
-from eave.core.internal.atoms.payload_processors.db_events import DatabaseEventsTableHandle
-from eave.core.internal.atoms.payload_processors.http_server_events import HttpServerEventsTableHandle
+from eave.core.internal.atoms.controllers.browser_events import BrowserEventsController
+from eave.core.internal.atoms.controllers.db_events import DatabaseEventsController
+from eave.core.internal.atoms.controllers.http_server_events import HttpServerEventsController
+from eave.core.internal.atoms.models.atom_types import BrowserEventAtom, DatabaseEventAtom, HttpServerEventAtom
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
@@ -48,7 +49,7 @@ class TestDataIngestionEndpoints(BigQueryTestsBase):
         )
 
         assert response.status_code == http.HTTPStatus.UNAUTHORIZED
-        assert not self.bq_team_dataset_exists()
+        assert not self.team_bq_dataset_exists()
         assert not (await self._client_credentials_used())
 
     async def test_server_ingest_invalid_scopes(self) -> None:
@@ -70,7 +71,7 @@ class TestDataIngestionEndpoints(BigQueryTestsBase):
         )
 
         assert response.status_code == http.HTTPStatus.FORBIDDEN
-        assert not self.bq_team_dataset_exists()
+        assert not self.team_bq_dataset_exists()
         assert not (await self._client_credentials_used())
 
     async def test_server_ingest_valid_credentials(self) -> None:
@@ -99,13 +100,13 @@ class TestDataIngestionEndpoints(BigQueryTestsBase):
         )
 
         assert response.status_code == http.HTTPStatus.OK
-        assert not self.bq_team_dataset_exists()
+        assert not self.team_bq_dataset_exists()
 
     async def test_server_insert_lazy_creates_db_and_tables(self) -> None:
-        assert not self.bq_team_dataset_exists()
-        assert not self.bq_table_exists(DatabaseEventsTableHandle.table_def.table_id)
-        assert not self.bq_table_exists(HttpServerEventsTableHandle.table_def.table_id)
-        assert not self.bq_table_exists(BrowserEventsTableHandle.table_def.table_id)
+        assert not self.team_bq_dataset_exists()
+        assert not self.team_bq_table_exists(DatabaseEventAtom.table_def().table_id)
+        assert not self.team_bq_table_exists(HttpServerEventAtom.table_def().table_id)
+        assert not self.team_bq_table_exists(BrowserEventAtom.table_def().table_id)
         assert not (await self._client_credentials_used())
 
         response = await self.make_request(
@@ -145,15 +146,15 @@ class TestDataIngestionEndpoints(BigQueryTestsBase):
         )
 
         assert response.status_code == http.HTTPStatus.OK
-        assert self.bq_team_dataset_exists()
-        assert self.bq_table_exists(DatabaseEventsTableHandle.table_def.table_id)
-        assert self.bq_table_exists(HttpServerEventsTableHandle.table_def.table_id)
-        assert self.bq_table_exists(BrowserEventsTableHandle.table_def.table_id)
+        assert self.team_bq_dataset_exists()
+        assert self.team_bq_table_exists(DatabaseEventAtom.table_def().table_id)
+        assert self.team_bq_table_exists(HttpServerEventAtom.table_def().table_id)
+        assert self.team_bq_table_exists(BrowserEventAtom.table_def().table_id)
         assert await self._client_credentials_used()
 
     async def test_browser_insert_endpoint(self) -> None:
-        assert not self.bq_team_dataset_exists()
-        assert not self.bq_table_exists(BrowserEventsTableHandle.table_def.table_id)
+        assert not self.team_bq_dataset_exists()
+        assert not self.team_bq_table_exists(BrowserEventAtom.table_def().table_id)
         assert not (await self._client_credentials_used())
 
         response = await self.make_request(
@@ -183,9 +184,9 @@ class TestDataIngestionEndpoints(BigQueryTestsBase):
 
         assert response.status_code == http.HTTPStatus.OK
         assert await self._client_credentials_used()
-        assert self.bq_team_dataset_exists()
-        assert self.bq_table_exists(BrowserEventsTableHandle.table_def.table_id)
-        assert not self.bq_table_exists(HttpServerEventsTableHandle.table_def.table_id)
+        assert self.team_bq_dataset_exists()
+        assert self.team_bq_table_exists(BrowserEventAtom.table_def().table_id)
+        assert not self.team_bq_table_exists(HttpServerEventAtom.table_def().table_id)
 
     async def test_browser_insert_endpoint_with_invalid_client_id(self) -> None:
         response = await self.make_request(
@@ -205,7 +206,7 @@ class TestDataIngestionEndpoints(BigQueryTestsBase):
 
         assert response.status_code == http.HTTPStatus.UNAUTHORIZED
         assert not (await self._client_credentials_used())
-        assert not self.bq_team_dataset_exists()
+        assert not self.team_bq_dataset_exists()
 
     async def test_browser_insert_endpoint_with_invalid_origin(self) -> None:
         response = await self.make_request(
@@ -225,7 +226,7 @@ class TestDataIngestionEndpoints(BigQueryTestsBase):
 
         assert response.status_code == http.HTTPStatus.FORBIDDEN
         assert not (await self._client_credentials_used())
-        assert not self.bq_team_dataset_exists()
+        assert not self.team_bq_dataset_exists()
 
     async def test_browser_ingest_invalid_scopes(self) -> None:
         async with self.db_session.begin() as s:
@@ -245,4 +246,4 @@ class TestDataIngestionEndpoints(BigQueryTestsBase):
 
         assert response.status_code == http.HTTPStatus.FORBIDDEN
         assert not (await self._client_credentials_used())
-        assert not self.bq_team_dataset_exists()
+        assert not self.team_bq_dataset_exists()

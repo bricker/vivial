@@ -13,7 +13,7 @@ class AsyncioCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
         assert ctx.get("key") == "1", "Set value was not read"
         ctx.set("key", "2", encrypt=False)
         assert ctx.get("key") == "2", "Set value was not overwritten"
-        assert ctx.to_json() == '{"key": "2"}'
+        assert ctx.to_json() == '{"_eave.key": "2"}'
 
     async def test_empty_state(self) -> None:
         ctx = AsyncioCorrelationContext()
@@ -26,7 +26,7 @@ class AsyncioCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
             for key in keys:
                 ctx.set(key, "1", encrypt=False)
 
-            expected = "{" + ", ".join([f'"{k}": "1"' for k in keys]) + "}"
+            expected = "{" + ", ".join([f'"_eave.{k}": "1"' for k in keys]) + "}"
             assert ctx.to_json() == expected, "Context contained other than expected values"
 
         t1 = asyncio.create_task(_helper(["k1", "k2", "k3"]))
@@ -50,7 +50,7 @@ class AsyncioCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
         t2 = asyncio.create_task(task2())
         await asyncio.gather(t1, t2)
 
-        assert ctx.to_json() == '{"parent": "0", "t1": "1", "t2": "2"}', "Values set by child tasks not found"
+        assert ctx.to_json() == '{"_eave.parent": "0", "_eave.t1": "1", "_eave.t2": "2"}', "Values set by child tasks not found"
 
     async def test_initialize_from_cookies_performs_union(self) -> None:
         ctx = AsyncioCorrelationContext()

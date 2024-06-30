@@ -1,8 +1,9 @@
 import dataclasses
 
+from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
-from eave.core.internal.atoms.api_types import (
+from eave.core.internal.atoms.models.api_payload_types import (
     AccountProperties,
     CurrentPageProperties,
     DeviceBrandProperties,
@@ -11,7 +12,7 @@ from eave.core.internal.atoms.api_types import (
     TargetProperties,
     TrafficSourceProperties,
 )
-from eave.core.internal.atoms.db_record_fields import (
+from eave.core.internal.atoms.models.db_record_fields import (
     AccountRecordField,
     BrandsRecordField,
     CurrentPageRecordField,
@@ -25,7 +26,6 @@ from eave.core.internal.atoms.db_record_fields import (
     TypedValueRecordField,
     UrlRecordField,
 )
-from eave.core.internal.atoms.shared import BigQueryFieldMode
 from eave.stdlib.typing import JsonScalar
 
 from ..base import BaseTestCase, assert_schemas_match

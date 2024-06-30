@@ -1,13 +1,14 @@
+from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
-from eave.core.internal.atoms.atom_types import (
+from eave.core.internal.atoms.models.atom_types import (
     Atom,
     BrowserEventAtom,
     DatabaseEventAtom,
     HttpClientEventAtom,
     HttpServerEventAtom,
 )
-from eave.core.internal.atoms.db_record_fields import (
+from eave.core.internal.atoms.models.db_record_fields import (
     CurrentPageRecordField,
     DeviceRecordField,
     GeoRecordField,
@@ -16,17 +17,16 @@ from eave.core.internal.atoms.db_record_fields import (
     TargetRecordField,
     UrlRecordField,
 )
-from eave.core.internal.atoms.shared import BigQueryFieldMode
 
 from ..base import BaseTestCase, assert_schemas_match
 
 
 class TestBrowserEventAtom(BaseTestCase):
     async def test_schema(self):
-        assert BrowserEventAtom.TABLE_DEF.table_id == "atoms_browser_events"
+        assert BrowserEventAtom.table_def().table_id == "atoms_browser_events"
 
         assert_schemas_match(
-            BrowserEventAtom.TABLE_DEF.schema,
+            BrowserEventAtom.table_def().schema,
             (
                 SchemaField(
                     name="action",
@@ -53,9 +53,9 @@ class TestBrowserEventAtom(BaseTestCase):
 
 class TestDatabaseEventAtom(BaseTestCase):
     async def test_schema(self):
-        assert DatabaseEventAtom.TABLE_DEF.table_id == "atoms_db_events"
+        assert DatabaseEventAtom.table_def().table_id == "atoms_db_events"
         assert_schemas_match(
-            DatabaseEventAtom.TABLE_DEF.schema,
+            DatabaseEventAtom.table_def().schema,
             (
                 SchemaField(
                     name="operation",
@@ -88,9 +88,9 @@ class TestDatabaseEventAtom(BaseTestCase):
 
 class TestHttpServerEventAtom(BaseTestCase):
     async def test_schema(self):
-        assert HttpServerEventAtom.TABLE_DEF.table_id == "atoms_http_server_events"
+        assert HttpServerEventAtom.table_def().table_id == "atoms_http_server_events"
         assert_schemas_match(
-            HttpServerEventAtom.TABLE_DEF.schema,
+            HttpServerEventAtom.table_def().schema,
             (
                 SchemaField(
                     name="request_method",
@@ -115,9 +115,9 @@ class TestHttpServerEventAtom(BaseTestCase):
 
 class TestHttpClientEventAtom(BaseTestCase):
     async def test_schema(self):
-        assert HttpClientEventAtom.TABLE_DEF.table_id == "atoms_http_client_events"
+        assert HttpClientEventAtom.table_def().table_id == "atoms_http_client_events"
         assert_schemas_match(
-            HttpClientEventAtom.TABLE_DEF.schema,
+            HttpClientEventAtom.table_def().schema,
             (
                 SchemaField(
                     name="request_method",

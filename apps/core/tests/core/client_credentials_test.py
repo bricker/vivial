@@ -56,7 +56,7 @@ class TestClientCredentialsOrmScopeQuery(BaseTestCase):
             creds.touch(s)
 
         assert creds.last_used is not None
-        assert creds.last_used > datetime.datetime.now(datetime.UTC) - datetime.timedelta(seconds=5)
+        assert creds.last_used > datetime.datetime.now(datetime.UTC).replace(tzinfo=None) - datetime.timedelta(seconds=5)
 
     async def test_combined(self) -> None:
         creds = await self._create_creds(ClientScope.read)

@@ -1,5 +1,5 @@
 from eave.collectors.core.datastructures import DatabaseOperation
-from eave.core.internal.atoms.db_views import ClickView, DatabaseEventView, FormSubmissionView, PageViewView
+from eave.core.internal.atoms.models.db_views import ClickView, DatabaseEventView, FormSubmissionView, PageViewView
 
 from ..bq_tests_base import BigQueryTestsBase
 
@@ -10,19 +10,18 @@ class TestDatabaseEventView(BigQueryTestsBase):
 
     async def test_init(self) -> None:
         view = DatabaseEventView(
-            dataset_id=self.anystr(), event_table_name=self.anystr(), event_operation=DatabaseOperation.INSERT
+            event_table_name=self.anystr(), event_operation=DatabaseOperation.INSERT
         )
 
         # Lazy checks for runtime errors.
         assert view.view_id is not None
         assert view.friendly_name is not None
         assert view.description is not None
-        assert view.dataset_id is not None
         assert view.schema
-        assert view.view_query
+        assert view.build_view_query(dataset_id=self.anyhex())
         assert view.schema_fields
         assert view.compiled_selectors
-        assert view.sql_sanitized_fq_table(table_id=self.anystr())
+        assert view.sql_sanitized_fq_table(dataset_id=self.anyhex(), table_id=self.anyhex())
 
 
 class TestClickView(BigQueryTestsBase):
@@ -30,19 +29,16 @@ class TestClickView(BigQueryTestsBase):
         await super().asyncSetUp()
 
     async def test_init(self) -> None:
-        view = ClickView(
-            dataset_id=self.anystr(),
-        )
+        view = ClickView()
 
         assert view.view_id is not None
         assert view.friendly_name is not None
         assert view.description is not None
-        assert view.dataset_id is not None
         assert view.schema
-        assert view.view_query
+        assert view.build_view_query(dataset_id=self.anyhex())
         assert view.schema_fields
         assert view.compiled_selectors
-        assert view.sql_sanitized_fq_table(table_id=self.anystr())
+        assert view.sql_sanitized_fq_table(dataset_id=self.anyhex(), table_id=self.anyhex())
 
 
 class TestFormSubmissionView(BigQueryTestsBase):
@@ -50,19 +46,16 @@ class TestFormSubmissionView(BigQueryTestsBase):
         await super().asyncSetUp()
 
     async def test_init(self) -> None:
-        view = FormSubmissionView(
-            dataset_id=self.anystr(),
-        )
+        view = FormSubmissionView()
 
         assert view.view_id is not None
         assert view.friendly_name is not None
         assert view.description is not None
-        assert view.dataset_id is not None
         assert view.schema
-        assert view.view_query
+        assert view.build_view_query(dataset_id=self.anyhex())
         assert view.schema_fields
         assert view.compiled_selectors
-        assert view.sql_sanitized_fq_table(table_id=self.anystr())
+        assert view.sql_sanitized_fq_table(dataset_id=self.anyhex(), table_id=self.anyhex())
 
 
 class TestPageViewView(BigQueryTestsBase):
@@ -70,16 +63,13 @@ class TestPageViewView(BigQueryTestsBase):
         await super().asyncSetUp()
 
     async def test_init(self) -> None:
-        view = PageViewView(
-            dataset_id=self.anystr(),
-        )
+        view = PageViewView()
 
         assert view.view_id is not None
         assert view.friendly_name is not None
         assert view.description is not None
-        assert view.dataset_id is not None
         assert view.schema
-        assert view.view_query
+        assert view.build_view_query(dataset_id=self.anyhex())
         assert view.schema_fields
         assert view.compiled_selectors
-        assert view.sql_sanitized_fq_table(table_id=self.anystr())
+        assert view.sql_sanitized_fq_table(dataset_id=self.anyhex(), table_id=self.anyhex())
