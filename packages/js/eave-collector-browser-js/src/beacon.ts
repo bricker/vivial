@@ -18,6 +18,7 @@ import {
   ScalarMap,
   TargetProperties,
 } from "./types";
+import { uuidv4 } from "./util/uuid.js";
 
 /**
  * A Queue with a maximum size.
@@ -150,11 +151,13 @@ class RequestManager {
     target: TargetProperties | null;
     extra?: ScalarMap<JsonScalar>;
   }): Promise<BrowserEventPayload> {
+    const eventId = uuidv4();
     const deviceProperties = await this.#getDeviceProperties();
     const currentPageProperties = getCurrentPageProperties();
     const corrCtx = getCorrelationContext();
 
     const payload: BrowserEventPayload = {
+      event_id: eventId,
       action,
       timestamp,
       target,

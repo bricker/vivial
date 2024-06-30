@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from datetime import datetime
 from decimal import Decimal
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.utils import CursorWrapper
@@ -79,6 +79,7 @@ class EaveCursorWrapper(CursorWrapper):
                     rparams = multiparams[0]
 
                 record = DatabaseEventPayload(
+                    event_id=str(uuid4()),
                     timestamp=time.time(),
                     operation=op,
                     db_name=self.db.alias,

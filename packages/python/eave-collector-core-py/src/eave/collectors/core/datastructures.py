@@ -57,6 +57,7 @@ class UserProperties:
 @dataclass(kw_only=True)
 class EventPayload(ABC):
     event_type: ClassVar[EventType]
+    event_id: str | None
     timestamp: float | None
     corr_ctx: dict[str, JsonScalar] | None
 

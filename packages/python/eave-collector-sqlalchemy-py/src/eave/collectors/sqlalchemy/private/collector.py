@@ -1,4 +1,5 @@
 import time
+from uuid import uuid4
 import weakref
 from collections.abc import Callable
 from typing import Any
@@ -142,6 +143,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                     self._save_user_identification_data(tablename, clauseelement, rparam)
 
                     record = DatabaseEventPayload(
+                        event_id=str(uuid4()),
                         timestamp=time.time(),
                         operation=DatabaseOperation.SELECT,
                         db_name=conn.engine.url.database,
@@ -172,6 +174,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                     rparam["__primary_keys"] = pk_map_list
 
                     record = DatabaseEventPayload(
+                        event_id=str(uuid4()),
                         timestamp=time.time(),
                         operation=DatabaseOperation.INSERT,
                         db_name=conn.engine.url.database,
@@ -188,6 +191,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                     self._save_user_identification_data(tablename, clauseelement, rparam)
 
                     record = DatabaseEventPayload(
+                        event_id=str(uuid4()),
                         timestamp=time.time(),
                         operation=DatabaseOperation.UPDATE,
                         db_name=conn.engine.url.database,
@@ -202,6 +206,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
             elif isinstance(clauseelement, sqlalchemy.Delete):
                 for idx, rparam in enumerate(rparams):
                     record = DatabaseEventPayload(
+                        event_id=str(uuid4()),
                         timestamp=time.time(),
                         operation=DatabaseOperation.DELETE,
                         db_name=conn.engine.url.database,

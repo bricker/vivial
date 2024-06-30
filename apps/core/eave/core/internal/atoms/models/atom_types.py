@@ -45,6 +45,7 @@ class Atom(ABC):
     traffic_source: TrafficSourceRecordField | None
     visitor_id: str | None
     timestamp: float | None
+    event_id: str | None
 
     @staticmethod
     @abstractmethod
@@ -66,6 +67,12 @@ class Atom(ABC):
                 name="timestamp",
                 description="When this event occurred.",
                 field_type=SqlTypeNames.TIMESTAMP,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            SchemaField(
+                name="event_id",
+                description="A unique ID per atom, assigned by Eave. This can be used to distinguish otherwise identical events.",
+                field_type=SqlTypeNames.STRING,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
             SchemaField(

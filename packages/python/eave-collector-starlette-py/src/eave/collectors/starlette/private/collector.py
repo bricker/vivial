@@ -18,6 +18,7 @@ import time
 import urllib.parse
 from collections.abc import Callable
 from functools import wraps
+from uuid import uuid4
 
 import starlette.types
 from asgiref.compatibility import guarantee_single_callable
@@ -250,6 +251,7 @@ class EaveASGIMiddleware:
             req_url = remove_url_credentials(http_url)
             self.write_queue.put(
                 HttpServerEventPayload(
+                    event_id=str(uuid4()),
                     timestamp=time.time(),
                     request_method=HttpRequestMethod.from_str(req_method),
                     request_url=req_url,
@@ -285,6 +287,7 @@ class EaveASGIMiddleware:
                     #     pass
                     # self.write_queue.put(
                     #     HttpServerEventPayload(
+                    #         event_id=str(uuid4()),
                     #         timestamp=time.time(),
                     #         request_method=req_method,
                     #         request_url=req_url,

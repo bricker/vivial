@@ -116,6 +116,7 @@ class TestDataIngestionEndpoints(BigQueryTestsBase):
                 events={
                     EventType.db_event: [
                         DatabaseEventPayload(
+                            event_id=str(self.anyuuid()),
                             corr_ctx=None,
                             timestamp=time.time(),
                             db_name=self.anystr(),
@@ -127,6 +128,7 @@ class TestDataIngestionEndpoints(BigQueryTestsBase):
                     ],
                     EventType.http_server_event: [
                         HttpServerEventPayload(
+                            event_id=str(self.anyuuid()),
                             timestamp=time.time(),
                             corr_ctx=None,
                             request_method=HttpRequestMethod.GET,
@@ -164,6 +166,7 @@ class TestDataIngestionEndpoints(BigQueryTestsBase):
                 events={
                     EventType.http_server_event: [  # This should be ignored by the server
                         HttpServerEventPayload(
+                            event_id=str(self.anyuuid()),
                             timestamp=time.time(),
                             corr_ctx=None,
                             request_method=HttpRequestMethod.GET,

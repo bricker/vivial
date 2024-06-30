@@ -1,7 +1,7 @@
 import { getAllEaveCookies } from "../cookies";
 import { ScalarMap } from "../types";
 
-export function getCorrelationContext() {
+export function getCorrelationContext(): ScalarMap<string> {
   const eaveCookies = getAllEaveCookies();
   const corrCtx: ScalarMap<string> = {};
 

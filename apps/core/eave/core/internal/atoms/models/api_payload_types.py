@@ -238,8 +238,9 @@ class CorrelationContext:
 
 @dataclass(kw_only=True)
 class BrowserEventPayload:
-    action: BrowserAction | None
+    event_id: str | None
     timestamp: float | None
+    action: BrowserAction | None
     target: TargetProperties | None
     device: DeviceProperties | None
     current_page: CurrentPageProperties | None
@@ -249,8 +250,8 @@ class BrowserEventPayload:
     @classmethod
     def from_api_payload(cls, data: dict[str, Any], *, decryption_key: bytes) -> Self:
         return cls(
+            event_id=data.get("event_id"),
             timestamp=data.get("timestamp"),
-            extra=data.get("extra"),
             action=(BrowserAction.from_str(ba) if (ba := data.get("action")) else None),
             target=(
                 TargetProperties.from_api_payload(tp) if (tp := data.get("target")) and isinstance(tp, dict) else None
@@ -263,6 +264,7 @@ class BrowserEventPayload:
                 if (cp := data.get("current_page")) and isinstance(cp, dict)
                 else None
             ),
+            extra=data.get("extra"),
             corr_ctx=(
                 CorrelationContext.from_api_payload(cc, decryption_key=decryption_key)
                 if (cc := data.get("corr_ctx")) and isinstance(cc, dict)
@@ -273,6 +275,7 @@ class BrowserEventPayload:
 
 @dataclass(kw_only=True)
 class DatabaseEventPayload:
+    event_id: str | None
     timestamp: float | None
     operation: DatabaseOperation | None
     db_name: str | None
@@ -284,12 +287,13 @@ class DatabaseEventPayload:
     @classmethod
     def from_api_payload(cls, data: dict[str, Any], *, decryption_key: bytes) -> Self:
         return cls(
+            event_id=data.get("event_id"),
             timestamp=data.get("timestamp"),
+            operation=DatabaseOperation.from_str(dbo) if (dbo := data.get("operation")) else None,
             db_name=data.get("db_name"),
             table_name=data.get("table_name"),
             statement=data.get("statement"),
             statement_values=data.get("statement_values"),
-            operation=DatabaseOperation.from_str(dbo) if (dbo := data.get("operation")) else None,
             corr_ctx=(
                 CorrelationContext.from_api_payload(cc, decryption_key=decryption_key)
                 if (cc := data.get("corr_ctx")) and isinstance(cc, dict)
@@ -300,6 +304,7 @@ class DatabaseEventPayload:
 
 @dataclass(kw_only=True)
 class HttpServerEventPayload:
+    event_id: str | None
     timestamp: float | None
     request_method: HttpRequestMethod | None
     request_url: str | None
@@ -310,11 +315,12 @@ class HttpServerEventPayload:
     @classmethod
     def from_api_payload(cls, data: dict[str, Any], *, decryption_key: bytes) -> Self:
         return cls(
+            event_id=data.get("event_id"),
             timestamp=data.get("timestamp"),
+            request_method=HttpRequestMethod.from_str(rm) if (rm := data.get("request_method")) else None,
             request_url=data.get("request_url"),
             request_headers=data.get("request_headers"),
             request_payload=data.get("request_payload"),
-            request_method=HttpRequestMethod.from_str(rm) if (rm := data.get("request_method")) else None,
             corr_ctx=(
                 CorrelationContext.from_api_payload(cc, decryption_key=decryption_key)
                 if (cc := data.get("corr_ctx")) and isinstance(cc, dict)
