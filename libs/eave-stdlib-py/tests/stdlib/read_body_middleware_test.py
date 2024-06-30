@@ -35,7 +35,7 @@ class TestReadBodyASGIMiddleware(StdlibBaseTestCase):
 
         self.httpclient = AsyncClient(
             app=self.dummy_app,
-            base_url="http://eave.tests",
+            base_url="http://eave.test",
         )
 
     async def test_body_reader_with_valid_post_request(self) -> None:

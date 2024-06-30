@@ -10,6 +10,7 @@ locals {
     "container.googleapis.com",           # Kubernetes Engine API
     "containerregistry.googleapis.com",   # Container Registry API
     "dataflow.googleapis.com",            # Dataflow API
+    "dlp.googleapis.com",                 # Data Loss Prevention
     "dns.googleapis.com",                 # Cloud DNS API
     "domains.googleapis.com",             # Cloud Domains API
     "iam.googleapis.com",                 # Identity and Access Management (IAM) API

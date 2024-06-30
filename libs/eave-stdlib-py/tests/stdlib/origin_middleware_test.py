@@ -35,7 +35,7 @@ class TestOriginMiddleware(StdlibBaseTestCase):
 
         self.httpclient = AsyncClient(
             app=self.dummy_app,
-            base_url="http://eave.tests",
+            base_url="http://eave.test",
         )
 
     async def test_origin_bypass(self) -> None:

@@ -1,6 +1,6 @@
 import json
 from collections.abc import Iterable, Mapping, Sequence
-from typing import Any
+from typing import Any, Literal
 
 import google.api_core.exceptions
 from google.cloud import bigquery
@@ -96,10 +96,19 @@ class BigQueryClient:
 
         # return remote_table
 
-    def update_table(self, *, table: bigquery.Table, ctx: LogContext) -> bigquery.Table:
+    def update_table(
+        self,
+        *,
+        table: bigquery.Table,
+        ctx: LogContext,
+        fields: list[Literal["friendlyName", "description", "view", "schema"]] | None = None,
+    ) -> bigquery.Table:
+        if fields is None:
+            fields = ["friendlyName", "description", "view", "schema"]
+
         remote_table = self._bq_client.update_table(
             table=table,
-            fields=["view", "schema", "description", "friendlyName"],
+            fields=fields,
         )
 
         return remote_table

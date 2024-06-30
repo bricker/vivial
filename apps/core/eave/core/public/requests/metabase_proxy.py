@@ -145,7 +145,7 @@ class MetabaseAuthEndpoint(HTTPEndpoint):
             metabase_instance.default_dashboard_id if metabase_instance.default_dashboard_id is not None else "1"
         )
 
-        sess_cookie =  f"{EAVE_EMBED_COOKIE_PREFIX}SESSION"
+        sess_cookie = f"{EAVE_EMBED_COOKIE_PREFIX}SESSION"
         if sess_cookie in request.cookies:
             # skip auth if user is already authed, for improved performance
             return RedirectResponse(

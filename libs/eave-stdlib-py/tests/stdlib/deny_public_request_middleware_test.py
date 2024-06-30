@@ -25,7 +25,7 @@ class TestDenyPublicRequestASGIMiddleware(StdlibBaseTestCase):
 
         self.httpclient = AsyncClient(
             app=self.dummy_app,
-            base_url="http://eave.tests",
+            base_url="http://eave.test",
         )
 
     async def test_internal_request_not_blocked_if_lb_header_not_set(self) -> None:

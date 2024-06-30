@@ -5,11 +5,11 @@ from starlette.responses import Response
 
 from eave.collectors.core.datastructures import DataIngestRequestBody, EventType
 from eave.core.internal import database
-from eave.core.internal.atoms.browser_events import BrowserEventsTableHandle
-from eave.core.internal.atoms.db_events import DatabaseEventsTableHandle
-from eave.core.internal.atoms.http_client_events import HttpClientEventsTableHandle
-from eave.core.internal.atoms.http_server_events import HttpServerEventsTableHandle
-from eave.core.internal.atoms.record_fields import GeoRecordField
+from eave.core.internal.atoms.controllers.browser_events import BrowserEventsController
+from eave.core.internal.atoms.controllers.db_events import DatabaseEventsController
+from eave.core.internal.atoms.controllers.http_client_events import HttpClientEventsController
+from eave.core.internal.atoms.controllers.http_server_events import HttpServerEventsController
+from eave.core.internal.atoms.models.db_record_fields import GeoRecordField
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib.api_util import get_header_value, get_header_value_or_exception
@@ -53,7 +53,7 @@ class BrowserDataIngestionEndpoint(HTTPEndpoint):
             if not eave_team.origin_allowed(origin=origin_header):
                 raise ForbiddenError("invalid origin")
 
-            await creds.touch(session=db_session)
+            creds.touch(session=db_session)
 
         body = await request.json()
         input = DataIngestRequestBody.from_json(data=body)
@@ -79,7 +79,7 @@ class BrowserDataIngestionEndpoint(HTTPEndpoint):
                 coordinates=geo_coordinates,
             )
 
-            handle = BrowserEventsTableHandle(team=eave_team)
+            handle = BrowserEventsController(client=creds)
             await handle.insert_with_geolocation(
                 events=events,
                 geolocation=geolocation,
@@ -116,21 +116,28 @@ class ServerDataIngestionEndpoint(HTTPEndpoint):
             if not (creds.scope & ClientScope.write) > 0:
                 raise ForbiddenError("invalid scopes")
 
-            await creds.touch(session=db_session)
+            creds.touch(session=db_session)
 
-            eave_team = await TeamOrm.one_or_exception(session=db_session, team_id=creds.team_id)
+        if (db_events := input.events.get(EventType.db_event)) and len(db_events) > 0:
+            handle = DatabaseEventsController(client=creds)
+            await handle.insert(events=db_events, ctx=ctx)
 
-        if (events := input.events.get(EventType.db_event)) and len(events) > 0:
-            handle = DatabaseEventsTableHandle(team=eave_team)
-            await handle.insert(events=events, ctx=ctx)
+        if (http_server_events := input.events.get(EventType.http_server_event)) and len(http_server_events) > 0:
+            handle = HttpServerEventsController(client=creds)
+            await handle.insert(events=http_server_events, ctx=ctx)
 
-        if (events := input.events.get(EventType.http_server_event)) and len(events) > 0:
-            handle = HttpServerEventsTableHandle(team=eave_team)
-            await handle.insert(events=events, ctx=ctx)
+        if (http_client_events := input.events.get(EventType.http_client_event)) and len(http_client_events) > 0:
+            handle = HttpClientEventsController(client=creds)
+            await handle.insert(events=http_client_events, ctx=ctx)
 
-        if (events := input.events.get(EventType.http_client_event)) and len(events) > 0:
-            handle = HttpClientEventsTableHandle(team=eave_team)
-            await handle.insert(events=events, ctx=ctx)
+        if (browser_events := input.events.get(EventType.browser_event)) and len(browser_events) > 0:
+            handle = BrowserEventsController(client=creds)
+            await handle.insert_with_geolocation(
+                events=browser_events,
+                geolocation=None,
+                client_ip=None,
+                ctx=ctx,
+            )
 
         response = Response(status_code=200)
         return response

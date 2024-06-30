@@ -13,7 +13,7 @@ import { setTrafficSourceCookieIfNecessary } from "./properties/traffic-source";
 import { setOrTouchUserCookies } from "./properties/user";
 import { sessionEventHandler, startOrExtendSession } from "./session";
 import { clickEventHandler } from "./triggers/click";
-import { formSubmitEventHandler } from "./triggers/form-submit";
+import { formSubmitEventHandler } from "./triggers/form-submission";
 import {
   hashChangeEventHandler,
   popStateEventHandler,

@@ -79,6 +79,11 @@ class TeamOrm(Base):
         )
 
     def _hostname_matches(self, hostname: str, origin_pattern: str) -> bool:
+        # Remove HTTP(S) scheme prefix and any path. It shouldn't be included in the allowed origins, but it's natural to include it (especially because the Origin header includes it),
+        # so we'll just allow it for better UX.
+        # origin_pattern = re.sub("^(https?:)?//", "", origin_pattern, count=1, flags=re.IGNORECASE)
+        # origin_pattern = re.sub("/.*$", "", origin_pattern, count=1, flags=re.IGNORECASE)
+
         if origin_pattern == "*":
             # All origins allowed.
             return True

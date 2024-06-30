@@ -2,7 +2,8 @@ import dataclasses
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
-from eave.core.internal.atoms.api_types import (
+from eave.core.internal.atoms.models.api_payload_types import (
+    AccountProperties,
     CurrentPageProperties,
     DeviceBrandProperties,
     DeviceProperties,
@@ -10,7 +11,8 @@ from eave.core.internal.atoms.api_types import (
     TargetProperties,
     TrafficSourceProperties,
 )
-from eave.core.internal.atoms.record_fields import (
+from eave.core.internal.atoms.models.db_record_fields import (
+    AccountRecordField,
     BrandsRecordField,
     CurrentPageRecordField,
     DeviceRecordField,
@@ -22,11 +24,11 @@ from eave.core.internal.atoms.record_fields import (
     TrafficSourceRecordField,
     TypedValueRecordField,
     UrlRecordField,
-    UserRecordField,
 )
-from eave.core.internal.atoms.table_handle import BigQueryFieldMode
+from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
+from eave.stdlib.typing import JsonScalar
 
-from .base import BaseTestCase, assert_schemas_match
+from ..base import BaseTestCase, assert_schemas_match
 
 
 class TestTypedValueRecordField(BaseTestCase):
@@ -45,13 +47,8 @@ class TestTypedValueRecordField(BaseTestCase):
                             mode=BigQueryFieldMode.NULLABLE,
                         ),
                         SchemaField(
-                            name="int_value",
-                            field_type=SqlTypeNames.INTEGER,
-                            mode=BigQueryFieldMode.NULLABLE,
-                        ),
-                        SchemaField(
-                            name="float_value",
-                            field_type=SqlTypeNames.FLOAT,
+                            name="numeric_value",
+                            field_type=SqlTypeNames.NUMERIC,
                             mode=BigQueryFieldMode.NULLABLE,
                         ),
                         SchemaField(
@@ -78,7 +75,7 @@ class TestMultiTypeKeyValueRecordField(BaseTestCase):
                         SchemaField(
                             name="key",
                             field_type=SqlTypeNames.STRING,
-                            mode=BigQueryFieldMode.REQUIRED,
+                            mode=BigQueryFieldMode.NULLABLE,
                         ),
                         TypedValueRecordField.schema(),
                     ),
@@ -90,62 +87,45 @@ class TestMultiTypeKeyValueRecordField(BaseTestCase):
         e = MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(
             {
                 self.anystr("key for str"): self.anystr("str value"),
-                self.anystr("key for int"): self.anyint("int value"),
-                self.anystr("key for float"): self.anyfloat("float value"),
+                self.anystr("key for numeric"): self.anyfloat("numeric value"),
                 self.anystr("key for bool"): self.anybool("bool value"),
                 self.anystr("key for None"): None,
             }
         )
 
-        assert len(e) == 5
+        assert len(e) == 4
         assert e[0].key == self.getstr("key for str")
         assert e[0].value is not None
         assert e[0].value.string_value == self.getstr("str value")
-        assert e[0].value.int_value is None
-        assert e[0].value.float_value is None
+        assert e[0].value.numeric_value is None
         assert e[0].value.bool_value is None
 
-        assert e[1].key == self.getstr("key for int")
+        assert e[1].key == self.getstr("key for numeric")
         assert e[1].value is not None
         assert e[1].value.string_value is None
-        assert e[1].value.int_value == self.getint("int value")
-        assert e[1].value.float_value is None
+        assert e[1].value.numeric_value == self.getfloat("numeric value")
         assert e[1].value.bool_value is None
 
-        assert e[2].key == self.getstr("key for float")
+        assert e[2].key == self.getstr("key for bool")
         assert e[2].value is not None
         assert e[2].value.string_value is None
-        assert e[2].value.int_value is None
-        assert e[2].value.float_value == self.getfloat("float value")
-        assert e[2].value.bool_value is None
+        assert e[2].value.numeric_value is None
+        assert e[2].value.bool_value == self.getbool("bool value")
 
-        assert e[3].key == self.getstr("key for bool")
+        assert e[3].key == self.getstr("key for None")
         assert e[3].value is not None
         assert e[3].value.string_value is None
-        assert e[3].value.int_value is None
-        assert e[3].value.float_value is None
-        assert e[3].value.bool_value == self.getbool("bool value")
-
-        assert e[4].key == self.getstr("key for None")
-        assert e[4].value is not None
-        assert e[4].value.string_value is None
-        assert e[4].value.int_value is None
-        assert e[4].value.float_value is None
-        assert e[4].value.bool_value is None
+        assert e[3].value.numeric_value is None
+        assert e[3].value.bool_value is None
 
         assert dataclasses.asdict(e[1]) == {
-            "key": self.getstr("key for int"),
+            "key": self.getstr("key for numeric"),
             "value": {
                 "string_value": None,
-                "int_value": self.getint("int value"),
-                "float_value": None,
+                "numeric_value": self.getfloat("numeric value"),
                 "bool_value": None,
             },
         }
-
-    async def test_field_no_resource(self) -> None:
-        e = MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(None)
-        assert e == []
 
 
 class TestSingleScalarTypeKeyValueRecordField(BaseTestCase):
@@ -167,7 +147,7 @@ class TestSingleScalarTypeKeyValueRecordField(BaseTestCase):
                         SchemaField(
                             name="key",
                             field_type=SqlTypeNames.STRING,
-                            mode=BigQueryFieldMode.REQUIRED,
+                            mode=BigQueryFieldMode.NULLABLE,
                         ),
                         SchemaField(
                             name="value",
@@ -204,10 +184,6 @@ class TestSingleScalarTypeKeyValueRecordField(BaseTestCase):
             "key": self.getstr("key for None"),
             "value": None,
         }
-
-    async def test_field_no_resource(self) -> None:
-        e = SingleScalarTypeKeyValueRecordField.list_from_scalar_dict(None)
-        assert e == []
 
 
 class TestSessionRecordField(BaseTestCase):
@@ -265,10 +241,6 @@ class TestSessionRecordField(BaseTestCase):
             "duration_ms": expected_duration_ms,
         }
 
-    async def test_field_no_resource(self) -> None:
-        e = SessionRecordField.from_api_resource(resource=None, event_timestamp=None)
-        assert e is None
-
     async def test_field_no_values(self) -> None:
         e = SessionRecordField.from_api_resource(
             resource=SessionProperties(
@@ -296,46 +268,46 @@ class TestSessionRecordField(BaseTestCase):
         assert e.duration_ms is None
 
 
-class TestUserRecordField(BaseTestCase):
+class TestAccountRecordField(BaseTestCase):
     async def test_schema(self) -> None:
-        expected_fields = [
-            "account_id",
-            "visitor_id",
-        ]
-
         assert_schemas_match(
-            (UserRecordField.schema(),),
+            (AccountRecordField.schema(),),
             (
                 SchemaField(
-                    name="user",
+                    name="account",
                     field_type=SqlTypeNames.RECORD,
                     mode=BigQueryFieldMode.NULLABLE,
                     fields=(
-                        *[
-                            SchemaField(
-                                name=k,
-                                field_type=SqlTypeNames.STRING,
-                                mode=BigQueryFieldMode.NULLABLE,
-                            )
-                            for k in expected_fields
-                        ],
+                        SchemaField(
+                            name="account_id",
+                            field_type=SqlTypeNames.STRING,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        MultiScalarTypeKeyValueRecordField.schema(
+                            name="extra",
+                            description=self.anystr(),
+                        ),
                     ),
                 ),
             ),
         )
 
     async def test_field(self) -> None:
-        e = UserRecordField(
-            account_id=self.anystr("user.account_id"),
-            visitor_id=self.anystr("user.visitor_id"),
+        extra: dict[str, JsonScalar] = {self.anystr("k1"): self.anystr("v1")}
+        e = AccountRecordField.from_api_resource(
+            resource=AccountProperties(
+                account_id=self.anystr("account.account_id"),
+                extra=extra,
+            ),
         )
 
-        assert e.account_id == self.getstr("user.account_id")
-        assert e.visitor_id == self.getstr("user.visitor_id")
+        assert e.account_id == self.getstr("account.account_id")
+        assert e.extra is not None
+        assert e.extra == MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(extra)
 
         assert dataclasses.asdict(e) == {
-            "account_id": self.getstr("user.account_id"),
-            "visitor_id": self.getstr("user.visitor_id"),
+            "account_id": self.getstr("account.account_id"),
+            "extra": [dataclasses.asdict(x) for x in e.extra],
         }
 
 
@@ -469,10 +441,6 @@ class TestTrafficSourceRecordField(BaseTestCase):
                 },
             ],
         }
-
-    async def test_field_no_resource(self) -> None:
-        e = TrafficSourceRecordField.from_api_resource(resource=None)
-        assert e is None
 
     async def test_field_no_values(self) -> None:
         e = TrafficSourceRecordField.from_api_resource(
@@ -717,10 +685,6 @@ class TestDeviceRecordField(BaseTestCase):
             "screen_avail_height": self.getint("device.screen_avail_height"),
         }
 
-    async def test_field_no_resource(self) -> None:
-        e = DeviceRecordField.from_api_resource(resource=None)
-        assert e is None
-
     async def test_field_no_values(self) -> None:
         e = DeviceRecordField.from_api_resource(
             resource=DeviceProperties(
@@ -821,10 +785,6 @@ class TestTargetRecordField(BaseTestCase):
             ],
         }
 
-    async def test_field_no_resource(self) -> None:
-        e = TargetRecordField.from_api_resource(resource=None)
-        assert e is None
-
     async def test_field_no_values(self) -> None:
         e = TargetRecordField.from_api_resource(
             resource=TargetProperties(
@@ -852,7 +812,7 @@ class TestUrlRecordField(BaseTestCase):
         ]
 
         assert_schemas_match(
-            (UrlRecordField.schema(),),
+            (UrlRecordField.schema(name="url", description=self.anystr()),),
             (
                 SchemaField(
                     name="url",
@@ -922,10 +882,6 @@ class TestUrlRecordField(BaseTestCase):
             ],
         }
 
-    async def test_field_no_resource(self) -> None:
-        e = UrlRecordField.from_api_resource(resource=None)
-        assert e is None
-
     async def test_field_no_query(self) -> None:
         e = UrlRecordField.from_api_resource(resource="https://dashboard.eave.fyi/insights/abc")
         assert e is not None
@@ -966,7 +922,7 @@ class TestCurrentPageRecordField(BaseTestCase):
                     field_type=SqlTypeNames.RECORD,
                     mode=BigQueryFieldMode.NULLABLE,
                     fields=(
-                        UrlRecordField.schema(),
+                        UrlRecordField.schema(name="url", description=self.anystr()),
                         *[
                             SchemaField(
                                 name=k,
@@ -1012,10 +968,6 @@ class TestCurrentPageRecordField(BaseTestCase):
             "title": self.getstr("current_page.title"),
             "pageview_id": self.getstr("current_page.pageview_id"),
         }
-
-    async def test_field_no_resource(self) -> None:
-        e = CurrentPageRecordField.from_api_resource(resource=None)
-        assert e is None
 
     async def test_field_no_values(self) -> None:
         e = CurrentPageRecordField.from_api_resource(
