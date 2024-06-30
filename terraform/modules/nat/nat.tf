@@ -1,10 +1,11 @@
-data "google_compute_network" "default" {
-  name = "default"
+variable "network" {
+  type = object({
+    id = string
+  })
 }
-
 resource "google_compute_router" "cloud_nat_router" {
   name    = "cloud-nat-router"
-  network = data.google_compute_network.default.id
+  network = var.network.id
 }
 
 resource "google_compute_router_nat" "cloud_nat" {

@@ -42,6 +42,7 @@ module "docker_registry" {
 
 module "nat" {
   source = "../../modules/nat"
+  network = google_compute_network.primary
 }
 
 module "dns_zone_base_domain" {
@@ -53,6 +54,7 @@ module "cloudsql_eave_core" {
   source        = "../../modules/cloudsql_instance"
   project       = local.project
   instance_name = "eave-pg-core"
+  network = google_compute_network.primary
 }
 
 module "ssl_policy" {

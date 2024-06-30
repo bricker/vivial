@@ -12,8 +12,10 @@ variable "instance_name" {
   type = string
 }
 
-data "google_compute_network" "default" {
-  name = "default"
+variable "network" {
+  type = object({
+    id = string
+  })
 }
 
 resource "google_sql_database_instance" "default" {
@@ -75,7 +77,7 @@ resource "google_sql_database_instance" "default" {
     ip_configuration {
       enable_private_path_for_google_cloud_services = true
       ipv4_enabled                                  = true
-      private_network                               = data.google_compute_network.default.id
+      private_network                               = var.network.id
       require_ssl                                   = true
       ssl_mode                                      = "TRUSTED_CLIENT_CERTIFICATE_REQUIRED" # ENCRYPTED_ONLY, TRUSTED_CLIENT_CERTIFICATE_REQUIRED, ALLOW_UNENCRYPTED_AND_ENCRYPTED
     }

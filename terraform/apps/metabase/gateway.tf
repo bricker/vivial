@@ -94,7 +94,6 @@ resource "kubernetes_manifest" "instances_backend_policy" {
           }
           clientID = var.IAP_OAUTH_CLIENT_CREDENTIALS.client_id
         }
-
       }
 
       targetRef = {

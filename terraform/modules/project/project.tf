@@ -18,6 +18,6 @@ resource "google_project" "main" {
   org_id              = var.org_id
   project_id          = var.project.id
   name                = var.project.id
-  auto_create_network = true
+  auto_create_network = false
   skip_delete         = true
 }
