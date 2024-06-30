@@ -1,7 +1,7 @@
 import secrets
 import uuid
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import IntEnum
 from typing import Self
 from uuid import UUID
@@ -9,6 +9,8 @@ from uuid import UUID
 from sqlalchemy import Index, ScalarResult, Select, SmallInteger, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+
+from eave.collectors.core.correlation_context.base import corr_ctx_symmetric_encryption_key
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
@@ -93,5 +95,14 @@ class ClientCredentialsOrm(Base):
         result = await session.scalars(lookup)
         return result
 
-    async def touch(self, session: AsyncSession) -> None:
-        self.last_used = datetime.utcnow()
+    def touch(self, session: AsyncSession) -> None:
+        # The database column is timezone-naive, so we have to remove the timezone info before saving it to the database.
+        self.last_used = datetime.now(UTC).replace(tzinfo=None)
+
+    @property
+    def combined(self) -> str:
+        return f"{self.id}:{self.secret}"
+
+    @property
+    def decryption_key(self) -> bytes:
+        return corr_ctx_symmetric_encryption_key(self.combined)

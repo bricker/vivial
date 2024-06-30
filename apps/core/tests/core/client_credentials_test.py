@@ -1,3 +1,7 @@
+import datetime
+import hashlib
+from base64 import b64encode
+
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 
 from .base import BaseTestCase
@@ -43,3 +47,23 @@ class TestClientCredentialsOrmScopeQuery(BaseTestCase):
 
         assert qresult is not None
         assert qresult.scope
+
+    async def test_touch(self) -> None:
+        creds = await self._create_creds(ClientScope.read)
+        assert creds.last_used is None
+
+        async with self.db_session.begin() as s:
+            creds.touch(s)
+
+        assert creds.last_used is not None
+        assert creds.last_used > datetime.datetime.now(datetime.UTC).replace(tzinfo=None) - datetime.timedelta(
+            seconds=5
+        )
+
+    async def test_combined(self) -> None:
+        creds = await self._create_creds(ClientScope.read)
+        assert creds.combined == f"{creds.id}:{creds.secret}"
+
+    async def test_decryption_key(self) -> None:
+        creds = await self._create_creds(ClientScope.read)
+        assert creds.decryption_key == b64encode(hashlib.sha256(bytes(creds.combined, "utf-8")).digest())

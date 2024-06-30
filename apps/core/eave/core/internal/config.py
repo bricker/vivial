@@ -16,7 +16,7 @@ class _AppConfig(ConfigBase):
     @cached_property
     def db_host(self) -> str:
         key = "EAVE_DB_HOST"
-        if SHARED_CONFIG.is_development:
+        if SHARED_CONFIG.is_local:
             return get_required_env(key)
         else:
             return get_secret(key)
@@ -24,7 +24,7 @@ class _AppConfig(ConfigBase):
     @cached_property
     def db_port(self) -> int | None:
         key = "EAVE_DB_PORT"
-        if SHARED_CONFIG.is_development:
+        if SHARED_CONFIG.is_local:
             strv = os.getenv(key)
             if strv is None:
                 return None
@@ -40,7 +40,7 @@ class _AppConfig(ConfigBase):
     @cached_property
     def db_user(self) -> str:
         key = "EAVE_DB_USER"
-        if SHARED_CONFIG.is_development:
+        if SHARED_CONFIG.is_local:
             return get_required_env(key)
         else:
             return get_secret(key)
@@ -48,7 +48,7 @@ class _AppConfig(ConfigBase):
     @cached_property
     def db_pass(self) -> str | None:
         key = "EAVE_DB_PASS"
-        if SHARED_CONFIG.is_development:
+        if SHARED_CONFIG.is_local:
             value = os.getenv(key)
             # Treat empty strings as None
             return None if not value else value
@@ -61,7 +61,7 @@ class _AppConfig(ConfigBase):
     @cached_property
     def db_name(self) -> str:
         key = "EAVE_DB_NAME"
-        if SHARED_CONFIG.is_development:
+        if SHARED_CONFIG.is_local:
             return get_required_env(key)
         else:
             return get_secret(key)

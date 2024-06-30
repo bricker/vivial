@@ -77,13 +77,17 @@ class _EaveConfig(ConfigBase):
         return self.eave_env is EaveEnvironment.test
 
     @property
+    def is_local(self) -> bool:
+        return self.is_development or self.is_test
+
+    @property
     def raise_app_exceptions(self) -> bool:
         """
         This is intended for use during development.
         When set to True, unhandled exceptions raised during the request won't be handled.
         In production (i.e. when this flag is False), unhandled exceptions are caught, logged, and return a 500.
         """
-        return self.is_development or self.is_test
+        return self.is_local
 
     @property
     def monitoring_enabled(self) -> bool:
@@ -185,7 +189,7 @@ class _EaveConfig(ConfigBase):
         key = "REDIS_HOST_PORT"
         value: str | None
 
-        if self.is_development:
+        if self.is_local:
             # This secret should never be pulled from Google Cloud during development.
             value = os.getenv(key)
         else:
@@ -220,7 +224,7 @@ class _EaveConfig(ConfigBase):
     def redis_auth(self) -> str | None:
         key = "REDIS_AUTH"
 
-        if self.is_development:
+        if self.is_local:
             return os.getenv(key)
         else:
             try:
@@ -232,7 +236,7 @@ class _EaveConfig(ConfigBase):
     def redis_tls_ca(self) -> str | None:
         key = "REDIS_TLS_CA"
 
-        if self.is_development:
+        if self.is_local:
             return os.getenv(key)
         else:
             try:

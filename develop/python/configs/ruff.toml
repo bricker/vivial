@@ -84,6 +84,7 @@ ignore = [
   "PLR09", # "too many ..." checks
   "PLR5501", # https://docs.astral.sh/ruff/rules/collapsible-else-if/ - Sometimes using `else/if` is more readable than using `elif`
   "PLR2004", # https://docs.astral.sh/ruff/rules/magic-value-comparison/ - This wants to use constants too often. Like `if len(thing) == 2`.
+  "PYI041", # https://docs.astral.sh/ruff/rules/redundant-numeric-union/ - If using int | float, it's probably deliberate to communicate the intent of the function.
   "S101", # https://docs.astral.sh/ruff/rules/assert/ - too common in current codebase
   "A003", # https://docs.astral.sh/ruff/rules/builtin-attribute-shadowing/ - too common in current codebase
   "BLE001", # https://docs.astral.sh/ruff/rules/blind-except/ - too common in current codebase

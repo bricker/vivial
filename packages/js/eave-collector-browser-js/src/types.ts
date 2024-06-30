@@ -65,38 +65,10 @@ export type SessionProperties = {
   start_timestamp: EpochTimeStampSeconds | null;
 };
 
-// export type UserProperties = {
-//   account_id: string | null;
-//   visitor_id: string | null;
-// };
-
 export type TrafficSourceProperties = {
   timestamp: EpochTimeStampSeconds | null;
   browser_referrer: string | null;
   tracking_params: ScalarMap<string> | null;
-  // gclid: string | null;
-  // fbclid: string | null;
-  // msclkid: string | null;
-  // dclid: string | null;
-  // ko_click_id: string | null;
-  // rtd_cid: string | null;
-  // li_fat_id: string | null;
-  // ttclid: string | null;
-  // twclid: string | null;
-  // wbraid: string | null;
-  // gbraid: string | null;
-  // keyword: string | null;
-  // matchtype: string | null;
-  // campaign: string | null;
-  // campaign_id: string | null;
-  // pid: string | null;
-  // cid: string | null;
-  // utm_campaign: string | null;
-  // utm_source: string | null;
-  // utm_medium: string | null;
-  // utm_term: string | null;
-  // utm_content: string | null;
-  // other_utm_params: ScalarMap<string> | null;
 };
 
 export type TargetProperties = {
@@ -114,7 +86,4 @@ export type BrowserEventPayload = {
   current_page: CurrentPageProperties | null;
   extra?: ScalarMap<JsonScalar> | null;
   corr_ctx: ScalarMap<string>;
-  // session: SessionProperties | null;
-  // user: UserProperties | null;
-  // traffic_source: TrafficSourceProperties | null;
 };

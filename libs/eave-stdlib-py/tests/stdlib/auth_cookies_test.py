@@ -53,14 +53,14 @@ class AuthCookiesTest(AuthCookiesTestBase):
         account_id_cookie = next(
             v for v in cookies if re.search(f"^{EAVE_ACCOUNT_ID_COOKIE_NAME}={self.data_account_id};", v)
         )
-        assert re.search("Secure;", account_id_cookie, flags=re.IGNORECASE)
-        assert re.search("SameSite=None;", account_id_cookie, flags=re.IGNORECASE)
+        assert re.search("Secure", account_id_cookie, flags=re.IGNORECASE)
+        assert re.search("SameSite=None", account_id_cookie, flags=re.IGNORECASE)
 
         access_token_cookie = next(
             v for v in cookies if re.search(f"^{EAVE_ACCESS_TOKEN_COOKIE_NAME}={self.data_access_token};", v)
         )
-        assert re.search("Secure;", access_token_cookie, flags=re.IGNORECASE)
-        assert re.search("SameSite=None;", access_token_cookie, flags=re.IGNORECASE)
+        assert re.search("Secure", access_token_cookie, flags=re.IGNORECASE)
+        assert re.search("SameSite=None", access_token_cookie, flags=re.IGNORECASE)
 
     async def test_get_auth_cookies_with_all_data(self):
         cookies = get_auth_cookies(
@@ -125,6 +125,6 @@ class AuthCookiesTest(AuthCookiesTestBase):
         cookies = [v for k, v in self.mock_response.headers.items() if istr_eq(k, aiohttp.hdrs.SET_COOKIE)]
         assert len(cookies) == 3
 
-        assert any(re.search(f'^{EAVE_ACCOUNT_ID_COOKIE_NAME}="";', v) for v in cookies)
-        assert any(re.search(f'^{EAVE_ACCESS_TOKEN_COOKIE_NAME}="";', v) for v in cookies)
-        assert any(re.search(f'^{EAVE_EMBED_COOKIE_PREFIX}xyz="";', v) for v in cookies)
+        assert any(re.search(f'^{EAVE_ACCOUNT_ID_COOKIE_NAME}=""', v) for v in cookies)
+        assert any(re.search(f'^{EAVE_ACCESS_TOKEN_COOKIE_NAME}=""', v) for v in cookies)
+        assert any(re.search(f'^{EAVE_EMBED_COOKIE_PREFIX}xyz=""', v) for v in cookies)

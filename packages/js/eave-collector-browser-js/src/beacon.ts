@@ -153,9 +153,6 @@ class RequestManager {
     const deviceProperties = await this.#getDeviceProperties();
     const currentPageProperties = getCurrentPageProperties();
     const corrCtx = getCorrelationContext();
-    // const sessionProperties = getSessionProperties();
-    // const userProperties = getUserProperties();
-    // const trafficSourceProperties = getTrafficSourceProperties();
 
     const payload: BrowserEventPayload = {
       action,
@@ -165,9 +162,6 @@ class RequestManager {
       current_page: currentPageProperties,
       extra,
       corr_ctx: corrCtx,
-      // session: sessionProperties,
-      // user: userProperties,
-      // traffic_source: trafficSourceProperties,
     };
 
     return payload;

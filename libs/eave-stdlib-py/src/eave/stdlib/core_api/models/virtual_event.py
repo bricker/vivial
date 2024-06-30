@@ -1,9 +1,15 @@
 import uuid
+from enum import StrEnum
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
-from eave.core.internal.atoms.table_handle import BigQueryFieldMode
 from eave.stdlib.core_api.models import BaseInputModel, BaseResponseModel
+
+
+class BigQueryFieldMode(StrEnum):
+    REQUIRED = "REQUIRED"
+    NULLABLE = "NULLABLE"
+    REPEATED = "REPEATED"
 
 
 class VirtualEventField(BaseResponseModel):
@@ -38,7 +44,7 @@ class VirtualEventDetails(BaseResponseModel):
     view_id: str
     readable_name: str
     description: str | None
-    fields: list[VirtualEventField]
+    fields: list[VirtualEventField] | None
 
 
 class VirtualEventDetailsQueryInput(BaseInputModel):
