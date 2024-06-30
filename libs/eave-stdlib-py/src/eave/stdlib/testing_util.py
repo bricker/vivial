@@ -10,9 +10,8 @@ import unittest.mock
 import uuid
 from datetime import UTC, datetime, timedelta
 from math import floor
-from typing import Any, Literal, Type, TypeVar, cast
+from typing import Any, Literal, TypeVar
 
-from eave.stdlib.logging import LogContext
 from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
 
 import eave.stdlib.exceptions
@@ -20,6 +19,7 @@ import eave.stdlib.util
 from eave.core.internal.oauth.google import GoogleOAuthV2GetResponse
 from eave.stdlib.checksum import generate_checksum
 from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.logging import LogContext
 from eave.stdlib.typing import JsonObject
 
 T = TypeVar("T")

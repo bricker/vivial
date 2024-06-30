@@ -9,9 +9,7 @@ class TestDatabaseEventView(BigQueryTestsBase):
         await super().asyncSetUp()
 
     async def test_init(self) -> None:
-        view = DatabaseEventView(
-            event_table_name=self.anystr(), event_operation=DatabaseOperation.INSERT
-        )
+        view = DatabaseEventView(event_table_name=self.anystr(), event_operation=DatabaseOperation.INSERT)
 
         # Lazy checks for runtime errors.
         assert view.view_id is not None

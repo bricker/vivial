@@ -9,6 +9,7 @@ from google.oauth2 import service_account as _service_account
 
 from eave.stdlib.logging import LogContext
 
+
 class BigQueryClient:
     _bq_client: bigquery.Client
     project: str
@@ -95,7 +96,13 @@ class BigQueryClient:
 
         # return remote_table
 
-    def update_table(self, *, table: bigquery.Table, ctx: LogContext, fields: list[Literal["friendlyName", "description", "view", "schema"]] | None = None) -> bigquery.Table:
+    def update_table(
+        self,
+        *,
+        table: bigquery.Table,
+        ctx: LogContext,
+        fields: list[Literal["friendlyName", "description", "view", "schema"]] | None = None,
+    ) -> bigquery.Table:
         if fields is None:
             fields = ["friendlyName", "description", "view", "schema"]
 

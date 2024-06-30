@@ -107,7 +107,5 @@ class DatabaseEventsController(BaseAtomController):
                 return
 
         for operation, table_name in unique_operations:
-            view_def = DatabaseEventView(
-                event_table_name=table_name, event_operation=operation
-            )
+            view_def = DatabaseEventView(event_table_name=table_name, event_operation=operation)
             await self.sync_bq_view(view_def=view_def, ctx=ctx)

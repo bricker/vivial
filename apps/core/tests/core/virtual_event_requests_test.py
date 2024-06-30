@@ -1,14 +1,16 @@
 from http import HTTPStatus
 
-from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode, VirtualEventDetailsQueryInput, VirtualEventField
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.orm.team import bq_dataset_id
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
+from eave.stdlib.core_api.models.virtual_event import (
+    BigQueryFieldMode,
+    VirtualEventDetailsQueryInput,
+    VirtualEventField,
+)
 from eave.stdlib.core_api.operations.virtual_event import GetMyVirtualEventDetailsRequest, ListMyVirtualEventsRequest
-
-from eave.core.public.requests.virtual_event import GetMyVirtualEventDetailsEndpoint
 
 from .base import BaseTestCase
 
@@ -145,7 +147,9 @@ class TestVirtualEventRequests(BaseTestCase):
 
         dataset = EAVE_INTERNAL_BIGQUERY_CLIENT.get_or_create_dataset(dataset_id=bq_dataset_id(self._team1.id))
 
-        bq_view = EAVE_INTERNAL_BIGQUERY_CLIENT.construct_table(dataset_id=dataset.dataset_id, table_id=target_vevent.view_id)
+        bq_view = EAVE_INTERNAL_BIGQUERY_CLIENT.construct_table(
+            dataset_id=dataset.dataset_id, table_id=target_vevent.view_id
+        )
         bq_view.view_query = f'SELECT STRUCT("{self.anyhex()}" as `{self.anyalpha("field name 1")}`, "{self.anyhex()}" as `{self.anyalpha("field name 2")}`) as `{self.anyalpha("field name 0")}`'
 
         bq_view = EAVE_INTERNAL_BIGQUERY_CLIENT.get_or_create_table(table=bq_view, ctx=self.empty_ctx)

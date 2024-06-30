@@ -1,4 +1,3 @@
-from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
 from eave.core.internal.atoms.models.atom_types import (
@@ -17,6 +16,7 @@ from eave.core.internal.atoms.models.db_record_fields import (
     TargetRecordField,
     UrlRecordField,
 )
+from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
 
 from ..base import BaseTestCase, assert_schemas_match
 

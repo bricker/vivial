@@ -22,9 +22,9 @@ from eave.core.internal.atoms.models.api_payload_types import (
     TrafficSourceProperties,
 )
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
-from eave.stdlib.logging import LogContext
 
 from ..base import BaseTestCase
+
 
 class TestAtomApiTypes(BaseTestCase):
     async def asyncSetUp(self) -> None:

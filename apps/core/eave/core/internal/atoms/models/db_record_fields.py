@@ -11,7 +11,6 @@ from dataclasses import dataclass
 from typing import Self
 from urllib.parse import parse_qsl, urlparse
 
-from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
 from eave.core.internal.atoms.models.api_payload_types import (
@@ -23,6 +22,7 @@ from eave.core.internal.atoms.models.api_payload_types import (
     TargetProperties,
     TrafficSourceProperties,
 )
+from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
 from eave.stdlib.typing import JsonScalar
 
 

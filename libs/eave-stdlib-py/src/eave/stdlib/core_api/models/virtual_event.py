@@ -1,14 +1,16 @@
-from enum import StrEnum
 import uuid
+from enum import StrEnum
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
 from eave.stdlib.core_api.models import BaseInputModel, BaseResponseModel
 
+
 class BigQueryFieldMode(StrEnum):
     REQUIRED = "REQUIRED"
     NULLABLE = "NULLABLE"
     REPEATED = "REPEATED"
+
 
 class VirtualEventField(BaseResponseModel):
     name: str

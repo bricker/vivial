@@ -9,6 +9,7 @@ from eave.core.internal.orm.team import bq_dataset_id
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
 from eave.stdlib.logging import LOGGER, LogContext
 
+
 class BaseAtomController:
     _dataset_id: str
     _client: ClientCredentialsOrm
@@ -21,9 +22,7 @@ class BaseAtomController:
         # Lazily creates the dataset in case it doesn't exist.
         EAVE_INTERNAL_BIGQUERY_CLIENT.get_or_create_dataset(dataset_id=self._dataset_id)
 
-        table = EAVE_INTERNAL_BIGQUERY_CLIENT.construct_table(
-            dataset_id=self._dataset_id, table_id=table_def.table_id
-        )
+        table = EAVE_INTERNAL_BIGQUERY_CLIENT.construct_table(dataset_id=self._dataset_id, table_id=table_def.table_id)
         table.description = table_def.description
         table.friendly_name = table_def.friendly_name
         table.schema = table_def.schema

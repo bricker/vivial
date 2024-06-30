@@ -3,15 +3,13 @@ from dataclasses import dataclass
 from textwrap import dedent
 from typing import cast
 
-from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
 import inflect
-from google.cloud.bigquery import SchemaField, SqlTypeNames, Table
+from google.cloud.bigquery import SchemaField, SqlTypeNames
 
 from eave.collectors.core.datastructures import DatabaseOperation
 from eave.core.internal.atoms.models.api_payload_types import BrowserAction
 from eave.core.internal.atoms.models.atom_types import BrowserEventAtom, DatabaseEventAtom
-from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
-from eave.stdlib.logging import LogContext
+from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
 from eave.stdlib.util import sql_sanitized_identifier, sql_sanitized_literal, tableize, titleize
 
 

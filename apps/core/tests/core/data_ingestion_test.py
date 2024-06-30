@@ -12,9 +12,6 @@ from eave.collectors.core.datastructures import (
     HttpRequestMethod,
     HttpServerEventPayload,
 )
-from eave.core.internal.atoms.controllers.browser_events import BrowserEventsController
-from eave.core.internal.atoms.controllers.db_events import DatabaseEventsController
-from eave.core.internal.atoms.controllers.http_server_events import HttpServerEventsController
 from eave.core.internal.atoms.models.atom_types import BrowserEventAtom, DatabaseEventAtom, HttpServerEventAtom
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.stdlib.config import SHARED_CONFIG

@@ -2,6 +2,8 @@ import datetime
 import json
 from textwrap import dedent
 
+from google.cloud.bigquery import SchemaField, SqlTypeNames
+
 from eave.collectors.core.correlation_context.base import (
     EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
     EAVE_COLLECTOR_COOKIE_PREFIX,
@@ -9,15 +11,12 @@ from eave.collectors.core.correlation_context.base import (
     CorrelationContextAttr,
 )
 from eave.collectors.core.datastructures import DatabaseOperation
-from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
-from eave.stdlib.util import sql_sanitized_literal
-from google.cloud.bigquery import SchemaField, SqlTypeNames
 from eave.core.internal.atoms.controllers.base_atom_controller import BaseAtomController
 from eave.core.internal.atoms.controllers.browser_events import BrowserEventsController
 from eave.core.internal.atoms.controllers.db_events import DatabaseEventsController
 from eave.core.internal.atoms.controllers.http_server_events import HttpServerEventsController
 from eave.core.internal.atoms.models.api_payload_types import BrowserAction
-from eave.core.internal.atoms.models.atom_types import Atom, BigQueryTableDefinition, BrowserEventAtom
+from eave.core.internal.atoms.models.atom_types import Atom, BigQueryTableDefinition
 from eave.core.internal.atoms.models.db_record_fields import (
     GeoRecordField,
 )
@@ -25,9 +24,11 @@ from eave.core.internal.atoms.models.db_views import BigQueryViewDefinition, Vie
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.orm.team import bq_dataset_id
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
-from eave.stdlib.logging import LogContext
+from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
+from eave.stdlib.util import sql_sanitized_literal
 
 from ..bq_tests_base import BigQueryTestsBase
+
 
 class _ExampleAtom(Atom):
     @staticmethod
@@ -44,6 +45,7 @@ class _ExampleAtom(Atom):
                 ),
             ),
         )
+
 
 class _ExampleView(BigQueryViewDefinition):
     view_id = "example_view"
@@ -76,10 +78,10 @@ class _ExampleView(BigQueryViewDefinition):
             """
         ).strip()
 
+
 class TestBaseAtomController(BigQueryTestsBase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
-
 
     async def test_get_or_create_table(self):
         controller = BaseAtomController(client=self.client_credentials)
@@ -93,7 +95,7 @@ class TestBaseAtomController(BigQueryTestsBase):
                     field_type=SqlTypeNames.STRING,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
-            )
+            ),
         )
 
         assert not self.team_bq_dataset_exists()
@@ -111,13 +113,15 @@ class TestBaseAtomController(BigQueryTestsBase):
         view_def = _ExampleView()
 
         async with self.db_session.begin() as s:
-            vevent = (await VirtualEventOrm.query(
-                s,
-                params=VirtualEventOrm.QueryParams(
-                    team_id=self.eave_team.id,
-                    view_id=view_def.view_id,
-                ),
-            )).one_or_none()
+            vevent = (
+                await VirtualEventOrm.query(
+                    s,
+                    params=VirtualEventOrm.QueryParams(
+                        team_id=self.eave_team.id,
+                        view_id=view_def.view_id,
+                    ),
+                )
+            ).one_or_none()
 
             assert vevent is None
 
@@ -131,19 +135,22 @@ class TestBaseAtomController(BigQueryTestsBase):
         await controller.sync_bq_view(view_def=view_def, ctx=self.empty_ctx)
 
         async with self.db_session.begin() as s:
-            vevents = (await VirtualEventOrm.query(
-                s,
-                params=VirtualEventOrm.QueryParams(
-                    team_id=self.eave_team.id,
-                    view_id=view_def.view_id,
-                ),
-            )).all()
+            vevents = (
+                await VirtualEventOrm.query(
+                    s,
+                    params=VirtualEventOrm.QueryParams(
+                        team_id=self.eave_team.id,
+                        view_id=view_def.view_id,
+                    ),
+                )
+            ).all()
 
             assert len(vevents) == 1
             assert vevents[0].view_id == view_def.view_id
 
         assert self.team_bq_dataset_exists()
         assert self.team_bq_table_exists(table_name=view_def.view_id)
+
 
 class TestBrowserEventsPayloadProcessor(BigQueryTestsBase):
     async def asyncSetUp(self) -> None:

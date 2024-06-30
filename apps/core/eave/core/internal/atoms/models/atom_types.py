@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import ClassVar
 
-from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
 from eave.collectors.core.datastructures import DatabaseOperation, HttpRequestMethod
@@ -18,6 +16,7 @@ from eave.core.internal.atoms.models.db_record_fields import (
     TrafficSourceRecordField,
     UrlRecordField,
 )
+from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -49,8 +48,7 @@ class Atom(ABC):
 
     @staticmethod
     @abstractmethod
-    def table_def() -> BigQueryTableDefinition:
-        ...
+    def table_def() -> BigQueryTableDefinition: ...
 
     @staticmethod
     def common_atom_schema_fields() -> tuple[SchemaField, ...]:

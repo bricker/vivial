@@ -50,7 +50,9 @@ class AsyncioCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
         t2 = asyncio.create_task(task2())
         await asyncio.gather(t1, t2)
 
-        assert ctx.to_json() == '{"_eave.parent": "0", "_eave.t1": "1", "_eave.t2": "2"}', "Values set by child tasks not found"
+        assert (
+            ctx.to_json() == '{"_eave.parent": "0", "_eave.t1": "1", "_eave.t2": "2"}'
+        ), "Values set by child tasks not found"
 
     async def test_initialize_from_cookies_performs_union(self) -> None:
         ctx = AsyncioCorrelationContext()

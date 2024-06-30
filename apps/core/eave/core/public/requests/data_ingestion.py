@@ -5,11 +5,11 @@ from starlette.responses import Response
 
 from eave.collectors.core.datastructures import DataIngestRequestBody, EventType
 from eave.core.internal import database
-from eave.core.internal.atoms.models.db_record_fields import GeoRecordField
 from eave.core.internal.atoms.controllers.browser_events import BrowserEventsController
 from eave.core.internal.atoms.controllers.db_events import DatabaseEventsController
 from eave.core.internal.atoms.controllers.http_client_events import HttpClientEventsController
 from eave.core.internal.atoms.controllers.http_server_events import HttpServerEventsController
+from eave.core.internal.atoms.models.db_record_fields import GeoRecordField
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib.api_util import get_header_value, get_header_value_or_exception
