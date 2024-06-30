@@ -147,6 +147,7 @@ const useTeam = (): TeamHook => {
         });
       })
       .catch((e) => {
+        console.error(e);
         setGlossaryNetworkState((prev) => ({
           ...prev,
           virtualEventsAreErroring: true,
@@ -219,6 +220,7 @@ const useTeam = (): TeamHook => {
         });
       })
       .catch((e) => {
+        console.error(e);
         setGlossaryNetworkState((prev) => ({
           ...prev,
           virtualEventsAreErroring: true,
