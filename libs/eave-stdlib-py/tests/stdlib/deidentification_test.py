@@ -5,6 +5,7 @@ from eave.stdlib.deidentification import (
     _headers_to_redact,
     _write_flat_data_to_object,
     _redactable_fields_matchers,
+    redact_atoms,
 )
 
 from eave.core.internal.atoms.models.api_payload_types import CurrentPageProperties, TargetProperties
@@ -290,7 +291,7 @@ class DeidentificationTest(StdlibBaseTestCase):
             ]
         )
 
-    def test_dlp_integration(self) -> None:
+    async def test_dlp_integration(self) -> None:
         atoms = [
             BrowserEventAtom(
                 action="Bryan Cameron Ricker is my name!",
@@ -321,7 +322,7 @@ class DeidentificationTest(StdlibBaseTestCase):
                 geo=None,
                 extra=MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(
                     {
-                        "password": "my password is 3U4TRV9UmFeT*n",
+                        "password": "my password is password123",
                         "ethnicity": "caucasian",
                     }
                 ),
@@ -363,4 +364,69 @@ class DeidentificationTest(StdlibBaseTestCase):
             ),
         ]
 
-        assert False, "implement this"
+        await redact_atoms(atoms)
+        updated_flat = [_flatten_to_dict(a) for a in atoms]
+
+        assert updated_flat == [
+            {
+                "account": None,
+                "action": "Bryan Cameron Ricker is my name!",
+                "client_ip": None,
+                "current_page.pageview_id": None,
+                "current_page.title": "Your Credit Card Number",
+                "current_page.url.domain": "sensitive_domain.com",
+                "current_page.url.hash": None,
+                "current_page.url.path": "/your_credit_card_number/[CREDIT_CARD_NUMBER]",
+                "current_page.url.protocol": "https",
+                "current_page.url.query_params": None,
+                "current_page.url.raw": "https://sensitive_domain.com/your_credit_card_number/[CREDIT_CARD_NUMBER]",
+                "device": None,
+                "extra.0.key": "password",
+                "extra.0.value.bool_value": None,
+                "extra.0.value.numeric_value": None,
+                "extra.0.value.string_value": "my password is password123",
+                "extra.1.key": "ethnicity",
+                "extra.1.value.bool_value": None,
+                "extra.1.value.numeric_value": None,
+                "extra.1.value.string_value": "caucasian",
+                "geo": None,
+                "session": None,
+                "target.attributes": None,
+                "target.content": "xx",
+                "target.id": "xx",
+                "target.type": "xx",
+                "timestamp": None,
+                "traffic_source": None,
+                "visitor_id": None,
+            },
+            {
+                "account": None,
+                "action": "vote for Jeb! Bush",
+                "client_ip": None,
+                "current_page.pageview_id": None,
+                "current_page.title": "my Credit Card Number",
+                "current_page.url.domain": "sensitive_domain.com",
+                "current_page.url.hash": None,
+                "current_page.url.path": "/your_credit_card_number",
+                "current_page.url.protocol": "https",
+                "current_page.url.query_params.0.key": "ccn",
+                "current_page.url.query_params.0.value": "3742-0454-5540-0126",
+                "current_page.url.raw": "https://sensitive_domain.com/your_credit_card_number?ccn=3742-0454-5540-0126",
+                "device": None,
+                "extra.0.key": "slam-poetry-id",
+                "extra.0.value.bool_value": None,
+                "extra.0.value.numeric_value": None,
+                "extra.0.value.string_value": "sddf89sdfd89dsafh9sd",
+                "geo": None,
+                "session": None,
+                "target.attributes.0.key": "conditions",
+                "target.attributes.0.value.0": "type 1 diabetes",
+                "target.attributes.0.value.1": "shingles",
+                "target.content": "grandma is [AGE]",
+                "target.id": "grandmamas health record",
+                "target.type": None,
+                "timestamp": None,
+                "traffic_source": None,
+                "visitor_id": "23d35726-3f73-4045-a724-b788c0b12b97",
+            },
+        ]

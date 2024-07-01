@@ -228,7 +228,9 @@ async def redact_atoms(atoms: list[Any]) -> None:
 
         dlp_rows.append(dlp.Table.Row(values=row_values))
 
-    headers_to_redact = _headers_to_redact(type(atoms[0]), flat_atoms[0].keys())
+    headers_to_redact = [
+        dlp.FieldId(name=header) for header in _headers_to_redact(type(atoms[0]), flat_atoms[0].keys())
+    ]
 
     client = dlp.DlpServiceAsyncClient()
     response = await client.deidentify_content(
