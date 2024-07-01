@@ -7,7 +7,6 @@ Additionally, the BigQuery record field schemas are defined on these classes.
 These schemas are authoritative: changing these will change the respective schema in BigQuery.
 """
 
-
 from dataclasses import dataclass, field
 from typing import Self
 from urllib.parse import parse_qsl, urlparse
@@ -25,10 +24,12 @@ from eave.core.internal.atoms.models.api_payload_types import (
 )
 from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
 from eave.stdlib.typing import JsonScalar
-from eave.stdlib.deidentification import REDACTABLE, Redactable
+from eave.stdlib.deidentification import REDACTABLE
 
-class RecordField(Redactable):
+
+class RecordField:
     pass
+
 
 @dataclass(init=False)
 class TypedValueRecordField(RecordField):

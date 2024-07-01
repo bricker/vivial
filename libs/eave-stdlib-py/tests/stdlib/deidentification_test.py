@@ -4,7 +4,6 @@ from eave.stdlib.deidentification import (
     _flatten_to_dict,
     _headers_to_redact,
     _write_flat_data_to_object,
-    Redactable,
     _redactable_fields_matchers,
 )
 
@@ -20,12 +19,12 @@ from .base import StdlibBaseTestCase
 
 
 @dataclasses.dataclass
-class Spec(Redactable):
+class Spec:
     info: str | None = dataclasses.field(metadata={REDACTABLE: True})
 
 
 @dataclasses.dataclass
-class Basket(Redactable):
+class Basket:
     thread_count: int
     woven_underwater: bool = dataclasses.field(metadata={REDACTABLE: True})
     price: str | None = dataclasses.field(metadata={REDACTABLE: True})
@@ -33,7 +32,7 @@ class Basket(Redactable):
 
 
 @dataclasses.dataclass
-class WeavingSpider(Redactable):
+class WeavingSpider:
     genus: str
     favorite_legs: list[int] | None = dataclasses.field(metadata={REDACTABLE: True})
     name: str = dataclasses.field(metadata={REDACTABLE: True})
@@ -45,7 +44,7 @@ class Tool:
 
 
 @dataclasses.dataclass
-class BasketWeaver(Redactable):
+class BasketWeaver:
     tools: list[Tool]
     name: str = dataclasses.field(metadata={REDACTABLE: True})
     helpers: list[WeavingSpider] | None = dataclasses.field(metadata={REDACTABLE: True})

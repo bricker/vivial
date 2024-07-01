@@ -16,10 +16,6 @@ _regex_safe_key_sep = rf"\{_key_sep}"
 REDACTABLE = "redactable"
 
 
-class Redactable:  # TODO: need this at all??? just for mark datacalss?
-    ...
-
-
 def _redactable_fields_matchers(t: Any) -> list[str]:
     """List of all redactable fields, including member objects',
     defined as regex paths. A redactable field being one that

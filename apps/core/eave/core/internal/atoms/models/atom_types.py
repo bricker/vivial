@@ -17,7 +17,7 @@ from eave.core.internal.atoms.models.db_record_fields import (
     UrlRecordField,
 )
 from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
-from eave.stdlib.deidentification import Redactable, REDACTABLE
+from eave.stdlib.deidentification import REDACTABLE
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -36,7 +36,7 @@ class BigQueryTableDefinition:
 
 
 @dataclass
-class Atom(ABC, Redactable):
+class Atom(ABC):
     """
     Common fields for all Atom types.
     """
