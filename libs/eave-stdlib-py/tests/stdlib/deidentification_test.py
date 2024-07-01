@@ -1,4 +1,5 @@
-from eave.stdlib.deidentification import _flatten_to_dict, _write_flat_data_to_object
+import dataclasses
+from eave.stdlib.deidentification import _flatten_to_dict, _write_flat_data_to_object, Redactable, redactable
 
 from eave.core.internal.atoms.api_types import CurrentPageProperties, TargetProperties
 from eave.core.internal.atoms.browser_events import BrowserEventAtom
@@ -8,7 +9,6 @@ from eave.core.internal.atoms.record_fields import (
     TargetRecordField,
     UserRecordField,
 )
-
 
 from .base import StdlibBaseTestCase
 
@@ -89,6 +89,15 @@ class DeidentificationTest(StdlibBaseTestCase):
             "extra.1.value.string_value": "White",
             "client_ip": None,
         }
+
+    def test_flatten_dict_member(self) -> None:
+        @dataclasses.dataclass
+        class Foo:
+            d: dict[str, str]
+
+        f = Foo(d={"test": "object", "looking": "good", 'someth"ing': "janky"})
+
+        assert _flatten_to_dict(f) == {'d."test"': "object", 'd."looking"': "good", 'd."someth"ing"': "janky"}
 
     def test_object_write_back(self) -> None:
         obj = BrowserEventAtom(
@@ -203,3 +212,49 @@ class DeidentificationTest(StdlibBaseTestCase):
             "current_page.url.query_params.0.key": "ccn",
             "current_page.url.query_params.0.value": "3742-0454-5540-0126",
         }
+
+    def test_redactable_field_identification(self) -> None:
+        @dataclasses.dataclass
+        class Spec(Redactable):
+            info: str | None = redactable()
+
+        @dataclasses.dataclass
+        class Basket(Redactable):
+            thread_count: int
+            woven_underwater: bool = redactable()
+            price: str | None = redactable()
+            specs: dict[str, Spec] = redactable()
+
+        @dataclasses.dataclass
+        class WeavingSpider(Redactable):
+            genus: str
+            favorite_legs: list[int] = redactable()
+            name: str = redactable()
+
+        @dataclasses.dataclass
+        class Tool:
+            type: str
+
+        @dataclasses.dataclass
+        class BasketWeaver(Redactable):
+            tools: list[Tool]
+            name: str = redactable()
+            helpers: list[WeavingSpider] | None = redactable()
+            latest_work: Basket = redactable()
+
+        assert sorted(Basket.redactable_fields_matchers()) == sorted(
+            [
+                r"woven_underwater",
+                r"price",
+                r'specs\.".*?(?="\.)"\.info',
+            ]
+        ), "Single object matchers did not match expected"
+        assert sorted(BasketWeaver.redactable_fields_matchers()) == sorted(
+            [
+                r"name",
+                r"latest_work\.woven_underwater",
+                r"latest_work\.price",
+                r"helpers\.[0-9]+\.favorite_legs\.[0-9]+",
+                r"helpers\.[0-9]+\.name",
+            ]
+        ), "Nested object and list matchers did not match expected"

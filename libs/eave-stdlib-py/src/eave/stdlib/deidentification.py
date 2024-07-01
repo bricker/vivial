@@ -1,5 +1,6 @@
 import dataclasses
-from typing import Any
+import re
+from typing import Any, get_args
 import google.cloud.dlp_v2 as dlp
 
 from .config import SHARED_CONFIG, EaveEnvironment
@@ -8,6 +9,80 @@ from .config import SHARED_CONFIG, EaveEnvironment
 # Convert the project id into a full resource id.
 parent = f"projects/{SHARED_CONFIG.google_cloud_project}/locations/global"
 _key_sep = "."
+_regex_safe_key_sep = fr"\{_key_sep}"
+
+
+def redactable(*args, **kwargs) -> Any:
+    redact_meta = {"redactable": True}
+    if "metadata" in kwargs:
+        kwargs["metadata"].update(redact_meta)
+        return dataclasses.field(*args, **kwargs)
+    return dataclasses.field(*args, **kwargs, metadata=redact_meta)
+
+
+class Redactable:
+    @classmethod
+    def redactable_fields_matchers(cls) -> list[str]:
+        """List of all redactable fields, including member objects',
+        defined as regex paths. A redactable field being one that
+        is assigned with the `redactable()` dataclass field definition.
+
+        e.g.
+        ```
+        class Mammal(Redactable):
+            genus: Genus | None = redactable()
+            quantitiy: int
+            num_legs : int = redactable(default=4)
+
+        class Canis(Genus, Redactable):
+            common_names: list[str] = redactable()
+            is_good: bool = True
+
+        Mammal.redactable_fields_matchers()
+        ->
+        [
+            r"genus\.common_names\.[0-9]+",
+            r"num_legs",
+        ]
+        ```
+        """
+        redact_patterns = []
+        if not dataclasses.is_dataclass(cls):
+            return redact_patterns
+        # TODO: tests
+        redactable_fields = [f for f in dataclasses.fields(cls) if f.metadata.get("redactable", False)]
+        for field in redactable_fields:
+            # field: list[str | Redactable | None] | None
+            # [list[..], None]
+            typing.get_origin . get_args()
+            # [str, Redactable, None]
+            typing.get_args()
+            # extract sub fields
+            if issubclass(field.type, Redactable):
+                redact_patterns = [
+                    *redact_patterns,
+                    # escape _key_sep since it's a dot rn
+                    *[rf"{field.name}{_regex_safe_key_sep}{sub_pat}" for sub_pat in field.type.redactable_fields_matchers()],
+                ]
+            elif isinstance(field.type, list):
+                # handle indexes
+                if issubclass(get_args(field.type)[0], Redactable):
+                    redact_patterns = [
+                        *redact_patterns,
+                        # escape _key_sep since it's a dot rn
+                        *[rf"{field.name}{_regex_safe_key_sep}[0-9]+"],  # TODO: reccurse tack on things if any
+                    ]
+                else:
+                    redact_patterns.append(rf"{field.name}{_regex_safe_key_sep}[0-9]+")
+            elif isinstance(field.type, dict):
+                redact_patterns = [
+                    *redact_patterns,
+                    *[rf'{field.name}{_regex_safe_key_sep}".*?(?="{_regex_safe_key_sep})"'],  # TODO: recurse tack on things if any
+                ]
+            else:
+                redact_patterns.append(field.name)
+
+        return redact_patterns
 
 
 def _flatten_to_dict(obj: Any) -> dict[str, str | bool | int | float]:
@@ -129,6 +204,12 @@ async def redact_atoms(atoms: list[Any]) -> None:
 
         dlp_rows.append(dlp.Table.Row(values=row_values))
 
+    # extract headers we want redacted from current flat atoms
+    redactable_header_matchers = type(atoms[0]).redactable_fields_matchers()
+    headers_to_redact = [
+        header for header in flat_atoms[0].keys() if any(re.match(pat, header) for pat in redactable_header_matchers)
+    ]
+
     client = dlp.DlpServiceAsyncClient()
     response = await client.deidentify_content(
         request=dlp.DeidentifyContentRequest(
@@ -137,9 +218,7 @@ async def redact_atoms(atoms: list[Any]) -> None:
                 record_transformations=dlp.RecordTransformations(
                     field_transformations=[
                         dlp.FieldTransformation(
-                            fields=[
-                                # TODO: how to figure out which fields to senseor
-                            ],
+                            fields=headers_to_redact,
                             info_type_transformations=dlp.InfoTypeTransformations(
                                 transformations=[
                                     dlp.InfoTypeTransformations.InfoTypeTransformation(
@@ -174,6 +253,7 @@ async def redact_atoms(atoms: list[Any]) -> None:
                 or v.integer_value
                 or v.float_value
                 or v.boolean_value
+                # when no other truthy values to write, default to None
                 or None
             )
         _write_flat_data_to_object(data, atoms[i])
