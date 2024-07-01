@@ -1,10 +1,11 @@
 import dataclasses
 import re
 from types import NoneType
-from typing import Any, Iterable, get_args, get_origin
+from typing import Any, get_args, get_origin
+from collections.abc import Iterable
 import google.cloud.dlp_v2 as dlp
 
-from .config import SHARED_CONFIG, EaveEnvironment
+from .config import SHARED_CONFIG
 
 
 # Convert the project id into a full resource id.
@@ -42,7 +43,7 @@ def _redactable_fields_matchers(t: Any) -> list[str]:
     redactable_fields_matchers(Mammal)
     ->
     [
-        r"genus\.common_names\.[0-9]+",
+        r"genus\\.common_names\\.[0-9]+",
         r"num_legs",
     ]
     ```
@@ -110,8 +111,21 @@ def _flatten_to_dict(obj: Any) -> dict[str, str | bool | int | float]:
     }
     """
     flat = {}
+    if not dataclasses.is_dataclass(obj):
+        return flat
+
+    def _asdict(o: Any) -> dict[str, Any]:
+        """Convert `o` to dict, stopping after the root
+        level. Expects `o` to be a dataclass instance.
+
+        This is a simplified version of `dataclasses.asdict`
+        that doesn't recursively dictify all member objects.
+        (This is desirable so we can differentiate between
+        dict members and class object members later on.)"""
+        return {f.name: getattr(o, f.name) for f in dataclasses.fields(o)}
+
     # (prefix, key/index, value)
-    items: list[tuple[str, Any, Any]] = [("", k, v) for k, v in dataclasses.asdict(obj).items()]
+    items: list[tuple[str, Any, Any]] = [("", k, v) for k, v in _asdict(obj).items()]
     while items:
         prefix, key, val = items.pop(0)
         if isinstance(val, (bool, int, float, str, NoneType)):
@@ -122,9 +136,9 @@ def _flatten_to_dict(obj: Any) -> dict[str, str | bool | int | float]:
         else:
             # flatten object into key/value pairs
             if not isinstance(val, dict):
-                items.extend([(f"{prefix}{key}{_key_sep}", k, v) for k, v in dataclasses.asdict(val).items()])
+                items.extend([(f"{prefix}{key}{_key_sep}", k, v) for k, v in _asdict(val).items()])
             else:
-                items.extend([(f'{prefix}"{key}"{_key_sep}', k, v) for k, v in val.items()])
+                items.extend([(f"{prefix}{key}{_key_sep}", f'"{k}"', v) for k, v in val.items()])
 
     return flat
 
@@ -150,7 +164,7 @@ def _write_flat_data_to_object(data: dict[str, Any], obj: Any) -> None:
         path_segments = key_path.split(_key_sep)
         obj_drill = obj
         for i in range(len(path_segments)):
-            key = path_segments[i]
+            key = path_segments[i].strip('"')
             if isinstance(obj_drill, list):
                 # list key must be numeric
                 if key.isnumeric():
