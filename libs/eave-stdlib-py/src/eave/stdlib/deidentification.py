@@ -1,6 +1,7 @@
 import dataclasses
 import re
-from typing import Any, get_args
+from types import NoneType
+from typing import Any, Iterable, get_args, get_origin
 import google.cloud.dlp_v2 as dlp
 
 from .config import SHARED_CONFIG, EaveEnvironment
@@ -9,80 +10,89 @@ from .config import SHARED_CONFIG, EaveEnvironment
 # Convert the project id into a full resource id.
 parent = f"projects/{SHARED_CONFIG.google_cloud_project}/locations/global"
 _key_sep = "."
-_regex_safe_key_sep = fr"\{_key_sep}"
+_regex_safe_key_sep = rf"\{_key_sep}"
+
+REDACTABLE = "redactable"
 
 
-def redactable(*args, **kwargs) -> Any:
-    redact_meta = {"redactable": True}
-    if "metadata" in kwargs:
-        kwargs["metadata"].update(redact_meta)
-        return dataclasses.field(*args, **kwargs)
-    return dataclasses.field(*args, **kwargs, metadata=redact_meta)
+class Redactable:  # TODO: need this at all??? just for mark datacalss?
+    ...
 
 
-class Redactable:
-    @classmethod
-    def redactable_fields_matchers(cls) -> list[str]:
-        """List of all redactable fields, including member objects',
-        defined as regex paths. A redactable field being one that
-        is assigned with the `redactable()` dataclass field definition.
+def _redactable_fields_matchers(t: Any) -> list[str]:
+    """List of all redactable fields, including member objects',
+    defined as regex paths. A redactable field being one that
+    is assigned with the `{REDACTABLE: True}` metadata in the
+    dataclass field definition.
 
-        e.g.
-        ```
-        class Mammal(Redactable):
-            genus: Genus | None = redactable()
-            quantitiy: int
-            num_legs : int = redactable(default=4)
+    Parameters:
+        `t`: a type class. as returned from `type()`, or a class name
 
-        class Canis(Genus, Redactable):
-            common_names: list[str] = redactable()
-            is_good: bool = True
+    e.g.
+    ```
+    class Mammal(Redactable):
+        genus: Genus | None = dataclasses.field(metadata={REDACTABLE: True})
+        quantitiy: int
+        num_legs : int = dataclasses.field(metadata={REDACTABLE: True})
 
-        Mammal.redactable_fields_matchers()
-        ->
-        [
-            r"genus\.common_names\.[0-9]+",
-            r"num_legs",
-        ]
-        ```
-        """
-        redact_patterns = []
-        if not dataclasses.is_dataclass(cls):
-            return redact_patterns
-        # TODO: tests
-        redactable_fields = [f for f in dataclasses.fields(cls) if f.metadata.get("redactable", False)]
-        for field in redactable_fields:
-            # field: list[str | Redactable | None] | None
-            # [list[..], None]
-            typing.get_origin . get_args()
-            # [str, Redactable, None]
-            typing.get_args()
+    class Canis(Genus, Redactable):
+        common_names: list[str] = dataclasses.field(metadata={REDACTABLE: True})
+        is_good: bool = True
+
+    redactable_fields_matchers(Mammal)
+    ->
+    [
+        r"genus\.common_names\.[0-9]+",
+        r"num_legs",
+    ]
+    ```
+    """
+
+    def _kernel(t: Any, prefix: str = "", redact_patterns: list[str] | None = None) -> list[str]:
+        if redact_patterns is None:
+            redact_patterns = []
+        origin = get_origin(t)
+        args = get_args(t)
+        chained_prefix = rf"{prefix}{_regex_safe_key_sep}" if prefix else ""
+
+        if origin is list:
+            # scan element type(s)
+            for element_type in args:
+                _kernel(
+                    t=element_type,
+                    prefix=rf"{chained_prefix}[0-9]+",
+                    redact_patterns=redact_patterns,
+                )
+        elif origin is dict:
+            # scan value type(s)
+            if len(args) >= 2:
+                #      args[0] args[1]
+                # dict[str,    str]
+                _kernel(
+                    t=args[1],
+                    prefix=rf'{chained_prefix}".*?(?="{_regex_safe_key_sep})"',
+                    redact_patterns=redact_patterns,
+                )
+        elif args:
+            # handle Unioned types individually
+            for utype in args:
+                _kernel(utype, prefix, redact_patterns)
+        elif dataclasses.is_dataclass(t):
             # extract sub fields
-            if issubclass(field.type, Redactable):
-                redact_patterns = [
-                    *redact_patterns,
-                    # escape _key_sep since it's a dot rn
-                    *[rf"{field.name}{_regex_safe_key_sep}{sub_pat}" for sub_pat in field.type.redactable_fields_matchers()],
-                ]
-            elif isinstance(field.type, list):
-                # handle indexes
-                if issubclass(get_args(field.type)[0], Redactable):
-                    redact_patterns = [
-                        *redact_patterns,
-                        # escape _key_sep since it's a dot rn
-                        *[rf"{field.name}{_regex_safe_key_sep}[0-9]+"],  # TODO: reccurse tack on things if any
-                    ]
-                else:
-                    redact_patterns.append(rf"{field.name}{_regex_safe_key_sep}[0-9]+")
-            elif isinstance(field.type, dict):
-                redact_patterns = [
-                    *redact_patterns,
-                    *[rf'{field.name}{_regex_safe_key_sep}".*?(?="{_regex_safe_key_sep})"'],  # TODO: recurse tack on things if any
-                ]
-            else:
-                redact_patterns.append(field.name)
+            redactable_fields = [f for f in dataclasses.fields(t) if f.metadata.get(REDACTABLE, False)]
+            for field in redactable_fields:
+                _kernel(
+                    t=field.type,
+                    prefix=rf"{chained_prefix}{field.name}",
+                    redact_patterns=redact_patterns,
+                )
+        elif t is not NoneType:
+            # non-None primitive type; we've reached end of a field path
+            redact_patterns.append(prefix)
 
         return redact_patterns
+
+    return _kernel(t)
 
 
 def _flatten_to_dict(obj: Any) -> dict[str, str | bool | int | float]:
@@ -104,17 +114,17 @@ def _flatten_to_dict(obj: Any) -> dict[str, str | bool | int | float]:
     items: list[tuple[str, Any, Any]] = [("", k, v) for k, v in dataclasses.asdict(obj).items()]
     while items:
         prefix, key, val = items.pop(0)
-        if val is None or isinstance(val, (bool, int, float, str)):
+        if isinstance(val, (bool, int, float, str, NoneType)):
             flat[f"{prefix}{key}"] = val
         elif isinstance(val, list):
             # extract all list items using index as key
             items.extend([(f"{prefix}{key}{_key_sep}", i, v) for i, v in enumerate(val)])
         else:
             # flatten object into key/value pairs
-            d = val
-            if not isinstance(d, dict):
-                d = dataclasses.asdict(val)
-            items.extend([(f"{prefix}{key}{_key_sep}", k, v) for k, v in d.items()])
+            if not isinstance(val, dict):
+                items.extend([(f"{prefix}{key}{_key_sep}", k, v) for k, v in dataclasses.asdict(val).items()])
+            else:
+                items.extend([(f'{prefix}"{key}"{_key_sep}', k, v) for k, v in val.items()])
 
     return flat
 
@@ -168,6 +178,15 @@ def _write_flat_data_to_object(data: dict[str, Any], obj: Any) -> None:
                     obj_drill = getattr(obj_drill, key)
 
 
+def _headers_to_redact(atom_type: Any, flat_keys: Iterable[str]) -> list[str]:
+    """From a collection of keys of a flattened Atom/dataclass, return
+    the subset of those keys that should be redacted, as defined in the
+    `atom_type` dataclass field metadata."""
+    # extract headers we want redacted from current flat atoms
+    redactable_header_matchers = _redactable_fields_matchers(atom_type)
+    return [header for header in flat_keys if any(re.match(pat, header) for pat in redactable_header_matchers)]
+
+
 async def redact_atoms(atoms: list[Any]) -> None:
     """Uses the Data Loss Prevention API to deidentify sensitive data in a
     list of Atoms. Alters the list `atoms` in place.
@@ -175,11 +194,6 @@ async def redact_atoms(atoms: list[Any]) -> None:
     NOTE: 3000 redactions limit?
     https://cloud.google.com/sensitive-data-protection/docs/deidentify-sensitive-data#findings-limit
     """
-
-    if SHARED_CONFIG.eave_env == EaveEnvironment.test:
-        print("skipping redaction...")
-        return
-
     if len(atoms) == 0:
         return
 
@@ -204,11 +218,7 @@ async def redact_atoms(atoms: list[Any]) -> None:
 
         dlp_rows.append(dlp.Table.Row(values=row_values))
 
-    # extract headers we want redacted from current flat atoms
-    redactable_header_matchers = type(atoms[0]).redactable_fields_matchers()
-    headers_to_redact = [
-        header for header in flat_atoms[0].keys() if any(re.match(pat, header) for pat in redactable_header_matchers)
-    ]
+    headers_to_redact = _headers_to_redact(type(atoms[0]), flat_atoms[0].keys())
 
     client = dlp.DlpServiceAsyncClient()
     response = await client.deidentify_content(
@@ -269,10 +279,6 @@ async def redact_str(
 
     e.g. "my ssn is [US_SOCIAL_SECURITY_NUMBER]"
     """
-    if SHARED_CONFIG.eave_env == EaveEnvironment.test:
-        print("skipping redaction...")
-        return data
-
     client = dlp.DlpServiceAsyncClient()
 
     response = await client.deidentify_content(
