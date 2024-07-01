@@ -4,6 +4,8 @@ import { getElementAttributes } from "../util/dom-helpers";
 import { currentTimestampSeconds } from "../util/timestamp";
 import { castEventTargetToHtmlElement } from "../util/type-helpers";
 
+const CLICK_ACTION_NAME = "CLICK";
+
 /**
  * https://developer.mozilla.org/en-US/docs/Web/API/MouseEvent/button
  */
@@ -55,7 +57,7 @@ export async function clickEventHandler(event: MouseEvent) {
   }
 
   const payload = await requestManager.buildPayload({
-    action: event.type,
+    action: CLICK_ACTION_NAME,
     timestamp,
     target: eventTarget,
     extra: {

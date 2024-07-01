@@ -43,7 +43,7 @@ class StdlibUtilTest(StdlibBaseTestCase):
         assert mut.titleize("github_installations") == "Github Installation"
         assert mut.titleize("GitHub_Installations") == "Git Hub Installation"
         assert mut.titleize("CLICK") == "Click"
-        assert mut.titleize("FORM_SUBMIT") == "Form Submit"
+        assert mut.titleize("FORM_SUBMISSION") == "Form Submission"
 
     async def test_tableize(self):
         assert mut.tableize("Account") == "account"

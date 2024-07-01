@@ -28,7 +28,7 @@ from starlette.requests import Request
 # from starlette.routing import Match
 from eave.collectors.core.base_collector import BaseCollector
 from eave.collectors.core.correlation_context import CORR_CTX
-from eave.collectors.core.datastructures import HttpServerEventPayload
+from eave.collectors.core.datastructures import HttpRequestMethod, HttpServerEventPayload
 
 # from timeit import default_timer
 from eave.collectors.core.logging import EAVE_LOGGER
@@ -251,7 +251,7 @@ class EaveASGIMiddleware:
             self.write_queue.put(
                 HttpServerEventPayload(
                     timestamp=time.time(),
-                    request_method=req_method,
+                    request_method=HttpRequestMethod.from_str(req_method),
                     request_url=req_url,
                     request_headers=dict(request.headers.items()),
                     request_payload=req_body.decode("utf-8"),

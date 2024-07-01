@@ -1,11 +1,12 @@
 import dataclasses
+from abc import ABC
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, ClassVar, Self
 
 from eave.collectors.core.logging import EAVE_LOGGER
 
-from .json import JsonObject, compact_json
+from .json import JsonObject, JsonScalar, compact_json
 
 
 class DatabaseOperation(StrEnum):
@@ -14,6 +15,22 @@ class DatabaseOperation(StrEnum):
     DELETE = "DELETE"
     SELECT = "SELECT"
     UNKNOWN = "UNKNOWN"
+
+    @classmethod
+    def from_str(cls, s: str) -> Self | None:
+        try:
+            return cls.__call__(value=s.upper())
+        except ValueError as e:
+            EAVE_LOGGER.warning(e)
+            return None
+
+
+class HttpRequestMethod(StrEnum):
+    POST = "POST"
+    PUT = "PUT"
+    PATCH = "PATCH"
+    DELETE = "DELETE"
+    GET = "GET"
 
     @classmethod
     def from_str(cls, s: str) -> Self | None:
@@ -38,11 +55,10 @@ class UserProperties:
 
 
 @dataclass(kw_only=True)
-class EventPayload:
+class EventPayload(ABC):
     event_type: ClassVar[EventType]
-
     timestamp: float | None
-    corr_ctx: dict[str, str] | None
+    corr_ctx: dict[str, JsonScalar] | None
 
     def to_dict(self) -> JsonObject:
         return dataclasses.asdict(self)
@@ -55,7 +71,7 @@ class EventPayload:
 class DatabaseEventPayload(EventPayload):
     event_type: ClassVar[EventType] = EventType.db_event
 
-    operation: str | None = None
+    operation: DatabaseOperation | None = None
     db_name: str | None = None
     table_name: str | None = None
     statement: str | None = None
@@ -68,7 +84,7 @@ class HttpServerEventPayload(EventPayload):
 
     event_type: ClassVar[EventType] = EventType.http_server_event
 
-    request_method: str | None = None
+    request_method: HttpRequestMethod | None = None
     request_url: str | None = None
     request_headers: dict[str, str] | None = None
     request_payload: str | None = None
@@ -80,7 +96,7 @@ class HttpClientEventPayload(EventPayload):
 
     event_type: ClassVar[EventType] = EventType.http_client_event
 
-    request_method: str | None = None
+    request_method: HttpRequestMethod | None = None
     request_url: str | None = None
     request_headers: dict[str, str] | None = None
     request_payload: str | None = None

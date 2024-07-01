@@ -14,11 +14,11 @@ class ThreadedCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
     async def test_values_can_be_written_and_read(self) -> None:
         ctx = ThreadedCorrelationContext()
         assert ctx.get("key") is None, "Initial value was not None"
-        ctx.set("key", "1")
+        ctx.set("key", "1", encrypt=False)
         assert ctx.get("key") == "1", "Set value was not read"
-        ctx.set("key", "2")
+        ctx.set("key", "2", encrypt=False)
         assert ctx.get("key") == "2", "Set value was not overwritten"
-        assert ctx.to_json() == '{"key": "2"}'
+        assert ctx.to_json() == '{"_eave.key": "2"}'
 
     async def test_empty_state(self) -> None:
         ctx = ThreadedCorrelationContext()
@@ -29,9 +29,9 @@ class ThreadedCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
         def _helper(keys) -> None:
             ctx = ThreadedCorrelationContext()
             for key in keys:
-                ctx.set(key, "1")
+                ctx.set(key, "1", encrypt=False)
 
-            expected = "{" + ", ".join([f'"{k}": "1"' for k in keys]) + "}"
+            expected = "{" + ", ".join([f'"_eave.{k}": "1"' for k in keys]) + "}"
             assert ctx.to_json() == expected, "Context did not match expected content"
 
         t1 = threading.Thread(target=_helper, args=(["k1", "k2", "k3"],))
@@ -47,15 +47,15 @@ class ThreadedCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
 
         ctx = ThreadedCorrelationContext()
         # given values exist in parent context
-        ctx.set("parent", "0")
+        ctx.set("parent", "0", encrypted=False)
 
         def f1() -> None:
             assert ctx.get("parent") == "0", "Parent value not present in child thread t1"
-            ctx.set("t1", "1")
+            ctx.set("t1", "1", encrypt=False)
 
         def f2() -> None:
             assert ctx.get("parent") == "0", "Parent value not present in child thread t2"
-            ctx.set("t2", "2")
+            ctx.set("t2", "2", encrypt=False)
 
         t1 = threading.Thread(target=f1)
         t2 = threading.Thread(target=f2)
@@ -93,8 +93,8 @@ class ThreadedCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
 
     async def test_convert_ctx_to_cookies_creates_valid_cookie(self) -> None:
         ctx = ThreadedCorrelationContext()
-        ctx.set("session_id", "ses")
-        ctx.set(f"{EAVE_COLLECTOR_COOKIE_PREFIX}key", '"value"')
+        ctx.set("session_id", "ses", encrypt=False)
+        ctx.set("key", '"value"', encrypt=False)
 
         # expect URL encoded
         assert ctx.get_updated_values_cookies() == [

@@ -52,9 +52,11 @@ class GetMyVirtualEventDetailsEndpoint(HTTPEndpoint):
                 )
             ).one()
 
-        bq_table = EAVE_INTERNAL_BIGQUERY_CLIENT.get_table_or_exception(
+        bq_table = EAVE_INTERNAL_BIGQUERY_CLIENT.get_table_or_none(
             dataset_id=bq_dataset_id(team_id), table_id=vevent.view_id
         )
+
+        fields = [VirtualEventField.from_bq_field(field) for field in bq_table.schema] if bq_table else None
 
         return json_response(
             ve.GetMyVirtualEventDetailsRequest.ResponseBody(
@@ -63,7 +65,7 @@ class GetMyVirtualEventDetailsEndpoint(HTTPEndpoint):
                     view_id=vevent.view_id,
                     readable_name=vevent.readable_name,
                     description=vevent.description,
-                    fields=[VirtualEventField.from_bq_field(field) for field in bq_table.schema],
+                    fields=fields,
                 ),
             )
         )

@@ -147,6 +147,7 @@ const useTeam = (): TeamHook => {
         });
       })
       .catch((e) => {
+        console.error(e);
         setGlossaryNetworkState((prev) => ({
           ...prev,
           virtualEventsAreErroring: true,
@@ -174,7 +175,7 @@ const useTeam = (): TeamHook => {
         "eave-origin": eaveOrigin,
       },
       credentials: "include",
-      body: JSON.stringify({ virtual_event: { id }}),
+      body: JSON.stringify({ virtual_event: { id } }),
     })
       .then((resp) => {
         if (isUnauthorized(resp)) {
@@ -219,6 +220,7 @@ const useTeam = (): TeamHook => {
         });
       })
       .catch((e) => {
+        console.error(e);
         setGlossaryNetworkState((prev) => ({
           ...prev,
           virtualEventsAreErroring: true,

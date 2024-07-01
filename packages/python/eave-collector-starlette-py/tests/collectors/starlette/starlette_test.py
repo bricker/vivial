@@ -27,7 +27,7 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
         async def ctx_set_endpoint(request: Request) -> Response:
             body = request.query_params
             for k, v in body.items():
-                CORR_CTX.set(k, v)
+                CORR_CTX.set(k, v, encrypt=False)
             return PlainTextResponse("cookies changed")
 
         app = Starlette(
@@ -103,19 +103,16 @@ class StarletteCollectorTestBase(unittest.IsolatedAsyncioTestCase):
 
     async def test_response_cookie_ctx_set(self) -> None:
         # GIVEN there is some ctx cookies that can be changed
-        unchanged_cookie = f"{EAVE_COLLECTOR_COOKIE_PREFIX}cookie"
-        changed_cookie = f"{EAVE_COLLECTOR_COOKIE_PREFIX}mutable"
-        new_cookie = f"{EAVE_COLLECTOR_COOKIE_PREFIX}new"
-        self._client.cookies.set(unchanged_cookie, "valid")
-        self._client.cookies.set(changed_cookie, "change_me")
+        self._client.cookies.set(f"{EAVE_COLLECTOR_COOKIE_PREFIX}unchanged_cookie", "valid")
+        self._client.cookies.set(f"{EAVE_COLLECTOR_COOKIE_PREFIX}changed_cookie", "change_me")
 
         # WHEN corr ctx is changed/created server-side
         # NOTE: couldnt use post+json body bcus TestClient cannot handle async responses,
         #       and reading request.json() is async
-        resp = self._client.get(f"/set_ctx?{changed_cookie}=new_value&{new_cookie}=shiny")
+        resp = self._client.get("/set_ctx?changed_cookie=new_value&new_cookie=shiny")
 
         # THEN only changed values are set in cookies
         assert resp is not None
-        assert resp.cookies.get(unchanged_cookie) is None
-        assert resp.cookies.get(changed_cookie) == urllib.parse.quote_plus("new_value")
-        assert resp.cookies.get(new_cookie) == "shiny"
+        assert resp.cookies.get(f"{EAVE_COLLECTOR_COOKIE_PREFIX}unchanged_cookie") is None
+        assert resp.cookies.get(f"{EAVE_COLLECTOR_COOKIE_PREFIX}changed_cookie") == urllib.parse.quote_plus("new_value")
+        assert resp.cookies.get(f"{EAVE_COLLECTOR_COOKIE_PREFIX}new_cookie") == "shiny"
