@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./TodoList.module.css";
 import { COOKIE_PREFIX, getCookie } from "./cookies";
-import { TodoListItem } from "./types";
+import { TodoListItem, TodoSummary } from "./types";
 
 const TodoList = () => {
   const userId = getCookie(`${COOKIE_PREFIX}user_id`);
@@ -22,6 +22,8 @@ const TodoList = () => {
   const username = getCookie(`${COOKIE_PREFIX}user_name`);
 
   const [todos, setTodos] = useState<TodoListItem[]>([]);
+  const [summary, setSummary] = useState<TodoSummary | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
   const [inputValue, setInputValue] = useState("");
   const [editingTodoId, setEditingTodo] = useState<TodoListItem | null>(null);
@@ -39,6 +41,20 @@ const TodoList = () => {
       })
       .finally(() => {
         setLoading(false);
+      });
+  };
+
+  const summarize = () => {
+    setSummaryLoading(true);
+    axios
+      .get<TodoSummary>("/api/summary")
+      .then((response) => {
+        setSummary(response.data);
+        setSummaryLoading(false);
+      })
+      .catch((error) => {
+        console.error(error);
+        setSummaryLoading(false);
       });
   };
 
@@ -118,6 +134,20 @@ const TodoList = () => {
         </div>
       ) : (
         <>
+          <div className={styles.summaryContainer}>
+            <button onClick={summarize} className={styles.addButton}>
+              Summarize
+            </button>
+
+            {summaryLoading ? (
+                <div className={styles.loadingContainer}>
+                  <div className={styles.loader}></div>
+                </div>
+            ) : (
+              summary ? <p className={styles.todoSummary}>{summary.text}</p> : null
+            )}
+          </div>
+
           <div className={styles.inputContainer}>
             <input
               type="text"

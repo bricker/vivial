@@ -11,7 +11,7 @@ from .json import JsonValue
 
 db_uri = sqlalchemy.engine.url.URL.create(
     drivername="postgresql+asyncpg",
-    host=os.getenv("TODOAPP_DB_HOST", "localhost"),
+    host=os.getenv("TODOAPP_DB_HOST"),
     port=int(os.getenv("TODOAPP_DB_PORT", "5432")),
     username=os.getenv("TODOAPP_DB_USER"),
     password=os.getenv("TODOAPP_DB_PASS"),

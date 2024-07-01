@@ -3,6 +3,7 @@ import logging
 import os
 from collections.abc import AsyncGenerator
 from http import HTTPStatus
+from textwrap import dedent
 from uuid import UUID
 
 import google.cloud.logging
@@ -18,6 +19,7 @@ from eave.collectors.sqlalchemy import start_eave_sqlalchemy_collector, stop_eav
 from eave.collectors.starlette import StarletteCollectorManager
 
 from .orm import TodoListItemOrm, UserOrm, async_engine, async_session
+from .openai import chat_completion
 
 _COOKIE_PREFIX = "todoapp."
 _USER_ID_COOKIE_NAME = f"{_COOKIE_PREFIX}user_id"
@@ -42,6 +44,29 @@ async def echo_endpoint(request: Request) -> Response:
         },
     )
 
+
+async def get_summary(request: Request) -> Response:
+    user_id = request.cookies.get(_USER_ID_COOKIE_NAME)
+    if not user_id:
+        return Response(content=HTTPStatus.UNAUTHORIZED.phrase, status_code=HTTPStatus.UNAUTHORIZED)
+
+    async with async_session.begin() as session:
+        result = await session.scalars(
+            select(TodoListItemOrm).where(TodoListItemOrm.user_id == user_id).order_by(TodoListItemOrm.created)
+        )
+        todos = result.all()
+
+    text_list = "\n    ".join(f"- {todo.text}" for todo in todos)
+    prompt = dedent(
+    f"""
+    Summarize the following list of TODO items for me. It should briefly describe my goals for today.
+
+    {text_list}
+    """
+    )
+
+    summary = await chat_completion(prompt=prompt)
+    return JSONResponse(content={"text": summary}, status_code=HTTPStatus.OK)
 
 async def get_todos(request: Request) -> Response:
     user_id = request.cookies.get(_USER_ID_COOKIE_NAME)
@@ -183,6 +208,7 @@ app = Starlette(
         Route(path="/status", methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"], endpoint=status_endpoint),
         Route(path="/healthz", methods=["GET"], endpoint=health_endpoint),
         Route(path="/echo", methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"], endpoint=echo_endpoint),
+        Route(path="/api/summary", methods=["GET"], endpoint=get_summary),
         Route(path="/api/todos", methods=["GET"], endpoint=get_todos),
         Route(path="/api/todos", methods=["POST"], endpoint=add_todo),
         Route(path="/api/todos/{todo_id}", methods=["DELETE"], endpoint=delete_todo),

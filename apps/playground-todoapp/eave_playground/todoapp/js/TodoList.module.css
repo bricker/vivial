@@ -39,6 +39,17 @@
   margin-bottom: 20px;
 }
 
+.summaryContainer {
+  margin-bottom: 20px;
+}
+
+.todoSummary {
+  padding: 5px;
+  background-color: #eee;
+  border-radius: 5px;
+  min-height: 74px;
+}
+
 .input {
   padding: 10px;
   border: 1px solid #ccc;
