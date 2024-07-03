@@ -8,7 +8,7 @@ These schemas are authoritative: changing these will change the respective schem
 """
 
 from dataclasses import dataclass
-from typing import Self
+from typing import Any, Self
 from urllib.parse import parse_qsl, urlparse
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
@@ -18,6 +18,7 @@ from eave.core.internal.atoms.models.api_payload_types import (
     CurrentPageProperties,
     DeviceBrandProperties,
     DeviceProperties,
+    OpenAIRequestProperties,
     SessionProperties,
     TargetProperties,
     TrafficSourceProperties,
@@ -71,6 +72,9 @@ class TypedValueRecordField:
         elif isinstance(value, (float, int)):
             # Reminder: bool is a subclass of int! bool check must come before the int check.
             self.numeric_value = value
+        else:
+            # Fallback behavior
+            self.string_value = str(value)
 
 
 @dataclass(kw_only=True)
@@ -824,3 +828,60 @@ class BigQueryRecordMetadataRecordField:
     source_app_name: str | None
     source_app_version: str | None
     source_app_release_timestamp: float | None
+
+@dataclass(kw_only=True)
+class OpenAIRequestPropertiesRecordField:
+    @staticmethod
+    def schema() -> SchemaField:
+        return SchemaField(
+            name="openai_request",
+            field_type=SqlTypeNames.RECORD,
+            mode=BigQueryFieldMode.NULLABLE,
+            fields=(
+                SchemaField(
+                    name="start_timestamp",
+                    field_type=SqlTypeNames.TIMESTAMP,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="end_timestamp",
+                    field_type=SqlTypeNames.TIMESTAMP,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="duration_ms",
+                    field_type=SqlTypeNames.FLOAT,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="status_code",
+                    field_type=SqlTypeNames.INTEGER,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                MultiScalarTypeKeyValueRecordField.schema(
+                    name="request_params",
+                    description="Request params sent to the OpenAI API. Some params are omitted for privacy.",
+                ),
+            ),
+        )
+
+    start_timestamp: float | None
+    end_timestamp: float | None
+    duration_ms: float | None
+    status_code: int | None
+    request_params: list[MultiScalarTypeKeyValueRecordField] | None
+
+    @classmethod
+    def from_api_resource(cls, resource: OpenAIRequestProperties) -> Self:
+        if resource.start_timestamp and resource.end_timestamp:
+            duration_ms = (resource.end_timestamp - resource.start_timestamp) * 1000
+        else:
+            duration_ms = None
+
+        return cls(
+            start_timestamp=resource.start_timestamp,
+            end_timestamp=resource.end_timestamp,
+            duration_ms=duration_ms,
+            status_code=resource.status_code,
+            request_params=MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(resource.request_params) if resource.request_params else None,
+        )

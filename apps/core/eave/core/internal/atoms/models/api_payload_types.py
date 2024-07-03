@@ -226,6 +226,22 @@ class CorrelationContext:
 
 
 @dataclass(kw_only=True)
+class OpenAIRequestProperties:
+    request_params: dict[str, JsonScalar] | None
+    start_timestamp: float | None
+    end_timestamp: float | None
+    status_code: int | None
+
+    @classmethod
+    def from_api_payload(cls, data: dict[str, Any]) -> Self:
+        return cls(
+            request_params=data.get("request_params"),
+            start_timestamp=data.get("start_timestamp"),
+            end_timestamp=data.get("end_timestamp"),
+            status_code=data.get("status_code"),
+        )
+
+@dataclass(kw_only=True)
 class BrowserEventPayload:
     event_id: str | None
     timestamp: float | None
@@ -268,15 +284,16 @@ class OpenAIChatCompletionPayload:
     timestamp: float | None
     corr_ctx: CorrelationContext | None
     completion_id: str | None
+    completion_system_fingerprint: str | None
     completion_created_timestamp: float | None
     completion_user_id: str | None
     service_tier: str | None
     model: str | None
-    num_completions: int | None
-    max_tokens: int | None
     prompt_tokens: int | None
     completion_tokens: int | None
     total_tokens: int | None
+    code_location: str | None
+    openai_request: OpenAIRequestProperties | None
 
     @classmethod
     def from_api_payload(cls, data: dict[str, Any], *, decryption_key: bytes) -> Self:
@@ -284,15 +301,16 @@ class OpenAIChatCompletionPayload:
             event_id=data.get("event_id"),
             timestamp=data.get("timestamp"),
             completion_id=data.get("completion_id"),
+            completion_system_fingerprint=data.get("completion_system_fingerprint"),
             completion_created_timestamp=data.get("completion_created_timestamp"),
             completion_user_id=data.get("completion_user_id"),
             service_tier=data.get("service_tier"),
             model=data.get("model"),
-            num_completions=data.get("num_completions"),
-            max_tokens=data.get("max_tokens"),
             prompt_tokens=data.get("prompt_tokens"),
             completion_tokens=data.get("completion_tokens"),
             total_tokens=data.get("total_tokens"),
+            code_location=data.get("code_location"),
+            openai_request=OpenAIRequestProperties.from_api_payload(rp) if (rp := data.get("openai_request")) else None,
             corr_ctx=(
                 CorrelationContext.from_api_payload(cc, decryption_key=decryption_key)
                 if (cc := data.get("corr_ctx")) and isinstance(cc, dict)

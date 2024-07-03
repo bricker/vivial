@@ -55,6 +55,7 @@ class TestAtomCommonSchemaField(BaseTestCase):
 
 class TestOpenAIChatCompletionAtom(BaseTestCase):
     async def test_schema(self):
+        self.fail("TODO")
         assert OpenAIChatCompletionAtom.table_def().table_id == "atoms_openai_chat_completions"
 
         assert_schemas_match(

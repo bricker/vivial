@@ -428,6 +428,65 @@ class TestAtomApiTypes(BaseTestCase):
         )
         assert e.operation is None
 
+    async def test_chat_completion_payload(self):
+        self.fail("TODO")
+        e = DatabaseEventPayload.from_api_payload({}, decryption_key=self.anysha256())
+        assert e.event_id is None
+        assert e.timestamp is None
+        assert e.operation is None
+        assert e.db_name is None
+        assert e.table_name is None
+        assert e.statement is None
+        assert e.statement_values is None
+        assert e.corr_ctx is None
+
+        e = DatabaseEventPayload.from_api_payload(
+            {
+                "event_id": str(self.anyuuid("event.event_id")),
+                "timestamp": self.anytime("event.timestamp"),
+                "operation": DatabaseOperation.INSERT,
+                "db_name": self.anystr("event.db_name"),
+                "table_name": self.anystr("event.table_name"),
+                "statement": self.anystr("event.statement"),
+                "statement_values": {
+                    self.anyhex("event.statement_values.0.key"): self.anyint("event.statement_values.0.value"),
+                    self.anyhex("event.statement_values.1.key"): self.anystr("event.statement_values.1.value"),
+                },
+                "corr_ctx": {
+                    f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": self.anystr("corr_ctx.visitor_id"),
+                    f"{EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX}{self.anyhex("acct key 1")}": CorrelationContextAttr(
+                        key=EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
+                        value=self.anystr("corr_ctx.account.account_id"),
+                    ).to_encrypted(encryption_key=self._client_credentials.decryption_key),
+                },
+                self.anyhex("unrecognized attribute 5"): self.anystr(),
+            },
+            decryption_key=self._client_credentials.decryption_key,
+        )
+        assert e.event_id == str(self.getuuid("event.event_id"))
+        assert e.timestamp == self.gettime("event.timestamp")
+        assert e.operation == "INSERT"
+        assert e.db_name == self.getstr("event.db_name")
+        assert e.table_name == self.getstr("event.table_name")
+        assert e.statement == self.getstr("event.statement")
+        assert e.statement_values == {
+            self.getstr("event.statement_values.0.key"): self.getint("event.statement_values.0.value"),
+            self.getstr("event.statement_values.1.key"): self.getstr("event.statement_values.1.value"),
+        }
+        assert e.corr_ctx is not None
+        assert e.corr_ctx.visitor_id == self.getstr("corr_ctx.visitor_id")
+        assert e.corr_ctx.account is not None
+        assert e.corr_ctx.account.account_id == self.getstr("corr_ctx.account.account_id")
+
+        # invalid operation
+        e = DatabaseEventPayload.from_api_payload(
+            {
+                "operation": self.anystr("invalid operation"),
+            },
+            decryption_key=self.anysha256(),
+        )
+        assert e.operation is None
+
     async def test_http_server_event_payload(self):
         e = HttpServerEventPayload.from_api_payload({}, decryption_key=self.anysha256())
         assert e.event_id is None

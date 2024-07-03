@@ -11,6 +11,7 @@ from eave.core.internal.atoms.models.atom_types import DatabaseEventAtom, OpenAI
 from eave.core.internal.atoms.models.db_record_fields import (
     AccountRecordField,
     MultiScalarTypeKeyValueRecordField,
+    OpenAIRequestPropertiesRecordField,
     SessionRecordField,
     TrafficSourceRecordField,
 )
@@ -66,14 +67,19 @@ class OpenAIChatCompletionController(BaseAtomController):
                     model_pricing = CHAT_MODELS.get(e.model.lower())
 
                 if model_pricing is not None:
-                    if e.prompt_tokens:
+                    if e.prompt_tokens is not None:
                         input_cost_usd_cents = model_pricing.calculate_input_cost_usd_cents(prompt_tokens=e.prompt_tokens)
 
-                    if e.completion_tokens:
+                    if e.completion_tokens is not None:
                         output_cost_usd_cents = model_pricing.calculate_output_cost_usd_cents(completion_tokens=e.completion_tokens)
 
                     if input_cost_usd_cents is not None and output_cost_usd_cents is not None:
                         total_cost_usd_cents = input_cost_usd_cents + output_cost_usd_cents
+
+            openai_request = None
+
+            if e.openai_request:
+                openai_request = OpenAIRequestPropertiesRecordField.from_api_resource(e.openai_request)
 
             atom = OpenAIChatCompletionAtom(
                 event_id=e.event_id,
@@ -83,18 +89,19 @@ class OpenAIChatCompletionController(BaseAtomController):
                 traffic_source=traffic_source,
                 visitor_id=visitor_id,
                 completion_id=e.completion_id,
+                completion_system_fingerprint=e.completion_system_fingerprint,
                 completion_created_timestamp=e.completion_created_timestamp,
                 completion_user_id=e.completion_user_id,
                 service_tier=e.service_tier,
                 model=e.model,
-                num_completions=e.num_completions,
-                max_tokens=e.max_tokens,
                 prompt_tokens=e.prompt_tokens,
                 completion_tokens=e.completion_tokens,
                 total_tokens=e.total_tokens,
                 input_cost_usd_cents=input_cost_usd_cents,
                 output_cost_usd_cents=output_cost_usd_cents,
                 total_cost_usd_cents=total_cost_usd_cents,
+                code_location=e.code_location,
+                openai_request=openai_request,
             )
 
             atoms.append(atom)

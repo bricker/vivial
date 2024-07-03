@@ -13,6 +13,7 @@ from eave.core.internal.atoms.models.db_record_fields import (
     DeviceRecordField,
     GeoRecordField,
     MultiScalarTypeKeyValueRecordField,
+    OpenAIRequestPropertiesRecordField,
     SessionRecordField,
     SingleScalarTypeKeyValueRecordField,
     TargetRecordField,
@@ -143,6 +144,11 @@ class OpenAIChatCompletionAtom(Atom):
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
                 SchemaField(
+                    name="completion_system_fingerprint",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
                     name="completion_created_timestamp",
                     field_type=SqlTypeNames.TIMESTAMP,
                     mode=BigQueryFieldMode.NULLABLE,
@@ -160,16 +166,6 @@ class OpenAIChatCompletionAtom(Atom):
                 SchemaField(
                     name="model",
                     field_type=SqlTypeNames.STRING,
-                    mode=BigQueryFieldMode.NULLABLE,
-                ),
-                SchemaField(
-                    name="num_completions",
-                    field_type=SqlTypeNames.INTEGER,
-                    mode=BigQueryFieldMode.NULLABLE,
-                ),
-                SchemaField(
-                    name="max_tokens",
-                    field_type=SqlTypeNames.INTEGER,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
                 SchemaField(
@@ -203,27 +199,29 @@ class OpenAIChatCompletionAtom(Atom):
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
                 SchemaField(
-                    name="stack",
+                    name="code_location",
                     field_type=SqlTypeNames.STRING,
-                    mode=BigQueryFieldMode.REPEATED,
+                    mode=BigQueryFieldMode.NULLABLE,
                 ),
+                OpenAIRequestPropertiesRecordField.schema(),
                 *Atom.common_atom_schema_fields(),
             ),
         )
 
     completion_id: str | None
+    completion_system_fingerprint: str | None
     completion_created_timestamp: float | None
     completion_user_id: str | None
     service_tier: str | None
     model: str | None
-    num_completions: int | None
-    max_tokens: int | None
     prompt_tokens: int | None
     completion_tokens: int | None
     total_tokens: int | None
     input_cost_usd_cents: float | None
     output_cost_usd_cents: float | None
     total_cost_usd_cents: float | None
+    code_location: str | None
+    openai_request: OpenAIRequestPropertiesRecordField | None
 
 @dataclass(kw_only=True)
 class DatabaseEventAtom(Atom):

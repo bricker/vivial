@@ -32,12 +32,6 @@ class EventType(StrEnum):
 
 
 @dataclass(kw_only=True)
-class UserProperties:
-    account_id: str | None = None
-    visitor_id: str | None = None
-
-
-@dataclass(kw_only=True)
 class EventPayload(ABC):
     event_type: ClassVar[EventType]
     event_id: str | None
@@ -60,7 +54,6 @@ class DatabaseEventPayload(EventPayload):
     table_name: str | None = None
     statement: str | None = None
     statement_values: dict[str, Any] | None = None
-
 
 @dataclass(kw_only=True)
 class HttpServerEventPayload(EventPayload):

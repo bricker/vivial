@@ -9,6 +9,7 @@ from eave.core.internal.atoms.controllers.browser_events import BrowserEventsCon
 from eave.core.internal.atoms.controllers.db_events import DatabaseEventsController
 from eave.core.internal.atoms.controllers.http_client_events import HttpClientEventsController
 from eave.core.internal.atoms.controllers.http_server_events import HttpServerEventsController
+from eave.core.internal.atoms.controllers.openai_chat_completion import OpenAIChatCompletionController
 from eave.core.internal.atoms.models.db_record_fields import GeoRecordField
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.core.internal.orm.team import TeamOrm
@@ -121,6 +122,10 @@ class ServerDataIngestionEndpoint(HTTPEndpoint):
         if (db_events := input.events.get(EventType.db_event)) and len(db_events) > 0:
             handle = DatabaseEventsController(client=creds)
             await handle.insert(events=db_events, ctx=ctx)
+
+        if (openai_chat_completion_events := input.events.get(EventType.openai_chat_completion)) and len(openai_chat_completion_events) > 0:
+            handle = OpenAIChatCompletionController(client=creds)
+            await handle.insert(events=openai_chat_completion_events, ctx=ctx)
 
         if (http_server_events := input.events.get(EventType.http_server_event)) and len(http_server_events) > 0:
             handle = HttpServerEventsController(client=creds)
