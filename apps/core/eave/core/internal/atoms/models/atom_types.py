@@ -1,11 +1,14 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from enum import StrEnum
+from typing import Self
 
+from eave.collectors.core.datastructures import DatabaseOperation
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
-from eave.collectors.core.datastructures import DatabaseOperation, HttpRequestMethod
 from eave.core.internal.atoms.models.db_record_fields import (
     AccountRecordField,
+    BigQueryRecordMetadataRecordField,
     CurrentPageRecordField,
     DeviceRecordField,
     GeoRecordField,
@@ -17,6 +20,8 @@ from eave.core.internal.atoms.models.db_record_fields import (
     UrlRecordField,
 )
 from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
+
+from eave.core.internal.atoms.models.enums import BrowserAction, HttpRequestMethod
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -75,14 +80,9 @@ class Atom(ABC):
                 field_type=SqlTypeNames.STRING,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
-            SchemaField(
-                name="__bq_insert_timestamp",
-                description="When this record was inserted into BigQuery. This is an internal field and not reliable for exploring user journeys.",
-                field_type=SqlTypeNames.TIMESTAMP,
-                mode=BigQueryFieldMode.NULLABLE,
-                default_value_expression="CURRENT_TIMESTAMP",
-            ),
+            BigQueryRecordMetadataRecordField.schema(),
         )
+
 
 
 @dataclass(kw_only=True)
@@ -118,7 +118,7 @@ class BrowserEventAtom(Atom):
             ),
         )
 
-    action: str | None
+    action: BrowserAction | None
     target: TargetRecordField | None
     current_page: CurrentPageRecordField | None
     device: DeviceRecordField | None
@@ -126,6 +126,104 @@ class BrowserEventAtom(Atom):
     extra: list[MultiScalarTypeKeyValueRecordField] | None
     client_ip: str | None
 
+
+
+@dataclass(kw_only=True)
+class OpenAIChatCompletionAtom(Atom):
+    @staticmethod
+    def table_def() -> BigQueryTableDefinition:
+        return BigQueryTableDefinition(
+            table_id="atoms_openai_chat_completions",
+            friendly_name="OpenAI Chat Completion Atoms",
+            description="OpenAI Chat Completion atoms",
+            schema=(
+                SchemaField(
+                    name="completion_id",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="completion_created_timestamp",
+                    field_type=SqlTypeNames.TIMESTAMP,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="completion_user_id",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="service_tier",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="model",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="num_completions",
+                    field_type=SqlTypeNames.INTEGER,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="max_tokens",
+                    field_type=SqlTypeNames.INTEGER,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="prompt_tokens",
+                    field_type=SqlTypeNames.INTEGER,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="completion_tokens",
+                    field_type=SqlTypeNames.INTEGER,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="total_tokens",
+                    field_type=SqlTypeNames.INTEGER,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="input_cost_usd_cents",
+                    field_type=SqlTypeNames.NUMERIC,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="output_cost_usd_cents",
+                    field_type=SqlTypeNames.NUMERIC,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="total_cost_usd_cents",
+                    field_type=SqlTypeNames.NUMERIC,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="stack",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.REPEATED,
+                ),
+                *Atom.common_atom_schema_fields(),
+            ),
+        )
+
+    completion_id: str | None
+    completion_created_timestamp: float | None
+    completion_user_id: str | None
+    service_tier: str | None
+    model: str | None
+    num_completions: int | None
+    max_tokens: int | None
+    prompt_tokens: int | None
+    completion_tokens: int | None
+    total_tokens: int | None
+    input_cost_usd_cents: float | None
+    output_cost_usd_cents: float | None
+    total_cost_usd_cents: float | None
 
 @dataclass(kw_only=True)
 class DatabaseEventAtom(Atom):

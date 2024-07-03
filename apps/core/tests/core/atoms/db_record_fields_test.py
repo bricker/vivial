@@ -13,6 +13,7 @@ from eave.core.internal.atoms.models.api_payload_types import (
 )
 from eave.core.internal.atoms.models.db_record_fields import (
     AccountRecordField,
+    BigQueryRecordMetadataRecordField,
     BrandsRecordField,
     CurrentPageRecordField,
     DeviceRecordField,
@@ -981,3 +982,51 @@ class TestCurrentPageRecordField(BaseTestCase):
         assert e.url is None
         assert e.title is None
         assert e.pageview_id is None
+
+class TestBigQueryRecordMetadataRecordField(BaseTestCase):
+    async def test_schema(self) -> None:
+        assert_schemas_match(
+            (BigQueryRecordMetadataRecordField.schema(),),
+            (
+                SchemaField(
+                    name="__bq_record_metadata",
+                    field_type=SqlTypeNames.RECORD,
+                    mode=BigQueryFieldMode.NULLABLE,
+                    fields=(
+                        SchemaField(
+                            name="source_app_name",
+                            field_type=SqlTypeNames.STRING,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        SchemaField(
+                            name="source_app_version",
+                            field_type=SqlTypeNames.STRING,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        SchemaField(
+                            name="source_app_release_timestamp",
+                            field_type=SqlTypeNames.TIMESTAMP,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        SchemaField(
+                            name="insert_timestamp",
+                            field_type=SqlTypeNames.TIMESTAMP,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+    async def test_field(self) -> None:
+        e = BigQueryRecordMetadataRecordField(
+            source_app_name=self.anyhex("source_app_name"),
+            source_app_version=self.anyhex("source_app_version"),
+            source_app_release_timestamp=self.anytime("source_app_release_timestamp"),
+        )
+
+        assert dataclasses.asdict(e) == {
+            "source_app_name": self.anyhex("source_app_name"),
+            "source_app_version": self.anyhex("source_app_version"),
+            "source_app_release_timestamp": self.anyhex("source_app_release_timestamp"),
+        }

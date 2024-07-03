@@ -782,3 +782,45 @@ class CurrentPageRecordField:
             title=resource.title,
             pageview_id=resource.pageview_id,
         )
+
+@dataclass(kw_only=True)
+class BigQueryRecordMetadataRecordField:
+    @staticmethod
+    def schema() -> SchemaField:
+        return SchemaField(
+            name="__bq_record_metadata",
+            description="Internal metadata about this BigQuery record. Not reliable for event analysis.",
+            field_type=SqlTypeNames.RECORD,
+            mode=BigQueryFieldMode.NULLABLE,
+            fields=(
+                SchemaField(
+                    name="source_app_name",
+                    description="The name of the app that inserted this record.",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="source_app_version",
+                    description="The version of the app that inserted this record.",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="source_app_release_timestamp",
+                    description="The release timestamp of the app that inserted this record.",
+                    field_type=SqlTypeNames.TIMESTAMP,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="insert_timestamp",
+                    description="When this record was inserted into BigQuery.",
+                    field_type=SqlTypeNames.TIMESTAMP,
+                    mode=BigQueryFieldMode.NULLABLE,
+                    default_value_expression="CURRENT_TIMESTAMP",
+                ),
+            ),
+        )
+
+    source_app_name: str | None
+    source_app_version: str | None
+    source_app_release_timestamp: float | None

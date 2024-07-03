@@ -6,20 +6,81 @@ from eave.core.internal.atoms.models.atom_types import (
     DatabaseEventAtom,
     HttpClientEventAtom,
     HttpServerEventAtom,
+    OpenAIChatCompletionAtom,
 )
 from eave.core.internal.atoms.models.db_record_fields import (
+    AccountRecordField,
+    BigQueryRecordMetadataRecordField,
     CurrentPageRecordField,
     DeviceRecordField,
     GeoRecordField,
     MultiScalarTypeKeyValueRecordField,
+    SessionRecordField,
     SingleScalarTypeKeyValueRecordField,
     TargetRecordField,
+    TrafficSourceRecordField,
     UrlRecordField,
 )
 from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
 
 from ..base import BaseTestCase, assert_schemas_match
 
+
+class TestAtomCommonSchemaField(BaseTestCase):
+    async def test_schema(self):
+        assert_schemas_match(
+            Atom.common_atom_schema_fields(),
+            (
+                SessionRecordField.schema(),
+                AccountRecordField.schema(),
+                TrafficSourceRecordField.schema(),
+                SchemaField(
+                    name="visitor_id",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="timestamp",
+                    field_type=SqlTypeNames.TIMESTAMP,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="event_id",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                BigQueryRecordMetadataRecordField.schema(),
+            ),
+        )
+
+class TestOpenAIChatCompletionAtom(BaseTestCase):
+    async def test_schema(self):
+        assert OpenAIChatCompletionAtom.table_def().table_id == "atoms_openai_chat_completions"
+
+        assert_schemas_match(
+            OpenAIChatCompletionAtom.table_def().schema,
+            (
+                SchemaField(
+                    name="action",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                TargetRecordField.schema(),
+                CurrentPageRecordField.schema(),
+                DeviceRecordField.schema(),
+                GeoRecordField.schema(),
+                MultiScalarTypeKeyValueRecordField.schema(
+                    name="extra",
+                    description=self.anystr(),
+                ),
+                SchemaField(
+                    name="client_ip",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                *Atom.common_atom_schema_fields(),
+            ),
+        )
 
 class TestBrowserEventAtom(BaseTestCase):
     async def test_schema(self):

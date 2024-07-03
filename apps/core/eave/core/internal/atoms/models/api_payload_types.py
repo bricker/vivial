@@ -17,22 +17,11 @@ from eave.collectors.core.correlation_context.base import (
     EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX,
     CorrelationContextAttr,
 )
-from eave.collectors.core.datastructures import DatabaseOperation, HttpRequestMethod
+from eave.collectors.core.datastructures import DatabaseOperation
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.typing import JsonScalar
 
-
-class BrowserAction(StrEnum):
-    CLICK = "CLICK"
-    FORM_SUBMISSION = "FORM_SUBMISSION"
-    PAGE_VIEW = "PAGE_VIEW"
-
-    @classmethod
-    def from_str(cls, s: str) -> Self | None:
-        try:
-            return cls.__call__(value=s.upper())
-        except ValueError:
-            return None
+from eave.core.internal.atoms.models.enums import BrowserAction, HttpRequestMethod
 
 
 @dataclass(kw_only=True)
@@ -240,12 +229,12 @@ class CorrelationContext:
 class BrowserEventPayload:
     event_id: str | None
     timestamp: float | None
+    corr_ctx: CorrelationContext | None
     action: BrowserAction | None
     target: TargetProperties | None
     device: DeviceProperties | None
     current_page: CurrentPageProperties | None
     extra: dict[str, JsonScalar | None] | None
-    corr_ctx: CorrelationContext | None
 
     @classmethod
     def from_api_payload(cls, data: dict[str, Any], *, decryption_key: bytes) -> Self:
@@ -274,15 +263,54 @@ class BrowserEventPayload:
 
 
 @dataclass(kw_only=True)
+class OpenAIChatCompletionPayload:
+    event_id: str | None
+    timestamp: float | None
+    corr_ctx: CorrelationContext | None
+    completion_id: str | None
+    completion_created_timestamp: float | None
+    completion_user_id: str | None
+    service_tier: str | None
+    model: str | None
+    num_completions: int | None
+    max_tokens: int | None
+    prompt_tokens: int | None
+    completion_tokens: int | None
+    total_tokens: int | None
+
+    @classmethod
+    def from_api_payload(cls, data: dict[str, Any], *, decryption_key: bytes) -> Self:
+        return cls(
+            event_id=data.get("event_id"),
+            timestamp=data.get("timestamp"),
+            completion_id=data.get("completion_id"),
+            completion_created_timestamp=data.get("completion_created_timestamp"),
+            completion_user_id=data.get("completion_user_id"),
+            service_tier=data.get("service_tier"),
+            model=data.get("model"),
+            num_completions=data.get("num_completions"),
+            max_tokens=data.get("max_tokens"),
+            prompt_tokens=data.get("prompt_tokens"),
+            completion_tokens=data.get("completion_tokens"),
+            total_tokens=data.get("total_tokens"),
+            corr_ctx=(
+                CorrelationContext.from_api_payload(cc, decryption_key=decryption_key)
+                if (cc := data.get("corr_ctx")) and isinstance(cc, dict)
+                else None
+            ),
+        )
+
+
+@dataclass(kw_only=True)
 class DatabaseEventPayload:
     event_id: str | None
     timestamp: float | None
+    corr_ctx: CorrelationContext | None
     operation: DatabaseOperation | None
     db_name: str | None
     table_name: str | None
     statement: str | None
     statement_values: dict[str, Any] | None
-    corr_ctx: CorrelationContext | None
 
     @classmethod
     def from_api_payload(cls, data: dict[str, Any], *, decryption_key: bytes) -> Self:
@@ -306,11 +334,11 @@ class DatabaseEventPayload:
 class HttpServerEventPayload:
     event_id: str | None
     timestamp: float | None
+    corr_ctx: CorrelationContext | None
     request_method: HttpRequestMethod | None
     request_url: str | None
     request_headers: dict[str, str | None] | None
     request_payload: str | None
-    corr_ctx: CorrelationContext | None
 
     @classmethod
     def from_api_payload(cls, data: dict[str, Any], *, decryption_key: bytes) -> Self:

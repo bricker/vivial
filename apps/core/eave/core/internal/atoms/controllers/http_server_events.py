@@ -54,11 +54,12 @@ class HttpServerEventsController(BaseAtomController):
                     account = AccountRecordField.from_api_resource(e.corr_ctx.account)
 
             atom = HttpServerEventAtom(
+                event_id=e.event_id,
+                timestamp=e.timestamp,
                 request_method=e.request_method,
                 request_headers=request_headers,
                 request_url=UrlRecordField.from_api_resource(e.request_url),
                 request_payload=e.request_payload,
-                timestamp=e.timestamp,
                 session=session,
                 account=account,
                 traffic_source=traffic_source,

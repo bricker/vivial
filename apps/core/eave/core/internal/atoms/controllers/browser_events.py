@@ -54,8 +54,9 @@ class BrowserEventsController(BaseAtomController):
                     account = AccountRecordField.from_api_resource(e.corr_ctx.account)
 
             atom = BrowserEventAtom(
-                action=e.action,
+                event_id=e.event_id,
                 timestamp=e.timestamp,
+                action=e.action,
                 session=session,
                 account=account,
                 traffic_source=traffic_source,

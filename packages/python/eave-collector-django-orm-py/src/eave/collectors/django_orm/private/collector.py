@@ -13,7 +13,8 @@ from django.db.backends.utils import CursorWrapper
 from eave.collectors.core.base_collector import BaseCollector
 from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
-from eave.collectors.core.write_queue import WriteQueue
+from eave.collectors.core.wrap_util import WRAPPED_TAG, is_wrapped, tag_wrapped, untag_wrapped
+from eave.collectors.core.write_queue import SHARED_BATCH_WRITE_QUEUE, WriteQueue
 
 # Copied from Django
 _Mixed = None | bool | int | float | Decimal | str | bytes | datetime | UUID
@@ -27,7 +28,7 @@ class EaveCursorWrapper(CursorWrapper):
     _leading_comment_remover = re.compile(r"^/\*.*?\*/")
     _white_space_reducer = re.compile(r"\s+")
 
-    def __init__(self, write_queue: WriteQueue, cursor: Any, db: Any) -> None:
+    def __init__(self, cursor: Any, db: Any, write_queue: WriteQueue = SHARED_BATCH_WRITE_QUEUE) -> None:
         super().__init__(cursor, db)
         self.write_queue = write_queue
 
@@ -121,7 +122,7 @@ class DjangoOrmCollector(BaseCollector):
         return cursor_creator
 
     def instrument(self) -> None:
-        if getattr(BaseDatabaseWrapper, "_is_instrumented_by_eave", False):
+        if is_wrapped(BaseDatabaseWrapper):
             return
 
         # Save the original method for uninstrumenting
@@ -129,14 +130,13 @@ class DjangoOrmCollector(BaseCollector):
 
         # monkey patch
         BaseDatabaseWrapper.make_debug_cursor = self._eave_cursor_factory()  # type: ignore
-
-        BaseDatabaseWrapper._is_instrumented_by_eave = True  # type: ignore  # noqa: SLF001
+        tag_wrapped(BaseDatabaseWrapper)
 
     def uninstrument(self) -> None:
-        if not getattr(BaseDatabaseWrapper, "_is_instrumented_by_eave", False):
+        if not is_wrapped(BaseDatabaseWrapper):
             return
 
         # reset original method
         BaseDatabaseWrapper.make_debug_cursor = self._original_make_debug_cursor  # type: ignore
 
-        BaseDatabaseWrapper._is_instrumented_by_eave = False  # type: ignore  # noqa: SLF001
+        untag_wrapped(BaseDatabaseWrapper)

@@ -61,10 +61,11 @@ class DatabaseEventsController(BaseAtomController):
                     account = AccountRecordField.from_api_resource(e.corr_ctx.account)
 
             atom = DatabaseEventAtom(
+                event_id=e.event_id,
+                timestamp=e.timestamp,
                 operation=e.operation,
                 db_name=e.db_name,
                 table_name=e.table_name,
-                timestamp=e.timestamp,
                 statement=e.statement,
                 statement_values=statement_values,
                 session=session,
