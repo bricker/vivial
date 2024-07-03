@@ -3,6 +3,22 @@ from typing import Any
 
 from wrapt import patch_function_wrapper
 
+WRAPPED_TAG = "_eave_wrapped"
+def tag_wrapped(obj: object) -> None:
+    try:
+        setattr(obj, WRAPPED_TAG, True)
+    except AttributeError:
+        pass
+
+def untag_wrapped(obj: object) -> None:
+    try:
+        delattr(obj, WRAPPED_TAG)
+    except AttributeError:
+        pass
+
+def is_wrapped(obj: object) -> bool:
+    return getattr(obj, WRAPPED_TAG, False) is True
+
 
 def wrap[T, **P](
     module: str,

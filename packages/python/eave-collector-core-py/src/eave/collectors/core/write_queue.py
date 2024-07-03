@@ -2,11 +2,18 @@ import abc
 import asyncio
 import atexit
 import multiprocessing
+from multiprocessing.context import SpawnProcess
 import multiprocessing.synchronize
+import multiprocessing.queues
+import queue
+import signal
 import sys
+from threading import Lock
 import time
 from dataclasses import dataclass
 from queue import Empty
+from types import FrameType
+from typing import Any, Callable
 
 from . import config
 from .datastructures import EventPayload
@@ -15,7 +22,7 @@ from .json import JsonObject
 from .logging import EAVE_LOGGER
 
 _FAILSAFE_MAX_FAILURES = 10
-
+_QUEUE_CLOSED_SENTINEL = "QUEUE_CLOSED_SENTINEL"
 
 class QueueParams:
     # We use this instead of the Queue `maxsize` parameter so that `put` never blocks or fails
@@ -39,9 +46,8 @@ class QueueItem:
     payload: str
 
 
-# TODO: sigterm handler
-async def _process_queue(
-    q: multiprocessing.Queue, params: QueueParams, queue_closed_event: multiprocessing.synchronize.Event
+def _process_queue(
+    q: multiprocessing.Queue, params: QueueParams,
 ) -> int:
     EAVE_LOGGER.info("Eave queue processor started.")
 
@@ -50,9 +56,9 @@ async def _process_queue(
     last_flush = time.time()
     force_flush = False
     failsafe_counter = 0
+    queue_closed = False
 
     while True:
-        queue_closed = queue_closed_event.is_set()
         try:
             # If the queue has been closed by the controlling process, then don't block, so that the queue is flushed as quickly as possible.
             payload = q.get(block=(not queue_closed), timeout=params.flush_frequency_seconds)
@@ -65,6 +71,12 @@ async def _process_queue(
                 buffer.setdefault(event_type, [])
                 buffer[event_type].append(event_json)
                 buflen += 1
+            elif payload == _QUEUE_CLOSED_SENTINEL:
+                # By setting this, the queue will now be processed as quickly as possible.
+                # We'll no longer wait for an item to be placed on the queue; we'll instead
+                # process the queue immediately until an `Empty` exception is raised, and then force-flush
+                # and end the process.
+                queue_closed = True
             else:
                 EAVE_LOGGER.error("Invalid payload type")
                 failsafe_counter += 1
@@ -72,6 +84,9 @@ async def _process_queue(
             # The queue is empty. If the queue has been closed by the controlling process, then do a final flush.
             if queue_closed:
                 force_flush = True
+        except KeyboardInterrupt:
+            # For Ctrl-C, just end the process and don't worry about flushing the buffer.
+            pass
         except Exception as e:
             # This may indicate a problem with the buffer.
             EAVE_LOGGER.exception(e)
@@ -83,8 +98,8 @@ async def _process_queue(
             force_flush or buflen >= params.maxsize or now - last_flush >= params.flush_frequency_seconds
         ):
             try:
-                EAVE_LOGGER.debug("Sending event batch to Eave.")
-                await send_batch(events=buffer)
+                EAVE_LOGGER.debug("Sending event batch to Eave. buflen=%d, last_flush=%s, force_flush=%s, failsafe_counter=%d", buflen, str(last_flush), str(force_flush), failsafe_counter)
+                asyncio.run(send_batch(events=buffer))
                 buffer.clear()
                 buflen = 0
                 failsafe_counter = 0
@@ -104,12 +119,6 @@ async def _process_queue(
             return 0
 
 
-def _queue_processor_event_loop(*args, **kwargs) -> None:
-    result = asyncio.run(_process_queue(*args, **kwargs))
-    EAVE_LOGGER.info("Eave queue processor ended.")
-    sys.exit(result)
-
-
 class WriteQueue(abc.ABC):
     @abc.abstractmethod
     def start_autoflush(self) -> None: ...
@@ -120,49 +129,78 @@ class WriteQueue(abc.ABC):
     @abc.abstractmethod
     def put(self, payload: EventPayload) -> None: ...
 
+_spawn = multiprocessing.get_context("spawn")
 
 class BatchWriteQueue(WriteQueue):
-    _queue: multiprocessing.Queue
-    _queue_closed_event: multiprocessing.synchronize.Event
-    _process: multiprocessing.Process
+    _queue_params: QueueParams
+    _queue: multiprocessing.queues.Queue | None = None
+    _process: SpawnProcess | None = None
+    _lock: Lock
 
     def __init__(self, queue_params: QueueParams | None = None) -> None:
-        queue_params = queue_params or QueueParams()
-
-        self._queue = multiprocessing.Queue()
-        self._queue_closed_event = multiprocessing.Event()
-        self._process = multiprocessing.Process(
-            target=_queue_processor_event_loop,
-            kwargs={
-                "q": self._queue,
-                "params": queue_params,
-                "queue_closed_event": self._queue_closed_event,
-            },
-        )
+        self._queue_params = queue_params or QueueParams()
+        self._lock = Lock()
 
     def start_autoflush(self) -> None:
-        try:
-            atexit.register(self.stop_autoflush)
-            self._process.start()
-        except Exception as e:
-            EAVE_LOGGER.exception(e)
-            atexit.unregister(self.stop_autoflush)
+        if self._process and self._process.is_alive():
+            return
+
+        if self._lock.acquire(blocking=False):
+            try:
+                self._queue = _spawn.Queue()
+                self._process = _spawn.Process(
+                    name="eave-agent",
+                    target=_process_queue,
+                    daemon=True,
+                    kwargs={
+                        "q": self._queue,
+                        "params": self._queue_params,
+                        # "queue_closed_event": self._queue_closed_event,
+                    },
+                )
+
+                atexit.register(self.stop_autoflush)
+                self._process.start()
+            except Exception as e:
+                EAVE_LOGGER.exception(e)
+                atexit.unregister(self.stop_autoflush)
+            finally:
+                self._lock.release()
 
     def stop_autoflush(self) -> None:
-        try:
-            if self._process.is_alive():
-                self._queue_closed_event.set()
+        if not self._process or not self._process.is_alive():
+            return
+
+        if self._lock.acquire(blocking=False):
+            try:
                 EAVE_LOGGER.info("Waiting for queue processor to finish (timeout=10s)...")
+                if self._queue:
+                    self._queue.put(_QUEUE_CLOSED_SENTINEL, block=True, timeout=10)
+            except queue.Full:
+                # Forcefully kill the process if the queue couldn't be closed after 10 seconds.
+                self._process.terminate()
+            except Exception as e:
+                EAVE_LOGGER.exception(e)
+            finally:
+                if self._queue:
+                    self._queue.close()
+
+                self._queue = None
                 self._process.join(timeout=10)
-        except Exception as e:
-            EAVE_LOGGER.exception(e)
+                self._process.close()
+                self._process = None
+                self._lock.release()
 
     def put(self, payload: EventPayload) -> None:
         try:
-            if self._process.is_alive() and not self._queue_closed_event.is_set():
+            if self._queue:
                 item = (str(payload.event_type), payload.to_dict())
                 self._queue.put(item, block=False)
             else:
                 EAVE_LOGGER.warning("Queue processor is not alive; queueing failed.")
+        except queue.Full as e:
+            EAVE_LOGGER.exception(e)
         except Exception as e:
             EAVE_LOGGER.exception(e)
+
+SHARED_BATCH_WRITE_QUEUE = BatchWriteQueue()

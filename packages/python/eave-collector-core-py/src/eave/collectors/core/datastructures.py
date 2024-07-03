@@ -8,7 +8,6 @@ from eave.collectors.core.logging import EAVE_LOGGER
 
 from .json import JsonObject, JsonScalar, compact_json
 
-
 class DatabaseOperation(StrEnum):
     INSERT = "INSERT"
     UPDATE = "UPDATE"
@@ -24,28 +23,12 @@ class DatabaseOperation(StrEnum):
             EAVE_LOGGER.warning(e)
             return None
 
-
-class HttpRequestMethod(StrEnum):
-    POST = "POST"
-    PUT = "PUT"
-    PATCH = "PATCH"
-    DELETE = "DELETE"
-    GET = "GET"
-
-    @classmethod
-    def from_str(cls, s: str) -> Self | None:
-        try:
-            return cls.__call__(value=s.upper())
-        except ValueError as e:
-            EAVE_LOGGER.warning(e)
-            return None
-
-
 class EventType(StrEnum):
     db_event = "db_event"
     http_server_event = "http_server_event"
     http_client_event = "http_client_event"
     browser_event = "browser_event"
+    openai_chat_completion = "openai_chat_completion"
 
 
 @dataclass(kw_only=True)
@@ -72,7 +55,7 @@ class EventPayload(ABC):
 class DatabaseEventPayload(EventPayload):
     event_type: ClassVar[EventType] = EventType.db_event
 
-    operation: DatabaseOperation | None = None
+    operation: str | None = None
     db_name: str | None = None
     table_name: str | None = None
     statement: str | None = None
@@ -85,7 +68,7 @@ class HttpServerEventPayload(EventPayload):
 
     event_type: ClassVar[EventType] = EventType.http_server_event
 
-    request_method: HttpRequestMethod | None = None
+    request_method: str | None = None
     request_url: str | None = None
     request_headers: dict[str, str] | None = None
     request_payload: str | None = None
@@ -97,7 +80,7 @@ class HttpClientEventPayload(EventPayload):
 
     event_type: ClassVar[EventType] = EventType.http_client_event
 
-    request_method: HttpRequestMethod | None = None
+    request_method: str | None = None
     request_url: str | None = None
     request_headers: dict[str, str] | None = None
     request_payload: str | None = None

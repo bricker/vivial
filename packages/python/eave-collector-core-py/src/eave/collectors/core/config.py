@@ -72,6 +72,6 @@ def queue_maxsize() -> int:
 
 def queue_flush_frequency_seconds() -> int:
     if is_development():
-        return 0
+        return 30
     else:
         return 30
