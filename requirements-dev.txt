@@ -13,6 +13,7 @@
 -e ${EAVE_HOME}/packages/python/eave-collector-sqlalchemy-py
 -e ${EAVE_HOME}/packages/python/eave-collector-starlette-py
 -e ${EAVE_HOME}/packages/python/eave-collector-django-orm-py
+-e ${EAVE_HOME}/packages/python/eave-collector-openai-py
 
 grpcio-tools
 protobuf
