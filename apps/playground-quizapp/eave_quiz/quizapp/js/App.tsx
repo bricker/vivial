@@ -3,16 +3,14 @@ import ReactDOM from "react-dom/client";
 import { Navigate, Route, BrowserRouter as Router, Routes } from "react-router-dom";
 
 import CookieConsentBanner from "./CookieBanner";
-import LoginForm from "./LoginForm";
-import TodoList from "./TodoList";
+import QuizPage from "./Quiz";
 
 const App = () => {
   return (
     <>
       <Router>
         <Routes>
-          <Route path="/login" element={<LoginForm />} />
-          <Route path="/" element={<TodoList />} />
+          <Route path="/" element={<QuizPage />} />
           <Route
             path="*"
             element={

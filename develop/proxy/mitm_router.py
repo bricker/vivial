@@ -68,6 +68,9 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
     elif re.match(r"^playground-todoapp\.", flow.request.host):
         port = 5500
 
+    elif re.match(r"^playground-quizapp\.", flow.request.host):
+        port = 5600
+
     if not port:
         flow.kill()
         raise NoUpstreamDefinedError(f"No upstream defined for {flow.request.url}")

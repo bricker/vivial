@@ -1,0 +1,6 @@
+uvicorn[standard]
+gunicorn
+starlette
+jinja2
+google-cloud-logging
+openai
