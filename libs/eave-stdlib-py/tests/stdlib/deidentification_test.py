@@ -1,20 +1,20 @@
 import dataclasses
 from typing import Any
-from eave.stdlib.deidentification import (
-    REDACTABLE,
-    _flatten_to_dict,
-    _headers_to_redact,
-    _write_flat_data_to_object,
-    _redactable_fields_matchers,
-    redact_atoms,
-)
 
-from eave.core.internal.atoms.models.api_payload_types import CurrentPageProperties, TargetProperties
 from eave.core.internal.atoms.controllers.browser_events import BrowserEventAtom
+from eave.core.internal.atoms.models.api_payload_types import CurrentPageProperties, TargetProperties
 from eave.core.internal.atoms.models.db_record_fields import (
     CurrentPageRecordField,
     MultiScalarTypeKeyValueRecordField,
     TargetRecordField,
+)
+from eave.stdlib.deidentification import (
+    REDACTABLE,
+    _flatten_to_dict,
+    _headers_to_redact,
+    _redactable_fields_matchers,
+    _write_flat_data_to_object,
+    redact_atoms,
 )
 
 from .base import StdlibBaseTestCase

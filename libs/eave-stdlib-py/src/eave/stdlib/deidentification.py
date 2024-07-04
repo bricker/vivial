@@ -1,12 +1,12 @@
 import dataclasses
 import re
+from collections.abc import Iterable
 from types import NoneType
 from typing import Any, get_args, get_origin
-from collections.abc import Iterable
+
 import google.cloud.dlp_v2 as dlp
 
 from .config import SHARED_CONFIG
-
 
 # Convert the project id into a full resource id.
 parent = f"projects/{SHARED_CONFIG.google_cloud_project}/locations/global"
