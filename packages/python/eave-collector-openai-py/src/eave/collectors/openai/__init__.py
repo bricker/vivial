@@ -1,16 +1,17 @@
 from eave.collectors.openai.private.collector import OpenAICollector
+from openai import OpenAI, AsyncOpenAI
 
 _collector: OpenAICollector | None = None
 
 
 class OpenAICollectorManager:
     @classmethod
-    def start(cls) -> None:
+    def start(cls, client: OpenAI | AsyncOpenAI | None = None) -> None:
         global _collector
 
         if not _collector:
             _collector = OpenAICollector()
-            _collector.instrument()
+            _collector.instrument(client=client)
 
     @classmethod
     def stop(cls) -> None:

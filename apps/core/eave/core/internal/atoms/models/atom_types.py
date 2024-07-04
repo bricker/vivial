@@ -240,3 +240,101 @@ class HttpServerEventAtom(Atom):
     request_url: UrlRecordField | None
     request_headers: list[SingleScalarTypeKeyValueRecordField[str]] | None
     request_payload: str | None
+
+
+@dataclass(kw_only=True)
+class OpenAIChatCompletionAtom(Atom):
+    @staticmethod
+    def table_def() -> BigQueryTableDefinition:
+        return BigQueryTableDefinition(
+            table_id="atoms_openai_chat_completions",
+            friendly_name="OpenAI Chat Completion Atoms",
+            description="OpenAI Chat Completion atoms",
+            schema=(
+                SchemaField(
+                    name="completion_id",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="completion_created_timestamp",
+                    field_type=SqlTypeNames.TIMESTAMP,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="completion_user_id",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="service_tier",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="model",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="num_completions",
+                    field_type=SqlTypeNames.INTEGER,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="max_tokens",
+                    field_type=SqlTypeNames.INTEGER,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="prompt_tokens",
+                    field_type=SqlTypeNames.INTEGER,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="completion_tokens",
+                    field_type=SqlTypeNames.INTEGER,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="total_tokens",
+                    field_type=SqlTypeNames.INTEGER,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="input_cost_usd_cents",
+                    field_type=SqlTypeNames.NUMERIC,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="output_cost_usd_cents",
+                    field_type=SqlTypeNames.NUMERIC,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="total_cost_usd_cents",
+                    field_type=SqlTypeNames.NUMERIC,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="stack",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.REPEATED,
+                ),
+                *Atom.common_atom_schema_fields(),
+            ),
+        )
+
+    completion_id: str | None
+    completion_created_timestamp: float | None
+    completion_user_id: str | None
+    service_tier: str | None
+    model: str | None
+    num_completions: int | None
+    max_tokens: int | None
+    prompt_tokens: int | None
+    completion_tokens: int | None
+    total_tokens: int | None
+    input_cost_usd_cents: float | None
+    output_cost_usd_cents: float | None
+    total_cost_usd_cents: float | None
