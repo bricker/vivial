@@ -2,6 +2,7 @@ import dataclasses
 from typing import Any, cast
 
 from eave.collectors.core.datastructures import DatabaseOperation
+from eave.stdlib.deidentification import redact_atoms
 from eave.core.internal import database
 from eave.core.internal.atoms.models.api_payload_types import (
     DatabaseEventPayload,
@@ -75,6 +76,8 @@ class DatabaseEventsController(BaseAtomController):
 
             atoms.append(atom)
             unique_operations.add((e.operation, e.table_name))
+
+        await redact_atoms(atoms)
 
         errors = EAVE_INTERNAL_BIGQUERY_CLIENT.append_rows(
             table=table,
