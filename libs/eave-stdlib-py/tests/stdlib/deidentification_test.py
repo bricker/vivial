@@ -430,3 +430,22 @@ class DeidentificationTest(StdlibBaseTestCase):
                 "visitor_id": "23d35726-3f73-4045-a724-b788c0b12b97",
             },
         ]
+
+    def test_handle_key_sep_in_dict_key(self) -> None:
+        @dataclasses.dataclass
+        class Foo:
+            obj: dict[str, str]
+
+        f = Foo(obj={"fizz.buzz": "bar"})
+        flat = _flatten_to_dict(f)
+
+        assert flat == {'obj."fizz.buzz"': "bar"}, "Object not flattened as expected"
+
+        # alter flat and write back
+        flat['obj."fizz.buzz"'] = "bazz"
+        _write_flat_data_to_object(
+            data=flat,
+            obj=f,
+        )
+
+        assert f.obj["fizz.buzz"] == "bazz", "altered flat data not written back correctly"
