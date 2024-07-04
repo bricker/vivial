@@ -16,6 +16,51 @@ _regex_safe_key_sep = rf"\{_key_sep}"
 REDACTABLE = "redactable"
 
 
+def _redactable_field_matchers_kernel(t: Any, prefix: str = "", redact_patterns: list[str] | None = None) -> list[str]:
+    if redact_patterns is None:
+        redact_patterns = []
+    origin = get_origin(t)
+    args = get_args(t)
+    chained_prefix = rf"{prefix}{_regex_safe_key_sep}" if prefix else ""
+
+    if origin is list:
+        # scan element type(s)
+        for element_type in args:
+            _redactable_field_matchers_kernel(
+                t=element_type,
+                prefix=rf"{chained_prefix}[0-9]+",
+                redact_patterns=redact_patterns,
+            )
+    elif origin is dict:
+        # scan value type(s)
+        if len(args) >= 2:
+            #      args[0] args[1]
+            # dict[str,    str]
+            _redactable_field_matchers_kernel(
+                t=args[1],
+                prefix=rf'{chained_prefix}".*?(?="{_regex_safe_key_sep})"',
+                redact_patterns=redact_patterns,
+            )
+    elif args:
+        # handle Unioned types individually
+        for utype in args:
+            _redactable_field_matchers_kernel(utype, prefix, redact_patterns)
+    elif dataclasses.is_dataclass(t):
+        # extract sub fields
+        redactable_fields = [f for f in dataclasses.fields(t) if f.metadata.get(REDACTABLE, False)]
+        for field in redactable_fields:
+            _redactable_field_matchers_kernel(
+                t=field.type,
+                prefix=rf"{chained_prefix}{field.name}",
+                redact_patterns=redact_patterns,
+            )
+    elif t is not NoneType:
+        # non-None primitive type; we've reached end of a field path
+        redact_patterns.append(prefix)
+
+    return redact_patterns
+
+
 def _redactable_fields_matchers(t: Any) -> list[str]:
     """List of all redactable fields, including member objects',
     defined as regex paths. A redactable field being one that
@@ -44,52 +89,18 @@ def _redactable_fields_matchers(t: Any) -> list[str]:
     ]
     ```
     """
+    return _redactable_field_matchers_kernel(t)
 
-    def _kernel(t: Any, prefix: str = "", redact_patterns: list[str] | None = None) -> list[str]:
-        if redact_patterns is None:
-            redact_patterns = []
-        origin = get_origin(t)
-        args = get_args(t)
-        chained_prefix = rf"{prefix}{_regex_safe_key_sep}" if prefix else ""
 
-        if origin is list:
-            # scan element type(s)
-            for element_type in args:
-                _kernel(
-                    t=element_type,
-                    prefix=rf"{chained_prefix}[0-9]+",
-                    redact_patterns=redact_patterns,
-                )
-        elif origin is dict:
-            # scan value type(s)
-            if len(args) >= 2:
-                #      args[0] args[1]
-                # dict[str,    str]
-                _kernel(
-                    t=args[1],
-                    prefix=rf'{chained_prefix}".*?(?="{_regex_safe_key_sep})"',
-                    redact_patterns=redact_patterns,
-                )
-        elif args:
-            # handle Unioned types individually
-            for utype in args:
-                _kernel(utype, prefix, redact_patterns)
-        elif dataclasses.is_dataclass(t):
-            # extract sub fields
-            redactable_fields = [f for f in dataclasses.fields(t) if f.metadata.get(REDACTABLE, False)]
-            for field in redactable_fields:
-                _kernel(
-                    t=field.type,
-                    prefix=rf"{chained_prefix}{field.name}",
-                    redact_patterns=redact_patterns,
-                )
-        elif t is not NoneType:
-            # non-None primitive type; we've reached end of a field path
-            redact_patterns.append(prefix)
+def _asdict(o: Any) -> dict[str, Any]:
+    """Convert `o` to dict, stopping after the root
+    level. Expects `o` to be a dataclass instance.
 
-        return redact_patterns
-
-    return _kernel(t)
+    This is a simplified version of `dataclasses.asdict`
+    that doesn't recursively dictify all member objects.
+    (This is desirable so we can differentiate between
+    dict members and class object members later on.)"""
+    return {f.name: getattr(o, f.name) for f in dataclasses.fields(o)}
 
 
 def _flatten_to_dict(obj: Any) -> dict[str, str | bool | int | float]:
@@ -109,16 +120,6 @@ def _flatten_to_dict(obj: Any) -> dict[str, str | bool | int | float]:
     flat = {}
     if not dataclasses.is_dataclass(obj):
         return flat
-
-    def _asdict(o: Any) -> dict[str, Any]:
-        """Convert `o` to dict, stopping after the root
-        level. Expects `o` to be a dataclass instance.
-
-        This is a simplified version of `dataclasses.asdict`
-        that doesn't recursively dictify all member objects.
-        (This is desirable so we can differentiate between
-        dict members and class object members later on.)"""
-        return {f.name: getattr(o, f.name) for f in dataclasses.fields(o)}
 
     # (prefix, key/index, value)
     items: list[tuple[str, Any, Any]] = [("", k, v) for k, v in _asdict(obj).items()]
