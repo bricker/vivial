@@ -4,7 +4,6 @@ SQLAlchemy[asyncio]
 asyncpg
 slack-sdk
 aiohttp
-google-cloud-dlp
 google-cloud-logging
 google-cloud-runtimeconfig # See https://github.com/googleapis/python-runtimeconfig/pull/184
 google-auth
