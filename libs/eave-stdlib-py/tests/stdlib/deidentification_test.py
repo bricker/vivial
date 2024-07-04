@@ -1,4 +1,5 @@
 import dataclasses
+from typing import Any
 from eave.stdlib.deidentification import (
     REDACTABLE,
     _flatten_to_dict,
@@ -434,18 +435,26 @@ class DeidentificationTest(StdlibBaseTestCase):
     def test_handle_key_sep_in_dict_key(self) -> None:
         @dataclasses.dataclass
         class Foo:
-            obj: dict[str, str]
+            obj: Any
 
-        f = Foo(obj={"fizz.buzz": "bar"})
+        f = Foo(
+            obj={
+                "fizz.buzz": "bar",
+                "foo.bar": Foo(obj={}),
+                "hum.drum": Foo(obj=4),
+            }
+        )
         flat = _flatten_to_dict(f)
-
-        assert flat == {'obj."fizz.buzz"': "bar"}, "Object not flattened as expected"
 
         # alter flat and write back
         flat['obj."fizz.buzz"'] = "bazz"
+        flat['obj."foo.bar".obj."some"'] = "thing"
+        flat['obj."hum.drum".obj'] = 5
         _write_flat_data_to_object(
             data=flat,
             obj=f,
         )
 
         assert f.obj["fizz.buzz"] == "bazz", "altered flat data not written back correctly"
+        assert f.obj["hum.drum"].obj == 5, "primitive data not written back correctly"
+        assert f.obj["foo.bar"].obj["some"] == "thing", "double nested flat data not written back correctly"

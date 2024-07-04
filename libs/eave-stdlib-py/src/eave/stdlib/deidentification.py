@@ -158,7 +158,23 @@ def _write_flat_data_to_object(data: dict[str, Any], obj: Any) -> None:
             # no value present to write (or key_path may not be valid for this obj)
             continue
 
-        path_segments = key_path.split(_key_sep)
+        # custom str split to not split on _key_sep characters between quotes
+        path_segments = []
+        in_quote = False
+        seg_builder = []
+        for i, char in enumerate(key_path):
+            if char == _key_sep and not in_quote:
+                path_segments.append("".join(seg_builder))
+                seg_builder = []
+                continue
+            if char == '"' and len(seg_builder) == 0:
+                in_quote = True
+            if char == '"' and (i + 1 >= len(key_path) or key_path[i + 1] == _key_sep):
+                in_quote = False
+
+            seg_builder.append(char)
+        path_segments.append("".join(seg_builder))
+
         obj_drill = obj
         for i in range(len(path_segments)):
             key = path_segments[i].strip('"')
