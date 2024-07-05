@@ -6,7 +6,7 @@ from eave.collectors.core.correlation_context.base import (
     EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX,
     CorrelationContextAttr,
 )
-from eave.collectors.core.datastructures import DatabaseOperation, HttpRequestMethod
+from eave.collectors.core.datastructures import DatabaseOperation
 from eave.core.internal.atoms.models.api_payload_types import (
     AccountProperties,
     BrowserAction,
@@ -21,6 +21,7 @@ from eave.core.internal.atoms.models.api_payload_types import (
     TargetProperties,
     TrafficSourceProperties,
 )
+from eave.core.internal.atoms.models.enums import HttpRequestMethod
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 
 from ..base import BaseTestCase
@@ -520,7 +521,7 @@ class TestAtomApiTypes(BaseTestCase):
         )
         assert e.event_id == str(self.getuuid("event.event_id"))
         assert e.timestamp == self.gettime("event.timestamp")
-        assert e.request_method == HttpRequestMethod.POST
+        assert e.request_method == "POST"
         assert e.request_url == self.geturl("event.request_url")
         assert e.request_headers == {
             self.getstr("event.request_headers.0.key"): self.getstr("event.request_headers.0.value"),

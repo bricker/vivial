@@ -9,10 +9,10 @@ from eave.collectors.core.datastructures import (
     DatabaseOperation,
     DataIngestRequestBody,
     EventType,
-    HttpRequestMethod,
     HttpServerEventPayload,
 )
 from eave.core.internal.atoms.models.atom_types import BrowserEventAtom, DatabaseEventAtom, HttpServerEventAtom
+from eave.core.internal.atoms.models.enums import HttpRequestMethod
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
