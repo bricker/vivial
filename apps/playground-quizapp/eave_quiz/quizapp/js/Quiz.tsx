@@ -2,8 +2,10 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "./Quiz.module.css";
-import { COOKIE_PREFIX, getCookie } from "./cookies";
+import { COOKIE_PREFIX, getCookie, setCookie } from "./cookies";
 import { Question, Quiz } from "./types";
+
+const STREAK_COOKIE_NAME = `${COOKIE_PREFIX}streak`;
 
 const QuizPage = () => {
   // State to track selected answers and correctness
@@ -71,10 +73,53 @@ const QuizPage = () => {
   const renderQuestions = (): React.ReactElement[] | undefined => {
     return quiz?.questions.map((question: Question, index: number) => (
       <div key={index} className={styles.question}>
-        <div className={styles.questionTitle}>{question.text}</div>
+        <div className={styles.questionTitle}>{index + 1}. {question.text}</div>
         <div className={styles.choices}>{renderChoices(question, index)}</div>
       </div>
     ));
+  };
+
+  const renderResults = (): React.ReactElement | null => {
+    if (!quiz || quiz.questions.length === 0 || selectedAnswers.length < quiz.questions.length) {
+      return null;
+    }
+
+    const score = quiz?.questions.reduce((acc, question, i) => {
+      if (selectedAnswers[i] === question.correct_answer_index) {
+        return acc + 1;
+      } else {
+        return acc;
+      }
+    }, 0);
+
+    const passed = score >= quiz.questions.length;
+
+    let resultsClass = "";
+    let streak = 0;
+
+    if (passed) {
+      resultsClass = "pass";
+      const streakCookie = getCookie(STREAK_COOKIE_NAME);
+      if (streakCookie) {
+        streak = parseInt(streakCookie, 10);
+      }
+      streak += 1;
+      setCookie({ name: STREAK_COOKIE_NAME, value: streak.toString(10) })
+    } else {
+      resultsClass = "fail";
+      setCookie({ name: STREAK_COOKIE_NAME, value: "0" })
+    }
+
+    return (
+      <div className={`${styles.results} ${styles[resultsClass]}`}>
+        <h2>Score: {score} / {quiz.questions.length}</h2>
+        <span>{passed ? "You passed!" : "You failed!"}</span>
+        <br/>
+        <span>Streak: {streak}</span>
+        <br />
+        <a href="/">Try another one!</a>
+      </div>
+    );
   };
 
   useEffect(() => {
@@ -91,6 +136,7 @@ const QuizPage = () => {
         <>
           <h1>{quiz?.title}</h1>
           {renderQuestions()}
+          {renderResults()}
         </>
       )}
     </div>

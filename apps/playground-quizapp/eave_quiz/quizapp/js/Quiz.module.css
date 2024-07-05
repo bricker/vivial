@@ -67,3 +67,18 @@
   pointer-events: none; /* Disable clicking on choices */
   opacity: 0.6; /* Visually indicate disabled state */
 }
+
+.results {
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.results.pass {
+  background-color: lightgreen;
+  border: 1px solid darkgreen;
+}
+
+.results.fail {
+  background-color: lightpink;
+  border: 1px solid darkred;
+}

@@ -11,7 +11,7 @@ export function getCookie(name: string): string | null {
   return cookies.get(name);
 }
 
-export function setCookie({ name, value, maxAge }: { name: string; value: string; maxAge: number }) {
+export function setCookie({ name, value, maxAge = 2592000 }: { name: string; value: string; maxAge?: number }) {
   document.cookie = `${name}=${value}; max-age=${maxAge}`;
 }
 
