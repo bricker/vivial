@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from enum import StrEnum
 from typing import Self
+from dataclasses import dataclass, field
 
 from eave.collectors.core.datastructures import DatabaseOperation
 from google.cloud.bigquery import SchemaField, SqlTypeNames
@@ -21,6 +21,7 @@ from eave.core.internal.atoms.models.db_record_fields import (
     UrlRecordField,
 )
 from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
+from eave.stdlib.deidentification import REDACTABLE
 
 from eave.core.internal.atoms.models.enums import BrowserAction, HttpRequestMethod
 
@@ -47,11 +48,11 @@ class Atom(ABC):
     """
 
     session: SessionRecordField | None
-    account: AccountRecordField | None
     traffic_source: TrafficSourceRecordField | None
     visitor_id: str | None
     timestamp: float | None
     event_id: str | None
+    account: AccountRecordField | None = field(metadata={REDACTABLE: True})
 
     @staticmethod
     @abstractmethod
@@ -119,12 +120,12 @@ class BrowserEventAtom(Atom):
             ),
         )
 
+    target: TargetRecordField | None = field(metadata={REDACTABLE: True})
+    current_page: CurrentPageRecordField | None = field(metadata={REDACTABLE: True})
+    extra: list[MultiScalarTypeKeyValueRecordField] | None = field(metadata={REDACTABLE: True})
     action: BrowserAction | None
-    target: TargetRecordField | None
-    current_page: CurrentPageRecordField | None
     device: DeviceRecordField | None
     geo: GeoRecordField | None
-    extra: list[MultiScalarTypeKeyValueRecordField] | None
     client_ip: str | None
 
 
@@ -267,8 +268,8 @@ class DatabaseEventAtom(Atom):
     operation: DatabaseOperation | None
     db_name: str | None
     table_name: str | None
-    statement: str | None
-    statement_values: list[MultiScalarTypeKeyValueRecordField] | None
+    statement: str | None = field(metadata={REDACTABLE: True})
+    statement_values: list[MultiScalarTypeKeyValueRecordField] | None = field(metadata={REDACTABLE: True})
 
 
 @dataclass(kw_only=True)
@@ -303,9 +304,9 @@ class HttpClientEventAtom(Atom):
         )
 
     request_method: HttpRequestMethod | None
-    request_url: UrlRecordField | None
-    request_headers: list[SingleScalarTypeKeyValueRecordField[str]] | None
-    request_payload: str | None
+    request_url: UrlRecordField | None = field(metadata={REDACTABLE: True})
+    request_headers: list[SingleScalarTypeKeyValueRecordField[str]] | None = field(metadata={REDACTABLE: True})
+    request_payload: str | None = field(metadata={REDACTABLE: True})
 
 
 @dataclass(kw_only=True)
@@ -340,6 +341,6 @@ class HttpServerEventAtom(Atom):
         )
 
     request_method: HttpRequestMethod | None
-    request_url: UrlRecordField | None
-    request_headers: list[SingleScalarTypeKeyValueRecordField[str]] | None
-    request_payload: str | None
+    request_url: UrlRecordField | None = field(metadata={REDACTABLE: True})
+    request_headers: list[SingleScalarTypeKeyValueRecordField[str]] | None = field(metadata={REDACTABLE: True})
+    request_payload: str | None = field(metadata={REDACTABLE: True})

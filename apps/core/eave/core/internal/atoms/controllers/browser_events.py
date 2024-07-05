@@ -1,6 +1,8 @@
 import dataclasses
 from typing import Any, cast
 
+from eave.stdlib.deidentification import redact_atoms
+
 from eave.core.internal.atoms.controllers.base_atom_controller import BaseAtomController
 from eave.core.internal.atoms.models.api_payload_types import BrowserAction, BrowserEventPayload
 from eave.core.internal.atoms.models.atom_types import BrowserEventAtom
@@ -71,6 +73,8 @@ class BrowserEventsController(BaseAtomController):
 
             atoms.append(atom)
             unique_operations.add(e.action)
+
+        await redact_atoms(atoms)
 
         formatted_rows = [dataclasses.asdict(atom) for atom in atoms]
         errors = EAVE_INTERNAL_BIGQUERY_CLIENT.append_rows(

@@ -7,8 +7,8 @@ Additionally, the BigQuery record field schemas are defined on these classes.
 These schemas are authoritative: changing these will change the respective schema in BigQuery.
 """
 
-from dataclasses import dataclass
 from typing import Any, Self
+from dataclasses import dataclass, field
 from urllib.parse import parse_qsl, urlparse
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
@@ -25,10 +25,15 @@ from eave.core.internal.atoms.models.api_payload_types import (
 )
 from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
 from eave.stdlib.typing import JsonScalar
+from eave.stdlib.deidentification import REDACTABLE
+
+
+class RecordField:
+    pass
 
 
 @dataclass(init=False)
-class TypedValueRecordField:
+class TypedValueRecordField(RecordField):
     @staticmethod
     def schema() -> SchemaField:
         return SchemaField(
@@ -57,9 +62,9 @@ class TypedValueRecordField:
             ),
         )
 
-    string_value: str | None = None
+    string_value: str | None = field(metadata={REDACTABLE: True}, default=None)
     bool_value: bool | None = None
-    numeric_value: int | float | None = None
+    numeric_value: int | float | None = field(metadata={REDACTABLE: True}, default=None)
 
     def __init__(self, value: str | int | float | bool | None) -> None:
         # It is important to remember that these checks have to be exclusive - if multiple checks are done, it's possible
@@ -78,7 +83,7 @@ class TypedValueRecordField:
 
 
 @dataclass(kw_only=True)
-class MultiScalarTypeKeyValueRecordField:
+class MultiScalarTypeKeyValueRecordField(RecordField):
     @staticmethod
     def schema(*, name: str, description: str) -> SchemaField:
         return SchemaField(
@@ -96,8 +101,8 @@ class MultiScalarTypeKeyValueRecordField:
             ),
         )
 
-    key: str
-    value: TypedValueRecordField | None
+    key: str = field(metadata={REDACTABLE: True})
+    value: TypedValueRecordField | None = field(metadata={REDACTABLE: True})
 
     @classmethod
     def list_from_scalar_dict(cls, d: dict[str, JsonScalar]) -> list["MultiScalarTypeKeyValueRecordField"]:
@@ -134,8 +139,8 @@ class SingleScalarTypeKeyValueRecordField[T: str | bool | int | float]:
             ),
         )
 
-    key: str
-    value: T | None
+    key: str = field(metadata={REDACTABLE: True})
+    value: T | None = field(metadata={REDACTABLE: True})
 
     @classmethod
     def list_from_scalar_dict(cls, d: dict[str, T | None]) -> list["SingleScalarTypeKeyValueRecordField[T]"]:
@@ -159,7 +164,7 @@ class SingleScalarTypeKeyValueRecordField[T: str | bool | int | float]:
 
 
 @dataclass(kw_only=True)
-class SessionRecordField:
+class SessionRecordField(RecordField):
     @classmethod
     def schema(cls) -> SchemaField:
         return SchemaField(
@@ -208,7 +213,7 @@ class SessionRecordField:
 
 
 @dataclass(kw_only=True)
-class AccountRecordField:
+class AccountRecordField(RecordField):
     @classmethod
     def schema(cls) -> SchemaField:
         return SchemaField(
@@ -231,7 +236,7 @@ class AccountRecordField:
         )
 
     account_id: str | None
-    extra: list[MultiScalarTypeKeyValueRecordField] | None
+    extra: list[MultiScalarTypeKeyValueRecordField] | None = field(metadata={REDACTABLE: True})
 
     @classmethod
     def from_api_resource(cls, resource: AccountProperties) -> Self:
@@ -244,7 +249,7 @@ class AccountRecordField:
 
 
 @dataclass(kw_only=True)
-class TrafficSourceRecordField:
+class TrafficSourceRecordField(RecordField):
     @classmethod
     def schema(cls) -> SchemaField:
         return SchemaField(
@@ -435,7 +440,7 @@ class TrafficSourceRecordField:
 
 
 @dataclass(kw_only=True)
-class GeoRecordField:
+class GeoRecordField(RecordField):
     @staticmethod
     def schema() -> SchemaField:
         return SchemaField(
@@ -478,7 +483,7 @@ class GeoRecordField:
 
 
 @dataclass(kw_only=True)
-class BrandsRecordField:
+class BrandsRecordField(RecordField):
     @staticmethod
     def schema() -> SchemaField:
         return SchemaField(
@@ -514,7 +519,7 @@ class BrandsRecordField:
 
 
 @dataclass(kw_only=True)
-class DeviceRecordField:
+class DeviceRecordField(RecordField):
     @staticmethod
     def schema() -> SchemaField:
         return SchemaField(
@@ -617,7 +622,7 @@ class DeviceRecordField:
 
 
 @dataclass(kw_only=True)
-class TargetRecordField:
+class TargetRecordField(RecordField):
     @staticmethod
     def schema() -> SchemaField:
         return SchemaField(
@@ -653,9 +658,9 @@ class TargetRecordField:
         )
 
     type: str | None
-    id: str | None
-    content: str | None
-    attributes: list[SingleScalarTypeKeyValueRecordField[str]] | None
+    id: str | None = field(metadata={REDACTABLE: True})
+    content: str | None = field(metadata={REDACTABLE: True})
+    attributes: list[SingleScalarTypeKeyValueRecordField[str]] | None = field(metadata={REDACTABLE: True})
 
     @classmethod
     def from_api_resource(cls, resource: TargetProperties) -> Self:
@@ -672,7 +677,7 @@ class TargetRecordField:
 
 
 @dataclass(kw_only=True)
-class UrlRecordField:
+class UrlRecordField(RecordField):
     @staticmethod
     def schema(name: str, description: str) -> SchemaField:
         return SchemaField(
@@ -719,12 +724,12 @@ class UrlRecordField:
             ),
         )
 
-    raw: str | None
+    raw: str | None = field(metadata={REDACTABLE: True})
     protocol: str | None
-    domain: str | None
-    path: str | None
-    hash: str | None
-    query_params: list[SingleScalarTypeKeyValueRecordField[str]] | None
+    domain: str | None = field(metadata={REDACTABLE: True})
+    path: str | None = field(metadata={REDACTABLE: True})
+    hash: str | None = field(metadata={REDACTABLE: True})
+    query_params: list[SingleScalarTypeKeyValueRecordField[str]] | None = field(metadata={REDACTABLE: True})
 
     @classmethod
     def from_api_resource(cls, resource: str) -> Self:
@@ -750,7 +755,7 @@ class UrlRecordField:
 
 
 @dataclass(kw_only=True)
-class CurrentPageRecordField:
+class CurrentPageRecordField(RecordField):
     @staticmethod
     def schema() -> SchemaField:
         return SchemaField(
@@ -775,8 +780,8 @@ class CurrentPageRecordField:
             ),
         )
 
-    url: UrlRecordField | None
-    title: str | None
+    url: UrlRecordField | None = field(metadata={REDACTABLE: True})
+    title: str | None = field(metadata={REDACTABLE: True})
     pageview_id: str | None
 
     @classmethod
