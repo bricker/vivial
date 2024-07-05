@@ -75,11 +75,16 @@ topics = [
     "math",
     "physics",
     "electronics",
+    "electricity",
     "programming",
-    "javascript",
-    "python",
-    "java",
-    "c language",
+    "programming languages",
+    "javascript programming language",
+    "python programming language",
+    "java programming language",
+    "c programming language",
+    "ruby programming language",
+    "typescript programming language",
+    "bash scripting",
     "linux",
     "biology",
     "politics",
@@ -106,7 +111,7 @@ async def get_quiz(request: Request) -> Response:
             {
                 "role": "user",
                 "content": dedent(f"""
-                Generate a multiple-choice quiz with 10 questions. For each question, provide 4 choices for the answer: three incorrect answers, and one correct answer.
+                Generate a multiple-choice quiz with 10 questions. For each question, provide 4 choices for the answer, in random order: three incorrect answers, and one correct answer.
 
                 The topic of the quiz is: "{quiz_topic}"
 
@@ -141,6 +146,12 @@ async def get_quiz(request: Request) -> Response:
     content = chat_completion.choices[0].message.content
     if content:
         jcontent = json.loads(content)
+
+        # Shuffle the choices.
+        for question in jcontent["questions"]:
+            correct_choice = question["choices"][question["correct_answer_index"]]
+            random.shuffle(question["choices"])
+            question["correct_answer_index"] = next(i for i, c in enumerate(question["choices"]) if c == correct_choice)
         return JSONResponse(content=jcontent, status_code=HTTPStatus.OK)
     else:
         return Response(status_code=HTTPStatus.INTERNAL_SERVER_ERROR)

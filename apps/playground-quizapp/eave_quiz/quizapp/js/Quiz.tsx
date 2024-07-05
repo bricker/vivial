@@ -6,12 +6,27 @@ import { COOKIE_PREFIX, getCookie, setCookie } from "./cookies";
 import { Question, Quiz } from "./types";
 
 const STREAK_COOKIE_NAME = `${COOKIE_PREFIX}streak`;
+const PASSING_SCORE = 7;
+
+const getStreakFromCookie = (): number => {
+  const streakCookie = getCookie(STREAK_COOKIE_NAME);
+  if (streakCookie) {
+    return parseInt(streakCookie, 10);
+  } else {
+    return 0;
+  }
+}
 
 const QuizPage = () => {
+  const qp = new URLSearchParams(window.location.search)
+  const cheatMode = qp.has("cheatmode");
+
   // State to track selected answers and correctness
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
+  const [streak, setStreak] = useState(getStreakFromCookie());
+  const [score, setScore] = useState(0);
 
   const fetchQuiz = () => {
     setLoading(true);
@@ -29,7 +44,7 @@ const QuizPage = () => {
   };
 
   // Function to handle selecting an answer
-  const handleAnswerSelect = (questionIndex: number, answerIndex: number) => {
+  const handleAnswerSelect = (question: Question, questionIndex: number, answerIndex: number) => {
     if (selectedAnswers[questionIndex] !== undefined) {
       // If an answer has already been selected, do nothing
       return;
@@ -40,6 +55,26 @@ const QuizPage = () => {
     updatedAnswers[questionIndex] = answerIndex;
 
     setSelectedAnswers(updatedAnswers);
+
+    if (question.correct_answer_index === answerIndex) {
+      setScore((prevScore) => prevScore + 1);
+    }
+
+    if (quiz && updatedAnswers.length === quiz.questions.length) {
+      if (score >= PASSING_SCORE) {
+        setStreak((prevStreak) => {
+          const newStreak = prevStreak + 1;
+          setCookie({ name: STREAK_COOKIE_NAME, value: newStreak.toString(10) });
+          return newStreak;
+        });
+      } else {
+        setStreak(() => {
+          const newStreak = 0;
+          setCookie({ name: STREAK_COOKIE_NAME, value: newStreak.toString(10) });
+          return newStreak;
+        });
+      }
+    }
   };
 
   // Function to render choices for a question
@@ -61,9 +96,9 @@ const QuizPage = () => {
         <div
           key={index}
           className={`${styles.choice} ${styles[choiceClass]}`}
-          onClick={() => handleAnswerSelect(questionIndex, index)}
+          onClick={() => handleAnswerSelect(question, questionIndex, index)}
         >
-          {choice}
+          {cheatMode && index === question.correct_answer_index ? ">" : ""} {choice}
         </div>
       );
     });
@@ -84,30 +119,13 @@ const QuizPage = () => {
       return null;
     }
 
-    const score = quiz?.questions.reduce((acc, question, i) => {
-      if (selectedAnswers[i] === question.correct_answer_index) {
-        return acc + 1;
-      } else {
-        return acc;
-      }
-    }, 0);
-
-    const passed = score >= quiz.questions.length;
+    const passed = score >= PASSING_SCORE;
 
     let resultsClass = "";
-    let streak = 0;
-
     if (passed) {
       resultsClass = "pass";
-      const streakCookie = getCookie(STREAK_COOKIE_NAME);
-      if (streakCookie) {
-        streak = parseInt(streakCookie, 10);
-      }
-      streak += 1;
-      setCookie({ name: STREAK_COOKIE_NAME, value: streak.toString(10) })
     } else {
       resultsClass = "fail";
-      setCookie({ name: STREAK_COOKIE_NAME, value: "0" })
     }
 
     return (
@@ -134,7 +152,9 @@ const QuizPage = () => {
         </div>
       ) : (
         <>
+          <span>Current streak: {streak}</span>
           <h1>{quiz?.title}</h1>
+          <h4>Score {PASSING_SCORE} or better to pass!</h4>
           {renderQuestions()}
           {renderResults()}
         </>
