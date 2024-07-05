@@ -1,8 +1,8 @@
-from abc import ABC, abstractmethod
-from dataclasses import dataclass
-from decimal import Decimal
 import enum
-from typing import Any, ClassVar
+from abc import ABC
+from dataclasses import dataclass
+from typing import ClassVar
+
 
 class OpenAIModelPricingStructure(enum.Enum):
     PER_TOKEN_BY_TYPE = enum.auto()
@@ -13,9 +13,11 @@ class OpenAIModelPricingStructure(enum.Enum):
     FREE = enum.auto()
     UNKNOWN = enum.auto()
 
+
 @dataclass(kw_only=True, frozen=True)
 class OpenAIModel(ABC):
     pricing_structure: ClassVar[OpenAIModelPricingStructure] = OpenAIModelPricingStructure.UNKNOWN
+
 
 @dataclass(kw_only=True, frozen=True)
 class OpenAITokenModel(OpenAIModel):
@@ -37,6 +39,7 @@ class OpenAITokenModel(OpenAIModel):
 
     def calculate_output_cost_usd_cents(self, *, completion_tokens: int) -> float:
         return self.usd_cents_per_output_token * completion_tokens
+
 
 @dataclass(kw_only=True, frozen=True)
 class OpenAIEmbeddingModel(OpenAIModel):
@@ -85,6 +88,7 @@ class OpenAIImageModelResolution(OpenAIModel):
     def calculate_total_cost_usd_cents(self) -> float:
         return self.usd_cents_per_image
 
+
 @dataclass(kw_only=True, frozen=True)
 class OpenAITextToSpeechModel(OpenAIModel):
     pricing_structure: ClassVar[OpenAIModelPricingStructure] = OpenAIModelPricingStructure.PER_CHAR
@@ -97,6 +101,7 @@ class OpenAITextToSpeechModel(OpenAIModel):
 
     def calculate_total_cost_usd_cents(self, *, num_chars: int) -> float:
         return self.usd_cents_per_char * num_chars
+
 
 @dataclass(kw_only=True, frozen=True)
 class OpenAITranscriptionModel(OpenAIModel):
@@ -111,6 +116,7 @@ class OpenAITranscriptionModel(OpenAIModel):
     def calculate_total_cost_usd_cents(self, *, input_duration_seconds: float) -> float:
         # Note that OpenAI rounds the duration to the nearest second when calculating price.
         return self.usd_cents_per_input_second * round(input_duration_seconds)
+
 
 @dataclass(kw_only=True, frozen=True)
 class OpenAIModerationModel(OpenAIModel):

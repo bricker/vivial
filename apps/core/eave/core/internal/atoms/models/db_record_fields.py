@@ -894,5 +894,5 @@ class OpenAIRequestPropertiesRecordField:
                 MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(resource.request_params)
                 if resource.request_params
                 else None
-            )
+            ),
         )
