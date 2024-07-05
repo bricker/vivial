@@ -48,6 +48,7 @@ topics = [
     "literature",
     "space",
     "religion",
+    "language",
     "vocabulary",
     "food",
     "animals",
@@ -65,12 +66,14 @@ async def get_quiz(request: Request) -> Response:
         max_tokens=4096,
         response_format={"type": "json_object"},
         messages=[
-            # {
-            #     "role": "system",
-            #     "content": dedent("""
-            #     Your purpose is to generate fun, daily quizzes and trivia for people to test their knowledge of different topics. Each quiz has a topic and a list of questions.
-            #     """),
-            # },
+            {
+                "role": "system",
+                "content": dedent("""
+                Your purpose is to generate fun, daily quizzes and trivia for people to test their knowledge of different topics.
+                Each quiz has a topic and a list of questions.
+                You are known for creating unique questions, such that your quizzes are never repetitive, even for the same topic.
+                """),
+            },
             {
                 "role": "user",
                 "content": dedent(f"""
