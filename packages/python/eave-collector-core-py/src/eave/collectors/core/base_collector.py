@@ -1,4 +1,4 @@
-from eave.collectors.core.write_queue import SHARED_BATCH_WRITE_QUEUE, BatchWriteQueue, WriteQueue
+from eave.collectors.core.write_queue import SHARED_BATCH_WRITE_QUEUE, WriteQueue
 
 
 class BaseCollector:

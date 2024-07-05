@@ -1,27 +1,22 @@
 import dataclasses
-from typing import Any, Literal, cast
+from typing import Any, cast
 
-from eave.collectors.core.datastructures import DatabaseOperation
-from eave.core.internal import database
 from eave.core.internal.atoms.models.api_payload_types import (
-    DatabaseEventPayload,
     OpenAIChatCompletionPayload,
 )
-from eave.core.internal.atoms.models.atom_types import DatabaseEventAtom, OpenAIChatCompletionAtom
+from eave.core.internal.atoms.models.atom_types import OpenAIChatCompletionAtom
 from eave.core.internal.atoms.models.db_record_fields import (
     AccountRecordField,
-    MultiScalarTypeKeyValueRecordField,
     OpenAIRequestPropertiesRecordField,
     SessionRecordField,
     TrafficSourceRecordField,
 )
-from eave.core.internal.atoms.models.db_views import DatabaseEventView
 from eave.core.internal.atoms.models.openai_pricing import CHAT_MODELS, FINE_TUNING_MODELS
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
-from eave.core.internal.orm.virtual_event import VirtualEventOrm
 from eave.stdlib.logging import LOGGER, LogContext
 
 from .base_atom_controller import BaseAtomController
+
 
 class OpenAIChatCompletionController(BaseAtomController):
     async def insert(self, events: list[dict[str, Any]], ctx: LogContext) -> None:
@@ -68,10 +63,14 @@ class OpenAIChatCompletionController(BaseAtomController):
 
                 if model_pricing is not None:
                     if e.prompt_tokens is not None:
-                        input_cost_usd_cents = model_pricing.calculate_input_cost_usd_cents(prompt_tokens=e.prompt_tokens)
+                        input_cost_usd_cents = model_pricing.calculate_input_cost_usd_cents(
+                            prompt_tokens=e.prompt_tokens
+                        )
 
                     if e.completion_tokens is not None:
-                        output_cost_usd_cents = model_pricing.calculate_output_cost_usd_cents(completion_tokens=e.completion_tokens)
+                        output_cost_usd_cents = model_pricing.calculate_output_cost_usd_cents(
+                            completion_tokens=e.completion_tokens
+                        )
 
                     if input_cost_usd_cents is not None and output_cost_usd_cents is not None:
                         total_cost_usd_cents = input_cost_usd_cents + output_cost_usd_cents

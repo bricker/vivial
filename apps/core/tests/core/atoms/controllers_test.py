@@ -630,6 +630,7 @@ class TestDatabaseEventsPayloadProcessor(BigQueryTestsBase):
                 assert vevent.one_or_none() is not None
                 assert self.team_bq_table_exists(table_name=view_id)
 
+
 class TestOpenAIChatCompletionPayloadProcessor(BigQueryTestsBase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()

@@ -1,5 +1,6 @@
 from enum import StrEnum
 from typing import Self
+
 from eave.stdlib.logging import LOGGER
 
 
@@ -17,6 +18,7 @@ class HttpRequestMethod(StrEnum):
         except ValueError as e:
             LOGGER.warning(e)
             return None
+
 
 class BrowserAction(StrEnum):
     CLICK = "CLICK"

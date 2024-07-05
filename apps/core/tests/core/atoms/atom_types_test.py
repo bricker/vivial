@@ -53,6 +53,7 @@ class TestAtomCommonSchemaField(BaseTestCase):
             ),
         )
 
+
 class TestOpenAIChatCompletionAtom(BaseTestCase):
     async def test_schema(self):
         self.fail("TODO")
@@ -82,6 +83,7 @@ class TestOpenAIChatCompletionAtom(BaseTestCase):
                 *Atom.common_atom_schema_fields(),
             ),
         )
+
 
 class TestBrowserEventAtom(BaseTestCase):
     async def test_schema(self):

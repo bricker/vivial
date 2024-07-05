@@ -983,6 +983,7 @@ class TestCurrentPageRecordField(BaseTestCase):
         assert e.title is None
         assert e.pageview_id is None
 
+
 class TestBigQueryRecordMetadataRecordField(BaseTestCase):
     async def test_schema(self) -> None:
         assert_schemas_match(

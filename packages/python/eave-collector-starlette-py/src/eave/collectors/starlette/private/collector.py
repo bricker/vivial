@@ -20,7 +20,6 @@ from collections.abc import Callable
 from functools import wraps
 from uuid import uuid4
 
-from eave.collectors.core.wrap_util import is_wrapped, tag_wrapped, untag_wrapped
 import starlette.types
 from asgiref.compatibility import guarantee_single_callable
 from starlette import applications
@@ -34,7 +33,8 @@ from eave.collectors.core.datastructures import HttpServerEventPayload
 
 # from timeit import default_timer
 from eave.collectors.core.logging import EAVE_LOGGER
-from eave.collectors.core.write_queue import SHARED_BATCH_WRITE_QUEUE, WriteQueue
+from eave.collectors.core.wrap_util import is_wrapped, tag_wrapped, untag_wrapped
+from eave.collectors.core.write_queue import WriteQueue
 
 # class ASGIGetter:
 #     def get(self, carrier: dict, key: str) -> list[str] | None:

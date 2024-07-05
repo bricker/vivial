@@ -1,9 +1,11 @@
 import os
-from openai import AsyncOpenAI, OpenAI
+
+from openai import AsyncOpenAI
 
 client = AsyncOpenAI(
     api_key=os.getenv("OPENAI_API_KEY"),
 )
+
 
 async def chat_completion(prompt: str) -> str | None:
     print(prompt)

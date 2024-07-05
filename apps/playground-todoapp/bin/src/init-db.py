@@ -12,12 +12,11 @@ load_standard_dotenv_files()
 
 # ruff: noqa: E402
 
-import sqlalchemy
-from sqlalchemy.ext.asyncio import create_async_engine
-
 import asyncio
 
+import sqlalchemy
 from eave_playground.todoapp.orm import BaseOrm, async_engine
+from sqlalchemy.ext.asyncio import create_async_engine
 
 
 async def main() -> None:

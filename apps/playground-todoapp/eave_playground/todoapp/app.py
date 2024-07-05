@@ -18,8 +18,8 @@ from starlette.templating import Jinja2Templates
 from eave.collectors.sqlalchemy import start_eave_sqlalchemy_collector, stop_eave_sqlalchemy_collector
 from eave.collectors.starlette import StarletteCollectorManager
 
-from .orm import TodoListItemOrm, UserOrm, async_engine, async_session
 from .openai import chat_completion
+from .orm import TodoListItemOrm, UserOrm, async_engine, async_session
 
 _COOKIE_PREFIX = "todoapp."
 _USER_ID_COOKIE_NAME = f"{_COOKIE_PREFIX}user_id"
@@ -57,16 +57,15 @@ async def get_summary(request: Request) -> Response:
         todos = result.all()
 
     text_list = "\n    ".join(f"- {todo.text}" for todo in todos)
-    prompt = dedent(
-    f"""
+    prompt = dedent(f"""
     Summarize the following list of TODO items for me. It should briefly describe my goals for today.
 
     {text_list}
-    """
-    )
+    """)
 
     summary = await chat_completion(prompt=prompt)
     return JSONResponse(content={"text": summary}, status_code=HTTPStatus.OK)
+
 
 async def get_todos(request: Request) -> Response:
     user_id = request.cookies.get(_USER_ID_COOKIE_NAME)

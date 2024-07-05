@@ -1,11 +1,9 @@
 from abc import ABC, abstractmethod
-from enum import StrEnum
-from typing import Self
 from dataclasses import dataclass, field
 
-from eave.collectors.core.datastructures import DatabaseOperation
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
+from eave.collectors.core.datastructures import DatabaseOperation
 from eave.core.internal.atoms.models.db_record_fields import (
     AccountRecordField,
     BigQueryRecordMetadataRecordField,
@@ -20,10 +18,9 @@ from eave.core.internal.atoms.models.db_record_fields import (
     TrafficSourceRecordField,
     UrlRecordField,
 )
+from eave.core.internal.atoms.models.enums import BrowserAction, HttpRequestMethod
 from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
 from eave.stdlib.deidentification import REDACTABLE
-
-from eave.core.internal.atoms.models.enums import BrowserAction, HttpRequestMethod
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -86,7 +83,6 @@ class Atom(ABC):
         )
 
 
-
 @dataclass(kw_only=True)
 class BrowserEventAtom(Atom):
     @staticmethod
@@ -127,7 +123,6 @@ class BrowserEventAtom(Atom):
     device: DeviceRecordField | None
     geo: GeoRecordField | None
     client_ip: str | None
-
 
 
 @dataclass(kw_only=True)
@@ -223,6 +218,7 @@ class OpenAIChatCompletionAtom(Atom):
     total_cost_usd_cents: float | None
     code_location: str | None
     openai_request: OpenAIRequestPropertiesRecordField | None
+
 
 @dataclass(kw_only=True)
 class DatabaseEventAtom(Atom):

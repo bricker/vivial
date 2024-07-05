@@ -1,8 +1,8 @@
 import time
-from uuid import uuid4
 import weakref
 from collections.abc import Callable
 from typing import Any
+from uuid import uuid4
 
 import sqlalchemy
 from sqlalchemy.engine.interfaces import (

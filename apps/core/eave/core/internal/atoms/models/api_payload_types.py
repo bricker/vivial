@@ -8,7 +8,6 @@ That happens in the RecordField classes.
 
 import json
 from dataclasses import dataclass
-from enum import StrEnum
 from typing import Any, Self
 
 from eave.collectors.core.correlation_context.base import (
@@ -18,10 +17,9 @@ from eave.collectors.core.correlation_context.base import (
     CorrelationContextAttr,
 )
 from eave.collectors.core.datastructures import DatabaseOperation
+from eave.core.internal.atoms.models.enums import BrowserAction, HttpRequestMethod
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.typing import JsonScalar
-
-from eave.core.internal.atoms.models.enums import BrowserAction, HttpRequestMethod
 
 
 @dataclass(kw_only=True)
@@ -240,6 +238,7 @@ class OpenAIRequestProperties:
             end_timestamp=data.get("end_timestamp"),
             status_code=data.get("status_code"),
         )
+
 
 @dataclass(kw_only=True)
 class BrowserEventPayload:

@@ -55,11 +55,13 @@
   background-color: #f0f0f0;
 }
 
-.correct, .correct:hover {
+.correct,
+.correct:hover {
   background-color: #c8e6c9; /* Light green */
 }
 
-.wrong, .wrong:hover {
+.wrong,
+.wrong:hover {
   background-color: #ffcdd2; /* Light red */
 }
 

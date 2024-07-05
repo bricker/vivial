@@ -119,23 +119,28 @@ class ServerDataIngestionEndpoint(HTTPEndpoint):
 
             creds.touch(session=db_session)
 
-        if (db_events := input.events.get(EventType.db_event)) and len(db_events) > 0:
+        db_events = input.events.get(EventType.db_event)
+        if db_events and len(db_events) > 0:
             handle = DatabaseEventsController(client=creds)
             await handle.insert(events=db_events, ctx=ctx)
 
-        if (openai_chat_completion_events := input.events.get(EventType.openai_chat_completion)) and len(openai_chat_completion_events) > 0:
+        openai_chat_completion_events = input.events.get(EventType.openai_chat_completion)
+        if openai_chat_completion_events and len(openai_chat_completion_events) > 0:
             handle = OpenAIChatCompletionController(client=creds)
             await handle.insert(events=openai_chat_completion_events, ctx=ctx)
 
-        if (http_server_events := input.events.get(EventType.http_server_event)) and len(http_server_events) > 0:
+        http_server_events = input.events.get(EventType.http_server_event)
+        if http_server_events and len(http_server_events) > 0:
             handle = HttpServerEventsController(client=creds)
             await handle.insert(events=http_server_events, ctx=ctx)
 
-        if (http_client_events := input.events.get(EventType.http_client_event)) and len(http_client_events) > 0:
+        http_client_events = input.events.get(EventType.http_client_event)
+        if http_client_events and len(http_client_events) > 0:
             handle = HttpClientEventsController(client=creds)
             await handle.insert(events=http_client_events, ctx=ctx)
 
-        if (browser_events := input.events.get(EventType.browser_event)) and len(browser_events) > 0:
+        browser_events = input.events.get(EventType.browser_event)
+        if browser_events and len(browser_events) > 0:
             handle = BrowserEventsController(client=creds)
             await handle.insert_with_geolocation(
                 events=browser_events,

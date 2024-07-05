@@ -7,8 +7,8 @@ Additionally, the BigQuery record field schemas are defined on these classes.
 These schemas are authoritative: changing these will change the respective schema in BigQuery.
 """
 
-from typing import Any, Self
 from dataclasses import dataclass, field
+from typing import Self
 from urllib.parse import parse_qsl, urlparse
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
@@ -24,8 +24,8 @@ from eave.core.internal.atoms.models.api_payload_types import (
     TrafficSourceProperties,
 )
 from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
-from eave.stdlib.typing import JsonScalar
 from eave.stdlib.deidentification import REDACTABLE
+from eave.stdlib.typing import JsonScalar
 
 
 class RecordField:
@@ -792,6 +792,7 @@ class CurrentPageRecordField(RecordField):
             pageview_id=resource.pageview_id,
         )
 
+
 @dataclass(kw_only=True)
 class BigQueryRecordMetadataRecordField:
     @staticmethod
@@ -833,6 +834,7 @@ class BigQueryRecordMetadataRecordField:
     source_app_name: str | None
     source_app_version: str | None
     source_app_release_timestamp: float | None
+
 
 @dataclass(kw_only=True)
 class OpenAIRequestPropertiesRecordField:
@@ -888,5 +890,9 @@ class OpenAIRequestPropertiesRecordField:
             end_timestamp=resource.end_timestamp,
             duration_ms=duration_ms,
             status_code=resource.status_code,
-            request_params=MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(resource.request_params) if resource.request_params else None,
+            request_params=(
+                MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(resource.request_params)
+                if resource.request_params
+                else None
+            )
         )

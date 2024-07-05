@@ -121,44 +121,37 @@ class OpenAIModerationModel(OpenAIModel):
         return 0
 
 
+# fmt: off
+
 CHAT_MODELS = {
-    "gpt-4o":               OpenAITokenModel(usd_cents_per_million_input_tokens=5e2, usd_cents_per_million_output_tokens=15e2),
-    "gpt-4o-2024-05-13":    OpenAITokenModel(usd_cents_per_million_input_tokens=5e2, usd_cents_per_million_output_tokens=15e2),
-
-    "gpt-4-turbo":              OpenAITokenModel(usd_cents_per_million_input_tokens=10e2, usd_cents_per_million_output_tokens=30e2),
-    "gpt-4-turbo-2024-04-09":   OpenAITokenModel(usd_cents_per_million_input_tokens=10e2, usd_cents_per_million_output_tokens=30e2),
-    "gpt-4-turbo-preview":      OpenAITokenModel(usd_cents_per_million_input_tokens=10e2, usd_cents_per_million_output_tokens=30e2),
-
-    "gpt-4":      OpenAITokenModel(usd_cents_per_million_input_tokens=30e2, usd_cents_per_million_output_tokens=60e2),
-    "gpt-4-0613": OpenAITokenModel(usd_cents_per_million_input_tokens=30e2, usd_cents_per_million_output_tokens=60e2),
-
-    "gpt-4-0125-preview":   OpenAITokenModel(usd_cents_per_million_input_tokens=10e2, usd_cents_per_million_output_tokens=30e2),
-    "gpt-4-1106-preview":   OpenAITokenModel(usd_cents_per_million_input_tokens=10e2, usd_cents_per_million_output_tokens=30e2),
-
-    "gpt-4-vision-preview": OpenAITokenModel(usd_cents_per_million_input_tokens=10e2, usd_cents_per_million_output_tokens=30e2),
-
-    "gpt-4-32k":            OpenAITokenModel(usd_cents_per_million_input_tokens=60e2, usd_cents_per_million_output_tokens=120e2),
-
-    "gpt-3.5-turbo":                OpenAITokenModel(usd_cents_per_million_input_tokens=50,  usd_cents_per_million_output_tokens=1.5e2),
-    "gpt-3.5-turbo-0125":           OpenAITokenModel(usd_cents_per_million_input_tokens=50,      usd_cents_per_million_output_tokens=1.5e2),
+    "gpt-4o":                       OpenAITokenModel(usd_cents_per_million_input_tokens=5e2,    usd_cents_per_million_output_tokens=15e2),
+    "gpt-4o-2024-05-13":            OpenAITokenModel(usd_cents_per_million_input_tokens=5e2,    usd_cents_per_million_output_tokens=15e2),
+    "gpt-4-turbo":                  OpenAITokenModel(usd_cents_per_million_input_tokens=10e2,   usd_cents_per_million_output_tokens=30e2),
+    "gpt-4-turbo-2024-04-09":       OpenAITokenModel(usd_cents_per_million_input_tokens=10e2,   usd_cents_per_million_output_tokens=30e2),
+    "gpt-4-turbo-preview":          OpenAITokenModel(usd_cents_per_million_input_tokens=10e2,   usd_cents_per_million_output_tokens=30e2),
+    "gpt-4":                        OpenAITokenModel(usd_cents_per_million_input_tokens=30e2,   usd_cents_per_million_output_tokens=60e2),
+    "gpt-4-0613":                   OpenAITokenModel(usd_cents_per_million_input_tokens=30e2,   usd_cents_per_million_output_tokens=60e2),
+    "gpt-4-0125-preview":           OpenAITokenModel(usd_cents_per_million_input_tokens=10e2,   usd_cents_per_million_output_tokens=30e2),
+    "gpt-4-1106-preview":           OpenAITokenModel(usd_cents_per_million_input_tokens=10e2,   usd_cents_per_million_output_tokens=30e2),
+    "gpt-4-vision-preview":         OpenAITokenModel(usd_cents_per_million_input_tokens=10e2,   usd_cents_per_million_output_tokens=30e2),
+    "gpt-4-32k":                    OpenAITokenModel(usd_cents_per_million_input_tokens=60e2,   usd_cents_per_million_output_tokens=120e2),
+    "gpt-3.5-turbo":                OpenAITokenModel(usd_cents_per_million_input_tokens=50,     usd_cents_per_million_output_tokens=1.5e2),
+    "gpt-3.5-turbo-0125":           OpenAITokenModel(usd_cents_per_million_input_tokens=50,     usd_cents_per_million_output_tokens=1.5e2),
     "gpt-3.5-turbo-1106":           OpenAITokenModel(usd_cents_per_million_input_tokens=1e2,    usd_cents_per_million_output_tokens=2e2),
     "gpt-3.5-turbo-0613":           OpenAITokenModel(usd_cents_per_million_input_tokens=1.5e2,  usd_cents_per_million_output_tokens=2e2),
     "gpt-3.5-turbo-0301":           OpenAITokenModel(usd_cents_per_million_input_tokens=1.5e2,  usd_cents_per_million_output_tokens=2e2),
-
     "gpt-3.5-turbo-16k":            OpenAITokenModel(usd_cents_per_million_input_tokens=3e2,    usd_cents_per_million_output_tokens=4e2),
     "gpt-3.5-turbo-16k-0613":       OpenAITokenModel(usd_cents_per_million_input_tokens=3e2,    usd_cents_per_million_output_tokens=4e2),
-
     "gpt-3.5-turbo-instruct":       OpenAITokenModel(usd_cents_per_million_input_tokens=1.5e2,  usd_cents_per_million_output_tokens=2e2),
     "gpt-3.5-turbo-instruct-0914":  OpenAITokenModel(usd_cents_per_million_input_tokens=1.5e2,  usd_cents_per_million_output_tokens=2e2),
-
-    "davinci-002": OpenAITokenModel(usd_cents_per_million_input_tokens=2e2, usd_cents_per_million_output_tokens=2e2),
-    "babbage-002": OpenAITokenModel(usd_cents_per_million_input_tokens=40, usd_cents_per_million_output_tokens=40),
+    "davinci-002":                  OpenAITokenModel(usd_cents_per_million_input_tokens=2e2,    usd_cents_per_million_output_tokens=2e2),
+    "babbage-002":                  OpenAITokenModel(usd_cents_per_million_input_tokens=40,     usd_cents_per_million_output_tokens=40),
 }
 
 FINE_TUNING_MODELS = {
-    "gpt-3.5-turbo": OpenAITokenModel(usd_cents_per_million_input_tokens=3e2, usd_cents_per_million_output_tokens=6e2),
-    "davinci-002": OpenAITokenModel(usd_cents_per_million_input_tokens=12e2, usd_cents_per_million_output_tokens=12e2),
-    "babbage-002": OpenAITokenModel(usd_cents_per_million_input_tokens=1.6e2, usd_cents_per_million_output_tokens=1.6e2),
+    "gpt-3.5-turbo":    OpenAITokenModel(usd_cents_per_million_input_tokens=3e2,    usd_cents_per_million_output_tokens=6e2),
+    "davinci-002":      OpenAITokenModel(usd_cents_per_million_input_tokens=12e2,   usd_cents_per_million_output_tokens=12e2),
+    "babbage-002":      OpenAITokenModel(usd_cents_per_million_input_tokens=1.6e2,  usd_cents_per_million_output_tokens=1.6e2),
 }
 
 IMAGE_MODELS = {
@@ -190,11 +183,10 @@ EMBEDDING_MODELS = {
 
 TTS_MODELS = {
     # Text-to-speech models
-    "tts-1": OpenAITextToSpeechModel(usd_cents_per_million_chars=15e2),
-    "tts-1-1106": OpenAITextToSpeechModel(usd_cents_per_million_chars=15e2),
-
-    "tts-1-hd": OpenAITextToSpeechModel(usd_cents_per_million_chars=30e2),
-    "tts-1-hd-1106": OpenAITextToSpeechModel(usd_cents_per_million_chars=30e2),
+    "tts-1":            OpenAITextToSpeechModel(usd_cents_per_million_chars=15e2),
+    "tts-1-1106":       OpenAITextToSpeechModel(usd_cents_per_million_chars=15e2),
+    "tts-1-hd":         OpenAITextToSpeechModel(usd_cents_per_million_chars=30e2),
+    "tts-1-hd-1106":    OpenAITextToSpeechModel(usd_cents_per_million_chars=30e2),
 }
 
 TRANSCRIPTION_MODELS = {
@@ -203,7 +195,9 @@ TRANSCRIPTION_MODELS = {
 }
 
 MODERATION_MODELS = {
-    "text-moderation-latest": OpenAIModerationModel(),
-    "text-moderation-stable": OpenAIModerationModel(),
-    "text-moderation-007": OpenAIModerationModel(),
+    "text-moderation-latest":   OpenAIModerationModel(),
+    "text-moderation-stable":   OpenAIModerationModel(),
+    "text-moderation-007":      OpenAIModerationModel(),
 }
+
+# fmt: on

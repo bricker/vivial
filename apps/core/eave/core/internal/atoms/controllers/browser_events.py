@@ -1,8 +1,6 @@
 import dataclasses
 from typing import Any, cast
 
-from eave.stdlib.deidentification import redact_atoms
-
 from eave.core.internal.atoms.controllers.base_atom_controller import BaseAtomController
 from eave.core.internal.atoms.models.api_payload_types import BrowserAction, BrowserEventPayload
 from eave.core.internal.atoms.models.atom_types import BrowserEventAtom
@@ -18,6 +16,7 @@ from eave.core.internal.atoms.models.db_record_fields import (
 )
 from eave.core.internal.atoms.models.db_views import ClickView, FormSubmissionView, PageViewView
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
+from eave.stdlib.deidentification import redact_atoms
 from eave.stdlib.logging import LOGGER, LogContext
 
 

@@ -8,6 +8,7 @@ from eave.collectors.core.logging import EAVE_LOGGER
 
 from .json import JsonObject, JsonScalar, compact_json
 
+
 class DatabaseOperation(StrEnum):
     INSERT = "INSERT"
     UPDATE = "UPDATE"
@@ -22,6 +23,7 @@ class DatabaseOperation(StrEnum):
         except ValueError as e:
             EAVE_LOGGER.warning(e)
             return None
+
 
 class EventType(StrEnum):
     db_event = "db_event"
@@ -54,6 +56,7 @@ class DatabaseEventPayload(EventPayload):
     table_name: str | None = None
     statement: str | None = None
     statement_values: dict[str, Any] | None = None
+
 
 @dataclass(kw_only=True)
 class HttpServerEventPayload(EventPayload):

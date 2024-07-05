@@ -1,6 +1,5 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 import styles from "./Quiz.module.css";
 import { COOKIE_PREFIX, getCookie, setCookie } from "./cookies";
 import { Question, Quiz } from "./types";
@@ -15,10 +14,10 @@ const getStreakFromCookie = (): number => {
   } else {
     return 0;
   }
-}
+};
 
 const QuizPage = () => {
-  const qp = new URLSearchParams(window.location.search)
+  const qp = new URLSearchParams(window.location.search);
   const cheatMode = qp.has("cheatmode");
 
   // State to track selected answers and correctness
@@ -108,7 +107,9 @@ const QuizPage = () => {
   const renderQuestions = (): React.ReactElement[] | undefined => {
     return quiz?.questions.map((question: Question, index: number) => (
       <div key={index} className={styles.question}>
-        <div className={styles.questionTitle}>{index + 1}. {question.text}</div>
+        <div className={styles.questionTitle}>
+          {index + 1}. {question.text}
+        </div>
         <div className={styles.choices}>{renderChoices(question, index)}</div>
       </div>
     ));
@@ -130,9 +131,11 @@ const QuizPage = () => {
 
     return (
       <div className={`${styles.results} ${styles[resultsClass]}`}>
-        <h2>Score: {score} / {quiz.questions.length}</h2>
+        <h2>
+          Score: {score} / {quiz.questions.length}
+        </h2>
         <span>{passed ? "You passed!" : "You failed!"}</span>
-        <br/>
+        <br />
         <span>Streak: {streak}</span>
         <br />
         <a href="/">Try another one!</a>

@@ -21,7 +21,6 @@ from eave.core.internal.atoms.models.api_payload_types import (
     TargetProperties,
     TrafficSourceProperties,
 )
-from eave.core.internal.atoms.models.enums import HttpRequestMethod
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 
 from ..base import BaseTestCase

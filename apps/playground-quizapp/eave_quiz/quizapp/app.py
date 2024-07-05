@@ -1,25 +1,18 @@
-import contextlib
-import random
 import json
 import logging
 import os
-from collections.abc import AsyncGenerator
+import random
 from http import HTTPStatus
 from textwrap import dedent
-from uuid import UUID
 
 import google.cloud.logging
 from openai import AsyncOpenAI
-from openai.types.chat.completion_create_params import ResponseFormat
-from sqlalchemy import and_, delete, select, update
 from starlette.applications import Starlette
 from starlette.requests import Request
-from starlette.responses import JSONResponse, RedirectResponse, Response
+from starlette.responses import JSONResponse, Response
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
-
-
 
 _COOKIE_PREFIX = "quizapp."
 _VISITOR_ID_COOKIE_NAME = f"{_COOKIE_PREFIX}visitor_id"
@@ -91,6 +84,7 @@ topics = [
     "US presidents",
 ]
 
+
 async def get_quiz(request: Request) -> Response:
     quiz_topic = random.choice(topics)  # noqa: S311
 
@@ -155,7 +149,6 @@ async def get_quiz(request: Request) -> Response:
         return JSONResponse(content=jcontent, status_code=HTTPStatus.OK)
     else:
         return Response(status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
-
 
 
 templates = Jinja2Templates(directory="eave_quiz/quizapp/templates")

@@ -13,7 +13,7 @@ from django.db.backends.utils import CursorWrapper
 from eave.collectors.core.base_collector import BaseCollector
 from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
-from eave.collectors.core.wrap_util import WRAPPED_TAG, is_wrapped, tag_wrapped, untag_wrapped
+from eave.collectors.core.wrap_util import is_wrapped, tag_wrapped, untag_wrapped
 from eave.collectors.core.write_queue import SHARED_BATCH_WRITE_QUEUE, WriteQueue
 
 # Copied from Django

@@ -2,18 +2,15 @@ import abc
 import asyncio
 import atexit
 import multiprocessing
-from multiprocessing.context import SpawnProcess
-import multiprocessing.synchronize
 import multiprocessing.queues
+import multiprocessing.synchronize
 import queue
-import signal
 import sys
-from threading import Lock
 import time
 from dataclasses import dataclass
+from multiprocessing.context import SpawnProcess
 from queue import Empty
-from types import FrameType
-from typing import Any, Callable
+from threading import Lock
 
 from . import config
 from .datastructures import EventPayload
@@ -24,8 +21,10 @@ from .logging import EAVE_LOGGER
 _FAILSAFE_MAX_FAILURES = 10
 _QUEUE_CLOSED_SENTINEL = "QUEUE_CLOSED_SENTINEL"
 
+
 class TooManyFailuresError(Exception):
     pass
+
 
 class QueueParams:
     # We use this instead of the Queue `maxsize` parameter so that `put` never blocks or fails
@@ -50,7 +49,8 @@ class QueueItem:
 
 
 async def _process_queue(
-    q: multiprocessing.Queue, params: QueueParams,
+    q: multiprocessing.Queue,
+    params: QueueParams,
 ) -> int:
     EAVE_LOGGER.info("Eave queue processor started.")
 
@@ -98,7 +98,13 @@ async def _process_queue(
             force_flush or buflen >= params.maxsize or now - last_flush >= params.flush_frequency_seconds
         ):
             try:
-                EAVE_LOGGER.debug("Sending event batch to Eave. buflen=%d, last_flush=%s, force_flush=%s, failsafe_counter=%d", buflen, str(last_flush), str(force_flush), failsafe_counter)
+                EAVE_LOGGER.debug(
+                    "Sending event batch to Eave. buflen=%d, last_flush=%s, force_flush=%s, failsafe_counter=%d",
+                    buflen,
+                    str(last_flush),
+                    str(force_flush),
+                    failsafe_counter,
+                )
                 await send_batch(events=buffer)
                 buffer.clear()
                 buflen = 0
@@ -117,6 +123,7 @@ async def _process_queue(
             EAVE_LOGGER.info("Queue processor complete. Terminating.")
             return 0
 
+
 def _queue_processor_event_loop(*args, **kwargs) -> None:
     try:
         result = asyncio.run(_process_queue(*args, **kwargs))
@@ -129,6 +136,7 @@ def _queue_processor_event_loop(*args, **kwargs) -> None:
     EAVE_LOGGER.info("Eave queue processor ended.")
     sys.exit(result)
 
+
 class WriteQueue(abc.ABC):
     @abc.abstractmethod
     def start_autoflush(self) -> None: ...
@@ -139,7 +147,9 @@ class WriteQueue(abc.ABC):
     @abc.abstractmethod
     def put(self, payload: EventPayload) -> None: ...
 
+
 _spawn = multiprocessing.get_context("spawn")
+
 
 class BatchWriteQueue(WriteQueue):
     _queue_params: QueueParams
@@ -212,5 +222,6 @@ class BatchWriteQueue(WriteQueue):
             EAVE_LOGGER.exception(e)
         except Exception as e:
             EAVE_LOGGER.exception(e)
+
 
 SHARED_BATCH_WRITE_QUEUE = BatchWriteQueue()

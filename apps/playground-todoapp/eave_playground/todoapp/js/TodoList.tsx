@@ -140,12 +140,12 @@ const TodoList = () => {
             </button>
 
             {summaryLoading ? (
-                <div className={styles.loadingContainer}>
-                  <div className={styles.loader}></div>
-                </div>
-            ) : (
-              summary ? <p className={styles.todoSummary}>{summary.text}</p> : null
-            )}
+              <div className={styles.loadingContainer}>
+                <div className={styles.loader}></div>
+              </div>
+            ) : summary ? (
+              <p className={styles.todoSummary}>{summary.text}</p>
+            ) : null}
           </div>
 
           <div className={styles.inputContainer}>

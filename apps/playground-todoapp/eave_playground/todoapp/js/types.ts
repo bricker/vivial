@@ -8,4 +8,4 @@ export type TodoListItem = {
 
 export type TodoSummary = {
   text: string;
-}
+};
