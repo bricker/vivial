@@ -1,10 +1,9 @@
 import os
 import unittest
+from eave.collectors.core.datastructures import OpenAIChatCompletionEventPayload
 from eave.collectors.core.test_util import EphemeralWriteQueue
 from eave.collectors.openai.private.collector import OpenAICollector
 from openai import OpenAI
-
-from eave.core.internal.atoms.models.atom_types import OpenAIChatCompletionAtom
 
 
 class OpenAICollectorTest(unittest.IsolatedAsyncioTestCase):
@@ -28,8 +27,12 @@ class OpenAICollectorTest(unittest.IsolatedAsyncioTestCase):
                 }
             ],
             model="gpt-3.5-turbo",
+            user="mock_user_id",
+            max_tokens=400,
         )
 
         assert len(self._write_queue.queue) == 1
         e = self._write_queue.queue[0]
-        assert isinstance(e, OpenAIChatCompletionAtom)
+        assert isinstance(e, OpenAIChatCompletionEventPayload)
+        assert e.max_tokens == 400
+        assert e.completion_user_id == "mock_user_id"
