@@ -24,6 +24,9 @@ from .logging import EAVE_LOGGER
 _FAILSAFE_MAX_FAILURES = 10
 _QUEUE_CLOSED_SENTINEL = "QUEUE_CLOSED_SENTINEL"
 
+class TooManyFailuresError(Exception):
+    pass
+
 class QueueParams:
     # We use this instead of the Queue `maxsize` parameter so that `put` never blocks or fails
     maxsize: int
@@ -84,9 +87,6 @@ async def _process_queue(
             # The queue is empty. If the queue has been closed by the controlling process, then do a final flush.
             if queue_closed:
                 force_flush = True
-        except KeyboardInterrupt:
-            # For Ctrl-C, just end the process and don't worry about flushing the buffer.
-            pass
         except Exception as e:
             # This may indicate a problem with the buffer.
             EAVE_LOGGER.exception(e)
@@ -110,8 +110,7 @@ async def _process_queue(
                 failsafe_counter += 1
 
         if failsafe_counter >= _FAILSAFE_MAX_FAILURES:
-            EAVE_LOGGER.error("Queue processor failsafe threshold reached! Terminating.")
-            return 1
+            raise TooManyFailuresError("Queue processor failsafe threshold reached! Terminating.")
 
         if buflen == 0 and queue_closed:
             # The queue was closed and has been completely flushed. The queue processor can be ended.
@@ -119,7 +118,14 @@ async def _process_queue(
             return 0
 
 def _queue_processor_event_loop(*args, **kwargs) -> None:
-    result = asyncio.run(_process_queue(*args, **kwargs))
+    try:
+        result = asyncio.run(_process_queue(*args, **kwargs))
+    except KeyboardInterrupt:
+        result = 0
+    except TooManyFailuresError as e:
+        EAVE_LOGGER.exception(e)
+        result = 2
+
     EAVE_LOGGER.info("Eave queue processor ended.")
     sys.exit(result)
 
