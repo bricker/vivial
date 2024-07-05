@@ -46,7 +46,7 @@ class QueueItem:
     payload: str
 
 
-def _process_queue(
+async def _process_queue(
     q: multiprocessing.Queue, params: QueueParams,
 ) -> int:
     EAVE_LOGGER.info("Eave queue processor started.")
@@ -99,7 +99,7 @@ def _process_queue(
         ):
             try:
                 EAVE_LOGGER.debug("Sending event batch to Eave. buflen=%d, last_flush=%s, force_flush=%s, failsafe_counter=%d", buflen, str(last_flush), str(force_flush), failsafe_counter)
-                asyncio.run(send_batch(events=buffer))
+                await send_batch(events=buffer)
                 buffer.clear()
                 buflen = 0
                 failsafe_counter = 0
@@ -118,6 +118,10 @@ def _process_queue(
             EAVE_LOGGER.info("Queue processor complete. Terminating.")
             return 0
 
+def _queue_processor_event_loop(*args, **kwargs) -> None:
+    result = asyncio.run(_process_queue(*args, **kwargs))
+    EAVE_LOGGER.info("Eave queue processor ended.")
+    sys.exit(result)
 
 class WriteQueue(abc.ABC):
     @abc.abstractmethod
@@ -150,7 +154,7 @@ class BatchWriteQueue(WriteQueue):
                 self._queue = _spawn.Queue()
                 self._process = _spawn.Process(
                     name="eave-agent",
-                    target=_process_queue,
+                    target=_queue_processor_event_loop,
                     daemon=True,
                     kwargs={
                         "q": self._queue,
