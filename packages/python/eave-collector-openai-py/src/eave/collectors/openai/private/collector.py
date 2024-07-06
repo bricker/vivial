@@ -93,11 +93,11 @@ class OpenAICollector(BaseAICollector):
 
         return wrapper
 
-    def _wrap_method(self, module: Any, func_name: str, wrapper: Callable) -> None:
-        if og_func := getattr(module, func_name, None):
-            setattr(module, func_name, wrapper(og_func))
+    def _wrap_method(self, target: Any, func_name: str, wrapper: Callable) -> None:
+        if og_func := getattr(target, func_name, None):
+            setattr(target, func_name, wrapper(og_func))
         else:
-            EAVE_LOGGER.error(f"Failed to find function '{func_name}' in module {module}")
+            EAVE_LOGGER.error(f"Failed to find function '{func_name}' in module {target}")
 
     def instrument(self, client: OpenAI | AsyncOpenAI | None = None) -> None:
         self.run()
