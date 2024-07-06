@@ -3,7 +3,7 @@ import unittest
 from eave.collectors.core.datastructures import OpenAIChatCompletionEventPayload
 from eave.collectors.core.test_util import EphemeralWriteQueue
 from eave.collectors.openai.private.collector import OpenAICollector
-from openai import OpenAI
+from openai import OpenAI, AsyncOpenAI
 
 
 class OpenAICollectorTest(unittest.IsolatedAsyncioTestCase):
@@ -11,15 +11,39 @@ class OpenAICollectorTest(unittest.IsolatedAsyncioTestCase):
         await super().asyncSetUp()
 
         self._write_queue = EphemeralWriteQueue()
-        self._collector = OpenAICollector(write_queue=self._write_queue)
-        self.client = OpenAI(
+        self._sync_collector = OpenAICollector(write_queue=self._write_queue)
+        self._async_collector = OpenAICollector(write_queue=self._write_queue)
+        self.sync_client = OpenAI(
             # TODO: fetch for test? they have a dummy client?
             api_key=os.environ.get("OPENAI_API_KEY"),
         )
-        self._collector.instrument(client=self.client)
+        self.async_client = AsyncOpenAI(
+            api_key=os.environ.get("OPENAI_API_KEY"),
+        )
+        self._sync_collector.instrument(client=self.sync_client)
+        self._async_collector.instrument(client=self.async_client)
 
-    async def test_chat_completion_captured(self) -> None:
-        _ = self.client.chat.completions.create(
+    async def test_sync_chat_completion_captured(self) -> None:
+        _ = self.sync_client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": "Say this is a test",
+                }
+            ],
+            model="gpt-3.5-turbo",
+            user="mock_user_id",
+            max_tokens=400,
+        )
+
+        assert len(self._write_queue.queue) == 1
+        e = self._write_queue.queue[0]
+        assert isinstance(e, OpenAIChatCompletionEventPayload)
+        assert e.max_tokens == 400
+        assert e.completion_user_id == "mock_user_id"
+
+    async def test_async_chat_completion_captured(self) -> None:
+        _ = await self.async_client.chat.completions.create(
             messages=[
                 {
                     "role": "user",
