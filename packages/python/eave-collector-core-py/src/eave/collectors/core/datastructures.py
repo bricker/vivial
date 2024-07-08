@@ -46,6 +46,7 @@ class EventType(StrEnum):
     http_server_event = "http_server_event"
     http_client_event = "http_client_event"
     browser_event = "browser_event"
+    ai_event = "ai_event"
 
 
 @dataclass(kw_only=True)
@@ -122,6 +123,8 @@ class DataIngestRequestBody:
 
 @dataclass(kw_only=True)
 class OpenAIChatCompletionEventPayload(EventPayload):
+    event_type: ClassVar[EventType] = EventType.ai_event
+
     completion_id: str | None
     completion_created_timestamp: float | None
     completion_user_id: str | None

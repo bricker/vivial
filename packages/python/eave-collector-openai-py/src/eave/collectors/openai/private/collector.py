@@ -1,4 +1,5 @@
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 import time
 from eave.collectors.core.datastructures import OpenAIChatCompletionEventPayload
 from eave.collectors.core.logging import EAVE_LOGGER
