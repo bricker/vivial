@@ -39,9 +39,9 @@ class AsyncGeneratorProxy:
     async def __anext__(self) -> None:
         return_val = None
         try:
-            return_val = await self._gen.__next__()
+            return_val = await self._gen.__anext__()
             self._prev_value = return_val
-        except StopIteration:
+        except StopAsyncIteration:
             self._completion_handler(self._prev_value)
             raise
         except Exception:

@@ -41,6 +41,8 @@ class OpenAICollectorTest(unittest.IsolatedAsyncioTestCase):
         assert isinstance(e, OpenAIChatCompletionEventPayload)
         assert e.max_tokens == 400
         assert e.completion_user_id == "mock_user_id"
+        assert e.prompt_tokens and e.prompt_tokens > 0
+        assert e.completion_tokens and e.completion_tokens > 0
 
     async def test_async_chat_completion_captured(self) -> None:
         _ = await self.async_client.chat.completions.create(
@@ -60,9 +62,57 @@ class OpenAICollectorTest(unittest.IsolatedAsyncioTestCase):
         assert isinstance(e, OpenAIChatCompletionEventPayload)
         assert e.max_tokens == 400
         assert e.completion_user_id == "mock_user_id"
+        assert e.prompt_tokens and e.prompt_tokens > 0
+        assert e.completion_tokens and e.completion_tokens > 0
 
-    # def test_chat_streaming(self) -> None:
-    #     assert False, "todo"
+    async def test_sync_chat_completion_streaming_captured(self) -> None:
+        stream = self.sync_client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": "Say this is a test",
+                }
+            ],
+            model="gpt-3.5-turbo",
+            user="mock_user_id",
+            max_tokens=400,
+            stream=True,
+        )
 
-    # async def test_async_chat_streaming(self) -> None:
-    #     assert False, "todo"
+        # consume stream
+        list(stream)
+
+        assert len(self._write_queue.queue) == 1
+        e = self._write_queue.queue[0]
+        assert isinstance(e, OpenAIChatCompletionEventPayload)
+        assert e.max_tokens == 400
+        assert e.completion_user_id == "mock_user_id"
+        assert e.prompt_tokens and e.prompt_tokens > 0
+        assert e.completion_tokens and e.completion_tokens > 0
+
+    async def test_async_chat_completion_streaming_captured(self) -> None:
+        stream = await self.async_client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": "Say this is a test",
+                }
+            ],
+            model="gpt-3.5-turbo",
+            user="mock_user_id",
+            max_tokens=400,
+            stream=True,
+            stream_options={"include_usage": False},
+        )
+
+        # consume stream
+        async for _ in stream:
+            ...
+
+        assert len(self._write_queue.queue) == 1
+        e = self._write_queue.queue[0]
+        assert isinstance(e, OpenAIChatCompletionEventPayload)
+        assert e.max_tokens == 400
+        assert e.completion_user_id == "mock_user_id"
+        assert e.prompt_tokens and e.prompt_tokens > 0
+        assert e.completion_tokens and e.completion_tokens > 0

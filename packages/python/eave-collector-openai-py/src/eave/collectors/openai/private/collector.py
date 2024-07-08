@@ -106,25 +106,23 @@ class OpenAICollector(BaseAICollector):
 
     def _wrap_chat_completion_async(self, wrapped: Callable) -> Callable:
         async def wrapper(*args, **kwargs) -> Any:
-            # TODO: AsyncStream
-            resp: ChatCompletion = await wrapped(*args, **kwargs)
-            self.write_queue.put(
-                OpenAIChatCompletionEventPayload(
-                    timestamp=time.time(),
-                    completion_id=resp.id,
-                    completion_created_timestamp=resp.created,
-                    completion_user_id=kwargs.get("user"),
-                    service_tier=resp.service_tier,
-                    model=resp.model,
-                    num_completions=len(resp.choices),
-                    max_tokens=kwargs.get("max_tokens"),
-                    prompt_tokens=resp.usage.prompt_tokens if resp.usage else None,
-                    completion_tokens=resp.usage.completion_tokens if resp.usage else None,
-                    total_tokens=resp.usage.total_tokens if resp.usage else None,
-                    corr_ctx=CORR_CTX.to_dict(),
+            self._add_usage_stream_options(kwargs)
+            result: ChatCompletion | AsyncStream = await wrapped(*args, **kwargs)
+            if isinstance(result, AsyncStream):
+                # wrap the stream iter to write atom to queue when stream is consumed
+                self._proxy_stream(
+                    stream=result,
+                    completion_handler=lambda resp: self._write_chat_completion_event(
+                        chat_response=resp, chat_args=kwargs
+                    ),
+                    error_handler=self._log_chat_completion_error,
                 )
-            )
-            return resp
+            else:
+                self._write_chat_completion_event(
+                    chat_response=result,
+                    chat_args=kwargs,
+                )
+            return result
 
         return wrapper
 
