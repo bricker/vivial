@@ -60,3 +60,9 @@ class OpenAICollectorTest(unittest.IsolatedAsyncioTestCase):
         assert isinstance(e, OpenAIChatCompletionEventPayload)
         assert e.max_tokens == 400
         assert e.completion_user_id == "mock_user_id"
+
+    # def test_chat_streaming(self) -> None:
+    #     assert False, "todo"
+
+    # async def test_async_chat_streaming(self) -> None:
+    #     assert False, "todo"
