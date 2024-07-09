@@ -77,6 +77,8 @@ class HttpServerEventsController(BaseAtomController):
 
             atoms.append(atom)
 
+        await redact_atoms(atoms)
+
         errors = EAVE_INTERNAL_BIGQUERY_CLIENT.append_rows(
             table=table,
             rows=[dataclasses.asdict(atom) for atom in atoms],
