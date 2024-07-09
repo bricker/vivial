@@ -24,13 +24,14 @@ class OpenAICollector(BaseAICollector):
     def __init__(self, *, write_queue: WriteQueue | None = None) -> None:
         super().__init__(write_queue=write_queue)
 
-        # functions we can wrap in the `openai` module
-        self._wrappable_modules = [
+        # functions we can wrap in the `openai` module mapped to
+        # function to wrap it with
+        self._wrappable_modules = {
             # "Embedding.create",
             # "Embedding.acreate",
-            "openai.resources.chat.Completions.create",
-            "openai.resources.chat.AsyncCompletions.create",
-        ]
+            "resources.chat.Completions.create": self._wrap_chat_completion_sync,
+            "resources.chat.AsyncCompletions.create": self._wrap_chat_completion_async,
+        }
 
     def _proxy_stream(
         self, stream: Stream | AsyncStream, completion_handler: Callable[[Any], None], error_handler: Callable
@@ -126,6 +127,22 @@ class OpenAICollector(BaseAICollector):
 
         return wrapper
 
+    def _wrap_module_method(self, target: str, wrapper: Callable) -> None:
+        target_path_segments = target.split(".")
+        curr_module = openai
+        i = 0
+        while i < len(target_path_segments) - 1:
+            if hasattr(curr_module, target_path_segments[i]):
+                curr_module = getattr(curr_module, target_path_segments[i])
+            else:
+                # cant wrap a module that doesnt exist
+                return
+            i += 1
+
+        # down to end of module path, set function we want to wrap
+        if func := getattr(curr_module, target_path_segments[i], None):
+            setattr(curr_module, target_path_segments[i], wrapper(func))
+
     def _wrap_method(self, target: Any, func_name: str, wrapper: Callable) -> None:
         if og_func := getattr(target, func_name, None):
             setattr(target, func_name, wrapper(og_func))
@@ -135,18 +152,19 @@ class OpenAICollector(BaseAICollector):
     def instrument(self, client: OpenAI | AsyncOpenAI | None = None) -> None:
         self.run()
         if isinstance(client, openai.OpenAI):
+            # TODO: can we abstract these somehow?
             # instrument specific sync object
             self._wrap_method(client.chat.completions, "create", self._wrap_chat_completion_sync)
         elif isinstance(client, openai.AsyncOpenAI):
             # instrument specific async object
             self._wrap_method(client.chat.completions, "create", self._wrap_chat_completion_async)
         else:
-            # instrument class itself
-            # TODO: attr checks?
-            self._wrap_method(openai.resources.chat.Completions, "create", self._wrap_chat_completion_sync)
-            self._wrap_method(openai.resources.chat.AsyncCompletions, "create", self._wrap_chat_completion_async)
+            # instrument class modules itself
+            for mod_path, wrap_function in self._wrappable_modules.items():
+                self._wrap_module_method(target=mod_path, wrapper=wrap_function)
 
     def uninstrument(self) -> None:
+        # TODO:
         pass
 
 
