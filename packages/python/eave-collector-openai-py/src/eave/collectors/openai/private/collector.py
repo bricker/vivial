@@ -178,10 +178,10 @@ class OpenAICollector(BaseAICollector):
             self._wrap_method(client.chat.completions, "create", self._wrap_chat_completion_sync)
         elif isinstance(client, openai.AsyncOpenAI):
             self._wrap_method(client.chat.completions, "create", self._wrap_chat_completion_async)
-
-        # instrument class modules itself
-        for mod_path, wrap_function in self._wrappable_functions.items():
-            self._wrap_module_method(target=mod_path, wrapper=wrap_function)
+        else:
+            # instrument class modules itself
+            for mod_path, wrap_function in self._wrappable_functions.items():
+                self._wrap_module_method(target=mod_path, wrapper=wrap_function)
 
     def uninstrument(self) -> None:
         for wrapped_data in self._wrapped_functions:
