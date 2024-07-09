@@ -49,6 +49,7 @@ module.exports = (env, argv) => {
     plugins: [
       new webpack.DefinePlugin({
         WEBPACK_ENV_TRACKER_URL: JSON.stringify(trackerUrl),
+        WEBPACK_ENV_MODE: JSON.stringify(mode),
       }),
     ],
 

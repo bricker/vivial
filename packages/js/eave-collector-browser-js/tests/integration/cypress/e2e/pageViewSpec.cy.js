@@ -12,6 +12,7 @@ describe("eave page view atom collection", () => {
     // THEN an event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       expect(interception.response).to.exist;
+      // console.log(JSON.stringify(interception.response))
       expect(interception.response.body.data.action_name).to.deep.equal("React App"); // html title
     });
   });
