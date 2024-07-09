@@ -8,7 +8,6 @@ client = AsyncOpenAI(
 
 
 async def chat_completion(prompt: str) -> str | None:
-    print(prompt)
     chat_completion = await client.chat.completions.create(
         messages=[
             {
