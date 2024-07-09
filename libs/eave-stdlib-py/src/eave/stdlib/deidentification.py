@@ -4,6 +4,7 @@ from collections.abc import Iterable
 from types import NoneType
 from typing import Any, get_args, get_origin
 
+from eave.stdlib.logging import LOGGER
 import google.cloud.dlp_v2 as dlp
 
 from .config import SHARED_CONFIG
@@ -132,10 +133,12 @@ def _flatten_to_dict(obj: Any) -> dict[str, str | bool | int | float]:
             items.extend([(f"{prefix}{key}{_key_sep}", i, v) for i, v in enumerate(val)])
         else:
             # flatten object into key/value pairs
-            if not isinstance(val, dict):
+            if isinstance(val, dict):
+                items.extend([(f"{prefix}{key}{_key_sep}", f'"{k}"', v) for k, v in val.items()])
+            elif dataclasses.is_dataclass(val):
                 items.extend([(f"{prefix}{key}{_key_sep}", k, v) for k, v in _asdict(val).items()])
             else:
-                items.extend([(f"{prefix}{key}{_key_sep}", f'"{k}"', v) for k, v in val.items()])
+                LOGGER.warning("invalid data type for DLP", { "data_type": str(type(val)) })
 
     return flat
 
