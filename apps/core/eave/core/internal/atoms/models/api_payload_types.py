@@ -321,39 +321,3 @@ class HttpServerEventPayload:
                 else None
             ),
         )
-
-
-@dataclass(kw_only=True)
-class OpenAIChatCompletionEventPayload:
-    """TODO why does this exist here. shouldnt all this be in stdlib????"""
-    completion_id: str | None
-    completion_created_timestamp: float | None
-    completion_user_id: str | None
-    service_tier: str | None
-    model: str | None
-    num_completions: int | None
-    max_tokens: int | None
-    prompt_tokens: int | None
-    completion_tokens: int | None
-    total_tokens: int | None
-    corr_ctx: CorrelationContext | None
-
-    @classmethod
-    def from_api_payload(cls, data: dict[str, Any], *, decryption_key: bytes) -> Self:
-        return cls(
-            completion_id=data.get("completion_id"),
-            completion_created_timestamp=data.get("completion_created_timestamp"),
-            completion_user_id=data.get("completion_user_id"),
-            service_tier=data.get("service_tier"),
-            model=data.get("model"),
-            num_completions=data.get("num_completions"),
-            max_tokens=data.get("max_tokens"),
-            prompt_tokens=data.get("prompt_tokens"),
-            completion_tokens=data.get("completion_tokens"),
-            total_tokens=data.get("total_tokens"),
-            corr_ctx=(
-                CorrelationContext.from_api_payload(cc, decryption_key=decryption_key)
-                if (cc := data.get("corr_ctx")) and isinstance(cc, dict)
-                else None
-            ),
-        )
