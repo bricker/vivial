@@ -2,10 +2,10 @@ const path = require("path");
 
 module.exports = {
   mode: "development",
-  entry: path.join(__dirname, "eave_quiz/quizapp/js/App.tsx"),
+  entry: path.join(__dirname, "eave_playground/quizapp/js/App.tsx"),
   devtool: "eval-source-map",
   output: {
-    path: path.join(__dirname, "eave_quiz/quizapp/static/dist"),
+    path: path.join(__dirname, "eave_playground/quizapp/static/dist"),
   },
   module: {
     rules: [
@@ -45,7 +45,7 @@ module.exports = {
   devServer: {
     server: "http",
     static: {
-      directory: path.join(__dirname, "eave_quiz/quizapp/static"),
+      directory: path.join(__dirname, "eave_playground/quizapp/static"),
       publicPath: "/static",
     },
     client: {

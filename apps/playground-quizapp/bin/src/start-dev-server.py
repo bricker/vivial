@@ -13,7 +13,7 @@ os.environ["GAE_SERVICE"] = "playground-quizapp"
 
 if __name__ == "__main__":
     uvicorn.run(
-        app="eave_quiz.quizapp.app:app",
+        app="eave_playground.quizapp.app:app",
         port=5600,
         reload=True,
         log_level="debug",

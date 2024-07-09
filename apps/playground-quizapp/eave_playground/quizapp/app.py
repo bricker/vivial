@@ -151,7 +151,7 @@ async def get_quiz(request: Request) -> Response:
         return Response(status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
 
 
-templates = Jinja2Templates(directory="eave_quiz/quizapp/templates")
+templates = Jinja2Templates(directory="eave_playground/quizapp/templates")
 
 
 def web_app(request: Request) -> Response:
@@ -185,7 +185,7 @@ def health_endpoint(request: Request) -> Response:
 
 app = Starlette(
     routes=[
-        Mount("/static", StaticFiles(directory="eave_quiz/quizapp/static")),
+        Mount("/static", StaticFiles(directory="eave_playground/quizapp/static")),
         Route(path="/status", methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"], endpoint=status_endpoint),
         Route(path="/healthz", methods=["GET"], endpoint=health_endpoint),
         Route(path="/api/quiz", methods=["GET"], endpoint=get_quiz),
