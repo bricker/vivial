@@ -794,11 +794,11 @@ class CurrentPageRecordField(RecordField):
 
 
 @dataclass(kw_only=True)
-class BigQueryRecordMetadataRecordField:
+class MetadataRecordField:
     @staticmethod
     def schema() -> SchemaField:
         return SchemaField(
-            name="__bq_record_metadata",
+            name="metadata",
             description="Internal metadata about this BigQuery record. Not reliable for event analysis.",
             field_type=SqlTypeNames.RECORD,
             mode=BigQueryFieldMode.NULLABLE,
@@ -820,13 +820,6 @@ class BigQueryRecordMetadataRecordField:
                     description="The release timestamp of the app that inserted this record.",
                     field_type=SqlTypeNames.TIMESTAMP,
                     mode=BigQueryFieldMode.NULLABLE,
-                ),
-                SchemaField(
-                    name="insert_timestamp",
-                    description="When this record was inserted into BigQuery.",
-                    field_type=SqlTypeNames.TIMESTAMP,
-                    mode=BigQueryFieldMode.NULLABLE,
-                    default_value_expression="CURRENT_TIMESTAMP",
                 ),
             ),
         )

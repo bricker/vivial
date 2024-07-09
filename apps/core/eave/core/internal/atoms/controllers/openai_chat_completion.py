@@ -1,12 +1,17 @@
 import dataclasses
 from typing import Any, cast
 
+from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.deidentification import redact_atoms
+
 from eave.core.internal.atoms.models.api_payload_types import (
     OpenAIChatCompletionPayload,
 )
 from eave.core.internal.atoms.models.atom_types import OpenAIChatCompletionAtom
 from eave.core.internal.atoms.models.db_record_fields import (
     AccountRecordField,
+    MetadataRecordField,
+    Numeric,
     OpenAIRequestPropertiesRecordField,
     SessionRecordField,
     TrafficSourceRecordField,
@@ -101,6 +106,11 @@ class OpenAIChatCompletionController(BaseAtomController):
                 total_cost_usd_cents=total_cost_usd_cents,
                 code_location=e.code_location,
                 openai_request=openai_request,
+                metadata=MetadataRecordField(
+                    source_app_name=SHARED_CONFIG.app_service,
+                    source_app_version=SHARED_CONFIG.app_version,
+                    source_app_release_timestamp=SHARED_CONFIG.release_timestamp,
+                ),
             )
 
             atoms.append(atom)

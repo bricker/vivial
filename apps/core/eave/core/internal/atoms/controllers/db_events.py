@@ -2,6 +2,7 @@ import dataclasses
 from typing import Any, cast
 
 from eave.collectors.core.datastructures import DatabaseOperation
+from eave.stdlib.config import SHARED_CONFIG
 from eave.core.internal import database
 from eave.core.internal.atoms.models.api_payload_types import (
     DatabaseEventPayload,
@@ -9,6 +10,7 @@ from eave.core.internal.atoms.models.api_payload_types import (
 from eave.core.internal.atoms.models.atom_types import DatabaseEventAtom
 from eave.core.internal.atoms.models.db_record_fields import (
     AccountRecordField,
+    MetadataRecordField,
     MultiScalarTypeKeyValueRecordField,
     SessionRecordField,
     TrafficSourceRecordField,
@@ -73,6 +75,11 @@ class DatabaseEventsController(BaseAtomController):
                 account=account,
                 traffic_source=traffic_source,
                 visitor_id=visitor_id,
+                metadata=MetadataRecordField(
+                    source_app_name=SHARED_CONFIG.app_service,
+                    source_app_version=SHARED_CONFIG.app_version,
+                    source_app_release_timestamp=SHARED_CONFIG.release_timestamp,
+                ),
             )
 
             atoms.append(atom)

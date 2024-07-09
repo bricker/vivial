@@ -4,13 +4,14 @@ from dataclasses import dataclass, field
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
 from eave.collectors.core.datastructures import DatabaseOperation
-from eave.core.internal.atoms.models.db_record_fields import (
+from .db_record_fields import (
     AccountRecordField,
-    BigQueryRecordMetadataRecordField,
+    MetadataRecordField,
     CurrentPageRecordField,
     DeviceRecordField,
     GeoRecordField,
     MultiScalarTypeKeyValueRecordField,
+    Numeric,
     OpenAIRequestPropertiesRecordField,
     SessionRecordField,
     SingleScalarTypeKeyValueRecordField,
@@ -18,7 +19,7 @@ from eave.core.internal.atoms.models.db_record_fields import (
     TrafficSourceRecordField,
     UrlRecordField,
 )
-from eave.core.internal.atoms.models.enums import BrowserAction, HttpRequestMethod
+from .enums import BrowserAction, HttpRequestMethod
 from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
 from eave.stdlib.deidentification import REDACTABLE
 
@@ -49,6 +50,7 @@ class Atom(ABC):
     visitor_id: str | None
     timestamp: float | None
     event_id: str | None
+    metadata: MetadataRecordField | None
     account: AccountRecordField | None = field(metadata={REDACTABLE: True})
 
     @staticmethod
@@ -79,7 +81,17 @@ class Atom(ABC):
                 field_type=SqlTypeNames.STRING,
                 mode=BigQueryFieldMode.NULLABLE,
             ),
-            BigQueryRecordMetadataRecordField.schema(),
+            MetadataRecordField.schema(),
+
+            # This must be at the root level because default_value_expression can only be used for root-level fields.
+            SchemaField(
+                name="metadata_insert_timestamp",
+                description="When this record was inserted into BigQuery. Internal field, not reliable for event analysis.",
+                field_type=SqlTypeNames.TIMESTAMP,
+                mode=BigQueryFieldMode.NULLABLE,
+                default_value_expression="CURRENT_TIMESTAMP",
+            ),
+
         )
 
 

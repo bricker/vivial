@@ -1,10 +1,14 @@
 import dataclasses
 from typing import Any, cast
 
+from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.deidentification import redact_atoms
+
 from eave.core.internal.atoms.models.api_payload_types import HttpServerEventPayload
 from eave.core.internal.atoms.models.atom_types import HttpServerEventAtom
 from eave.core.internal.atoms.models.db_record_fields import (
     AccountRecordField,
+    MetadataRecordField,
     SessionRecordField,
     SingleScalarTypeKeyValueRecordField,
     TrafficSourceRecordField,
@@ -64,6 +68,11 @@ class HttpServerEventsController(BaseAtomController):
                 account=account,
                 traffic_source=traffic_source,
                 visitor_id=visitor_id,
+                metadata=MetadataRecordField(
+                    source_app_name=SHARED_CONFIG.app_service,
+                    source_app_version=SHARED_CONFIG.app_version,
+                    source_app_release_timestamp=SHARED_CONFIG.release_timestamp,
+                ),
             )
 
             atoms.append(atom)
