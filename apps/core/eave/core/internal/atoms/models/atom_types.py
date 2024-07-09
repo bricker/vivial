@@ -225,11 +225,11 @@ class OpenAIChatCompletionAtom(Atom):
     prompt_tokens: int | None
     completion_tokens: int | None
     total_tokens: int | None
-    input_cost_usd_cents: float | None
-    output_cost_usd_cents: float | None
-    total_cost_usd_cents: float | None
     code_location: str | None
     openai_request: OpenAIRequestPropertiesRecordField | None
+    input_cost_usd_cents: Numeric | None
+    output_cost_usd_cents: Numeric | None
+    total_cost_usd_cents: Numeric | None
 
 
 @dataclass(kw_only=True)

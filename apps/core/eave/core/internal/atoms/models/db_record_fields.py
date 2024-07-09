@@ -8,7 +8,8 @@ These schemas are authoritative: changing these will change the respective schem
 """
 
 from dataclasses import dataclass, field
-from typing import Self
+from decimal import Decimal
+from typing import Any, Self
 from urllib.parse import parse_qsl, urlparse
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
@@ -27,6 +28,18 @@ from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
 from eave.stdlib.deidentification import REDACTABLE
 from eave.stdlib.typing import JsonScalar
 
+
+class Numeric(str):
+    """
+    Decimal can't be used directly for atoms, because atoms and all of their attributes have to be completely compatible with dataclasses.
+    Numeric is effectively an alias for `str`, or a wrapper around `Decimal` depending on how you look at it,
+    and requires that a Decimal, int, or flat is passed-in to the constructor to indicate the intention to the caller (developer).
+    It's passed-in to BigQuery as a plain string, which is an acceptable input format for NUMERIC data tyes.
+    """
+    __slots__ = () # Save memory
+
+    def __new__(cls, value: Decimal | int | float) -> Self:
+        return super().__new__(cls, str(value))
 
 class RecordField:
     pass
@@ -64,7 +77,7 @@ class TypedValueRecordField(RecordField):
 
     string_value: str | None = field(metadata={REDACTABLE: True}, default=None)
     bool_value: bool | None = None
-    numeric_value: int | float | None = field(metadata={REDACTABLE: True}, default=None)
+    numeric_value: Numeric | None = field(metadata={REDACTABLE: True}, default=None)
 
     def __init__(self, value: str | int | float | bool | None) -> None:
         # It is important to remember that these checks have to be exclusive - if multiple checks are done, it's possible
@@ -76,9 +89,17 @@ class TypedValueRecordField(RecordField):
             self.bool_value = value
         elif isinstance(value, (float, int)):
             # Reminder: bool is a subclass of int! bool check must come before the int check.
-            self.numeric_value = value
+            # The value is converted to string for the Decimal initializer because if given a float, Decimal forces the configured precision, which may be too
+            self.numeric_value = Numeric(value)
+        elif value is None:
+            # Everything is None by default, so nothing is needed here.
+            pass
         else:
             # Fallback behavior
+            # The static checker says that this case will never be reached because of the possible input types,
+            # but because the input to this initializer actually comes from the API payload, it's possible that the
+            # type will be something else at runtime.
+            # The input type should probably be `Any` for that reason, but I specify them explicitly to help with readability and understanding of this code.
             self.string_value = str(value)
 
 

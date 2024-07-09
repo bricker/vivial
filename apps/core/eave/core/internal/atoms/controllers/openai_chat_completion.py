@@ -101,9 +101,21 @@ class OpenAIChatCompletionController(BaseAtomController):
                 prompt_tokens=e.prompt_tokens,
                 completion_tokens=e.completion_tokens,
                 total_tokens=e.total_tokens,
-                input_cost_usd_cents=input_cost_usd_cents,
-                output_cost_usd_cents=output_cost_usd_cents,
-                total_cost_usd_cents=total_cost_usd_cents,
+                input_cost_usd_cents=(
+                    Numeric(input_cost_usd_cents)
+                    if input_cost_usd_cents is not None
+                    else None
+                ),
+                output_cost_usd_cents=(
+                    Numeric(output_cost_usd_cents)
+                    if output_cost_usd_cents is not None
+                    else None
+                ),
+                total_cost_usd_cents=(
+                    Numeric(total_cost_usd_cents)
+                    if total_cost_usd_cents is not None
+                    else None
+                ),
                 code_location=e.code_location,
                 openai_request=openai_request,
                 metadata=MetadataRecordField(
