@@ -176,7 +176,6 @@ class OpenAICollector(BaseAICollector):
 
         # instrument specific object
         if isinstance(client, openai.OpenAI):
-            # TODO: can we abstract these somehow?
             self._wrap_method(client.chat.completions, "create", self._wrap_chat_completion_sync)
         elif isinstance(client, openai.AsyncOpenAI):
             self._wrap_method(client.chat.completions, "create", self._wrap_chat_completion_async)
