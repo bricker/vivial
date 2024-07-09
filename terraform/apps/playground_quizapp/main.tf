@@ -9,32 +9,17 @@ module "service_accounts" {
 module "app_iam_role" {
   source      = "../../modules/custom_role"
   project     = var.project
-  role_id     = "eave.playgroundTodoApp"
-  title       = "Eave Playground Todo App"
-  description = "Permissions needed by the Playground Todo App"
+  role_id     = "eave.playgroundQuizApp"
+  title       = "Eave Playground Quiz App"
+  description = "Permissions needed by the Playground Quiz App"
   base_roles = [
     "roles/logging.logWriter",
     "roles/secretmanager.secretAccessor",
-    "roles/cloudsql.instanceUser", # for IAM auth
-    "roles/cloudsql.client",
   ]
 
   members = [
     "serviceAccount:${module.service_accounts.gsa.email}"
   ]
-}
-
-resource "google_sql_database" "app" {
-  name     = "playground-todoapp"
-  instance = var.cloudsql_instance_name
-}
-
-resource "google_sql_user" "app" {
-  instance        = var.cloudsql_instance_name
-  name            = trimsuffix(module.service_accounts.gsa.email, ".gserviceaccount.com")
-  type            = "CLOUD_IAM_SERVICE_ACCOUNT"
-  password        = null # only IAM supported
-  deletion_policy = "ABANDON"
 }
 
 resource "google_compute_global_address" "default" {

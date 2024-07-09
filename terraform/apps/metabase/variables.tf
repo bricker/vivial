@@ -53,3 +53,7 @@ variable "dns_zone" {
     dns_name = string
   })
 }
+
+variable "iap_oauth_client_secret_name" {
+  type=string
+}

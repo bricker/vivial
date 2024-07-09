@@ -16,6 +16,14 @@ variable "PLAYGROUND_TODOAPP_EAVE_CREDENTIALS" {
   sensitive = true
 }
 
+variable "PLAYGROUND_QUIZAPP_EAVE_CREDENTIALS" {
+  type = object({
+    SERVER_CREDENTIALS = string,
+    CLIENT_ID          = string,
+  })
+  sensitive = true
+}
+
 variable "INTERNAL_EAVE_CREDENTIALS" {
   type = object({
     SERVER_CREDENTIALS = string,

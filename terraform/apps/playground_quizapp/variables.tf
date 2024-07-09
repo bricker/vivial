@@ -19,10 +19,6 @@ variable "LOG_LEVEL" {
   default = "debug"
 }
 
-variable "cloudsql_instance_name" {
-  type = string
-}
-
 variable "dns_zone" {
   type = object({
     name     = string

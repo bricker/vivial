@@ -50,6 +50,33 @@ output "shared_config_map_name" {
   value = kubernetes_config_map.shared.metadata[0].name
 }
 
+locals {
+  iap_oauth_client_secret_name = "iap-oauth-client-secret"
+}
+
+# This is for Gateway IAP
+# Secrets have to be created per-namespace
+resource "kubernetes_secret" "iap_oauth_client_secret" {
+  for_each = toset([
+    kubernetes_namespace.eave.metadata[0].name,
+    kubernetes_namespace.metabase.metadata[0].name
+  ])
+
+  metadata {
+    name      = local.iap_oauth_client_secret_name
+    namespace = each.value
+  }
+
+  type = "Opaque"
+  data = {
+    key = var.IAP_OAUTH_CLIENT_CREDENTIALS.client_secret
+  }
+}
+
+output "iap_oauth_client_secret_name" {
+  value = local.iap_oauth_client_secret_name
+}
+
 # resource "kubernetes_service" "noop" {
 #   # Noop service; always fails.
 #   # This can be used for default backend in an Ingress when you want to block certain routes from being accessed externally.
