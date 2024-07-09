@@ -37,3 +37,12 @@ Opens the cypress test GUI. In order to run any of the tests in the GUI, you wil
 the react app.
 
 This command can be helpful in visually debugging test failures.
+
+## Debugging
+
+This can be challenging in cypress specs, since they eat `console.log`s. You're best off using
+the `debugger` key word. More info in the [cypress docs](https://docs.cypress.io/guides/guides/debugging).
+
+This only works when using `cy:open` to run the tests in a GUI and while the browser inspector is open 
+on the GUI while the test is running.
+

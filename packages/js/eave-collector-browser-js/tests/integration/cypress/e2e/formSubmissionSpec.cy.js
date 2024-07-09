@@ -10,16 +10,24 @@ describe("eave form atom collection", () => {
 
     // WHEN form is submitted
     cy.get("#name").type("Fred");
+    // wait for input click event
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
+
     cy.get("#email").type("fred@derf.com");
+    // wait for input click event
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
+
     cy.get("#message").type("hello there");
+    // wait for input click event
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
+    
     cy.get("#formBtn").click();
     // wait for button click event
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
 
     // THEN an event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response).to.exist;
-      expect(interception.response.body.data.data.event).to.match(/FormSubmit/);
+      expect(interception.response.body.events.browser_event[0].action).to.deep.equal("FORM_SUBMISSION");
     });
   });
 });

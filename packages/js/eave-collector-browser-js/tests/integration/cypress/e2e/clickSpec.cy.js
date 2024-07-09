@@ -14,8 +14,8 @@ describe("eave click atom collection", () => {
 
     // THEN a button click event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response).to.exist;
-      expect(interception.response.body.data.e_n).to.match(/button click/);
+      expect(interception.response.body.events.browser_event[0].action).to.deep.equal("CLICK");
+      expect(interception.response.body.events.browser_event[0].target.type).to.deep.equal("BUTTON");
     });
   });
 
@@ -32,7 +32,9 @@ describe("eave click atom collection", () => {
 
     // THEN a link click event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response.body.data.link).to.deep.equal("https://google.com/");
+      expect(interception.response.body.events.browser_event[0].action).to.deep.equal("CLICK");
+      expect(interception.response.body.events.browser_event[0].target.type).to.deep.equal("A");
+      expect(interception.response.body.events.browser_event[0].target.attributes.href).to.deep.equal("https://google.com");
     });
   });
 
@@ -47,10 +49,11 @@ describe("eave click atom collection", () => {
     // WHEN a raw internal link is clicked
     cy.get("#page-internal-link").click();
 
-    // THEN no atoms are fired
+    // THEN link click atom is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response.body.data.link).to.exist;
-      expect(interception.response.body.data.type).to.deep.equal("internal");
+      expect(interception.response.body.events.browser_event[0].action).to.deep.equal("CLICK");
+      expect(interception.response.body.events.browser_event[0].target.type).to.deep.equal("A");
+      expect(interception.response.body.events.browser_event[0].target.attributes.href).to.deep.equal("#");
     });
   });
 
@@ -67,11 +70,13 @@ describe("eave click atom collection", () => {
 
     // THEN a click event is fired before page view
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response.body.data.link).to.exist;
-      expect(interception.response.body.data.type).to.deep.equal("internal");
+      expect(interception.response.body.events.browser_event[0].action).to.deep.equal("CLICK");
+      expect(interception.response.body.events.browser_event[0].target.type).to.deep.equal("A");
+      expect(interception.response.body.events.browser_event[0].target.attributes.href).to.deep.equal("/page");
     });
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response.body.data.data.event).to.match(/HistoryChange/);
+      expect(interception.response.body.events.browser_event[0].action).to.deep.equal("PAGE_VIEW");
+      expect(interception.response.body.events.browser_event[0].extra.reason).to.deep.equal("statechange");
     });
   });
 
@@ -88,8 +93,9 @@ describe("eave click atom collection", () => {
 
     // THEN a link atom is fired, since link click atoms have priority over button click atoms
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response).to.exist;
-      expect(interception.response.body.data.link).to.deep.equal("https://google.com/");
+      expect(interception.response.body.events.browser_event[0].action).to.deep.equal("CLICK");
+      expect(interception.response.body.events.browser_event[0].target.type).to.deep.equal("A");
+      expect(interception.response.body.events.browser_event[0].target.attributes.href).to.deep.equal("https://google.com");
     });
   });
 
@@ -106,7 +112,8 @@ describe("eave click atom collection", () => {
 
     // THEN a button click event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response.body.data.e_n).to.match(/button click/);
+      expect(interception.response.body.events.browser_event[0].action).to.deep.equal("CLICK");
+      expect(interception.response.body.events.browser_event[0].target.type).to.deep.equal("BUTTON");
     });
   });
 
@@ -123,8 +130,9 @@ describe("eave click atom collection", () => {
 
     // THEN an image click event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response.body.data.e_n).to.match(/img tag clicked/);
-      expect(interception.response.body.data.data.src).to.match(/logo.*svg/);
+      expect(interception.response.body.events.browser_event[0].action).to.deep.equal("CLICK");
+      expect(interception.response.body.events.browser_event[0].target.type).to.deep.equal("IMG");
+      expect(interception.response.body.events.browser_event[0].target.attributes.src).to.match(/logo.*svg/);
     });
   });
 });
