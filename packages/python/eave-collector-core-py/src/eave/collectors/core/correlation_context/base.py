@@ -133,7 +133,7 @@ class BaseCorrelationContext(abc.ABC):
         storage = self.get_storage()
         if not storage:
             return None
-        return storage.get(key)
+        return storage.get(key=key, prefix=prefix)
 
     def set(
         self, key: str, value: JsonScalar | None, *, prefix: str = EAVE_COLLECTOR_COOKIE_PREFIX, encrypt: bool = True
