@@ -1,9 +1,11 @@
+from dataclasses import dataclass
 from typing import Any
 from collections.abc import Callable
 from eave.collectors.core.generator_proxy import GeneratorProxy, AsyncGeneratorProxy
 import time
 from eave.collectors.core.datastructures import OpenAIChatCompletionEventPayload
 from eave.collectors.core.logging import EAVE_LOGGER
+from eave.collectors.core.wrap_util import is_wrapped, tag_wrapped, untag_wrapped
 import openai.resources.chat
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from openai import AsyncStream, OpenAI, AsyncOpenAI, Stream
@@ -11,27 +13,27 @@ from eave.collectors.core.base_ai_collector import BaseAICollector
 from eave.collectors.core.write_queue import WriteQueue
 from eave.collectors.core.correlation_context import CORR_CTX
 
-# TODO: look at collectors.core.wrap_util
-# def _mark_instrumentation(module: Any) -> None:
-#     setattr(module, _INSTRUMENTATION_MARKER_PROPERTY, True)
-
-
-# def _is_instrumented(module: Any) -> bool:
-#     return getattr(module, _INSTRUMENTATION_MARKER_PROPERTY, False)
-
 
 class OpenAICollector(BaseAICollector):
+    @dataclass(kw_only=True)
+    class WrappedFunction:
+        module: object
+        func_name: str
+        original_function: Callable
+
     def __init__(self, *, write_queue: WriteQueue | None = None) -> None:
         super().__init__(write_queue=write_queue)
 
-        # functions we can wrap in the `openai` module mapped to
-        # function to wrap it with
-        self._wrappable_modules = {
+        # `openai` module path to a function, mapped to
+        # the function to wrap it with
+        self._wrappable_functions = {
             # "Embedding.create",
             # "Embedding.acreate",
             "resources.chat.Completions.create": self._wrap_chat_completion_sync,
             "resources.chat.AsyncCompletions.create": self._wrap_chat_completion_async,
         }
+
+        self._wrapped_functions: list[OpenAICollector.WrappedFunction] = []
 
     def _proxy_stream(
         self, stream: Stream | AsyncStream, completion_handler: Callable[[Any], None], error_handler: Callable
@@ -127,7 +129,7 @@ class OpenAICollector(BaseAICollector):
 
         return wrapper
 
-    def _wrap_module_method(self, target: str, wrapper: Callable) -> None:
+    def _get_module_and_func_name(self, target: str) -> tuple[object, str] | None:
         target_path_segments = target.split(".")
         curr_module = openai
         i = 0
@@ -136,36 +138,54 @@ class OpenAICollector(BaseAICollector):
                 curr_module = getattr(curr_module, target_path_segments[i])
             else:
                 # cant wrap a module that doesnt exist
-                return
+                return None
             i += 1
 
-        # down to end of module path, set function we want to wrap
-        if func := getattr(curr_module, target_path_segments[i], None):
-            setattr(curr_module, target_path_segments[i], wrapper(func))
+        return curr_module, target_path_segments[i]
+
+    def _wrap_module_method(self, target: str, wrapper: Callable) -> None:
+        if mod_and_func := self._get_module_and_func_name(target=target):
+            mod, func_name = mod_and_func
+            self._wrap_method(mod, func_name, wrapper)
 
     def _wrap_method(self, target: Any, func_name: str, wrapper: Callable) -> None:
+        """Wrap the function at `target`.`func_name` with `wrapper`. Returns the
+        original function that got wrapped, if a wrap was performed."""
         if og_func := getattr(target, func_name, None):
-            setattr(target, func_name, wrapper(og_func))
+            # don't double wrap a function
+            if not is_wrapped(og_func):
+                wrapped_func = wrapper(og_func)
+                setattr(target, func_name, wrapped_func)
+                tag_wrapped(wrapped_func)
+
+                # save wrapped function info for later uninstrumentation
+                self._wrapped_functions.append(
+                    OpenAICollector.WrappedFunction(
+                        module=target,
+                        func_name=func_name,
+                        original_function=og_func,
+                    )
+                )
         else:
             EAVE_LOGGER.error(f"Failed to find function '{func_name}' in module {target}")
 
     def instrument(self, client: OpenAI | AsyncOpenAI | None = None) -> None:
         self.run()
+
+        # instrument specific object
         if isinstance(client, openai.OpenAI):
             # TODO: can we abstract these somehow?
-            # instrument specific sync object
             self._wrap_method(client.chat.completions, "create", self._wrap_chat_completion_sync)
         elif isinstance(client, openai.AsyncOpenAI):
-            # instrument specific async object
             self._wrap_method(client.chat.completions, "create", self._wrap_chat_completion_async)
-        else:
-            # instrument class modules itself
-            for mod_path, wrap_function in self._wrappable_modules.items():
-                self._wrap_module_method(target=mod_path, wrapper=wrap_function)
+
+        # instrument class modules itself
+        for mod_path, wrap_function in self._wrappable_functions.items():
+            self._wrap_module_method(target=mod_path, wrapper=wrap_function)
 
     def uninstrument(self) -> None:
-        # TODO:
-        pass
+        for wrapped_data in self._wrapped_functions:
+            setattr(wrapped_data.module, wrapped_data.func_name, wrapped_data.original_function)
 
 
 ## TO SUPPORT:
