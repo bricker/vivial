@@ -31,7 +31,34 @@ class OpenAICollectorTest(unittest.IsolatedAsyncioTestCase):
         self._sync_collector.uninstrument()
         self._async_collector.uninstrument()
 
-    async def test_sync_chat_completion_captured(self) -> None:
+    def test_double_instrumentation_doesnt_double_events(self) -> None:
+        # GIVEN a client/module is instrumented a 2nd time
+        # (first call in asyncSetUp)
+        self._sync_collector.instrument(client=self.sync_client)
+
+        # WHEN a instrumented func is called
+        _ = self.sync_client.chat.completions.create(
+            messages=[
+                {
+                    "role": "user",
+                    "content": "Say this is a test",
+                }
+            ],
+            model="gpt-3.5-turbo",
+            user="mock_user_id",
+            max_tokens=400,
+        )
+
+        # THEN only 1 event is created
+        assert len(self._write_queue.queue) == 1
+        e = self._write_queue.queue[0]
+        assert isinstance(e, OpenAIChatCompletionEventPayload)
+        assert e.max_tokens == 400
+        assert e.completion_user_id == "mock_user_id"
+        assert e.prompt_tokens and e.prompt_tokens > 0
+        assert e.completion_tokens and e.completion_tokens > 0
+
+    def test_sync_chat_completion_captured(self) -> None:
         _ = self.sync_client.chat.completions.create(
             messages=[
                 {
