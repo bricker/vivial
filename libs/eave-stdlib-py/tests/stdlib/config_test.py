@@ -1,3 +1,4 @@
+from datetime import UTC
 import logging
 
 from eave.stdlib.config import SHARED_CONFIG
@@ -254,6 +255,44 @@ class ConfigTest(StdlibBaseTestCase):
     async def test_release_date_default(self):
         self.patch_env({"GAE_RELEASE_DATE": None})
         assert SHARED_CONFIG.release_date == "unknown"
+
+    async def test_release_timestamp_with_valid_iso(self):
+        v = self.anydatetime("release_date", past=True).isoformat()
+        self.patch_env({"GAE_RELEASE_DATE": v})
+        assert SHARED_CONFIG.release_timestamp == self.getdatetime("release_date").timestamp()
+
+    async def test_release_timestamp_with_valid_iso_with_offset(self):
+        v = self.anydatetime("release_date", past=True, tz=UTC).isoformat()
+        self.patch_env({"GAE_RELEASE_DATE": v})
+        assert SHARED_CONFIG.release_timestamp == self.getdatetime("release_date").timestamp()
+
+    async def test_release_timestamp_with_valid_iso_with_no_offset(self):
+        v = self.anydatetime("release_date", past=True, tz=None).isoformat()
+        self.patch_env({"GAE_RELEASE_DATE": v})
+        assert SHARED_CONFIG.release_timestamp == self.getdatetime("release_date").timestamp()
+
+    async def test_release_timestamp_with_valid_iso_with_micros(self):
+        v = self.anydatetime("release_date", past=True, resolution="seconds").isoformat(timespec="microseconds")
+        self.patch_env({"GAE_RELEASE_DATE": v})
+        assert SHARED_CONFIG.release_timestamp == self.getdatetime("release_date").timestamp()
+
+    async def test_release_timestamp_with_valid_iso_with_millis(self):
+        v = self.anydatetime("release_date", past=True, resolution="seconds").isoformat(timespec="milliseconds")
+        self.patch_env({"GAE_RELEASE_DATE": v})
+        assert SHARED_CONFIG.release_timestamp == self.getdatetime("release_date").timestamp()
+
+    async def test_release_timestamp_with_valid_iso_with_seconds(self):
+        v = self.anydatetime("release_date", future=True, resolution="seconds").isoformat(timespec="seconds")
+        self.patch_env({"GAE_RELEASE_DATE": v})
+        assert SHARED_CONFIG.release_timestamp == self.getdatetime("release_date").timestamp()
+
+    async def test_release_timestamp_with_missing_release_date(self):
+        self.patch_env({"GAE_RELEASE_DATE": None})
+        assert SHARED_CONFIG.release_timestamp is None
+
+    async def test_release_timestamp_with_missing_invalid_iso_format(self):
+        self.patch_env({"GAE_RELEASE_DATE": self.anystr()})
+        assert SHARED_CONFIG.release_timestamp is None
 
     async def test_asset_base_with_env(self):
         v = self.anypath()
