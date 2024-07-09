@@ -56,6 +56,7 @@ class CorrCtxStorage:
 
         creds = EaveCredentials.from_env()
         if not creds:
+            EAVE_LOGGER.warning("Credentials not set; cannot encrypt. Value was not set.")
             return None
 
         try:
@@ -63,6 +64,7 @@ class CorrCtxStorage:
             encryption_key = corr_ctx_symmetric_encryption_key(creds.combined)
             encrypted_attr = attr.to_encrypted(encryption_key=encryption_key)
             if encrypted_attr is None:
+                EAVE_LOGGER.warning("Encryption failed; Value was not set.")
                 return None
 
             # The purpose of hashing the key is to obfuscate it from the client (browser), to avoid leaking internal
