@@ -1,14 +1,15 @@
 import os
 
 from openai import AsyncOpenAI
-
-client = AsyncOpenAI(
-    api_key=os.getenv("OPENAI_API_KEY"),
-)
+from .secrets import get_secret
 
 
 async def chat_completion(prompt: str) -> str | None:
-    chat_completion = await client.chat.completions.create(
+    openai_client = AsyncOpenAI(
+        api_key=get_secret("OPENAI_API_KEY"),
+    )
+
+    chat_completion = await openai_client.chat.completions.create(
         messages=[
             {
                 "role": "user",

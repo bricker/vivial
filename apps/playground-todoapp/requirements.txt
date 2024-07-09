@@ -5,4 +5,6 @@ asyncpg
 starlette
 jinja2
 google-cloud-logging
+google-cloud-secret-manager
 openai
+crc32c

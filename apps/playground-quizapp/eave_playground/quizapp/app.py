@@ -14,6 +14,8 @@ from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
+from .secrets import get_secret
+
 _COOKIE_PREFIX = "quizapp."
 _VISITOR_ID_COOKIE_NAME = f"{_COOKIE_PREFIX}visitor_id"
 _UTM_PARAMS_COOKIE_NAME = f"{_COOKIE_PREFIX}utm_params"
@@ -24,9 +26,6 @@ if os.getenv("EAVE_ENV", "development") == "production":
     log_level = os.getenv("LOG_LEVEL", "INFO").upper()
     _gcp_log_client.setup_logging(log_level=logging.getLevelNamesMapping().get(log_level) or logging.INFO)
 
-_openai_client = AsyncOpenAI(
-    api_key=os.getenv("OPENAI_API_KEY"),
-)
 
 topics = [
     "pop culture",
@@ -86,9 +85,13 @@ topics = [
 
 
 async def get_quiz(request: Request) -> Response:
+    openai_client = AsyncOpenAI(
+        api_key=get_secret("OPENAI_API_KEY"),
+    )
+
     quiz_topic = random.choice(topics)  # noqa: S311
 
-    chat_completion = await _openai_client.chat.completions.create(
+    chat_completion = await openai_client.chat.completions.create(
         temperature=0,
         frequency_penalty=0,
         max_tokens=4096,
