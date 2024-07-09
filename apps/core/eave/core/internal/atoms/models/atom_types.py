@@ -192,6 +192,12 @@ class OpenAIChatCompletionAtom(Atom):
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
                 SchemaField(
+                    name="code_location",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                OpenAIRequestPropertiesRecordField.schema(),
+                SchemaField(
                     name="input_cost_usd_cents",
                     field_type=SqlTypeNames.NUMERIC,
                     mode=BigQueryFieldMode.NULLABLE,
@@ -206,12 +212,6 @@ class OpenAIChatCompletionAtom(Atom):
                     field_type=SqlTypeNames.NUMERIC,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
-                SchemaField(
-                    name="code_location",
-                    field_type=SqlTypeNames.STRING,
-                    mode=BigQueryFieldMode.NULLABLE,
-                ),
-                OpenAIRequestPropertiesRecordField.schema(),
                 *Atom.common_atom_schema_fields(),
             ),
         )
