@@ -1,4 +1,5 @@
 import dataclasses
+from decimal import Decimal
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
@@ -13,12 +14,14 @@ from eave.core.internal.atoms.models.api_payload_types import (
 )
 from eave.core.internal.atoms.models.db_record_fields import (
     AccountRecordField,
-    BigQueryRecordMetadataRecordField,
+    MetadataRecordField,
     BrandsRecordField,
     CurrentPageRecordField,
     DeviceRecordField,
     GeoRecordField,
     MultiScalarTypeKeyValueRecordField,
+    Numeric,
+    OpenAIRequestPropertiesRecordField,
     SessionRecordField,
     SingleScalarTypeKeyValueRecordField,
     TargetRecordField,
@@ -104,7 +107,7 @@ class TestMultiTypeKeyValueRecordField(BaseTestCase):
         assert e[1].key == self.getstr("key for numeric")
         assert e[1].value is not None
         assert e[1].value.string_value is None
-        assert e[1].value.numeric_value == self.getfloat("numeric value")
+        assert e[1].value.numeric_value == Numeric(self.getfloat("numeric value"))
         assert e[1].value.bool_value is None
 
         assert e[2].key == self.getstr("key for bool")
@@ -123,7 +126,7 @@ class TestMultiTypeKeyValueRecordField(BaseTestCase):
             "key": self.getstr("key for numeric"),
             "value": {
                 "string_value": None,
-                "numeric_value": self.getfloat("numeric value"),
+                "numeric_value": str(self.getfloat("numeric value")),
                 "bool_value": None,
             },
         }
@@ -839,45 +842,53 @@ class TestUrlRecordField(BaseTestCase):
         )
 
     async def test_field(self) -> None:
-        url = "https://dashboard.eave.fyi:8080/insights/abc?q1=v1.0&q1=v1.1&q2=v2&q3#footer"
+        url = "".join((
+            f"https://{self.anyhex("url.domain")}.fyi:8080",
+            f"{self.anypath("url.path")}",
+            f"?{self.anyhex("url.qp.k1")}={self.anyhex("url.qp.v1")}",
+            f"&{self.gethex("url.qp.k1")}={self.anyhex("url.qp.v1-2")}",
+            f"&{self.anyhex("url.qp.k2")}={self.anyhex("url.qp.v2")}",
+            f"&{self.anyhex("url.qp.k3")}",
+            f"#{self.anyhex("url.hash")}",
+        ))
 
         e = UrlRecordField.from_api_resource(resource=url)
         assert e is not None
         assert e.raw == url
         assert e.protocol == "https"
-        assert e.domain == "dashboard.eave.fyi"
-        assert e.path == "/insights/abc"
-        assert e.hash == "footer"
+        assert e.domain == f"{self.getstr("url.domain")}.fyi"
+        assert e.path == self.getstr("url.path")
+        assert e.hash == self.getstr("url.hash")
         assert e.query_params == SingleScalarTypeKeyValueRecordField[str].list_from_kv_tuples(
             [
-                ("q1", "v1.0"),
-                ("q1", "v1.1"),
-                ("q2", "v2"),
-                ("q3", ""),
+                (self.gethex("url.qp.k1"), self.gethex("url.qp.v1")),
+                (self.gethex("url.qp.k1"), self.gethex("url.qp.v1-2")),
+                (self.gethex("url.qp.k2"), self.gethex("url.qp.v2")),
+                (self.gethex("url.qp.k3"), ""),
             ]
         )
 
         assert dataclasses.asdict(e) == {
             "raw": url,
             "protocol": "https",
-            "domain": "dashboard.eave.fyi",
-            "path": "/insights/abc",
-            "hash": "footer",
+            "domain": f"{self.getstr("url.domain")}.fyi",
+            "path": self.getstr("url.path"),
+            "hash": self.getstr("url.hash"),
             "query_params": [
                 {
-                    "key": "q1",
-                    "value": "v1.0",
+                    "key": self.gethex("url.qp.k1"),
+                    "value": self.gethex("url.qp.v1"),
                 },
                 {
-                    "key": "q1",
-                    "value": "v1.1",
+                    "key": self.gethex("url.qp.k1"),
+                    "value": self.gethex("url.qp.v1-2"),
                 },
                 {
-                    "key": "q2",
-                    "value": "v2",
+                    "key": self.gethex("url.qp.k2"),
+                    "value": self.gethex("url.qp.v2"),
                 },
                 {
-                    "key": "q3",
+                    "key": self.gethex("url.qp.k3"),
                     "value": "",
                 },
             ],
@@ -938,7 +949,7 @@ class TestCurrentPageRecordField(BaseTestCase):
         )
 
     async def test_field(self) -> None:
-        url = "https://dashboard.eave.fyi:8080/insights?q1=v1#footer"
+        url = f"https://{self.anyhex("url.domain")}.fyi:9090{self.anypath("url.path")}?{self.anyhex("url.qp")}={self.anyhex("url.qpv")}#{self.anyhex("url.hash")}"
 
         e = CurrentPageRecordField.from_api_resource(
             resource=CurrentPageProperties(
@@ -956,13 +967,13 @@ class TestCurrentPageRecordField(BaseTestCase):
             "url": {
                 "raw": url,
                 "protocol": "https",
-                "domain": "dashboard.eave.fyi",
-                "path": "/insights",
-                "hash": "footer",
+                "domain": f"{self.getstr("url.domain")}.fyi",
+                "path": self.getpath("url.path"),
+                "hash": self.getstr("url.hash"),
                 "query_params": [
                     {
-                        "key": "q1",
-                        "value": "v1",
+                        "key": self.getstr("url.qp"),
+                        "value": self.getstr("url.qpv"),
                     },
                 ],
             },
@@ -987,10 +998,10 @@ class TestCurrentPageRecordField(BaseTestCase):
 class TestBigQueryRecordMetadataRecordField(BaseTestCase):
     async def test_schema(self) -> None:
         assert_schemas_match(
-            (BigQueryRecordMetadataRecordField.schema(),),
+            (MetadataRecordField.schema(),),
             (
                 SchemaField(
-                    name="__bq_record_metadata",
+                    name="metadata",
                     field_type=SqlTypeNames.RECORD,
                     mode=BigQueryFieldMode.NULLABLE,
                     fields=(
@@ -1009,10 +1020,57 @@ class TestBigQueryRecordMetadataRecordField(BaseTestCase):
                             field_type=SqlTypeNames.TIMESTAMP,
                             mode=BigQueryFieldMode.NULLABLE,
                         ),
+                    ),
+                ),
+            ),
+        )
+
+    async def test_field(self) -> None:
+        e = MetadataRecordField(
+            source_app_name=self.anyhex("source_app_name"),
+            source_app_version=self.anyhex("source_app_version"),
+            source_app_release_timestamp=self.anytime("source_app_release_timestamp"),
+        )
+
+        assert dataclasses.asdict(e) == {
+            "source_app_name": self.gethex("source_app_name"),
+            "source_app_version": self.gethex("source_app_version"),
+            "source_app_release_timestamp": self.gettime("source_app_release_timestamp"),
+        }
+
+class TestOpenAIRequestPropertiesRecordField(BaseTestCase):
+    async def test_schema(self) -> None:
+        assert_schemas_match(
+            (OpenAIRequestPropertiesRecordField.schema(),),
+            (
+                SchemaField(
+                    name="openai_request",
+                    field_type=SqlTypeNames.RECORD,
+                    mode=BigQueryFieldMode.NULLABLE,
+                    fields=(
                         SchemaField(
-                            name="insert_timestamp",
+                            name="start_timestamp",
                             field_type=SqlTypeNames.TIMESTAMP,
                             mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        SchemaField(
+                            name="end_timestamp",
+                            field_type=SqlTypeNames.TIMESTAMP,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        SchemaField(
+                            name="duration_ms",
+                            field_type=SqlTypeNames.FLOAT,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        SchemaField(
+                            name="status_code",
+                            field_type=SqlTypeNames.INTEGER,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        MultiScalarTypeKeyValueRecordField.schema(
+                            name="request_params",
+                            description=self.anystr(),
                         ),
                     ),
                 ),
@@ -1020,14 +1078,58 @@ class TestBigQueryRecordMetadataRecordField(BaseTestCase):
         )
 
     async def test_field(self) -> None:
-        e = BigQueryRecordMetadataRecordField(
-            source_app_name=self.anyhex("source_app_name"),
-            source_app_version=self.anyhex("source_app_version"),
-            source_app_release_timestamp=self.anytime("source_app_release_timestamp"),
+        e = OpenAIRequestPropertiesRecordField(
+            start_timestamp=self.anytime("start_timestamp"),
+            end_timestamp=self.anytime("end_timestamp"),
+            duration_ms=self.anyint("duration_ms"),
+            status_code=200,
+            request_params=MultiScalarTypeKeyValueRecordField.list_from_scalar_dict({
+                self.anyhex("k1"): self.anystr("v1"),
+                self.anyhex("k2"): self.anyfloat("v2"),
+            }),
         )
 
         assert dataclasses.asdict(e) == {
-            "source_app_name": self.anyhex("source_app_name"),
-            "source_app_version": self.anyhex("source_app_version"),
-            "source_app_release_timestamp": self.anyhex("source_app_release_timestamp"),
+            "start_timestamp": self.gettime("start_timestamp"),
+            "end_timestamp": self.gettime("end_timestamp"),
+            "duration_ms": self.getint("duration_ms"),
+            "status_code": 200,
+            "request_params": [
+                {
+                    "key": self.gethex("k1"),
+                    "value": {
+                        "string_value": self.getstr("v1"),
+                        "bool_value": None,
+                        "numeric_value": None,
+                    },
+                },
+                {
+                    "key": self.gethex("k2"),
+                    "value": {
+                        "string_value": None,
+                        "bool_value": None,
+                        "numeric_value": Numeric(self.getfloat("v2")),
+                    },
+                },
+
+            ]
+        }
+
+class TestNumericType(BaseTestCase):
+    def test_constructor(self) -> None:
+        d = Decimal("90")
+        n = Numeric(d)
+        assert n == "90"
+
+        # Test a few string methods to make sure inheritance works.
+        assert n.startswith("9")
+        assert n.endswith("0")
+
+        @dataclasses.dataclass
+        class Person:
+            age: Numeric
+
+        p = Person(age=n)
+        assert dataclasses.asdict(p) == {
+            "age": "90",
         }

@@ -247,3 +247,6 @@ class TestDataIngestionEndpoints(BigQueryTestsBase):
         assert response.status_code == http.HTTPStatus.FORBIDDEN
         assert not (await self._client_credentials_used())
         assert not self.team_bq_dataset_exists()
+
+    async def test_multiple_atom_types(self) -> None:
+        self.fail("TODO")

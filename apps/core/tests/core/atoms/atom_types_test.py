@@ -10,11 +10,12 @@ from eave.core.internal.atoms.models.atom_types import (
 )
 from eave.core.internal.atoms.models.db_record_fields import (
     AccountRecordField,
-    BigQueryRecordMetadataRecordField,
+    MetadataRecordField,
     CurrentPageRecordField,
     DeviceRecordField,
     GeoRecordField,
     MultiScalarTypeKeyValueRecordField,
+    OpenAIRequestPropertiesRecordField,
     SessionRecordField,
     SingleScalarTypeKeyValueRecordField,
     TargetRecordField,
@@ -49,37 +50,90 @@ class TestAtomCommonSchemaField(BaseTestCase):
                     field_type=SqlTypeNames.STRING,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
-                BigQueryRecordMetadataRecordField.schema(),
+                SchemaField(
+                    name="metadata_insert_timestamp",
+                    field_type=SqlTypeNames.TIMESTAMP,
+                    mode=BigQueryFieldMode.NULLABLE,
+                    default_value_expression="CURRENT_TIMESTAMP",
+                ),
+                MetadataRecordField.schema(),
             ),
         )
 
 
 class TestOpenAIChatCompletionAtom(BaseTestCase):
     async def test_schema(self):
-        self.fail("TODO")
         assert OpenAIChatCompletionAtom.table_def().table_id == "atoms_openai_chat_completions"
 
         assert_schemas_match(
             OpenAIChatCompletionAtom.table_def().schema,
             (
                 SchemaField(
-                    name="action",
+                    name="completion_id",
                     field_type=SqlTypeNames.STRING,
                     mode=BigQueryFieldMode.NULLABLE,
-                ),
-                TargetRecordField.schema(),
-                CurrentPageRecordField.schema(),
-                DeviceRecordField.schema(),
-                GeoRecordField.schema(),
-                MultiScalarTypeKeyValueRecordField.schema(
-                    name="extra",
-                    description=self.anystr(),
                 ),
                 SchemaField(
-                    name="client_ip",
+                    name="completion_system_fingerprint",
                     field_type=SqlTypeNames.STRING,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
+                SchemaField(
+                    name="completion_created_timestamp",
+                    field_type=SqlTypeNames.TIMESTAMP,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="completion_user_id",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="service_tier",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="model",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="prompt_tokens",
+                    field_type=SqlTypeNames.INTEGER,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="completion_tokens",
+                    field_type=SqlTypeNames.INTEGER,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="total_tokens",
+                    field_type=SqlTypeNames.INTEGER,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="input_cost_usd_cents",
+                    field_type=SqlTypeNames.NUMERIC,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="output_cost_usd_cents",
+                    field_type=SqlTypeNames.NUMERIC,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="total_cost_usd_cents",
+                    field_type=SqlTypeNames.NUMERIC,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="code_location",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                OpenAIRequestPropertiesRecordField.schema(),
                 *Atom.common_atom_schema_fields(),
             ),
         )

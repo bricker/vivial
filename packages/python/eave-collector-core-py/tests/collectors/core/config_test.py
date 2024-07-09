@@ -10,12 +10,10 @@ from eave.collectors.core.config import (
     queue_maxsize,
 )
 
+from .base import BaseTestCase
 
-class ConfigTest(unittest.IsolatedAsyncioTestCase):
-    async def asyncSetUp(self) -> None:
-        os.environ["EAVE_CREDENTIALS"] = "abc:123"
-        await super().asyncSetUp()
 
+class ConfigTest(BaseTestCase):
     async def test_eave_api_base_url(self) -> None:
         del os.environ["EAVE_API_BASE_URL_PUBLIC"]
         assert eave_api_base_url() == "https://api.eave.fyi"
@@ -67,4 +65,4 @@ class ConfigTest(unittest.IsolatedAsyncioTestCase):
         assert eave_env() == "development"
         assert is_development() is True
         assert queue_maxsize() == 1
-        assert queue_flush_frequency_seconds() == 0
+        assert queue_flush_frequency_seconds() == 30

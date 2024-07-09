@@ -1,6 +1,9 @@
+import dataclasses
 import datetime
+from decimal import Decimal
 import json
 from textwrap import dedent
+from typing import Any, cast
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
@@ -11,12 +14,14 @@ from eave.collectors.core.correlation_context.base import (
     CorrelationContextAttr,
 )
 from eave.collectors.core.datastructures import DatabaseOperation
+from google.cloud.bigquery import Row
 from eave.core.internal.atoms.controllers.base_atom_controller import BaseAtomController
 from eave.core.internal.atoms.controllers.browser_events import BrowserEventsController
 from eave.core.internal.atoms.controllers.db_events import DatabaseEventsController
 from eave.core.internal.atoms.controllers.http_server_events import HttpServerEventsController
+from eave.core.internal.atoms.controllers.openai_chat_completion import OpenAIChatCompletionController
 from eave.core.internal.atoms.models.api_payload_types import BrowserAction
-from eave.core.internal.atoms.models.atom_types import Atom, BigQueryTableDefinition
+from eave.core.internal.atoms.models.atom_types import Atom, BigQueryTableDefinition, OpenAIChatCompletionAtom
 from eave.core.internal.atoms.models.db_record_fields import (
     GeoRecordField,
 )
@@ -79,7 +84,125 @@ class _ExampleView(BigQueryViewDefinition):
         ).strip()
 
 
-class TestBaseAtomController(BigQueryTestsBase):
+class _ControllerTestBase(BigQueryTestsBase):
+    _example_corr_ctx: dict[str, Any]
+
+    async def asyncSetUp(self) -> None:
+        await super().asyncSetUp()
+
+        self.patch_env({
+            "GAE_SERVICE": self.anystr("GAE_SERVICE"),
+            "GAE_VERSION": self.anyhex("GAE_VERSION"),
+            "GAE_RELEASE_DATE": self.anydatetime("GAE_RELEASE_DATE", past=True).isoformat(timespec="seconds"),
+        })
+
+        self._example_corr_ctx = {
+            f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": self.anystr("event.visitor_id"),
+            f"{EAVE_COLLECTOR_COOKIE_PREFIX}session": json.dumps(
+                {
+                    "id": self.anystr("event.session.id"),
+                    "start_timestamp": self.anytime("event.session.start_timestamp"),
+                }
+            ),
+            f"{EAVE_COLLECTOR_COOKIE_PREFIX}traffic_source": json.dumps(
+                {
+                    "timestamp": self.anytime("event.traffic_source.timestamp"),
+                    "browser_referrer": self.anystr("event.traffic_source.browser_referrer"),
+                    "tracking_params": {
+                        "gclid": self.anystr("event.traffic_source.tracking_params.gclid"),
+                        "fbclid": self.anystr("event.traffic_source.tracking_params.fbclid"),
+                        "msclkid": self.anystr("event.traffic_source.tracking_params.msclkid"),
+                        "dclid": self.anystr("event.traffic_source.tracking_params.dclid"),
+                        "ko_click_id": self.anystr("event.traffic_source.tracking_params.ko_click_id"),
+                        "rtd_cid": self.anystr("event.traffic_source.tracking_params.rtd_cid"),
+                        "li_fat_id": self.anystr("event.traffic_source.tracking_params.li_fat_id"),
+                        "ttclid": self.anystr("event.traffic_source.tracking_params.ttclid"),
+                        "twclid": self.anystr("event.traffic_source.tracking_params.twclid"),
+                        "wbraid": self.anystr("event.traffic_source.tracking_params.wbraid"),
+                        "gbraid": self.anystr("event.traffic_source.tracking_params.gbraid"),
+                        "utm_campaign": self.anystr("event.traffic_source.tracking_params.utm_campaign"),
+                        "utm_source": self.anystr("event.traffic_source.tracking_params.utm_source"),
+                        "utm_medium": self.anystr("event.traffic_source.tracking_params.utm_medium"),
+                        "utm_term": self.anystr("event.traffic_source.tracking_params.utm_term"),
+                        "utm_content": self.anystr("event.traffic_source.tracking_params.utm_content"),
+                        self.anystr("event.traffic_source.tracking_params.unrecognized.key"): self.anystr(
+                            "event.traffic_source.tracking_params.unrecognized.value"
+                        ),
+                    },
+                }
+            ),
+            f"{EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX}{self.anystr()}": CorrelationContextAttr(
+                key=EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
+                value=self.anystr("event.account.account_id"),
+            ).to_encrypted(encryption_key=self.client_credentials.decryption_key),
+        }
+
+    def _corr_ctx_matches(self, row: Row) -> bool:
+        assert row.get("session") == {
+            "id": self.getstr("event.session.id"),
+            "start_timestamp": datetime.datetime.fromtimestamp(
+                self.gettime("event.session.start_timestamp"), tz=datetime.UTC
+            ),
+            "duration_ms": (self.gettime("event.timestamp") - self.gettime("event.session.start_timestamp")) * 1000,
+        }
+
+        assert row.get("traffic_source") == {
+            "timestamp": datetime.datetime.fromtimestamp(
+                self.gettime("event.traffic_source.timestamp"), tz=datetime.UTC
+            ),
+            "browser_referrer": self.getstr("event.traffic_source.browser_referrer"),
+            "gclid": self.getstr("event.traffic_source.tracking_params.gclid"),
+            "fbclid": self.getstr("event.traffic_source.tracking_params.fbclid"),
+            "msclkid": self.getstr("event.traffic_source.tracking_params.msclkid"),
+            "dclid": self.getstr("event.traffic_source.tracking_params.dclid"),
+            "ko_click_id": self.getstr("event.traffic_source.tracking_params.ko_click_id"),
+            "rtd_cid": self.getstr("event.traffic_source.tracking_params.rtd_cid"),
+            "li_fat_id": self.getstr("event.traffic_source.tracking_params.li_fat_id"),
+            "ttclid": self.getstr("event.traffic_source.tracking_params.ttclid"),
+            "twclid": self.getstr("event.traffic_source.tracking_params.twclid"),
+            "wbraid": self.getstr("event.traffic_source.tracking_params.wbraid"),
+            "gbraid": self.getstr("event.traffic_source.tracking_params.gbraid"),
+            "utm_campaign": self.getstr("event.traffic_source.tracking_params.utm_campaign"),
+            "utm_source": self.getstr("event.traffic_source.tracking_params.utm_source"),
+            "utm_medium": self.getstr("event.traffic_source.tracking_params.utm_medium"),
+            "utm_term": self.getstr("event.traffic_source.tracking_params.utm_term"),
+            "utm_content": self.getstr("event.traffic_source.tracking_params.utm_content"),
+            "other_tracking_params": [
+                {
+                    "key": self.getstr("event.traffic_source.tracking_params.unrecognized.key"),
+                    "value": self.getstr("event.traffic_source.tracking_params.unrecognized.value"),
+                },
+            ],
+        }
+
+        assert row.get("visitor_id") == self.getstr("event.visitor_id")
+        assert row.get("account") == {
+            "account_id": self.getstr("event.account.account_id"),
+            "extra": [],
+        }
+
+        return True
+
+    def _bq_record_metadata_matches(self, row: Row) -> bool:
+        assert row.get("metadata") == {
+            "source_app_name": self.getstr("GAE_SERVICE"),
+            "source_app_version": self.getstr("GAE_VERSION"),
+            "source_app_release_timestamp": self.getdatetime("GAE_RELEASE_DATE").replace(microsecond=0),
+        }
+
+        insert_ts: datetime.datetime | None = row.get("metadata_insert_timestamp")
+        assert insert_ts is not None
+
+        # This 5 second grace is to account for both network latency and server/client time discrepancies.
+        # Most commonly these two datetimes will be within milliseconds of each other,
+        # but it's possible that there will be a larger discrepancy, even that the server timestamp will be future
+        # to the client timestamp.
+        # All we really want to know is that the insert timestamp is roughly correct, eg not orders of magnitude off
+        # like in the case of a millisecond/second resolution mistake.
+        assert datetime.datetime.now(tz=datetime.UTC) - insert_ts >= datetime.timedelta(seconds=-5)
+        return True
+
+class TestBaseAtomController(_ControllerTestBase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
@@ -152,19 +275,19 @@ class TestBaseAtomController(BigQueryTestsBase):
         assert self.team_bq_table_exists(table_name=view_def.view_id)
 
 
-class TestBrowserEventsPayloadProcessor(BigQueryTestsBase):
+class TestBrowserEventsPayloadProcessor(_ControllerTestBase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
     async def test_insert(self) -> None:
         table = BrowserEventsController(client=self.client_credentials)
-        url = "https://dashboard.eave.fyi:9090/insights?q1=v1#footer"
+        url = f"https://{self.anyhex("url.domain")}.fyi:9090{self.anypath("url.path")}?{self.anyhex("url.qp")}={self.anyhex("url.qpv")}#{self.anyhex("url.hash")}"
 
         await table.insert_with_geolocation(
             events=[
                 {
                     "action": "click",
-                    "timestamp": self.anytime("event timestamp"),
+                    "timestamp": self.anytime("event.timestamp"),
                     "target": {
                         "type": self.anystr("event.target.type"),
                         "id": self.anystr("event.target.id"),
@@ -203,46 +326,7 @@ class TestBrowserEventsPayloadProcessor(BigQueryTestsBase):
                         self.anystr("event.extra.numerickey"): self.anyint("event.extra.numericval"),
                         self.anystr("event.extra.boolkey"): self.anybool("event.extra.boolval"),
                     },
-                    "corr_ctx": {
-                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": self.anystr("event.visitor_id"),
-                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}session": json.dumps(
-                            {
-                                "id": self.anystr("event.session.id"),
-                                "start_timestamp": self.anytime("event.session.start_timestamp"),
-                            }
-                        ),
-                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}traffic_source": json.dumps(
-                            {
-                                "timestamp": self.anytime("event.traffic_source.timestamp"),
-                                "browser_referrer": self.anystr("event.traffic_source.browser_referrer"),
-                                "tracking_params": {
-                                    "gclid": self.anystr("event.traffic_source.tracking_params.gclid"),
-                                    "fbclid": self.anystr("event.traffic_source.tracking_params.fbclid"),
-                                    "msclkid": self.anystr("event.traffic_source.tracking_params.msclkid"),
-                                    "dclid": self.anystr("event.traffic_source.tracking_params.dclid"),
-                                    "ko_click_id": self.anystr("event.traffic_source.tracking_params.ko_click_id"),
-                                    "rtd_cid": self.anystr("event.traffic_source.tracking_params.rtd_cid"),
-                                    "li_fat_id": self.anystr("event.traffic_source.tracking_params.li_fat_id"),
-                                    "ttclid": self.anystr("event.traffic_source.tracking_params.ttclid"),
-                                    "twclid": self.anystr("event.traffic_source.tracking_params.twclid"),
-                                    "wbraid": self.anystr("event.traffic_source.tracking_params.wbraid"),
-                                    "gbraid": self.anystr("event.traffic_source.tracking_params.gbraid"),
-                                    "utm_campaign": self.anystr("event.traffic_source.tracking_params.utm_campaign"),
-                                    "utm_source": self.anystr("event.traffic_source.tracking_params.utm_source"),
-                                    "utm_medium": self.anystr("event.traffic_source.tracking_params.utm_medium"),
-                                    "utm_term": self.anystr("event.traffic_source.tracking_params.utm_term"),
-                                    "utm_content": self.anystr("event.traffic_source.tracking_params.utm_content"),
-                                    self.anystr("event.traffic_source.tracking_params.unrecognized.key"): self.anystr(
-                                        "event.traffic_source.tracking_params.unrecognized.value"
-                                    ),
-                                },
-                            }
-                        ),
-                        f"{EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX}{self.anystr()}": CorrelationContextAttr(
-                            key=EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
-                            value=self.anystr("event.account.account_id"),
-                        ).to_encrypted(encryption_key=self.client_credentials.decryption_key),
-                    },
+                    "corr_ctx": self._example_corr_ctx,
                 },
             ],
             client_ip=self.anystr("event.client_ip"),
@@ -263,10 +347,13 @@ class TestBrowserEventsPayloadProcessor(BigQueryTestsBase):
         assert results.total_rows == 1
         first_row = next(results, None)
         assert first_row is not None
+        assert isinstance(first_row, Row)
+        assert self._corr_ctx_matches(first_row)
+        assert self._bq_record_metadata_matches(first_row)
 
         assert first_row.get("action") == BrowserAction.CLICK
         assert first_row.get("timestamp") == datetime.datetime.fromtimestamp(
-            self.gettime("event timestamp"), tz=datetime.UTC
+            self.gettime("event.timestamp"), tz=datetime.UTC
         )
 
         assert first_row.get("target") == {
@@ -304,61 +391,18 @@ class TestBrowserEventsPayloadProcessor(BigQueryTestsBase):
             "url": {
                 "raw": url,
                 "protocol": "https",
-                "domain": "dashboard.eave.fyi",
-                "path": "/insights",
-                "hash": "footer",
+                "domain": f"{self.getstr("url.domain")}.fyi",
+                "path": self.getstr("url.path"),
+                "hash": self.getstr("url.hash"),
                 "query_params": [
                     {
-                        "key": "q1",
-                        "value": "v1",
+                        "key": self.getstr("url.qp"),
+                        "value": self.getstr("url.qpv"),
                     },
                 ],
             },
             "title": self.getstr("event.current_page.title"),
             "pageview_id": self.getstr("event.current_page.pageview_id"),
-        }
-
-        assert first_row.get("session") == {
-            "id": self.getstr("event.session.id"),
-            "start_timestamp": datetime.datetime.fromtimestamp(
-                self.gettime("event.session.start_timestamp"), tz=datetime.UTC
-            ),
-            "duration_ms": (self.gettime("event timestamp") - self.gettime("event.session.start_timestamp")) * 1000,
-        }
-
-        assert first_row.get("traffic_source") == {
-            "timestamp": datetime.datetime.fromtimestamp(
-                self.gettime("event.traffic_source.timestamp"), tz=datetime.UTC
-            ),
-            "browser_referrer": self.getstr("event.traffic_source.browser_referrer"),
-            "gclid": self.getstr("event.traffic_source.tracking_params.gclid"),
-            "fbclid": self.getstr("event.traffic_source.tracking_params.fbclid"),
-            "msclkid": self.getstr("event.traffic_source.tracking_params.msclkid"),
-            "dclid": self.getstr("event.traffic_source.tracking_params.dclid"),
-            "ko_click_id": self.getstr("event.traffic_source.tracking_params.ko_click_id"),
-            "rtd_cid": self.getstr("event.traffic_source.tracking_params.rtd_cid"),
-            "li_fat_id": self.getstr("event.traffic_source.tracking_params.li_fat_id"),
-            "ttclid": self.getstr("event.traffic_source.tracking_params.ttclid"),
-            "twclid": self.getstr("event.traffic_source.tracking_params.twclid"),
-            "wbraid": self.getstr("event.traffic_source.tracking_params.wbraid"),
-            "gbraid": self.getstr("event.traffic_source.tracking_params.gbraid"),
-            "utm_campaign": self.getstr("event.traffic_source.tracking_params.utm_campaign"),
-            "utm_source": self.getstr("event.traffic_source.tracking_params.utm_source"),
-            "utm_medium": self.getstr("event.traffic_source.tracking_params.utm_medium"),
-            "utm_term": self.getstr("event.traffic_source.tracking_params.utm_term"),
-            "utm_content": self.getstr("event.traffic_source.tracking_params.utm_content"),
-            "other_tracking_params": [
-                {
-                    "key": self.getstr("event.traffic_source.tracking_params.unrecognized.key"),
-                    "value": self.getstr("event.traffic_source.tracking_params.unrecognized.value"),
-                },
-            ],
-        }
-
-        assert first_row.get("visitor_id") == self.getstr("event.visitor_id")
-        assert first_row.get("account") == {
-            "account_id": self.getstr("event.account.account_id"),
-            "extra": [],
         }
 
         assert first_row.get("extra") == [
@@ -432,7 +476,7 @@ class TestBrowserEventsPayloadProcessor(BigQueryTestsBase):
                 assert self.team_bq_table_exists(table_name=view_id)
 
 
-class TestDatabaseEventsPayloadProcessor(BigQueryTestsBase):
+class TestDatabaseEventsPayloadProcessor(_ControllerTestBase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
@@ -442,7 +486,8 @@ class TestDatabaseEventsPayloadProcessor(BigQueryTestsBase):
         await table.insert(
             events=[
                 {
-                    "timestamp": self.anytime("event timestamp"),
+                    "event_id": self.anyhex("event.event_id"),
+                    "timestamp": self.anytime("event.timestamp"),
                     "operation": "insert",
                     "db_name": self.anystr("event.db_name"),
                     "table_name": self.anystr("event.table_name"),
@@ -451,46 +496,7 @@ class TestDatabaseEventsPayloadProcessor(BigQueryTestsBase):
                         self.anystr("event.statement_values.0.key"): self.anystr("event.statement_values.0.value"),
                         self.anystr("event.statement_values.1.key"): self.anyint("event.statement_values.1.value"),
                     },
-                    "corr_ctx": {
-                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": self.anystr("event.visitor_id"),
-                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}session": json.dumps(
-                            {
-                                "id": self.anystr("event.session.id"),
-                                "start_timestamp": self.anytime("event.session.start_timestamp"),
-                            }
-                        ),
-                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}traffic_source": json.dumps(
-                            {
-                                "timestamp": self.anytime("event.traffic_source.timestamp"),
-                                "browser_referrer": self.anystr("event.traffic_source.browser_referrer"),
-                                "tracking_params": {
-                                    "gclid": self.anystr("event.traffic_source.tracking_params.gclid"),
-                                    "fbclid": self.anystr("event.traffic_source.tracking_params.fbclid"),
-                                    "msclkid": self.anystr("event.traffic_source.tracking_params.msclkid"),
-                                    "dclid": self.anystr("event.traffic_source.tracking_params.dclid"),
-                                    "ko_click_id": self.anystr("event.traffic_source.tracking_params.ko_click_id"),
-                                    "rtd_cid": self.anystr("event.traffic_source.tracking_params.rtd_cid"),
-                                    "li_fat_id": self.anystr("event.traffic_source.tracking_params.li_fat_id"),
-                                    "ttclid": self.anystr("event.traffic_source.tracking_params.ttclid"),
-                                    "twclid": self.anystr("event.traffic_source.tracking_params.twclid"),
-                                    "wbraid": self.anystr("event.traffic_source.tracking_params.wbraid"),
-                                    "gbraid": self.anystr("event.traffic_source.tracking_params.gbraid"),
-                                    "utm_campaign": self.anystr("event.traffic_source.tracking_params.utm_campaign"),
-                                    "utm_source": self.anystr("event.traffic_source.tracking_params.utm_source"),
-                                    "utm_medium": self.anystr("event.traffic_source.tracking_params.utm_medium"),
-                                    "utm_term": self.anystr("event.traffic_source.tracking_params.utm_term"),
-                                    "utm_content": self.anystr("event.traffic_source.tracking_params.utm_content"),
-                                    self.anystr("event.traffic_source.tracking_params.unrecognized.key"): self.anystr(
-                                        "event.traffic_source.tracking_params.unrecognized.value"
-                                    ),
-                                },
-                            }
-                        ),
-                        f"{EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX}{self.anystr()}": CorrelationContextAttr(
-                            key=EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
-                            value=self.anystr("event.account.account_id"),
-                        ).to_encrypted(encryption_key=self.client_credentials.decryption_key),
-                    },
+                    "corr_ctx": self._example_corr_ctx,
                 },
             ],
             ctx=self.empty_ctx,
@@ -504,10 +510,14 @@ class TestDatabaseEventsPayloadProcessor(BigQueryTestsBase):
         assert results.total_rows == 1
         first_row = next(results, None)
         assert first_row is not None
+        assert isinstance(first_row, Row)
+        assert self._corr_ctx_matches(first_row)
+        assert self._bq_record_metadata_matches(first_row)
 
+        assert first_row.get("event_id") == self.getstr("event.event_id")
         assert first_row.get("operation") == DatabaseOperation.INSERT
         assert first_row.get("timestamp") == datetime.datetime.fromtimestamp(
-            self.gettime("event timestamp"), tz=datetime.UTC
+            self.gettime("event.timestamp"), tz=datetime.UTC
         )
 
         assert first_row.get("db_name") == self.getstr("event.db_name")
@@ -531,49 +541,6 @@ class TestDatabaseEventsPayloadProcessor(BigQueryTestsBase):
                 },
             },
         ]
-
-        assert first_row.get("session") == {
-            "id": self.getstr("event.session.id"),
-            "start_timestamp": datetime.datetime.fromtimestamp(
-                self.gettime("event.session.start_timestamp"), tz=datetime.UTC
-            ),
-            "duration_ms": (self.gettime("event timestamp") - self.gettime("event.session.start_timestamp")) * 1000,
-        }
-
-        assert first_row.get("traffic_source") == {
-            "timestamp": datetime.datetime.fromtimestamp(
-                self.gettime("event.traffic_source.timestamp"), tz=datetime.UTC
-            ),
-            "browser_referrer": self.getstr("event.traffic_source.browser_referrer"),
-            "gclid": self.getstr("event.traffic_source.tracking_params.gclid"),
-            "fbclid": self.getstr("event.traffic_source.tracking_params.fbclid"),
-            "msclkid": self.getstr("event.traffic_source.tracking_params.msclkid"),
-            "dclid": self.getstr("event.traffic_source.tracking_params.dclid"),
-            "ko_click_id": self.getstr("event.traffic_source.tracking_params.ko_click_id"),
-            "rtd_cid": self.getstr("event.traffic_source.tracking_params.rtd_cid"),
-            "li_fat_id": self.getstr("event.traffic_source.tracking_params.li_fat_id"),
-            "ttclid": self.getstr("event.traffic_source.tracking_params.ttclid"),
-            "twclid": self.getstr("event.traffic_source.tracking_params.twclid"),
-            "wbraid": self.getstr("event.traffic_source.tracking_params.wbraid"),
-            "gbraid": self.getstr("event.traffic_source.tracking_params.gbraid"),
-            "utm_campaign": self.getstr("event.traffic_source.tracking_params.utm_campaign"),
-            "utm_source": self.getstr("event.traffic_source.tracking_params.utm_source"),
-            "utm_medium": self.getstr("event.traffic_source.tracking_params.utm_medium"),
-            "utm_term": self.getstr("event.traffic_source.tracking_params.utm_term"),
-            "utm_content": self.getstr("event.traffic_source.tracking_params.utm_content"),
-            "other_tracking_params": [
-                {
-                    "key": self.getstr("event.traffic_source.tracking_params.unrecognized.key"),
-                    "value": self.getstr("event.traffic_source.tracking_params.unrecognized.value"),
-                },
-            ],
-        }
-
-        assert first_row.get("visitor_id") == self.getstr("event.visitor_id")
-        assert first_row.get("account") == {
-            "account_id": self.getstr("event.account.account_id"),
-            "extra": [],
-        }
 
     async def test_insert_view(self) -> None:
         expected_view_ids = [
@@ -631,265 +598,161 @@ class TestDatabaseEventsPayloadProcessor(BigQueryTestsBase):
                 assert self.team_bq_table_exists(table_name=view_id)
 
 
-class TestOpenAIChatCompletionPayloadProcessor(BigQueryTestsBase):
+class TestOpenAIChatCompletionPayloadProcessor(_ControllerTestBase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
-    async def test_insert(self) -> None:
-        self.fail("TODO")
-        table = DatabaseEventsController(client=self.client_credentials)
 
-        await table.insert(
+    async def test_insert(self) -> None:
+        controller = OpenAIChatCompletionController(client=self.client_credentials)
+
+        await controller.insert(
             events=[
                 {
-                    "timestamp": self.anytime("event timestamp"),
-                    "operation": "insert",
-                    "db_name": self.anystr("event.db_name"),
-                    "table_name": self.anystr("event.table_name"),
-                    "statement": self.anystr("event.statement"),
-                    "statement_values": {
-                        self.anystr("event.statement_values.0.key"): self.anystr("event.statement_values.0.value"),
-                        self.anystr("event.statement_values.1.key"): self.anyint("event.statement_values.1.value"),
+                    "timestamp": self.anytime("event.timestamp"),
+                    "event_id": self.anyuuid("event.event_id").hex,
+                    "completion_id": self.anyhex("event.completion_id"),
+                    "completion_system_fingerprint": self.anyhex("event.completion_system_fingerprint"),
+                    "completion_created_timestamp": self.anytime("event.completion_created_timestamp"),
+                    "completion_user_id": self.anyhex("event.completion_user_id"),
+                    "service_tier": "auto",
+                    "model": "gpt-4o-2024-05-13",
+                    "prompt_tokens": self.anyint("event.prompt_tokens", max=1000),
+                    "completion_tokens": self.anyint("event.completion_tokens", max=1000),
+                    "total_tokens": self.getint("event.prompt_tokens") + self.getint("event.completion_tokens"),
+                    "code_location": self.anypath("event.code_location"),
+                    "openai_request": {
+                        "request_params": {
+                            "max_tokens": self.anyint("event.openai_request.request_params.max_tokens", max=2000),
+                            "frequency_penalty": self.anyfloat("event.openai_request.request_params.frequency_penalty"),
+                            "stop": self.anystr("event.openai_request.request_params.stop"),
+                        },
+                        "start_timestamp": self.anytime("start_timestamp"),
+                        "end_timestamp": self.gettime("start_timestamp") + 5,
+                        "status_code": 200,
                     },
-                    "corr_ctx": {
-                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": self.anystr("event.visitor_id"),
-                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}session": json.dumps(
-                            {
-                                "id": self.anystr("event.session.id"),
-                                "start_timestamp": self.anytime("event.session.start_timestamp"),
-                            }
-                        ),
-                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}traffic_source": json.dumps(
-                            {
-                                "timestamp": self.anytime("event.traffic_source.timestamp"),
-                                "browser_referrer": self.anystr("event.traffic_source.browser_referrer"),
-                                "tracking_params": {
-                                    "gclid": self.anystr("event.traffic_source.tracking_params.gclid"),
-                                    "fbclid": self.anystr("event.traffic_source.tracking_params.fbclid"),
-                                    "msclkid": self.anystr("event.traffic_source.tracking_params.msclkid"),
-                                    "dclid": self.anystr("event.traffic_source.tracking_params.dclid"),
-                                    "ko_click_id": self.anystr("event.traffic_source.tracking_params.ko_click_id"),
-                                    "rtd_cid": self.anystr("event.traffic_source.tracking_params.rtd_cid"),
-                                    "li_fat_id": self.anystr("event.traffic_source.tracking_params.li_fat_id"),
-                                    "ttclid": self.anystr("event.traffic_source.tracking_params.ttclid"),
-                                    "twclid": self.anystr("event.traffic_source.tracking_params.twclid"),
-                                    "wbraid": self.anystr("event.traffic_source.tracking_params.wbraid"),
-                                    "gbraid": self.anystr("event.traffic_source.tracking_params.gbraid"),
-                                    "utm_campaign": self.anystr("event.traffic_source.tracking_params.utm_campaign"),
-                                    "utm_source": self.anystr("event.traffic_source.tracking_params.utm_source"),
-                                    "utm_medium": self.anystr("event.traffic_source.tracking_params.utm_medium"),
-                                    "utm_term": self.anystr("event.traffic_source.tracking_params.utm_term"),
-                                    "utm_content": self.anystr("event.traffic_source.tracking_params.utm_content"),
-                                    self.anystr("event.traffic_source.tracking_params.unrecognized.key"): self.anystr(
-                                        "event.traffic_source.tracking_params.unrecognized.value"
-                                    ),
-                                },
-                            }
-                        ),
-                        f"{EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX}{self.anystr()}": CorrelationContextAttr(
-                            key=EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
-                            value=self.anystr("event.account.account_id"),
-                        ).to_encrypted(encryption_key=self.client_credentials.decryption_key),
-                    },
+                    "corr_ctx": self._example_corr_ctx,
                 },
             ],
             ctx=self.empty_ctx,
         )
 
-        assert self.team_bq_table_exists(table_name="atoms_db_events")
+        assert self.team_bq_table_exists(table_name="atoms_openai_chat_completions")
         results = EAVE_INTERNAL_BIGQUERY_CLIENT.query(
-            query=f"select * from {bq_dataset_id(self.eave_team.id)}.atoms_db_events"
+            query=f"select * from {bq_dataset_id(self.eave_team.id)}.atoms_openai_chat_completions"
         )
 
         assert results.total_rows == 1
         first_row = next(results, None)
         assert first_row is not None
+        assert isinstance(first_row, Row)
+        assert self._corr_ctx_matches(first_row)
+        assert self._bq_record_metadata_matches(first_row)
 
-        assert first_row.get("operation") == DatabaseOperation.INSERT
+        assert first_row.get("event_id") == self.getuuid("event.event_id").hex
         assert first_row.get("timestamp") == datetime.datetime.fromtimestamp(
-            self.gettime("event timestamp"), tz=datetime.UTC
+            self.gettime("event.timestamp"), tz=datetime.UTC
         )
 
-        assert first_row.get("db_name") == self.getstr("event.db_name")
-        assert first_row.get("table_name") == self.getstr("event.table_name")
-        assert first_row.get("statement") == self.getstr("event.statement")
-        assert first_row.get("statement_values") == [
-            {
-                "key": self.getstr("event.statement_values.0.key"),
-                "value": {
-                    "string_value": self.getstr("event.statement_values.0.value"),
-                    "numeric_value": None,
-                    "bool_value": None,
-                },
-            },
-            {
-                "key": self.getstr("event.statement_values.1.key"),
-                "value": {
-                    "string_value": None,
-                    "numeric_value": self.getint("event.statement_values.1.value"),
-                    "bool_value": None,
-                },
-            },
-        ]
+        assert first_row.get("completion_id") == self.gethex("event.completion_id")
+        assert first_row.get("completion_system_fingerprint") == self.gethex("event.completion_system_fingerprint")
+        assert cast(datetime.datetime, first_row.get("completion_created_timestamp")).timestamp() == self.gettime("event.completion_created_timestamp")
+        assert first_row.get("completion_user_id") == self.gethex("event.completion_user_id")
+        assert first_row.get("service_tier") == "auto"
+        assert first_row.get("model") == "gpt-4o-2024-05-13"
+        assert first_row.get("prompt_tokens") == self.getint("event.prompt_tokens")
+        assert first_row.get("completion_tokens") == self.getint("event.completion_tokens")
+        assert first_row.get("total_tokens") == self.getint("event.prompt_tokens") + self.getint("event.completion_tokens")
+        assert first_row.get("code_location") == self.getpath("event.code_location")
 
-        assert first_row.get("session") == {
-            "id": self.getstr("event.session.id"),
-            "start_timestamp": datetime.datetime.fromtimestamp(
-                self.gettime("event.session.start_timestamp"), tz=datetime.UTC
-            ),
-            "duration_ms": (self.gettime("event timestamp") - self.gettime("event.session.start_timestamp")) * 1000,
-        }
+        # Just assert that some data was inserted. We'll test the actual costs later.
+        assert first_row.get("input_cost_usd_cents") is not None
+        assert first_row.get("output_cost_usd_cents") is not None
+        assert first_row.get("total_cost_usd_cents") is not None
 
-        assert first_row.get("traffic_source") == {
-            "timestamp": datetime.datetime.fromtimestamp(
-                self.gettime("event.traffic_source.timestamp"), tz=datetime.UTC
-            ),
-            "browser_referrer": self.getstr("event.traffic_source.browser_referrer"),
-            "gclid": self.getstr("event.traffic_source.tracking_params.gclid"),
-            "fbclid": self.getstr("event.traffic_source.tracking_params.fbclid"),
-            "msclkid": self.getstr("event.traffic_source.tracking_params.msclkid"),
-            "dclid": self.getstr("event.traffic_source.tracking_params.dclid"),
-            "ko_click_id": self.getstr("event.traffic_source.tracking_params.ko_click_id"),
-            "rtd_cid": self.getstr("event.traffic_source.tracking_params.rtd_cid"),
-            "li_fat_id": self.getstr("event.traffic_source.tracking_params.li_fat_id"),
-            "ttclid": self.getstr("event.traffic_source.tracking_params.ttclid"),
-            "twclid": self.getstr("event.traffic_source.tracking_params.twclid"),
-            "wbraid": self.getstr("event.traffic_source.tracking_params.wbraid"),
-            "gbraid": self.getstr("event.traffic_source.tracking_params.gbraid"),
-            "utm_campaign": self.getstr("event.traffic_source.tracking_params.utm_campaign"),
-            "utm_source": self.getstr("event.traffic_source.tracking_params.utm_source"),
-            "utm_medium": self.getstr("event.traffic_source.tracking_params.utm_medium"),
-            "utm_term": self.getstr("event.traffic_source.tracking_params.utm_term"),
-            "utm_content": self.getstr("event.traffic_source.tracking_params.utm_content"),
-            "other_tracking_params": [
+        assert first_row.get("openai_request") == {
+            "request_params": [
                 {
-                    "key": self.getstr("event.traffic_source.tracking_params.unrecognized.key"),
-                    "value": self.getstr("event.traffic_source.tracking_params.unrecognized.value"),
+                    "key": "max_tokens",
+                    "value": {
+                        "numeric_value": Decimal(str(self.getint("event.openai_request.request_params.max_tokens"))),
+                        "string_value": None,
+                        "bool_value": None,
+                    },
+                },
+                {
+                    "key": "frequency_penalty",
+                    "value": {
+                        "numeric_value": Decimal(str(self.getfloat("event.openai_request.request_params.frequency_penalty"))),
+                        "string_value": None,
+                        "bool_value": None,
+                    },
+                },
+                {
+                    "key": "stop",
+                    "value": {
+                        "numeric_value": None,
+                        "string_value": self.getstr("event.openai_request.request_params.stop"),
+                        "bool_value": None,
+                    },
                 },
             ],
+            "start_timestamp": datetime.datetime.fromtimestamp(self.gettime("start_timestamp"), tz=datetime.UTC),
+            "end_timestamp": datetime.datetime.fromtimestamp(self.gettime("start_timestamp") + 5, tz=datetime.UTC),
+            "duration_ms": 5000, # 5 seconds, hardcoded in this test (start_timestamp + 5)
+            "status_code": 200,
         }
 
-        assert first_row.get("visitor_id") == self.getstr("event.visitor_id")
-        assert first_row.get("account") == {
-            "account_id": self.getstr("event.account.account_id"),
-            "extra": [],
-        }
+    async def test_costs(self) -> None:
+        controller = OpenAIChatCompletionController(client=self.client_credentials)
 
-    async def test_insert_view(self) -> None:
-        self.fail("TODO")
-        expected_view_ids = [
-            "account_created",
-            "account_updated",
-            "account_deleted",
-            "account_queried",
-            "color_created",
-            "color_updated",
-            "color_deleted",
-            "color_queried",
-        ]
-        async with self.db_session.begin() as s:
-            for view_id in expected_view_ids:
-                vevent = await VirtualEventOrm.query(
-                    s,
-                    params=VirtualEventOrm.QueryParams(
-                        team_id=self.eave_team.id,
-                        view_id=view_id,
-                    ),
-                )
-                assert vevent.one_or_none() is None
-                assert not self.team_bq_table_exists(table_name=view_id)
-
-        table = DatabaseEventsController(client=self.client_credentials)
-        await table.insert(
+        await controller.insert(
             events=[
-                # Some of these are doubled to test that only unique views are created
-                {"operation": "insert", "table_name": "accounts"},
-                {"operation": "insert", "table_name": "colors"},
-                {"operation": "insert", "table_name": "colors"},
-                {"operation": "update", "table_name": "accounts"},
-                {"operation": "update", "table_name": "colors"},
-                {"operation": "update", "table_name": "colors"},
-                {"operation": "delete", "table_name": "accounts"},
-                {"operation": "delete", "table_name": "colors"},
-                {"operation": "delete", "table_name": "colors"},
-                {"operation": "select", "table_name": "accounts"},
-                {"operation": "select", "table_name": "colors"},
-                {"operation": "select", "table_name": "colors"},
+                {
+                    "model": "gpt-4o-2024-05-13",
+                    "prompt_tokens": 100,
+                    "completion_tokens": 1000,
+                    "total_tokens": 1100,
+                },
             ],
             ctx=self.empty_ctx,
         )
 
-        async with self.db_session.begin() as s:
-            for view_id in expected_view_ids:
-                vevent = await VirtualEventOrm.query(
-                    s,
-                    params=VirtualEventOrm.QueryParams(
-                        team_id=self.eave_team.id,
-                        view_id=view_id,
-                    ),
-                )
-                assert vevent.one_or_none() is not None
-                assert self.team_bq_table_exists(table_name=view_id)
+        results = EAVE_INTERNAL_BIGQUERY_CLIENT.query(
+            query=f"select * from {bq_dataset_id(self.eave_team.id)}.atoms_openai_chat_completions"
+        )
+
+        assert results.total_rows == 1
+        first_row = next(results, None)
+        assert first_row is not None
+        assert isinstance(first_row, Row)
+
+        # These values are based on the passed-in model and token counts. See the OpenAI Pricing module for the calculations.
+        assert first_row.get("input_cost_usd_cents") == Decimal("0.05")
+        assert first_row.get("output_cost_usd_cents") == Decimal("1.5")
+        assert first_row.get("total_cost_usd_cents") == Decimal("1.55")
 
 
-class TestHttpServerEventsPayloadProcessor(BigQueryTestsBase):
+
+class TestHttpServerEventsPayloadProcessor(_ControllerTestBase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
     async def test_insert(self) -> None:
         table = HttpServerEventsController(client=self.client_credentials)
-        url = "https://dashboard.eave.fyi:9090/insights?q1=v1#footer"
+        url = f"https://{self.anyhex("url.domain")}.fyi:9090{self.anypath("url.path")}?{self.anyhex("url.qp")}={self.anyhex("url.qpv")}#{self.anyhex("url.hash")}"
 
         await table.insert(
             events=[
                 {
-                    "timestamp": self.anytime("event timestamp"),
+                    "timestamp": self.anytime("event.timestamp"),
                     "request_method": "post",
                     "request_url": url,
                     "request_payload": self.anyjson("event.request_payload"),
                     "request_headers": {
                         self.anystr("event.request_headers.0.key"): self.anystr("event.request_headers.0.value"),
                     },
-                    "corr_ctx": {
-                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": self.anystr("event.visitor_id"),
-                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}session": json.dumps(
-                            {
-                                "id": self.anystr("event.session.id"),
-                                "start_timestamp": self.anytime("event.session.start_timestamp"),
-                            }
-                        ),
-                        f"{EAVE_COLLECTOR_COOKIE_PREFIX}traffic_source": json.dumps(
-                            {
-                                "timestamp": self.anytime("event.traffic_source.timestamp"),
-                                "browser_referrer": self.anystr("event.traffic_source.browser_referrer"),
-                                "tracking_params": {
-                                    "gclid": self.anystr("event.traffic_source.tracking_params.gclid"),
-                                    "fbclid": self.anystr("event.traffic_source.tracking_params.fbclid"),
-                                    "msclkid": self.anystr("event.traffic_source.tracking_params.msclkid"),
-                                    "dclid": self.anystr("event.traffic_source.tracking_params.dclid"),
-                                    "ko_click_id": self.anystr("event.traffic_source.tracking_params.ko_click_id"),
-                                    "rtd_cid": self.anystr("event.traffic_source.tracking_params.rtd_cid"),
-                                    "li_fat_id": self.anystr("event.traffic_source.tracking_params.li_fat_id"),
-                                    "ttclid": self.anystr("event.traffic_source.tracking_params.ttclid"),
-                                    "twclid": self.anystr("event.traffic_source.tracking_params.twclid"),
-                                    "wbraid": self.anystr("event.traffic_source.tracking_params.wbraid"),
-                                    "gbraid": self.anystr("event.traffic_source.tracking_params.gbraid"),
-                                    "utm_campaign": self.anystr("event.traffic_source.tracking_params.utm_campaign"),
-                                    "utm_source": self.anystr("event.traffic_source.tracking_params.utm_source"),
-                                    "utm_medium": self.anystr("event.traffic_source.tracking_params.utm_medium"),
-                                    "utm_term": self.anystr("event.traffic_source.tracking_params.utm_term"),
-                                    "utm_content": self.anystr("event.traffic_source.tracking_params.utm_content"),
-                                    self.anystr("event.traffic_source.tracking_params.unrecognized.key"): self.anystr(
-                                        "event.traffic_source.tracking_params.unrecognized.value"
-                                    ),
-                                },
-                            }
-                        ),
-                        f"{EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX}{self.anystr()}": CorrelationContextAttr(
-                            key=EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
-                            value=self.anystr("event.account.account_id"),
-                        ).to_encrypted(encryption_key=self.client_credentials.decryption_key),
-                    },
+                    "corr_ctx": self._example_corr_ctx,
                 },
             ],
             ctx=self.empty_ctx,
@@ -903,23 +766,26 @@ class TestHttpServerEventsPayloadProcessor(BigQueryTestsBase):
         assert results.total_rows == 1
         first_row = next(results, None)
         assert first_row is not None
+        assert isinstance(first_row, Row)
+        assert self._corr_ctx_matches(first_row)
+        assert self._bq_record_metadata_matches(first_row)
 
         assert first_row.get("request_url") == {
             "raw": url,
             "protocol": "https",
-            "domain": "dashboard.eave.fyi",
-            "path": "/insights",
-            "hash": "footer",
+            "domain": f"{self.getstr("url.domain")}.fyi",
+            "path": self.getpath("url.path"),
+            "hash": self.getstr("url.hash"),
             "query_params": [
                 {
-                    "key": "q1",
-                    "value": "v1",
+                    "key": self.getstr("url.qp"),
+                    "value": self.getstr("url.qpv"),
                 },
             ],
         }
 
         assert first_row.get("timestamp") == datetime.datetime.fromtimestamp(
-            self.gettime("event timestamp"), tz=datetime.UTC
+            self.gettime("event.timestamp"), tz=datetime.UTC
         )
 
         assert first_row.get("request_payload") == self.getjson("event.request_payload")
@@ -929,46 +795,3 @@ class TestHttpServerEventsPayloadProcessor(BigQueryTestsBase):
                 "value": self.getstr("event.request_headers.0.value"),
             },
         ]
-
-        assert first_row.get("session") == {
-            "id": self.getstr("event.session.id"),
-            "start_timestamp": datetime.datetime.fromtimestamp(
-                self.gettime("event.session.start_timestamp"), tz=datetime.UTC
-            ),
-            "duration_ms": (self.gettime("event timestamp") - self.gettime("event.session.start_timestamp")) * 1000,
-        }
-
-        assert first_row.get("traffic_source") == {
-            "timestamp": datetime.datetime.fromtimestamp(
-                self.gettime("event.traffic_source.timestamp"), tz=datetime.UTC
-            ),
-            "browser_referrer": self.getstr("event.traffic_source.browser_referrer"),
-            "gclid": self.getstr("event.traffic_source.tracking_params.gclid"),
-            "fbclid": self.getstr("event.traffic_source.tracking_params.fbclid"),
-            "msclkid": self.getstr("event.traffic_source.tracking_params.msclkid"),
-            "dclid": self.getstr("event.traffic_source.tracking_params.dclid"),
-            "ko_click_id": self.getstr("event.traffic_source.tracking_params.ko_click_id"),
-            "rtd_cid": self.getstr("event.traffic_source.tracking_params.rtd_cid"),
-            "li_fat_id": self.getstr("event.traffic_source.tracking_params.li_fat_id"),
-            "ttclid": self.getstr("event.traffic_source.tracking_params.ttclid"),
-            "twclid": self.getstr("event.traffic_source.tracking_params.twclid"),
-            "wbraid": self.getstr("event.traffic_source.tracking_params.wbraid"),
-            "gbraid": self.getstr("event.traffic_source.tracking_params.gbraid"),
-            "utm_campaign": self.getstr("event.traffic_source.tracking_params.utm_campaign"),
-            "utm_source": self.getstr("event.traffic_source.tracking_params.utm_source"),
-            "utm_medium": self.getstr("event.traffic_source.tracking_params.utm_medium"),
-            "utm_term": self.getstr("event.traffic_source.tracking_params.utm_term"),
-            "utm_content": self.getstr("event.traffic_source.tracking_params.utm_content"),
-            "other_tracking_params": [
-                {
-                    "key": self.getstr("event.traffic_source.tracking_params.unrecognized.key"),
-                    "value": self.getstr("event.traffic_source.tracking_params.unrecognized.value"),
-                },
-            ],
-        }
-
-        assert first_row.get("visitor_id") == self.getstr("event.visitor_id")
-        assert first_row.get("account") == {
-            "account_id": self.getstr("event.account.account_id"),
-            "extra": [],
-        }

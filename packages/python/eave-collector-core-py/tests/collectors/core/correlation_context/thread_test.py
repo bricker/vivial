@@ -4,8 +4,10 @@ import unittest
 from eave.collectors.core.correlation_context import CORR_CTX, ThreadedCorrelationContext
 from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_COOKIE_PREFIX
 
+from ..base import BaseTestCase
 
-class ThreadedCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
+
+class ThreadedCorrelationContextTest(BaseTestCase):
     async def asyncTearDown(self) -> None:
         super().tearDown()
         # manually reset private thread storage since asyncio tests are all launched from same thread

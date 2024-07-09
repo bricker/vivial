@@ -13,8 +13,10 @@ from eave.collectors.core.correlation_context.base import (
     CorrelationContextAttr,
 )
 
+from ..base import BaseTestCase
 
-class CorrelationContextAttrTest(unittest.IsolatedAsyncioTestCase):
+
+class CorrelationContextAttrTest(BaseTestCase):
     async def test_corr_context_attr_encryption(self) -> None:
         enc_key = base64.b64encode(hashlib.sha256(b"x").digest())
 
@@ -40,7 +42,7 @@ class CorrelationContextAttrTest(unittest.IsolatedAsyncioTestCase):
         assert encrypted_attr is None
 
 
-class CorrelationContextConstantsTest(unittest.IsolatedAsyncioTestCase):
+class CorrelationContextConstantsTest(BaseTestCase):
     async def test_constants(self) -> None:
         # These can't change or other stuff will break (eg browser collector)
         assert EAVE_COLLECTOR_COOKIE_PREFIX == "_eave."
@@ -49,11 +51,7 @@ class CorrelationContextConstantsTest(unittest.IsolatedAsyncioTestCase):
         assert EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME == "account_id"
 
 
-class CorrelationContextStorageTest(unittest.IsolatedAsyncioTestCase):
-    async def asyncSetUp(self) -> None:
-        os.environ["EAVE_CREDENTIALS"] = "abc:123"
-        await super().asyncSetUp()
-
+class CorrelationContextStorageTest(BaseTestCase):
     async def test_set_encrypted(self) -> None:
         ctx = CorrCtxStorage()
         assert len(ctx.updated) == 0
@@ -68,15 +66,15 @@ class CorrelationContextStorageTest(unittest.IsolatedAsyncioTestCase):
 
         ctx.set(prefix="x.", key="y", value="z", encrypt=False)
         assert len(ctx.updated) == 1
-        assert ctx.get("x.y") == "z"
+        assert ctx.get(prefix="x.", key="y") == "z"
 
-    async def test_set_default_prewfix(self) -> None:
+    async def test_set_default_prefix(self) -> None:
         ctx = CorrCtxStorage()
         assert len(ctx.updated) == 0
 
         ctx.set(key="y", value="z", encrypt=False)
         assert len(ctx.updated) == 1
-        assert ctx.get(f"{EAVE_COLLECTOR_COOKIE_PREFIX}y") == "z"
+        assert ctx.get("y") == "z"
 
     async def test_set_encrypted_invalid_creds(self) -> None:
         os.environ["EAVE_CREDENTIALS"] = "invalid"
@@ -146,30 +144,37 @@ class _ExampleCorrelationContext(BaseCorrelationContext):
         return self.storage
 
 
-class BaseCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
+class BaseCorrelationContextTest(BaseTestCase):
     def test_get(self) -> None:
         ctx = _ExampleCorrelationContext()
         assert ctx.get("x") is None
+        ctx.set(key="x", value="y", encrypt=False)
+        assert ctx.get(key="x") == "y"
+
+    def test_get_with_prefix(self) -> None:
+        ctx = _ExampleCorrelationContext()
+        ctx.set(prefix="a", key="x", value="y", encrypt=False)
+        assert ctx.get(prefix="a", key="x") == "y"
 
     def test_set_encrypted(self) -> None:
         ctx = _ExampleCorrelationContext()
         ctx.set("y", "z", prefix="a", encrypt=True)
         assert ctx.storage is not None
         assert len(ctx.storage.updated) == 1
-        assert ctx.get("ay") is None  # key was hashed
+        assert ctx.get(prefix="a", key="y") is None  # key was hashed
 
     def test_set_not_encrypted(self) -> None:
         ctx = _ExampleCorrelationContext()
         ctx.set("y", "z", prefix="a", encrypt=False)
         assert ctx.storage is not None
         assert len(ctx.storage.updated) == 1
-        assert ctx.get("ay") == "z"
+        assert ctx.get(prefix="a", key="y") == "z"
 
     def test_set_no_prefix(self) -> None:
         ctx = _ExampleCorrelationContext()
         ctx.set("y", "z", encrypt=False)
         assert ctx.storage is not None
-        assert ctx.get("_eave.y") == "z"
+        assert ctx.get("y") == "z"
 
     def test_to_dict(self) -> None:
         ctx = _ExampleCorrelationContext()
@@ -191,12 +196,13 @@ class BaseCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
 
     def test_from_cookies(self) -> None:
         ctx = _ExampleCorrelationContext()
-        assert ctx.get("_eave.a") is None
+        assert ctx.get("a") is None
         assert ctx.get("c") is None
 
         ctx.from_cookies(cookies={"_eave.a": "b", "c": "d"})
-        assert ctx.get("_eave.a") == "b"
-        assert ctx.get("c") is None
+        assert ctx.get("a") == "b"
+        assert ctx.get(key="c") is None
+        assert ctx.get(prefix="", key="c") is None
 
     def test_clear(self) -> None:
         ctx = _ExampleCorrelationContext()
