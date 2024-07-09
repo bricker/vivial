@@ -1,9 +1,11 @@
 import os
 import unittest
+
+from openai import AsyncOpenAI, OpenAI
+
 from eave.collectors.core.datastructures import OpenAIChatCompletionEventPayload
 from eave.collectors.core.test_util import EphemeralWriteQueue
 from eave.collectors.openai.private.collector import OpenAICollector
-from openai import OpenAI, AsyncOpenAI
 
 
 class OpenAICollectorTest(unittest.IsolatedAsyncioTestCase):
@@ -22,6 +24,12 @@ class OpenAICollectorTest(unittest.IsolatedAsyncioTestCase):
         )
         self._sync_collector.instrument(client=self.sync_client)
         self._async_collector.instrument(client=self.async_client)
+
+    async def asyncTearDown(self) -> None:
+        await super().asyncTearDown()
+
+        self._sync_collector.uninstrument()
+        self._async_collector.uninstrument()
 
     async def test_sync_chat_completion_captured(self) -> None:
         _ = self.sync_client.chat.completions.create(

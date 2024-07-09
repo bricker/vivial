@@ -1,17 +1,19 @@
+import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
-from collections.abc import Callable
-from eave.collectors.core.generator_proxy import GeneratorProxy, AsyncGeneratorProxy
-import time
-from eave.collectors.core.datastructures import OpenAIChatCompletionEventPayload
-from eave.collectors.core.logging import EAVE_LOGGER
-from eave.collectors.core.wrap_util import is_wrapped, tag_wrapped, untag_wrapped
+
 import openai.resources.chat
+from openai import AsyncOpenAI, AsyncStream, OpenAI, Stream
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
-from openai import AsyncStream, OpenAI, AsyncOpenAI, Stream
+
 from eave.collectors.core.base_ai_collector import BaseAICollector
-from eave.collectors.core.write_queue import WriteQueue
 from eave.collectors.core.correlation_context import CORR_CTX
+from eave.collectors.core.datastructures import OpenAIChatCompletionEventPayload
+from eave.collectors.core.generator_proxy import AsyncGeneratorProxy, GeneratorProxy
+from eave.collectors.core.logging import EAVE_LOGGER
+from eave.collectors.core.wrap_util import is_wrapped, tag_wrapped
+from eave.collectors.core.write_queue import WriteQueue
 
 
 class OpenAICollector(BaseAICollector):
@@ -178,17 +180,12 @@ class OpenAICollector(BaseAICollector):
             self._wrap_method(client.chat.completions, "create", self._wrap_chat_completion_sync)
         elif isinstance(client, openai.AsyncOpenAI):
             self._wrap_method(client.chat.completions, "create", self._wrap_chat_completion_async)
-        else:
-            # instrument class modules itself
-            for mod_path, wrap_function in self._wrappable_functions.items():
-                self._wrap_module_method(target=mod_path, wrapper=wrap_function)
+
+        # instrument class modules itself
+        for mod_path, wrap_function in self._wrappable_functions.items():
+            self._wrap_module_method(target=mod_path, wrapper=wrap_function)
 
     def uninstrument(self) -> None:
         for wrapped_data in self._wrapped_functions:
             setattr(wrapped_data.module, wrapped_data.func_name, wrapped_data.original_function)
-
-
-## TO SUPPORT:
-## - Completions.create / AsyncCompletions.create
-## - Stream._iter_events / AsyncStream._iter_events
-## - Embeddings (eventually)
+        self._wrapped_functions = []
