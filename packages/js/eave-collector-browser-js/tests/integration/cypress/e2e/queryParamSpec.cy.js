@@ -16,14 +16,10 @@ describe("eave UTM and query parameter collection", () => {
 
     // THEN utm params are included in fired events
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      debugger
-      // current page
-      expect(interception.response.body.events.browser_event[0].queryParams).to.deep.equal({
-        utm_source: "tickletok",
-        utm_campaign: "gogole",
-      });
-      // saved referrer storage
-      expect(interception.response.body.events.browser_event[0].referral_params).to.deep.equal({
+      const traffic_src = JSON.parse(
+        interception.response.body.events.browser_event[0].corr_ctx["_eave.traffic_source"],
+      );
+      expect(traffic_src.tracking_params).to.deep.equal({
         utm_source: "tickletok",
         utm_campaign: "gogole",
       });
@@ -51,7 +47,10 @@ describe("eave UTM and query parameter collection", () => {
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       expect(interception.response.body.events.browser_event[0].action).to.deep.equal("PAGE_VIEW");
       expect(interception.response.body.events.browser_event[0].extra.reason).to.deep.equal("statechange");
-      expect(interception.response.body.data._eave_referrer_query_params).to.deep.equal({
+      const traffic_src = JSON.parse(
+        interception.response.body.events.browser_event[0].corr_ctx["_eave.traffic_source"],
+      );
+      expect(traffic_src.tracking_params).to.deep.equal({
         utm_source: "tickletok",
         utm_campaign: "gogole",
       });
@@ -73,15 +72,14 @@ describe("eave UTM and query parameter collection", () => {
     // WHEN navigating to a page w/ different query params
     cy.visit(dummyAppRoot({ path: "/", qp: "search=beans&filter=canned" }));
 
-    // THEN current query params AND initial saved query/utm params included in the event
+    // THEN the original saved query/utm params included in the event
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response.body.data._eave_referrer_query_params).to.deep.equal({
+      const traffic_src = JSON.parse(
+        interception.response.body.events.browser_event[0].corr_ctx["_eave.traffic_source"],
+      );
+      expect(traffic_src.tracking_params).to.deep.equal({
         utm_source: "tickletok",
         utm_campaign: "gogole",
-      });
-      expect(interception.response.body.data.queryParams).to.deep.equal({
-        search: "beans",
-        filter: "canned",
       });
     });
 
@@ -90,39 +88,54 @@ describe("eave UTM and query parameter collection", () => {
 
     // THEN current query params included in the event, prev qp not included
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response.body.data._eave_referrer_query_params).to.deep.equal({
+      const traffic_src = JSON.parse(
+        interception.response.body.events.browser_event[0].corr_ctx["_eave.traffic_source"],
+      );
+      expect(traffic_src.tracking_params).to.deep.equal({
         utm_source: "tickletok",
         utm_campaign: "gogole",
-      });
-      expect(interception.response.body.data.queryParams).to.deep.equal({
-        search: "food",
-        approval: "fda",
       });
     });
   });
 
-  it("doesnt set referrer data if there is an existing session", () => {
-    // GIVEN there is an existing session cookie
-    cy.setCookie("_eave_session_id", "session");
+  it("overwrites referrer data whenever new utm query parameters are set", () => {
+    // GIVEN the utm params get set once
     cy.interceptAtomIngestion();
-
-    // WHEN site is initially visited including some query/utm params
     cy.visit(
       dummyAppRoot({
         path: "/page",
         qp: "utm_source=tickletok&utm_campaign=gogole",
       }),
     );
-
-    // THEN utm params are included in fired events
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      // current page qp still set
-      expect(interception.response.body.data.queryParams).to.deep.equal({
+      // inital referrer data set
+      const traffic_src = JSON.parse(
+        interception.response.body.events.browser_event[0].corr_ctx["_eave.traffic_source"],
+      );
+      expect(traffic_src.tracking_params).to.deep.equal({
         utm_source: "tickletok",
         utm_campaign: "gogole",
       });
+    });
+
+    // WHEN site is visited again with diff utm params
+    cy.visit(
+      dummyAppRoot({
+        path: "/page",
+        qp: "gclid=twizzler&utm_campaign=linkedin",
+      }),
+    );
+
+    // THEN utm params are included in fired events
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       // referrer data not set
-      expect(interception.response.body.data._eave_referrer_query_params).to.not.exist;
+      const traffic_src = JSON.parse(
+        interception.response.body.events.browser_event[0].corr_ctx["_eave.traffic_source"],
+      );
+      expect(traffic_src.tracking_params).to.deep.equal({
+        gclid: "twizzler",
+        utm_campaign: "linkedin",
+      });
     });
   });
 });
