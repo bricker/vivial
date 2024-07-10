@@ -56,7 +56,8 @@ class BasketWeaver:
 class DeidentificationTest(StdlibBaseTestCase):
     def test_object_flattening(self) -> None:
         obj = BrowserEventAtom(
-            action="Bryan Cameron Ricker is my name!",
+            event_id=self.anyhex(),
+            action="Bryan Cameron Ricker is my name!",  # type: ignore
             timestamp=None,
             session=None,
             account=None,
@@ -137,7 +138,8 @@ class DeidentificationTest(StdlibBaseTestCase):
 
     def test_object_write_back(self) -> None:
         obj = BrowserEventAtom(
-            action="vote for Jeb! Bush",
+            event_id=self.anyhex(),
+            action="vote for Jeb! Bush",  # type: ignore
             timestamp=None,
             session=None,
             account=None,
@@ -295,7 +297,8 @@ class DeidentificationTest(StdlibBaseTestCase):
     async def test_dlp_integration(self) -> None:
         atoms = [
             BrowserEventAtom(
-                action="Bryan Cameron Ricker is my name!",
+                event_id=self.anyhex(),
+                action="Bryan Cameron Ricker is my name!",  # type: ignore
                 timestamp=None,
                 session=None,
                 account=None,
@@ -330,7 +333,8 @@ class DeidentificationTest(StdlibBaseTestCase):
                 client_ip=None,
             ),
             BrowserEventAtom(
-                action="vote for Jeb! Bush",
+                event_id=self.anyhex(),
+                action="vote for Jeb! Bush",  # type: ignore
                 timestamp=None,
                 session=None,
                 account=None,

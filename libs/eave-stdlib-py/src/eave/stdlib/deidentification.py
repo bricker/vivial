@@ -230,6 +230,13 @@ async def redact_atoms(atoms: list[Any]) -> None:
     # flatten atoms into list of uniform dicts, all w/ same keys
     flat_atoms = _ensure_uniform_keys([_flatten_to_dict(atom) for atom in atoms])
 
+    headers_to_redact = [
+        dlp.FieldId(name=header) for header in _headers_to_redact(type(atoms[0]), flat_atoms[0].keys())
+    ]
+
+    if len(headers_to_redact) == 0:
+        return
+
     # map to dlp types
     all_columns_str = list(flat_atoms[0].keys())
     dlp_rows = []
@@ -247,10 +254,6 @@ async def redact_atoms(atoms: list[Any]) -> None:
                 row_values.append(dlp.Value(string_value=str(val) if val else ""))
 
         dlp_rows.append(dlp.Table.Row(values=row_values))
-
-    headers_to_redact = [
-        dlp.FieldId(name=header) for header in _headers_to_redact(type(atoms[0]), flat_atoms[0].keys())
-    ]
 
     client = dlp.DlpServiceAsyncClient()
     response = await client.deidentify_content(
@@ -298,6 +301,7 @@ async def redact_atoms(atoms: list[Any]) -> None:
                 # when no other truthy values to write, default to None
                 or None
             )
+
         _write_flat_data_to_object(data, atoms[i])
 
 

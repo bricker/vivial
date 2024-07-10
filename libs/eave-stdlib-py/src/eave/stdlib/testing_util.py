@@ -12,6 +12,7 @@ from datetime import UTC, datetime, timedelta, timezone
 from math import floor
 from typing import Any, Literal, TypeVar
 
+import google.cloud.dlp_v2
 from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
 
 import eave.stdlib.exceptions
@@ -444,6 +445,22 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
                 side_effect=_access_secret_version,
             )
         )
+
+        def _deidentify_content(request: google.cloud.dlp_v2.DeidentifyContentRequest, *args, **kwargs) -> google.cloud.dlp_v2.DeidentifyContentResponse:
+            """
+            All this stub method does is return the input data unchanged.
+            """
+            return google.cloud.dlp_v2.DeidentifyContentResponse(
+                item=request.item,
+            )
+
+        self.patch(
+            unittest.mock.patch(
+                "google.cloud.dlp_v2.DlpServiceAsyncClient.deidentify_content",
+                side_effect=_deidentify_content,
+            )
+        )
+
 
     def mock_slack_client(self) -> None:
         self.patch(name="slack client", patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient"))

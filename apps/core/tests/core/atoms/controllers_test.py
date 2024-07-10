@@ -135,6 +135,10 @@ class _ControllerTestBase(BigQueryTestsBase):
                 key=EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
                 value=self.anystr("event.account.account_id"),
             ).to_encrypted(encryption_key=self.client_credentials.decryption_key),
+            f"{EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX}{self.anystr("account attr 2")}": CorrelationContextAttr(
+                key=self.anyhex("event.account.extra.0.key"),
+                value=self.anystr("event.account.extra.0.val"),
+            ).to_encrypted(encryption_key=self.client_credentials.decryption_key),
         }
 
     def _corr_ctx_matches(self, row: Row) -> bool:
@@ -178,7 +182,16 @@ class _ControllerTestBase(BigQueryTestsBase):
         assert row.get("visitor_id") == self.getstr("event.visitor_id")
         assert row.get("account") == {
             "account_id": self.getstr("event.account.account_id"),
-            "extra": [],
+            "extra": [
+                {
+                    "key": self.getstr("event.account.extra.0.key"),
+                    "value": {
+                        "string_value": self.getstr("event.account.extra.0.val"),
+                        "bool_value": None,
+                        "numeric_value": None,
+                    },
+                }
+            ],
         }
 
         return True
@@ -614,7 +627,7 @@ class TestOpenAIChatCompletionPayloadProcessor(_ControllerTestBase):
                     "completion_id": self.anyhex("event.completion_id"),
                     "completion_system_fingerprint": self.anyhex("event.completion_system_fingerprint"),
                     "completion_created_timestamp": self.anytime("event.completion_created_timestamp"),
-                    "completion_user_id": self.anyhex("event.completion_user_id"),
+                    "completion_user_id": "Bryan Ricker",
                     "service_tier": "auto",
                     "model": "gpt-4o-2024-05-13",
                     "prompt_tokens": self.anyint("event.prompt_tokens", max=1000),
@@ -657,7 +670,7 @@ class TestOpenAIChatCompletionPayloadProcessor(_ControllerTestBase):
         assert first_row.get("completion_id") == self.gethex("event.completion_id")
         assert first_row.get("completion_system_fingerprint") == self.gethex("event.completion_system_fingerprint")
         assert cast(datetime.datetime, first_row.get("completion_created_timestamp")).timestamp() == self.gettime("event.completion_created_timestamp")
-        assert first_row.get("completion_user_id") == self.gethex("event.completion_user_id")
+        assert first_row.get("completion_user_id") == "Bryan Ricker"
         assert first_row.get("service_tier") == "auto"
         assert first_row.get("model") == "gpt-4o-2024-05-13"
         assert first_row.get("prompt_tokens") == self.getint("event.prompt_tokens")
