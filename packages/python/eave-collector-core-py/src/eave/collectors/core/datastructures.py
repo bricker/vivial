@@ -70,7 +70,7 @@ class HttpServerEventPayload(EventPayload):
     request_payload: str | None = None
 
 
-@dataclass
+@dataclass(kw_only=True)
 class HttpClientEventPayload(EventPayload):
     """Data about requests made by application code"""
 
@@ -98,3 +98,19 @@ class DataIngestRequestBody:
 
     def to_json(self) -> str:
         return compact_json(self.to_dict())
+
+
+@dataclass(kw_only=True)
+class OpenAIChatCompletionEventPayload(EventPayload):
+    event_type: ClassVar[EventType] = EventType.openai_chat_completion
+
+    completion_id: str | None
+    completion_created_timestamp: float | None
+    completion_user_id: str | None
+    service_tier: str | None
+    model: str | None
+    num_completions: int | None
+    max_tokens: int | None
+    prompt_tokens: int | None
+    completion_tokens: int | None
+    total_tokens: int | None

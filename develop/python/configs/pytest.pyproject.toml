@@ -13,6 +13,7 @@ pythonpath = [
   "../../../packages/python/eave-collector-sqlalchemy-py",
   "../../../packages/python/eave-collector-starlette-py",
   "../../../packages/python/eave-collector-django-orm-py",
+  "../../../packages/python/eave-collector-openai-py",
 ]
 norecursedirs = [
   "vendor",
