@@ -19,7 +19,7 @@ from eave.collectors.core.correlation_context.base import (
 from eave.collectors.core.datastructures import DatabaseOperation
 from eave.core.internal.atoms.models.enums import BrowserAction, HttpRequestMethod
 from eave.stdlib.logging import LOGGER
-from eave.stdlib.typing import JsonScalar
+from eave.stdlib.typing import JsonScalar, JsonValue
 
 
 @dataclass(kw_only=True)
@@ -133,7 +133,7 @@ class TargetProperties:
 @dataclass(kw_only=True)
 class AccountProperties:
     account_id: str | None
-    extra: dict[str, JsonScalar] | None
+    extra: dict[str, JsonValue] | None
 
     @classmethod
     def from_api_payload(cls, data: dict[str, Any]) -> Self:

@@ -9,9 +9,11 @@ These schemas are authoritative: changing these will change the respective schem
 
 from dataclasses import dataclass, field
 from decimal import Decimal
+import json
 from typing import Self
 from urllib.parse import parse_qsl, urlparse
 
+from eave.stdlib.logging import LOGGER
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
 from eave.core.internal.atoms.models.api_payload_types import (
@@ -26,7 +28,7 @@ from eave.core.internal.atoms.models.api_payload_types import (
 )
 from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
 from eave.stdlib.deidentification import REDACTABLE
-from eave.stdlib.typing import JsonScalar
+from eave.stdlib.typing import JsonScalar, JsonValue
 
 
 class Numeric(str):
@@ -74,14 +76,21 @@ class TypedValueRecordField(RecordField):
                     field_type=SqlTypeNames.BOOLEAN,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
+                SchemaField(
+                    name="json_value",
+                    description="The value for the key, if the value is a JSON-serializable list or map. Otherwise, null.",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
             ),
         )
 
     string_value: str | None = field(metadata={REDACTABLE: True}, default=None)
     bool_value: bool | None = None
     numeric_value: Numeric | None = field(metadata={REDACTABLE: True}, default=None)
+    json_value: str | None = field(metadata={REDACTABLE: True}, default=None)
 
-    def __init__(self, value: str | int | float | bool | None) -> None:
+    def __init__(self, value: JsonValue | None) -> None:
         # It is important to remember that these checks have to be exclusive - if multiple checks are done, it's possible
         # for multiple fields to have a value set. This is especially likely when working with bools and numbers.
         if isinstance(value, str):
@@ -97,12 +106,10 @@ class TypedValueRecordField(RecordField):
             # Everything is None by default, so nothing is needed here.
             pass
         else:
-            # Fallback behavior
-            # The static checker says that this case will never be reached because of the possible input types,
-            # but because the input to this initializer actually comes from the API payload, it's possible that the
-            # type will be something else at runtime.
-            # The input type should probably be `Any` for that reason, but I specify them explicitly to help with readability and understanding of this code.
-            self.string_value = str(value)
+            try:
+                self.json_value = json.dumps(value)
+            except TypeError as e:
+                LOGGER.exception(e)
 
 
 @dataclass(kw_only=True)
@@ -128,7 +135,7 @@ class MultiScalarTypeKeyValueRecordField(RecordField):
     value: TypedValueRecordField | None = field(metadata={REDACTABLE: True})
 
     @classmethod
-    def list_from_scalar_dict(cls, d: dict[str, JsonScalar]) -> list["MultiScalarTypeKeyValueRecordField"]:
+    def list_from_dict(cls, d: dict[str, JsonValue]) -> list["MultiScalarTypeKeyValueRecordField"]:
         containers: list[MultiScalarTypeKeyValueRecordField] = []
 
         for [key, value] in d.items():
@@ -266,7 +273,7 @@ class AccountRecordField(RecordField):
         return cls(
             account_id=resource.account_id,
             extra=(
-                MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(resource.extra) if resource.extra else None
+                MultiScalarTypeKeyValueRecordField.list_from_dict(resource.extra) if resource.extra else None
             ),
         )
 
@@ -905,9 +912,8 @@ class OpenAIRequestPropertiesRecordField:
             start_timestamp=resource.start_timestamp,
             end_timestamp=resource.end_timestamp,
             duration_ms=duration_ms,
-            status_code=resource.status_code,
             request_params=(
-                MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(resource.request_params)
+                MultiScalarTypeKeyValueRecordField.list_from_dict(resource.request_params)
                 if resource.request_params
                 else None
             ),
