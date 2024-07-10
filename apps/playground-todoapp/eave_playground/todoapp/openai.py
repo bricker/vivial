@@ -1,4 +1,3 @@
-
 from openai import AsyncOpenAI
 
 from .secrets import get_secret

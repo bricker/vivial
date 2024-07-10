@@ -39,3 +39,8 @@ variable "IAP_OAUTH_CLIENT_CREDENTIALS" {
   })
   sensitive = true
 }
+
+variable "OPENAI_API_KEY" {
+  type      = string
+  sensitive = true
+}

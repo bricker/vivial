@@ -21,6 +21,7 @@ locals {
   secrets = {
     "EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64" = var.EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64
     "SLACK_SYSTEM_BOT_TOKEN"                        = var.SLACK_SYSTEM_BOT_TOKEN
+    "OPENAI_API_KEY"                                = var.OPENAI_API_KEY
   }
 }
 
