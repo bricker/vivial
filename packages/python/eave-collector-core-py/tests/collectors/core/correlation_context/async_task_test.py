@@ -1,5 +1,4 @@
 import asyncio
-import unittest
 
 from eave.collectors.core.correlation_context import AsyncioCorrelationContext
 from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_COOKIE_PREFIX

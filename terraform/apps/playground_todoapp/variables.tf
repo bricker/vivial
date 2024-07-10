@@ -63,5 +63,5 @@ variable "EAVE_CREDENTIALS" {
 }
 
 variable "iap_oauth_client_secret_name" {
-  type=string
+  type = string
 }

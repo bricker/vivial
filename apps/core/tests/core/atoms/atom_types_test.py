@@ -10,10 +10,10 @@ from eave.core.internal.atoms.models.atom_types import (
 )
 from eave.core.internal.atoms.models.db_record_fields import (
     AccountRecordField,
-    MetadataRecordField,
     CurrentPageRecordField,
     DeviceRecordField,
     GeoRecordField,
+    MetadataRecordField,
     MultiScalarTypeKeyValueRecordField,
     OpenAIRequestPropertiesRecordField,
     SessionRecordField,

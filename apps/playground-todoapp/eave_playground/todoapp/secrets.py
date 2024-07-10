@@ -1,6 +1,8 @@
 import os
+
 import google.cloud.secretmanager
 from crc32c import crc32c
+
 
 def get_secret(name: str) -> str:
     # Allow overrides from the environment

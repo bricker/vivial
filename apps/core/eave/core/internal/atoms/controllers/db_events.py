@@ -2,7 +2,6 @@ import dataclasses
 from typing import Any, cast
 
 from eave.collectors.core.datastructures import DatabaseOperation
-from eave.stdlib.config import SHARED_CONFIG
 from eave.core.internal import database
 from eave.core.internal.atoms.models.api_payload_types import (
     DatabaseEventPayload,
@@ -18,6 +17,7 @@ from eave.core.internal.atoms.models.db_record_fields import (
 from eave.core.internal.atoms.models.db_views import DatabaseEventView
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.deidentification import redact_atoms
 from eave.stdlib.logging import LOGGER, LogContext
 

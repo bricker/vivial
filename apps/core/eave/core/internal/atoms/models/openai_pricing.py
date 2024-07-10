@@ -1,11 +1,12 @@
-from decimal import Decimal
 import enum
 from abc import ABC
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import ClassVar
 
 _MILLION = Decimal("1e6")
 _SIXTY = Decimal("60")
+
 
 class OpenAIModelPricingStructure(enum.Enum):
     PER_TOKEN_BY_TYPE = enum.auto()

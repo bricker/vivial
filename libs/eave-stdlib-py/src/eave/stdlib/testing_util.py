@@ -180,7 +180,9 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getjson(self, name: str) -> str:
         return self.getstr(name)
 
-    def anydict(self, name: str | None = None, deterministic_keys: bool = False, *, minlength: int = 0, maxlength: int = 3) -> dict[str, Any]:
+    def anydict(
+        self, name: str | None = None, deterministic_keys: bool = False, *, minlength: int = 0, maxlength: int = 3
+    ) -> dict[str, Any]:
         if name is None:
             name = uuid.uuid4().hex
 
@@ -446,7 +448,9 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             )
         )
 
-        def _deidentify_content(request: google.cloud.dlp_v2.DeidentifyContentRequest, *args, **kwargs) -> google.cloud.dlp_v2.DeidentifyContentResponse:
+        def _deidentify_content(
+            request: google.cloud.dlp_v2.DeidentifyContentRequest, *args, **kwargs
+        ) -> google.cloud.dlp_v2.DeidentifyContentResponse:
             """
             All this stub method does is return the input data unchanged.
             """
@@ -460,7 +464,6 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
                 side_effect=_deidentify_content,
             )
         )
-
 
     def mock_slack_client(self) -> None:
         self.patch(name="slack client", patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient"))

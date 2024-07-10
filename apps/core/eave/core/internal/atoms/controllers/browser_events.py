@@ -1,25 +1,23 @@
 import dataclasses
 from typing import Any, cast
 
-from eave.stdlib.config import SHARED_CONFIG
-
 from eave.core.internal.atoms.controllers.base_atom_controller import BaseAtomController
 from eave.core.internal.atoms.models.api_payload_types import BrowserAction, BrowserEventPayload
 from eave.core.internal.atoms.models.atom_types import BrowserEventAtom
 from eave.core.internal.atoms.models.db_record_fields import (
     AccountRecordField,
-    MetadataRecordField,
     CurrentPageRecordField,
     DeviceRecordField,
     GeoRecordField,
+    MetadataRecordField,
     MultiScalarTypeKeyValueRecordField,
     SessionRecordField,
     TargetRecordField,
     TrafficSourceRecordField,
 )
 from eave.core.internal.atoms.models.db_views import ClickView, FormSubmissionView, PageViewView
-from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.deidentification import redact_atoms
 from eave.stdlib.logging import LOGGER, LogContext
 
@@ -76,7 +74,7 @@ class BrowserEventsController(BaseAtomController):
                     source_app_name=SHARED_CONFIG.app_service,
                     source_app_version=SHARED_CONFIG.app_version,
                     source_app_release_timestamp=SHARED_CONFIG.release_timestamp,
-                )
+                ),
             )
 
             atoms.append(atom)

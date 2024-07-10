@@ -1,5 +1,5 @@
-from datetime import UTC
 import logging
+from datetime import UTC
 
 from eave.stdlib.config import SHARED_CONFIG
 

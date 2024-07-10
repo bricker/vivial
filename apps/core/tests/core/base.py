@@ -247,7 +247,11 @@ def assert_schemas_match(a: tuple[SchemaField, ...], b: tuple[SchemaField, ...])
     for idx, fielda in enumerate(sorteda):
         fieldb = sortedb[idx]
         assert fieldb.name == fielda.name, f"{fieldb.name} does not match expected {fielda.name}"
-        assert fieldb.field_type == fielda.field_type, f"{fieldb.field_type} does not match expected {fielda.field_type}"
+        assert (
+            fieldb.field_type == fielda.field_type
+        ), f"{fieldb.field_type} does not match expected {fielda.field_type}"
         assert fieldb.mode == fielda.mode, f"{fieldb.mode} does not match expected {fielda.mode}"
-        assert fieldb.default_value_expression == fielda.default_value_expression, f"{fieldb.default_value_expression} does not match expected {fielda.default_value_expression}"
+        assert (
+            fieldb.default_value_expression == fielda.default_value_expression
+        ), f"{fieldb.default_value_expression} does not match expected {fielda.default_value_expression}"
         assert_schemas_match(fielda.fields, fieldb.fields)

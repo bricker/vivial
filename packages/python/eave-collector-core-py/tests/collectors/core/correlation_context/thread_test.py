@@ -1,5 +1,4 @@
 import threading
-import unittest
 
 from eave.collectors.core.correlation_context import CORR_CTX, ThreadedCorrelationContext
 from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_COOKIE_PREFIX

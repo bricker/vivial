@@ -1,11 +1,10 @@
-import dataclasses
 import datetime
-from decimal import Decimal
 import json
+from decimal import Decimal
 from textwrap import dedent
 from typing import Any, cast
 
-from google.cloud.bigquery import SchemaField, SqlTypeNames
+from google.cloud.bigquery import Row, SchemaField, SqlTypeNames
 
 from eave.collectors.core.correlation_context.base import (
     EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
@@ -14,14 +13,13 @@ from eave.collectors.core.correlation_context.base import (
     CorrelationContextAttr,
 )
 from eave.collectors.core.datastructures import DatabaseOperation
-from google.cloud.bigquery import Row
 from eave.core.internal.atoms.controllers.base_atom_controller import BaseAtomController
 from eave.core.internal.atoms.controllers.browser_events import BrowserEventsController
 from eave.core.internal.atoms.controllers.db_events import DatabaseEventsController
 from eave.core.internal.atoms.controllers.http_server_events import HttpServerEventsController
 from eave.core.internal.atoms.controllers.openai_chat_completion import OpenAIChatCompletionController
 from eave.core.internal.atoms.models.api_payload_types import BrowserAction
-from eave.core.internal.atoms.models.atom_types import Atom, BigQueryTableDefinition, OpenAIChatCompletionAtom
+from eave.core.internal.atoms.models.atom_types import Atom, BigQueryTableDefinition
 from eave.core.internal.atoms.models.db_record_fields import (
     GeoRecordField,
 )
@@ -90,11 +88,13 @@ class _ControllerTestBase(BigQueryTestsBase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
-        self.patch_env({
-            "GAE_SERVICE": self.anystr("GAE_SERVICE"),
-            "GAE_VERSION": self.anyhex("GAE_VERSION"),
-            "GAE_RELEASE_DATE": self.anydatetime("GAE_RELEASE_DATE", past=True).isoformat(timespec="seconds"),
-        })
+        self.patch_env(
+            {
+                "GAE_SERVICE": self.anystr("GAE_SERVICE"),
+                "GAE_VERSION": self.anyhex("GAE_VERSION"),
+                "GAE_RELEASE_DATE": self.anydatetime("GAE_RELEASE_DATE", past=True).isoformat(timespec="seconds"),
+            }
+        )
 
         self._example_corr_ctx = {
             f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": self.anystr("event.visitor_id"),
@@ -214,6 +214,7 @@ class _ControllerTestBase(BigQueryTestsBase):
         # like in the case of a millisecond/second resolution mistake.
         assert datetime.datetime.now(tz=datetime.UTC) - insert_ts >= datetime.timedelta(seconds=-5)
         return True
+
 
 class TestBaseAtomController(_ControllerTestBase):
     async def asyncSetUp(self) -> None:
@@ -615,7 +616,6 @@ class TestOpenAIChatCompletionPayloadProcessor(_ControllerTestBase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
-
     async def test_insert(self) -> None:
         controller = OpenAIChatCompletionController(client=self.client_credentials)
 
@@ -669,13 +669,17 @@ class TestOpenAIChatCompletionPayloadProcessor(_ControllerTestBase):
 
         assert first_row.get("completion_id") == self.gethex("event.completion_id")
         assert first_row.get("completion_system_fingerprint") == self.gethex("event.completion_system_fingerprint")
-        assert cast(datetime.datetime, first_row.get("completion_created_timestamp")).timestamp() == self.gettime("event.completion_created_timestamp")
+        assert cast(datetime.datetime, first_row.get("completion_created_timestamp")).timestamp() == self.gettime(
+            "event.completion_created_timestamp"
+        )
         assert first_row.get("completion_user_id") == "Bryan Ricker"
         assert first_row.get("service_tier") == "auto"
         assert first_row.get("model") == "gpt-4o-2024-05-13"
         assert first_row.get("prompt_tokens") == self.getint("event.prompt_tokens")
         assert first_row.get("completion_tokens") == self.getint("event.completion_tokens")
-        assert first_row.get("total_tokens") == self.getint("event.prompt_tokens") + self.getint("event.completion_tokens")
+        assert first_row.get("total_tokens") == self.getint("event.prompt_tokens") + self.getint(
+            "event.completion_tokens"
+        )
         assert first_row.get("code_location") == self.getpath("event.code_location")
 
         # Just assert that some data was inserted. We'll test the actual costs later.
@@ -696,7 +700,9 @@ class TestOpenAIChatCompletionPayloadProcessor(_ControllerTestBase):
                 {
                     "key": "frequency_penalty",
                     "value": {
-                        "numeric_value": Decimal(str(self.getfloat("event.openai_request.request_params.frequency_penalty"))),
+                        "numeric_value": Decimal(
+                            str(self.getfloat("event.openai_request.request_params.frequency_penalty"))
+                        ),
                         "string_value": None,
                         "bool_value": None,
                     },
@@ -712,7 +718,7 @@ class TestOpenAIChatCompletionPayloadProcessor(_ControllerTestBase):
             ],
             "start_timestamp": datetime.datetime.fromtimestamp(self.gettime("start_timestamp"), tz=datetime.UTC),
             "end_timestamp": datetime.datetime.fromtimestamp(self.gettime("start_timestamp") + 5, tz=datetime.UTC),
-            "duration_ms": 5000, # 5 seconds, hardcoded in this test (start_timestamp + 5)
+            "duration_ms": 5000,  # 5 seconds, hardcoded in this test (start_timestamp + 5)
             "status_code": 200,
         }
 
@@ -744,7 +750,6 @@ class TestOpenAIChatCompletionPayloadProcessor(_ControllerTestBase):
         assert first_row.get("input_cost_usd_cents") == Decimal("0.05")
         assert first_row.get("output_cost_usd_cents") == Decimal("1.5")
         assert first_row.get("total_cost_usd_cents") == Decimal("1.55")
-
 
 
 class TestHttpServerEventsPayloadProcessor(_ControllerTestBase):

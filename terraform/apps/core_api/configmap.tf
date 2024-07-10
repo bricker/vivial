@@ -10,6 +10,6 @@ resource "kubernetes_config_map" "app" {
   }
 
   data = {
-    LOG_LEVEL   = var.LOG_LEVEL
+    LOG_LEVEL = var.LOG_LEVEL
   }
 }

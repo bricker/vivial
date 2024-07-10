@@ -1,9 +1,6 @@
 import dataclasses
 from typing import Any, cast
 
-from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.deidentification import redact_atoms
-
 from eave.core.internal.atoms.models.api_payload_types import (
     OpenAIChatCompletionPayload,
 )
@@ -18,6 +15,8 @@ from eave.core.internal.atoms.models.db_record_fields import (
 )
 from eave.core.internal.atoms.models.openai_pricing import CHAT_MODELS, FINE_TUNING_MODELS
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
+from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.deidentification import redact_atoms
 from eave.stdlib.logging import LOGGER, LogContext
 
 from .base_atom_controller import BaseAtomController
@@ -101,21 +100,9 @@ class OpenAIChatCompletionController(BaseAtomController):
                 prompt_tokens=e.prompt_tokens,
                 completion_tokens=e.completion_tokens,
                 total_tokens=e.total_tokens,
-                input_cost_usd_cents=(
-                    Numeric(input_cost_usd_cents)
-                    if input_cost_usd_cents is not None
-                    else None
-                ),
-                output_cost_usd_cents=(
-                    Numeric(output_cost_usd_cents)
-                    if output_cost_usd_cents is not None
-                    else None
-                ),
-                total_cost_usd_cents=(
-                    Numeric(total_cost_usd_cents)
-                    if total_cost_usd_cents is not None
-                    else None
-                ),
+                input_cost_usd_cents=(Numeric(input_cost_usd_cents) if input_cost_usd_cents is not None else None),
+                output_cost_usd_cents=(Numeric(output_cost_usd_cents) if output_cost_usd_cents is not None else None),
+                total_cost_usd_cents=(Numeric(total_cost_usd_cents) if total_cost_usd_cents is not None else None),
                 code_location=e.code_location,
                 openai_request=openai_request,
                 metadata=MetadataRecordField(

@@ -1,7 +1,6 @@
 import base64
 import hashlib
 import os
-import unittest
 
 from eave.collectors.core.correlation_context.base import (
     EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,

@@ -14,11 +14,11 @@ from eave.core.internal.atoms.models.api_payload_types import (
 )
 from eave.core.internal.atoms.models.db_record_fields import (
     AccountRecordField,
-    MetadataRecordField,
     BrandsRecordField,
     CurrentPageRecordField,
     DeviceRecordField,
     GeoRecordField,
+    MetadataRecordField,
     MultiScalarTypeKeyValueRecordField,
     Numeric,
     OpenAIRequestPropertiesRecordField,
@@ -842,15 +842,17 @@ class TestUrlRecordField(BaseTestCase):
         )
 
     async def test_field(self) -> None:
-        url = "".join((
-            f"https://{self.anyhex("url.domain")}.fyi:8080",
-            f"{self.anypath("url.path")}",
-            f"?{self.anyhex("url.qp.k1")}={self.anyhex("url.qp.v1")}",
-            f"&{self.gethex("url.qp.k1")}={self.anyhex("url.qp.v1-2")}",
-            f"&{self.anyhex("url.qp.k2")}={self.anyhex("url.qp.v2")}",
-            f"&{self.anyhex("url.qp.k3")}",
-            f"#{self.anyhex("url.hash")}",
-        ))
+        url = "".join(
+            (
+                f"https://{self.anyhex("url.domain")}.fyi:8080",
+                f"{self.anypath("url.path")}",
+                f"?{self.anyhex("url.qp.k1")}={self.anyhex("url.qp.v1")}",
+                f"&{self.gethex("url.qp.k1")}={self.anyhex("url.qp.v1-2")}",
+                f"&{self.anyhex("url.qp.k2")}={self.anyhex("url.qp.v2")}",
+                f"&{self.anyhex("url.qp.k3")}",
+                f"#{self.anyhex("url.hash")}",
+            )
+        )
 
         e = UrlRecordField.from_api_resource(resource=url)
         assert e is not None
@@ -1038,6 +1040,7 @@ class TestBigQueryRecordMetadataRecordField(BaseTestCase):
             "source_app_release_timestamp": self.gettime("source_app_release_timestamp"),
         }
 
+
 class TestOpenAIRequestPropertiesRecordField(BaseTestCase):
     async def test_schema(self) -> None:
         assert_schemas_match(
@@ -1083,10 +1086,12 @@ class TestOpenAIRequestPropertiesRecordField(BaseTestCase):
             end_timestamp=self.anytime("end_timestamp"),
             duration_ms=self.anyint("duration_ms"),
             status_code=200,
-            request_params=MultiScalarTypeKeyValueRecordField.list_from_scalar_dict({
-                self.anyhex("k1"): self.anystr("v1"),
-                self.anyhex("k2"): self.anyfloat("v2"),
-            }),
+            request_params=MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(
+                {
+                    self.anyhex("k1"): self.anystr("v1"),
+                    self.anyhex("k2"): self.anyfloat("v2"),
+                }
+            ),
         )
 
         assert dataclasses.asdict(e) == {
@@ -1111,9 +1116,9 @@ class TestOpenAIRequestPropertiesRecordField(BaseTestCase):
                         "numeric_value": Numeric(self.getfloat("v2")),
                     },
                 },
-
-            ]
+            ],
         }
+
 
 class TestNumericType(BaseTestCase):
     def test_constructor(self) -> None:

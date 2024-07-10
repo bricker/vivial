@@ -9,7 +9,7 @@ These schemas are authoritative: changing these will change the respective schem
 
 from dataclasses import dataclass, field
 from decimal import Decimal
-from typing import Any, Self
+from typing import Self
 from urllib.parse import parse_qsl, urlparse
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
@@ -36,10 +36,12 @@ class Numeric(str):
     and requires that a Decimal, int, or flat is passed-in to the constructor to indicate the intention to the caller (developer).
     It's passed-in to BigQuery as a plain string, which is an acceptable input format for NUMERIC data tyes.
     """
-    __slots__ = () # Save memory
+
+    __slots__ = ()  # Save memory
 
     def __new__(cls, value: Decimal | int | float) -> Self:
         return super().__new__(cls, str(value))
+
 
 class RecordField:
     pass

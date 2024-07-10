@@ -466,7 +466,9 @@ class TestAtomApiTypes(BaseTestCase):
                 "openai_request": {
                     "request_params": {
                         "max_tokens": self.anyint("event.openai_request.request_params.max_tokens", max=2000),
-                        "frequency_penalty": self.anyfloat("event.openai_request.request_params.frequency_penalty", mag=0, decimals=1),
+                        "frequency_penalty": self.anyfloat(
+                            "event.openai_request.request_params.frequency_penalty", mag=0, decimals=1
+                        ),
                     },
                     "start_timestamp": self.anytime("start_timestamp"),
                     "end_timestamp": self.gettime("start_timestamp") + 5,

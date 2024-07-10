@@ -1,5 +1,4 @@
 import os
-import unittest
 
 from eave.collectors.core.config import (
     EaveCredentials,

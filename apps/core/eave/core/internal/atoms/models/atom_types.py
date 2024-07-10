@@ -4,12 +4,15 @@ from dataclasses import dataclass, field
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
 from eave.collectors.core.datastructures import DatabaseOperation
+from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
+from eave.stdlib.deidentification import REDACTABLE
+
 from .db_record_fields import (
     AccountRecordField,
-    MetadataRecordField,
     CurrentPageRecordField,
     DeviceRecordField,
     GeoRecordField,
+    MetadataRecordField,
     MultiScalarTypeKeyValueRecordField,
     Numeric,
     OpenAIRequestPropertiesRecordField,
@@ -20,8 +23,6 @@ from .db_record_fields import (
     UrlRecordField,
 )
 from .enums import BrowserAction, HttpRequestMethod
-from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
-from eave.stdlib.deidentification import REDACTABLE
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -82,7 +83,6 @@ class Atom(ABC):
                 mode=BigQueryFieldMode.NULLABLE,
             ),
             MetadataRecordField.schema(),
-
             # This must be at the root level because default_value_expression can only be used for root-level fields.
             SchemaField(
                 name="metadata_insert_timestamp",
@@ -91,7 +91,6 @@ class Atom(ABC):
                 mode=BigQueryFieldMode.NULLABLE,
                 default_value_expression="CURRENT_TIMESTAMP",
             ),
-
         )
 
 
