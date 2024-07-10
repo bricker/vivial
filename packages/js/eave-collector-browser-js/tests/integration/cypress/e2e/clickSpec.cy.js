@@ -34,7 +34,9 @@ describe("eave click atom collection", () => {
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       expect(interception.response.body.events.browser_event[0].action).to.deep.equal("CLICK");
       expect(interception.response.body.events.browser_event[0].target.type).to.deep.equal("A");
-      expect(interception.response.body.events.browser_event[0].target.attributes.href).to.deep.equal("https://google.com");
+      expect(interception.response.body.events.browser_event[0].target.attributes.href).to.deep.equal(
+        "https://google.com",
+      );
     });
   });
 

@@ -37,7 +37,7 @@ Cypress.Commands.add("interceptAtomIngestion", () => {
     // in reality, the ingestion reply doesnt matter, so we'll use this stub
     // to reflect info about the request we want to assert (i.e. data being passed)
     let body = req.body;
-    if (typeof(body) === 'string') {
+    if (typeof body === "string") {
       body = JSON.parse(body);
     }
     req.reply({
