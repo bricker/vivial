@@ -55,18 +55,22 @@ export async function popStateEventHandler(evt: PopStateEvent) {
 async function trackNavigationStateChange(state: any, url?: URL | string | null) {
   const timestamp = currentTimestampSeconds();
 
-  const payload = await requestManager.buildPayload({
-    action: NAVIGATION_ACTION_NAME,
-    timestamp,
-    target: null,
-    extra: {
-      reason: "statechange",
-      state,
-      url: url?.toString() || null,
-    },
-  });
+  // prevent statechange event from double firing on initial page view
+  // (url is undefined on initial page load)
+  if (url !== null && url !== undefined) {
+    const payload = await requestManager.buildPayload({
+      action: NAVIGATION_ACTION_NAME,
+      timestamp,
+      target: null,
+      extra: {
+        reason: "statechange",
+        state,
+        url: url.toString(),
+      },
+    });
 
-  requestManager.queueEvent(payload);
+    requestManager.queueEvent(payload);
+  }
 }
 
 // export async function trackHistoryChange(event) {
