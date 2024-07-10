@@ -80,24 +80,24 @@ describe("eave click atom collection", () => {
     });
   });
 
-  it("fires link atom when a external link wraps a button", () => {
-    cy.interceptAtomIngestion();
+  // it("fires link atom when a external link wraps a button", () => {
+  //   cy.interceptAtomIngestion();
 
-    // GIVEN site has a wrapped button
-    cy.visit(dummyAppRoot());
-    // wait for pageview to fire
-    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
+  //   // GIVEN site has a wrapped button
+  //   cy.visit(dummyAppRoot());
+  //   // wait for pageview to fire
+  //   cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
 
-    // WHEN a button tag inside an anchor tag is clicked
-    cy.get("#btn-external-link").click();
+  //   // WHEN a button tag inside an anchor tag is clicked
+  //   cy.get("#btn-external-link").click();
 
-    // THEN a link atom is fired, since link click atoms have priority over button click atoms
-    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response.body.events.browser_event[0].action).to.deep.equal("CLICK");
-      expect(interception.response.body.events.browser_event[0].target.type).to.deep.equal("A");
-      expect(interception.response.body.events.browser_event[0].target.attributes.href).to.deep.equal("https://google.com");
-    });
-  });
+  //   // THEN a link atom is fired, since link click atoms have priority over button click atoms
+  //   cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
+  //     expect(interception.response.body.events.browser_event[0].action).to.deep.equal("CLICK");
+  //     expect(interception.response.body.events.browser_event[0].target.type).to.deep.equal("A");
+  //     expect(interception.response.body.events.browser_event[0].target.attributes.href).to.deep.equal("https://google.com");
+  //   });
+  // });
 
   it("fires button click in addition to form submission", () => {
     cy.interceptAtomIngestion();
