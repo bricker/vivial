@@ -2,6 +2,7 @@ import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any
+from uuid import uuid4
 
 import openai.resources.chat
 from openai import AsyncOpenAI, AsyncStream, OpenAI, Stream
@@ -13,7 +14,7 @@ from eave.collectors.core.datastructures import OpenAIChatCompletionEventPayload
 from eave.collectors.core.generator_proxy import AsyncGeneratorProxy, GeneratorProxy
 from eave.collectors.core.logging import EAVE_LOGGER
 from eave.collectors.core.wrap_util import is_wrapped, tag_wrapped
-from eave.collectors.core.write_queue import WriteQueue
+from eave.collectors.core.write_queue import SHARED_BATCH_WRITE_QUEUE, WriteQueue
 
 
 class OpenAICollector(BaseAICollector):
@@ -23,7 +24,7 @@ class OpenAICollector(BaseAICollector):
         func_name: str
         original_function: Callable
 
-    def __init__(self, *, write_queue: WriteQueue | None = None) -> None:
+    def __init__(self, *, write_queue: WriteQueue = SHARED_BATCH_WRITE_QUEUE) -> None:
         super().__init__(write_queue=write_queue)
 
         # `openai` module path to a function, mapped to
@@ -67,6 +68,7 @@ class OpenAICollector(BaseAICollector):
     ) -> None:
         self.write_queue.put(
             OpenAIChatCompletionEventPayload(
+                event_id=str(uuid4()),
                 timestamp=time.time(),
                 completion_id=chat_response.id,
                 completion_created_timestamp=chat_response.created,
