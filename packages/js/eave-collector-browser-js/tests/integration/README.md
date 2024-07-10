@@ -21,11 +21,27 @@ You may also see any lint errors in the console.
 
 Runs the cypress e2e tests located in the `cypress/e2e/` directory. Runs tests in headless mode.
 
+Any flags passed will be passed on to the `cy:test` command. e.g. to run a specific test: `npm test -- --spec cypress/e2e/clickSpec.cy.js`
+
 If running locally, recommended to run `npm run cy:open` to run tests in GUI. Seeing things occasionally helps.
 Cypress tests require the React app server to be actively running to run tests against. You can do this with `npm start`.
 
-## Learn More
+### `cy:test`
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Runs cypress tests via `cypress run` CLI. Expects the react app under test to be running separately on localhost
+before this command is run.
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### `cy:open`
+
+Opens the cypress test GUI. In order to run any of the tests in the GUI, you will need to separately run
+the react app.
+
+This command can be helpful in visually debugging test failures.
+
+## Debugging
+
+This can be challenging in cypress specs, since they eat `console.log`s. You're best off using
+the `debugger` key word. More info in the [cypress docs](https://docs.cypress.io/guides/guides/debugging).
+
+This only works when using `cy:open` to run the tests in a GUI and while the browser inspector is open
+on the GUI while the test is running.

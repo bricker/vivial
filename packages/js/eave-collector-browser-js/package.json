@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "npm run unit-test",
-    "unit-test": "ava **/*.test.mjs",
+    "unit-test": "ava tests/unit/**/*.ts",
     "e2e-test": "npm run build && echo 'Copying current dist/collector.js to test app...' && cp dist/collector.js tests/integration/public/eave-client.min.js && cd tests/integration && npm test",
     "build": "webpack --mode=development",
     "build-prod": "webpack --mode=production --no-devtool"

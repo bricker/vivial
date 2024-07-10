@@ -25,8 +25,7 @@
 
     <!-- Eave client tracing -->
     <script>
-      var _settings = (window._settings = window._settings || []);
-      // _settings.push(["setEaveClientId", "dummy_client_id"]);
+      window.EAVE_CLIENT_ID = "dummyClientId";
       (function () {
         var scriptHostLocation = "%PUBLIC_URL%/eave-client.min.js";
         var d = document,

@@ -11,8 +11,8 @@ describe("eave page view atom collection", () => {
 
     // THEN an event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response).to.exist;
-      expect(interception.response.body.data.action_name).to.deep.equal("React App"); // html title
+      expect(interception.response.body.events.browser_event[0].action).to.deep.equal("PAGE_VIEW");
+      expect(interception.response.body.events.browser_event[0].extra.reason).to.deep.equal("pageload");
     });
   });
 
@@ -30,8 +30,8 @@ describe("eave page view atom collection", () => {
 
     // THEN page view event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
-      expect(interception.response).to.exist;
-      expect(interception.response.body.data.data.event).to.match(/HistoryChange/);
+      expect(interception.response.body.events.browser_event[0].action).to.deep.equal("PAGE_VIEW");
+      expect(interception.response.body.events.browser_event[0].extra.reason).to.deep.equal("statechange");
     });
   });
 });

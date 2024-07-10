@@ -10,17 +10,17 @@ describe("eave correlation context cookies", () => {
 
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       // THEN eave generated ctx cookie data is attached to events
-      expect(interception.response.body.data._eave_visitor_id).to.exist;
-      expect(interception.response.body.data._eave_session_id).to.exist;
+      expect(interception.response.body.events.browser_event[0].corr_ctx["_eave.visitor_id"]).to.exist;
+      expect(interception.response.body.events.browser_event[0].corr_ctx["_eave.session"]).to.exist;
     });
   });
 
   it("makes use of existing ctx and session cookie values", () => {
-    // GIVEN site has existing ctx and sesssion cookies set
+    // GIVEN site has existing visitor_id and sesssion cookies set
     const dummyVisitorId = "dummy-vis-uuid";
-    const dummySessionId = "dummy-sess-uuid";
-    cy.setCookie("_eave_visitor_id", dummyVisitorId);
-    cy.setCookie("_eave_session_id", dummySessionId);
+    const dummySession = '{"id":"dummy-sess-uuid","start_timestamp":170000}';
+    cy.setCookie("_eave.visitor_id", dummyVisitorId);
+    cy.setCookie("_eave.session", dummySession);
 
     cy.interceptAtomIngestion();
 
@@ -30,8 +30,8 @@ describe("eave correlation context cookies", () => {
     // THEN page view event is fired
     cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
       // THEN eave ctx cookie data is attached to events
-      expect(interception.response.body.data._eave_visitor_id).to.equal(dummyVisitorId);
-      expect(interception.response.body.data._eave_session_id).to.equal(dummySessionId);
+      expect(interception.response.body.events.browser_event[0].corr_ctx["_eave.visitor_id"]).to.equal(dummyVisitorId);
+      expect(interception.response.body.events.browser_event[0].corr_ctx["_eave.session"]).to.equal(dummySession);
     });
   });
 });

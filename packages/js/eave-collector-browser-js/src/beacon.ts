@@ -1,5 +1,5 @@
 import { isTrackingConsentRevoked } from "./consent";
-import { TRACKER_URL } from "./internal/compile-config";
+import { MODE, TRACKER_URL } from "./internal/compile-config";
 import { LOG_TAG } from "./internal/constants";
 import {
   EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE,
@@ -75,8 +75,7 @@ class RequestManager {
     this.#queue = new RequestQueue();
 
     // @ts-ignore: this is a known global variable implicitly set on the window.
-    if (!EAVE_CLIENT_ID) {
-      // eslint-disable-line no-undef
+    if (!window.EAVE_CLIENT_ID) {
       console.warn(LOG_TAG, "EAVE_CLIENT_ID is not set.");
       return;
     }
@@ -174,7 +173,7 @@ class RequestManager {
     this.#queue.push(payload);
     console.debug(LOG_TAG, "Queued event", payload);
 
-    if (this.#queue.isFull) {
+    if (this.#queue.isFull || MODE === "development") {
       this.#flushQueue();
     }
   }
@@ -209,7 +208,7 @@ class RequestManager {
       });
 
       // @ts-ignore: this is a known global variable implicitly set on the window.
-      const clientId: string | undefined = EAVE_CLIENT_ID; // eslint-disable-line no-undef
+      const clientId: string | undefined = window.EAVE_CLIENT_ID;
 
       console.debug(LOG_TAG, "Sending events", payloads);
 

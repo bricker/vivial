@@ -36,22 +36,13 @@ Cypress.Commands.add("interceptAtomIngestion", () => {
   cy.intercept("POST", `${EAVE_ATOM_INGESTION_ENDPOINT}*`, (req) => {
     // in reality, the ingestion reply doesnt matter, so we'll use this stub
     // to reflect info about the request we want to assert (i.e. data being passed)
-    const qp = new URL(req.url).searchParams;
-    const data = {};
-    for (const [key, val] of qp) {
-      data[key] = decodeURIComponent(val);
-      // decode json to object if necessary
-      try {
-        data[key] = JSON.parse(data[key]);
-      } catch (e) {
-        // ignore
-      }
+    let body = req.body;
+    if (typeof body === "string") {
+      body = JSON.parse(body);
     }
     req.reply({
       statusCode: 200,
-      body: {
-        data,
-      },
+      body,
     });
   }).as(ATOM_INTERCEPTION_EVENT_NAME);
 });
