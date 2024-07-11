@@ -5,9 +5,8 @@ from enum import StrEnum
 from typing import Any, ClassVar, Self
 
 from eave.collectors.core.logging import EAVE_LOGGER
-from eave.stdlib.typing import JsonValue
 
-from .json import JsonObject, JsonScalar, compact_json
+from .json import JsonObject, JsonScalar, JsonValue, compact_json
 
 
 class DatabaseOperation(StrEnum):
