@@ -5,6 +5,7 @@ from enum import StrEnum
 from typing import Any, ClassVar, Self
 
 from eave.collectors.core.logging import EAVE_LOGGER
+from eave.stdlib.typing import JsonValue
 
 from .json import JsonObject, JsonScalar, compact_json
 
@@ -32,6 +33,10 @@ class EventType(StrEnum):
     browser_event = "browser_event"
     openai_chat_completion = "openai_chat_completion"
 
+@dataclass(kw_only=True)
+class StackFrame:
+    filename: str | None
+    function: str | None
 
 @dataclass(kw_only=True)
 class EventPayload(ABC):
@@ -82,6 +87,29 @@ class HttpClientEventPayload(EventPayload):
     request_payload: str | None = None
 
 
+@dataclass(kw_only=True)
+class OpenAIRequestProperties:
+    request_params: dict[str, JsonValue] | None
+    start_timestamp: float | None
+    end_timestamp: float | None
+
+@dataclass(kw_only=True)
+class OpenAIChatCompletionEventPayload(EventPayload):
+    event_type: ClassVar[EventType] = EventType.openai_chat_completion
+
+    completion_id: str | None
+    completion_system_fingerprint: str | None
+    completion_created_timestamp: float | None
+    completion_user_id: str | None
+    service_tier: str | None
+    model: str | None
+    prompt_tokens: int | None
+    completion_tokens: int | None
+    total_tokens: int | None
+    stack_frames: list[StackFrame] | None
+    openai_request: OpenAIRequestProperties | None
+
+
 @dataclass
 class DataIngestRequestBody:
     events: dict[str, list[JsonObject]]
@@ -98,19 +126,3 @@ class DataIngestRequestBody:
 
     def to_json(self) -> str:
         return compact_json(self.to_dict())
-
-
-@dataclass(kw_only=True)
-class OpenAIChatCompletionEventPayload(EventPayload):
-    event_type: ClassVar[EventType] = EventType.openai_chat_completion
-
-    completion_id: str | None
-    completion_created_timestamp: float | None
-    completion_user_id: str | None
-    service_tier: str | None
-    model: str | None
-    num_completions: int | None
-    max_tokens: int | None
-    prompt_tokens: int | None
-    completion_tokens: int | None
-    total_tokens: int | None
