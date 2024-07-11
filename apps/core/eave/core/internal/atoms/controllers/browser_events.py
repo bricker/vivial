@@ -70,11 +70,7 @@ class BrowserEventsController(BaseAtomController):
                 extra=MultiScalarTypeKeyValueRecordField.list_from_dict(e.extra) if e.extra else None,
                 client_ip=client_ip,
                 visitor_id=visitor_id,
-                metadata=MetadataRecordField(
-                    source_app_name=SHARED_CONFIG.app_service,
-                    source_app_version=SHARED_CONFIG.app_version,
-                    source_app_release_timestamp=SHARED_CONFIG.release_timestamp,
-                ),
+                metadata=self.get_record_metadata(),
             )
 
             atoms.append(atom)

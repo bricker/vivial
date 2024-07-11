@@ -113,11 +113,7 @@ class OpenAIChatCompletionController(BaseAtomController):
                 total_cost_usd_cents=(Numeric(total_cost_usd_cents) if total_cost_usd_cents is not None else None),
                 stack_frames=stack_frames,
                 openai_request=openai_request,
-                metadata=MetadataRecordField(
-                    source_app_name=SHARED_CONFIG.app_service,
-                    source_app_version=SHARED_CONFIG.app_version,
-                    source_app_release_timestamp=SHARED_CONFIG.release_timestamp,
-                ),
+                metadata=self.get_record_metadata(),
             )
 
             atoms.append(atom)
