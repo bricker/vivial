@@ -39,7 +39,7 @@ class DatabaseEventsController(BaseAtomController):
                 continue
 
             statement_values = (
-                MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(e.statement_values)
+                MultiScalarTypeKeyValueRecordField.list_from_dict(e.statement_values)
                 if e.statement_values
                 else None
             )

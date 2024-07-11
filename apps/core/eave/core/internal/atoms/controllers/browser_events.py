@@ -67,7 +67,7 @@ class BrowserEventsController(BaseAtomController):
                 current_page=CurrentPageRecordField.from_api_resource(e.current_page) if e.current_page else None,
                 device=DeviceRecordField.from_api_resource(e.device) if e.device else None,
                 geo=geolocation,
-                extra=MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(e.extra) if e.extra else None,
+                extra=MultiScalarTypeKeyValueRecordField.list_from_dict(e.extra) if e.extra else None,
                 client_ip=client_ip,
                 visitor_id=visitor_id,
                 metadata=MetadataRecordField(
