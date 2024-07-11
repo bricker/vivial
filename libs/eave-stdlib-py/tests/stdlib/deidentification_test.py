@@ -1,5 +1,6 @@
 import dataclasses
 from typing import Any
+import unittest.mock
 
 from eave.stdlib.deidentification import (
     REDACTABLE,
@@ -47,6 +48,10 @@ class BasketWeaver:
 
 
 class DeidentificationTest(StdlibBaseTestCase):
+    async def asyncSetUp(self) -> None:
+        await super().asyncSetUp()
+        self.stop_patch("dlp.deidentify_content")
+
     def test_object_flattening(self) -> None:
         obj = BasketWeaver(
             tools=[Tool(type="knitting needles"), Tool(type="banana")],

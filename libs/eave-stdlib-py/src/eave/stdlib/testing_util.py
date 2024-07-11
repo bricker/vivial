@@ -152,15 +152,19 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getpath(self, name: str) -> str:
         return self.getstr(name)
 
-    def anystr(self, name: str | None = None) -> str:
+    def anystr(self, name: str | None = None, *, staticvalue: str | None = None) -> str:
         if name is None:
             name = uuid.uuid4().hex
 
         assert name not in self.testdata, f"test value {name} is already in use. Use getstr() to retrieve it."
 
-        data = uuid.uuid4().hex
-        new_value = f"{name}:{data}"
-        self.testdata[name] = new_value
+        if staticvalue is None:
+            data = uuid.uuid4().hex
+            value = f"{name}:{data}"
+        else:
+            value = staticvalue
+
+        self.testdata[name] = value
         return self.getstr(name)
 
     def getstr(self, name: str) -> str:
@@ -459,7 +463,8 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             )
 
         self.patch(
-            unittest.mock.patch(
+            name="dlp.deidentify_content",
+            patch=unittest.mock.patch(
                 "google.cloud.dlp_v2.DlpServiceAsyncClient.deidentify_content",
                 side_effect=_deidentify_content,
             )
@@ -540,6 +545,10 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def get_patched_dict(self, name: str) -> unittest.mock._patch_dict:
         assert name in self._active_patched_dicts, f"{name} is not patched!"
         return self._active_patched_dicts[name]
+
+    def stop_patch(self, name: str) -> None:
+        assert name in self._active_patches, f"{name} is not patched!"
+        self.get_patch(name).stop()
 
     def stop_all_patches(self) -> None:
         unittest.mock.patch.stopall()
