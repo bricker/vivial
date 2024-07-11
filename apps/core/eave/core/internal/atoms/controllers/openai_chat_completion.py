@@ -11,6 +11,7 @@ from eave.core.internal.atoms.models.db_record_fields import (
     Numeric,
     OpenAIRequestPropertiesRecordField,
     SessionRecordField,
+    StackFramesRecordField,
     TrafficSourceRecordField,
 )
 from eave.core.internal.atoms.models.openai_pricing import CHAT_MODELS, FINE_TUNING_MODELS
@@ -84,6 +85,13 @@ class OpenAIChatCompletionController(BaseAtomController):
             if e.openai_request:
                 openai_request = OpenAIRequestPropertiesRecordField.from_api_resource(e.openai_request)
 
+            stack_frames = None
+            if e.stack_frames:
+                stack_frames = [
+                    StackFramesRecordField.from_api_resource(sf)
+                    for sf in e.stack_frames
+                ]
+
             atom = OpenAIChatCompletionAtom(
                 event_id=e.event_id,
                 timestamp=e.timestamp,
@@ -103,7 +111,7 @@ class OpenAIChatCompletionController(BaseAtomController):
                 input_cost_usd_cents=(Numeric(input_cost_usd_cents) if input_cost_usd_cents is not None else None),
                 output_cost_usd_cents=(Numeric(output_cost_usd_cents) if output_cost_usd_cents is not None else None),
                 total_cost_usd_cents=(Numeric(total_cost_usd_cents) if total_cost_usd_cents is not None else None),
-                code_location=e.code_location,
+                stack_frames=stack_frames,
                 openai_request=openai_request,
                 metadata=MetadataRecordField(
                     source_app_name=SHARED_CONFIG.app_service,

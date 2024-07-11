@@ -18,6 +18,7 @@ from .db_record_fields import (
     OpenAIRequestPropertiesRecordField,
     SessionRecordField,
     SingleScalarTypeKeyValueRecordField,
+    StackFramesRecordField,
     TargetRecordField,
     TrafficSourceRecordField,
     UrlRecordField,
@@ -190,11 +191,7 @@ class OpenAIChatCompletionAtom(Atom):
                     field_type=SqlTypeNames.INTEGER,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
-                SchemaField(
-                    name="code_location",
-                    field_type=SqlTypeNames.STRING,
-                    mode=BigQueryFieldMode.NULLABLE,
-                ),
+                StackFramesRecordField.schema(),
                 OpenAIRequestPropertiesRecordField.schema(),
                 SchemaField(
                     name="input_cost_usd_cents",
@@ -224,7 +221,7 @@ class OpenAIChatCompletionAtom(Atom):
     prompt_tokens: int | None
     completion_tokens: int | None
     total_tokens: int | None
-    code_location: str | None
+    stack_frames: list[StackFramesRecordField] | None
     openai_request: OpenAIRequestPropertiesRecordField | None
     input_cost_usd_cents: Numeric | None
     output_cost_usd_cents: Numeric | None

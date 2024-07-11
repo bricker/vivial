@@ -20,6 +20,7 @@ from eave.core.internal.atoms.models.api_payload_types import (
     OpenAIChatCompletionPayload,
     OpenAIRequestProperties,
     SessionProperties,
+    StackFrameProperties,
     TargetProperties,
     TrafficSourceProperties,
 )
@@ -208,6 +209,41 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.account_id == self.getstr("account.account_id")
         assert e.extra == {
             self.getstr("account.extra.0.key"): self.getstr("account.extra.0.value"),
+        }
+
+    async def test_stack_frame_properties(self):
+        e = StackFrameProperties.from_api_payload({})
+        assert e.filename is None
+        assert e.function is None
+
+        e = StackFrameProperties.from_api_payload(
+            {
+                "filename": self.anyhex("stack.filename"),
+                "function": self.anyhex("stack.function"),
+            }
+        )
+        assert e.filename == self.getstr("stack.filename")
+        assert e.function == self.getstr("stack.function")
+
+    async def test_openai_request_properties(self):
+        e = OpenAIRequestProperties.from_api_payload({})
+        assert e.start_timestamp is None
+        assert e.end_timestamp is None
+        assert e.request_params is None
+
+        e = OpenAIRequestProperties.from_api_payload(
+            {
+                "start_timestamp": self.anytime("request.start_timestamp"),
+                "end_timestamp": self.gettime("request.start_timestamp") + 5,
+                "request_params": {
+                    self.anyhex("rp.0.key"): self.anyhex("rp.0.val"),
+                },
+            },
+        )
+        assert e.start_timestamp == self.gettime("request.start_timestamp")
+        assert e.end_timestamp == self.gettime("request.start_timestamp") + 5
+        assert e.request_params == {
+            self.getstr("rp.0.key"): self.getstr("rp.0.val"),
         }
 
     async def test_correlation_context(self):
@@ -445,7 +481,7 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.prompt_tokens is None
         assert e.completion_tokens is None
         assert e.total_tokens is None
-        assert e.code_location is None
+        assert e.stack_frames is None
         assert e.openai_request is None
         assert e.corr_ctx is None
 
@@ -458,11 +494,20 @@ class TestAtomApiTypes(BaseTestCase):
                 "completion_created_timestamp": self.anytime("event.completion_created_timestamp"),
                 "completion_user_id": self.anyhex("event.completion_user_id"),
                 "service_tier": self.anystr("event.service_tier"),
-                "model": "gpt-4o-2024-05-13",
+                "model": self.anystr("gpt-model", staticvalue="gpt-4o-2024-05-13"),
                 "prompt_tokens": self.anyint("event.prompt_tokens", max=1000),
                 "completion_tokens": self.anyint("event.completion_tokens", max=1000),
                 "total_tokens": self.anyint("event.total_tokens", max=2000),
-                "code_location": self.anypath("event.code_location"),
+                "stack_frames": [
+                    {
+                        "filename": self.anyhex("event.stack_frames.0.filename"),
+                        "function": self.anyhex("event.stack_frames.0.function"),
+                    },
+                    {
+                        "filename": self.anyhex("event.stack_frames.1.filename"),
+                        "function": self.anyhex("event.stack_frames.1.function"),
+                    },
+                ],
                 "openai_request": {
                     "request_params": {
                         "max_tokens": self.anyint("event.openai_request.request_params.max_tokens", max=2000),
@@ -472,7 +517,6 @@ class TestAtomApiTypes(BaseTestCase):
                     },
                     "start_timestamp": self.anytime("start_timestamp"),
                     "end_timestamp": self.gettime("start_timestamp") + 5,
-                    "status_code": 200,
                 },
                 "corr_ctx": self._example_corr_ctx,
             },
@@ -485,23 +529,35 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.completion_created_timestamp == self.gettime("event.completion_created_timestamp")
         assert e.completion_user_id == self.gethex("event.completion_user_id")
         assert e.service_tier == self.getstr("event.service_tier")
-        assert e.model == "gpt-4o-2024-05-13"
+        assert e.model == self.getstr("gpt-model")
         assert e.prompt_tokens == self.getint("event.prompt_tokens")
         assert e.completion_tokens == self.getint("event.completion_tokens")
         assert e.total_tokens == self.getint("event.total_tokens")
-        assert e.code_location == self.getpath("event.code_location")
-        assert e.openai_request is not None
-        assert isinstance(e.openai_request, OpenAIRequestProperties)
+        assert e.stack_frames == [
+            StackFrameProperties(filename=self.getstr("event.stack_frames.0.filename"), function=self.getstr("event.stack_frames.0.function")),
+            StackFrameProperties(filename=self.getstr("event.stack_frames.1.filename"), function=self.getstr("event.stack_frames.1.function")),
+        ]
+        assert e.openai_request == OpenAIRequestProperties(
+            start_timestamp=self.gettime("start_timestamp"),
+            end_timestamp=self.gettime("start_timestamp") + 5,
+            request_params={
+                "max_tokens": self.getint("event.openai_request.request_params.max_tokens"),
+                "frequency_penalty": self.getfloat("event.openai_request.request_params.frequency_penalty"),
+            },
+        )
+
         assert self._corr_ctx_matches(e.corr_ctx)
 
         e = OpenAIChatCompletionPayload.from_api_payload(
             {
+                "model": self.anystr("unknown gpt model"),
                 "corr_ctx": self._example_corr_ctx,
             },
             decryption_key=self.anysha256(),
         )
         assert e.corr_ctx is not None
         assert e.corr_ctx.account is None
+        assert e.model == self.getstr("unknown gpt model")
 
     async def test_http_server_event_payload(self):
         e = HttpServerEventPayload.from_api_payload({}, decryption_key=self.anysha256())

@@ -18,6 +18,7 @@ from eave.core.internal.atoms.models.db_record_fields import (
     OpenAIRequestPropertiesRecordField,
     SessionRecordField,
     SingleScalarTypeKeyValueRecordField,
+    StackFramesRecordField,
     TargetRecordField,
     TrafficSourceRecordField,
     UrlRecordField,
@@ -113,6 +114,8 @@ class TestOpenAIChatCompletionAtom(BaseTestCase):
                     field_type=SqlTypeNames.INTEGER,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
+                StackFramesRecordField.schema(),
+                OpenAIRequestPropertiesRecordField.schema(),
                 SchemaField(
                     name="input_cost_usd_cents",
                     field_type=SqlTypeNames.NUMERIC,
@@ -128,12 +131,6 @@ class TestOpenAIChatCompletionAtom(BaseTestCase):
                     field_type=SqlTypeNames.NUMERIC,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
-                SchemaField(
-                    name="code_location",
-                    field_type=SqlTypeNames.STRING,
-                    mode=BigQueryFieldMode.NULLABLE,
-                ),
-                OpenAIRequestPropertiesRecordField.schema(),
                 *Atom.common_atom_schema_fields(),
             ),
         )

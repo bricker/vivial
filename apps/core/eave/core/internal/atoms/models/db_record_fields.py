@@ -23,6 +23,7 @@ from eave.core.internal.atoms.models.api_payload_types import (
     DeviceProperties,
     OpenAIRequestProperties,
     SessionProperties,
+    StackFrameProperties,
     TargetProperties,
     TrafficSourceProperties,
 )
@@ -858,6 +859,40 @@ class MetadataRecordField:
     source_app_version: str | None
     source_app_release_timestamp: float | None
 
+@dataclass(kw_only=True)
+class StackFramesRecordField:
+    @staticmethod
+    def schema() -> SchemaField:
+        return SchemaField(
+            name="stack_frames",
+            field_type=SqlTypeNames.RECORD,
+            mode=BigQueryFieldMode.REPEATED,
+            fields=(
+                SchemaField(
+                    name="filename",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                    description="The name of the file in which this stack frame was created.",
+                ),
+                SchemaField(
+                    name="function",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                    description="The name of the function in which this stack frame was created.",
+                ),
+            ),
+        )
+
+    filename: str | None
+    function: str | None
+
+    @classmethod
+    def from_api_resource(cls, resource: StackFrameProperties) -> Self:
+        return cls(
+            filename=resource.filename,
+            function=resource.function,
+        )
+
 
 @dataclass(kw_only=True)
 class OpenAIRequestPropertiesRecordField:
@@ -883,11 +918,6 @@ class OpenAIRequestPropertiesRecordField:
                     field_type=SqlTypeNames.FLOAT,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
-                SchemaField(
-                    name="status_code",
-                    field_type=SqlTypeNames.INTEGER,
-                    mode=BigQueryFieldMode.NULLABLE,
-                ),
                 MultiScalarTypeKeyValueRecordField.schema(
                     name="request_params",
                     description="Request params sent to the OpenAI API. Some params are omitted for privacy.",
@@ -898,7 +928,6 @@ class OpenAIRequestPropertiesRecordField:
     start_timestamp: float | None
     end_timestamp: float | None
     duration_ms: float | None
-    status_code: int | None
     request_params: list[MultiScalarTypeKeyValueRecordField] | None
 
     @classmethod

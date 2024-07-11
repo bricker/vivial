@@ -1,5 +1,6 @@
 import dataclasses
 from decimal import Decimal
+import json
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
@@ -24,13 +25,14 @@ from eave.core.internal.atoms.models.db_record_fields import (
     OpenAIRequestPropertiesRecordField,
     SessionRecordField,
     SingleScalarTypeKeyValueRecordField,
+    StackFramesRecordField,
     TargetRecordField,
     TrafficSourceRecordField,
     TypedValueRecordField,
     UrlRecordField,
 )
 from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
-from eave.stdlib.typing import JsonScalar
+from eave.stdlib.typing import JsonScalar, JsonValue
 
 from ..base import BaseTestCase, assert_schemas_match
 
@@ -58,6 +60,11 @@ class TestTypedValueRecordField(BaseTestCase):
                         SchemaField(
                             name="bool_value",
                             field_type=SqlTypeNames.BOOLEAN,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        SchemaField(
+                            name="json_value",
+                            field_type=SqlTypeNames.STRING,
                             mode=BigQueryFieldMode.NULLABLE,
                         ),
                     ),
@@ -88,39 +95,52 @@ class TestMultiTypeKeyValueRecordField(BaseTestCase):
         )
 
     async def test_field(self) -> None:
-        e = MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(
+        e = MultiScalarTypeKeyValueRecordField.list_from_dict(
             {
                 self.anystr("key for str"): self.anystr("str value"),
                 self.anystr("key for numeric"): self.anyfloat("numeric value"),
                 self.anystr("key for bool"): self.anybool("bool value"),
                 self.anystr("key for None"): None,
+                self.anystr("key for json"): self.anydict("json value"),
             }
         )
 
-        assert len(e) == 4
+        assert len(e) == 5
+
         assert e[0].key == self.getstr("key for str")
         assert e[0].value is not None
         assert e[0].value.string_value == self.getstr("str value")
         assert e[0].value.numeric_value is None
         assert e[0].value.bool_value is None
+        assert e[0].value.json_value is None
 
         assert e[1].key == self.getstr("key for numeric")
         assert e[1].value is not None
         assert e[1].value.string_value is None
         assert e[1].value.numeric_value == Numeric(self.getfloat("numeric value"))
         assert e[1].value.bool_value is None
+        assert e[1].value.json_value is None
 
         assert e[2].key == self.getstr("key for bool")
         assert e[2].value is not None
         assert e[2].value.string_value is None
         assert e[2].value.numeric_value is None
         assert e[2].value.bool_value == self.getbool("bool value")
+        assert e[2].value.json_value is None
 
         assert e[3].key == self.getstr("key for None")
         assert e[3].value is not None
         assert e[3].value.string_value is None
         assert e[3].value.numeric_value is None
         assert e[3].value.bool_value is None
+        assert e[3].value.json_value is None
+
+        assert e[4].key == self.getstr("key for json")
+        assert e[4].value is not None
+        assert e[4].value.string_value is None
+        assert e[4].value.numeric_value is None
+        assert e[4].value.bool_value is None
+        assert e[4].value.json_value == json.dumps(self.getdict("json value"))
 
         assert dataclasses.asdict(e[1]) == {
             "key": self.getstr("key for numeric"),
@@ -128,6 +148,8 @@ class TestMultiTypeKeyValueRecordField(BaseTestCase):
                 "string_value": None,
                 "numeric_value": str(self.getfloat("numeric value")),
                 "bool_value": None,
+                "json_value": None,
+
             },
         }
 
@@ -297,7 +319,7 @@ class TestAccountRecordField(BaseTestCase):
         )
 
     async def test_field(self) -> None:
-        extra: dict[str, JsonScalar] = {self.anystr("k1"): self.anystr("v1")}
+        extra: dict[str, JsonValue] = {self.anystr("k1"): self.anystr("v1")}
         e = AccountRecordField.from_api_resource(
             resource=AccountProperties(
                 account_id=self.anystr("account.account_id"),
@@ -307,7 +329,7 @@ class TestAccountRecordField(BaseTestCase):
 
         assert e.account_id == self.getstr("account.account_id")
         assert e.extra is not None
-        assert e.extra == MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(extra)
+        assert e.extra == MultiScalarTypeKeyValueRecordField.list_from_dict(extra)
 
         assert dataclasses.asdict(e) == {
             "account_id": self.getstr("account.account_id"),
@@ -1066,11 +1088,6 @@ class TestOpenAIRequestPropertiesRecordField(BaseTestCase):
                             field_type=SqlTypeNames.FLOAT,
                             mode=BigQueryFieldMode.NULLABLE,
                         ),
-                        SchemaField(
-                            name="status_code",
-                            field_type=SqlTypeNames.INTEGER,
-                            mode=BigQueryFieldMode.NULLABLE,
-                        ),
                         MultiScalarTypeKeyValueRecordField.schema(
                             name="request_params",
                             description=self.anystr(),
@@ -1085,8 +1102,7 @@ class TestOpenAIRequestPropertiesRecordField(BaseTestCase):
             start_timestamp=self.anytime("start_timestamp"),
             end_timestamp=self.anytime("end_timestamp"),
             duration_ms=self.anyint("duration_ms"),
-            status_code=200,
-            request_params=MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(
+            request_params=MultiScalarTypeKeyValueRecordField.list_from_dict(
                 {
                     self.anyhex("k1"): self.anystr("v1"),
                     self.anyhex("k2"): self.anyfloat("v2"),
@@ -1098,7 +1114,6 @@ class TestOpenAIRequestPropertiesRecordField(BaseTestCase):
             "start_timestamp": self.gettime("start_timestamp"),
             "end_timestamp": self.gettime("end_timestamp"),
             "duration_ms": self.getint("duration_ms"),
-            "status_code": 200,
             "request_params": [
                 {
                     "key": self.gethex("k1"),
@@ -1106,6 +1121,7 @@ class TestOpenAIRequestPropertiesRecordField(BaseTestCase):
                         "string_value": self.getstr("v1"),
                         "bool_value": None,
                         "numeric_value": None,
+                        "json_value": None,
                     },
                 },
                 {
@@ -1114,9 +1130,46 @@ class TestOpenAIRequestPropertiesRecordField(BaseTestCase):
                         "string_value": None,
                         "bool_value": None,
                         "numeric_value": Numeric(self.getfloat("v2")),
+                        "json_value": None,
                     },
                 },
             ],
+        }
+
+class TestStackFramePropertiesRecordField(BaseTestCase):
+    async def test_schema(self) -> None:
+        assert_schemas_match(
+            (StackFramesRecordField.schema(),),
+            (
+                SchemaField(
+                    name="stack_frames",
+                    field_type=SqlTypeNames.RECORD,
+                    mode=BigQueryFieldMode.REPEATED,
+                    fields=(
+                        SchemaField(
+                            name="filename",
+                            field_type=SqlTypeNames.STRING,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                        SchemaField(
+                            name="function",
+                            field_type=SqlTypeNames.STRING,
+                            mode=BigQueryFieldMode.NULLABLE,
+                        ),
+                    ),
+                ),
+            ),
+        )
+
+    async def test_field(self) -> None:
+        e = StackFramesRecordField(
+            filename=self.anyhex("stack_frame.filename"),
+            function=self.anyhex("stack_frame.function"),
+        )
+
+        assert dataclasses.asdict(e) == {
+            "filename": self.getstr("stack_frame.filename"),
+            "function": self.getstr("stack_frame.function"),
         }
 
 

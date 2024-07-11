@@ -189,6 +189,7 @@ class _ControllerTestBase(BigQueryTestsBase):
                         "string_value": self.getstr("event.account.extra.0.val"),
                         "bool_value": None,
                         "numeric_value": None,
+                        "json_value": None,
                     },
                 }
             ],
@@ -426,6 +427,7 @@ class TestBrowserEventsPayloadProcessor(_ControllerTestBase):
                     "string_value": self.getstr("event.extra.strval"),
                     "numeric_value": None,
                     "bool_value": None,
+                    "json_value": None,
                 },
             },
             {
@@ -434,6 +436,7 @@ class TestBrowserEventsPayloadProcessor(_ControllerTestBase):
                     "string_value": None,
                     "numeric_value": self.getint("event.extra.numericval"),
                     "bool_value": None,
+                    "json_value": None,
                 },
             },
             {
@@ -442,6 +445,7 @@ class TestBrowserEventsPayloadProcessor(_ControllerTestBase):
                     "string_value": None,
                     "numeric_value": None,
                     "bool_value": self.getbool("event.extra.boolval"),
+                    "json_value": None,
                 },
             },
         ]
@@ -544,6 +548,7 @@ class TestDatabaseEventsPayloadProcessor(_ControllerTestBase):
                     "string_value": self.getstr("event.statement_values.0.value"),
                     "numeric_value": None,
                     "bool_value": None,
+                    "json_value": None,
                 },
             },
             {
@@ -552,6 +557,7 @@ class TestDatabaseEventsPayloadProcessor(_ControllerTestBase):
                     "string_value": None,
                     "numeric_value": self.getint("event.statement_values.1.value"),
                     "bool_value": None,
+                    "json_value": None,
                 },
             },
         ]
@@ -633,7 +639,16 @@ class TestOpenAIChatCompletionPayloadProcessor(_ControllerTestBase):
                     "prompt_tokens": self.anyint("event.prompt_tokens", max=1000),
                     "completion_tokens": self.anyint("event.completion_tokens", max=1000),
                     "total_tokens": self.getint("event.prompt_tokens") + self.getint("event.completion_tokens"),
-                    "code_location": self.anypath("event.code_location"),
+                    "stack_frames": [
+                        {
+                            "filename": self.anyhex("event.stack_frames.0.filename"),
+                            "function": self.anyhex("event.stack_frames.0.function"),
+                        },
+                        {
+                            "filename": self.anyhex("event.stack_frames.1.filename"),
+                            "function": self.anyhex("event.stack_frames.1.function"),
+                        },
+                    ],
                     "openai_request": {
                         "request_params": {
                             "max_tokens": self.anyint("event.openai_request.request_params.max_tokens", max=2000),
@@ -680,7 +695,16 @@ class TestOpenAIChatCompletionPayloadProcessor(_ControllerTestBase):
         assert first_row.get("total_tokens") == self.getint("event.prompt_tokens") + self.getint(
             "event.completion_tokens"
         )
-        assert first_row.get("code_location") == self.getpath("event.code_location")
+        assert first_row.get("stack_frames") == [
+            {
+                "filename": self.gethex("event.stack_frames.0.filename"),
+                "function": self.gethex("event.stack_frames.0.function"),
+            },
+            {
+                "filename": self.gethex("event.stack_frames.1.filename"),
+                "function": self.gethex("event.stack_frames.1.function"),
+            },
+        ]
 
         # Just assert that some data was inserted. We'll test the actual costs later.
         assert first_row.get("input_cost_usd_cents") is not None
@@ -695,6 +719,7 @@ class TestOpenAIChatCompletionPayloadProcessor(_ControllerTestBase):
                         "numeric_value": Decimal(str(self.getint("event.openai_request.request_params.max_tokens"))),
                         "string_value": None,
                         "bool_value": None,
+                        "json_value": None,
                     },
                 },
                 {
@@ -705,6 +730,7 @@ class TestOpenAIChatCompletionPayloadProcessor(_ControllerTestBase):
                         ),
                         "string_value": None,
                         "bool_value": None,
+                        "json_value": None,
                     },
                 },
                 {
@@ -713,13 +739,13 @@ class TestOpenAIChatCompletionPayloadProcessor(_ControllerTestBase):
                         "numeric_value": None,
                         "string_value": self.getstr("event.openai_request.request_params.stop"),
                         "bool_value": None,
+                        "json_value": None,
                     },
                 },
             ],
             "start_timestamp": datetime.datetime.fromtimestamp(self.gettime("start_timestamp"), tz=datetime.UTC),
             "end_timestamp": datetime.datetime.fromtimestamp(self.gettime("start_timestamp") + 5, tz=datetime.UTC),
             "duration_ms": 5000,  # 5 seconds, hardcoded in this test (start_timestamp + 5)
-            "status_code": 200,
         }
 
     async def test_costs(self) -> None:
@@ -750,6 +776,36 @@ class TestOpenAIChatCompletionPayloadProcessor(_ControllerTestBase):
         assert first_row.get("input_cost_usd_cents") == Decimal("0.05")
         assert first_row.get("output_cost_usd_cents") == Decimal("1.5")
         assert first_row.get("total_cost_usd_cents") == Decimal("1.55")
+
+    async def test_costs_with_unknown_model(self) -> None:
+        controller = OpenAIChatCompletionController(client=self.client_credentials)
+
+        await controller.insert(
+            events=[
+                {
+                    "model": self.anystr("unknown gpt model"),
+                    "prompt_tokens": 100,
+                    "completion_tokens": 1000,
+                    "total_tokens": 1100,
+                },
+            ],
+            ctx=self.empty_ctx,
+        )
+
+        results = EAVE_INTERNAL_BIGQUERY_CLIENT.query(
+            query=f"select * from {bq_dataset_id(self.eave_team.id)}.atoms_openai_chat_completions"
+        )
+
+        assert results.total_rows == 1
+        first_row = next(results, None)
+        assert first_row is not None
+        assert isinstance(first_row, Row)
+
+        # These values are based on the passed-in model and token counts. See the OpenAI Pricing module for the calculations.
+        assert first_row.get("model") == self.getstr("unknown gpt model")
+        assert first_row.get("input_cost_usd_cents") is None
+        assert first_row.get("output_cost_usd_cents") is None
+        assert first_row.get("total_cost_usd_cents") is None
 
 
 class TestHttpServerEventsPayloadProcessor(_ControllerTestBase):

@@ -225,10 +225,9 @@ class CorrelationContext:
 
 @dataclass(kw_only=True)
 class OpenAIRequestProperties:
-    request_params: dict[str, JsonScalar] | None
+    request_params: dict[str, JsonValue] | None
     start_timestamp: float | None
     end_timestamp: float | None
-    status_code: int | None
 
     @classmethod
     def from_api_payload(cls, data: dict[str, Any]) -> Self:
@@ -236,7 +235,18 @@ class OpenAIRequestProperties:
             request_params=data.get("request_params"),
             start_timestamp=data.get("start_timestamp"),
             end_timestamp=data.get("end_timestamp"),
-            status_code=data.get("status_code"),
+        )
+
+@dataclass(kw_only=True)
+class StackFrameProperties:
+    filename: str | None
+    function: str | None
+
+    @classmethod
+    def from_api_payload(cls, data: dict[str, Any]) -> Self:
+        return cls(
+            filename=data.get("filename"),
+            function=data.get("function"),
         )
 
 
@@ -249,7 +259,7 @@ class BrowserEventPayload:
     target: TargetProperties | None
     device: DeviceProperties | None
     current_page: CurrentPageProperties | None
-    extra: dict[str, JsonScalar | None] | None
+    extra: dict[str, JsonValue | None] | None
 
     @classmethod
     def from_api_payload(cls, data: dict[str, Any], *, decryption_key: bytes) -> Self:
@@ -291,7 +301,7 @@ class OpenAIChatCompletionPayload:
     prompt_tokens: int | None
     completion_tokens: int | None
     total_tokens: int | None
-    code_location: str | None
+    stack_frames: list[StackFrameProperties] | None
     openai_request: OpenAIRequestProperties | None
 
     @classmethod
@@ -308,8 +318,16 @@ class OpenAIChatCompletionPayload:
             prompt_tokens=data.get("prompt_tokens"),
             completion_tokens=data.get("completion_tokens"),
             total_tokens=data.get("total_tokens"),
-            code_location=data.get("code_location"),
-            openai_request=OpenAIRequestProperties.from_api_payload(rp) if (rp := data.get("openai_request")) else None,
+            stack_frames=(
+                [StackFrameProperties.from_api_payload(sf) for sf in sfp]
+                if (sfp := data.get("stack_frames"))
+                else None
+            ),
+            openai_request=(
+                OpenAIRequestProperties.from_api_payload(rp)
+                if (rp := data.get("openai_request"))
+                else None
+            ),
             corr_ctx=(
                 CorrelationContext.from_api_payload(cc, decryption_key=decryption_key)
                 if (cc := data.get("corr_ctx")) and isinstance(cc, dict)

@@ -1,9 +1,10 @@
+import inspect
 import os
 import unittest
 
 from openai import AsyncOpenAI, OpenAI
 
-from eave.collectors.core.datastructures import OpenAIChatCompletionEventPayload
+from eave.collectors.core.datastructures import OpenAIChatCompletionEventPayload, StackFrame
 from eave.collectors.core.test_util import EphemeralWriteQueue
 from eave.collectors.openai.private.collector import OpenAICollector
 
@@ -46,17 +47,19 @@ class OpenAICollectorTest(unittest.IsolatedAsyncioTestCase):
             ],
             model="gpt-3.5-turbo",
             user="mock_user_id",
-            max_tokens=400,
         )
 
         # THEN only 1 event is created
         assert len(self._write_queue.queue) == 1
         e = self._write_queue.queue[0]
         assert isinstance(e, OpenAIChatCompletionEventPayload)
-        assert e.max_tokens == 400
         assert e.completion_user_id == "mock_user_id"
         assert e.prompt_tokens and e.prompt_tokens > 0
         assert e.completion_tokens and e.completion_tokens > 0
+        assert e.openai_request is not None
+        assert e.openai_request.start_timestamp is not None
+        assert e.openai_request.end_timestamp is not None
+        assert e.openai_request.request_params is not None
 
     def test_sync_chat_completion_captured(self) -> None:
         _ = self.sync_client.chat.completions.create(
@@ -68,13 +71,11 @@ class OpenAICollectorTest(unittest.IsolatedAsyncioTestCase):
             ],
             model="gpt-3.5-turbo",
             user="mock_user_id",
-            max_tokens=400,
         )
 
         assert len(self._write_queue.queue) == 1
         e = self._write_queue.queue[0]
         assert isinstance(e, OpenAIChatCompletionEventPayload)
-        assert e.max_tokens == 400
         assert e.completion_user_id == "mock_user_id"
         assert e.prompt_tokens and e.prompt_tokens > 0
         assert e.completion_tokens and e.completion_tokens > 0
@@ -89,13 +90,11 @@ class OpenAICollectorTest(unittest.IsolatedAsyncioTestCase):
             ],
             model="gpt-3.5-turbo",
             user="mock_user_id",
-            max_tokens=400,
         )
 
         assert len(self._write_queue.queue) == 1
         e = self._write_queue.queue[0]
         assert isinstance(e, OpenAIChatCompletionEventPayload)
-        assert e.max_tokens == 400
         assert e.completion_user_id == "mock_user_id"
         assert e.prompt_tokens and e.prompt_tokens > 0
         assert e.completion_tokens and e.completion_tokens > 0
@@ -110,7 +109,6 @@ class OpenAICollectorTest(unittest.IsolatedAsyncioTestCase):
             ],
             model="gpt-3.5-turbo",
             user="mock_user_id",
-            max_tokens=400,
             stream=True,
         )
 
@@ -120,7 +118,6 @@ class OpenAICollectorTest(unittest.IsolatedAsyncioTestCase):
         assert len(self._write_queue.queue) == 1
         e = self._write_queue.queue[0]
         assert isinstance(e, OpenAIChatCompletionEventPayload)
-        assert e.max_tokens == 400
         assert e.completion_user_id == "mock_user_id"
         assert e.prompt_tokens and e.prompt_tokens > 0
         assert e.completion_tokens and e.completion_tokens > 0
@@ -135,7 +132,6 @@ class OpenAICollectorTest(unittest.IsolatedAsyncioTestCase):
             ],
             model="gpt-3.5-turbo",
             user="mock_user_id",
-            max_tokens=400,
             stream=True,
             stream_options={"include_usage": False},
         )
@@ -147,10 +143,35 @@ class OpenAICollectorTest(unittest.IsolatedAsyncioTestCase):
         assert len(self._write_queue.queue) == 1
         e = self._write_queue.queue[0]
         assert isinstance(e, OpenAIChatCompletionEventPayload)
-        assert e.max_tokens == 400
         assert e.completion_user_id == "mock_user_id"
         assert e.prompt_tokens and e.prompt_tokens > 0
         assert e.completion_tokens and e.completion_tokens > 0
+
+    async def test_stack_frame_capture(self) -> None:
+        def first_significant_frame() -> None:
+            self.sync_client.chat.completions.create(
+                messages=[
+                    {
+                        "role": "user",
+                        "content": "Say this is a test",
+                    }
+                ],
+                model="gpt-3.5-turbo",
+            )
+
+        def second_significant_frame() -> None:
+            first_significant_frame()
+
+        second_significant_frame()
+
+        assert len(self._write_queue.queue) == 1
+        e = self._write_queue.queue[0]
+        assert isinstance(e, OpenAIChatCompletionEventPayload)
+        assert e.stack_frames is not None
+        assert len(e.stack_frames) == 10
+        assert e.stack_frames[0] == StackFrame(filename=__file__, function="first_significant_frame")
+        assert e.stack_frames[1] == StackFrame(filename=__file__, function="second_significant_frame")
+        assert e.stack_frames[2] == StackFrame(filename=__file__, function="test_stack_frame_capture")
 
     async def test_uninstrumentation(self) -> None:
         _ = self.sync_client.chat.completions.create(
@@ -162,13 +183,11 @@ class OpenAICollectorTest(unittest.IsolatedAsyncioTestCase):
             ],
             model="gpt-3.5-turbo",
             user="mock_user_id",
-            max_tokens=400,
         )
 
         assert len(self._write_queue.queue) == 1
         e = self._write_queue.queue[0]
         assert isinstance(e, OpenAIChatCompletionEventPayload)
-        assert e.max_tokens == 400
         assert e.completion_user_id == "mock_user_id"
         assert e.prompt_tokens and e.prompt_tokens > 0
         assert e.completion_tokens and e.completion_tokens > 0
@@ -182,13 +201,11 @@ class OpenAICollectorTest(unittest.IsolatedAsyncioTestCase):
             ],
             model="gpt-3.5-turbo",
             user="mock_user_id",
-            max_tokens=400,
         )
 
         assert len(self._write_queue.queue) == 2
         e = self._write_queue.queue[1]
         assert isinstance(e, OpenAIChatCompletionEventPayload)
-        assert e.max_tokens == 400
         assert e.completion_user_id == "mock_user_id"
         assert e.prompt_tokens and e.prompt_tokens > 0
         assert e.completion_tokens and e.completion_tokens > 0
@@ -205,7 +222,6 @@ class OpenAICollectorTest(unittest.IsolatedAsyncioTestCase):
             ],
             model="gpt-3.5-turbo",
             user="mock_user_id",
-            max_tokens=400,
         )
         _ = await self.async_client.chat.completions.create(
             messages=[
@@ -216,7 +232,6 @@ class OpenAICollectorTest(unittest.IsolatedAsyncioTestCase):
             ],
             model="gpt-3.5-turbo",
             user="mock_user_id",
-            max_tokens=400,
         )
 
         assert len(self._write_queue.queue) == 2, "Events were sent to the write queue after uninstrumentation"
