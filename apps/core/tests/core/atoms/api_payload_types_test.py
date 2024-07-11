@@ -534,8 +534,14 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.completion_tokens == self.getint("event.completion_tokens")
         assert e.total_tokens == self.getint("event.total_tokens")
         assert e.stack_frames == [
-            StackFrameProperties(filename=self.getstr("event.stack_frames.0.filename"), function=self.getstr("event.stack_frames.0.function")),
-            StackFrameProperties(filename=self.getstr("event.stack_frames.1.filename"), function=self.getstr("event.stack_frames.1.function")),
+            StackFrameProperties(
+                filename=self.getstr("event.stack_frames.0.filename"),
+                function=self.getstr("event.stack_frames.0.function"),
+            ),
+            StackFrameProperties(
+                filename=self.getstr("event.stack_frames.1.filename"),
+                function=self.getstr("event.stack_frames.1.function"),
+            ),
         ]
         assert e.openai_request == OpenAIRequestProperties(
             start_timestamp=self.gettime("start_timestamp"),

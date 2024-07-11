@@ -9,7 +9,6 @@ from eave.core.internal.atoms.models.api_payload_types import (
 from eave.core.internal.atoms.models.atom_types import DatabaseEventAtom
 from eave.core.internal.atoms.models.db_record_fields import (
     AccountRecordField,
-    MetadataRecordField,
     MultiScalarTypeKeyValueRecordField,
     SessionRecordField,
     TrafficSourceRecordField,
@@ -17,7 +16,6 @@ from eave.core.internal.atoms.models.db_record_fields import (
 from eave.core.internal.atoms.models.db_views import DatabaseEventView
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
-from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.deidentification import redact_atoms
 from eave.stdlib.logging import LOGGER, LogContext
 
@@ -39,9 +37,7 @@ class DatabaseEventsController(BaseAtomController):
                 continue
 
             statement_values = (
-                MultiScalarTypeKeyValueRecordField.list_from_dict(e.statement_values)
-                if e.statement_values
-                else None
+                MultiScalarTypeKeyValueRecordField.list_from_dict(e.statement_values) if e.statement_values else None
             )
 
             session = None

@@ -7,13 +7,12 @@ Additionally, the BigQuery record field schemas are defined on these classes.
 These schemas are authoritative: changing these will change the respective schema in BigQuery.
 """
 
+import json
 from dataclasses import dataclass, field
 from decimal import Decimal
-import json
 from typing import Self
 from urllib.parse import parse_qsl, urlparse
 
-from eave.stdlib.logging import LOGGER
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
 from eave.core.internal.atoms.models.api_payload_types import (
@@ -29,7 +28,8 @@ from eave.core.internal.atoms.models.api_payload_types import (
 )
 from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
 from eave.stdlib.deidentification import REDACTABLE
-from eave.stdlib.typing import JsonScalar, JsonValue
+from eave.stdlib.logging import LOGGER
+from eave.stdlib.typing import JsonValue
 
 
 class Numeric(str):
@@ -273,9 +273,7 @@ class AccountRecordField(RecordField):
     def from_api_resource(cls, resource: AccountProperties) -> Self:
         return cls(
             account_id=resource.account_id,
-            extra=(
-                MultiScalarTypeKeyValueRecordField.list_from_dict(resource.extra) if resource.extra else None
-            ),
+            extra=(MultiScalarTypeKeyValueRecordField.list_from_dict(resource.extra) if resource.extra else None),
         )
 
 
@@ -858,6 +856,7 @@ class MetadataRecordField:
     source_app_name: str | None
     source_app_version: str | None
     source_app_release_timestamp: float | None
+
 
 @dataclass(kw_only=True)
 class StackFramesRecordField:

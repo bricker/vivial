@@ -9,7 +9,6 @@ from eave.core.internal.atoms.models.db_record_fields import (
     CurrentPageRecordField,
     DeviceRecordField,
     GeoRecordField,
-    MetadataRecordField,
     MultiScalarTypeKeyValueRecordField,
     SessionRecordField,
     TargetRecordField,
@@ -17,7 +16,6 @@ from eave.core.internal.atoms.models.db_record_fields import (
 )
 from eave.core.internal.atoms.models.db_views import ClickView, FormSubmissionView, PageViewView
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
-from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.deidentification import redact_atoms
 from eave.stdlib.logging import LOGGER, LogContext
 

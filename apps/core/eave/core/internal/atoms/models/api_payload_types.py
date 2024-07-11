@@ -19,7 +19,7 @@ from eave.collectors.core.correlation_context.base import (
 from eave.collectors.core.datastructures import DatabaseOperation
 from eave.core.internal.atoms.models.enums import BrowserAction, HttpRequestMethod
 from eave.stdlib.logging import LOGGER
-from eave.stdlib.typing import JsonScalar, JsonValue
+from eave.stdlib.typing import JsonValue
 
 
 @dataclass(kw_only=True)
@@ -237,6 +237,7 @@ class OpenAIRequestProperties:
             end_timestamp=data.get("end_timestamp"),
         )
 
+
 @dataclass(kw_only=True)
 class StackFrameProperties:
     filename: str | None
@@ -319,14 +320,10 @@ class OpenAIChatCompletionPayload:
             completion_tokens=data.get("completion_tokens"),
             total_tokens=data.get("total_tokens"),
             stack_frames=(
-                [StackFrameProperties.from_api_payload(sf) for sf in sfp]
-                if (sfp := data.get("stack_frames"))
-                else None
+                [StackFrameProperties.from_api_payload(sf) for sf in sfp] if (sfp := data.get("stack_frames")) else None
             ),
             openai_request=(
-                OpenAIRequestProperties.from_api_payload(rp)
-                if (rp := data.get("openai_request"))
-                else None
+                OpenAIRequestProperties.from_api_payload(rp) if (rp := data.get("openai_request")) else None
             ),
             corr_ctx=(
                 CorrelationContext.from_api_payload(cc, decryption_key=decryption_key)

@@ -2,7 +2,6 @@ import inspect
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
-import traceback
 from typing import Any
 from uuid import uuid4
 
@@ -66,7 +65,11 @@ class OpenAICollector(BaseAICollector):
                 kwargs["stream_options"] = {"include_usage": True}
 
     def _write_chat_completion_event(
-        self, chat_response: ChatCompletion | ChatCompletionChunk, start_timestamp: float, end_timestamp: float, chat_args: dict[str, Any]
+        self,
+        chat_response: ChatCompletion | ChatCompletionChunk,
+        start_timestamp: float,
+        end_timestamp: float,
+        chat_args: dict[str, Any],
     ) -> None:
         # Get the stack and remove the top (latest) two frames, which are:
         #   1. this function
@@ -108,11 +111,10 @@ class OpenAICollector(BaseAICollector):
                 openai_request=OpenAIRequestProperties(
                     start_timestamp=start_timestamp,
                     end_timestamp=end_timestamp,
-                    request_params=chat_args, # TODO: This includes the messages; should we explicitly exclude them?
-                )
+                    request_params=chat_args,  # TODO: This includes the messages; should we explicitly exclude them?
+                ),
             )
         )
-
 
     def _log_chat_completion_error(self) -> None:
         # TODO: should we bother firing an atom or anything if error
@@ -158,7 +160,10 @@ class OpenAICollector(BaseAICollector):
                 self._proxy_stream(
                     stream=result,
                     completion_handler=lambda resp: self._write_chat_completion_event(
-                        chat_response=resp, start_timestamp=start_timestamp, end_timestamp=time.time(), chat_args=kwargs,
+                        chat_response=resp,
+                        start_timestamp=start_timestamp,
+                        end_timestamp=time.time(),
+                        chat_args=kwargs,
                     ),
                     error_handler=self._log_chat_completion_error,
                 )

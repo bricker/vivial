@@ -467,7 +467,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             patch=unittest.mock.patch(
                 "google.cloud.dlp_v2.DlpServiceAsyncClient.deidentify_content",
                 side_effect=_deidentify_content,
-            )
+            ),
         )
 
     def mock_slack_client(self) -> None:

@@ -33,10 +33,12 @@ class EventType(StrEnum):
     browser_event = "browser_event"
     openai_chat_completion = "openai_chat_completion"
 
+
 @dataclass(kw_only=True)
 class StackFrame:
     filename: str | None
     function: str | None
+
 
 @dataclass(kw_only=True)
 class EventPayload(ABC):
@@ -92,6 +94,7 @@ class OpenAIRequestProperties:
     request_params: dict[str, JsonValue] | None
     start_timestamp: float | None
     end_timestamp: float | None
+
 
 @dataclass(kw_only=True)
 class OpenAIChatCompletionEventPayload(EventPayload):

@@ -5,14 +5,12 @@ from eave.core.internal.atoms.models.api_payload_types import HttpServerEventPay
 from eave.core.internal.atoms.models.atom_types import HttpServerEventAtom
 from eave.core.internal.atoms.models.db_record_fields import (
     AccountRecordField,
-    MetadataRecordField,
     SessionRecordField,
     SingleScalarTypeKeyValueRecordField,
     TrafficSourceRecordField,
     UrlRecordField,
 )
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
-from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.deidentification import redact_atoms
 from eave.stdlib.logging import LOGGER, LogContext
 

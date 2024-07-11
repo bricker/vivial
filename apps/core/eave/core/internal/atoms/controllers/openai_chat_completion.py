@@ -7,7 +7,6 @@ from eave.core.internal.atoms.models.api_payload_types import (
 from eave.core.internal.atoms.models.atom_types import OpenAIChatCompletionAtom
 from eave.core.internal.atoms.models.db_record_fields import (
     AccountRecordField,
-    MetadataRecordField,
     Numeric,
     OpenAIRequestPropertiesRecordField,
     SessionRecordField,
@@ -16,7 +15,6 @@ from eave.core.internal.atoms.models.db_record_fields import (
 )
 from eave.core.internal.atoms.models.openai_pricing import CHAT_MODELS, FINE_TUNING_MODELS
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
-from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.deidentification import redact_atoms
 from eave.stdlib.logging import LOGGER, LogContext
 
@@ -87,10 +85,7 @@ class OpenAIChatCompletionController(BaseAtomController):
 
             stack_frames = None
             if e.stack_frames:
-                stack_frames = [
-                    StackFramesRecordField.from_api_resource(sf)
-                    for sf in e.stack_frames
-                ]
+                stack_frames = [StackFramesRecordField.from_api_resource(sf) for sf in e.stack_frames]
 
             atom = OpenAIChatCompletionAtom(
                 event_id=e.event_id,

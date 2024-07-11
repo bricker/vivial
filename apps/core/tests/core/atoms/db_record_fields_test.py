@@ -1,6 +1,6 @@
 import dataclasses
-from decimal import Decimal
 import json
+from decimal import Decimal
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
@@ -32,7 +32,7 @@ from eave.core.internal.atoms.models.db_record_fields import (
     UrlRecordField,
 )
 from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
-from eave.stdlib.typing import JsonScalar, JsonValue
+from eave.stdlib.typing import JsonValue
 
 from ..base import BaseTestCase, assert_schemas_match
 
@@ -149,7 +149,6 @@ class TestMultiTypeKeyValueRecordField(BaseTestCase):
                 "numeric_value": str(self.getfloat("numeric value")),
                 "bool_value": None,
                 "json_value": None,
-
             },
         }
 
@@ -1135,6 +1134,7 @@ class TestOpenAIRequestPropertiesRecordField(BaseTestCase):
                 },
             ],
         }
+
 
 class TestStackFramePropertiesRecordField(BaseTestCase):
     async def test_schema(self) -> None:

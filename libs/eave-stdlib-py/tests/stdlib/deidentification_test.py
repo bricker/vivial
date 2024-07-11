@@ -1,6 +1,5 @@
 import dataclasses
 from typing import Any
-import unittest.mock
 
 from eave.stdlib.deidentification import (
     REDACTABLE,

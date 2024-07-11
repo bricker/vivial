@@ -1,4 +1,3 @@
-from eave.stdlib.config import SHARED_CONFIG
 from google.cloud.bigquery import Table
 
 from eave.core.internal import database
@@ -9,6 +8,7 @@ from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm
 from eave.core.internal.orm.team import bq_dataset_id
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER, LogContext
 
 
