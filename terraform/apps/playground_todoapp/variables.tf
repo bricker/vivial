@@ -62,6 +62,10 @@ variable "EAVE_CREDENTIALS" {
   sensitive = true
 }
 
+variable "iap_oauth_client_id" {
+  type = string
+}
+
 variable "iap_oauth_client_secret_name" {
   type = string
 }

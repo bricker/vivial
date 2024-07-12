@@ -92,7 +92,7 @@ resource "kubernetes_manifest" "instances_backend_policy" {
           oauth2ClientSecret = {
             name = var.iap_oauth_client_secret_name
           }
-          clientID = var.IAP_OAUTH_CLIENT_CREDENTIALS.client_id
+          clientID = var.iap_oauth_client_id
         }
 
       }

@@ -175,7 +175,6 @@ class BatchWriteQueue(WriteQueue):
                     kwargs={
                         "q": self._queue,
                         "params": self._queue_params,
-                        # "queue_closed_event": self._queue_closed_event,
                     },
                 )
 

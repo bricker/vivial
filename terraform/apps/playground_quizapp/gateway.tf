@@ -90,9 +90,9 @@ resource "kubernetes_manifest" "app_httproute" {
 #         iap = {
 #           enabled = true
 #           oauth2ClientSecret = {
-#             name = kubernetes_secret.iap_oauth_client_secret.metadata[0].name
+#             name = var.iap_oauth_client_secret_name
 #           }
-#           clientID = var.IAP_OAUTH_CLIENT_CREDENTIALS.client_id
+#           clientID = var.iap_oauth_client_id
 #         }
 
 #       }

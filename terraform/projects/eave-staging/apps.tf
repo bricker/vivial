@@ -35,13 +35,15 @@ module "playground_todoapp" {
 
   kube_namespace_name          = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name       = module.shared_kubernetes_resources.shared_config_map_name
-  iap_oauth_client_secret_name = module.shared_kubernetes_resources.iap_oauth_client_secret_name
 
   LOG_LEVEL = "DEBUG"
 
   release_version = "latest"
 
   EAVE_CREDENTIALS = var.PLAYGROUND_TODOAPP_EAVE_CREDENTIALS
+
+  iap_oauth_client_id = var.IAP_OAUTH_CLIENT_ID
+  iap_oauth_client_secret_name = module.shared_kubernetes_resources.iap_oauth_client_secret_name
 }
 
 module "playground_quizapp" {
@@ -56,13 +58,15 @@ module "playground_quizapp" {
 
   kube_namespace_name          = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name       = module.shared_kubernetes_resources.shared_config_map_name
-  iap_oauth_client_secret_name = module.shared_kubernetes_resources.iap_oauth_client_secret_name
 
   LOG_LEVEL = "DEBUG"
 
   release_version = "latest"
 
   EAVE_CREDENTIALS = var.PLAYGROUND_QUIZAPP_EAVE_CREDENTIALS
+
+  iap_oauth_client_id = var.IAP_OAUTH_CLIENT_ID
+  iap_oauth_client_secret_name = module.shared_kubernetes_resources.iap_oauth_client_secret_name
 }
 
 module "dashboard_app" {
@@ -111,6 +115,7 @@ module "metabase" {
   kube_namespace_name          = module.shared_kubernetes_resources.metabase_namespace_name
   MB_SHARED_SECRETS            = var.MB_SHARED_SECRETS
   MB_INSTANCE_SECRETS          = var.MB_INSTANCE_SECRETS
-  IAP_OAUTH_CLIENT_CREDENTIALS = var.IAP_OAUTH_CLIENT_CREDENTIALS
+
+  iap_oauth_client_id = var.IAP_OAUTH_CLIENT_ID
   iap_oauth_client_secret_name = module.shared_kubernetes_resources.iap_oauth_client_secret_name
 }

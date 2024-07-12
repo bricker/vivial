@@ -6,7 +6,7 @@ from typing import Any, ClassVar, Self
 
 from eave.collectors.core.logging import EAVE_LOGGER
 
-from .json import JsonObject, JsonScalar, JsonValue, compact_json
+from .json import JsonValue, JsonObject, JsonScalar, compact_json
 
 
 class DatabaseOperation(StrEnum):
@@ -57,7 +57,7 @@ class EventPayload(ABC):
 class DatabaseEventPayload(EventPayload):
     event_type: ClassVar[EventType] = EventType.db_event
 
-    operation: str | None = None
+    operation: DatabaseOperation | None = None
     db_name: str | None = None
     table_name: str | None = None
     statement: str | None = None
