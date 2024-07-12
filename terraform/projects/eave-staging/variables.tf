@@ -37,7 +37,7 @@ variable "IAP_OAUTH_CLIENT_ID" {
 }
 
 variable "IAP_OAUTH_CLIENT_SECRET" {
-  type = string
+  type      = string
   sensitive = true
 }
 

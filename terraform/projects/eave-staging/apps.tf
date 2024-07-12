@@ -33,8 +33,8 @@ module "playground_todoapp" {
   certificate_map_name   = google_certificate_manager_certificate_map.default.name
   cdn_base_url           = "https://storage.googleapis.com/${google_storage_bucket.cdn.name}"
 
-  kube_namespace_name          = module.shared_kubernetes_resources.eave_namespace_name
-  shared_config_map_name       = module.shared_kubernetes_resources.shared_config_map_name
+  kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
+  shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
 
   LOG_LEVEL = "DEBUG"
 
@@ -42,7 +42,7 @@ module "playground_todoapp" {
 
   EAVE_CREDENTIALS = var.PLAYGROUND_TODOAPP_EAVE_CREDENTIALS
 
-  iap_oauth_client_id = var.IAP_OAUTH_CLIENT_ID
+  iap_oauth_client_id          = var.IAP_OAUTH_CLIENT_ID
   iap_oauth_client_secret_name = module.shared_kubernetes_resources.iap_oauth_client_secret_name
 }
 
@@ -56,8 +56,8 @@ module "playground_quizapp" {
   certificate_map_name = google_certificate_manager_certificate_map.default.name
   cdn_base_url         = "https://storage.googleapis.com/${google_storage_bucket.cdn.name}"
 
-  kube_namespace_name          = module.shared_kubernetes_resources.eave_namespace_name
-  shared_config_map_name       = module.shared_kubernetes_resources.shared_config_map_name
+  kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
+  shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
 
   LOG_LEVEL = "DEBUG"
 
@@ -65,7 +65,7 @@ module "playground_quizapp" {
 
   EAVE_CREDENTIALS = var.PLAYGROUND_QUIZAPP_EAVE_CREDENTIALS
 
-  iap_oauth_client_id = var.IAP_OAUTH_CLIENT_ID
+  iap_oauth_client_id          = var.IAP_OAUTH_CLIENT_ID
   iap_oauth_client_secret_name = module.shared_kubernetes_resources.iap_oauth_client_secret_name
 }
 
@@ -112,10 +112,10 @@ module "metabase" {
   ssl_policy_name        = module.ssl_policy.policy_name
   certificate_map_name   = google_certificate_manager_certificate_map.default.name
 
-  kube_namespace_name          = module.shared_kubernetes_resources.metabase_namespace_name
-  MB_SHARED_SECRETS            = var.MB_SHARED_SECRETS
-  MB_INSTANCE_SECRETS          = var.MB_INSTANCE_SECRETS
+  kube_namespace_name = module.shared_kubernetes_resources.metabase_namespace_name
+  MB_SHARED_SECRETS   = var.MB_SHARED_SECRETS
+  MB_INSTANCE_SECRETS = var.MB_INSTANCE_SECRETS
 
-  iap_oauth_client_id = var.IAP_OAUTH_CLIENT_ID
+  iap_oauth_client_id          = var.IAP_OAUTH_CLIENT_ID
   iap_oauth_client_secret_name = module.shared_kubernetes_resources.iap_oauth_client_secret_name
 }

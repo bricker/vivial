@@ -10,6 +10,18 @@ module "app_gateway" {
   ssl_policy_name      = var.ssl_policy_name
 }
 
+module "gateway_backend_policy" {
+  source = "../../modules/gateway_backend_policy"
+
+  name      = local.app_name
+  namespace = var.kube_namespace_name
+  labels = {
+    app = local.app_name
+  }
+  service_name                 = module.kubernetes_service.name
+  iap_oauth_client_secret_name = var.iap_oauth_client_secret_name
+  iap_oauth_client_id          = var.iap_oauth_client_id
+}
 
 resource "kubernetes_manifest" "app_httproute" {
   manifest = {
@@ -74,34 +86,3 @@ resource "kubernetes_manifest" "app_httproute" {
     }
   }
 }
-
-# resource "kubernetes_manifest" "backend_policy" {
-#   manifest = {
-#     apiVersion = "networking.gke.io/v1"
-#     kind       = "GCPBackendPolicy"
-#     metadata = {
-#       name      = local.app_name
-#       namespace = var.kube_namespace_name
-#     }
-
-#     spec = {
-#       default = {
-#         # https://cloud.google.com/kubernetes-engine/docs/how-to/configure-gateway-resources#configure_iap
-#         iap = {
-#           enabled = true
-#           oauth2ClientSecret = {
-#             name = var.iap_oauth_client_secret_name
-#           }
-#           clientID = var.iap_oauth_client_id
-#         }
-
-#       }
-
-#       targetRef = {
-#         group = ""
-#         kind  = "Service"
-#         name  = kubernetes_service.metadata[0].name
-#       }
-#     }
-#   }
-# }

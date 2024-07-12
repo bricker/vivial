@@ -24,7 +24,7 @@ provider "kubernetes" {
 }
 
 module "shared_kubernetes_resources" {
-  source  = "../../modules/kube_shared_resources"
-  project = local.project
+  source                  = "../../modules/kube_shared_resources"
+  project                 = local.project
   iap_oauth_client_secret = var.IAP_OAUTH_CLIENT_SECRET
 }

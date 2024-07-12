@@ -6,6 +6,6 @@ variable "project" {
 }
 
 variable "iap_oauth_client_secret" {
-  type=string
+  type      = string
   sensitive = true
 }
