@@ -9,10 +9,10 @@ from eave.collectors.core.datastructures import (
     DatabaseOperation,
     DataIngestRequestBody,
     EventType,
-    HttpRequestMethod,
     HttpServerEventPayload,
 )
 from eave.core.internal.atoms.models.atom_types import BrowserEventAtom, DatabaseEventAtom, HttpServerEventAtom
+from eave.core.internal.atoms.models.enums import HttpRequestMethod
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
@@ -116,6 +116,7 @@ class TestDataIngestionEndpoints(BigQueryTestsBase):
                 events={
                     EventType.db_event: [
                         DatabaseEventPayload(
+                            event_id=str(self.anyuuid()),
                             corr_ctx=None,
                             timestamp=time.time(),
                             db_name=self.anystr(),
@@ -127,6 +128,7 @@ class TestDataIngestionEndpoints(BigQueryTestsBase):
                     ],
                     EventType.http_server_event: [
                         HttpServerEventPayload(
+                            event_id=str(self.anyuuid()),
                             timestamp=time.time(),
                             corr_ctx=None,
                             request_method=HttpRequestMethod.GET,
@@ -164,6 +166,7 @@ class TestDataIngestionEndpoints(BigQueryTestsBase):
                 events={
                     EventType.http_server_event: [  # This should be ignored by the server
                         HttpServerEventPayload(
+                            event_id=str(self.anyuuid()),
                             timestamp=time.time(),
                             corr_ctx=None,
                             request_method=HttpRequestMethod.GET,
@@ -244,3 +247,6 @@ class TestDataIngestionEndpoints(BigQueryTestsBase):
         assert response.status_code == http.HTTPStatus.FORBIDDEN
         assert not (await self._client_credentials_used())
         assert not self.team_bq_dataset_exists()
+
+    async def test_multiple_atom_types(self) -> None:
+        self.skipTest("TODO")

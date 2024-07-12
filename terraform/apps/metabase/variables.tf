@@ -39,17 +39,17 @@ variable "MB_INSTANCE_SECRETS" {
   sensitive = true
 }
 
-variable "IAP_OAUTH_CLIENT_CREDENTIALS" {
-  type = object({
-    client_id     = string
-    client_secret = string
-  })
-  sensitive = true
-}
-
 variable "dns_zone" {
   type = object({
     name     = string
     dns_name = string
   })
+}
+
+variable "iap_oauth_client_id" {
+  type = string
+}
+
+variable "iap_oauth_client_secret_name" {
+  type = string
 }

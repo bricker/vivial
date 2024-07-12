@@ -2,6 +2,7 @@ import time
 import weakref
 from collections.abc import Callable
 from typing import Any
+from uuid import uuid4
 
 import sqlalchemy
 from sqlalchemy.engine.interfaces import (
@@ -22,7 +23,7 @@ from eave.collectors.core.base_database_collector import (
 )
 from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
-from eave.collectors.core.write_queue import WriteQueue
+from eave.collectors.core.write_queue import SHARED_BATCH_WRITE_QUEUE, WriteQueue
 
 type SupportedEngine = sqlalchemy.Engine | AsyncEngine
 
@@ -31,7 +32,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
     _event_listeners: list[tuple[weakref.ReferenceType[sqlalchemy.Engine], str, Callable[..., Any]]]
     _db_metadata: sqlalchemy.MetaData | None
 
-    def __init__(self, *, write_queue: WriteQueue | None = None) -> None:
+    def __init__(self, *, write_queue: WriteQueue = SHARED_BATCH_WRITE_QUEUE) -> None:
         super().__init__(write_queue=write_queue)
 
         self._event_listeners = []
@@ -142,6 +143,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                     self._save_user_identification_data(tablename, clauseelement, rparam)
 
                     record = DatabaseEventPayload(
+                        event_id=str(uuid4()),
                         timestamp=time.time(),
                         operation=DatabaseOperation.SELECT,
                         db_name=conn.engine.url.database,
@@ -172,6 +174,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                     rparam["__primary_keys"] = pk_map_list
 
                     record = DatabaseEventPayload(
+                        event_id=str(uuid4()),
                         timestamp=time.time(),
                         operation=DatabaseOperation.INSERT,
                         db_name=conn.engine.url.database,
@@ -188,6 +191,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
                     self._save_user_identification_data(tablename, clauseelement, rparam)
 
                     record = DatabaseEventPayload(
+                        event_id=str(uuid4()),
                         timestamp=time.time(),
                         operation=DatabaseOperation.UPDATE,
                         db_name=conn.engine.url.database,
@@ -202,6 +206,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
             elif isinstance(clauseelement, sqlalchemy.Delete):
                 for idx, rparam in enumerate(rparams):
                     record = DatabaseEventPayload(
+                        event_id=str(uuid4()),
                         timestamp=time.time(),
                         operation=DatabaseOperation.DELETE,
                         db_name=conn.engine.url.database,

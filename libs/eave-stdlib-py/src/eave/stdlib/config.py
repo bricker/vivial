@@ -1,3 +1,4 @@
+import datetime
 import enum
 import logging
 import os
@@ -112,6 +113,14 @@ class _EaveConfig(ConfigBase):
     @property
     def release_date(self) -> str:
         return os.getenv("GAE_RELEASE_DATE") or "unknown"
+
+    @property
+    def release_timestamp(self) -> float | None:
+        isodate = self.release_date
+        try:
+            return datetime.datetime.fromisoformat(isodate).timestamp()
+        except ValueError:
+            return None
 
     @property
     def asset_base(self) -> str:

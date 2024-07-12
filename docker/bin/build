@@ -43,7 +43,7 @@ function build() (
 	local gcloudproject; gcloudproject="$(e.gcloudproject)"
 	local gitsha; gitsha="$(git rev-parse --short HEAD)"
 	local imagename="us-central1-docker.pkg.dev/${gcloudproject}/docker/${_dirname}"
-	local release_date; release_date=$(date --utc)
+	local release_date; release_date=$(date --utc --iso-8601=seconds)
 
 	docker build \
 		--no-cache \
@@ -51,6 +51,7 @@ function build() (
 		-t "$imagename:$gitsha" \
 		-f "$EAVE_HOME/docker/${_dirname}/Dockerfile" \
 		--build-arg GAE_RELEASE_DATE="$release_date" \
+		--build-arg GAE_VERSION="$gitsha" \
 		"$EAVE_HOME"
 
 	if $_dopush; then
@@ -58,7 +59,7 @@ function build() (
 		docker push --all-tags "$imagename"
 
 		if $_dorollout; then
-			"${EAVE_HOME}"/kube/bin/rollout -d "$_dirname"
+			kubectl -n eave rollout restart deployment/"$_dirname"
 		fi
 	fi
 )

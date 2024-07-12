@@ -14,6 +14,7 @@ module "app_iam_role" {
   description = "Permissions needed by the Playground Todo App"
   base_roles = [
     "roles/logging.logWriter",
+    "roles/secretmanager.secretAccessor",
     "roles/cloudsql.instanceUser", # for IAM auth
     "roles/cloudsql.client",
   ]

@@ -1,0 +1,3 @@
+# Requirements that are vendored into /vendor during deployment.
+${EAVE_HOME}/packages/python/eave-collector-core-py
+${EAVE_HOME}/packages/python/eave-collector-starlette-py

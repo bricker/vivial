@@ -62,6 +62,9 @@ class TestClientCredentialsOrmScopeQuery(BaseTestCase):
 
     async def test_combined(self) -> None:
         creds = await self._create_creds(ClientScope.read)
+
+        # NOTE: You probably shouldn't change this!
+        # If the format of this string has changed, the credentials string in customer environments will become invalid.
         assert creds.combined == f"{creds.id}:{creds.secret}"
 
     async def test_decryption_key(self) -> None:

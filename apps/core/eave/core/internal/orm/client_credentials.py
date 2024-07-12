@@ -101,6 +101,7 @@ class ClientCredentialsOrm(Base):
 
     @property
     def combined(self) -> str:
+        # NOTE: This cannot change, because it must match the format of the credentials string in customer's environments.
         return f"{self.id}:{self.secret}"
 
     @property

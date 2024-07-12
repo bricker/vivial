@@ -2,7 +2,6 @@ import dataclasses
 from typing import Any, cast
 
 from eave.collectors.core.datastructures import DatabaseOperation
-from eave.stdlib.deidentification import redact_atoms
 from eave.core.internal import database
 from eave.core.internal.atoms.models.api_payload_types import (
     DatabaseEventPayload,
@@ -17,6 +16,7 @@ from eave.core.internal.atoms.models.db_record_fields import (
 from eave.core.internal.atoms.models.db_views import DatabaseEventView
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
+from eave.stdlib.deidentification import redact_atoms
 from eave.stdlib.logging import LOGGER, LogContext
 
 from .base_atom_controller import BaseAtomController
@@ -37,9 +37,7 @@ class DatabaseEventsController(BaseAtomController):
                 continue
 
             statement_values = (
-                MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(e.statement_values)
-                if e.statement_values
-                else None
+                MultiScalarTypeKeyValueRecordField.list_from_dict(e.statement_values) if e.statement_values else None
             )
 
             session = None
@@ -62,16 +60,18 @@ class DatabaseEventsController(BaseAtomController):
                     account = AccountRecordField.from_api_resource(e.corr_ctx.account)
 
             atom = DatabaseEventAtom(
+                event_id=e.event_id,
+                timestamp=e.timestamp,
                 operation=e.operation,
                 db_name=e.db_name,
                 table_name=e.table_name,
-                timestamp=e.timestamp,
                 statement=e.statement,
                 statement_values=statement_values,
                 session=session,
                 account=account,
                 traffic_source=traffic_source,
                 visitor_id=visitor_id,
+                metadata=self.get_record_metadata(),
             )
 
             atoms.append(atom)

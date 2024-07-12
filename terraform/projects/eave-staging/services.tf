@@ -4,6 +4,7 @@ locals {
     "artifactregistry.googleapis.com",    # Artifact Registry API
     "bigquery.googleapis.com",            # BigQuery API
     "certificatemanager.googleapis.com",  # Certificate Manager API
+    "cloudaicompanion.googleapis.com",    # Gemini
     "cloudbuild.googleapis.com",          # Cloud Build API
     "cloudkms.googleapis.com",            # Cloud Key Management Service (KMS) API
     "compute.googleapis.com",             # Compute Engine API

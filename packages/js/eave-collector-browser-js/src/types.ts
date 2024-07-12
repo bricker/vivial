@@ -79,6 +79,7 @@ export type TargetProperties = {
 };
 
 export type BrowserEventPayload = {
+  event_id: string;
   action: string;
   timestamp: EpochTimeStampSeconds;
   target: TargetProperties | null;

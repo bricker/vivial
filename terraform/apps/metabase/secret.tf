@@ -12,19 +12,6 @@ resource "kubernetes_secret" "shared" {
   }
 }
 
-# This is for Gateway IAP
-resource "kubernetes_secret" "iap_oauth_client_secret" {
-  metadata {
-    name      = "iap-oauth-client-secret"
-    namespace = var.kube_namespace_name
-  }
-
-  type = "Opaque"
-  data = {
-    key = var.IAP_OAUTH_CLIENT_CREDENTIALS.client_secret
-  }
-}
-
 # Individual instance secrets
 resource "kubernetes_secret" "instances" {
   for_each = var.metabase_instances

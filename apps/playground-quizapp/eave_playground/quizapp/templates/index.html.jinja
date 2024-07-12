@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- window -->
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/x-icon" href="/static/images/eave-logo-favicon.png">
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>{{ page_title|default("Eave Demo Quiz App") }}</title>
+
+        <script defer src="/static/dist/main.js"></script>
+
+        <!-- Eave client tracing -->
+        <script>
+        const EAVE_CLIENT_ID = "{{EAVE_CLIENT_ID}}";
+        </script>
+
+        <script async src="{{COLLECTOR_ASSET_BASE}}/collector.js"></script>
+        <!-- End Eave client tracing Code -->
+    </head>
+    <body>
+        <div id="root"></div>
+    </body>
+</html>

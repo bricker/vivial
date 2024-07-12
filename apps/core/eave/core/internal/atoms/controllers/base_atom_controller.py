@@ -2,11 +2,13 @@ from google.cloud.bigquery import Table
 
 from eave.core.internal import database
 from eave.core.internal.atoms.models.atom_types import BigQueryTableDefinition
+from eave.core.internal.atoms.models.db_record_fields import MetadataRecordField
 from eave.core.internal.atoms.models.db_views import BigQueryViewDefinition
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm
 from eave.core.internal.orm.team import bq_dataset_id
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER, LogContext
 
 
@@ -17,6 +19,14 @@ class BaseAtomController:
     def __init__(self, *, client: ClientCredentialsOrm) -> None:
         self._client = client
         self._dataset_id = bq_dataset_id(client.team_id)
+
+    @staticmethod
+    def get_record_metadata() -> MetadataRecordField:
+        return MetadataRecordField(
+            source_app_name=SHARED_CONFIG.app_service,
+            source_app_version=SHARED_CONFIG.app_version,
+            source_app_release_timestamp=SHARED_CONFIG.release_timestamp,
+        )
 
     def get_or_create_bq_table(self, *, table_def: BigQueryTableDefinition, ctx: LogContext) -> Table:
         # Lazily creates the dataset in case it doesn't exist.

@@ -16,6 +16,14 @@ variable "PLAYGROUND_TODOAPP_EAVE_CREDENTIALS" {
   sensitive = true
 }
 
+variable "PLAYGROUND_QUIZAPP_EAVE_CREDENTIALS" {
+  type = object({
+    SERVER_CREDENTIALS = string,
+    CLIENT_ID          = string,
+  })
+  sensitive = true
+}
+
 variable "INTERNAL_EAVE_CREDENTIALS" {
   type = object({
     SERVER_CREDENTIALS = string,
@@ -24,10 +32,16 @@ variable "INTERNAL_EAVE_CREDENTIALS" {
   sensitive = true
 }
 
-variable "IAP_OAUTH_CLIENT_CREDENTIALS" {
-  type = object({
-    client_id     = string
-    client_secret = string
-  })
+variable "IAP_OAUTH_CLIENT_ID" {
+  type = string
+}
+
+variable "IAP_OAUTH_CLIENT_SECRET" {
+  type      = string
+  sensitive = true
+}
+
+variable "OPENAI_API_KEY" {
+  type      = string
   sensitive = true
 }

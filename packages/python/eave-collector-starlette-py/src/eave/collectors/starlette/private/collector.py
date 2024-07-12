@@ -18,6 +18,7 @@ import time
 import urllib.parse
 from collections.abc import Callable
 from functools import wraps
+from uuid import uuid4
 
 import starlette.types
 from asgiref.compatibility import guarantee_single_callable
@@ -28,10 +29,11 @@ from starlette.requests import Request
 # from starlette.routing import Match
 from eave.collectors.core.base_collector import BaseCollector
 from eave.collectors.core.correlation_context import CORR_CTX
-from eave.collectors.core.datastructures import HttpRequestMethod, HttpServerEventPayload
+from eave.collectors.core.datastructures import HttpServerEventPayload
 
 # from timeit import default_timer
 from eave.collectors.core.logging import EAVE_LOGGER
+from eave.collectors.core.wrap_util import is_wrapped, tag_wrapped, untag_wrapped
 from eave.collectors.core.write_queue import WriteQueue
 
 # class ASGIGetter:
@@ -250,8 +252,9 @@ class EaveASGIMiddleware:
             req_url = remove_url_credentials(http_url)
             self.write_queue.put(
                 HttpServerEventPayload(
+                    event_id=str(uuid4()),
                     timestamp=time.time(),
-                    request_method=HttpRequestMethod.from_str(req_method),
+                    request_method=req_method.upper(),
                     request_url=req_url,
                     request_headers=dict(request.headers.items()),
                     request_payload=req_body.decode("utf-8"),
@@ -285,6 +288,7 @@ class EaveASGIMiddleware:
                     #     pass
                     # self.write_queue.put(
                     #     HttpServerEventPayload(
+                    #         event_id=str(uuid4()),
                     #         timestamp=time.time(),
                     #         request_method=req_method,
                     #         request_url=req_url,
@@ -339,13 +343,13 @@ class StarletteCollector(BaseCollector):
 
     def instrument_app(self, app: applications.Starlette) -> None:
         """instrument specific app instance only"""
-        if not getattr(app, "is_instrumented_by_eave", False):
+        if not is_wrapped(app):
             self.write_queue.start_autoflush()
             app.add_middleware(
                 EaveASGIMiddleware,
                 write_queue=self.write_queue,
             )
-            app.is_instrumented_by_eave = True  # type: ignore
+            tag_wrapped(app)
 
             # adding apps to set for uninstrumenting
             if app not in _InstrumentedStarlette._instrumented_starlette_apps:  # noqa: SLF001
@@ -354,12 +358,12 @@ class StarletteCollector(BaseCollector):
     def uninstrument_app(self, app: applications.Starlette) -> None:
         app.user_middleware = [x for x in app.user_middleware if x.cls is not EaveASGIMiddleware]
         app.middleware_stack = app.build_middleware_stack()
-        app.is_instrumented_by_eave = False  # type: ignore
+        untag_wrapped(app)
 
     def instrument(self) -> None:
         self.write_queue.start_autoflush()
         self._original_starlette = applications.Starlette
-        applications.Starlette = self._wrap_instrummentor()
+        applications.Starlette = self._wrap_instrumentor()
 
     def uninstrument(self) -> None:
         """uninstrumenting all created apps by user"""
@@ -368,7 +372,7 @@ class StarletteCollector(BaseCollector):
         _InstrumentedStarlette._instrumented_starlette_apps.clear()  # noqa: SLF001
         applications.Starlette = self._original_starlette
 
-    def _wrap_instrummentor(self) -> Callable:
+    def _wrap_instrumentor(self) -> Callable:
         @wraps(applications.Starlette)
         def _wrapper(*args, **kwargs) -> applications.Starlette:
             return _InstrumentedStarlette(self.write_queue, *args, **kwargs)
@@ -382,7 +386,7 @@ class _InstrumentedStarlette(applications.Starlette):
     def __init__(self, write_queue: WriteQueue, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.add_middleware(EaveASGIMiddleware, write_queue=write_queue)
-        self._is_instrumented_by_eave = True
+        tag_wrapped(self)
         # adding apps to set for uninstrumenting
         _InstrumentedStarlette._instrumented_starlette_apps.add(self)
 

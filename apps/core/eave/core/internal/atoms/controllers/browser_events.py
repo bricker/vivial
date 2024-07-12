@@ -1,8 +1,6 @@
 import dataclasses
 from typing import Any, cast
 
-from eave.stdlib.deidentification import redact_atoms
-
 from eave.core.internal.atoms.controllers.base_atom_controller import BaseAtomController
 from eave.core.internal.atoms.models.api_payload_types import BrowserAction, BrowserEventPayload
 from eave.core.internal.atoms.models.atom_types import BrowserEventAtom
@@ -18,6 +16,7 @@ from eave.core.internal.atoms.models.db_record_fields import (
 )
 from eave.core.internal.atoms.models.db_views import ClickView, FormSubmissionView, PageViewView
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
+from eave.stdlib.deidentification import redact_atoms
 from eave.stdlib.logging import LOGGER, LogContext
 
 
@@ -56,8 +55,9 @@ class BrowserEventsController(BaseAtomController):
                     account = AccountRecordField.from_api_resource(e.corr_ctx.account)
 
             atom = BrowserEventAtom(
-                action=e.action,
+                event_id=e.event_id,
                 timestamp=e.timestamp,
+                action=e.action,
                 session=session,
                 account=account,
                 traffic_source=traffic_source,
@@ -65,9 +65,10 @@ class BrowserEventsController(BaseAtomController):
                 current_page=CurrentPageRecordField.from_api_resource(e.current_page) if e.current_page else None,
                 device=DeviceRecordField.from_api_resource(e.device) if e.device else None,
                 geo=geolocation,
-                extra=MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(e.extra) if e.extra else None,
+                extra=MultiScalarTypeKeyValueRecordField.list_from_dict(e.extra) if e.extra else None,
                 client_ip=client_ip,
                 visitor_id=visitor_id,
+                metadata=self.get_record_metadata(),
             )
 
             atoms.append(atom)

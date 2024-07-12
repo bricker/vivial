@@ -1,11 +1,12 @@
 import asyncio
-import unittest
 
 from eave.collectors.core.correlation_context import AsyncioCorrelationContext
 from eave.collectors.core.correlation_context.base import EAVE_COLLECTOR_COOKIE_PREFIX
 
+from ..base import BaseTestCase
 
-class AsyncioCorrelationContextTest(unittest.IsolatedAsyncioTestCase):
+
+class AsyncioCorrelationContextTest(BaseTestCase):
     async def test_values_can_be_written_and_read(self) -> None:
         ctx = AsyncioCorrelationContext()
         assert ctx.get("key") is None, "Initial value was not None"

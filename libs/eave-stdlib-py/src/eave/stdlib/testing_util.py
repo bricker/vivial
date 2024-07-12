@@ -8,10 +8,11 @@ import random
 import time
 import unittest.mock
 import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, timedelta, timezone
 from math import floor
 from typing import Any, Literal, TypeVar
 
+import google.cloud.dlp_v2
 from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
 
 import eave.stdlib.exceptions
@@ -73,9 +74,12 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def anydatetime(
         self,
         name: str | None = None,
+        *,
         offset: int | None = None,
         future: Literal[True] | None = None,
         past: Literal[True] | None = None,
+        tz: timezone | None = UTC,
+        resolution: Literal["seconds", "microseconds"] = "microseconds",
     ) -> datetime:
         """
         - offset, future, and past arguments are mutually exclusive. Passing more than one is undefined behavior.
@@ -86,23 +90,35 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         if name is None:
             name = uuid.uuid4().hex
 
-        if name not in self.testdata:
-            oneyear = 60 * 60 * 24 * 365
-            if not offset:
-                if not future and not past:
-                    offset = random.randint(-oneyear, oneyear)
-                else:
-                    offset = random.randint(1, oneyear)
-                    if past:
-                        offset = -offset
+        assert name not in self.testdata, f"test value {name} is already in use. Use getdatetime() to retrieve it."
 
-            delta = timedelta(seconds=offset)
+        oneyear = 60 * 60 * 24 * 365
+        if not offset:
+            if not future and not past:
+                offset = random.randint(-oneyear, oneyear)
+            else:
+                offset = random.randint(1, oneyear)
+                if past:
+                    offset = -offset
 
-            data = datetime.now(UTC) + delta
-            self.testdata[name] = data
+        delta = timedelta(seconds=offset)
 
-        value: datetime = self.testdata[name]
-        return value
+        data = datetime.now(tz=tz) + delta
+        match resolution:
+            case "seconds":
+                data = data.replace(microsecond=0)
+            case _:
+                pass
+
+        self.testdata[name] = data
+        return self.getdatetime(name)
+
+    def getdatetime(
+        self,
+        name: str,
+    ) -> datetime:
+        assert name in self.testdata, f"test value {name} has not been set. Use anydatetime() to set it."
+        return self.testdata[name]
 
     _increment = -1  # so that the first increment returns 0
 
@@ -136,41 +152,47 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getpath(self, name: str) -> str:
         return self.getstr(name)
 
-    def anystr(self, name: str | None = None) -> str:
+    def anystr(self, name: str | None = None, *, staticvalue: str | None = None) -> str:
         if name is None:
             name = uuid.uuid4().hex
 
         assert name not in self.testdata, f"test value {name} is already in use. Use getstr() to retrieve it."
 
-        data = uuid.uuid4().hex
-        new_value = f"{name}:{data}"
-        self.testdata[name] = new_value
+        if staticvalue is None:
+            data = uuid.uuid4().hex
+            value = f"{name}:{data}"
+        else:
+            value = staticvalue
+
+        self.testdata[name] = value
         return self.getstr(name)
 
     def getstr(self, name: str) -> str:
         assert name in self.testdata, f"test value {name} has not been set. Use anystr(), anyhex(), etc to set it."
         return self.testdata[name]
 
-    def anyjson(self, name: str | None = None) -> str:
+    def anyjson(self, name: str | None = None, *, length: int = 3) -> str:
         if name is None:
             name = uuid.uuid4().hex
 
         assert name not in self.testdata, f"test value {name} is already in use. Use getjson() to retrieve it."
 
-        data = json.dumps({f"{name}:{uuid.uuid4().hex}": f"{name}:{uuid.uuid4().hex}" for _ in range(3)})
+        data = json.dumps({f"{name}:{uuid.uuid4().hex}": f"{name}:{uuid.uuid4().hex}" for _ in range(length)})
         self.testdata[name] = data
         return self.getjson(name)
 
     def getjson(self, name: str) -> str:
         return self.getstr(name)
 
-    def anydict(self, name: str | None = None, deterministic_keys: bool = False) -> dict[str, Any]:
+    def anydict(
+        self, name: str | None = None, deterministic_keys: bool = False, *, minlength: int = 0, maxlength: int = 3
+    ) -> dict[str, Any]:
         if name is None:
             name = uuid.uuid4().hex
 
         assert name not in self.testdata, f"test value {name} is already in use. Use getdict() to retrieve it."
 
-        randlen = random.randint(0, b=3)
+        randlen = random.randint(minlength, b=maxlength)
         if deterministic_keys:
             data: JsonObject = {f"{name}:{i}": f"{name}:{uuid.uuid4().hex}" for i in range(randlen)}
         else:
@@ -183,13 +205,13 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         assert name in self.testdata, f"test value {name} has not been set. Use anydict() to set it."
         return self.testdata[name]
 
-    def anylist(self, name: str | None = None) -> list[Any]:
+    def anylist(self, name: str | None = None, *, minlength: int = 0, maxlength: int = 3) -> list[Any]:
         if name is None:
             name = uuid.uuid4().hex
 
         assert name not in self.testdata, f"test value {name} is already in use. Use getlist() to retrieve it."
 
-        randlen = random.randint(0, 3)
+        randlen = random.randint(minlength, maxlength)
         data = [uuid.uuid4().hex for _ in range(randlen)]
         self.testdata[name] = data
         return self.getlist(name)
@@ -225,27 +247,27 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def gethex(self, name: str) -> str:
         return self.getstr(name)
 
-    def anyalpha(self, name: str | None = None) -> str:
+    def anyalpha(self, name: str | None = None, *, length: int = 10) -> str:
         if name is None:
             name = uuid.uuid4().hex
 
         assert name not in self.testdata, f"test value {name} is already in use. Use getalpha() to retrieve it."
 
         alphas = "abcdefghijklmnopqrstuvwxyz"
-        data = "".join(random.sample(alphas, k=10))
+        data = "".join(random.sample(alphas, k=length))
         self.testdata[name] = data
         return self.getalpha(name)
 
     def getalpha(self, name: str) -> str:
         return self.getstr(name)
 
-    def anyint(self, name: str | None = None) -> int:
+    def anyint(self, name: str | None = None, *, min: int = 0, max: int = 9999) -> int:
         if name is None:
             name = uuid.uuid4().hex
 
         assert name not in self.testdata, f"test value {name} is already in use. Use getint() to retrieve it."
 
-        data = random.randint(0, 9999)
+        data = random.randint(min, max)
         self.testdata[name] = data
         return self.getint(name)
 
@@ -253,13 +275,13 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         assert name in self.testdata, f"test value {name} has not been set. Use anyint() to set it."
         return self.testdata[name]
 
-    def anyfloat(self, name: str | None = None) -> float:
+    def anyfloat(self, name: str | None = None, *, mag: int = 0, decimals: int | None = None) -> float:
         if name is None:
             name = uuid.uuid4().hex
 
         assert name not in self.testdata, f"test value {name} is already in use. Use getfloat() to retrieve it."
 
-        data = random.random() * 1000
+        data = round(random.random() * (10**mag), decimals)
         self.testdata[name] = data
         return self.getfloat(name)
 
@@ -430,6 +452,24 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             )
         )
 
+        def _deidentify_content(
+            request: google.cloud.dlp_v2.DeidentifyContentRequest, *args, **kwargs
+        ) -> google.cloud.dlp_v2.DeidentifyContentResponse:
+            """
+            All this stub method does is return the input data unchanged.
+            """
+            return google.cloud.dlp_v2.DeidentifyContentResponse(
+                item=request.item,
+            )
+
+        self.patch(
+            name="dlp.deidentify_content",
+            patch=unittest.mock.patch(
+                "google.cloud.dlp_v2.DlpServiceAsyncClient.deidentify_content",
+                side_effect=_deidentify_content,
+            ),
+        )
+
     def mock_slack_client(self) -> None:
         self.patch(name="slack client", patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient"))
 
@@ -505,6 +545,10 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def get_patched_dict(self, name: str) -> unittest.mock._patch_dict:
         assert name in self._active_patched_dicts, f"{name} is not patched!"
         return self._active_patched_dicts[name]
+
+    def stop_patch(self, name: str) -> None:
+        assert name in self._active_patches, f"{name} is not patched!"
+        self.get_patch(name).stop()
 
     def stop_all_patches(self) -> None:
         unittest.mock.patch.stopall()

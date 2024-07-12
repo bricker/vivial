@@ -7,7 +7,9 @@ Additionally, the BigQuery record field schemas are defined on these classes.
 These schemas are authoritative: changing these will change the respective schema in BigQuery.
 """
 
+import json
 from dataclasses import dataclass, field
+from decimal import Decimal
 from typing import Self
 from urllib.parse import parse_qsl, urlparse
 
@@ -18,13 +20,30 @@ from eave.core.internal.atoms.models.api_payload_types import (
     CurrentPageProperties,
     DeviceBrandProperties,
     DeviceProperties,
+    OpenAIRequestProperties,
     SessionProperties,
+    StackFrameProperties,
     TargetProperties,
     TrafficSourceProperties,
 )
 from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
-from eave.stdlib.typing import JsonScalar
 from eave.stdlib.deidentification import REDACTABLE
+from eave.stdlib.logging import LOGGER
+from eave.stdlib.typing import JsonValue
+
+
+class Numeric(str):
+    """
+    Decimal can't be used directly for atoms, because atoms and all of their attributes have to be completely compatible with dataclasses.
+    Numeric is effectively an alias for `str`, or a wrapper around `Decimal` depending on how you look at it,
+    and requires that a Decimal, int, or flat is passed-in to the constructor to indicate the intention to the caller (developer).
+    It's passed-in to BigQuery as a plain string, which is an acceptable input format for NUMERIC data tyes.
+    """
+
+    __slots__ = ()  # Save memory
+
+    def __new__(cls, value: Decimal | int | float) -> Self:
+        return super().__new__(cls, str(value))
 
 
 class RecordField:
@@ -58,14 +77,21 @@ class TypedValueRecordField(RecordField):
                     field_type=SqlTypeNames.BOOLEAN,
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
+                SchemaField(
+                    name="json_value",
+                    description="The value for the key, if the value is a JSON-serializable list or map. Otherwise, null.",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
             ),
         )
 
     string_value: str | None = field(metadata={REDACTABLE: True}, default=None)
     bool_value: bool | None = None
-    numeric_value: int | float | None = field(metadata={REDACTABLE: True}, default=None)
+    numeric_value: Numeric | None = field(metadata={REDACTABLE: True}, default=None)
+    json_value: str | None = field(metadata={REDACTABLE: True}, default=None)
 
-    def __init__(self, value: str | int | float | bool | None) -> None:
+    def __init__(self, value: JsonValue | None) -> None:
         # It is important to remember that these checks have to be exclusive - if multiple checks are done, it's possible
         # for multiple fields to have a value set. This is especially likely when working with bools and numbers.
         if isinstance(value, str):
@@ -75,7 +101,16 @@ class TypedValueRecordField(RecordField):
             self.bool_value = value
         elif isinstance(value, (float, int)):
             # Reminder: bool is a subclass of int! bool check must come before the int check.
-            self.numeric_value = value
+            # The value is converted to string for the Decimal initializer because if given a float, Decimal forces the configured precision, which may be too
+            self.numeric_value = Numeric(value)
+        elif value is None:
+            # Everything is None by default, so nothing is needed here.
+            pass
+        else:
+            try:
+                self.json_value = json.dumps(value)
+            except TypeError as e:
+                LOGGER.exception(e)
 
 
 @dataclass(kw_only=True)
@@ -101,7 +136,7 @@ class MultiScalarTypeKeyValueRecordField(RecordField):
     value: TypedValueRecordField | None = field(metadata={REDACTABLE: True})
 
     @classmethod
-    def list_from_scalar_dict(cls, d: dict[str, JsonScalar]) -> list["MultiScalarTypeKeyValueRecordField"]:
+    def list_from_dict(cls, d: dict[str, JsonValue]) -> list["MultiScalarTypeKeyValueRecordField"]:
         containers: list[MultiScalarTypeKeyValueRecordField] = []
 
         for [key, value] in d.items():
@@ -238,9 +273,7 @@ class AccountRecordField(RecordField):
     def from_api_resource(cls, resource: AccountProperties) -> Self:
         return cls(
             account_id=resource.account_id,
-            extra=(
-                MultiScalarTypeKeyValueRecordField.list_from_scalar_dict(resource.extra) if resource.extra else None
-            ),
+            extra=(MultiScalarTypeKeyValueRecordField.list_from_dict(resource.extra) if resource.extra else None),
         )
 
 
@@ -786,4 +819,130 @@ class CurrentPageRecordField(RecordField):
             url=UrlRecordField.from_api_resource(resource.url) if resource.url else None,
             title=resource.title,
             pageview_id=resource.pageview_id,
+        )
+
+
+@dataclass(kw_only=True)
+class MetadataRecordField:
+    @staticmethod
+    def schema() -> SchemaField:
+        return SchemaField(
+            name="metadata",
+            description="Internal metadata about this BigQuery record. Not reliable for event analysis.",
+            field_type=SqlTypeNames.RECORD,
+            mode=BigQueryFieldMode.NULLABLE,
+            fields=(
+                SchemaField(
+                    name="source_app_name",
+                    description="The name of the app that inserted this record.",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="source_app_version",
+                    description="The version of the app that inserted this record.",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="source_app_release_timestamp",
+                    description="The release timestamp of the app that inserted this record.",
+                    field_type=SqlTypeNames.TIMESTAMP,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+            ),
+        )
+
+    source_app_name: str | None
+    source_app_version: str | None
+    source_app_release_timestamp: float | None
+
+
+@dataclass(kw_only=True)
+class StackFramesRecordField:
+    @staticmethod
+    def schema() -> SchemaField:
+        return SchemaField(
+            name="stack_frames",
+            field_type=SqlTypeNames.RECORD,
+            mode=BigQueryFieldMode.REPEATED,
+            fields=(
+                SchemaField(
+                    name="filename",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                    description="The name of the file in which this stack frame was created.",
+                ),
+                SchemaField(
+                    name="function",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                    description="The name of the function in which this stack frame was created.",
+                ),
+            ),
+        )
+
+    filename: str | None
+    function: str | None
+
+    @classmethod
+    def from_api_resource(cls, resource: StackFrameProperties) -> Self:
+        return cls(
+            filename=resource.filename,
+            function=resource.function,
+        )
+
+
+@dataclass(kw_only=True)
+class OpenAIRequestPropertiesRecordField:
+    @staticmethod
+    def schema() -> SchemaField:
+        return SchemaField(
+            name="openai_request",
+            field_type=SqlTypeNames.RECORD,
+            mode=BigQueryFieldMode.NULLABLE,
+            fields=(
+                SchemaField(
+                    name="start_timestamp",
+                    field_type=SqlTypeNames.TIMESTAMP,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="end_timestamp",
+                    field_type=SqlTypeNames.TIMESTAMP,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="duration_ms",
+                    field_type=SqlTypeNames.FLOAT,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                MultiScalarTypeKeyValueRecordField.schema(
+                    name="request_params",
+                    description="Request params sent to the OpenAI API. Some params are omitted for privacy.",
+                ),
+            ),
+        )
+
+    start_timestamp: float | None
+    end_timestamp: float | None
+    duration_ms: float | None
+    request_params: list[MultiScalarTypeKeyValueRecordField] | None
+
+    @classmethod
+    def from_api_resource(cls, resource: OpenAIRequestProperties) -> Self:
+        if resource.start_timestamp and resource.end_timestamp:
+            duration_ms = (resource.end_timestamp - resource.start_timestamp) * 1000
+        else:
+            duration_ms = None
+
+        return cls(
+            start_timestamp=resource.start_timestamp,
+            end_timestamp=resource.end_timestamp,
+            duration_ms=duration_ms,
+            request_params=(
+                MultiScalarTypeKeyValueRecordField.list_from_dict(resource.request_params)
+                if resource.request_params
+                else None
+            ),
         )

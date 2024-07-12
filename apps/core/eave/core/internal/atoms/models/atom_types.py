@@ -3,21 +3,27 @@ from dataclasses import dataclass, field
 
 from google.cloud.bigquery import SchemaField, SqlTypeNames
 
-from eave.collectors.core.datastructures import DatabaseOperation, HttpRequestMethod
-from eave.core.internal.atoms.models.db_record_fields import (
+from eave.collectors.core.datastructures import DatabaseOperation
+from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
+from eave.stdlib.deidentification import REDACTABLE
+
+from .db_record_fields import (
     AccountRecordField,
     CurrentPageRecordField,
     DeviceRecordField,
     GeoRecordField,
+    MetadataRecordField,
     MultiScalarTypeKeyValueRecordField,
+    Numeric,
+    OpenAIRequestPropertiesRecordField,
     SessionRecordField,
     SingleScalarTypeKeyValueRecordField,
+    StackFramesRecordField,
     TargetRecordField,
     TrafficSourceRecordField,
     UrlRecordField,
 )
-from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
-from eave.stdlib.deidentification import REDACTABLE
+from .enums import BrowserAction, HttpRequestMethod
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -45,6 +51,8 @@ class Atom(ABC):
     traffic_source: TrafficSourceRecordField | None
     visitor_id: str | None
     timestamp: float | None
+    event_id: str | None
+    metadata: MetadataRecordField | None
     account: AccountRecordField | None = field(metadata={REDACTABLE: True})
 
     @staticmethod
@@ -70,8 +78,16 @@ class Atom(ABC):
                 mode=BigQueryFieldMode.NULLABLE,
             ),
             SchemaField(
-                name="__bq_insert_timestamp",
-                description="When this record was inserted into BigQuery. This is an internal field and not reliable for exploring user journeys.",
+                name="event_id",
+                description="A unique ID per atom, assigned by Eave. This can be used to distinguish otherwise identical events.",
+                field_type=SqlTypeNames.STRING,
+                mode=BigQueryFieldMode.NULLABLE,
+            ),
+            MetadataRecordField.schema(),
+            # This must be at the root level because default_value_expression can only be used for root-level fields.
+            SchemaField(
+                name="metadata_insert_timestamp",
+                description="When this record was inserted into BigQuery. Internal field, not reliable for event analysis.",
                 field_type=SqlTypeNames.TIMESTAMP,
                 mode=BigQueryFieldMode.NULLABLE,
                 default_value_expression="CURRENT_TIMESTAMP",
@@ -115,10 +131,101 @@ class BrowserEventAtom(Atom):
     target: TargetRecordField | None = field(metadata={REDACTABLE: True})
     current_page: CurrentPageRecordField | None = field(metadata={REDACTABLE: True})
     extra: list[MultiScalarTypeKeyValueRecordField] | None = field(metadata={REDACTABLE: True})
-    action: str | None
+    action: BrowserAction | None
     device: DeviceRecordField | None
     geo: GeoRecordField | None
     client_ip: str | None
+
+
+@dataclass(kw_only=True)
+class OpenAIChatCompletionAtom(Atom):
+    @staticmethod
+    def table_def() -> BigQueryTableDefinition:
+        return BigQueryTableDefinition(
+            table_id="atoms_openai_chat_completions",
+            friendly_name="OpenAI Chat Completion Atoms",
+            description="OpenAI Chat Completion atoms",
+            schema=(
+                SchemaField(
+                    name="completion_id",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="completion_system_fingerprint",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="completion_created_timestamp",
+                    field_type=SqlTypeNames.TIMESTAMP,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="completion_user_id",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="service_tier",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="model",
+                    field_type=SqlTypeNames.STRING,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="prompt_tokens",
+                    field_type=SqlTypeNames.INTEGER,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="completion_tokens",
+                    field_type=SqlTypeNames.INTEGER,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="total_tokens",
+                    field_type=SqlTypeNames.INTEGER,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                StackFramesRecordField.schema(),
+                OpenAIRequestPropertiesRecordField.schema(),
+                SchemaField(
+                    name="input_cost_usd_cents",
+                    field_type=SqlTypeNames.NUMERIC,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="output_cost_usd_cents",
+                    field_type=SqlTypeNames.NUMERIC,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                SchemaField(
+                    name="total_cost_usd_cents",
+                    field_type=SqlTypeNames.NUMERIC,
+                    mode=BigQueryFieldMode.NULLABLE,
+                ),
+                *Atom.common_atom_schema_fields(),
+            ),
+        )
+
+    completion_id: str | None
+    completion_system_fingerprint: str | None
+    completion_created_timestamp: float | None
+    completion_user_id: str | None
+    service_tier: str | None
+    model: str | None
+    prompt_tokens: int | None
+    completion_tokens: int | None
+    total_tokens: int | None
+    stack_frames: list[StackFramesRecordField] | None
+    openai_request: OpenAIRequestPropertiesRecordField | None
+    input_cost_usd_cents: Numeric | None
+    output_cost_usd_cents: Numeric | None
+    total_cost_usd_cents: Numeric | None
 
 
 @dataclass(kw_only=True)

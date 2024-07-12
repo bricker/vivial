@@ -1,18 +1,7 @@
-variable "project" {
-  type = object({
-    id          = string
-    root_domain = string
-  })
-}
-
 resource "kubernetes_namespace" "eave" {
   metadata {
     name = "eave"
   }
-}
-
-output "eave_namespace_name" {
-  value = kubernetes_namespace.eave.metadata[0].name
 }
 
 resource "kubernetes_namespace" "metabase" {
@@ -21,9 +10,6 @@ resource "kubernetes_namespace" "metabase" {
   }
 }
 
-output "metabase_namespace_name" {
-  value = kubernetes_namespace.metabase.metadata[0].name
-}
 
 resource "kubernetes_config_map" "shared" {
   metadata {
@@ -46,8 +32,24 @@ resource "kubernetes_config_map" "shared" {
   }
 }
 
-output "shared_config_map_name" {
-  value = kubernetes_config_map.shared.metadata[0].name
+
+# This is for Gateway IAP
+# Secrets have to be created per-namespace
+resource "kubernetes_secret" "iap_oauth_client_secret" {
+  for_each = toset([
+    kubernetes_namespace.eave.metadata[0].name,
+    kubernetes_namespace.metabase.metadata[0].name
+  ])
+
+  metadata {
+    name      = "iap-oauth-client-secret"
+    namespace = each.value
+  }
+
+  type = "Opaque"
+  data = {
+    key = var.iap_oauth_client_secret
+  }
 }
 
 # resource "kubernetes_service" "noop" {
