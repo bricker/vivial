@@ -6,7 +6,6 @@ resource "kubernetes_config_map" "app" {
     labels = {
       app = local.app_name
     }
-
   }
 
   data = {
