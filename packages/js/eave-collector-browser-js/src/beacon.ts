@@ -80,10 +80,7 @@ class RequestManager {
       console.warn(LOG_TAG, "EAVE_CLIENT_ID is not set.");
       return;
     }
-
-    window.addEventListener(EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, this);
-    document.addEventListener(VISIBILITY_CHANGE_EVENT_TYPE, this);
-    this.startAutoflush();
+    // this.startAutoflush();
   }
 
   startAutoflush() {
@@ -114,18 +111,19 @@ class RequestManager {
   async handleEvent(event: Event) {
     switch (event.type) {
       case EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE: {
-        this.startAutoflush();
+        this.#flushQueue();
+        // this.startAutoflush();
         break;
       }
 
       case EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE: {
-        this.stopAutoflush();
+        // this.stopAutoflush();
         break;
       }
 
       case VISIBILITY_CHANGE_EVENT_TYPE: {
         if (document.visibilityState === "hidden") {
-          await this.#flushQueue();
+          this.#flushQueue();
         }
         break;
       }
@@ -170,30 +168,28 @@ class RequestManager {
   }
 
   /**
-   * Send single event
+   * Send or queue single event
    */
   queueEvent(payload: BrowserEventPayload) {
-    this.#queue.push(payload);
-    console.debug(LOG_TAG, "Queued event", payload);
-
-    if (this.#queue.isFull || MODE === "development") {
-      this.#flushQueue();
+    if (isTrackingConsentRevoked()) {
+      this.#queue.push(payload);
+      console.debug(LOG_TAG, "Queued event", payload);
+    } else {
+      this.#sendBatch([payload]);
     }
   }
 
   /**
    * Send batch of events
    */
-  #flushQueue() {
-    if (this.#queue.length === 0) {
-      return;
-    }
-
+  #sendBatch(payloads: BrowserEventPayload[]) {
     if (isTrackingConsentRevoked()) {
       return;
     }
 
-    const payloads = this.#queue.popAll();
+    if (payloads.length === 0) {
+      return;
+    }
 
     try {
       const json = JSON.stringify({
@@ -221,12 +217,26 @@ class RequestManager {
         console.warn(LOG_TAG, "failed to send analytics.");
         return;
       }
-      // returns true if the user agent is able to successfully queue the data for transfer,
-      // Otherwise it returns false and we need to try the regular way
     } catch (e) {
       console.error(LOG_TAG, e);
       return;
     }
+  }
+
+  /**
+   * Flush the queue
+   */
+  #flushQueue() {
+    if (this.#queue.length === 0) {
+      return;
+    }
+
+    if (isTrackingConsentRevoked()) {
+      return;
+    }
+
+    const payloads = this.#queue.popAll();
+    this.#sendBatch(payloads);
   }
 
   async #getDeviceProperties(): Promise<DeviceProperties> {
