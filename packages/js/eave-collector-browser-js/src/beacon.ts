@@ -17,7 +17,7 @@ import {
   ScalarMap,
   TargetProperties,
 } from "./types";
-import { uuidv4 } from "./util/uuid.js";
+import { uuidv4 } from "./util/uuid";
 
 /**
  * A Queue with a maximum size.
