@@ -67,6 +67,15 @@ resource "google_sql_database_instance" "default" {
       name  = "log_statement"
       value = "ddl"
     }
+    database_flags {
+      # This helps clean up idle connections left by app instances that weren't gracefully terminated.
+      name  = "idle_in_transaction_session_timeout"
+      value = "30000"
+    }
+    database_flags {
+      name  = "timezone"
+      value = "UTC"
+    }
     insights_config {
       query_insights_enabled  = true
       record_application_tags = true
