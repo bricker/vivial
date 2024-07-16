@@ -70,3 +70,14 @@ class TestClientCredentialsOrmScopeQuery(BaseTestCase):
     async def test_decryption_key(self) -> None:
         creds = await self._create_creds(ClientScope.read)
         assert creds.decryption_key == b64encode(hashlib.sha256(bytes(creds.combined, "utf-8")).digest())
+
+    async def test_create_creds(self) -> None:
+        async with self.db_session.begin() as s:
+            creds = await ClientCredentialsOrm.create(
+                session=s,
+                team_id=self._team.id,
+                description=None,
+                scope=ClientScope.read,
+            )
+
+            assert creds.secret.startswith("evc_")
