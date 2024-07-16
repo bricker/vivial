@@ -1,4 +1,5 @@
 # syntax=docker/dockerfile:1
+# check=error=true
 
 ARG PYTHON_VERSION=3.12.3
 
