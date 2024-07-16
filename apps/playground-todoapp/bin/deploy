@@ -4,4 +4,8 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-"${EAVE_HOME}"/develop/deploy/bin/deploy-service -s playground-todoapp
+(
+	cd "$(e.parentpath)"
+	bin/run-db-migration
+	"${EAVE_HOME}"/develop/deploy/bin/deploy-service -s playground-todoapp
+)

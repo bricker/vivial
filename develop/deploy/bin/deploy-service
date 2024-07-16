@@ -39,7 +39,7 @@ function main() (
 	fi
 
 	if test -z "$dockerfile"; then
-		dockerfile="$(readline -fn Dockerfile)"
+		dockerfile="$(readlink -fn Dockerfile)"
 	fi
 
 	local gcloudproject; gcloudproject="$(e.gcloudproject)"
@@ -57,9 +57,14 @@ function main() (
 		"$EAVE_HOME"
 
 	statusmsg -a "Pushing all tags for $imagename"
-	docker push --all-tags "$imagename"
+	if e.confirm; then
+		docker push --all-tags "$imagename"
+	fi
 
-	kubectl -n eave rollout restart deployment/"$service"
+	statusmsg -a "Rolling out $imagename:$gitsha to $service"
+	if e.confirm; then
+		kubectl -n eave rollout restart deployment/"$service"
+	fi
 )
 
 main "$@"
