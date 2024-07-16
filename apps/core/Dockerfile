@@ -1,15 +1,13 @@
 # syntax=docker/dockerfile:1
 
 ARG PYTHON_VERSION=3.12.3
-ARG GAE_RELEASE_DATE="unknown"
-ARG GAE_SERVICE="core-api"
-ARG GAE_VERSION="unknown"
+
 
 
 
 
 ## Builder
-FROM python:${PYTHON_VERSION}-slim as builder
+FROM python:${PYTHON_VERSION}-slim AS builder
 ENV EAVE_HOME=/build
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -36,7 +34,11 @@ RUN python -m pip install \
 
 
 ## Base
-FROM python:${PYTHON_VERSION}-slim as base
+FROM python:${PYTHON_VERSION}-slim AS base
+
+ARG GAE_RELEASE_DATE="unknown"
+ARG GAE_SERVICE="core-api"
+ARG GAE_VERSION="unknown"
 
 # Copy dependencies into base image
 RUN mkdir -p /vendor
@@ -64,11 +66,10 @@ EXPOSE 8000
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/vendor
+
 ENV GAE_RELEASE_DATE="$GAE_RELEASE_DATE"
 ENV GAE_SERVICE="$GAE_SERVICE"
 ENV GAE_VERSION="$GAE_VERSION"
 
-CMD PYTHONPATH=/vendor python -m gunicorn \
-    --pythonpath /vendor \
-    --worker-class eave.stdlib.uvicorn.EaveUvicornWorker \
-    eave.core.app:app
+ENTRYPOINT ["python", "-m gunicorn", "--pythonpath /vendor", "--worker-class eave.stdlib.uvicorn.EaveUvicornWorker", "eave.core.app:app"]

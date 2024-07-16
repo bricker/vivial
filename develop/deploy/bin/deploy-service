@@ -47,6 +47,10 @@ function main() (
 	local imagename="us-central1-docker.pkg.dev/${gcloudproject}/docker/${service}"
 	local release_date; release_date=$(date --utc --iso-8601=seconds)
 
+	docker build --check \
+		-f "$dockerfile" \
+		"$EAVE_HOME"
+
 	docker build \
 		--no-cache \
 		-t "$imagename:latest" \

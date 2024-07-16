@@ -2,14 +2,10 @@
 
 ARG PYTHON_VERSION=3.12.3
 ARG NODE_VERSION=18
-ARG GAE_RELEASE_DATE="unknown"
-ARG GAE_SERVICE="dashboard"
-ARG GAE_VERSION="unknown"
-
 
 
 ## Python Builder
-FROM python:${PYTHON_VERSION}-slim as builder-py
+FROM python:${PYTHON_VERSION}-slim AS builder-py
 ENV EAVE_HOME=/build
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -36,7 +32,7 @@ RUN python -m pip install \
 
 
 ## Node Builder
-FROM node:${NODE_VERSION}-slim as builder-node
+FROM node:${NODE_VERSION}-slim AS builder-node
 ENV EAVE_HOME=/build
 ENV NODE_ENV=development
 
@@ -61,7 +57,11 @@ RUN npx webpack build --mode=production --no-devtool
 
 
 ## Base
-FROM python:${PYTHON_VERSION}-slim as base
+FROM python:${PYTHON_VERSION}-slim AS base
+
+ARG GAE_RELEASE_DATE="unknown"
+ARG GAE_SERVICE="dashboard"
+ARG GAE_VERSION="unknown"
 
 # Copy python dependencies into base image
 # Notably, node dependencies are _not_ required for this image. The webpack bundle contains everything necessary.
@@ -90,11 +90,10 @@ EXPOSE 8000
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/vendor
+
 ENV GAE_RELEASE_DATE="$GAE_RELEASE_DATE"
 ENV GAE_SERVICE="$GAE_SERVICE"
 ENV GAE_VERSION="$GAE_VERSION"
 
-CMD PYTHONPATH=/vendor python -m gunicorn \
-    --pythonpath /vendor \
-    --worker-class eave.stdlib.uvicorn.EaveUvicornWorker \
-    eave.dashboard.app:app
+ENTRYPOINT ["python", "-m gunicorn", "--pythonpath /vendor", "--worker-class eave.stdlib.uvicorn.EaveUvicornWorker", "eave.dashboard.app:app"]

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+function main () (
+
+	if ! docker version > /dev/null; then
+		statusmsg -w "Docker isn't available (not running?), so the Dockerfile lint check is disabled."
+		return 0
+	fi
+
+	docker build --check \
+		-f Dockerfile \
+		"$EAVE_HOME"
+)
+
+main "$@"
