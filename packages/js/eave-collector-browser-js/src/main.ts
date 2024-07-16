@@ -1,4 +1,4 @@
-import { requestManager } from "./beacon.js";
+import { requestManager } from "./beacon";
 import { ConsentChoice, setCookieConsentChoice, setTrackingConsentChoice } from "./consent";
 import { cookiesEventHandler } from "./cookies";
 import { LOG_TAG } from "./internal/constants";

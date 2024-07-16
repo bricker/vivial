@@ -1,8 +1,7 @@
 import { isTrackingConsentRevoked } from "./consent";
-import { MODE, TRACKER_URL } from "./internal/compile-config";
+import { TRACKER_URL } from "./internal/compile-config";
 import { LOG_TAG } from "./internal/constants";
 import {
-  EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE,
   EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE,
   EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE,
   VISIBILITY_CHANGE_EVENT_TYPE,
