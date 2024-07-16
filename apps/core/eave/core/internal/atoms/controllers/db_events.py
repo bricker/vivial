@@ -77,6 +77,9 @@ class DatabaseEventsController(BaseAtomController):
             atoms.append(atom)
             unique_operations.add((e.operation, e.table_name))
 
+        if len(atoms) == 0:
+            return
+
         await redact_atoms(atoms)
 
         errors = EAVE_INTERNAL_BIGQUERY_CLIENT.append_rows(
