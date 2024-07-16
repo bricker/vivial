@@ -1,3 +1,4 @@
+from enum import IntEnum, StrEnum
 import secrets
 import uuid
 from dataclasses import dataclass
@@ -5,7 +6,7 @@ from datetime import datetime
 from typing import Self
 from uuid import UUID
 
-from sqlalchemy import Select, String, func, select
+from sqlalchemy import Select, String, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -14,6 +15,9 @@ from eave.stdlib.config import SHARED_CONFIG
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 
+class MetabaseInstanceState(IntEnum):
+    INIT = 0
+    READY = 1
 
 class MetabaseInstanceOrm(Base):
     __tablename__ = "metabase_instances"
@@ -24,6 +28,7 @@ class MetabaseInstanceOrm(Base):
 
     team_id: Mapped[UUID] = mapped_column()
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+    state: Mapped[int] = mapped_column(server_default=text(f"{MetabaseInstanceState.READY}"))
     jwt_signing_key: Mapped[str] = mapped_column()
     instance_id: Mapped[str] = mapped_column(
         unique=True, type_=String(length=8)
@@ -37,9 +42,11 @@ class MetabaseInstanceOrm(Base):
         cls,
         session: AsyncSession,
         team_id: uuid.UUID | None,
+        state: MetabaseInstanceState,
     ) -> Self:
         obj = cls(
             team_id=team_id,
+            state=state,
             jwt_signing_key=secrets.token_hex(64),
             instance_id=secrets.token_hex(4),
         )
@@ -91,3 +98,7 @@ class MetabaseInstanceOrm(Base):
     @property
     def internal_base_url(self) -> str:
         return f"http://mb-{self.instance_id}.{SHARED_CONFIG.eave_embed_netloc_internal}"
+
+    @property
+    def ready(self) -> bool:
+        return self.state == MetabaseInstanceState.READY
