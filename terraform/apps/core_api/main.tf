@@ -19,6 +19,7 @@ module "app_iam_role" {
     "roles/bigquery.dataOwner",
     "roles/cloudsql.instanceUser", # for IAM auth
     "roles/cloudsql.client",
+    "roles/dlp.user",
   ]
 
   members = [
