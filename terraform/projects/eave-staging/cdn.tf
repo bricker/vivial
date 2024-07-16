@@ -1,3 +1,5 @@
+# # https://cloud.google.com/cdn/docs/cdn-terraform-examples
+
 resource "google_storage_bucket" "cdn" {
   name                        = "cdn.${local.project.root_domain}"
   default_event_based_hold    = false
@@ -37,3 +39,14 @@ resource "google_storage_bucket" "cdn" {
     enabled = true
   }
 }
+
+resource "google_storage_bucket_iam_member" "default" {
+  bucket = google_storage_bucket.cdn.name
+  role   = "roles/storage.objectViewer"
+  member = "allUsers"
+}
+
+# # reserve IP address
+# resource "google_compute_global_address" "default" {
+#   name = "example-ip"
+# }
