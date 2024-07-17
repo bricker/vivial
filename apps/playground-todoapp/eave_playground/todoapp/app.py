@@ -6,6 +6,7 @@ from http import HTTPStatus
 from textwrap import dedent
 from uuid import UUID
 
+from eave.collectors.openai import OpenAICollectorManager
 import google.cloud.logging
 from sqlalchemy import and_, delete, select, update
 from starlette.applications import Starlette
@@ -18,7 +19,7 @@ from starlette.templating import Jinja2Templates
 from eave.collectors.sqlalchemy import start_eave_sqlalchemy_collector, stop_eave_sqlalchemy_collector
 from eave.collectors.starlette import StarletteCollectorManager
 
-from .openai import chat_completion
+from .openai import chat_completion, openai_client
 from .orm import TodoListItemOrm, UserOrm, async_engine, async_session
 
 _COOKIE_PREFIX = "todoapp."
@@ -220,3 +221,4 @@ app = Starlette(
 )
 
 StarletteCollectorManager.start(app)
+OpenAICollectorManager.start(openai_client)

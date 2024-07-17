@@ -5,6 +5,8 @@ import random
 from http import HTTPStatus
 from textwrap import dedent
 
+from eave.collectors.openai import OpenAICollectorManager
+from eave.collectors.starlette import StarletteCollectorManager
 import google.cloud.logging
 from openai import AsyncOpenAI
 from starlette.applications import Starlette
@@ -84,11 +86,11 @@ topics = [
 ]
 
 
-async def get_quiz(request: Request) -> Response:
-    openai_client = AsyncOpenAI(
-        api_key=get_secret("OPENAI_API_KEY"),
-    )
+openai_client = AsyncOpenAI(
+    api_key=get_secret("OPENAI_API_KEY"),
+)
 
+async def get_quiz(request: Request) -> Response:
     quiz_topic = random.choice(topics)  # noqa: S311
 
     chat_completion = await openai_client.chat.completions.create(
@@ -197,4 +199,5 @@ app = Starlette(
 )
 
 
-# StarletteCollectorManager.start(app)
+StarletteCollectorManager.start(app)
+OpenAICollectorManager.start(openai_client)

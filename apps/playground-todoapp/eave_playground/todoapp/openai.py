@@ -2,12 +2,11 @@ from openai import AsyncOpenAI
 
 from .secrets import get_secret
 
+openai_client = AsyncOpenAI(
+    api_key=get_secret("OPENAI_API_KEY"),
+)
 
 async def chat_completion(prompt: str) -> str | None:
-    openai_client = AsyncOpenAI(
-        api_key=get_secret("OPENAI_API_KEY"),
-    )
-
     chat_completion = await openai_client.chat.completions.create(
         messages=[
             {
