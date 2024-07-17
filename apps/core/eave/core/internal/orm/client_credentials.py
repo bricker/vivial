@@ -55,7 +55,7 @@ class ClientCredentialsOrm(Base):
         obj = cls(
             team_id=team_id,
             description=description,
-            secret=f"evc_{secrets.token_hex(64)}", # The prefix helps static code scanners detect secrets
+            secret=f"evsk_{secrets.token_hex(64)}", # The prefix helps static code scanners detect secrets
             scope=scope,
         )
 

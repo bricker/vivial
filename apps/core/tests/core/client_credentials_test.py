@@ -80,4 +80,4 @@ class TestClientCredentialsOrmScopeQuery(BaseTestCase):
                 scope=ClientScope.read,
             )
 
-            assert creds.secret.startswith("evc_")
+            assert creds.secret.startswith("evsk_")
