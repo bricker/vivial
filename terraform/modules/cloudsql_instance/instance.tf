@@ -1,21 +1,5 @@
 // https://registry.terraform.io/modules/GoogleCloudPlatform/sql-db/google/latest
 
-variable "project" {
-  type = object({
-    region            = string
-    zone              = string
-    preset_production = bool
-  })
-}
-
-variable "instance_name" {
-  type = string
-}
-
-data "google_compute_network" "default" {
-  name = "default"
-}
-
 resource "google_sql_database_instance" "default" {
   name                = var.instance_name
   database_version    = "POSTGRES_15"
@@ -84,7 +68,7 @@ resource "google_sql_database_instance" "default" {
     ip_configuration {
       enable_private_path_for_google_cloud_services = true
       ipv4_enabled                                  = true
-      private_network                               = data.google_compute_network.default.id
+      private_network                               = var.network_id
       require_ssl                                   = true
       ssl_mode                                      = "TRUSTED_CLIENT_CERTIFICATE_REQUIRED" # ENCRYPTED_ONLY, TRUSTED_CLIENT_CERTIFICATE_REQUIRED, ALLOW_UNENCRYPTED_AND_ENCRYPTED
     }
@@ -104,8 +88,4 @@ resource "google_sql_database_instance" "default" {
       reuse_interval              = 10
     }
   }
-}
-
-output "instance" {
-  value = google_sql_database_instance.default
 }

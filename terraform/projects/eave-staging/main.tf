@@ -53,6 +53,7 @@ module "cloudsql_eave_core" {
   source        = "../../modules/cloudsql_instance"
   project       = local.project
   instance_name = "eave-pg-core"
+  network_id = data.google_compute_network.default.id
 }
 
 module "ssl_policy" {
