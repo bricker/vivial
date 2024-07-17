@@ -43,7 +43,7 @@ def upgrade() -> None:
 
     answer = input(eaveLogger.f(logging.WARNING, "Proceed? (y/n) "))
 
-    if answer != "Y":
+    if answer != "y":
         raise click.Abort()
 
     alembic.command.upgrade(
