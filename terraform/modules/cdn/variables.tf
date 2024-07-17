@@ -11,6 +11,9 @@ variable "dns_zone" {
   })
 }
 
-variable "certificate_map_name" {
-  type = string
+variable "certificate_map" {
+  type = object({
+    id = string
+    name = string
+  })
 }
