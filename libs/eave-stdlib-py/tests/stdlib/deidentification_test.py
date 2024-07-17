@@ -189,9 +189,9 @@ class DeidentificationTest(StdlibBaseTestCase):
         atoms = [
             BasketWeaver(
                 tools=[Tool(type="knitting needles"), Tool(type="drill")],
-                name="Fred Flintstone",
+                name="Fred",
                 helpers=[
-                    WeavingSpider(genus="bug", favorite_legs=[4, 9], name="Anji Smith"),
+                    WeavingSpider(genus="bug", favorite_legs=[4, 9], name="Anji"),
                     WeavingSpider(genus="orb weaver", favorite_legs=None, name="Arachne"),
                 ],
                 latest_work=Basket(
@@ -203,9 +203,9 @@ class DeidentificationTest(StdlibBaseTestCase):
             ),
             BasketWeaver(
                 tools=[],
-                name="Samantha Bee",
+                name="Samantha",
                 helpers=[
-                    WeavingSpider(genus="grasshopper", favorite_legs=[], name="Phil Smith"),
+                    WeavingSpider(genus="grasshopper", favorite_legs=[], name="Phil"),
                 ],
                 latest_work=Basket(
                     thread_count=3,
