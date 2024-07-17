@@ -60,3 +60,10 @@ module "cloudsql_eave_core" {
 module "ssl_policy" {
   source = "../../modules/ssl_policy"
 }
+
+module "cdn" {
+  source = "../../modules/cdn"
+  project=local.project
+  dns_zone=module.dns_zone_base_domain.zone
+  certificate_map_name = google_certificate_manager_certificate_map.default.name
+}
