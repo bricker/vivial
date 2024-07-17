@@ -18,8 +18,8 @@ resource "google_compute_url_map" "cdn" {
 }
 
 resource "google_compute_target_https_proxy" "cdn" {
-  name    = "cdn-lb-https-proxy"
-  url_map = google_compute_url_map.cdn.id
+  name            = "cdn-lb-https-proxy"
+  url_map         = google_compute_url_map.cdn.id
   certificate_map = "//certificatemanager.googleapis.com/${var.certificate_map.id}"
 }
 

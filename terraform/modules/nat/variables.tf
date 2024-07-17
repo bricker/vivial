@@ -1,3 +1,3 @@
 variable "network_id" {
-  type=string
+  type = string
 }

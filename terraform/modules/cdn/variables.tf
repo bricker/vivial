@@ -1,6 +1,6 @@
 variable "project" {
   type = object({
-    root_domain=string
+    root_domain = string
   })
 }
 
@@ -13,7 +13,7 @@ variable "dns_zone" {
 
 variable "certificate_map" {
   type = object({
-    id = string
+    id   = string
     name = string
   })
 }

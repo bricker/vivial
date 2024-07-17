@@ -11,5 +11,5 @@ variable "instance_name" {
 }
 
 variable "network_id" {
-  type=string
+  type = string
 }

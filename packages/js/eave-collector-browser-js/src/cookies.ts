@@ -76,7 +76,7 @@ export function setCookie({
     // See EAVE-201
     const url = new URL(window.location.href);
     const parts = url.hostname.split(".");
-    domain = parts.slice(-2).join(".")
+    domain = parts.slice(-2).join(".");
   }
 
   cookieAttrs.push(["Domain", domain]);

@@ -6,8 +6,6 @@ from http import HTTPStatus
 from textwrap import dedent
 from urllib.parse import unquote_plus
 
-from eave.collectors.openai import OpenAICollectorManager
-from eave.collectors.starlette import StarletteCollectorManager
 import google.cloud.logging
 from openai import AsyncOpenAI
 from starlette.applications import Starlette
@@ -16,6 +14,9 @@ from starlette.responses import JSONResponse, Response
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
+
+from eave.collectors.openai import OpenAICollectorManager
+from eave.collectors.starlette import StarletteCollectorManager
 
 from .secrets import get_secret
 
@@ -90,7 +91,7 @@ topics = [
     "biology",
     "politics",
     "US presidents",
-    "The TV show \"It's Always Sunny in Philadelphia\"",
+    'The TV show "It\'s Always Sunny in Philadelphia"',
     'The TV show "Parks and Recreation"',
     'The TV show "30 Rock"',
     'The TV show "Saturday Night Live"',
@@ -101,6 +102,7 @@ topics = [
 openai_client = AsyncOpenAI(
     api_key=get_secret("OPENAI_API_KEY"),
 )
+
 
 async def get_quiz(request: Request) -> Response:
     if qptopic := request.query_params.get("topic"):

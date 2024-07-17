@@ -6,7 +6,6 @@ from http import HTTPStatus
 from textwrap import dedent
 from uuid import UUID
 
-from eave.collectors.openai import OpenAICollectorManager
 import google.cloud.logging
 from sqlalchemy import and_, delete, select, update
 from starlette.applications import Starlette
@@ -16,6 +15,7 @@ from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
+from eave.collectors.openai import OpenAICollectorManager
 from eave.collectors.sqlalchemy import start_eave_sqlalchemy_collector, stop_eave_sqlalchemy_collector
 from eave.collectors.starlette import StarletteCollectorManager
 
@@ -58,11 +58,13 @@ async def get_summary(request: Request) -> Response:
         todos = result.all()
 
     text_list = "\n    ".join(f"- {todo.text}" for todo in todos)
-    prompt = dedent(f"""
+    prompt = dedent(
+        f"""
     Summarize the following list of TODO items for me. It should briefly describe my goals for today.
 
     {text_list}
-    """.strip())
+    """.strip()
+    )
 
     summary = await chat_completion(prompt=prompt, user=user_id)
     return JSONResponse(content={"text": summary}, status_code=HTTPStatus.OK)

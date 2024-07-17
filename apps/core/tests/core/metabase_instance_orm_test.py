@@ -1,7 +1,3 @@
-import datetime
-import hashlib
-from base64 import b64encode
-import os
 import secrets
 
 from eave.core.internal.orm.metabase_instance import MetabaseInstanceOrm, MetabaseInstanceState
@@ -48,9 +44,7 @@ class TestMetabaseInstanceOrm(BaseTestCase):
                 state=MetabaseInstanceState.READY,
             )
 
-        self.patch_env({
-            "EAVE_EMBED_BASE_URL_INTERNAL": "http://embed.eave.internal"
-        })
+        self.patch_env({"EAVE_EMBED_BASE_URL_INTERNAL": "http://embed.eave.internal"})
 
         assert metabase_instance.internal_base_url == f"http://mb-{metabase_instance.instance_id}.embed.eave.internal"
 

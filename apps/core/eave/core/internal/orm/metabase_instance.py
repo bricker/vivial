@@ -1,8 +1,8 @@
-from enum import IntEnum, StrEnum
 import secrets
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
+from enum import IntEnum
 from typing import Self
 from uuid import UUID
 
@@ -15,9 +15,11 @@ from eave.stdlib.config import SHARED_CONFIG
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
 
+
 class MetabaseInstanceState(IntEnum):
     INIT = 0
     READY = 1
+
 
 class MetabaseInstanceOrm(Base):
     __tablename__ = "metabase_instances"
