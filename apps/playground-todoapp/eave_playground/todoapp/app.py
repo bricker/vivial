@@ -62,9 +62,9 @@ async def get_summary(request: Request) -> Response:
     Summarize the following list of TODO items for me. It should briefly describe my goals for today.
 
     {text_list}
-    """)
+    """.strip())
 
-    summary = await chat_completion(prompt=prompt)
+    summary = await chat_completion(prompt=prompt, user=user_id)
     return JSONResponse(content={"text": summary}, status_code=HTTPStatus.OK)
 
 

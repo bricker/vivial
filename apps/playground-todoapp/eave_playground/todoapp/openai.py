@@ -6,8 +6,9 @@ openai_client = AsyncOpenAI(
     api_key=get_secret("OPENAI_API_KEY"),
 )
 
-async def chat_completion(prompt: str) -> str | None:
+async def chat_completion(*, prompt: str, user: str) -> str | None:
     chat_completion = await openai_client.chat.completions.create(
+        user=user,
         messages=[
             {
                 "role": "user",
