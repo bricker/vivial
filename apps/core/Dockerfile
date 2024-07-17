@@ -73,4 +73,4 @@ ENV GAE_RELEASE_DATE="$GAE_RELEASE_DATE"
 ENV GAE_SERVICE="$GAE_SERVICE"
 ENV GAE_VERSION="$GAE_VERSION"
 
-ENTRYPOINT ["python", "-m gunicorn", "--pythonpath /vendor", "--worker-class eave.stdlib.uvicorn.EaveUvicornWorker", "eave.core.app:app"]
+ENTRYPOINT ["python", "-m", "gunicorn", "--pythonpath", "/vendor", "--worker-class", "eave.stdlib.uvicorn.EaveUvicornWorker", "eave.core.app:app"]
