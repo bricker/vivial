@@ -40,7 +40,7 @@ async def echo_endpoint(request: Request) -> Response:
     body = await request.body()
     return JSONResponse(
         content={
-            "request_headers": request.headers,
+            "request_headers": request.headers.items(),
             "request_body": body.decode(),
         },
     )
