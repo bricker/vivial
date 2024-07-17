@@ -123,10 +123,10 @@ function setupgcloud() (
 		statusmsg -i "The gcloud CLI connects your local machine to our Google Cloud project, and is used in many development scripts."
 		if e.confirm; then
 			cd "$tmpdir" || exit 1
-			local gcloudversion="426.0.0"
 			local arch
 			arch=$(e.get-cpu-arch-normalized)
-			local filename="google-cloud-cli-$gcloudversion-$kernel-$arch.tar.gz"
+			# Gets the latest version. To get a specific version, `google-cloud-cli-$version-$kernel-$arch.tar.gz` can be used.
+			local filename="google-cloud-cli-$kernel-$arch.tar.gz"
 			curl -O "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/$filename"
 			tar -xf "$filename"
 			mv google-cloud-sdk "$HOME"
