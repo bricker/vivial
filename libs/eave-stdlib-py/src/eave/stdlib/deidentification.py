@@ -260,6 +260,16 @@ async def redact_atoms(atoms: list[Any]) -> None:
     response = await client.deidentify_content(
         request=dlp.DeidentifyContentRequest(
             parent=parent,
+            inspect_config=dlp.InspectConfig(
+                min_likelihood_per_info_type=[
+                    dlp.InspectConfig.InfoTypeLikelihood(
+                        info_type=dlp.InfoType(
+                            name="PERSON_NAME",
+                        ),
+                        min_likelihood=dlp.Likelihood.POSSIBLE,
+                    )
+                ],
+            ),
             deidentify_config=dlp.DeidentifyConfig(
                 record_transformations=dlp.RecordTransformations(
                     field_transformations=[
@@ -268,7 +278,7 @@ async def redact_atoms(atoms: list[Any]) -> None:
                             info_type_transformations=dlp.InfoTypeTransformations(
                                 transformations=[
                                     dlp.InfoTypeTransformations.InfoTypeTransformation(
-                                        info_types=[],  # NOTE: empty list defaults to all info types
+                                        info_types=[],  # NOTE: empty list defaults to all configured info types
                                         primitive_transformation=dlp.PrimitiveTransformation(
                                             replace_with_info_type_config=dlp.ReplaceWithInfoTypeConfig()
                                         ),
