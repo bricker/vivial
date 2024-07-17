@@ -1,0 +1,4 @@
+check-sourced=true
+external-sources=true
+source-path=develop
+disable=SC1071
