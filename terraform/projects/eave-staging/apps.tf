@@ -1,7 +1,3 @@
-resource "google_certificate_manager_certificate_map" "default" {
-  name = "root-certificate-map"
-}
-
 module "core_api_app" {
   source  = "../../apps/core_api"
   project = local.project
@@ -31,7 +27,7 @@ module "playground_todoapp" {
   docker_repository      = module.docker_registry.repository
   ssl_policy_name        = module.ssl_policy.policy_name
   certificate_map_name   = google_certificate_manager_certificate_map.default.name
-  cdn_base_url           = "https://storage.googleapis.com/${google_storage_bucket.cdn.name}"
+  cdn_base_url           = "https://storage.googleapis.com/${module.cdn.bucket_name}"
 
   kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
@@ -54,7 +50,7 @@ module "playground_quizapp" {
   docker_repository    = module.docker_registry.repository
   ssl_policy_name      = module.ssl_policy.policy_name
   certificate_map_name = google_certificate_manager_certificate_map.default.name
-  cdn_base_url         = "https://storage.googleapis.com/${google_storage_bucket.cdn.name}"
+  cdn_base_url         = "https://storage.googleapis.com/${module.cdn.bucket_name}"
 
   kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
@@ -77,7 +73,7 @@ module "dashboard_app" {
   docker_repository    = module.docker_registry.repository
   ssl_policy_name      = module.ssl_policy.policy_name
   certificate_map_name = google_certificate_manager_certificate_map.default.name
-  cdn_base_url         = "https://storage.googleapis.com/${google_storage_bucket.cdn.name}"
+  cdn_base_url         = "https://storage.googleapis.com/${module.cdn.bucket_name}"
 
   kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name

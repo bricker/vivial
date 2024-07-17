@@ -7,16 +7,6 @@
 #   sensitive = true
 # }
 
-variable "EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64" {
-  type      = string
-  sensitive = true
-}
-
-variable "SLACK_SYSTEM_BOT_TOKEN" {
-  type      = string
-  sensitive = true
-}
-
 locals {
   secrets = {
     "EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64" = var.EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64
