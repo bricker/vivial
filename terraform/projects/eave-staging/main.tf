@@ -42,6 +42,7 @@ module "docker_registry" {
 
 module "nat" {
   source = "../../modules/nat"
+  network_id = data.google_compute_network.default.id
 }
 
 module "dns_zone_base_domain" {
