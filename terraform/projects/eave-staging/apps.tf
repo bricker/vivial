@@ -105,6 +105,10 @@ module "metabase" {
       metabase_instance_id = "40115f0c"
       team_id              = "4d734b7a106c46159bb1013f4caeb463"
     },
+    "d1d24ba2" = {
+      metabase_instance_id = "d1d24ba2"
+      team_id              = "612e9705b31b4c2fa31b8cf1f648e619"
+    },
   }
 
   cloudsql_instance_name = module.cloudsql_eave_core.instance.name
