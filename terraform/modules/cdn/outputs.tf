@@ -3,5 +3,5 @@ output "bucket_name" {
 }
 
 output "domain" {
-  value = locals.domain
+  value = local.domain
 }

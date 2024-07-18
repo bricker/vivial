@@ -1,5 +1,5 @@
-locals {
-  enabled_services = toset([
+resource "google_project_service" "services" {
+  for_each = toset([
     "aiplatform.googleapis.com",          # Vertex AI API
     "artifactregistry.googleapis.com",    # Artifact Registry API
     "bigquery.googleapis.com",            # BigQuery API
@@ -28,10 +28,7 @@ locals {
     "sqladmin.googleapis.com",            # Cloud SQL Admin API
     "storage-api.googleapis.com",         # Google Cloud Storage JSON API
   ])
-}
 
-resource "google_project_service" "services" {
-  for_each = local.enabled_services
   service  = each.value
 
   disable_dependent_services = false
