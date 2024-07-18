@@ -10,10 +10,6 @@ resource "google_dns_record_set" "cdn" {
   rrdatas      = [google_compute_global_address.cdn.address]
 }
 
-locals {
-  domain = trimsuffix(google_dns_record_set.cdn.name, ".")
-}
-
 module "cdn_certificate" {
   source          = "../../modules/certificate_manager"
   certificate_map = var.certificate_map.name
