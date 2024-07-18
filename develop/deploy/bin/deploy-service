@@ -4,7 +4,7 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-function _print_help () (
+function _print_help() (
 	statusmsg -o "Build and deploy a service."
 	statusmsg -o "Usage: deploy-service -s service [-f dockerfile]"
 	statusmsg -o "  -s service : Required. The name of the kubernertes service to build and deploy. eg 'core-api' or 'dashboard'"
@@ -42,10 +42,13 @@ function main() (
 		dockerfile="$(readlink -fn Dockerfile)"
 	fi
 
-	local gcloudproject; gcloudproject="$(e.gcloudproject)"
-	local gitsha; gitsha="$(git rev-parse --short HEAD)"
+	local gcloudproject
+	gcloudproject="$(e.gcloudproject)"
+	local gitsha
+	gitsha="$(git rev-parse --short HEAD)"
 	local imagename="us-central1-docker.pkg.dev/${gcloudproject}/docker/${service}"
-	local release_date; release_date=$(date --utc --iso-8601=seconds)
+	local release_date
+	release_date=$(date --utc --iso-8601=seconds)
 
 	docker build --check \
 		-f "$dockerfile" \

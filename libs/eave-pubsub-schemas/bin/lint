@@ -8,4 +8,5 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 	python-lint .
 	python/bin/lint
+	"${EAVE_HOME}"/develop/shared/lint-shell .
 )

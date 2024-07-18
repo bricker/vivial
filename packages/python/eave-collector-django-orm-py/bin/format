@@ -5,5 +5,7 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 (
-	python-format "$(e.parentpath)"
+	cd "$(e.parentpath)"
+	python-format .
+	"${EAVE_HOME}"/develop/shared/format-shell .
 )

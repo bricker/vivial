@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+function main() (
+	if ! e.cmd-exists "shellcheck" || ! e.cmd-exists "shfmt"; then
+		statusmsg -e "shellcheck and shfmt are both required for shell linting."
+		return 1
+	fi
+
+	local target=${1:-.}
+	cd "$target" || exit 1
+
+	local logtarget
+	logtarget=$(e.pwd)
+
+	local shfiles=()
+	read -r -a shfiles <<<"$(shfmt --find .)"
+
+	if test ${#shfiles[@]} -eq 0; then
+		statusmsg -i "No shell scripts found."
+		return 0
+	fi
+
+	statusmsg -i "Linting $logtarget (shell)..."
+
+	shellcheck "${shfiles[@]}"
+	shfmt --diff .
+
+	statusmsg -s "Linting $logtarget completed"
+	echo
+)
+
+main "$@"

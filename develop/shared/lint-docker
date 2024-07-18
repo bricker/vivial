@@ -4,16 +4,26 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-function main () (
-
-	if ! docker version > /dev/null; then
+function main() (
+	if ! e.cmd-exists "docker" || docker version >/dev/null; then
 		statusmsg -w "Docker isn't available (not running?), so the Dockerfile lint check is disabled."
 		return 0
 	fi
 
+	local target=${1:-.}
+	cd "$target" || exit 1
+
+	local logtarget
+	logtarget=$(e.pwd)
+
+	statusmsg -i "Linting $logtarget (docker)..."
+
 	docker build --check \
-		-f Dockerfile \
+		-f "$target/Dockerfile" \
 		"$EAVE_HOME"
+
+	statusmsg -s "Linting $logtarget completed"
+	echo
 )
 
 main "$@"
