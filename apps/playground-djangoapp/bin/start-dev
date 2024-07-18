@@ -7,4 +7,3 @@ source "${EAVE_HOME}"/develop/functions.bash
 cd "$(e.parentpath)/eave_django_playground"
 
 python manage.py runserver
-

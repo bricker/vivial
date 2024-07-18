@@ -4,7 +4,6 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-
 (
 	cd "$(e.parentpath)"
 	bin/run-db-migration

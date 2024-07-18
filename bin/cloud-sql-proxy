@@ -2,6 +2,7 @@
 
 set -eu
 
+# shellcheck source=../develop/functions.bash
 source "$EAVE_HOME"/develop/functions.bash
 
 function _print_help() (
@@ -38,7 +39,8 @@ function run-cloud-sql-proxy() (
 		exit 1
 	fi
 
-	local gcloudproject; gcloudproject="$(e.gcloudproject)"
+	local gcloudproject
+	gcloudproject="$(e.gcloudproject)"
 
 	if ! e.cmd-exists "cloud-sql-proxy"; then
 		statusmsg -pa "Downloading and installing the Cloud SQL Proxy for your system."
@@ -56,6 +58,9 @@ function run-cloud-sql-proxy() (
 				local proxyversion="2.2.0"
 				local arch
 				arch=$(e.get-cpu-arch-normalized-alt)
+
+				local kernel
+				kernel=$(e.get-kernel-name)
 
 				curl -o cloud-sql-proxy "https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v$proxyversion/cloud-sql-proxy.$kernel.$arch"
 				# see if we got an error back instead of binary content
@@ -102,9 +107,9 @@ function run-cloud-sql-proxy() (
 		$impersonateopt \
 		--auto-iam-authn \
 		--unix-socket "$socketdir"
-		# --http-port=9090 \
-		# --health-check
-		# --port 5431
+	# --http-port=9090 \
+	# --health-check
+	# --port 5431
 )
 
 run-cloud-sql-proxy "$@"
