@@ -2,7 +2,6 @@
 
 set -eu
 
-# shellcheck source=../develop/functions.bash
 source "$EAVE_HOME"/develop/functions.bash
 
 function _print_help() (

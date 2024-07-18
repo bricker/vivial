@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 
+shopt -s globstar
+export GLOBIGNORE="(node_modules|vendor|.*)"
+
 set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
 function main() (
-	if ! e.cmd-exists "docker" || docker version >/dev/null; then
+	if ! e.cmd-exists "docker" || ! docker version >/dev/null; then
 		statusmsg -w "Docker isn't available (not running?), so the Dockerfile lint check is disabled."
 		return 0
 	fi
@@ -18,9 +21,12 @@ function main() (
 
 	statusmsg -i "Linting $logtarget (docker)..."
 
-	docker build --check \
-		-f "$target/Dockerfile" \
-		"$EAVE_HOME"
+	for dockerfile in ./**/Dockerfile; do
+		statusmsg -i "Linting $dockerfile..."
+		docker build --check \
+			-f "$dockerfile" \
+			"$EAVE_HOME"
+	done
 
 	statusmsg -s "Linting $logtarget completed"
 	echo
