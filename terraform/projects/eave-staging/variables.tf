@@ -45,3 +45,13 @@ variable "OPENAI_API_KEY" {
   type      = string
   sensitive = true
 }
+
+variable "EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64" {
+  type      = string
+  sensitive = true
+}
+
+variable "SLACK_SYSTEM_BOT_TOKEN" {
+  type      = string
+  sensitive = true
+}

@@ -23,13 +23,17 @@ locals {
       cidr_block   = "157.22.33.161/32"
       display_name = "Bryan's Home Wifi"
     },
-    "lana-home" : {
-      cidr_block   = "75.84.53.143/32"
-      display_name = "Lana's Home Network"
-    },
+    # "lana-home" : {
+    #   cidr_block   = "75.84.53.143/32"
+    #   display_name = "Lana's Home Network"
+    # },
     "liam-home" : {
       cidr_block   = "76.146.71.81/32"
       display_name = "Liam's Home Network"
-    }
+    },
+    "cabin-wifi" : {
+      cidr_block   = "23.241.98.185/32"
+      display_name = "Bryan's Cabin Wifi"
+    },
   }
 }

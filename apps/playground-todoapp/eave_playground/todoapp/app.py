@@ -15,10 +15,11 @@ from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
+from eave.collectors.openai import OpenAICollectorManager
 from eave.collectors.sqlalchemy import start_eave_sqlalchemy_collector, stop_eave_sqlalchemy_collector
 from eave.collectors.starlette import StarletteCollectorManager
 
-from .openai import chat_completion
+from .openai import chat_completion, openai_client
 from .orm import TodoListItemOrm, UserOrm, async_engine, async_session
 
 _COOKIE_PREFIX = "todoapp."
@@ -39,7 +40,7 @@ async def echo_endpoint(request: Request) -> Response:
     body = await request.body()
     return JSONResponse(
         content={
-            "request_headers": request.headers,
+            "request_headers": request.headers.items(),
             "request_body": body.decode(),
         },
     )
@@ -57,13 +58,15 @@ async def get_summary(request: Request) -> Response:
         todos = result.all()
 
     text_list = "\n    ".join(f"- {todo.text}" for todo in todos)
-    prompt = dedent(f"""
+    prompt = dedent(
+        f"""
     Summarize the following list of TODO items for me. It should briefly describe my goals for today.
 
     {text_list}
-    """)
+    """.strip()
+    )
 
-    summary = await chat_completion(prompt=prompt)
+    summary = await chat_completion(prompt=prompt, user=user_id)
     return JSONResponse(content={"text": summary}, status_code=HTTPStatus.OK)
 
 
@@ -220,3 +223,4 @@ app = Starlette(
 )
 
 StarletteCollectorManager.start(app)
+OpenAICollectorManager.start(openai_client)

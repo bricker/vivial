@@ -1,5 +1,7 @@
+# # https://cloud.google.com/cdn/docs/cdn-terraform-examples
+
 resource "google_storage_bucket" "cdn" {
-  name                        = "cdn.${local.project.root_domain}"
+  name                        = "cdn.${var.project.root_domain}"
   default_event_based_hold    = false
   enable_object_retention     = false
   force_destroy               = false
@@ -36,4 +38,10 @@ resource "google_storage_bucket" "cdn" {
   versioning {
     enabled = true
   }
+}
+
+resource "google_storage_bucket_iam_member" "cdn_allusers" {
+  bucket = google_storage_bucket.cdn.name
+  role   = "roles/storage.objectViewer"
+  member = "allUsers"
 }

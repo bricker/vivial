@@ -38,7 +38,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engin
 import eave.core.internal
 import eave.core.internal.orm.base
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
-from eave.core.internal.orm.metabase_instance import MetabaseInstanceOrm
+from eave.core.internal.orm.metabase_instance import MetabaseInstanceOrm, MetabaseInstanceState
 from eave.core.internal.orm.team import TeamOrm
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
 from eave.stdlib.logging import eaveLogger
@@ -70,6 +70,7 @@ async def seed_table_entries_for_team(team_id: uuid.UUID, row: int, session: Asy
     metabase_instance = await MetabaseInstanceOrm.create(
         session=session,
         team_id=team_id,
+        state=MetabaseInstanceState.READY,
     )
 
     # Hardcoded signing key for easier development. This is also hardcoded in the metabase environment variables in metabase.share.env.

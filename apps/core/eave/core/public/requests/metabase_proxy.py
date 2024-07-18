@@ -68,6 +68,9 @@ class MetabaseProxyEndpoint(HTTPEndpoint):
                 team_id=ensure_uuid(ctx.eave_authed_team_id),
             )
 
+            if not metabase_instance.ready:
+                raise NotFoundError("Metabase instance not ready.")
+
         mb_cookies: dict[str, str] = {}
 
         for cookie_name in _METABASE_SESSION_COOKIE_NAMES:

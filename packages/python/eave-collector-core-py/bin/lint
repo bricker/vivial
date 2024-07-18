@@ -6,10 +6,12 @@ shopt -s globstar
 source "${EAVE_HOME}"/develop/functions.bash
 
 (
-	python-lint "$(e.parentpath)"
+	cd "$(e.parentpath)"
+	python-lint .
+	"${EAVE_HOME}"/develop/shared/lint-shell .
 
 	# A very dumb and temporary way to double-check that eave.stdlib isn't being used.
-	if grep -r "eave.stdlib" "$(e.parentpath)"/**/*.py; then
+	if grep -r "eave.stdlib" ./**/*.py; then
 		statusmsg -e "eave.stdlib import detected!"
 		exit 1
 	fi

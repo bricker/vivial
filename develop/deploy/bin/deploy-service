@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+function _print_help() (
+	statusmsg -o "Build and deploy a service."
+	statusmsg -o "Usage: deploy-service -s service [-f dockerfile]"
+	statusmsg -o "  -s service : Required. The name of the kubernertes service to build and deploy. eg 'core-api' or 'dashboard'"
+	statusmsg -o "  -f dockerfile : Optional. The path to the Dockerfile relative to EAVE_HOME. If omitted, uses the Dockerfile in the current directory or fails if it doesn't exist."
+	statusmsg -o "  -h : Print this message."
+)
+
+function main() (
+	local service=""
+	local dockerfile=""
+
+	while getopts "s:f:h" argname; do
+		case "$argname" in
+		s) service=$OPTARG ;;
+		f) dockerfile=$OPTARG ;;
+		h)
+			_print_help
+			exit 0
+			;;
+		*)
+			statusmsg -e "unknown option: $argname"
+			_print_help
+			exit 1
+			;;
+		esac
+	done
+
+	if test -z "$service"; then
+		statusmsg -e "service is required."
+		_print_help
+		exit 1
+	fi
+
+	if test -z "$dockerfile"; then
+		dockerfile="$(readlink -fn Dockerfile)"
+	fi
+
+	local gcloudproject
+	gcloudproject="$(e.gcloudproject)"
+	local gitsha
+	gitsha="$(git rev-parse --short HEAD)"
+	local imagename="us-central1-docker.pkg.dev/${gcloudproject}/docker/${service}"
+	local release_date
+	release_date=$(date --utc --iso-8601=seconds)
+
+	docker build --check \
+		-f "$dockerfile" \
+		"$EAVE_HOME"
+
+	docker build \
+		--no-cache \
+		-t "$imagename:latest" \
+		-t "$imagename:$gitsha" \
+		-f "$dockerfile" \
+		--build-arg GAE_RELEASE_DATE="$release_date" \
+		--build-arg GAE_VERSION="$gitsha" \
+		"$EAVE_HOME"
+
+	statusmsg -a "Pushing all tags for $imagename"
+	if e.confirm; then
+		docker push --all-tags "$imagename"
+	fi
+
+	statusmsg -a "Rolling out $imagename:$gitsha to $service"
+	if e.confirm; then
+		kubectl -n eave rollout restart deployment/"$service"
+	fi
+)
+
+main "$@"

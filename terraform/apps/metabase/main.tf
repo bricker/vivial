@@ -15,7 +15,6 @@ locals {
   domain = join(".", [local.domain_prefix, trimsuffix(var.dns_zone.dns_name, ".")])
 }
 
-# This has to be defined outside of the metabase app modules because it's shared by all metabase instances.
 module "metabase_role" {
   source      = "../../modules/custom_role"
   project     = var.project

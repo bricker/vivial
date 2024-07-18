@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # app server must be running to run cypress tests against
-npm run start-headless > /dev/null &
+npm run start-headless >/dev/null &
 react_server_pid=$!
 
 # allow script CLI args as cypress args.
@@ -9,7 +9,6 @@ npm run cy:test -- "$@"
 
 # cleanup bg processes for running headless server
 kill $react_server_pid
-for node_pid in $(pgrep -x node)
-do
+for node_pid in $(pgrep -x node); do
 	kill "$node_pid"
 done

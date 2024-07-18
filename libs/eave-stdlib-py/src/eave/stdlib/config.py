@@ -26,12 +26,12 @@ class ConfigBase:
         This is meant to be used in a GAE warmup request to preload all of the remote configs.
         """
         for attrname, attrfunc in self.__class__.__dict__.items():
-            if type(attrfunc) == cached_property:
+            if isinstance(attrfunc, cached_property):
                 getattr(self, attrname)
 
     def reset_cached_properties(self) -> None:
         for attrname, attrfunc in self.__class__.__dict__.items():
-            if type(attrfunc) == cached_property:
+            if isinstance(attrfunc, cached_property):
                 try:
                     delattr(self, attrname)
                 except AttributeError:

@@ -7,4 +7,5 @@ source "${EAVE_HOME}"/develop/functions.bash
 (
 	cd "$(e.parentpath)"
 	terraform fmt -recursive .
+	"${EAVE_HOME}"/develop/shared/format-shell .
 )

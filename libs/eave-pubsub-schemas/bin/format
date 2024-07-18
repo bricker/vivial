@@ -9,4 +9,5 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 	python-format .
 	python/bin/format
+	"${EAVE_HOME}"/develop/shared/format-shell .
 )

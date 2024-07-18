@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+(
+	cd "$(e.parentpath)"
+	bin/run-db-migration
+	"${EAVE_HOME}"/develop/deploy/bin/deploy-service -s core-api
+)

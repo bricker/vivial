@@ -4,6 +4,7 @@ import os
 import random
 from http import HTTPStatus
 from textwrap import dedent
+from urllib.parse import unquote_plus
 
 import google.cloud.logging
 from openai import AsyncOpenAI
@@ -13,6 +14,9 @@ from starlette.responses import JSONResponse, Response
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
+
+from eave.collectors.openai import OpenAICollectorManager
+from eave.collectors.starlette import StarletteCollectorManager
 
 from .secrets import get_secret
 
@@ -66,7 +70,6 @@ topics = [
     "musicians",
     "math",
     "physics",
-    "electronics",
     "electricity",
     "programming",
     "programming languages",
@@ -74,22 +77,38 @@ topics = [
     "python programming language",
     "java programming language",
     "c programming language",
+    "c++ programming language",
     "ruby programming language",
     "typescript programming language",
     "bash scripting",
+    "docker",
+    "kubernetes",
+    "google cloud",
+    "aws",
+    "computer science",
+    "algorithms",
     "linux",
     "biology",
     "politics",
     "US presidents",
+    'The TV show "It\'s Always Sunny in Philadelphia"',
+    'The TV show "Parks and Recreation"',
+    'The TV show "30 Rock"',
+    'The TV show "Saturday Night Live"',
+    'The TV show "Futurama"',
 ]
 
 
-async def get_quiz(request: Request) -> Response:
-    openai_client = AsyncOpenAI(
-        api_key=get_secret("OPENAI_API_KEY"),
-    )
+openai_client = AsyncOpenAI(
+    api_key=get_secret("OPENAI_API_KEY"),
+)
 
-    quiz_topic = random.choice(topics)  # noqa: S311
+
+async def get_quiz(request: Request) -> Response:
+    if qptopic := request.query_params.get("topic"):
+        quiz_topic = unquote_plus(qptopic)
+    else:
+        quiz_topic = random.choice(topics)  # noqa: S311
 
     chat_completion = await openai_client.chat.completions.create(
         temperature=0,
@@ -197,4 +216,5 @@ app = Starlette(
 )
 
 
-# StarletteCollectorManager.start(app)
+StarletteCollectorManager.start(app)
+OpenAICollectorManager.start(openai_client)

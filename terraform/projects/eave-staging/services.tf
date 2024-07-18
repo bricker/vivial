@@ -9,6 +9,7 @@ locals {
     "cloudkms.googleapis.com",            # Cloud Key Management Service (KMS) API
     "compute.googleapis.com",             # Compute Engine API
     "container.googleapis.com",           # Kubernetes Engine API
+    "containersecurity.googleapis.com",   # Container Security API
     "containerregistry.googleapis.com",   # Container Registry API
     "dataflow.googleapis.com",            # Dataflow API
     "dlp.googleapis.com",                 # Data Loss Prevention

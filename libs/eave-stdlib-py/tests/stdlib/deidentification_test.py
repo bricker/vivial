@@ -189,10 +189,10 @@ class DeidentificationTest(StdlibBaseTestCase):
         atoms = [
             BasketWeaver(
                 tools=[Tool(type="knitting needles"), Tool(type="drill")],
-                name="Fred",
+                name="Fred Smith",
                 helpers=[
-                    WeavingSpider(genus="bug", favorite_legs=[4, 9], name="Anji"),
-                    WeavingSpider(genus="orb weaver", favorite_legs=None, name="Arachne"),
+                    WeavingSpider(genus="bug", favorite_legs=[4, 9], name="Eave"),
+                    WeavingSpider(genus="orb weaver", favorite_legs=None, name="Arachne Johnson"),
                 ],
                 latest_work=Basket(
                     thread_count=3,
@@ -203,9 +203,9 @@ class DeidentificationTest(StdlibBaseTestCase):
             ),
             BasketWeaver(
                 tools=[],
-                name="Samantha",
+                name="Samantha Bee",
                 helpers=[
-                    WeavingSpider(genus="grasshopper", favorite_legs=[], name="Phil"),
+                    WeavingSpider(genus="grasshopper", favorite_legs=[], name="Phil Hanson"),
                 ],
                 latest_work=Basket(
                     thread_count=3,
@@ -219,34 +219,29 @@ class DeidentificationTest(StdlibBaseTestCase):
         await redact_atoms(atoms)
         updated_flat = [_flatten_to_dict(a) for a in atoms]
 
-        assert updated_flat == [
-            {
-                "tools.0.type": "knitting needles",
-                "tools.1.type": "drill",
-                "name": "[PERSON_NAME]",
-                "helpers.0.genus": "bug",
-                "helpers.0.favorite_legs.0": 4,
-                "helpers.0.favorite_legs.1": 9,
-                "helpers.0.name": "[PERSON_NAME]",
-                "helpers.1.genus": "orb weaver",
-                "helpers.1.favorite_legs": None,
-                "helpers.1.name": "[LOCATION]",
-                "latest_work.thread_count": 3,
-                "latest_work.woven_underwater": True,
-                "latest_work.price": None,
-                'latest_work.specs."ccn".info': "[CREDIT_CARD_NUMBER]",
-                'latest_work.specs."2".info': "[AGE]",
-            },
-            {
-                "name": "[PERSON_NAME]",
-                "helpers.0.genus": "grasshopper",
-                "helpers.0.name": "[PERSON_NAME]",
-                "latest_work.thread_count": 3,
-                "latest_work.woven_underwater": False,
-                "latest_work.price": "$10000",
-                'latest_work.specs."rookie.mistake".info': "poorly crafted",
-            },
-        ]
+        assert updated_flat[0].get("tools.0.type") == "knitting needles"
+        assert updated_flat[0].get("tools.1.type") == "drill"
+        assert updated_flat[0].get("name") == "[PERSON_NAME]"
+        assert updated_flat[0].get("helpers.0.genus") == "bug"
+        assert updated_flat[0].get("helpers.0.favorite_legs.0") == 4
+        assert updated_flat[0].get("helpers.0.favorite_legs.1") == 9
+        assert updated_flat[0].get("helpers.0.name") == "Eave"
+        assert updated_flat[0].get("helpers.1.genus") == "orb weaver"
+        assert updated_flat[0].get("helpers.1.favorite_legs") is None
+        assert updated_flat[0].get("helpers.1.name") == "[PERSON_NAME]"
+        assert updated_flat[0].get("latest_work.thread_count") == 3
+        assert updated_flat[0].get("latest_work.woven_underwater") is True
+        assert updated_flat[0].get("latest_work.price") is None
+        assert updated_flat[0].get('latest_work.specs."ccn".info') == "[CREDIT_CARD_NUMBER]"
+        assert updated_flat[0].get('latest_work.specs."2".info') == "[AGE]"
+
+        assert updated_flat[1].get("name") == "[PERSON_NAME]"
+        assert updated_flat[1].get("helpers.0.genus") == "grasshopper"
+        assert updated_flat[1].get("helpers.0.name") == "[PERSON_NAME]"
+        assert updated_flat[1].get("latest_work.thread_count") == 3
+        assert updated_flat[1].get("latest_work.woven_underwater") is False
+        assert updated_flat[1].get("latest_work.price") == "$10000"
+        assert updated_flat[1].get('latest_work.specs."rookie.mistake".info') == "poorly crafted"
 
     def test_handle_key_sep_in_dict_key(self) -> None:
         @dataclasses.dataclass

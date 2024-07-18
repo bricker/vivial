@@ -10,7 +10,7 @@ function _print_help() (
 	statusmsg -o "  -h : Print this message."
 )
 
-function deploy () (
+function deploy() (
 	local environment=""
 
 	while getopts "e:h" argname; do

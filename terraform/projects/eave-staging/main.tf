@@ -41,7 +41,8 @@ module "docker_registry" {
 }
 
 module "nat" {
-  source = "../../modules/nat"
+  source     = "../../modules/nat"
+  network_id = data.google_compute_network.default.id
 }
 
 module "dns_zone_base_domain" {
@@ -53,8 +54,20 @@ module "cloudsql_eave_core" {
   source        = "../../modules/cloudsql_instance"
   project       = local.project
   instance_name = "eave-pg-core"
+  network_id    = data.google_compute_network.default.id
 }
 
 module "ssl_policy" {
   source = "../../modules/ssl_policy"
+}
+
+resource "google_certificate_manager_certificate_map" "default" {
+  name = "root-certificate-map"
+}
+
+module "cdn" {
+  source          = "../../modules/cdn"
+  project         = local.project
+  dns_zone        = module.dns_zone_base_domain.zone
+  certificate_map = google_certificate_manager_certificate_map.default
 }

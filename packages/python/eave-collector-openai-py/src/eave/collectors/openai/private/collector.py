@@ -102,7 +102,7 @@ class OpenAICollector(BaseAICollector):
                 completion_system_fingerprint=chat_response.system_fingerprint,
                 completion_created_timestamp=chat_response.created,
                 completion_user_id=chat_args.get("user"),
-                service_tier=chat_response.service_tier,
+                service_tier=chat_response.service_tier or chat_args.get("service_tier"),
                 model=chat_response.model,
                 prompt_tokens=chat_response.usage.prompt_tokens if chat_response.usage else None,
                 completion_tokens=chat_response.usage.completion_tokens if chat_response.usage else None,
