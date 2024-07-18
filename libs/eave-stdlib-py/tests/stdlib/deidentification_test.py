@@ -189,10 +189,10 @@ class DeidentificationTest(StdlibBaseTestCase):
         atoms = [
             BasketWeaver(
                 tools=[Tool(type="knitting needles"), Tool(type="drill")],
-                name="Fred",
+                name="Fred Smith",
                 helpers=[
-                    WeavingSpider(genus="bug", favorite_legs=[4, 9], name="Anji"),
-                    WeavingSpider(genus="orb weaver", favorite_legs=None, name="Arachne"),
+                    WeavingSpider(genus="bug", favorite_legs=[4, 9], name="Eave"),
+                    WeavingSpider(genus="orb weaver", favorite_legs=None, name="Arachne Johnson"),
                 ],
                 latest_work=Basket(
                     thread_count=3,
@@ -203,9 +203,9 @@ class DeidentificationTest(StdlibBaseTestCase):
             ),
             BasketWeaver(
                 tools=[],
-                name="Samantha",
+                name="Samantha Bee",
                 helpers=[
-                    WeavingSpider(genus="grasshopper", favorite_legs=[], name="Phil"),
+                    WeavingSpider(genus="grasshopper", favorite_legs=[], name="Phil Hanson"),
                 ],
                 latest_work=Basket(
                     thread_count=3,
@@ -225,10 +225,10 @@ class DeidentificationTest(StdlibBaseTestCase):
         assert updated_flat[0].get("helpers.0.genus") == "bug"
         assert updated_flat[0].get("helpers.0.favorite_legs.0") == 4
         assert updated_flat[0].get("helpers.0.favorite_legs.1") == 9
-        assert updated_flat[0].get("helpers.0.name") == "[PERSON_NAME]"
+        assert updated_flat[0].get("helpers.0.name") == "Eave"
         assert updated_flat[0].get("helpers.1.genus") == "orb weaver"
         assert updated_flat[0].get("helpers.1.favorite_legs") is None
-        assert updated_flat[0].get("helpers.1.name") == "[LOCATION]"
+        assert updated_flat[0].get("helpers.1.name") == "[PERSON_NAME]"
         assert updated_flat[0].get("latest_work.thread_count") == 3
         assert updated_flat[0].get("latest_work.woven_underwater") is True
         assert updated_flat[0].get("latest_work.price") is None

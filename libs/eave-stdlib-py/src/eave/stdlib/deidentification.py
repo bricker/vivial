@@ -266,7 +266,7 @@ async def redact_atoms(atoms: list[Any]) -> None:
                         info_type=dlp.InfoType(
                             name="PERSON_NAME",
                         ),
-                        min_likelihood=dlp.Likelihood.POSSIBLE,
+                        min_likelihood=dlp.Likelihood.LIKELY,
                     )
                 ],
             ),
