@@ -126,7 +126,7 @@ function setupgcloud() (
 			local gcloudversion="426.0.0"
 			local arch
 			arch=$(e.get-cpu-arch-normalized)
-			local filename="google-cloud-cli-$gcloudversion-$kernel-$arch.tar.gz"
+			local filename="google-cloud-cli-$kernel-$arch.tar.gz"
 			curl -O "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/$filename"
 			tar -xf "$filename"
 			mv google-cloud-sdk "$HOME"

@@ -7,6 +7,7 @@ import { CssBaseline, ThemeProvider } from "@mui/material";
 import "../static/css/app.css";
 import AuthenticationPage from "./components/Pages/AuthenticationPage";
 import { Dashboard, TabRevealer } from "./components/Pages/Dashboard";
+import Onboarding from "./components/Pages/Dashboard/Onboarding";
 import AppContextProvider from "./context/Provider";
 import { theme } from "./theme";
 
@@ -31,6 +32,8 @@ const App = () => {
                 <Route path="/settings" element={<TabRevealer name="settingsTab" pathname="/settings" />} />
                 <Route path="/team" element={<TabRevealer name="teamTab" pathname="/team" />} />
               </Route>
+
+              <Route path="/onboarding" element={<Onboarding />} />
 
               <Route path="*" element={<Navigate to="/insights" />} />
             </Routes>
