@@ -1,3 +1,7 @@
+# These are individual variables instead of a single map+iteration so that all of the expected secrets are required to be set.
+# If any of these aren't set, terraform apply won't run.
+# Additionally, a map with `sensitive=true` can't be used for iteration.
+
 variable "MB_SHARED_SECRETS" {
   type      = map(string)
   sensitive = true

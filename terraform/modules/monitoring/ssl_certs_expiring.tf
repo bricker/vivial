@@ -1,13 +1,8 @@
 resource "google_monitoring_alert_policy" "ssl_certs_expiring" {
-  depends_on = [
-    google_monitoring_notification_channel.slack,
-  ]
-
   combiner              = "OR"
   display_name          = "SSL certificate expiring soon"
   enabled               = true
   notification_channels = concat([google_monitoring_notification_channel.slack.name], var.addl_notification_channels)
-  project               = var.project_id
   user_labels = {
     uptime  = "ssl_cert_expiration"
     version = "1"
@@ -32,10 +27,5 @@ resource "google_monitoring_alert_policy" "ssl_certs_expiring" {
         percent = 0
       }
     }
-  }
-  timeouts {
-    create = null
-    delete = null
-    update = null
   }
 }
