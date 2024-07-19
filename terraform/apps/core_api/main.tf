@@ -66,11 +66,6 @@ resource "google_dns_record_set" "embed" {
   rrdatas      = [google_compute_global_address.default.address]
 }
 
-locals {
-  domain       = trimsuffix(google_dns_record_set.default.name, ".")
-  embed_domain = trimsuffix(google_dns_record_set.embed.name, ".")
-}
-
 module "api_certificate" {
   source          = "../../modules/certificate_manager"
   certificate_map = var.certificate_map_name

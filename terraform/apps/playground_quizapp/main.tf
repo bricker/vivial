@@ -35,10 +35,6 @@ resource "google_dns_record_set" "default" {
   rrdatas      = [google_compute_global_address.default.address]
 }
 
-locals {
-  domain = trimsuffix(google_dns_record_set.default.name, ".")
-}
-
 module "certificate" {
   source          = "../../modules/certificate_manager"
   certificate_map = var.certificate_map_name

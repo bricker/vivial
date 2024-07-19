@@ -32,7 +32,7 @@ resource "google_dns_record_set" "default" {
   # if domain prefix is empty string: "eave.fyi."
   name = join(".", compact([var.domain_prefix, var.zone.dns_name]))
 
-  type = "A"
+  type = var.record_type
   ttl  = 300
 
   rrdatas = [var.address_name]
