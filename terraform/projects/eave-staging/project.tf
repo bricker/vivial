@@ -27,11 +27,6 @@ module "nat" {
   network_id = data.google_compute_network.default.id
 }
 
-module "dns_zone_base_domain" {
-  source      = "../../modules/dns_zone"
-  root_domain = local.project.root_domain
-}
-
 module "cloudsql_eave_core" {
   source        = "../../modules/cloudsql_instance"
   project       = local.project
