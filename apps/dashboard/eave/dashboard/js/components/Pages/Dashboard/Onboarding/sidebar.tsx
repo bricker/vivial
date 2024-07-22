@@ -1,4 +1,4 @@
-import EaveBlueIcon from "$eave-dashboard/js/components/Icons/EaveBlueIcon.tsx";
+import EaveBlueIcon from "$eave-dashboard/js/components/Icons/EaveBlueIcon";
 import React from "react";
 import { makeStyles } from "tss-react/mui";
 
@@ -18,18 +18,18 @@ const useStyles = makeStyles()(() => ({
   textContainer: {
     paddingLeft: 32,
     paddingRight: 32,
-    border: "2px solid black",
+    // border: "2px solid black",
   },
   title: {
     fontSize: 52,
-    border: "2px solid black",
+    // border: "2px solid black",
     marginBottom: 16,
   },
   subtext: {
     width: 256,
     fontSize: 20,
     marginTop: 0,
-    border: "2px solid black",
+    // border: "2px solid black",
   },
   logo: {
     position: "absolute",

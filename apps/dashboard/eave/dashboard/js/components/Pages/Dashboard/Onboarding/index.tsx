@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { makeStyles } from "tss-react/mui";
-import Select from "./select";
+import InputField from "./InputField";
 import Sidebar from "./sidebar";
 
 const useStyles = makeStyles()(() => ({
@@ -21,7 +21,7 @@ const useStyles = makeStyles()(() => ({
     boxSizing: "border-box",
   },
   titleAndButton: {
-    border: "2px solid black",
+    // border: "2px solid black",
     display: "flex",
     padding: 0,
     flexDirection: "row",
@@ -33,7 +33,7 @@ const useStyles = makeStyles()(() => ({
     fontSize: 36,
     margin: 0,
     height: "fit-content",
-    border: "1px solid #1980DF",
+    // border: "1px solid #1980DF",
   },
   subText: {
     color: "#7D7D7D",
@@ -64,13 +64,13 @@ const useStyles = makeStyles()(() => ({
     fontWeight: "bold",
   },
   buttonContainer: {
-    border: "2px solid black",
+    // border: "2px solid black",
     marginTop: 32,
     display: "flex",
     justifyContent: "flex-end",
   },
   border: {
-    border: "2px solid black",
+    // border: "2px solid black",
   },
 
   questionText: {
@@ -107,28 +107,29 @@ const Onboarding = () => {
           {/* Question 1 */}
           <div className={classes.question}>
             <p className={classes.questionText}> Which platforms are you building for?</p>
-            <Select />
+            <InputField />
           </div>
           {/* Question 2 */}
           <div className={classes.question}>
             <p className={classes.questionText}> Which languages are you using? </p>
-            <Select />
+            <InputField />
           </div>
           {/* Question 3 */}
           <div className={classes.question}>
             <p className={classes.questionText}> Which libraries and frameworks are you using?</p>
-            <Select />
+            <InputField />
           </div>
           {/* Question 4 */}
           <div className={classes.question}>
             <p className={classes.questionText}> Which (if any) of these AI platforms are you using?</p>
-            <Select />
+            <InputField />
           </div>
         </div>
         <div className={classes.buttonContainer}>
           <button className={classes.buttonBlue}>Next</button>
         </div>
       </div>
+
       <Sidebar />
     </div>
   );

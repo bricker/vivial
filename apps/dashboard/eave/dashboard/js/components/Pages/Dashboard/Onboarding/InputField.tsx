@@ -80,7 +80,7 @@ const colourStyles: StylesConfig<ColourOption, true> = {
   }),
 };
 
-export default function Select() {
+export default function InputField() {
   const [options, setOptions] = useState<readonly ColourOption[]>(colourOptions);
   const [value, setValue] = useState<readonly ColourOption[]>([]);
 
