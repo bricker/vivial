@@ -4,9 +4,11 @@ import sys
 
 EAVE_LOGGER = logging.getLogger("eave")
 
-if os.getenv("EAVE_ENV") == "development":
-    EAVE_LOGGER.setLevel(logging.DEBUG)
+_level_env = os.getenv("LOG_LEVEL") or "INFO"
+_level_name = logging.getLevelNamesMapping().get(_level_env.upper(), logging.INFO)
 
-    _stream_handler = logging.StreamHandler(sys.stdout)
-    _stream_handler.setLevel(logging.DEBUG)
-    EAVE_LOGGER.addHandler(_stream_handler)
+EAVE_LOGGER.setLevel(_level_name)
+
+_stream_handler = logging.StreamHandler(sys.stdout)
+_stream_handler.setLevel(_level_name)
+EAVE_LOGGER.addHandler(_stream_handler)

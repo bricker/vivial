@@ -1,12 +1,10 @@
 import json
-import logging
 import os
 import random
 from http import HTTPStatus
 from textwrap import dedent
 from urllib.parse import unquote_plus
 
-import google.cloud.logging
 from openai import AsyncOpenAI
 from starlette.applications import Starlette
 from starlette.requests import Request
@@ -23,13 +21,6 @@ from .secrets import get_secret
 _COOKIE_PREFIX = "quizapp."
 _VISITOR_ID_COOKIE_NAME = f"{_COOKIE_PREFIX}visitor_id"
 _UTM_PARAMS_COOKIE_NAME = f"{_COOKIE_PREFIX}utm_params"
-
-if os.getenv("EAVE_ENV", "development") == "production":
-    # https://cloud.google.com/python/docs/reference/logging/latest/std-lib-integration
-    _gcp_log_client = google.cloud.logging.Client()
-    log_level = os.getenv("LOG_LEVEL", "INFO").upper()
-    _gcp_log_client.setup_logging(log_level=logging.getLevelNamesMapping().get(log_level) or logging.INFO)
-
 
 topics = [
     "pop culture",
