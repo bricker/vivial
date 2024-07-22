@@ -2,6 +2,19 @@
 import React, { useState } from "react";
 import { StylesConfig } from "react-select";
 import CreatableSelect from "react-select/creatable";
+import { makeStyles } from "tss-react/mui";
+
+const useStyles = makeStyles()(() => ({
+  questionText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    margin: 0,
+  },
+
+  question: {
+    marginTop: 32,
+  },
+}));
 
 interface ColourOption {
   readonly value: string;
@@ -11,24 +24,11 @@ interface ColourOption {
   readonly isDisabled?: boolean;
 }
 
-const colourOptions: ColourOption[] = [
-  { value: "ocean", label: "Ocean", color: "#1980DF", isFixed: true },
-  { value: "blue", label: "Blue", color: "#1980DF", isDisabled: true },
-  { value: "purple", label: "Purple", color: "#1980DF" },
-  { value: "red", label: "Red", color: "#1980DF", isFixed: true },
-  { value: "orange", label: "Orange", color: "#1980DF" },
-  { value: "yellow", label: "Yellow", color: "#1980DF" },
-  { value: "green", label: "Green", color: "#1980DF" },
-  { value: "forest", label: "Forest", color: "#1980DF" },
-  { value: "slate", label: "Slate", color: "#1980DF" },
-  { value: "silver", label: "Silver", color: "#1980DF" },
-];
-
 const colourStyles: StylesConfig<ColourOption, true> = {
   control: (styles) => ({ ...styles, backgroundColor: "white" }),
   option: (styles, { data, isDisabled, isFocused, isSelected }) => {
-    const backgroundColor = isDisabled ? undefined : isSelected ? data.color : isFocused ? "#EEEEEE" : undefined;
-    const color = isDisabled ? "#ccc" : isSelected ? "#fff" : data.color;
+    const backgroundColor = isDisabled ? undefined : isSelected ? "#1980DF" : isFocused ? "#EEEEEE" : undefined;
+    const color = isDisabled ? "#ccc" : isSelected ? "#fff" : "#1980DF";
 
     return {
       ...styles,
@@ -37,7 +37,7 @@ const colourStyles: StylesConfig<ColourOption, true> = {
       cursor: isDisabled ? "not-allowed" : "default",
       ":active": {
         ...styles[":active"],
-        backgroundColor: !isDisabled ? (isSelected ? data.color : "#EEEEEE") : undefined,
+        backgroundColor: !isDisabled ? (isSelected ? "#1980DF" : "#EEEEEE") : undefined,
       },
     };
   },
@@ -49,14 +49,14 @@ const colourStyles: StylesConfig<ColourOption, true> = {
   },
   multiValueLabel: (styles, { data }) => ({
     ...styles,
-    color: data.color,
+    color: "#1980DF",
     // fontSize: 36,
   }),
   multiValueRemove: (styles, { data }) => ({
     ...styles,
-    color: data.color,
+    color: "#1980DF",
     ":hover": {
-      backgroundColor: data.color,
+      backgroundColor: "#1980DF",
       color: "white",
     },
   }),
@@ -80,8 +80,14 @@ const colourStyles: StylesConfig<ColourOption, true> = {
   }),
 };
 
-export default function InputField() {
-  const [options, setOptions] = useState<readonly ColourOption[]>(colourOptions);
+interface InputFieldProps {
+  question: string;
+  questionOptions: ColourOption[];
+}
+
+const InputField: React.FC<InputFieldProps> = ({ question, questionOptions }) => {
+  const { classes } = useStyles();
+  const [options, setOptions] = useState<readonly ColourOption[]>(questionOptions);
   const [value, setValue] = useState<readonly ColourOption[]>([]);
 
   const handleCreate = (inputValue: string) => {
@@ -95,7 +101,8 @@ export default function InputField() {
   };
 
   return (
-    <div>
+    <div className={classes.question}>
+      <p className={classes.questionText}> {question} </p>
       <CreatableSelect
         closeMenuOnSelect={false}
         isMulti
@@ -108,4 +115,6 @@ export default function InputField() {
       />
     </div>
   );
-}
+};
+
+export default InputField;

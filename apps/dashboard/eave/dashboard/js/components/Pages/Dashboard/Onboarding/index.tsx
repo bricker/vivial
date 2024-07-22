@@ -2,7 +2,8 @@
 import React from "react";
 import { makeStyles } from "tss-react/mui";
 import InputField from "./InputField";
-import Sidebar from "./sidebar";
+import SideBanner from "./SideBanner";
+import { aiOptions, frameworksOptions, languagesOptions, platformOptions } from "./questionOptions";
 
 const useStyles = makeStyles()(() => ({
   main: {
@@ -104,33 +105,17 @@ const Onboarding = () => {
 
         {/* Questions */}
         <div className={classes.questionsContainer}>
-          {/* Question 1 */}
-          <div className={classes.question}>
-            <p className={classes.questionText}> Which platforms are you building for?</p>
-            <InputField />
-          </div>
-          {/* Question 2 */}
-          <div className={classes.question}>
-            <p className={classes.questionText}> Which languages are you using? </p>
-            <InputField />
-          </div>
-          {/* Question 3 */}
-          <div className={classes.question}>
-            <p className={classes.questionText}> Which libraries and frameworks are you using?</p>
-            <InputField />
-          </div>
-          {/* Question 4 */}
-          <div className={classes.question}>
-            <p className={classes.questionText}> Which (if any) of these AI platforms are you using?</p>
-            <InputField />
-          </div>
+          <InputField question={"Which platforms are you building for?"} questionOptions={platformOptions} />
+          <InputField question={"Which languages are you using?"} questionOptions={languagesOptions} />
+          <InputField question={"Which libraries and frameworks are you using?"} questionOptions={frameworksOptions} />
+          <InputField question={"Which (if any) of these AI platforms are you using?"} questionOptions={aiOptions} />
         </div>
         <div className={classes.buttonContainer}>
           <button className={classes.buttonBlue}>Next</button>
         </div>
       </div>
 
-      <Sidebar />
+      <SideBanner />
     </div>
   );
 };

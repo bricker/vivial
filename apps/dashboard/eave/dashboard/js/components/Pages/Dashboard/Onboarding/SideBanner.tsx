@@ -40,7 +40,7 @@ const useStyles = makeStyles()(() => ({
   },
 }));
 
-export default function Sidebar() {
+export default function SideBanner() {
   const { classes } = useStyles();
 
   return (

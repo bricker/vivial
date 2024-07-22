@@ -38,6 +38,7 @@ from .public.requests import (
     status,
     team,
     virtual_event,
+    onboarding_submissions,
 )
 from .public.requests.oauth import google_oauth
 
@@ -291,6 +292,10 @@ routes = [
     make_route(
         config=GetMyAccountRequest.config,
         endpoint=authed_account.GetMyAccountEndpoint,
+    ),
+    make_route(
+        config=,
+        endpoint=onboarding_submissions.GetMyOnboardingSubmissionEndpoint,
     ),
 ]
 

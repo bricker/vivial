@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Self, TypedDict, Unpack
 from urllib.parse import urlparse
 from uuid import UUID
+from enum import IntEnum
 
 import sqlalchemy.dialects.postgresql
 import sqlalchemy.types
@@ -15,6 +16,9 @@ from eave.stdlib.core_api.models.team import Team
 from .base import Base
 from .util import UUID_DEFAULT_EXPR
 
+class DashboardAccess(IntEnum):
+    ALLOW = 0
+    DENY = 1
 
 class TeamOrm(Base):
     __tablename__ = "teams"
@@ -28,6 +32,7 @@ class TeamOrm(Base):
         ),
         server_default=text("'{}'"),
     )
+    dashboard_access: Mapped[DashboardAccess] = mapped_column(server_default=text(f"{DashboardAccess.DENY}"))
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
