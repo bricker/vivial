@@ -30,7 +30,7 @@ resource "google_project_service" "services" {
     "storage-api.googleapis.com",         # Google Cloud Storage JSON API
   ])
 
-  service  = each.value
+  service = each.value
 
   disable_dependent_services = false
   disable_on_destroy         = false

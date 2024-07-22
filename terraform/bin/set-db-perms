@@ -25,7 +25,7 @@ function main() (
 		grant "${targetuser}" to "${connuser}";
 		alter database "${targetdb}" owner to "${targetuser}";
 		revoke "${targetuser}" from "${connuser}";
-		EOF
+	EOF
 
 	set -e
 

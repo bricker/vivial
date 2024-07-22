@@ -1,8 +1,8 @@
 variable "secret_id" {
-  type=string
+  type = string
 }
 
 variable "secret_data" {
-  type=string
+  type      = string
   sensitive = true
 }

@@ -7,6 +7,6 @@ module "gcp_secret_manager" {
     "OPENAI_API_KEY"                                = var.OPENAI_API_KEY
   }
 
-  secret_id = each.key
+  secret_id   = each.key
   secret_data = each.value
 }

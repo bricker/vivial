@@ -1,8 +1,8 @@
 variable "project" {
   type = object({
-    id = string
+    id          = string
     root_domain = string
-    region = string
+    region      = string
   })
 }
 

@@ -18,12 +18,12 @@ _SERVER="${1:-uvicorn}"
 		# It can be particularly useful to troubleshoot issued caused by the multi-threaded environment of gunicorn.
 		"$EAVE_HOME"/develop/shared/bin/run-with-dotenv -- \
 			python -m gunicorn \
-				--worker-class uvicorn.workers.UvicornWorker \
-				--bind 127.0.0.1:5600 \
-				--workers=3 \
-				--reload \
-				eave_playground.quizapp.app:app \
-		&
+			--worker-class uvicorn.workers.UvicornWorker \
+			--bind 127.0.0.1:5600 \
+			--workers=3 \
+			--reload \
+			eave_playground.quizapp.app:app \
+			&
 	else
 		python ./bin/src/start-dev-server.py &
 	fi

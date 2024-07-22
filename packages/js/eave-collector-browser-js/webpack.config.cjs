@@ -1,9 +1,9 @@
 // @ts-check
 
-const webpack = require("webpack")
+const webpack = require("webpack");
 const path = require("node:path");
 const TerserPlugin = require("terser-webpack-plugin");
-require('webpack-dev-server'); // for devServer config typing
+require("webpack-dev-server"); // for devServer config typing
 
 /**
  * @typedef {{ mode?: "none" | "development" | "production"; }} WebpackArgs

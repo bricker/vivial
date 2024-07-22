@@ -4,7 +4,7 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-function main () (
+function main() (
 	source=$1
 	fields=${2:-""}
 
