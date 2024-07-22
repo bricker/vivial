@@ -1,17 +1,14 @@
 from datetime import datetime
 from typing import Self, TypedDict, Unpack
-from urllib.parse import urlparse
 from uuid import UUID
 import json
 
-import sqlalchemy.dialects.postgresql
-import sqlalchemy.types
-from sqlalchemy import Select, func, select, text, JSON
+from eave.stdlib.core_api.models.onboarding_submissions import OnboardingSubmission
+from sqlalchemy import Select, func, select, JSON
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 import eave.stdlib.util
-from eave.stdlib.core_api.models.team import Team
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
@@ -32,12 +29,11 @@ class OnboardingSubmissionOrm(Base):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
-
     @classmethod
     async def create(
         cls,
         session: AsyncSession,
-        team_id: uuid.UUID,
+        team_id: UUID,
         response_data: dict[str, list[str]],
     ) -> Self:
         obj = cls(
@@ -47,25 +43,48 @@ class OnboardingSubmissionOrm(Base):
         session.add(obj)
         await session.flush()
         return obj
-    
+
+    @property
+    def api_model(self) -> OnboardingSubmission:
+        return OnboardingSubmission.from_orm(self)
+
+    class QueryParams(TypedDict):
+        team_id: UUID | str
+
+    @classmethod
+    def query(cls, **kwargs: Unpack[QueryParams]) -> Select[tuple[Self]]:
+        team_id = eave.stdlib.util.ensure_uuid(kwargs["team_id"])
+        lookup = select(cls).where(cls.id == team_id)
+        return lookup
+
+    @classmethod
+    async def one_or_exception(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Self:
+        lookup = cls.query(**kwargs).limit(1)
+        result = (await session.scalars(lookup)).one()
+        return result
+
+    @classmethod
+    async def one_or_none(cls, session: AsyncSession, **kwargs: Unpack[QueryParams]) -> Self | None:
+        lookup = cls.query(**kwargs).limit(1)
+        result = await session.scalar(lookup)
+        return result
+
     def is_qualified(self) -> bool:
         """
-        requires all of:
-        Python
-        Browser App
-        Starlette
-        OpenAI
+        Check if this onboarding form submission qualifies a
+        team for Eave usage.
         """
-        form_responses = json.loads(self.response_data)
+        form_responses = json.loads(json.dumps(self.response_data))
         # convert all answers to lowercase for easier comparison
         for question_key, response_list in form_responses.items():
             form_responses[question_key] = [resp.lower() for resp in response_list]
 
         # TODO: standardize question keys???
         return all(
-            "python" in form_responses["languages"],
-            "browser app" in form_responses["applications"],
-            "starlette" in form_responses["libraries"] or "fast api" in form_responses["libraries"],
-            "openai" in form_responses["ai"],
+            [
+                "python" in form_responses["languages"],
+                "browser app" in form_responses["applications"],
+                "starlette" in form_responses["libraries"] or "fast api" in form_responses["libraries"],
+                "openai" in form_responses["ai"],
+            ]
         )
-        

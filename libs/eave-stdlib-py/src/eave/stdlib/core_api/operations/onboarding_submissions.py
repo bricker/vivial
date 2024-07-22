@@ -3,7 +3,7 @@ from typing import Unpack
 
 from aiohttp.hdrs import METH_POST
 
-from eave.stdlib.core_api.models.account import AuthenticatedAccount
+from eave.stdlib.core_api.models.onboarding_submissions import OnboardingSubmission
 from eave.stdlib.core_api.models.team import Team
 from eave.stdlib.endpoints import BaseResponseBody
 
@@ -21,7 +21,7 @@ class GetMyOnboardingSubmissionRequest(CoreApiEndpoint):
     )
 
     class ResponseBody(BaseResponseBody):
-        onboarding_submissions: list[OnboardingSubmission]
+        onboarding_submission: OnboardingSubmission
         team: Team
 
     @classmethod
