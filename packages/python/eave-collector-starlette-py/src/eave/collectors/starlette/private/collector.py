@@ -201,7 +201,8 @@ class EaveASGIMiddleware:
             send: An awaitable callable taking a single dictionary as argument.
         """
         # start = default_timer()
-        if scope["type"] != "http":
+        # Ignore common status/healthcheck endpoints
+        if scope["type"] != "http" or scope.get("path") == "/healthz":
             return await self.app(scope, receive, send)
 
         # _, _, url = get_host_port_url_tuple(scope)
@@ -250,12 +251,14 @@ class EaveASGIMiddleware:
 
             req_method = scope.get("method") or "unknown"
             req_url = remove_url_credentials(http_url)
+            req_path = scope.get("path")
             self.write_queue.put(
                 HttpServerEventPayload(
                     event_id=str(uuid4()),
                     timestamp=time.time(),
                     request_method=req_method.upper(),
                     request_url=req_url,
+                    # request_path=req_path,
                     request_headers=dict(request.headers.items()),
                     request_payload=req_body.decode("utf-8"),
                     corr_ctx=CORR_CTX.to_dict(),
