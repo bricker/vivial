@@ -19,7 +19,6 @@ const useStyles = makeStyles()(() => ({
 interface ColourOption {
   readonly value: string;
   readonly label: string;
-  readonly color: string;
   readonly isFixed?: boolean;
   readonly isDisabled?: boolean;
 }
@@ -83,21 +82,27 @@ const colourStyles: StylesConfig<ColourOption, true> = {
 interface InputFieldProps {
   question: string;
   questionOptions: ColourOption[];
+  setValue: (value: readonly ColourOption[]) => void;
 }
 
-const InputField: React.FC<InputFieldProps> = ({ question, questionOptions }) => {
+const InputField: React.FC<InputFieldProps> = ({ question, questionOptions, setValue }) => {
   const { classes } = useStyles();
   const [options, setOptions] = useState<readonly ColourOption[]>(questionOptions);
-  const [value, setValue] = useState<readonly ColourOption[]>([]);
+  const [value, setValueState] = useState<readonly ColourOption[]>([]);
 
   const handleCreate = (inputValue: string) => {
     const newOption: ColourOption = {
       value: inputValue,
       label: inputValue,
-      color: "#1980DF",
     };
     setOptions((prev) => [...prev, newOption]);
-    setValue((prev) => [...prev, newOption]);
+    setValueState((prev) => [...prev, newOption]);
+    setValue([...value, newOption]);
+  };
+
+  const handleChange = (newValue: readonly ColourOption[]) => {
+    setValueState(newValue);
+    setValue(newValue);
   };
 
   return (
@@ -110,7 +115,7 @@ const InputField: React.FC<InputFieldProps> = ({ question, questionOptions }) =>
         styles={colourStyles}
         onCreateOption={handleCreate}
         value={value}
-        onChange={(newValue) => setValue(newValue as ColourOption[])}
+        onChange={(newValue) => handleChange(newValue as ColourOption[])}
         formatCreateLabel={(inputValue) => <div style={{ color: "#1980DF" }}>Create "{inputValue}"</div>}
       />
     </div>
