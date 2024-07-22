@@ -12,6 +12,7 @@ resource "google_project_service" "services" {
     "containersecurity.googleapis.com",   # Container Security API
     "containerregistry.googleapis.com",   # Container Registry API
     "dataflow.googleapis.com",            # Dataflow API
+    "datastream.googleapis.com",          # Datastream API
     "dlp.googleapis.com",                 # Data Loss Prevention
     "dns.googleapis.com",                 # Cloud DNS API
     "domains.googleapis.com",             # Cloud Domains API

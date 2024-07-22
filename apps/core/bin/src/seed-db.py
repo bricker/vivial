@@ -64,7 +64,7 @@ async def seed_table_entries_for_team(team_id: uuid.UUID, row: int, session: Asy
 
     await ClientCredentialsOrm.query(session=session, params=ClientCredentialsOrm.QueryParams(team_id=team_id))
 
-    creds.scope = ClientScope.read
+    creds.scope = ClientScope.readwrite
     await session.flush()
 
     metabase_instance = await MetabaseInstanceOrm.create(
