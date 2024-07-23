@@ -1,5 +1,5 @@
-from enum import IntEnum
 import uuid
+from enum import IntEnum
 
 from eave.stdlib.core_api.models import BaseInputModel, BaseResponseModel
 

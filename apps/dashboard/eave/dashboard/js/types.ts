@@ -30,21 +30,21 @@ export type GetMyVirtualEventDetailsResponseBody = {
 
 export type OnboardingSubmission = {
   response_data: object;
-}
+};
 
 export type CreateMyOnboardingSubmissionRequestBody = {
   form_data: object;
-}
+};
 
 export type CreateMyOnboardingSubmissionResponseBody = {
   onboarding_submission: OnboardingSubmission;
   team: Team;
-}
+};
 
 export type GetMyOnboardingSubmissionResponseBody = {
   onboarding_submission: OnboardingSubmission;
   team: Team;
-}
+};
 
 export type Team = {
   id: string;
