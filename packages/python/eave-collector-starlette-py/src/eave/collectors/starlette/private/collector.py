@@ -26,12 +26,10 @@ from starlette import applications
 from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 
-# from starlette.routing import Match
 from eave.collectors.core.base_collector import BaseCollector
 from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import HttpServerEventPayload
 
-# from timeit import default_timer
 from eave.collectors.core.logging import EAVE_LOGGER
 from eave.collectors.core.wrap_util import is_wrapped, tag_wrapped, untag_wrapped
 from eave.collectors.core.write_queue import WriteQueue
@@ -200,6 +198,7 @@ class EaveASGIMiddleware:
             receive: An awaitable callable yielding dictionaries
             send: An awaitable callable taking a single dictionary as argument.
         """
+
         # start = default_timer()
         # Ignore common status/healthcheck endpoints
         if scope["type"] != "http" or scope.get("path") == "/healthz":
@@ -251,14 +250,12 @@ class EaveASGIMiddleware:
 
             req_method = scope.get("method") or "unknown"
             req_url = remove_url_credentials(http_url)
-            req_path = scope.get("path")
             self.write_queue.put(
                 HttpServerEventPayload(
                     event_id=str(uuid4()),
                     timestamp=time.time(),
                     request_method=req_method.upper(),
                     request_url=req_url,
-                    # request_path=req_path,
                     request_headers=dict(request.headers.items()),
                     request_payload=req_body.decode("utf-8"),
                     corr_ctx=CORR_CTX.to_dict(),
@@ -273,6 +270,7 @@ class EaveASGIMiddleware:
 
             async def response_interceptor(message: starlette.types.Message) -> None:
                 """wrapper to fire analytics events on ASGI response messages"""
+
                 # message definitions per ASGI spec:
                 # https://asgi.readthedocs.io/en/latest/specs/www.html#response-start-send-event
                 if message["type"] == "http.response.start":

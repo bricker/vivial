@@ -22,6 +22,8 @@ _SERVER="${1:-uvicorn}"
 			--bind 127.0.0.1:5600 \
 			--workers=3 \
 			--reload \
+			--access-logfile - \
+			--error-logfile - \
 			eave_playground.quizapp.app:app \
 			&
 	else
