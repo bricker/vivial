@@ -2,6 +2,7 @@ from eave.collectors.sqlalchemy.private.collector import SQLAlchemyCollector, Su
 
 _collector: SQLAlchemyCollector | None = None
 
+
 class SQLAlchemyCollectorManager:
     @classmethod
     def start(cls, engine: SupportedEngine) -> None:
