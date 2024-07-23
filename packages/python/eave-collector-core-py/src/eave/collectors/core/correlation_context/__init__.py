@@ -1,7 +1,5 @@
 import inspect
 
-from eave.collectors.core.logging import EAVE_LOGGER
-
 from .async_task import AsyncioCorrelationContext as AsyncioCorrelationContext
 from .base import BaseCorrelationContext
 from .thread import ThreadedCorrelationContext as ThreadedCorrelationContext
@@ -27,7 +25,9 @@ def _correlation_context_factory() -> BaseCorrelationContext:
     # if "gunicorn" in server_software:
     #     return ThreadedCorrelationContext()
 
-    is_asyncio = any("uvicorn" in frame.filename or "daphne" in frame.filename or "hypercorn" in frame.filename for frame in stack)
+    is_asyncio = any(
+        "uvicorn" in frame.filename or "daphne" in frame.filename or "hypercorn" in frame.filename for frame in stack
+    )
     if is_asyncio:
         return AsyncioCorrelationContext()
     else:
@@ -38,7 +38,6 @@ def _correlation_context_factory() -> BaseCorrelationContext:
     #     or "uwsgi" in frame.filename
     #     for frame in stack
     # ) or "uwsgi" in sys.modules or "mod_wsgi" in sys.modules
-
 
     # EAVE_LOGGER.warning("Eave unable to determine application webserver, falling back to WSGI context handler")
     # return ThreadedCorrelationContext()

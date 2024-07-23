@@ -1,11 +1,10 @@
-import sys
-from unittest.mock import patch, Mock
-from eave.collectors.core.correlation_context.thread import ThreadedCorrelationContext
-from eave.collectors.core.correlation_context.async_task import AsyncioCorrelationContext
-from starlette.applications import Starlette
-from ..base import BaseTestCase
+from unittest.mock import patch
 
 from eave.collectors.core.correlation_context import _correlation_context_factory
+from eave.collectors.core.correlation_context.async_task import AsyncioCorrelationContext
+from eave.collectors.core.correlation_context.thread import ThreadedCorrelationContext
+
+from ..base import BaseTestCase
 
 gunicorn_with_uvicorn_stack = [
     "/eave-monorepo/.venv/lib/python3.12/site-packages/gunicorn/__main__.py",
@@ -97,6 +96,7 @@ gunicorn_default_stack = [
     "/eave-monorepo/packages/python/eave-collector-core-py/src/eave/collectors/core/correlation_context/__init__.py",
     "/eave-monorepo/packages/python/eave-collector-core-py/src/eave/collectors/core/correlation_context/__init__.py",
 ]
+
 
 class CorrelationContextEngineDetectionTest(BaseTestCase):
     async def test_corr_context_engine_detection_uvicorn_worker(self) -> None:

@@ -29,7 +29,6 @@ from starlette.requests import Request
 from eave.collectors.core.base_collector import BaseCollector
 from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import HttpServerEventPayload
-
 from eave.collectors.core.logging import EAVE_LOGGER
 from eave.collectors.core.wrap_util import is_wrapped, tag_wrapped, untag_wrapped
 from eave.collectors.core.write_queue import WriteQueue
