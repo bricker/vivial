@@ -2,19 +2,20 @@ from eave.collectors.sqlalchemy.private.collector import SQLAlchemyCollector, Su
 
 _collector: SQLAlchemyCollector | None = None
 
+class SQLAlchemyCollectorManager:
+    @classmethod
+    def start(cls, engine: SupportedEngine) -> None:
+        global _collector
 
-async def start_eave_sqlalchemy_collector(engine: SupportedEngine) -> None:
-    global _collector
+        if not _collector:
+            _collector = SQLAlchemyCollector()
+            _collector.start(engine)
 
-    if not _collector:
-        _collector = SQLAlchemyCollector()
-        await _collector.start(engine)
+    @classmethod
+    def stop(cls) -> None:
+        global _collector
 
+        if _collector:
+            _collector.stop()
 
-def stop_eave_sqlalchemy_collector() -> None:
-    global _collector
-
-    if _collector:
-        _collector.stop()
-
-    _collector = None  # Deallocate the engine.
+        _collector = None  # Deallocate the engine.

@@ -1,5 +1,6 @@
 from http import HTTPStatus
 
+from eave.collectors.starlette import StarletteCollectorManager
 from starlette.applications import Starlette
 from starlette.requests import Request
 from starlette.responses import RedirectResponse, Response
@@ -73,3 +74,5 @@ app = Starlette(
         Route(path="/{rest:path}", methods=["GET"], endpoint=web_app_endpoint),
     ],
 )
+
+StarletteCollectorManager.start(app)
