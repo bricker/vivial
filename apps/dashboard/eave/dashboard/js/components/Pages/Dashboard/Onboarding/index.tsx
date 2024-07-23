@@ -1,9 +1,9 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { makeStyles } from "tss-react/mui";
 import InputField from "./InputField";
 import SideBanner from "./SideBanner";
-import { aiOptions, frameworksOptions, languagesOptions, platformOptions } from "./questionOptions";
+import { ColourOption, aiOptions, frameworksOptions, languagesOptions, platformOptions } from "./questionOptions";
 
 const useStyles = makeStyles()(() => ({
   main: {
@@ -90,6 +90,26 @@ const useStyles = makeStyles()(() => ({
 const Onboarding = () => {
   const { classes } = useStyles();
 
+  // One State
+  const [platformValue, setPlatformValue] = useState<readonly ColourOption[]>([]);
+  const [languagesValue, setLanguagesValue] = useState<readonly ColourOption[]>([]);
+  const [frameworksValue, setFrameworksValue] = useState<readonly ColourOption[]>([]);
+  const [aiValue, setAiValue] = useState<readonly ColourOption[]>([]);
+
+  // Todo: handle each error message:
+  const handleNextClick = () => {
+    if (
+      platformValue.length === 0 ||
+      languagesValue.length === 0 ||
+      frameworksValue.length === 0 ||
+      aiValue.length === 0
+    ) {
+      alert("Invalid Form");
+      return;
+    }
+    console.log(platformValue);
+  };
+
   return (
     <div className={classes.main}>
       <div className={classes.content}>
@@ -105,13 +125,31 @@ const Onboarding = () => {
 
         {/* Questions */}
         <div className={classes.questionsContainer}>
-          <InputField question={"Which platforms are you building for?"} questionOptions={platformOptions} />
-          <InputField question={"Which languages are you using?"} questionOptions={languagesOptions} />
-          <InputField question={"Which libraries and frameworks are you using?"} questionOptions={frameworksOptions} />
-          <InputField question={"Which (if any) of these AI platforms are you using?"} questionOptions={aiOptions} />
+          <InputField
+            question={"Which platforms are you building for?"}
+            questionOptions={platformOptions}
+            setValue={setPlatformValue}
+          />
+          <InputField
+            question={"Which languages are you using?"}
+            questionOptions={languagesOptions}
+            setValue={setLanguagesValue}
+          />
+          <InputField
+            question={"Which libraries and frameworks are you using?"}
+            questionOptions={frameworksOptions}
+            setValue={setFrameworksValue}
+          />
+          <InputField
+            question={"Which (if any) of these AI platforms are you using?"}
+            questionOptions={aiOptions}
+            setValue={setAiValue}
+          />
         </div>
         <div className={classes.buttonContainer}>
-          <button className={classes.buttonBlue}>Next</button>
+          <button className={classes.buttonBlue} onClick={handleNextClick}>
+            Next
+          </button>
         </div>
       </div>
 

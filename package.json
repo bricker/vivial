@@ -48,5 +48,8 @@
     "parserOptions": {
       "project": "./tsconfig.json"
     }
+  },
+  "dependencies": {
+    "react-hook-form": "^7.52.1"
   }
 }
