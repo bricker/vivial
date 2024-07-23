@@ -2,7 +2,6 @@ from datetime import datetime
 from typing import Self, TypedDict, Unpack
 from urllib.parse import urlparse
 from uuid import UUID
-from enum import IntEnum
 
 import sqlalchemy.dialects.postgresql
 import sqlalchemy.types
@@ -11,14 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 import eave.stdlib.util
-from eave.stdlib.core_api.models.team import Team
+from eave.stdlib.core_api.models.team import Team, DashboardAccess
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR
 
-class DashboardAccess(IntEnum):
-    ALLOW = 0
-    DENY = 1
 
 class TeamOrm(Base):
     __tablename__ = "teams"

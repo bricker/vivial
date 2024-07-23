@@ -1,4 +1,8 @@
 import aiohttp.hdrs
+from eave.stdlib.core_api.operations.onboarding_submissions import (
+    CreateMyOnboardingSubmissionRequest,
+    GetMyOnboardingSubmissionRequest,
+)
 import starlette.applications
 import starlette.endpoints
 from asgiref.typing import ASGI3Application
@@ -294,8 +298,12 @@ routes = [
         endpoint=authed_account.GetMyAccountEndpoint,
     ),
     make_route(
-        config=,
+        config=GetMyOnboardingSubmissionRequest.config,
         endpoint=onboarding_submissions.GetMyOnboardingSubmissionEndpoint,
+    ),
+    make_route(
+        config=CreateMyOnboardingSubmissionRequest.config,
+        endpoint=onboarding_submissions.CreateMyOnboardingSubmissionEndpoint,
     ),
 ]
 

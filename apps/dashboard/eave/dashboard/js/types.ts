@@ -28,9 +28,28 @@ export type GetMyVirtualEventDetailsResponseBody = {
   virtual_event: VirtualEventDetails;
 };
 
+export type OnboardingSubmission = {
+  response_data: object;
+};
+
+export type CreateMyOnboardingSubmissionRequestBody = {
+  form_data: object;
+};
+
+export type CreateMyOnboardingSubmissionResponseBody = {
+  onboarding_submission: OnboardingSubmission;
+  team: Team;
+};
+
+export type GetMyOnboardingSubmissionResponseBody = {
+  onboarding_submission?: OnboardingSubmission;
+  team: Team;
+};
+
 export type Team = {
   id: string;
   name: string;
+  dashboard_access: number;
 };
 
 export type GetTeamResponseBody = {
@@ -49,6 +68,8 @@ export type GlobalEaveWindow = Window &
 export type DashboardTeam = {
   id?: string;
   name?: string;
+  dashboard_access?: number;
+  onboardingSubmission?: object; // opaque type for now since we currently only care if value is set
   virtualEvents?: VirtualEventDetails[];
 };
 
@@ -61,6 +82,15 @@ export type DashboardNetworkState = {
 export type GlossaryNetworkState = {
   virtualEventsAreLoading: boolean;
   virtualEventsAreErroring: boolean;
+};
+
+export type OnboardingFormNetworkState = {
+  // create request state
+  formSubmitIsLoading: boolean;
+  formSubmitIsErroring: boolean;
+  // get request state
+  formDataIsLoading: boolean;
+  formDataIsErroring: boolean;
 };
 
 // The additional properties are set in the template header, so we know they exist.
