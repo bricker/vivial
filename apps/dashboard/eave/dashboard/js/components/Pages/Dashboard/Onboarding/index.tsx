@@ -86,13 +86,6 @@ const useStyles = makeStyles()((theme) => ({
   border: {
     // border: "2px solid black",
   },
-  loader: {
-    display: "flex",
-    width: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 32,
-  },
   questionText: {
     fontSize: 18,
     fontWeight: "bold",
@@ -162,9 +155,6 @@ const Onboarding = () => {
       },
     });
   };
-
-  // return <CircularProgress color="secondary" />;
-
   return (
     <div className={classes.main}>
       <div className={classes.content}>

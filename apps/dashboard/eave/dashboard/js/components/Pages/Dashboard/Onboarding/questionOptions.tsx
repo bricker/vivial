@@ -25,8 +25,8 @@ export const languagesOptions: ColourOption[] = [
   { value: "ruby", label: "Ruby" },
   { value: "java", label: "Java" },
   { value: "swift", label: "Swift" },
-  { value: "javascript", label: "Javascript" },
-  { value: "typescript", label: "Typescript" },
+  { value: "javascript", label: "JavaScript" },
+  { value: "typescript", label: "TypeScript" },
   { value: "go", label: "Go" },
   { value: "kotlin", label: "Kotlin" },
   { value: "c++", label: "C++" },
@@ -38,7 +38,7 @@ export const frameworksOptions: ColourOption[] = [
   { value: "yellow", label: "Yellow" },
 ];
 
-export const aiOptions: ColourOption[] = [
+export const thirdPartyOptions: ColourOption[] = [
   { value: "purple", label: "Purple" },
   { value: "violet", label: "Violet" },
   { value: "lavender", label: "Lavender" },
