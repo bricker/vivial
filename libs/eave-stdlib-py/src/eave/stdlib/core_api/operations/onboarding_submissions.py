@@ -54,7 +54,6 @@ class CreateMyOnboardingSubmissionRequest(CoreApiEndpoint):
     )
 
     class RequestBody(BaseRequestBody):
-        # TODO: just use dict? how to ingest form data
         form_data: dict[str, list[str]]
 
     class ResponseBody(BaseResponseBody):

@@ -1,6 +1,9 @@
 import { AppContext } from "$eave-dashboard/js/context/Provider";
 import {
+  CreateMyOnboardingSubmissionRequestBody,
+  CreateMyOnboardingSubmissionResponseBody,
   DashboardTeam,
+  GetMyOnboardingSubmissionResponseBody,
   GetMyVirtualEventDetailsResponseBody,
   GetTeamResponseBody,
   ListMyVirtualEventsResponseBody,
@@ -16,13 +19,17 @@ export interface TeamHook {
   getTeam: () => void;
   listVirtualEvents: (args?: { query?: string | null }) => void;
   getVirtualEventDetails: (id: string) => void;
+  getOnboardingFormSubmission: () => void;
+  createOnboardingFormSubmission: (requestBody: CreateMyOnboardingSubmissionRequestBody) => void;
 }
 
 const useTeam = (): TeamHook => {
-  const { teamCtx, dashboardNetworkStateCtx, glossaryNetworkStateCtx } = useContext(AppContext);
+  const { teamCtx, dashboardNetworkStateCtx, glossaryNetworkStateCtx, onboardingFormNetworkStateCtx } =
+    useContext(AppContext);
   const [team, setTeam] = teamCtx!;
   const [, setDashboardNetworkState] = dashboardNetworkStateCtx!;
   const [, setGlossaryNetworkState] = glossaryNetworkStateCtx!;
+  const [, setOnboardingFormNetworkState] = onboardingFormNetworkStateCtx!;
 
   /**
    * Asynchronously fetches team data from the "/api/team" endpoint using a POST request.
@@ -229,11 +236,111 @@ const useTeam = (): TeamHook => {
       });
   }
 
+  function getOnboardingFormSubmission() {
+    setOnboardingFormNetworkState((prev) => ({
+      ...prev,
+      formDataIsLoading: true,
+      formDataIsErroring: false,
+    }));
+    fetch(`${eaveWindow.eavedash.apiBase}/public/me/onboarding-submissions/query`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "eave-origin": eaveOrigin,
+      },
+      credentials: "include",
+    })
+      .then((resp) => {
+        if (isUnauthorized(resp)) {
+          logUserOut();
+          return;
+        }
+        if (isHTTPError(resp)) {
+          throw resp;
+        }
+        return resp.json().then((data: GetMyOnboardingSubmissionResponseBody) => {
+          setTeam((prev) => {
+            return {
+              ...prev,
+              dashboard_access: data.team.dashboard_access,
+              onboardingSubmission: data.onboarding_submission,
+            };
+          });
+
+          setOnboardingFormNetworkState((prev) => ({
+            ...prev,
+            formDataIsErroring: false,
+            formDataIsLoading: false,
+          }));
+        });
+      })
+      .catch((e) => {
+        console.error(e);
+        setOnboardingFormNetworkState((prev) => ({
+          ...prev,
+          formDataIsErroring: true,
+          formDataIsLoading: false,
+        }));
+      });
+  }
+
+  function createOnboardingFormSubmission(requestBody: CreateMyOnboardingSubmissionRequestBody) {
+    setOnboardingFormNetworkState((prev) => ({
+      ...prev,
+      formSubmitIsLoading: true,
+      formSubmitIsErroring: false,
+    }));
+    fetch(`${eaveWindow.eavedash.apiBase}/public/me/onboarding-submissions/create`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "eave-origin": eaveOrigin,
+      },
+      credentials: "include",
+      body: JSON.stringify(requestBody),
+    })
+      .then((resp) => {
+        if (isUnauthorized(resp)) {
+          logUserOut();
+          return;
+        }
+        if (isHTTPError(resp)) {
+          throw resp;
+        }
+        return resp.json().then((data: CreateMyOnboardingSubmissionResponseBody) => {
+          // set dashboard access based on form submission answers
+          setTeam((prev) => {
+            return {
+              ...prev,
+              dashboard_access: data.team.dashboard_access,
+              onboardingSubmission: data.onboarding_submission,
+            };
+          });
+
+          setOnboardingFormNetworkState((prev) => ({
+            ...prev,
+            formSubmitIsErroring: false,
+            formSubmitIsLoading: false,
+          }));
+        });
+      })
+      .catch((e) => {
+        console.error(e);
+        setOnboardingFormNetworkState((prev) => ({
+          ...prev,
+          formSubmitIsErroring: true,
+          formSubmitIsLoading: false,
+        }));
+      });
+  }
+
   return {
     team,
     getTeam,
     listVirtualEvents,
     getVirtualEventDetails,
+    getOnboardingFormSubmission,
+    createOnboardingFormSubmission,
   };
 };
 
