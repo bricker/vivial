@@ -1,7 +1,5 @@
-import contextlib
 import logging
 import os
-from collections.abc import AsyncGenerator
 from http import HTTPStatus
 from textwrap import dedent
 from uuid import UUID
@@ -16,7 +14,7 @@ from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
 from eave.collectors.openai import OpenAICollectorManager
-from eave.collectors.sqlalchemy import start_eave_sqlalchemy_collector, stop_eave_sqlalchemy_collector
+from eave.collectors.sqlalchemy import SQLAlchemyCollectorManager
 from eave.collectors.starlette import StarletteCollectorManager
 
 from .openai import chat_completion, openai_client
@@ -197,13 +195,6 @@ def health_endpoint(request: Request) -> Response:
     return Response(content="1", status_code=HTTPStatus.OK)
 
 
-@contextlib.asynccontextmanager
-async def lifespan(app: Starlette) -> AsyncGenerator[None, None]:
-    await start_eave_sqlalchemy_collector(engine=async_engine)
-    yield
-    stop_eave_sqlalchemy_collector()
-
-
 app = Starlette(
     routes=[
         Mount("/static", StaticFiles(directory="eave_playground/todoapp/static")),
@@ -219,8 +210,8 @@ app = Starlette(
         Route(path="/logout", methods=["GET"], endpoint=logout),
         Route(path="/{rest:path}", methods=["GET"], endpoint=web_app),
     ],
-    lifespan=lifespan,
 )
 
 StarletteCollectorManager.start(app)
 OpenAICollectorManager.start(openai_client)
+SQLAlchemyCollectorManager.start(engine=async_engine)
