@@ -1,5 +1,4 @@
-import os
-import sys
+import inspect
 
 from eave.collectors.core.logging import EAVE_LOGGER
 
@@ -22,25 +21,27 @@ def _correlation_context_factory() -> BaseCorrelationContext:
 
     # check if process args include any hints at webserver running the app
     # We have to loop twice because we want to check every arg for each type of corr context.
-    for arg in sys.argv:
-        cleaned_arg = arg.lower()
-        if "uvicorn" in cleaned_arg or "daphne" in cleaned_arg or "hypercorn" in cleaned_arg:
-            return AsyncioCorrelationContext()
+    stack = reversed(inspect.stack())
 
-    for arg in sys.argv:
-        cleaned_arg = arg.lower()
-        if "gunicorn" in cleaned_arg or "uwsgi" in cleaned_arg:
-            return ThreadedCorrelationContext()
+    # server_software = os.getenv("SERVER_SOFTWARE", "").lower()
+    # if "gunicorn" in server_software:
+    #     return ThreadedCorrelationContext()
 
-    if "uwsgi" in sys.modules or "mod_wsgi" in sys.modules:
+    is_asyncio = any("uvicorn" in frame.filename or "daphne" in frame.filename or "hypercorn" in frame.filename for frame in stack)
+    if is_asyncio:
+        return AsyncioCorrelationContext()
+    else:
         return ThreadedCorrelationContext()
 
-    server_software = os.getenv("SERVER_SOFTWARE", "").lower()
-    if "gunicorn" in server_software:
-        return ThreadedCorrelationContext()
+    # is_threaded = any(
+    #     "gunicorn" in frame.filename
+    #     or "uwsgi" in frame.filename
+    #     for frame in stack
+    # ) or "uwsgi" in sys.modules or "mod_wsgi" in sys.modules
 
-    EAVE_LOGGER.warning("Eave unable to determine application webserver, falling back to WSGI context handler")
-    return ThreadedCorrelationContext()
+
+    # EAVE_LOGGER.warning("Eave unable to determine application webserver, falling back to WSGI context handler")
+    # return ThreadedCorrelationContext()
 
 
 CORR_CTX = _correlation_context_factory()
