@@ -42,7 +42,7 @@ export type CreateMyOnboardingSubmissionResponseBody = {
 };
 
 export type GetMyOnboardingSubmissionResponseBody = {
-  onboarding_submission: OnboardingSubmission;
+  onboarding_submission?: OnboardingSubmission;
   team: Team;
 };
 

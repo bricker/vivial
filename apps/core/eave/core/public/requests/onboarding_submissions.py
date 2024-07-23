@@ -19,12 +19,12 @@ class GetMyOnboardingSubmissionEndpoint(HTTPEndpoint):
     async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
         async with database.async_session.begin() as db_session:
             eave_team_orm = await TeamOrm.one_or_exception(session=db_session, team_id=unwrap(ctx.eave_authed_team_id))
-            onboarding_submission = await OnboardingSubmissionOrm.one_or_exception(
+            onboarding_submission = await OnboardingSubmissionOrm.one_or_none(
                 session=db_session, team_id=unwrap(ctx.eave_authed_team_id)
             )
         return json_response(
             GetMyOnboardingSubmissionRequest.ResponseBody(
-                onboarding_submission=onboarding_submission.api_model,
+                onboarding_submission=onboarding_submission.api_model if onboarding_submission else None,
                 team=eave_team_orm.api_model,
             )
         )
