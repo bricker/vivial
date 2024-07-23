@@ -2,28 +2,28 @@ import EaveBlueIcon from "$eave-dashboard/js/components/Icons/EaveBlueIcon";
 import React from "react";
 import { makeStyles } from "tss-react/mui";
 
-const useStyles = makeStyles()((theme) => ({
+const useStyles = makeStyles()(() => ({
   sidebar: {
     flex: 1,
-    borderRadius: 20,
-    margin: 16,
     color: "white",
     display: "flex",
-    maxWidth: 700,
-    backgroundColor: theme.palette.success.main,
+    backgroundColor: "#1980DF",
     flexDirection: "column",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    height: "100vh",
     overflow: "hidden",
     position: "relative",
   },
   textContainer: {
     paddingLeft: 32,
     paddingRight: 32,
+    border: "2px solid black",
   },
   title: {
     fontSize: 52,
     border: "2px solid black",
     marginBottom: 16,
-    lineHeight: 1.1,
   },
   subtext: {
     width: 256,
@@ -40,7 +40,7 @@ const useStyles = makeStyles()((theme) => ({
   },
 }));
 
-export default function SideBanner() {
+export default function Sidebar() {
   const { classes } = useStyles();
 
   return (

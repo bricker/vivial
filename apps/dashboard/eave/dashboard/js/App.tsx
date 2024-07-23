@@ -36,6 +36,7 @@ const App = () => {
 
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/waitlist" element={<Waitlist />} />
+              {/* <Route path="/setup" element={<Setup />} /> */}
 
               <Route path="*" element={<Navigate to="/insights" />} />
             </Routes>

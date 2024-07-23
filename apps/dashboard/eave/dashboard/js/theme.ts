@@ -92,6 +92,10 @@ export const theme = createTheme({
       light: "#5E5C64",
       dark: "#9A9996",
     },
+    // for now using as new theme
+    success: {
+      main: "#1980DF",
+    },
   },
   typography: {
     fontFamily: ["DM Sans", "sans-serif"].join(","),

@@ -1,11 +1,19 @@
 "use client";
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 import InputField from "./InputField";
 import SideBanner from "./SideBanner";
-import { ColourOption, aiOptions, frameworksOptions, languagesOptions, platformOptions } from "./questionOptions";
+import {
+  ColourOption,
+  aiOptions,
+  copyString,
+  frameworksOptions,
+  languagesOptions,
+  platformOptions,
+} from "./questionOptions";
 
-const useStyles = makeStyles()(() => ({
+const useStyles = makeStyles()((theme) => ({
   main: {
     display: "flex",
     height: "100vh",
@@ -13,18 +21,18 @@ const useStyles = makeStyles()(() => ({
   },
   content: {
     flex: 2,
+    border: "2px solid",
     overflow: "auto",
     height: "100vh",
-    paddingTop: 64,
-    paddingLeft: 64,
-    paddingRight: 64,
-    // Currently not including padding in 2/3 size.
-    boxSizing: "border-box",
+    justifyContent: "flex-end",
+    paddingTop: theme.spacing(8),
+    paddingLeft: theme.spacing(8),
+    paddingRight: theme.spacing(8),
   },
   titleAndButton: {
-    // border: "2px solid black",
+    border: "2px solid black",
     display: "flex",
-    padding: 0,
+    padding: theme.spacing(0),
     flexDirection: "row",
     justifyContent: "space-between",
     height: "fit-content",
@@ -40,11 +48,11 @@ const useStyles = makeStyles()(() => ({
     color: "#7D7D7D",
     fontSize: 18,
     margin: 0,
-    marginTop: 8,
+    marginTop: theme.spacing(1),
   },
   button: {
     backgroundColor: "#E8F4FF",
-    color: "#1980DF",
+    color: theme.palette.success.main,
     borderRadius: 4,
     margin: 0,
     padding: "8px 8px",
@@ -89,7 +97,7 @@ const useStyles = makeStyles()(() => ({
 
 const Onboarding = () => {
   const { classes } = useStyles();
-
+  const navigate = useNavigate();
   // One State
   const [platformValue, setPlatformValue] = useState<readonly ColourOption[]>([]);
   const [languagesValue, setLanguagesValue] = useState<readonly ColourOption[]>([]);
@@ -108,6 +116,7 @@ const Onboarding = () => {
       return;
     }
     console.log(platformValue);
+    navigate("/waitlist");
   };
 
   return (
@@ -118,7 +127,15 @@ const Onboarding = () => {
           {/* Title and Copy Button */}
           <div className={classes.titleAndButton}>
             <h1 className={classes.headerText}>Let's Get Started!</h1>
-            <button className={classes.button}> Copy and send to team </button>
+            <button
+              className={classes.button}
+              onClick={() => {
+                navigator.clipboard.writeText(copyString);
+              }}
+            >
+              {" "}
+              Copy and send to team{" "}
+            </button>
           </div>
           <h2 className={classes.subText}> Tell us about your tech stack</h2>
         </div>
