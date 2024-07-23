@@ -68,7 +68,7 @@ export type GlobalEaveWindow = Window &
 export type DashboardTeam = {
   id?: string;
   name?: string;
-  dashboard_access?: number;
+  dashboardAccess?: number;
   onboardingSubmission?: object; // opaque type for now since we currently only care if value is set
   virtualEvents?: VirtualEventDetails[];
 };

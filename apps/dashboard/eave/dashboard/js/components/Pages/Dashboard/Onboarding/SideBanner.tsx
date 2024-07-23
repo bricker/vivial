@@ -21,7 +21,7 @@ const useStyles = makeStyles()((theme) => ({
   },
   title: {
     fontSize: 52,
-    border: "2px solid black",
+    // border: "2px solid black",
     marginBottom: 16,
     lineHeight: 1.1,
   },
@@ -29,7 +29,7 @@ const useStyles = makeStyles()((theme) => ({
     width: 256,
     fontSize: 20,
     marginTop: 0,
-    border: "2px solid black",
+    // border: "2px solid black",
   },
   logo: {
     position: "absolute",

@@ -83,8 +83,8 @@ class OnboardingSubmissionOrm(Base):
         return all(
             [
                 "python" in form_responses["languages"],
-                "browser app" in form_responses["applications"],
-                "starlette" in form_responses["libraries"] or "fast api" in form_responses["libraries"],
+                "browser app" in form_responses["platform"],
+                "starlette" in form_responses["frameworks"] or "fast api" in form_responses["libraries"],
                 "openai" in form_responses["ai"],
             ]
         )
