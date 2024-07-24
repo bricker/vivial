@@ -64,6 +64,10 @@ const useStyles = makeStyles()((theme) => ({
     fontSize: 16,
     fontWeight: "bold",
     cursor: "pointer",
+    width: "150px", // Set a fixed width for consistency
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
   },
   buttonBlue: {
     backgroundColor: "#1980DF",
@@ -92,10 +96,17 @@ const useStyles = makeStyles()((theme) => ({
     margin: 0,
   },
   questionsContainer: {
-    marginTop: 32,
+    marginTop: theme.spacing(2),
   },
-  question: {
-    marginTop: 32,
+  loading: {
+    position: "fixed",
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.5)",
+    zIndex: 100,
   },
 }));
 
@@ -103,12 +114,18 @@ const Onboarding = () => {
   const { classes } = useStyles();
   const navigate = useNavigate();
 
-  // One State
   const [platformValue, setPlatformValue] = useState<readonly ColourOption[]>([]);
   const [languagesValue, setLanguagesValue] = useState<readonly ColourOption[]>([]);
   const [frameworksValue, setFrameworksValue] = useState<readonly ColourOption[]>([]);
   const [databaseValue, setDatabaseValue] = useState<readonly ColourOption[]>([]);
   const [thirdPartyValue, setThirdPartyValue] = useState<readonly ColourOption[]>([]);
+
+  const [platformError, setPlatformError] = useState(false);
+  const [languagesError, setLanguagesError] = useState(false);
+  const [frameworksError, setFrameworksError] = useState(false);
+  const [databaseError, setDatabaseError] = useState(false);
+  const [thirdPartyError, setThirdPartyError] = useState(false);
+
   const [copy, setCopy] = useState(false);
 
   const { team, getOnboardingFormSubmission, createOnboardingFormSubmission } = useTeam();
@@ -123,17 +140,45 @@ const Onboarding = () => {
 
   // if (onboardingFormNetworkStateCtx.formSubmitIsLoading)
 
-  // Todo: handle each error message:
   const handleNextClick = () => {
-    console.log(platformValue);
-    if (
-      platformValue.length === 0 ||
-      languagesValue.length === 0 ||
-      frameworksValue.length === 0 ||
-      databaseValue.length === 0 ||
-      thirdPartyValue.length === 0
-    ) {
-      alert("Invalid Form");
+    let hasError = false;
+
+    if (platformValue.length === 0) {
+      setPlatformError(true);
+      hasError = true;
+    } else {
+      setPlatformError(false);
+    }
+
+    if (languagesValue.length === 0) {
+      setLanguagesError(true);
+      hasError = true;
+    } else {
+      setLanguagesError(false);
+    }
+
+    if (frameworksValue.length === 0) {
+      setFrameworksError(true);
+      hasError = true;
+    } else {
+      setFrameworksError(false);
+    }
+
+    if (databaseValue.length === 0) {
+      setDatabaseError(true);
+      hasError = true;
+    } else {
+      setDatabaseError(false);
+    }
+
+    if (thirdPartyValue.length === 0) {
+      setThirdPartyError(true);
+      hasError = true;
+    } else {
+      setThirdPartyError(false);
+    }
+
+    if (hasError) {
       return;
     }
     // TODO: Change structure
@@ -155,6 +200,7 @@ const Onboarding = () => {
       },
     });
   };
+
   return (
     <div className={classes.main}>
       <div className={classes.content}>
@@ -175,8 +221,7 @@ const Onboarding = () => {
                 }, 1500);
               }}
             >
-              {" "}
-              Copy and send to team{" "}
+              {copy ? "Copied!" : "Copy Questions"}
             </motion.button>
           </div>
           <h2 className={classes.subText}> Tell us about your tech stack</h2>
@@ -188,26 +233,31 @@ const Onboarding = () => {
             question={"Which platform(s) does your product support? "}
             questionOptions={platformOptions}
             setValue={setPlatformValue}
+            error={platformError}
           />
           <InputField
             question={"Which programming language(s) are used to build your product?"}
             questionOptions={languagesOptions}
             setValue={setLanguagesValue}
+            error={languagesError}
           />
           <InputField
             question={"Which libraries and framework(s) are used to build your product?"}
             questionOptions={frameworksOptions}
             setValue={setFrameworksValue}
+            error={frameworksError}
           />
           <InputField
             question={"Which database(s) are used to store your product data?"}
             questionOptions={databaseOptions}
             setValue={setDatabaseValue}
+            error={databaseError}
           />
           <InputField
             question={"Which third party service(s) are integrated into your product?"}
             questionOptions={thirdPartyOptions}
             setValue={setThirdPartyValue}
+            error={thirdPartyError}
           />
         </div>
         <div className={classes.buttonContainer}>
@@ -216,7 +266,9 @@ const Onboarding = () => {
           </button>
         </div>
       </div>
-      {copy && <h1> Testing </h1>}
+      {/* <div className={classes.loading}>
+        <CircularProgress color="secondary" />
+      </div> */}
       <SideBanner />
     </div>
   );

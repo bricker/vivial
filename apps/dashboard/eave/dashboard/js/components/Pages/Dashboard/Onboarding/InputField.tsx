@@ -4,15 +4,20 @@ import { StylesConfig } from "react-select";
 import CreatableSelect from "react-select/creatable";
 import { makeStyles } from "tss-react/mui";
 
-const useStyles = makeStyles()(() => ({
+const useStyles = makeStyles()((theme) => ({
   questionText: {
     fontSize: 18,
     fontWeight: "bold",
     margin: 0,
   },
-
   question: {
-    marginTop: 32,
+    // border: "2px solid",
+    marginTop: theme.spacing(2),
+  },
+  errorContainer: {
+    margin: 0,
+    height: "20px",
+    color: "red",
   },
 }));
 
@@ -75,6 +80,7 @@ const colourStyles: StylesConfig<ColourOption, true> = {
   container: (styles) => ({
     ...styles,
     width: "600px", // set a fixed width
+    margin: 0,
     height: "50px", // set a fixed height
   }),
 };
@@ -82,10 +88,11 @@ const colourStyles: StylesConfig<ColourOption, true> = {
 interface InputFieldProps {
   question: string;
   questionOptions: ColourOption[];
+  error: boolean;
   setValue: (value: readonly ColourOption[]) => void;
 }
 
-const InputField: React.FC<InputFieldProps> = ({ question, questionOptions, setValue }) => {
+const InputField: React.FC<InputFieldProps> = ({ question, questionOptions, setValue, error }) => {
   const { classes } = useStyles();
   const [options, setOptions] = useState<readonly ColourOption[]>(questionOptions);
   const [value, setValueState] = useState<readonly ColourOption[]>([]);
@@ -107,7 +114,11 @@ const InputField: React.FC<InputFieldProps> = ({ question, questionOptions, setV
 
   return (
     <div className={classes.question}>
-      <p className={classes.questionText}> {question} </p>
+      <p className={classes.questionText}>
+        {" "}
+        {question}
+        <span style={{ color: "red" }}> *</span>{" "}
+      </p>
       <CreatableSelect
         closeMenuOnSelect={false}
         isMulti
@@ -118,6 +129,7 @@ const InputField: React.FC<InputFieldProps> = ({ question, questionOptions, setV
         onChange={(newValue) => handleChange(newValue as ColourOption[])}
         formatCreateLabel={(inputValue) => <div style={{ color: "#1980DF" }}>Create "{inputValue}"</div>}
       />
+      <div className={classes.errorContainer}>{error && <span>This field is required</span>}</div>
     </div>
   );
 };
