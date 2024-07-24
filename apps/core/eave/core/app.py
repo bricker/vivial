@@ -1,4 +1,5 @@
 import aiohttp.hdrs
+from eave.stdlib.core_api.operations.client_credentials import GetMyClientCredentialsRequest
 from eave.stdlib.core_api.operations.onboarding_submissions import (
     CreateMyOnboardingSubmissionRequest,
     GetMyOnboardingSubmissionRequest,
@@ -43,6 +44,7 @@ from .public.requests import (
     team,
     virtual_event,
     onboarding_submissions,
+    client_credentials,
 )
 from .public.requests.oauth import google_oauth
 
@@ -304,6 +306,10 @@ routes = [
     make_route(
         config=CreateMyOnboardingSubmissionRequest.config,
         endpoint=onboarding_submissions.CreateMyOnboardingSubmissionEndpoint,
+    ),
+    make_route(
+        config=GetMyClientCredentialsRequest.config,
+        endpoint=client_credentials.GetMyClientCredentialsEndpoint,
     ),
 ]
 
