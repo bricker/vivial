@@ -49,7 +49,7 @@ export type GetMyOnboardingSubmissionResponseBody = {
 export type Team = {
   id: string;
   name: string;
-  dashboard_access: number;
+  dashboard_access: boolean;
 };
 
 export type GetTeamResponseBody = {
@@ -68,7 +68,7 @@ export type GlobalEaveWindow = Window &
 export type DashboardTeam = {
   id?: string;
   name?: string;
-  dashboardAccess?: number;
+  dashboardAccess?: boolean;
   onboardingSubmission?: object; // opaque type for now since we currently only care if value is set
   virtualEvents?: VirtualEventDetails[];
 };

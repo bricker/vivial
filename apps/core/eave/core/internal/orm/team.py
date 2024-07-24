@@ -10,11 +10,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 import eave.stdlib.util
-from eave.stdlib.core_api.models.team import Team, DashboardAccess
+from eave.stdlib.core_api.models.team import Team
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR
-
 
 class TeamOrm(Base):
     __tablename__ = "teams"
@@ -28,7 +27,7 @@ class TeamOrm(Base):
         ),
         server_default=text("'{}'"),
     )
-    dashboard_access: Mapped[DashboardAccess] = mapped_column(server_default=text(f"{DashboardAccess.DENY}"))
+    dashboard_access: Mapped[bool] = mapped_column(server_default=sqlalchemy.sql.true())
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 

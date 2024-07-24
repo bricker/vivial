@@ -4,7 +4,7 @@ from starlette.responses import Response
 
 from eave.core.internal import database
 from eave.core.internal.orm.onboarding_submissions import OnboardingSubmissionOrm
-from eave.core.internal.orm.team import DashboardAccess, TeamOrm
+from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib.api_util import json_response
 from eave.stdlib.core_api.operations.onboarding_submissions import (
     GetMyOnboardingSubmissionRequest,
@@ -47,9 +47,7 @@ class CreateMyOnboardingSubmissionEndpoint(HTTPEndpoint):
                 response_data=data.form_data,
             )
 
-            eave_team_orm.dashboard_access = (
-                DashboardAccess.ALLOW if onboarding_submission.is_qualified() else DashboardAccess.DENY
-            )
+            eave_team_orm.dashboard_access = onboarding_submission.is_qualified()
 
         return json_response(
             CreateMyOnboardingSubmissionRequest.ResponseBody(

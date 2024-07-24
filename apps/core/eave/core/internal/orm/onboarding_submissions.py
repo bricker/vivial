@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import Self, TypedDict, Unpack
 from uuid import UUID
-import json
 
 from eave.stdlib.core_api.models.onboarding_submissions import OnboardingSubmission
 from sqlalchemy import Select, func, select, JSON
@@ -24,7 +23,7 @@ class OnboardingSubmissionOrm(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=UUID_DEFAULT_EXPR)
     team_id: Mapped[UUID] = mapped_column()
-    response_data: Mapped[JSON] = mapped_column()
+    response_data: Mapped[dict] = mapped_column(JSON)
     """JSON object where key is question and value is list of tags"""
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -74,7 +73,7 @@ class OnboardingSubmissionOrm(Base):
         Check if this onboarding form submission qualifies a
         team for Eave usage.
         """
-        form_responses = json.loads(json.dumps(self.response_data))
+        form_responses = self.response_data.copy() #json.loads(json.dumps(self.response_data))
         # convert all answers to lowercase for easier comparison
         for question_key, response_list in form_responses.items():
             form_responses[question_key] = [resp.lower() for resp in response_list]
