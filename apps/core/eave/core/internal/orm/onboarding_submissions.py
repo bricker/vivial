@@ -22,7 +22,7 @@ class OnboardingSubmissionOrm(Base):
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=UUID_DEFAULT_EXPR)
-    team_id: Mapped[UUID] = mapped_column()
+    team_id: Mapped[UUID] = mapped_column(primary_key=True)
     response_data: Mapped[dict] = mapped_column(JSON)
     """JSON object where key is question and value is list of tags"""
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())

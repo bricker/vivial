@@ -116,12 +116,14 @@ const Onboarding = () => {
 
   useEffect(getOnboardingFormSubmission, []);
 
-  if (team?.dashboardAccess === 1 || team?.onboardingSubmission !== undefined) {
+  if (team?.dashboardAccess || team?.onboardingSubmission !== undefined) {
     // they have already submitted form and they are qualified
-    navigate("/waitlist");
+    if (team?.dashboardAccess) {
+      alert("good to go");
+    } else {
+      navigate("/waitlist");
+    }
   }
-
-  // if (onboardingFormNetworkStateCtx.formSubmitIsLoading)
 
   // Todo: handle each error message:
   const handleNextClick = () => {
