@@ -24,37 +24,16 @@ provider "google" {
   zone    = local.project.zone
 }
 
-module "gcp_project" {
-  source          = "../../modules/project"
-  project         = local.project
-  org_id          = local.org_id
-  billing_account = local.billing_account
-}
+provider "kubernetes" {
+  host                   = "https://${module.gke.cluster.endpoint}"
+  token                  = data.google_client_config.default.access_token
+  cluster_ca_certificate = base64decode(module.gke.cluster.master_auth[0].cluster_ca_certificate)
 
-module "tfstate" {
-  source  = "../../modules/tfstate"
-  project = local.project
-}
+  # config_path = "~/.kube/config"
+  # config_context = "eave-staging"
 
-module "docker_registry" {
-  source = "../../modules/docker_registry"
-}
-
-module "nat" {
-  source = "../../modules/nat"
-}
-
-module "dns_zone_base_domain" {
-  source      = "../../modules/dns_zone"
-  root_domain = local.project.root_domain
-}
-
-module "cloudsql_eave_core" {
-  source        = "../../modules/cloudsql_instance"
-  project       = local.project
-  instance_name = "eave-pg-core"
-}
-
-module "ssl_policy" {
-  source = "../../modules/ssl_policy"
+  ignore_annotations = [
+    "^autopilot\\.gke\\.io\\/.*",
+    "^cloud\\.google\\.com\\/.*",
+  ]
 }

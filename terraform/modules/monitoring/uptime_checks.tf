@@ -1,34 +1,9 @@
-variable "root_domain" {
-  type = string
-}
-
-locals {
-  services = {
-    # eave_dashboard = {
-    #   name = "Eave Dashboard uptime check"
-    #   host = "dashboard.${var.root_domain}"
-    #   path = "/status"
-    # },
-    # eave_core_api = {
-    #   name = "Eave Core API uptime check"
-    #   host = "api.${var.root_domain}"
-    #   path = "/status"
-    # },
-    # metabase = {
-    #   name = "Metabase uptime check"
-    #   host = "metabase.${var.root_domain}"
-    #   path = "/status"
-    # },
-  }
-}
-
 resource "google_monitoring_uptime_check_config" "uptime-check-each" {
   for_each = local.services
 
   checker_type     = "STATIC_IP_CHECKERS"
   display_name     = each.value.name
   period           = "60s"
-  project          = var.project_id
   selected_regions = []
   timeout          = "10s"
 
@@ -58,14 +33,9 @@ resource "google_monitoring_uptime_check_config" "uptime-check-each" {
   monitored_resource {
     labels = {
       host       = each.value.host
-      project_id = var.project_id
+      project_id = var.project.id
     }
     type = "uptime_url"
-  }
-  timeouts {
-    create = null
-    delete = null
-    update = null
   }
 }
 
@@ -80,8 +50,7 @@ resource "google_monitoring_alert_policy" "uptime_alert_policy_each" {
   display_name          = "${each.value.name} failure"
   enabled               = true
   notification_channels = concat([google_monitoring_notification_channel.slack.name], var.addl_notification_channels)
-  project               = var.project_id
-  user_labels           = {}
+
   conditions {
     display_name = "Failure of uptime ${google_monitoring_uptime_check_config.uptime-check-each[each.key].uptime_check_id}"
     condition_threshold {
@@ -102,10 +71,5 @@ resource "google_monitoring_alert_policy" "uptime_alert_policy_each" {
         percent = 0
       }
     }
-  }
-  timeouts {
-    create = null
-    delete = null
-    update = null
   }
 }

@@ -2,7 +2,7 @@ services:
   postgres:
     build:
       context: .
-      dockerfile: ./docker/postgres/Dockerfile
+      dockerfile: ./develop/postgres/Dockerfile
     ports:
       - "5431:5432"
     volumes:

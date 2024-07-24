@@ -1,3 +1,12 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-terraform fmt -recursive -check .
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+(
+	cd "$(e.parentpath)"
+	terraform validate
+	terraform fmt -recursive -check .
+	"${EAVE_HOME}"/develop/shared/lint-shell .
+)

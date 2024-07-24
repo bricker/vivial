@@ -4,11 +4,8 @@ resource "google_artifact_registry_repository" "docker" {
   description            = null
   format                 = "DOCKER"
   mode                   = "STANDARD_REPOSITORY"
+
   docker_config {
     immutable_tags = false
   }
-}
-
-output "repository" {
-  value = google_artifact_registry_repository.docker
 }

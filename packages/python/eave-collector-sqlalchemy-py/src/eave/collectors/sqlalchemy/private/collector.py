@@ -38,7 +38,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
         self._event_listeners = []
         self._db_metadata = None
 
-    async def start(self, engine: SupportedEngine) -> None:
+    def start(self, engine: SupportedEngine) -> None:
         if not self.enabled:
             self.run()
             # self._db_metadata = await self._load_metadata(engine=engine)

@@ -120,6 +120,8 @@ class OpenAIModerationModel(OpenAIModel):
 CHAT_MODELS = {
     "gpt-4o":                       OpenAITokenModel(usd_cents_per_million_input_tokens=Decimal("5.00e2"),  usd_cents_per_million_output_tokens=Decimal("15.00e2")),
     "gpt-4o-2024-05-13":            OpenAITokenModel(usd_cents_per_million_input_tokens=Decimal("5.00e2"),  usd_cents_per_million_output_tokens=Decimal("15.00e2")),
+    "gpt-4o-mini":                  OpenAITokenModel(usd_cents_per_million_input_tokens=Decimal("0.15e2"), usd_cents_per_million_output_tokens=Decimal("0.60e2")),
+    "gpt-4o-mini-2024-07-18":       OpenAITokenModel(usd_cents_per_million_input_tokens=Decimal("0.15e2"), usd_cents_per_million_output_tokens=Decimal("0.60e2")),
     "gpt-4-turbo":                  OpenAITokenModel(usd_cents_per_million_input_tokens=Decimal("10.00e2"), usd_cents_per_million_output_tokens=Decimal("30.00e2")),
     "gpt-4-turbo-2024-04-09":       OpenAITokenModel(usd_cents_per_million_input_tokens=Decimal("10.00e2"), usd_cents_per_million_output_tokens=Decimal("30.00e2")),
     "gpt-4-turbo-preview":          OpenAITokenModel(usd_cents_per_million_input_tokens=Decimal("10.00e2"), usd_cents_per_million_output_tokens=Decimal("30.00e2")),

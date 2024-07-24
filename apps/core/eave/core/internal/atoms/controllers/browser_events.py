@@ -74,6 +74,9 @@ class BrowserEventsController(BaseAtomController):
             atoms.append(atom)
             unique_operations.add(e.action)
 
+        if len(atoms) == 0:
+            return
+
         await redact_atoms(atoms)
 
         formatted_rows = [dataclasses.asdict(atom) for atom in atoms]

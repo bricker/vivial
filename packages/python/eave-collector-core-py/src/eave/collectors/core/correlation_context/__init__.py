@@ -1,3 +1,7 @@
+import inspect
+
+from eave.collectors.core.logging import EAVE_LOGGER
+
 from .async_task import AsyncioCorrelationContext as AsyncioCorrelationContext
 from .base import BaseCorrelationContext
 from .thread import ThreadedCorrelationContext as ThreadedCorrelationContext
@@ -14,29 +18,33 @@ def _correlation_context_factory() -> BaseCorrelationContext:
     ASGI servers use asyncio event loops and tasks to concurrently handle requests,
     so a `AsyncioCorrelationContext` should be constructed.
     """
-    import os
-    import sys
 
     # check if process args include any hints at webserver running the app
-    for arg in sys.argv:
-        cleaned_arg = arg.lower()
-        if "uvicorn" in cleaned_arg or "daphne" in cleaned_arg or "hypercorn" in cleaned_arg:
-            return AsyncioCorrelationContext()
-        if "gunicorn" in cleaned_arg or "uwsgi" in cleaned_arg:
-            return ThreadedCorrelationContext()
+    # We have to loop twice because we want to check every arg for each type of corr context.
+    stack = reversed(inspect.stack())
 
-    if "uwsgi" in sys.modules or "mod_wsgi" in sys.modules:
+    # server_software = os.getenv("SERVER_SOFTWARE", "").lower()
+    # if "gunicorn" in server_software:
+    #     return ThreadedCorrelationContext()
+
+    is_asyncio = any(
+        "uvicorn" in frame.filename or "daphne" in frame.filename or "hypercorn" in frame.filename for frame in stack
+    )
+    if is_asyncio:
+        EAVE_LOGGER.debug("Using AsyncioCorrelationContext")
+        return AsyncioCorrelationContext()
+    else:
+        EAVE_LOGGER.debug("Using ThreadedCorrelationContext")
         return ThreadedCorrelationContext()
 
-    server_software = os.getenv("SERVER_SOFTWARE", "").lower()
-    if "gunicorn" in server_software:
-        return ThreadedCorrelationContext()
+    # is_threaded = any(
+    #     "gunicorn" in frame.filename
+    #     or "uwsgi" in frame.filename
+    #     for frame in stack
+    # ) or "uwsgi" in sys.modules or "mod_wsgi" in sys.modules
 
-    # fallback to threaded
-    from eave.collectors.core.logging import EAVE_LOGGER
-
-    EAVE_LOGGER.warning("Eave unable to determine application webserver, falling back to WSGI context handler")
-    return ThreadedCorrelationContext()
+    # EAVE_LOGGER.warning("Eave unable to determine application webserver, falling back to WSGI context handler")
+    # return ThreadedCorrelationContext()
 
 
 CORR_CTX = _correlation_context_factory()

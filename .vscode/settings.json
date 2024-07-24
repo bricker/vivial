@@ -158,9 +158,6 @@
     "**/__pycache__": true
   },
   "shellcheck.useWorkspaceRootAsCwd": true,
-  "shellcheck.customArgs": [
-    "-x"
-  ],
   "prettier.configPath": "./develop/javascript/es-config/prettier/index.js",
   "prettier.ignorePath": "./develop/javascript/es-config/prettier/prettierignore",
   "ruff.format.args": [

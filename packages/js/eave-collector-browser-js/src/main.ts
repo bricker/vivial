@@ -1,3 +1,4 @@
+import { requestManager } from "./beacon";
 import { ConsentChoice, setCookieConsentChoice, setTrackingConsentChoice } from "./consent";
 import { cookiesEventHandler } from "./cookies";
 import { LOG_TAG } from "./internal/constants";
@@ -8,6 +9,7 @@ import {
   HASHCHANGE_EVENT_TYPE,
   POPSTATE_EVENT_TYPE,
   SUBMIT_EVENT_TYPE,
+  VISIBILITY_CHANGE_EVENT_TYPE,
 } from "./internal/js-events";
 import { setTrafficSourceCookieIfNecessary } from "./properties/traffic-source";
 import { setOrTouchUserCookies } from "./properties/user";
@@ -73,6 +75,10 @@ document.body.addEventListener(CLICK_EVENT_TYPE, clickEventHandler, { capture: t
 document.body.addEventListener(SUBMIT_EVENT_TYPE, formSubmitEventHandler, { capture: true, passive: true });
 
 window.addEventListener(EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE, cookiesEventHandler, { passive: true });
+
+window.addEventListener(EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, requestManager, { passive: true });
+window.addEventListener(EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE, requestManager, { passive: true });
+document.addEventListener(VISIBILITY_CHANGE_EVENT_TYPE, requestManager);
 
 // TODO: Are these needed? Maybe for some browsers?
 // document.body.addEventListener("mouseup", handleClick, { capture: true, passive: true });

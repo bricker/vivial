@@ -1,13 +1,30 @@
-const webpack = require("webpack");
-const path = require("path");
-const TerserPlugin = require("terser-webpack-plugin");
+// @ts-check
 
-module.exports = (env, argv) => {
+const webpack = require("webpack");
+const path = require("node:path");
+const TerserPlugin = require("terser-webpack-plugin");
+require("webpack-dev-server"); // for devServer config typing
+
+/**
+ * @typedef {{ mode?: "none" | "development" | "production"; }} WebpackArgs
+ */
+
+/**
+ * @typedef {{ TRACKER_URL?: string; }} EnvConfig
+ */
+
+/**
+ * @param {EnvConfig} env
+ * @param {WebpackArgs} argv
+ *
+ * @returns {webpack.Configuration}
+ */
+const configFunc = (env, argv) => {
   const mode = argv.mode || "development";
   const trackerUrl = env.TRACKER_URL || "https://api.eave.fyi/public/ingest/browser";
-  const dropConsole = mode === "development" ? false : ["debug"];
 
-  return {
+  /** @type webpack.Configuration */
+  const config = {
     mode,
     entry: {
       index: "./src/main.ts",
@@ -24,11 +41,11 @@ module.exports = (env, argv) => {
           terserOptions: {
             mangle: true,
             compress: {
-              drop_console: dropConsole,
+              drop_console: mode === "development" ? false : ["debug"],
             },
             format: {
               comments: false,
-              ecma: "2015",
+              ecma: 2015,
             },
           },
           extractComments: false,
@@ -59,7 +76,13 @@ module.exports = (env, argv) => {
 
     devServer: {
       server: "http",
+      port: 3001,
+      host: "127.0.0.1",
       allowedHosts: ["localhost", "127.0.0.1", ".eave.run"],
     },
   };
+
+  return config;
 };
+
+module.exports = configFunc;

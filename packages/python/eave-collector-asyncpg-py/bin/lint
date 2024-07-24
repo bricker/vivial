@@ -5,5 +5,7 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 (
-	python-lint "$(e.parentpath)"
+	cd "$(e.parentpath)"
+	python-lint .
+	"${EAVE_HOME}"/develop/shared/lint-shell .
 )

@@ -4,6 +4,8 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
+_SERVER="${1:-uvicorn}"
+
 (
 	trap 'kill 0' SIGINT
 
@@ -11,7 +13,23 @@ source "${EAVE_HOME}"/develop/functions.bash
 	node-activate-venv
 	cd "$(e.parentpath)"
 
-	python ./bin/src/start-dev-server.py &
+	if test "$_SERVER" = "gunicorn"; then
+		# This is intended to more closely replicate the server in production.
+		# It can be particularly useful to troubleshoot issued caused by the multi-threaded environment of gunicorn.
+		"$EAVE_HOME"/develop/shared/bin/run-with-dotenv -- \
+			python -m gunicorn \
+			--worker-class uvicorn.workers.UvicornWorker \
+			--bind 127.0.0.1:5600 \
+			--workers=3 \
+			--reload \
+			--access-logfile - \
+			--error-logfile - \
+			eave_playground.quizapp.app:app \
+			&
+	else
+		python ./bin/src/start-dev-server.py &
+	fi
+
 	bash ./bin/src/start-dev-webpack.bash &
 	wait
 )

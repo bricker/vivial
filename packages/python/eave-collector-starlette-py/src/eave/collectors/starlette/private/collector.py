@@ -26,12 +26,9 @@ from starlette import applications
 from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 
-# from starlette.routing import Match
 from eave.collectors.core.base_collector import BaseCollector
 from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import HttpServerEventPayload
-
-# from timeit import default_timer
 from eave.collectors.core.logging import EAVE_LOGGER
 from eave.collectors.core.wrap_util import is_wrapped, tag_wrapped, untag_wrapped
 from eave.collectors.core.write_queue import WriteQueue
@@ -200,8 +197,10 @@ class EaveASGIMiddleware:
             receive: An awaitable callable yielding dictionaries
             send: An awaitable callable taking a single dictionary as argument.
         """
+
         # start = default_timer()
-        if scope["type"] != "http":
+        # Ignore common status/healthcheck endpoints
+        if scope["type"] != "http" or scope.get("path") == "/healthz":
             return await self.app(scope, receive, send)
 
         # _, _, url = get_host_port_url_tuple(scope)
@@ -270,6 +269,7 @@ class EaveASGIMiddleware:
 
             async def response_interceptor(message: starlette.types.Message) -> None:
                 """wrapper to fire analytics events on ASGI response messages"""
+
                 # message definitions per ASGI spec:
                 # https://asgi.readthedocs.io/en/latest/specs/www.html#response-start-send-event
                 if message["type"] == "http.response.start":

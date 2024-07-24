@@ -178,7 +178,7 @@ class AccountOrm(Base):
                 )
                 return True
             case _:
-                raise
+                raise ValueError(f"Unsupported auth provider: {self.auth_provider}")
 
     async def refresh_oauth_token(self, session: AsyncSession, ctx: LogContext | None = None) -> typing.Literal[True]:
         """
@@ -196,7 +196,7 @@ class AccountOrm(Base):
                 return True
 
             case _:
-                raise  # TODO: Better error reporting. This case should never be reached though.
+                raise ValueError(f"Unsupported auth provider: {self.auth_provider}")
 
     async def get_team(self, session: AsyncSession) -> TeamOrm:
         team = await TeamOrm.one_or_exception(session=session, team_id=self.team_id)

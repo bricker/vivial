@@ -49,7 +49,7 @@ resource "kubernetes_manifest" "app_httproute" {
             {
               type = "RequestHeaderModifier"
               requestHeaderModifier = {
-                add = [
+                set = [
                   {
                     name  = "eave-lb"
                     value = "1"

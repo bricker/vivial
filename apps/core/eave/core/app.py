@@ -347,3 +347,6 @@ app = starlette.applications.Starlette(
     ],
     on_shutdown=[graceful_shutdown],
 )
+
+# StarletteCollectorManager.start(app)
+# SQLAlchemyCollectorManager.start(engine=async_engine)

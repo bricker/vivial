@@ -69,9 +69,14 @@ export function setCookie({
 
   cookieAttrs.push(["Path", path]);
 
+  // https://publicsuffix.org/list/public_suffix_list.dat
   if (!domain) {
+    // FIXME: This _does not work_ for many domains, eg .co.uk domains.
+    // The public suffix list should be used.
+    // See EAVE-201
     const url = new URL(window.location.href);
-    domain = url.hostname;
+    const parts = url.hostname.split(".");
+    domain = parts.slice(-2).join(".");
   }
 
   cookieAttrs.push(["Domain", domain]);

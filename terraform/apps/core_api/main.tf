@@ -19,6 +19,7 @@ module "app_iam_role" {
     "roles/bigquery.dataOwner",
     "roles/cloudsql.instanceUser", # for IAM auth
     "roles/cloudsql.client",
+    "roles/dlp.user",
   ]
 
   members = [
@@ -63,11 +64,6 @@ resource "google_dns_record_set" "embed" {
   type         = "A"
   ttl          = 300
   rrdatas      = [google_compute_global_address.default.address]
-}
-
-locals {
-  domain       = trimsuffix(google_dns_record_set.default.name, ".")
-  embed_domain = trimsuffix(google_dns_record_set.embed.name, ".")
 }
 
 module "api_certificate" {

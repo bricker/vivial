@@ -1,3 +1,7 @@
+# These are individual variables instead of a single map+iteration so that all of the expected secrets are required to be set.
+# If any of these aren't set, terraform apply won't run.
+# Additionally, a map with `sensitive=true` can't be used for iteration.
+
 variable "MB_SHARED_SECRETS" {
   type      = map(string)
   sensitive = true
@@ -42,6 +46,16 @@ variable "IAP_OAUTH_CLIENT_SECRET" {
 }
 
 variable "OPENAI_API_KEY" {
+  type      = string
+  sensitive = true
+}
+
+variable "EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64" {
+  type      = string
+  sensitive = true
+}
+
+variable "SLACK_SYSTEM_BOT_TOKEN" {
   type      = string
   sensitive = true
 }
