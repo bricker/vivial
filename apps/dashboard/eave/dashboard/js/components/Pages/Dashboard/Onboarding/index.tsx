@@ -1,7 +1,8 @@
 import { AppContext } from "$eave-dashboard/js/context/Provider";
 import useTeam from "$eave-dashboard/js/hooks/useTeam";
+import { buttonStyles, textStyles } from "$eave-dashboard/js/theme";
 import { motion } from "framer-motion";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 import InputField from "./InputField";
@@ -22,9 +23,8 @@ const useStyles = makeStyles()((theme) => ({
     height: "100vh",
     overflow: "hidden",
   },
-  content: {
+  contentContainer: {
     flex: 2,
-    // border: "2px solid",
     overflow: "auto",
     height: "100vh",
     justifyContent: "flex-end",
@@ -32,8 +32,7 @@ const useStyles = makeStyles()((theme) => ({
     paddingLeft: theme.spacing(8),
     paddingRight: theme.spacing(8),
   },
-  titleAndButton: {
-    // border: "2px solid black",
+  titleContainer: {
     display: "flex",
     padding: theme.spacing(0),
     flexDirection: "row",
@@ -41,64 +40,15 @@ const useStyles = makeStyles()((theme) => ({
     height: "fit-content",
     alignItems: "center",
   },
-  headerText: {
-    fontSize: 36,
-    margin: 0,
-    height: "fit-content",
-    // border: "1px solid #1980DF",
-  },
-  subText: {
-    color: "#7D7D7D",
-    fontSize: 18,
-    margin: 0,
-    marginTop: theme.spacing(1),
-  },
-  button: {
-    backgroundColor: "#E8F4FF",
-    color: theme.palette.success.main,
-    borderRadius: 4,
-    margin: 0,
-    padding: "8px 8px",
-    height: "fit-content",
-    border: "1px solid #1980DF",
-    fontSize: 16,
-    fontWeight: "bold",
-    cursor: "pointer",
-    width: "150px", // Set a fixed width for consistency
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  buttonBlue: {
-    backgroundColor: "#1980DF",
-    cursor: "pointer",
-    color: "white",
-    borderRadius: 10,
-    margin: 0,
-    padding: "16px 32px",
-    height: "fit-content",
-    border: "1px solid #1980DF",
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  buttonContainer: {
-    // border: "2px solid black",
+  submitContainer: {
     marginTop: 32,
     display: "flex",
     justifyContent: "flex-end",
   },
-  border: {
-    // border: "2px solid black",
-  },
-  questionText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    margin: 0,
-  },
   questionsContainer: {
     marginTop: theme.spacing(2),
   },
-  loading: {
+  loadingContainer: {
     position: "fixed",
     width: "100%",
     height: "100%",
@@ -112,6 +62,8 @@ const useStyles = makeStyles()((theme) => ({
 
 const Onboarding = () => {
   const { classes } = useStyles();
+  const { classes: button } = buttonStyles();
+  const { classes: text } = textStyles();
   const navigate = useNavigate();
 
   const [platformValue, setPlatformValue] = useState<readonly ColourOption[]>([]);
@@ -131,7 +83,7 @@ const Onboarding = () => {
   const { team, getOnboardingFormSubmission, createOnboardingFormSubmission } = useTeam();
   const { onboardingFormNetworkStateCtx } = useContext(AppContext);
 
-  useEffect(getOnboardingFormSubmission, []);
+  // useEffect(getOnboardingFormSubmission, []);
 
   // check if they have already submitted form
   if (team?.dashboardAccess || team?.onboardingSubmission !== undefined) {
@@ -206,16 +158,16 @@ const Onboarding = () => {
 
   return (
     <div className={classes.main}>
-      <div className={classes.content}>
+      <div className={classes.contentContainer}>
         {/* Header */}
-        <div className={classes.border}>
+        <div>
           {/* Title and Copy Button */}
-          <div className={classes.titleAndButton}>
-            <h1 className={classes.headerText}>Let's Get Started!</h1>
+          <div className={classes.titleContainer}>
+            <h1 className={text.headerII}>Let's Get Started!</h1>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.9 }}
-              className={classes.button}
+              className={button.default}
               onClick={() => {
                 navigator.clipboard.writeText(copyString);
                 setCopy(true);
@@ -227,7 +179,7 @@ const Onboarding = () => {
               {copy ? "Copied!" : "Copy Questions"}
             </motion.button>
           </div>
-          <h2 className={classes.subText}> Tell us about your tech stack</h2>
+          <h2 className={`${text.body} ${text.gray}`}> Tell us about your tech stack</h2>
         </div>
 
         {/* Questions */}
@@ -263,8 +215,8 @@ const Onboarding = () => {
             error={thirdPartyError}
           />
         </div>
-        <div className={classes.buttonContainer}>
-          <button className={classes.buttonBlue} onClick={handleNextClick}>
+        <div className={classes.submitContainer}>
+          <button className={button.darkBlue} onClick={handleNextClick}>
             Next
           </button>
         </div>

@@ -1,4 +1,5 @@
-import React from "react";
+import useTeam from "$eave-dashboard/js/hooks/useTeam";
+import React, { useEffect } from "react";
 import { makeStyles } from "tss-react/mui";
 import { SetupStep } from "./SetupStep";
 
@@ -21,6 +22,11 @@ const useStyles = makeStyles()((theme) => ({
 
 const Setup = () => {
   const { classes } = useStyles();
+  // Todo: Check with Liam
+  const { getClientCredentials } = useTeam();
+
+  useEffect(getClientCredentials, []);
+
   const stepOne = `<script src="https://cdn.eave.fyi/collector.js?id=161357f1aa744408849067af2cffa7fc"></script>`;
   const stepTwo = `pip install eave-collectors`;
   //TODO: Fetch credentials from Database
