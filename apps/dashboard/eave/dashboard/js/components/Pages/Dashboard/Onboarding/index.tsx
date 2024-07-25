@@ -7,15 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 import InputField from "./InputField";
 import SideBanner from "./SideBanner";
-import {
-  ColourOption,
-  copyString,
-  databaseOptions,
-  frameworksOptions,
-  languagesOptions,
-  platformOptions,
-  thirdPartyOptions,
-} from "./questionOptions";
+import { copyString, useQuestions } from "./questionOptions";
 
 const useStyles = makeStyles()((theme) => ({
   main: {
@@ -64,24 +56,15 @@ const Onboarding = () => {
   const { classes } = useStyles();
   const { classes: button } = buttonStyles();
   const { classes: text } = textStyles();
+
   const navigate = useNavigate();
 
-  const [platformValue, setPlatformValue] = useState<readonly ColourOption[]>([]);
-  const [languagesValue, setLanguagesValue] = useState<readonly ColourOption[]>([]);
-  const [frameworksValue, setFrameworksValue] = useState<readonly ColourOption[]>([]);
-  const [databaseValue, setDatabaseValue] = useState<readonly ColourOption[]>([]);
-  const [thirdPartyValue, setThirdPartyValue] = useState<readonly ColourOption[]>([]);
-
-  const [platformError, setPlatformError] = useState(false);
-  const [languagesError, setLanguagesError] = useState(false);
-  const [frameworksError, setFrameworksError] = useState(false);
-  const [databaseError, setDatabaseError] = useState(false);
-  const [thirdPartyError, setThirdPartyError] = useState(false);
-
-  const [copy, setCopy] = useState(false);
+  const [copyQuestions, setCopyQuestions] = useState(false);
 
   const { team, getOnboardingFormSubmission, createOnboardingFormSubmission } = useTeam();
   const { onboardingFormNetworkStateCtx } = useContext(AppContext);
+
+  const questions = useQuestions();
 
   // useEffect(getOnboardingFormSubmission, []);
 
@@ -98,60 +81,26 @@ const Onboarding = () => {
   const handleNextClick = () => {
     let hasError = false;
 
-    if (platformValue.length === 0) {
-      setPlatformError(true);
-      hasError = true;
-    } else {
-      setPlatformError(false);
-    }
-
-    if (languagesValue.length === 0) {
-      setLanguagesError(true);
-      hasError = true;
-    } else {
-      setLanguagesError(false);
-    }
-
-    if (frameworksValue.length === 0) {
-      setFrameworksError(true);
-      hasError = true;
-    } else {
-      setFrameworksError(false);
-    }
-
-    if (databaseValue.length === 0) {
-      setDatabaseError(true);
-      hasError = true;
-    } else {
-      setDatabaseError(false);
-    }
-
-    if (thirdPartyValue.length === 0) {
-      setThirdPartyError(true);
-      hasError = true;
-    } else {
-      setThirdPartyError(false);
-    }
+    // Check if every question is filled
+    questions.forEach((question) => {
+      if (question.value.length === 0) {
+        question.setError(true);
+        hasError = true;
+      } else {
+        question.setError(false);
+      }
+    });
 
     if (hasError) {
       return;
     }
-    // TODO: Change structure
-    // [{value: 'mobile', label: 'Mobile'}, {value: 'desktop_app', label: 'Desktop App'}]
-
-    /*
-    {
-      "question text": ["answer 1", "answer 2"],
-      ...
-    }
-    */
     createOnboardingFormSubmission({
       form_data: {
-        platform: platformValue.map((v) => v.value),
-        languages: languagesValue.map((v) => v.value),
-        frameworks: frameworksValue.map((v) => v.value),
-        databases: databaseValue.map((v) => v.value),
-        ai: thirdPartyValue.map((v) => v.value),
+        platform: questions[0]?.value.map((v) => v.value),
+        languages: questions[1]?.value.map((v) => v.value),
+        frameworks: questions[2]?.value.map((v) => v.value),
+        databases: questions[3]?.value.map((v) => v.value),
+        third_party: questions[4]?.value.map((v) => v.value),
       },
     });
   };
@@ -170,13 +119,13 @@ const Onboarding = () => {
               className={button.default}
               onClick={() => {
                 navigator.clipboard.writeText(copyString);
-                setCopy(true);
+                setCopyQuestions(true);
                 setTimeout(() => {
-                  setCopy(false);
+                  setCopyQuestions(false);
                 }, 1500);
               }}
             >
-              {copy ? "Copied!" : "Copy Questions"}
+              {copyQuestions ? "Copied!" : "Copy Questions"}
             </motion.button>
           </div>
           <h2 className={`${text.body} ${text.gray}`}> Tell us about your tech stack</h2>
@@ -184,36 +133,15 @@ const Onboarding = () => {
 
         {/* Questions */}
         <div className={classes.questionsContainer}>
-          <InputField
-            question={"Which platform(s) does your product support? "}
-            questionOptions={platformOptions}
-            setValue={setPlatformValue}
-            error={platformError}
-          />
-          <InputField
-            question={"Which programming language(s) are used to build your product?"}
-            questionOptions={languagesOptions}
-            setValue={setLanguagesValue}
-            error={languagesError}
-          />
-          <InputField
-            question={"Which libraries and framework(s) are used to build your product?"}
-            questionOptions={frameworksOptions}
-            setValue={setFrameworksValue}
-            error={frameworksError}
-          />
-          <InputField
-            question={"Which database(s) are used to store your product data?"}
-            questionOptions={databaseOptions}
-            setValue={setDatabaseValue}
-            error={databaseError}
-          />
-          <InputField
-            question={"Which third party service(s) are integrated into your product?"}
-            questionOptions={thirdPartyOptions}
-            setValue={setThirdPartyValue}
-            error={thirdPartyError}
-          />
+          {questions.map((question, index) => (
+            <InputField
+              key={index}
+              question={question.question}
+              questionOptions={question.options}
+              setValue={question.setValue}
+              error={question.error}
+            />
+          ))}
         </div>
         <div className={classes.submitContainer}>
           <button className={button.darkBlue} onClick={handleNextClick}>
@@ -221,7 +149,7 @@ const Onboarding = () => {
           </button>
         </div>
       </div>
-      {/* <div className={classes.loading}>
+      {/* <div className={classes.loadingContainer}>
         <CircularProgress color="secondary" />
       </div> */}
       <SideBanner />
