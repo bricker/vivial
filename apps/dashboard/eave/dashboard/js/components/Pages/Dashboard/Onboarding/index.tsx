@@ -1,8 +1,9 @@
 import { AppContext } from "$eave-dashboard/js/context/Provider";
 import useTeam from "$eave-dashboard/js/hooks/useTeam";
 import { buttonStyles, textStyles } from "$eave-dashboard/js/theme";
+import { CircularProgress } from "@mui/material";
 import { motion } from "framer-motion";
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 import InputField from "./InputField";
@@ -38,6 +39,7 @@ const useStyles = makeStyles()((theme) => ({
     justifyContent: "flex-end",
   },
   questionsContainer: {
+    width: "75%",
     marginTop: theme.spacing(2),
   },
   loadingContainer: {
@@ -67,19 +69,26 @@ const Onboarding = () => {
 
   const questions = useQuestions();
 
-  // useEffect(getOnboardingFormSubmission, []);
+  useEffect(getOnboardingFormSubmission, []);
 
   // check if they have already submitted form
-  if (!networkState.formDataIsLoading && !networkState.formDataIsErroring && (team?.dashboardAccess || team?.onboardingSubmission)) {
-    // check if they are qualified
-    if (team?.dashboardAccess) {
-      // TODO: move setup to a dashboard tab
-      navigate("/setup");
-    } else {
-      // TODO: cuaseing browser error; nav some other way??
-      navigate("/waitlist");
+  useEffect(() => {
+    console.log("Onboarding Submission", team?.onboardingSubmission);
+    if (
+      !networkState.formDataIsLoading &&
+      !networkState.formDataIsErroring &&
+      (team?.dashboardAccess || team?.onboardingSubmission)
+    ) {
+      // Check if they are qualified
+      if (team?.dashboardAccess) {
+        // Navigate to setup
+        navigate("/setup");
+      } else {
+        // Navigate to waitlist
+        navigate("/waitlist");
+      }
     }
-  }
+  }, [networkState.formDataIsLoading, networkState.formDataIsErroring, team, navigate]);
 
   const handleNextClick = () => {
     let hasError = false;
@@ -152,9 +161,11 @@ const Onboarding = () => {
           </button>
         </div>
       </div>
-      {/* <div className={classes.loadingContainer}>
-        <CircularProgress color="secondary" />
-      </div> */}
+      {networkState.formSubmitIsLoading && (
+        <div className={classes.loadingContainer}>
+          <CircularProgress color="secondary" />
+        </div>
+      )}
       <SideBanner />
     </div>
   );

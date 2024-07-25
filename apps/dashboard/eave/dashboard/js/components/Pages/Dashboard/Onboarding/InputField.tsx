@@ -1,17 +1,12 @@
 "use client";
+import { textStyles } from "$eave-dashboard/js/theme";
 import React, { useState } from "react";
 import { StylesConfig } from "react-select";
 import CreatableSelect from "react-select/creatable";
 import { makeStyles } from "tss-react/mui";
 
 const useStyles = makeStyles()((theme) => ({
-  questionText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    margin: 0,
-  },
   question: {
-    // border: "2px solid",
     marginTop: theme.spacing(2),
   },
   errorContainer: {
@@ -29,23 +24,17 @@ interface ColourOption {
 }
 
 const colourStyles: StylesConfig<ColourOption, true> = {
-  control: (styles) => ({ ...styles, backgroundColor: "white" }),
   option: (styles, { data, isDisabled, isFocused, isSelected }) => {
     const backgroundColor = isDisabled ? undefined : isSelected ? "#1980DF" : isFocused ? "#EEEEEE" : undefined;
-    const color = isDisabled ? "#ccc" : isSelected ? "#fff" : "#1980DF";
-
+    const color = isDisabled ? "#ccc" : "#1980DF";
     return {
       ...styles,
       backgroundColor,
       color,
       cursor: isDisabled ? "not-allowed" : "default",
-      ":active": {
-        ...styles[":active"],
-        backgroundColor: !isDisabled ? (isSelected ? "#1980DF" : "#EEEEEE") : undefined,
-      },
     };
   },
-  multiValue: (styles, { data }) => {
+  multiValue: (styles) => {
     return {
       ...styles,
       backgroundColor: "#E8F4FF",
@@ -54,7 +43,6 @@ const colourStyles: StylesConfig<ColourOption, true> = {
   multiValueLabel: (styles, { data }) => ({
     ...styles,
     color: "#1980DF",
-    // fontSize: 36,
   }),
   multiValueRemove: (styles, { data }) => ({
     ...styles,
@@ -64,23 +52,13 @@ const colourStyles: StylesConfig<ColourOption, true> = {
       color: "white",
     },
   }),
-
-  placeholder: (styles) => ({
-    ...styles,
-  }),
   menu: (base) => ({
     ...base,
     marginTop: -10,
   }),
-  menuList: (provided, state) => ({
-    ...provided,
-    paddingTop: 0,
-    paddingBottom: 0,
-  }),
   container: (styles) => ({
-    // Change to dynamic
     ...styles,
-    width: "600px",
+    width: "100%",
     margin: 0,
     height: "50px",
   }),
@@ -95,6 +73,7 @@ interface InputFieldProps {
 
 const InputField: React.FC<InputFieldProps> = ({ question, questionOptions, setValue, error }) => {
   const { classes } = useStyles();
+  const { classes: text } = textStyles();
   const [options, setOptions] = useState<readonly ColourOption[]>(questionOptions);
   const [value, setValueState] = useState<readonly ColourOption[]>([]);
 
@@ -115,10 +94,9 @@ const InputField: React.FC<InputFieldProps> = ({ question, questionOptions, setV
 
   return (
     <div className={classes.question}>
-      <p className={classes.questionText}>
-        {" "}
+      <p className={`${text.body} ${text.bold}`}>
         {question}
-        <span style={{ color: "red" }}> *</span>{" "}
+        <span style={{ color: "red" }}> *</span>
       </p>
       <CreatableSelect
         closeMenuOnSelect={false}
@@ -130,7 +108,7 @@ const InputField: React.FC<InputFieldProps> = ({ question, questionOptions, setV
         onChange={(newValue) => handleChange(newValue as ColourOption[])}
         formatCreateLabel={(inputValue) => <div style={{ color: "#1980DF" }}>Create "{inputValue}"</div>}
       />
-      <div className={classes.errorContainer}>{error && <span>This field is required</span>}</div>
+      <div className={`${classes.errorContainer} ${text.body}`}>{error && <span>This field is required</span>}</div>
     </div>
   );
 };

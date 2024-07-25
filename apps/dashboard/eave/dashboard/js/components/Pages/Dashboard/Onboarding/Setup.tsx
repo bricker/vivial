@@ -1,11 +1,6 @@
-<<<<<<< HEAD
 import { AppContext } from "$eave-dashboard/js/context/Provider";
 import useTeam from "$eave-dashboard/js/hooks/useTeam";
 import React, { useContext, useEffect } from "react";
-=======
-import useTeam from "$eave-dashboard/js/hooks/useTeam";
-import React, { useEffect } from "react";
->>>>>>> 97c2eb38ece95f91caaf75e9360236579fc35724
 import { makeStyles } from "tss-react/mui";
 import { SetupStep } from "./SetupStep";
 
@@ -37,10 +32,10 @@ const Setup = () => {
 
   if (networkState?.credentialsAreLoading) {
     // return loading ui
-    return <p>loading</p>
+    return <p>loading</p>;
   } else if (networkState?.credentialsAreErroring) {
     // return error uI
-    return <p>error</p>
+    return <p>error</p>;
   } else {
     const stepOne = `<script src="https://cdn.eave.fyi/collector.js?id=${team?.clientCredentials?.id}"></script>`;
     const stepTwo = `pip install eave-collectors`;

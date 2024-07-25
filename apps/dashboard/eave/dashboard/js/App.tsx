@@ -8,8 +8,8 @@ import "../static/css/app.css";
 import AuthenticationPage from "./components/Pages/AuthenticationPage";
 import { Dashboard, TabRevealer } from "./components/Pages/Dashboard";
 import Onboarding from "./components/Pages/Dashboard/Onboarding";
-import Setup from "./components/Pages/Dashboard/Onboarding/setup";
-import Waitlist from "./components/Pages/Dashboard/Onboarding/waitlist";
+import Setup from "./components/Pages/Dashboard/Onboarding/Setup";
+import Waitlist from "./components/Pages/Dashboard/Onboarding/Waitlist";
 import AppContextProvider from "./context/Provider";
 import { theme } from "./theme";
 

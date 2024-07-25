@@ -53,7 +53,7 @@ class OnboardingSubmissionOrm(Base):
     @classmethod
     def query(cls, **kwargs: Unpack[QueryParams]) -> Select[tuple[Self]]:
         team_id = eave.stdlib.util.ensure_uuid(kwargs["team_id"])
-        lookup = select(cls).where(cls.id == team_id)
+        lookup = select(cls).where(cls.team_id == team_id)
         return lookup
 
     @classmethod
