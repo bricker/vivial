@@ -1,4 +1,4 @@
-// colorOptions.ts
+// TODO: rename this stuff at the very least
 export interface ColourOption {
   readonly value: string;
   readonly label: string;
@@ -33,15 +33,23 @@ export const languagesOptions: ColourOption[] = [
 ];
 
 export const frameworksOptions: ColourOption[] = [
-  { value: "red", label: "Red" },
-  { value: "orange", label: "Orange" },
-  { value: "yellow", label: "Yellow" },
+  { value: "flask", label: "Flask" },
+  { value: "express", label: "Express.js" },
+  { value: "gin", label: "Gin" },
+  { value: "fast_api", label: "Fast API" },
+  { value: "django", label: "Django" },
+  { value: "ror", label: "Ruby on Rails" },
+  { value: "nextjs", label: "Next.js" },
 ];
 
 export const thirdPartyOptions: ColourOption[] = [
-  { value: "purple", label: "Purple" },
-  { value: "violet", label: "Violet" },
-  { value: "lavender", label: "Lavender" },
+  { value: "openai", label: "OpenAI" },
+  { value: "anthropic", label: "Anthropic" },
+  { value: "gemini", label: "Gemini" },
+  { value: "stripe", label: "Stripe" },
+  { value: "paypal", label: "PayPal" },
+  { value: "plaid", label: "Plaid" },
+  { value: "square", label: "Square" },
 ];
 
 export const copyString = `Getting started with Eave. Please answer the questions below. 
