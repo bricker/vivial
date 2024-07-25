@@ -18,7 +18,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 				exit 1
 			fi
 
-			# Reminder that this function is expected to be run from a bin/* scripts, which are usually bash scripts,
+			# Reminder that this function is expected to be run from bin/* scripts, which are usually bash scripts,
 			# so the file being sourced here is for bash, not the user's shell.
 			# shellcheck disable=SC1091
 			source "$ved/bin/activate"
