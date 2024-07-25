@@ -16,6 +16,7 @@ export const platformOptions: ColourOption[] = [
 
 export const databaseOptions: ColourOption[] = [
   { value: "mysql", label: "MySQL" },
+  { value: "postgresql", label: "PostgreSQL" },
   { value: "spanner", label: "Spanner" },
   { value: "mongodb", label: "MongoDB" },
 ];

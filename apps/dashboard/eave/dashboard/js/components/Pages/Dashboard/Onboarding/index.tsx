@@ -130,15 +130,18 @@ const Onboarding = () => {
 
   const { team, getOnboardingFormSubmission, createOnboardingFormSubmission } = useTeam();
   const { onboardingFormNetworkStateCtx } = useContext(AppContext);
+  const [networkState] = onboardingFormNetworkStateCtx!;
 
   useEffect(getOnboardingFormSubmission, []);
 
   // check if they have already submitted form
-  if (team?.dashboardAccess || team?.onboardingSubmission !== undefined) {
+  if (!networkState.formDataIsLoading && !networkState.formDataIsErroring && (team?.dashboardAccess || team?.onboardingSubmission !== undefined)) {
     // check if they are qualified
     if (team?.dashboardAccess) {
-      alert("good to go");
+      // TODO: move setup to a dashboard tab
+      navigate("/setup");
     } else {
+      // TODO: cuaseing browser error; nav some other way??
       navigate("/waitlist");
     }
   }

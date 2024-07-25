@@ -129,9 +129,9 @@ export const textStyles = makeStyles()((theme) => ({
     fontSize: 24,
     fontWeight: "normal",
     lineHeight: 1.25,
-    [theme.breakpoints.up("md")]: {
-      fontSize: 110,
-    },
+    // [theme.breakpoints.up("md")]: {
+    //   fontSize: 110,
+    // },
   },
   subHeader: {
     fontSize: 20,
