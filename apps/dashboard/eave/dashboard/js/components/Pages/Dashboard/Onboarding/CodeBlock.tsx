@@ -5,7 +5,7 @@ import { github } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import { makeStyles } from "tss-react/mui";
 
 const useStyles = makeStyles()(() => ({
-  code: {
+  container: {
     border: "0.5px solid",
     borderColor: "#7D7D7D",
     borderRadius: "10px",
@@ -30,7 +30,7 @@ export default function CodeBlock({ codeString, codeHeader }: { codeString: stri
   const { classes: button } = buttonStyles();
 
   return (
-    <div className={classes.code}>
+    <div className={classes.container}>
       <div className={classes.textContainer}>
         <p>{codeHeader}</p>
         <button
