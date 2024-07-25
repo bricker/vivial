@@ -343,7 +343,6 @@ const useTeam = (): TeamHook => {
   }
 
   function getClientCredentials() {
-    // TODO: update state + url + team data set
     setClientCredentialsNetworkState((prev) => ({
       ...prev,
       credentialsAreLoading: true,
