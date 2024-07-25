@@ -8,6 +8,7 @@ import "../static/css/app.css";
 import AuthenticationPage from "./components/Pages/AuthenticationPage";
 import { Dashboard, TabRevealer } from "./components/Pages/Dashboard";
 import Onboarding from "./components/Pages/Dashboard/Onboarding";
+import Setup from "./components/Pages/Dashboard/Onboarding/setup";
 import Waitlist from "./components/Pages/Dashboard/Onboarding/waitlist";
 import AppContextProvider from "./context/Provider";
 import { theme } from "./theme";
@@ -36,7 +37,7 @@ const App = () => {
 
               <Route path="/onboarding" element={<Onboarding />} />
               <Route path="/waitlist" element={<Waitlist />} />
-              {/* <Route path="/setup" element={<Setup />} /> */}
+              <Route path="/setup" element={<Setup />} />
 
               <Route path="*" element={<Navigate to="/insights" />} />
             </Routes>
