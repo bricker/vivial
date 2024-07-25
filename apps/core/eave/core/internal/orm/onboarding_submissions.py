@@ -81,9 +81,9 @@ class OnboardingSubmissionOrm(Base):
         # TODO: standardize question keys???
         return all(
             [
-                "python" in form_responses["languages"],
-                "browser app" in form_responses["platform"],
-                "starlette" in form_responses["frameworks"] or "fast api" in form_responses["libraries"],
-                "openai" in form_responses["ai"],
+                "python" in form_responses.get("languages", []),
+                "web_app" in form_responses.get("platform", []),
+                "starlette" in form_responses.get("frameworks", []) or "fast_api" in form_responses.get("libraries", []),
+                "openai" in form_responses.get("ai", []),
             ]
         )
