@@ -78,10 +78,11 @@ const colourStyles: StylesConfig<ColourOption, true> = {
     paddingBottom: 0,
   }),
   container: (styles) => ({
+    // Change to dynamic
     ...styles,
-    width: "600px", // set a fixed width
+    width: "600px",
     margin: 0,
-    height: "50px", // set a fixed height
+    height: "50px",
   }),
 };
 
