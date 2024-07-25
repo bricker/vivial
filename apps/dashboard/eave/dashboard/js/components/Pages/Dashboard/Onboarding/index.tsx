@@ -1,6 +1,6 @@
 import { AppContext } from "$eave-dashboard/js/context/Provider";
 import useTeam from "$eave-dashboard/js/hooks/useTeam";
-import { buttonStyles, textStyles } from "$eave-dashboard/js/theme";
+import { buttonStyles, textStyles, uiStyles } from "$eave-dashboard/js/theme";
 import { CircularProgress } from "@mui/material";
 import { motion } from "framer-motion";
 import React, { useContext, useEffect, useState } from "react";
@@ -42,22 +42,13 @@ const useStyles = makeStyles()((theme) => ({
     width: "75%",
     marginTop: theme.spacing(2),
   },
-  loadingContainer: {
-    position: "fixed",
-    width: "100%",
-    height: "100%",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
-    zIndex: 100,
-  },
 }));
 
 const Onboarding = () => {
   const { classes } = useStyles();
   const { classes: button } = buttonStyles();
   const { classes: text } = textStyles();
+  const { classes: ui } = uiStyles();
 
   const navigate = useNavigate();
 
@@ -162,7 +153,7 @@ const Onboarding = () => {
         </div>
       </div>
       {networkState.formSubmitIsLoading && (
-        <div className={classes.loadingContainer}>
+        <div className={`${ui.loadingContainer} ${ui.opaque}`}>
           <CircularProgress color="secondary" />
         </div>
       )}

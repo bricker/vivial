@@ -16,14 +16,14 @@ const useStyles = makeStyles()((theme) => ({
   },
 }));
 
-interface ColourOption {
+interface QuestionOption {
   readonly value: string;
   readonly label: string;
   readonly isFixed?: boolean;
   readonly isDisabled?: boolean;
 }
 
-const colourStyles: StylesConfig<ColourOption, true> = {
+const colourStyles: StylesConfig<QuestionOption, true> = {
   option: (styles, { data, isDisabled, isFocused, isSelected }) => {
     const backgroundColor = isDisabled ? undefined : isSelected ? "#1980DF" : isFocused ? "#EEEEEE" : undefined;
     const color = isDisabled ? "#ccc" : "#1980DF";
@@ -66,16 +66,16 @@ const colourStyles: StylesConfig<ColourOption, true> = {
 
 interface InputFieldProps {
   question: string;
-  questionOptions: ColourOption[];
+  questionOptions: QuestionOption[];
   error: boolean;
-  setValue: (value: readonly ColourOption[]) => void;
+  setValue: (value: readonly QuestionOption[]) => void;
 }
 
 const InputField: React.FC<InputFieldProps> = ({ question, questionOptions, setValue, error }) => {
   const { classes } = useStyles();
   const { classes: text } = textStyles();
-  const [options, setOptions] = useState<readonly ColourOption[]>(questionOptions);
-  const [value, setValueState] = useState<readonly ColourOption[]>([]);
+  const [options, setOptions] = useState<readonly QuestionOption[]>(questionOptions);
+  const [value, setValueState] = useState<readonly QuestionOption[]>([]);
 
   const handleCreate = (inputValue: string) => {
     const newOption: ColourOption = {
@@ -87,7 +87,7 @@ const InputField: React.FC<InputFieldProps> = ({ question, questionOptions, setV
     setValue([...value, newOption]);
   };
 
-  const handleChange = (newValue: readonly ColourOption[]) => {
+  const handleChange = (newValue: readonly QuestionOption[]) => {
     setValueState(newValue);
     setValue(newValue);
   };
@@ -105,7 +105,7 @@ const InputField: React.FC<InputFieldProps> = ({ question, questionOptions, setV
         styles={colourStyles}
         onCreateOption={handleCreate}
         value={value}
-        onChange={(newValue) => handleChange(newValue as ColourOption[])}
+        onChange={(newValue) => handleChange(newValue as QuestionOption[])}
         formatCreateLabel={(inputValue) => <div style={{ color: "#1980DF" }}>Create "{inputValue}"</div>}
       />
       <div className={`${classes.errorContainer} ${text.body}`}>{error && <span>This field is required</span>}</div>

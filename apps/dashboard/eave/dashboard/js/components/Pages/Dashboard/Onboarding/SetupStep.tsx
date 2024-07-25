@@ -11,13 +11,15 @@ const useStyles = makeStyles()((theme) => ({
     alignItems: "flex-start",
   },
   instructions: {
-    width: 400,
+    flex: 1,
     marginRight: "16px",
-    height: 180,
+    minHeight: 180,
+    border: "2px solid",
   },
   codeBlock: {
-    width: 800,
+    flex: 2,
     height: "100%",
+    overflow: "hidden", // Ensure the code block doesn't overflow
   },
 }));
 

@@ -189,3 +189,19 @@ export const buttonStyles = makeStyles()((theme) => ({
     fontWeight: "bold",
   },
 }));
+
+export const uiStyles = makeStyles()((theme) => ({
+  loadingContainer: {
+    position: "fixed",
+    width: "100%",
+    height: "100%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255)",
+    zIndex: 100,
+  },
+  opaque: {
+    backgroundColor: "rgba(255, 255, 255, 0.5)",
+  },
+}));

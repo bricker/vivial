@@ -1,14 +1,14 @@
 import { useState } from "react";
 
 // colorOptions.ts
-export interface ColourOption {
+export interface QuestionOption {
   readonly value: string;
   readonly label: string;
   readonly isFixed?: boolean;
   readonly isDisabled?: boolean;
 }
 
-export const platformOptions: ColourOption[] = [
+export const platformOptions: QuestionOption[] = [
   { value: "web_app", label: "Web App" },
   { value: "mobile", label: "Mobile" },
   { value: "desktop_app", label: "Desktop App" },
@@ -16,14 +16,14 @@ export const platformOptions: ColourOption[] = [
   { value: "api", label: "API" },
 ];
 
-export const databaseOptions: ColourOption[] = [
+export const databaseOptions: QuestionOption[] = [
   { value: "mysql", label: "MySQL" },
   { value: "postgresql", label: "PostgreSQL" },
   { value: "spanner", label: "Spanner" },
   { value: "mongodb", label: "MongoDB" },
 ];
 
-export const languagesOptions: ColourOption[] = [
+export const languagesOptions: QuestionOption[] = [
   { value: "python", label: "Python" },
   { value: "ruby", label: "Ruby" },
   { value: "java", label: "Java" },
@@ -35,7 +35,7 @@ export const languagesOptions: ColourOption[] = [
   { value: "c++", label: "C++" },
 ];
 
-export const frameworksOptions: ColourOption[] = [
+export const frameworksOptions: QuestionOption[] = [
   { value: "flask", label: "Flask" },
   { value: "express", label: "Express.js" },
   { value: "gin", label: "Gin" },
@@ -45,7 +45,7 @@ export const frameworksOptions: ColourOption[] = [
   { value: "nextjs", label: "Next.js" },
 ];
 
-export const thirdPartyOptions: ColourOption[] = [
+export const thirdPartyOptions: QuestionOption[] = [
   { value: "openai", label: "OpenAI" },
   { value: "anthropic", label: "Anthropic" },
   { value: "gemini", label: "Gemini" },
@@ -56,11 +56,11 @@ export const thirdPartyOptions: ColourOption[] = [
 ];
 
 export const useQuestions = () => {
-  const [frameworksValue, setFrameworksValue] = useState<readonly ColourOption[]>([]);
-  const [platformValue, setPlatformValue] = useState<readonly ColourOption[]>([]);
-  const [languagesValue, setLanguagesValue] = useState<readonly ColourOption[]>([]);
-  const [databaseValue, setDatabaseValue] = useState<readonly ColourOption[]>([]);
-  const [thirdPartyValue, setThirdPartyValue] = useState<readonly ColourOption[]>([]);
+  const [frameworksValue, setFrameworksValue] = useState<readonly QuestionOption[]>([]);
+  const [platformValue, setPlatformValue] = useState<readonly QuestionOption[]>([]);
+  const [languagesValue, setLanguagesValue] = useState<readonly QuestionOption[]>([]);
+  const [databaseValue, setDatabaseValue] = useState<readonly QuestionOption[]>([]);
+  const [thirdPartyValue, setThirdPartyValue] = useState<readonly QuestionOption[]>([]);
 
   const [platformError, setPlatformError] = useState(false);
   const [languagesError, setLanguagesError] = useState(false);

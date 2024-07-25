@@ -22,6 +22,10 @@ const useStyles = makeStyles()(() => ({
     paddingRight: 10,
     alignItems: "center",
   },
+  codeBlock: {
+    overflow: "auto",
+    maxHeight: "400px",
+  },
 }));
 
 export default function CodeBlock({ codeString, codeHeader }: { codeString: string; codeHeader: string }) {
@@ -46,16 +50,18 @@ export default function CodeBlock({ codeString, codeHeader }: { codeString: stri
           {copy}
         </button>
       </div>
-      <SyntaxHighlighter
-        language="javascript"
-        style={github}
-        customStyle={{
-          padding: "25px",
-          lineHeight: 2,
-        }}
-      >
-        {codeString}
-      </SyntaxHighlighter>
+      <div className={classes.codeBlock}>
+        <SyntaxHighlighter
+          language="javascript"
+          style={github}
+          customStyle={{
+            padding: "25px",
+            lineHeight: 2,
+          }}
+        >
+          {codeString}
+        </SyntaxHighlighter>
+      </div>
     </div>
   );
 }
