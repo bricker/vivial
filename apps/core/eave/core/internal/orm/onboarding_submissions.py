@@ -84,6 +84,6 @@ class OnboardingSubmissionOrm(Base):
                 "python" in form_responses.get("languages", []),
                 "web_app" in form_responses.get("platform", []),
                 "starlette" in form_responses.get("frameworks", []) or "fast_api" in form_responses.get("frameworks", []),
-                "openai" in form_responses.get("ai", []),
+                "openai" in form_responses.get("third_party", []),
             ]
         )

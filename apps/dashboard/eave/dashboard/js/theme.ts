@@ -125,16 +125,67 @@ export const theme = createTheme({
 });
 
 export const textStyles = makeStyles()((theme) => ({
+  headerII: {
+    fontSize: 36,
+    margin: 0,
+  },
   header: {
     fontSize: 24,
+    margin: 0,
     fontWeight: "normal",
     lineHeight: 1.25,
-    // [theme.breakpoints.up("md")]: {
-    //   fontSize: 110,
-    // },
   },
   subHeader: {
     fontSize: 20,
     fontWeight: "normal",
+    margin: 0,
+  },
+  body: {
+    fontSize: 18,
+    margin: 0,
+  },
+  bold: {
+    fontWeight: "bold",
+  },
+  gray: {
+    color: "#7D7D7D",
+  },
+}));
+
+export const buttonStyles = makeStyles()((theme) => ({
+  default: {
+    backgroundColor: "#E8F4FF",
+    color: theme.palette.success.main,
+    borderRadius: 4,
+    margin: 0,
+    padding: "8px 8px",
+    height: "fit-content",
+    border: "1px solid #1980DF",
+    fontSize: 16,
+    fontWeight: "bold",
+    cursor: "pointer",
+    width: "150px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  invisible: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+    border: "0px",
+  },
+  darkBlue: {
+    backgroundColor: "#1980DF",
+    cursor: "pointer",
+    color: "white",
+    borderRadius: 10,
+    margin: 0,
+    padding: "16px 32px",
+    height: "fit-content",
+    border: "1px solid #1980DF",
+    fontSize: 20,
+    fontWeight: "bold",
   },
 }));

@@ -1,3 +1,4 @@
+import { buttonStyles } from "$eave-dashboard/js/theme";
 import React, { useState } from "react";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { github } from "react-syntax-highlighter/dist/esm/styles/hljs";
@@ -21,32 +22,19 @@ const useStyles = makeStyles()(() => ({
     paddingRight: 10,
     alignItems: "center",
   },
-  copyButton: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "transparent",
-    border: "0px",
-  },
-  copyIcon: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    fontSize: 16,
-    marginRight: 4,
-  },
 }));
 
 export default function CodeBlock({ codeString, codeHeader }: { codeString: string; codeHeader: string }) {
   const [copy, setCopy] = useState("Copy Code");
   const { classes } = useStyles();
+  const { classes: button } = buttonStyles();
 
   return (
     <div className={classes.code}>
       <div className={classes.textContainer}>
         <p>{codeHeader}</p>
         <button
-          className={classes.copyButton}
+          className={button.invisible}
           onClick={() => {
             navigator.clipboard.writeText(codeString);
             setCopy("Copied");

@@ -1,4 +1,6 @@
-// TODO: rename this stuff at the very least
+import { useState } from "react";
+
+// colorOptions.ts
 export interface ColourOption {
   readonly value: string;
   readonly label: string;
@@ -52,6 +54,67 @@ export const thirdPartyOptions: ColourOption[] = [
   { value: "plaid", label: "Plaid" },
   { value: "square", label: "Square" },
 ];
+
+export const useQuestions = () => {
+  const [frameworksValue, setFrameworksValue] = useState<readonly ColourOption[]>([]);
+  const [platformValue, setPlatformValue] = useState<readonly ColourOption[]>([]);
+  const [languagesValue, setLanguagesValue] = useState<readonly ColourOption[]>([]);
+  const [databaseValue, setDatabaseValue] = useState<readonly ColourOption[]>([]);
+  const [thirdPartyValue, setThirdPartyValue] = useState<readonly ColourOption[]>([]);
+
+  const [platformError, setPlatformError] = useState(false);
+  const [languagesError, setLanguagesError] = useState(false);
+  const [frameworksError, setFrameworksError] = useState(false);
+  const [databaseError, setDatabaseError] = useState(false);
+  const [thirdPartyError, setThirdPartyError] = useState(false);
+
+  const frameworkQuestion = {
+    question: "Which libraries and framework(s) are used to build your product?",
+    options: frameworksOptions,
+    value: frameworksValue,
+    setValue: setFrameworksValue,
+    error: frameworksError,
+    setError: setFrameworksError,
+  };
+
+  const platformQuestion = {
+    question: "Which platform(s) does your product support?",
+    options: platformOptions,
+    value: platformValue,
+    setValue: setPlatformValue,
+    error: platformError,
+    setError: setPlatformError,
+  };
+
+  const languagesQuestion = {
+    question: "Which programming language(s) are used to build your product?",
+    options: languagesOptions,
+    value: languagesValue,
+    setValue: setLanguagesValue,
+    error: languagesError,
+    setError: setLanguagesError,
+  };
+
+  const databaseQuestion = {
+    question: "Which database(s) are used to store your product data?",
+    options: databaseOptions,
+    value: databaseValue,
+    setValue: setDatabaseValue,
+    error: databaseError,
+    setError: setDatabaseError,
+  };
+
+  const thirdPartyQuestion = {
+    question: "Which third party service(s) are integrated into your product?",
+    options: thirdPartyOptions,
+    value: thirdPartyValue,
+    setValue: setThirdPartyValue,
+    error: thirdPartyError,
+    setError: setThirdPartyError,
+  };
+
+  return [platformQuestion, languagesQuestion, frameworkQuestion, databaseQuestion, thirdPartyQuestion];
+};
 
 export const copyString = `Getting started with Eave. Please answer the questions below. 
 All information is kept confidential and strictly for the purposes of providing you with a proper product intelligence solution. 

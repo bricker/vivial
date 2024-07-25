@@ -1,6 +1,11 @@
+<<<<<<< HEAD
 import { AppContext } from "$eave-dashboard/js/context/Provider";
 import useTeam from "$eave-dashboard/js/hooks/useTeam";
 import React, { useContext, useEffect } from "react";
+=======
+import useTeam from "$eave-dashboard/js/hooks/useTeam";
+import React, { useEffect } from "react";
+>>>>>>> 97c2eb38ece95f91caaf75e9360236579fc35724
 import { makeStyles } from "tss-react/mui";
 import { SetupStep } from "./SetupStep";
 
