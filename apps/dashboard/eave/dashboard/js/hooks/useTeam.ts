@@ -270,7 +270,7 @@ const useTeam = (): TeamHook => {
           setTeam((prev) => {
             return {
               ...prev,
-              dashboard_access: data.team.dashboard_access,
+              dashboardAccess: data.team.dashboard_access,
               onboardingSubmission: data.onboarding_submission,
             };
           });
@@ -320,7 +320,7 @@ const useTeam = (): TeamHook => {
           setTeam((prev) => {
             return {
               ...prev,
-              dashboard_access: data.team.dashboard_access,
+              dashboardAccess: data.team.dashboard_access,
               onboardingSubmission: data.onboarding_submission,
             };
           });
