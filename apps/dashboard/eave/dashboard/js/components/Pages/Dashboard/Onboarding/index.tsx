@@ -135,7 +135,7 @@ const Onboarding = () => {
   useEffect(getOnboardingFormSubmission, []);
 
   // check if they have already submitted form
-  if (!networkState.formDataIsLoading && !networkState.formDataIsErroring && (team?.dashboardAccess || team?.onboardingSubmission !== undefined)) {
+  if (!networkState.formDataIsLoading && !networkState.formDataIsErroring && (team?.dashboardAccess || team?.onboardingSubmission)) {
     // check if they are qualified
     if (team?.dashboardAccess) {
       // TODO: move setup to a dashboard tab
