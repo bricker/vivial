@@ -3,6 +3,7 @@ import {
   CreateMyOnboardingSubmissionRequestBody,
   CreateMyOnboardingSubmissionResponseBody,
   DashboardTeam,
+  GetMyClientCredentialsResponseBody,
   GetMyOnboardingSubmissionResponseBody,
   GetMyVirtualEventDetailsResponseBody,
   GetTeamResponseBody,
@@ -21,15 +22,22 @@ export interface TeamHook {
   getVirtualEventDetails: (id: string) => void;
   getOnboardingFormSubmission: () => void;
   createOnboardingFormSubmission: (requestBody: CreateMyOnboardingSubmissionRequestBody) => void;
+  getClientCredentials: () => void;
 }
 
 const useTeam = (): TeamHook => {
-  const { teamCtx, dashboardNetworkStateCtx, glossaryNetworkStateCtx, onboardingFormNetworkStateCtx } =
-    useContext(AppContext);
+  const {
+    teamCtx,
+    dashboardNetworkStateCtx,
+    glossaryNetworkStateCtx,
+    onboardingFormNetworkStateCtx,
+    clientCredentialsNetworkStateCtx,
+  } = useContext(AppContext);
   const [team, setTeam] = teamCtx!;
   const [, setDashboardNetworkState] = dashboardNetworkStateCtx!;
   const [, setGlossaryNetworkState] = glossaryNetworkStateCtx!;
   const [, setOnboardingFormNetworkState] = onboardingFormNetworkStateCtx!;
+  const [, setClientCredentialsNetworkState] = clientCredentialsNetworkStateCtx!;
 
   /**
    * Asynchronously fetches team data from the "/api/team" endpoint using a POST request.
@@ -334,6 +342,55 @@ const useTeam = (): TeamHook => {
       });
   }
 
+  function getClientCredentials() {
+    // TODO: update state + url + team data set
+    setClientCredentialsNetworkState((prev) => ({
+      ...prev,
+      credentialsAreLoading: true,
+      credentialsAreErroring: false,
+    }));
+    fetch(`${eaveWindow.eavedash.apiBase}/public/me/client-credentials/query`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "eave-origin": eaveOrigin,
+      },
+      credentials: "include",
+    })
+      .then((resp) => {
+        if (isUnauthorized(resp)) {
+          logUserOut();
+          return;
+        }
+        if (isHTTPError(resp)) {
+          throw resp;
+        }
+        return resp.json().then((data: GetMyClientCredentialsResponseBody) => {
+          // set dashboard access based on form submission answers
+          setTeam((prev) => {
+            return {
+              ...prev,
+              clientCredentials: data.credentials,
+            };
+          });
+
+          setClientCredentialsNetworkState((prev) => ({
+            ...prev,
+            credentialsAreErroring: false,
+            credentialsAreLoading: false,
+          }));
+        });
+      })
+      .catch((e) => {
+        console.error(e);
+        setClientCredentialsNetworkState((prev) => ({
+          ...prev,
+          credentialsAreErroring: true,
+          credentialsAreLoading: false,
+        }));
+      });
+  }
+
   return {
     team,
     getTeam,
@@ -341,6 +398,7 @@ const useTeam = (): TeamHook => {
     getVirtualEventDetails,
     getOnboardingFormSubmission,
     createOnboardingFormSubmission,
+    getClientCredentials,
   };
 };
 

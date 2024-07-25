@@ -1,4 +1,5 @@
 import {
+  ClientCredentialsNetworkState,
   DashboardNetworkState,
   DashboardTeam,
   GlossaryNetworkState,
@@ -13,6 +14,10 @@ export type AppContextProps = {
   onboardingFormNetworkStateCtx?: [
     OnboardingFormNetworkState,
     React.Dispatch<React.SetStateAction<OnboardingFormNetworkState>>,
+  ];
+  clientCredentialsNetworkStateCtx?: [
+    ClientCredentialsNetworkState,
+    React.Dispatch<React.SetStateAction<ClientCredentialsNetworkState>>,
   ];
 };
 
@@ -39,11 +44,17 @@ const AppContextProvider = ({ children }: { children: React.ReactNode }) => {
     formDataIsErroring: false,
   });
 
+  const clientCredentialsNetworkStateCtx = useState<ClientCredentialsNetworkState>({
+    credentialsAreErroring: false,
+    credentialsAreLoading: true,
+  })
+
   const ctx: AppContextProps = {
     teamCtx,
     dashboardNetworkStateCtx,
     glossaryNetworkStateCtx,
     onboardingFormNetworkStateCtx,
+    clientCredentialsNetworkStateCtx,
   };
 
   return <AppContext.Provider value={ctx}>{children}</AppContext.Provider>;

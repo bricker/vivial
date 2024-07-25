@@ -46,6 +46,16 @@ export type GetMyOnboardingSubmissionResponseBody = {
   team: Team;
 };
 
+export type ClientCredentials = {
+  id: string;
+  secret: string;
+  description: string;
+};
+
+export type GetMyClientCredentialsResponseBody = {
+  credentials: ClientCredentials;
+};
+
 export type Team = {
   id: string;
   name: string;
@@ -71,6 +81,7 @@ export type DashboardTeam = {
   dashboardAccess?: boolean;
   onboardingSubmission?: object; // opaque type for now since we currently only care if value is set
   virtualEvents?: VirtualEventDetails[];
+  clientCredentials?: ClientCredentials;
 };
 
 export type DashboardNetworkState = {
@@ -92,6 +103,11 @@ export type OnboardingFormNetworkState = {
   formDataIsLoading: boolean;
   formDataIsErroring: boolean;
 };
+
+export type ClientCredentialsNetworkState = {
+  credentialsAreLoading: boolean;
+  credentialsAreErroring: boolean;
+}
 
 // The additional properties are set in the template header, so we know they exist.
 export const eaveWindow: GlobalEaveWindow = window as GlobalEaveWindow;
