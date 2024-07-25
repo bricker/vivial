@@ -10,7 +10,7 @@ const useStyles = makeStyles()(() => ({
     borderRadius: "10px",
     overflow: "hidden",
     "& pre": {
-      margin: 0, // Reset margin to ensure proper border radius
+      margin: 0,
     },
   },
   textContainer: {
@@ -23,10 +23,8 @@ const useStyles = makeStyles()(() => ({
   },
   copyButton: {
     display: "flex",
-
     alignItems: "center",
     justifyContent: "center",
-
     backgroundColor: "transparent",
     border: "0px",
   },
@@ -40,37 +38,25 @@ const useStyles = makeStyles()(() => ({
 }));
 
 export default function CodeBlock({ codeString, codeHeader }: { codeString: string; codeHeader: string }) {
-  const [copy, setCopy] = useState(false);
+  const [copy, setCopy] = useState("Copy Code");
   const { classes } = useStyles();
 
   return (
     <div className={classes.code}>
       <div className={classes.textContainer}>
         <p>{codeHeader}</p>
-        {copy ? (
-          <button className={classes.copyButton}>
-            {/* <span className={classes.copyIcon}>
-              <FaCheck />
-            </span> */}
-            Copied
-          </button>
-        ) : (
-          <button
-            className={classes.copyButton}
-            onClick={() => {
-              navigator.clipboard.writeText(codeString);
-              setCopy(true);
-              setTimeout(() => {
-                setCopy(false);
-              }, 3000);
-            }}
-          >
-            {/* <span className={classes.copyIcon}>
-              <IoCopyOutline />
-            </span> */}
-            Copy code{" "}
-          </button>
-        )}
+        <button
+          className={classes.copyButton}
+          onClick={() => {
+            navigator.clipboard.writeText(codeString);
+            setCopy("Copied");
+            setTimeout(() => {
+              setCopy("Copy Code");
+            }, 3000);
+          }}
+        >
+          {copy}
+        </button>
       </div>
       <SyntaxHighlighter
         language="javascript"
@@ -78,9 +64,7 @@ export default function CodeBlock({ codeString, codeHeader }: { codeString: stri
         customStyle={{
           padding: "25px",
           lineHeight: 2,
-          //   borderRadius: "10px",
         }}
-        // wrapLongLines={true}
       >
         {codeString}
       </SyntaxHighlighter>

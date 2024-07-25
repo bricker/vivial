@@ -1,4 +1,5 @@
 import { PaletteColor, PaletteColorOptions, createTheme } from "@mui/material";
+import { makeStyles } from "tss-react/mui";
 
 export interface EaveHeaderStyle {
   height: number;
@@ -122,3 +123,18 @@ export const theme = createTheme({
     },
   },
 });
+
+export const textStyles = makeStyles()((theme) => ({
+  header: {
+    fontSize: 24,
+    fontWeight: "normal",
+    lineHeight: 1.25,
+    [theme.breakpoints.up("md")]: {
+      fontSize: 110,
+    },
+  },
+  subHeader: {
+    fontSize: 20,
+    fontWeight: "normal",
+  },
+}));

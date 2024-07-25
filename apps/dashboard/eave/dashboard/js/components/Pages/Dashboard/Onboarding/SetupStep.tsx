@@ -1,3 +1,4 @@
+import { textStyles } from "$eave-dashboard/js/theme";
 import React from "react";
 import { makeStyles } from "tss-react/mui";
 import CodeBlock from "./CodeBlock";
@@ -5,30 +6,18 @@ import CodeBlock from "./CodeBlock";
 const useStyles = makeStyles()((theme) => ({
   container: {
     display: "flex",
-    border: "2px solid",
     width: "100%",
     justifyContent: "center",
-    alignItems: "center",
+    alignItems: "flex-start",
   },
   instructions: {
     width: 400,
     marginRight: "16px",
-    border: "2px solid",
     height: 180,
   },
   codeBlock: {
     width: 800,
     height: "100%",
-    border: "2px solid",
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: "normal",
-    lineHeight: 1.25,
-  },
-  subHeader: {
-    fontSize: 20,
-    fontWeight: "normal",
   },
 }));
 
@@ -40,19 +29,20 @@ interface Props {
 }
 
 export const SetupStep = ({ header, subHeader, code, codeHeader }: Props) => {
-  const { classes } = useStyles();
+  const { classes: localClasses } = useStyles();
+  const { classes: text } = textStyles();
 
   return (
-    <div className={classes.container}>
+    <div className={localClasses.container}>
       {/* Instructions */}
-      <div className={classes.instructions}>
+      <div className={localClasses.instructions}>
         {/* Step */}
-        <h1 className={classes.header}>{header}</h1>
+        <h1 className={text.header}>{header}</h1>
         {/* SubStep */}
-        {subHeader && <h2 className={classes.subHeader}>{subHeader}</h2>}
+        {subHeader && <h2 className={text.subHeader}>{subHeader}</h2>}
       </div>
       {/* CodeBlock */}
-      <div className={classes.codeBlock}>
+      <div className={localClasses.codeBlock}>
         <CodeBlock codeString={code} codeHeader={codeHeader} />
       </div>
     </div>
