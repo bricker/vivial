@@ -129,92 +129,92 @@ resource "kubernetes_manifest" "app_httproute" {
   }
 }
 
-resource "kubernetes_manifest" "metabase_httproute" {
-  manifest = {
-    apiVersion = "gateway.networking.k8s.io/v1beta1"
-    kind       = "HTTPRoute"
-    metadata = {
-      name      = "metabase-rewrite"
-      namespace = var.kube_namespace_name
+# resource "kubernetes_manifest" "metabase_httproute" {
+#   manifest = {
+#     apiVersion = "gateway.networking.k8s.io/v1beta1"
+#     kind       = "HTTPRoute"
+#     metadata = {
+#       name      = "metabase-rewrite"
+#       namespace = var.kube_namespace_name
 
-      labels = {
-        app = local.app_name
-      }
-    }
+#       labels = {
+#         app = local.app_name
+#       }
+#     }
 
-    spec = {
-      parentRefs = [
-        {
-          name = module.app_gateway.name
-        }
-      ]
+#     spec = {
+#       parentRefs = [
+#         {
+#           name = module.app_gateway.name
+#         }
+#       ]
 
-      hostnames = [
-        local.embed_domain
-      ]
+#       hostnames = [
+#         local.embed_domain
+#       ]
 
-      rules = [
-        {
-          matches = [
-            {
-              path = {
-                type  = "PathPrefix"
-                value = "/auth/sso"
-              }
-            },
-            {
-              path = {
-                type  = "PathPrefix"
-                value = "/app"
-              }
-            },
-            {
-              path = {
-                type  = "PathPrefix"
-                value = "/api"
-              }
-            },
-            {
-              path = {
-                type  = "PathPrefix"
-                value = "/dashboard"
-              }
-            },
-          ]
+#       rules = [
+#         {
+#           matches = [
+#             {
+#               path = {
+#                 type  = "PathPrefix"
+#                 value = "/auth/sso"
+#               }
+#             },
+#             {
+#               path = {
+#                 type  = "PathPrefix"
+#                 value = "/app"
+#               }
+#             },
+#             {
+#               path = {
+#                 type  = "PathPrefix"
+#                 value = "/api"
+#               }
+#             },
+#             {
+#               path = {
+#                 type  = "PathPrefix"
+#                 value = "/dashboard"
+#               }
+#             },
+#           ]
 
-          backendRefs = [
-            {
-              name = module.kubernetes_service.name
-              port = module.kubernetes_service.port.number
-            }
-          ]
+#           backendRefs = [
+#             {
+#               name = module.kubernetes_service.name
+#               port = module.kubernetes_service.port.number
+#             }
+#           ]
 
-          filters = [
-            {
-              type = "RequestHeaderModifier"
-              requestHeaderModifier = {
-                add = [
-                  {
-                    name  = "eave-lb"
-                    value = "1"
-                  }
-                ]
-              }
-            },
-            {
-              type = "ResponseHeaderModifier"
-              responseHeaderModifier = {
-                set = [
-                  {
-                    name  = "server"
-                    value = "n/a"
-                  }
-                ]
-              }
-            }
-          ]
-        },
-      ]
-    }
-  }
-}
+#           filters = [
+#             {
+#               type = "RequestHeaderModifier"
+#               requestHeaderModifier = {
+#                 add = [
+#                   {
+#                     name  = "eave-lb"
+#                     value = "1"
+#                   }
+#                 ]
+#               }
+#             },
+#             {
+#               type = "ResponseHeaderModifier"
+#               responseHeaderModifier = {
+#                 set = [
+#                   {
+#                     name  = "server"
+#                     value = "n/a"
+#                   }
+#                 ]
+#               }
+#             }
+#           ]
+#         },
+#       ]
+#     }
+#   }
+# }
