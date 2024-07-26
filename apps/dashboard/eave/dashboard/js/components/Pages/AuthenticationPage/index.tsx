@@ -114,7 +114,7 @@ const AuthenticationPage = ({ type }: { type: "signup" | "login" }) => {
       </div>
       <EaveSideBanner
         style={BannerStyle.FULL}
-        subtext="Create an account today and get your free AI feature report in minutes."
+        subtext="Discover unparalleled insights with Eave. Create your free account today."
       />
     </div>
   );
