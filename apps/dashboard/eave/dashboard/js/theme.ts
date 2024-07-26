@@ -132,6 +132,7 @@ export const textStyles = makeStyles()((theme) => ({
   headerIII: {
     fontSize: 52,
     fontWeight: "normal",
+    lineHeight: 1.1,
     margin: 0,
   },
   headerII: {

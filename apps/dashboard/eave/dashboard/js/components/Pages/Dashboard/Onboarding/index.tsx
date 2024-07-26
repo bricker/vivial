@@ -1,3 +1,4 @@
+import EaveSideBanner from "$eave-dashboard/js/components/EaveSideBanner";
 import { AppContext } from "$eave-dashboard/js/context/Provider";
 import useTeam from "$eave-dashboard/js/hooks/useTeam";
 import { buttonStyles, textStyles, uiStyles } from "$eave-dashboard/js/theme";
@@ -7,7 +8,6 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 import InputField from "./InputField";
-import EaveSideBanner from "$eave-dashboard/js/components/EaveSideBanner";
 import { copyString, useQuestions } from "./questionOptions";
 
 const useStyles = makeStyles()((theme) => ({
@@ -115,7 +115,7 @@ const Onboarding = () => {
         <div>
           {/* Title and Copy Button */}
           <div className={classes.titleContainer}>
-            <h1 className={text.headerII}>Let's Get Started!</h1>
+            <h1 className={`${text.headerII} ${text.bold}`}>Let's Get Started!</h1>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.9 }}

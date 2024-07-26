@@ -16,8 +16,10 @@ const useStyles = makeStyles()((theme) => ({
     position: "relative",
   },
   textContainer: {
+    display: "flex",
+    flexDirection: "column",
     margin: theme.spacing(4),
-    border: "2px solid white",
+    gap: theme.spacing(2),
   },
   logo: {
     position: "absolute",
