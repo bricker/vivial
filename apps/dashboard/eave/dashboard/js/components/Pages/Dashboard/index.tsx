@@ -9,6 +9,7 @@ import { makeStyles } from "tss-react/mui";
 import Glossary from "./Glossary";
 import Insights from "./Insights";
 import Settings from "./Settings";
+import Setup from "./Setup";
 import TabbedNav from "./TabbedNav";
 import TeamManagement from "./TeamManagement";
 
@@ -43,6 +44,7 @@ const makeClasses = makeStyles()(() => ({
 
 // tab pages that should be rendered
 const tabs = {
+  setupTab: { path: "/setup", component: <Setup /> },
   insightsTab: { path: "/insights", component: <Insights /> },
   glossaryTab: { path: "/glossary", component: <Glossary /> },
   settingsTab: { path: "/settings", component: <Settings /> },

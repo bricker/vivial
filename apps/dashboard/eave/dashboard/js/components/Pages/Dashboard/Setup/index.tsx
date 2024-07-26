@@ -10,6 +10,7 @@ const useStyles = makeStyles()((theme) => ({
   container: {
     display: "flex",
     flexDirection: "column",
+    width: "100vw",
   },
   stepsContainer: {
     // Display
@@ -68,7 +69,7 @@ start_eave_collectors()`;
               <SetupStep
                 header={"Install the Eave Collectors Package"}
                 subHeader={
-                  "If necessary, also add the eave-collectors package to your project dependencies ( requirements.txt, pyproject.toml, etc.)"
+                  "If necessary, also add the eave-collectors package to your project dependencies (requirements.txt, pyproject.toml, etc.)"
                 }
                 code={stepTwo}
                 codeHeader={"Terminal"}

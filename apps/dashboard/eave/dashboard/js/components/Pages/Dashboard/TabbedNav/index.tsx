@@ -1,6 +1,7 @@
 import GlossaryIcon from "$eave-dashboard/js/components/Icons/GlossaryIcon";
 import GraphIcon from "$eave-dashboard/js/components/Icons/GraphIcon";
 import SettingsCogIcon from "$eave-dashboard/js/components/Icons/SettingsCogIcon";
+import SetupIcon from "$eave-dashboard/js/components/Icons/SetupIcon";
 import SignOutIcon from "$eave-dashboard/js/components/Icons/SignOutIcon";
 import TeamIcon from "$eave-dashboard/js/components/Icons/TeamIcon";
 import SidebarNav from "$eave-dashboard/js/components/SidebarNav";
@@ -44,6 +45,10 @@ const TabbedNav = () => {
   return (
     <SidebarNav hamburger={usingMobileLayout}>
       <Menu>
+        <MenuItem label="Setup" to="/setup" selected={location.pathname === "/setup"} expanded={usingMobileLayout}>
+          <SetupIcon color={iconColor(location.pathname === "/setup")} />
+        </MenuItem>
+
         <MenuItem
           label="Insights"
           to="/insights"
