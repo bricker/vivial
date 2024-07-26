@@ -125,8 +125,18 @@ export const theme = createTheme({
 });
 
 export const textStyles = makeStyles()((theme) => ({
+  display: {
+    fontSize: 64,
+    lineHeight: 1.1,
+  },
+  headerIII: {
+    fontSize: 52,
+    fontWeight: "normal",
+    margin: 0,
+  },
   headerII: {
     fontSize: 36,
+    fontWeight: "normal",
     margin: 0,
   },
   header: {

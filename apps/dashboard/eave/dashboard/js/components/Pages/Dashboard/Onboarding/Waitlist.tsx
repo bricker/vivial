@@ -1,9 +1,10 @@
+import EaveSideBanner from "$eave-dashboard/js/components/EaveSideBanner";
+import { textStyles } from "$eave-dashboard/js/theme";
 import React from "react";
 import { makeStyles } from "tss-react/mui";
-import EaveSideBanner from "$eave-dashboard/js/components/EaveSideBanner";
 
 const useStyles = makeStyles()(() => ({
-  main: {
+  container: {
     display: "flex",
     height: "100vh",
     overflow: "hidden",
@@ -15,13 +16,8 @@ const useStyles = makeStyles()(() => ({
     paddingTop: 64,
     paddingLeft: 64,
     paddingRight: 64,
-    // Currently not including padding in 2/3 size.
-    boxSizing: "border-box",
   },
-  title: {
-    fontSize: 64,
-    lineHeight: 1.1,
-  },
+
   subtitle: {
     fontSize: 36,
     color: "#535353",
@@ -31,12 +27,13 @@ const useStyles = makeStyles()(() => ({
 
 const Waitlist = () => {
   const { classes } = useStyles();
+  const { classes: text } = textStyles();
 
   return (
-    <div className={classes.main}>
+    <div className={classes.container}>
       <div className={classes.content}>
-        <h1 className={classes.title}> Unparalleled insights coming your way soon. </h1>
-        <h2 className={classes.subtitle}>
+        <h1 className={text.display}> Unparalleled insights coming your way soon. </h1>
+        <h2 className={`${text.headerII} ${text.gray}`}>
           Unfortunately we don’t currently support your tech stack, but we’re working on it. You’ve been put on our
           waitlist and we’ll follow up as soon as we can get you started!
         </h2>

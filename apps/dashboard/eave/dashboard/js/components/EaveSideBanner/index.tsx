@@ -1,4 +1,5 @@
 import EaveBlueIcon from "$eave-dashboard/js/components/Icons/EaveBlueIcon";
+import { textStyles } from "$eave-dashboard/js/theme";
 import classNames from "classnames";
 import React from "react";
 import { makeStyles } from "tss-react/mui";
@@ -14,23 +15,9 @@ const useStyles = makeStyles()((theme) => ({
     overflow: "hidden",
     position: "relative",
   },
-  rounded: {
-    borderRadius: 20,
-    margin: 16,
-  },
   textContainer: {
-    paddingLeft: 32,
-    paddingRight: 32,
-  },
-  title: {
-    fontSize: 52,
-    marginBottom: 16,
-    lineHeight: 1.1,
-  },
-  subtext: {
-    width: 256,
-    fontSize: 20,
-    marginTop: 0,
+    margin: theme.spacing(4),
+    border: "2px solid white",
   },
   logo: {
     position: "absolute",
@@ -38,6 +25,10 @@ const useStyles = makeStyles()((theme) => ({
     right: -20,
     width: 300,
     height: "auto",
+  },
+  rounded: {
+    borderRadius: 20,
+    margin: 16,
   },
 }));
 
@@ -56,14 +47,15 @@ export default function EaveSideBanner({
   subtext?: string;
 }) {
   const { classes } = useStyles();
+  const { classes: text } = textStyles();
 
   const bannerClasses = classNames(classes.sidebar, { [classes.rounded]: style === BannerStyle.ROUNDED });
 
   return (
     <div className={bannerClasses}>
       <div className={classes.textContainer}>
-        <h1 className={classes.title}>{title}</h1>
-        <h3 className={classes.subtext}>{subtext}</h3>
+        <h1 className={`${text.headerIII} ${text.bold}`}>{title}</h1>
+        <h3 className={`${text.subHeader} ${text.bold}`}>{subtext}</h3>
       </div>
       <div className={classes.logo}>
         <EaveBlueIcon />

@@ -12,9 +12,8 @@ const useStyles = makeStyles()((theme) => ({
   },
   instructions: {
     flex: 1,
-    marginRight: "16px",
-    minHeight: 180,
-    border: "2px solid",
+    marginRight: theme.spacing(2),
+    minHeight: theme.spacing(20),
   },
   codeBlock: {
     flex: 2,

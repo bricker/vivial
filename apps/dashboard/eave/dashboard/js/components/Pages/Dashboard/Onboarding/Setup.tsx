@@ -1,11 +1,16 @@
 import { AppContext } from "$eave-dashboard/js/context/Provider";
 import useTeam from "$eave-dashboard/js/hooks/useTeam";
+import { buttonStyles, textStyles, uiStyles } from "$eave-dashboard/js/theme";
 import { CircularProgress } from "@mui/material";
 import React, { useContext, useEffect } from "react";
 import { makeStyles } from "tss-react/mui";
 import { SetupStep } from "./SetupStep";
 
 const useStyles = makeStyles()((theme) => ({
+  container: {
+    display: "flex",
+    flexDirection: "column",
+  },
   stepsContainer: {
     // Display
     display: "flex",
@@ -13,38 +18,25 @@ const useStyles = makeStyles()((theme) => ({
     justifyContent: "flex-start",
     alignItems: "center",
     // Spacing
-    gap: theme.spacing(4),
+    gap: theme.spacing(6),
     padding: theme.spacing(12),
-  },
-  container: {
-    display: "flex",
-    flexDirection: "column",
-    width: "100vw",
-    height: "100vh",
   },
   headerContainer: {
     display: "flex",
     flexDirection: "row",
-    justifyContent: "space-between",
-    margin: 16,
-  },
-  error: {
-    color: theme.palette.error.main,
-    padding: "0px 30px",
-    textAlign: "center",
-    fontSize: "26px",
-  },
-  loader: {
-    display: "flex",
-    width: "100%",
     alignItems: "center",
-    justifyContent: "center",
-    marginTop: 32,
+    justifyContent: "space-between",
+    padding: theme.spacing(2),
+    paddingLeft: theme.spacing(12),
+    paddingRight: theme.spacing(12),
   },
 }));
 
 const Setup = () => {
   const { classes } = useStyles();
+  const { classes: ui } = uiStyles();
+  const { classes: text } = textStyles();
+  const { classes: button } = buttonStyles();
 
   const { team, getClientCredentials } = useTeam();
   const { clientCredentialsNetworkStateCtx } = useContext(AppContext);
@@ -56,7 +48,7 @@ const Setup = () => {
     <div className={classes.container}>
       <div className={classes.headerContainer}>
         <h1>Getting Started</h1>
-        <button>copy something TODO</button>
+        <button className={button.default}>copy something TODO</button>
       </div>
       {(() => {
         if (team?.clientCredentials) {
@@ -64,7 +56,7 @@ const Setup = () => {
           const stepTwo = `pip install eave-collectors`;
           const stepThree = `EAVE_CREDENTIALS="${team.clientCredentials.secret}"`;
           const stepFour = `from eave.collectors import start_eave_collectors
-  start_eave_collectors()`;
+start_eave_collectors()`;
           return (
             <div className={classes.stepsContainer}>
               <SetupStep
@@ -90,13 +82,17 @@ const Setup = () => {
           );
         } else if (networkState?.credentialsAreLoading) {
           return (
-            <div className={classes.loader}>
+            <div className={ui.loadingContainer}>
               <CircularProgress color="secondary" />
             </div>
           );
         } else {
           // erroring, or request completed but no credentials were found
-          return <div className={classes.error}>ERROR: Failed to fetch your Eave credentials. Please try again later.</div>;
+          return (
+            <div className={`${ui.loadingContainer} ${text.header}`}>
+              ERROR: Failed to fetch your Eave credentials. Please try again later.
+            </div>
+          );
         }
       })()}
     </div>
