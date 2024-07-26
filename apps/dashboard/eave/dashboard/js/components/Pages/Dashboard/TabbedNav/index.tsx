@@ -7,6 +7,7 @@ import TeamIcon from "$eave-dashboard/js/components/Icons/TeamIcon";
 import SidebarNav from "$eave-dashboard/js/components/SidebarNav";
 import Menu from "$eave-dashboard/js/components/SidebarNav/Menu";
 import MenuItem from "$eave-dashboard/js/components/SidebarNav/MenuItem";
+import useTeam from "$eave-dashboard/js/hooks/useTeam";
 import { theme } from "$eave-dashboard/js/theme";
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
@@ -25,6 +26,8 @@ function iconColor(isSelected: boolean): "white" | "black" {
 const TabbedNav = () => {
   const location = useLocation();
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
+  const { team } = useTeam();
+
   useEffect(() => {
     const handleResize = () => {
       setUsingMobileLayout(window.innerWidth <= theme.breakpoints.values.md);
@@ -45,9 +48,13 @@ const TabbedNav = () => {
   return (
     <SidebarNav hamburger={usingMobileLayout}>
       <Menu>
-        <MenuItem label="Setup" to="/setup" selected={location.pathname === "/setup"} expanded={usingMobileLayout}>
-          <SetupIcon color={iconColor(location.pathname === "/setup")} />
-        </MenuItem>
+        {team?.clientCredentials ? (
+          <MenuItem label="Setup" to="/setup" selected={location.pathname === "/setup"} expanded={usingMobileLayout}>
+            <SetupIcon color={iconColor(location.pathname === "/setup")} />
+          </MenuItem>
+        ) : (
+          <></>
+        )}
 
         <MenuItem
           label="Insights"
