@@ -78,7 +78,7 @@ const InputField: React.FC<InputFieldProps> = ({ question, questionOptions, setV
   const [value, setValueState] = useState<readonly QuestionOption[]>([]);
 
   const handleCreate = (inputValue: string) => {
-    const newOption: ColourOption = {
+    const newOption: QuestionOption = {
       value: inputValue,
       label: inputValue,
     };
