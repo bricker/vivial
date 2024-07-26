@@ -10,7 +10,7 @@ const useStyles = makeStyles()((theme) => ({
   container: {
     display: "flex",
     flexDirection: "column",
-    width: "100vw",
+    overflow: "auto",
   },
   stepsContainer: {
     // Display

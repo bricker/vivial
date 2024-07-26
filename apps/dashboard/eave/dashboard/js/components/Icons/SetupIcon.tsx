@@ -10,7 +10,7 @@ const SetupIcon = ({ color = "black" }: { color?: string }) => {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <g clipPath="url(#clip0_185_88)">
+      <g>
         <path
           d="M0.642857 14.1002H17.3571"
           stroke={color}
@@ -61,11 +61,6 @@ const SetupIcon = ({ color = "black" }: { color?: string }) => {
           strokeLinejoin="round"
         />
       </g>
-      <defs>
-        <clipPath id="clip0_185_88">
-          <rect width="18" height="18" fill={color} />
-        </clipPath>
-      </defs>
     </svg>
   );
 };
