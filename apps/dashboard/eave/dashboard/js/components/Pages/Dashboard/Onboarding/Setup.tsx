@@ -51,10 +51,11 @@ const Setup = () => {
         <button className={button.default}>copy something TODO</button>
       </div>
       {(() => {
-        if (team?.clientCredentials) {
-          const stepOne = `<script src="https://cdn.eave.fyi/collector.js?id=${team.clientCredentials.id}"></script>`;
+        if (team?.clientCredentials && team?.eaveCombinedCredentials) {
+          const stepOne = `<script>window.EAVE_CLIENT_ID = "${team.clientCredentials.id}";</script>
+<script async src="https://cdn.eave.fyi/collector.js"></script>`;
           const stepTwo = `pip install eave-collectors`;
-          const stepThree = `EAVE_CREDENTIALS="${team.clientCredentials.secret}"`;
+          const stepThree = `EAVE_CREDENTIALS="${team.eaveCombinedCredentials}"`;
           const stepFour = `from eave.collectors import start_eave_collectors
 start_eave_collectors()`;
           return (

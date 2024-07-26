@@ -53,7 +53,8 @@ export type ClientCredentials = {
 };
 
 export type GetMyClientCredentialsResponseBody = {
-  credentials: ClientCredentials;
+  client_credentials: ClientCredentials;
+  eave_combined_credentials: string;
 };
 
 export type Team = {
@@ -82,6 +83,7 @@ export type DashboardTeam = {
   onboardingSubmission?: object; // opaque type for now since we currently only care if value is set
   virtualEvents?: VirtualEventDetails[];
   clientCredentials?: ClientCredentials;
+  eaveCombinedCredentials?: string;
 };
 
 export type DashboardNetworkState = {
@@ -107,7 +109,7 @@ export type OnboardingFormNetworkState = {
 export type ClientCredentialsNetworkState = {
   credentialsAreLoading: boolean;
   credentialsAreErroring: boolean;
-}
+};
 
 // The additional properties are set in the template header, so we know they exist.
 export const eaveWindow: GlobalEaveWindow = window as GlobalEaveWindow;

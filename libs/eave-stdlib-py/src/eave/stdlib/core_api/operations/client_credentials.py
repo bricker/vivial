@@ -20,7 +20,8 @@ class GetMyClientCredentialsRequest(CoreApiEndpoint):
     )
 
     class ResponseBody(BaseResponseBody):
-        credentials: ClientCredentials
+        client_credentials: ClientCredentials
+        eave_combined_credentials: str
 
     @classmethod
     async def perform(

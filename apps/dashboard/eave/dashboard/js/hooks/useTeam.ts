@@ -369,7 +369,8 @@ const useTeam = (): TeamHook => {
           setTeam((prev) => {
             return {
               ...prev,
-              clientCredentials: data.credentials,
+              clientCredentials: data.client_credentials,
+              eaveCombinedCredentials: data.eave_combined_credentials,
             };
           });
 

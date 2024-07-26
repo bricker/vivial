@@ -18,4 +18,9 @@ class GetMyClientCredentialsEndpoint(HTTPEndpoint):
                 session=db_session,
                 params=ClientCredentialsOrm.QueryParams(team_id=ensure_uuid(ctx.eave_authed_team_id)),
             )
-        return json_response(GetMyClientCredentialsRequest.ResponseBody(credentials=creds.api_model))
+        return json_response(
+            GetMyClientCredentialsRequest.ResponseBody(
+                client_credentials=creds.api_model,
+                eave_combined_credentials=creds.combined,
+            )
+        )
