@@ -101,11 +101,11 @@ const AuthenticationPage = ({ type }: { type: "signup" | "login" }) => {
             )}
             <Typography variant="inherit">
               {" "}
-              <a className={classes.link} href="/terms" rel="noreferrer" target="_blank">
+              <a className={classes.link} href="https://www.eave.fyi/terms" rel="noreferrer" target="_blank">
                 TOS
               </a>{" "}
               and{" "}
-              <a className={classes.link} href="/privacy" rel="noreferrer" target="_blank">
+              <a className={classes.link} href="https://www.eave.fyi/privacy" rel="noreferrer" target="_blank">
                 Privacy Policy.
               </a>
             </Typography>
