@@ -39,7 +39,7 @@ const App = () => {
               <Route path="/waitlist" element={<Waitlist />} />
               <Route path="/setup" element={<Setup />} />
 
-              <Route path="*" element={<Navigate to="/insights" />} />
+              <Route path="*" element={<Navigate to="/onboarding" />} />
             </Routes>
           </BrowserRouter>
         </ThemeProvider>
