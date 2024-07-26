@@ -7,7 +7,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 import InputField from "./InputField";
-import SideBanner from "./SideBanner";
+import EaveSideBanner from "$eave-dashboard/js/components/EaveSideBanner";
 import { copyString, useQuestions } from "./questionOptions";
 
 const useStyles = makeStyles()((theme) => ({
@@ -166,7 +166,7 @@ const Onboarding = () => {
           <CircularProgress color="secondary" />
         </div>
       )}
-      <SideBanner />
+      <EaveSideBanner />
     </div>
   );
 };

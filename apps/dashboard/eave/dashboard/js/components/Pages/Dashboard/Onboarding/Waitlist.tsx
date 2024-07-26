@@ -1,7 +1,6 @@
-"use client";
 import React from "react";
 import { makeStyles } from "tss-react/mui";
-import SideBanner from "./SideBanner";
+import EaveSideBanner from "$eave-dashboard/js/components/EaveSideBanner";
 
 const useStyles = makeStyles()(() => ({
   main: {
@@ -42,7 +41,7 @@ const Waitlist = () => {
           waitlist and we’ll follow up as soon as we can get you started!
         </h2>
       </div>
-      <SideBanner />
+      <EaveSideBanner />
     </div>
   );
 };

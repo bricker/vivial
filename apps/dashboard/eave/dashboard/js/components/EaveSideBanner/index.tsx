@@ -1,12 +1,11 @@
 import EaveBlueIcon from "$eave-dashboard/js/components/Icons/EaveBlueIcon";
+import classNames from "classnames";
 import React from "react";
 import { makeStyles } from "tss-react/mui";
 
 const useStyles = makeStyles()((theme) => ({
   sidebar: {
     flex: 1,
-    borderRadius: 20,
-    margin: 16,
     color: "white",
     display: "flex",
     maxWidth: 700,
@@ -15,13 +14,16 @@ const useStyles = makeStyles()((theme) => ({
     overflow: "hidden",
     position: "relative",
   },
+  rounded: {
+    borderRadius: 20,
+    margin: 16,
+  },
   textContainer: {
     paddingLeft: 32,
     paddingRight: 32,
   },
   title: {
     fontSize: 52,
-    // border: "2px solid black",
     marginBottom: 16,
     lineHeight: 1.1,
   },
@@ -29,7 +31,6 @@ const useStyles = makeStyles()((theme) => ({
     width: 256,
     fontSize: 20,
     marginTop: 0,
-    // border: "2px solid black",
   },
   logo: {
     position: "absolute",
@@ -40,14 +41,29 @@ const useStyles = makeStyles()((theme) => ({
   },
 }));
 
-export default function SideBanner() {
+export enum BannerStyle {
+  FULL,
+  ROUNDED,
+}
+
+export default function EaveSideBanner({
+  style = BannerStyle.ROUNDED,
+  title = "Eave Technologies",
+  subtext = "You're a few clicks away from automated insights.",
+}: {
+  style?: BannerStyle;
+  title?: string;
+  subtext?: string;
+}) {
   const { classes } = useStyles();
 
+  const bannerClasses = classNames(classes.sidebar, { [classes.rounded]: style === BannerStyle.ROUNDED });
+
   return (
-    <div className={classes.sidebar}>
+    <div className={bannerClasses}>
       <div className={classes.textContainer}>
-        <h1 className={classes.title}>Eave Technologies</h1>
-        <h3 className={classes.subtext}>You're a few clicks away from automated insights.</h3>
+        <h1 className={classes.title}>{title}</h1>
+        <h3 className={classes.subtext}>{subtext}</h3>
       </div>
       <div className={classes.logo}>
         <EaveBlueIcon />
