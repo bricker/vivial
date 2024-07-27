@@ -21,14 +21,6 @@ if __name__ == "__main__":
         lifespan="on",
         log_level="debug",
         reload_includes=[
-            "eave",
             f"{EAVE_HOME}/libs/eave-stdlib-py/src/eave",
-        ],
-        reload_excludes=[
-            "**/build/",
-            ".*",
-            "**/__pycache__",
-            "*.egg-info",
-            "**/node_modules",
         ],
     )
