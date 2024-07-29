@@ -73,12 +73,14 @@ class OnboardingSubmissionOrm(Base):
         Check if this onboarding form submission qualifies a
         team for Eave usage.
         """
-        form_responses = self.response_data.copy() #json.loads(json.dumps(self.response_data))
+        # CURRENTLY DENY ALL
+        return False
+        form_responses = self.response_data.copy()
         # convert all answers to lowercase for easier comparison
         for question_key, response_list in form_responses.items():
             form_responses[question_key] = [resp.lower() for resp in response_list]
 
-        # TODO: standardize question keys???
+        # TODO: standardize question keys w/ js questionOptions???
         return all(
             [
                 "python" in form_responses.get("languages", []),
