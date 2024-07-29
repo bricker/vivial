@@ -1,5 +1,6 @@
 "use client";
 import { textStyles } from "$eave-dashboard/js/theme";
+import classNames from "classnames";
 import React, { useState } from "react";
 import { StylesConfig } from "react-select";
 import CreatableSelect from "react-select/creatable";
@@ -24,7 +25,7 @@ interface QuestionOption {
 }
 
 const colourStyles: StylesConfig<QuestionOption, true> = {
-  option: (styles, { data, isDisabled, isFocused, isSelected }) => {
+  option: (styles, { isDisabled, isFocused, isSelected }) => {
     const backgroundColor = isDisabled ? undefined : isSelected ? "#1980DF" : isFocused ? "#EEEEEE" : undefined;
     const color = isDisabled ? "#ccc" : "#1980DF";
     return {
@@ -40,11 +41,11 @@ const colourStyles: StylesConfig<QuestionOption, true> = {
       backgroundColor: "#E8F4FF",
     };
   },
-  multiValueLabel: (styles, { data }) => ({
+  multiValueLabel: (styles) => ({
     ...styles,
     color: "#1980DF",
   }),
-  multiValueRemove: (styles, { data }) => ({
+  multiValueRemove: (styles) => ({
     ...styles,
     color: "#1980DF",
     ":hover": {
@@ -94,7 +95,7 @@ const InputField: React.FC<InputFieldProps> = ({ question, questionOptions, setV
 
   return (
     <div className={classes.question}>
-      <p className={`${text.body} ${text.bold}`}>
+      <p className={classNames(text.body, text.bold)}>
         {question}
         <span style={{ color: "red" }}> *</span>
       </p>
@@ -108,7 +109,9 @@ const InputField: React.FC<InputFieldProps> = ({ question, questionOptions, setV
         onChange={(newValue) => handleChange(newValue as QuestionOption[])}
         formatCreateLabel={(inputValue) => <div style={{ color: "#1980DF" }}>Create "{inputValue}"</div>}
       />
-      <div className={`${classes.errorContainer} ${text.body}`}>{error && <span>This field is required</span>}</div>
+      <div className={classNames(classes.errorContainer, text.body)}>
+        {error && <span>This field is required</span>}
+      </div>
     </div>
   );
 };

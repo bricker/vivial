@@ -28,8 +28,11 @@ const useStyles = makeStyles()(() => ({
   },
 }));
 
+const COPY_BUTTON_TEXT = "Copy Code";
+const COPIED_BUTTON_TEXT = "Copied";
+
 export default function CodeBlock({ codeString, codeHeader }: { codeString: string; codeHeader: string }) {
-  const [copy, setCopy] = useState("Copy Code");
+  const [copy, setCopy] = useState(COPY_BUTTON_TEXT);
   const { classes } = useStyles();
   const { classes: button } = buttonStyles();
 
@@ -40,11 +43,17 @@ export default function CodeBlock({ codeString, codeHeader }: { codeString: stri
         <button
           className={button.invisible}
           onClick={() => {
-            navigator.clipboard.writeText(codeString);
-            setCopy("Copied");
-            setTimeout(() => {
-              setCopy("Copy Code");
-            }, 3000);
+            navigator.clipboard
+              .writeText(codeString)
+              .then(() => {
+                setCopy(COPIED_BUTTON_TEXT);
+                setTimeout(() => {
+                  setCopy(COPY_BUTTON_TEXT);
+                }, 3000);
+              })
+              .catch(() => {
+                setCopy(COPY_BUTTON_TEXT);
+              });
           }}
         >
           {copy}

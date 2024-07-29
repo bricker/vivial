@@ -124,7 +124,7 @@ export const theme = createTheme({
   },
 });
 
-export const textStyles = makeStyles()((theme) => ({
+export const textStyles = makeStyles()((_theme) => ({
   display: {
     fontSize: 64,
     lineHeight: 1.1,
@@ -163,10 +163,10 @@ export const textStyles = makeStyles()((theme) => ({
   },
 }));
 
-export const buttonStyles = makeStyles()((theme) => ({
+export const buttonStyles = makeStyles()((_theme) => ({
   default: {
     backgroundColor: "#E8F4FF",
-    color: theme.palette.success.main,
+    color: _theme.palette.success.main,
     borderRadius: 4,
     margin: 0,
     padding: "8px 8px",
@@ -201,7 +201,7 @@ export const buttonStyles = makeStyles()((theme) => ({
   },
 }));
 
-export const uiStyles = makeStyles()((theme) => ({
+export const uiStyles = makeStyles()((_theme) => ({
   loadingContainer: {
     position: "fixed",
     width: "100%",

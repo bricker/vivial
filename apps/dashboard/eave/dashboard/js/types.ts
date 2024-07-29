@@ -16,6 +16,22 @@ export type VirtualEventDetails = {
   fields?: VirtualEventField[] | null;
 };
 
+export type Team = {
+  id: string;
+  name: string;
+  dashboard_access: boolean;
+};
+
+export type OnboardingSubmission = {
+  response_data: object;
+};
+
+export type ClientCredentials = {
+  id: string;
+  secret: string;
+  description: string;
+};
+
 export type ListMyVirtualEventsResponseBody = {
   // This endpoint returns VirtualEventPeek[], but in the UI we keep a list of virtual events
   // and lazily populate the fields.
@@ -26,10 +42,6 @@ export type ListMyVirtualEventsResponseBody = {
 export type GetMyVirtualEventDetailsResponseBody = {
   // This endpoint returns a single virtual event _with_ fields.
   virtual_event: VirtualEventDetails;
-};
-
-export type OnboardingSubmission = {
-  response_data: object;
 };
 
 export type CreateMyOnboardingSubmissionRequestBody = {
@@ -46,21 +58,9 @@ export type GetMyOnboardingSubmissionResponseBody = {
   team: Team;
 };
 
-export type ClientCredentials = {
-  id: string;
-  secret: string;
-  description: string;
-};
-
 export type GetMyClientCredentialsResponseBody = {
   client_credentials: ClientCredentials;
   eave_combined_credentials: string;
-};
-
-export type Team = {
-  id: string;
-  name: string;
-  dashboard_access: boolean;
 };
 
 export type GetTeamResponseBody = {
@@ -80,7 +80,7 @@ export type DashboardTeam = {
   id?: string;
   name?: string;
   dashboardAccess?: boolean;
-  onboardingSubmission?: object; // opaque type for now since we currently only care if value is set
+  onboardingSubmission?: OnboardingSubmission;
   virtualEvents?: VirtualEventDetails[];
   clientCredentials?: ClientCredentials;
   eaveCombinedCredentials?: string;

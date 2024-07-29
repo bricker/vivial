@@ -3,6 +3,7 @@ import { AppContext } from "$eave-dashboard/js/context/Provider";
 import useTeam from "$eave-dashboard/js/hooks/useTeam";
 import { buttonStyles, textStyles, uiStyles } from "$eave-dashboard/js/theme";
 import { CircularProgress } from "@mui/material";
+import classNames from "classnames";
 import { motion } from "framer-motion";
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -64,18 +65,15 @@ const Onboarding = () => {
 
   // check if they have already submitted form
   useEffect(() => {
-    console.log("Onboarding Submission", team?.onboardingSubmission);
     if (
       !networkState.formDataIsLoading &&
       !networkState.formDataIsErroring &&
       (team?.dashboardAccess || team?.onboardingSubmission)
     ) {
-      // Check if they are qualified
+      // Check if they are qualified to setup/use eave
       if (team?.dashboardAccess) {
-        // Navigate to setup
         navigate("/setup");
       } else {
-        // Navigate to waitlist
         navigate("/waitlist");
       }
     }
@@ -115,23 +113,29 @@ const Onboarding = () => {
         <div>
           {/* Title and Copy Button */}
           <div className={classes.titleContainer}>
-            <h1 className={`${text.headerII} ${text.bold}`}>Let's Get Started!</h1>
+            <h1 className={classNames(text.headerII, text.bold)}>Let's Get Started!</h1>
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.9 }}
               className={button.default}
               onClick={() => {
-                navigator.clipboard.writeText(copyString);
-                setCopyQuestions(true);
-                setTimeout(() => {
-                  setCopyQuestions(false);
-                }, 1500);
+                navigator.clipboard
+                  .writeText(copyString)
+                  .then(() => {
+                    setCopyQuestions(true);
+                    setTimeout(() => {
+                      setCopyQuestions(false);
+                    }, 1500);
+                  })
+                  .catch(() => {
+                    setCopyQuestions(false);
+                  });
               }}
             >
               {copyQuestions ? "Copied!" : "Copy Questions"}
             </motion.button>
           </div>
-          <h2 className={`${text.body} ${text.gray}`}> Tell us about your tech stack</h2>
+          <h2 className={classNames(text.body, text.gray)}> Tell us about your tech stack</h2>
         </div>
 
         {/* Questions */}
@@ -153,7 +157,7 @@ const Onboarding = () => {
         </div>
       </div>
       {networkState.formSubmitIsLoading && (
-        <div className={`${ui.loadingContainer} ${ui.opaque}`}>
+        <div className={classNames(ui.loadingContainer, ui.opaque)}>
           <CircularProgress color="secondary" />
         </div>
       )}

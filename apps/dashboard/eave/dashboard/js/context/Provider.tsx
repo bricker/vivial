@@ -47,7 +47,7 @@ const AppContextProvider = ({ children }: { children: React.ReactNode }) => {
   const clientCredentialsNetworkStateCtx = useState<ClientCredentialsNetworkState>({
     credentialsAreErroring: false,
     credentialsAreLoading: true,
-  })
+  });
 
   const ctx: AppContextProps = {
     teamCtx,
