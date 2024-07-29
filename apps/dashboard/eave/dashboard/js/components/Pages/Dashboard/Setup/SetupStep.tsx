@@ -43,10 +43,11 @@ interface Props {
   subHeader?: string;
   code: string;
   codeHeader: string;
+  codeLanguage: string;
   stepNumber: number;
 }
 
-export const SetupStep = ({ header, subHeader, code, codeHeader, stepNumber }: Props) => {
+export const SetupStep = ({ header, subHeader, code, codeHeader, stepNumber, codeLanguage }: Props) => {
   const { classes } = useStyles();
   const { classes: text } = textStyles();
 
@@ -65,7 +66,7 @@ export const SetupStep = ({ header, subHeader, code, codeHeader, stepNumber }: P
       </div>
       {/* CodeBlock */}
       <div className={classes.codeBlock}>
-        <CodeBlock codeString={code} codeHeader={codeHeader} />
+        <CodeBlock codeString={code} codeHeader={codeHeader} codeLanguage={codeLanguage} />
       </div>
     </div>
   );

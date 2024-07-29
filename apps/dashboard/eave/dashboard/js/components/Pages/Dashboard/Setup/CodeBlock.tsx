@@ -1,6 +1,5 @@
 import CheckmarkIcon from "$eave-dashboard/js/components/Icons/CheckmarkIcon";
 import CopyIcon from "$eave-dashboard/js/components/Icons/CopyIcon";
-import { buttonStyles } from "$eave-dashboard/js/theme";
 import React, { useState } from "react";
 import SyntaxHighlighter from "react-syntax-highlighter";
 import { github } from "react-syntax-highlighter/dist/esm/styles/hljs";
@@ -43,10 +42,17 @@ const useStyles = makeStyles()(() => ({
   },
 }));
 
-export default function CodeBlock({ codeString, codeHeader }: { codeString: string; codeHeader: string }) {
+export default function CodeBlock({
+  codeString,
+  codeHeader,
+  codeLanguage,
+}: {
+  codeString: string;
+  codeHeader: string;
+  codeLanguage: string;
+}) {
   const [isCopied, setIsCopied] = useState(false);
   const { classes } = useStyles();
-  const { classes: button } = buttonStyles();
 
   return (
     <div className={classes.container}>
@@ -73,7 +79,7 @@ export default function CodeBlock({ codeString, codeHeader }: { codeString: stri
       </div>
       <div className={classes.codeBlock}>
         <SyntaxHighlighter
-          language="javascript"
+          language={codeLanguage}
           style={github}
           customStyle={{
             padding: "25px",

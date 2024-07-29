@@ -65,20 +65,41 @@ const Setup = () => {
     <div className={classes.container}>
       {(() => {
         if (team?.clientCredentials && team?.eaveCombinedCredentials) {
-          const stepOne = `<script>window.EAVE_CLIENT_ID = "${team.clientCredentials.id}";</script>
-<script async src="https://cdn.eave.fyi/collector.js"></script>`;
-          const stepTwo = "pip install eave-collectors";
-          const stepThree = `EAVE_CREDENTIALS="${team.eaveCombinedCredentials}"`;
-          const stepFour = `from eave.collectors import start_eave_collectors
-start_eave_collectors()`;
+          const steps = [
+            {
+              header: "Add the Eave browser snippet to the header of your website",
+              subheader: undefined,
+              codeSnippet: `<script>window.EAVE_CLIENT_ID = "${team.clientCredentials.id}";</script>
+<script async src="https://cdn.eave.fyi/collector.js"></script>`,
+              codeLanguage: "javascript",
+              codeFileName: "index.html",
+            },
+            {
+              header: "Install the Eave Collectors Package",
+              subheader:
+                "If necessary, also add the eave-collectors package to your project dependencies (requirements.txt, pyproject.toml, etc.)",
+              codeSnippet: "pip install eave-collectors",
+              codeLanguage: "shell",
+              codeFileName: "Terminal",
+            },
+            {
+              header: "Set the following environment variable",
+              subheader: undefined,
+              codeSnippet: `EAVE_CREDENTIALS="${team.eaveCombinedCredentials}"`,
+              codeLanguage: "shellSession",
+              codeFileName: ".env",
+            },
+            {
+              header: "Start the Eave Collectors anywhere in your application",
+              subheader: undefined,
+              codeSnippet: `from eave.collectors import start_eave_collectors
+start_eave_collectors()`,
+              codeLanguage: "python",
+              codeFileName: "main.py",
+            },
+          ];
 
-          const copyInstructions = `Step 1: ${stepOne}
-
-Step 2: ${stepTwo}
-
-Step 3: ${stepThree}
-
-Step 4: ${stepFour}`;
+          const copyInstructions = steps.map((step, i) => `Step ${i}: ${step.codeSnippet}`).join("\n\n");
           return (
             <div>
               <div className={classes.headerContainer}>
@@ -105,31 +126,16 @@ Step 4: ${stepFour}`;
                 </motion.button>
               </div>
               <div className={classes.stepsContainer}>
-                <SetupStep
-                  header="Add the Eave browser snippet to the header of your website"
-                  code={stepOne}
-                  codeHeader="index.html"
-                  stepNumber={1}
-                />
-                <SetupStep
-                  header="Install the Eave Collectors Package"
-                  subHeader="If necessary, also add the eave-collectors package to your project dependencies (requirements.txt, pyproject.toml, etc.)"
-                  code={stepTwo}
-                  codeHeader="Terminal"
-                  stepNumber={2}
-                />
-                <SetupStep
-                  header="Set the following environment variable"
-                  code={stepThree}
-                  codeHeader=".env"
-                  stepNumber={3}
-                />
-                <SetupStep
-                  header="Start the Eave Collectors anywhere in your application"
-                  code={stepFour}
-                  stepNumber={4}
-                  codeHeader="main.py"
-                />
+                {steps.map((step, i) => (
+                  <SetupStep
+                    header={step.header}
+                    subHeader={step.subheader}
+                    code={step.codeSnippet}
+                    codeHeader={step.codeFileName}
+                    codeLanguage={step.codeLanguage}
+                    stepNumber={i + 1}
+                  />
+                ))}
               </div>
             </div>
           );
