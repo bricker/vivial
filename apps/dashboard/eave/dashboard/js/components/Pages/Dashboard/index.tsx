@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
+import { AppContext } from "$eave-dashboard/js/context/Provider.js";
 import useAuth from "$eave-dashboard/js/hooks/useAuth";
+import useTeam from "$eave-dashboard/js/hooks/useTeam.js";
 import { theme } from "$eave-dashboard/js/theme";
 import { CircularProgress } from "@mui/material";
 import classNames from "classnames";
@@ -55,9 +57,15 @@ const Dashboard = () => {
   const { classes } = makeClasses();
 
   const { userIsAuthed, validateUserAuth } = useAuth();
+  const { getClientCredentials } = useTeam();
+  const { clientCredentialsNetworkStateCtx } = useContext(AppContext);
+  const [networkState] = clientCredentialsNetworkStateCtx!;
 
   useEffect(() => {
     validateUserAuth();
+    // load client creds so we can seamlessly determine which nav tabs to show
+    // (i.e. should the setup tab be shown)
+    getClientCredentials();
   }, []);
 
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
@@ -84,7 +92,8 @@ const Dashboard = () => {
 
   const initialLocation = window.location.pathname;
 
-  if (!userIsAuthed) {
+  // TODO: what to do if request errors?
+  if (!userIsAuthed || networkState.credentialsAreLoading) {
     return (
       <div className={container}>
         <div className={classes.loader}>
