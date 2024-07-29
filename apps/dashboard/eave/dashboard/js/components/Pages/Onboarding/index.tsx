@@ -102,16 +102,13 @@ const Onboarding = () => {
       return;
     }
     createOnboardingFormSubmission({
-      form_data: {
-        platform: questions[0]?.value.map((v) => v.value),
-        languages: questions[1]?.value.map((v) => v.value),
-        frameworks: questions[2]?.value.map((v) => v.value),
-        databases: questions[3]?.value.map((v) => v.value),
-        third_party: questions[4]?.value.map((v) => v.value),
-      },
+      form_data: questions.reduce((formDataAcc: any, question) => {
+        formDataAcc[question.key]= question.value.map(v => v.value);
+        return formDataAcc;
+      }, {}),
     });
   };
-
+  
   return (
     <div className={classes.main}>
       <div className={classes.contentContainer}>
@@ -146,9 +143,9 @@ const Onboarding = () => {
 
         {/* Questions */}
         <div className={classes.questionsContainer}>
-          {questions.map((question, index) => (
+          {questions.map((question) => (
             <InputField
-              key={question.question}
+              key={question.key}
               question={question.question}
               questionOptions={question.options}
               setValue={question.setValue}

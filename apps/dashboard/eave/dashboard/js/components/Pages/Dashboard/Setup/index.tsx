@@ -61,8 +61,6 @@ const Setup = () => {
   }, [team]);
   const [copyQuestions, setCopyQuestions] = useState(false);
 
-  // useEffect(getClientCredentials, []);
-
   return (
     <div className={classes.container}>
       {(() => {

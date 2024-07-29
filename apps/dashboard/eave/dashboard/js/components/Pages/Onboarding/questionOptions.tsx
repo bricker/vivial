@@ -1,6 +1,8 @@
 import { useState } from "react";
 
 interface Question {
+  // NOTE: key values are read by backend and need to be kept in sync
+  key: string;
   text: string;
   options: QuestionOption[];
 }
@@ -14,18 +16,7 @@ export interface QuestionOption {
 
 const questions: Question[] = [
   {
-    text: "Which libraries and frameworks are used to build your product?",
-    options: [
-      { value: "flask", label: "Flask" },
-      { value: "express", label: "Express.js" },
-      { value: "gin", label: "Gin" },
-      { value: "fast_api", label: "FastAPI" },
-      { value: "django", label: "Django" },
-      { value: "ror", label: "Ruby on Rails" },
-      { value: "nextjs", label: "Next.js" },
-    ],
-  },
-  {
+    key: "platform",
     text: "Which platforms does your product support?",
     options: [
       { value: "web_app", label: "Web App" },
@@ -37,6 +28,7 @@ const questions: Question[] = [
     ],
   },
   {
+    key: "languages",
     text: "Which programming languages are used to build your product?",
     options: [
       { value: "python", label: "Python" },
@@ -51,6 +43,20 @@ const questions: Question[] = [
     ],
   },
   {
+    key: "frameworks",
+    text: "Which libraries and frameworks are used to build your product?",
+    options: [
+      { value: "flask", label: "Flask" },
+      { value: "express", label: "Express.js" },
+      { value: "gin", label: "Gin" },
+      { value: "fast_api", label: "FastAPI" },
+      { value: "django", label: "Django" },
+      { value: "ror", label: "Ruby on Rails" },
+      { value: "nextjs", label: "Next.js" },
+    ],
+  },
+  {
+    key: "databases",
     text: "Which databases are used to store your product data?",
     options: [
       { value: "mysql", label: "MySQL" },
@@ -60,6 +66,7 @@ const questions: Question[] = [
     ],
   },
   {
+    key: "third_party",
     text: "Which third party services are integrated into your product?",
     options: [
       { value: "openai", label: "OpenAI" },
@@ -78,6 +85,7 @@ export const useQuestions = () => {
     const [value, setValue] = useState<readonly QuestionOption[]>([]);
     const [error, setError] = useState(false);
     return {
+      key: question.key,
       question: question.text,
       options: question.options,
       value,
