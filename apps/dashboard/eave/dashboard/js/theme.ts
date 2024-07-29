@@ -199,6 +199,10 @@ export const buttonStyles = makeStyles()((_theme) => ({
     fontSize: 20,
     fontWeight: "bold",
   },
+
+  disabled: {
+    opacity: "50%",
+  },
 }));
 
 export const uiStyles = makeStyles()((_theme) => ({

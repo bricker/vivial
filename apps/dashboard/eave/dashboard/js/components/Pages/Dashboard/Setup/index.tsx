@@ -73,7 +73,14 @@ const Setup = () => {
           const stepThree = `EAVE_CREDENTIALS="${team.eaveCombinedCredentials}"`;
           const stepFour = `from eave.collectors import start_eave_collectors
 start_eave_collectors()`;
-          const copyString = `${stepOne}`;
+
+          const copyInstructions = `Step 1: ${stepOne}
+
+Step 2: ${stepTwo}
+
+Step 3: ${stepThree}
+
+Step 4: ${stepFour}`;
           return (
             <div>
               <div className={classes.headerContainer}>
@@ -84,7 +91,7 @@ start_eave_collectors()`;
                   className={button.default}
                   onClick={() => {
                     navigator.clipboard
-                      .writeText(copyString)
+                      .writeText(copyInstructions)
                       .then(() => {
                         setCopyQuestions(true);
                         setTimeout(() => {

@@ -54,6 +54,7 @@ const Onboarding = () => {
   const navigate = useNavigate();
 
   const [copyQuestions, setCopyQuestions] = useState(false);
+  const [allFieldsValid, setAllFieldsValid] = useState(false);
 
   const { team, getOnboardingFormSubmission, createOnboardingFormSubmission } = useTeam();
   const { onboardingFormNetworkStateCtx } = useContext(AppContext);
@@ -62,6 +63,11 @@ const Onboarding = () => {
   const questions = useQuestions();
 
   useEffect(getOnboardingFormSubmission, []);
+
+  useEffect(() => {
+    const allValid = questions.every((question) => question.value.length > 0);
+    setAllFieldsValid(allValid);
+  }, [questions]);
 
   // check if they have already submitted form
   useEffect(() => {
@@ -151,7 +157,11 @@ const Onboarding = () => {
           ))}
         </div>
         <div className={classes.submitContainer}>
-          <button className={button.darkBlue} onClick={handleNextClick}>
+          <button
+            className={classNames(button.darkBlue, { [button.disabled]: !allFieldsValid })}
+            onClick={handleNextClick}
+            disabled={!allFieldsValid}
+          >
             Next
           </button>
         </div>
