@@ -161,6 +161,12 @@ export const textStyles = makeStyles()((_theme) => ({
   gray: {
     color: "#7D7D7D",
   },
+  error: {
+    color: _theme.palette.error.main,
+    padding: "0px 30px",
+    textAlign: "center",
+    fontSize: "26px",
+  },
 }));
 
 export const buttonStyles = makeStyles()((_theme) => ({

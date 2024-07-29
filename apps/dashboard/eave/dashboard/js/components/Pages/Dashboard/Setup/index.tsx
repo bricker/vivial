@@ -148,7 +148,7 @@ start_eave_collectors()`,
         } else {
           // erroring, or request completed but no credentials were found
           return (
-            <div className={classNames(ui.loadingContainer, text.header)}>
+            <div className={classNames(ui.loadingContainer, text.header, text.error)}>
               ERROR: Failed to fetch your Eave credentials. Please try again later.
             </div>
           );

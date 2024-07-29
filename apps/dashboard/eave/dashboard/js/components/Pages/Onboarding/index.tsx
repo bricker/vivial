@@ -43,6 +43,13 @@ const useStyles = makeStyles()((theme) => ({
     width: "75%",
     marginTop: theme.spacing(2),
   },
+  loader: {
+    display: "flex",
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 32,
+  },
 }));
 
 const Onboarding = () => {
@@ -103,74 +110,96 @@ const Onboarding = () => {
     }
     createOnboardingFormSubmission({
       form_data: questions.reduce((formDataAcc: any, question) => {
-        formDataAcc[question.key]= question.value.map(v => v.value);
+        formDataAcc[question.key] = question.value.map((v) => v.value);
         return formDataAcc;
       }, {}),
     });
   };
-  
-  return (
-    <div className={classes.main}>
-      <div className={classes.contentContainer}>
-        {/* Header */}
-        <div>
-          {/* Title and Copy Button */}
-          <div className={classes.titleContainer}>
-            <h1 className={classNames(text.headerII, text.bold)}>Let's Get Started!</h1>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.9 }}
-              className={button.default}
-              onClick={() => {
-                navigator.clipboard
-                  .writeText(copyString)
-                  .then(() => {
-                    setCopyQuestions(true);
-                    setTimeout(() => {
-                      setCopyQuestions(false);
-                    }, 1500);
-                  })
-                  .catch(() => {
-                    setCopyQuestions(false);
-                  });
-              }}
-            >
-              {copyQuestions ? "Copied!" : "Copy Questions"}
-            </motion.button>
-          </div>
-          <h2 className={classNames(text.body, text.gray)}> Tell us about your tech stack</h2>
-        </div>
 
-        {/* Questions */}
-        <div className={classes.questionsContainer}>
-          {questions.map((question) => (
-            <InputField
-              key={question.key}
-              question={question.question}
-              questionOptions={question.options}
-              setValue={question.setValue}
-              error={question.error}
-            />
-          ))}
-        </div>
-        <div className={classes.submitContainer}>
-          <button
-            className={classNames(button.darkBlue, { [button.disabled]: !allFieldsValid })}
-            onClick={handleNextClick}
-            disabled={!allFieldsValid}
-          >
-            Next
-          </button>
-        </div>
-      </div>
-      {networkState.formSubmitIsLoading && (
-        <div className={classNames(ui.loadingContainer, ui.opaque)}>
+  if (networkState.formDataIsLoading) {
+    return (
+      <div className={classes.main}>
+        <div className={classes.loader}>
           <CircularProgress color="secondary" />
         </div>
-      )}
-      <EaveSideBanner />
-    </div>
-  );
+      </div>
+    );
+  } else if (networkState.formDataIsErroring) {
+    // TODO: update this text to something even more generic??
+    return (
+      <div className={classNames(ui.loadingContainer, text.header, text.error)}>
+        ERROR: Failed to fetch your Eave credentials. Please try again later.
+      </div>
+    );
+  } else {
+    return (
+      <div className={classes.main}>
+        <div className={classes.contentContainer}>
+          {/* Header */}
+          <div>
+            {/* Title and Copy Button */}
+            <div className={classes.titleContainer}>
+              <h1 className={classNames(text.headerII, text.bold)}>Let's Get Started!</h1>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.9 }}
+                className={button.default}
+                onClick={() => {
+                  navigator.clipboard
+                    .writeText(copyString)
+                    .then(() => {
+                      setCopyQuestions(true);
+                      setTimeout(() => {
+                        setCopyQuestions(false);
+                      }, 1500);
+                    })
+                    .catch(() => {
+                      setCopyQuestions(false);
+                    });
+                }}
+              >
+                {copyQuestions ? "Copied!" : "Copy Questions"}
+              </motion.button>
+            </div>
+            <h2 className={classNames(text.body, text.gray)}> Tell us about your tech stack</h2>
+          </div>
+
+          {/* Questions */}
+          <div className={classes.questionsContainer}>
+            {questions.map((question) => (
+              <InputField
+                key={question.key}
+                question={question.question}
+                questionOptions={question.options}
+                setValue={question.setValue}
+                error={question.error}
+              />
+            ))}
+          </div>
+          {networkState.formSubmitIsErroring && (
+            <div className={classNames(text.subHeader, text.error)}>
+              ERROR: Form could not be submitted. Please try again later.
+            </div>
+          )}
+          <div className={classes.submitContainer}>
+            <button
+              className={classNames(button.darkBlue, { [button.disabled]: !allFieldsValid })}
+              onClick={handleNextClick}
+              disabled={!allFieldsValid}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+        {networkState.formSubmitIsLoading && (
+          <div className={classNames(ui.loadingContainer, ui.opaque)}>
+            <CircularProgress color="secondary" />
+          </div>
+        )}
+        <EaveSideBanner />
+      </div>
+    );
+  }
 };
 
 export default Onboarding;
