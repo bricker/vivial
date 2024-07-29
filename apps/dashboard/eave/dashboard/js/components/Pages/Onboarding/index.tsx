@@ -64,7 +64,6 @@ const Onboarding = () => {
 
   // check if they have already submitted form
   useEffect(() => {
-    console.log("Onboarding Submission", team?.onboardingSubmission);
     if (
       !networkState.formDataIsLoading &&
       !networkState.formDataIsErroring &&
@@ -138,7 +137,7 @@ const Onboarding = () => {
         <div className={classes.questionsContainer}>
           {questions.map((question, index) => (
             <InputField
-              key={index}
+              key={question.question}
               question={question.question}
               questionOptions={question.options}
               setValue={question.setValue}

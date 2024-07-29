@@ -10,10 +10,11 @@ export interface QuestionOption {
 
 export const platformOptions: QuestionOption[] = [
   { value: "web_app", label: "Web App" },
-  { value: "mobile", label: "Mobile" },
-  { value: "desktop_app", label: "Desktop App" },
+  { value: "ios", label: "iOS" },
+  { value: "android", label: "Android" },
+  { value: "native_desktop_app", label: "Native Desktop App" },
   { value: "wear_os", label: "Wear OS" },
-  { value: "api", label: "API" },
+  { value: "api_service", label: "API Service" },
 ];
 
 export const databaseOptions: QuestionOption[] = [
@@ -39,7 +40,7 @@ export const frameworksOptions: QuestionOption[] = [
   { value: "flask", label: "Flask" },
   { value: "express", label: "Express.js" },
   { value: "gin", label: "Gin" },
-  { value: "fast_api", label: "Fast API" },
+  { value: "fast_api", label: "FastAPI" },
   { value: "django", label: "Django" },
   { value: "ror", label: "Ruby on Rails" },
   { value: "nextjs", label: "Next.js" },
@@ -118,8 +119,8 @@ export const useQuestions = () => {
 
 export const copyString = `Getting started with Eave. Please answer the questions below. 
 All information is kept confidential and strictly for the purposes of providing you with a proper product intelligence solution. 
-Which platform(s) does your product support? E.g. Web, iOS, Android, etc.
-Which programming language(s) are used to build your product? E.g. Python, JavaScript, Go, etc.
-Which programming libraries and framework(s) are used to build your product? E.g. Flask, Express, Gin, etc. 
-Which database(s) are used to store your product data? E.g. MySQL, Spanner, MongoDB, etc. 
-Which third party service(s) are integrated into your product? E.g. OpenAI, Anthropic, Gemini, Stripe, PayPal, Plaid, Square`;
+Which platforms does your product support? E.g. Web, iOS, Android, etc.
+Which programming languages are used to build your product? E.g. Python, JavaScript, Go, etc.
+Which programming libraries and frameworks are used to build your product? E.g. Flask, Express, Gin, etc. 
+Which databases are used to store your product data? E.g. MySQL, Spanner, MongoDB, etc. 
+Which third party services are integrated into your product? E.g. OpenAI, Anthropic, Gemini, Stripe, PayPal, Plaid, Square`;

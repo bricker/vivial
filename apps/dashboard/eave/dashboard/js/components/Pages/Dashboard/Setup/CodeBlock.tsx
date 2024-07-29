@@ -44,7 +44,7 @@ export default function CodeBlock({ codeString, codeHeader }: { codeString: stri
             setCopy("Copied");
             setTimeout(() => {
               setCopy("Copy Code");
-            }, 3000);
+            }, 1500);
           }}
         >
           {copy}

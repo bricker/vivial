@@ -48,9 +48,6 @@
     "parserOptions": {
       "project": "./tsconfig.json"
     }
-  },
-  "dependencies": {
-    "framer-motion": "^11.3.12",
-    "react-hook-form": "^7.52.1"
   }
+
 }

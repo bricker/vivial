@@ -1,6 +1,6 @@
 "use client";
 import { textStyles } from "$eave-dashboard/js/theme";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { StylesConfig } from "react-select";
 import CreatableSelect from "react-select/creatable";
 import { makeStyles } from "tss-react/mui";
@@ -77,16 +77,20 @@ const InputField: React.FC<InputFieldProps> = ({ question, questionOptions, setV
   const [options, setOptions] = useState<readonly QuestionOption[]>(questionOptions);
   const [value, setValueState] = useState<readonly QuestionOption[]>([]);
 
-  const handleCreate = (inputValue: string) => {
-    const newOption: QuestionOption = {
-      value: inputValue,
-      label: inputValue,
-    };
-    setOptions((prev) => [...prev, newOption]);
-    setValueState((prev) => [...prev, newOption]);
-    setValue([...value, newOption]);
-  };
-
+  const handleCreate = useCallback(
+    (inputValue: string) => {
+      const newOption: QuestionOption = {
+        value: inputValue,
+        label: inputValue,
+      };
+      setOptions((prev) => [...prev, newOption]);
+      setValueState((prev) => [...prev, newOption]);
+      const newOptions = [...questionOptions, newOption];
+      setValue(newOptions);
+    },
+    [setOptions, setValueState, setValue]
+  );
+  
   const handleChange = (newValue: readonly QuestionOption[]) => {
     setValueState(newValue);
     setValue(newValue);
@@ -105,7 +109,7 @@ const InputField: React.FC<InputFieldProps> = ({ question, questionOptions, setV
         styles={colourStyles}
         onCreateOption={handleCreate}
         value={value}
-        onChange={(newValue) => handleChange(newValue as QuestionOption[])}
+        onChange={(newValue) => handleChange(newValue)}
         formatCreateLabel={(inputValue) => <div style={{ color: "#1980DF" }}>Create "{inputValue}"</div>}
       />
       <div className={`${classes.errorContainer} ${text.body}`}>{error && <span>This field is required</span>}</div>
