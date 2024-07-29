@@ -1,6 +1,10 @@
 import { useState } from "react";
 
-// colorOptions.ts
+interface Question {
+  text: string;
+  options: QuestionOption[];
+}
+
 export interface QuestionOption {
   readonly value: string;
   readonly label: string;
@@ -8,119 +12,89 @@ export interface QuestionOption {
   readonly isDisabled?: boolean;
 }
 
-export const platformOptions: QuestionOption[] = [
-  { value: "web_app", label: "Web App" },
-  { value: "ios", label: "iOS" },
-  { value: "android", label: "Android" },
-  { value: "native_desktop_app", label: "Native Desktop App" },
-  { value: "wear_os", label: "Wear OS" },
-  { value: "api_service", label: "API Service" },
-];
-
-export const databaseOptions: QuestionOption[] = [
-  { value: "mysql", label: "MySQL" },
-  { value: "postgresql", label: "PostgreSQL" },
-  { value: "spanner", label: "Spanner" },
-  { value: "mongodb", label: "MongoDB" },
-];
-
-export const languagesOptions: QuestionOption[] = [
-  { value: "python", label: "Python" },
-  { value: "ruby", label: "Ruby" },
-  { value: "java", label: "Java" },
-  { value: "swift", label: "Swift" },
-  { value: "javascript", label: "JavaScript" },
-  { value: "typescript", label: "TypeScript" },
-  { value: "go", label: "Go" },
-  { value: "kotlin", label: "Kotlin" },
-  { value: "c++", label: "C++" },
-];
-
-export const frameworksOptions: QuestionOption[] = [
-  { value: "flask", label: "Flask" },
-  { value: "express", label: "Express.js" },
-  { value: "gin", label: "Gin" },
-  { value: "fast_api", label: "FastAPI" },
-  { value: "django", label: "Django" },
-  { value: "ror", label: "Ruby on Rails" },
-  { value: "nextjs", label: "Next.js" },
-];
-
-export const thirdPartyOptions: QuestionOption[] = [
-  { value: "openai", label: "OpenAI" },
-  { value: "anthropic", label: "Anthropic" },
-  { value: "gemini", label: "Gemini" },
-  { value: "stripe", label: "Stripe" },
-  { value: "paypal", label: "PayPal" },
-  { value: "plaid", label: "Plaid" },
-  { value: "square", label: "Square" },
+const questions: Question[] = [
+  {
+    text: "Which libraries and frameworks are used to build your product?",
+    options: [
+      { value: "flask", label: "Flask" },
+      { value: "express", label: "Express.js" },
+      { value: "gin", label: "Gin" },
+      { value: "fast_api", label: "FastAPI" },
+      { value: "django", label: "Django" },
+      { value: "ror", label: "Ruby on Rails" },
+      { value: "nextjs", label: "Next.js" },
+    ],
+  },
+  {
+    text: "Which platforms does your product support?",
+    options: [
+      { value: "web_app", label: "Web App" },
+      { value: "ios", label: "iOS+" },
+      { value: "android", label: "Android+" },
+      { value: "native_desktop_app", label: "Native Desktop App" },
+      { value: "wear_os", label: "Wear OS" },
+      { value: "api_service", label: "API Service" },
+    ],
+  },
+  {
+    text: "Which programming languages are used to build your product?",
+    options: [
+      { value: "python", label: "Python" },
+      { value: "ruby", label: "Ruby" },
+      { value: "java", label: "Java" },
+      { value: "swift", label: "Swift" },
+      { value: "javascript", label: "JavaScript" },
+      { value: "typescript", label: "TypeScript" },
+      { value: "go", label: "Go" },
+      { value: "kotlin", label: "Kotlin" },
+      { value: "c++", label: "C++" },
+    ],
+  },
+  {
+    text: "Which databases are used to store your product data?",
+    options: [
+      { value: "mysql", label: "MySQL" },
+      { value: "postgresql", label: "PostgreSQL" },
+      { value: "spanner", label: "Spanner" },
+      { value: "mongodb", label: "MongoDB" },
+    ],
+  },
+  {
+    text: "Which third party services are integrated into your product?",
+    options: [
+      { value: "openai", label: "OpenAI" },
+      { value: "anthropic", label: "Anthropic" },
+      { value: "gemini", label: "Gemini" },
+      { value: "stripe", label: "Stripe" },
+      { value: "paypal", label: "PayPal" },
+      { value: "plaid", label: "Plaid" },
+      { value: "square", label: "Square" },
+    ],
+  },
 ];
 
 export const useQuestions = () => {
-  const [frameworksValue, setFrameworksValue] = useState<readonly QuestionOption[]>([]);
-  const [platformValue, setPlatformValue] = useState<readonly QuestionOption[]>([]);
-  const [languagesValue, setLanguagesValue] = useState<readonly QuestionOption[]>([]);
-  const [databaseValue, setDatabaseValue] = useState<readonly QuestionOption[]>([]);
-  const [thirdPartyValue, setThirdPartyValue] = useState<readonly QuestionOption[]>([]);
-
-  const [platformError, setPlatformError] = useState(false);
-  const [languagesError, setLanguagesError] = useState(false);
-  const [frameworksError, setFrameworksError] = useState(false);
-  const [databaseError, setDatabaseError] = useState(false);
-  const [thirdPartyError, setThirdPartyError] = useState(false);
-
-  const frameworkQuestion = {
-    question: "Which libraries and framework(s) are used to build your product?",
-    options: frameworksOptions,
-    value: frameworksValue,
-    setValue: setFrameworksValue,
-    error: frameworksError,
-    setError: setFrameworksError,
-  };
-
-  const platformQuestion = {
-    question: "Which platform(s) does your product support?",
-    options: platformOptions,
-    value: platformValue,
-    setValue: setPlatformValue,
-    error: platformError,
-    setError: setPlatformError,
-  };
-
-  const languagesQuestion = {
-    question: "Which programming language(s) are used to build your product?",
-    options: languagesOptions,
-    value: languagesValue,
-    setValue: setLanguagesValue,
-    error: languagesError,
-    setError: setLanguagesError,
-  };
-
-  const databaseQuestion = {
-    question: "Which database(s) are used to store your product data?",
-    options: databaseOptions,
-    value: databaseValue,
-    setValue: setDatabaseValue,
-    error: databaseError,
-    setError: setDatabaseError,
-  };
-
-  const thirdPartyQuestion = {
-    question: "Which third party service(s) are integrated into your product?",
-    options: thirdPartyOptions,
-    value: thirdPartyValue,
-    setValue: setThirdPartyValue,
-    error: thirdPartyError,
-    setError: setThirdPartyError,
-  };
-
-  return [platformQuestion, languagesQuestion, frameworkQuestion, databaseQuestion, thirdPartyQuestion];
+  return questions.map((question) => {
+    const [value, setValue] = useState<readonly QuestionOption[]>([]);
+    const [error, setError] = useState(false);
+    return {
+      question: question.text,
+      options: question.options,
+      value,
+      setValue,
+      error,
+      setError,
+    };
+  });
 };
 
 export const copyString = `Getting started with Eave. Please answer the questions below. 
 All information is kept confidential and strictly for the purposes of providing you with a proper product intelligence solution. 
-Which platforms does your product support? E.g. Web, iOS, Android, etc.
-Which programming languages are used to build your product? E.g. Python, JavaScript, Go, etc.
-Which programming libraries and frameworks are used to build your product? E.g. Flask, Express, Gin, etc. 
-Which databases are used to store your product data? E.g. MySQL, Spanner, MongoDB, etc. 
-Which third party services are integrated into your product? E.g. OpenAI, Anthropic, Gemini, Stripe, PayPal, Plaid, Square`;
+${questions
+  .map((question) => {
+    return `${question.text} (E.g.  ${question.options
+      .slice(0, 3)
+      .map((opt) => opt.label)
+      .join(", ")})`;
+  })
+  .join("\n")}`;
