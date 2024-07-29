@@ -38,7 +38,7 @@ const Waitlist = () => {
           waitlist and we’ll follow up as soon as we can get you started!
         </h2>
       </div>
-      <EaveSideBanner />
+      <EaveSideBanner subtext="Questions? Comments? Feedback? We'd love to hear from you: info@eave.fyi" />
     </div>
   );
 };
