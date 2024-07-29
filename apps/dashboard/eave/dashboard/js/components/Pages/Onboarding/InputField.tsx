@@ -110,7 +110,7 @@ const InputField: React.FC<InputFieldProps> = ({ question, questionOptions, setV
         styles={colourStyles}
         onCreateOption={handleCreate}
         value={value}
-        onChange={(newValue) => handleChange(newValue)}
+        onChange={handleChange}
         formatCreateLabel={(inputValue) => <div style={{ color: "#1980DF" }}>Create "{inputValue}"</div>}
       />
       <div className={classNames(classes.errorContainer, text.body)}>
