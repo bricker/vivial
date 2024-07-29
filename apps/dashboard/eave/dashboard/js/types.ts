@@ -30,6 +30,7 @@ export type ClientCredentials = {
   id: string;
   secret: string;
   description: string;
+  last_used?: string;
 };
 
 export type ListMyVirtualEventsResponseBody = {

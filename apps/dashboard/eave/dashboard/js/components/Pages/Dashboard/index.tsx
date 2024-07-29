@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useState } from "react";
 
-import { AppContext } from "$eave-dashboard/js/context/Provider.js";
+import { AppContext } from "$eave-dashboard/js/context/Provider";
 import useAuth from "$eave-dashboard/js/hooks/useAuth";
-import useTeam from "$eave-dashboard/js/hooks/useTeam.js";
+import useTeam from "$eave-dashboard/js/hooks/useTeam";
 import { theme } from "$eave-dashboard/js/theme";
 import { CircularProgress } from "@mui/material";
 import classNames from "classnames";

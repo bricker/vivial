@@ -4,8 +4,10 @@ import { buttonStyles, textStyles, uiStyles } from "$eave-dashboard/js/theme";
 import { CircularProgress } from "@mui/material";
 import classNames from "classnames";
 import React, { useContext, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 import { SetupStep } from "./SetupStep";
+import { isSetupComplete } from "./util";
 
 const useStyles = makeStyles()((theme) => ({
   container: {
@@ -34,17 +36,28 @@ const useStyles = makeStyles()((theme) => ({
   },
 }));
 
+/**
+ * Depends on Dashboard parent component to call `getClientCredentials` for it
+ * (since Dashboard needs that  state to determine if this tab should even be
+ * available, and since calling the req again here causes a render loop.)
+ * @returns
+ */
 const Setup = () => {
   const { classes } = useStyles();
   const { classes: ui } = uiStyles();
   const { classes: text } = textStyles();
   const { classes: button } = buttonStyles();
 
-  const { team, getClientCredentials } = useTeam();
+  const navigate = useNavigate();
+  const { team } = useTeam();
   const { clientCredentialsNetworkStateCtx } = useContext(AppContext);
   const [networkState] = clientCredentialsNetworkStateCtx!;
 
-  useEffect(getClientCredentials, []);
+  useEffect(() => {
+    if (isSetupComplete(team)) {
+      navigate("/insights");
+    }
+  }, [team]);
 
   return (
     <div className={classes.container}>

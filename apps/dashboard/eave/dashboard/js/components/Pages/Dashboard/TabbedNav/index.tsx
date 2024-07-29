@@ -12,6 +12,7 @@ import { theme } from "$eave-dashboard/js/theme";
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
+import { isSetupComplete } from "../Setup/util";
 
 const makeClasses = makeStyles()(() => ({
   spacer: {
@@ -48,7 +49,7 @@ const TabbedNav = () => {
   return (
     <SidebarNav hamburger={usingMobileLayout}>
       <Menu>
-        {team?.clientCredentials && (
+        {!isSetupComplete(team) && (
           <MenuItem label="Setup" to="/setup" selected={location.pathname === "/setup"} expanded={usingMobileLayout}>
             <SetupIcon color={iconColor(location.pathname === "/setup")} />
           </MenuItem>
