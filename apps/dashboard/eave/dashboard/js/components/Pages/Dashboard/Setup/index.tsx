@@ -3,7 +3,8 @@ import useTeam from "$eave-dashboard/js/hooks/useTeam";
 import { buttonStyles, textStyles, uiStyles } from "$eave-dashboard/js/theme";
 import { CircularProgress } from "@mui/material";
 import classNames from "classnames";
-import React, { useContext, useEffect } from "react";
+import { motion } from "framer-motion";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 import { SetupStep } from "./SetupStep";
@@ -58,13 +59,12 @@ const Setup = () => {
       navigate("/insights");
     }
   }, [team]);
+  const [copyQuestions, setCopyQuestions] = useState(false);
+
+  // useEffect(getClientCredentials, []);
 
   return (
     <div className={classes.container}>
-      <div className={classes.headerContainer}>
-        <h1>Getting Started</h1>
-        <button className={button.default}>copy something TODO</button>
-      </div>
       {(() => {
         if (team?.clientCredentials && team?.eaveCombinedCredentials) {
           const stepOne = `<script>window.EAVE_CLIENT_ID = "${team.clientCredentials.id}";</script>
@@ -73,25 +73,59 @@ const Setup = () => {
           const stepThree = `EAVE_CREDENTIALS="${team.eaveCombinedCredentials}"`;
           const stepFour = `from eave.collectors import start_eave_collectors
 start_eave_collectors()`;
+          const copyString = `${stepOne}`;
           return (
-            <div className={classes.stepsContainer}>
-              <SetupStep
-                header="Add the Eave browser snippet to the header of your website"
-                code={stepOne}
-                codeHeader="index.html"
-              />
-              <SetupStep
-                header="Install the Eave Collectors Package"
-                subHeader="If necessary, also add the eave-collectors package to your project dependencies (requirements.txt, pyproject.toml, etc.)"
-                code={stepTwo}
-                codeHeader="Terminal"
-              />
-              <SetupStep header="Set the following environment variable" code={stepThree} codeHeader=".env" />
-              <SetupStep
-                header="Start the Eave Collectors anywhere in your application"
-                code={stepFour}
-                codeHeader="main.py"
-              />
+            <div>
+              <div className={classes.headerContainer}>
+                <h1>Getting Started</h1>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.9 }}
+                  className={button.default}
+                  onClick={() => {
+                    navigator.clipboard
+                      .writeText(copyString)
+                      .then(() => {
+                        setCopyQuestions(true);
+                        setTimeout(() => {
+                          setCopyQuestions(false);
+                        }, 1500);
+                      })
+                      .catch(() => {
+                        setCopyQuestions(false);
+                      });
+                  }}
+                >
+                  {copyQuestions ? "Copied!" : "Copy Questions"}
+                </motion.button>
+              </div>
+              <div className={classes.stepsContainer}>
+                <SetupStep
+                  header="Add the Eave browser snippet to the header of your website"
+                  code={stepOne}
+                  codeHeader="index.html"
+                  stepNumber={1}
+                />
+                <SetupStep
+                  header="Install the Eave Collectors Package"
+                  subHeader="If necessary, also add the eave-collectors package to your project dependencies (requirements.txt, pyproject.toml, etc.)"
+                  code={stepTwo}
+                  codeHeader="Terminal"
+                  stepNumber={2}
+                />
+                <SetupStep
+                  header="Set the following environment variable"
+                  code={stepThree}
+                  codeHeader=".env"
+                  stepNumber={3}
+                />
+                <SetupStep
+                  header="Start the Eave Collectors anywhere in your application"
+                  code={stepFour}
+                  stepNumber={4}
+                  codeHeader="main.py"
+                />
+              </div>
             </div>
           );
         } else if (networkState?.credentialsAreLoading) {

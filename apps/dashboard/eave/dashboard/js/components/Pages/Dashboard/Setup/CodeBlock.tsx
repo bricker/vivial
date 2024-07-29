@@ -1,3 +1,5 @@
+import CheckmarkIcon from "$eave-dashboard/js/components/Icons/CheckmarkIcon";
+import CopyIcon from "$eave-dashboard/js/components/Icons/CopyIcon";
 import { buttonStyles } from "$eave-dashboard/js/theme";
 import React, { useState } from "react";
 import SyntaxHighlighter from "react-syntax-highlighter";
@@ -26,6 +28,19 @@ const useStyles = makeStyles()(() => ({
     overflow: "auto",
     maxHeight: "400px",
   },
+  button: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "transparent",
+    border: "0px",
+    cursor: "pointer",
+    aspectRatio: 1,
+    borderRadius: "20%", // Makes the button rounded
+    "&:hover": {
+      backgroundColor: "#E4E4E4",
+    },
+  },
 }));
 
 export default function CodeBlock({ codeString, codeHeader }: { codeString: string; codeHeader: string }) {
@@ -38,7 +53,7 @@ export default function CodeBlock({ codeString, codeHeader }: { codeString: stri
       <div className={classes.textContainer}>
         <p>{codeHeader}</p>
         <button
-          className={button.invisible}
+          className={classes.button}
           onClick={() => {
             navigator.clipboard
               .writeText(codeString)
@@ -53,7 +68,7 @@ export default function CodeBlock({ codeString, codeHeader }: { codeString: stri
               });
           }}
         >
-          {isCopied ? "Copied!" : "Copy Code"}
+          {isCopied ? <CheckmarkIcon width="24px" height="24px" /> : <CopyIcon width="24px" height="24px" />}
         </button>
       </div>
       <div className={classes.codeBlock}>
