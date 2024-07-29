@@ -22,9 +22,8 @@ const useStyles = makeStyles()((theme) => ({
     overflow: "auto",
     height: "100vh",
     justifyContent: "flex-end",
-    paddingTop: theme.spacing(8),
-    paddingLeft: theme.spacing(8),
-    paddingRight: theme.spacing(8),
+    padding: theme.spacing(8),
+    paddingBottom: theme.spacing(2),
   },
   titleContainer: {
     display: "flex",
@@ -42,6 +41,9 @@ const useStyles = makeStyles()((theme) => ({
   questionsContainer: {
     width: "75%",
     marginTop: theme.spacing(2),
+    display: "flex",
+    flexDirection: "column",
+    gap: theme.spacing(4),
   },
   loader: {
     display: "flex",
@@ -93,113 +95,77 @@ const Onboarding = () => {
   }, [networkState.formDataIsLoading, networkState.formDataIsErroring, team, navigate]);
 
   const handleNextClick = () => {
-    let hasError = false;
-
-    // Check if every question is filled
-    questions.forEach((question) => {
-      if (question.value.length === 0) {
-        question.setError(true);
-        hasError = true;
-      } else {
-        question.setError(false);
-      }
-    });
-
-    if (hasError) {
-      return;
-    }
     createOnboardingFormSubmission({
       form_data: questions.reduce((formDataAcc: any, question) => {
+        console.log(question.value.map((v) => v.value));
         formDataAcc[question.key] = question.value.map((v) => v.value);
         return formDataAcc;
       }, {}),
     });
   };
 
-  if (networkState.formDataIsLoading) {
-    return (
-      <div className={classes.main}>
-        <div className={classes.loader}>
+  return (
+    <div className={classes.main}>
+      <div className={classes.contentContainer}>
+        {/* Header */}
+        <div>
+          {/* Title and Copy Button */}
+          <div className={classes.titleContainer}>
+            <h1 className={classNames(text.headerII, text.bold)}>Let's Get Started!</h1>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.9 }}
+              className={button.default}
+              onClick={() => {
+                navigator.clipboard
+                  .writeText(copyString)
+                  .then(() => {
+                    setCopyQuestions(true);
+                    setTimeout(() => {
+                      setCopyQuestions(false);
+                    }, 1500);
+                  })
+                  .catch(() => {
+                    setCopyQuestions(false);
+                  });
+              }}
+            >
+              {copyQuestions ? "Copied!" : "Copy Questions"}
+            </motion.button>
+          </div>
+          <h2 className={classNames(text.body, text.gray)}> Tell us about your tech stack</h2>
+        </div>
+
+        {/* Questions */}
+        <div className={classes.questionsContainer}>
+          {questions.map((question) => (
+            <InputField
+              key={question.key}
+              question={question.question}
+              questionOptions={question.options}
+              setValue={question.setValue}
+              error={question.error}
+            />
+          ))}
+        </div>
+        <div className={classes.submitContainer}>
+          <button
+            className={classNames(button.darkBlue, { [button.disabled]: !allFieldsValid })}
+            onClick={handleNextClick}
+            disabled={!allFieldsValid}
+          >
+            Next
+          </button>
+        </div>
+      </div>
+      {networkState.formSubmitIsLoading && (
+        <div className={classNames(ui.loadingContainer, ui.opaque)}>
           <CircularProgress color="secondary" />
         </div>
-      </div>
-    );
-  } else if (networkState.formDataIsErroring) {
-    // TODO: update this text to something even more generic??
-    return (
-      <div className={classNames(ui.loadingContainer, text.header, text.error)}>
-        ERROR: Failed to fetch your Eave credentials. Please try again later.
-      </div>
-    );
-  } else {
-    return (
-      <div className={classes.main}>
-        <div className={classes.contentContainer}>
-          {/* Header */}
-          <div>
-            {/* Title and Copy Button */}
-            <div className={classes.titleContainer}>
-              <h1 className={classNames(text.headerII, text.bold)}>Let's Get Started!</h1>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.9 }}
-                className={button.default}
-                onClick={() => {
-                  navigator.clipboard
-                    .writeText(copyString)
-                    .then(() => {
-                      setCopyQuestions(true);
-                      setTimeout(() => {
-                        setCopyQuestions(false);
-                      }, 1500);
-                    })
-                    .catch(() => {
-                      setCopyQuestions(false);
-                    });
-                }}
-              >
-                {copyQuestions ? "Copied!" : "Copy Questions"}
-              </motion.button>
-            </div>
-            <h2 className={classNames(text.body, text.gray)}> Tell us about your tech stack</h2>
-          </div>
-
-          {/* Questions */}
-          <div className={classes.questionsContainer}>
-            {questions.map((question) => (
-              <InputField
-                key={question.key}
-                question={question.question}
-                questionOptions={question.options}
-                setValue={question.setValue}
-                error={question.error}
-              />
-            ))}
-          </div>
-          {networkState.formSubmitIsErroring && (
-            <div className={classNames(text.subHeader, text.error)}>
-              ERROR: Form could not be submitted. Please try again later.
-            </div>
-          )}
-          <div className={classes.submitContainer}>
-            <button
-              className={classNames(button.darkBlue, { [button.disabled]: !allFieldsValid })}
-              onClick={handleNextClick}
-              disabled={!allFieldsValid}
-            >
-              Next
-            </button>
-          </div>
-        </div>
-        {networkState.formSubmitIsLoading && (
-          <div className={classNames(ui.loadingContainer, ui.opaque)}>
-            <CircularProgress color="secondary" />
-          </div>
-        )}
-        <EaveSideBanner />
-      </div>
-    );
-  }
+      )}
+      <EaveSideBanner />
+    </div>
+  );
 };
 
 export default Onboarding;

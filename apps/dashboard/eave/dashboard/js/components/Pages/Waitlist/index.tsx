@@ -4,7 +4,7 @@ import classNames from "classnames";
 import React from "react";
 import { makeStyles } from "tss-react/mui";
 
-const useStyles = makeStyles()(() => ({
+const useStyles = makeStyles()((theme) => ({
   container: {
     display: "flex",
     height: "100vh",
@@ -14,15 +14,10 @@ const useStyles = makeStyles()(() => ({
     flex: 2,
     overflow: "auto",
     height: "100vh",
-    paddingTop: 64,
-    paddingLeft: 64,
-    paddingRight: 64,
-  },
-
-  subtitle: {
-    fontSize: 36,
-    color: "#535353",
-    fontWeight: "normal",
+    padding: theme.spacing(8),
+    [theme.breakpoints.down("md")]: {
+      padding: theme.spacing(4),
+    },
   },
 }));
 

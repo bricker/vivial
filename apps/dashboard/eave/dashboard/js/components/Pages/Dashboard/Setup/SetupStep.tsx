@@ -10,6 +10,9 @@ const useStyles = makeStyles()((theme) => ({
     width: "100%",
     justifyContent: "center",
     alignItems: "flex-start",
+    [theme.breakpoints.down("md")]: {
+      flexDirection: "column",
+    },
   },
   leftSideContainer: {
     flex: 1,
@@ -17,6 +20,11 @@ const useStyles = makeStyles()((theme) => ({
     gap: theme.spacing(1),
     marginRight: theme.spacing(2),
     minHeight: theme.spacing(20),
+    [theme.breakpoints.down("md")]: {
+      minHeight: "auto",
+      marginBottom: theme.spacing(2),
+      marginRight: 0,
+    },
   },
   instructions: {
     flex: 1,
@@ -25,6 +33,9 @@ const useStyles = makeStyles()((theme) => ({
     flex: 2,
     height: "100%",
     overflow: "hidden", // Ensure the code block doesn't overflow
+    [theme.breakpoints.down("md")]: {
+      width: "100%",
+    },
   },
   number: {
     margin: 0,

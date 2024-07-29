@@ -128,6 +128,9 @@ export const textStyles = makeStyles()((_theme) => ({
   display: {
     fontSize: 64,
     lineHeight: 1.1,
+    [theme.breakpoints.down("md")]: {
+      fontSize: 48,
+    },
   },
   headerIII: {
     fontSize: 52,
@@ -139,6 +142,9 @@ export const textStyles = makeStyles()((_theme) => ({
     fontSize: 36,
     fontWeight: "normal",
     margin: 0,
+    [theme.breakpoints.down("md")]: {
+      fontSize: 24,
+    },
   },
   header: {
     fontSize: 24,
@@ -152,8 +158,11 @@ export const textStyles = makeStyles()((_theme) => ({
     margin: 0,
   },
   body: {
-    fontSize: 18,
+    fontSize: 20,
     margin: 0,
+    [theme.breakpoints.down("md")]: {
+      fontSize: 18,
+    },
   },
   bold: {
     fontWeight: "bold",
@@ -224,5 +233,6 @@ export const uiStyles = makeStyles()((_theme) => ({
   },
   opaque: {
     backgroundColor: "rgba(255, 255, 255, 0.5)",
+    cursor: "pointer",
   },
 }));

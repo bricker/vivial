@@ -14,6 +14,9 @@ const useStyles = makeStyles()((theme) => ({
     flexDirection: "column",
     overflow: "hidden",
     position: "relative",
+    [theme.breakpoints.down("lg")]: {
+      display: "none",
+    },
   },
   textContainer: {
     display: "flex",
@@ -31,6 +34,18 @@ const useStyles = makeStyles()((theme) => ({
   rounded: {
     borderRadius: 20,
     margin: 16,
+  },
+  title: {
+    fontSize: "4vw", // Responsive font size
+    maxWidth: "100%",
+    lineHeight: 1.1,
+    margin: 0,
+  },
+  subtext: {
+    fontSize: "1.5vw", // Responsive font size
+    maxWidth: "100%",
+    lineHeight: 1.1,
+    margin: 0,
   },
 }));
 
@@ -56,8 +71,8 @@ export default function EaveSideBanner({
   return (
     <div className={bannerClasses}>
       <div className={classes.textContainer}>
-        <h1 className={`${text.headerIII} ${text.bold}`}>{title}</h1>
-        <h3 className={`${text.subHeader} ${text.bold}`}>{subtext}</h3>
+        <h1 className={`${classes.title} ${text.bold}`}>{title}</h1>
+        <h3 className={`${classes.subtext} ${text.bold}`}>{subtext}</h3>
       </div>
       <div className={classes.logo}>
         <EaveBlueIcon />
