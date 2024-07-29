@@ -62,7 +62,7 @@ start_eave_collectors()`;
           return (
             <div className={classes.stepsContainer}>
               <SetupStep
-                header={"Add the Eave browser snippet to the header of your website"}
+                header="Add the Eave browser snippet to the header of your website"
                 code={stepOne}
                 codeHeader={"index.html"}
               />

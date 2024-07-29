@@ -142,7 +142,7 @@ const Onboarding = () => {
         <div className={classes.questionsContainer}>
           {questions.map((question, index) => (
             <InputField
-              key={index}
+              key={question.question}
               question={question.question}
               questionOptions={question.options}
               setValue={question.setValue}

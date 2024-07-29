@@ -49,7 +49,7 @@ export default function CodeBlock({ codeString, codeHeader }: { codeString: stri
                 setCopy(COPIED_BUTTON_TEXT);
                 setTimeout(() => {
                   setCopy(COPY_BUTTON_TEXT);
-                }, 3000);
+                }, 1500);
               })
               .catch(() => {
                 setCopy(COPY_BUTTON_TEXT);
