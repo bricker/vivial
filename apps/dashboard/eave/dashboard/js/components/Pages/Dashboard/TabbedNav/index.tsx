@@ -48,12 +48,10 @@ const TabbedNav = () => {
   return (
     <SidebarNav hamburger={usingMobileLayout}>
       <Menu>
-        {team?.clientCredentials ? (
+        {team?.clientCredentials && (
           <MenuItem label="Setup" to="/setup" selected={location.pathname === "/setup"} expanded={usingMobileLayout}>
             <SetupIcon color={iconColor(location.pathname === "/setup")} />
           </MenuItem>
-        ) : (
-          <></>
         )}
 
         <MenuItem
