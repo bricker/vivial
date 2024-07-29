@@ -29,7 +29,7 @@ const useStyles = makeStyles()(() => ({
 }));
 
 const COPY_BUTTON_TEXT = "Copy Code";
-const COPIED_BUTTON_TEXT = "Copied";
+const COPIED_BUTTON_TEXT = "Copied!";
 
 export default function CodeBlock({ codeString, codeHeader }: { codeString: string; codeHeader: string }) {
   const [copy, setCopy] = useState(COPY_BUTTON_TEXT);
