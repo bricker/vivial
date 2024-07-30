@@ -47,6 +47,7 @@ const questions: Question[] = [
     text: "Which libraries and frameworks are used to build your product?",
     options: [
       { value: "flask", label: "Flask" },
+      { value: "starlette", label: "Starlette" },
       { value: "express", label: "Express.js" },
       { value: "gin", label: "Gin" },
       { value: "fast_api", label: "FastAPI" },

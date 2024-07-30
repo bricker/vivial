@@ -97,7 +97,6 @@ const Onboarding = () => {
   const handleNextClick = () => {
     createOnboardingFormSubmission({
       form_data: questions.reduce((formDataAcc: any, question) => {
-        console.log(question.value.map((v) => v.value));
         formDataAcc[question.key] = question.value.map((v) => v.value);
         return formDataAcc;
       }, {}),
