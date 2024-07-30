@@ -15,7 +15,7 @@ describe("eave UTM and query parameter collection", () => {
     );
 
     // THEN utm params are included in fired events
-    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
+    cy.waitForAtom().then((interception) => {
       const traffic_src = JSON.parse(
         interception.response.body.events.browser_event[0].corr_ctx["_eave.traffic_source"],
       );
@@ -36,15 +36,15 @@ describe("eave UTM and query parameter collection", () => {
         qp: "utm_source=tickletok&utm_campaign=gogole",
       }),
     );
-    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
+    cy.waitForAtom();
 
     // WHEN performing some other event triggering action
     cy.get("#page-link").click();
     // await btn click
-    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
+    cy.waitForAtom();
 
     // THEN query/utm params are still included in the following event
-    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
+    cy.waitForAtom().then((interception) => {
       expect(interception.response.body.events.browser_event[0].action).to.deep.equal("PAGE_VIEW");
       expect(interception.response.body.events.browser_event[0].extra.reason).to.deep.equal("statechange");
       const traffic_src = JSON.parse(
@@ -67,13 +67,13 @@ describe("eave UTM and query parameter collection", () => {
         qp: "utm_source=tickletok&utm_campaign=gogole",
       }),
     );
-    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
+    cy.waitForAtom();
 
     // WHEN navigating to a page w/ different query params
     cy.visit(dummyAppRoot({ path: "/", qp: "search=beans&filter=canned" }));
 
     // THEN the original saved query/utm params included in the event
-    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
+    cy.waitForAtom().then((interception) => {
       const traffic_src = JSON.parse(
         interception.response.body.events.browser_event[0].corr_ctx["_eave.traffic_source"],
       );
@@ -87,7 +87,7 @@ describe("eave UTM and query parameter collection", () => {
     cy.visit(dummyAppRoot({ path: "/", qp: "search=food&approval=fda" }));
 
     // THEN current query params included in the event, prev qp not included
-    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
+    cy.waitForAtom().then((interception) => {
       const traffic_src = JSON.parse(
         interception.response.body.events.browser_event[0].corr_ctx["_eave.traffic_source"],
       );
@@ -107,7 +107,7 @@ describe("eave UTM and query parameter collection", () => {
         qp: "utm_source=tickletok&utm_campaign=gogole",
       }),
     );
-    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
+    cy.waitForAtom().then((interception) => {
       // inital referrer data set
       const traffic_src = JSON.parse(
         interception.response.body.events.browser_event[0].corr_ctx["_eave.traffic_source"],
@@ -127,7 +127,7 @@ describe("eave UTM and query parameter collection", () => {
     );
 
     // THEN utm params are included in fired events
-    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
+    cy.waitForAtom().then((interception) => {
       // referrer data not set
       const traffic_src = JSON.parse(
         interception.response.body.events.browser_event[0].corr_ctx["_eave.traffic_source"],
@@ -148,14 +148,14 @@ describe("eave UTM and query parameter collection", () => {
         qp: "utm_source=tickletok&utm_campaign=gogole",
       }),
     );
-    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
+    cy.waitForAtom();
 
     // WHEN the session expires (and traffic source at the same time)
     cy.expireSessionAndTrafficSourceCookies();
 
     // THEN eave tries to pull traffic src from curr URL for next event
     cy.get("#page-link").click();
-    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
+    cy.waitForAtom().then((interception) => {
       // traffic source brought back from url when available
       const traffic_src = JSON.parse(
         interception.response.body.events.browser_event[0].corr_ctx["_eave.traffic_source"],
@@ -171,7 +171,7 @@ describe("eave UTM and query parameter collection", () => {
 
     // THEN eave sets a null traffic src
     cy.get("#page-link").click();
-    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
+    cy.waitForAtom().then((interception) => {
       // traffic source brought back from url when available
       const traffic_src = JSON.parse(
         interception.response.body.events.browser_event[0].corr_ctx["_eave.traffic_source"],
