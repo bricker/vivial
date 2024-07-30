@@ -74,7 +74,7 @@ class OnboardingSubmissionOrm(Base):
         team for Eave usage.
         """
         # CURRENTLY DENY ALL
-        return False
+        # return False
         form_responses = self.response_data.copy()
         # convert all answers to lowercase for easier comparison
         for question_key, response_list in form_responses.items():

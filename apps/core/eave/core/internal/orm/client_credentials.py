@@ -47,7 +47,9 @@ class ClientCredentialsOrm(Base):
 
     @property
     def api_model(self) -> ClientCredentials:
-        return ClientCredentials.from_orm(self)
+        creds = ClientCredentials.from_orm(self)
+        creds.combined = self.combined
+        return creds
 
     @classmethod
     async def create(

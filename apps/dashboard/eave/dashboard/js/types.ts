@@ -30,6 +30,7 @@ export type ClientCredentials = {
   id: string;
   secret: string;
   description: string;
+  combined: string;
   last_used?: string;
 };
 
@@ -61,7 +62,6 @@ export type GetMyOnboardingSubmissionResponseBody = {
 
 export type GetMyClientCredentialsResponseBody = {
   client_credentials: ClientCredentials;
-  eave_combined_credentials: string;
 };
 
 export type GetTeamResponseBody = {
@@ -84,7 +84,6 @@ export type DashboardTeam = {
   onboardingSubmission?: OnboardingSubmission;
   virtualEvents?: VirtualEventDetails[];
   clientCredentials?: ClientCredentials;
-  eaveCombinedCredentials?: string;
 };
 
 export type DashboardNetworkState = {

@@ -64,7 +64,7 @@ const Setup = () => {
   return (
     <div className={classes.container}>
       {(() => {
-        if (team?.clientCredentials && team?.eaveCombinedCredentials) {
+        if (team?.clientCredentials) {
           const steps = [
             {
               header: "Add the Eave browser snippet to the header of your website",
@@ -85,7 +85,7 @@ const Setup = () => {
             {
               header: "Set the following environment variable",
               subheader: undefined,
-              codeSnippet: `EAVE_CREDENTIALS="${team.eaveCombinedCredentials}"`,
+              codeSnippet: `EAVE_CREDENTIALS="${team.clientCredentials.combined}"`,
               codeLanguage: "shellSession",
               codeFileName: ".env",
             },

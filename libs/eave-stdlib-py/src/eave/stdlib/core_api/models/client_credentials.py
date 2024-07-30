@@ -9,3 +9,4 @@ class ClientCredentials(BaseResponseModel):
     secret: str
     description: str | None
     last_used: datetime | None
+    combined: str

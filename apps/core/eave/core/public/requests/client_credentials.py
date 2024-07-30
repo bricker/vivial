@@ -21,6 +21,5 @@ class GetMyClientCredentialsEndpoint(HTTPEndpoint):
         return json_response(
             GetMyClientCredentialsRequest.ResponseBody(
                 client_credentials=creds.api_model,
-                eave_combined_credentials=creds.combined,
             )
         )

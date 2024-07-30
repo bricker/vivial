@@ -370,7 +370,6 @@ const useTeam = (): TeamHook => {
             return {
               ...prev,
               clientCredentials: data.client_credentials,
-              eaveCombinedCredentials: data.eave_combined_credentials,
             };
           });
 
