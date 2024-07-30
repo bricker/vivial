@@ -39,7 +39,7 @@ const useStyles = makeStyles()((theme) => ({
 
 /**
  * Depends on Dashboard parent component to call `getClientCredentials` for it
- * (since Dashboard needs that  state to determine if this tab should even be
+ * (since Dashboard needs that state to determine if this tab should even be
  * available, and since calling the req again here causes a render loop.)
  * @returns
  */
