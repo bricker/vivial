@@ -20,7 +20,7 @@ const makeClasses = makeStyles()(() => ({
   },
 }));
 
-function iconColor(isSelected: boolean): "white" | "black" {
+function iconColor({ isSelected }: { isSelected: boolean }): "white" | "black" {
   return isSelected ? "white" : "black";
 }
 
@@ -51,7 +51,7 @@ const TabbedNav = () => {
       <Menu>
         {!isSetupComplete(team) && (
           <MenuItem label="Setup" to="/setup" selected={location.pathname === "/setup"} expanded={usingMobileLayout}>
-            <SetupIcon color={iconColor(location.pathname === "/setup")} />
+            <SetupIcon color={iconColor({ isSelected: location.pathname === "/setup" })} />
           </MenuItem>
         )}
 
@@ -61,7 +61,7 @@ const TabbedNav = () => {
           selected={location.pathname === "/insights"}
           expanded={usingMobileLayout}
         >
-          <GraphIcon color={iconColor(location.pathname === "/insights")} />
+          <GraphIcon color={iconColor({ isSelected: location.pathname === "/insights" })} />
         </MenuItem>
 
         <MenuItem
@@ -70,7 +70,7 @@ const TabbedNav = () => {
           selected={location.pathname === "/glossary"}
           expanded={usingMobileLayout}
         >
-          <GlossaryIcon color={iconColor(location.pathname === "/glossary")} />
+          <GlossaryIcon color={iconColor({ isSelected: location.pathname === "/glossary" })} />
         </MenuItem>
 
         {!usingMobileLayout && <div className={classes.spacer}></div>}
@@ -81,7 +81,7 @@ const TabbedNav = () => {
           selected={location.pathname === "/settings"}
           expanded={usingMobileLayout}
         >
-          <SettingsCogIcon color={iconColor(location.pathname === "/settings")} />
+          <SettingsCogIcon color={iconColor({ isSelected: location.pathname === "/settings" })} />
         </MenuItem>
 
         <MenuItem
@@ -90,11 +90,11 @@ const TabbedNav = () => {
           selected={location.pathname === "/team"}
           expanded={usingMobileLayout}
         >
-          <TeamIcon color={iconColor(location.pathname === "/team")} />
+          <TeamIcon color={iconColor({ isSelected: location.pathname === "/team" })} />
         </MenuItem>
 
         <MenuItem label="Log Out" to="/logout" reloadDocument={true} selected={false} expanded={usingMobileLayout}>
-          <SignOutIcon color={iconColor(false)} />
+          <SignOutIcon color={iconColor({ isSelected: false })} />
         </MenuItem>
       </Menu>
     </SidebarNav>
