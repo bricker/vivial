@@ -4,5 +4,7 @@ export const EAVE_ATOM_INGESTION_ENDPOINT = `${EAVE_API_BASE_URL_PUBLIC}/public/
 export const ATOM_INTERCEPTION_EVENT_NAME = "atomFired";
 
 export function dummyAppRoot({ path, qp } = { path: "/", qp: "" }) {
+  path = path ?? "/";
+  qp = qp ?? ""
   return `http://localhost:3300${path}?${qp}`;
 }

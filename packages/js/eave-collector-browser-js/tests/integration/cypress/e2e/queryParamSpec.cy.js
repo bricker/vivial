@@ -138,4 +138,45 @@ describe("eave UTM and query parameter collection", () => {
       });
     });
   });
+
+  it("tries to reset traffic src after session expiration", () => {
+    cy.interceptAtomIngestion();
+
+    // GIVEN initial visit URL contains query/utm params
+    cy.visit(
+      dummyAppRoot({
+        qp: "utm_source=tickletok&utm_campaign=gogole",
+      }),
+    );
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
+
+    // WHEN the session expires (and traffic source at the same time)
+    cy.expireSessionAndTrafficSourceCookies();
+
+    // THEN eave tries to pull traffic src from curr URL for next event
+    cy.get("#page-link").click();
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
+      // traffic source brought back from url when available
+      const traffic_src = JSON.parse(
+        interception.response.body.events.browser_event[0].corr_ctx["_eave.traffic_source"],
+      );
+      expect(traffic_src.tracking_params).to.deep.equal({
+        utm_source: "tickletok",
+        utm_campaign: "gogole",
+      });
+    });
+
+    // WHEN session expires (and traffic src) and there are no utm params in the current URL
+    cy.expireSessionAndTrafficSourceCookies();
+
+    // THEN eave sets a null traffic src
+    cy.get("#page-link").click();
+    cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`).then((interception) => {
+      // traffic source brought back from url when available
+      const traffic_src = JSON.parse(
+        interception.response.body.events.browser_event[0].corr_ctx["_eave.traffic_source"],
+      );
+      expect(traffic_src.tracking_params).to.deep.equal(null);
+    });
+  });
 });
