@@ -8,7 +8,7 @@ import { uuidv4 } from "./util/uuid";
 
 const SESSION_COOKIE_NAME = `${COOKIE_NAME_PREFIX}session`;
 
-const SESSION_LENGTH_SEC = 30 * 60;
+export const SESSION_LENGTH_SEC = 30 * 60;
 
 function getSessionCookie(): string | null {
   return getCookie(SESSION_COOKIE_NAME);
