@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.collectors.core.correlation_context.base import corr_ctx_symmetric_encryption_key
+from eave.stdlib.core_api.models.client_credentials import ClientCredentials
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
@@ -43,6 +44,12 @@ class ClientCredentialsOrm(Base):
     last_used: Mapped[datetime | None] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+
+    @property
+    def api_model(self) -> ClientCredentials:
+        creds = ClientCredentials.from_orm(self)
+        creds.combined = self.combined
+        return creds
 
     @classmethod
     async def create(
@@ -93,6 +100,18 @@ class ClientCredentialsOrm(Base):
     async def query(cls, session: AsyncSession, params: QueryParams) -> ScalarResult[Self]:
         lookup = cls._build_query(params=params)
         result = await session.scalars(lookup)
+        return result
+
+    @classmethod
+    async def one_or_exception(cls, session: AsyncSession, params: QueryParams) -> Self:
+        lookup = cls._build_query(params=params).limit(1)
+        result = (await session.scalars(lookup)).one()
+        return result
+
+    @classmethod
+    async def one_or_none(cls, session: AsyncSession, params: QueryParams) -> Self | None:
+        lookup = cls._build_query(params=params).limit(1)
+        result = await session.scalar(lookup)
         return result
 
     def touch(self, session: AsyncSession) -> None:
