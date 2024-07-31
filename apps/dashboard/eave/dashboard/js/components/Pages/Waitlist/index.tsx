@@ -30,7 +30,7 @@ const Waitlist = () => {
       <div className={classes.content}>
         <h1 className={text.display}> Unparalleled insights coming your way soon. </h1>
         <h2 className={classNames(text.headerII, text.gray)}>
-          Unfortunately we don't currently support your tech stack, but we're working on it. You've been put on our
+          We don't currently support your tech stack, but we're working on it. You've been put on our
           waitlist and we'll follow up as soon as we can get you started!
         </h2>
       </div>
