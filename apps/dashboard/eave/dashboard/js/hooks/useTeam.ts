@@ -75,6 +75,7 @@ const useTeam = (): TeamHook => {
             ...prev,
             id: data.team?.id,
             name: data.team?.name,
+            dashboardAccess: data.team?.dashboard_access,
           }));
 
           setDashboardNetworkState((prev) => ({

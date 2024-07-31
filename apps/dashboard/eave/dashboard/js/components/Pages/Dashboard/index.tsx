@@ -57,15 +57,18 @@ const Dashboard = () => {
   const { classes } = makeClasses();
 
   const { userIsAuthed, validateUserAuth } = useAuth();
-  const { getClientCredentials } = useTeam();
-  const { clientCredentialsNetworkStateCtx } = useContext(AppContext);
-  const [networkState] = clientCredentialsNetworkStateCtx!;
+  const { getTeam, getClientCredentials } = useTeam();
+  const { clientCredentialsNetworkStateCtx, dashboardNetworkStateCtx } = useContext(AppContext);
+  const [credsNetworkState] = clientCredentialsNetworkStateCtx!;
+  const [teamNetworkState] = dashboardNetworkStateCtx!;
 
   useEffect(() => {
     validateUserAuth();
     // load client creds so we can seamlessly determine which nav tabs to show
     // (i.e. should the setup tab be shown)
     getClientCredentials();
+    // load team for subpage usage
+    getTeam();
   }, []);
 
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
@@ -93,7 +96,7 @@ const Dashboard = () => {
   const initialLocation = window.location.pathname;
 
   // TODO: what to do if request errors?
-  if (!userIsAuthed || networkState.credentialsAreLoading) {
+  if (!userIsAuthed || credsNetworkState.credentialsAreLoading || teamNetworkState.teamIsLoading) {
     return (
       <div className={container}>
         <div className={classes.loader}>

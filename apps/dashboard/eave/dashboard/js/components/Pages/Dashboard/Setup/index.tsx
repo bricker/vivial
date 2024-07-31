@@ -57,8 +57,12 @@ const Setup = () => {
   useEffect(() => {
     if (isSetupComplete(team)) {
       navigate("/insights");
+    } else if (team?.dashboardAccess === false) {
+      // prevent sneaky direct URL nav to dash
+      navigate("/onboarding");
     }
   }, [team]);
+
   const [copyQuestions, setCopyQuestions] = useState(false);
 
   return (
