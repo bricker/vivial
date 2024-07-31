@@ -44,7 +44,7 @@ class CreateMyOnboardingSubmissionEndpoint(HTTPEndpoint):
             onboarding_submission = await OnboardingSubmissionOrm.create(
                 session=db_session,
                 team_id=eave_team_orm.id,
-                response_data=data.form_data,
+                submission=data.onboarding_submission,
             )
 
             eave_team_orm.dashboard_access = onboarding_submission.is_qualified()

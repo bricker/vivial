@@ -3,7 +3,9 @@ from typing import Self, TypedDict, Unpack
 from uuid import UUID
 
 from eave.stdlib.core_api.models.onboarding_submissions import OnboardingSubmission
-from sqlalchemy import Select, func, select, JSON
+from sqlalchemy import Select, func, select, text
+import sqlalchemy
+import sqlalchemy.dialects.postgresql
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -23,8 +25,46 @@ class OnboardingSubmissionOrm(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=UUID_DEFAULT_EXPR)
     team_id: Mapped[UUID] = mapped_column(primary_key=True)
-    response_data: Mapped[dict] = mapped_column(JSON)
-    """JSON object where key is question and value is list of tags"""
+    languages: Mapped[list[str]] = mapped_column(
+        type_=sqlalchemy.dialects.postgresql.ARRAY(
+            item_type=sqlalchemy.types.String,
+            dimensions=1,
+        ),
+        server_default=text("'{}'"),
+    )
+    """List of programming languages used by the application(s)"""
+    platforms: Mapped[list[str]] = mapped_column(
+        type_=sqlalchemy.dialects.postgresql.ARRAY(
+            item_type=sqlalchemy.types.String,
+            dimensions=1,
+        ),
+        server_default=text("'{}'"),
+    )
+    """List of application platforms (web, android, etc.)"""
+    frameworks: Mapped[list[str]] = mapped_column(
+        type_=sqlalchemy.dialects.postgresql.ARRAY(
+            item_type=sqlalchemy.types.String,
+            dimensions=1,
+        ),
+        server_default=text("'{}'"),
+    )
+    """List of key libraries/frameworks used by the application (django, express.js, etc.)"""
+    databases: Mapped[list[str]] = mapped_column(
+        type_=sqlalchemy.dialects.postgresql.ARRAY(
+            item_type=sqlalchemy.types.String,
+            dimensions=1,
+        ),
+        server_default=text("'{}'"),
+    )
+    """List of database software used by the application"""
+    third_party_libs: Mapped[list[str]] = mapped_column(
+        type_=sqlalchemy.dialects.postgresql.ARRAY(
+            item_type=sqlalchemy.types.String,
+            dimensions=1,
+        ),
+        server_default=text("'{}'"),
+    )
+    """List of 3rd party libs/services used by the application (openAI, AWS, etc.)"""
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -33,11 +73,15 @@ class OnboardingSubmissionOrm(Base):
         cls,
         session: AsyncSession,
         team_id: UUID,
-        response_data: dict[str, list[str]],
+        submission: OnboardingSubmission
     ) -> Self:
         obj = cls(
             team_id=team_id,
-            response_data=response_data,
+            languages=submission.languages,
+            platforms=submission.platforms,
+            frameworks=submission.frameworks,
+            databases=submission.databases,
+            third_party_libs=submission.third_party_libs,
         )
         session.add(obj)
         await session.flush()
@@ -75,17 +119,17 @@ class OnboardingSubmissionOrm(Base):
         """
         # CURRENTLY DENY ALL
         # return False
-        form_responses = self.response_data.copy()
-        # convert all answers to lowercase for easier comparison
-        for question_key, response_list in form_responses.items():
-            form_responses[question_key] = [resp.lower() for resp in response_list]
 
-        # TODO: standardize question keys w/ js questionOptions???
+        # convert all answers to lowercase for easier comparison
         return all(
             [
-                "python" in form_responses.get("languages", []),
-                "web_app" in form_responses.get("platform", []),
-                "starlette" in form_responses.get("frameworks", []) or "fast_api" in form_responses.get("frameworks", []),
-                "openai" in form_responses.get("third_party", []),
+                "python" in map(to_lower, self.languages),
+                "web_app" in map(to_lower, self.platforms),
+                "starlette" in map(to_lower, self.frameworks) or "fast_api" in map(to_lower, self.frameworks),
+                "openai" in map(to_lower, self.third_party_libs),
             ]
         )
+
+
+def to_lower(s: str) -> str:
+    return s.lower()

@@ -23,7 +23,11 @@ export type Team = {
 };
 
 export type OnboardingSubmission = {
-  response_data: object;
+  platforms: string[];
+  languages: string[];
+  frameworks: string[];
+  databases: string[];
+  third_party_libs: string[];
 };
 
 export type ClientCredentials = {
@@ -47,7 +51,7 @@ export type GetMyVirtualEventDetailsResponseBody = {
 };
 
 export type CreateMyOnboardingSubmissionRequestBody = {
-  form_data: object;
+  onboarding_submission: OnboardingSubmission;
 };
 
 export type CreateMyOnboardingSubmissionResponseBody = {

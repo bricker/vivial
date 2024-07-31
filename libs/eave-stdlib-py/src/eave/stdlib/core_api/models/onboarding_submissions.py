@@ -2,4 +2,8 @@ from eave.stdlib.core_api.models import BaseResponseModel
 
 
 class OnboardingSubmission(BaseResponseModel):
-    response_data: dict[str, list[str]]
+    languages: list[str]
+    platforms: list[str]
+    frameworks: list[str]
+    databases: list[str]
+    third_party_libs: list[str]

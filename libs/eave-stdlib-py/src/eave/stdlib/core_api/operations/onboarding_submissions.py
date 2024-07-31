@@ -7,6 +7,8 @@ from eave.stdlib.core_api.models.onboarding_submissions import OnboardingSubmiss
 from eave.stdlib.core_api.models.team import Team
 from eave.stdlib.endpoints import BaseRequestBody, BaseResponseBody
 
+from eave.core.internal.orm import client_credentials
+
 from ... import requests_util
 from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
@@ -54,7 +56,7 @@ class CreateMyOnboardingSubmissionRequest(CoreApiEndpoint):
     )
 
     class RequestBody(BaseRequestBody):
-        form_data: dict[str, list[str]]
+        onboarding_submission: OnboardingSubmission
 
     class ResponseBody(BaseResponseBody):
         onboarding_submission: OnboardingSubmission

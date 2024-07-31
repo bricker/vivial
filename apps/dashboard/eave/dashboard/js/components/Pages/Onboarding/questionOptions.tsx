@@ -1,8 +1,9 @@
+import { OnboardingSubmission } from "$eave-dashboard/js/types";
 import { useState } from "react";
 
 interface Question {
   // NOTE: key values are read by backend and need to be kept in sync
-  key: string;
+  key: keyof OnboardingSubmission;
   text: string;
   options: QuestionOption[];
 }
@@ -16,7 +17,7 @@ export interface QuestionOption {
 
 const questions: Question[] = [
   {
-    key: "platform",
+    key: "platforms",
     text: "Which platforms does your product support?",
     options: [
       { value: "web_app", label: "Web App" },
@@ -67,7 +68,7 @@ const questions: Question[] = [
     ],
   },
   {
-    key: "third_party",
+    key: "third_party_libs",
     text: "Which third party services are integrated into your product?",
     options: [
       { value: "openai", label: "OpenAI" },
