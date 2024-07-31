@@ -113,7 +113,7 @@ class OnboardingSubmissionOrm(Base):
         team for Eave usage.
         """
         # CURRENTLY DENY ALL
-        # return False
+        return False
 
         # convert all answers to lowercase for easier comparison
         return all(
