@@ -42,6 +42,7 @@ const makeClasses = makeStyles()(() => ({
     backgroundColor: "#fff",
     display: "flex",
     flexDirection: "column",
+    overflow: "auto",
   },
   coverMenuHeader: {
     display: "flex",
