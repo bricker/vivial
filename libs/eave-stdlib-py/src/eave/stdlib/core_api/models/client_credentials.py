@@ -1,5 +1,5 @@
-from datetime import datetime
 import uuid
+from datetime import datetime
 
 from eave.stdlib.core_api.models import BaseResponseModel
 

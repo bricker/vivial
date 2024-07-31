@@ -1,9 +1,4 @@
 import aiohttp.hdrs
-from eave.stdlib.core_api.operations.client_credentials import GetMyClientCredentialsRequest
-from eave.stdlib.core_api.operations.onboarding_submissions import (
-    CreateMyOnboardingSubmissionRequest,
-    GetMyOnboardingSubmissionRequest,
-)
 import starlette.applications
 import starlette.endpoints
 from asgiref.typing import ASGI3Application
@@ -23,6 +18,11 @@ from eave.stdlib import cache, logging
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.core_api.operations.account import GetMyAccountRequest
+from eave.stdlib.core_api.operations.client_credentials import GetMyClientCredentialsRequest
+from eave.stdlib.core_api.operations.onboarding_submissions import (
+    CreateMyOnboardingSubmissionRequest,
+    GetMyOnboardingSubmissionRequest,
+)
 from eave.stdlib.core_api.operations.team import GetMyTeamRequest
 from eave.stdlib.core_api.operations.virtual_event import GetMyVirtualEventDetailsRequest, ListMyVirtualEventsRequest
 from eave.stdlib.headers import (
@@ -39,12 +39,12 @@ from .internal.database import async_engine
 from .public.exception_handlers import exception_handlers
 from .public.requests import (
     authed_account,
+    client_credentials,
     noop,
+    onboarding_submissions,
     status,
     team,
     virtual_event,
-    onboarding_submissions,
-    client_credentials,
 )
 from .public.requests.oauth import google_oauth
 

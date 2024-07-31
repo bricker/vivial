@@ -15,6 +15,7 @@ from eave.stdlib.core_api.models.team import Team
 from .base import Base
 from .util import UUID_DEFAULT_EXPR
 
+
 class TeamOrm(Base):
     __tablename__ = "teams"
 

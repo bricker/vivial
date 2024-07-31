@@ -2,14 +2,14 @@ from datetime import datetime
 from typing import Self, TypedDict, Unpack
 from uuid import UUID
 
-from eave.stdlib.core_api.models.onboarding_submissions import OnboardingSubmission
-from sqlalchemy import Select, func, select, text
 import sqlalchemy
 import sqlalchemy.dialects.postgresql
+from sqlalchemy import Select, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 import eave.stdlib.util
+from eave.stdlib.core_api.models.onboarding_submissions import OnboardingSubmission
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
@@ -69,12 +69,7 @@ class OnboardingSubmissionOrm(Base):
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
-    async def create(
-        cls,
-        session: AsyncSession,
-        team_id: UUID,
-        submission: OnboardingSubmission
-    ) -> Self:
+    async def create(cls, session: AsyncSession, team_id: UUID, submission: OnboardingSubmission) -> Self:
         obj = cls(
             team_id=team_id,
             languages=submission.languages,
