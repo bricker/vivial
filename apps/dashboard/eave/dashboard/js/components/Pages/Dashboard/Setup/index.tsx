@@ -128,6 +128,7 @@ start_eave_collectors()`,
               <div className={classes.stepsContainer}>
                 {steps.map((step, i) => (
                   <SetupStep
+                    key={step.header}
                     header={step.header}
                     subHeader={step.subheader}
                     code={step.codeSnippet}
