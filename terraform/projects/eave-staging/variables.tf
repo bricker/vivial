@@ -2,15 +2,15 @@
 # If any of these aren't set, terraform apply won't run.
 # Additionally, a map with `sensitive=true` can't be used for iteration.
 
-variable "MB_SHARED_SECRETS" {
-  type      = map(string)
-  sensitive = true
-}
+# variable "MB_SHARED_SECRETS" {
+#   type      = map(string)
+#   sensitive = true
+# }
 
-variable "MB_INSTANCE_SECRETS" {
-  type      = map(map(string))
-  sensitive = true
-}
+# variable "MB_INSTANCE_SECRETS" {
+#   type      = map(map(string))
+#   sensitive = true
+# }
 
 variable "PLAYGROUND_TODOAPP_EAVE_CREDENTIALS" {
   type = object({

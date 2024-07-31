@@ -45,7 +45,7 @@ resource "google_compute_global_address" "default" {
   address_type = "EXTERNAL"
 }
 
-# Two DNS records are defined here:
+# (REMOVED) Two DNS records are defined here:
 # 1. api.eave.fyi
 # 2. embed.eave.fyi
 # Both of these go to the same IP address, which maps to the Core API load balancer
@@ -58,13 +58,13 @@ resource "google_dns_record_set" "default" {
   rrdatas      = [google_compute_global_address.default.address]
 }
 
-resource "google_dns_record_set" "embed" {
-  managed_zone = var.dns_zone.name
-  name         = "${local.embed_domain_prefix}.${var.dns_zone.dns_name}"
-  type         = "A"
-  ttl          = 300
-  rrdatas      = [google_compute_global_address.default.address]
-}
+# resource "google_dns_record_set" "embed" {
+#   managed_zone = var.dns_zone.name
+#   name         = "${local.embed_domain_prefix}.${var.dns_zone.dns_name}"
+#   type         = "A"
+#   ttl          = 300
+#   rrdatas      = [google_compute_global_address.default.address]
+# }
 
 module "api_certificate" {
   source          = "../../modules/certificate_manager"
@@ -74,10 +74,10 @@ module "api_certificate" {
   hostname        = local.domain
 }
 
-module "embed_certificate" {
-  source          = "../../modules/certificate_manager"
-  certificate_map = var.certificate_map_name
-  cert_name       = "embed"
-  entry_name      = "embed"
-  hostname        = local.embed_domain
-}
+# module "embed_certificate" {
+#   source          = "../../modules/certificate_manager"
+#   certificate_map = var.certificate_map_name
+#   cert_name       = "embed"
+#   entry_name      = "embed"
+#   hostname        = local.embed_domain
+# }
