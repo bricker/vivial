@@ -10,3 +10,4 @@ class TeamQueryInput(BaseInputModel):
 class Team(BaseResponseModel):
     id: uuid.UUID
     name: str
+    dashboard_access: bool

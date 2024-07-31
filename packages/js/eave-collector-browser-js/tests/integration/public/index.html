@@ -26,16 +26,8 @@
     <!-- Eave client tracing -->
     <script>
       window.EAVE_CLIENT_ID = "dummyClientId";
-      (function () {
-        var scriptHostLocation = "%PUBLIC_URL%/eave-client.min.js";
-        var d = document,
-          g = d.createElement("script"),
-          s = d.getElementsByTagName("script")[0];
-        g.async = true;
-        g.src = scriptHostLocation;
-        s.parentNode.insertBefore(g, s);
-      })();
     </script>
+    <script async src="%PUBLIC_URL%/eave-client.min.js"></script>
     <!-- End Eave client tracing Code -->
   </head>
   <body>
