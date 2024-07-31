@@ -1,18 +1,18 @@
 import { OnboardingSubmission } from "$eave-dashboard/js/types";
 import { useState } from "react";
 
-interface Question {
-  // NOTE: key values are read by backend and need to be kept in sync
-  key: keyof OnboardingSubmission;
-  text: string;
-  options: QuestionOption[];
-}
-
 export interface QuestionOption {
   readonly value: string;
   readonly label: string;
   readonly isFixed?: boolean;
   readonly isDisabled?: boolean;
+}
+
+interface Question {
+  // NOTE: key values are read by backend and need to be kept in sync
+  key: keyof OnboardingSubmission;
+  text: string;
+  options: QuestionOption[];
 }
 
 const questions: Question[] = [

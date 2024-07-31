@@ -5,7 +5,7 @@ import { StylesConfig } from "react-select";
 import CreatableSelect from "react-select/creatable";
 import { makeStyles } from "tss-react/mui";
 
-const useStyles = makeStyles()((theme) => ({
+const useStyles = makeStyles()((_theme) => ({
   container: {
     flex: 1,
     height: "auto",
@@ -56,11 +56,10 @@ const colourStyles: StylesConfig<QuestionOption, true> = {
 interface InputFieldProps {
   question: string;
   questionOptions: QuestionOption[];
-  error: boolean;
   setValue: (value: readonly QuestionOption[]) => void;
 }
 
-const InputField: React.FC<InputFieldProps> = ({ question, questionOptions, setValue, error }) => {
+const InputField: React.FC<InputFieldProps> = ({ question, questionOptions, setValue }) => {
   const { classes } = useStyles();
   const { classes: text } = textStyles();
   const [options, setOptions] = useState<readonly QuestionOption[]>(questionOptions);

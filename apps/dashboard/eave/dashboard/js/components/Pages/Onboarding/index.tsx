@@ -160,7 +160,6 @@ const Onboarding = () => {
                 question={question.question}
                 questionOptions={question.options}
                 setValue={question.setValue}
-                error={question.error}
               />
             ))}
           </div>
