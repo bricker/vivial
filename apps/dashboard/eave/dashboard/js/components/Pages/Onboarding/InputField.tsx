@@ -90,8 +90,8 @@ const InputField: React.FC<InputFieldProps> = ({ question, questionOptions, setV
       };
       setOptions((prev) => [...prev, newOption]);
       setValueState((prev) => [...prev, newOption]);
-      const newOptions = [...questionOptions, newOption];
-      setValue(newOptions);
+      const newValue = [...displayValue, newOption];
+      setValue(newValue);
     },
     [setOptions, setValueState, setValue, questionOptions],
   );
