@@ -46,7 +46,7 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(["team_id"], ["teams.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("team_id", "id", name="pk_onboarding_submissions_team_id_id"),
     )
-    op.add_column("teams", sa.Column("dashboard_access", sa.Boolean(), server_default=sa.text("true"), nullable=False))
+    op.add_column("teams", sa.Column("dashboard_access", sa.Boolean(), server_default=sa.text("false"), nullable=False))
     # ### end Alembic commands ###
 
 
