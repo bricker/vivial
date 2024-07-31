@@ -10,6 +10,7 @@ resource "google_sql_database" "instances" {
   for_each = var.metabase_instances
   name     = "mb_${each.value.metabase_instance_id}"
   instance = var.cloudsql_instance_name
+  deletion_policy = "ABANDON"
 }
 
 resource "google_sql_user" "instances" {

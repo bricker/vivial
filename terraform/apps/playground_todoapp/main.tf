@@ -27,6 +27,7 @@ module "app_iam_role" {
 resource "google_sql_database" "app" {
   name     = "playground-todoapp"
   instance = var.cloudsql_instance_name
+  deletion_policy = "ABANDON"
 }
 
 resource "google_sql_user" "app" {
