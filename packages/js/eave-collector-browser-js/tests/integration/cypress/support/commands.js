@@ -55,3 +55,17 @@ Cypress.Commands.add("expireSessionAndTrafficSourceCookies", () => {
   cy.clearCookie("_eave.traffic_source");
   cy.clearCookie("_eave.session");
 });
+
+Cypress.Commands.add("login", () => {
+  cy.setCookie("mock_auth_cookie", "1");
+});
+
+Cypress.Commands.add("logout", () => {
+  cy.get("#logout").click();
+});
+
+Cypress.Commands.add("logoutAndConsume", () => {
+  cy.logout();
+  cy.waitForAtom(); // consume click
+  cy.waitForAtom(); // consume nav to logout page
+});

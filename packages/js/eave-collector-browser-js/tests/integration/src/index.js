@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import App from "./App";
 import FormPage from "./FormPage";
 import "./index.css";
+import Logout from "./Logout";
 import Subpage from "./Subpage";
 
 const router = createBrowserRouter([
@@ -18,6 +19,10 @@ const router = createBrowserRouter([
   {
     path: "/form",
     element: <FormPage />,
+  },
+  {
+    path: "/logout",
+    element: <Logout />,
   },
 ]);
 

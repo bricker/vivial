@@ -1,14 +1,36 @@
 import React, { useState } from "react";
+import { useCookies } from "react-cookie";
 import { Link } from "react-router-dom";
 import "./App.css";
 import logo from "./logo.svg";
+import { AUTH_COOKIE_NAME } from "./util/cookies";
 
 function App() {
   const [counter, setCounter] = useState(0);
+  const [cookies, setCookie, removeCookie] = useCookies([AUTH_COOKIE_NAME]);
+  const isLoggedIn = cookies[AUTH_COOKIE_NAME];
 
   return (
     <div className="App">
       <header className="App-header">
+        <div className="auth-bar">
+          {isLoggedIn && <p>You're logged in!</p>}
+          {isLoggedIn ? (
+            <Link id="logout" to="/logout">
+              Log out
+            </Link>
+          ) : (
+            <button
+              id="login"
+              onClick={() => {
+                setCookie(AUTH_COOKIE_NAME, "1");
+              }}
+            >
+              Mock Login
+            </button>
+          )}
+        </div>
+
         <img id="react-img" src={logo} className="App-logo" alt="logo" />
         <p>
           Edit <code>src/App.js</code> and save to reload.

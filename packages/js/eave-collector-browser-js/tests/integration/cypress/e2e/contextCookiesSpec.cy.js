@@ -38,12 +38,12 @@ describe("eave correlation context cookies", () => {
   it("clears account and traffic source cookies on logout", () => {
     cy.interceptAtomIngestion();
 
-    // GIVEN the user is on the site with utm params
+    // GIVEN the user goes to the site with utm params
     cy.visit(dummyAppRoot({ qp: "utm_source=tickletok&utm_campaign=gogole" }));
     cy.waitForAtom();
 
     // GIVEN the user logs in and eave server sets our account info cookie(s)
-    cy.setCookie("mock_auth_cookie", "1");
+    cy.login();
     cy.setCookie("_eave.nc.act.account_id", "encrypted-id");
     cy.get("#counter-btn").click();
     cy.waitForAtom().then((interception) => {
@@ -62,7 +62,7 @@ describe("eave correlation context cookies", () => {
     });
 
     // WHEN the user logs out
-    cy.clearCookie("mock_auth_cookie");
+    cy.logoutAndConsume();
     cy.visit(dummyAppRoot({ path: "/page" }));
     cy.waitForAtom();
 
@@ -70,7 +70,11 @@ describe("eave correlation context cookies", () => {
     cy.get("#page-link").click();
     cy.waitForAtom().then((interception) => {
       expect(interception.response.body.events.browser_event[0].corr_ctx["_eave.nc.act.account_id"]).to.not.exist;
-      expect(interception.response.body.events.browser_event[0].corr_ctx["_eave.traffic_source"]).to.not.exist;
+
+      const traffic_src = JSON.parse(
+        interception.response.body.events.browser_event[0].corr_ctx["_eave.traffic_source"],
+      );
+      expect(traffic_src.tracking_params).to.deep.equal({});
     });
   });
 });
