@@ -1,4 +1,4 @@
-import { ATOM_INTERCEPTION_EVENT_NAME, dummyAppRoot } from "../support/constants";
+import { dummyAppRoot } from "../support/constants";
 
 describe("eave correlation context cookies", () => {
   it("creates ctx and session cookies and attaches cookie data to events", () => {

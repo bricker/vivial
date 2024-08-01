@@ -1,4 +1,4 @@
-import { ATOM_INTERCEPTION_EVENT_NAME, dummyAppRoot } from "../support/constants";
+import { dummyAppRoot } from "../support/constants";
 
 describe("eave click atom collection", () => {
   it("fires atom on button tag click", () => {

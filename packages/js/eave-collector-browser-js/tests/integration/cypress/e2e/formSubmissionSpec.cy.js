@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-expressions */
-import { ATOM_INTERCEPTION_EVENT_NAME, dummyAppRoot } from "../support/constants";
+import { dummyAppRoot } from "../support/constants";
 
 describe("eave form atom collection", () => {
   it("fires atom on form submission", () => {
