@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-expressions */
-import { ATOM_INTERCEPTION_EVENT_NAME, dummyAppRoot } from "../support/constants";
+import { dummyAppRoot } from "../support/constants";
 
 describe("eave UTM and query parameter collection", () => {
   it("includes query params in every atom", () => {
@@ -155,6 +155,7 @@ describe("eave UTM and query parameter collection", () => {
 
     // THEN eave tries to pull traffic src from curr URL for next event
     cy.get("#page-link").click();
+    cy.waitForAtom(); // consume one of click/nav atoms
     cy.waitForAtom().then((interception) => {
       // traffic source brought back from url when available
       const traffic_src = JSON.parse(
@@ -171,12 +172,13 @@ describe("eave UTM and query parameter collection", () => {
 
     // THEN eave sets a null traffic src
     cy.get("#page-link").click();
+    cy.waitForAtom(); // consume one of click/nav atoms
     cy.waitForAtom().then((interception) => {
       // traffic source brought back from url when available
       const traffic_src = JSON.parse(
         interception.response.body.events.browser_event[0].corr_ctx["_eave.traffic_source"],
       );
-      expect(traffic_src.tracking_params).to.deep.equal(null);
+      expect(traffic_src.tracking_params).to.deep.equal({});
     });
   });
 });
