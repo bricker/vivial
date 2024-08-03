@@ -1,14 +1,10 @@
 import { isCookieConsentRevoked } from "./consent";
-import { COOKIE_NAME_PREFIX, getCookie, setCookie } from "./cookies";
+import { COOKIE_NAME_PREFIX, SESSION_COOKIE_NAME, SESSION_LENGTH_MAX_AGE_SEC, getCookie, setCookie } from "./cookies";
 import { LOG_TAG } from "./internal/constants";
 import { SessionProperties } from "./types";
 import { compactJSONStringify, safeJSONParse } from "./util/json";
 import { currentTimestampSeconds } from "./util/timestamp";
 import { uuidv4 } from "./util/uuid";
-
-const SESSION_COOKIE_NAME = `${COOKIE_NAME_PREFIX}session`;
-
-export const SESSION_LENGTH_SEC = 30 * 60;
 
 function getSessionCookie(): string | null {
   return getCookie(SESSION_COOKIE_NAME);
@@ -22,7 +18,7 @@ function setSessionCookie(value: string) {
   setCookie({
     name: SESSION_COOKIE_NAME,
     value: value,
-    maxAgeSeconds: SESSION_LENGTH_SEC,
+    maxAgeSeconds: SESSION_LENGTH_MAX_AGE_SEC,
   });
 }
 

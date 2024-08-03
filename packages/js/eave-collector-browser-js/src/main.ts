@@ -16,6 +16,7 @@ import { setOrTouchUserCookies } from "./properties/user";
 import { sessionEventHandler, startOrExtendSession } from "./session";
 import { clickEventHandler } from "./triggers/click";
 import { formSubmitEventHandler } from "./triggers/form-submission";
+import { logoutEventHandler } from "./triggers/logout";
 import {
   hashChangeEventHandler,
   popStateEventHandler,
@@ -80,6 +81,8 @@ window.addEventListener(HASHCHANGE_EVENT_TYPE, hashChangeEventHandler, { capture
 window.addEventListener(POPSTATE_EVENT_TYPE, popStateEventHandler, { capture: true, passive: true });
 document.body.addEventListener(CLICK_EVENT_TYPE, clickEventHandler, { capture: true, passive: true });
 document.body.addEventListener(SUBMIT_EVENT_TYPE, formSubmitEventHandler, { capture: true, passive: true });
+
+document.body.addEventListener(CLICK_EVENT_TYPE, logoutEventHandler, { passive: true });
 
 window.addEventListener(EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE, cookiesEventHandler, { passive: true });
 
