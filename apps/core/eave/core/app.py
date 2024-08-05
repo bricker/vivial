@@ -18,6 +18,11 @@ from eave.stdlib import cache, logging
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.core_api.operations.account import GetMyAccountRequest
+from eave.stdlib.core_api.operations.client_credentials import GetMyClientCredentialsRequest
+from eave.stdlib.core_api.operations.onboarding_submissions import (
+    CreateMyOnboardingSubmissionRequest,
+    GetMyOnboardingSubmissionRequest,
+)
 from eave.stdlib.core_api.operations.team import GetMyTeamRequest
 from eave.stdlib.core_api.operations.virtual_event import GetMyVirtualEventDetailsRequest, ListMyVirtualEventsRequest
 from eave.stdlib.headers import (
@@ -34,7 +39,9 @@ from .internal.database import async_engine
 from .public.exception_handlers import exception_handlers
 from .public.requests import (
     authed_account,
+    client_credentials,
     noop,
+    onboarding_submissions,
     status,
     team,
     virtual_event,
@@ -291,6 +298,18 @@ routes = [
     make_route(
         config=GetMyAccountRequest.config,
         endpoint=authed_account.GetMyAccountEndpoint,
+    ),
+    make_route(
+        config=GetMyOnboardingSubmissionRequest.config,
+        endpoint=onboarding_submissions.GetMyOnboardingSubmissionEndpoint,
+    ),
+    make_route(
+        config=CreateMyOnboardingSubmissionRequest.config,
+        endpoint=onboarding_submissions.CreateMyOnboardingSubmissionEndpoint,
+    ),
+    make_route(
+        config=GetMyClientCredentialsRequest.config,
+        endpoint=client_credentials.GetMyClientCredentialsEndpoint,
     ),
 ]
 

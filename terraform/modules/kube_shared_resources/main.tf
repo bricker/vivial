@@ -4,11 +4,11 @@ resource "kubernetes_namespace" "eave" {
   }
 }
 
-resource "kubernetes_namespace" "metabase" {
-  metadata {
-    name = "metabase"
-  }
-}
+# resource "kubernetes_namespace" "metabase" {
+#   metadata {
+#     name = "metabase"
+#   }
+# }
 
 
 resource "kubernetes_config_map" "shared" {
@@ -22,8 +22,8 @@ resource "kubernetes_config_map" "shared" {
 
     EAVE_BASE_URL_PUBLIC           = "https://${var.project.root_domain}"
     EAVE_BASE_URL_INTERNAL         = "http://${kubernetes_namespace.eave.metadata[0].name}.svc.cluster.local"
-    EAVE_EMBED_BASE_URL_PUBLIC     = "https://embed.${var.project.root_domain}"
-    EAVE_EMBED_BASE_URL_INTERNAL   = "http://${kubernetes_namespace.metabase.metadata[0].name}.svc.cluster.local"
+    # EAVE_EMBED_BASE_URL_PUBLIC     = "https://embed.${var.project.root_domain}"
+    # EAVE_EMBED_BASE_URL_INTERNAL   = "http://${kubernetes_namespace.metabase.metadata[0].name}.svc.cluster.local"
     EAVE_API_BASE_URL_PUBLIC       = "https://api.${var.project.root_domain}"
     EAVE_API_BASE_URL_INTERNAL     = "http://core-api.${kubernetes_namespace.eave.metadata[0].name}.svc.cluster.local"
     EAVE_DASHBOARD_BASE_URL_PUBLIC = "https://dashboard.${var.project.root_domain}"
@@ -38,7 +38,7 @@ resource "kubernetes_config_map" "shared" {
 resource "kubernetes_secret" "iap_oauth_client_secret" {
   for_each = toset([
     kubernetes_namespace.eave.metadata[0].name,
-    kubernetes_namespace.metabase.metadata[0].name
+    # kubernetes_namespace.metabase.metadata[0].name
   ])
 
   metadata {

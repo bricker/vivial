@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
+import { AppContext } from "$eave-dashboard/js/context/Provider";
 import useAuth from "$eave-dashboard/js/hooks/useAuth";
+import useTeam from "$eave-dashboard/js/hooks/useTeam";
 import { theme } from "$eave-dashboard/js/theme";
 import { CircularProgress } from "@mui/material";
 import classNames from "classnames";
@@ -9,6 +11,7 @@ import { makeStyles } from "tss-react/mui";
 import Glossary from "./Glossary";
 import Insights from "./Insights";
 import Settings from "./Settings";
+import Setup from "./Setup";
 import TabbedNav from "./TabbedNav";
 import TeamManagement from "./TeamManagement";
 
@@ -43,6 +46,7 @@ const makeClasses = makeStyles()(() => ({
 
 // tab pages that should be rendered
 const tabs = {
+  setupTab: { path: "/setup", component: <Setup /> },
   insightsTab: { path: "/insights", component: <Insights /> },
   glossaryTab: { path: "/glossary", component: <Glossary /> },
   settingsTab: { path: "/settings", component: <Settings /> },
@@ -53,9 +57,18 @@ const Dashboard = () => {
   const { classes } = makeClasses();
 
   const { userIsAuthed, validateUserAuth } = useAuth();
+  const { getTeam, getClientCredentials } = useTeam();
+  const { clientCredentialsNetworkStateCtx, dashboardNetworkStateCtx } = useContext(AppContext);
+  const [credsNetworkState] = clientCredentialsNetworkStateCtx!;
+  const [teamNetworkState] = dashboardNetworkStateCtx!;
 
   useEffect(() => {
     validateUserAuth();
+    // load client creds so we can seamlessly determine which nav tabs to show
+    // (i.e. should the setup tab be shown)
+    getClientCredentials();
+    // load team for subpage usage
+    getTeam();
   }, []);
 
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
@@ -82,7 +95,8 @@ const Dashboard = () => {
 
   const initialLocation = window.location.pathname;
 
-  if (!userIsAuthed) {
+  // TODO: what to do if request errors?
+  if (!userIsAuthed || credsNetworkState.credentialsAreLoading || teamNetworkState.teamIsLoading) {
     return (
       <div className={container}>
         <div className={classes.loader}>

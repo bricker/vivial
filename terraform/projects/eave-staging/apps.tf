@@ -38,40 +38,40 @@ module "dashboard_app" {
   EAVE_CREDENTIALS = var.INTERNAL_EAVE_CREDENTIALS
 }
 
-module "metabase" {
-  source  = "../../apps/metabase"
-  project = local.project
-  metabase_instances = {
-    "b579428e" = {
-      metabase_instance_id = "b579428e"
-      team_id              = "4b885eea03f6488b93b186e2eeff5e13"
-    },
-    "b1b08034" = {
-      metabase_instance_id = "b1b08034"
-      team_id              = "f409e437dfa74364ab8fae00e77ce42b"
-    },
-    "40115f0c" = {
-      metabase_instance_id = "40115f0c"
-      team_id              = "4d734b7a106c46159bb1013f4caeb463"
-    },
-    "d1d24ba2" = {
-      metabase_instance_id = "d1d24ba2"
-      team_id              = "612e9705b31b4c2fa31b8cf1f648e619"
-    },
-  }
+# module "metabase" {
+#   source  = "../../apps/metabase"
+#   project = local.project
+#   metabase_instances = {
+#     "b579428e" = {
+#       metabase_instance_id = "b579428e"
+#       team_id              = "4b885eea03f6488b93b186e2eeff5e13"
+#     },
+#     "b1b08034" = {
+#       metabase_instance_id = "b1b08034"
+#       team_id              = "f409e437dfa74364ab8fae00e77ce42b"
+#     },
+#     "40115f0c" = {
+#       metabase_instance_id = "40115f0c"
+#       team_id              = "4d734b7a106c46159bb1013f4caeb463"
+#     },
+#     "d1d24ba2" = {
+#       metabase_instance_id = "d1d24ba2"
+#       team_id              = "612e9705b31b4c2fa31b8cf1f648e619"
+#     },
+#   }
 
-  cloudsql_instance_name = module.cloudsql_eave_core.instance.name
-  dns_zone               = module.dns_zone_base_domain.zone
-  ssl_policy_name        = module.ssl_policy.policy_name
-  certificate_map_name   = google_certificate_manager_certificate_map.default.name
+#   cloudsql_instance_name = module.cloudsql_eave_core.instance.name
+#   dns_zone               = module.dns_zone_base_domain.zone
+#   ssl_policy_name        = module.ssl_policy.policy_name
+#   certificate_map_name   = google_certificate_manager_certificate_map.default.name
 
-  kube_namespace_name = module.shared_kubernetes_resources.metabase_namespace_name
-  MB_SHARED_SECRETS   = var.MB_SHARED_SECRETS
-  MB_INSTANCE_SECRETS = var.MB_INSTANCE_SECRETS
+#   kube_namespace_name = module.shared_kubernetes_resources.metabase_namespace_name
+#   MB_SHARED_SECRETS   = var.MB_SHARED_SECRETS
+#   MB_INSTANCE_SECRETS = var.MB_INSTANCE_SECRETS
 
-  iap_oauth_client_id          = var.IAP_OAUTH_CLIENT_ID
-  iap_oauth_client_secret_name = module.shared_kubernetes_resources.iap_oauth_client_secret_name
-}
+#   iap_oauth_client_id          = var.IAP_OAUTH_CLIENT_ID
+#   iap_oauth_client_secret_name = module.shared_kubernetes_resources.iap_oauth_client_secret_name
+# }
 
 
 module "playground_todoapp" {
