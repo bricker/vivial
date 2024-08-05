@@ -1,7 +1,7 @@
 import { TRAFFIC_SOURCE_COOKIE_NAME, deleteCookie, getAllEaveAccountCookies } from "../cookies";
 import { castEventTargetToHtmlElement } from "../util/type-helpers";
 
-const signOutRegex = new RegExp(/(sign ?out)|(log ?out)/i);
+const signOutRegex = new RegExp(/(sign ?out)|(log ?(out|off))/i);
 
 export async function logoutEventHandler(event: MouseEvent) {
   if (event.target) {
