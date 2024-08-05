@@ -1,4 +1,4 @@
 resource "google_iap_client" "default" {
-  brand        = "projects/${data.google_project.default.org_id}/brands/${data.google_project.default.org_id}"
+  brand        = "projects/${data.google_project.default.number}/brands/${data.google_project.default.number}"
   display_name = "Default IAP"
 }

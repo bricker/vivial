@@ -36,7 +36,7 @@ module "dns_zone_base_domain" {
     {
       type = "TXT",
       datas = [
-        "v=spf1 include:_spf.google.com ~all",
+        "\"v=spf1 include:_spf.google.com ~all\"",
         "slack-domain-verification=1SCpHl5o3Nujmr3pdBCFAP3lIKwr81hSUQD9FJ5y",
       ],
     },

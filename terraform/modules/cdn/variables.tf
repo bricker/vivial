@@ -6,10 +6,6 @@ variable "root_domain" {
   type=string
 }
 
-variable "location" {
-  type=string
-}
-
 variable "dns_zone_name" {
   type=string
 }

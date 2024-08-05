@@ -1,4 +1,5 @@
 module "app_gateway" {
+  depends_on = [ google_compute_global_address.a_addrs ]
   source       = "../../modules/app_gateway"
   service_name = module.kubernetes_service.name
   labels = {

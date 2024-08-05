@@ -13,8 +13,8 @@ terraform {
   }
 
   backend "gcs" {
-    bucket = "tfstate.eave-staging.eave.fyi" # project ID hardcoded because changing it would break TF state
-    prefix = "terraform/state"
+    bucket = "terraform.eave-staging.eave.fyi" # project ID hardcoded because changing it would break TF state
+    prefix = "state"
   }
 }
 

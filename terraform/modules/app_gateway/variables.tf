@@ -11,7 +11,7 @@ variable "certificate_map_name" {
 }
 
 variable "global_address_names" {
-  type = list(string)
+  type = set(string)
 }
 
 variable "ssl_policy_name" {

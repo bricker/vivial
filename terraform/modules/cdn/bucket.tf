@@ -7,7 +7,7 @@ resource "google_storage_bucket" "default" {
   enable_object_retention     = false
   force_destroy               = false
   labels                      = {}
-  location                    = var.location
+  location                    = "US"
   requester_pays              = false
   rpo                         = null
   storage_class               = "STANDARD"
