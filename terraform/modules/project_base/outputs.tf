@@ -24,3 +24,10 @@ output "certificate_map_name" {
 output "private_ip_range_name" {
   value = google_compute_global_address.private_ip_range.name
 }
+
+output "iap_client_ref" {
+  value = {
+    brand =  google_iap_client.default.brand
+    client_id = google_iap_client.default.client_id
+  }
+}

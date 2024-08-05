@@ -12,15 +12,15 @@ resource "google_compute_backend_bucket" "default" {
   }
 }
 
-resource "random_id" "url_signature" {
-  byte_length = 16
-}
+# resource "random_id" "url_signature" {
+#   byte_length = 16
+# }
 
-resource "google_compute_backend_bucket_signed_url_key" "backend_key" {
-  name           = "${var.name}-backend-key"
-  key_value      = random_id.url_signature.b64_url
-  backend_bucket = google_compute_backend_bucket.default.name
-}
+# resource "google_compute_backend_bucket_signed_url_key" "backend_key" {
+#   name           = "${var.name}-backend-key"
+#   key_value      = random_id.url_signature.b64_url
+#   backend_bucket = google_compute_backend_bucket.default.name
+# }
 
 resource "google_compute_url_map" "default" {
   name            = "${var.name}-lb-urlmap"

@@ -1,3 +1,14 @@
+variable "environment" {
+  description = "Allowed values: DEV, STG, PROD"
+  type=string
+  default="DEV"
+
+  validation {
+    condition = contains(["DEV", "STG", "PROD"], var.environment)
+    error_message = "Allowed values: DEV, STG, PROD"
+  }
+}
+
 variable "dns_zone_name" {
   type = string
 }

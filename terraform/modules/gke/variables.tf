@@ -12,6 +12,10 @@ variable "authorized_networks" {
   default = {}
 }
 
+variable "root_domain" {
+  type=string
+}
+
 variable "network_name" {
   type=string
 }
@@ -22,14 +26,5 @@ variable "subnetwork_self_link" {
 }
 
 variable "cluster_name" {
-  type=string
-}
-
-variable "iap_oauth_client_secret" {
-  type      = string
-  sensitive = true
-}
-
-variable "root_domain" {
   type=string
 }

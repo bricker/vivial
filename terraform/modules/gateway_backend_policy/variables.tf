@@ -10,21 +10,24 @@ variable "namespace" {
   type = string
 }
 
-variable "iap_oauth_client_secret_name" {
+variable "iap_enabled" {
+  type=bool
+}
+
+variable "iap_client_kube_secret_name" {
   type     = string
   nullable = true
 }
 
-variable "iap_oauth_client_id" {
-  type     = string
+variable "iap_client_ref" {
+  type = object({
+    brand=string
+    client_id=string
+  })
   nullable = true
 }
 
 variable "labels" {
   type    = map(string)
   default = {}
-}
-
-variable "iap_enabled" {
-  type=bool
 }

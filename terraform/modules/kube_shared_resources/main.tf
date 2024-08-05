@@ -39,6 +39,6 @@ resource "kubernetes_secret" "iap_oauth_client_secret" {
 
   type = "Opaque"
   data = {
-    key = var.iap_oauth_client_secret
+    key = data.google_iap_client.given.secret
   }
 }

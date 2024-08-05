@@ -19,4 +19,5 @@ variable "description" {
 
 variable "members" {
   type = list(string)
+  default = []
 }

@@ -21,8 +21,9 @@ module "app_iam_role" {
   ]
 }
 
-resource "google_compute_global_address" "default" {
-  name         = local.app_name
+resource "google_compute_global_address" "a_addrs" {
+  count = local.preset_production ? 4 : 1
+  name         = "${local.app_name}-${count.index}"
   address_type = "EXTERNAL"
 }
 
@@ -31,7 +32,9 @@ resource "google_dns_record_set" "default" {
   name         = "${local.domain_prefix}.${data.google_dns_managed_zone.given.dns_name}"
   type         = "A"
   ttl          = 300
-  rrdatas      = [google_compute_global_address.default.address]
+  rrdatas      = [
+    for addr in google_compute_global_address.a_addrs: addr.address
+  ]
 }
 
 module "certificate" {

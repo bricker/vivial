@@ -24,12 +24,6 @@ provider "google" {
   zone    = local.default_zone
 }
 
-provider "google-beta" {
-  project = local.project_id
-  region  = local.default_region
-  zone    = local.default_zone
-}
-
 provider "kubernetes" {
   host                   = "https://${module.gke_primary.cluster.endpoint}"
   token                  = data.google_client_config.default.access_token

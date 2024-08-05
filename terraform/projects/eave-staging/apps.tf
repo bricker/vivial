@@ -1,6 +1,6 @@
 module "shared_kubernetes_resources" {
   source                  = "../../modules/kube_shared_resources"
-  iap_oauth_client_secret = var.IAP_OAUTH_CLIENT_SECRET
+  iap_client_ref = module.project_base.iap_client_ref
   root_domain = local.root_domain
 }
 
@@ -32,8 +32,8 @@ module "dashboard_app" {
   LOG_LEVEL = "DEBUG"
   release_version = "latest"
   EAVE_CREDENTIALS = var.INTERNAL_EAVE_CREDENTIALS
-  iap_oauth_client_id          = var.IAP_OAUTH_CLIENT_ID
-  iap_oauth_client_secret_name = module.shared_kubernetes_resources.iap_oauth_client_secret_name
+  iap_client_ref = module.project_base.iap_client_ref
+  iap_client_kube_secret_name = module.shared_kubernetes_resources.iap_client_kube_secret_name
   iap_enabled = true
 }
 
@@ -52,8 +52,8 @@ module "playground_todoapp" {
   LOG_LEVEL = "DEBUG"
   release_version = "latest"
   EAVE_CREDENTIALS = var.PLAYGROUND_TODOAPP_EAVE_CREDENTIALS
-  iap_oauth_client_id          = var.IAP_OAUTH_CLIENT_ID
-  iap_oauth_client_secret_name = module.shared_kubernetes_resources.iap_oauth_client_secret_name
+  iap_client_ref = module.project_base.iap_client_ref
+  iap_client_kube_secret_name = module.shared_kubernetes_resources.iap_client_kube_secret_name
 }
 
 module "playground_quizapp" {
@@ -69,6 +69,6 @@ module "playground_quizapp" {
   LOG_LEVEL = "DEBUG"
   release_version = "latest"
   EAVE_CREDENTIALS = var.PLAYGROUND_QUIZAPP_EAVE_CREDENTIALS
-  iap_oauth_client_id          = var.IAP_OAUTH_CLIENT_ID
-  iap_oauth_client_secret_name = module.shared_kubernetes_resources.iap_oauth_client_secret_name
+  iap_client_ref = module.project_base.iap_client_ref
+  iap_client_kube_secret_name = module.shared_kubernetes_resources.iap_client_kube_secret_name
 }

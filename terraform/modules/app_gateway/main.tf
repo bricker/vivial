@@ -41,9 +41,10 @@ resource "kubernetes_manifest" "gateway" {
       ]
 
       addresses = [
+        for addr in data.google_compute_global_address.given:
         {
           type  = "NamedAddress"
-          value = data.google_compute_global_address.given.name
+          value = addr.name
         }
       ]
     }
