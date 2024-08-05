@@ -7,7 +7,7 @@ import { AUTH_COOKIE_NAME } from "./util/cookies";
 
 function App() {
   const [counter, setCounter] = useState(0);
-  const [cookies, setCookie, removeCookie] = useCookies([AUTH_COOKIE_NAME]);
+  const [cookies, setCookie, _removeCookie] = useCookies([AUTH_COOKIE_NAME]);
   const isLoggedIn = cookies[AUTH_COOKIE_NAME];
 
   return (
@@ -46,7 +46,6 @@ function App() {
                   style={{ width: 24, height: 24 }}
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
-                  ariaLabelledby="sign-out-svg"
                   aria-hidden="true"
                   role="img"
                 >

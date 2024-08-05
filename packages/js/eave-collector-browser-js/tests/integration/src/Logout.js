@@ -5,7 +5,7 @@ import { AUTH_COOKIE_NAME } from "./util/cookies";
 
 const Logout = () => {
   // delete auth cookie
-  const [cookies, setCookie, removeCookie] = useCookies([AUTH_COOKIE_NAME]);
+  const [_cookies, _setCookie, removeCookie] = useCookies([AUTH_COOKIE_NAME]);
   useEffect(() => {
     removeCookie(AUTH_COOKIE_NAME);
   }, []);
