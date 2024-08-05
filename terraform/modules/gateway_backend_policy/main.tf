@@ -12,7 +12,7 @@ resource "kubernetes_manifest" "backend_policy" {
       default = {
         # https://cloud.google.com/kubernetes-engine/docs/how-to/configure-gateway-resources#configure_iap
         iap = {
-          enabled = true
+          enabled = var.iap_enabled
           oauth2ClientSecret = {
             name = var.iap_oauth_client_secret_name
           }

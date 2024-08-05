@@ -1,7 +1,7 @@
-# import {
-#   to = google_sql_database_instance.eave_pg_core
-#   id = "eave-pg-core"
-# }
+import {
+  to = google_compute_network.default
+  id = "default"
+}
 
 # import {
 #   to = module.gcp_monitoring.google_monitoring_alert_policy.ssl_certs_expiring

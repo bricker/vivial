@@ -6,7 +6,7 @@ module "app_gateway" {
   }
   namespace            = var.kube_namespace_name
   certificate_map_name = var.certificate_map_name
-  address_name         = google_compute_global_address.default.name
+  global_address_name         = google_compute_global_address.default.name
   ssl_policy_name      = var.ssl_policy_name
 }
 
@@ -128,93 +128,3 @@ resource "kubernetes_manifest" "app_httproute" {
     }
   }
 }
-
-# resource "kubernetes_manifest" "metabase_httproute" {
-#   manifest = {
-#     apiVersion = "gateway.networking.k8s.io/v1beta1"
-#     kind       = "HTTPRoute"
-#     metadata = {
-#       name      = "metabase-rewrite"
-#       namespace = var.kube_namespace_name
-
-#       labels = {
-#         app = local.app_name
-#       }
-#     }
-
-#     spec = {
-#       parentRefs = [
-#         {
-#           name = module.app_gateway.name
-#         }
-#       ]
-
-#       hostnames = [
-#         local.embed_domain
-#       ]
-
-#       rules = [
-#         {
-#           matches = [
-#             {
-#               path = {
-#                 type  = "PathPrefix"
-#                 value = "/auth/sso"
-#               }
-#             },
-#             {
-#               path = {
-#                 type  = "PathPrefix"
-#                 value = "/app"
-#               }
-#             },
-#             {
-#               path = {
-#                 type  = "PathPrefix"
-#                 value = "/api"
-#               }
-#             },
-#             {
-#               path = {
-#                 type  = "PathPrefix"
-#                 value = "/dashboard"
-#               }
-#             },
-#           ]
-
-#           backendRefs = [
-#             {
-#               name = module.kubernetes_service.name
-#               port = module.kubernetes_service.port.number
-#             }
-#           ]
-
-#           filters = [
-#             {
-#               type = "RequestHeaderModifier"
-#               requestHeaderModifier = {
-#                 add = [
-#                   {
-#                     name  = "eave-lb"
-#                     value = "1"
-#                   }
-#                 ]
-#               }
-#             },
-#             {
-#               type = "ResponseHeaderModifier"
-#               responseHeaderModifier = {
-#                 set = [
-#                   {
-#                     name  = "server"
-#                     value = "n/a"
-#                   }
-#                 ]
-#               }
-#             }
-#           ]
-#         },
-#       ]
-#     }
-#   }
-# }

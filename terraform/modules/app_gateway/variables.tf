@@ -10,7 +10,7 @@ variable "certificate_map_name" {
   type = string
 }
 
-variable "address_name" {
+variable "global_address_name" {
   type = string
 }
 

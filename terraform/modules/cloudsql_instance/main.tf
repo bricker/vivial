@@ -5,22 +5,21 @@ resource "google_sql_database_instance" "default" {
   database_version    = "POSTGRES_15"
   instance_type       = "CLOUD_SQL_INSTANCE"
   deletion_protection = true
-  region              = var.project.region
 
   settings {
-    availability_type           = var.project.preset_production ? "REGIONAL" : "ZONAL"
+    availability_type           = local.preset_production ? "REGIONAL" : "ZONAL"
     connector_enforcement       = "REQUIRED"
     deletion_protection_enabled = true
-    disk_autoresize             = var.project.preset_production
+    disk_autoresize             = local.preset_production
     disk_autoresize_limit       = 0
-    disk_size                   = var.project.preset_production ? 100 : 10
+    disk_size                   = local.preset_production ? 100 : 10
     disk_type                   = "PD_SSD"
-    edition                     = var.project.preset_production ? "ENTERPRISE_PLUS" : "ENTERPRISE"
-    tier                        = var.project.preset_production ? "db-f1-micro" : "db-f1-micro"
+    edition                     = local.preset_production ? "ENTERPRISE_PLUS" : "ENTERPRISE"
+    tier                        = local.preset_production ? "db-f1-micro" : "db-f1-micro"
     backup_configuration {
-      binary_log_enabled             = var.project.preset_production
-      enabled                        = var.project.preset_production
-      point_in_time_recovery_enabled = var.project.preset_production
+      binary_log_enabled             = local.preset_production
+      enabled                        = local.preset_production
+      point_in_time_recovery_enabled = local.preset_production
       start_time                     = "19:00"
       transaction_log_retention_days = 7
       backup_retention_settings {
@@ -68,12 +67,10 @@ resource "google_sql_database_instance" "default" {
     ip_configuration {
       enable_private_path_for_google_cloud_services = true
       ipv4_enabled                                  = true
-      private_network                               = var.network_id
+      private_network                               = data.google_compute_network.given.id
       require_ssl                                   = true
       ssl_mode                                      = "TRUSTED_CLIENT_CERTIFICATE_REQUIRED" # ENCRYPTED_ONLY, TRUSTED_CLIENT_CERTIFICATE_REQUIRED, ALLOW_UNENCRYPTED_AND_ENCRYPTED
-    }
-    location_preference {
-      zone = var.project.zone
+      # allocated_ip_range = data.google_compute_global_address.given.name
     }
     maintenance_window {
       day          = 7

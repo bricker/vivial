@@ -5,9 +5,3 @@ variable "kube_service_name" {
 variable "kube_namespace_name" {
   type = string
 }
-
-variable "project" {
-  type = object({
-    id = string
-  })
-}

@@ -13,21 +13,27 @@ terraform {
   }
 
   backend "gcs" {
-    bucket = "tfstate.eave-staging.eave.fyi"
+    bucket = "tfstate.eave-staging.eave.fyi" # project ID hardcoded because changing it would break TF state
     prefix = "terraform/state"
   }
 }
 
 provider "google" {
-  project = local.project.id
-  region  = local.project.region
-  zone    = local.project.zone
+  project = local.project_id
+  region  = local.default_region
+  zone    = local.default_zone
+}
+
+provider "google-beta" {
+  project = local.project_id
+  region  = local.default_region
+  zone    = local.default_zone
 }
 
 provider "kubernetes" {
-  host                   = "https://${module.gke.cluster.endpoint}"
+  host                   = "https://${module.gke_primary.cluster.endpoint}"
   token                  = data.google_client_config.default.access_token
-  cluster_ca_certificate = base64decode(module.gke.cluster.master_auth[0].cluster_ca_certificate)
+  cluster_ca_certificate = base64decode(module.gke_primary.cluster.master_auth[0].cluster_ca_certificate)
 
   # config_path = "~/.kube/config"
   # config_context = "eave-staging"

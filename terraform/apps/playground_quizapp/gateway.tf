@@ -6,7 +6,7 @@ module "app_gateway" {
   }
   namespace            = var.kube_namespace_name
   certificate_map_name = var.certificate_map_name
-  address_name         = google_compute_global_address.default.name
+  global_address_name         = google_compute_global_address.default.name
   ssl_policy_name      = var.ssl_policy_name
 }
 
@@ -21,6 +21,7 @@ module "gateway_backend_policy" {
   service_name                 = module.kubernetes_service.name
   iap_oauth_client_secret_name = var.iap_oauth_client_secret_name
   iap_oauth_client_id          = var.iap_oauth_client_id
+  iap_enabled = true
 }
 
 resource "kubernetes_manifest" "app_httproute" {

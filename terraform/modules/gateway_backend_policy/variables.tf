@@ -24,3 +24,7 @@ variable "labels" {
   type    = map(string)
   default = {}
 }
+
+variable "iap_enabled" {
+  type=bool
+}

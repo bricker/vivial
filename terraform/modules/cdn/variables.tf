@@ -1,19 +1,23 @@
-variable "project" {
-  type = object({
-    root_domain = string
-  })
+variable "name" {
+  type=string
 }
 
-variable "dns_zone" {
-  type = object({
-    name     = string
-    dns_name = string
-  })
+variable "root_domain" {
+  type=string
 }
 
-variable "certificate_map" {
-  type = object({
-    id   = string
-    name = string
-  })
+variable "location" {
+  type=string
+}
+
+variable "dns_zone_name" {
+  type=string
+}
+
+variable "certificate_map_name" {
+  type=string
+}
+
+variable "ssl_policy_name" {
+  type = string
 }

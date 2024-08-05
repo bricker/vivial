@@ -1,13 +1,14 @@
 # # https://cloud.google.com/cdn/docs/cdn-terraform-examples
 
-resource "google_storage_bucket" "cdn" {
-  name                        = "cdn.${var.project.root_domain}"
+
+resource "google_storage_bucket" "default" {
+  name                        = "${var.name}.${var.root_domain}"
   default_event_based_hold    = false
   enable_object_retention     = false
   force_destroy               = false
   labels                      = {}
-  location                    = "US-CENTRAL1"
-  public_access_prevention    = "inherited"
+  location                    = var.location
+  public_access_prevention    = "enforced"
   requester_pays              = false
   rpo                         = null
   storage_class               = "STANDARD"
@@ -40,8 +41,17 @@ resource "google_storage_bucket" "cdn" {
   }
 }
 
-resource "google_storage_bucket_iam_member" "cdn_allusers" {
-  bucket = google_storage_bucket.cdn.name
-  role   = "roles/storage.objectViewer"
-  member = "allUsers"
+# Create custom role
+module "cdn_iam_role" {
+  source      = "../../modules/custom_role"
+  role_id     = "eave.cdn"
+  title       = "CDN"
+  description = "Permissions needed by the Cloud CDN to access backend buckets"
+  base_roles = [
+    "roles/storage.objectViewer",
+  ]
+
+  members = [
+    "serviceAccount:service-${data.google_project.default.number}@cloud-cdn-fill.iam.gserviceaccount.com"
+  ]
 }
