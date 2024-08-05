@@ -35,7 +35,7 @@ describe("eave correlation context cookies", () => {
     });
   });
 
-  it("clears account and traffic source cookies on logout", () => {
+  it("clears account and traffic source cookies on logout link/button click", () => {
     cy.interceptAtomIngestion();
 
     // GIVEN the user goes to the site with utm params
@@ -45,9 +45,10 @@ describe("eave correlation context cookies", () => {
     // GIVEN the user logs in and eave server sets our account info cookie(s)
     cy.login();
     cy.setCookie("_eave.nc.act.account_id", "encrypted-id");
+
+    // THEN acccount and traffic src cookies should exist on events
     cy.get("#counter-btn").click();
     cy.waitForAtom().then((interception) => {
-      // THEN acccount and traffic src cookies should exist on events
       expect(interception.response.body.events.browser_event[0].corr_ctx["_eave.nc.act.account_id"]).to.equal(
         "encrypted-id",
       );
@@ -62,9 +63,53 @@ describe("eave correlation context cookies", () => {
     });
 
     // WHEN the user logs out
-    cy.logoutAndConsume();
-    cy.visit(dummyAppRoot({ path: "/page" }));
+    cy.get("#logout").click();
+    cy.waitForAtom(); // consume click
+    cy.waitForAtom(); // consume nav to logout page
+
+    // THEN the eave account and traffic src cookies are cleared/reset
+    cy.get("#page-link").click();
+    cy.waitForAtom().then((interception) => {
+      expect(interception.response.body.events.browser_event[0].corr_ctx["_eave.nc.act.account_id"]).to.not.exist;
+
+      const traffic_src = JSON.parse(
+        interception.response.body.events.browser_event[0].corr_ctx["_eave.traffic_source"],
+      );
+      expect(traffic_src.tracking_params).to.deep.equal({});
+    });
+  });
+
+  it("clears account and traffic source cookies on logout link/button child-element click", () => {
+    cy.interceptAtomIngestion();
+
+    // GIVEN the user goes to the site with utm params
+    cy.visit(dummyAppRoot({ qp: "utm_source=tickletok&utm_campaign=gogole" }));
     cy.waitForAtom();
+
+    // GIVEN the user logs in and eave server sets our account info cookie(s)
+    cy.login();
+    cy.setCookie("_eave.nc.act.account_id", "encrypted-id");
+
+    // THEN acccount and traffic src cookies should exist on events
+    cy.get("#counter-btn").click();
+    cy.waitForAtom().then((interception) => {
+      expect(interception.response.body.events.browser_event[0].corr_ctx["_eave.nc.act.account_id"]).to.equal(
+        "encrypted-id",
+      );
+
+      const traffic_src = JSON.parse(
+        interception.response.body.events.browser_event[0].corr_ctx["_eave.traffic_source"],
+      );
+      expect(traffic_src.tracking_params).to.deep.equal({
+        utm_source: "tickletok",
+        utm_campaign: "gogole",
+      });
+    });
+
+    // WHEN the user clicks a sub-element of the logout button
+    cy.get("#sign-out-svg").click();
+    cy.waitForAtom(); // consume click
+    cy.waitForAtom(); // consume nav to logout page
 
     // THEN the eave account and traffic src cookies are cleared/reset
     cy.get("#page-link").click();

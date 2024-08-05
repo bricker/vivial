@@ -16,9 +16,47 @@ function App() {
         <div className="auth-bar">
           {isLoggedIn && <p>You're logged in!</p>}
           {isLoggedIn ? (
-            <Link id="logout" to="/logout">
-              Log out
-            </Link>
+            // stupid fancy logout button
+            <div
+              style={{
+                backgroundColor: "#ff6b6b",
+                border: "none",
+                color: "white",
+                textAlign: "center",
+                textDecoration: "none",
+                display: "inline-block",
+                fontSize: "16px",
+                margin: "4px 2px",
+                cursor: "pointer",
+                borderRadius: "12px",
+              }}
+            >
+              <Link
+                id="logout"
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  padding: "10px 20px",
+                }}
+                to="/logout"
+              >
+                <svg
+                  style={{ width: 24, height: 24 }}
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  ariaLabelledby="sign-out-svg"
+                  aria-hidden="true"
+                  role="img"
+                >
+                  <title id="sign-out-svg">Sign Out</title>
+                  <path d="M15 15a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v5a1 1 0 1 1-2 0V4H6v16h8v-4a1 1 0 0 1 1-1zm8.923-2.618a1 1 0 0 1-.217.326l-4 3.999A.993.993 0 0 1 19 17a.999.999 0 0 1-.707-1.707L20.586 13H15a1 1 0 0 1 0-2h5.586l-2.293-2.293a.999.999 0 1 1 1.414-1.414l3.999 4a.992.992 0 0 1 .217 1.089z"></path>
+                </svg>
+                <div>
+                  <h5>Log Out</h5>
+                </div>
+              </Link>
+            </div>
           ) : (
             <button
               id="login"

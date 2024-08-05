@@ -59,13 +59,3 @@ Cypress.Commands.add("expireSessionAndTrafficSourceCookies", () => {
 Cypress.Commands.add("login", () => {
   cy.setCookie("mock_auth_cookie", "1");
 });
-
-Cypress.Commands.add("logout", () => {
-  cy.get("#logout").click();
-});
-
-Cypress.Commands.add("logoutAndConsume", () => {
-  cy.logout();
-  cy.waitForAtom(); // consume click
-  cy.waitForAtom(); // consume nav to logout page
-});
