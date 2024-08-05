@@ -68,7 +68,7 @@ describe("eave correlation context cookies", () => {
     cy.waitForAtom(); // consume nav to logout page
 
     // THEN the eave account and traffic src cookies are cleared/reset
-    cy.get("#page-link").click();
+    cy.get("#home").click();
     cy.waitForAtom().then((interception) => {
       expect(interception.response.body.events.browser_event[0].corr_ctx["_eave.nc.act.account_id"]).to.not.exist;
 
@@ -112,7 +112,7 @@ describe("eave correlation context cookies", () => {
     cy.waitForAtom(); // consume nav to logout page
 
     // THEN the eave account and traffic src cookies are cleared/reset
-    cy.get("#page-link").click();
+    cy.get("#home").click();
     cy.waitForAtom().then((interception) => {
       expect(interception.response.body.events.browser_event[0].corr_ctx["_eave.nc.act.account_id"]).to.not.exist;
 

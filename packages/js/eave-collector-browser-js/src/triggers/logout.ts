@@ -5,9 +5,13 @@ const signOutRegex = new RegExp(/(sign ?out)|(log ?out)/i);
 
 export async function logoutEventHandler(event: MouseEvent) {
   if (event.target) {
-    // TODO: drill deeper?? search for wrapping button around clicked elem?
-    const targetElement = castEventTargetToHtmlElement(event.target);
-    const nodeName = targetElement?.nodeName.toUpperCase();
+    // climb up DOM tree to find any wrapping anchor or button element
+    let targetElement = castEventTargetToHtmlElement(event.target);
+    let nodeName = targetElement?.nodeName.toUpperCase();
+    while (targetElement && !(nodeName === "A" || nodeName === "BUTTON")) {
+      targetElement = targetElement.parentElement;
+      nodeName = targetElement?.nodeName.toUpperCase();
+    }
 
     // delete auth and traffic cookies on signout button click
     const targetContainsSignoutText = !(targetElement?.innerText ?? "").search(signOutRegex);
