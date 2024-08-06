@@ -24,8 +24,3 @@ data "google_sql_database_instance" "given" {
 data "google_service_account" "gke_gsa" {
   account_id = module.service_accounts.gsa_ref
 }
-
-data "google_iap_client" "given" {
-  brand = var.iap_client_ref.brand
-  client_id = var.iap_client_ref.client_id
-}

@@ -22,7 +22,7 @@ locals {
     #   display_name = "Lana's Home Network"
     # },
     "liam-home" : {
-      cidr_block   = "76.146.71.81/32"
+      cidr_block   = "73.35.152.53/32"
       display_name = "Liam's Home Network"
     },
     "cabin-wifi" : {

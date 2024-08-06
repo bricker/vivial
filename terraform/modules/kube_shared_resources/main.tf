@@ -29,7 +29,6 @@ resource "kubernetes_config_map" "shared" {
 resource "kubernetes_secret" "iap_oauth_client_secret" {
   for_each = toset([
     kubernetes_namespace.eave.metadata[0].name,
-    # kubernetes_namespace.metabase.metadata[0].name
   ])
 
   metadata {
@@ -39,6 +38,6 @@ resource "kubernetes_secret" "iap_oauth_client_secret" {
 
   type = "Opaque"
   data = {
-    key = data.google_iap_client.given.secret
+    key = var.iap_oauth_client_secret
   }
 }

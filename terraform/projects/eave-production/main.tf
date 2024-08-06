@@ -12,10 +12,10 @@ terraform {
     }
   }
 
-  backend "gcs" {
-    bucket = "terraform.eave-production.eave.fyi" # project ID hardcoded because changing it would break TF state
-    prefix = "state"
-  }
+  # backend "gcs" {
+  #   bucket = "terraform.eave-production.eave.fyi" # project ID hardcoded because changing it would break TF state
+  #   prefix = "state"
+  # }
 }
 
 provider "google" {

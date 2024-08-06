@@ -25,3 +25,12 @@ variable "SLACK_SYSTEM_BOT_TOKEN" {
   type      = string
   sensitive = true
 }
+
+variable "IAP_OAUTH_CLIENT_ID" {
+  type=string
+}
+
+variable "IAP_OAUTH_CLIENT_SECRET" {
+  type=string
+  sensitive=true
+}

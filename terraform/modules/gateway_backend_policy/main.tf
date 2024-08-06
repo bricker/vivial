@@ -14,9 +14,9 @@ resource "kubernetes_manifest" "backend_policy" {
         iap = var.iap_enabled ? {
           enabled = var.iap_enabled
           oauth2ClientSecret = {
-            name = var.iap_client_kube_secret_name
+            name = var.iap_oauth_client_kube_secret_name
           }
-          clientID = try(var.iap_client_ref.client_id, null)
+          clientID = var.iap_oauth_client_id
         } : null
       }
 

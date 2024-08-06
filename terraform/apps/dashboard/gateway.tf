@@ -20,8 +20,8 @@ module "gateway_backend_policy" {
     app = local.app_name
   }
   service_name                 = module.kubernetes_service.name
-  iap_client_kube_secret_name = var.iap_client_kube_secret_name
-  iap_client_ref = var.iap_client_ref
+  iap_oauth_client_kube_secret_name = var.iap_oauth_client_kube_secret_name
+  iap_oauth_client_id = var.iap_oauth_client_id
   iap_enabled = var.iap_enabled
 }
 

@@ -48,14 +48,10 @@ variable "EAVE_CREDENTIALS" {
   sensitive = true
 }
 
-variable "iap_client_ref" {
-  type = object({
-    brand=string
-    client_id=string
-  })
+variable "iap_oauth_client_id" {
+  type=string
 }
 
-variable "iap_client_kube_secret_name" {
+variable "iap_oauth_client_kube_secret_name" {
   type = string
-  nullable = true
 }
