@@ -9,7 +9,7 @@ resource "google_container_cluster" "default" {
 
   # Set `deletion_protection` to `true` will ensure that one cannot
   # accidentally delete this instance by use of Terraform.
-  deletion_protection = false
+  deletion_protection = true
 
   master_authorized_networks_config {
     gcp_public_cidrs_access_enabled = false
