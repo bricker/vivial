@@ -25,9 +25,14 @@ credentials.json
 coverage.xml
 lcov.info
 .tmp
+
 .terraform*
 *.tfstate*
 *.tfvars
+
+# tfvars file prefixed with `share` indicate that they don't contain sensitive keys.
+!share*.tfvars
+
 Cargo.lock
 *.so
 cypress.env.json
