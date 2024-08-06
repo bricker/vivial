@@ -5,16 +5,16 @@ set -eu
 source "${EAVE_HOME}"/develop/functions.bash
 
 function main() (
-	local metabase_instance_id="$1"
-
 	local gcloudproject
 	gcloudproject="$(e.gcloudproject)"
+
+	local targetdb="$1"
+	local targetuser="$2@${gcloudproject}.iam"
+
 
 	local host="/run/user/1000/.cloudsqlproxy/${gcloudproject}:us-central1:eave-pg-core"
 	local conndb="postgres"
 	local connuser="postgres"
-	local targetuser="gsa-app-mb-${metabase_instance_id}@${gcloudproject}.iam"
-	local targetdb="mb_${metabase_instance_id}"
 
 	local sql
 
@@ -31,9 +31,6 @@ function main() (
 
 	statusmsg -in "gcloudproject:"
 	statusmsg -o " ${gcloudproject}"
-
-	statusmsg -in "metabase_instance_id:"
-	statusmsg -o " ${metabase_instance_id}"
 
 	statusmsg -in "pg host:"
 	statusmsg -o " ${host}"

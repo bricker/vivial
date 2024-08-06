@@ -15,13 +15,13 @@ resource "google_sql_database_instance" "default" {
     disk_size                   = local.preset_production ? 100 : 10
     disk_type                   = "PD_SSD"
     edition                     = local.preset_production ? "ENTERPRISE_PLUS" : "ENTERPRISE"
-    tier                        = local.preset_production ? "db-f1-micro" : "db-f1-micro"
+    tier                        = local.preset_production ? "db-perf-optimized-N-2" : "db-f1-micro"
     backup_configuration {
-      binary_log_enabled             = local.preset_production
+      binary_log_enabled             = false # Only supported for MySQL
       enabled                        = local.preset_production
       point_in_time_recovery_enabled = local.preset_production
       start_time                     = "19:00"
-      transaction_log_retention_days = 7
+      transaction_log_retention_days = 6
       backup_retention_settings {
         retained_backups = 7
         retention_unit   = "COUNT"

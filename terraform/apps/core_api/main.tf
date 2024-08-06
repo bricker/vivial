@@ -40,7 +40,7 @@ resource "google_sql_user" "app" {
 }
 
 resource "google_compute_global_address" "a_addrs" {
-  count = local.preset_production ? 4 : 1
+  count = 1
   name         = "${local.app_name}-${count.index}"
   address_type = "EXTERNAL"
 }
