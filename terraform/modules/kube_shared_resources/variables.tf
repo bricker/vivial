@@ -8,5 +8,5 @@ variable "root_domain" {
 }
 
 variable "eave_slack_signups_channel_id" {
-  type=string
+  type = string
 }

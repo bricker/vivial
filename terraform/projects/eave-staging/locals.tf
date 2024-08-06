@@ -8,7 +8,7 @@ locals {
   environment = "STG"
   root_domain = "eave.dev"
 
-  eave_slack_signups_channel_id = "C04GDPU3B5Z"  # #bot-testing in eave slack
+  eave_slack_signups_channel_id = "C04GDPU3B5Z" # #bot-testing in eave slack
 
   authorized_networks = {
     "bryan-ethernet" : {
