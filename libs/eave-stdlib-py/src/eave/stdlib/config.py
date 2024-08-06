@@ -268,6 +268,11 @@ class _EaveConfig(ConfigBase):
         value = get_secret("SLACK_SYSTEM_BOT_TOKEN")
         return value
 
+    @cached_property
+    def eave_slack_signups_channel_id(self) -> str | None:
+        value = os.getenv("EAVE_SLACK_SIGNUPS_CHANNEL_ID")
+        return value
+
 
 def get_secret(name: str) -> str:
     # Allow overrides from the environment

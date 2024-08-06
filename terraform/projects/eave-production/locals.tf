@@ -8,6 +8,8 @@ locals {
   environment = "PROD"
   root_domain = "eave.fyi"
 
+  eave_slack_signups_channel_id = "C04HH2N08LD"  # #sign-ups in eave slack
+
   authorized_networks = {
     "bryan-ethernet" : {
       cidr_block   = "157.22.33.185/32"
