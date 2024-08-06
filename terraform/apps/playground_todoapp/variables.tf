@@ -4,7 +4,7 @@ variable "dns_zone_name" {
 
 variable "docker_repository_ref" {
   type = object({
-    location = string
+    location      = string
     repository_id = string
   })
 }
@@ -53,7 +53,7 @@ variable "EAVE_CREDENTIALS" {
 }
 
 variable "iap_oauth_client_id" {
-  type=string
+  type = string
 }
 
 variable "iap_oauth_client_kube_secret_name" {

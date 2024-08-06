@@ -11,10 +11,10 @@ resource "google_compute_network" "primary" {
 }
 
 resource "google_compute_subnetwork" "primary" {
-  name          = "primary"
-  region        = var.subnet_region
-  ip_cidr_range = "10.128.0.0/20"
-  network       = google_compute_network.primary.id
+  name                     = "primary"
+  region                   = var.subnet_region
+  ip_cidr_range            = "10.128.0.0/20"
+  network                  = google_compute_network.primary.id
   private_ip_google_access = true
   # secondary_ip_range {
   #   range_name    = "tf-test-secondary-range-update1"
@@ -25,7 +25,7 @@ resource "google_compute_subnetwork" "primary" {
 resource "google_dns_policy" "primary" {
   name                      = "primary"
   enable_inbound_forwarding = true
-  enable_logging = true
+  enable_logging            = true
 
   networks {
     network_url = google_compute_network.primary.id

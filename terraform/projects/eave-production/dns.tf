@@ -41,14 +41,14 @@ module "dns_zone_base_domain" {
       ],
     },
     {
-      type = "TXT",
+      type      = "TXT",
       subdomain = "_dmarc"
       datas = [
         "\"v=DMARC1;p=none;rua=mailto:dmarc-reports@eave.fyi;ruf=mailto:dmarc-reports@eave.fyi;sp=none;ri=86400\"",
       ],
     },
     {
-      type = "TXT",
+      type      = "TXT",
       subdomain = "google._domainkey"
       datas = [
         # Note that this string is specially formatted for the TXT record, with quotes injected every 255 characters.
@@ -56,14 +56,14 @@ module "dns_zone_base_domain" {
       ],
     },
     {
-      type = "CNAME",
+      type      = "CNAME",
       subdomain = "tlhahrxjw5anplz9yyg7"
       datas = [
         "verify.squarespace.com.",
       ],
     },
     {
-      type = "CNAME",
+      type      = "CNAME",
       subdomain = "www"
       datas = [
         "ext-cust.squarespace.com.",
@@ -72,21 +72,21 @@ module "dns_zone_base_domain" {
 
     ## Google Records
     {
-      type = "CNAME",
+      type      = "CNAME",
       subdomain = "ala55kg6in7z"
       datas = [
         "gv-boykc4q5i3uucd.dv.googlehosted.com.",
       ],
     },
     {
-      type = "CNAME",
+      type      = "CNAME",
       subdomain = "jjeu6awts77f"
       datas = [
         "gv-4y2ruslvifcdd7.dv.googlehosted.com.",
       ],
     },
     {
-      type = "CNAME",
+      type      = "CNAME",
       subdomain = "orgaarcdmnxh"
       datas = [
         "gv-cdd2zw5qt2mqji.dv.googlehosted.com.",

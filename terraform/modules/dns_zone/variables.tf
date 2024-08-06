@@ -9,9 +9,9 @@ variable "visibility" {
 
 variable "records" {
   type = list(object({
-    type = string
+    type      = string
     subdomain = optional(string)
-    datas = list(string)
+    datas     = list(string)
   }))
 
   default = []

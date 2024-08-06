@@ -12,7 +12,7 @@ output "subnetwork_self_link" {
 
 output "docker_repository_ref" {
   value = {
-    location = google_artifact_registry_repository.docker.location
+    location      = google_artifact_registry_repository.docker.location
     repository_id = google_artifact_registry_repository.docker.repository_id
   }
 }

@@ -1,17 +1,17 @@
 variable "name" {
-  type=string
+  type = string
 }
 
 variable "root_domain" {
-  type=string
+  type = string
 }
 
 variable "dns_zone_name" {
-  type=string
+  type = string
 }
 
 variable "certificate_map_name" {
-  type=string
+  type = string
 }
 
 variable "ssl_policy_name" {

@@ -1,10 +1,10 @@
 variable "environment" {
   description = "Allowed values: DEV, STG, PROD"
-  type=string
-  default="DEV"
+  type        = string
+  default     = "DEV"
 
   validation {
-    condition = contains(["DEV", "STG", "PROD"], var.environment)
+    condition     = contains(["DEV", "STG", "PROD"], var.environment)
     error_message = "Allowed values: DEV, STG, PROD"
   }
 }
@@ -15,7 +15,7 @@ variable "dns_zone_name" {
 
 variable "docker_repository_ref" {
   type = object({
-    location = string
+    location      = string
     repository_id = string
   })
 }

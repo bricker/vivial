@@ -1,5 +1,5 @@
 variable "project_id" {
-  type=string
+  type = string
 }
 
 variable "org_id" {
@@ -11,5 +11,5 @@ variable "billing_account" {
 }
 
 variable "subnet_region" {
-  type=string
+  type = string
 }

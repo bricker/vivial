@@ -1,10 +1,10 @@
 variable "environment" {
   description = "Allowed values: DEV, STG, PROD"
-  type=string
-  default="DEV"
+  type        = string
+  default     = "DEV"
 
   validation {
-    condition = contains(["DEV", "STG", "PROD"], var.environment)
+    condition     = contains(["DEV", "STG", "PROD"], var.environment)
     error_message = "Allowed values: DEV, STG, PROD"
   }
 }
@@ -15,7 +15,7 @@ variable "dns_zone_name" {
 
 variable "docker_repository_ref" {
   type = object({
-    location = string
+    location      = string
     repository_id = string
   })
 }
@@ -58,18 +58,18 @@ variable "EAVE_CREDENTIALS" {
 }
 
 variable "iap_oauth_client_id" {
-  type=string
-  nullable=true
-  default = null
+  type     = string
+  nullable = true
+  default  = null
 }
 
 variable "iap_oauth_client_kube_secret_name" {
-  type = string
+  type     = string
   nullable = true
-  default = null
+  default  = null
 }
 
 variable "iap_enabled" {
-  type = bool
+  type    = bool
   default = false
 }

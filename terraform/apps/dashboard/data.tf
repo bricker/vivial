@@ -13,11 +13,11 @@ data "google_compute_ssl_policy" "given" {
 }
 
 data "google_artifact_registry_repository" "docker" {
-  location = var.docker_repository_ref.location
+  location      = var.docker_repository_ref.location
   repository_id = var.docker_repository_ref.repository_id
 }
 
 data "google_service_account" "gke_gsa" {
-  depends_on = [ module.service_accounts ]
+  depends_on = [module.service_accounts]
   account_id = module.service_accounts.gsa_ref
 }

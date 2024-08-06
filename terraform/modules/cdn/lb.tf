@@ -31,7 +31,7 @@ resource "google_compute_target_https_proxy" "default" {
   name            = "${var.name}-lb-https-proxy"
   url_map         = google_compute_url_map.default.id
   certificate_map = "//certificatemanager.googleapis.com/${data.google_certificate_manager_certificate_map.given.id}"
-  ssl_policy = data.google_compute_ssl_policy.given.name
+  ssl_policy      = data.google_compute_ssl_policy.given.name
 }
 
 resource "google_compute_global_forwarding_rule" "default" {

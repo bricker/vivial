@@ -1,7 +1,7 @@
 locals {
   app_name      = "dashboard"
   domain_prefix = "dashboard"
-  domain = trimsuffix(google_dns_record_set.default.name, ".")
+  domain        = trimsuffix(google_dns_record_set.default.name, ".")
 
   preset_production = var.environment == "PROD"
 

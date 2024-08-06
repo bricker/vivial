@@ -1,10 +1,10 @@
 // https://cloud.google.com/kubernetes-engine/docs/quickstarts/create-cluster-using-terraform
 
 resource "google_container_cluster" "default" {
-  name     = var.cluster_name
-  location = var.location
-  network = data.google_compute_network.given.self_link
-  subnetwork = var.subnetwork_self_link
+  name             = var.cluster_name
+  location         = var.location
+  network          = data.google_compute_network.given.self_link
+  subnetwork       = var.subnetwork_self_link
   enable_autopilot = true
 
   # Set `deletion_protection` to `true` will ensure that one cannot

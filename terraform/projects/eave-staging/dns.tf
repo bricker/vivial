@@ -2,10 +2,10 @@ module "dns_zone_base_domain" {
   source      = "../../modules/dns_zone"
   root_domain = local.root_domain
 
-  records = [ {
-    type = "TXT"
+  records = [{
+    type  = "TXT"
     datas = ["google-site-verification=fW2nsEe34FlVdFO2V0fqZjvw5uaid6Wf7yTG2hiUOz0"]
-  } ]
+  }]
 }
 
 module "dns_zone_pink" {
@@ -27,9 +27,9 @@ module "dns_zone_run" {
   source      = "../../modules/dns_zone"
   root_domain = "eave.run"
 
-  records = [ {
-    type = "CNAME"
-    subdomain="*"
-    datas = [ "localhost." ]
-  } ]
+  records = [{
+    type      = "CNAME"
+    subdomain = "*"
+    datas     = ["localhost."]
+  }]
 }

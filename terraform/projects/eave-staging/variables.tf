@@ -42,10 +42,10 @@ variable "SLACK_SYSTEM_BOT_TOKEN" {
 }
 
 variable "IAP_OAUTH_CLIENT_ID" {
-  type=string
+  type = string
 }
 
 variable "IAP_OAUTH_CLIENT_SECRET" {
-  type=string
-  sensitive=true
+  type      = string
+  sensitive = true
 }

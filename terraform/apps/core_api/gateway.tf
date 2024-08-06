@@ -1,5 +1,5 @@
 module "app_gateway" {
-  depends_on = [ google_compute_global_address.a_addrs ]
+  depends_on   = [google_compute_global_address.a_addrs]
   source       = "../../modules/app_gateway"
   service_name = module.kubernetes_service.name
   labels = {
@@ -7,7 +7,7 @@ module "app_gateway" {
   }
   namespace            = var.kube_namespace_name
   certificate_map_name = var.certificate_map_name
-  global_address_names         = [for addr in google_compute_global_address.a_addrs: addr.name]
+  global_address_names = [for addr in google_compute_global_address.a_addrs : addr.name]
   ssl_policy_name      = var.ssl_policy_name
 }
 

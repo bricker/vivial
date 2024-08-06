@@ -23,8 +23,8 @@ module "app_iam_role" {
 }
 
 resource "google_sql_database" "app" {
-  name     = "playground-todoapp"
-  instance = data.google_sql_database_instance.given.name
+  name            = "playground-todoapp"
+  instance        = data.google_sql_database_instance.given.name
   deletion_policy = "ABANDON"
 }
 
@@ -50,9 +50,9 @@ resource "google_dns_record_set" "default" {
 }
 
 module "certificate" {
-  source          = "../../modules/certificate_manager"
+  source               = "../../modules/certificate_manager"
   certificate_map_name = var.certificate_map_name
-  cert_name       = local.app_name
-  entry_name      = local.app_name
-  hostname        = local.domain
+  cert_name            = local.app_name
+  entry_name           = local.app_name
+  hostname             = local.domain
 }

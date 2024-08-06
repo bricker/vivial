@@ -13,18 +13,18 @@ variable "authorized_networks" {
 }
 
 variable "root_domain" {
-  type=string
+  type = string
 }
 
 variable "network_name" {
-  type=string
+  type = string
 }
 
 variable "subnetwork_self_link" {
-  type=string
+  type     = string
   nullable = true
 }
 
 variable "cluster_name" {
-  type=string
+  type = string
 }
