@@ -156,7 +156,8 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         if name is None:
             name = uuid.uuid4().hex
 
-        assert name not in self.testdata, f"test value {name} is already in use. Use getstr() to retrieve it."
+        if name in self.testdata:
+            return self.getstr(name)
 
         if staticvalue is None:
             data = uuid.uuid4().hex
@@ -401,9 +402,9 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
             return passing
 
-    def mock_google_auth(self) -> None:
+    def mock_google_auth(self, email: str | None = None) -> None:
         self._google_userinfo_response = GoogleOAuthV2GetResponse(
-            email=self.anystr("google.email"),
+            email=email or self.anystr("google.email"),
             family_name=self.anystr("google.family_name"),
             gender=self.anystr("google.gender"),
             given_name=self.anystr("google.given_name"),
