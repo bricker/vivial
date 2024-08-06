@@ -1,10 +1,9 @@
 locals {
-  app_name            = "core-api"
-  domain_prefix       = "api"
-  # embed_domain_prefix = "embed"
+  app_name      = "core-api"
+  domain_prefix = "api"
+  domain        = trimsuffix(google_dns_record_set.default.name, ".")
 
-  domain       = trimsuffix(google_dns_record_set.default.name, ".")
-  # embed_domain = trimsuffix(google_dns_record_set.embed.name, ".")
+  preset_production = var.environment == "PROD"
 
   service_port = {
     name   = "http"

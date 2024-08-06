@@ -1,6 +1,5 @@
 module "service_accounts" {
   source              = "../../modules/gke_app_service_account"
-  project             = var.project
   kube_service_name   = module.kubernetes_service.name
   kube_namespace_name = var.kube_namespace_name
 }
@@ -8,7 +7,6 @@ module "service_accounts" {
 # Create custom role
 module "app_iam_role" {
   source      = "../../modules/custom_role"
-  project     = var.project
   role_id     = "eave.playgroundTodoApp"
   title       = "Eave Playground Todo App"
   description = "Permissions needed by the Playground Todo App"
@@ -20,18 +18,19 @@ module "app_iam_role" {
   ]
 
   members = [
-    "serviceAccount:${module.service_accounts.gsa.email}"
+    "serviceAccount:${data.google_service_account.gke_gsa.email}"
   ]
 }
 
 resource "google_sql_database" "app" {
-  name     = "playground-todoapp"
-  instance = var.cloudsql_instance_name
+  name            = "playground-todoapp"
+  instance        = data.google_sql_database_instance.given.name
+  deletion_policy = "ABANDON"
 }
 
 resource "google_sql_user" "app" {
-  instance        = var.cloudsql_instance_name
-  name            = trimsuffix(module.service_accounts.gsa.email, ".gserviceaccount.com")
+  instance        = data.google_sql_database_instance.given.name
+  name            = trimsuffix(data.google_service_account.gke_gsa.email, ".gserviceaccount.com")
   type            = "CLOUD_IAM_SERVICE_ACCOUNT"
   password        = null # only IAM supported
   deletion_policy = "ABANDON"
@@ -43,17 +42,17 @@ resource "google_compute_global_address" "default" {
 }
 
 resource "google_dns_record_set" "default" {
-  managed_zone = var.dns_zone.name
-  name         = "${local.domain_prefix}.${var.dns_zone.dns_name}"
+  managed_zone = data.google_dns_managed_zone.given.name
+  name         = "${local.domain_prefix}.${data.google_dns_managed_zone.given.dns_name}"
   type         = "A"
   ttl          = 300
   rrdatas      = [google_compute_global_address.default.address]
 }
 
 module "certificate" {
-  source          = "../../modules/certificate_manager"
-  certificate_map = var.certificate_map_name
-  cert_name       = local.app_name
-  entry_name      = local.app_name
-  hostname        = local.domain
+  source               = "../../modules/certificate_manager"
+  certificate_map_name = var.certificate_map_name
+  cert_name            = local.app_name
+  entry_name           = local.app_name
+  hostname             = local.domain
 }
