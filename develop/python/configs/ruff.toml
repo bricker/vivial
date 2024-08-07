@@ -17,7 +17,6 @@ src = [
 ]
 
 [lint]
-ignore-init-module-imports = true
 logger-objects = [
   "eave.collectors.core.logging.EAVE_LOGGER",
 ]

@@ -2,7 +2,6 @@ import { isTrackingConsentRevoked } from "./consent";
 import { TRACKER_URL } from "./internal/compile-config";
 import { LOG_TAG } from "./internal/constants";
 import {
-  EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE,
   EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE,
   EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE,
   VISIBILITY_CHANGE_EVENT_TYPE,
@@ -18,6 +17,7 @@ import {
   ScalarMap,
   TargetProperties,
 } from "./types";
+import { uuidv4 } from "./util/uuid";
 
 /**
  * A Queue with a maximum size.
@@ -75,15 +75,11 @@ class RequestManager {
     this.#queue = new RequestQueue();
 
     // @ts-ignore: this is a known global variable implicitly set on the window.
-    if (!EAVE_CLIENT_ID) {
-      // eslint-disable-line no-undef
+    if (!window.EAVE_CLIENT_ID) {
       console.warn(LOG_TAG, "EAVE_CLIENT_ID is not set.");
       return;
     }
-
-    window.addEventListener(EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, this);
-    document.addEventListener(VISIBILITY_CHANGE_EVENT_TYPE, this);
-    this.startAutoflush();
+    // this.startAutoflush();
   }
 
   startAutoflush() {
@@ -114,18 +110,19 @@ class RequestManager {
   async handleEvent(event: Event) {
     switch (event.type) {
       case EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE: {
-        this.startAutoflush();
+        this.#flushQueue();
+        // this.startAutoflush();
         break;
       }
 
       case EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE: {
-        this.stopAutoflush();
+        // this.stopAutoflush();
         break;
       }
 
       case VISIBILITY_CHANGE_EVENT_TYPE: {
         if (document.visibilityState === "hidden") {
-          await this.#flushQueue();
+          this.#flushQueue();
         }
         break;
       }
@@ -150,11 +147,13 @@ class RequestManager {
     target: TargetProperties | null;
     extra?: ScalarMap<JsonScalar>;
   }): Promise<BrowserEventPayload> {
+    const eventId = uuidv4();
     const deviceProperties = await this.#getDeviceProperties();
     const currentPageProperties = getCurrentPageProperties();
     const corrCtx = getCorrelationContext();
 
     const payload: BrowserEventPayload = {
+      event_id: eventId,
       action,
       timestamp,
       target,
@@ -168,30 +167,28 @@ class RequestManager {
   }
 
   /**
-   * Send single event
+   * Send or queue single event
    */
   queueEvent(payload: BrowserEventPayload) {
-    this.#queue.push(payload);
-    console.debug(LOG_TAG, "Queued event", payload);
-
-    if (this.#queue.isFull) {
-      this.#flushQueue();
+    if (isTrackingConsentRevoked()) {
+      this.#queue.push(payload);
+      console.debug(LOG_TAG, "Queued event", payload);
+    } else {
+      this.#sendBatch([payload]);
     }
   }
 
   /**
    * Send batch of events
    */
-  #flushQueue() {
-    if (this.#queue.length === 0) {
-      return;
-    }
-
+  #sendBatch(payloads: BrowserEventPayload[]) {
     if (isTrackingConsentRevoked()) {
       return;
     }
 
-    const payloads = this.#queue.popAll();
+    if (payloads.length === 0) {
+      return;
+    }
 
     try {
       const json = JSON.stringify({
@@ -209,7 +206,7 @@ class RequestManager {
       });
 
       // @ts-ignore: this is a known global variable implicitly set on the window.
-      const clientId: string | undefined = EAVE_CLIENT_ID; // eslint-disable-line no-undef
+      const clientId: string | undefined = window.EAVE_CLIENT_ID;
 
       console.debug(LOG_TAG, "Sending events", payloads);
 
@@ -219,12 +216,26 @@ class RequestManager {
         console.warn(LOG_TAG, "failed to send analytics.");
         return;
       }
-      // returns true if the user agent is able to successfully queue the data for transfer,
-      // Otherwise it returns false and we need to try the regular way
     } catch (e) {
       console.error(LOG_TAG, e);
       return;
     }
+  }
+
+  /**
+   * Flush the queue
+   */
+  #flushQueue() {
+    if (this.#queue.length === 0) {
+      return;
+    }
+
+    if (isTrackingConsentRevoked()) {
+      return;
+    }
+
+    const payloads = this.#queue.popAll();
+    this.#sendBatch(payloads);
   }
 
   async #getDeviceProperties(): Promise<DeviceProperties> {

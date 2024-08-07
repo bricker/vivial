@@ -1,39 +1,21 @@
-variable "project" {
-  type = object({
-    id          = string
-    region      = string
-    root_domain = string
-  })
+variable "environment" {
+  description = "Allowed values: DEV, STG, PROD"
+  type        = string
+  default     = "DEV"
+
+  validation {
+    condition     = contains(["DEV", "STG", "PROD"], var.environment)
+    error_message = "Allowed values: DEV, STG, PROD"
+  }
 }
 
-variable "release_version" {
+variable "dns_zone_name" {
   type = string
 }
 
-variable "shared_config_map_name" {
-  type = string
-}
-
-variable "LOG_LEVEL" {
-  type    = string
-  default = "debug"
-}
-
-variable "cloudsql_instance_name" {
-  type = string
-}
-
-variable "dns_zone" {
-  type = object({
-    name     = string
-    dns_name = string
-  })
-}
-
-variable "docker_repository" {
+variable "docker_repository_ref" {
   type = object({
     location      = string
-    project       = string
     repository_id = string
   })
 }
@@ -48,6 +30,23 @@ variable "certificate_map_name" {
 
 variable "kube_namespace_name" {
   type = string
+}
+
+variable "shared_config_map_name" {
+  type = string
+}
+
+variable "cloudsql_instance_name" {
+  type = string
+}
+
+variable "release_version" {
+  type = string
+}
+
+variable "LOG_LEVEL" {
+  type    = string
+  default = "debug"
 }
 
 variable "EAVE_CREDENTIALS" {

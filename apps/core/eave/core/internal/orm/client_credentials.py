@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.collectors.core.correlation_context.base import corr_ctx_symmetric_encryption_key
+from eave.stdlib.core_api.models.client_credentials import ClientCredentials
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk
@@ -44,6 +45,12 @@ class ClientCredentialsOrm(Base):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
+    @property
+    def api_model(self) -> ClientCredentials:
+        creds = ClientCredentials.from_orm(self)
+        creds.combined = self.combined
+        return creds
+
     @classmethod
     async def create(
         cls,
@@ -55,7 +62,7 @@ class ClientCredentialsOrm(Base):
         obj = cls(
             team_id=team_id,
             description=description,
-            secret=secrets.token_hex(64),
+            secret=f"evsk_{secrets.token_hex(64)}",  # The prefix helps static code scanners detect secrets
             scope=scope,
         )
 
@@ -95,12 +102,25 @@ class ClientCredentialsOrm(Base):
         result = await session.scalars(lookup)
         return result
 
+    @classmethod
+    async def one_or_exception(cls, session: AsyncSession, params: QueryParams) -> Self:
+        lookup = cls._build_query(params=params).limit(1)
+        result = (await session.scalars(lookup)).one()
+        return result
+
+    @classmethod
+    async def one_or_none(cls, session: AsyncSession, params: QueryParams) -> Self | None:
+        lookup = cls._build_query(params=params).limit(1)
+        result = await session.scalar(lookup)
+        return result
+
     def touch(self, session: AsyncSession) -> None:
         # The database column is timezone-naive, so we have to remove the timezone info before saving it to the database.
         self.last_used = datetime.now(UTC).replace(tzinfo=None)
 
     @property
     def combined(self) -> str:
+        # NOTE: This cannot change, because it must match the format of the credentials string in customer's environments.
         return f"{self.id}:{self.secret}"
 
     @property

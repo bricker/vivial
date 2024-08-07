@@ -68,6 +68,13 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
     elif re.match(r"^playground-todoapp\.", flow.request.host):
         port = 5500
 
+    elif re.match(r"^playground-quizapp\.", flow.request.host):
+        port = 5600
+
+    elif re.match(r"^cdn\.", flow.request.host):
+        # This is the port for a webpack server.
+        port = 3001
+
     if not port:
         flow.kill()
         raise NoUpstreamDefinedError(f"No upstream defined for {flow.request.url}")

@@ -10,6 +10,7 @@ from starlette.templating import Jinja2Templates
 import eave.stdlib.logging
 import eave.stdlib.requests_util
 import eave.stdlib.time
+from eave.collectors.starlette import StarletteCollectorManager
 from eave.stdlib.auth_cookies import delete_auth_cookies
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.operations.status import status_payload
@@ -73,3 +74,5 @@ app = Starlette(
         Route(path="/{rest:path}", methods=["GET"], endpoint=web_app_endpoint),
     ],
 )
+
+StarletteCollectorManager.start(app)

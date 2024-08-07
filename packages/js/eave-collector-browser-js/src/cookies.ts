@@ -1,4 +1,10 @@
 export const COOKIE_NAME_PREFIX = "_eave.";
+export const ENCRYPTED_COOKIE_PREFIX = `${COOKIE_NAME_PREFIX}nc.`;
+export const ENCRYPTED_ACCOUNT_COOKIE_PREFIX = `${ENCRYPTED_COOKIE_PREFIX}act.`;
+export const TRAFFIC_SOURCE_COOKIE_NAME = `${COOKIE_NAME_PREFIX}traffic_source`;
+export const SESSION_COOKIE_NAME = `${COOKIE_NAME_PREFIX}session`;
+export const SESSION_LENGTH_MAX_AGE_SEC = 30 * 60;
+export const TRAFFIC_SOURCE_COOKIE_MAX_AGE_SEC = SESSION_LENGTH_MAX_AGE_SEC;
 export const MAX_ALLOWED_COOKIE_AGE_SEC = 60 * 60 * 24 * 400; // 400 days (maximum allowed value in Chrome)
 
 /**
@@ -24,6 +30,22 @@ export function getAllEaveCookies(): URLSearchParams {
   }
 
   return eaveCookies;
+}
+
+/**
+ * Get all Eave-managed account cookies
+ */
+export function getAllEaveAccountCookies(): URLSearchParams {
+  const allCookies = getAllCookies();
+  const accountCookies = new URLSearchParams();
+
+  for (const [name, value] of allCookies) {
+    if (name.startsWith(ENCRYPTED_ACCOUNT_COOKIE_PREFIX)) {
+      accountCookies.append(name, value);
+    }
+  }
+
+  return accountCookies;
 }
 
 /**
@@ -69,9 +91,14 @@ export function setCookie({
 
   cookieAttrs.push(["Path", path]);
 
+  // https://publicsuffix.org/list/public_suffix_list.dat
   if (!domain) {
+    // FIXME: This _does not work_ for many domains, eg .co.uk domains.
+    // The public suffix list should be used.
+    // See EAVE-201
     const url = new URL(window.location.href);
-    domain = url.hostname;
+    const parts = url.hostname.split(".");
+    domain = parts.slice(-2).join(".");
   }
 
   cookieAttrs.push(["Domain", domain]);

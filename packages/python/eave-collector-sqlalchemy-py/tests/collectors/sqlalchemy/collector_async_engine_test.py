@@ -107,7 +107,7 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
 
         self._write_queue = EphemeralWriteQueue()
         self._collector = SQLAlchemyCollector(write_queue=self._write_queue)
-        await self._collector.start(engine=async_engine)
+        self._collector.start(engine=async_engine)
 
     def _get_encrypted_attr(self, attr_name: str, corr_ctx: dict[str, JsonScalar]) -> CorrelationContextAttr | None:
         creds = EaveCredentials.from_env()

@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+function main() (
+	export EAVE_DEPLOY_TARGET
+	EAVE_DEPLOY_TARGET="$(e.gcloudproject)"
+
+	cd "$(e.parentpath)"
+	bin/lint
+	bin/run-db-migration
+
+	"${EAVE_HOME}"/develop/deploy/bin/deploy-service -s core-api
+)
+
+main "$@"

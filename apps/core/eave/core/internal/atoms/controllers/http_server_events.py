@@ -11,6 +11,7 @@ from eave.core.internal.atoms.models.db_record_fields import (
     UrlRecordField,
 )
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
+from eave.stdlib.deidentification import redact_atoms
 from eave.stdlib.logging import LOGGER, LogContext
 
 from .base_atom_controller import BaseAtomController
@@ -54,18 +55,25 @@ class HttpServerEventsController(BaseAtomController):
                     account = AccountRecordField.from_api_resource(e.corr_ctx.account)
 
             atom = HttpServerEventAtom(
+                event_id=e.event_id,
+                timestamp=e.timestamp,
                 request_method=e.request_method,
                 request_headers=request_headers,
                 request_url=UrlRecordField.from_api_resource(e.request_url),
                 request_payload=e.request_payload,
-                timestamp=e.timestamp,
                 session=session,
                 account=account,
                 traffic_source=traffic_source,
                 visitor_id=visitor_id,
+                metadata=self.get_record_metadata(),
             )
 
             atoms.append(atom)
+
+        if len(atoms) == 0:
+            return
+
+        await redact_atoms(atoms)
 
         errors = EAVE_INTERNAL_BIGQUERY_CLIENT.append_rows(
             table=table,

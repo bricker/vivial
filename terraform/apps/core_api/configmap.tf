@@ -10,8 +10,6 @@ resource "kubernetes_config_map" "app" {
   }
 
   data = {
-    GAE_SERVICE = local.app_name
-    GAE_VERSION = var.release_version
-    LOG_LEVEL   = var.LOG_LEVEL
+    LOG_LEVEL = var.LOG_LEVEL
   }
 }

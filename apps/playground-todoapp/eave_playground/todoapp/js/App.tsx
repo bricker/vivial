@@ -2,7 +2,6 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { Navigate, Route, BrowserRouter as Router, Routes } from "react-router-dom";
 
-import "../static/css/app.css";
 import CookieConsentBanner from "./CookieBanner";
 import LoginForm from "./LoginForm";
 import TodoList from "./TodoList";

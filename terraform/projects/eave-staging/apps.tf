@@ -1,93 +1,75 @@
-resource "google_certificate_manager_certificate_map" "default" {
-  name = "root-certificate-map"
+module "shared_kubernetes_resources" {
+  source                        = "../../modules/kube_shared_resources"
+  iap_oauth_client_secret       = var.IAP_OAUTH_CLIENT_SECRET
+  root_domain                   = local.root_domain
+  eave_slack_signups_channel_id = local.eave_slack_signups_channel_id
 }
 
 module "core_api_app" {
-  source  = "../../apps/core_api"
-  project = local.project
-
-  cloudsql_instance_name = module.cloudsql_eave_core.instance.name
-  dns_zone               = module.dns_zone_base_domain.zone
-  docker_repository      = module.docker_registry.repository
-  ssl_policy_name        = module.ssl_policy.policy_name
-  certificate_map_name   = google_certificate_manager_certificate_map.default.name
-
+  source                 = "../../apps/core_api"
+  cloudsql_instance_name = module.cloudsql_eave_core.cloudsql_instance_name
+  dns_zone_name          = module.dns_zone_base_domain.dns_zone_name
+  docker_repository_ref  = module.project_base.docker_repository_ref
+  ssl_policy_name        = module.project_base.ssl_policy_name
+  certificate_map_name   = module.project_base.certificate_map_name
   kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
 
-  LOG_LEVEL = "DEBUG"
-
-  release_version = "latest"
-
+  LOG_LEVEL        = "DEBUG"
+  release_version  = "latest"
   EAVE_CREDENTIALS = var.INTERNAL_EAVE_CREDENTIALS
-}
-
-module "playground_todoapp" {
-  source  = "../../apps/playground_todoapp"
-  project = local.project
-
-  cloudsql_instance_name = module.cloudsql_eave_core.instance.name
-  dns_zone               = module.dns_zone_base_domain.zone
-  docker_repository      = module.docker_registry.repository
-  ssl_policy_name        = module.ssl_policy.policy_name
-  certificate_map_name   = google_certificate_manager_certificate_map.default.name
-  cdn_base_url           = "https://storage.googleapis.com/${google_storage_bucket.cdn.name}"
-
-  kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
-  shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
-
-  LOG_LEVEL = "DEBUG"
-
-  release_version = "latest"
-
-  EAVE_CREDENTIALS = var.PLAYGROUND_TODOAPP_EAVE_CREDENTIALS
 }
 
 module "dashboard_app" {
-  source  = "../../apps/dashboard"
-  project = local.project
-
-  dns_zone             = module.dns_zone_base_domain.zone
-  docker_repository    = module.docker_registry.repository
-  ssl_policy_name      = module.ssl_policy.policy_name
-  certificate_map_name = google_certificate_manager_certificate_map.default.name
-  cdn_base_url         = "https://storage.googleapis.com/${google_storage_bucket.cdn.name}"
-
+  source                 = "../../apps/dashboard"
+  dns_zone_name          = module.dns_zone_base_domain.dns_zone_name
+  docker_repository_ref  = module.project_base.docker_repository_ref
+  ssl_policy_name        = module.project_base.ssl_policy_name
+  certificate_map_name   = module.project_base.certificate_map_name
   kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
 
-  LOG_LEVEL = "DEBUG"
-
-  release_version = "latest"
-
-  EAVE_CREDENTIALS = var.INTERNAL_EAVE_CREDENTIALS
+  cdn_base_url                      = "https://${module.cdn.domain}"
+  LOG_LEVEL                         = "DEBUG"
+  release_version                   = "latest"
+  EAVE_CREDENTIALS                  = var.INTERNAL_EAVE_CREDENTIALS
+  iap_oauth_client_id               = var.IAP_OAUTH_CLIENT_ID
+  iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
+  iap_enabled                       = true
 }
 
-module "metabase" {
-  source  = "../../apps/metabase"
-  project = local.project
-  metabase_instances = {
-    "b579428e" = {
-      metabase_instance_id = "b579428e"
-      team_id              = "4b885eea03f6488b93b186e2eeff5e13"
-    },
-    "b1b08034" = {
-      metabase_instance_id = "b1b08034"
-      team_id              = "f409e437dfa74364ab8fae00e77ce42b"
-    },
-    "40115f0c" = {
-      metabase_instance_id = "40115f0c"
-      team_id              = "4d734b7a106c46159bb1013f4caeb463"
-    },
-  }
+module "playground_todoapp" {
+  source                 = "../../apps/playground_todoapp"
+  cloudsql_instance_name = module.cloudsql_eave_core.cloudsql_instance_name
+  docker_repository_ref  = module.project_base.docker_repository_ref
+  ssl_policy_name        = module.project_base.ssl_policy_name
+  certificate_map_name   = module.project_base.certificate_map_name
+  kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
+  shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
 
-  cloudsql_instance_name = module.cloudsql_eave_core.instance.name
-  dns_zone               = module.dns_zone_base_domain.zone
-  ssl_policy_name        = module.ssl_policy.policy_name
-  certificate_map_name   = google_certificate_manager_certificate_map.default.name
+  dns_zone_name = module.dns_zone_blue.dns_zone_name
 
-  kube_namespace_name          = module.shared_kubernetes_resources.metabase_namespace_name
-  MB_SHARED_SECRETS            = var.MB_SHARED_SECRETS
-  MB_INSTANCE_SECRETS          = var.MB_INSTANCE_SECRETS
-  IAP_OAUTH_CLIENT_CREDENTIALS = var.IAP_OAUTH_CLIENT_CREDENTIALS
+  cdn_base_url                      = "https://${module.cdn.domain}"
+  LOG_LEVEL                         = "DEBUG"
+  release_version                   = "latest"
+  EAVE_CREDENTIALS                  = var.PLAYGROUND_TODOAPP_EAVE_CREDENTIALS
+  iap_oauth_client_id               = var.IAP_OAUTH_CLIENT_ID
+  iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
+}
+
+module "playground_quizapp" {
+  source                 = "../../apps/playground_quizapp"
+  docker_repository_ref  = module.project_base.docker_repository_ref
+  ssl_policy_name        = module.project_base.ssl_policy_name
+  certificate_map_name   = module.project_base.certificate_map_name
+  kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
+  shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
+
+  dns_zone_name                     = module.dns_zone_red.dns_zone_name
+  cdn_base_url                      = "https://${module.cdn.domain}"
+  LOG_LEVEL                         = "DEBUG"
+  release_version                   = "latest"
+  EAVE_CREDENTIALS                  = var.PLAYGROUND_QUIZAPP_EAVE_CREDENTIALS
+  iap_oauth_client_id               = var.IAP_OAUTH_CLIENT_ID
+  iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
 }

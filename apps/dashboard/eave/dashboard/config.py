@@ -9,7 +9,7 @@ class _AppConfig(ConfigBase):
 
     @property
     def collector_asset_base(self) -> str:
-        return os.getenv("COLLECTOR_ASSET_BASE", "https://storage.googleapis.com/cdn.eave.fyi")
+        return os.getenv("COLLECTOR_ASSET_BASE", "https://cdn.eave.fyi")
 
     @property
     def eave_client_id(self) -> str:

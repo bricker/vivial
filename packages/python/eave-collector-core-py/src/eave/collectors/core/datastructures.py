@@ -6,7 +6,7 @@ from typing import Any, ClassVar, Self
 
 from eave.collectors.core.logging import EAVE_LOGGER
 
-from .json import JsonObject, JsonScalar, compact_json
+from .json import JsonObject, JsonScalar, JsonValue, compact_json
 
 
 class DatabaseOperation(StrEnum):
@@ -25,38 +25,24 @@ class DatabaseOperation(StrEnum):
             return None
 
 
-class HttpRequestMethod(StrEnum):
-    POST = "POST"
-    PUT = "PUT"
-    PATCH = "PATCH"
-    DELETE = "DELETE"
-    GET = "GET"
-
-    @classmethod
-    def from_str(cls, s: str) -> Self | None:
-        try:
-            return cls.__call__(value=s.upper())
-        except ValueError as e:
-            EAVE_LOGGER.warning(e)
-            return None
-
-
 class EventType(StrEnum):
     db_event = "db_event"
     http_server_event = "http_server_event"
     http_client_event = "http_client_event"
     browser_event = "browser_event"
+    openai_chat_completion = "openai_chat_completion"
 
 
 @dataclass(kw_only=True)
-class UserProperties:
-    account_id: str | None = None
-    visitor_id: str | None = None
+class StackFrame:
+    filename: str | None
+    function: str | None
 
 
 @dataclass(kw_only=True)
 class EventPayload(ABC):
     event_type: ClassVar[EventType]
+    event_id: str | None
     timestamp: float | None
     corr_ctx: dict[str, JsonScalar] | None
 
@@ -84,22 +70,46 @@ class HttpServerEventPayload(EventPayload):
 
     event_type: ClassVar[EventType] = EventType.http_server_event
 
-    request_method: HttpRequestMethod | None = None
+    request_method: str | None = None
     request_url: str | None = None
     request_headers: dict[str, str] | None = None
     request_payload: str | None = None
 
 
-@dataclass
+@dataclass(kw_only=True)
 class HttpClientEventPayload(EventPayload):
     """Data about requests made by application code"""
 
     event_type: ClassVar[EventType] = EventType.http_client_event
 
-    request_method: HttpRequestMethod | None = None
+    request_method: str | None = None
     request_url: str | None = None
     request_headers: dict[str, str] | None = None
     request_payload: str | None = None
+
+
+@dataclass(kw_only=True)
+class OpenAIRequestProperties:
+    request_params: dict[str, JsonValue] | None
+    start_timestamp: float | None
+    end_timestamp: float | None
+
+
+@dataclass(kw_only=True)
+class OpenAIChatCompletionEventPayload(EventPayload):
+    event_type: ClassVar[EventType] = EventType.openai_chat_completion
+
+    completion_id: str | None
+    completion_system_fingerprint: str | None
+    completion_created_timestamp: float | None
+    completion_user_id: str | None
+    service_tier: str | None
+    model: str | None
+    prompt_tokens: int | None
+    completion_tokens: int | None
+    total_tokens: int | None
+    stack_frames: list[StackFrame] | None
+    openai_request: OpenAIRequestProperties | None
 
 
 @dataclass

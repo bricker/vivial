@@ -1,0 +1,15 @@
+{
+  "extends": "../../develop/javascript/es-config/ts/tsconfig-base.json",
+  "include": [
+    "eave_playground/quizapp/js/**/*.ts",
+    "eave_playground/quizapp/js/**/*.tsx",
+    "eave_playground/quizapp/js/**/*.js",
+    "eave_playground/quizapp/js/**/*.jsx"
+  ],
+  "compilerOptions": {
+    "jsx": "react",
+    "esModuleInterop": true,
+    "allowJs": true,
+    "lib": ["ES2021", "DOM"]
+  }
+}

@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+function main() (
+	if ! e.cmd-exists "shfmt"; then
+		statusmsg -e "shfmt is required for shell linting."
+		return 1
+	fi
+
+	local target=${1:-.}
+	cd "$target" || exit 1
+
+	local logtarget
+	logtarget=$(e.pwd)
+
+	statusmsg -i "Formatting $logtarget (shell)..."
+
+	shfmt --write .
+
+	statusmsg -s "Formatting $logtarget completed"
+	echo
+)
+
+main "$@"

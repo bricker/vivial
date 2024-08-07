@@ -1,21 +1,10 @@
-variable "location" {
-  type        = string
-  description = "Specify either a region or a zone. Region spreads the cluster out over all zones in the region. Zone deploys the cluster into just one zone. Zone is better for lower environments."
-}
-
-variable "authorized_networks" {
-  type = map(object({
-    cidr_block   = string
-    display_name = string
-  }))
-
-  default = {}
-}
+// https://cloud.google.com/kubernetes-engine/docs/quickstarts/create-cluster-using-terraform
 
 resource "google_container_cluster" "default" {
-  name     = "eave-cluster"
-  location = var.location
-
+  name             = var.cluster_name
+  location         = var.location
+  network          = data.google_compute_network.given.self_link
+  subnetwork       = var.subnetwork_self_link
   enable_autopilot = true
 
   # Set `deletion_protection` to `true` will ensure that one cannot
@@ -45,8 +34,4 @@ resource "google_container_cluster" "default" {
   service_external_ips_config {
     enabled = false
   }
-}
-
-output "cluster" {
-  value = google_container_cluster.default
 }

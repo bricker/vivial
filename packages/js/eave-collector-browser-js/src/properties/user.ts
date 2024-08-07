@@ -37,13 +37,6 @@ function setVisitorId(value: string) {
   });
 }
 
-// export function getUserProperties(): UserProperties {
-//   return {
-//     account_id: getAccountId(),
-//     visitor_id: getVisitorId(),
-//   };
-// }
-
 export function setOrTouchUserCookies() {
   const accountId = getAccountId();
   if (accountId) {

@@ -123,10 +123,10 @@ function setupgcloud() (
 		statusmsg -i "The gcloud CLI connects your local machine to our Google Cloud project, and is used in many development scripts."
 		if e.confirm; then
 			cd "$tmpdir" || exit 1
-			local gcloudversion="426.0.0"
 			local arch
 			arch=$(e.get-cpu-arch-normalized)
-			local filename="google-cloud-cli-$gcloudversion-$kernel-$arch.tar.gz"
+			# Gets the latest version. To get a specific version, `google-cloud-cli-$version-$kernel-$arch.tar.gz` can be used.
+			local filename="google-cloud-cli-$kernel-$arch.tar.gz"
 			curl -O "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/$filename"
 			tar -xf "$filename"
 			mv google-cloud-sdk "$HOME"
@@ -268,7 +268,7 @@ function installshellcheck() (
 function installcerts() (
 	statusmsg -pa "Installing self-signed dev certs."
 	if e.confirm; then
-		if cd "${EAVE_HOME}/develop/certs"; then
+		if ! cd "${EAVE_HOME}/develop/certs"; then
 			statusmsg -e "Failed to enter ${EAVE_HOME}/develop/certs/ directory. It may have moved?"
 			statusmsg -w "Running Eave web app locally may not work as expected until dev certs are installed"
 			exit 1

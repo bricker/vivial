@@ -16,6 +16,28 @@ export type VirtualEventDetails = {
   fields?: VirtualEventField[] | null;
 };
 
+export type Team = {
+  id: string;
+  name: string;
+  dashboard_access: boolean;
+};
+
+export type OnboardingSubmission = {
+  platforms: string[];
+  languages: string[];
+  frameworks: string[];
+  databases: string[];
+  third_party_libs: string[];
+};
+
+export type ClientCredentials = {
+  id: string;
+  secret: string;
+  description: string;
+  combined: string;
+  last_used?: string;
+};
+
 export type ListMyVirtualEventsResponseBody = {
   // This endpoint returns VirtualEventPeek[], but in the UI we keep a list of virtual events
   // and lazily populate the fields.
@@ -28,9 +50,22 @@ export type GetMyVirtualEventDetailsResponseBody = {
   virtual_event: VirtualEventDetails;
 };
 
-export type Team = {
-  id: string;
-  name: string;
+export type CreateMyOnboardingSubmissionRequestBody = {
+  onboarding_submission: OnboardingSubmission;
+};
+
+export type CreateMyOnboardingSubmissionResponseBody = {
+  onboarding_submission: OnboardingSubmission;
+  team: Team;
+};
+
+export type GetMyOnboardingSubmissionResponseBody = {
+  onboarding_submission?: OnboardingSubmission;
+  team: Team;
+};
+
+export type GetMyClientCredentialsResponseBody = {
+  client_credentials: ClientCredentials;
 };
 
 export type GetTeamResponseBody = {
@@ -49,7 +84,10 @@ export type GlobalEaveWindow = Window &
 export type DashboardTeam = {
   id?: string;
   name?: string;
+  dashboardAccess?: boolean;
+  onboardingSubmission?: OnboardingSubmission;
   virtualEvents?: VirtualEventDetails[];
+  clientCredentials?: ClientCredentials;
 };
 
 export type DashboardNetworkState = {
@@ -61,6 +99,20 @@ export type DashboardNetworkState = {
 export type GlossaryNetworkState = {
   virtualEventsAreLoading: boolean;
   virtualEventsAreErroring: boolean;
+};
+
+export type OnboardingFormNetworkState = {
+  // create request state
+  formSubmitIsLoading: boolean;
+  formSubmitIsErroring: boolean;
+  // get request state
+  formDataIsLoading: boolean;
+  formDataIsErroring: boolean;
+};
+
+export type ClientCredentialsNetworkState = {
+  credentialsAreLoading: boolean;
+  credentialsAreErroring: boolean;
 };
 
 // The additional properties are set in the template header, so we know they exist.

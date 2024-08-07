@@ -38,7 +38,8 @@ function run-cloud-sql-proxy() (
 		exit 1
 	fi
 
-	local gcloudproject; gcloudproject="$(e.gcloudproject)"
+	local gcloudproject
+	gcloudproject="$(e.gcloudproject)"
 
 	if ! e.cmd-exists "cloud-sql-proxy"; then
 		statusmsg -pa "Downloading and installing the Cloud SQL Proxy for your system."
@@ -57,6 +58,9 @@ function run-cloud-sql-proxy() (
 				local arch
 				arch=$(e.get-cpu-arch-normalized-alt)
 
+				local kernel
+				kernel=$(e.get-kernel-name)
+
 				curl -o cloud-sql-proxy "https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v$proxyversion/cloud-sql-proxy.$kernel.$arch"
 				# see if we got an error back instead of binary content
 				if test "$(head -n1 cloud-sql-proxy | cut -c 3-5)" = "xml"; then
@@ -72,12 +76,6 @@ function run-cloud-sql-proxy() (
 			)
 		fi
 	fi
-
-	# unix socket path names must be less than 108 characters long
-	# https://github.com/GoogleCloudPlatform/cloud-sql-proxy/issues/970
-	# so we'll put our socketdir close to root to keep the path short
-	local socketdir="${XDG_RUNTIME_DIR:-/tmp}/.cloudsqlproxy"
-	mkdir -p "$socketdir"
 
 	local connectionName
 	connectionName=$(gcloud --project "$gcloudproject" --format json sql instances list --filter="state=RUNNABLE" | jq -r ".[] | select(.name == \"$instancename\") | first(.) | .connectionName")
@@ -101,10 +99,7 @@ function run-cloud-sql-proxy() (
 	cloud-sql-proxy "$connectionName" \
 		$impersonateopt \
 		--auto-iam-authn \
-		--unix-socket "$socketdir"
-		# --http-port=9090 \
-		# --health-check
-		# --port 5431
+		--port=5430
 )
 
 run-cloud-sql-proxy "$@"

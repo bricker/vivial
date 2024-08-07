@@ -11,6 +11,7 @@ dependencies = [
   "google-cloud-logging",
   "google-api-python-client",
   "google-cloud-pubsub",
+  "google-cloud-dlp",
   "google-cloud-kms",
   "google-cloud-redis",
   "google-cloud-runtimeconfig",

@@ -1,15 +1,18 @@
 import GlossaryIcon from "$eave-dashboard/js/components/Icons/GlossaryIcon";
 import GraphIcon from "$eave-dashboard/js/components/Icons/GraphIcon";
 import SettingsCogIcon from "$eave-dashboard/js/components/Icons/SettingsCogIcon";
+import SetupIcon from "$eave-dashboard/js/components/Icons/SetupIcon";
 import SignOutIcon from "$eave-dashboard/js/components/Icons/SignOutIcon";
 import TeamIcon from "$eave-dashboard/js/components/Icons/TeamIcon";
 import SidebarNav from "$eave-dashboard/js/components/SidebarNav";
 import Menu from "$eave-dashboard/js/components/SidebarNav/Menu";
 import MenuItem from "$eave-dashboard/js/components/SidebarNav/MenuItem";
+import useTeam from "$eave-dashboard/js/hooks/useTeam";
 import { theme } from "$eave-dashboard/js/theme";
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
+import { isSetupComplete } from "../Setup/util";
 
 const makeClasses = makeStyles()(() => ({
   spacer: {
@@ -17,13 +20,15 @@ const makeClasses = makeStyles()(() => ({
   },
 }));
 
-function iconColor(isSelected: boolean): "white" | "black" {
+function iconColor({ isSelected }: { isSelected: boolean }): "white" | "black" {
   return isSelected ? "white" : "black";
 }
 
 const TabbedNav = () => {
   const location = useLocation();
   const [usingMobileLayout, setUsingMobileLayout] = useState(false);
+  const { team } = useTeam();
+
   useEffect(() => {
     const handleResize = () => {
       setUsingMobileLayout(window.innerWidth <= theme.breakpoints.values.md);
@@ -44,13 +49,19 @@ const TabbedNav = () => {
   return (
     <SidebarNav hamburger={usingMobileLayout}>
       <Menu>
+        {!isSetupComplete(team) && (
+          <MenuItem label="Setup" to="/setup" selected={location.pathname === "/setup"} expanded={usingMobileLayout}>
+            <SetupIcon color={iconColor({ isSelected: location.pathname === "/setup" })} />
+          </MenuItem>
+        )}
+
         <MenuItem
           label="Insights"
           to="/insights"
           selected={location.pathname === "/insights"}
           expanded={usingMobileLayout}
         >
-          <GraphIcon color={iconColor(location.pathname === "/insights")} />
+          <GraphIcon color={iconColor({ isSelected: location.pathname === "/insights" })} />
         </MenuItem>
 
         <MenuItem
@@ -59,7 +70,7 @@ const TabbedNav = () => {
           selected={location.pathname === "/glossary"}
           expanded={usingMobileLayout}
         >
-          <GlossaryIcon color={iconColor(location.pathname === "/glossary")} />
+          <GlossaryIcon color={iconColor({ isSelected: location.pathname === "/glossary" })} />
         </MenuItem>
 
         {!usingMobileLayout && <div className={classes.spacer}></div>}
@@ -70,7 +81,7 @@ const TabbedNav = () => {
           selected={location.pathname === "/settings"}
           expanded={usingMobileLayout}
         >
-          <SettingsCogIcon color={iconColor(location.pathname === "/settings")} />
+          <SettingsCogIcon color={iconColor({ isSelected: location.pathname === "/settings" })} />
         </MenuItem>
 
         <MenuItem
@@ -79,11 +90,11 @@ const TabbedNav = () => {
           selected={location.pathname === "/team"}
           expanded={usingMobileLayout}
         >
-          <TeamIcon color={iconColor(location.pathname === "/team")} />
+          <TeamIcon color={iconColor({ isSelected: location.pathname === "/team" })} />
         </MenuItem>
 
         <MenuItem label="Log Out" to="/logout" reloadDocument={true} selected={false} expanded={usingMobileLayout}>
-          <SignOutIcon color={iconColor(false)} />
+          <SignOutIcon color={iconColor({ isSelected: false })} />
         </MenuItem>
       </Menu>
     </SidebarNav>

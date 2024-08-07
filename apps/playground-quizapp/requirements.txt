@@ -1,0 +1,7 @@
+uvicorn[standard]
+gunicorn
+starlette
+jinja2
+openai
+google-cloud-secret-manager
+crc32c

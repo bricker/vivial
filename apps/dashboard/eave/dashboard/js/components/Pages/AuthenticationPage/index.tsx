@@ -1,15 +1,31 @@
 import Button from "$eave-dashboard/js/components/Button";
+import EaveSideBanner, { BannerStyle } from "$eave-dashboard/js/components/EaveSideBanner";
 import GoogleIcon from "$eave-dashboard/js/components/Icons/GoogleIcon";
 import { eaveWindow } from "$eave-dashboard/js/types";
-import { imageUrl } from "$eave-dashboard/js/util/asset-util";
 import { Typography } from "@mui/material";
 import React from "react";
+import { useSearchParams } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
-import Page from "../Page/index";
+import ErrorIcon from "../../Icons/ErrorIcon";
 
 const makeClasses = makeStyles()((theme) => ({
   container: {
-    color: theme.palette.background.contrastText,
+    display: "flex",
+    flexDirection: "row",
+    backgroundColor: "#EEEEEE",
+  },
+  textBoxContainer: {
+    flex: 2,
+    width: "100vw",
+    height: "100vh",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  textBox: {
+    backgroundColor: "#FDFDFD",
+    borderRadius: 20,
+    width: "70%",
     display: "flex",
     justifyContent: "flex-start",
     alignItems: "center",
@@ -19,124 +35,130 @@ const makeClasses = makeStyles()((theme) => ({
       padding: "0px 60px 20px",
     },
   },
-  logo: {
-    height: 120,
-    marginBottom: 18,
-    [theme.breakpoints.down("sm")]: {
-      marginBottom: 24,
-      height: 100,
-    },
-  },
   header: {
-    color: "inherit",
-    fontSize: 32,
-    fontWeight: 700,
-    marginBottom: 12,
+    color: "#585858",
+    marginTop: 60,
+    marginBottom: 24,
     textAlign: "center",
-    [theme.breakpoints.up("md")]: {
-      fontSize: 42,
-    },
   },
   subheader: {
-    marginBottom: 36,
+    color: "#7D7D7D",
+    marginBottom: 8,
     textAlign: "center",
-    color: "inherit",
-    fontSize: 16,
-    [theme.breakpoints.up("md")]: {
-      fontSize: 18,
-    },
   },
   loginButton: {
-    color: theme.palette.background.contrastText,
-    borderColor: theme.palette.background.contrastText,
+    color: "#0000008A",
     width: "100%",
-    padding: "34px 54px",
-    marginBottom: 54,
+    borderColor: "#EEEEEE",
+    borderRadius: 10,
+    fontWeight: "bold",
+    padding: "16px 64px",
+    marginBottom: 16,
     justifyContent: "center",
     "&:hover": {
-      borderColor: theme.palette.background.contrastText,
-      backgroundColor: theme.palette.background.light,
+      boxShadow: "0px 0px 3px 0px #00000015",
     },
-    fontSize: 16,
-    [theme.breakpoints.up("md")]: {
-      fontSize: 20,
-    },
+    boxShadow: "0px 2px 3px 0px #0000002B",
   },
   authIcon: {
-    width: 30,
-    height: 30,
+    width: 24,
+    height: 24,
   },
   link: {
     color: "#0092C7",
   },
   disclaimer: {
-    color: theme.palette.background.contrastText,
-    marginBottom: 60,
+    color: "#7D7D7D",
+    marginBottom: 20,
     display: "grid",
     textAlign: "center",
     maxWidth: 400,
-    "& > a": {
-      color: theme.palette.background.contrastText,
-    },
-    fontSize: 16,
-    [theme.breakpoints.up("md")]: {
-      fontSize: 18,
-    },
   },
-  authSwap: {
-    color: "inherit",
-    fontWeight: 700,
-    fontSize: 16,
-    [theme.breakpoints.up("md")]: {
-      fontSize: 18,
-    },
+  errorBox: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 16,
+    width: "100%",
+    padding: 16,
+    backgroundColor: "#ff38380d",
+    color: "#AD0000",
+    marginBottom: 15,
+    border: "1px solid #ff383840",
+    borderRadius: 8,
+  },
+  fullWidth: {
+    width: "100%",
   },
 }));
+
+enum AuthErrorCodes {
+  INVALID_EMAIL = "invalid_email",
+}
 
 const AuthenticationPage = ({ type }: { type: "signup" | "login" }) => {
   const { classes } = makeClasses();
   // if isLoginMode is false, then we are in sign up mode
   const isLoginMode = type === "login";
+  const [searchParams, _setSearchParams] = useSearchParams();
+
   return (
-    <Page>
-      <section className={classes.container}>
-        <img className={classes.logo} src={imageUrl("eave-logo-round.svg")} />
-        <Typography variant="h2" className={classes.header}>
-          {isLoginMode ? "Log In" : "Create your Free Account"}
-        </Typography>
-        <Typography variant="subtitle2" className={classes.subheader}>
-          {isLoginMode
-            ? "Welcome back to Eave!"
-            : "Early access is only available via Google. Additional account options coming soon."}
-        </Typography>
-        <Button
-          to={`${eaveWindow.eavedash.apiBase}/oauth/google/authorize`}
-          className={classes.loginButton}
-          variant="outlined"
-          startIcon={<GoogleIcon className={classes.authIcon} />}
-        >
-          <>Continue with Google</>
-        </Button>
-        <Typography className={classes.disclaimer} variant="caption">
-          {!isLoginMode && <Typography variant="inherit">By clicking “Continue” you agree to Eave's</Typography>}
-          <Typography variant="inherit">
-            <a className={classes.link} href="/terms" rel="noreferrer" target="_blank">
-              TOS
-            </a>{" "}
-            and{" "}
-            <a className={classes.link} href="/privacy" rel="noreferrer" target="_blank">
-              Privacy Policy.
-            </a>
+    <div className={classes.container}>
+      <div className={classes.textBoxContainer}>
+        <section className={classes.textBox}>
+          <Typography variant="h4" className={classes.header}>
+            Insights with Eave. No credit cards, <span style={{ color: "black" }}>no commitments.</span>
           </Typography>
-        </Typography>
-        <Typography className={classes.authSwap} variant="caption">
-          {isLoginMode ? "New to Eave? " : "Already have an account? "}
-          <a className={classes.link} href={isLoginMode ? "/signup" : "/login"}>
-            {isLoginMode ? "Create a free account" : "Log in"}
-          </a>
-        </Typography>
-      </section>
-    </Page>
+          <Typography variant="subtitle2" className={classes.subheader}>
+            Join using your work email
+          </Typography>
+          <Button
+            to={`${eaveWindow.eavedash.apiBase}/oauth/google/authorize`}
+            className={classes.loginButton}
+            variant="outlined"
+            startIcon={<GoogleIcon className={classes.authIcon} />}
+            linkClasses={classes.fullWidth}
+          >
+            Continue with Google
+          </Button>
+          <Typography className={classes.disclaimer} variant="caption">
+            {!isLoginMode && (
+              <Typography variant="inherit">By clicking “Continue” above, you agree to Eave's</Typography>
+            )}
+            <Typography variant="inherit">
+              {" "}
+              <a className={classes.link} href="https://www.eave.fyi/terms" rel="noreferrer" target="_blank">
+                TOS
+              </a>{" "}
+              and{" "}
+              <a className={classes.link} href="https://www.eave.fyi/privacy" rel="noreferrer" target="_blank">
+                Privacy Policy.
+              </a>
+            </Typography>
+          </Typography>
+          {searchParams.get("error") && (
+            <div className={classes.errorBox}>
+              <ErrorIcon color="#AD0000" />
+              <Typography variant="subtitle1">
+                {(() => {
+                  switch (searchParams.get("error")) {
+                    case AuthErrorCodes.INVALID_EMAIL:
+                      return "Please sign up with your work email address.";
+                    default:
+                      return "We encountered an error signing you up. Please try again later.";
+                  }
+                })()}
+              </Typography>
+            </div>
+          )}
+        </section>
+      </div>
+      <EaveSideBanner
+        style={BannerStyle.FULL}
+        subtext="Discover unparalleled insights with Eave. Create your free account today."
+      />
+    </div>
   );
 };
 

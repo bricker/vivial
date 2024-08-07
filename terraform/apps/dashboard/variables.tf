@@ -1,35 +1,21 @@
-variable "project" {
-  type = object({
-    id          = string
-    region      = string
-    root_domain = string
-  })
+variable "environment" {
+  description = "Allowed values: DEV, STG, PROD"
+  type        = string
+  default     = "DEV"
+
+  validation {
+    condition     = contains(["DEV", "STG", "PROD"], var.environment)
+    error_message = "Allowed values: DEV, STG, PROD"
+  }
 }
 
-variable "release_version" {
+variable "dns_zone_name" {
   type = string
 }
 
-variable "shared_config_map_name" {
-  type = string
-}
-
-variable "LOG_LEVEL" {
-  type    = string
-  default = "debug"
-}
-
-variable "dns_zone" {
-  type = object({
-    name     = string
-    dns_name = string
-  })
-}
-
-variable "docker_repository" {
+variable "docker_repository_ref" {
   type = object({
     location      = string
-    project       = string
     repository_id = string
   })
 }
@@ -42,12 +28,25 @@ variable "certificate_map_name" {
   type = string
 }
 
+variable "kube_namespace_name" {
+  type = string
+}
+
+variable "shared_config_map_name" {
+  type = string
+}
+
 variable "cdn_base_url" {
   type = string
 }
 
-variable "kube_namespace_name" {
+variable "release_version" {
   type = string
+}
+
+variable "LOG_LEVEL" {
+  type    = string
+  default = "debug"
 }
 
 variable "EAVE_CREDENTIALS" {
@@ -56,4 +55,21 @@ variable "EAVE_CREDENTIALS" {
     CLIENT_ID          = string,
   })
   sensitive = true
+}
+
+variable "iap_oauth_client_id" {
+  type     = string
+  nullable = true
+  default  = null
+}
+
+variable "iap_oauth_client_kube_secret_name" {
+  type     = string
+  nullable = true
+  default  = null
+}
+
+variable "iap_enabled" {
+  type    = bool
+  default = false
 }

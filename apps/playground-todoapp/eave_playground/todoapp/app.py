@@ -1,8 +1,7 @@
-import contextlib
 import logging
 import os
-from collections.abc import AsyncGenerator
 from http import HTTPStatus
+from textwrap import dedent
 from uuid import UUID
 
 import google.cloud.logging
@@ -14,9 +13,11 @@ from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
 
-from eave.collectors.sqlalchemy import start_eave_sqlalchemy_collector, stop_eave_sqlalchemy_collector
+from eave.collectors.openai import OpenAICollectorManager
+from eave.collectors.sqlalchemy import SQLAlchemyCollectorManager
 from eave.collectors.starlette import StarletteCollectorManager
 
+from .openai import chat_completion, openai_client
 from .orm import TodoListItemOrm, UserOrm, async_engine, async_session
 
 _COOKIE_PREFIX = "todoapp."
@@ -37,10 +38,34 @@ async def echo_endpoint(request: Request) -> Response:
     body = await request.body()
     return JSONResponse(
         content={
-            "request_headers": request.headers,
+            "request_headers": request.headers.items(),
             "request_body": body.decode(),
         },
     )
+
+
+async def get_summary(request: Request) -> Response:
+    user_id = request.cookies.get(_USER_ID_COOKIE_NAME)
+    if not user_id:
+        return Response(content=HTTPStatus.UNAUTHORIZED.phrase, status_code=HTTPStatus.UNAUTHORIZED)
+
+    async with async_session.begin() as session:
+        result = await session.scalars(
+            select(TodoListItemOrm).where(TodoListItemOrm.user_id == user_id).order_by(TodoListItemOrm.created)
+        )
+        todos = result.all()
+
+    text_list = "\n    ".join(f"- {todo.text}" for todo in todos)
+    prompt = dedent(
+        f"""
+    Summarize the following list of TODO items for me. It should briefly describe my goals for today.
+
+    {text_list}
+    """.strip()
+    )
+
+    summary = await chat_completion(prompt=prompt, user=user_id)
+    return JSONResponse(content={"text": summary}, status_code=HTTPStatus.OK)
 
 
 async def get_todos(request: Request) -> Response:
@@ -146,8 +171,8 @@ def web_app(request: Request) -> Response:
         request=request,
         name="index.html.jinja",
         context={
-            "EAVE_CLIENT_ID": os.getenv("PLAYGROUND_TODOAPP_EAVE_CLIENT_ID"),
-            "COLLECTOR_ASSET_BASE": os.getenv("COLLECTOR_ASSET_BASE", "https://storage.googleapis.com/cdn.eave.dev"),
+            "EAVE_CLIENT_ID": os.getenv("EAVE_CLIENT_ID"),
+            "COLLECTOR_ASSET_BASE": os.getenv("COLLECTOR_ASSET_BASE", "https://cdn.eave.dev"),
         },
     )
     return response
@@ -170,19 +195,13 @@ def health_endpoint(request: Request) -> Response:
     return Response(content="1", status_code=HTTPStatus.OK)
 
 
-@contextlib.asynccontextmanager
-async def lifespan(app: Starlette) -> AsyncGenerator[None, None]:
-    await start_eave_sqlalchemy_collector(engine=async_engine)
-    yield
-    stop_eave_sqlalchemy_collector()
-
-
 app = Starlette(
     routes=[
         Mount("/static", StaticFiles(directory="eave_playground/todoapp/static")),
         Route(path="/status", methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"], endpoint=status_endpoint),
         Route(path="/healthz", methods=["GET"], endpoint=health_endpoint),
         Route(path="/echo", methods=["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"], endpoint=echo_endpoint),
+        Route(path="/api/summary", methods=["GET"], endpoint=get_summary),
         Route(path="/api/todos", methods=["GET"], endpoint=get_todos),
         Route(path="/api/todos", methods=["POST"], endpoint=add_todo),
         Route(path="/api/todos/{todo_id}", methods=["DELETE"], endpoint=delete_todo),
@@ -191,7 +210,8 @@ app = Starlette(
         Route(path="/logout", methods=["GET"], endpoint=logout),
         Route(path="/{rest:path}", methods=["GET"], endpoint=web_app),
     ],
-    lifespan=lifespan,
 )
 
 StarletteCollectorManager.start(app)
+OpenAICollectorManager.start(openai_client)
+SQLAlchemyCollectorManager.start(engine=async_engine)

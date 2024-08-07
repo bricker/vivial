@@ -10,8 +10,8 @@ variable "certificate_map_name" {
   type = string
 }
 
-variable "address_name" {
-  type = string
+variable "global_address_names" {
+  type = set(string)
 }
 
 variable "ssl_policy_name" {

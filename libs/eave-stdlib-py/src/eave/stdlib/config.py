@@ -1,3 +1,4 @@
+import datetime
 import enum
 import logging
 import os
@@ -25,12 +26,12 @@ class ConfigBase:
         This is meant to be used in a GAE warmup request to preload all of the remote configs.
         """
         for attrname, attrfunc in self.__class__.__dict__.items():
-            if type(attrfunc) == cached_property:
+            if isinstance(attrfunc, cached_property):
                 getattr(self, attrname)
 
     def reset_cached_properties(self) -> None:
         for attrname, attrfunc in self.__class__.__dict__.items():
-            if type(attrfunc) == cached_property:
+            if isinstance(attrfunc, cached_property):
                 try:
                     delattr(self, attrname)
                 except AttributeError:
@@ -112,6 +113,14 @@ class _EaveConfig(ConfigBase):
     @property
     def release_date(self) -> str:
         return os.getenv("GAE_RELEASE_DATE") or "unknown"
+
+    @property
+    def release_timestamp(self) -> float | None:
+        isodate = self.release_date
+        try:
+            return datetime.datetime.fromisoformat(isodate).timestamp()
+        except ValueError:
+            return None
 
     @property
     def asset_base(self) -> str:
@@ -257,6 +266,11 @@ class _EaveConfig(ConfigBase):
     @cached_property
     def eave_slack_system_bot_token(self) -> str:
         value = get_secret("SLACK_SYSTEM_BOT_TOKEN")
+        return value
+
+    @cached_property
+    def eave_slack_signups_channel_id(self) -> str | None:
+        value = os.getenv("EAVE_SLACK_SIGNUPS_CHANNEL_ID")
         return value
 
 

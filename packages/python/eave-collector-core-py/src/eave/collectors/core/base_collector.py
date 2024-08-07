@@ -1,12 +1,12 @@
-from eave.collectors.core.write_queue import BatchWriteQueue, WriteQueue
+from eave.collectors.core.write_queue import SHARED_BATCH_WRITE_QUEUE, WriteQueue
 
 
 class BaseCollector:
     enabled: bool = False
     write_queue: WriteQueue
 
-    def __init__(self, *, write_queue: WriteQueue | None = None) -> None:
-        self.write_queue = write_queue or BatchWriteQueue()
+    def __init__(self, *, write_queue: WriteQueue = SHARED_BATCH_WRITE_QUEUE) -> None:
+        self.write_queue = write_queue
 
     def run(self) -> None:
         if not self.enabled:

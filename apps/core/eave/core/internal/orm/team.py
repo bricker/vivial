@@ -28,6 +28,7 @@ class TeamOrm(Base):
         ),
         server_default=text("'{}'"),
     )
+    dashboard_access: Mapped[bool] = mapped_column(server_default=sqlalchemy.sql.false())
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 

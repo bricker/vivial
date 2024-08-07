@@ -59,6 +59,28 @@
       "console": "integratedTerminal"
     },
     {
+      "name": "Playground Quiz App (Server)",
+      "consoleTitle": "Playground Quiz App (Server)",
+      "cwd": "${workspaceFolder}/apps/playground-quizapp",
+      "type": "python",
+      "request": "launch",
+      "program": "bin/src/start-dev-server.py",
+      "jinja": true,
+      "justMyCode": false,
+    },
+    {
+      "name": "Playground Quiz App (Webpack)",
+      "consoleTitle": "Playground Quiz App (Webpack)",
+      "cwd": "${workspaceFolder}/apps/playground-quizapp",
+      "type": "node",
+      "request": "launch",
+      "program": "./node_modules/.bin/webpack",
+      "args": [
+        "-w"
+      ],
+      "console": "integratedTerminal"
+    },
+    {
       "name": "Browser Collector (Webpack)",
       "consoleTitle": "Browser Collector (Webpack)",
       "cwd": "${workspaceFolder}/packages/js/eave-collector-browser-js",
@@ -68,9 +90,7 @@
       "args": [
         "serve",
         "--mode=development",
-        "--env=TRACKER_URL=http://api.eave.run:8080/public/ingest/browser",
-        "--port=3001",
-        "--host=127.0.0.1",
+        "--env=TRACKER_URL=https://api.eave.run:8080/public/ingest/browser",
       ],
       "console": "integratedTerminal"
     },
@@ -115,6 +135,14 @@
       "configurations": [
         "Playground Todo App (Server)",
         "Playground Todo App (Webpack)"
+      ],
+      "stopAll": true
+    },
+    {
+      "name": "Playground Quiz App",
+      "configurations": [
+        "Playground Quiz App (Server)",
+        "Playground Quiz App (Webpack)"
       ],
       "stopAll": true
     },

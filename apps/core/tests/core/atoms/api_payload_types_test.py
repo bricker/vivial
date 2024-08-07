@@ -6,7 +6,7 @@ from eave.collectors.core.correlation_context.base import (
     EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX,
     CorrelationContextAttr,
 )
-from eave.collectors.core.datastructures import DatabaseOperation, HttpRequestMethod
+from eave.collectors.core.datastructures import DatabaseOperation
 from eave.core.internal.atoms.models.api_payload_types import (
     AccountProperties,
     BrowserAction,
@@ -17,7 +17,10 @@ from eave.core.internal.atoms.models.api_payload_types import (
     DeviceBrandProperties,
     DeviceProperties,
     HttpServerEventPayload,
+    OpenAIChatCompletionPayload,
+    OpenAIRequestProperties,
     SessionProperties,
+    StackFrameProperties,
     TargetProperties,
     TrafficSourceProperties,
 )
@@ -38,6 +41,21 @@ class TestAtomApiTypes(BaseTestCase):
                 description=self.anystr(),
                 scope=ClientScope.readwrite,
             )
+
+        self._example_corr_ctx = {
+            f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": self.anystr("example_corr_ctx.visitor_id"),
+            f"{EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX}{self.anyhex("example_corr_ctx.acct key 1")}": CorrelationContextAttr(
+                key=EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
+                value=self.anystr("example_corr_ctx.account.account_id"),
+            ).to_encrypted(encryption_key=self._client_credentials.decryption_key),
+        }
+
+    def _corr_ctx_matches(self, corr_ctx: CorrelationContext | None) -> bool:
+        assert corr_ctx is not None
+        assert corr_ctx.visitor_id == self.getstr("example_corr_ctx.visitor_id")
+        assert corr_ctx.account is not None
+        assert corr_ctx.account.account_id == self.getstr("example_corr_ctx.account.account_id")
+        return True
 
     async def test_device_brand_properties(self) -> None:
         e = DeviceBrandProperties.from_api_payload({})
@@ -193,6 +211,41 @@ class TestAtomApiTypes(BaseTestCase):
             self.getstr("account.extra.0.key"): self.getstr("account.extra.0.value"),
         }
 
+    async def test_stack_frame_properties(self):
+        e = StackFrameProperties.from_api_payload({})
+        assert e.filename is None
+        assert e.function is None
+
+        e = StackFrameProperties.from_api_payload(
+            {
+                "filename": self.anyhex("stack.filename"),
+                "function": self.anyhex("stack.function"),
+            }
+        )
+        assert e.filename == self.getstr("stack.filename")
+        assert e.function == self.getstr("stack.function")
+
+    async def test_openai_request_properties(self):
+        e = OpenAIRequestProperties.from_api_payload({})
+        assert e.start_timestamp is None
+        assert e.end_timestamp is None
+        assert e.request_params is None
+
+        e = OpenAIRequestProperties.from_api_payload(
+            {
+                "start_timestamp": self.anytime("request.start_timestamp"),
+                "end_timestamp": self.gettime("request.start_timestamp") + 5,
+                "request_params": {
+                    self.anyhex("rp.0.key"): self.anyhex("rp.0.val"),
+                },
+            },
+        )
+        assert e.start_timestamp == self.gettime("request.start_timestamp")
+        assert e.end_timestamp == self.gettime("request.start_timestamp") + 5
+        assert e.request_params == {
+            self.getstr("rp.0.key"): self.getstr("rp.0.val"),
+        }
+
     async def test_correlation_context(self):
         e = CorrelationContext.from_api_payload({}, decryption_key=self.anysha256())
         assert e.session is None
@@ -292,6 +345,7 @@ class TestAtomApiTypes(BaseTestCase):
 
     async def test_browser_event_payload(self):
         e = BrowserEventPayload.from_api_payload({}, decryption_key=self.anysha256())
+        assert e.event_id is None
         assert e.action is None
         assert e.timestamp is None
         assert e.target is None
@@ -303,32 +357,28 @@ class TestAtomApiTypes(BaseTestCase):
         e = BrowserEventPayload.from_api_payload(
             {
                 "action": "CLICK",
+                "event_id": str(self.anyuuid("event.event_id")),
                 "timestamp": self.anytime("event.timestamp"),
                 "target": {
-                    "id": self.anystr("event.target.id"),
-                    self.anystr("unrecognized attribute 1"): self.anystr(),
+                    "id": self.anyhex("event.target.id"),
+                    self.anyhex("unrecognized attribute 1"): self.anystr(),
                 },
                 "device": {
                     "user_agent": self.anystr("event.device.user_agent"),
-                    self.anystr("unrecognized attribute 2"): self.anystr(),
+                    self.anyhex("unrecognized attribute 2"): self.anystr(),
                 },
                 "current_page": {
                     "url": self.anyurl("event.current_page.url"),
-                    self.anystr("unrecognized attribute 3"): self.anystr(),
+                    self.anyhex("unrecognized attribute 3"): self.anystr(),
                 },
                 "extra": self.anydict("event.extra"),
-                "corr_ctx": {
-                    f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": self.anystr("corr_ctx.visitor_id"),
-                    f"{EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX}{self.anystr("acct key 1")}": CorrelationContextAttr(
-                        key=EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
-                        value=self.anystr("corr_ctx.account.account_id"),
-                    ).to_encrypted(encryption_key=self._client_credentials.decryption_key),
-                },
-                self.anystr("unrecognized attribute 5"): self.anystr(),
+                "corr_ctx": self._example_corr_ctx,
+                self.anyhex("unrecognized attribute 5"): self.anystr(),
             },
             decryption_key=self._client_credentials.decryption_key,
         )
         assert e.action == BrowserAction.CLICK
+        assert e.event_id == str(self.getuuid("event.event_id"))
         assert e.timestamp == self.gettime("event.timestamp")
         assert e.target is not None
         assert e.target.id == self.getstr("event.target.id")
@@ -337,10 +387,7 @@ class TestAtomApiTypes(BaseTestCase):
         assert e.current_page is not None
         assert e.current_page.url == self.geturl("event.current_page.url")
         assert e.extra == self.getdict("event.extra")
-        assert e.corr_ctx is not None
-        assert e.corr_ctx.visitor_id == self.getstr("corr_ctx.visitor_id")
-        assert e.corr_ctx.account is not None
-        assert e.corr_ctx.account.account_id == self.getstr("corr_ctx.account.account_id")
+        assert self._corr_ctx_matches(e.corr_ctx)
 
         # invalid action
         e = BrowserEventPayload.from_api_payload(
@@ -354,12 +401,7 @@ class TestAtomApiTypes(BaseTestCase):
         # invalid decryption key
         e = BrowserEventPayload.from_api_payload(
             {
-                "corr_ctx": {
-                    f"{EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX}{self.anystr()}": CorrelationContextAttr(
-                        key=EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
-                        value=self.anystr(),
-                    ).to_encrypted(encryption_key=self._client_credentials.decryption_key),
-                },
+                "corr_ctx": self._example_corr_ctx,
             },
             decryption_key=self.anysha256(),
         )
@@ -369,6 +411,7 @@ class TestAtomApiTypes(BaseTestCase):
 
     async def test_database_event_payload(self):
         e = DatabaseEventPayload.from_api_payload({}, decryption_key=self.anysha256())
+        assert e.event_id is None
         assert e.timestamp is None
         assert e.operation is None
         assert e.db_name is None
@@ -379,26 +422,22 @@ class TestAtomApiTypes(BaseTestCase):
 
         e = DatabaseEventPayload.from_api_payload(
             {
+                "event_id": str(self.anyuuid("event.event_id")),
                 "timestamp": self.anytime("event.timestamp"),
                 "operation": DatabaseOperation.INSERT,
                 "db_name": self.anystr("event.db_name"),
                 "table_name": self.anystr("event.table_name"),
                 "statement": self.anystr("event.statement"),
                 "statement_values": {
-                    self.anystr("event.statement_values.0.key"): self.anyint("event.statement_values.0.value"),
-                    self.anystr("event.statement_values.1.key"): self.anystr("event.statement_values.1.value"),
+                    self.anyhex("event.statement_values.0.key"): self.anyint("event.statement_values.0.value"),
+                    self.anyhex("event.statement_values.1.key"): self.anystr("event.statement_values.1.value"),
                 },
-                "corr_ctx": {
-                    f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": self.anystr("corr_ctx.visitor_id"),
-                    f"{EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX}{self.anystr("acct key 1")}": CorrelationContextAttr(
-                        key=EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
-                        value=self.anystr("corr_ctx.account.account_id"),
-                    ).to_encrypted(encryption_key=self._client_credentials.decryption_key),
-                },
-                self.anystr("unrecognized attribute 5"): self.anystr(),
+                "corr_ctx": self._example_corr_ctx,
+                self.anyhex("unrecognized attribute 5"): self.anystr(),
             },
             decryption_key=self._client_credentials.decryption_key,
         )
+        assert e.event_id == str(self.getuuid("event.event_id"))
         assert e.timestamp == self.gettime("event.timestamp")
         assert e.operation == "INSERT"
         assert e.db_name == self.getstr("event.db_name")
@@ -408,10 +447,7 @@ class TestAtomApiTypes(BaseTestCase):
             self.getstr("event.statement_values.0.key"): self.getint("event.statement_values.0.value"),
             self.getstr("event.statement_values.1.key"): self.getstr("event.statement_values.1.value"),
         }
-        assert e.corr_ctx is not None
-        assert e.corr_ctx.visitor_id == self.getstr("corr_ctx.visitor_id")
-        assert e.corr_ctx.account is not None
-        assert e.corr_ctx.account.account_id == self.getstr("corr_ctx.account.account_id")
+        assert self._corr_ctx_matches(e.corr_ctx)
 
         # invalid operation
         e = DatabaseEventPayload.from_api_payload(
@@ -422,8 +458,116 @@ class TestAtomApiTypes(BaseTestCase):
         )
         assert e.operation is None
 
+        # invalid decryption key
+        e = DatabaseEventPayload.from_api_payload(
+            {
+                "corr_ctx": self._example_corr_ctx,
+            },
+            decryption_key=self.anysha256(),
+        )
+        assert e.corr_ctx is not None
+        assert e.corr_ctx.account is None
+
+    async def test_chat_completion_payload(self):
+        e = OpenAIChatCompletionPayload.from_api_payload({}, decryption_key=self.anysha256())
+        assert e.event_id is None
+        assert e.timestamp is None
+        assert e.completion_id is None
+        assert e.completion_system_fingerprint is None
+        assert e.completion_created_timestamp is None
+        assert e.completion_user_id is None
+        assert e.service_tier is None
+        assert e.model is None
+        assert e.prompt_tokens is None
+        assert e.completion_tokens is None
+        assert e.total_tokens is None
+        assert e.stack_frames is None
+        assert e.openai_request is None
+        assert e.corr_ctx is None
+
+        e = OpenAIChatCompletionPayload.from_api_payload(
+            {
+                "event_id": str(self.anyuuid("event.event_id")),
+                "timestamp": self.anytime("event.timestamp"),
+                "completion_id": self.anyhex("event.completion_id"),
+                "completion_system_fingerprint": self.anyhex("event.completion_system_fingerprint"),
+                "completion_created_timestamp": self.anytime("event.completion_created_timestamp"),
+                "completion_user_id": self.anyhex("event.completion_user_id"),
+                "service_tier": self.anystr("event.service_tier"),
+                "model": self.anystr("gpt-model", staticvalue="gpt-4o-2024-05-13"),
+                "prompt_tokens": self.anyint("event.prompt_tokens", max=1000),
+                "completion_tokens": self.anyint("event.completion_tokens", max=1000),
+                "total_tokens": self.anyint("event.total_tokens", max=2000),
+                "stack_frames": [
+                    {
+                        "filename": self.anyhex("event.stack_frames.0.filename"),
+                        "function": self.anyhex("event.stack_frames.0.function"),
+                    },
+                    {
+                        "filename": self.anyhex("event.stack_frames.1.filename"),
+                        "function": self.anyhex("event.stack_frames.1.function"),
+                    },
+                ],
+                "openai_request": {
+                    "request_params": {
+                        "max_tokens": self.anyint("event.openai_request.request_params.max_tokens", max=2000),
+                        "frequency_penalty": self.anyfloat(
+                            "event.openai_request.request_params.frequency_penalty", mag=0, decimals=1
+                        ),
+                    },
+                    "start_timestamp": self.anytime("start_timestamp"),
+                    "end_timestamp": self.gettime("start_timestamp") + 5,
+                },
+                "corr_ctx": self._example_corr_ctx,
+            },
+            decryption_key=self._client_credentials.decryption_key,
+        )
+        assert e.event_id == str(self.getuuid("event.event_id"))
+        assert e.timestamp == self.gettime("event.timestamp")
+        assert e.completion_id == self.gethex("event.completion_id")
+        assert e.completion_system_fingerprint == self.gethex("event.completion_system_fingerprint")
+        assert e.completion_created_timestamp == self.gettime("event.completion_created_timestamp")
+        assert e.completion_user_id == self.gethex("event.completion_user_id")
+        assert e.service_tier == self.getstr("event.service_tier")
+        assert e.model == self.getstr("gpt-model")
+        assert e.prompt_tokens == self.getint("event.prompt_tokens")
+        assert e.completion_tokens == self.getint("event.completion_tokens")
+        assert e.total_tokens == self.getint("event.total_tokens")
+        assert e.stack_frames == [
+            StackFrameProperties(
+                filename=self.getstr("event.stack_frames.0.filename"),
+                function=self.getstr("event.stack_frames.0.function"),
+            ),
+            StackFrameProperties(
+                filename=self.getstr("event.stack_frames.1.filename"),
+                function=self.getstr("event.stack_frames.1.function"),
+            ),
+        ]
+        assert e.openai_request == OpenAIRequestProperties(
+            start_timestamp=self.gettime("start_timestamp"),
+            end_timestamp=self.gettime("start_timestamp") + 5,
+            request_params={
+                "max_tokens": self.getint("event.openai_request.request_params.max_tokens"),
+                "frequency_penalty": self.getfloat("event.openai_request.request_params.frequency_penalty"),
+            },
+        )
+
+        assert self._corr_ctx_matches(e.corr_ctx)
+
+        e = OpenAIChatCompletionPayload.from_api_payload(
+            {
+                "model": self.anystr("unknown gpt model"),
+                "corr_ctx": self._example_corr_ctx,
+            },
+            decryption_key=self.anysha256(),
+        )
+        assert e.corr_ctx is not None
+        assert e.corr_ctx.account is None
+        assert e.model == self.getstr("unknown gpt model")
+
     async def test_http_server_event_payload(self):
         e = HttpServerEventPayload.from_api_payload({}, decryption_key=self.anysha256())
+        assert e.event_id is None
         assert e.timestamp is None
         assert e.request_method is None
         assert e.request_url is None
@@ -433,35 +577,28 @@ class TestAtomApiTypes(BaseTestCase):
 
         e = HttpServerEventPayload.from_api_payload(
             {
+                "event_id": str(self.anyuuid("event.event_id")),
                 "timestamp": self.anytime("event.timestamp"),
                 "request_method": "POST",
                 "request_url": self.anyurl("event.request_url"),
                 "request_headers": {
-                    self.anystr("event.request_headers.0.key"): self.anystr("event.request_headers.0.value"),
+                    self.anyhex("event.request_headers.0.key"): self.anystr("event.request_headers.0.value"),
                 },
                 "request_payload": self.anyjson("event.request_payload"),
-                "corr_ctx": {
-                    f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": self.anystr("corr_ctx.visitor_id"),
-                    f"{EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX}{self.anystr("acct key 1")}": CorrelationContextAttr(
-                        key=EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
-                        value=self.anystr("corr_ctx.account.account_id"),
-                    ).to_encrypted(encryption_key=self._client_credentials.decryption_key),
-                },
-                self.anystr("unrecognized attribute 5"): self.anystr(),
+                "corr_ctx": self._example_corr_ctx,
+                self.anyhex("unrecognized attribute 5"): self.anystr(),
             },
             decryption_key=self._client_credentials.decryption_key,
         )
+        assert e.event_id == str(self.getuuid("event.event_id"))
         assert e.timestamp == self.gettime("event.timestamp")
-        assert e.request_method == HttpRequestMethod.POST
+        assert e.request_method == "POST"
         assert e.request_url == self.geturl("event.request_url")
         assert e.request_headers == {
             self.getstr("event.request_headers.0.key"): self.getstr("event.request_headers.0.value"),
         }
         assert e.request_payload == self.getjson("event.request_payload")
-        assert e.corr_ctx is not None
-        assert e.corr_ctx.visitor_id == self.getstr("corr_ctx.visitor_id")
-        assert e.corr_ctx.account is not None
-        assert e.corr_ctx.account.account_id == self.getstr("corr_ctx.account.account_id")
+        assert self._corr_ctx_matches(e.corr_ctx)
 
         # invalid request method
         e = HttpServerEventPayload.from_api_payload(
@@ -471,3 +608,12 @@ class TestAtomApiTypes(BaseTestCase):
             decryption_key=self.anysha256(),
         )
         assert e.request_method is None
+
+        e = HttpServerEventPayload.from_api_payload(
+            {
+                "corr_ctx": self._example_corr_ctx,
+            },
+            decryption_key=self.anysha256(),
+        )
+        assert e.corr_ctx is not None
+        assert e.corr_ctx.account is None

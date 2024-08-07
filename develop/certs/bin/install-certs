@@ -46,7 +46,7 @@ function install-certs() (
 			;;
 		esac
 
-		if command -v certutil > /dev/null; then
+		if command -v certutil >/dev/null; then
 			# Delete any existing cert with the same name.
 			sudo certutil -d "sql:$HOME/.pki/nssdb" -D -n "$certName" &>/dev/null || true
 

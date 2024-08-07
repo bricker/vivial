@@ -87,15 +87,12 @@
     "${workspaceFolder}/develop/python/src",
     "${workspaceFolder}/libs/eave-stdlib-py/src",
     "${workspaceFolder}/libs/eave-pubsub-schemas/python/src",
-    // "${workspaceFolder}/packages/python/eave-collector-aiohttp-py/src",
     "${workspaceFolder}/packages/python/eave-collector-core-py/src",
-    // "${workspaceFolder}/packages/python/eave-collector-flask-py/src",
-    // "${workspaceFolder}/packages/python/eave-collector-func-py/src",
-    // "${workspaceFolder}/packages/python/eave-collector-network-py/src",
     "${workspaceFolder}/packages/python/eave-collector-asyncpg-py/src",
     "${workspaceFolder}/packages/python/eave-collector-sqlalchemy-py/src",
     "${workspaceFolder}/packages/python/eave-collector-starlette-py/src",
     "${workspaceFolder}/packages/python/eave-collector-django-orm-py/src",
+    "${workspaceFolder}/packages/python/eave-collector-openai-py/src",
   ],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
@@ -157,9 +154,6 @@
     "**/__pycache__": true
   },
   "shellcheck.useWorkspaceRootAsCwd": true,
-  "shellcheck.customArgs": [
-    "-x"
-  ],
   "prettier.configPath": "./develop/javascript/es-config/prettier/index.js",
   "prettier.ignorePath": "./develop/javascript/es-config/prettier/prettierignore",
   "ruff.format.args": [
