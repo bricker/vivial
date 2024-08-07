@@ -1,19 +1,19 @@
-resource "google_compute_global_address" "cdn" {
-  name = "cdn"
+resource "google_compute_global_address" "default" {
+  name = var.name
 }
 
-resource "google_dns_record_set" "cdn" {
-  managed_zone = var.dns_zone.name
-  name         = "cdn.${var.dns_zone.dns_name}"
+resource "google_dns_record_set" "default" {
+  managed_zone = data.google_dns_managed_zone.given.name
+  name         = "${var.name}.${data.google_dns_managed_zone.given.dns_name}"
   type         = "A"
   ttl          = 300
-  rrdatas      = [google_compute_global_address.cdn.address]
+  rrdatas      = [google_compute_global_address.default.address]
 }
 
 module "cdn_certificate" {
-  source          = "../../modules/certificate_manager"
-  certificate_map = var.certificate_map.name
-  cert_name       = "cdn"
-  entry_name      = "cdn"
-  hostname        = local.domain
+  source               = "../../modules/certificate_manager"
+  certificate_map_name = var.certificate_map_name
+  cert_name            = var.name
+  entry_name           = var.name
+  hostname             = local.domain
 }

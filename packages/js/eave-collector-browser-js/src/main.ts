@@ -16,6 +16,7 @@ import { setOrTouchUserCookies } from "./properties/user";
 import { sessionEventHandler, startOrExtendSession } from "./session";
 import { clickEventHandler } from "./triggers/click";
 import { formSubmitEventHandler } from "./triggers/form-submission";
+import { logoutEventHandler } from "./triggers/logout";
 import {
   hashChangeEventHandler,
   popStateEventHandler,
@@ -68,11 +69,20 @@ window.addEventListener(HASHCHANGE_EVENT_TYPE, sessionEventHandler, { capture: t
 window.addEventListener(POPSTATE_EVENT_TYPE, sessionEventHandler, { capture: true, passive: true });
 document.body.addEventListener(CLICK_EVENT_TYPE, sessionEventHandler, { capture: true, passive: true });
 document.body.addEventListener(SUBMIT_EVENT_TYPE, sessionEventHandler, { capture: true, passive: true });
+// traffic source cookie should be set/reset at the same time as the session
+window.addEventListener(EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, setTrafficSourceCookieIfNecessary, { passive: true });
+window.addEventListener(HASHCHANGE_EVENT_TYPE, setTrafficSourceCookieIfNecessary, { capture: true, passive: true });
+window.addEventListener(POPSTATE_EVENT_TYPE, setTrafficSourceCookieIfNecessary, { capture: true, passive: true });
+document.body.addEventListener(CLICK_EVENT_TYPE, setTrafficSourceCookieIfNecessary, { capture: true, passive: true });
+document.body.addEventListener(SUBMIT_EVENT_TYPE, setTrafficSourceCookieIfNecessary, { capture: true, passive: true });
 
+// events handlers for firing atoms
 window.addEventListener(HASHCHANGE_EVENT_TYPE, hashChangeEventHandler, { capture: true, passive: true });
 window.addEventListener(POPSTATE_EVENT_TYPE, popStateEventHandler, { capture: true, passive: true });
 document.body.addEventListener(CLICK_EVENT_TYPE, clickEventHandler, { capture: true, passive: true });
 document.body.addEventListener(SUBMIT_EVENT_TYPE, formSubmitEventHandler, { capture: true, passive: true });
+
+document.body.addEventListener(CLICK_EVENT_TYPE, logoutEventHandler, { passive: true });
 
 window.addEventListener(EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE, cookiesEventHandler, { passive: true });
 

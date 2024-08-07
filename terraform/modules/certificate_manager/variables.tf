@@ -1,4 +1,4 @@
-variable "certificate_map" {
+variable "certificate_map_name" {
   type = string
 }
 

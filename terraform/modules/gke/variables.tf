@@ -11,3 +11,20 @@ variable "authorized_networks" {
 
   default = {}
 }
+
+variable "root_domain" {
+  type = string
+}
+
+variable "network_name" {
+  type = string
+}
+
+variable "subnetwork_self_link" {
+  type     = string
+  nullable = true
+}
+
+variable "cluster_name" {
+  type = string
+}

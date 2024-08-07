@@ -1,5 +1,5 @@
-output "gsa" {
-  value = google_service_account.app_service_account
+output "gsa_ref" {
+  value = google_service_account.app_service_account.account_id
 }
 
 output "ksa_name" {

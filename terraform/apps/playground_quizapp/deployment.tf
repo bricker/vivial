@@ -61,7 +61,7 @@ resource "kubernetes_deployment" "app" {
 
         container {
           name  = local.app_name
-          image = "${var.docker_repository.location}-docker.pkg.dev/${var.docker_repository.project}/${var.docker_repository.repository_id}/${local.app_name}:${var.release_version}"
+          image = "${data.google_artifact_registry_repository.docker.location}-docker.pkg.dev/${data.google_artifact_registry_repository.docker.project}/${data.google_artifact_registry_repository.docker.repository_id}/${local.app_name}:${var.release_version}"
 
           port {
             name           = local.app_port.name
