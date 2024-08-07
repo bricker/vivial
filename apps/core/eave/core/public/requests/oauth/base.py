@@ -48,8 +48,8 @@ class BaseOAuthCallback(HTTPEndpoint):
 
     def is_work_email(self, email: str | None) -> bool:
         if email and email.endswith("@gmail.com"):
-            eaveLogger.warning("Attempted to sign up with a non-work email")
-            error_params = {"error": "Please only sign up with your work email address"}
+            eaveLogger.debug("Attempted to sign up with a non-work email")
+            error_params = {"error": "Please sign up with your work email address."}
             parsed = urlparse(shared.SIGNUP_REDIRECT_LOCATION)._replace(query=urlencode(error_params))
             set_redirect(response=self.response, location=parsed.geturl())
             return False
