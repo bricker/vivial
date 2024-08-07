@@ -6,6 +6,7 @@ import { Typography } from "@mui/material";
 import React from "react";
 import { useSearchParams } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
+import ErrorIcon from "../../Icons/ErrorIcon";
 
 const makeClasses = makeStyles()((theme) => ({
   container: {
@@ -74,16 +75,18 @@ const makeClasses = makeStyles()((theme) => ({
     maxWidth: 400,
   },
   errorBox: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 16,
     width: "100%",
-    padding: 20,
+    padding: 16,
     backgroundColor: "#ff38380d",
-    color: "black",
+    color: "#AD0000",
     marginBottom: 15,
     border: "1px solid #ff383840",
     borderRadius: 8,
-  },
-  errorTitle: {
-    color: "#ff3838",
   },
   fullWidth: {
     width: "100%",
@@ -132,9 +135,7 @@ const AuthenticationPage = ({ type }: { type: "signup" | "login" }) => {
           </Typography>
           {searchParams.get("error") && (
             <div className={classes.errorBox}>
-              <Typography variant="h5" className={classes.errorTitle}>
-                ERROR
-              </Typography>
+              <ErrorIcon color="#AD0000" />
               <Typography variant="subtitle1">{searchParams.get("error")}</Typography>
             </div>
           )}
