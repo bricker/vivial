@@ -12,7 +12,7 @@ resource "kubernetes_config_map" "shared" {
 
   data = {
     GOOGLE_CLOUD_PROJECT = data.google_project.default.project_id
-    EAVE_ENV = "production"
+    EAVE_ENV             = "production"
 
     EAVE_BASE_URL_PUBLIC           = "https://${var.root_domain}"
     EAVE_BASE_URL_INTERNAL         = "http://${kubernetes_namespace.eave.metadata[0].name}.svc.cluster.local"

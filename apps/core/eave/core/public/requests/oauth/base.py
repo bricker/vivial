@@ -43,3 +43,6 @@ class BaseOAuthCallback(HTTPEndpoint):
             return False
 
         return True
+
+    def is_work_email(self, email: str | None) -> bool:
+        return not (email and email.endswith("@gmail.com"))
