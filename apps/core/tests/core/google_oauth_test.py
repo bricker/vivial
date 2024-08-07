@@ -244,7 +244,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
 
     async def test_authorization_fails_for_non_work_email(self) -> None:
         # GIVEN user selects a personal gmail account during auth
-        self.mock_google_auth(email="personal@gmail.com")
+        self._google_userinfo_response.email = "personal@gmail.com"
 
         # WHEN oauth response reaches the core api
         response = await self.make_request(
