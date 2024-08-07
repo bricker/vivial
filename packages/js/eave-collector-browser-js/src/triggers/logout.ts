@@ -14,7 +14,7 @@ export async function logoutEventHandler(event: MouseEvent) {
     }
 
     // delete auth and traffic cookies on signout button click
-    const targetContainsSignoutText = !(targetElement?.innerText ?? "").search(signOutRegex);
+    const targetContainsSignoutText = (targetElement?.innerText ?? "").search(signOutRegex) >= 0;
     if ((nodeName === "A" || nodeName === "BUTTON") && targetContainsSignoutText) {
       deleteCookie({ name: TRAFFIC_SOURCE_COOKIE_NAME });
       for (const [cookieName, _] of getAllEaveAccountCookies()) {
