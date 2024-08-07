@@ -10,7 +10,11 @@ variable "namespace" {
   type = string
 }
 
-variable "iap_oauth_client_secret_name" {
+variable "iap_enabled" {
+  type = bool
+}
+
+variable "iap_oauth_client_kube_secret_name" {
   type     = string
   nullable = true
 }

@@ -4,7 +4,9 @@ import GoogleIcon from "$eave-dashboard/js/components/Icons/GoogleIcon";
 import { eaveWindow } from "$eave-dashboard/js/types";
 import { Typography } from "@mui/material";
 import React from "react";
+import { useSearchParams } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
+import ErrorIcon from "../../Icons/ErrorIcon";
 
 const makeClasses = makeStyles()((theme) => ({
   container: {
@@ -46,6 +48,7 @@ const makeClasses = makeStyles()((theme) => ({
   },
   loginButton: {
     color: "#0000008A",
+    width: "100%",
     borderColor: "#EEEEEE",
     borderRadius: 10,
     fontWeight: "bold",
@@ -66,17 +69,40 @@ const makeClasses = makeStyles()((theme) => ({
   },
   disclaimer: {
     color: "#7D7D7D",
-    marginBottom: 60,
+    marginBottom: 20,
     display: "grid",
     textAlign: "center",
     maxWidth: 400,
   },
+  errorBox: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 16,
+    width: "100%",
+    padding: 16,
+    backgroundColor: "#ff38380d",
+    color: "#AD0000",
+    marginBottom: 15,
+    border: "1px solid #ff383840",
+    borderRadius: 8,
+  },
+  fullWidth: {
+    width: "100%",
+  },
 }));
+
+enum AuthErrorCodes {
+  INVALID_EMAIL = "invalid_email",
+}
 
 const AuthenticationPage = ({ type }: { type: "signup" | "login" }) => {
   const { classes } = makeClasses();
   // if isLoginMode is false, then we are in sign up mode
   const isLoginMode = type === "login";
+  const [searchParams, _setSearchParams] = useSearchParams();
+
   return (
     <div className={classes.container}>
       <div className={classes.textBoxContainer}>
@@ -92,6 +118,7 @@ const AuthenticationPage = ({ type }: { type: "signup" | "login" }) => {
             className={classes.loginButton}
             variant="outlined"
             startIcon={<GoogleIcon className={classes.authIcon} />}
+            linkClasses={classes.fullWidth}
           >
             Continue with Google
           </Button>
@@ -110,6 +137,21 @@ const AuthenticationPage = ({ type }: { type: "signup" | "login" }) => {
               </a>
             </Typography>
           </Typography>
+          {searchParams.get("error") && (
+            <div className={classes.errorBox}>
+              <ErrorIcon color="#AD0000" />
+              <Typography variant="subtitle1">
+                {(() => {
+                  switch (searchParams.get("error")) {
+                    case AuthErrorCodes.INVALID_EMAIL:
+                      return "Please sign up with your work email address.";
+                    default:
+                      return "We encountered an error signing you up. Please try again later.";
+                  }
+                })()}
+              </Typography>
+            </div>
+          )}
         </section>
       </div>
       <EaveSideBanner

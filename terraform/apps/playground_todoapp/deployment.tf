@@ -61,7 +61,7 @@ resource "kubernetes_deployment" "app" {
 
         container {
           name  = local.app_name
-          image = "${var.docker_repository.location}-docker.pkg.dev/${var.docker_repository.project}/${var.docker_repository.repository_id}/${local.app_name}:${var.release_version}"
+          image = "${data.google_artifact_registry_repository.docker.location}-docker.pkg.dev/${data.google_artifact_registry_repository.docker.project}/${data.google_artifact_registry_repository.docker.repository_id}/${local.app_name}:${var.release_version}"
 
           port {
             name           = local.app_port.name
@@ -208,7 +208,7 @@ resource "kubernetes_deployment" "app" {
             "--port=${local.cloudsql_proxy_port.number}",
             "--structured-logs",
             # - "--unix-socket /cloudsql"
-            "${var.project.id}:${var.project.region}:${var.cloudsql_instance_name}",
+            data.google_sql_database_instance.given.connection_name,
           ]
 
           startup_probe {

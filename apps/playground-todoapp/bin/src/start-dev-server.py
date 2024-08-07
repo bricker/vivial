@@ -17,14 +17,4 @@ if __name__ == "__main__":
         port=5500,
         reload=True,
         log_level="debug",
-        reload_includes=[
-            "eave",
-        ],
-        reload_excludes=[
-            "**/build/",
-            ".*",
-            "**/__pycache__",
-            "*.egg-info",
-            "**/node_modules",
-        ],
     )

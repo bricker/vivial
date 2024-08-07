@@ -58,7 +58,7 @@ function deploy() (
 		--no-devtool \
 		--env "TRACKER_URL=$tracker_url"
 
-	gsutil cp dist/collector.js "gs://$bucket_name"
+	gsutil cp dist/collector.js "gs://$bucket_name/collector.js"
 )
 
 deploy "$@"

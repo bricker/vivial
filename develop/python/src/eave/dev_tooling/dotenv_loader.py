@@ -34,4 +34,5 @@ def load_standard_dotenv_files() -> None:
     load_dotenv(f".{eave_env}.env", override=True)
 
     if deploy_target:
+        load_dotenv(f"develop/shared/share.{deploy_target}.env", override=True)
         load_dotenv(f".{deploy_target}.env", override=True)

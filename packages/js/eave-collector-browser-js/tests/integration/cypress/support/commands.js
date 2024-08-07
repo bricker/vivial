@@ -46,3 +46,16 @@ Cypress.Commands.add("interceptAtomIngestion", () => {
     });
   }).as(ATOM_INTERCEPTION_EVENT_NAME);
 });
+
+Cypress.Commands.add("waitForAtom", () => {
+  return cy.wait(`@${ATOM_INTERCEPTION_EVENT_NAME}`);
+});
+
+Cypress.Commands.add("expireSessionAndTrafficSourceCookies", () => {
+  cy.clearCookie("_eave.traffic_source");
+  cy.clearCookie("_eave.session");
+});
+
+Cypress.Commands.add("login", () => {
+  cy.setCookie("mock_auth_cookie", "1");
+});

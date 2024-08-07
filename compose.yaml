@@ -23,7 +23,7 @@ services:
     env_file:
       - path: .env
         required: false
-      - path: ./develop/shared/metabase.share.env
+      - path: ./develop/shared/share.metabase.env
     environment:
       - MB_DB_HOST=postgres
       - MB_DB_PORT=5432

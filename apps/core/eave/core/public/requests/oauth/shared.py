@@ -178,6 +178,31 @@ async def create_new_account_and_team(
         {"eave_account_id": str(eave_account.id), "eave_team_id": str(eave_team.id)},
     )
 
+    try:
+        # TODO: This should happen in a pubsub subscriber on the "eave_account_registration" event.
+        # Notify #sign-ups Slack channel.
+
+        channel_id = SHARED_CONFIG.eave_slack_signups_channel_id
+        slack_client = eave.stdlib.slack.get_authenticated_eave_system_slack_client()
+
+        if slack_client and channel_id:
+            slack_response = await slack_client.chat_postMessage(
+                channel=channel_id,
+                text="Someone registered for Eave!",
+            )
+
+            await slack_client.chat_postMessage(
+                channel=channel_id,
+                thread_ts=slack_response.get("ts"),
+                text=(
+                    f"Email: `{user_email}`\n"
+                    f"Account ID: `{eave_account.id}`\n"
+                    f"Eave Team Name: `{eave_team.name}`\n"
+                ),
+            )
+    except Exception as e:
+        eaveLogger.exception(e, ctx)
+
     return eave_account
 
 

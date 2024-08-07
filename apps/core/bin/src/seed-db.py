@@ -73,7 +73,7 @@ async def seed_table_entries_for_team(team_id: uuid.UUID, row: int, session: Asy
         state=MetabaseInstanceState.READY,
     )
 
-    # Hardcoded signing key for easier development. This is also hardcoded in the metabase environment variables in metabase.share.env.
+    # Hardcoded signing key for easier development. This is also hardcoded in the metabase environment variables in share.metabase.env.
     metabase_instance.jwt_signing_key = "unsafe"
     await session.flush()
 
