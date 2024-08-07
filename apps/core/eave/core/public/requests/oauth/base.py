@@ -1,6 +1,4 @@
-from urllib.parse import urlencode, urlparse
 from asgiref.typing import HTTPScope
-from eave.stdlib.api_util import set_redirect
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -8,7 +6,7 @@ from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.logging import LogContext, eaveLogger
 
-from . import EaveSignUpErrorCode, shared
+from . import shared
 
 
 class BaseOAuthCallback(HTTPEndpoint):
@@ -47,11 +45,4 @@ class BaseOAuthCallback(HTTPEndpoint):
         return True
 
     def is_work_email(self, email: str | None) -> bool:
-        if email and email.endswith("@gmail.com"):
-            eaveLogger.debug("Attempted to sign up with a non-work email")
-            error_params = {"error": EaveSignUpErrorCode.invalid_email}
-            parsed = urlparse(shared.SIGNUP_REDIRECT_LOCATION)._replace(query=urlencode(error_params))
-            set_redirect(response=self.response, location=parsed.geturl())
-            return False
-
-        return True
+        return not (email and email.endswith("@gmail.com"))

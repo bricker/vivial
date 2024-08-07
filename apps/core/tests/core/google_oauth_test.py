@@ -266,10 +266,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
         )  # Test the cookie was deleted
         # should redirect to signup with an error message
         assert response.headers[aiohttp.hdrs.LOCATION]
-        assert (
-            response.headers[aiohttp.hdrs.LOCATION]
-            == "https://dashboard.eave.test/signup?error=invalid_email"
-        )
+        assert response.headers[aiohttp.hdrs.LOCATION] == "https://dashboard.eave.test/signup?error=invalid_email"
 
         # user should not be logged in, and no account should be created
         assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) is None
