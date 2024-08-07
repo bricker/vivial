@@ -26,6 +26,7 @@ const Button = ({
   className,
   to,
   target,
+  linkClasses,
   color = "primary",
   variant = "contained",
   ...rest
@@ -34,12 +35,14 @@ const Button = ({
   className: string;
   to?: string;
   target?: string;
+  linkClasses?: string;
   color?: "inherit" | "primary" | "secondary" | "success" | "error" | "info" | "warning";
   variant: "text" | "outlined" | "contained";
   [key: string]: any;
 }) => {
   const { classes } = makeClasses();
   const rootClass = classNames(classes.root, className);
+  const linkClass = classNames(classes.link, linkClasses);
 
   const button = (
     <MaterialButton
@@ -57,7 +60,7 @@ const Button = ({
 
   if (to) {
     return (
-      <Link className={classes.link} to={to} target={target}>
+      <Link className={linkClass} to={to} target={target}>
         {button}
       </Link>
     );

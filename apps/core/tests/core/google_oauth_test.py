@@ -15,7 +15,10 @@ import eave.core.internal.oauth.google
 from eave.core.internal.oauth.state_cookies import EAVE_OAUTH_STATE_COOKIE_PREFIX
 from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.team import TeamOrm
-from eave.core.public.requests.oauth.shared import DEFAULT_REDIRECT_LOCATION, DEFAULT_TEAM_NAME
+from eave.core.public.requests.oauth.shared import (
+    DEFAULT_REDIRECT_LOCATION,
+    DEFAULT_TEAM_NAME,
+)
 from eave.stdlib.auth_cookies import (
     EAVE_ACCESS_TOKEN_COOKIE_NAME,
     EAVE_ACCOUNT_ID_COOKIE_NAME,
@@ -238,3 +241,35 @@ class TestGoogleOAuthHandler(BaseTestCase):
             eave.core.internal.oauth.google.GOOGLE_OAUTH_CALLBACK_URI
             == f"{SHARED_CONFIG.eave_api_base_url_public}/oauth/google/callback"
         )
+
+    async def test_authorization_fails_for_non_work_email(self) -> None:
+        # GIVEN user selects a personal gmail account during auth
+        self._google_userinfo_response.email = "personal@gmail.com"
+
+        # WHEN oauth response reaches the core api
+        response = await self.make_request(
+            path=eave.core.internal.oauth.google.GOOGLE_OAUTH_CALLBACK_PATH,
+            method="GET",
+            payload={
+                "code": self.anystr("code"),
+                "state": self.anystr("state"),
+            },
+            cookies={
+                f"{EAVE_OAUTH_STATE_COOKIE_PREFIX}{AuthProvider.google}": self.getstr("state"),
+            },
+        )
+
+        # THEN the auth (whether or not it's successful) is rejected
+        assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
+        assert not response.cookies.get(
+            f"{EAVE_OAUTH_STATE_COOKIE_PREFIX}{AuthProvider.google}"
+        )  # Test the cookie was deleted
+        # should redirect to signup with an error message
+        assert response.headers[aiohttp.hdrs.LOCATION]
+        assert response.headers[aiohttp.hdrs.LOCATION] == "https://dashboard.eave.test/signup?error=invalid_email"
+
+        # user should not be logged in, and no account should be created
+        assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) is None
+        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) is None
+        async with self.db_session.begin() as s:
+            assert (await self.count(s, AccountOrm)) == 0
