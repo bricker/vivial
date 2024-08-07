@@ -10,10 +10,10 @@ variable "slack_auth_token" {
 
 variable "uptime_checks" {
   type = list(object({
-    service=string
-    name = string
-    host = string
-    path = string
+    service  = string
+    name     = string
+    host     = string
+    path     = string
     severity = string
   }))
 }
