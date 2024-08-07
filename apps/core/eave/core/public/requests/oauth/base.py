@@ -8,7 +8,7 @@ from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.logging import LogContext, eaveLogger
 
-from . import shared
+from . import EaveSignUpErrorCode, shared
 
 
 class BaseOAuthCallback(HTTPEndpoint):
@@ -49,7 +49,7 @@ class BaseOAuthCallback(HTTPEndpoint):
     def is_work_email(self, email: str | None) -> bool:
         if email and email.endswith("@gmail.com"):
             eaveLogger.debug("Attempted to sign up with a non-work email")
-            error_params = {"error": "Please sign up with your work email address."}
+            error_params = {"error": EaveSignUpErrorCode.invalid_email}
             parsed = urlparse(shared.SIGNUP_REDIRECT_LOCATION)._replace(query=urlencode(error_params))
             set_redirect(response=self.response, location=parsed.geturl())
             return False

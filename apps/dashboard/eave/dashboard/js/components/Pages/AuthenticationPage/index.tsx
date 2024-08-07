@@ -93,6 +93,10 @@ const makeClasses = makeStyles()((theme) => ({
   },
 }));
 
+enum AuthErrorCodes {
+  INVALID_EMAIL = "invalid_email",
+}
+
 const AuthenticationPage = ({ type }: { type: "signup" | "login" }) => {
   const { classes } = makeClasses();
   // if isLoginMode is false, then we are in sign up mode
@@ -136,7 +140,16 @@ const AuthenticationPage = ({ type }: { type: "signup" | "login" }) => {
           {searchParams.get("error") && (
             <div className={classes.errorBox}>
               <ErrorIcon color="#AD0000" />
-              <Typography variant="subtitle1">{searchParams.get("error")}</Typography>
+              <Typography variant="subtitle1">
+                {(() => {
+                  switch (searchParams.get("error")) {
+                    case AuthErrorCodes.INVALID_EMAIL:
+                      return "Please sign up with your work email address.";
+                    default:
+                      return "We encountered an error signing you up. Please try again later.";
+                  }
+                })()}
+              </Typography>
             </div>
           )}
         </section>

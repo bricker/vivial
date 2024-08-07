@@ -268,7 +268,7 @@ class TestGoogleOAuthHandler(BaseTestCase):
         assert response.headers[aiohttp.hdrs.LOCATION]
         assert (
             response.headers[aiohttp.hdrs.LOCATION]
-            == "https://dashboard.eave.test/signup?error=Please+sign+up+with+your+work+email+address."
+            == "https://dashboard.eave.test/signup?error=invalid_email"
         )
 
         # user should not be logged in, and no account should be created
