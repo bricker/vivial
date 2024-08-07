@@ -85,6 +85,9 @@ const makeClasses = makeStyles()((theme) => ({
   errorTitle: {
     color: "#ff3838",
   },
+  fullWidth: {
+    width: "100%",
+  },
 }));
 
 const AuthenticationPage = ({ type }: { type: "signup" | "login" }) => {
@@ -108,6 +111,7 @@ const AuthenticationPage = ({ type }: { type: "signup" | "login" }) => {
             className={classes.loginButton}
             variant="outlined"
             startIcon={<GoogleIcon className={classes.authIcon} />}
+            linkClasses={classes.fullWidth}
           >
             Continue with Google
           </Button>

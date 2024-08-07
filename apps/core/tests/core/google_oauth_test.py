@@ -18,7 +18,6 @@ from eave.core.internal.orm.team import TeamOrm
 from eave.core.public.requests.oauth.shared import (
     DEFAULT_REDIRECT_LOCATION,
     DEFAULT_TEAM_NAME,
-    SIGNUP_REDIRECT_LOCATION,
 )
 from eave.stdlib.auth_cookies import (
     EAVE_ACCESS_TOKEN_COOKIE_NAME,
