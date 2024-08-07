@@ -1,4 +1,4 @@
-from http import HTTPStatus
+from urllib.parse import urlencode, urlparse
 from asgiref.typing import HTTPScope
 from eave.stdlib.api_util import set_redirect
 from starlette.requests import Request
@@ -49,9 +49,9 @@ class BaseOAuthCallback(HTTPEndpoint):
     def is_work_email(self, email: str | None) -> bool:
         if email and email.endswith("@gmail.com"):
             eaveLogger.warning("Attempted to sign up with a non-work email")
-            # TODO: set_error_code ?
-            self.response.status_code = HTTPStatus.BAD_REQUEST
-            set_redirect(response=self.response, location=shared.SIGNUP_REDIRECT_LOCATION)
+            error_params = {"error": "Please only sign up with your work email address"}
+            parsed = urlparse(shared.SIGNUP_REDIRECT_LOCATION)._replace(query=urlencode(error_params))
+            set_redirect(response=self.response, location=parsed.geturl())
             return False
 
         return True

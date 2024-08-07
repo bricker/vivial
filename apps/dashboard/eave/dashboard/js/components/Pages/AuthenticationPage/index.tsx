@@ -4,6 +4,7 @@ import GoogleIcon from "$eave-dashboard/js/components/Icons/GoogleIcon";
 import { eaveWindow } from "$eave-dashboard/js/types";
 import { Typography } from "@mui/material";
 import React from "react";
+import { useSearchParams } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 
 const makeClasses = makeStyles()((theme) => ({
@@ -46,6 +47,7 @@ const makeClasses = makeStyles()((theme) => ({
   },
   loginButton: {
     color: "#0000008A",
+    width: "100%",
     borderColor: "#EEEEEE",
     borderRadius: 10,
     fontWeight: "bold",
@@ -66,10 +68,22 @@ const makeClasses = makeStyles()((theme) => ({
   },
   disclaimer: {
     color: "#7D7D7D",
-    marginBottom: 60,
+    marginBottom: 20,
     display: "grid",
     textAlign: "center",
     maxWidth: 400,
+  },
+  errorBox: {
+    width: "100%",
+    padding: 20,
+    backgroundColor: "#ff38380d",
+    color: "black",
+    marginBottom: 15,
+    border: "1px solid #ff383840",
+    borderRadius: 8,
+  },
+  errorTitle: {
+    color: "#ff3838",
   },
 }));
 
@@ -77,6 +91,8 @@ const AuthenticationPage = ({ type }: { type: "signup" | "login" }) => {
   const { classes } = makeClasses();
   // if isLoginMode is false, then we are in sign up mode
   const isLoginMode = type === "login";
+  const [searchParams, _setSearchParams] = useSearchParams();
+
   return (
     <div className={classes.container}>
       <div className={classes.textBoxContainer}>
@@ -110,6 +126,14 @@ const AuthenticationPage = ({ type }: { type: "signup" | "login" }) => {
               </a>
             </Typography>
           </Typography>
+          {searchParams.get("error") && (
+            <div className={classes.errorBox}>
+              <Typography variant="h5" className={classes.errorTitle}>
+                ERROR
+              </Typography>
+              <Typography variant="subtitle1">{searchParams.get("error")}</Typography>
+            </div>
+          )}
         </section>
       </div>
       <EaveSideBanner

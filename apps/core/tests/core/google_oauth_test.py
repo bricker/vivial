@@ -260,16 +260,20 @@ class TestGoogleOAuthHandler(BaseTestCase):
             },
         )
 
-        # THEN the auth (whether or not it's successful) is rejected and an account isnt created
+        # THEN the auth (whether or not it's successful) is rejected
         assert response.status_code == HTTPStatus.TEMPORARY_REDIRECT
         assert not response.cookies.get(
             f"{EAVE_OAUTH_STATE_COOKIE_PREFIX}{AuthProvider.google}"
         )  # Test the cookie was deleted
+        # should redirect to signup with an error message
         assert response.headers[aiohttp.hdrs.LOCATION]
-        assert response.headers[aiohttp.hdrs.LOCATION] == SIGNUP_REDIRECT_LOCATION
+        assert (
+            response.headers[aiohttp.hdrs.LOCATION]
+            == "https://dashboard.eave.test/signup?error=Please+only+sign+up+with+your+work+email+address"
+        )
 
+        # user should not be logged in, and no account should be created
         assert response.cookies.get(EAVE_ACCOUNT_ID_COOKIE_NAME) is None
         assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) is None
-
         async with self.db_session.begin() as s:
             assert (await self.count(s, AccountOrm)) == 0
