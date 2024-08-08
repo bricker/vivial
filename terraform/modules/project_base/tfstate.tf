@@ -4,10 +4,13 @@ resource "google_storage_bucket" "terraform" {
   location                 = "us-central1" # This is hardcoded because it's just for developers
   storage_class            = "STANDARD"
   public_access_prevention = "enforced"
+  uniform_bucket_level_access = true
 
   versioning {
     enabled = true
   }
 
-  uniform_bucket_level_access = true
+  logging {
+    log_bucket = google_storage_bucket.usage_logs.name
+  }
 }

@@ -46,6 +46,11 @@ resource "google_sql_database_instance" "default" {
       value = "on"
     }
     database_flags {
+      # Mandatory for compliance
+      name  = "log_lock_waits"
+      value = "on"
+    }
+    database_flags {
       # Mandatory for SOC-2 compliance
       name  = "log_statement"
       value = "ddl"

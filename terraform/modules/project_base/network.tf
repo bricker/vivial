@@ -16,6 +16,13 @@ resource "google_compute_subnetwork" "primary" {
   ip_cidr_range            = "10.128.0.0/20"
   network                  = google_compute_network.primary.id
   private_ip_google_access = true
+
+  log_config {
+    aggregation_interval = "INTERVAL_10_MIN"
+    flow_sampling        = 0.5
+    metadata             = "INCLUDE_ALL_METADATA"
+  }
+
   # secondary_ip_range {
   #   range_name    = "tf-test-secondary-range-update1"
   #   ip_cidr_range = "10.56.128.0/17"

@@ -7,14 +7,28 @@ resource "google_monitoring_uptime_check_config" "uptime_checks" {
   selected_regions = []
   timeout          = "10s"
 
-  content_matchers {
-    content = "\"OK\""
-    matcher = "MATCHES_JSON_PATH"
-    json_path_matcher {
-      json_matcher = "EXACT_MATCH"
-      json_path    = "$.status"
+  dynamic "content_matchers" {
+    for_each = each.value.matches_json_path != null ? [each.value.matches_json_path] : []
+
+    content {
+      content = "\"${content_matchers.value.content}\""
+      matcher = "MATCHES_JSON_PATH"
+      json_path_matcher {
+        json_matcher = "EXACT_MATCH"
+        json_path    = content_matchers.value.json_path
+      }
     }
   }
+
+  dynamic "content_matchers" {
+    for_each = each.value.contains_string != null ? [each.value.contains_string] : []
+
+    content {
+      content = content_matchers.value
+      matcher = "CONTAINS_STRING"
+    }
+  }
+
   http_check {
     body           = null
     content_type   = null
