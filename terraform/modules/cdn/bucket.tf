@@ -40,6 +40,10 @@ resource "google_storage_bucket" "default" {
   versioning {
     enabled = true
   }
+
+  logging {
+    log_bucket = data.google_storage_bucket.usage_logs.name
+  }
 }
 
 resource "google_storage_bucket_iam_member" "cdn_allusers" {

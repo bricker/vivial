@@ -18,5 +18,5 @@ data "google_artifact_registry_repository" "docker" {
 }
 
 data "google_service_account" "gke_gsa" {
-  account_id = module.service_accounts.gsa_ref
+  account_id = module.service_accounts.gsa_account_id
 }

@@ -13,3 +13,7 @@ variable "billing_account" {
 variable "subnet_region" {
   type = string
 }
+
+variable "root_domain" {
+  type=string
+}

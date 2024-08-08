@@ -2,6 +2,7 @@ module "shared_kubernetes_resources" {
   source                  = "../../modules/kube_shared_resources"
   iap_oauth_client_secret = var.IAP_OAUTH_CLIENT_SECRET
   root_domain             = local.root_domain
+  eave_slack_signups_channel_id = local.eave_slack_signups_channel_id
 }
 
 module "core_api_app" {
