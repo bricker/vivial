@@ -20,7 +20,7 @@ resource "kubernetes_manifest" "backend_policy" {
         } : null
 
         logging = {
-          enabled = true
+          enabled    = true
           sampleRate = 1000000 # 100% sample rate
         }
       }

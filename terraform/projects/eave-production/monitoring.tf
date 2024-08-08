@@ -9,7 +9,7 @@ module "monitoring" {
       host     = "dashboard.${local.root_domain}"
       path     = "/status"
       matches_json_path = {
-        content = "OK"
+        content   = "OK"
         json_path = "$.status"
       }
     },
@@ -20,24 +20,24 @@ module "monitoring" {
       host     = "api.${local.root_domain}"
       path     = "/status"
       matches_json_path = {
-        content = "OK"
+        content   = "OK"
         json_path = "$.status"
       }
     },
     {
-      service  = "cdn"
-      name     = "Eave CDN uptime check"
-      severity = "CRITICAL"
-      host     = "cdn.${local.root_domain}"
-      path     = "/collector.js"
+      service         = "cdn"
+      name            = "Eave CDN uptime check"
+      severity        = "CRITICAL"
+      host            = "cdn.${local.root_domain}"
+      path            = "/collector.js"
       contains_string = "EAVE_CLIENT_ID" # Seems reasonably reliable
     },
     {
-      service  = "marketing"
-      name     = "Eave Marketing Website uptime check"
-      severity = "CRITICAL"
-      host     = "www.${local.root_domain}"
-      path     = "/"
+      service         = "marketing"
+      name            = "Eave Marketing Website uptime check"
+      severity        = "CRITICAL"
+      host            = "www.${local.root_domain}"
+      path            = "/"
       contains_string = "Eave" // :shrug: probably not great
     },
   ]

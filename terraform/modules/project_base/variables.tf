@@ -15,5 +15,5 @@ variable "subnet_region" {
 }
 
 variable "root_domain" {
-  type=string
+  type = string
 }

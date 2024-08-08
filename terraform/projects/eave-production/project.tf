@@ -4,5 +4,5 @@ module "project_base" {
   org_id          = local.org_id
   billing_account = local.billing_account
   subnet_region   = local.default_region
-  root_domain = local.root_domain
+  root_domain     = local.root_domain
 }
