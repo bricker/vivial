@@ -71,7 +71,7 @@ resource "google_sql_database_instance" "default" {
     }
     ip_configuration {
       enable_private_path_for_google_cloud_services = true
-      ipv4_enabled                                  = true
+      ipv4_enabled                                  = false # Mandatory for SOC-2 compliance
       private_network                               = data.google_compute_network.given.id
       require_ssl                                   = true
       ssl_mode                                      = "TRUSTED_CLIENT_CERTIFICATE_REQUIRED" # ENCRYPTED_ONLY, TRUSTED_CLIENT_CERTIFICATE_REQUIRED, ALLOW_UNENCRYPTED_AND_ENCRYPTED
