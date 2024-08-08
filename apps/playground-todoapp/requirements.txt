@@ -4,7 +4,7 @@ SQLAlchemy[asyncio]
 asyncpg
 starlette
 jinja2
-google-cloud-logging
+google-cloud-logging==3.11.0
 google-cloud-secret-manager
 openai
 crc32c
