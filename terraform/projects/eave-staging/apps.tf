@@ -18,6 +18,13 @@ module "core_api_app" {
   LOG_LEVEL        = "DEBUG"
   release_version  = "latest"
   EAVE_CREDENTIALS = var.INTERNAL_EAVE_CREDENTIALS
+
+  bindings = {
+    "roles/iam.serviceAccountTokenCreator": [
+      "user:bryan@eave.fyi",
+      "user:liam@eave.fyi",
+    ]
+  }
 }
 
 module "dashboard_app" {
