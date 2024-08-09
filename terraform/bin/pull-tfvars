@@ -6,8 +6,7 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 function main () (
 	local project="$1"
-	local itemid="$2"
-	local fieldid="$3"
+	local opid="$2"
 
 	cd "$(e.parentpath)/projects/$project"
 
@@ -18,7 +17,7 @@ function main () (
 		echo "Backup moved to $backup"
 	fi
 
-	echo "{{ op://$itemid/$fieldid}}" | op inject -o .auto.tfvars
+	echo "{{ op://$opid}}" | op inject -o .auto.tfvars
 )
 
 main "$@"
