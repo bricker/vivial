@@ -1,4 +1,3 @@
-# TODO: Create GKE Service Account to use instead of the default Compute Engine service account
 # https://cloud.google.com/kubernetes-engine/docs/how-to/hardening-your-cluster#use_least_privilege_sa
 
 resource "google_service_account" "gke_node" {

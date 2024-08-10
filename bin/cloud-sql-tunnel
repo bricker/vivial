@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "$EAVE_HOME"/develop/functions.bash
+
+function main () (
+	gcloud compute start-iap-tunnel cloudsql-bastion-core-api 5432 --local-host-port=localhost:5430
+)
+
+main "$@"

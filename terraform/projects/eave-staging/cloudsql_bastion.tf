@@ -1,4 +1,12 @@
+# The service account that will be installed on the VM
+resource "google_service_account" "cloudsql_bastion_sa" {
+  account_id   = "cloudsql-bastion"
+  display_name = "CloudSQL bastion agent"
+  description = "The service account for the CloudSQL bastion VM"
+}
+
 # resource "google_compute_instance" "cloudsql_bastion_core_api" {
+#   name                    = "cloudsql-bastion-core-api"
 #   allow_stopping_for_update = null
 #   can_ip_forward            = false
 #   deletion_protection       = false
@@ -12,11 +20,10 @@
 #   metadata = {
 #     block-project-ssh-keys = "true"
 #     enable-oslogin-2fa     = "true"
-#     startup-script         = "sudo apt-get update && sudo apt-get install wget && wget https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.8.2/cloud-sql-proxy.linux.amd64 -O cloud-sql-proxy && chmod +x cloud-sql-proxy && ./cloud-sql-proxy --private-ip eave-staging:us-central1:eave-pg-core"
+#     startup-script         = "sudo apt-get update && sudo apt install postgresql-client && sudo apt-get install wget && wget https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.8.2/cloud-sql-proxy.linux.amd64 -O cloud-sql-proxy && chmod +x cloud-sql-proxy && ./cloud-sql-proxy --private-ip --auto-iam-authn --impersonate-service-account gsa-app-core-api@eave-staging.iam.gserviceaccount.com --address 0.0.0.0 --port 5432 --health-check --http-address localhost --http-port 9090 eave-staging:us-central1:eave-pg-core"
 #   }
 #   metadata_startup_script = null
 #   min_cpu_platform        = null
-#   name                    = "cloudsql-bastion-core-api"
 #   resource_policies       = []
 #   tags                    = []
 #   boot_disk {
@@ -43,12 +50,12 @@
 #   network_interface {
 #     internal_ipv6_prefix_length = 0
 #     ipv6_address                = null
-#     network                     = "https://www.googleapis.com/compute/v1/projects/eave-staging/global/networks/primary"
-#     network_ip                  = "10.128.0.14"
+#     network                     = data.google_compute_network.primary.self_link
+#     # network_ip                  = "10.128.0.14"
 #     nic_type                    = null
 #     queue_count                 = 0
 #     stack_type                  = "IPV4_ONLY"
-#     subnetwork                  = "https://www.googleapis.com/compute/v1/projects/eave-staging/regions/us-central1/subnetworks/primary"
+#     subnetwork                  = data.google_compute_subnetwork.primary.self_link
 #   }
 #   reservation_affinity {
 #     type = "ANY_RESERVATION"
@@ -62,7 +69,7 @@
 #     provisioning_model          = "SPOT"
 #   }
 #   service_account {
-#     email  = "gsa-app-core-api@eave-staging.iam.gserviceaccount.com"
+#     email  = google_service_account.cloudsql_bastion_sa.email
 #     scopes = ["https://www.googleapis.com/auth/cloud-platform"]
 #   }
 #   shielded_instance_config {
@@ -72,9 +79,5 @@
 #   }
 # }
 
-# The service account that will be installed on the VM
-resource "google_service_account" "cloudsql_bastion_sa" {
-  account_id   = "cloudsql-bastion"
-  display_name = "CloudSQL bastion agent"
-  description = "The service account for the CloudSQL bastion VM"
-}
+# TODO: Grant osLogin role to users on instance
+# https://cloud.google.com/compute/docs/oslogin/set-up-oslogin#configure_users

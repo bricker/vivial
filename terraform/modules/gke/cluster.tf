@@ -11,6 +11,10 @@ resource "google_container_cluster" "default" {
   # accidentally delete this instance by use of Terraform.
   deletion_protection = true
 
+  # node_config {
+  #   service_account = google_service_account.gke_node.id
+  # }
+
   master_authorized_networks_config {
     gcp_public_cidrs_access_enabled = false
 
