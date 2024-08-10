@@ -32,3 +32,7 @@ output "usage_logs_bucket_name" {
 output "impersonator_role_id" {
   value = module.impersonator_role.role_id
 }
+
+output "cloudsql_user_role_id" {
+  value = module.cloudsql_user_role.role_id
+}

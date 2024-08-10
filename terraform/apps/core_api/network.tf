@@ -1,26 +1,3 @@
-module "service_accounts" {
-  source              = "../../modules/gke_app_service_account"
-  kube_service_name   = module.kubernetes_service.name
-  kube_namespace_name = var.kube_namespace_name
-}
-
-# Create custom role
-module "app_iam_role" {
-  source      = "../../modules/custom_role"
-  role_id     = "eave.dashboardApp"
-  title       = "Eave Dashboard App"
-  description = "Permissions needed by the Dashboard App"
-  base_roles = [
-    "roles/logging.logWriter",
-    "roles/cloudkms.signerVerifier",
-    "roles/secretmanager.secretAccessor",
-  ]
-
-  members = [
-    "serviceAccount:${data.google_service_account.gke_gsa.email}"
-  ]
-}
-
 resource "google_compute_global_address" "a_addrs" {
   count        = 1
   name         = "${local.app_name}-${count.index}"
@@ -37,7 +14,7 @@ resource "google_dns_record_set" "default" {
   ]
 }
 
-module "certificate" {
+module "api_certificate" {
   source               = "../../modules/certificate_manager"
   certificate_map_name = var.certificate_map_name
   cert_name            = local.app_name

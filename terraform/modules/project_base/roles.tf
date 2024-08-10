@@ -7,3 +7,14 @@ module "impersonator_role" {
     "roles/iam.serviceAccountTokenCreator",
   ]
 }
+
+module "cloudsql_user_role" {
+  source      = "../../modules/custom_role"
+  role_id     = "eave.cloudsqlUser"
+  title       = "CloudSQL User for Apps"
+  description = "Permissions needed by the apps to connect to CloudSQL"
+  base_roles = [
+    "roles/cloudsql.instanceUser", # for IAM auth
+    "roles/cloudsql.client",
+  ]
+}

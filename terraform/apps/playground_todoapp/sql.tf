@@ -1,0 +1,13 @@
+resource "google_sql_database" "app" {
+  name            = "playground-todoapp"
+  instance        = data.google_sql_database_instance.given.name
+  deletion_policy = "ABANDON"
+}
+
+resource "google_sql_user" "app" {
+  instance        = data.google_sql_database_instance.given.name
+  name            = trimsuffix(data.google_service_account.gke_gsa.email, ".gserviceaccount.com")
+  type            = "CLOUD_IAM_SERVICE_ACCOUNT"
+  password        = null # only IAM supported
+  deletion_policy = "ABANDON"
+}

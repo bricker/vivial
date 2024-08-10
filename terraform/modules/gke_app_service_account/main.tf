@@ -18,8 +18,10 @@ resource "kubernetes_service_account" "app_ksa" {
   }
 }
 
-resource "google_service_account_iam_member" "app_service_account_ksa_binding" {
+resource "google_service_account_iam_binding" "app_service_account_ksa_binding" {
   service_account_id = google_service_account.app_service_account.id
   role               = data.google_iam_role.workload_identity_role.id
-  member             = "serviceAccount:${data.google_project.default.project_id}.svc.id.goog[${var.kube_namespace_name}/${kubernetes_service_account.app_ksa.metadata[0].name}]"
+  members             = [
+    "serviceAccount:${data.google_project.default.project_id}.svc.id.goog[${var.kube_namespace_name}/${kubernetes_service_account.app_ksa.metadata[0].name}]"
+  ]
 }

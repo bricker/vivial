@@ -5,6 +5,18 @@ resource "google_service_account" "cloudsql_bastion_sa" {
   description = "The service account for the CloudSQL bastion VM"
 }
 
+module "cloudsql_bastion_user_sa" {
+  source  = "../../modules/custom_role"
+  role_id = "eave.cloudsqlBastionUser"
+  title   = "Access to the CloudSQL Bastion service account for Eave developers"
+  base_roles = [
+    "roles/iam.serviceAccountUser"
+  ]
+  members = [
+    "group:developers@eave.fyi",
+  ]
+}
+
 # resource "google_compute_instance" "cloudsql_bastion_core_api" {
 #   name                    = "cloudsql-bastion-core-api"
 #   allow_stopping_for_update = null
@@ -78,6 +90,38 @@ resource "google_service_account" "cloudsql_bastion_sa" {
 #     enable_vtpm                 = false
 #   }
 # }
+
+resource "google_compute_instance_iam_binding" "cloudsql_bastion_iam_bindign" {
+  instance_name = "value"
+  role = "value"
+  members = [ "value" ]
+}
+
+# https://cloud.google.com/iap/docs/using-tcp-forwarding#create-firewall-rule
+resource "google_compute_firewall" "allow_iap_ingress_to_cloudsql_bastion" {
+  name                    = "allow-iap-ingress-to-cloudsql-bastion"
+  description             = "Allow ingress from IAP tunnel to specific ports of the CloudSQL Bastion instance"
+  disabled = false
+  direction               = "INGRESS"
+  network                 = module.project_base.network_name
+  priority                = 65534
+  source_ranges           = ["35.235.240.0/20"] // this is the GCP IAP tunnel cidr block
+
+  target_service_accounts = [ google_service_account.cloudsql_bastion_sa.id ]
+
+  allow {
+    ports    = ["22", "5432"] # 5432 is the port on which the cloud-sql-proxy listens. 22 is ssh for troubleshooting.
+    protocol = "tcp"
+  }
+}
+
+# # https://cloud.google.com/iap/docs/using-tcp-forwarding#grant-permission
+# roles/iap.tunnelResourceAccessor
+# roles/iam.serviceAccountUser
+# roles/compute.osLogin
+resource "" "iap_tcp_forwarding" {
+
+}
 
 # TODO: Grant osLogin role to users on instance
 # https://cloud.google.com/compute/docs/oslogin/set-up-oslogin#configure_users
