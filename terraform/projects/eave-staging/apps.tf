@@ -19,12 +19,10 @@ module "core_api_app" {
   release_version  = "latest"
   EAVE_CREDENTIALS = var.INTERNAL_EAVE_CREDENTIALS
 
-  bindings = {
-    "roles/iam.serviceAccountTokenCreator": [
-      "user:bryan@eave.fyi",
-      "user:liam@eave.fyi",
-    ]
-  }
+  impersonator_role_id = module.project_base.impersonator_role_id
+  impersonators = [
+    "serviceAccount:${google_service_account.cloudsql_bastion_sa.email}",
+  ]
 }
 
 module "dashboard_app" {
@@ -62,6 +60,11 @@ module "playground_todoapp" {
   EAVE_CREDENTIALS                  = var.PLAYGROUND_TODOAPP_EAVE_CREDENTIALS
   iap_oauth_client_id               = var.IAP_OAUTH_CLIENT_ID
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
+
+  impersonator_role_id = module.project_base.impersonator_role_id
+  impersonators = [
+    "serviceAccount:${google_service_account.cloudsql_bastion_sa.email}",
+  ]
 }
 
 module "playground_quizapp" {

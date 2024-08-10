@@ -56,3 +56,14 @@ variable "EAVE_CREDENTIALS" {
   })
   sensitive = true
 }
+
+variable "impersonator_role_id" {
+  type=string
+  nullable=true
+  default=null
+}
+
+variable "impersonators" {
+  type=list(string)
+  default=[]
+}

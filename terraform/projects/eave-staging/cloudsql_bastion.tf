@@ -78,30 +78,3 @@ resource "google_service_account" "cloudsql_bastion_sa" {
   display_name = "CloudSQL bastion agent"
   description = "The service account for the CloudSQL bastion VM"
 }
-
-# Create custom role
-module "cloudsql_bastion_role" {
-  source      = "../../modules/custom_role"
-  role_id     = "eave.cloudsqlBastion"
-  title       = "CloudSQL Bastion Service Account"
-  description = "Permissions needed by the CloudSQL bastion service account"
-  base_roles = [
-    "roles/cloudsql.client",
-  ]
-
-  members = [
-    "serviceAccount:${google_service_account.cloudsql_bastion_sa.email}"
-  ]
-}
-
-data "google_iam_role" "service_account_token_creator" {
-  name = "roles/iam.serviceAccountTokenCreator"
-}
-
-resource "google_service_account_iam_binding" "app_service_account_ksa_binding" {
-  service_account_id = core_api_gsa.email
-  role               = data.google_iam_role.service_account_token_creator.id
-  members             = [
-    "serviceAccount:${data.google_project.default.project_id}.svc.id.goog[${var.kube_namespace_name}/${kubernetes_service_account.app_ksa.metadata[0].name}]"
-  ]
-}

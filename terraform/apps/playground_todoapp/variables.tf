@@ -59,3 +59,14 @@ variable "iap_oauth_client_id" {
 variable "iap_oauth_client_kube_secret_name" {
   type = string
 }
+
+variable "impersonator_role_id" {
+  type=string
+  nullable=true
+  default=null
+}
+
+variable "impersonators" {
+  type=list(string)
+  default=[]
+}

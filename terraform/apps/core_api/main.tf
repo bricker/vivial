@@ -25,6 +25,12 @@ module "app_iam_role" {
   ]
 }
 
+resource "google_service_account_iam_binding" "impersonators" {
+  service_account_id = data.google_service_account.gke_gsa.id
+  role               = data.google_iam_role.impersonator_role.id
+  members             = var.impersonators
+}
+
 resource "google_sql_database" "app" {
   name            = "eave"
   instance        = data.google_sql_database_instance.given.name

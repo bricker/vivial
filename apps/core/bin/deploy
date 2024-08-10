@@ -10,7 +10,7 @@ function main() (
 
 	cd "$(e.parentpath)"
 	bin/lint
-	bin/run-db-migration
+	# bin/run-db-migration
 
 	"${EAVE_HOME}"/develop/deploy/bin/deploy-service -s core-api
 )

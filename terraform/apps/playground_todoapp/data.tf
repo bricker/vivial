@@ -24,3 +24,7 @@ data "google_sql_database_instance" "given" {
 data "google_service_account" "gke_gsa" {
   account_id = module.service_accounts.gsa_account_id
 }
+
+data "google_iam_role" "impersonator_role" {
+  name     = var.impersonator_role_id
+}
