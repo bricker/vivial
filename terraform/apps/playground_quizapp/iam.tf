@@ -1,11 +1,12 @@
 module "service_accounts" {
+  # Create the app service account and KSA binding
   source              = "../../modules/gke_app_service_account"
   kube_service_name   = module.kubernetes_service.name
   kube_namespace_name = var.kube_namespace_name
 }
 
-# Create custom role
 module "app_iam_role" {
+  # Create a role for this app
   source      = "../../modules/custom_role"
   role_id     = "eave.playgroundQuizApp"
   title       = "Eave Playground Quiz App"
@@ -15,8 +16,9 @@ module "app_iam_role" {
   ]
 }
 
-resource "google_project_iam_binding" "gke_gsa_app_role" {
+resource "google_project_iam_binding" "app_service_account_iam_role_binding" {
+  # Add the new app role to the app service account
   project = data.google_project.default.project_id
   role    = module.app_iam_role.id
-  members = [ "serviceAccount:${data.google_service_account.gke_gsa.email}" ]
+  members = [ "serviceAccount:${data.google_service_account.app_service_account.email}" ]
 }

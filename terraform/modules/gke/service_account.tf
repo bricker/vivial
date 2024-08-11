@@ -17,14 +17,19 @@ module "custom_gke_node_role" {
     "roles/stackdriver.resourceMetadata.writer",
     "roles/autoscaling.metricsWriter",
   ]
+}
+
+resource "google_project_iam_binding" "gke_node_role_binding" {
+  project = data.google_project.default.id
+  role = module.custom_gke_node_role.id
   members = [
-    "serviceAccount:${google_service_account.gke_node.email}"
+    "serviceAccount:${google_service_account.gke_node.email}",
   ]
 }
 
 resource "google_artifact_registry_repository_iam_binding" "gke_node_role" {
   repository = data.google_artifact_registry_repository.docker.name
-  role = module.custom_gke_node_role.role_id
+  role = module.custom_gke_node_role.id
   members = [
     "serviceAccount:${google_service_account.gke_node.email}",
   ]

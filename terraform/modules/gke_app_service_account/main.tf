@@ -1,7 +1,7 @@
 resource "google_service_account" "app_service_account" {
   account_id   = substr("gsa-app-${var.kube_service_name}", 0, 26)
   display_name = var.kube_service_name
-  description  = "KSA/GSA binding for ${var.kube_service_name}"
+  description  = "${var.kube_service_name} app service account"
 }
 
 resource "kubernetes_service_account" "app_ksa" {

@@ -67,3 +67,7 @@ variable "impersonators" {
   type=list(string)
   default=[]
 }
+
+variable "cloudsql_user_role_id" {
+  type=string
+}

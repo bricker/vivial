@@ -6,6 +6,11 @@ module "custom_developer_role" {
     "roles/artifactregistry.writer",
     "roles/iap.httpsResourceAccessor",
   ]
+}
+
+resource "google_project_iam_binding" "developer_role_binding" {
+  project = data.google_project.default.id
+  role = module.custom_developer_role.id
   members = [
     "group:developers@eave.fyi",
   ]
@@ -18,6 +23,11 @@ module "custom_everybody_role" {
   base_roles = [
     "roles/iap.httpsResourceAccessor",
   ]
+}
+
+resource "google_project_iam_binding" "everybody_role_binding" {
+  project = data.google_project.default.id
+  role = module.custom_everybody_role.id
   members = [
     "group:everybody@eave.fyi",
   ]

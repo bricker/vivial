@@ -16,34 +16,21 @@ class _AppConfig(ConfigBase):
     @cached_property
     def db_host(self) -> str:
         key = "EAVE_DB_HOST"
-        if SHARED_CONFIG.is_local:
-            return get_required_env(key)
-        else:
-            return get_secret(key)
+        return get_required_env(key)
 
     @cached_property
     def db_port(self) -> int | None:
         key = "EAVE_DB_PORT"
-        if SHARED_CONFIG.is_local:
-            strv = os.getenv(key)
-            if strv is None:
-                return None
-            else:
-                return int(strv)
+        strv = os.getenv(key)
+        if strv is None:
+            return None
         else:
-            try:
-                strv = get_secret(key)
-                return int(strv)
-            except Exception:
-                return None
+            return int(strv)
 
     @cached_property
     def db_user(self) -> str:
         key = "EAVE_DB_USER"
-        if SHARED_CONFIG.is_local:
-            return get_required_env(key)
-        else:
-            return get_secret(key)
+        return get_required_env(key)
 
     @cached_property
     def db_pass(self) -> str | None:
@@ -61,10 +48,7 @@ class _AppConfig(ConfigBase):
     @cached_property
     def db_name(self) -> str:
         key = "EAVE_DB_NAME"
-        if SHARED_CONFIG.is_local:
-            return get_required_env(key)
-        else:
-            return get_secret(key)
+        return get_required_env(key)
 
     @cached_property
     def eave_google_oauth_client_credentials(self) -> dict[str, Any]:
@@ -78,14 +62,6 @@ class _AppConfig(ConfigBase):
         credentials = self.eave_google_oauth_client_credentials
         client_id: str = credentials["web"]["client_id"]
         return client_id
-
-    @cached_property
-    def metabase_admin_api_key(self) -> str:
-        """
-        https://www.metabase.com/docs/latest/people-and-groups/api-keys
-        """
-        value = get_secret("METABASE_ADMIN_API_KEY")
-        return value
 
 
 CORE_API_APP_CONFIG = _AppConfig()

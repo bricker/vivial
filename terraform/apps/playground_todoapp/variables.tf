@@ -37,12 +37,10 @@ variable "release_version" {
   type = string
 }
 
-
 variable "LOG_LEVEL" {
   type    = string
   default = "debug"
 }
-
 
 variable "EAVE_CREDENTIALS" {
   type = object({
@@ -69,4 +67,8 @@ variable "impersonator_role_id" {
 variable "impersonators" {
   type=list(string)
   default=[]
+}
+
+variable "cloudsql_user_role_id" {
+  type=string
 }

@@ -45,7 +45,7 @@ STOP_SEQUENCE = "STOP_SEQUENCE"
 
 _openai_client = AsyncOpenAI(
     api_key=SHARED_CONFIG.eave_openai_api_key,
-    organization=SHARED_CONFIG.eave_openai_api_org,
+    organization=SHARED_CONFIG.eave_openai_org_id,
 )
 
 

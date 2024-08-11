@@ -10,3 +10,7 @@ variable "secret_data" {
 variable "accessors" {
   type=list(string)
 }
+
+variable "secret_accessor_role_id" {
+  type=string
+}

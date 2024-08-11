@@ -21,10 +21,6 @@ data "google_sql_database_instance" "given" {
   name = var.cloudsql_instance_name
 }
 
-data "google_service_account" "gke_gsa" {
+data "google_service_account" "app_service_account" {
   account_id = module.service_accounts.gsa_account_id
-}
-
-data "google_iam_role" "impersonator_role" {
-  name     = var.impersonator_role_id
 }
