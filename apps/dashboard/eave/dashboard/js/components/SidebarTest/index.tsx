@@ -3,10 +3,11 @@ import { motion, useAnimationControls } from "framer-motion";
 import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
+import DashboardIcon from "../Icons/Sidebar/DashboardIcon";
+import EaveNoTextIcon from "../Icons/Sidebar/EaveNoTextIcon";
+import LogoIcon from "../Icons/Sidebar/LogoIcon";
+import SetupIcon from "../Icons/Sidebar/SetupIcon";
 import { SidebarData } from "./data";
-// import DashboardIcon from "./Icons/DashboardIcon";
-// import EaveNoTextIcon from "./Icons/EaveNoTextIcon";
-// import LogoIcon from "./Icons/LogoIcon";
 
 const containerVariants = {
   close: {
@@ -171,8 +172,7 @@ const SideBarEave = () => {
             })}
             onClick={handleToggle}
           >
-            {/* <LogoIcon width="100%" /> */}
-            {/* {isOpen ? <LogoIcon width={"100%"} /> : <EaveNoTextIcon isHovering={isHovering} />} */}
+            {isOpen ? <LogoIcon width={"100%"} /> : <EaveNoTextIcon isHovering={isHovering} />}
           </button>
         </div>
         <div className={classes.section}>
@@ -180,22 +180,37 @@ const SideBarEave = () => {
             <h2 className={`${classes.caption} ${classes.gray} ${!isOpen && classes.hidden}`}>MENU</h2>
           </div>
           <div className={classes.linkContainer}>
-            <PageLink name={SidebarData.setup.title} path={SidebarData.setup.path} isOpen={isOpen} />
-            <PageLink name={SidebarData.insights.title} path={SidebarData.insights.path} isOpen={isOpen} />
-            <PageLink name={SidebarData.glossary.title} path={SidebarData.glossary.path} isOpen={isOpen} />
+            <PageLink name={SidebarData.setup.title} path={SidebarData.setup.path} isOpen={isOpen} Icon={SetupIcon} />
+            <PageLink
+              name={SidebarData.insights.title}
+              path={SidebarData.insights.path}
+              isOpen={isOpen}
+              Icon={DashboardIcon}
+            />
+            <PageLink
+              name={SidebarData.glossary.title}
+              path={SidebarData.glossary.path}
+              isOpen={isOpen}
+              Icon={DashboardIcon}
+            />
           </div>
         </div>
 
         <div className={classes.section}>
           <h2 className={`${classes.caption} ${classes.gray} ${!isOpen && classes.hidden}`}> GENERAL </h2>
           <div className={classes.linkContainer}>
-            <PageLink name={SidebarData.team.title} path={SidebarData.team.path} isOpen={isOpen} />
-            <PageLink name={SidebarData.settings.title} path={SidebarData.settings.path} isOpen={isOpen} />
+            <PageLink name={SidebarData.team.title} path={SidebarData.team.path} isOpen={isOpen} Icon={DashboardIcon} />
+            <PageLink
+              name={SidebarData.settings.title}
+              path={SidebarData.settings.path}
+              isOpen={isOpen}
+              Icon={DashboardIcon}
+            />
           </div>
         </div>
       </div>
       <div className={classes.linkContainer}>
-        <PageLink name={SidebarData.logout.title} path={SidebarData.logout.path} isOpen={isOpen} />
+        <PageLink name={SidebarData.logout.title} path={SidebarData.logout.path} isOpen={isOpen} Icon={DashboardIcon} />
       </div>
       <motion.button
         className={classNames(classes.buttonTopRight, {
@@ -210,11 +225,24 @@ const SideBarEave = () => {
 
 export default SideBarEave;
 
-const PageLink = ({ name, path, isOpen }: { name: string; path: string; isOpen: boolean }) => {
+interface LogoIconProps {
+  color?: string;
+  width?: string;
+  height?: string;
+}
+
+type PageLinkProps = {
+  name: string;
+  path: string;
+  isOpen: boolean;
+  Icon: React.FC<LogoIconProps>;
+};
+
+const PageLink: React.FC<PageLinkProps> = ({ name, path, isOpen, Icon }) => {
   const { classes } = useStyles();
   return (
     <div className={`${classes.link} ${!isOpen && classes.centeredLink}`}>
-      {/* <DashboardIcon color="#7D7D7D" width="48px" /> */}
+      <Icon color="#7D7D7D" width="48px" /> {/* Render the passed icon */}
       <div className={classes.nameContainer}>
         <NavLink to={path}>{isOpen && <p className={`${classes.name}`}>{name}</p>}</NavLink>
       </div>
