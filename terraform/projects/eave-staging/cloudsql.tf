@@ -5,3 +5,12 @@ module "cloudsql_eave_core" {
   environment         = local.environment
   global_address_name = module.project_base.private_ip_range_name
 }
+
+module "cloudsql_iam" {
+  source = "../../modules/cloudsql_iam"
+  cloudsql_instance_name = module.cloudsql_eave_core.cloudsql_instance_name
+  members = [
+    "serviceAccount:${data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].email}",
+    "serviceAccount:${data.google_service_account.app_service_accounts[module.playground_todoapp.service_account_id].email}",
+  ]
+}

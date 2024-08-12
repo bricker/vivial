@@ -19,7 +19,7 @@ module "custom_gke_node_role" {
   ]
 }
 
-resource "google_project_iam_binding" "gke_node_role_binding" {
+resource "google_project_iam_binding" "project_gke_node_role_members" {
   project = data.google_project.default.id
   role = module.custom_gke_node_role.id
   members = [
@@ -27,7 +27,7 @@ resource "google_project_iam_binding" "gke_node_role_binding" {
   ]
 }
 
-resource "google_artifact_registry_repository_iam_binding" "gke_node_role" {
+resource "google_artifact_registry_repository_iam_binding" "docker_repo_gke_node_role_members" {
   repository = data.google_artifact_registry_repository.docker.name
   role = module.custom_gke_node_role.id
   members = [

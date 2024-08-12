@@ -8,7 +8,7 @@ module "custom_developer_role" {
   ]
 }
 
-resource "google_project_iam_binding" "developer_role_binding" {
+resource "google_project_iam_binding" "project_developer_role_members" {
   project = data.google_project.default.id
   role = module.custom_developer_role.id
   members = [
@@ -25,7 +25,7 @@ module "custom_everybody_role" {
   ]
 }
 
-resource "google_project_iam_binding" "everybody_role_binding" {
+resource "google_project_iam_binding" "project_everybody_role_members" {
   project = data.google_project.default.id
   role = module.custom_everybody_role.id
   members = [

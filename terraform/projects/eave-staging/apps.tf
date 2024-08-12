@@ -19,7 +19,6 @@ module "core_api_app" {
   release_version  = "latest"
   EAVE_CREDENTIALS = var.INTERNAL_EAVE_CREDENTIALS
 
-  cloudsql_user_role_id = module.project_base.cloudsql_user_role_id
   impersonator_role_id  = module.project_base.impersonator_role_id
   impersonators = [
     "serviceAccount:${google_service_account.cloudsql_bastion_sa.email}",
@@ -62,7 +61,6 @@ module "playground_todoapp" {
   iap_oauth_client_id               = var.IAP_OAUTH_CLIENT_ID
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
 
-  cloudsql_user_role_id = module.project_base.cloudsql_user_role_id
   impersonator_role_id  = module.project_base.impersonator_role_id
   impersonators = [
     "serviceAccount:${google_service_account.cloudsql_bastion_sa.email}",
