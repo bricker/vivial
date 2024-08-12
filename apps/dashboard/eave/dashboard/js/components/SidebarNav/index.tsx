@@ -9,6 +9,9 @@ import { makeStyles } from "tss-react/mui";
 const makeClasses = makeStyles()(() => ({
   navbar: {
     backgroundColor: "#e5e9f5",
+    width: "13rem",
+    minWidth: "13rem",
+    maxWidth: "13rem",
     height: "100%",
     display: "flex",
     flexDirection: "column",

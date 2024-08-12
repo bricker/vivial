@@ -6,13 +6,14 @@ import useTeam from "$eave-dashboard/js/hooks/useTeam";
 import { theme } from "$eave-dashboard/js/theme";
 import { CircularProgress } from "@mui/material";
 import classNames from "classnames";
-import { Outlet, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
+import PageRenderer from "../../SidebarTest/PageRenderer";
+import SidebarTest from "../../SidebarTest/index";
 import Glossary from "./Glossary";
 import Insights from "./Insights";
 import Settings from "./Settings";
 import Setup from "./Setup";
-import TabbedNav from "./TabbedNav";
 import TeamManagement from "./TeamManagement";
 
 const makeClasses = makeStyles()(() => ({
@@ -41,6 +42,20 @@ const makeClasses = makeStyles()(() => ({
     alignItems: "center",
     justifyContent: "center",
     marginTop: 32,
+  },
+  screen: {
+    display: "flex",
+    flexDirection: "row",
+  },
+  sidebar: {
+    height: "100vh",
+    border: "1px solid",
+    position: "sticky",
+    top: 0,
+  },
+  content: {
+    flexGrow: 1,
+    overflowX: "hidden",
   },
 }));
 
@@ -106,20 +121,14 @@ const Dashboard = () => {
     );
   } else {
     return (
-      <>
-        {Object.entries(tabs).map(([key, tab]) => (
-          <div
-            id={key}
-            key={key}
-            className={container}
-            style={{ visibility: tab.path === initialLocation ? "visible" : "hidden" }}
-          >
-            <TabbedNav />
-            {tab.component}
-          </div>
-        ))}
-        <Outlet />
-      </>
+      <div className={classes.screen}>
+        <div className={classes.sidebar}>
+          <SidebarTest />
+        </div>
+        <div className={classes.content}>
+          <PageRenderer />
+        </div>
+      </div>
     );
   }
 };

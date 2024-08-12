@@ -13,6 +13,7 @@ import { isSetupComplete } from "./util";
 const useStyles = makeStyles()((theme) => ({
   container: {
     display: "flex",
+    flexGrow: 1,
     flexDirection: "column",
     overflow: "auto",
   },
@@ -64,6 +65,8 @@ const Setup = () => {
   }, [team]);
 
   const [copyQuestions, setCopyQuestions] = useState(false);
+
+  // return <div> Hello Eave! </div>;
 
   return (
     <div className={classes.container}>
