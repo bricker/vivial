@@ -5,8 +5,12 @@ import { NavLink } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 import DashboardIcon from "../Icons/Sidebar/DashboardIcon";
 import EaveNoTextIcon from "../Icons/Sidebar/EaveNoTextIcon";
+import GlossaryIcon from "../Icons/Sidebar/GlossaryIcon";
 import LogoIcon from "../Icons/Sidebar/LogoIcon";
+import LogoutIcon from "../Icons/Sidebar/LogoutIcon";
+import SettingsIcon from "../Icons/Sidebar/SettingsIcon";
 import SetupIcon from "../Icons/Sidebar/SetupIcon";
+import TeamIcon from "../Icons/Sidebar/TeamIcon";
 import { SidebarData } from "./data";
 
 const containerVariants = {
@@ -54,7 +58,9 @@ const useStyles = makeStyles()(() => ({
     borderBottom: "1px solid #B2B2B2",
     paddingBottom: 8,
     height: "48px",
-    // border: "2px solid",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
   },
   section: {
     // border: "2px solid",
@@ -62,12 +68,19 @@ const useStyles = makeStyles()(() => ({
   },
   buttonTopRight: {
     position: "absolute",
-    top: 8,
-    right: 8,
+    top: 20, // Set to 16px down from the top
+    right: 0, // Set to 16px from the right edge
     display: "none", // Initially hidden
+    border: "none",
+    borderTopLeftRadius: 4,
+    borderBottomLeftRadius: 4,
+    cursor: "pointer",
   },
   buttonTopRightVisible: {
     display: "block", // Display when conditions are met
+  },
+  linkText: {
+    textDecoration: "none", // Ensure no underline
   },
   button: {
     display: "flex",
@@ -91,6 +104,7 @@ const useStyles = makeStyles()(() => ({
     fontSize: 16,
     fontWeight: "bold",
     margin: 0,
+    textDecoration: "none",
   },
   link: {
     maxWidth: "100%",
@@ -110,6 +124,10 @@ const useStyles = makeStyles()(() => ({
       color: "black",
       cursor: "pointer",
     },
+  },
+  active: {
+    backgroundColor: "#EEEEEE",
+    textDecoration: "none",
   },
   centeredLink: {
     display: "flex",
@@ -166,14 +184,18 @@ const SideBarEave = () => {
     >
       <div className={classes.topPart}>
         <div className={classes.header}>
-          <button
-            className={classNames(classes.button, {
-              [classes.buttonGray]: isHovering && !isOpen,
-            })}
-            onClick={handleToggle}
-          >
-            {isOpen ? <LogoIcon width={"100%"} /> : <EaveNoTextIcon isHovering={isHovering} />}
-          </button>
+          {isOpen ? (
+            <LogoIcon width={"100%"} />
+          ) : (
+            <button
+              className={classNames(classes.button, {
+                [classes.buttonGray]: isHovering && !isOpen,
+              })}
+              onClick={handleToggle}
+            >
+              <EaveNoTextIcon isHovering={isHovering} />{" "}
+            </button>
+          )}
         </div>
         <div className={classes.section}>
           <div className={classes.border}>
@@ -191,7 +213,7 @@ const SideBarEave = () => {
               name={SidebarData.glossary.title}
               path={SidebarData.glossary.path}
               isOpen={isOpen}
-              Icon={DashboardIcon}
+              Icon={GlossaryIcon}
             />
           </div>
         </div>
@@ -199,25 +221,34 @@ const SideBarEave = () => {
         <div className={classes.section}>
           <h2 className={`${classes.caption} ${classes.gray} ${!isOpen && classes.hidden}`}> GENERAL </h2>
           <div className={classes.linkContainer}>
-            <PageLink name={SidebarData.team.title} path={SidebarData.team.path} isOpen={isOpen} Icon={DashboardIcon} />
+            <PageLink name={SidebarData.team.title} path={SidebarData.team.path} isOpen={isOpen} Icon={TeamIcon} />
             <PageLink
               name={SidebarData.settings.title}
               path={SidebarData.settings.path}
               isOpen={isOpen}
-              Icon={DashboardIcon}
+              Icon={SettingsIcon}
             />
           </div>
         </div>
       </div>
       <div className={classes.linkContainer}>
-        <PageLink name={SidebarData.logout.title} path={SidebarData.logout.path} isOpen={isOpen} Icon={DashboardIcon} />
+        <PageLink name={SidebarData.logout.title} path={SidebarData.logout.path} isOpen={isOpen} Icon={LogoutIcon} />
       </div>
       <motion.button
         className={classNames(classes.buttonTopRight, {
           [classes.buttonTopRightVisible]: isHovering && isOpen,
         })}
+        onClick={handleToggle}
       >
-        press
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M15 6L9 12L15 18M15 12H15.01"
+            stroke="#000000"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
       </motion.button>
     </motion.div>
   );
@@ -241,11 +272,11 @@ type PageLinkProps = {
 const PageLink: React.FC<PageLinkProps> = ({ name, path, isOpen, Icon }) => {
   const { classes } = useStyles();
   return (
-    <div className={`${classes.link} ${!isOpen && classes.centeredLink}`}>
-      <Icon color="#7D7D7D" width="48px" /> {/* Render the passed icon */}
-      <div className={classes.nameContainer}>
-        <NavLink to={path}>{isOpen && <p className={`${classes.name}`}>{name}</p>}</NavLink>
+    <NavLink to={path} className={({ isActive }) => (isActive ? classes.active : classes.linkText)}>
+      <div className={`${classes.link} ${!isOpen && classes.centeredLink} ${classes.linkText} `}>
+        <Icon color="#7D7D7D" width="48px" /> {/* Render the passed icon */}
+        <div className={classes.nameContainer}>{isOpen && <p className={`${classes.name}`}>{name}</p>}</div>
       </div>
-    </div>
+    </NavLink>
   );
 };

@@ -49,7 +49,6 @@ const makeClasses = makeStyles()(() => ({
   },
   sidebar: {
     height: "100vh",
-    border: "1px solid",
     position: "sticky",
     top: 0,
   },
