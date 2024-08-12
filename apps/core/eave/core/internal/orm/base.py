@@ -37,7 +37,7 @@ def _load_all() -> None:
     for f in dirents:
         fname, ext = os.path.splitext(f)
 
-        if ext == ".py" and f != "__init__.py" and f != "base.py":
+        if ext == ".py" and f not in {"__init__.py", "base.py"}:
             importlib.import_module(f"eave.core.internal.orm.{fname}")
 
 
