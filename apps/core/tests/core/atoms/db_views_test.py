@@ -2,12 +2,10 @@ import dataclasses
 import http
 import aiohttp
 from eave.collectors.core.datastructures import DataIngestRequestBody, DatabaseOperation, EventType
-from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
 from eave.core.internal.atoms.models.api_payload_types import BrowserEventPayload, CorrelationContext, SessionProperties
 from eave.core.internal.atoms.models.atom_types import BrowserEventAtom
 from eave.core.internal.atoms.models.db_views import ClickView, DatabaseEventView, FormSubmissionView, PageViewView
 from eave.core.internal.atoms.models.enums import BrowserAction
-from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 
 from ..bq_tests_base import BigQueryTestsBase
 
@@ -76,27 +74,14 @@ class TestPageViewView(BigQueryTestsBase):
         timestamp: float,
         action: BrowserAction,
     ) -> dict:
-        return dataclasses.asdict(
-            BrowserEventPayload(
-                timestamp=timestamp,
-                action=action,
-                corr_ctx=CorrelationContext(
-                    visitor_id=visitor_id,
-                    session=SessionProperties(
-                        id=session_id,
-                        start_timestamp=sess_start,
-                    ),
-                    traffic_source=None,
-                    account=None,
-                    extra=None,
-                ),
-                event_id=None,
-                extra=None,
-                target=None,
-                device=None,
-                current_page=None,
-            )
-        )
+        return {
+            "timestamp": timestamp,
+            "corr_ctx": {
+                "_eave.session": f'{{"id": "{session_id}", "start_timestamp": {sess_start}}}',
+                "_eave.visitor_id": visitor_id,
+            },
+            "action": action,
+        }
 
     async def test_init(self) -> None:
         view = PageViewView()
@@ -120,66 +105,112 @@ class TestPageViewView(BigQueryTestsBase):
             },
             payload=DataIngestRequestBody(
                 events={
+                    # click and page view events are intermingled to test that page_views with
+                    # interactions in between dont count as redirects
                     EventType.browser_event: [
                         # misusing session_start_timestamp as an event_id for testing assertion convenience
                         self._build_browser_atom(
                             sess_start=1,
-                            visitor_id="456",
-                            session_id="f4",
+                            visitor_id="6eb1d2aa-abb5-400c-a246-2ea74bec2576",
+                            session_id="1f956e03-b7a3-4bed-85f5-316a07a0b27b",
                             timestamp=13,
                             action=BrowserAction.PAGE_VIEW,
                         ),
                         self._build_browser_atom(
-                            sess_start=2, visitor_id="456", session_id="f4", timestamp=7, action=BrowserAction.PAGE_VIEW
+                            sess_start=2,
+                            visitor_id="6eb1d2aa-abb5-400c-a246-2ea74bec2576",
+                            session_id="1f956e03-b7a3-4bed-85f5-316a07a0b27b",
+                            timestamp=7,
+                            action=BrowserAction.PAGE_VIEW,
                         ),  # redirect
                         self._build_browser_atom(
-                            sess_start=3, visitor_id="123", session_id="a3", timestamp=2, action=BrowserAction.CLICK
+                            sess_start=3,
+                            visitor_id="0e7e2402-ef3d-4c7c-b400-64b8c94b636b",
+                            session_id="ffff1f83-4e4c-4e61-8ba8-c0be766a663f",
+                            timestamp=2,
+                            action=BrowserAction.CLICK,
                         ),
                         self._build_browser_atom(
-                            sess_start=4, visitor_id="789", session_id="e1", timestamp=3, action=BrowserAction.CLICK
+                            sess_start=4,
+                            visitor_id="49fb0f21-1613-45a0-a336-dea179f0ae2b",
+                            session_id="5221283f-01e7-4483-84ef-1694ee4a22ae",
+                            timestamp=3,
+                            action=BrowserAction.CLICK,
                         ),
                         self._build_browser_atom(
-                            sess_start=5, visitor_id="456", session_id="f4", timestamp=9, action=BrowserAction.CLICK
+                            sess_start=5,
+                            visitor_id="6eb1d2aa-abb5-400c-a246-2ea74bec2576",
+                            session_id="1f956e03-b7a3-4bed-85f5-316a07a0b27b",
+                            timestamp=9,
+                            action=BrowserAction.CLICK,
                         ),
                         self._build_browser_atom(
-                            sess_start=6, visitor_id="456", session_id="f4", timestamp=6, action=BrowserAction.PAGE_VIEW
+                            sess_start=6,
+                            visitor_id="6eb1d2aa-abb5-400c-a246-2ea74bec2576",
+                            session_id="1f956e03-b7a3-4bed-85f5-316a07a0b27b",
+                            timestamp=6,
+                            action=BrowserAction.PAGE_VIEW,
                         ),  # redirect
                         self._build_browser_atom(
-                            sess_start=7, visitor_id="123", session_id="a3", timestamp=3, action=BrowserAction.PAGE_VIEW
+                            sess_start=7,
+                            visitor_id="0e7e2402-ef3d-4c7c-b400-64b8c94b636b",
+                            session_id="ffff1f83-4e4c-4e61-8ba8-c0be766a663f",
+                            timestamp=3,
+                            action=BrowserAction.PAGE_VIEW,
                         ),
                         self._build_browser_atom(
-                            sess_start=8, visitor_id="123", session_id="a4", timestamp=6, action=BrowserAction.PAGE_VIEW
+                            sess_start=8,
+                            visitor_id="0e7e2402-ef3d-4c7c-b400-64b8c94b636b",
+                            session_id="49cadfb7-71fb-45b7-a1c6-68d3f378c69e",
+                            timestamp=6,
+                            action=BrowserAction.PAGE_VIEW,
                         ),
                         self._build_browser_atom(
-                            sess_start=9, visitor_id="456", session_id="f4", timestamp=8, action=BrowserAction.PAGE_VIEW
+                            sess_start=9,
+                            visitor_id="6eb1d2aa-abb5-400c-a246-2ea74bec2576",
+                            session_id="1f956e03-b7a3-4bed-85f5-316a07a0b27b",
+                            timestamp=8,
+                            action=BrowserAction.PAGE_VIEW,
                         ),
                         self._build_browser_atom(
-                            sess_start=10, visitor_id="456", session_id="f4", timestamp=10, action=BrowserAction.CLICK
+                            sess_start=10,
+                            visitor_id="6eb1d2aa-abb5-400c-a246-2ea74bec2576",
+                            session_id="1f956e03-b7a3-4bed-85f5-316a07a0b27b",
+                            timestamp=10,
+                            action=BrowserAction.CLICK,
                         ),
                         self._build_browser_atom(
                             sess_start=11,
-                            visitor_id="123",
-                            session_id="a3",
+                            visitor_id="0e7e2402-ef3d-4c7c-b400-64b8c94b636b",
+                            session_id="ffff1f83-4e4c-4e61-8ba8-c0be766a663f",
                             timestamp=1,
                             action=BrowserAction.PAGE_VIEW,
                         ),
                         self._build_browser_atom(
-                            sess_start=12, visitor_id="456", session_id="f4", timestamp=11, action=BrowserAction.CLICK
+                            sess_start=12,
+                            visitor_id="6eb1d2aa-abb5-400c-a246-2ea74bec2576",
+                            session_id="1f956e03-b7a3-4bed-85f5-316a07a0b27b",
+                            timestamp=11,
+                            action=BrowserAction.CLICK,
                         ),
                         self._build_browser_atom(
                             sess_start=13,
-                            visitor_id="456",
-                            session_id="f4",
+                            visitor_id="6eb1d2aa-abb5-400c-a246-2ea74bec2576",
+                            session_id="1f956e03-b7a3-4bed-85f5-316a07a0b27b",
                             timestamp=12,
                             action=BrowserAction.PAGE_VIEW,
                         ),  # redirect
                         self._build_browser_atom(
-                            sess_start=14, visitor_id="456", session_id="f5", timestamp=19, action=BrowserAction.CLICK
+                            sess_start=14,
+                            visitor_id="6eb1d2aa-abb5-400c-a246-2ea74bec2576",
+                            session_id="b5da591b-a2e2-4160-ba07-ead902850699",
+                            timestamp=19,
+                            action=BrowserAction.CLICK,
                         ),
                         self._build_browser_atom(
                             sess_start=15,
-                            visitor_id="789",
-                            session_id="e1",
+                            visitor_id="49fb0f21-1613-45a0-a336-dea179f0ae2b",
+                            session_id="5221283f-01e7-4483-84ef-1694ee4a22ae",
                             timestamp=4,
                             action=BrowserAction.PAGE_VIEW,
                         ),
@@ -200,10 +231,9 @@ class TestPageViewView(BigQueryTestsBase):
         rows = list(self.bq_client.query_and_wait(query=query))
 
         # THEN consecutive page_view events by the same visitor in the same session
-        # (i.e. automatic redirects w/o any interaction in-between) are filtered out
-        assert len(rows) == 12, "Incorrect number of redirect events filtered out"
+        # (i.e. automatic redirects w/o any interaction in-between) are filtered out,
+        # along with the CLICK action events.
+        assert len(rows) == 6, "Incorrect number of browser events filtered out"
         # misusing session_start_timestamp as an event_id for testing assertion convenience
-        vevent_ids = [row["session_start_timestamp"] for row in rows]
-        assert 13 not in vevent_ids, "Failed to filter out a redirect event"
-        assert 6 not in vevent_ids, "Failed to filter out a redirect event"
-        assert 2 not in vevent_ids, "Failed to filter out a redirect event"
+        vevent_ids = sorted([row["session_start_timestamp"].timestamp() for row in rows])
+        assert vevent_ids == [1, 7, 8, 9, 11, 15], "BQ View did not contain exactly the expected events"
