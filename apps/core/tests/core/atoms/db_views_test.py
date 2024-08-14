@@ -1,8 +1,8 @@
-import dataclasses
 import http
+
 import aiohttp
-from eave.collectors.core.datastructures import DataIngestRequestBody, DatabaseOperation, EventType
-from eave.core.internal.atoms.models.api_payload_types import BrowserEventPayload, CorrelationContext, SessionProperties
+
+from eave.collectors.core.datastructures import DatabaseOperation, DataIngestRequestBody, EventType
 from eave.core.internal.atoms.models.atom_types import BrowserEventAtom
 from eave.core.internal.atoms.models.db_views import ClickView, DatabaseEventView, FormSubmissionView, PageViewView
 from eave.core.internal.atoms.models.enums import BrowserAction
