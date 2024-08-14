@@ -444,10 +444,7 @@ class PageViewView(BigQueryViewDefinition):
             f"""
             WITH EventGroups AS (
                 SELECT
-                    visitor_id,
-                    session.id,
-                    timestamp,
-                    action,
+                    *,
                     CASE
                         WHEN action = {sanitized_action_name} AND
                             LAG(action) OVER (PARTITION BY visitor_id, session.id ORDER BY timestamp) = {sanitized_action_name}
@@ -457,20 +454,15 @@ class PageViewView(BigQueryViewDefinition):
                 FROM {sanitized_fq_source_table}
             ),
             RankedEvents AS (
-                SELECT 
-                    visitor_id,
-                    session.id,
-                    timestamp,
-                    action,
+                SELECT
+                    *,
                     SUM(grp_start) OVER (PARTITION BY visitor_id, session.id ORDER BY timestamp) AS grp
                 FROM EventGroups
             ),
             FilteredEvents AS (
                 SELECT
-                    visitor_id,
-                    session.id as session_id,
-                    timestamp as event_timestamp,
-                    ROW_NUMBER() OVER (PARTITION BY visitor_id, session_id, grp ORDER BY event_timestamp DESC) AS rn
+                    *,
+                    ROW_NUMBER() OVER (PARTITION BY visitor_id, session.id, grp ORDER BY timestamp DESC) AS rn
                 FROM RankedEvents
                 WHERE `action` = {sanitized_action_name}
             )
@@ -480,5 +472,5 @@ class PageViewView(BigQueryViewDefinition):
             WHERE rn = 1
             ORDER BY
                 `event_timestamp` ASC
-            """  # noqa: S608
+            """
         ).strip()
