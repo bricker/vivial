@@ -23,6 +23,6 @@ data "google_service_account" "app_service_accounts" {
   account_id = each.value
 }
 
-data "google_sql_database_instance" "eave_pg_core" {
-  name = module.cloudsql_eave_core.cloudsql_instance_name
-}
+# data "google_sql_database_instance" "eave_pg_core" {
+#   name = module.cloudsql_eave_core.cloudsql_instance_name
+# }

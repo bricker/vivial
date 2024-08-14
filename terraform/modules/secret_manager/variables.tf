@@ -12,5 +12,5 @@ variable "accessors" {
 }
 
 variable "secret_accessor_role_id" {
-  type=string
+  type = string
 }

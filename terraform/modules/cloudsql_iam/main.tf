@@ -1,17 +1,6 @@
-module "cloudsql_user_role" {
-  source      = "../../modules/custom_role"
-  role_id     = "eave.cloudsqlUser"
-  title       = "CloudSQL User for Apps"
-  description = "Permissions needed to connect to and use CloudSQL"
-  base_roles = [
-    "roles/cloudsql.instanceUser", # for IAM auth
-    "roles/cloudsql.client",
-  ]
-}
-
 resource "google_project_iam_binding" "project_cloudsql_user_role_members" {
   project = data.google_project.default.project_id
-  role    = module.cloudsql_user_role.id
+  role    = var.cloudsql_user_role_id
   members = var.members
   condition {
     title = "CloudSQL Instance Name"

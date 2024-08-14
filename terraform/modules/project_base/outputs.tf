@@ -40,3 +40,7 @@ output "cloudsql_user_role_id" {
 output "secret_accessor_role_id" {
   value = module.secret_accessor_role.id
 }
+
+output "cloudsql_user_role_id" {
+  value = module.cloudsql_user_role.id
+}
