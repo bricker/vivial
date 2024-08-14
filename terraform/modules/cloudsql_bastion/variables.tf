@@ -13,3 +13,7 @@ variable "network_name" {
 variable "subnetwork_self_link" {
   type=string
 }
+
+variable "compute_vm_accessor_role_name" {
+  type=string
+}

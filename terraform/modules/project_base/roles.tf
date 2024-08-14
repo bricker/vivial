@@ -28,3 +28,14 @@ module "cloudsql_user_role" {
     "roles/cloudsql.client",
   ]
 }
+
+module "compute_vm_accessor_role" {
+  # Create a role that can login to a compute VM
+  source  = "../../modules/custom_role"
+  role_id = "eave.computeVmAccessor"
+  title   = "Access to login to a compute VM"
+  base_roles = [
+    "roles/iam.serviceAccountUser",
+    "roles/compute.osLogin",
+  ]
+}

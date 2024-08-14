@@ -1,6 +1,6 @@
 resource "google_project_iam_binding" "project_cloudsql_user_role_members" {
   project = data.google_project.default.project_id
-  role    = var.cloudsql_user_role_id
+  role    = data.google_iam_role.cloudsql_user_role.id
   members = var.members
   condition {
     title = "CloudSQL Instance Name"

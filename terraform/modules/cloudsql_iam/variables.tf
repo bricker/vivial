@@ -6,6 +6,6 @@ variable "cloudsql_instance_name" {
   type=string
 }
 
-variable "cloudsql_user_role_id" {
+variable "cloudsql_user_role_name" {
   type=string
 }

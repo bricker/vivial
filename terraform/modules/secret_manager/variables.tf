@@ -11,6 +11,6 @@ variable "accessors" {
   type=list(string)
 }
 
-variable "secret_accessor_role_id" {
+variable "secret_accessor_role_name" {
   type = string
 }

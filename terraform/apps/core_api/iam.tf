@@ -22,14 +22,24 @@ resource "google_project_iam_binding" "project_app_role_members" {
   # Add the new app role to the app service account
   project = data.google_project.default.project_id
   role    = module.app_iam_role.id
-  members = [ "serviceAccount:${data.google_service_account.app_service_account.email}" ]
+  members = [ data.google_service_account.app_service_account.member ]
 }
 
-resource "google_service_account_iam_binding" "app_sa_impersonators" {
-  # Add impersonators to the app service account
-  count = var.impersonator_role_id == null ? 0 : 1
+module "cloudsql_bastion" {
+  # Creates the CloudSQL bastion, firewall rule, and IAM bindings
+  source = "../../modules/cloudsql_bastion"
+  app_service_account_id = module.service_accounts.gsa_account_id
+  cloudsql_instance_name = var.cloudsql_instance_name
+  network_name = var.network_name
+  subnetwork_self_link = var.subnetwork_self_link
+  compute_vm_accessor_role_name = var.compute_vm_accessor_role_name
+}
 
+resource "google_service_account_iam_binding" "cloudsql_bastion_app_impersonator" {
+  # Add impersonators to the app service account
   service_account_id = data.google_service_account.app_service_account.id
-  role               = var.impersonator_role_id
-  members             = var.impersonators
+  role               = data.google_iam_role.impersonator_role.id
+  members             = [
+    data.google_service_account.cloudsql_bastion_service_account.member
+  ]
 }

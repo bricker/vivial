@@ -59,7 +59,7 @@ resource "google_organization_iam_binding" "org_thoropass_access" {
   role    = google_organization_iam_custom_role.thoropass_role.id
 
   members = [
-    "serviceAccount:${google_service_account.thoropass_integration_sa_stg.email}",
-    "serviceAccount:${google_service_account.thoropass_integration_sa_prod.email}",
+    google_service_account.thoropass_integration_sa_stg.member,
+    google_service_account.thoropass_integration_sa_prod.member,
   ]
 }

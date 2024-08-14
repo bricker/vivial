@@ -1,8 +1,8 @@
 # The service account that will be installed on the VM
 resource "google_service_account" "cloudsql_bastion_sa" {
-  account_id   = "cloudsql-bastion-${data.google_service_account.app_service_account.account_id}"
-  display_name = "${data.google_service_account.app_service_account.account_id} CloudSQL bastion agent"
-  description  = "The service account for the ${data.google_service_account.app_service_account.account_id} CloudSQL bastion VM."
+  account_id   = "cloudsql-bastion-${var.app_service_account_id}"
+  display_name = "${var.app_service_account_id} CloudSQL bastion agent"
+  description  = "The service account for the ${var.app_service_account_id} CloudSQL bastion VM."
 }
 
 # resource "google_compute_disk" "cloudsql_bastion" {
@@ -17,8 +17,8 @@ resource "google_service_account" "cloudsql_bastion_sa" {
 # }
 
 resource "google_compute_instance" "cloudsql_bastion" {
-  name                    = "cloudsql-bastion-${data.google_service_account.app_service_account.account_id}"
-  description               = "IAP tunnel for connecting to CloudSQL from local workstations as the ${data.google_service_account.app_service_account.account_id} service account."
+  name                    = "cloudsql-bastion-${var.app_service_account_id}"
+  description               = "IAP tunnel for connecting to CloudSQL from local workstations as the ${var.app_service_account_id} service account."
   can_ip_forward            = false
   deletion_protection       = false
   desired_status            = "RUNNING"
@@ -88,21 +88,10 @@ resource "google_compute_instance" "cloudsql_bastion" {
   }
 }
 
-module "cloudsql_bastion_user_role" {
-  # Create a role that can login to the bastion VM
-  source  = "../../modules/custom_role"
-  role_id = "eave.cloudsqlBastionUser"
-  title   = "Access to use the cloudsql bastion service account"
-  base_roles = [
-    "roles/iam.serviceAccountUser",
-    "roles/compute.osLogin",
-  ]
-}
-
 resource "google_compute_instance_iam_binding" "cloudsql_bastion_sa_cloudsql_bastion_user_role_members" {
   # Grant developers access to login to the bastion VM through IAP
   instance_name = google_compute_instance.cloudsql_bastion.name
-  role          = module.cloudsql_bastion_user_role.id
+  role          = data.google_iam_role.compute_vm_accessor_role.id
   members       = [
     "group:developer@eave.fyi",
   ]

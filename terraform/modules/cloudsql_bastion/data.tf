@@ -9,3 +9,7 @@ data "google_sql_database_instance" "given" {
 data "google_compute_network" "given" {
   name = var.network_name
 }
+
+data "google_iam_role" "compute_vm_accessor_role" {
+  name = var.compute_vm_accessor_role_name
+}

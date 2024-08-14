@@ -14,15 +14,14 @@ module "core_api_app" {
   certificate_map_name   = module.project_base.certificate_map_name
   kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
+  impersonator_role_name  = module.project_base.impersonator_role_name
+  compute_vm_accessor_role_name = module.project_base.compute_vm_accessor_role_name
+  network_name = module.project_base.network_name
+  subnetwork_self_link = module.project_base.subnetwork_self_link
 
   LOG_LEVEL        = "DEBUG"
   release_version  = "latest"
   EAVE_CREDENTIALS = var.INTERNAL_EAVE_CREDENTIALS
-
-  impersonator_role_id  = module.project_base.impersonator_role_id
-  impersonators = [
-    "serviceAccount:${google_service_account.cloudsql_bastion_sa.email}",
-  ]
 }
 
 module "dashboard_app" {
@@ -46,13 +45,16 @@ module "dashboard_app" {
 module "playground_todoapp" {
   source                 = "../../apps/playground_todoapp"
   cloudsql_instance_name = module.cloudsql_eave_core.cloudsql_instance_name
+  dns_zone_name = module.dns_zone_blue.dns_zone_name
   docker_repository_ref  = module.project_base.docker_repository_ref
   ssl_policy_name        = module.project_base.ssl_policy_name
   certificate_map_name   = module.project_base.certificate_map_name
   kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
-
-  dns_zone_name = module.dns_zone_blue.dns_zone_name
+  impersonator_role_name  = module.project_base.impersonator_role_name
+  compute_vm_accessor_role_name = module.project_base.compute_vm_accessor_role_name
+  network_name = module.project_base.network_name
+  subnetwork_self_link = module.project_base.subnetwork_self_link
 
   cdn_base_url                      = module.cdn.url
   LOG_LEVEL                         = "DEBUG"
@@ -60,22 +62,17 @@ module "playground_todoapp" {
   EAVE_CREDENTIALS                  = var.PLAYGROUND_TODOAPP_EAVE_CREDENTIALS
   iap_oauth_client_id               = var.IAP_OAUTH_CLIENT_ID
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
-
-  impersonator_role_id  = module.project_base.impersonator_role_id
-  impersonators = [
-    "serviceAccount:${google_service_account.cloudsql_bastion_sa.email}",
-  ]
 }
 
 module "playground_quizapp" {
   source                 = "../../apps/playground_quizapp"
+  dns_zone_name                     = module.dns_zone_red.dns_zone_name
   docker_repository_ref  = module.project_base.docker_repository_ref
   ssl_policy_name        = module.project_base.ssl_policy_name
   certificate_map_name   = module.project_base.certificate_map_name
   kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
 
-  dns_zone_name                     = module.dns_zone_red.dns_zone_name
   cdn_base_url                      = module.cdn.url
   LOG_LEVEL                         = "DEBUG"
   release_version                   = "latest"

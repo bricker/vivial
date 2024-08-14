@@ -20,9 +20,6 @@ module "core_api_app" {
   EAVE_CREDENTIALS = var.INTERNAL_EAVE_CREDENTIALS
 
   impersonator_role_id = module.project_base.impersonator_role_id
-  impersonators = [
-    "serviceAccount:${google_service_account.cloudsql_bastion_sa.email}",
-  ]
 }
 
 module "dashboard_app" {

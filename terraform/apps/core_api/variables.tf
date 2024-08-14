@@ -40,6 +40,14 @@ variable "cloudsql_instance_name" {
   type = string
 }
 
+variable "network_name" {
+  type = string
+}
+
+variable "subnetwork_self_link" {
+  type = string
+}
+
 variable "release_version" {
   type = string
 }
@@ -57,13 +65,10 @@ variable "EAVE_CREDENTIALS" {
   sensitive = true
 }
 
-variable "impersonator_role_id" {
+variable "impersonator_role_name" {
   type=string
-  nullable=true
-  default=null
 }
 
-variable "impersonators" {
-  type=list(string)
-  default=[]
+variable "compute_vm_accessor_role_name" {
+  type=string
 }

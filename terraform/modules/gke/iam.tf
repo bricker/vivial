@@ -21,16 +21,16 @@ module "custom_gke_node_role" {
 
 resource "google_project_iam_binding" "project_gke_node_role_members" {
   project = data.google_project.default.id
-  role = module.custom_gke_node_role.id
+  role = data.google_iam_role.custom_gke_node_role.id
   members = [
-    "serviceAccount:${google_service_account.gke_node.email}",
+    google_service_account.gke_node.member,
   ]
 }
 
 resource "google_artifact_registry_repository_iam_binding" "docker_repo_gke_node_role_members" {
   repository = data.google_artifact_registry_repository.docker.name
-  role = module.custom_gke_node_role.id
+  role = data.google_iam_role.custom_gke_node_role.id
   members = [
-    "serviceAccount:${google_service_account.gke_node.email}",
+    google_service_account.gke_node.member,
   ]
 }

@@ -17,6 +17,6 @@ resource "google_secret_manager_secret_version" "default" {
 resource "google_secret_manager_secret_iam_binding" "secret_accessor_role_members" {
   # Grant "accessors" access to this secret
   secret_id = google_secret_manager_secret.default.secret_id
-  role = var.secret_accessor_role_id
+  role = data.google_iam_role.secret_accessor_role.id
   members = var.accessors
 }

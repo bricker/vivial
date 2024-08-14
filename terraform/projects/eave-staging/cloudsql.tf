@@ -11,7 +11,7 @@ module "cloudsql_iam" {
   cloudsql_instance_name = module.cloudsql_eave_core.cloudsql_instance_name
   cloudsql_user_role_id = module.project_base.cloudsql_user_role_id
   members = [
-    "serviceAccount:${data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].email}",
-    "serviceAccount:${data.google_service_account.app_service_accounts[module.playground_todoapp.service_account_id].email}",
+    data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
+    data.google_service_account.app_service_accounts[module.playground_todoapp.service_account_id].member,
   ]
 }
