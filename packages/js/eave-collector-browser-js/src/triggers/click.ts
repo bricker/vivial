@@ -1,6 +1,6 @@
 import { requestManager } from "../beacon";
 import { TargetProperties } from "../types";
-import { getElementAttributes } from "../util/dom-helpers";
+import { getClickableParentElement, getElementAttributes } from "../util/dom-helpers";
 import { currentTimestampSeconds } from "../util/timestamp";
 import { castEventTargetToHtmlElement } from "../util/type-helpers";
 
@@ -45,12 +45,12 @@ export async function clickEventHandler(event: MouseEvent) {
       const nodeName = targetElement.nodeName.toUpperCase();
       const elementAttrs = getElementAttributes(targetElement);
 
-      // TODO: This is capturing the innerText for everything clicked, which is not OK.
-      // It should be limited to things like A and BUTTON. Things like form inputs and divs should be excluded.
+      // captured innerText `content` is limited to things like A and BUTTON.
+      // Things like form inputs and divs are for privacy/security reasons.
       eventTarget = {
         type: nodeName,
         id: targetElement.id,
-        content: targetElement.innerText,
+        content: getClickableParentElement(targetElement)?.innerText ?? null,
         attributes: elementAttrs,
       };
     }

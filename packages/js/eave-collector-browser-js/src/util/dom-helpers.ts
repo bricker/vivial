@@ -9,3 +9,15 @@ export function getElementAttributes(element: Element): ScalarMap<string> {
 
   return attributes;
 }
+
+export function getClickableParentElement(startElement: HTMLElement | null): HTMLElement | null {
+  // climb up DOM to find any wrapping anchor or button element
+  let currElement: HTMLElement | null = startElement;
+  let nodeName: string | undefined = currElement?.nodeName.toUpperCase();
+  while (currElement && !(nodeName === "A" || nodeName === "BUTTON")) {
+    currElement = currElement.parentElement;
+    nodeName = currElement?.nodeName.toUpperCase();
+  }
+
+  return currElement;
+}
