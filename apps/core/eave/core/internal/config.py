@@ -14,9 +14,9 @@ class _AppConfig(ConfigBase):
         return EaveApp.eave_api
 
     @cached_property
-    def db_host(self) -> str:
+    def db_host(self) -> str | None:
         key = "EAVE_DB_HOST"
-        return get_required_env(key)
+        return os.getenv(key)
 
     @cached_property
     def db_port(self) -> int | None:
@@ -28,27 +28,21 @@ class _AppConfig(ConfigBase):
             return int(strv)
 
     @cached_property
-    def db_user(self) -> str:
+    def db_user(self) -> str | None:
         key = "EAVE_DB_USER"
-        return get_required_env(key)
+        return os.getenv(key)
 
     @cached_property
     def db_pass(self) -> str | None:
         key = "EAVE_DB_PASS"
-        if SHARED_CONFIG.is_local:
-            value = os.getenv(key)
-            # Treat empty strings as None
-            return None if not value else value
-        else:
-            try:
-                return get_secret(key)
-            except Exception:
-                return None
+        value = os.getenv(key)
+        # Treat empty strings as None
+        return None if not value else value
 
     @cached_property
     def db_name(self) -> str:
         key = "EAVE_DB_NAME"
-        return get_required_env(key)
+        return os.getenv(key, "eave")
 
     @cached_property
     def eave_google_oauth_client_credentials(self) -> dict[str, Any]:

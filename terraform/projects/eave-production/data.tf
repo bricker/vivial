@@ -4,3 +4,7 @@
 data "google_client_config" "default" {}
 
 data "google_project" "default" {}
+
+data "google_project" "staging" {
+  project_id = "eave-staging"
+}
