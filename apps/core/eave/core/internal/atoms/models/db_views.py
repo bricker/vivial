@@ -442,12 +442,34 @@ class PageViewView(BigQueryViewDefinition):
 
         return dedent(
             f"""
+            WITH EventGroups AS (
+                SELECT
+                    *,
+                    CASE
+                        WHEN action = {sanitized_action_name} AND
+                            LAG(action) OVER (PARTITION BY visitor_id, session.id ORDER BY timestamp) = {sanitized_action_name}
+                        THEN 0
+                        ELSE 1
+                    END AS grp_start
+                FROM {sanitized_fq_source_table}
+            ),
+            RankedEvents AS (
+                SELECT
+                    *,
+                    SUM(grp_start) OVER (PARTITION BY visitor_id, session.id ORDER BY timestamp) AS grp
+                FROM EventGroups
+            ),
+            FilteredEvents AS (
+                SELECT
+                    *,
+                    ROW_NUMBER() OVER (PARTITION BY visitor_id, session.id, grp ORDER BY timestamp DESC) AS rn
+                FROM RankedEvents
+                WHERE `action` = {sanitized_action_name}
+            )
             SELECT
                 {self.compiled_selectors}
-            FROM
-                {sanitized_fq_source_table}
-            WHERE
-                `action` = {sanitized_action_name}
+            FROM FilteredEvents
+            WHERE rn = 1
             ORDER BY
                 `event_timestamp` ASC
             """
