@@ -247,9 +247,49 @@ class ClickView(BigQueryViewDefinition):
                 field_type=SqlTypeNames.STRING,
             ),
             ViewField(
-                definition="target.type",
+                definition=dedent("""
+                CASE
+                    WHEN target.type = 'IMG' THEN 'IMAGE'
+                    WHEN target.type = 'CIRCLE' THEN 'IMAGE'
+                    WHEN target.type = 'ELLIPSE' THEN 'IMAGE'
+                    WHEN target.type = 'LINE' THEN 'IMAGE'
+                    WHEN target.type = 'PATH' THEN 'IMAGE'
+                    WHEN target.type = 'POLYGON' THEN 'IMAGE'
+                    WHEN target.type = 'POLYLINE' THEN 'IMAGE'
+                    WHEN target.type = 'RECT' THEN 'IMAGE'
+                    WHEN target.type = 'SVG' THEN 'IMAGE'
+                    WHEN target.type = 'A' THEN 'LINK'
+                    WHEN target.type = 'DIV' THEN 'CONTAINER'
+                    WHEN target.type = 'SPAN' THEN 'TEXT'
+                    WHEN target.type = 'H1' THEN 'TEXT'
+                    WHEN target.type = 'H2' THEN 'TEXT'
+                    WHEN target.type = 'H3' THEN 'TEXT'
+                    WHEN target.type = 'H4' THEN 'TEXT'
+                    WHEN target.type = 'H5' THEN 'TEXT'
+                    WHEN target.type = 'H6' THEN 'TEXT'
+                    WHEN target.type = 'P' THEN 'TEXT'
+                    WHEN target.type = 'STRONG' THEN 'TEXT'
+                    WHEN target.type = 'EM' THEN 'TEXT'
+                    WHEN target.type = 'I' THEN 'TEXT'
+                    WHEN target.type = 'S' THEN 'TEXT'
+                    WHEN target.type = 'SUP' THEN 'TEXT'
+                    WHEN target.type = 'SUB' THEN 'TEXT'
+                    WHEN target.type = 'B' THEN 'TEXT'
+                    WHEN target.type = 'LI' THEN 'TEXT'
+                    WHEN target.type = 'U' THEN 'TEXT'
+                    WHEN target.type = 'OL' THEN 'TEXT'
+                    WHEN target.type = 'UL' THEN 'TEXT'
+                    WHEN target.type = 'BR' THEN 'LINE BREAK'
+                    WHEN target.type = 'TD' THEN 'TABLE CELL'
+                    WHEN target.type = 'TR' THEN 'TABLE ROW'
+                    WHEN target.type = 'TH' THEN 'TABLE HEADER CELL'
+                    WHEN target.type = 'THEAD' THEN 'TABLE HEADER'
+                    WHEN target.type = 'TFOOT' THEN 'TABLE FOOTER'
+                    ELSE target.type
+                END
+                """).strip(),
                 alias="target_type",
-                description="The uppercased HTML tag name of the clicked element. eg: IMG, A, BUTTON.",
+                description="The friendly name of the clicked HTML element. eg: IMAGE, LINK, BUTTON.",
                 field_type=SqlTypeNames.STRING,
             ),
             ViewField(
