@@ -1,8 +1,13 @@
-# The service account that will be installed on the VM
-resource "google_service_account" "cloudsql_bastion_sa" {
-  account_id   = "cloudsql-bastion-${var.app_service_account_id}"
-  display_name = "${var.app_service_account_id} CloudSQL bastion agent"
-  description  = "The service account for the ${var.app_service_account_id} CloudSQL bastion VM."
+# This module creates a low-cost VM that can be accessed through IAP from local workstations.
+# The service accounts installed on these VMs are allowed to impersonate another service accounts.
+# This is useful for troubleshooting systems that don't have a public IP address, like CloudSQL or Redis.
+# The VMs are "Spot" VMs because they're expected to be used sparingly and intermittently.
+
+resource "google_service_account" "bastion_sa" {
+  # The service account that will be installed on the VM
+  account_id   = var.name
+  display_name = "${var.target_service_account_id} bastion agent"
+  description  = "Used to impersonate ${var.target_service_account_id} through IAP."
 }
 
 # resource "google_compute_disk" "cloudsql_bastion" {
@@ -16,9 +21,9 @@ resource "google_service_account" "cloudsql_bastion_sa" {
 #   physical_block_size_bytes = 4096
 # }
 
-resource "google_compute_instance" "cloudsql_bastion" {
-  name                    = "cloudsql-bastion-${var.app_service_account_id}"
-  description               = "IAP tunnel for connecting to CloudSQL from local workstations as the ${var.app_service_account_id} service account."
+resource "google_compute_instance" "bastion" {
+  name                    = var.name
+  description               = "IAP tunnel for impersonating ${var.target_service_account_id} from local workstations."
   can_ip_forward            = false
   deletion_protection       = false
   desired_status            = "RUNNING"
@@ -30,6 +35,8 @@ resource "google_compute_instance" "cloudsql_bastion" {
     startup-script         = <<-EOT
       set -e
       sudo apt-get update
+
+      %{ if var.cloudsql_instance_name != null }
       sudo apt install postgresql-client
       sudo apt-get install wget
       wget https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.8.2/cloud-sql-proxy.linux.amd64 -O cloud-sql-proxy
@@ -37,13 +44,11 @@ resource "google_compute_instance" "cloudsql_bastion" {
       ./cloud-sql-proxy \
         --private-ip \
         --auto-iam-authn \
-        --impersonate-service-account ${data.google_service_account.app_service_account.email} \
+        --impersonate-service-account ${data.google_service_account.target_service_account.email} \
         --address 0.0.0.0 \
         --port 5432 \
-        --health-check \
-        --http-address localhost \
-        --http-port 9090 \
         ${data.google_sql_database_instance.given.connection_name}
+      %{ endif }
     EOT
   }
   boot_disk {
@@ -78,7 +83,7 @@ resource "google_compute_instance" "cloudsql_bastion" {
     provisioning_model          = "SPOT"
   }
   service_account {
-    email  = google_service_account.cloudsql_bastion_sa.email
+    email  = google_service_account.bastion_sa.email
     scopes = ["https://www.googleapis.com/auth/cloud-platform"]
   }
   shielded_instance_config {
@@ -88,30 +93,28 @@ resource "google_compute_instance" "cloudsql_bastion" {
   }
 }
 
-resource "google_compute_instance_iam_binding" "cloudsql_bastion_sa_cloudsql_bastion_user_role_members" {
+resource "google_compute_instance_iam_binding" "bastion_vm_compute_vm_accessor_role_members" {
   # Grant developers access to login to the bastion VM through IAP
-  instance_name = google_compute_instance.cloudsql_bastion.name
+  instance_name = google_compute_instance.bastion.name
   role          = data.google_iam_role.compute_vm_accessor_role.id
-  members       = [
-    "group:developer@eave.fyi",
-  ]
+  members       = var.accessors
 }
 
 # https://cloud.google.com/iap/docs/using-tcp-forwarding#create-firewall-rule
-resource "google_compute_firewall" "allow_iap_ingress_to_cloudsql_bastion" {
+resource "google_compute_firewall" "allow_iap_ingress_to_bastion_vm" {
   # Create a firewall rule to allow ingress to the bastion VM from the IAP Tunnel servers
-  name          = "allow-iap-ingress-to-${google_service_account.cloudsql_bastion_sa.account_id}"
-  description   = "Allow ingress from IAP tunnel to specific ports of ${google_compute_instance.cloudsql_bastion.name}"
+  name          = "allow-iap-ingress-to-${google_service_account.bastion_sa.account_id}"
+  description   = "Allow ingress from IAP tunnel to specific ports of ${google_compute_instance.bastion.name}"
   disabled      = false
   direction     = "INGRESS"
   network       = var.network_name
   priority      = 65534
   source_ranges = ["35.235.240.0/20"] // this is the GCP IAP tunnel cidr block
 
-  target_service_accounts = [google_service_account.cloudsql_bastion_sa.id]
+  target_service_accounts = [google_service_account.bastion_sa.id]
 
   allow {
-    ports    = ["22", "5432"] # 5432 is the port on which the cloud-sql-proxy listens. 22 is ssh for troubleshooting.
+    ports    = ["5432"] # 5432 is the port on which the cloud-sql-proxy listens.
     protocol = "tcp"
   }
 }

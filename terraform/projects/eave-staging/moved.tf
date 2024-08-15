@@ -13,29 +13,9 @@ moved {
   to   = module.playground_todoapp.google_project_iam_binding.project_app_role_members
 }
 
-# moved {
-#   from = module.playground_todoapp.google_service_account_iam_binding.impersonators
-#   to = module.playground_todoapp.google_service_account_iam_binding.app_sa_impersonators
-# }
-
-moved {
-  from = module.playground_todoapp.google_service_account_iam_binding.impersonators
-  to = module.playground_todoapp.google_service_account_iam_binding.app_sa_impersonators[0]
-}
-
 moved {
   from = module.core_api_app.module.app_iam_role.google_project_iam_binding.default
   to   = module.core_api_app.google_project_iam_binding.project_app_role_members
-}
-
-# moved {
-#   from = module.core_api_app.google_service_account_iam_binding.impersonators
-#   to = module.core_api_app.google_service_account_iam_binding.app_sa_impersonators
-# }
-
-moved {
-  from = module.core_api_app.google_service_account_iam_binding.impersonators
-  to = module.core_api_app.google_service_account_iam_binding.app_sa_impersonators[0]
 }
 
 moved {
@@ -50,12 +30,12 @@ moved {
 
 moved {
   from = module.custom_developer_role.google_project_iam_binding.default
-  to = google_project_iam_binding.developer_role_members
+  to = google_project_iam_binding.project_developer_role_members
 }
 
 moved {
   from = module.custom_everybody_role.google_project_iam_binding.default
-  to = google_project_iam_binding.everybody_role_members
+  to = google_project_iam_binding.project_everybody_role_members
 }
 
 moved {
@@ -70,5 +50,5 @@ moved {
 
 moved {
   from = module.gke_primary.google_artifact_registry_repository_iam_binding.gke_node_role
-  to = module.gke_primary.google_artifact_registry_repository_iam_binding.gke_node_role_docker_repo_members
+  to = module.gke_primary.google_artifact_registry_repository_iam_binding.docker_repo_gke_node_role_members
 }

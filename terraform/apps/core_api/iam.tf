@@ -27,7 +27,8 @@ resource "google_project_iam_binding" "project_app_role_members" {
 
 module "cloudsql_bastion" {
   # Creates the CloudSQL bastion, firewall rule, and IAM bindings
-  source = "../../modules/cloudsql_bastion"
+  source = "../../modules/bastion_vm"
+  name = "bastion-${local.app_name}"
   app_service_account_id = module.service_accounts.gsa_account_id
   cloudsql_instance_name = var.cloudsql_instance_name
   network_name = var.network_name

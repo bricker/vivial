@@ -1,4 +1,8 @@
-variable "app_service_account_id" {
+variable "name" {
+  type=string
+}
+
+variable "target_service_account_id" {
   type=string
 }
 
@@ -16,4 +20,8 @@ variable "subnetwork_self_link" {
 
 variable "compute_vm_accessor_role_name" {
   type=string
+}
+
+variable "accessors" {
+  type=list(string)
 }

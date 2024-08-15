@@ -1,5 +1,5 @@
-data "google_service_account" "app_service_account" {
-  account_id = var.app_service_account_id
+data "google_service_account" "target_service_account" {
+  account_id = var.target_service_account_id
 }
 
 data "google_sql_database_instance" "given" {
