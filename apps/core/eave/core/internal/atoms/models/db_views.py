@@ -122,6 +122,107 @@ _COMMON_GEO_FIELDS = (
         description="Name of the city associated with the client's IP address.",
         field_type=SqlTypeNames.STRING,
     ),
+    ViewField(
+        definition="client_ip",
+        alias="ip_address",
+        description="IP address of the client.",
+        field_type=SqlTypeNames.STRING,
+    ),
+)
+
+_COMMON_DEVICE_FIELDS = (
+    ViewField(
+        definition="device.platform",
+        alias="device_os",
+        description="The device Operating System name.",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="device.platform_version",
+        alias="device_os_version",
+        description="The Operating System version of the device.",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="device.mobile",
+        alias="device_mobile",
+        description="Whether the device is a mobile device.",
+        field_type=SqlTypeNames.BOOLEAN,
+    ),
+    ViewField(
+        definition="device.form_factor",
+        alias="device_form_factor",
+        description="The device form-factor. e.g. 'Tablet', 'VR'",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="device.model",
+        alias="device_model",
+        description="The mobile device model name, if device is mobile. e.g. 'Pixel 2XL'",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        # the first brand that isn't "Chromium" or "Not A Brand";
+        # aka hopefully the common name of the browser
+        definition=dedent("""
+            (SELECT brand
+            FROM UNNEST(device.brands) AS brand_record
+            WHERE NOT REGEXP_CONTAINS(brand_record.brand, r"Chromium|Not.A.Brand")
+            ORDER BY brand_record.version DESC
+            LIMIT 1)
+            """).strip(),
+        alias="device_browser_name",
+        description="The brand name of the browser client.",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        # version of first brand that isn't "Chromium" or "Not A Brand";
+        # aka hopefully the actual browser version
+        definition=dedent("""
+            (SELECT version
+            FROM UNNEST(device.brands) AS brand_record
+            WHERE NOT REGEXP_CONTAINS(brand_record.brand, r"Chromium|Not.A.Brand")
+            ORDER BY brand_record.version DESC
+            LIMIT 1)
+            """).strip(),
+        alias="device_browser_version",
+        description="The version number of the browser client.",
+        field_type=SqlTypeNames.STRING,
+    ),
+)
+
+_COMMON_CURRENT_PAGE_FIELDS = (
+    ViewField(
+        definition="current_page.title",
+        alias="current_page_title",
+        description="The title of the page on which this event occurred.",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="current_page.url.path",
+        alias="current_page_path",
+        description="The path of the page on which this event occurred.",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="current_page.url.hash",
+        alias="current_page_hash",
+        description="The URL hash of the page on which this event occurred.",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="current_page.url.domain",
+        alias="current_page_domain",
+        description="The URL domain of the page on which this event occurred.",
+        field_type=SqlTypeNames.STRING,
+    ),
+)
+
+_COMMON_BROWSER_EVENT_FIELDS = (
+    *_COMMON_VIEW_FIELDS,
+    *_COMMON_CURRENT_PAGE_FIELDS,
+    *_COMMON_DEVICE_FIELDS,
+    *_COMMON_GEO_FIELDS,
 )
 
 
@@ -247,9 +348,49 @@ class ClickView(BigQueryViewDefinition):
                 field_type=SqlTypeNames.STRING,
             ),
             ViewField(
-                definition="target.type",
+                definition=dedent("""
+                CASE
+                    WHEN target.type = 'IMG' THEN 'IMAGE'
+                    WHEN target.type = 'CIRCLE' THEN 'IMAGE'
+                    WHEN target.type = 'ELLIPSE' THEN 'IMAGE'
+                    WHEN target.type = 'LINE' THEN 'IMAGE'
+                    WHEN target.type = 'PATH' THEN 'IMAGE'
+                    WHEN target.type = 'POLYGON' THEN 'IMAGE'
+                    WHEN target.type = 'POLYLINE' THEN 'IMAGE'
+                    WHEN target.type = 'RECT' THEN 'IMAGE'
+                    WHEN target.type = 'SVG' THEN 'IMAGE'
+                    WHEN target.type = 'A' THEN 'LINK'
+                    WHEN target.type = 'DIV' THEN 'CONTAINER'
+                    WHEN target.type = 'SPAN' THEN 'TEXT'
+                    WHEN target.type = 'H1' THEN 'TEXT'
+                    WHEN target.type = 'H2' THEN 'TEXT'
+                    WHEN target.type = 'H3' THEN 'TEXT'
+                    WHEN target.type = 'H4' THEN 'TEXT'
+                    WHEN target.type = 'H5' THEN 'TEXT'
+                    WHEN target.type = 'H6' THEN 'TEXT'
+                    WHEN target.type = 'P' THEN 'TEXT'
+                    WHEN target.type = 'STRONG' THEN 'TEXT'
+                    WHEN target.type = 'EM' THEN 'TEXT'
+                    WHEN target.type = 'I' THEN 'TEXT'
+                    WHEN target.type = 'S' THEN 'TEXT'
+                    WHEN target.type = 'SUP' THEN 'TEXT'
+                    WHEN target.type = 'SUB' THEN 'TEXT'
+                    WHEN target.type = 'B' THEN 'TEXT'
+                    WHEN target.type = 'LI' THEN 'TEXT'
+                    WHEN target.type = 'U' THEN 'TEXT'
+                    WHEN target.type = 'OL' THEN 'TEXT'
+                    WHEN target.type = 'UL' THEN 'TEXT'
+                    WHEN target.type = 'BR' THEN 'LINE BREAK'
+                    WHEN target.type = 'TD' THEN 'TABLE CELL'
+                    WHEN target.type = 'TR' THEN 'TABLE ROW'
+                    WHEN target.type = 'TH' THEN 'TABLE HEADER CELL'
+                    WHEN target.type = 'THEAD' THEN 'TABLE HEADER'
+                    WHEN target.type = 'TFOOT' THEN 'TABLE FOOTER'
+                    ELSE target.type
+                END
+                """).strip(),
                 alias="target_type",
-                description="The uppercased HTML tag name of the clicked element. eg: IMG, A, BUTTON.",
+                description="The friendly name of the clicked HTML element. eg: IMAGE, LINK, BUTTON.",
                 field_type=SqlTypeNames.STRING,
             ),
             ViewField(
@@ -264,38 +405,7 @@ class ClickView(BigQueryViewDefinition):
                 description="The inner content of the clicked element. Depends on the target type. For buttons and links, this is the button/link text. For images, it is the image source URL.",
                 field_type=SqlTypeNames.STRING,
             ),
-            ViewField(
-                definition="current_page.title",
-                alias="current_page_title",
-                description="The title of the page on which this event occurred.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            ViewField(
-                definition="current_page.url.path",
-                alias="current_page_path",
-                description="The path of the page on which this event occurred.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            ViewField(
-                definition="current_page.url.hash",
-                alias="current_page_hash",
-                description="The URL hash of the page on which this event occurred.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            ViewField(
-                definition="device.platform",
-                alias="device_platform",
-                description="The operating system of the device that triggered this event. eg: Windows, Linux, iOS, Android. https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Platform",
-                field_type=SqlTypeNames.STRING,
-            ),
-            ViewField(
-                definition="device.model",
-                alias="device_mobile_model",
-                description="For mobile devices, the model of the device that triggered this event. eg: 'Pixel 3'. For non-mobile devices, this is null.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            *_COMMON_GEO_FIELDS,
-            *_COMMON_VIEW_FIELDS,
+            *_COMMON_BROWSER_EVENT_FIELDS,
         )
 
     def build_view_query(self, *, dataset_id: str) -> str:
@@ -349,26 +459,7 @@ class FormSubmissionView(BigQueryViewDefinition):
                 description="The URL to which the form data is submitted. This is null for forms managed by javascript.",
                 field_type=SqlTypeNames.STRING,
             ),
-            ViewField(
-                definition="current_page.title",
-                alias="current_page_title",
-                description="The title of the page on which the form was submitted.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            ViewField(
-                definition="current_page.url.path",
-                alias="current_page_path",
-                description="The path of the page on which the form was submitted.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            ViewField(
-                definition="current_page.url.hash",
-                alias="current_page_hash",
-                description="The URL hash of the page on which the form was submitted.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            *_COMMON_GEO_FIELDS,
-            *_COMMON_VIEW_FIELDS,
+            *_COMMON_BROWSER_EVENT_FIELDS,
         )
 
     def build_view_query(self, *, dataset_id: str) -> str:
@@ -410,26 +501,7 @@ class PageViewView(BigQueryViewDefinition):
                 description=f"The readable name for this event. Always {sanitized_event_name}.",
                 field_type=SqlTypeNames.STRING,
             ),
-            ViewField(
-                definition="current_page.title",
-                alias="current_page_title",
-                description="The title of the viewed page.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            ViewField(
-                definition="current_page.url.path",
-                alias="current_page_path",
-                description="The path of the viewed page.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            ViewField(
-                definition="current_page.url.hash",
-                alias="current_page_hash",
-                description="The URL hash of the viewed page.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            *_COMMON_GEO_FIELDS,
-            *_COMMON_VIEW_FIELDS,
+            *_COMMON_BROWSER_EVENT_FIELDS,
         )
 
     def build_view_query(self, *, dataset_id: str) -> str:
