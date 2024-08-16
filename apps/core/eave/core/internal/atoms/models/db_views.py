@@ -132,20 +132,14 @@ _COMMON_GEO_FIELDS = (
 
 _COMMON_DEVICE_FIELDS = (
     ViewField(
-        definition="device.user_agent",
-        alias="device_user_agent",
-        description="The device user-agent info.",
-        field_type=SqlTypeNames.STRING,
-    ),
-    ViewField(
         definition="device.platform",
-        alias="device_platform",
+        alias="device_os",
         description="The device Operating System name.",
         field_type=SqlTypeNames.STRING,
     ),
     ViewField(
         definition="device.platform_version",
-        alias="device_platform_version",
+        alias="device_os_version",
         description="The Operating System version of the device.",
         field_type=SqlTypeNames.STRING,
     ),
@@ -166,30 +160,6 @@ _COMMON_DEVICE_FIELDS = (
         alias="device_model",
         description="The mobile device model name, if device is mobile. e.g. 'Pixel 2XL'",
         field_type=SqlTypeNames.STRING,
-    ),
-    ViewField(
-        definition="device.screen_width",
-        alias="device_screen_width",
-        description="The device's screen width in CSS pixels.",
-        field_type=SqlTypeNames.INTEGER,
-    ),
-    ViewField(
-        definition="device.screen_height",
-        alias="device_screen_height",
-        description="The device's screen height in CSS pixels.",
-        field_type=SqlTypeNames.INTEGER,
-    ),
-    ViewField(
-        definition="device.screen_avail_width",
-        alias="device_available_screen_width",
-        description="The amount of horizontal space (in CSS pixels) available to the window.",
-        field_type=SqlTypeNames.INTEGER,
-    ),
-    ViewField(
-        definition="device.screen_avail_height",
-        alias="device_available_screen_height",
-        description="The amount of vertical space (in CSS pixels) available to the window.",
-        field_type=SqlTypeNames.INTEGER,
     ),
     ViewField(
         # the first brand that isn't "Chromium" or "Not A Brand";
