@@ -122,6 +122,103 @@ _COMMON_GEO_FIELDS = (
         description="Name of the city associated with the client's IP address.",
         field_type=SqlTypeNames.STRING,
     ),
+    ViewField(
+        definition="client_ip",
+        alias="ip_address",
+        description="IP address of the client.",
+        field_type=SqlTypeNames.STRING,
+    ),
+)
+
+_COMMON_DEVICE_FIELDS = (
+    ViewField(
+        definition="device.user_agent",
+        alias="device_user_agent",
+        description="The device user-agent info.",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="device.platform",
+        alias="device_platform",
+        description="The device Operating System name.",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="device.platform_version",
+        alias="device_platform_version",
+        description="The Operating System version of the device.",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="device.mobile",
+        alias="device_mobile",
+        description="Whether the device is a mobile device.",
+        field_type=SqlTypeNames.BOOLEAN,
+    ),
+    ViewField(
+        definition="device.form_factor",
+        alias="device_form_factor",
+        description="The device form-factor. e.g. 'Tablet', 'VR'",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="device.model",
+        alias="device_model",
+        description="The mobile device model name, if device is mobile. e.g. 'Pixel 2XL'",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="device.screen_width",
+        alias="device_screen_width",
+        description="The device's screen width in CSS pixels.",
+        field_type=SqlTypeNames.INTEGER,
+    ),
+    ViewField(
+        definition="device.screen_height",
+        alias="device_screen_height",
+        description="The device's screen height in CSS pixels.",
+        field_type=SqlTypeNames.INTEGER,
+    ),
+    ViewField(
+        definition="device.screen_avail_width",
+        alias="device_available_screen_width",
+        description="The amount of horizontal space (in CSS pixels) available to the window.",
+        field_type=SqlTypeNames.INTEGER,
+    ),
+    ViewField(
+        definition="device.screen_avail_height",
+        alias="device_available_screen_height",
+        description="The amount of vertical space (in CSS pixels) available to the window.",
+        field_type=SqlTypeNames.INTEGER,
+    ),
+    ViewField(
+        # the first brand that isn't "Chromium" or "Not A;Brand";
+        # aka hopefully the common name of the browser
+        definition=dedent("""
+            (SELECT brand
+            FROM UNNEST(device.brands) AS brand_record
+            WHERE brand_record.brand NOT IN ("Chromium", "Not A;Brand")
+            ORDER BY brand_record.version DESC
+            LIMIT 1)
+            """).strip(),
+        alias="device_browser_name",
+        description="The brand name of the browser client.",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        # version of first brand that isn't "Chromium" or "Not A;Brand";
+        # aka hopefully the actual browser version
+        definition=dedent("""
+            (SELECT version
+            FROM UNNEST(device.brands) AS brand_record
+            WHERE brand_record.brand NOT IN ("Chromium", "Not A;Brand")
+            ORDER BY brand_record.version DESC
+            LIMIT 1)
+            """).strip(),
+        alias="device_browser_version",
+        description="The version number of the browser client.",
+        field_type=SqlTypeNames.STRING,
+    ),
 )
 
 
@@ -336,6 +433,7 @@ class ClickView(BigQueryViewDefinition):
             ),
             *_COMMON_GEO_FIELDS,
             *_COMMON_VIEW_FIELDS,
+            *_COMMON_DEVICE_FIELDS,
         )
 
     def build_view_query(self, *, dataset_id: str) -> str:
@@ -409,6 +507,7 @@ class FormSubmissionView(BigQueryViewDefinition):
             ),
             *_COMMON_GEO_FIELDS,
             *_COMMON_VIEW_FIELDS,
+            *_COMMON_DEVICE_FIELDS,
         )
 
     def build_view_query(self, *, dataset_id: str) -> str:
@@ -470,6 +569,7 @@ class PageViewView(BigQueryViewDefinition):
             ),
             *_COMMON_GEO_FIELDS,
             *_COMMON_VIEW_FIELDS,
+            *_COMMON_DEVICE_FIELDS,
         )
 
     def build_view_query(self, *, dataset_id: str) -> str:
