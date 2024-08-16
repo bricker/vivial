@@ -192,12 +192,12 @@ _COMMON_DEVICE_FIELDS = (
         field_type=SqlTypeNames.INTEGER,
     ),
     ViewField(
-        # the first brand that isn't "Chromium" or "Not A;Brand";
+        # the first brand that isn't "Chromium" or "Not A Brand";
         # aka hopefully the common name of the browser
         definition=dedent("""
             (SELECT brand
             FROM UNNEST(device.brands) AS brand_record
-            WHERE brand_record.brand NOT IN ("Chromium", "Not A;Brand")
+            WHERE NOT REGEXP_CONTAINS(brand_record.brand, r"Chromium|Not.A.Brand")
             ORDER BY brand_record.version DESC
             LIMIT 1)
             """).strip(),
@@ -206,12 +206,12 @@ _COMMON_DEVICE_FIELDS = (
         field_type=SqlTypeNames.STRING,
     ),
     ViewField(
-        # version of first brand that isn't "Chromium" or "Not A;Brand";
+        # version of first brand that isn't "Chromium" or "Not A Brand";
         # aka hopefully the actual browser version
         definition=dedent("""
             (SELECT version
             FROM UNNEST(device.brands) AS brand_record
-            WHERE brand_record.brand NOT IN ("Chromium", "Not A;Brand")
+            WHERE NOT REGEXP_CONTAINS(brand_record.brand, r"Chromium|Not.A.Brand")
             ORDER BY brand_record.version DESC
             LIMIT 1)
             """).strip(),
@@ -417,18 +417,6 @@ class ClickView(BigQueryViewDefinition):
                 definition="current_page.url.hash",
                 alias="current_page_hash",
                 description="The URL hash of the page on which this event occurred.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            ViewField(
-                definition="device.platform",
-                alias="device_platform",
-                description="The operating system of the device that triggered this event. eg: Windows, Linux, iOS, Android. https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Sec-CH-UA-Platform",
-                field_type=SqlTypeNames.STRING,
-            ),
-            ViewField(
-                definition="device.model",
-                alias="device_mobile_model",
-                description="For mobile devices, the model of the device that triggered this event. eg: 'Pixel 3'. For non-mobile devices, this is null.",
                 field_type=SqlTypeNames.STRING,
             ),
             *_COMMON_GEO_FIELDS,
