@@ -221,6 +221,40 @@ _COMMON_DEVICE_FIELDS = (
     ),
 )
 
+_COMMON_CURRENT_PAGE_FIELDS = (
+    ViewField(
+        definition="current_page.title",
+        alias="current_page_title",
+        description="The title of the page on which this event occurred.",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="current_page.url.path",
+        alias="current_page_path",
+        description="The path of the page on which this event occurred.",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="current_page.url.hash",
+        alias="current_page_hash",
+        description="The URL hash of the page on which this event occurred.",
+        field_type=SqlTypeNames.STRING,
+    ),
+    ViewField(
+        definition="current_page.url.domain",
+        alias="current_page_domain",
+        description="The URL domain of the page on which this event occurred.",
+        field_type=SqlTypeNames.STRING,
+    ),
+)
+
+_COMMON_BROWSER_EVENT_FIELDS = (
+    *_COMMON_VIEW_FIELDS,
+    *_COMMON_CURRENT_PAGE_FIELDS,
+    *_COMMON_DEVICE_FIELDS,
+    *_COMMON_GEO_FIELDS,
+)
+
 
 class BigQueryViewDefinition(ABC):
     view_id: str
@@ -401,33 +435,7 @@ class ClickView(BigQueryViewDefinition):
                 description="The inner content of the clicked element. Depends on the target type. For buttons and links, this is the button/link text. For images, it is the image source URL.",
                 field_type=SqlTypeNames.STRING,
             ),
-            ViewField(
-                definition="current_page.title",
-                alias="current_page_title",
-                description="The title of the page on which this event occurred.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            ViewField(
-                definition="current_page.url.path",
-                alias="current_page_path",
-                description="The path of the page on which this event occurred.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            ViewField(
-                definition="current_page.url.hash",
-                alias="current_page_hash",
-                description="The URL hash of the page on which this event occurred.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            ViewField(
-                definition="current_page.url.domain",
-                alias="current_page_domain",
-                description="The URL domain of the page on which this event occurred.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            *_COMMON_GEO_FIELDS,
-            *_COMMON_VIEW_FIELDS,
-            *_COMMON_DEVICE_FIELDS,
+            *_COMMON_BROWSER_EVENT_FIELDS,
         )
 
     def build_view_query(self, *, dataset_id: str) -> str:
@@ -481,33 +489,7 @@ class FormSubmissionView(BigQueryViewDefinition):
                 description="The URL to which the form data is submitted. This is null for forms managed by javascript.",
                 field_type=SqlTypeNames.STRING,
             ),
-            ViewField(
-                definition="current_page.title",
-                alias="current_page_title",
-                description="The title of the page on which the form was submitted.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            ViewField(
-                definition="current_page.url.path",
-                alias="current_page_path",
-                description="The path of the page on which the form was submitted.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            ViewField(
-                definition="current_page.url.hash",
-                alias="current_page_hash",
-                description="The URL hash of the page on which the form was submitted.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            ViewField(
-                definition="current_page.url.domain",
-                alias="current_page_domain",
-                description="The URL domain of the page on which the form was submitted.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            *_COMMON_GEO_FIELDS,
-            *_COMMON_VIEW_FIELDS,
-            *_COMMON_DEVICE_FIELDS,
+            *_COMMON_BROWSER_EVENT_FIELDS,
         )
 
     def build_view_query(self, *, dataset_id: str) -> str:
@@ -549,33 +531,7 @@ class PageViewView(BigQueryViewDefinition):
                 description=f"The readable name for this event. Always {sanitized_event_name}.",
                 field_type=SqlTypeNames.STRING,
             ),
-            ViewField(
-                definition="current_page.title",
-                alias="current_page_title",
-                description="The title of the viewed page.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            ViewField(
-                definition="current_page.url.path",
-                alias="current_page_path",
-                description="The path of the viewed page.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            ViewField(
-                definition="current_page.url.hash",
-                alias="current_page_hash",
-                description="The URL hash of the viewed page.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            ViewField(
-                definition="current_page.url.domain",
-                alias="current_page_domain",
-                description="The URL domain of the viewed page.",
-                field_type=SqlTypeNames.STRING,
-            ),
-            *_COMMON_GEO_FIELDS,
-            *_COMMON_VIEW_FIELDS,
-            *_COMMON_DEVICE_FIELDS,
+            *_COMMON_BROWSER_EVENT_FIELDS,
         )
 
     def build_view_query(self, *, dataset_id: str) -> str:
