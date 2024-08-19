@@ -56,37 +56,27 @@ class BaseAtomController:
                 )
             ).one_or_none()
 
-            if existing_vevent:
-                return
-
             try:
-                bq_view = EAVE_INTERNAL_BIGQUERY_CLIENT.construct_table(
+                EAVE_INTERNAL_BIGQUERY_CLIENT.get_and_sync_or_create_view(
                     dataset_id=self._dataset_id,
-                    table_id=view_def.view_id,
-                )
-
-                bq_view.friendly_name = view_def.friendly_name
-                bq_view.description = view_def.description
-                bq_view.view_query = view_def.build_view_query(dataset_id=self._dataset_id)
-
-                bq_view = EAVE_INTERNAL_BIGQUERY_CLIENT.get_or_create_table(
-                    table=bq_view,
-                    ctx=ctx,
-                )
-
-                bq_view.schema = view_def.schema_fields
-                bq_view = EAVE_INTERNAL_BIGQUERY_CLIENT.update_table(
-                    table=bq_view,
-                    ctx=ctx,
-                )
-
-                await VirtualEventOrm.create(
-                    session=db_session,
-                    team_id=self._client.team_id,
                     view_id=view_def.view_id,
-                    readable_name=view_def.friendly_name,
+                    friendly_name=view_def.friendly_name,
                     description=view_def.description,
+                    view_query=view_def.build_view_query(dataset_id=self._dataset_id),
+                    schema=view_def.schema_fields,
+                    ctx=ctx,
                 )
+
+                if not existing_vevent:
+                    # virtual event view in bq needs a new entry in eave db
+                    await VirtualEventOrm.create(
+                        session=db_session,
+                        team_id=self._client.team_id,
+                        view_id=view_def.view_id,
+                        readable_name=view_def.friendly_name,
+                        description=view_def.description,
+                    )
+
             except Exception as e:
                 # Likely a race condition: Two events came in separate requests that tried to create the same virtual event.
                 # Or the request to BQ failed.
