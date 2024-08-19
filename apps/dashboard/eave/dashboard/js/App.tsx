@@ -2,6 +2,7 @@ import React from "react";
 import { CookiesProvider, withCookies } from "react-cookie";
 import { Helmet } from "react-helmet";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { Provider } from "react-redux";
 
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import "../static/css/app.css";
