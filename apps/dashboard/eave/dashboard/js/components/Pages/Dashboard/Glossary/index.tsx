@@ -2,12 +2,23 @@ import CloseIcon from "$eave-dashboard/js/components/Icons/CloseIcon";
 import SidePanelIcon from "$eave-dashboard/js/components/Icons/SidePanelIcon";
 import SearchBar from "$eave-dashboard/js/components/Pages/Dashboard/Glossary/SearchBar";
 import { AppContext } from "$eave-dashboard/js/context/Provider";
+import {
+  closePanel,
+  getVirtualEventDetails,
+  listVirtualEvents,
+  selectEvent,
+  selectGlossary,
+  selectVirtualEvents,
+  setUsingMobileLayout,
+} from "$eave-dashboard/js/features/eventIndex/eventIndexSlice";
 import useTeam from "$eave-dashboard/js/hooks/useTeam";
+import { AppDispatch } from "$eave-dashboard/js/store";
 import { theme as eaveTheme } from "$eave-dashboard/js/theme";
-import { VirtualEventDetails, VirtualEventField } from "$eave-dashboard/js/types.js";
+import { VirtualEventDetails, VirtualEventField } from "$eave-dashboard/js/types";
 import { CircularProgress } from "@mui/material";
 import classNames from "classnames";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { makeStyles } from "tss-react/mui";
 
 const makeClasses = makeStyles<void, "hoverIcon">()((theme, _params, classes) => ({
@@ -123,29 +134,32 @@ const makeClasses = makeStyles<void, "hoverIcon">()((theme, _params, classes) =>
 
 const Glossary = () => {
   const { classes } = makeClasses();
-  const [selectedEvent, setSelectedEvent] = useState<VirtualEventDetails | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
-  const [usingMobileLayout, setUsingMobileLayout] = useState(false);
-  const { team, listVirtualEvents, getVirtualEventDetails } = useTeam();
+
+  const dispatch: AppDispatch = useDispatch();
+  const { selectedEvent, isOpen, usingMobileLayout } = useSelector(selectGlossary);
+
+  const virtualEvents = useSelector(selectVirtualEvents);
+
+  const { team } = useTeam();
 
   const { glossaryNetworkStateCtx } = useContext(AppContext);
   const [networkState] = glossaryNetworkStateCtx!;
 
   // initial data load
   useEffect(() => {
-    listVirtualEvents({ query: null });
-  }, []);
+    dispatch(listVirtualEvents({ query: null }));
+  }, [dispatch]);
 
   // load up event details when a new one is selected
   useEffect(() => {
     if (selectedEvent) {
-      getVirtualEventDetails(selectedEvent.id);
+      dispatch(getVirtualEventDetails(selectedEvent.id));
     }
-  }, [selectedEvent]);
+  }, [dispatch, selectedEvent]);
 
   useEffect(() => {
     const handleResize = () => {
-      setUsingMobileLayout(window.innerWidth <= eaveTheme.breakpoints.values.md);
+      dispatch(setUsingMobileLayout(window.innerWidth <= eaveTheme.breakpoints.values.md));
     };
 
     handleResize();
@@ -156,7 +170,7 @@ const Glossary = () => {
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, []);
+  }, [dispatch]);
 
   const panelClasses = [classes.panelContainer];
   const glossaryClasses = [classes.glossary];
@@ -168,8 +182,7 @@ const Glossary = () => {
 
   // factored out as it's used in both the row onClick and onKeyPress actions
   const rowClicked = (event: VirtualEventDetails) => {
-    setSelectedEvent(event);
-    setIsOpen(true);
+    dispatch(selectEvent(event));
     // move kb focus to the sidepanel for a11y
     const sidepanel = document.getElementById("glos_sidepanel");
     sidepanel?.focus();
@@ -177,7 +190,7 @@ const Glossary = () => {
 
   let component: React.ReactElement;
 
-  if (team?.virtualEvents?.length) {
+  if (virtualEvents?.length) {
     // show the virtual events table
     component = (
       <table className={classes.table}>
@@ -186,7 +199,7 @@ const Glossary = () => {
             <th className={classNames(classes.tableValue, classes.tableHeader)}>Event Name</th>
             <th className={classNames(classes.tableValue, classes.tableHeader)}>Event Description</th>
           </tr>
-          {team.virtualEvents.map((event) => (
+          {virtualEvents.map((event) => (
             <tr
               className={classNames(classes.tableRow, classes.rowHighlight)}
               key={event.readable_name}
@@ -289,7 +302,7 @@ const Glossary = () => {
       </div>
       {/* side panel */}
       <div id="glos_sidepanel" className={classNames(panelClasses)}>
-        <button className={classes.closeButton} onClick={() => setIsOpen(false)}>
+        <button className={classes.closeButton} onClick={() => dispatch(closePanel())}>
           <CloseIcon stroke="#363636" />
         </button>
         {sidepanelContent}

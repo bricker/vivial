@@ -137,6 +137,7 @@ const useTeam = (): TeamHook => {
             }
 
             const newVirtualEvents: VirtualEventDetails[] = [];
+            console.log(data.virtual_events);
 
             for (const incoming of data.virtual_events) {
               const existing = prevVirtualEvents.find((current) => current.id === incoming.id);

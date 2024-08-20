@@ -1,48 +1,50 @@
+import { CssBaseline, ThemeProvider } from "@mui/material";
 import React from "react";
 import { CookiesProvider, withCookies } from "react-cookie";
 import { Helmet } from "react-helmet";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Provider } from "react-redux";
-
-import { CssBaseline, ThemeProvider } from "@mui/material";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import "../static/css/app.css";
 import AuthenticationPage from "./components/Pages/AuthenticationPage";
 import { Dashboard, TabRevealer } from "./components/Pages/Dashboard";
 import Onboarding from "./components/Pages/Onboarding";
 import Waitlist from "./components/Pages/Waitlist";
 import AppContextProvider from "./context/Provider";
+import store from "./store";
 import { theme } from "./theme";
 
 const App = () => {
   return (
     <CookiesProvider>
       <AppContextProvider>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <Helmet>
-            <title>Eave - for your information.</title>
-          </Helmet>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/signup" element={<AuthenticationPage type="signup" />} />
+        <Provider store={store}>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <Helmet>
+              <title>Eave - for your information.</title>
+            </Helmet>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/signup" element={<AuthenticationPage type="signup" />} />
 
-              <Route path="/login" element={<AuthenticationPage type="login" />} />
+                <Route path="/login" element={<AuthenticationPage type="login" />} />
 
-              <Route element={<Dashboard />}>
-                <Route path="/setup" element={<TabRevealer name="setupTab" pathname="/setup" />} />
-                <Route path="/insights" element={<TabRevealer name="insightsTab" pathname="/insights" />} />
-                <Route path="/glossary" element={<TabRevealer name="glossaryTab" pathname="/glossary" />} />
-                <Route path="/settings" element={<TabRevealer name="settingsTab" pathname="/settings" />} />
-                <Route path="/team" element={<TabRevealer name="teamTab" pathname="/team" />} />
-              </Route>
+                <Route element={<Dashboard />}>
+                  <Route path="/setup" element={<TabRevealer name="setupTab" pathname="/setup" />} />
+                  <Route path="/insights" element={<TabRevealer name="insightsTab" pathname="/insights" />} />
+                  <Route path="/glossary" element={<TabRevealer name="glossaryTab" pathname="/glossary" />} />
+                  <Route path="/settings" element={<TabRevealer name="settingsTab" pathname="/settings" />} />
+                  <Route path="/team" element={<TabRevealer name="teamTab" pathname="/team" />} />
+                </Route>
 
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/waitlist" element={<Waitlist />} />
+                <Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/waitlist" element={<Waitlist />} />
 
-              <Route path="*" element={<Navigate to="/onboarding" />} />
-            </Routes>
-          </BrowserRouter>
-        </ThemeProvider>
+                <Route path="*" element={<Navigate to="/onboarding" />} />
+              </Routes>
+            </BrowserRouter>
+          </ThemeProvider>
+        </Provider>
       </AppContextProvider>
     </CookiesProvider>
   );
