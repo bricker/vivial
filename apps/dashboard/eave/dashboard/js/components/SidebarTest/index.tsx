@@ -232,7 +232,13 @@ const SideBarEave = () => {
         </div>
       </div>
       <div className={classes.linkContainer}>
-        <PageLink name={SidebarData.logout.title} path={SidebarData.logout.path} isOpen={isOpen} Icon={LogoutIcon} />
+        <PageLink
+          name={SidebarData.logout.title}
+          path={SidebarData.logout.path}
+          isOpen={isOpen}
+          Icon={LogoutIcon}
+          reloadDocument={true}
+        />
       </div>
       <motion.button
         className={classNames(classes.buttonTopRight, {
@@ -267,14 +273,19 @@ type PageLinkProps = {
   path: string;
   isOpen: boolean;
   Icon: React.FC<LogoIconProps>;
+  reloadDocument?: boolean;
 };
 
-const PageLink: React.FC<PageLinkProps> = ({ name, path, isOpen, Icon }) => {
+const PageLink: React.FC<PageLinkProps> = ({ name, path, isOpen, Icon, reloadDocument }) => {
   const { classes } = useStyles();
   return (
-    <NavLink to={path} className={({ isActive }) => (isActive ? classes.active : classes.linkText)}>
+    <NavLink
+      to={path}
+      className={({ isActive }) => (isActive ? classes.active : classes.linkText)}
+      reloadDocument={reloadDocument}
+    >
       <div className={`${classes.link} ${!isOpen && classes.centeredLink} ${classes.linkText} `}>
-        <Icon color="#7D7D7D" width="48px" /> {/* Render the passed icon */}
+        <Icon color="#7D7D7D" width="48px" />
         <div className={classes.nameContainer}>{isOpen && <p className={`${classes.name}`}>{name}</p>}</div>
       </div>
     </NavLink>

@@ -46,7 +46,6 @@ export const listVirtualEvents = createAsyncThunk<
     }
 
     const data = await response.json();
-    console.log(data);
     return data.virtual_events as VirtualEventDetails[];
   } catch (error) {
     console.error(error);
@@ -127,9 +126,9 @@ const glossarySlice = createSlice({
             newVirtualEvents.push(incoming);
           }
         }
-        // state.virtualEvents = newVirtualEvents;
+        state.virtualEvents = newVirtualEvents;
         // ! TESTING WITH FAKE DATA
-        state.virtualEvents = fakeVirtualEvents;
+        // state.virtualEvents = fakeVirtualEvents;
         console.log(state.virtualEvents);
         state.status = "succeeded";
       })
