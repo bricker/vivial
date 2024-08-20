@@ -1,8 +1,8 @@
 from eave.collectors.core.datastructures import EventPayload
-from eave.collectors.core.write_queue import WriteQueue
+from eave.collectors.core.agent import Agent
 
 
-class EphemeralWriteQueue(WriteQueue):
+class EphemeralWriteQueue(Agent):
     _running: bool = False
     queue: list[EventPayload]
 

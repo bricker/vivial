@@ -15,7 +15,7 @@ from eave.collectors.core.datastructures import OpenAIChatCompletionEventPayload
 from eave.collectors.core.generator_proxy import AsyncGeneratorProxy, GeneratorProxy
 from eave.collectors.core.logging import EAVE_LOGGER
 from eave.collectors.core.wrap_util import is_wrapped, tag_wrapped
-from eave.collectors.core.write_queue import SHARED_BATCH_WRITE_QUEUE, WriteQueue
+from eave.collectors.core.agent import SHARED_BATCH_WRITE_QUEUE, Agent
 
 
 class OpenAICollector(BaseAICollector):
@@ -25,7 +25,7 @@ class OpenAICollector(BaseAICollector):
         func_name: str
         original_function: Callable
 
-    def __init__(self, *, write_queue: WriteQueue = SHARED_BATCH_WRITE_QUEUE) -> None:
+    def __init__(self, *, write_queue: Agent = SHARED_BATCH_WRITE_QUEUE) -> None:
         super().__init__(write_queue=write_queue)
 
         # `openai` module path to a function, mapped to

@@ -31,7 +31,7 @@ from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import HttpServerEventPayload
 from eave.collectors.core.logging import EAVE_LOGGER
 from eave.collectors.core.wrap_util import is_wrapped, tag_wrapped, untag_wrapped
-from eave.collectors.core.write_queue import WriteQueue
+from eave.collectors.core.agent import Agent
 
 # class ASGIGetter:
 #     def get(self, carrier: dict, key: str) -> list[str] | None:
@@ -181,7 +181,7 @@ class EaveASGIMiddleware:
     def __init__(
         self,
         app: starlette.types.ASGIApp,
-        write_queue: WriteQueue,
+        write_queue: Agent,
     ) -> None:
         self.app = guarantee_single_callable(app)
         self.content_length_header = None
@@ -344,7 +344,7 @@ class StarletteCollector(BaseCollector):
     def instrument_app(self, app: applications.Starlette) -> None:
         """instrument specific app instance only"""
         if not is_wrapped(app):
-            self.write_queue.start_autoflush()
+            self.write_queue.start()
             app.add_middleware(
                 EaveASGIMiddleware,
                 write_queue=self.write_queue,
@@ -361,7 +361,7 @@ class StarletteCollector(BaseCollector):
         untag_wrapped(app)
 
     def instrument(self) -> None:
-        self.write_queue.start_autoflush()
+        self.write_queue.start()
         self._original_starlette = applications.Starlette
         applications.Starlette = self._wrap_instrumentor()
 
@@ -383,7 +383,7 @@ class StarletteCollector(BaseCollector):
 class _InstrumentedStarlette(applications.Starlette):
     _instrumented_starlette_apps = set()  # noqa: RUF012
 
-    def __init__(self, write_queue: WriteQueue, *args, **kwargs) -> None:
+    def __init__(self, write_queue: Agent, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.add_middleware(EaveASGIMiddleware, write_queue=write_queue)
         tag_wrapped(self)
