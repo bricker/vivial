@@ -121,7 +121,6 @@ class BigQueryClient:
         friendly_name: str,
         description: str,
         view_query: str,
-        schema: tuple[bigquery.SchemaField, ...],
         ctx: LogContext,
     ) -> bigquery.Table:
         local_table = self.construct_table(dataset_id=dataset_id, table_id=view_id)
@@ -129,7 +128,6 @@ class BigQueryClient:
         local_table.friendly_name = friendly_name
         local_table.description = description
         local_table.view_query = view_query
-        local_table.schema = schema
 
         remote_table = self.get_or_create_table(
             table=local_table,
@@ -138,7 +136,7 @@ class BigQueryClient:
 
         if remote_table.to_api_repr() != local_table.to_api_repr():
             self.update_table(
-                table=remote_table,
+                table=local_table,
                 ctx=ctx,
             )
 

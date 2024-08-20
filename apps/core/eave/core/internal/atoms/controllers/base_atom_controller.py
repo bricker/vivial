@@ -63,7 +63,6 @@ class BaseAtomController:
                     friendly_name=view_def.friendly_name,
                     description=view_def.description,
                     view_query=view_def.build_view_query(dataset_id=self._dataset_id),
-                    schema=view_def.schema_fields,
                     ctx=ctx,
                 )
 

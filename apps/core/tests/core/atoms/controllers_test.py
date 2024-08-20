@@ -82,6 +82,25 @@ class _ExampleView(BigQueryViewDefinition):
         ).strip()
 
 
+class _ExampleUpdatedView(_ExampleView):
+    @property
+    def schema(self) -> tuple[ViewField, ...]:
+        return (
+            ViewField(
+                definition=sql_sanitized_literal("Example View"),
+                alias="event_name_updated_alias",
+                description="event name",
+                field_type=SqlTypeNames.STRING,
+            ),
+            ViewField(
+                definition=sql_sanitized_literal("Updated view fields"),
+                alias="new_event_name",
+                description="newly added field",
+                field_type=SqlTypeNames.STRING,
+            ),
+        )
+
+
 class _ControllerTestBase(BigQueryTestsBase):
     _example_corr_ctx: dict[str, Any]
 
@@ -288,6 +307,29 @@ class TestBaseAtomController(_ControllerTestBase):
 
         assert self.team_bq_dataset_exists()
         assert self.team_bq_table_exists(table_name=view_def.view_id)
+
+    async def test_sync_updated_bq_view(self):
+        # GIVEN there is an existing view in the database
+        controller = BaseAtomController(client=self.client_credentials)
+        view_def = _ExampleView()
+
+        controller.get_or_create_bq_table(table_def=_ExampleAtom.table_def(), ctx=self.empty_ctx)
+        await controller.sync_bq_view(view_def=view_def, ctx=self.empty_ctx)
+
+        table_def = self.get_team_bq_table(view_def.view_id)
+        assert table_def
+        old_schema = table_def.schema
+
+        # WHEN the view is updated and synced again
+        view_def = _ExampleUpdatedView()
+        await controller.sync_bq_view(view_def=view_def, ctx=self.empty_ctx)
+
+        # THEN the view schema is updated in bq
+        table_def = self.get_team_bq_table(view_def.view_id)
+        assert table_def
+        new_schema = table_def.schema
+        assert old_schema != new_schema, "View schema wasn't updated"
+        assert sorted([field.name for field in new_schema]) == ["event_name_updated_alias", "new_event_name"]
 
 
 class TestBrowserEventsPayloadProcessor(_ControllerTestBase):
