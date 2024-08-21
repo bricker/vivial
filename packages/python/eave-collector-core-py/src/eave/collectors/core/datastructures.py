@@ -151,3 +151,20 @@ class DataIngestRequestBody:
 
     def to_json(self) -> str:
         return compact_json(self.to_dict())
+
+
+@dataclass
+class LogIngestRequestBody:
+    logs: list[JsonObject]
+
+    @classmethod
+    def from_json(cls, data: dict[str, Any]) -> Self:
+        return cls(
+            logs=data["logs"],
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return dataclasses.asdict(self)
+
+    def to_json(self) -> str:
+        return compact_json(self.to_dict())

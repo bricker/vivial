@@ -3,9 +3,10 @@ from asgiref.typing import HTTPScope
 from starlette.requests import Request
 from starlette.responses import Response
 
-from eave.collectors.core.datastructures import DataIngestRequestBody, EventType
+from eave.collectors.core.datastructures import DataIngestRequestBody, EventType, LogIngestRequestBody
 from eave.core.internal import database
 from eave.core.internal.atoms.controllers.browser_events import BrowserEventsController
+from eave.core.internal.atoms.controllers.collector_logs import AtomCollectorLogsController
 from eave.core.internal.atoms.controllers.db_events import DatabaseEventsController
 from eave.core.internal.atoms.controllers.http_client_events import HttpClientEventsController
 from eave.core.internal.atoms.controllers.http_server_events import HttpServerEventsController
@@ -146,6 +147,45 @@ class ServerDataIngestionEndpoint(HTTPEndpoint):
                 events=browser_events,
                 geolocation=None,
                 client_ip=None,
+                ctx=ctx,
+            )
+
+        response = Response(status_code=200)
+        return response
+
+
+class LogDataIngestionEndpoint(HTTPEndpoint):
+    async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
+        body = await request.json()
+        input = LogIngestRequestBody.from_json(data=body)
+
+        # TODO: Move client credentials validation into middleware
+        client_id = get_header_value_or_exception(scope=scope, name=EAVE_CLIENT_ID_HEADER)
+        client_secret = get_header_value_or_exception(scope=scope, name=EAVE_CLIENT_SECRET_HEADER)
+
+        async with database.async_session.begin() as db_session:
+            creds = (
+                await ClientCredentialsOrm.query(
+                    session=db_session,
+                    params=ClientCredentialsOrm.QueryParams(
+                        id=ensure_uuid(client_id),
+                        secret=client_secret,
+                    ),
+                )
+            ).one_or_none()
+
+            if not creds:
+                raise UnauthorizedError("invalid credentials")
+
+            if not (creds.scope & ClientScope.write) > 0:
+                raise ForbiddenError("invalid scopes")
+
+            creds.touch(session=db_session)
+
+        if input.logs:
+            handle = AtomCollectorLogsController(client=creds)
+            await handle.insert(
+                raw_logs=input.logs,
                 ctx=ctx,
             )
 

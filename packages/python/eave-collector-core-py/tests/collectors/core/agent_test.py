@@ -4,6 +4,7 @@ from threading import Thread
 from unittest.mock import MagicMock, patch
 
 from eave.collectors.core.agent import _QUEUE_CLOSED_SENTINEL, EaveAgent, QueueParams, TooManyFailuresError
+from eave.collectors.core.agent.data_handler.atoms import AtomHandler
 from eave.collectors.core.datastructures import EventPayload
 
 from .base import BaseTestCase
@@ -13,7 +14,11 @@ class EaveAgentTest(BaseTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
         self.queue_params = QueueParams(flush_frequency_seconds=1, maxsize=10)
-        self.agent = EaveAgent(queue_params=self.queue_params, logger=logging.getLogger("eave_test"))
+        self.agent = EaveAgent(
+            queue_params=self.queue_params,
+            logger=logging.getLogger("eave_test"),
+            data_handler=AtomHandler(),
+        )
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()

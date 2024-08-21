@@ -9,7 +9,7 @@ from eave.collectors.core.json import JsonObject
 from . import DataHandler
 
 
-class AtomBatchHandler(DataHandler):
+class AtomHandler(DataHandler):
     def validate_data_type(self, payload: Any) -> bool:
         return isinstance(payload, EventPayload)
 
