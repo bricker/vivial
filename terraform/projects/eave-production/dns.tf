@@ -52,6 +52,7 @@ module "dns_zone_base_domain" {
       subdomain = "google._domainkey"
       datas = [
         # Note that this string is specially formatted for the TXT record, with quotes injected every 255 characters.
+        # https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/dns_record_set#rrdatas
         "\"v=DKIM1;k=rsa;p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAg5ylMKypT874J8l+7Eh2BrWLLI1tRKTkXmUGgMv673x6UJypEulq6Q+QfS2EmqT4t7bLCC9aEIDRpAapKm6YmX4wZyyv45GEuFgJgLkSSrQ7vJKl6i6Nz6rkykK14GovOBPTvLOwm0hy8C0l7KuCj/VGfG3uRT8ge0yu/qiGNApQKLCJdcPuS2o3bmxqgqfzi\" \"6X8rEvWOlqM7mscv/z/xXqTiwMlwdk6jAB1bDSVCmc76mYACDfTQ1XoflDG0E9H3oIa1I6PMryE3hgQpBxF9kL2gSD7XIqWNn+zK6NEPgyeBXf5RKylW81BT8FWKjitQZI4GTBUJueYYDmPFdoDDwIDAQAB\"",
       ],
     },
