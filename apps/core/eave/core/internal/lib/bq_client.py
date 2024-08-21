@@ -113,25 +113,34 @@ class BigQueryClient:
 
         return remote_table
 
-    # def get_and_sync_or_create_view(self, *, dataset_id: str, view_id: str, friendly_name: str, description: str, mview_query: str, schema: tuple[bigquery.SchemaField, ...]) -> bigquery.Table:
-    #     local_table = self.construct_table(dataset_id=dataset_id, table_id=view_id)
-    #     local_table.friendly_name = friendly_name
-    #     local_table.description = description
-    #     local_table.mview_query = mview_query
-    #     local_table.schema = schema
+    def get_and_sync_or_create_view(
+        self,
+        *,
+        dataset_id: str,
+        view_id: str,
+        friendly_name: str,
+        description: str,
+        view_query: str,
+        ctx: LogContext,
+    ) -> bigquery.Table:
+        local_table = self.construct_table(dataset_id=dataset_id, table_id=view_id)
 
-    #     remote_table = self._bq_client.create_table(
-    #         table=local_table,
-    #         exists_ok=True,
-    #     )
+        local_table.friendly_name = friendly_name
+        local_table.description = description
+        local_table.view_query = view_query
 
-    #     if remote_table.to_api_repr() != local_table.to_api_repr():
-    #         self._bq_client.update_table(
-    #             table=remote_table,
-    #             fields=["materializedView", "schema", "description", "friendlyName"],
-    #         )
+        remote_table = self.get_or_create_table(
+            table=local_table,
+            ctx=ctx,
+        )
 
-    #     return remote_table
+        if remote_table.to_api_repr() != local_table.to_api_repr():
+            self.update_table(
+                table=local_table,
+                ctx=ctx,
+            )
+
+        return remote_table
 
     def append_rows(self, *, table: bigquery.Table, rows: Sequence[Mapping[str, Any]]) -> Sequence[dict[str, Any]]:
         errors = self._bq_client.insert_rows(
