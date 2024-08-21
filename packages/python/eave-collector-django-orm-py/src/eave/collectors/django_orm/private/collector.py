@@ -10,12 +10,12 @@ from uuid import UUID, uuid4
 from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.utils import CursorWrapper
 
+from eave.collectors.core.agent import Agent
+from eave.collectors.core.agent.atom_agent import SHARED_BATCHED_ATOM_WRITE_QUEUE
 from eave.collectors.core.base_collector import BaseCollector
 from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
 from eave.collectors.core.wrap_util import is_wrapped, tag_wrapped, untag_wrapped
-from eave.collectors.core.agent import Agent
-from eave.collectors.core.agent.atom_agent import SHARED_BATCHED_ATOM_WRITE_QUEUE
 
 # Copied from Django
 _Mixed = None | bool | int | float | Decimal | str | bytes | datetime | UUID

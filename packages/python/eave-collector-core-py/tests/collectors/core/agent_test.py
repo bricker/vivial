@@ -1,10 +1,12 @@
-from unittest.mock import patch, MagicMock
 import logging
-from eave.collectors.core.datastructures import EventPayload
-from .base import BaseTestCase
-from threading import Thread
 from queue import Queue
-from eave.collectors.core.agent import EaveAgent, QueueParams, _QUEUE_CLOSED_SENTINEL, TooManyFailuresError
+from threading import Thread
+from unittest.mock import MagicMock, patch
+
+from eave.collectors.core.agent import _QUEUE_CLOSED_SENTINEL, EaveAgent, QueueParams, TooManyFailuresError
+from eave.collectors.core.datastructures import EventPayload
+
+from .base import BaseTestCase
 
 
 class EaveAgentTest(BaseTestCase):

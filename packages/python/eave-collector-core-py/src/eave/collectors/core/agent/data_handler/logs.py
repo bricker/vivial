@@ -1,9 +1,12 @@
 from typing import Any
+
 import aiohttp
 
-from . import DataHandler
 from eave.collectors.core.datastructures import Batchable, DataIngestRequestBody, LogPayload
+
 from ... import config
+from . import DataHandler
+
 
 class LogsHandler(DataHandler):
     def validate_data_type(self, payload: Any) -> bool:

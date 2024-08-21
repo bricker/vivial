@@ -1,5 +1,5 @@
-from eave.collectors.core.agent.atom_agent import SHARED_BATCHED_ATOM_WRITE_QUEUE
 from eave.collectors.core.agent import Agent
+from eave.collectors.core.agent.atom_agent import SHARED_BATCHED_ATOM_WRITE_QUEUE
 
 
 class BaseCollector:

@@ -1,10 +1,12 @@
-from typing import Any, cast
+from typing import Any
+
 import aiohttp
 
-from . import DataHandler
+from eave.collectors.core import config
 from eave.collectors.core.datastructures import Batchable, DataIngestRequestBody, EventPayload
 from eave.collectors.core.json import JsonObject
-from eave.collectors.core import config
+
+from . import DataHandler
 
 
 class AtomBatchHandler(DataHandler):

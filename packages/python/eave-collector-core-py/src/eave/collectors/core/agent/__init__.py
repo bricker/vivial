@@ -1,18 +1,19 @@
 import abc
 import asyncio
 import atexit
+import logging
 import queue
 import time
-import logging
 from queue import Empty
 from threading import Lock, Thread
 
-from eave.collectors.core.agent.data_handler import DataHandler
 from eave.collectors.core import config
+from eave.collectors.core.agent.data_handler import DataHandler
 from eave.collectors.core.datastructures import Batchable
 
 _FAILSAFE_MAX_FAILURES = 10
 _QUEUE_CLOSED_SENTINEL = "QUEUE_CLOSED_SENTINEL"
+
 
 class TooManyFailuresError(Exception):
     pass
@@ -53,8 +54,10 @@ class EaveAgent(Agent):
     _logger: logging.Logger
     _data_handler: DataHandler
 
-    def __init__(self, logger: logging.Logger, data_handler: DataHandler, queue_params: QueueParams | None = None) -> None:
-        self._queue = queue.Queue(maxsize=0) # Infinite queue size.
+    def __init__(
+        self, logger: logging.Logger, data_handler: DataHandler, queue_params: QueueParams | None = None
+    ) -> None:
+        self._queue = queue.Queue(maxsize=0)  # Infinite queue size.
         self._queue_params = queue_params or QueueParams()
         self._lock = Lock()
         self._logger = logger
@@ -93,7 +96,6 @@ class EaveAgent(Agent):
             self._logger.exception(e)
         except Exception as e:
             self._logger.exception(e)
-
 
     def _worker_event_loop(self, *args, **kwargs) -> None:
         try:
@@ -147,7 +149,9 @@ class EaveAgent(Agent):
 
             buflen = len(buffer)
             if buflen > 0 and (
-                force_flush or buflen >= self._queue_params.maxsize or now - last_flush >= self._queue_params.flush_frequency_seconds
+                force_flush
+                or buflen >= self._queue_params.maxsize
+                or now - last_flush >= self._queue_params.flush_frequency_seconds
             ):
                 try:
                     self._logger.debug(

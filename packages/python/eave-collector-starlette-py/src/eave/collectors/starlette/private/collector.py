@@ -26,12 +26,12 @@ from starlette import applications
 from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 
+from eave.collectors.core.agent import Agent
 from eave.collectors.core.base_collector import BaseCollector
 from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import HttpServerEventPayload
 from eave.collectors.core.logging import EAVE_LOGGER
 from eave.collectors.core.wrap_util import is_wrapped, tag_wrapped, untag_wrapped
-from eave.collectors.core.agent import Agent
 
 # class ASGIGetter:
 #     def get(self, carrier: dict, key: str) -> list[str] | None:

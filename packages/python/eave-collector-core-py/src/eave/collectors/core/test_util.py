@@ -1,5 +1,5 @@
-from eave.collectors.core.datastructures import EventPayload
 from eave.collectors.core.agent import Agent
+from eave.collectors.core.datastructures import EventPayload
 
 
 class EphemeralWriteQueue(Agent):

@@ -1,8 +1,8 @@
 import dataclasses
+import logging
 from abc import ABC
 from dataclasses import dataclass
 from enum import StrEnum
-import logging
 from typing import Any, ClassVar, Self
 
 from eave.collectors.core.logging import EAVE_LOGGER

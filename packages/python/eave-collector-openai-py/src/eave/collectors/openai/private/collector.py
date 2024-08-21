@@ -9,14 +9,14 @@ import openai.resources.chat
 from openai import AsyncOpenAI, AsyncStream, OpenAI, Stream
 from openai.types.chat import ChatCompletion, ChatCompletionChunk
 
+from eave.collectors.core.agent import Agent
+from eave.collectors.core.agent.atom_agent import SHARED_BATCHED_ATOM_WRITE_QUEUE
 from eave.collectors.core.base_ai_collector import BaseAICollector
 from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import OpenAIChatCompletionEventPayload, OpenAIRequestProperties, StackFrame
 from eave.collectors.core.generator_proxy import AsyncGeneratorProxy, GeneratorProxy
 from eave.collectors.core.logging import EAVE_LOGGER
 from eave.collectors.core.wrap_util import is_wrapped, tag_wrapped
-from eave.collectors.core.agent import Agent
-from eave.collectors.core.agent.atom_agent import SHARED_BATCHED_ATOM_WRITE_QUEUE
 
 
 class OpenAICollector(BaseAICollector):
