@@ -63,6 +63,10 @@ def is_development() -> bool:
     return eave_env() == "development"
 
 
+def telemetry_disabled() -> bool:
+    return os.getenv("EAVE_DISABLE_TELEMETRY") is not None
+
+
 def queue_maxsize() -> int:
     if is_development():
         return 1

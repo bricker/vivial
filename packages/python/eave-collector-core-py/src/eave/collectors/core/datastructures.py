@@ -2,6 +2,7 @@ import dataclasses
 from abc import ABC
 from dataclasses import dataclass
 from enum import StrEnum
+import logging
 from typing import Any, ClassVar, Self
 
 from eave.collectors.core.logging import EAVE_LOGGER
@@ -39,18 +40,40 @@ class StackFrame:
     function: str | None
 
 
-@dataclass(kw_only=True)
-class EventPayload(ABC):
-    event_type: ClassVar[EventType]
-    event_id: str | None
-    timestamp: float | None
-    corr_ctx: dict[str, JsonScalar] | None
-
+@dataclass
+class Batchable(ABC):
     def to_dict(self) -> JsonObject:
         return dataclasses.asdict(self)
 
     def to_json(self) -> str:
         return compact_json(self.to_dict())
+
+
+@dataclass(kw_only=True)
+class LogPayload(Batchable):
+    name: str
+    level: str
+    pathname: str
+    line_number: int
+    msg: str
+
+    @classmethod
+    def from_record(cls, log: logging.LogRecord) -> Self:
+        return cls(
+            name=log.name,
+            level=log.levelname,
+            pathname=log.pathname,
+            line_number=log.lineno,
+            msg=log.getMessage(),
+        )
+
+
+@dataclass(kw_only=True)
+class EventPayload(Batchable, ABC):
+    event_type: ClassVar[EventType]
+    event_id: str | None
+    timestamp: float | None
+    corr_ctx: dict[str, JsonScalar] | None
 
 
 @dataclass(kw_only=True)

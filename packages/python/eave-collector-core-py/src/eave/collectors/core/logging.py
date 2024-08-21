@@ -1,8 +1,10 @@
 import logging
 import sys
 
-from eave.collectors.core.agent import EaveAgent
+from eave.collectors.core.agent.atom_agent import EaveAgent
 from eave.collectors.core import config
+from eave.collectors.core.agent.data_handler.logs import LogsHandler
+from eave.collectors.core.datastructures import LogPayload
 # from eave.collectors.core.credentials import EaveCredentials
 
 EAVE_LOGGER_NAME = "eave"
@@ -13,11 +15,13 @@ class _EaveTelemetryHandler(logging.Handler):
 
     def __init__(self, level: int | str = 0) -> None:
         super().__init__(level)
-        self._agent = EaveAgent()
+        # intentionally give telem agent a separate logger from the one
+        # used by the atom agent
+        self._agent = EaveAgent(logger=logging.getLogger("eave_logging"), data_handler=LogsHandler())
         self._agent.start()
 
     def emit(self, record: logging.LogRecord) -> None:
-        self._agent.put(record)
+        self._agent.put(LogPayload.from_record(record))
 
 
 class _EaveTelemetryFilter(logging.Filter):

@@ -23,7 +23,8 @@ from eave.collectors.core.base_database_collector import (
 )
 from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
-from eave.collectors.core.agent import SHARED_BATCH_WRITE_QUEUE, Agent
+from eave.collectors.core.agent import Agent
+from eave.collectors.core.agent.atom_agent import SHARED_BATCHED_ATOM_WRITE_QUEUE
 
 type SupportedEngine = sqlalchemy.Engine | AsyncEngine
 
@@ -32,7 +33,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
     _event_listeners: list[tuple[weakref.ReferenceType[sqlalchemy.Engine], str, Callable[..., Any]]]
     _db_metadata: sqlalchemy.MetaData | None
 
-    def __init__(self, *, write_queue: Agent = SHARED_BATCH_WRITE_QUEUE) -> None:
+    def __init__(self, *, write_queue: Agent = SHARED_BATCHED_ATOM_WRITE_QUEUE) -> None:
         super().__init__(write_queue=write_queue)
 
         self._event_listeners = []
