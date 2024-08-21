@@ -35,13 +35,16 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 
+from google.cloud.bigquery import SchemaField, SqlTypeNames
+
 import eave.core.internal
 import eave.core.internal.orm.base
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.core.internal.orm.metabase_instance import MetabaseInstanceOrm, MetabaseInstanceState
-from eave.core.internal.orm.team import TeamOrm
+from eave.core.internal.orm.team import TeamOrm, bq_dataset_id
 from eave.core.internal.orm.virtual_event import VirtualEventOrm
-from eave.stdlib.logging import eaveLogger
+from eave.stdlib.logging import LogContext, eaveLogger
+from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 
 _EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
 _GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT")
@@ -53,6 +56,50 @@ assert _GAE_ENV is None
 assert _GOOGLE_CLOUD_PROJECT != "eave-production"
 assert _GCLOUD_PROJECT != "eave-production"
 
+_empty_ctx = LogContext()
+
+def make_bq_view(*, team_id: uuid.UUID, view_id: str, friendly_name: str, description: str) -> None:
+    bq_view = EAVE_INTERNAL_BIGQUERY_CLIENT.construct_table(
+        dataset_id=bq_dataset_id(team_id),
+        table_id=view_id,
+    )
+
+    bq_view.description = description
+    bq_view.friendly_name = friendly_name
+    bq_view.view_query = """
+    select
+        "Field A" as field_a,
+        "Field B" as field_b,
+        123 as field_c
+    """
+
+    bq_view = EAVE_INTERNAL_BIGQUERY_CLIENT.get_or_create_table(
+        table=bq_view,
+        ctx=_empty_ctx,
+    )
+
+    bq_view.schema = (
+        SchemaField(
+            name="field_a",
+            description="this is field_a!",
+            field_type=SqlTypeNames.STRING,
+        ),
+        SchemaField(
+            name="field_b",
+            description="this is field_b!",
+            field_type=SqlTypeNames.STRING,
+        ),
+        SchemaField(
+            name="field_c",
+            description="this is field_c!",
+            field_type=SqlTypeNames.INTEGER,
+        ),
+    )
+
+    EAVE_INTERNAL_BIGQUERY_CLIENT.update_table(
+        table=bq_view,
+        ctx=_empty_ctx,
+    )
 
 async def seed_table_entries_for_team(team_id: uuid.UUID, row: int, session: AsyncSession) -> None:
     creds = await ClientCredentialsOrm.create(
@@ -77,23 +124,35 @@ async def seed_table_entries_for_team(team_id: uuid.UUID, row: int, session: Asy
     metabase_instance.jwt_signing_key = "unsafe"
     await session.flush()
 
-    for eavent in range(30):
+    EAVE_INTERNAL_BIGQUERY_CLIENT.get_or_create_dataset(dataset_id=bq_dataset_id(team_id))
+
+    for eavent in range(10):
         words = ["foo", "bar", "bazz", "fizz", "buzz", "far", "fuzz", "bizz", "boo", "fazz"]
+        readable_name = f"Dummy event {row}.{eavent}"
         rand_desc = " ".join([words[random.randint(0, len(words) - 1)] for _ in range(random.randint(5, 40))])
+        view_id = f"{row}_{eavent}"
+
         await VirtualEventOrm.create(
             session=session,
             team_id=team_id,
-            view_id=f"{row}_{eavent}",
-            readable_name=f"Dummy event {row}.{eavent}",
+            view_id=view_id,
+            readable_name=readable_name,
             description=rand_desc,
         )
+
+        try:
+            make_bq_view(team_id=team_id, view_id=view_id, friendly_name=readable_name, description=rand_desc)
+        except Exception:
+            eaveLogger.warning("BigQuery error. Dummy view not created.")
 
 
 async def seed_database(db: AsyncEngine, team_id: uuid.UUID | None = None) -> None:
     session = AsyncSession(db)
 
     # only need to create entries for 1 team if team_id to seed is provided
-    num_rows = 100 if team_id is None else 1
+    # FIXME: This used to be 100 but it was taking way too long to create all the dummy views in BQ.
+    # Also this is buggy because it was running `seed_table_entries_for_team` 100 times with the same team
+    num_rows = 1 if team_id is None else 1
 
     # setup progress bar
     curr_progress = f"[0/{num_rows}] :: Seconds remaining: ???"
