@@ -83,7 +83,7 @@ async def seed_table_entries_for_team(team_id: uuid.UUID, row: int, session: Asy
         await VirtualEventOrm.create(
             session=session,
             team_id=team_id,
-            view_id=f"{row}.{eavent}",
+            view_id=f"{row}_{eavent}",
             readable_name=f"Dummy event {row}.{eavent}",
             description=rand_desc,
         )
