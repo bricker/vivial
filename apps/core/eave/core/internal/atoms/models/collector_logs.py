@@ -40,7 +40,7 @@ class AtomCollectorLogRecord:
                     mode=BigQueryFieldMode.NULLABLE,
                 ),
                 SchemaField(
-                    name="message",
+                    name="msg",
                     description="The log message content.",
                     field_type=SqlTypeNames.STRING,
                     mode=BigQueryFieldMode.NULLABLE,
