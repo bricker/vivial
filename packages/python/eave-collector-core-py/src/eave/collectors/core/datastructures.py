@@ -5,8 +5,6 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, ClassVar, Self
 
-from eave.collectors.core.logging import EAVE_LOGGER
-
 from .json import JsonObject, JsonScalar, JsonValue, compact_json
 
 
@@ -18,12 +16,11 @@ class DatabaseOperation(StrEnum):
     UNKNOWN = "UNKNOWN"
 
     @classmethod
-    def from_str(cls, s: str) -> Self | None:
+    def from_str(cls, s: str) -> Self:
         try:
             return cls.__call__(value=s.upper())
-        except ValueError as e:
-            EAVE_LOGGER.warning(e)
-            return None
+        except ValueError:
+            return cls(value=cls.UNKNOWN)
 
 
 class EventType(StrEnum):

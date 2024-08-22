@@ -9,6 +9,7 @@ from .base_atom_controller import BaseAtomController
 
 class AtomCollectorLogsController(BaseAtomController):
     async def insert(self, raw_logs: list[dict[str, Any]], ctx: LogContext) -> None:
+        # TODO: convert to send data to cloud logging instead of bq
         table = self.get_or_create_bq_table(table_def=AtomCollectorLogRecord.table_def(), ctx=ctx)
 
         logs = [

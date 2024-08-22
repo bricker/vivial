@@ -2,11 +2,9 @@ import logging
 import sys
 
 from eave.collectors.core import config
-from eave.collectors.core.agent.atom_agent import EaveAgent
+from eave.collectors.core.agent import EaveAgent
 from eave.collectors.core.agent.data_handler.logs import LogsHandler
 from eave.collectors.core.datastructures import LogPayload
-
-# from eave.collectors.core.credentials import EaveCredentials
 
 EAVE_LOGGER_NAME = "eave"
 EAVE_LOGGER = logging.getLogger(EAVE_LOGGER_NAME)

@@ -2,8 +2,6 @@ import os
 from dataclasses import dataclass
 from typing import Self, TypedDict
 
-from eave.collectors.core.logging import EAVE_LOGGER
-
 
 def eave_api_base_url() -> str:
     return os.getenv("EAVE_API_BASE_URL_PUBLIC", "https://api.eave.fyi")
@@ -24,12 +22,12 @@ class EaveCredentials:
     def from_env(cls) -> Self | None:
         creds_str = os.getenv("EAVE_CREDENTIALS")
         if not creds_str:
+            # TODO: throw exception instead of ever returning None?
             return None
 
         parts = creds_str.split(":")
 
         if len(parts) != 2:
-            EAVE_LOGGER.warning('invalid credentials format. Expected format: "client_id:client_secret"')
             return None
 
         return cls(

@@ -53,6 +53,7 @@ class AtomCollectorLogRecord:
     pathname: str | None
     line_number: int | None
     msg: str | None
+    # TODO: add a timestamp??
 
     @classmethod
     def from_api_payload(cls, data: dict[str, Any], *, decryption_key: bytes) -> Self:
