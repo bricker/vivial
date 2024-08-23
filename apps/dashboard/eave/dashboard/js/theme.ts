@@ -14,6 +14,12 @@ export interface EaveFooterStyle {
   height: number;
 }
 
+export interface SidebarIcon {
+  color?: string;
+  width?: string;
+  height?: string;
+}
+
 declare module "@mui/material/styles" {
   interface BreakpointOverrides {
     xs: true;

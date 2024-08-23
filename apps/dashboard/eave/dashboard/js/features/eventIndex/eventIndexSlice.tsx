@@ -128,7 +128,7 @@ const glossarySlice = createSlice({
         }
         state.virtualEvents = newVirtualEvents;
         // Fake Data:
-        // state.virtualEvents = fakeVirtualEvents;
+        //state.virtualEvents = fakeVirtualEvents;
         console.log(state.virtualEvents);
         state.status = "succeeded";
       })

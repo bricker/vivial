@@ -1,18 +1,14 @@
 import classNames from "classnames";
 import { motion, useAnimationControls } from "framer-motion";
 import React, { useEffect, useState } from "react";
-import { NavLink } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
-import DashboardIcon from "../Icons/Sidebar/DashboardIcon";
 import EaveNoTextIcon from "../Icons/Sidebar/EaveNoTextIcon";
-import GlossaryIcon from "../Icons/Sidebar/GlossaryIcon";
-import LogoIcon from "../Icons/Sidebar/LogoIcon";
-import LogoutIcon from "../Icons/Sidebar/LogoutIcon";
-import SettingsIcon from "../Icons/Sidebar/SettingsIcon";
-import SetupIcon from "../Icons/Sidebar/SetupIcon";
-import TeamIcon from "../Icons/Sidebar/TeamIcon";
+import EaveTextIcon from "../Icons/Sidebar/EaveTextIcon";
+import SidebarSection from "./SidebarSection";
 import { SidebarData } from "./data";
 
+// These objects determine the animation states of the sidebar.
+// Check out: https://www.framer.com/motion/animation/
 const containerVariants = {
   close: {
     width: "5rem",
@@ -32,7 +28,11 @@ const containerVariants = {
   },
 };
 
-const useStyles = makeStyles()(() => ({
+const sectionOne = [SidebarData.setup, SidebarData.insights, SidebarData.glossary];
+const sectionTwo = [SidebarData.team, SidebarData.settings];
+const logoutSection = [SidebarData.logout];
+
+const useStyles = makeStyles()((theme) => ({
   container: {
     position: "sticky",
     display: "flex",
@@ -40,19 +40,18 @@ const useStyles = makeStyles()(() => ({
     top: 0,
     height: "100vh",
     backgroundColor: "#F6F6F6",
-    padding: 16,
+    padding: theme.spacing(2),
     zIndex: 10,
     flexDirection: "column",
     boxSizing: "border-box",
     margin: 0,
   },
 
-  topPart: {
+  topIcons: {
     display: "flex",
     flexDirection: "column",
     gap: 32,
     width: "100%",
-    // border: "2px solid",
   },
   header: {
     borderBottom: "1px solid #B2B2B2",
@@ -79,9 +78,6 @@ const useStyles = makeStyles()(() => ({
   buttonTopRightVisible: {
     display: "block", // Display when conditions are met
   },
-  linkText: {
-    textDecoration: "none", // Ensure no underline
-  },
   button: {
     display: "flex",
     backgroundColor: "transparent",
@@ -106,40 +102,6 @@ const useStyles = makeStyles()(() => ({
     margin: 0,
     textDecoration: "none",
   },
-  link: {
-    maxWidth: "100%",
-
-    color: "#7D7D7D",
-    borderRadius: "10px",
-    display: "flex",
-    justifyContent: "flex-start",
-    alignItems: "center",
-    width: "100%",
-    paddingTop: 8,
-    // border: "2px solid",
-    overflow: "hidden",
-    paddingBottom: 8,
-    "&:hover": {
-      backgroundColor: "#EEEEEE",
-      color: "black",
-      cursor: "pointer",
-    },
-  },
-  active: {
-    backgroundColor: "#EEEEEE",
-    textDecoration: "none",
-  },
-  centeredLink: {
-    display: "flex",
-    justifyContent: "center",
-    width: "auto",
-  },
-  nameContainer: {
-    flexGrow: 1,
-    overflow: "hidden",
-    whiteSpace: "nowrap",
-    textOverflow: "ellipsis",
-  },
   linkContainer: {
     width: "100%",
     display: "flex",
@@ -149,9 +111,6 @@ const useStyles = makeStyles()(() => ({
   },
   hidden: {
     visibility: "hidden", // Hide the text but retain the space
-  },
-  border: {
-    // border: "2px solid",
   },
 }));
 
@@ -182,10 +141,12 @@ const SideBarEave = () => {
       onHoverStart={() => setIsHovering(true)}
       onHoverEnd={() => setIsHovering(false)}
     >
-      <div className={classes.topPart}>
+      {/* Entire Sidebar Except Logout */}
+      <div className={classes.topIcons}>
+        {/* Header + Toggle Sidebar Length */}
         <div className={classes.header}>
           {isOpen ? (
-            <LogoIcon width={"100%"} />
+            <EaveTextIcon width={"100%"} />
           ) : (
             <button
               className={classNames(classes.button, {
@@ -193,53 +154,19 @@ const SideBarEave = () => {
               })}
               onClick={handleToggle}
             >
-              <EaveNoTextIcon isHovering={isHovering} />{" "}
+              <EaveNoTextIcon isHovering={isHovering} />
             </button>
           )}
         </div>
-        <div className={classes.section}>
-          <div className={classes.border}>
-            <h2 className={`${classes.caption} ${classes.gray} ${!isOpen && classes.hidden}`}>MENU</h2>
-          </div>
-          <div className={classes.linkContainer}>
-            <PageLink name={SidebarData.setup.title} path={SidebarData.setup.path} isOpen={isOpen} Icon={SetupIcon} />
-            <PageLink
-              name={SidebarData.insights.title}
-              path={SidebarData.insights.path}
-              isOpen={isOpen}
-              Icon={DashboardIcon}
-            />
-            <PageLink
-              name={SidebarData.glossary.title}
-              path={SidebarData.glossary.path}
-              isOpen={isOpen}
-              Icon={GlossaryIcon}
-            />
-          </div>
-        </div>
+        {/* Section: Getting Started, Dashboard and Glossary */}
+        <SidebarSection isOpen={isOpen} sectionName={"MENU"} sectionPages={sectionOne} />
 
-        <div className={classes.section}>
-          <h2 className={`${classes.caption} ${classes.gray} ${!isOpen && classes.hidden}`}> GENERAL </h2>
-          <div className={classes.linkContainer}>
-            <PageLink name={SidebarData.team.title} path={SidebarData.team.path} isOpen={isOpen} Icon={TeamIcon} />
-            <PageLink
-              name={SidebarData.settings.title}
-              path={SidebarData.settings.path}
-              isOpen={isOpen}
-              Icon={SettingsIcon}
-            />
-          </div>
-        </div>
+        {/* Section: Team and Settings */}
+        <SidebarSection isOpen={isOpen} sectionName={"SETTINGS"} sectionPages={sectionTwo} />
       </div>
-      <div className={classes.linkContainer}>
-        <PageLink
-          name={SidebarData.logout.title}
-          path={SidebarData.logout.path}
-          isOpen={isOpen}
-          Icon={LogoutIcon}
-          reloadDocument={true}
-        />
-      </div>
+      {/* Logout Section  */}
+      <SidebarSection isOpen={isOpen} sectionPages={logoutSection} reloadDocument={true} />
+      Collapse Button
       <motion.button
         className={classNames(classes.buttonTopRight, {
           [classes.buttonTopRightVisible]: isHovering && isOpen,
@@ -261,33 +188,3 @@ const SideBarEave = () => {
 };
 
 export default SideBarEave;
-
-interface LogoIconProps {
-  color?: string;
-  width?: string;
-  height?: string;
-}
-
-type PageLinkProps = {
-  name: string;
-  path: string;
-  isOpen: boolean;
-  Icon: React.FC<LogoIconProps>;
-  reloadDocument?: boolean;
-};
-
-const PageLink: React.FC<PageLinkProps> = ({ name, path, isOpen, Icon, reloadDocument }) => {
-  const { classes } = useStyles();
-  return (
-    <NavLink
-      to={path}
-      className={({ isActive }) => (isActive ? classes.active : classes.linkText)}
-      reloadDocument={reloadDocument}
-    >
-      <div className={`${classes.link} ${!isOpen && classes.centeredLink} ${classes.linkText} `}>
-        <Icon color="#7D7D7D" width="48px" />
-        <div className={classes.nameContainer}>{isOpen && <p className={`${classes.name}`}>{name}</p>}</div>
-      </div>
-    </NavLink>
-  );
-};

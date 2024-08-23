@@ -1,12 +1,7 @@
+import { SidebarIcon } from "$eave-dashboard/js/theme";
 import React from "react";
 
-interface LogoIconProps {
-  color?: string;
-  width?: string;
-  height?: string;
-}
-
-const TeamIcon: React.FC<LogoIconProps> = ({ color = "black", width = "24px", height = "24px" }) => {
+const TeamIcon: React.FC<SidebarIcon> = ({ color = "black", width = "24px", height = "24px" }) => {
   return (
     <svg
       width={width}

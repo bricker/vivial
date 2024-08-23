@@ -4,6 +4,7 @@ import SearchBar from "$eave-dashboard/js/components/Pages/Dashboard/Glossary/Se
 import { AppContext } from "$eave-dashboard/js/context/Provider";
 import {
   closePanel,
+  listVirtualEvents,
   selectEvent,
   selectGlossary,
   selectVirtualEvents,
@@ -138,15 +139,14 @@ const Glossary = () => {
 
   const virtualEvents = useSelector(selectVirtualEvents);
 
-  const { team, getVirtualEventDetails, listVirtualEvents } = useTeam();
+  const { team, getVirtualEventDetails } = useTeam();
 
   const { glossaryNetworkStateCtx } = useContext(AppContext);
   const [networkState] = glossaryNetworkStateCtx!;
 
   // initial data load
   useEffect(() => {
-    // dispatch(listVirtualEvents({ query: null }));
-    listVirtualEvents({ query: null });
+    dispatch(listVirtualEvents({ query: null }));
   }, []);
 
   // load up event details when a new one is selected
@@ -154,7 +154,7 @@ const Glossary = () => {
     if (selectedEvent) {
       getVirtualEventDetails(selectedEvent.id);
     }
-  }, [dispatch, selectedEvent]);
+  }, [selectedEvent]);
 
   useEffect(() => {
     const handleResize = () => {

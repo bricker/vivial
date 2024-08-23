@@ -1,12 +1,7 @@
+import { SidebarIcon } from "$eave-dashboard/js/theme";
 import React from "react";
 
-interface LogoIconProps {
-  color?: string;
-  width?: string;
-  height?: string;
-}
-
-const LogoIcon: React.FC<LogoIconProps> = ({ color = "black", width = "24px", height = "24px" }) => {
+const EaveTextIcon: React.FC<SidebarIcon> = ({ color = "black", width = "24px", height = "24px" }) => {
   return (
     <svg width={width} height="46" viewBox="0 0 179 46" fill="none" xmlns="http://www.w3.org/2000/svg">
       <circle cx="16" cy="23" r="16" fill="black" />
@@ -22,4 +17,4 @@ const LogoIcon: React.FC<LogoIconProps> = ({ color = "black", width = "24px", he
   );
 };
 
-export default LogoIcon;
+export default EaveTextIcon;
