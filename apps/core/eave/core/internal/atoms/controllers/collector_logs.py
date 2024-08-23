@@ -27,5 +27,5 @@ class AtomCollectorLogsController(BaseAtomController):
                 # sev levels: https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry#logseverity
                 severity=log.level.upper() if log.level else "DEFAULT",
                 # just slap in other fields as labels for now...
-                labels={k: v for k, v in dataclasses.asdict(log).keys() if v and k not in ("msg", "level")},
+                labels={k: str(v) for k, v in dataclasses.asdict(log).items() if v and k not in ("msg", "level")},
             )
