@@ -1,7 +1,6 @@
 import { requestManager } from "./beacon";
 import { ConsentChoice, setCookieConsentChoice, setTrackingConsentChoice } from "./consent";
 import { cookiesEventHandler } from "./cookies";
-import { LOG_TAG } from "./internal/constants";
 import {
   CLICK_EVENT_TYPE,
   EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE,
@@ -11,6 +10,7 @@ import {
   SUBMIT_EVENT_TYPE,
   VISIBILITY_CHANGE_EVENT_TYPE,
 } from "./internal/js-events";
+import { logger } from "./internal/logging";
 import { setTrafficSourceCookieIfNecessary } from "./properties/traffic-source";
 import { setOrTouchUserCookies } from "./properties/user";
 import { sessionEventHandler, startOrExtendSession } from "./session";
@@ -95,4 +95,4 @@ document.addEventListener(VISIBILITY_CHANGE_EVENT_TYPE, requestManager);
 // document.body.addEventListener("mousedown", handleClick, { capture: true, passive: true });
 // document.body.addEventListener("contextmenu", handleClick, { capture: true, passive: true });
 
-trackPageLoad().catch((e) => console.error(LOG_TAG, e));
+trackPageLoad().catch((e) => logger.error(e));
