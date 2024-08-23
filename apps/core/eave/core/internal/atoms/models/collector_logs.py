@@ -1,9 +1,5 @@
 from dataclasses import dataclass
 from typing import Any, Self
-from eave.stdlib.core_api.models.virtual_event import BigQueryFieldMode
-from google.cloud.bigquery import SchemaField, SqlTypeNames
-
-from eave.core.internal.atoms.models.atom_types import BigQueryTableDefinition
 
 
 @dataclass(kw_only=True)

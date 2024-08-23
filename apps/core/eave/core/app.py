@@ -14,8 +14,8 @@ from eave.core.internal.oauth.google import (
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.core.public.requests.data_ingestion import (
     BrowserDataIngestionEndpoint,
-    ServerDataIngestionEndpoint,
     LogDataIngestionEndpoint,
+    ServerDataIngestionEndpoint,
 )
 from eave.core.public.requests.metabase_proxy import MetabaseAuthEndpoint, MetabaseProxyEndpoint, MetabaseProxyRouter
 from eave.stdlib import cache, logging
