@@ -1,5 +1,5 @@
 import { isTrackingConsentRevoked } from "./consent";
-import { TRACKER_URL } from "./internal/compile-config";
+import { ATOM_TRACKER_URL } from "./internal/compile-config";
 import {
   EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE,
   EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE,
@@ -210,7 +210,7 @@ class RequestManager {
 
       logger.debug("Sending events", payloads);
 
-      const success = navigator.sendBeacon(`${TRACKER_URL}?clientId=${clientId}`, blob);
+      const success = navigator.sendBeacon(`${ATOM_TRACKER_URL}?clientId=${clientId}`, blob);
 
       if (!success) {
         logger.warn("Failed to send analytics.");
