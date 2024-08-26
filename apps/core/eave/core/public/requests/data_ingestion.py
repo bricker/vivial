@@ -156,31 +156,66 @@ class ServerDataIngestionEndpoint(HTTPEndpoint):
 
 class LogDataIngestionEndpoint(HTTPEndpoint):
     async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
+        # handle logs sent from browser collector that doesnt include client secret
+        # in request headers
+        origin_header = get_header_value(scope=scope, name=aiohttp.hdrs.ORIGIN)
+        creds: ClientCredentialsOrm | None = None
+        if origin_header:
+            response = Response()
+            client_id = request.query_params.get("clientId")
+
+            if client_id is None:
+                raise UnauthorizedError("missing clientId query param")
+
+            async with database.async_session.begin() as db_session:
+                creds = (
+                    await ClientCredentialsOrm.query(
+                        session=db_session,
+                        params=ClientCredentialsOrm.QueryParams(
+                            id=ensure_uuid(client_id),
+                        ),
+                    )
+                ).one_or_none()
+
+                if not creds:
+                    raise UnauthorizedError("invalid credentials")
+
+                if not (creds.scope & ClientScope.write) > 0:
+                    raise ForbiddenError("invalid scope")
+
+                eave_team = await TeamOrm.one_or_exception(session=db_session, team_id=creds.team_id)
+
+                if not eave_team.origin_allowed(origin=origin_header):
+                    raise ForbiddenError("invalid origin")
+
+                creds.touch(session=db_session)
+
         body = await request.json()
         input = LogIngestRequestBody.from_json(data=body)
 
-        # TODO: Move client credentials validation into middleware
-        client_id = get_header_value_or_exception(scope=scope, name=EAVE_CLIENT_ID_HEADER)
-        client_secret = get_header_value_or_exception(scope=scope, name=EAVE_CLIENT_SECRET_HEADER)
+        # enforce client auth for non-browser requests
+        if not creds:
+            client_id = get_header_value_or_exception(scope=scope, name=EAVE_CLIENT_ID_HEADER)
+            client_secret = get_header_value_or_exception(scope=scope, name=EAVE_CLIENT_SECRET_HEADER)
 
-        async with database.async_session.begin() as db_session:
-            creds = (
-                await ClientCredentialsOrm.query(
-                    session=db_session,
-                    params=ClientCredentialsOrm.QueryParams(
-                        id=ensure_uuid(client_id),
-                        secret=client_secret,
-                    ),
-                )
-            ).one_or_none()
+            async with database.async_session.begin() as db_session:
+                creds = (
+                    await ClientCredentialsOrm.query(
+                        session=db_session,
+                        params=ClientCredentialsOrm.QueryParams(
+                            id=ensure_uuid(client_id),
+                            secret=client_secret,
+                        ),
+                    )
+                ).one_or_none()
 
-            if not creds:
-                raise UnauthorizedError("invalid credentials")
+                if not creds:
+                    raise UnauthorizedError("invalid credentials")
 
-            if not (creds.scope & ClientScope.write) > 0:
-                raise ForbiddenError("invalid scopes")
+                if not (creds.scope & ClientScope.write) > 0:
+                    raise ForbiddenError("invalid scopes")
 
-            creds.touch(session=db_session)
+                creds.touch(session=db_session)
 
         if input.logs:
             handle = AtomCollectorLogsController(client=creds)

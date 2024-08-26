@@ -52,7 +52,7 @@ class EaveLogger {
   tag: string;
 
   constructor() {
-    this.tag = "[eave]";
+    this.tag = "eave-collector-browser-js";
   }
 
   #send(logs: LogPayload[]) {
