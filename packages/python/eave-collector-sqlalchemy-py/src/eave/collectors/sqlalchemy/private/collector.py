@@ -156,7 +156,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
 
                     self.write_queue.put(record)
 
-            if isinstance(clauseelement, sqlalchemy.Insert):
+            elif isinstance(clauseelement, sqlalchemy.Insert):
                 for idx, rparam in enumerate(rparams):
                     pk_map_list = None
                     if isinstance(result, sqlalchemy.CursorResult) and len(result.inserted_primary_key_rows) > idx:
