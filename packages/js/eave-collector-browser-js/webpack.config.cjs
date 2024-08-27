@@ -22,7 +22,7 @@ require("webpack-dev-server"); // for devServer config typing
 const configFunc = (env, argv) => {
   const mode = argv.mode || "development";
   const trackerUrl = env.TRACKER_URL || "https://api.eave.fyi/public/ingest";
-  const logPath = "/logs";
+  const logPath = "/log";
   const atomPath = "/browser";
 
   /** @type webpack.Configuration */
