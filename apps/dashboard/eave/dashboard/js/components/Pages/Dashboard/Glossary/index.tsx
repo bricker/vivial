@@ -6,8 +6,7 @@ import {
   closePanel,
   listVirtualEvents,
   selectEvent,
-  selectGlossary,
-  selectVirtualEvents,
+  selectEventIndex,
   setUsingMobileLayout,
 } from "$eave-dashboard/js/features/eventIndex/eventIndexSlice";
 import useTeam from "$eave-dashboard/js/hooks/useTeam";
@@ -135,9 +134,7 @@ const Glossary = () => {
   const { classes } = makeClasses();
 
   const dispatch: AppDispatch = useDispatch();
-  const { selectedEvent, isOpen, usingMobileLayout } = useSelector(selectGlossary);
-
-  const virtualEvents = useSelector(selectVirtualEvents);
+  const { selectedEvent, isOpen, usingMobileLayout, virtualEvents } = useSelector(selectEventIndex);
 
   const { team, getVirtualEventDetails } = useTeam();
 

@@ -1,21 +1,23 @@
 import { RootState } from "$eave-dashboard/js/store";
 import { VirtualEventDetails, eaveOrigin, eaveWindow } from "$eave-dashboard/js/types";
 import { logUserOut } from "$eave-dashboard/js/util/http-util";
-import { PayloadAction, createAsyncThunk, createSelector, createSlice } from "@reduxjs/toolkit";
+import { PayloadAction, createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
-interface GlossaryState {
+interface EventIndexState {
   virtualEvents: VirtualEventDetails[];
   selectedEvent: VirtualEventDetails | null;
   isOpen: boolean;
+  searchValue: string;
   usingMobileLayout: boolean;
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
 }
 
-const initialState: GlossaryState = {
+const initialState: EventIndexState = {
   virtualEvents: [],
   selectedEvent: null,
   isOpen: false,
+  searchValue: "",
   usingMobileLayout: false,
   status: "idle",
   error: null,
@@ -25,7 +27,7 @@ export const listVirtualEvents = createAsyncThunk<
   VirtualEventDetails[],
   { query?: string | null },
   { rejectValue: string }
->("glossary/listVirtualEvents", async ({ query } = {}, { rejectWithValue }) => {
+>("eventIndex/listVirtualEvents", async ({ query } = {}, { rejectWithValue }) => {
   try {
     const response = await fetch(`${eaveWindow.eavedash.apiBase}/public/me/virtual-events/list`, {
       method: "POST",
@@ -54,10 +56,10 @@ export const listVirtualEvents = createAsyncThunk<
 });
 
 export const getVirtualEventDetails = createAsyncThunk<VirtualEventDetails, string | null, { rejectValue: string }>(
-  "glossary/getVirtualEventDetails",
+  "eventIndex/getVirtualEventDetails",
   async (id, { rejectWithValue, getState }) => {
     const state = getState() as RootState;
-    const existingVirtualEvent = state.glossary.virtualEvents.find((ve) => ve.id === id);
+    const existingVirtualEvent = state.eventIndex.virtualEvents.find((ve) => ve.id === id);
 
     if (existingVirtualEvent && existingVirtualEvent.fields) {
       // The virtual event already has its fields loaded, no need to fetch again.
@@ -93,8 +95,8 @@ export const getVirtualEventDetails = createAsyncThunk<VirtualEventDetails, stri
   },
 );
 
-const glossarySlice = createSlice({
-  name: "glossary",
+const eventIndexSlice = createSlice({
+  name: "eventIndex",
   initialState,
   reducers: {
     selectEvent(state, action: PayloadAction<VirtualEventDetails>) {
@@ -106,6 +108,9 @@ const glossarySlice = createSlice({
     },
     setUsingMobileLayout(state, action: PayloadAction<boolean>) {
       state.usingMobileLayout = action.payload;
+    },
+    setSearchValue(state, action: PayloadAction<string>) {
+      state.searchValue = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -157,118 +162,8 @@ const glossarySlice = createSlice({
   },
 });
 
-export const { selectEvent, closePanel, setUsingMobileLayout } = glossarySlice.actions;
+export const { selectEvent, closePanel, setUsingMobileLayout, setSearchValue } = eventIndexSlice.actions;
 
-export const selectGlossary = (state: RootState) => state.glossary;
+export const selectEventIndex = (state: RootState) => state.eventIndex;
 
-// Selector to get virtualEvents from glossary state
-export const selectVirtualEvents = createSelector([selectGlossary], (glossary) => glossary.virtualEvents);
-
-export default glossarySlice.reducer;
-
-const fakeVirtualEvents: VirtualEventDetails[] = [
-  {
-    id: "event-123",
-    view_id: "view-abc-123",
-    readable_name: "Annual Tech Conference 2024",
-    description: "A premier event showcasing the latest advancements in technology.",
-    fields: [
-      {
-        name: "Agenda",
-        description: "Detailed schedule of the conference.",
-        field_type: "text",
-        mode: "read-only",
-        fields: [
-          {
-            name: "Day 1",
-            description: "Opening ceremony and keynote speeches.",
-            field_type: "text",
-            mode: "read-only",
-            fields: null,
-          },
-          {
-            name: "Day 2",
-            description: "Workshops and breakout sessions.",
-            field_type: "text",
-            mode: "read-only",
-            fields: null,
-          },
-        ],
-      },
-      {
-        name: "Speakers",
-        description: "List of keynote speakers and panelists.",
-        field_type: "list",
-        mode: "editable",
-        fields: [
-          {
-            name: "Keynote Speaker 1",
-            description: "CEO of a leading tech company.",
-            field_type: "text",
-            mode: "read-only",
-            fields: null,
-          },
-          {
-            name: "Panelist 1",
-            description: "Expert in AI and machine learning.",
-            field_type: "text",
-            mode: "read-only",
-            fields: null,
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "event-456",
-    view_id: "view-def-456",
-    readable_name: "Global Sustainability Summit 2024",
-    description: "An event focused on sustainable practices and innovations worldwide.",
-    fields: [
-      {
-        name: "Sessions",
-        description: "Topics covered during the summit.",
-        field_type: "text",
-        mode: "read-only",
-        fields: [
-          {
-            name: "Climate Change Mitigation",
-            description: "Strategies for reducing carbon emissions.",
-            field_type: "text",
-            mode: "read-only",
-            fields: null,
-          },
-          {
-            name: "Renewable Energy",
-            description: "Advancements in solar and wind technologies.",
-            field_type: "text",
-            mode: "read-only",
-            fields: null,
-          },
-        ],
-      },
-      {
-        name: "Exhibitors",
-        description: "Organizations showcasing their sustainable solutions.",
-        field_type: "list",
-        mode: "editable",
-        fields: [
-          {
-            name: "Exhibitor 1",
-            description: "Company specializing in electric vehicles.",
-            field_type: "text",
-            mode: "read-only",
-            fields: null,
-          },
-          {
-            name: "Exhibitor 2",
-            description: "Startup focused on biodegradable packaging.",
-            field_type: "text",
-            mode: "read-only",
-            fields: null,
-          },
-        ],
-      },
-    ],
-  },
-];
+export default eventIndexSlice.reducer;

@@ -1,6 +1,9 @@
 import SearchIcon from "$eave-dashboard/js/components/Icons/SearchIcon";
+import { selectEventIndex, setSearchValue } from "$eave-dashboard/js/features/eventIndex/eventIndexSlice";
 import useTeam from "$eave-dashboard/js/hooks/useTeam";
-import React, { useCallback, useEffect, useState } from "react";
+import { AppDispatch } from "$eave-dashboard/js/store";
+import React, { ChangeEvent, useCallback, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { makeStyles } from "tss-react/mui";
 
 const makeClasses = makeStyles()((_theme, _params, _classes) => ({
@@ -36,8 +39,11 @@ const makeClasses = makeStyles()((_theme, _params, _classes) => ({
 
 const SearchBar = () => {
   const { classes } = makeClasses();
-  const [searchValue, setSearchValue] = useState("");
+  // const [searchValue, setSearchValue] = useState("");
+  const { searchValue } = useSelector(selectEventIndex);
+
   const { listVirtualEvents } = useTeam();
+  const dispatch: AppDispatch = useDispatch();
 
   // useCallback to preserve timer variable across renders
   const debouncedFilterEventsOnType = useCallback(
@@ -69,6 +75,10 @@ const SearchBar = () => {
     debouncedFilterEventsOnType(searchValue);
   }, [searchValue]);
 
+  const handleSearchChange = (elem: ChangeEvent<HTMLInputElement>) => {
+    dispatch(setSearchValue(elem.target.value)); // Dispatch the action to update searchValue in Redux state
+  };
+
   return (
     <div className={classes.searchBar}>
       <i className={classes.searchIcon}>
@@ -79,7 +89,7 @@ const SearchBar = () => {
         className={classes.searchInput}
         placeholder="Type to search events"
         value={searchValue}
-        onChange={(elem) => setSearchValue(elem.target.value)}
+        onChange={handleSearchChange}
       />
     </div>
   );

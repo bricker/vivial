@@ -1,9 +1,9 @@
-import glossaryReducer from "$eave-dashboard/js/features/eventIndex/eventIndexSlice";
+import eventIndexReducer from "$eave-dashboard/js/features/eventIndex/eventIndexSlice";
 import { configureStore } from "@reduxjs/toolkit";
 
 export const store = configureStore({
   reducer: {
-    glossary: glossaryReducer,
+    eventIndex: eventIndexReducer,
     // other reducers
   },
 });
