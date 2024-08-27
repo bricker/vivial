@@ -112,7 +112,7 @@ module "dns_zone_run" {
     {
       type      = "CNAME"
       subdomain = "*"
-      datas     = ["localhost."]
+      datas     = ["127.0.0.1"]
     },
 
     # Squarespace Email Forwarding records
