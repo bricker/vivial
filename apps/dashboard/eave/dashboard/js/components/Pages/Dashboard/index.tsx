@@ -6,10 +6,9 @@ import useTeam from "$eave-dashboard/js/hooks/useTeam";
 import { theme } from "$eave-dashboard/js/theme";
 import { CircularProgress } from "@mui/material";
 import classNames from "classnames";
-import { useLocation } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
-import PageRenderer from "../../SidebarTest/PageRenderer";
-import SidebarTest from "../../SidebarTest/index";
+import PageRenderer from "../../Sidebar/PageRenderer";
+import Sidebar from "../../Sidebar/index";
 import Glossary from "./Glossary";
 import Insights from "./Insights";
 import Settings from "./Settings";
@@ -122,7 +121,7 @@ const Dashboard = () => {
     return (
       <div className={classes.screen}>
         <div className={classes.sidebar}>
-          <SidebarTest />
+          <Sidebar />
         </div>
         <div className={classes.content}>
           <PageRenderer />
@@ -132,20 +131,4 @@ const Dashboard = () => {
   }
 };
 
-type TabKey = keyof typeof tabs;
-const TabRevealer = ({ name, pathname }: { name: TabKey; pathname: string }) => {
-  const location = useLocation();
-  if (location.pathname === pathname) {
-    for (const tabKey of Object.keys(tabs)) {
-      const tabUI = document.getElementById(tabKey);
-      if (tabUI) {
-        // hide all tabs that don't match name
-        tabUI.style.visibility = tabKey === name ? "visible" : "hidden";
-      }
-    }
-  }
-  // return empty html so as to not cover the visible insights tab
-  return <></>;
-};
-
-export { Dashboard, TabRevealer };
+export { Dashboard };

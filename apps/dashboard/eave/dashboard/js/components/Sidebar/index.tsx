@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { makeStyles } from "tss-react/mui";
 import EaveNoTextIcon from "../Icons/Sidebar/EaveNoTextIcon";
 import EaveTextIcon from "../Icons/Sidebar/EaveTextIcon";
+import LeftArrowIcon from "../Icons/Sidebar/LeftArrowIcon";
 import SidebarSection from "./SidebarSection";
 import { SidebarData } from "./data";
 
@@ -39,7 +40,7 @@ const useStyles = makeStyles()((theme) => ({
     justifyContent: "space-between",
     top: 0,
     height: "100vh",
-    backgroundColor: "#F6F6F6",
+    backgroundColor: "#F6F6F6", // need to normalize these colors into theme.
     padding: theme.spacing(2),
     zIndex: 10,
     flexDirection: "column",
@@ -47,7 +48,7 @@ const useStyles = makeStyles()((theme) => ({
     margin: 0,
   },
 
-  topIcons: {
+  upperSections: {
     display: "flex",
     flexDirection: "column",
     gap: 32,
@@ -56,29 +57,25 @@ const useStyles = makeStyles()((theme) => ({
   header: {
     borderBottom: "1px solid #B2B2B2",
     paddingBottom: 8,
-    height: "48px",
+    height: theme.spacing(6),
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
   },
-  section: {
-    // border: "2px solid",
-    width: "100%",
-  },
-  buttonTopRight: {
+  retractButton: {
     position: "absolute",
-    top: 20, // Set to 16px down from the top
-    right: 0, // Set to 16px from the right edge
+    top: 20,
+    right: 0,
     display: "none", // Initially hidden
     border: "none",
     borderTopLeftRadius: 4,
     borderBottomLeftRadius: 4,
     cursor: "pointer",
   },
-  buttonTopRightVisible: {
-    display: "block", // Display when conditions are met
+  retractButtonVisible: {
+    display: "block",
   },
-  button: {
+  expandButton: {
     display: "flex",
     backgroundColor: "transparent",
     justifyContent: "center",
@@ -86,35 +83,13 @@ const useStyles = makeStyles()((theme) => ({
     border: "none",
     cursor: "pointer",
   },
-  buttonGray: {
+  expandButtonVisible: {
     backgroundColor: "#D8D8D8",
     borderRadius: 10,
   },
-  caption: {
-    fontSize: 14,
-  },
-  gray: {
-    color: "#B2B2B2",
-  },
-  name: {
-    fontSize: 16,
-    fontWeight: "bold",
-    margin: 0,
-    textDecoration: "none",
-  },
-  linkContainer: {
-    width: "100%",
-    display: "flex",
-    // border: "2px solid",
-    flexDirection: "column",
-    gap: 8,
-  },
-  hidden: {
-    visibility: "hidden", // Hide the text but retain the space
-  },
 }));
 
-const SideBarEave = () => {
+const Sidebar = () => {
   const { classes } = useStyles();
   const [isOpen, setIsOpen] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
@@ -142,15 +117,15 @@ const SideBarEave = () => {
       onHoverEnd={() => setIsHovering(false)}
     >
       {/* Entire Sidebar Except Logout */}
-      <div className={classes.topIcons}>
+      <div className={classes.upperSections}>
         {/* Header + Toggle Sidebar Length */}
         <div className={classes.header}>
           {isOpen ? (
             <EaveTextIcon width={"100%"} />
           ) : (
             <button
-              className={classNames(classes.button, {
-                [classes.buttonGray]: isHovering && !isOpen,
+              className={classNames(classes.expandButton, {
+                [classes.expandButtonVisible]: isHovering && !isOpen,
               })}
               onClick={handleToggle}
             >
@@ -166,25 +141,17 @@ const SideBarEave = () => {
       </div>
       {/* Logout Section  */}
       <SidebarSection isOpen={isOpen} sectionPages={logoutSection} reloadDocument={true} />
-      Collapse Button
+      {/* Collapse Button */}
       <motion.button
-        className={classNames(classes.buttonTopRight, {
-          [classes.buttonTopRightVisible]: isHovering && isOpen,
+        className={classNames(classes.retractButton, {
+          [classes.retractButtonVisible]: isHovering && isOpen,
         })}
         onClick={handleToggle}
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M15 6L9 12L15 18M15 12H15.01"
-            stroke="#000000"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
+        <LeftArrowIcon />
       </motion.button>
     </motion.div>
   );
 };
 
-export default SideBarEave;
+export default Sidebar;

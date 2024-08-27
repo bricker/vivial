@@ -7,7 +7,7 @@ const useStyles = makeStyles()(() => ({
     textDecoration: "none", // Ensure no underline
   },
   name: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "bold",
     margin: 0,
     textDecoration: "none",
@@ -15,7 +15,7 @@ const useStyles = makeStyles()(() => ({
   link: {
     maxWidth: "100%",
     color: "#7D7D7D",
-    borderRadius: "10px",
+    borderRadius: "8px",
     display: "flex",
     justifyContent: "flex-start",
     alignItems: "center",
@@ -31,6 +31,7 @@ const useStyles = makeStyles()(() => ({
   },
   active: {
     backgroundColor: "#EEEEEE",
+    borderRadius: 8,
     textDecoration: "none",
   },
   centeredLink: {
@@ -45,12 +46,6 @@ const useStyles = makeStyles()(() => ({
     textOverflow: "ellipsis",
   },
 }));
-
-interface LogoIconProps {
-  color?: string;
-  width?: string;
-  height?: string;
-}
 
 type PageLinkProps = {
   name: string;

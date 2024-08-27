@@ -6,7 +6,12 @@ import { Provider } from "react-redux";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import "../static/css/app.css";
 import AuthenticationPage from "./components/Pages/AuthenticationPage";
-import { Dashboard, TabRevealer } from "./components/Pages/Dashboard";
+import { Dashboard } from "./components/Pages/Dashboard";
+import Glossary from "./components/Pages/Dashboard/Glossary/index";
+import Insights from "./components/Pages/Dashboard/Insights/index";
+import Settings from "./components/Pages/Dashboard/Settings/index";
+import Setup from "./components/Pages/Dashboard/Setup/index";
+import TeamManagement from "./components/Pages/Dashboard/TeamManagement/index";
 import Onboarding from "./components/Pages/Onboarding";
 import Waitlist from "./components/Pages/Waitlist";
 import AppContextProvider from "./context/Provider";
@@ -30,11 +35,11 @@ const App = () => {
                 <Route path="/login" element={<AuthenticationPage type="login" />} />
 
                 <Route element={<Dashboard />}>
-                  <Route path="/setup" element={<TabRevealer name="setupTab" pathname="/setup" />} />
-                  <Route path="/insights" element={<TabRevealer name="insightsTab" pathname="/insights" />} />
-                  <Route path="/glossary" element={<TabRevealer name="glossaryTab" pathname="/glossary" />} />
-                  <Route path="/settings" element={<TabRevealer name="settingsTab" pathname="/settings" />} />
-                  <Route path="/team" element={<TabRevealer name="teamTab" pathname="/team" />} />
+                  <Route path="/setup" element={<Setup />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/glossary" element={<Glossary />} />
+                  <Route path="/insights" element={<Insights />} />
+                  <Route path="/team" element={<TeamManagement />} />
                 </Route>
 
                 <Route path="/onboarding" element={<Onboarding />} />
