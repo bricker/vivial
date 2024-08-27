@@ -1,47 +1,5 @@
 import { LOG_TRACKER_URL, MODE } from "./compile-config";
 
-/*
-debug, info, warn, error, critical functions
-
-api call
-class LogPayload(Batchable):
-    name: str
-    level: str
-    pathname: str
-    line_number: int
-    msg: str
-
-class LogIngestRequestBody:
-    logs: list[JsonObject]
-    # JSON obj here is log payload as dict
-
-    @classmethod
-    def from_json(cls, data: dict[str, Any]) -> Self:
-        return cls(
-            logs=data["logs"],
-        )
-body = LogIngestRequestBody(logs=logs)
-
-if creds := config.EaveCredentials.from_env():
-    headers = {**creds.to_headers}
-            return {
-            "eave-client-id": self.client_id,
-            "eave-client-secret": self.client_secret,
-        }
-
-await session.request(
-    method="POST",
-    url=f"{config.eave_api_base_url()}/public/ingest/log",
-    data=body.to_json(),
-    compress="gzip",
-    headers=headers,
-)
-
-use logger lib to console if debug mode
-threaded queue?? not necessary since browser is serial/single user?
-
-*/
-
 type LogPayload = {
   name: string;
   level: "DEBUG" | "INFO" | "WARN" | "ERROR" | "CRITICAL";

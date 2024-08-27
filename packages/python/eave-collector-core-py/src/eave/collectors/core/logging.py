@@ -6,9 +6,8 @@ from eave.collectors.core.agent import EaveAgent
 from eave.collectors.core.agent.data_handler.logs import LogsHandler
 from eave.collectors.core.datastructures import LogPayload
 
-# TODO: priavte?
-EAVE_LOGGER_NAME = "eave-collector-telemetry"
-EAVE_LOGGER = logging.getLogger(EAVE_LOGGER_NAME)
+_EAVE_LOGGER_NAME = "eave-collector-telemetry"
+_EAVE_ROOT_LOGGER = logging.getLogger(_EAVE_LOGGER_NAME)
 
 
 class _EaveTelemetryHandler(logging.Handler):
@@ -29,29 +28,33 @@ class _EaveTelemetryHandler(logging.Handler):
 class _EaveTelemetryFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         log = super().filter(record)
-        return log and record.name.startswith(EAVE_LOGGER_NAME)
+        return log and record.name.startswith(_EAVE_LOGGER_NAME)
 
 
 if not config.telemetry_disabled():
     _eave_telemetry_filter = _EaveTelemetryFilter()
     _eave_telemetry_handler = _EaveTelemetryHandler()
     _eave_telemetry_handler.addFilter(_eave_telemetry_filter)
-    EAVE_LOGGER.addHandler(_eave_telemetry_handler)
+    _EAVE_ROOT_LOGGER.addHandler(_eave_telemetry_handler)
 
 if config.is_development():
-    EAVE_LOGGER.setLevel(logging.DEBUG)
+    _EAVE_ROOT_LOGGER.setLevel(logging.DEBUG)
 
     _stream_handler = logging.StreamHandler(sys.stdout)
     _stream_handler.setLevel(logging.DEBUG)
-    EAVE_LOGGER.addHandler(_stream_handler)
+    _EAVE_ROOT_LOGGER.addHandler(_stream_handler)
 
 def eave_logger_factory(pkg_name: str) -> logging.Logger:
     """
-    Build a logger for use in a collector
+    Build a logger for use in a Eave atom collector
     """
-    # create a child collector that will propogate logs to the parent EAVE_LOGGER
-    # which will do the real work of sending the log to eave backend
-    logger = logging.getLogger(f"{EAVE_LOGGER_NAME}.{pkg_name}")
+    # create a child collector of _EAVE_LOGGER to include collector
+    # package name in the logger name
+    logger = logging.getLogger(f"{_EAVE_LOGGER_NAME}.{pkg_name}")
 
+    # propogate logs to parent logger _EAVE_LOGGER
+    # which will do the real work of sending the log to eave backend
     logger.propagate = True
     return logger
+
+EAVE_CORE_LOGGER = eave_logger_factory("collector-core-py")

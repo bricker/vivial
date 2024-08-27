@@ -55,7 +55,7 @@ class EaveAgentTest(BaseTestCase):
 
     def test_put_queue_full(self):
         # If the queue was bounded (it isn't by default), this would test the exception handling.
-        with patch("eave.collectors.core.logging.EAVE_LOGGER.exception") as mock_exception:
+        with patch("eave.collectors.core.logging._EAVE_LOGGER.exception") as mock_exception:
             self.agent._queue = Queue(maxsize=1)
             self.agent._queue.put(("dummy_event", {"key": "value"}))
 
@@ -81,8 +81,8 @@ class EaveAgentTest(BaseTestCase):
         self.agent._queue.put(_QUEUE_CLOSED_SENTINEL)
 
         with patch("eave.collectors.core.ingest_api.send_batch") as mock_send_batch:
-            with patch("eave.collectors.core.logging.EAVE_LOGGER.info") as mock_info_logger:
-                with patch("eave.collectors.core.logging.EAVE_LOGGER.debug") as mock_debug_logger:
+            with patch("eave.collectors.core.logging._EAVE_LOGGER.info") as mock_info_logger:
+                with patch("eave.collectors.core.logging._EAVE_LOGGER.debug") as mock_debug_logger:
                     with patch("time.time", side_effect=[0, 0.5, 1, 1.5]):
                         # Run the worker to process the event
                         with patch("asyncio.run") as mock_asyncio_run:
@@ -100,7 +100,7 @@ class EaveAgentTest(BaseTestCase):
         self.agent._queue.put((payload.event_type, payload.to_dict()))
 
         with patch("eave.collectors.core.ingest_api.send_batch", side_effect=Exception("Network Error")):
-            with patch("eave.collectors.core.logging.EAVE_LOGGER.exception") as mock_logger:
+            with patch("eave.collectors.core.logging._EAVE_LOGGER.exception") as mock_logger:
                 with self.assertRaises(TooManyFailuresError):
                     with patch("time.time", side_effect=[0, 0.5, 1, 1.5]):
                         with patch("asyncio.run") as mock_asyncio_run:
