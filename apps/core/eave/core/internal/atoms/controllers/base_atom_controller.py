@@ -59,10 +59,7 @@ class BaseAtomController:
             try:
                 EAVE_INTERNAL_BIGQUERY_CLIENT.get_and_sync_or_create_view(
                     dataset_id=self._dataset_id,
-                    view_id=view_def.view_id,
-                    friendly_name=view_def.friendly_name,
-                    description=view_def.description,
-                    view_query=view_def.build_view_query(dataset_id=self._dataset_id),
+                    view_def=view_def,
                     ctx=ctx,
                 )
 
