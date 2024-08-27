@@ -6,6 +6,7 @@ from eave.collectors.core.agent import EaveAgent
 from eave.collectors.core.agent.data_handler.logs import LogsHandler
 from eave.collectors.core.datastructures import LogPayload
 
+# TODO: priavte?
 EAVE_LOGGER_NAME = "eave-collector-telemetry"
 EAVE_LOGGER = logging.getLogger(EAVE_LOGGER_NAME)
 
@@ -28,7 +29,7 @@ class _EaveTelemetryHandler(logging.Handler):
 class _EaveTelemetryFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         log = super().filter(record)
-        return log and record.name == EAVE_LOGGER_NAME
+        return log and record.name.startswith(EAVE_LOGGER_NAME)
 
 
 if not config.telemetry_disabled():
@@ -43,3 +44,14 @@ if config.is_development():
     _stream_handler = logging.StreamHandler(sys.stdout)
     _stream_handler.setLevel(logging.DEBUG)
     EAVE_LOGGER.addHandler(_stream_handler)
+
+def eave_logger_factory(pkg_name: str) -> logging.Logger:
+    """
+    Build a logger for use in a collector
+    """
+    # create a child collector that will propogate logs to the parent EAVE_LOGGER
+    # which will do the real work of sending the log to eave backend
+    logger = logging.getLogger(f"{EAVE_LOGGER_NAME}.{pkg_name}")
+
+    logger.propagate = True
+    return logger

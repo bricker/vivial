@@ -1,3 +1,4 @@
+import { logger } from "../internal/logging";
 import { DeviceProperties } from "../types";
 
 export async function getUserAgentProperties(): Promise<DeviceProperties> {
@@ -58,7 +59,7 @@ export async function getUserAgentProperties(): Promise<DeviceProperties> {
   } catch (e) {
     // Probably `NotAllowedError`, indicating the user denied some permissions.
     // That's okay, we'll just return the basic data we already have.
-    console.warn(e);
+    logger.warn(e);
   }
 
   return deviceProperties;

@@ -49,6 +49,7 @@ class Batchable(ABC):
 @dataclass(kw_only=True)
 class LogPayload(Batchable):
     name: str
+    """Name of the collector that created the log"""
     level: str
     pathname: str
     line_number: int
@@ -57,7 +58,9 @@ class LogPayload(Batchable):
     @classmethod
     def from_record(cls, log: logging.LogRecord) -> Self:
         return cls(
-            name=log.name,
+            # rely on eave logger builder to have added the package name to the logger name.
+            # split the eave base logger name off the front, assuming package name is the rest
+            name=".".join(log.name.split(".")[1:]),
             level=log.levelname,
             pathname=log.pathname,
             line_number=log.lineno,

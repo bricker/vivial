@@ -43,7 +43,7 @@ threaded queue?? not necessary since browser is serial/single user?
 */
 
 type LogPayload = {
-  name: string; // TODO: match server logger name? do we need this? > we shoudl use this as the collector name instead
+  name: string;
   level: "DEBUG" | "INFO" | "WARN" | "ERROR" | "CRITICAL";
   msg: string;
 };
