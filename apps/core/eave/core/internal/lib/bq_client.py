@@ -7,6 +7,7 @@ from google.cloud import bigquery
 from google.cloud.bigquery.table import RowIterator, TableListItem
 from google.oauth2 import service_account as _service_account
 
+from eave.core.internal.atoms.models.db_views import BigQueryViewDefinition
 from eave.stdlib.logging import LogContext
 
 
@@ -117,22 +118,23 @@ class BigQueryClient:
         self,
         *,
         dataset_id: str,
-        view_id: str,
-        friendly_name: str,
-        description: str,
-        view_query: str,
+        view_def: BigQueryViewDefinition,
         ctx: LogContext,
     ) -> bigquery.Table:
-        local_table = self.construct_table(dataset_id=dataset_id, table_id=view_id)
+        local_table = self.construct_table(dataset_id=dataset_id, table_id=view_def.view_id)
 
-        local_table.friendly_name = friendly_name
-        local_table.description = description
-        local_table.view_query = view_query
+        local_table.friendly_name = view_def.friendly_name
+        local_table.description = view_def.description
+        local_table.view_query = view_def.build_view_query(dataset_id=dataset_id)
 
         remote_table = self.get_or_create_table(
             table=local_table,
             ctx=ctx,
         )
+
+        # populate schema generated from view_query w/ pre-defined field definitions.
+        # Order matters! This has to come after table creation and before update.
+        local_table.schema = view_def.schema_fields
 
         if remote_table.to_api_repr() != local_table.to_api_repr():
             self.update_table(
