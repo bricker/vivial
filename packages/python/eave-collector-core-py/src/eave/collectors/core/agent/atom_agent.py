@@ -1,5 +1,5 @@
 from eave.collectors.core.agent.data_handler.atoms import AtomHandler
-from eave.collectors.core.logging import eave_logger_factory, EAVE_CORE_LOGGER
+from eave.collectors.core.logging import EAVE_CORE_LOGGER, eave_logger_factory
 
 from . import EaveAgent
 

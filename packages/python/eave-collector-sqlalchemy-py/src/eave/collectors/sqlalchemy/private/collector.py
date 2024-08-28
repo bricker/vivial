@@ -4,7 +4,6 @@ from collections.abc import Callable
 from typing import Any
 from uuid import uuid4
 
-from eave.collectors.sqlalchemy.private.logging import EAVE_LOGGER
 import sqlalchemy
 from sqlalchemy.engine.interfaces import (
     _CoreMultiExecuteParams,
@@ -26,6 +25,7 @@ from eave.collectors.core.base_database_collector import (
 )
 from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
+from eave.collectors.sqlalchemy.private.logging import EAVE_LOGGER
 
 type SupportedEngine = sqlalchemy.Engine | AsyncEngine
 

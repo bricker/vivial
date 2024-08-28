@@ -15,8 +15,9 @@ from eave.collectors.core.base_ai_collector import BaseAICollector
 from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import OpenAIChatCompletionEventPayload, OpenAIRequestProperties, StackFrame
 from eave.collectors.core.generator_proxy import AsyncGeneratorProxy, GeneratorProxy
-from .logging import EAVE_LOGGER
 from eave.collectors.core.wrap_util import is_wrapped, tag_wrapped
+
+from .logging import EAVE_LOGGER
 
 
 class OpenAICollector(BaseAICollector):
