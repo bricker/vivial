@@ -330,9 +330,11 @@ class EaveASGIMiddleware:
         except UnicodeDecodeError as e:
             # ignore json decoding errors
             EAVE_LOGGER.warning(e)
+            return await self.app(scope, receive, send)
         except Exception as e:
             # Don't prevent the request from going through
             EAVE_LOGGER.exception(e)
+            return await self.app(scope, receive, send)
 
 
 class StarletteCollector(BaseCollector):
