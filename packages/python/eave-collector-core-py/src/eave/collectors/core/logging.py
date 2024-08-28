@@ -44,17 +44,20 @@ if config.is_development():
     _stream_handler.setLevel(logging.DEBUG)
     _EAVE_ROOT_LOGGER.addHandler(_stream_handler)
 
+
 def eave_logger_factory(pkg_name: str) -> logging.Logger:
     """
     Build a logger for use in a Eave atom collector
     """
     # create a child collector of _EAVE_LOGGER to include collector
     # package name in the logger name
-    logger = logging.getLogger(f"{_EAVE_LOGGER_NAME}.{pkg_name}")
+    log_name = pkg_name if pkg_name.startswith(_EAVE_LOGGER_NAME) else f"{_EAVE_LOGGER_NAME}.{pkg_name}"
+    logger = logging.getLogger(log_name)
 
     # propogate logs to parent logger _EAVE_LOGGER
     # which will do the real work of sending the log to eave backend
     logger.propagate = True
     return logger
+
 
 EAVE_CORE_LOGGER = eave_logger_factory("collector-core-py")
