@@ -1,8 +1,8 @@
 import base64
 import hashlib
+import json
 import os
 import uuid
-import json
 
 from eave.collectors.core.correlation_context.base import (
     EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
@@ -108,7 +108,10 @@ class CorrelationContextStorageTest(BaseTestCase):
         ctx.received["x"] = "y"
         ctx.updated["a"] = "b"
         ctx.updated["c"] = '"v"'
-        assert ctx.updated_values_cookies() == ["a=b; SameSite=Lax; Secure; Path=/", "c=%22v%22; SameSite=Lax; Secure; Path=/"]
+        assert ctx.updated_values_cookies() == [
+            "a=b; SameSite=Lax; Secure; Path=/",
+            "c=%22v%22; SameSite=Lax; Secure; Path=/",
+        ]
 
     async def test_load_from_cookies_with_session_info(self) -> None:
         ctx = CorrCtxStorage()
