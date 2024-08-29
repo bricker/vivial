@@ -108,7 +108,7 @@ class CorrCtxStorage:
     def load_from_cookies(self, cookies: dict[str, str]) -> None:
         """Populate received_context storage from EAVE_COLLECTOR_COOKIE_PREFIX prefixed cookies"""
         if len(self.merged()) > 0:
-            EAVE_LOGGER.warning("Loaded correlation context from cookies more than once")
+            EAVE_CORE_LOGGER.warning("Loaded correlation context from cookies more than once")
 
         eave_cookies = [(k, v) for k, v in cookies.items() if k.startswith(EAVE_COLLECTOR_COOKIE_PREFIX)]
 
