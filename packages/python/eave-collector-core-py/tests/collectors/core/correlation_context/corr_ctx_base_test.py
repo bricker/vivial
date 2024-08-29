@@ -1,12 +1,16 @@
 import base64
 import hashlib
 import os
+import uuid
+import json
 
 from eave.collectors.core.correlation_context.base import (
     EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME,
     EAVE_COLLECTOR_COOKIE_PREFIX,
     EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX,
     EAVE_COLLECTOR_ENCRYPTED_COOKIE_PREFIX,
+    EAVE_COLLECTOR_SESS_COOKIE_NAME,
+    EAVE_COLLECTOR_VISITOR_COOKIE_NAME,
     BaseCorrelationContext,
     CorrCtxStorage,
     CorrelationContextAttr,
@@ -48,6 +52,8 @@ class CorrelationContextConstantsTest(BaseTestCase):
         assert EAVE_COLLECTOR_ENCRYPTED_COOKIE_PREFIX == "_eave.nc."
         assert EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX == "_eave.nc.act."
         assert EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME == "account_id"
+        assert EAVE_COLLECTOR_SESS_COOKIE_NAME == "session"
+        assert EAVE_COLLECTOR_VISITOR_COOKIE_NAME == "visitor_id"
 
 
 class CorrelationContextStorageTest(BaseTestCase):
@@ -102,32 +108,50 @@ class CorrelationContextStorageTest(BaseTestCase):
         ctx.received["x"] = "y"
         ctx.updated["a"] = "b"
         ctx.updated["c"] = '"v"'
-        assert ctx.updated_values_cookies() == ["a=b", "c=%22v%22"]
+        assert ctx.updated_values_cookies() == ["a=b; SameSite=Lax; Secure; Path=/", "c=%22v%22; SameSite=Lax; Secure; Path=/"]
 
-    async def test_load_from_cookies(self) -> None:
+    async def test_load_from_cookies_with_session_info(self) -> None:
         ctx = CorrCtxStorage()
 
         cookies = {
             "other_cookie": "yummy",
-            f"{EAVE_COLLECTOR_COOKIE_PREFIX}session_id": "ses",
+            f"{EAVE_COLLECTOR_COOKIE_PREFIX}session": "ses",
+            f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": "value",
+        }
+        ctx.load_from_cookies(cookies)
+
+        # non eave cookies should be skipped and provided sess + vis cookies values are honored
+        assert (
+            ctx.to_json()
+            == f'{{"{EAVE_COLLECTOR_COOKIE_PREFIX}session": "ses", "{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": "value"}}'
+        ), "Cookie conversion did not include only the expected cookies"
+
+    async def test_load_from_cookies_without_session_info(self) -> None:
+        ctx = CorrCtxStorage()
+
+        cookies = {
+            "other_cookie": "yummy",
             f"{EAVE_COLLECTOR_COOKIE_PREFIX}key": "value",
         }
         ctx.load_from_cookies(cookies)
 
-        # non eave cookies should be skipped
-        assert (
-            ctx.to_json()
-            == f'{{"{EAVE_COLLECTOR_COOKIE_PREFIX}session_id": "ses", "{EAVE_COLLECTOR_COOKIE_PREFIX}key": "value"}}'
-        ), "Cookie conversion did not include only the expected cookies"
+        # visitor_id and session cookies should be added in addition to the loaded cookies
+        all_ctx_data = ctx.merged()
+        assert len(all_ctx_data) == 3, "Unexpected number of correlation context data"
+        assert f"{EAVE_COLLECTOR_COOKIE_PREFIX}key" in all_ctx_data
+        assert f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id" in all_ctx_data
+        assert f"{EAVE_COLLECTOR_COOKIE_PREFIX}session" in all_ctx_data
 
-        # cookies should join join if existing ctx
-        ctx.load_from_cookies(
-            {f"{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": "123", f"{EAVE_COLLECTOR_COOKIE_PREFIX}key": "new val"}
-        )
-        assert (
-            ctx.to_json()
-            == f'{{"{EAVE_COLLECTOR_COOKIE_PREFIX}session_id": "ses", "{EAVE_COLLECTOR_COOKIE_PREFIX}key": "new val", "{EAVE_COLLECTOR_COOKIE_PREFIX}visitor_id": "123"}}'
-        ), "Context did not join as expected"
+    async def test_load_from_cookies_session_shape(self) -> None:
+        ctx = CorrCtxStorage()
+
+        ctx.load_from_cookies({})
+
+        session = json.loads(str(ctx.get("session")))
+        assert sorted(session.keys()) == ["id", "start_timestamp"]
+        # assert id is a uuid
+        uuid.UUID(session["id"])
+        assert int(session["start_timestamp"]) > 0
 
 
 class _ExampleCorrelationContext(BaseCorrelationContext):
