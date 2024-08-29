@@ -103,7 +103,6 @@ class CorrCtxStorage:
         """
 
         # URL encode the cookie value
-        # TODO: cookie settings? expiration?
         return [f"{key}={_cookify(value)}; SameSite=Lax; Secure; Path=/" for key, value in self.updated.items()]
 
     def load_from_cookies(self, cookies: dict[str, str]) -> None:
