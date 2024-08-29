@@ -1,10 +1,12 @@
 import abc
 import hashlib
 import json
+import time
 import typing
 import urllib.parse
 from base64 import b64encode
 from dataclasses import dataclass
+from uuid import uuid4
 
 from cryptography import fernet
 
@@ -103,8 +105,30 @@ class CorrCtxStorage:
 
     def load_from_cookies(self, cookies: dict[str, str]) -> None:
         """Populate received_context storage from COOKIE_PREFIX prefixed cookies"""
+        eave_cookies = [(k, v) for k, v in cookies.items() if k.startswith(EAVE_COLLECTOR_COOKIE_PREFIX)]
 
-        for cookie_name, value in [(k, v) for k, v in cookies.items() if k.startswith(EAVE_COLLECTOR_COOKIE_PREFIX)]:
+        # make sure all server events have session + visitor_id in context;
+        # create new values for them if necessary to send back to client.
+        sess_cookie_name = "session"
+        visitor_cookie_name = "visitor_id"
+        cookie_names = [cookie_name for cookie_name, _ in eave_cookies]
+        # TODO: make sure these cookie expirations match browser settings? or will brwoer collector fix that for us on setup?
+        if f"{EAVE_COLLECTOR_COOKIE_PREFIX}{sess_cookie_name}" not in cookie_names:
+            self.set(
+                key=sess_cookie_name,
+                value=json.dumps(
+                    {
+                        "id": str(uuid4()),
+                        "start_timestamp": time.time(),
+                    }
+                ),
+                encrypt=False,
+            )
+        if f"{EAVE_COLLECTOR_COOKIE_PREFIX}{visitor_cookie_name}" not in cookie_names:
+            self.set(key=visitor_cookie_name, value=str(uuid4()), encrypt=False)
+
+        # save all eave cookies into ctx
+        for cookie_name, value in eave_cookies:
             # URL decode cookie values
             decoded_value = urllib.parse.unquote(value)
             self.received[cookie_name] = decoded_value
