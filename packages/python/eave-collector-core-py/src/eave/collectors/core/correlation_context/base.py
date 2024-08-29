@@ -1,10 +1,12 @@
 import abc
 import hashlib
 import json
+import time
 import typing
 import urllib.parse
 from base64 import b64encode
 from dataclasses import dataclass
+from uuid import uuid4
 
 from cryptography import fernet
 
@@ -17,6 +19,9 @@ EAVE_COLLECTOR_COOKIE_PREFIX = "_eave."
 EAVE_COLLECTOR_ENCRYPTED_COOKIE_PREFIX = f"{EAVE_COLLECTOR_COOKIE_PREFIX}nc."
 EAVE_COLLECTOR_ENCRYPTED_ACCOUNT_COOKIE_PREFIX = f"{EAVE_COLLECTOR_ENCRYPTED_COOKIE_PREFIX}act."
 EAVE_COLLECTOR_ACCOUNT_ID_ATTR_NAME = "account_id"
+EAVE_COLLECTOR_SESS_COOKIE_NAME = "session"
+EAVE_COLLECTOR_VISITOR_COOKIE_NAME = "visitor_id"
+
 STORAGE_ATTR = "_eave_corr_ctx"
 
 
@@ -98,13 +103,35 @@ class CorrCtxStorage:
         """
 
         # URL encode the cookie value
-        # TODO: cookie settings? expiration?
-        return [f"{key}={_cookify(value)}" for key, value in self.updated.items()]
+        return [f"{key}={_cookify(value)}; SameSite=Lax; Secure; Path=/" for key, value in self.updated.items()]
 
     def load_from_cookies(self, cookies: dict[str, str]) -> None:
-        """Populate received_context storage from COOKIE_PREFIX prefixed cookies"""
+        """Populate received_context storage from EAVE_COLLECTOR_COOKIE_PREFIX prefixed cookies"""
+        if len(self.merged()) > 0:
+            EAVE_LOGGER.warning("Loaded correlation context from cookies more than once")
 
-        for cookie_name, value in [(k, v) for k, v in cookies.items() if k.startswith(EAVE_COLLECTOR_COOKIE_PREFIX)]:
+        eave_cookies = [(k, v) for k, v in cookies.items() if k.startswith(EAVE_COLLECTOR_COOKIE_PREFIX)]
+
+        # make sure all server events have session + visitor_id in context;
+        # create new values for them if necessary to send back to client.
+        cookie_names = [cookie_name for cookie_name, _ in eave_cookies]
+        if f"{EAVE_COLLECTOR_COOKIE_PREFIX}{EAVE_COLLECTOR_SESS_COOKIE_NAME}" not in cookie_names:
+            self.set(
+                key=EAVE_COLLECTOR_SESS_COOKIE_NAME,
+                # NOTE: the shape of this cookie value MUST match the SessionProperties type in the browser-js collector
+                value=json.dumps(
+                    {
+                        "id": str(uuid4()),
+                        "start_timestamp": time.time(),
+                    }
+                ),
+                encrypt=False,
+            )
+        if f"{EAVE_COLLECTOR_COOKIE_PREFIX}{EAVE_COLLECTOR_VISITOR_COOKIE_NAME}" not in cookie_names:
+            self.set(key=EAVE_COLLECTOR_VISITOR_COOKIE_NAME, value=str(uuid4()), encrypt=False)
+
+        # save all eave cookies into ctx
+        for cookie_name, value in eave_cookies:
             # URL decode cookie values
             decoded_value = urllib.parse.unquote(value)
             self.received[cookie_name] = decoded_value
