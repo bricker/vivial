@@ -12,7 +12,7 @@ class AtomCollectorLogRecord:
     msg: str | None
 
     @classmethod
-    def from_api_payload(cls, data: dict[str, Any], *, decryption_key: bytes) -> Self:
+    def from_api_payload(cls, data: dict[str, Any]) -> Self:
         return cls(
             name=data.get("name"),
             level=data.get("level"),

@@ -13,10 +13,7 @@ class AtomCollectorLogsController(BaseAtomController):
     async def insert(self, raw_logs: list[dict[str, Any]], ctx: LogContext) -> None:
         cloud_logger = CloudLogClient().logger("collector_log")
 
-        logs = [
-            AtomCollectorLogRecord.from_api_payload(payload, decryption_key=self._client.decryption_key)
-            for payload in raw_logs
-        ]
+        logs = [AtomCollectorLogRecord.from_api_payload(payload) for payload in raw_logs]
 
         if len(logs) == 0:
             return
