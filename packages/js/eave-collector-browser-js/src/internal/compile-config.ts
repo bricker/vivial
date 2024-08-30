@@ -7,13 +7,13 @@
  */
 
 // prettier-ignore
-const ingestUrlBase = WEBPACK_ENV_INGEST_URL || "https://api.eave.fyi/public/ingest";
-const logUrlPath = WEBPACK_ENV_LOG_URL_PATH || "/logs";
+const ingestUrlBase = WEBPACK_ENV_EAVE_API_BASE_URL || "https://api.eave.fyi/";
+const logUrlPath = "public/ingest/log";
 let u = new URL(ingestUrlBase);
 u.pathname = u.pathname + logUrlPath;
 export const LOG_TRACKER_URL = u.href;
 
-const atomUrlPath = WEBPACK_ENV_ATOM_URL_PATH || "/browser";
+const atomUrlPath = "public/ingest/browser";
 u = new URL(ingestUrlBase);
 u.pathname = u.pathname + atomUrlPath;
 export const ATOM_TRACKER_URL = u.href;
