@@ -9,10 +9,10 @@ class EphemeralWriteQueue(Agent):
     def __init__(self) -> None:
         self.queue = []
 
-    def start_autoflush(self) -> None:
+    def start(self) -> None:
         self._running = True
 
-    def stop_autoflush(self) -> None:
+    def stop(self) -> None:
         self._running = False
 
     def put(self, payload: Batchable) -> None:
