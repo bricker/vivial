@@ -1,10 +1,8 @@
 import logging
 from queue import Queue
-from threading import Thread
 from unittest.mock import MagicMock, patch
 
 from eave.collectors.core.agent import (
-    _FAILSAFE_MAX_FAILURES,
     _QUEUE_CLOSED_SENTINEL,
     EaveAgent,
     QueueParams,

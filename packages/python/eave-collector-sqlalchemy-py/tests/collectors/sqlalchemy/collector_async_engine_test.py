@@ -1,4 +1,5 @@
 import os
+from typing import cast
 import unittest.mock
 import uuid
 from datetime import datetime
@@ -15,7 +16,7 @@ from eave.collectors.core.correlation_context.base import (
     CorrelationContextAttr,
     corr_ctx_symmetric_encryption_key,
 )
-from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
+from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation, EventPayload
 from eave.collectors.core.json import JsonScalar
 from eave.collectors.core.test_util import EphemeralWriteQueue
 from eave.collectors.sqlalchemy.private.collector import SQLAlchemyCollector
@@ -245,7 +246,7 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
             session.add(account)
 
         assert len(self._write_queue.queue) == 1
-        e = self._write_queue.queue[0]
+        e = cast(EventPayload, self._write_queue.queue[0])
         assert self._encrypted_attr_was_set(
             attr_name="account_id", expected_value=str(account.id), event_corr_ctx=e.corr_ctx
         )
@@ -258,7 +259,7 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
             session.add(orm)
 
         assert len(self._write_queue.queue) == 1
-        e = self._write_queue.queue[0]
+        e = cast(EventPayload, self._write_queue.queue[0])
         assert not self._encrypted_attr_was_set(attr_name="account_id", event_corr_ctx=e.corr_ctx)
 
     async def test_multi_condition_select_from_account_table(self) -> None:
@@ -331,7 +332,7 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
             session.add(team)
 
         assert len(self._write_queue.queue) == 1
-        e = self._write_queue.queue[0]
+        e = cast(EventPayload, self._write_queue.queue[0])
         # no context data should be written yet
         assert e.corr_ctx == {}
 
