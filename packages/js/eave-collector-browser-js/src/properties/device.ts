@@ -1,3 +1,4 @@
+import { UAParser } from "@ua-parser-js/pro-business";
 import { DeviceProperties } from "../types";
 
 export async function getUserAgentProperties(): Promise<DeviceProperties> {
@@ -15,6 +16,30 @@ export async function getUserAgentProperties(): Promise<DeviceProperties> {
   // Additionally, it is only available in secure contexts (https) in any browser.
   const userAgentData = navigator.userAgentData;
   if (!userAgentData) {
+    // fallback to UAParser.js (pro license)
+    const parsedUA = new UAParser(navigator.userAgent);
+    const browser = parsedUA.getBrowser();
+    if (browser.name && browser.version) {
+      deviceProperties.brands = [
+        {
+          brand: browser.name,
+          version: browser.version,
+        },
+      ];
+    }
+    if (parsedUA.getOS().name) {
+      deviceProperties.platform = parsedUA.getOS().name;
+    }
+    if (parsedUA.getOS().version) {
+      deviceProperties.platform_version = parsedUA.getOS().version;
+    }
+    // assume if a form-factor is specified then device is not a PC
+    const deviceFormFactor = parsedUA.getDevice().type;
+    if (deviceFormFactor) {
+      deviceProperties.mobile = ["mobile", "tablet", "wearable"].includes(deviceFormFactor);
+      deviceProperties.form_factor = deviceFormFactor.toLowerCase();
+      deviceProperties.model = parsedUA.getDevice().model;
+    }
     return deviceProperties;
   }
 
@@ -45,7 +70,7 @@ export async function getUserAgentProperties(): Promise<DeviceProperties> {
     }
 
     if (formFactor) {
-      deviceProperties.form_factor = formFactor;
+      deviceProperties.form_factor = formFactor.toLowerCase();
     }
 
     if (model) {
