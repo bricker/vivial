@@ -11,6 +11,9 @@ export async function getUserAgentProperties(): Promise<DeviceProperties> {
     screen_avail_height: screen.availHeight,
   };
 
+  // assume this is false unless UA data tells us otherwise
+  deviceProperties.mobile = false;
+
   // @ts-ignore: navigator.userAgentData does not have wide support.
   // It's not available in ES2015 (our target), but in case it _is_ available we should use it.
   // Additionally, it is only available in secure contexts (https) in any browser.
