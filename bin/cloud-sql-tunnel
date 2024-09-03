@@ -10,7 +10,6 @@ function main () (
 	gcloud compute instances start cloudsql-bastion-core-api
 
 	set +e
-	gcloud compute start-iap-tunnel cloudsql-bastion-core-api 5432 --local-host-port=localhost:5430
 
 	while test $? -gt 0 && $_tries -lt 5; do
 		$_tries++
