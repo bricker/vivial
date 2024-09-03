@@ -1,4 +1,4 @@
-output "gsa_ref" {
+output "gsa_account_id" {
   value = google_service_account.app_service_account.account_id
 }
 

@@ -1,4 +1,5 @@
 from typing import cast
+from urllib.parse import urlencode, urlparse
 
 import google.oauth2.credentials
 import google.oauth2.id_token
@@ -8,12 +9,13 @@ from starlette.responses import RedirectResponse, Response
 
 import eave.core.internal.oauth.google
 from eave.core.internal.oauth import state_cookies as oauth_cookies
+from eave.stdlib.api_util import set_redirect
 from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.exceptions import MissingOAuthCredentialsError
 from eave.stdlib.http_endpoint import HTTPEndpoint
-from eave.stdlib.logging import LogContext
+from eave.stdlib.logging import LogContext, eaveLogger
 
-from . import base, shared
+from . import EaveSignUpErrorCode, base, shared
 
 _AUTH_PROVIDER = AuthProvider.google
 
@@ -52,6 +54,14 @@ class GoogleOAuthCallback(base.BaseOAuthCallback):
             raise MissingOAuthCredentialsError("google oauth2 credentials")
 
         google_token = eave.core.internal.oauth.google.decode_id_token(id_token=credentials.id_token)
+
+        if not self.is_work_email(email=google_token.email):
+            eaveLogger.debug("Attempted to sign up with a non-work email")
+            error_params = {"error": EaveSignUpErrorCode.invalid_email}
+            parsed = urlparse(shared.SIGNUP_REDIRECT_LOCATION)._replace(query=urlencode(error_params))
+            set_redirect(response=self.response, location=parsed.geturl())
+            return self.response
+
         eave_team_name = f"{google_token.given_name}'s Team" if google_token.given_name else shared.DEFAULT_TEAM_NAME
 
         await shared.get_or_create_eave_account(

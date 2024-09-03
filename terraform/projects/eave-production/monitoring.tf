@@ -5,30 +5,40 @@ module "monitoring" {
     {
       service  = "dashboard"
       name     = "Eave Dashboard uptime check"
+      severity = "CRITICAL"
       host     = "dashboard.${local.root_domain}"
       path     = "/status"
-      severity = "CRITICAL"
+      matches_json_path = {
+        content   = "OK"
+        json_path = "$.status"
+      }
     },
     {
       service  = "core-api"
       name     = "Eave Core API uptime check"
+      severity = "CRITICAL"
       host     = "api.${local.root_domain}"
       path     = "/status"
-      severity = "CRITICAL"
+      matches_json_path = {
+        content   = "OK"
+        json_path = "$.status"
+      }
     },
     {
-      service  = "cdn"
-      name     = "Eave CDN uptime check"
-      host     = "cdn.${local.root_domain}"
-      path     = "/collector.js"
-      severity = "CRITICAL"
+      service         = "cdn"
+      name            = "Eave CDN uptime check"
+      severity        = "CRITICAL"
+      host            = "cdn.${local.root_domain}"
+      path            = "/collector.js"
+      contains_string = "EAVE_CLIENT_ID" # Seems reasonably reliable
     },
     {
-      service  = "marketing"
-      name     = "Eave Marketing Website uptime check"
-      host     = "www.${local.root_domain}"
-      path     = "/"
-      severity = "CRITICAL"
+      service         = "marketing"
+      name            = "Eave Marketing Website uptime check"
+      severity        = "CRITICAL"
+      host            = "www.${local.root_domain}"
+      path            = "/"
+      contains_string = "Eave" // :shrug: probably not great
     },
   ]
 }

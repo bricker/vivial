@@ -18,6 +18,11 @@ resource "kubernetes_manifest" "backend_policy" {
           }
           clientID = var.iap_oauth_client_id
         } : null
+
+        logging = {
+          enabled    = true
+          sampleRate = 1000000 # 100% sample rate
+        }
       }
 
       targetRef = {

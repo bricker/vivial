@@ -22,6 +22,7 @@ resource "google_project_service" "services" {
     "logging.googleapis.com",             # Cloud Logging API
     "monitoring.googleapis.com",          # Cloud Monitoring API
     "networkconnectivity.googleapis.com", # Network Connectivity API
+    "networkmanagement.googleapis.com",   # Network Management API
     "pubsub.googleapis.com",              # Cloud Pub/Sub API
     "secretmanager.googleapis.com",       # Secret Manager API
     "servicenetworking.googleapis.com",   # Service Networking API

@@ -17,3 +17,7 @@ variable "certificate_map_name" {
 variable "ssl_policy_name" {
   type = string
 }
+
+variable "usage_logs_bucket_name" {
+  type = string
+}

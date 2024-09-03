@@ -24,3 +24,7 @@ output "certificate_map_name" {
 output "private_ip_range_name" {
   value = google_compute_global_address.private_ip_range.name
 }
+
+output "usage_logs_bucket_name" {
+  value = google_storage_bucket.usage_logs.name
+}
