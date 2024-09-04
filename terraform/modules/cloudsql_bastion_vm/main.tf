@@ -36,7 +36,6 @@ resource "google_compute_instance" "bastion" {
       set -e
       sudo apt-get update
 
-      %{ if var.cloudsql_instance_name != null }
       sudo apt install postgresql-client
       sudo apt-get install wget
       wget https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.8.2/cloud-sql-proxy.linux.amd64 -O cloud-sql-proxy
@@ -48,7 +47,6 @@ resource "google_compute_instance" "bastion" {
         --address 0.0.0.0 \
         --port 5432 \
         ${data.google_sql_database_instance.given.connection_name}
-      %{ endif }
     EOT
   }
   boot_disk {

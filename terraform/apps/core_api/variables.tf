@@ -72,3 +72,7 @@ variable "impersonator_role_name" {
 variable "compute_vm_accessor_role_name" {
   type=string
 }
+
+variable "bastion_accessors" {
+  type=list(string)
+}

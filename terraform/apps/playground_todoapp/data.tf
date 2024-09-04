@@ -24,11 +24,3 @@ data "google_sql_database_instance" "given" {
 data "google_service_account" "app_service_account" {
   account_id = module.service_accounts.gsa_account_id
 }
-
-data "google_service_account" "cloudsql_bastion_service_account" {
-  account_id = module.cloudsql_bastion.service_account_id
-}
-
-data "google_iam_role" "impersonator_role" {
-  name = var.impersonator_role_name
-}

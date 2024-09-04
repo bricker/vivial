@@ -14,10 +14,12 @@ module "core_api_app" {
   certificate_map_name   = module.project_base.certificate_map_name
   kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
+
   impersonator_role_name  = module.project_base.impersonator_role_name
   compute_vm_accessor_role_name = module.project_base.compute_vm_accessor_role_name
   network_name = module.project_base.network_name
   subnetwork_self_link = module.project_base.subnetwork_self_link
+  bastion_accessors = ["group:developers@eave.fyi"]
 
   LOG_LEVEL        = "DEBUG"
   release_version  = "latest"
@@ -51,10 +53,6 @@ module "playground_todoapp" {
   certificate_map_name   = module.project_base.certificate_map_name
   kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
-  impersonator_role_name  = module.project_base.impersonator_role_name
-  compute_vm_accessor_role_name = module.project_base.compute_vm_accessor_role_name
-  network_name = module.project_base.network_name
-  subnetwork_self_link = module.project_base.subnetwork_self_link
 
   cdn_base_url                      = module.cdn.url
   LOG_LEVEL                         = "DEBUG"

@@ -25,18 +25,7 @@ resource "google_project_iam_binding" "project_app_role_members" {
   members = [ data.google_service_account.app_service_account.member ]
 }
 
-module "cloudsql_bastion" {
-  # Creates the CloudSQL bastion, firewall rule, and IAM bindings
-  source = "../../modules/bastion_vm"
-  name = "bastion-${local.app_name}"
-  app_service_account_id = module.service_accounts.gsa_account_id
-  cloudsql_instance_name = var.cloudsql_instance_name
-  network_name = var.network_name
-  subnetwork_self_link = var.subnetwork_self_link
-  compute_vm_accessor_role_name = var.compute_vm_accessor_role_name
-}
-
-resource "google_service_account_iam_binding" "cloudsql_bastion_app_impersonator" {
+resource "google_service_account_iam_binding" "sa_impersonator_role_members" {
   # Add impersonators to the app service account
   service_account_id = data.google_service_account.app_service_account.id
   role               = data.google_iam_role.impersonator_role.id
