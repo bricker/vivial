@@ -1,4 +1,5 @@
 import aiohttp.hdrs
+from eave.stdlib.core_api.operations.data_collector_config import GetMyDataCollectorConfigRequest
 import starlette.applications
 import starlette.endpoints
 from asgiref.typing import ASGI3Application
@@ -12,6 +13,7 @@ from eave.core.internal.oauth.google import (
     GOOGLE_OAUTH_CALLBACK_PATH,
 )
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
+from eave.core.public.requests import data_collector_config
 from eave.core.public.requests.data_ingestion import BrowserDataIngestionEndpoint, ServerDataIngestionEndpoint
 from eave.core.public.requests.metabase_proxy import MetabaseAuthEndpoint, MetabaseProxyEndpoint, MetabaseProxyRouter
 from eave.stdlib import cache, logging
@@ -310,6 +312,10 @@ routes = [
     make_route(
         config=GetMyClientCredentialsRequest.config,
         endpoint=client_credentials.GetMyClientCredentialsEndpoint,
+    ),
+    make_route(
+        config=GetMyDataCollectorConfigRequest.config,
+        endpoint=data_collector_config.GetMyDataCollectorConfigEndpoint,
     ),
 ]
 
