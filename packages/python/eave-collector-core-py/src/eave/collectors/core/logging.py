@@ -47,7 +47,7 @@ if config.is_development():
 
 def eave_logger_factory(pkg_name: str) -> logging.Logger:
     """
-    Build a logger for use in a Eave atom collector
+    Build a logger for use in an Eave atom collector
     """
     # create a child collector of _EAVE_LOGGER to include collector
     # package name in the logger name
@@ -60,4 +60,4 @@ def eave_logger_factory(pkg_name: str) -> logging.Logger:
     return logger
 
 
-EAVE_CORE_LOGGER = eave_logger_factory("collector-core-py")
+EAVE_CORE_LOGGER = eave_logger_factory("eave-collector-core-py")

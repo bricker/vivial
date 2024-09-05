@@ -19,14 +19,13 @@ class EaveLogger {
   }
 
   #strjoin(args: any[]) {
-    const builder: string[] = [];
-    for (let i = 0; i < args.length; i++) {
-      if (typeof args[i] === "string") {
-        builder.push(args[i]);
+    const builder: string[] = args.map((arg) => {
+      if (typeof arg === "string") {
+        return arg;
       } else {
-        builder.push(JSON.stringify(args[i]));
+        return JSON.stringify(arg);
       }
-    }
+    });
     return builder.join(" ");
   }
 
@@ -34,13 +33,13 @@ class EaveLogger {
     if (MODE !== "production") {
       console.debug(this.tag, ...args);
     }
-    this.#send([
-      {
-        name: this.tag,
-        level: "DEBUG",
-        msg: this.#strjoin(args),
-      },
-    ]);
+    // this.#send([
+    //   {
+    //     name: this.tag,
+    //     level: "DEBUG",
+    //     msg: this.#strjoin(args),
+    //   },
+    // ]);
   }
 
   info(...args: any[]) {
