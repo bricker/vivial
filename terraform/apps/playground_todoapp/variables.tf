@@ -37,12 +37,10 @@ variable "release_version" {
   type = string
 }
 
-
 variable "LOG_LEVEL" {
   type    = string
   default = "debug"
 }
-
 
 variable "EAVE_CREDENTIALS" {
   type = object({

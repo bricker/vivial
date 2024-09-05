@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "$EAVE_HOME"/develop/functions.bash
+
+function main() (
+	local _tries=0
+
+	gcloud compute instances start cloudsql-bastion-core-api
+
+	set +e
+
+	while test $? -gt 0 && $_tries -lt 5; do
+		$_tries++
+		gcloud compute start-iap-tunnel cloudsql-bastion-core-api 5432 --local-host-port=localhost:5430
+	done
+
+	set -e
+)
+
+main "$@"

@@ -5,7 +5,6 @@ asyncpg
 slack-sdk
 aiohttp
 google-cloud-logging==3.11.0
-google-cloud-runtimeconfig # See https://github.com/googleapis/python-runtimeconfig/pull/184
 google-auth
 google-auth-httplib2
 google-auth-oauthlib
