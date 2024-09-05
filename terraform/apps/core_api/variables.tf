@@ -66,13 +66,13 @@ variable "EAVE_CREDENTIALS" {
 }
 
 variable "impersonator_role_name" {
-  type=string
+  type = string
 }
 
 variable "compute_vm_accessor_role_name" {
-  type=string
+  type = string
 }
 
 variable "bastion_accessors" {
-  type=list(string)
+  type = list(string)
 }

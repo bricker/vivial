@@ -1,19 +1,19 @@
 resource "google_service_account" "thoropass_integration_sa_prod" {
-  project = data.google_project.default.project_id
+  project      = data.google_project.default.project_id
   account_id   = "thoropass-integration"
   display_name = "Thoropass Integration (Production)"
   description  = "Used by Thoropass for GCP integration"
 }
 
 resource "google_service_account" "thoropass_integration_sa_stg" {
-  project = data.google_project.staging.project_id
+  project      = data.google_project.staging.project_id
   account_id   = "thoropass-integration"
   display_name = "Thoropass Integration (Staging)"
   description  = "Used by Thoropass for GCP integration"
 }
 
 resource "google_organization_iam_custom_role" "thoropass_role" {
-  org_id = local.org_id
+  org_id      = local.org_id
   role_id     = "eave.thoropass"
   title       = "Thoropass"
   description = "Permissions needed by Thoropass for GCP integration"
@@ -55,8 +55,8 @@ resource "google_organization_iam_custom_role" "thoropass_role" {
 }
 
 resource "google_organization_iam_binding" "org_thoropass_access" {
-  org_id  = local.org_id
-  role    = google_organization_iam_custom_role.thoropass_role.id
+  org_id = local.org_id
+  role   = google_organization_iam_custom_role.thoropass_role.id
 
   members = [
     google_service_account.thoropass_integration_sa_stg.member,

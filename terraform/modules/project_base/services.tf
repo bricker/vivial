@@ -1,39 +1,39 @@
 resource "google_project_service" "services" {
   for_each = toset([
-    "admin.googleapis.com",                 # Admin SDK API (Google Workspace), used by Thoropass
-    "aiplatform.googleapis.com",            # Vertex AI API
-    "artifactregistry.googleapis.com",      # Artifact Registry API
-    "bigquery.googleapis.com",              # BigQuery API
-    "bigtableadmin.googleapis.com",         # Bigtable Admin API, used by Thoropass
-    "certificatemanager.googleapis.com",    # Certificate Manager API
-    "cloudaicompanion.googleapis.com",      # Gemini
-    "cloudbuild.googleapis.com",            # Cloud Build API
-    "cloudkms.googleapis.com",              # Cloud Key Management Service (KMS) API
-    "cloudresourcemanager.googleapis.com",  # Cloud Resource Manager API, used by Thoropass
-    "compute.googleapis.com",               # Compute Engine API
-    "container.googleapis.com",             # Kubernetes Engine API
-    "containersecurity.googleapis.com",     # Container Security API
-    "containerregistry.googleapis.com",     # Container Registry API
-    "dataflow.googleapis.com",              # Dataflow API
-    "datastream.googleapis.com",            # Datastream API
-    "dlp.googleapis.com",                   # Data Loss Prevention
-    "dns.googleapis.com",                   # Cloud DNS API
-    "domains.googleapis.com",               # Cloud Domains API
-    "iam.googleapis.com",                   # Identity and Access Management (IAM) API
-    "iap.googleapis.com",                   # Identity-Aware Proxy API
-    "iamcredentials.googleapis.com",        # IAM Service Account Credentials API
-    "logging.googleapis.com",               # Cloud Logging API
-    "monitoring.googleapis.com",            # Cloud Monitoring API
-    "networkconnectivity.googleapis.com",   # Network Connectivity API
-    "networkmanagement.googleapis.com",     # Network Management API
-    "pubsub.googleapis.com",                # Cloud Pub/Sub API
-    "pubsublite.googleapis.com",            # Pub/Sub Lite API, used by Thoropass
-    "secretmanager.googleapis.com",         # Secret Manager API
-    "servicenetworking.googleapis.com",     # Service Networking API
-    "serviceusage.googleapis.com",          # Service Usage API, used by Thoropass
-    "sourcerepo.googleapis.com",            # Cloud Source Repositories API
-    "sqladmin.googleapis.com",              # Cloud SQL Admin API
-    "storage-api.googleapis.com",           # Google Cloud Storage JSON API
+    "admin.googleapis.com",                # Admin SDK API (Google Workspace), used by Thoropass
+    "aiplatform.googleapis.com",           # Vertex AI API
+    "artifactregistry.googleapis.com",     # Artifact Registry API
+    "bigquery.googleapis.com",             # BigQuery API
+    "bigtableadmin.googleapis.com",        # Bigtable Admin API, used by Thoropass
+    "certificatemanager.googleapis.com",   # Certificate Manager API
+    "cloudaicompanion.googleapis.com",     # Gemini
+    "cloudbuild.googleapis.com",           # Cloud Build API
+    "cloudkms.googleapis.com",             # Cloud Key Management Service (KMS) API
+    "cloudresourcemanager.googleapis.com", # Cloud Resource Manager API, used by Thoropass
+    "compute.googleapis.com",              # Compute Engine API
+    "container.googleapis.com",            # Kubernetes Engine API
+    "containersecurity.googleapis.com",    # Container Security API
+    "containerregistry.googleapis.com",    # Container Registry API
+    "dataflow.googleapis.com",             # Dataflow API
+    "datastream.googleapis.com",           # Datastream API
+    "dlp.googleapis.com",                  # Data Loss Prevention
+    "dns.googleapis.com",                  # Cloud DNS API
+    "domains.googleapis.com",              # Cloud Domains API
+    "iam.googleapis.com",                  # Identity and Access Management (IAM) API
+    "iap.googleapis.com",                  # Identity-Aware Proxy API
+    "iamcredentials.googleapis.com",       # IAM Service Account Credentials API
+    "logging.googleapis.com",              # Cloud Logging API
+    "monitoring.googleapis.com",           # Cloud Monitoring API
+    "networkconnectivity.googleapis.com",  # Network Connectivity API
+    "networkmanagement.googleapis.com",    # Network Management API
+    "pubsub.googleapis.com",               # Cloud Pub/Sub API
+    "pubsublite.googleapis.com",           # Pub/Sub Lite API, used by Thoropass
+    "secretmanager.googleapis.com",        # Secret Manager API
+    "servicenetworking.googleapis.com",    # Service Networking API
+    "serviceusage.googleapis.com",         # Service Usage API, used by Thoropass
+    "sourcerepo.googleapis.com",           # Cloud Source Repositories API
+    "sqladmin.googleapis.com",             # Cloud SQL Admin API
+    "storage-api.googleapis.com",          # Google Cloud Storage JSON API
   ])
 
   service = each.value
