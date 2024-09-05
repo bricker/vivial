@@ -9,6 +9,7 @@ from eave.collectors.core.correlation_context.base import (
 from .base_collector import BaseCollector
 from .correlation_context import CORR_CTX
 
+# TODO: use config values
 user_table_name_patterns = [
     r"users?$",
     r"accounts?$",

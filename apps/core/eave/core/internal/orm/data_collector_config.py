@@ -23,11 +23,33 @@ class DataCollectorConfigOrm(Base):
     # or is relying on one_or_exception enough?
     team_id: Mapped[UUID] = mapped_column(unique=True)
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    # TODO: move default values from collector core
-    id_matchers: Mapped[list[str]] = mapped_column(
-        type_=ARRAY(item_type=String, dimensions=1), default=lambda: ["dummy regex"]
+    primary_key_patterns: Mapped[list[str]] = mapped_column(
+        type_=ARRAY(item_type=String, dimensions=1),
+        default=lambda: [
+            r"^id$",
+            r"^uid$",
+        ],
     )
-    """List of regex matchers used for identifying values we wish to track"""
+    """List of regex matchers used for identifying pk values we wish to track"""
+    foreign_key_patterns: Mapped[list[str]] = mapped_column(
+        type_=ARRAY(item_type=String, dimensions=1),
+        default=lambda: [
+            # We don't want to capture fields that end in "id" but aren't foreign keys, like "kool_aid" or "mermaid".
+            # We therefore make an assumption that anything ending in "id" with SOME delimeter is a foreign key.
+            r".[_-]id$",  # delimeter = {_, -} Only matches when "id" is lower-case.
+            r".I[Dd]$",  # delimeter = capital "I" (eg UserId). This also handles underscores/hyphens when the "I" is capital.
+        ],
+    )
+    """List of regex matchers used for identifying fk values we wish to track"""
+    user_table_name_patterns: Mapped[list[str]] = mapped_column(
+        type_=ARRAY(item_type=String, dimensions=1),
+        default=lambda: [
+            r"users?$",
+            r"accounts?$",
+            r"customers?$",
+        ],
+    )
+    """List of regex matchers used for identifying a users db table we may track keys from"""
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
