@@ -1,4 +1,6 @@
 from asgiref.typing import HTTPScope
+from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.slack import get_authenticated_eave_system_slack_client
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -11,7 +13,7 @@ from eave.stdlib.core_api.operations.onboarding_submissions import (
     GetMyOnboardingSubmissionRequest,
 )
 from eave.stdlib.http_endpoint import HTTPEndpoint
-from eave.stdlib.logging import LogContext
+from eave.stdlib.logging import LOGGER, LogContext
 from eave.stdlib.util import unwrap
 
 
@@ -48,6 +50,31 @@ class CreateMyOnboardingSubmissionEndpoint(HTTPEndpoint):
             )
 
             eave_team_orm.dashboard_access = onboarding_submission.is_qualified()
+
+        try:
+            # TODO: This should happen in a pubsub subscriber for better performance.
+            # Notify #sign-ups Slack channel.
+
+            channel_id = SHARED_CONFIG.eave_slack_signups_channel_id
+            slack_client = get_authenticated_eave_system_slack_client()
+
+            if slack_client and channel_id:
+                slack_response = await slack_client.chat_postMessage(
+                    channel=channel_id,
+                    text="Someone completed onboarding!",
+                )
+
+                await slack_client.chat_postMessage(
+                    channel=channel_id,
+                    thread_ts=slack_response.get("ts"),
+                    text=(
+                        f"Team ID: `{eave_team_orm.id}`\n"
+                        f"Eave Team Name: `{eave_team_orm.name}`\n"
+                        f"```\n{data.onboarding_submission.json()}\n```"
+                    ),
+                )
+        except Exception as e:
+            LOGGER.exception(e, ctx)
 
         return json_response(
             CreateMyOnboardingSubmissionRequest.ResponseBody(
