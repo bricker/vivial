@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+function main () (
+	local project="$1"
+	local itemid="$2"
+	local fieldid="$3"
+
+	cd "$(e.parentpath)/projects/$project"
+
+	if ! test -f ".auto.tfvars"; then
+		echo ".auto.tfvars file not found."
+		exit 1
+	fi
+
+	local data
+	data="$(cat .auto.tfvars)"
+
+	op item edit "$itemid" "$fieldid=$data"
+)
+
+main "$@"

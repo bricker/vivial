@@ -38,8 +38,6 @@ variable "LOG_LEVEL" {
   default = "debug"
 }
 
-
-
 variable "EAVE_CREDENTIALS" {
   type = object({
     SERVER_CREDENTIALS = string,

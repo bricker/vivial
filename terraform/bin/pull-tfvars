@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+function main () (
+	local project="$1"
+	local opid="$2"
+
+	cd "$(e.parentpath)/projects/$project"
+
+	if test -f ".auto.tfvars"; then
+		local backup
+		backup="/tmp/.auto.tfvars.$(date +%s)"
+		mv .auto.tfvars "$backup"
+		echo "Backup moved to $backup"
+	fi
+
+	echo "{{ op://$opid}}" | op inject -o .auto.tfvars
+)
+
+main "$@"

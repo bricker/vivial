@@ -28,3 +28,10 @@ variable "subnetwork_self_link" {
 variable "cluster_name" {
   type = string
 }
+
+variable "docker_repository_ref" {
+  type = object({
+    location      = string
+    repository_id = string
+  })
+}

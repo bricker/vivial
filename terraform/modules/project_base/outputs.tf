@@ -28,3 +28,20 @@ output "private_ip_range_name" {
 output "usage_logs_bucket_name" {
   value = google_storage_bucket.usage_logs.name
 }
+
+output "impersonator_role_name" {
+  value = module.impersonator_role.name
+}
+
+output "cloudsql_user_role_name" {
+  value = module.cloudsql_user_role.name
+}
+
+output "secret_accessor_role_name" {
+  value = module.secret_accessor_role.name
+}
+
+output "compute_vm_accessor_role_name" {
+  value = module.compute_vm_accessor_role.name
+}
+

@@ -70,7 +70,7 @@ function main() (
 
 	statusmsg -a "Rolling out $imagename:$gitsha to $service"
 	if e.confirm; then
-		kubectl -n eave rollout restart deployment/"$service"
+		kubectl --context="$gcloudproject" -n eave rollout restart deployment/"$service"
 	fi
 )
 

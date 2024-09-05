@@ -5,3 +5,7 @@ output "bucket_name" {
 output "domain" {
   value = local.domain
 }
+
+output "url" {
+  value = "https://${local.domain}"
+}
