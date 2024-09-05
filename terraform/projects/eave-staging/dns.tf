@@ -110,9 +110,9 @@ module "dns_zone_run" {
 
   records = [
     {
-      type      = "CNAME"
+      type      = "A"
       subdomain = "*"
-      datas     = ["127.0.0.1"]
+      datas     = ["127.0.0.1"] # It is important that this is an IPv4 address, because our local development setup only guarantees IPv4 binding
     },
 
     # Squarespace Email Forwarding records

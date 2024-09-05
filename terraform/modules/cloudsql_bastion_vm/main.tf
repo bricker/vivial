@@ -73,7 +73,7 @@ resource "google_compute_instance" "bastion" {
     type = "ANY_RESERVATION"
   }
   scheduling {
-    automatic_restart           = true
+    automatic_restart           = false
     instance_termination_action = "STOP"
     min_node_cpus               = 0
     on_host_maintenance         = "TERMINATE"
