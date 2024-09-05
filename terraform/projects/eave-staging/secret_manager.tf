@@ -25,8 +25,8 @@ module "secret_manager_secrets" {
     },
   }
 
-  secret_id               = each.key
-  secret_data             = each.value.data
+  secret_id                 = each.key
+  secret_data               = each.value.data
   secret_accessor_role_name = module.project_base.secret_accessor_role_name
-  accessors               = each.value.accessors
+  accessors                 = each.value.accessors
 }

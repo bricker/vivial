@@ -22,13 +22,13 @@ resource "google_service_account" "bastion_sa" {
 # }
 
 resource "google_compute_instance" "bastion" {
-  name                    = var.name
-  description               = "IAP tunnel for impersonating ${var.target_service_account_id} from local workstations."
-  can_ip_forward            = false
-  deletion_protection       = false
-  desired_status            = "RUNNING"
-  enable_display            = false
-  machine_type              = "e2-micro"
+  name                = var.name
+  description         = "IAP tunnel for impersonating ${var.target_service_account_id} from local workstations."
+  can_ip_forward      = false
+  deletion_protection = false
+  desired_status      = "RUNNING"
+  enable_display      = false
+  machine_type        = "e2-micro"
   metadata = {
     block-project-ssh-keys = "true"
     enable-oslogin-2fa     = "true"
@@ -50,8 +50,8 @@ resource "google_compute_instance" "bastion" {
     EOT
   }
   boot_disk {
-    auto_delete             = true
-    mode                    = "READ_WRITE"
+    auto_delete = true
+    mode        = "READ_WRITE"
     initialize_params {
       enable_confidential_compute = false
       image                       = "https://www.googleapis.com/compute/v1/projects/debian-cloud/global/images/debian-12-bookworm-v20240709"
@@ -65,9 +65,9 @@ resource "google_compute_instance" "bastion" {
     internal_ipv6_prefix_length = 0
     network                     = data.google_compute_network.given.self_link
     # network_ip                  = "10.128.0.14"
-    queue_count                 = 0
-    stack_type                  = "IPV4_ONLY"
-    subnetwork                  = var.subnetwork_self_link
+    queue_count = 0
+    stack_type  = "IPV4_ONLY"
+    subnetwork  = var.subnetwork_self_link
   }
   reservation_affinity {
     type = "ANY_RESERVATION"

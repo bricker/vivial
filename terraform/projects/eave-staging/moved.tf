@@ -25,40 +25,40 @@ moved {
 
 moved {
   from = google_compute_firewall.allow_iap_ingress
-  to = google_compute_firewall.allow_iap_ingress_to_cloudsql_bastion
+  to   = google_compute_firewall.allow_iap_ingress_to_cloudsql_bastion
 }
 
 moved {
   from = module.custom_developer_role.google_project_iam_binding.default
-  to = google_project_iam_binding.project_developer_role_members
+  to   = google_project_iam_binding.project_developer_role_members
 }
 
 moved {
   from = module.custom_everybody_role.google_project_iam_binding.default
-  to = google_project_iam_binding.project_everybody_role_members
+  to   = google_project_iam_binding.project_everybody_role_members
 }
 
 moved {
   from = module.gke_primary.module.custom_gke_node_role.google_project_iam_binding.default
-  to = module.gke_primary.google_project_iam_binding.gke_node_role_binding
+  to   = module.gke_primary.google_project_iam_binding.gke_node_role_binding
 }
 
 moved {
   from = module.gke_primary.google_project_iam_binding.gke_node_role_binding
-  to = module.gke_primary.google_project_iam_binding.gke_node_role_members
+  to   = module.gke_primary.google_project_iam_binding.gke_node_role_members
 }
 
 moved {
   from = module.gke_primary.google_artifact_registry_repository_iam_binding.gke_node_role
-  to = module.gke_primary.google_artifact_registry_repository_iam_binding.docker_repo_gke_node_role_members
+  to   = module.gke_primary.google_artifact_registry_repository_iam_binding.docker_repo_gke_node_role_members
 }
 
 moved {
   from = module.core_api_app.google_service_account_iam_binding.impersonators
-  to = module.core_api_app.google_service_account_iam_binding.sa_impersonator_role_members
+  to   = module.core_api_app.google_service_account_iam_binding.sa_impersonator_role_members
 }
 
 moved {
   from = module.gke_primary.google_project_iam_binding.gke_node_role_members
-  to = module.gke_primary.google_project_iam_binding.project_gke_node_role_members
+  to   = module.gke_primary.google_project_iam_binding.project_gke_node_role_members
 }
