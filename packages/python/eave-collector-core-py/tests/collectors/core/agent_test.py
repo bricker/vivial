@@ -53,16 +53,16 @@ class EaveAgentTest(BaseTestCase):
         )
 
         self.agent.put(payload)
-        self.assertFalse(self.agent._queue.empty())
-        item = self.agent._queue.get()
+        self.assertFalse(self.agent.queue.empty())
+        item = self.agent.queue.get()
         self.assertEqual(item, payload)
 
     def test_put_queue_full(self):
         self.skipTest("Not implemented")
         # If the queue was bounded (it isn't by default), this would test the exception handling.
         with patch("eave.collectors.core.logging._EAVE_ROOT_LOGGER.exception") as mock_exception:
-            self.agent._queue = Queue(maxsize=1)
-            self.agent._queue.put(("dummy_event", {"key": "value"}))
+            self.agent.queue = Queue(maxsize=1)
+            self.agent.queue.put(("dummy_event", {"key": "value"}))
 
             payload = MagicMock(spec=EventPayload)
             payload.event_type = "test_event"
@@ -75,8 +75,8 @@ class EaveAgentTest(BaseTestCase):
         payload = EventPayload(event_id="id", timestamp=0, corr_ctx={})
 
         # Pre-fill the queue with an event
-        self.agent._queue.put(payload)
-        self.agent._queue.put(_QUEUE_CLOSED_SENTINEL)
+        self.agent.queue.put(payload)
+        self.agent.queue.put(_QUEUE_CLOSED_SENTINEL)
 
         with patch("eave.collectors.core.agent.data_handler.atoms.AtomHandler.send_buffer") as mock_send_batch:
             with patch("logging.Logger.info"):
@@ -85,7 +85,7 @@ class EaveAgentTest(BaseTestCase):
 
     def test_worker_failsafe(self):
         # Pre-fill the queue with an event
-        self.agent._queue.put(EventPayload(event_id="id", timestamp=0, corr_ctx={}))
+        self.agent.queue.put(EventPayload(event_id="id", timestamp=0, corr_ctx={}))
 
         # patch send function to mock network error
         with patch(

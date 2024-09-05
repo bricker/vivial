@@ -1,5 +1,4 @@
 import os
-from typing import cast
 import unittest.mock
 import uuid
 from datetime import datetime
@@ -246,7 +245,8 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
             session.add(account)
 
         assert len(self._write_queue.queue) == 1
-        e = cast(EventPayload, self._write_queue.queue[0])
+        e = self._write_queue.queue[0]
+        assert isinstance(e, EventPayload)
         assert self._encrypted_attr_was_set(
             attr_name="account_id", expected_value=str(account.id), event_corr_ctx=e.corr_ctx
         )
@@ -259,7 +259,8 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
             session.add(orm)
 
         assert len(self._write_queue.queue) == 1
-        e = cast(EventPayload, self._write_queue.queue[0])
+        e = self._write_queue.queue[0]
+        assert isinstance(e, EventPayload)
         assert not self._encrypted_attr_was_set(attr_name="account_id", event_corr_ctx=e.corr_ctx)
 
     async def test_multi_condition_select_from_account_table(self) -> None:
@@ -332,7 +333,8 @@ class CollectorTestBase(unittest.IsolatedAsyncioTestCase):
             session.add(team)
 
         assert len(self._write_queue.queue) == 1
-        e = cast(EventPayload, self._write_queue.queue[0])
+        e = self._write_queue.queue[0]
+        assert isinstance(e, EventPayload)
         # no context data should be written yet
         assert e.corr_ctx == {}
 

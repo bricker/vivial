@@ -2,9 +2,8 @@ import abc
 import asyncio
 import atexit
 import logging
-import queue
 import time
-from queue import Empty
+from queue import Empty, Full, Queue
 from threading import Lock, Thread
 
 from eave.collectors.core import config
@@ -48,7 +47,7 @@ class Agent(abc.ABC):
 
 class EaveAgent(Agent):
     _queue_params: QueueParams
-    _queue: queue.Queue
+    queue: Queue
     _lock: Lock
     _thread: Thread | None = None
     _logger: logging.Logger
@@ -57,7 +56,7 @@ class EaveAgent(Agent):
     def __init__(
         self, logger: logging.Logger, data_handler: DataHandler, queue_params: QueueParams | None = None
     ) -> None:
-        self._queue = queue.Queue(maxsize=0)  # Infinite queue size.
+        self.queue = Queue(maxsize=0)  # Infinite queue size.
         self._queue_params = queue_params or QueueParams()
         self._lock = Lock()
         self._logger = logger
@@ -83,14 +82,14 @@ class EaveAgent(Agent):
         assert self._thread is not None
 
         with self._lock:
-            self._queue.put(_QUEUE_CLOSED_SENTINEL, block=False)
+            self.queue.put(_QUEUE_CLOSED_SENTINEL, block=False)
             self._thread.join(timeout=10)
             self._thread = None
 
     def put(self, payload: Batchable) -> None:
         try:
-            self._queue.put(payload, block=False)
-        except queue.Full as e:
+            self.queue.put(payload, block=False)
+        except Full as e:
             # This won't be raised if the max queue size is infinite, but I'm leaving it here
             # in case we decide later to put a max queue size.
             self._logger.exception(e)
@@ -122,8 +121,8 @@ class EaveAgent(Agent):
                 elapsed = time.time() - last_flush
                 timeout = max(0, self._queue_params.flush_frequency_seconds - elapsed)
                 # If the queue has been closed by the controlling process, then don't block, so that the queue is flushed as quickly as possible.
-                payload = self._queue.get(block=(not queue_closed), timeout=timeout)
-                self._queue.task_done()
+                payload = self.queue.get(block=(not queue_closed), timeout=timeout)
+                self.queue.task_done()
 
                 if self._data_handler.validate_data_type(payload):
                     buffer.append(payload)
