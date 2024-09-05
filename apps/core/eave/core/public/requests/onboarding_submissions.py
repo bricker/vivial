@@ -1,6 +1,4 @@
 from asgiref.typing import HTTPScope
-from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.slack import get_authenticated_eave_system_slack_client
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -8,12 +6,14 @@ from eave.core.internal import database
 from eave.core.internal.orm.onboarding_submissions import OnboardingSubmissionOrm
 from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib.api_util import json_response
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.operations.onboarding_submissions import (
     CreateMyOnboardingSubmissionRequest,
     GetMyOnboardingSubmissionRequest,
 )
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.logging import LOGGER, LogContext
+from eave.stdlib.slack import get_authenticated_eave_system_slack_client
 from eave.stdlib.util import unwrap
 
 
