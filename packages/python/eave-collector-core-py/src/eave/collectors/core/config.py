@@ -1,3 +1,4 @@
+import asyncio
 import os
 import uuid
 import aiohttp
@@ -94,13 +95,7 @@ class DataCollectorConfigResponseBody:
     config: DataCollectorConfig
 
 
-_remote_config_cache: DataCollectorConfig | None = None
-
-
-async def get_remote_config() -> DataCollectorConfig:
-    global _remote_config_cache
-    if _remote_config_cache:
-        return _remote_config_cache
+async def _get_remote_config() -> DataCollectorConfig:
     if creds := EaveCredentials.from_env():
         headers = {**creds.to_headers}
     else:
@@ -115,5 +110,7 @@ async def get_remote_config() -> DataCollectorConfig:
         )
         json_resp = await resp.json()
         remote_config = DataCollectorConfigResponseBody(**json_resp)
-        _remote_config_cache = remote_config.config
         return remote_config.config
+
+
+remote_config = asyncio.run(_get_remote_config())

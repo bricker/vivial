@@ -8,16 +8,17 @@ from eave.collectors.core.correlation_context.base import (
 
 from .base_collector import BaseCollector
 from .correlation_context import CORR_CTX
-from . import config
+from .config import remote_config
 
 
-async def is_user_table(table_name: str) -> bool:
-    user_table_name_patterns = (await config.get_remote_config()).user_table_name_patterns
+def is_user_table(table_name: str) -> bool:
     table = table_name.lower()
-    return any(re.search(table_pattern, table, flags=re.IGNORECASE) for table_pattern in user_table_name_patterns)
+    return any(
+        re.search(table_pattern, table, flags=re.IGNORECASE) for table_pattern in remote_config.user_table_name_patterns
+    )
 
 
-async def save_identification_data(table_name: str, column_value_map: dict[str, Any]) -> None:
+def save_identification_data(table_name: str, column_value_map: dict[str, Any]) -> None:
     """
     Given table schema info and values mapped by column, persist data to
     correlation context that relate to user identificiation (primary/foreign keys).
@@ -31,7 +32,6 @@ async def save_identification_data(table_name: str, column_value_map: dict[str, 
             table_name (str): name of database table
             column_value_map (dict[str, str]): mapping from column name to value
     """
-    remote_config = await config.get_remote_config()
     if is_user_table(table_name):
         for key, value in column_value_map.items():
             # casing matters for matching camelCase, so no lower_key
