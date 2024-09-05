@@ -16,6 +16,7 @@ import eave.stdlib.slack
 from eave.core.internal.lib.bq_client import EAVE_INTERNAL_BIGQUERY_CLIENT
 from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
+from eave.core.internal.orm.data_collector_config import DataCollectorConfigOrm
 from eave.core.internal.orm.metabase_instance import MetabaseInstanceOrm, MetabaseInstanceState
 from eave.core.internal.orm.team import TeamOrm, bq_dataset_id
 from eave.stdlib import auth_cookies
@@ -158,6 +159,11 @@ async def create_new_account_and_team(
             session=db_session,
             team_id=eave_team.id,
             state=MetabaseInstanceState.INIT,
+        )
+
+        await DataCollectorConfigOrm.create(
+            session=db_session,
+            team_id=eave_team.id,
         )
 
         eave_account = await AccountOrm.create(
