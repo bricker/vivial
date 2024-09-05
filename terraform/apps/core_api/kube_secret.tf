@@ -1,4 +1,4 @@
-resource "kubernetes_config_map" "app" {
+resource "kubernetes_secret" "app" {
   metadata {
     name      = local.app_name
     namespace = var.kube_namespace_name
@@ -6,10 +6,10 @@ resource "kubernetes_config_map" "app" {
     labels = {
       app = local.app_name
     }
-
   }
 
+  type = "Opaque"
   data = {
-    LOG_LEVEL = var.LOG_LEVEL
+    EAVE_CREDENTIALS = var.EAVE_CREDENTIALS.SERVER_CREDENTIALS
   }
 }
