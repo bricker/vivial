@@ -90,7 +90,7 @@
       "args": [
         "serve",
         "--mode=development",
-        "--env=EAVE_API_BASE_URL=https://api.eave.run:8080/",
+        "--env=EAVE_API_BASE_URL=https://api.eave.run:8080",
       ],
       "console": "integratedTerminal"
     },

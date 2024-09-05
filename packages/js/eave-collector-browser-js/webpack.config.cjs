@@ -21,7 +21,7 @@ require("webpack-dev-server"); // for devServer config typing
  */
 const configFunc = (env, argv) => {
   const mode = argv.mode || "development";
-  const trackerUrl = env.EAVE_API_BASE_URL || "https://api.eave.fyi/";
+  const trackerUrl = env.EAVE_API_BASE_URL || "https://api.eave.fyi";
 
   /** @type webpack.Configuration */
   const config = {
