@@ -11,12 +11,12 @@ from .base_atom_controller import BaseAtomController
 
 class AtomCollectorLogsController(BaseAtomController):
     async def insert(self, raw_logs: list[dict[str, Any]], ctx: LogContext) -> None:
+        if len(raw_logs) == 0:
+            return
+
         cloud_logger = CloudLogClient().logger("collector_log")
 
         logs = [AtomCollectorLogRecord.from_api_payload(payload) for payload in raw_logs]
-
-        if len(logs) == 0:
-            return
 
         for log in logs:
             cloud_logger.log_text(

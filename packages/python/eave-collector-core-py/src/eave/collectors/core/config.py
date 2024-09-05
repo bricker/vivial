@@ -22,7 +22,6 @@ class EaveCredentials:
     def from_env(cls) -> Self | None:
         creds_str = os.getenv("EAVE_CREDENTIALS")
         if not creds_str:
-            # TODO: throw exception instead of ever returning None?
             return None
 
         parts = creds_str.split(":")
