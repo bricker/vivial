@@ -20,8 +20,8 @@ export async function getUserAgentProperties(): Promise<DeviceProperties> {
   const userAgentData = navigator.userAgentData;
   if (!userAgentData) {
     // fallback to UAParser.js (pro license)
-    const parsedUA = new UAParser(navigator.userAgent);
-    const browser = parsedUA.getBrowser();
+    const parsedUA = new UAParser(navigator.userAgent).getResult();
+    const browser = parsedUA.browser;
     if (browser.name && browser.version) {
       deviceProperties.brands = [
         {
@@ -30,18 +30,18 @@ export async function getUserAgentProperties(): Promise<DeviceProperties> {
         },
       ];
     }
-    if (parsedUA.getOS().name) {
-      deviceProperties.platform = parsedUA.getOS().name;
+    if (parsedUA.os.name) {
+      deviceProperties.platform = parsedUA.os.name;
     }
-    if (parsedUA.getOS().version) {
-      deviceProperties.platform_version = parsedUA.getOS().version;
+    if (parsedUA.os.version) {
+      deviceProperties.platform_version = parsedUA.os.version;
     }
     // assume if a form-factor is specified then device is not a PC
-    const deviceFormFactor = parsedUA.getDevice().type;
+    const deviceFormFactor = parsedUA.device.type;
     if (deviceFormFactor) {
       deviceProperties.mobile = ["mobile", "tablet", "wearable"].includes(deviceFormFactor);
       deviceProperties.form_factor = deviceFormFactor.toLowerCase();
-      deviceProperties.model = parsedUA.getDevice().model;
+      deviceProperties.model = parsedUA.device.model;
     }
     return deviceProperties;
   }
