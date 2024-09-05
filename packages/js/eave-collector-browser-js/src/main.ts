@@ -1,4 +1,3 @@
-import { requestManager } from "./beacon";
 import { ConsentChoice, setCookieConsentChoice, setTrackingConsentChoice } from "./consent";
 import { cookiesEventHandler } from "./cookies";
 import {
@@ -13,6 +12,7 @@ import {
 import { logger } from "./internal/logging";
 import { setTrafficSourceCookieIfNecessary } from "./properties/traffic-source";
 import { setOrTouchUserCookies } from "./properties/user";
+import { requestManager } from "./request-manager";
 import { sessionEventHandler, startOrExtendSession } from "./session";
 import { clickEventHandler } from "./triggers/click";
 import { formSubmitEventHandler } from "./triggers/form-submission";

@@ -1,3 +1,4 @@
+import { sendBeaconWithEaveAuth } from "./beacon";
 import { LOG_TRACKER_URL, MODE } from "./compile-config";
 
 type LogPayload = {
@@ -10,38 +11,11 @@ class EaveLogger {
   tag: string;
 
   constructor() {
-    this.tag = "collector-browser-js";
+    this.tag = "eave-collector-browser-js";
   }
 
   #send(logs: LogPayload[]) {
-    try {
-      const json = JSON.stringify({
-        logs,
-      });
-
-      // Important note: The `type` property here should be `application/x-www-form-urlencoded`, because that mimetype is CORS-safelisted as documented here:
-      // https://fetch.spec.whatwg.org/#cors-safelisted-request-header
-      // If set to a non-safe mimetype (eg application/json), sendBeacon will send a pre-flight CORS request (OPTIONS) to the server, and the server is then responsible
-      // for responding with CORS "access-control-allow-*" headers. That's okay, but it adds unnecessary overhead to both the client and the server.
-      const blob = new Blob([json], {
-        type: "application/x-www-form-urlencoded; charset=UTF-8",
-      });
-
-      // @ts-ignore: this is a known global variable implicitly set on the window.
-      const clientId: string | undefined = window.EAVE_CLIENT_ID;
-
-      console.debug("Sending logs", logs);
-
-      const success = navigator.sendBeacon(`${LOG_TRACKER_URL}?clientId=${clientId}`, blob);
-
-      if (!success) {
-        console.warn("Failed to send logs.");
-        return;
-      }
-    } catch (e) {
-      console.error(e);
-      return;
-    }
+    sendBeaconWithEaveAuth({ jsonBody: { logs }, url: LOG_TRACKER_URL });
   }
 
   #strjoin(args: any[]) {
@@ -71,7 +45,7 @@ class EaveLogger {
 
   info(...args: any[]) {
     if (MODE !== "production") {
-      console.log(this.tag, ...args);
+      console.info(this.tag, ...args);
     }
     this.#send([
       {

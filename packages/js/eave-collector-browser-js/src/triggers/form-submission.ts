@@ -1,5 +1,5 @@
-import { requestManager } from "../beacon";
 import { logger } from "../internal/logging";
+import { requestManager } from "../request-manager";
 import { getElementAttributes } from "../util/dom-helpers";
 import { currentTimestampSeconds } from "../util/timestamp";
 import { castEventTargetToHtmlElement } from "../util/type-helpers";

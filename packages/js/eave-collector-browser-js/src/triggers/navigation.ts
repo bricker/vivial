@@ -1,5 +1,5 @@
-import { requestManager } from "../beacon";
 import { logger } from "../internal/logging";
+import { requestManager } from "../request-manager";
 import { currentTimestampSeconds } from "../util/timestamp";
 
 const NAVIGATION_ACTION_NAME = "PAGE_VIEW";
