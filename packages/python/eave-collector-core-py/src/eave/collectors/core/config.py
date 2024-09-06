@@ -84,7 +84,6 @@ def queue_flush_frequency_seconds() -> int:
 # (until pydantic dep is removed or we decide to have collectors depend on it too)
 @dataclass(kw_only=True)
 class DataCollectorConfig:
-    id: uuid.UUID
     user_table_name_patterns: list[str]
     primary_key_patterns: list[str]
     foreign_key_patterns: list[str]
@@ -95,22 +94,47 @@ class DataCollectorConfigResponseBody:
     config: DataCollectorConfig
 
 
-async def _get_remote_config() -> DataCollectorConfig:
-    if creds := EaveCredentials.from_env():
-        headers = {**creds.to_headers}
-    else:
-        headers = None
+# assign the fallback value as the default
+remote_config = DataCollectorConfig(
+    user_table_name_patterns=[
+        r"users?$",
+        r"accounts?$",
+        r"customers?$",
+    ],
+    primary_key_patterns=[
+        r"^id$",
+        r"^uid$",
+    ],
+    foreign_key_patterns=[
+        # We don't want to capture fields that end in "id" but aren't foreign keys, like "kool_aid" or "mermaid".
+        # We therefore make an assumption that anything ending in "id" with SOME delimeter is a foreign key.
+        r".[_-]id$",  # delimeter = {_, -} Only matches when "id" is lower-case.
+        r".I[Dd]$",  # delimeter = capital "I" (eg UserId). This also handles underscores/hyphens when the "I" is capital.
+    ],
+)
 
-    async with aiohttp.ClientSession() as session:
-        resp = await session.request(
-            method="POST",
-            url=f"{eave_api_base_url()}/public/me/collector-configs/query",
-            compress="gzip",
-            headers=headers,
-        )
-        json_resp = await resp.json()
-        remote_config = DataCollectorConfigResponseBody(**json_resp)
-        return remote_config.config
 
+async def init_remote_config() -> None:
+    global remote_config
+    remote_flag = "remote_source"
+    if getattr(remote_config, remote_flag, False):
+        return
+    try:
+        if creds := EaveCredentials.from_env():
+            headers = {**creds.to_headers}
+        else:
+            headers = None
 
-remote_config = asyncio.run(_get_remote_config())
+        async with aiohttp.ClientSession() as session:
+            resp = await session.request(
+                method="POST",
+                url=f"{eave_api_base_url()}/public/me/collector-configs/query",
+                compress="gzip",
+                headers=headers,
+            )
+            json_resp = await resp.json()
+            remote_config = DataCollectorConfigResponseBody(**json_resp).config
+            setattr(remote_config, remote_flag, True)
+    except Exception:
+        # TODO: log failure to fetch config
+        pass

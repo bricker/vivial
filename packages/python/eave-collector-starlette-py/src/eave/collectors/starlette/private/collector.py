@@ -344,7 +344,7 @@ class StarletteCollector(BaseCollector):
     def instrument_app(self, app: applications.Starlette) -> None:
         """instrument specific app instance only"""
         if not is_wrapped(app):
-            self.write_queue.start_autoflush()
+            self.run()
             app.add_middleware(
                 EaveASGIMiddleware,
                 write_queue=self.write_queue,
@@ -358,10 +358,11 @@ class StarletteCollector(BaseCollector):
     def uninstrument_app(self, app: applications.Starlette) -> None:
         app.user_middleware = [x for x in app.user_middleware if x.cls is not EaveASGIMiddleware]
         app.middleware_stack = app.build_middleware_stack()
+        self.terminate()
         untag_wrapped(app)
 
     def instrument(self) -> None:
-        self.write_queue.start_autoflush()
+        self.run()
         self._original_starlette = applications.Starlette
         applications.Starlette = self._wrap_instrumentor()
 
