@@ -1,6 +1,4 @@
-import asyncio
 import os
-import uuid
 import aiohttp
 from dataclasses import dataclass
 from typing import Self, TypedDict
@@ -89,11 +87,6 @@ class DataCollectorConfig:
     foreign_key_patterns: list[str]
 
 
-@dataclass(kw_only=True)
-class DataCollectorConfigResponseBody:
-    config: DataCollectorConfig
-
-
 # assign the fallback value as the default
 remote_config = DataCollectorConfig(
     user_table_name_patterns=[
@@ -133,7 +126,7 @@ async def init_remote_config() -> None:
                 headers=headers,
             )
             json_resp = await resp.json()
-            remote_config = DataCollectorConfigResponseBody(**json_resp).config
+            remote_config = DataCollectorConfig(**json_resp["config"])
             setattr(remote_config, remote_flag, True)
     except Exception:
         # TODO: log failure to fetch config
