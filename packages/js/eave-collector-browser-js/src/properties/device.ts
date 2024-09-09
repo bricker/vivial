@@ -1,5 +1,5 @@
-import { logger } from "../internal/logging";
 import { UAParser } from "@ua-parser-js/pro-business";
+import { logger } from "../internal/logging";
 import { DeviceProperties } from "../types";
 
 export async function getUserAgentProperties(): Promise<DeviceProperties> {
