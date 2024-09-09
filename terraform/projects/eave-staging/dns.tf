@@ -4,7 +4,7 @@ module "dns_zone_base_domain" {
 
   records = [
     {
-      type  = "TXT"
+      type = "TXT"
       datas = [
         "google-site-verification=fW2nsEe34FlVdFO2V0fqZjvw5uaid6Wf7yTG2hiUOz0",
         "\"v=spf1 include:mailgun.org ~all\"", # Squarespace Email Forwarding
@@ -34,7 +34,7 @@ module "dns_zone_pink" {
   root_domain = "eave.pink"
   records = [
     {
-      type  = "TXT"
+      type = "TXT"
       datas = [
         "\"v=spf1 include:mailgun.org ~all\"", # Squarespace Email Forwarding
       ]
@@ -63,7 +63,7 @@ module "dns_zone_red" {
   root_domain = "eave.red"
   records = [
     {
-      type  = "TXT"
+      type = "TXT"
       datas = [
         "\"v=spf1 include:mailgun.org ~all\"", # Squarespace Email Forwarding
       ]
@@ -93,7 +93,7 @@ module "dns_zone_blue" {
   root_domain = "eave.blue"
   records = [
     {
-      type  = "TXT"
+      type = "TXT"
       datas = [
         "\"v=spf1 include:mailgun.org ~all\"", # Squarespace Email Forwarding
       ]
@@ -129,7 +129,7 @@ module "dns_zone_run" {
     },
 
     {
-      type  = "TXT"
+      type = "TXT"
       datas = [
         "\"v=spf1 include:mailgun.org ~all\"" # Squarespace Email Forwarding
       ]

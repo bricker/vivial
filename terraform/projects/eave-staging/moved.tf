@@ -66,7 +66,7 @@ moved {
 
 moved {
   from = module.dns_zone_base_domain.google_dns_record_set.records[0]
-  to = module.dns_zone_base_domain.google_dns_record_set.records["TXT_apex"]
+  to   = module.dns_zone_base_domain.google_dns_record_set.records["TXT_apex"]
 }
 # moved {
 #   from = module.dns_zone_base_domain.google_dns_record_set.records[2]
@@ -74,65 +74,65 @@ moved {
 # }
 moved {
   from = module.dns_zone_base_domain.google_dns_record_set.records[1]
-  to = module.dns_zone_base_domain.google_dns_record_set.records["MX_apex"]
+  to   = module.dns_zone_base_domain.google_dns_record_set.records["MX_apex"]
 }
 
 
 moved {
   from = module.dns_zone_blue.google_dns_record_set.records[1]
-  to = module.dns_zone_blue.google_dns_record_set.records["TXT_apex"]
+  to   = module.dns_zone_blue.google_dns_record_set.records["TXT_apex"]
 }
 moved {
   from = module.dns_zone_blue.google_dns_record_set.records[2]
-  to = module.dns_zone_blue.google_dns_record_set.records["TXT_k1._domainkey"]
+  to   = module.dns_zone_blue.google_dns_record_set.records["TXT_k1._domainkey"]
 }
 moved {
   from = module.dns_zone_blue.google_dns_record_set.records[0]
-  to = module.dns_zone_blue.google_dns_record_set.records["MX_apex"]
+  to   = module.dns_zone_blue.google_dns_record_set.records["MX_apex"]
 }
 
 
 moved {
   from = module.dns_zone_pink.google_dns_record_set.records[1]
-  to = module.dns_zone_pink.google_dns_record_set.records["TXT_apex"]
+  to   = module.dns_zone_pink.google_dns_record_set.records["TXT_apex"]
 }
 moved {
   from = module.dns_zone_pink.google_dns_record_set.records[2]
-  to = module.dns_zone_pink.google_dns_record_set.records["TXT_smtp._domainkey"]
+  to   = module.dns_zone_pink.google_dns_record_set.records["TXT_smtp._domainkey"]
 }
 moved {
   from = module.dns_zone_pink.google_dns_record_set.records[0]
-  to = module.dns_zone_pink.google_dns_record_set.records["MX_apex"]
+  to   = module.dns_zone_pink.google_dns_record_set.records["MX_apex"]
 }
 
 
 moved {
   from = module.dns_zone_red.google_dns_record_set.records[1]
-  to = module.dns_zone_red.google_dns_record_set.records["TXT_apex"]
+  to   = module.dns_zone_red.google_dns_record_set.records["TXT_apex"]
 }
 moved {
   from = module.dns_zone_red.google_dns_record_set.records[2]
-  to = module.dns_zone_red.google_dns_record_set.records["TXT_mailo._domainkey"]
+  to   = module.dns_zone_red.google_dns_record_set.records["TXT_mailo._domainkey"]
 }
 moved {
   from = module.dns_zone_red.google_dns_record_set.records[0]
-  to = module.dns_zone_red.google_dns_record_set.records["MX_apex"]
+  to   = module.dns_zone_red.google_dns_record_set.records["MX_apex"]
 }
 
 
 moved {
   from = module.dns_zone_run.google_dns_record_set.records[0]
-  to = module.dns_zone_run.google_dns_record_set.records["A_*"]
+  to   = module.dns_zone_run.google_dns_record_set.records["A_*"]
 }
 moved {
   from = module.dns_zone_run.google_dns_record_set.records[2]
-  to = module.dns_zone_run.google_dns_record_set.records["TXT_apex"]
+  to   = module.dns_zone_run.google_dns_record_set.records["TXT_apex"]
 }
 moved {
   from = module.dns_zone_run.google_dns_record_set.records[1]
-  to = module.dns_zone_run.google_dns_record_set.records["MX_apex"]
+  to   = module.dns_zone_run.google_dns_record_set.records["MX_apex"]
 }
 moved {
   from = module.dns_zone_run.google_dns_record_set.records[3]
-  to = module.dns_zone_run.google_dns_record_set.records["TXT_smtp._domainkey"]
+  to   = module.dns_zone_run.google_dns_record_set.records["TXT_smtp._domainkey"]
 }
