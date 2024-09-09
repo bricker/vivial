@@ -166,6 +166,15 @@ def make_route(
     if config.auth_required:
         endpoint = AuthASGIMiddleware(app=endpoint)
 
+    if config.qp_or_origin_creds_required:
+        todo
+
+    if config.origin_creds_required:
+        todo
+
+    if config.qp_creds_required:
+        todo
+
     if config.origin_required:
         endpoint = OriginASGIMiddleware(
             app=endpoint,
@@ -218,6 +227,7 @@ routes = [
             auth_required=False,
             origin_required=False,
             is_public=True,
+            header_creds_required=True,
         ),
         endpoint=ServerDataIngestionEndpoint,
     ),
@@ -228,6 +238,7 @@ routes = [
             auth_required=False,
             origin_required=False,
             is_public=True,
+            qp_creds_required=True,
         ),
         endpoint=BrowserDataIngestionEndpoint,
     ),
@@ -238,6 +249,7 @@ routes = [
             auth_required=False,
             origin_required=False,
             is_public=True,
+            qp_or_header_creds_required=True,
         ),
         endpoint=LogDataIngestionEndpoint,
     ),

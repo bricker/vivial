@@ -12,6 +12,9 @@ class CoreApiEndpointConfiguration(EndpointConfiguration):
         method: str,
         auth_required: bool = True,
         origin_required: bool = True,
+        qp_creds_required: bool = False,
+        header_creds_required: bool = False,
+        qp_or_header_creds_required: bool = False,
         is_public: bool = False,
     ) -> None:
         super().__init__(
@@ -21,6 +24,9 @@ class CoreApiEndpointConfiguration(EndpointConfiguration):
             audience=EaveApp.eave_api,
             auth_required=auth_required,
             origin_required=origin_required,
+            qp_creds_required=qp_creds_required,
+            header_creds_required=header_creds_required,
+            qp_or_header_creds_required=qp_or_header_creds_required,
             is_public=is_public,
         )
 
