@@ -3,8 +3,6 @@ import aiohttp
 from dataclasses import dataclass
 from typing import Self, TypedDict
 
-from eave.collectors.core.logging import EAVE_LOGGER
-
 
 def eave_api_base_url() -> str:
     return os.getenv("EAVE_API_BASE_URL_PUBLIC", "https://api.eave.fyi")
@@ -30,7 +28,6 @@ class EaveCredentials:
         parts = creds_str.split(":")
 
         if len(parts) != 2:
-            EAVE_LOGGER.warning('invalid credentials format. Expected format: "client_id:client_secret"')
             return None
 
         return cls(
@@ -62,6 +59,10 @@ def eave_env() -> str:
 
 def is_development() -> bool:
     return eave_env() == "development"
+
+
+def telemetry_disabled() -> bool:
+    return os.getenv("EAVE_DISABLE_TELEMETRY") is not None
 
 
 def queue_maxsize() -> int:

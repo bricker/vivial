@@ -26,12 +26,13 @@ from starlette import applications
 from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 
+from eave.collectors.core.agent import Agent
 from eave.collectors.core.base_collector import BaseCollector
 from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import HttpServerEventPayload
-from eave.collectors.core.logging import EAVE_LOGGER
 from eave.collectors.core.wrap_util import is_wrapped, tag_wrapped, untag_wrapped
-from eave.collectors.core.write_queue import WriteQueue
+
+from .logging import EAVE_LOGGER
 
 # class ASGIGetter:
 #     def get(self, carrier: dict, key: str) -> list[str] | None:
@@ -181,7 +182,7 @@ class EaveASGIMiddleware:
     def __init__(
         self,
         app: starlette.types.ASGIApp,
-        write_queue: WriteQueue,
+        write_queue: Agent,
     ) -> None:
         self.app = guarantee_single_callable(app)
         self.content_length_header = None
@@ -330,9 +331,11 @@ class EaveASGIMiddleware:
         except UnicodeDecodeError as e:
             # ignore json decoding errors
             EAVE_LOGGER.warning(e)
+            return await self.app(scope, receive, send)
         except Exception as e:
             # Don't prevent the request from going through
             EAVE_LOGGER.exception(e)
+            return await self.app(scope, receive, send)
 
 
 class StarletteCollector(BaseCollector):
@@ -384,7 +387,7 @@ class StarletteCollector(BaseCollector):
 class _InstrumentedStarlette(applications.Starlette):
     _instrumented_starlette_apps = set()  # noqa: RUF012
 
-    def __init__(self, write_queue: WriteQueue, *args, **kwargs) -> None:
+    def __init__(self, write_queue: Agent, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.add_middleware(EaveASGIMiddleware, write_queue=write_queue)
         tag_wrapped(self)

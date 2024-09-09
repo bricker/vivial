@@ -218,7 +218,7 @@ class BaseCorrelationContextTest(BaseTestCase):
         ctx = _ExampleCorrelationContext()
         assert len(ctx.get_updated_values_cookies()) == 0
         ctx.set(prefix="x", key="y", value="z", encrypt=False)
-        assert ctx.get_updated_values_cookies() == ["xy=z"]
+        assert ctx.get_updated_values_cookies() == ["xy=z; SameSite=Lax; Secure; Path=/"]
 
     def test_from_cookies(self) -> None:
         ctx = _ExampleCorrelationContext()

@@ -14,7 +14,11 @@ from eave.core.internal.oauth.google import (
 )
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.core.public.requests import data_collector_config
-from eave.core.public.requests.data_ingestion import BrowserDataIngestionEndpoint, ServerDataIngestionEndpoint
+from eave.core.public.requests.data_ingestion import (
+    BrowserDataIngestionEndpoint,
+    LogDataIngestionEndpoint,
+    ServerDataIngestionEndpoint,
+)
 from eave.core.public.requests.metabase_proxy import MetabaseAuthEndpoint, MetabaseProxyEndpoint, MetabaseProxyRouter
 from eave.stdlib import cache, logging
 from eave.stdlib.config import SHARED_CONFIG
@@ -226,6 +230,16 @@ routes = [
             is_public=True,
         ),
         endpoint=BrowserDataIngestionEndpoint,
+    ),
+    make_route(
+        config=CoreApiEndpointConfiguration(
+            path="/public/ingest/log",
+            method=aiohttp.hdrs.METH_POST,
+            auth_required=False,
+            origin_required=False,
+            is_public=True,
+        ),
+        endpoint=LogDataIngestionEndpoint,
     ),
     make_route(
         config=CoreApiEndpointConfiguration(

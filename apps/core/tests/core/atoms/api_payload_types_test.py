@@ -456,7 +456,7 @@ class TestAtomApiTypes(BaseTestCase):
             },
             decryption_key=self.anysha256(),
         )
-        assert e.operation is None
+        assert e.operation is DatabaseOperation.UNKNOWN
 
         # invalid decryption key
         e = DatabaseEventPayload.from_api_payload(

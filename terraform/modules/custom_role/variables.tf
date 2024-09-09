@@ -16,8 +16,3 @@ variable "description" {
   nullable = true
   default  = null
 }
-
-variable "members" {
-  type    = list(string)
-  default = []
-}

@@ -12,7 +12,7 @@ from cryptography import fernet
 
 from eave.collectors.core.config import EaveCredentials
 from eave.collectors.core.json import JsonScalar, compact_json
-from eave.collectors.core.logging import EAVE_LOGGER
+from eave.collectors.core.logging import EAVE_CORE_LOGGER
 
 # The cookie prefix MUST match the browser collector
 EAVE_COLLECTOR_COOKIE_PREFIX = "_eave."
@@ -61,7 +61,7 @@ class CorrCtxStorage:
 
         creds = EaveCredentials.from_env()
         if not creds:
-            EAVE_LOGGER.warning("Credentials not set; cannot encrypt. Value was not set.")
+            EAVE_CORE_LOGGER.warning("Credentials not set; cannot encrypt. Value was not set.")
             return None
 
         try:
@@ -69,7 +69,7 @@ class CorrCtxStorage:
             encryption_key = corr_ctx_symmetric_encryption_key(creds.combined)
             encrypted_attr = attr.to_encrypted(encryption_key=encryption_key)
             if encrypted_attr is None:
-                EAVE_LOGGER.warning("Encryption failed; Value was not set.")
+                EAVE_CORE_LOGGER.warning("Encryption failed; Value was not set.")
                 return None
 
             # The purpose of hashing the key is to obfuscate it from the client (browser), to avoid leaking internal
@@ -81,7 +81,7 @@ class CorrCtxStorage:
             final_key = f"{prefix}{hashedkey}"
             self.updated[final_key] = encrypted_attr
         except Exception as e:
-            EAVE_LOGGER.exception(e)
+            EAVE_CORE_LOGGER.exception(e)
             return None
 
     def merged(self) -> dict[str, JsonScalar]:
@@ -108,7 +108,7 @@ class CorrCtxStorage:
     def load_from_cookies(self, cookies: dict[str, str]) -> None:
         """Populate received_context storage from EAVE_COLLECTOR_COOKIE_PREFIX prefixed cookies"""
         if len(self.merged()) > 0:
-            EAVE_LOGGER.warning("Loaded correlation context from cookies more than once")
+            EAVE_CORE_LOGGER.warning("Loaded correlation context from cookies more than once")
 
         eave_cookies = [(k, v) for k, v in cookies.items() if k.startswith(EAVE_COLLECTOR_COOKIE_PREFIX)]
 
@@ -236,7 +236,7 @@ class CorrelationContextAttr:
             decrypted_value = encryptor.decrypt(encrypted_value, ttl=None).decode()
             jvalue = json.loads(decrypted_value)
         except Exception as e:
-            EAVE_LOGGER.exception(e)
+            EAVE_CORE_LOGGER.exception(e)
             return None
 
         if not isinstance(jvalue, dict):
@@ -257,5 +257,5 @@ class CorrelationContextAttr:
             encrypted_value = encryptor.encrypt(bytes(jvalue, "utf-8")).decode()
             return encrypted_value
         except Exception as e:
-            EAVE_LOGGER.exception(e)
+            EAVE_CORE_LOGGER.exception(e)
             return None

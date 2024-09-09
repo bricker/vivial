@@ -16,6 +16,8 @@ from sqlalchemy.event import (
 )
 from sqlalchemy.ext.asyncio import AsyncEngine
 
+from eave.collectors.core.agent import Agent
+from eave.collectors.core.agent.atom_agent import SHARED_BATCHED_ATOM_WRITE_QUEUE
 from eave.collectors.core.base_database_collector import (
     BaseDatabaseCollector,
     is_user_table,
@@ -23,7 +25,7 @@ from eave.collectors.core.base_database_collector import (
 )
 from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
-from eave.collectors.core.write_queue import SHARED_BATCH_WRITE_QUEUE, WriteQueue
+from eave.collectors.sqlalchemy.private.logging import EAVE_LOGGER
 
 type SupportedEngine = sqlalchemy.Engine | AsyncEngine
 
@@ -32,7 +34,7 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
     _event_listeners: list[tuple[weakref.ReferenceType[sqlalchemy.Engine], str, Callable[..., Any]]]
     _db_metadata: sqlalchemy.MetaData | None
 
-    def __init__(self, *, write_queue: WriteQueue = SHARED_BATCH_WRITE_QUEUE) -> None:
+    def __init__(self, *, write_queue: Agent = SHARED_BATCHED_ATOM_WRITE_QUEUE) -> None:
         super().__init__(write_queue=write_queue)
 
         self._event_listeners = []
@@ -113,110 +115,113 @@ class SQLAlchemyCollector(BaseDatabaseCollector):
         execution_options: _ExecuteOptions,
         result: sqlalchemy.Result[Any],
     ) -> None:
-        rparams: list[dict[str, Any]]
+        try:
+            rparams: list[dict[str, Any]]
 
-        # This assumes that multiparams and params are mutually exclusive
-        if len(multiparams) > 0:
-            rparams = multiparams
-        else:
-            rparams = [params]
+            # This assumes that multiparams and params are mutually exclusive
+            if len(multiparams) > 0:
+                rparams = multiparams
+            else:
+                rparams = [params]
 
-        tablename = "__unknown"
+            tablename = "__unknown"
 
-        if isinstance(clauseelement, (sqlalchemy.Select, sqlalchemy.Insert, sqlalchemy.Update, sqlalchemy.Delete)):
-            if isinstance(clauseelement, sqlalchemy.Select):
-                # attempt to get table name from a FromClause
-                # (this doesnt really work for complex select statements w/ joins)
-                from_clause = clauseelement.get_final_froms()
-                if len(from_clause) > 0:
-                    candidate_name = getattr(from_clause[0], "name", None)
-                    if candidate_name is not None:
-                        tablename = candidate_name
-            elif isinstance(clauseelement.table, sqlalchemy.Table):
-                tablename = clauseelement.table.fullname
+            if isinstance(clauseelement, (sqlalchemy.Select, sqlalchemy.Insert, sqlalchemy.Update, sqlalchemy.Delete)):
+                if isinstance(clauseelement, sqlalchemy.Select):
+                    # attempt to get table name from a FromClause
+                    # (this doesnt really work for complex select statements w/ joins)
+                    from_clause = clauseelement.get_final_froms()
+                    if len(from_clause) > 0:
+                        candidate_name = getattr(from_clause[0], "name", None)
+                        if candidate_name is not None:
+                            tablename = candidate_name
+                elif isinstance(clauseelement.table, sqlalchemy.Table):
+                    tablename = clauseelement.table.fullname
 
-            if isinstance(clauseelement, sqlalchemy.Select):
-                for idx, rparam in enumerate(rparams):
-                    compiled_clause = clauseelement.compile()
-                    statement_params = rparam or dict(compiled_clause.params)
+                if isinstance(clauseelement, sqlalchemy.Select):
+                    for idx, rparam in enumerate(rparams):
+                        compiled_clause = clauseelement.compile()
+                        statement_params = rparam or dict(compiled_clause.params)
 
-                    self._save_user_identification_data(tablename, clauseelement, rparam)
+                        self._save_user_identification_data(tablename, clauseelement, rparam)
 
-                    record = DatabaseEventPayload(
-                        event_id=str(uuid4()),
-                        timestamp=time.time(),
-                        operation=DatabaseOperation.SELECT,
-                        db_name=conn.engine.url.database,
-                        statement=compiled_clause.string,
-                        table_name=tablename,
-                        statement_values=statement_params,
-                        corr_ctx=CORR_CTX.to_dict(),
-                    )
+                        record = DatabaseEventPayload(
+                            event_id=str(uuid4()),
+                            timestamp=time.time(),
+                            operation=DatabaseOperation.SELECT,
+                            db_name=conn.engine.url.database,
+                            statement=compiled_clause.string,
+                            table_name=tablename,
+                            statement_values=statement_params,
+                            corr_ctx=CORR_CTX.to_dict(),
+                        )
 
-                    self.write_queue.put(record)
+                        self.write_queue.put(record)
 
-            if isinstance(clauseelement, sqlalchemy.Insert):
-                for idx, rparam in enumerate(rparams):
-                    pk_map_list = None
-                    if isinstance(result, sqlalchemy.CursorResult) and len(result.inserted_primary_key_rows) > idx:
-                        row = result.inserted_primary_key_rows[idx]
-                        # sqlalchemy should put these in the same order in the case of composite pk
-                        pk_names = [col.name for col in clauseelement.table.primary_key]
-                        pk_values = [str(pk) for pk in row._tuple()]  # noqa: SLF001
-                        pk_map_list = tuple(zip(pk_names, pk_values))
+                elif isinstance(clauseelement, sqlalchemy.Insert):
+                    for idx, rparam in enumerate(rparams):
+                        pk_map_list = None
+                        if isinstance(result, sqlalchemy.CursorResult) and len(result.inserted_primary_key_rows) > idx:
+                            row = result.inserted_primary_key_rows[idx]
+                            # sqlalchemy should put these in the same order in the case of composite pk
+                            pk_names = [col.name for col in clauseelement.table.primary_key]
+                            pk_values = [str(pk) for pk in row._tuple()]  # noqa: SLF001
+                            pk_map_list = tuple(zip(pk_names, pk_values))
 
-                    if pk_map_list:
-                        # add pk values to rparam's column->value mapping
-                        column_data = rparam.copy()
-                        column_data.update(dict(pk_map_list))
-                        save_identification_data(table_name=tablename, column_value_map=column_data)
+                        if pk_map_list:
+                            # add pk values to rparam's column->value mapping
+                            column_data = rparam.copy()
+                            column_data.update(dict(pk_map_list))
+                            save_identification_data(table_name=tablename, column_value_map=column_data)
 
-                    rparam["__primary_keys"] = pk_map_list
+                        rparam["__primary_keys"] = pk_map_list
 
-                    record = DatabaseEventPayload(
-                        event_id=str(uuid4()),
-                        timestamp=time.time(),
-                        operation=DatabaseOperation.INSERT,
-                        db_name=conn.engine.url.database,
-                        statement=clauseelement.compile().string,
-                        table_name=tablename,
-                        statement_values=rparam,
-                        corr_ctx=CORR_CTX.to_dict(),
-                    )
+                        record = DatabaseEventPayload(
+                            event_id=str(uuid4()),
+                            timestamp=time.time(),
+                            operation=DatabaseOperation.INSERT,
+                            db_name=conn.engine.url.database,
+                            statement=clauseelement.compile().string,
+                            table_name=tablename,
+                            statement_values=rparam,
+                            corr_ctx=CORR_CTX.to_dict(),
+                        )
 
-                    self.write_queue.put(record)
+                        self.write_queue.put(record)
 
-            elif isinstance(clauseelement, sqlalchemy.Update):
-                for idx, rparam in enumerate(rparams):
-                    self._save_user_identification_data(tablename, clauseelement, rparam)
+                elif isinstance(clauseelement, sqlalchemy.Update):
+                    for idx, rparam in enumerate(rparams):
+                        self._save_user_identification_data(tablename, clauseelement, rparam)
 
-                    record = DatabaseEventPayload(
-                        event_id=str(uuid4()),
-                        timestamp=time.time(),
-                        operation=DatabaseOperation.UPDATE,
-                        db_name=conn.engine.url.database,
-                        statement=clauseelement.compile().string,
-                        table_name=tablename,
-                        statement_values=rparam,
-                        corr_ctx=CORR_CTX.to_dict(),
-                    )
+                        record = DatabaseEventPayload(
+                            event_id=str(uuid4()),
+                            timestamp=time.time(),
+                            operation=DatabaseOperation.UPDATE,
+                            db_name=conn.engine.url.database,
+                            statement=clauseelement.compile().string,
+                            table_name=tablename,
+                            statement_values=rparam,
+                            corr_ctx=CORR_CTX.to_dict(),
+                        )
 
-                    self.write_queue.put(record)
+                        self.write_queue.put(record)
 
-            elif isinstance(clauseelement, sqlalchemy.Delete):
-                for idx, rparam in enumerate(rparams):
-                    record = DatabaseEventPayload(
-                        event_id=str(uuid4()),
-                        timestamp=time.time(),
-                        operation=DatabaseOperation.DELETE,
-                        db_name=conn.engine.url.database,
-                        statement=clauseelement.compile().string,
-                        table_name=tablename,
-                        statement_values=rparam,
-                        corr_ctx=CORR_CTX.to_dict(),
-                    )
+                elif isinstance(clauseelement, sqlalchemy.Delete):
+                    for idx, rparam in enumerate(rparams):
+                        record = DatabaseEventPayload(
+                            event_id=str(uuid4()),
+                            timestamp=time.time(),
+                            operation=DatabaseOperation.DELETE,
+                            db_name=conn.engine.url.database,
+                            statement=clauseelement.compile().string,
+                            table_name=tablename,
+                            statement_values=rparam,
+                            corr_ctx=CORR_CTX.to_dict(),
+                        )
 
-                    self.write_queue.put(record)
+                        self.write_queue.put(record)
+        except Exception as e:
+            EAVE_LOGGER.exception(e)
 
     def _save_user_identification_data(
         self, tablename: str, clauseelement: sqlalchemy.Select | sqlalchemy.Update, params: dict[str, Any]

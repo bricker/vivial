@@ -1,25 +1,3 @@
-module "service_accounts" {
-  source              = "../../modules/gke_app_service_account"
-  kube_service_name   = module.kubernetes_service.name
-  kube_namespace_name = var.kube_namespace_name
-}
-
-# Create custom role
-module "app_iam_role" {
-  source      = "../../modules/custom_role"
-  role_id     = "eave.playgroundQuizApp"
-  title       = "Eave Playground Quiz App"
-  description = "Permissions needed by the Playground Quiz App"
-  base_roles = [
-    "roles/logging.logWriter",
-    "roles/secretmanager.secretAccessor",
-  ]
-
-  members = [
-    "serviceAccount:${data.google_service_account.gke_gsa.email}"
-  ]
-}
-
 resource "google_compute_global_address" "default" {
   name         = local.app_name
   address_type = "EXTERNAL"
