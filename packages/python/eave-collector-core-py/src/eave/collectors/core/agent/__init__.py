@@ -98,6 +98,7 @@ class EaveAgent(Agent):
 
     def _worker_event_loop(self, *args, **kwargs) -> None:
         try:
+            asyncio.run(config.init_remote_config())
             asyncio.run(self._worker(*args, **kwargs))
         except KeyboardInterrupt:
             pass

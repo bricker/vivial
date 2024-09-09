@@ -3,6 +3,8 @@ import aiohttp
 from dataclasses import dataclass
 from typing import Self, TypedDict
 
+from eave.collectors.core.logging import EAVE_CORE_LOGGER
+
 
 def eave_api_base_url() -> str:
     return os.getenv("EAVE_API_BASE_URL_PUBLIC", "https://api.eave.fyi")
@@ -129,6 +131,5 @@ async def init_remote_config() -> None:
             json_resp = await resp.json()
             remote_config = DataCollectorConfig(**json_resp["config"])
             setattr(remote_config, remote_flag, True)
-    except Exception:
-        # TODO: log failure to fetch config
-        pass
+    except Exception as e:
+        EAVE_CORE_LOGGER.error("Failed to fetch Eave remote config; using fallback config", extra={"error": e})
