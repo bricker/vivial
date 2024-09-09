@@ -197,6 +197,7 @@ async def create_new_account_and_team(
                 text=(
                     f"Email: `{user_email}`\n"
                     f"Account ID: `{eave_account.id}`\n"
+                    f"Team ID: `{eave_team.id}`\n"
                     f"Eave Team Name: `{eave_team.name}`\n"
                 ),
             )
