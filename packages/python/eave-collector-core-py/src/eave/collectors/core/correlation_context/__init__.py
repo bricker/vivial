@@ -1,6 +1,6 @@
 import inspect
 
-from eave.collectors.core.logging import EAVE_LOGGER
+from eave.collectors.core.logging import EAVE_CORE_LOGGER
 
 from .async_task import AsyncioCorrelationContext as AsyncioCorrelationContext
 from .base import BaseCorrelationContext
@@ -31,10 +31,10 @@ def _correlation_context_factory() -> BaseCorrelationContext:
         "uvicorn" in frame.filename or "daphne" in frame.filename or "hypercorn" in frame.filename for frame in stack
     )
     if is_asyncio:
-        EAVE_LOGGER.debug("Using AsyncioCorrelationContext")
+        EAVE_CORE_LOGGER.debug("Using AsyncioCorrelationContext")
         return AsyncioCorrelationContext()
     else:
-        EAVE_LOGGER.debug("Using ThreadedCorrelationContext")
+        EAVE_CORE_LOGGER.debug("Using ThreadedCorrelationContext")
         return ThreadedCorrelationContext()
 
     # is_threaded = any(

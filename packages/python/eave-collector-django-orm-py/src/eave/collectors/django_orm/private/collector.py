@@ -10,11 +10,12 @@ from uuid import UUID, uuid4
 from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.backends.utils import CursorWrapper
 
+from eave.collectors.core.agent import Agent
+from eave.collectors.core.agent.atom_agent import SHARED_BATCHED_ATOM_WRITE_QUEUE
 from eave.collectors.core.base_collector import BaseCollector
 from eave.collectors.core.correlation_context import CORR_CTX
 from eave.collectors.core.datastructures import DatabaseEventPayload, DatabaseOperation
 from eave.collectors.core.wrap_util import is_wrapped, tag_wrapped, untag_wrapped
-from eave.collectors.core.write_queue import SHARED_BATCH_WRITE_QUEUE, WriteQueue
 
 # Copied from Django
 _Mixed = None | bool | int | float | Decimal | str | bytes | datetime | UUID
@@ -28,7 +29,7 @@ class EaveCursorWrapper(CursorWrapper):
     _leading_comment_remover = re.compile(r"^/\*.*?\*/")
     _white_space_reducer = re.compile(r"\s+")
 
-    def __init__(self, cursor: Any, db: Any, write_queue: WriteQueue = SHARED_BATCH_WRITE_QUEUE) -> None:
+    def __init__(self, cursor: Any, db: Any, write_queue: Agent = SHARED_BATCHED_ATOM_WRITE_QUEUE) -> None:
         super().__init__(cursor, db)
         self.write_queue = write_queue
 

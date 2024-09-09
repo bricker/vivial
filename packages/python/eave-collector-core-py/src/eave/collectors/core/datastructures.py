@@ -1,10 +1,9 @@
 import dataclasses
+import logging
 from abc import ABC
 from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any, ClassVar, Self
-
-from eave.collectors.core.logging import EAVE_LOGGER
 
 from .json import JsonObject, JsonScalar, JsonValue, compact_json
 
@@ -17,12 +16,11 @@ class DatabaseOperation(StrEnum):
     UNKNOWN = "UNKNOWN"
 
     @classmethod
-    def from_str(cls, s: str) -> Self | None:
+    def from_str(cls, s: str) -> Self:
         try:
             return cls.__call__(value=s.upper())
-        except ValueError as e:
-            EAVE_LOGGER.warning(e)
-            return None
+        except ValueError:
+            return cls(value=cls.UNKNOWN)
 
 
 class EventType(StrEnum):
@@ -39,18 +37,43 @@ class StackFrame:
     function: str | None
 
 
-@dataclass(kw_only=True)
-class EventPayload(ABC):
-    event_type: ClassVar[EventType]
-    event_id: str | None
-    timestamp: float | None
-    corr_ctx: dict[str, JsonScalar] | None
-
+@dataclass
+class Batchable(ABC):
     def to_dict(self) -> JsonObject:
         return dataclasses.asdict(self)
 
     def to_json(self) -> str:
         return compact_json(self.to_dict())
+
+
+@dataclass(kw_only=True)
+class LogPayload(Batchable):
+    name: str
+    """Name of the collector that created the log"""
+    level: str
+    pathname: str
+    line_number: int
+    msg: str
+
+    @classmethod
+    def from_record(cls, log: logging.LogRecord) -> Self:
+        return cls(
+            # rely on eave logger builder to have added the package name to the logger name.
+            # split the eave base logger name off the front, assuming package name is the rest
+            name=".".join(log.name.split(".")[1:]),
+            level=log.levelname,
+            pathname=log.pathname,
+            line_number=log.lineno,
+            msg=log.getMessage(),
+        )
+
+
+@dataclass(kw_only=True)
+class EventPayload(Batchable, ABC):
+    event_type: ClassVar[EventType]
+    event_id: str | None
+    timestamp: float | None
+    corr_ctx: dict[str, JsonScalar] | None
 
 
 @dataclass(kw_only=True)
@@ -121,6 +144,23 @@ class DataIngestRequestBody:
     def from_json(cls, data: dict[str, Any]) -> Self:
         return cls(
             events=data["events"],
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return dataclasses.asdict(self)
+
+    def to_json(self) -> str:
+        return compact_json(self.to_dict())
+
+
+@dataclass
+class LogIngestRequestBody:
+    logs: list[JsonObject]
+
+    @classmethod
+    def from_json(cls, data: dict[str, Any]) -> Self:
+        return cls(
+            logs=data["logs"],
         )
 
     def to_dict(self) -> dict[str, Any]:
