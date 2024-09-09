@@ -40,7 +40,7 @@ class EaveAgentTest(BaseTestCase):
         self.agent.start()
         self.assertTrue(self.agent.is_alive())
 
-        with patch.object(self.agent._thread, "join") as mock_join:
+        with patch.object(self.agent._thread, "join") as mock_join:  # noqa: SLF001
             self.agent.stop()
             self.assertFalse(self.agent.is_alive())
             mock_join.assert_called_once_with(timeout=10)
@@ -80,7 +80,7 @@ class EaveAgentTest(BaseTestCase):
 
         with patch("eave.collectors.core.agent.data_handler.atoms.AtomHandler.send_buffer") as mock_send_batch:
             with patch("logging.Logger.info"):
-                self.agent._worker_event_loop()
+                self.agent._worker_event_loop()  # noqa: SLF001
                 mock_send_batch.assert_called_once()
 
     def test_worker_failsafe(self):
@@ -93,7 +93,7 @@ class EaveAgentTest(BaseTestCase):
             side_effect=Exception("Network Error"),
         ):
             with patch("logging.Logger.exception") as mock_logger:
-                self.agent._worker_event_loop()
+                self.agent._worker_event_loop()  # noqa: SLF001
                 mock_logger.assert_called()
                 logged_exception = mock_logger.call_args[0][0]
                 self.assertIsInstance(logged_exception, TooManyFailuresError)

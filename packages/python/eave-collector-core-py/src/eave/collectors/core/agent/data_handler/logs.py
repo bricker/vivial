@@ -1,18 +1,13 @@
-from typing import Any
-
 import aiohttp
 
-from eave.collectors.core.datastructures import Batchable, LogIngestRequestBody, LogPayload
+from eave.collectors.core.datastructures import LogIngestRequestBody, LogPayload
 
 from ... import config
 from . import DataHandler
 
 
-class LogsHandler(DataHandler):
-    def validate_data_type(self, payload: Any) -> bool:
-        return isinstance(payload, LogPayload)
-
-    async def send_buffer(self, buffer: list[Batchable]) -> None:
+class LogsHandler(DataHandler[LogPayload]):
+    async def send_buffer(self, buffer: list[LogPayload]) -> None:
         if len(buffer) == 0:
             return
 

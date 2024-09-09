@@ -124,17 +124,14 @@ class EaveAgent(Agent):
                 payload = self.queue.get(block=(not queue_closed), timeout=timeout)
                 self.queue.task_done()
 
-                if self._data_handler.validate_data_type(payload):
-                    buffer.append(payload)
-                elif payload == _QUEUE_CLOSED_SENTINEL:
+                if payload == _QUEUE_CLOSED_SENTINEL:
                     # By setting this, the queue will now be processed as quickly as possible.
                     # We'll no longer wait for an item to be placed on the queue; we'll instead
                     # process the queue immediately until an `Empty` exception is raised, and then force-flush
                     # and end the process.
                     queue_closed = True
                 else:
-                    self._logger.error("Invalid payload type")
-                    failsafe_counter += 1
+                    buffer.append(payload)
             except Empty:
                 # The queue is empty. If the queue has been closed by the controlling process, then do a final flush.
                 if queue_closed:

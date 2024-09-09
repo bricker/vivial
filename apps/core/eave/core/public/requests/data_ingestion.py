@@ -22,7 +22,7 @@ from eave.stdlib.logging import LogContext
 from eave.stdlib.util import ensure_uuid
 
 
-async def get_client_creds_from_origin(request: Request, origin_header: str) -> ClientCredentialsOrm:
+async def get_client_creds_from_qp_or_origin(request: Request, origin_header: str) -> ClientCredentialsOrm:
     client_id = request.query_params.get("clientId")
 
     if client_id is None:
@@ -86,7 +86,7 @@ class BrowserDataIngestionEndpoint(HTTPEndpoint):
         origin_header = get_header_value_or_exception(scope=scope, name=aiohttp.hdrs.ORIGIN)
         response = Response()
 
-        creds = await get_client_creds_from_origin(request, origin_header)
+        creds = await get_client_creds_from_qp_or_origin(request, origin_header)
 
         body = await request.json()
         input = DataIngestRequestBody.from_json(data=body)
@@ -171,14 +171,14 @@ class LogDataIngestionEndpoint(HTTPEndpoint):
         origin_header = get_header_value(scope=scope, name=aiohttp.hdrs.ORIGIN)
         creds: ClientCredentialsOrm | None = None
         if origin_header:
-            creds = await get_client_creds_from_origin(request, origin_header)
-
-        body = await request.json()
-        input = LogIngestRequestBody.from_json(data=body)
+            creds = await get_client_creds_from_qp_or_origin(request, origin_header)
 
         # enforce client auth for non-browser requests
         if not creds:
             creds = await get_creds_from_headers(scope)
+
+        body = await request.json()
+        input = LogIngestRequestBody.from_json(data=body)
 
         if input.logs:
             handle = AtomCollectorLogsController(client=creds)

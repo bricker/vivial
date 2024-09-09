@@ -33,13 +33,13 @@ class EaveLogger {
     if (MODE !== "production") {
       console.debug(this.tag, ...args);
     }
-    // this.#send([
-    //   {
-    //     name: this.tag,
-    //     level: "DEBUG",
-    //     msg: this.#strjoin(args),
-    //   },
-    // ]);
+    this.#send([
+      {
+        name: this.tag,
+        level: "DEBUG",
+        msg: this.#strjoin(args),
+      },
+    ]);
   }
 
   info(...args: any[]) {

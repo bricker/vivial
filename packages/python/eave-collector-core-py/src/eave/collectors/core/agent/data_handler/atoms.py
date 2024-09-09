@@ -1,19 +1,14 @@
-from typing import Any
-
 import aiohttp
 
 from eave.collectors.core import config
-from eave.collectors.core.datastructures import Batchable, DataIngestRequestBody, EventPayload
+from eave.collectors.core.datastructures import DataIngestRequestBody, EventPayload
 from eave.collectors.core.json import JsonObject
 
 from . import DataHandler
 
 
-class AtomHandler(DataHandler):
-    def validate_data_type(self, payload: Any) -> bool:
-        return isinstance(payload, EventPayload)
-
-    async def send_buffer(self, buffer: list[Batchable]) -> None:
+class AtomHandler(DataHandler[EventPayload]):
+    async def send_buffer(self, buffer: list[EventPayload]) -> None:
         if len(buffer) == 0:
             return
 
