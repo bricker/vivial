@@ -9,11 +9,13 @@ resource "google_dns_managed_zone" "default" {
 }
 
 resource "google_dns_record_set" "records" {
-  count = length(var.records)
+  for_each = {
+    for record in var.records: join("_", [record.type, coalesce(record.subdomain, "apex")]) => record
+  }
 
   managed_zone = google_dns_managed_zone.default.name
-  name         = join(".", compact([var.records[count.index].subdomain, google_dns_managed_zone.default.dns_name]))
-  type         = var.records[count.index].type
+  name         = join(".", compact([each.value.subdomain, google_dns_managed_zone.default.dns_name]))
+  type         = each.value.type
   ttl          = 300
-  rrdatas      = var.records[count.index].datas
+  rrdatas      = each.value.datas
 }
