@@ -76,3 +76,7 @@ variable "compute_vm_accessor_role_name" {
 variable "bastion_accessors" {
   type = list(string)
 }
+
+# variable "EAVE_INGEST_BASE_URL" {
+#   type = string
+# }

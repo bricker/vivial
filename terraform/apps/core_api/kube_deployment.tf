@@ -1,4 +1,17 @@
 resource "kubernetes_deployment" "app" {
+  for_each = {
+    local.app_name = {
+      app_name = local.app_name,
+      analytics_disabled = false,
+      api_base_url = var.EAVE_INGEST_BASE_URL #"TODO do we even need to set this?? can we just keep the main.tf share config value?
+    },
+    local.internal_analytics_app_name = {
+      app_name = local.internal_analytics_app_name,
+      analytics_disabled = true,
+      api_base_url = "WHATEVER DOESNT MATTER"
+    }
+  }
+
   wait_for_rollout = false
 
   lifecycle {
@@ -8,17 +21,17 @@ resource "kubernetes_deployment" "app" {
   }
 
   metadata {
-    name      = local.app_name
+    name      = each.value.app_name
     namespace = var.kube_namespace_name
     labels = {
-      app = local.app_name
+      app = each.value.app_name
     }
   }
 
   spec {
     selector {
       match_labels = {
-        app = local.app_name
+        app = each.value.app_name
       }
     }
 
@@ -32,9 +45,9 @@ resource "kubernetes_deployment" "app" {
 
     template {
       metadata {
-        name = local.app_name
+        name = each.value.app_name
         labels = {
-          app = local.app_name
+          app = each.value.app_name
         }
       }
       spec {
@@ -115,6 +128,15 @@ resource "kubernetes_deployment" "app" {
           env {
             name  = "GUNICORN_CMD_ARGS"
             value = "--bind=0.0.0.0:${local.app_port.number} --workers=3 --timeout=90"
+          }
+          env {
+            # TODO: Check that override works correctly
+            name = "EAVE_ANALYTICS_DISABLED"
+            value = each.value.analytics_disabled ? "1" : "0"
+          }
+          env {
+            name = "EAVE_INGEST_BASE_URL"
+            value = each.value.api_base_url
           }
 
           # Necessary to prevent perpetual diff

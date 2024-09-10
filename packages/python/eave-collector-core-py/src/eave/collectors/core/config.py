@@ -7,6 +7,11 @@ def eave_api_base_url() -> str:
     return os.getenv("EAVE_API_BASE_URL_PUBLIC", "https://api.eave.fyi")
 
 
+def eave_ingest_base_url() -> str:
+    # TODO: rename?
+    return os.getenv("EAVE_INGEST_BASE_URL", "https://api.eave.fyi") # TODO: what should default??
+
+
 EaveAuthHeaders = TypedDict(
     "EaveAuthHeaders",
     {
