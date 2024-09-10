@@ -14,8 +14,8 @@ class EndpointConfiguration:
     auth_required: bool
     origin_required: bool
     qp_creds_required: bool
-    origin_creds_required: bool
-    qp_or_origin_creds_required: bool
+    header_creds_required: bool
+    qp_or_header_creds_required: bool
     is_public: bool
 
     def __init__(
@@ -40,8 +40,8 @@ class EndpointConfiguration:
         self.origin_required = origin_required
         self.is_public = is_public
         self.qp_creds_required = qp_creds_required
-        self.origin_creds_required = header_creds_required
-        self.qp_or_origin_creds_required = qp_or_header_creds_required
+        self.header_creds_required = header_creds_required
+        self.qp_or_header_creds_required = qp_or_header_creds_required
 
     @property
     def url(self) -> str:

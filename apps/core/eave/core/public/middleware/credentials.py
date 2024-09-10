@@ -17,7 +17,7 @@ import eave.core.public
 import eave.stdlib.api_util
 import eave.stdlib.exceptions
 import eave.stdlib.headers
-from eave.stdlib.api_util import get_bearer_token, get_header_value_or_exception
+from eave.stdlib.api_util import get_bearer_token, get_header_value, get_header_value_or_exception
 from eave.stdlib.auth_cookies import delete_auth_cookies, get_auth_cookies, set_auth_cookies
 from eave.stdlib.exceptions import ForbiddenError, UnauthorizedError
 from eave.stdlib.logging import LogContext, eaveLogger
@@ -83,6 +83,7 @@ async def _get_creds_from_headers(scope: asgiref.typing.HTTPScope) -> ClientCred
         creds.touch(session=db_session)
     return creds
 
+
 async def _abort(
     request: Request,
     status_code: HTTPStatus,
@@ -95,6 +96,7 @@ async def _abort(
         cast(starlette.types.Scope, scope), cast(starlette.types.Receive, receive), cast(starlette.types.Send, send)
     )
 
+
 class ClientCredentialsFromHeadersASGIMiddleware(EaveASGIMiddleware):
     async def process_request(
         self,
@@ -105,33 +107,77 @@ class ClientCredentialsFromHeadersASGIMiddleware(EaveASGIMiddleware):
         ctx: LogContext,
         continue_request: Callable[[], Awaitable[None]],
     ) -> None:
-        # TODO: assign creds to context 
         try:
             creds = await _get_creds_from_headers(scope)
 
+            ctx.eave_authed_team_id = str(creds.team_id)
+            ctx.eave_client_id = str(creds.id)
         except UnauthorizedError as e:
             eaveLogger.exception(e, ctx)
-            await _abort(
-                request=request, status_code=HTTPStatus.UNAUTHORIZED, scope=scope, receive=receive, send=send
-            )
+            await _abort(request=request, status_code=HTTPStatus.UNAUTHORIZED, scope=scope, receive=receive, send=send)
             return
         except ForbiddenError as e:
             eaveLogger.exception(e, ctx)
-            await _abort(
-                request=request, status_code=HTTPStatus.FORBIDDEN, scope=scope, receive=receive, send=send
-            )
+            await _abort(request=request, status_code=HTTPStatus.FORBIDDEN, scope=scope, receive=receive, send=send)
             return
 
         await self.app(scope, receive, send)
 
 
-        # handle logs sent from browser collector that doesnt include client secret
-        # in request headers
-        origin_header = get_header_value(scope=scope, name=aiohttp.hdrs.ORIGIN)
-        creds: ClientCredentialsOrm | None = None
-        if origin_header:
-            creds = await get_client_creds_from_qp(request, origin_header)
+class ClientCredentialsFromQueryParamsASGIMiddleware(EaveASGIMiddleware):
+    async def process_request(
+        self,
+        scope: asgiref.typing.HTTPScope,
+        receive: asgiref.typing.ASGIReceiveCallable,
+        send: asgiref.typing.ASGISendCallable,
+        request: Request,
+        ctx: LogContext,
+        continue_request: Callable[[], Awaitable[None]],
+    ) -> None:
+        try:
+            creds = await _get_creds_from_qp(request=request, scope=scope)
 
-        # enforce client auth for non-browser requests
-        if not creds:
-            creds = await get_creds_from_headers(scope)
+            ctx.eave_authed_team_id = str(creds.team_id)
+            ctx.eave_client_id = str(creds.id)
+        except UnauthorizedError as e:
+            eaveLogger.exception(e, ctx)
+            await _abort(request=request, status_code=HTTPStatus.UNAUTHORIZED, scope=scope, receive=receive, send=send)
+            return
+        except ForbiddenError as e:
+            eaveLogger.exception(e, ctx)
+            await _abort(request=request, status_code=HTTPStatus.FORBIDDEN, scope=scope, receive=receive, send=send)
+            return
+
+        await self.app(scope, receive, send)
+
+
+class ClientCredentialsFromHeadersOrQueryParamsASGIMiddleware(EaveASGIMiddleware):
+    async def process_request(
+        self,
+        scope: asgiref.typing.HTTPScope,
+        receive: asgiref.typing.ASGIReceiveCallable,
+        send: asgiref.typing.ASGISendCallable,
+        request: Request,
+        ctx: LogContext,
+        continue_request: Callable[[], Awaitable[None]],
+    ) -> None:
+        try:
+            origin_header = get_header_value(scope=scope, name=aiohttp.hdrs.ORIGIN)
+            creds: ClientCredentialsOrm | None = None
+            if origin_header:
+                creds = await _get_creds_from_qp(request=request, scope=scope)
+
+            # enforce client auth for non-browser requests
+            if not creds:
+                creds = await _get_creds_from_headers(scope)
+
+            ctx.eave_authed_team_id = str(creds.team_id)
+            ctx.eave_client_id = str(creds.id)
+        except UnauthorizedError as e:
+            eaveLogger.exception(e, ctx)
+            await _abort(request=request, status_code=HTTPStatus.UNAUTHORIZED, scope=scope, receive=receive, send=send)
+            return
+        except ForbiddenError as e:
+            eaveLogger.exception(e, ctx)
+            await _abort(request=request, status_code=HTTPStatus.FORBIDDEN, scope=scope, receive=receive, send=send)
+            return

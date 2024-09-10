@@ -13,6 +13,11 @@ from eave.core.internal.oauth.google import (
     GOOGLE_OAUTH_CALLBACK_PATH,
 )
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
+from eave.core.public.middleware.credentials import (
+    ClientCredentialsFromHeadersASGIMiddleware,
+    ClientCredentialsFromHeadersOrQueryParamsASGIMiddleware,
+    ClientCredentialsFromQueryParamsASGIMiddleware,
+)
 from eave.core.public.requests import data_collector_config
 from eave.core.public.requests.data_ingestion import (
     BrowserDataIngestionEndpoint,
@@ -166,19 +171,17 @@ def make_route(
     if config.auth_required:
         endpoint = AuthASGIMiddleware(app=endpoint)
 
-    if config.qp_or_origin_creds_required:
-        todo
+    if config.qp_or_header_creds_required:
+        endpoint = ClientCredentialsFromHeadersOrQueryParamsASGIMiddleware(app=endpoint)
 
-    if config.origin_creds_required:
-        todo
+    if config.header_creds_required:
+        endpoint = ClientCredentialsFromHeadersASGIMiddleware(app=endpoint)
 
     if config.qp_creds_required:
-        todo
+        endpoint = ClientCredentialsFromQueryParamsASGIMiddleware(app=endpoint)
 
     if config.origin_required:
-        endpoint = OriginASGIMiddleware(
-            app=endpoint,
-        )
+        endpoint = OriginASGIMiddleware(app=endpoint)
 
     endpoint = ReadBodyASGIMiddleware(app=endpoint)
 

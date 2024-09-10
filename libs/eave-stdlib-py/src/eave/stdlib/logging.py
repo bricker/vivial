@@ -156,6 +156,14 @@ class LogContext(JsonObject):
     def feature_name(self, value: str | None) -> None:
         self["feature_name"] = value
 
+    @property
+    def eave_client_id(self) -> str | None:
+        return str(v) if (v := self.get("eave_client_id")) else None
+
+    @eave_client_id.setter
+    def eave_client_id(self, value: str | None) -> None:
+        self["eave_client_id"] = value
+
 
 _root_logger = logging.getLogger()
 _root_logger.setLevel(SHARED_CONFIG.log_level)
