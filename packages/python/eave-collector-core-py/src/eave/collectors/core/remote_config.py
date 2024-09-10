@@ -4,11 +4,8 @@ from eave.collectors.core.logging import EAVE_CORE_LOGGER
 
 from . import config
 
-# import EaveCredentials, remote_config
-
 
 async def init_remote_config() -> None:
-    # global remote_config
     remote_flag = "remote_source"
     if getattr(config.remote_config, remote_flag, False):
         return
@@ -26,7 +23,7 @@ async def init_remote_config() -> None:
                 headers=headers,
             )
             json_resp = await resp.json()
-            remote_config = config.DataCollectorConfig(**json_resp["config"])
-            setattr(remote_config, remote_flag, True)
+            config.remote_config = config.DataCollectorConfig(**json_resp["config"])
+            setattr(config.remote_config, remote_flag, True)
     except Exception as e:
         EAVE_CORE_LOGGER.error("Failed to fetch Eave remote config; using fallback config", extra={"error": e})

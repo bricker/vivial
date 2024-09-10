@@ -22,15 +22,6 @@ class BrowserDataIngestionEndpoint(HTTPEndpoint):
     async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
         response = Response()
 
-        async with database.async_session.begin() as db_session:
-            creds = await ClientCredentialsOrm.one_or_exception(
-                session=db_session,
-                params=ClientCredentialsOrm.QueryParams(
-                    id=ensure_uuid(ctx.eave_client_id),
-                    team_id=ensure_uuid(ctx.eave_authed_team_id),
-                ),
-            )
-
         body = await request.json()
         input = DataIngestRequestBody.from_json(data=body)
 
@@ -55,6 +46,15 @@ class BrowserDataIngestionEndpoint(HTTPEndpoint):
                 coordinates=geo_coordinates,
             )
 
+            async with database.async_session.begin() as db_session:
+                creds = await ClientCredentialsOrm.one_or_exception(
+                    session=db_session,
+                    params=ClientCredentialsOrm.QueryParams(
+                        id=ensure_uuid(ctx.eave_client_id),
+                        team_id=ensure_uuid(ctx.eave_authed_team_id),
+                    ),
+                )
+
             handle = BrowserEventsController(client=creds)
             await handle.insert_with_geolocation(
                 events=events,
@@ -68,6 +68,9 @@ class BrowserDataIngestionEndpoint(HTTPEndpoint):
 
 class ServerDataIngestionEndpoint(HTTPEndpoint):
     async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
+        body = await request.json()
+        input = DataIngestRequestBody.from_json(data=body)
+
         async with database.async_session.begin() as db_session:
             creds = await ClientCredentialsOrm.one_or_exception(
                 session=db_session,
@@ -76,9 +79,6 @@ class ServerDataIngestionEndpoint(HTTPEndpoint):
                     team_id=ensure_uuid(ctx.eave_authed_team_id),
                 ),
             )
-
-        body = await request.json()
-        input = DataIngestRequestBody.from_json(data=body)
 
         db_events = input.events.get(EventType.db_event)
         if db_events and len(db_events) > 0:
@@ -116,19 +116,18 @@ class ServerDataIngestionEndpoint(HTTPEndpoint):
 
 class LogDataIngestionEndpoint(HTTPEndpoint):
     async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
-        async with database.async_session.begin() as db_session:
-            creds = await ClientCredentialsOrm.one_or_exception(
-                session=db_session,
-                params=ClientCredentialsOrm.QueryParams(
-                    id=ensure_uuid(ctx.eave_client_id),
-                    team_id=ensure_uuid(ctx.eave_authed_team_id),
-                ),
-            )
-
         body = await request.json()
         input = LogIngestRequestBody.from_json(data=body)
 
         if input.logs:
+            async with database.async_session.begin() as db_session:
+                creds = await ClientCredentialsOrm.one_or_exception(
+                    session=db_session,
+                    params=ClientCredentialsOrm.QueryParams(
+                        id=ensure_uuid(ctx.eave_client_id),
+                        team_id=ensure_uuid(ctx.eave_authed_team_id),
+                    ),
+                )
             handle = AtomCollectorLogsController(client=creds)
             await handle.insert(
                 raw_logs=input.logs,

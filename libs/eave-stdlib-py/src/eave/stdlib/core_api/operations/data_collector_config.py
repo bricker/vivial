@@ -15,8 +15,9 @@ class GetMyDataCollectorConfigRequest(CoreApiEndpoint):
         path="/public/me/collector-configs/query",
         method=METH_POST,
         auth_required=False,
-        origin_required=False,  # TODO: add a client sec option?
+        origin_required=False,
         is_public=True,
+        header_creds_required=True,
     )
 
     class ResponseBody(BaseResponseBody):

@@ -20,8 +20,6 @@ class DataCollectorConfigOrm(Base):
         make_team_fk(),
     )
 
-    # TODO add unique constraint on team_id to prevent multi entries? how many current tables should have one but dont'?
-    # or is relying on one_or_exception enough?
     team_id: Mapped[UUID] = mapped_column(unique=True)
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     primary_key_patterns: Mapped[list[str]] = mapped_column(

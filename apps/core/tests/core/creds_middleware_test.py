@@ -7,22 +7,6 @@ from eave.collectors.core.datastructures import DataIngestRequestBody, LogIngest
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
 
-"""
-test forbidden?
-
-qp -> headers req api fails
-headers -> header req api succ
-invalid fails
-
-qp -> qp req api succ
-header -> qp req api fail
-invalid fails
-
-qp -> qp | header req api succ
-header -> qp | header req api succ
-invalid fails x2
-"""
-
 
 class TestClientCredentialsFromHeadersMiddleware(BigQueryTestsBase):
     async def test_invalid_client_headers_is_unauthorized(self) -> None:
