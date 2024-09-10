@@ -1,4 +1,3 @@
-import aiohttp
 from asgiref.typing import HTTPScope
 from starlette.requests import Request
 from starlette.responses import Response
@@ -12,11 +11,8 @@ from eave.core.internal.atoms.controllers.http_client_events import HttpClientEv
 from eave.core.internal.atoms.controllers.http_server_events import HttpServerEventsController
 from eave.core.internal.atoms.controllers.openai_chat_completion import OpenAIChatCompletionController
 from eave.core.internal.atoms.models.db_record_fields import GeoRecordField
-from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
-from eave.core.internal.orm.team import TeamOrm
-from eave.stdlib.api_util import get_header_value, get_header_value_or_exception
-from eave.stdlib.exceptions import ForbiddenError, UnauthorizedError
-from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
+from eave.core.internal.orm.client_credentials import ClientCredentialsOrm
+from eave.stdlib.api_util import get_header_value
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.logging import LogContext
 from eave.stdlib.util import ensure_uuid

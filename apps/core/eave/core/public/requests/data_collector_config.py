@@ -1,7 +1,4 @@
 from asgiref.typing import HTTPScope
-from eave.stdlib.core_api.operations.data_collector_config import GetMyDataCollectorConfigRequest
-from eave.stdlib.exceptions import ForbiddenError, UnauthorizedError
-from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
 from starlette.requests import Request
 from starlette.responses import Response
 
@@ -9,6 +6,9 @@ from eave.core.internal import database
 from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
 from eave.core.internal.orm.data_collector_config import DataCollectorConfigOrm
 from eave.stdlib.api_util import get_header_value_or_exception, json_response
+from eave.stdlib.core_api.operations.data_collector_config import GetMyDataCollectorConfigRequest
+from eave.stdlib.exceptions import ForbiddenError, UnauthorizedError
+from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.logging import LogContext
 from eave.stdlib.util import ensure_uuid

@@ -2,11 +2,12 @@ from datetime import datetime
 from typing import Self
 from uuid import UUID
 
-from eave.stdlib.core_api.models.data_collector_config import DataCollectorConfig
 from sqlalchemy import Select, String, func, select
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.dialects.postgresql import ARRAY
+
+from eave.stdlib.core_api.models.data_collector_config import DataCollectorConfig
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, make_team_composite_pk, make_team_fk

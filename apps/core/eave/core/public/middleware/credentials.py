@@ -1,3 +1,4 @@
+from abc import ABC
 from collections.abc import Awaitable, Callable
 from http import HTTPStatus
 from typing import cast
@@ -5,20 +6,18 @@ from typing import cast
 import aiohttp
 import asgiref.typing
 import starlette.types
-from starlette.datastructures import MutableHeaders
 from starlette.requests import Request
 from starlette.responses import Response
 
 import eave.core.internal
-from eave.core.internal import database
-from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
-from eave.core.internal.orm.team import TeamOrm
 import eave.core.public
 import eave.stdlib.api_util
 import eave.stdlib.exceptions
 import eave.stdlib.headers
-from eave.stdlib.api_util import get_bearer_token, get_header_value, get_header_value_or_exception
-from eave.stdlib.auth_cookies import delete_auth_cookies, get_auth_cookies, set_auth_cookies
+from eave.core.internal import database
+from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
+from eave.core.internal.orm.team import TeamOrm
+from eave.stdlib.api_util import get_header_value_or_exception
 from eave.stdlib.exceptions import ForbiddenError, UnauthorizedError
 from eave.stdlib.logging import LogContext, eaveLogger
 from eave.stdlib.middleware.base import EaveASGIMiddleware
@@ -97,7 +96,7 @@ async def _abort(
     )
 
 
-class ClientCredentialsFromHeadersASGIMiddleware(EaveASGIMiddleware):
+class CredsAuthMiddlewareBase(EaveASGIMiddleware, ABC):
     async def process_request(
         self,
         scope: asgiref.typing.HTTPScope,
@@ -108,7 +107,7 @@ class ClientCredentialsFromHeadersASGIMiddleware(EaveASGIMiddleware):
         continue_request: Callable[[], Awaitable[None]],
     ) -> None:
         try:
-            creds = await _get_creds_from_headers(scope)
+            creds = await self._get_creds(scope=scope, request=request)
 
             ctx.eave_authed_team_id = str(creds.team_id)
             ctx.eave_client_id = str(creds.id)
@@ -123,61 +122,28 @@ class ClientCredentialsFromHeadersASGIMiddleware(EaveASGIMiddleware):
 
         await self.app(scope, receive, send)
 
+    async def _get_creds(self, scope: asgiref.typing.HTTPScope, request: Request) -> ClientCredentialsOrm: ...
 
-class ClientCredentialsFromQueryParamsASGIMiddleware(EaveASGIMiddleware):
-    async def process_request(
-        self,
-        scope: asgiref.typing.HTTPScope,
-        receive: asgiref.typing.ASGIReceiveCallable,
-        send: asgiref.typing.ASGISendCallable,
-        request: Request,
-        ctx: LogContext,
-        continue_request: Callable[[], Awaitable[None]],
-    ) -> None:
-        try:
+
+class ClientCredentialsFromHeadersASGIMiddleware(CredsAuthMiddlewareBase):
+    async def _get_creds(self, scope: asgiref.typing.HTTPScope, request: Request) -> ClientCredentialsOrm:
+        return await _get_creds_from_headers(scope)
+
+
+class ClientCredentialsFromQueryParamsASGIMiddleware(CredsAuthMiddlewareBase):
+    async def _get_creds(self, scope: asgiref.typing.HTTPScope, request: Request) -> ClientCredentialsOrm:
+        return await _get_creds_from_qp(request=request, scope=scope)
+
+
+class ClientCredentialsFromHeadersOrQueryParamsASGIMiddleware(CredsAuthMiddlewareBase):
+    async def _get_creds(self, scope: asgiref.typing.HTTPScope, request: Request) -> ClientCredentialsOrm:
+        creds: ClientCredentialsOrm | None = None
+        # validate using clientId qp if one is provided
+        client_id = request.query_params.get("clientId")
+        if client_id:
             creds = await _get_creds_from_qp(request=request, scope=scope)
 
-            ctx.eave_authed_team_id = str(creds.team_id)
-            ctx.eave_client_id = str(creds.id)
-        except UnauthorizedError as e:
-            eaveLogger.exception(e, ctx)
-            await _abort(request=request, status_code=HTTPStatus.UNAUTHORIZED, scope=scope, receive=receive, send=send)
-            return
-        except ForbiddenError as e:
-            eaveLogger.exception(e, ctx)
-            await _abort(request=request, status_code=HTTPStatus.FORBIDDEN, scope=scope, receive=receive, send=send)
-            return
-
-        await self.app(scope, receive, send)
-
-
-class ClientCredentialsFromHeadersOrQueryParamsASGIMiddleware(EaveASGIMiddleware):
-    async def process_request(
-        self,
-        scope: asgiref.typing.HTTPScope,
-        receive: asgiref.typing.ASGIReceiveCallable,
-        send: asgiref.typing.ASGISendCallable,
-        request: Request,
-        ctx: LogContext,
-        continue_request: Callable[[], Awaitable[None]],
-    ) -> None:
-        try:
-            origin_header = get_header_value(scope=scope, name=aiohttp.hdrs.ORIGIN)
-            creds: ClientCredentialsOrm | None = None
-            if origin_header:
-                creds = await _get_creds_from_qp(request=request, scope=scope)
-
-            # enforce client auth for non-browser requests
-            if not creds:
-                creds = await _get_creds_from_headers(scope)
-
-            ctx.eave_authed_team_id = str(creds.team_id)
-            ctx.eave_client_id = str(creds.id)
-        except UnauthorizedError as e:
-            eaveLogger.exception(e, ctx)
-            await _abort(request=request, status_code=HTTPStatus.UNAUTHORIZED, scope=scope, receive=receive, send=send)
-            return
-        except ForbiddenError as e:
-            eaveLogger.exception(e, ctx)
-            await _abort(request=request, status_code=HTTPStatus.FORBIDDEN, scope=scope, receive=receive, send=send)
-            return
+        # enforce client auth for non-browser requests
+        if not creds:
+            creds = await _get_creds_from_headers(scope)
+        return creds

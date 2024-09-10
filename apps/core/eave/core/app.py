@@ -1,5 +1,4 @@
 import aiohttp.hdrs
-from eave.stdlib.core_api.operations.data_collector_config import GetMyDataCollectorConfigRequest
 import starlette.applications
 import starlette.endpoints
 from asgiref.typing import ASGI3Application
@@ -30,6 +29,7 @@ from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.core_api.operations.account import GetMyAccountRequest
 from eave.stdlib.core_api.operations.client_credentials import GetMyClientCredentialsRequest
+from eave.stdlib.core_api.operations.data_collector_config import GetMyDataCollectorConfigRequest
 from eave.stdlib.core_api.operations.onboarding_submissions import (
     CreateMyOnboardingSubmissionRequest,
     GetMyOnboardingSubmissionRequest,
