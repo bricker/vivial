@@ -78,7 +78,7 @@ def queue_flush_frequency_seconds() -> int:
         return 30
 
 
-# NOTE: keep in sync w/ mirror definition eave-stdlib!
+# NOTE: keep in sync w/ mirror definition eave std lib!
 # (until pydantic dep is removed or we decide to have collectors depend on it too)
 @dataclass(kw_only=True)
 class DataCollectorConfig:

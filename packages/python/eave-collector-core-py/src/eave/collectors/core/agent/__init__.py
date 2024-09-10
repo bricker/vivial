@@ -9,7 +9,6 @@ from threading import Lock, Thread
 from eave.collectors.core import config
 from eave.collectors.core.agent.data_handler import DataHandler
 from eave.collectors.core.datastructures import Batchable
-from eave.collectors.core.remote_config import init_remote_config
 
 _FAILSAFE_MAX_FAILURES = 10
 _QUEUE_CLOSED_SENTINEL = "QUEUE_CLOSED_SENTINEL"
@@ -99,7 +98,7 @@ class EaveAgent(Agent):
 
     def _worker_event_loop(self, *args, **kwargs) -> None:
         try:
-            asyncio.run(init_remote_config())
+            asyncio.run(self._data_handler.on_setup())
             asyncio.run(self._worker(*args, **kwargs))
         except KeyboardInterrupt:
             pass
