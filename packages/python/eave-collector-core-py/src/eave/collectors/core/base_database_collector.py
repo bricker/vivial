@@ -7,8 +7,8 @@ from eave.collectors.core.correlation_context.base import (
 )
 
 from .base_collector import BaseCollector
-from .correlation_context import CORR_CTX
 from .config import remote_config
+from .correlation_context import CORR_CTX
 
 
 def is_user_table(table_name: str) -> bool:
