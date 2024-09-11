@@ -3,12 +3,13 @@ resource "kubernetes_deployment" "app" {
     local.app_name = {
       app_name = local.app_name,
       analytics_disabled = false,
-      api_base_url = var.EAVE_INGEST_BASE_URL #"TODO do we even need to set this?? can we just keep the main.tf share config value?
+      ingest_api_base_url = "http://${local.internal_analytics_app_name}.${kubernetes_namespace.eave.metadata[0].name}.svc.cluster.local"
+      #"TODO do we even need to set this?? can we just keep the main.tf share config value?
     },
     local.internal_analytics_app_name = {
       app_name = local.internal_analytics_app_name,
       analytics_disabled = true,
-      api_base_url = "WHATEVER DOESNT MATTER"
+      ingest_api_base_url = "intentionally-not-a-url"
     }
   }
 
@@ -136,7 +137,7 @@ resource "kubernetes_deployment" "app" {
           }
           env {
             name = "EAVE_INGEST_BASE_URL"
-            value = each.value.api_base_url
+            value = each.value.ingest_api_base_url
           }
 
           # Necessary to prevent perpetual diff
