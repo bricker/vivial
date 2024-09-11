@@ -1,4 +1,6 @@
 import aiohttp.hdrs
+from eave.collectors.sqlalchemy import SQLAlchemyCollectorManager
+from eave.collectors.starlette import StarletteCollectorManager
 import starlette.applications
 import starlette.endpoints
 from asgiref.typing import ASGI3Application
@@ -368,5 +370,6 @@ app = starlette.applications.Starlette(
     on_shutdown=[graceful_shutdown],
 )
 
-# StarletteCollectorManager.start(app)
-# SQLAlchemyCollectorManager.start(engine=async_engine)
+if SHARED_CONFIG.analytics_enabled:
+    StarletteCollectorManager.start(app)
+    SQLAlchemyCollectorManager.start(engine=async_engine)
