@@ -10,9 +10,9 @@ from ... import requests_util
 from . import CoreApiEndpoint, CoreApiEndpointConfiguration
 
 
-class GetMyDataCollectorConfigRequest(CoreApiEndpoint):
+class GetDataCollectorConfigRequest(CoreApiEndpoint):
     config = CoreApiEndpointConfiguration(
-        path="/public/me/collector-configs/query",
+        path="/public/collector-configs/query",
         method=METH_POST,
         auth_required=False,
         origin_required=False,

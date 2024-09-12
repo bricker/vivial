@@ -18,7 +18,7 @@ async def init_remote_config() -> None:
         async with aiohttp.ClientSession() as session:
             resp = await session.request(
                 method="POST",
-                url=f"{config.eave_api_base_url()}/public/me/collector-configs/query",
+                url=f"{config.eave_api_base_url()}/public/collector-configs/query",
                 compress="gzip",
                 headers=headers,
             )

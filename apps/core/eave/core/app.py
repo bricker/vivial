@@ -29,7 +29,7 @@ from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.core_api.operations.account import GetMyAccountRequest
 from eave.stdlib.core_api.operations.client_credentials import GetMyClientCredentialsRequest
-from eave.stdlib.core_api.operations.data_collector_config import GetMyDataCollectorConfigRequest
+from eave.stdlib.core_api.operations.data_collector_config import GetDataCollectorConfigRequest
 from eave.stdlib.core_api.operations.onboarding_submissions import (
     CreateMyOnboardingSubmissionRequest,
     GetMyOnboardingSubmissionRequest,
@@ -343,8 +343,8 @@ routes = [
         endpoint=client_credentials.GetMyClientCredentialsEndpoint,
     ),
     make_route(
-        config=GetMyDataCollectorConfigRequest.config,
-        endpoint=data_collector_config.GetMyDataCollectorConfigEndpoint,
+        config=GetDataCollectorConfigRequest.config,
+        endpoint=data_collector_config.GetDataCollectorConfigEndpoint,
     ),
 ]
 

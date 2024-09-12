@@ -5,13 +5,13 @@ from starlette.responses import Response
 from eave.core.internal import database
 from eave.core.internal.orm.data_collector_config import DataCollectorConfigOrm
 from eave.stdlib.api_util import json_response
-from eave.stdlib.core_api.operations.data_collector_config import GetMyDataCollectorConfigRequest
+from eave.stdlib.core_api.operations.data_collector_config import GetDataCollectorConfigRequest
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.logging import LogContext
 from eave.stdlib.util import ensure_uuid
 
 
-class GetMyDataCollectorConfigEndpoint(HTTPEndpoint):
+class GetDataCollectorConfigEndpoint(HTTPEndpoint):
     async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
         async with database.async_session.begin() as db_session:
             config = await DataCollectorConfigOrm.one_or_exception(
@@ -19,7 +19,7 @@ class GetMyDataCollectorConfigEndpoint(HTTPEndpoint):
             )
 
         return json_response(
-            GetMyDataCollectorConfigRequest.ResponseBody(
+            GetDataCollectorConfigRequest.ResponseBody(
                 config=config.api_model,
             )
         )
