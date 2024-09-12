@@ -1,5 +1,3 @@
-from enum import StrEnum
-
 from eave.stdlib.core_api.models.client_credentials import CredentialsAuthMethod
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.endpoints import Endpoint, EndpointConfiguration
