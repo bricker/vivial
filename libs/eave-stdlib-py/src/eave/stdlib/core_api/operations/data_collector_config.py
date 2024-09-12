@@ -3,6 +3,7 @@ from typing import Unpack
 
 from aiohttp.hdrs import METH_POST
 
+from eave.stdlib.core_api.models.client_credentials import CredentialsAuthMethod
 from eave.stdlib.core_api.models.data_collector_config import DataCollectorConfig
 from eave.stdlib.endpoints import BaseResponseBody
 
@@ -17,7 +18,7 @@ class GetDataCollectorConfigRequest(CoreApiEndpoint):
         auth_required=False,
         origin_required=False,
         is_public=True,
-        header_creds_required=True,
+        creds_auth_method=CredentialsAuthMethod.headers,
     )
 
     class ResponseBody(BaseResponseBody):

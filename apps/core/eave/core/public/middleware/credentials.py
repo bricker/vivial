@@ -133,17 +133,3 @@ class ClientCredentialsFromHeadersASGIMiddleware(CredsAuthMiddlewareBase):
 class ClientCredentialsFromQueryParamsASGIMiddleware(CredsAuthMiddlewareBase):
     async def _get_creds(self, scope: asgiref.typing.HTTPScope, request: Request) -> ClientCredentialsOrm:
         return await _get_creds_from_qp(request=request, scope=scope)
-
-
-class ClientCredentialsFromHeadersOrQueryParamsASGIMiddleware(CredsAuthMiddlewareBase):
-    async def _get_creds(self, scope: asgiref.typing.HTTPScope, request: Request) -> ClientCredentialsOrm:
-        creds: ClientCredentialsOrm | None = None
-        # validate using clientId qp if one is provided
-        client_id = request.query_params.get("clientId")
-        if client_id:
-            creds = await _get_creds_from_qp(request=request, scope=scope)
-
-        # enforce client auth for non-browser requests
-        if not creds:
-            creds = await _get_creds_from_headers(scope)
-        return creds

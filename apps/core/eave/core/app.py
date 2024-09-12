@@ -14,7 +14,6 @@ from eave.core.internal.oauth.google import (
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.core.public.middleware.credentials import (
     ClientCredentialsFromHeadersASGIMiddleware,
-    ClientCredentialsFromHeadersOrQueryParamsASGIMiddleware,
     ClientCredentialsFromQueryParamsASGIMiddleware,
 )
 from eave.core.public.requests import data_collector_config
@@ -26,6 +25,7 @@ from eave.core.public.requests.data_ingestion import (
 from eave.core.public.requests.metabase_proxy import MetabaseAuthEndpoint, MetabaseProxyEndpoint, MetabaseProxyRouter
 from eave.stdlib import cache, logging
 from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.core_api.models.client_credentials import CredentialsAuthMethod
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.core_api.operations.account import GetMyAccountRequest
 from eave.stdlib.core_api.operations.client_credentials import GetMyClientCredentialsRequest
@@ -171,13 +171,10 @@ def make_route(
     if config.auth_required:
         endpoint = AuthASGIMiddleware(app=endpoint)
 
-    if config.qp_or_header_creds_required:
-        endpoint = ClientCredentialsFromHeadersOrQueryParamsASGIMiddleware(app=endpoint)
-
-    if config.header_creds_required:
+    if config.creds_auth_method == CredentialsAuthMethod.headers:
         endpoint = ClientCredentialsFromHeadersASGIMiddleware(app=endpoint)
 
-    if config.qp_creds_required:
+    if config.creds_auth_method == CredentialsAuthMethod.query_params:
         endpoint = ClientCredentialsFromQueryParamsASGIMiddleware(app=endpoint)
 
     if config.origin_required:
@@ -230,7 +227,7 @@ routes = [
             auth_required=False,
             origin_required=False,
             is_public=True,
-            header_creds_required=True,
+            creds_auth_method=CredentialsAuthMethod.headers,
         ),
         endpoint=ServerDataIngestionEndpoint,
     ),
@@ -241,18 +238,29 @@ routes = [
             auth_required=False,
             origin_required=False,
             is_public=True,
-            qp_creds_required=True,
+            creds_auth_method=CredentialsAuthMethod.query_params,
         ),
         endpoint=BrowserDataIngestionEndpoint,
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/public/ingest/log",
+            path="/public/ingest/server/log",
             method=aiohttp.hdrs.METH_POST,
             auth_required=False,
             origin_required=False,
             is_public=True,
-            qp_or_header_creds_required=True,
+            creds_auth_method=CredentialsAuthMethod.headers,
+        ),
+        endpoint=LogDataIngestionEndpoint,
+    ),
+    make_route(
+        config=CoreApiEndpointConfiguration(
+            path="/public/ingest/browser/log",
+            method=aiohttp.hdrs.METH_POST,
+            auth_required=False,
+            origin_required=False,
+            is_public=True,
+            creds_auth_method=CredentialsAuthMethod.query_params,
         ),
         endpoint=LogDataIngestionEndpoint,
     ),
