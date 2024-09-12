@@ -1,7 +1,7 @@
 module "app_gateway" {
   depends_on   = [google_compute_global_address.a_addrs]
   source       = "../../modules/app_gateway"
-  service_name = module.kubernetes_service.name
+  service_name = local.app_name
   labels = {
     app = local.app_name
   }
@@ -75,8 +75,8 @@ resource "kubernetes_manifest" "app_httproute" {
 
           backendRefs = [
             {
-              name = module.kubernetes_service.name
-              port = module.kubernetes_service.port.number
+              name = local.app_name
+              port = local.app_port
             }
           ]
 

@@ -1,12 +1,12 @@
 resource "kubernetes_deployment" "app" {
   for_each = {
-    local.app_name = {
+    (local.app_name) = {
       app_name = local.app_name,
       analytics_disabled = false,
-      ingest_api_base_url = "http://${local.internal_analytics_app_name}.${kubernetes_namespace.eave.metadata[0].name}.svc.cluster.local"
+      ingest_api_base_url = "http://${local.internal_analytics_app_name}.eave.svc.cluster.local"
       #"TODO do we even need to set this?? can we just keep the main.tf share config value?
     },
-    local.internal_analytics_app_name = {
+    (local.internal_analytics_app_name) = {
       app_name = local.internal_analytics_app_name,
       analytics_disabled = true,
       ingest_api_base_url = "intentionally-not-a-url"
