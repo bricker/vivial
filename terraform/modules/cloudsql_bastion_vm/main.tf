@@ -10,25 +10,14 @@ resource "google_service_account" "bastion_sa" {
   description  = "Used to impersonate ${var.target_service_account_id} through IAP."
 }
 
-# resource "google_compute_disk" "cloudsql_bastion" {
-#   name  = "cloudsql-bastion"
-#   type  = "pd-ssd"
-#   zone  = "us-central1-a"
-#   image = "debian-11-bullseye-v20220719"
-#   labels = {
-#     environment = "dev"
-#   }
-#   physical_block_size_bytes = 4096
-# }
-
 resource "google_compute_instance" "bastion" {
   name                = var.name
   description         = "IAP tunnel for impersonating ${var.target_service_account_id} from local workstations."
   can_ip_forward      = false
   deletion_protection = false
-  desired_status      = "RUNNING"
   enable_display      = false
   machine_type        = "e2-micro"
+  allow_stopping_for_update = true
   metadata = {
     block-project-ssh-keys = "true"
     enable-oslogin-2fa     = "true"
@@ -58,16 +47,16 @@ resource "google_compute_instance" "bastion" {
       provisioned_iops            = 0
       provisioned_throughput      = 0
       size                        = 10
-      type                        = "pd-balanced"
+      type                        = "pd-standard"
     }
   }
   network_interface {
     internal_ipv6_prefix_length = 0
     network                     = data.google_compute_network.given.self_link
+    subnetwork  = var.subnetwork_self_link
     # network_ip                  = "10.128.0.14"
     queue_count = 0
     stack_type  = "IPV4_ONLY"
-    subnetwork  = var.subnetwork_self_link
   }
   reservation_affinity {
     type = "ANY_RESERVATION"
@@ -79,6 +68,9 @@ resource "google_compute_instance" "bastion" {
     on_host_maintenance         = "TERMINATE"
     preemptible                 = true
     provisioning_model          = "SPOT"
+    max_run_duration {
+      seconds = 28800 # 8 hours
+    }
   }
   service_account {
     email  = google_service_account.bastion_sa.email
@@ -88,31 +80,5 @@ resource "google_compute_instance" "bastion" {
     enable_integrity_monitoring = false
     enable_secure_boot          = false
     enable_vtpm                 = false
-  }
-}
-
-resource "google_compute_instance_iam_binding" "bastion_vm_compute_vm_accessor_role_members" {
-  # Grant developers access to login to the bastion VM through IAP
-  instance_name = google_compute_instance.bastion.name
-  role          = data.google_iam_role.compute_vm_accessor_role.id
-  members       = var.accessors
-}
-
-# https://cloud.google.com/iap/docs/using-tcp-forwarding#create-firewall-rule
-resource "google_compute_firewall" "allow_iap_ingress_to_bastion_vm" {
-  # Create a firewall rule to allow ingress to the bastion VM from the IAP Tunnel servers
-  name          = "allow-iap-ingress-to-${google_service_account.bastion_sa.account_id}"
-  description   = "Allow ingress from IAP tunnel to specific ports of ${google_compute_instance.bastion.name}"
-  disabled      = false
-  direction     = "INGRESS"
-  network       = var.network_name
-  priority      = 65534
-  source_ranges = ["35.235.240.0/20"] // this is the GCP IAP tunnel cidr block
-
-  target_service_accounts = [google_service_account.bastion_sa.id]
-
-  allow {
-    ports    = ["5432"] # 5432 is the port on which the cloud-sql-proxy listens.
-    protocol = "tcp"
   }
 }

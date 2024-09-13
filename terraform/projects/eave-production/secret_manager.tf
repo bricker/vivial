@@ -26,6 +26,6 @@ module "secret_manager_secrets" {
 
   secret_id               = each.key
   secret_data             = each.value.data
-  secret_accessor_role_id = module.project_base.secret_accessor_role_id
+  secret_accessor_role_name = module.project_base.secret_accessor_role_name
   accessors               = each.value.accessors
 }

@@ -1,4 +1,8 @@
 resource "google_compute_network" "primary" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   name                                      = "primary"
   auto_create_subnetworks                   = false
   delete_default_routes_on_create           = false
@@ -11,6 +15,10 @@ resource "google_compute_network" "primary" {
 }
 
 resource "google_compute_subnetwork" "primary" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   name                     = "primary"
   region                   = var.subnet_region
   ip_cidr_range            = "10.128.0.0/20"
@@ -30,6 +38,10 @@ resource "google_compute_subnetwork" "primary" {
 }
 
 resource "google_dns_policy" "primary" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   name                      = "primary"
   enable_inbound_forwarding = true
   enable_logging            = true
@@ -41,6 +53,10 @@ resource "google_dns_policy" "primary" {
 
 # Create an internal IP address for service networking
 resource "google_compute_global_address" "private_ip_range" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   name          = "google-managed-services-${google_compute_network.primary.name}"
   purpose       = "VPC_PEERING"
   address_type  = "INTERNAL"
@@ -50,6 +66,10 @@ resource "google_compute_global_address" "private_ip_range" {
 
 # Create a private connection
 resource "google_service_networking_connection" "default" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   network                 = google_compute_network.primary.id
   service                 = "servicenetworking.googleapis.com"
   reserved_peering_ranges = [google_compute_global_address.private_ip_range.name]

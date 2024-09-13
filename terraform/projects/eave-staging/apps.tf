@@ -16,7 +16,8 @@ module "core_api_app" {
   shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
 
   impersonator_role_name        = module.project_base.impersonator_role_name
-  compute_vm_accessor_role_name = module.project_base.compute_vm_accessor_role_name
+  compute_oslogin_role_name = module.project_base.compute_oslogin_role_name
+  service_account_user_role_name = module.project_base.service_account_user_role_name
   network_name                  = module.project_base.network_name
   subnetwork_self_link          = module.project_base.subnetwork_self_link
   bastion_accessors             = ["group:developers@eave.fyi"]
@@ -39,9 +40,9 @@ module "dashboard_app" {
   LOG_LEVEL                         = "DEBUG"
   release_version                   = "latest"
   EAVE_CREDENTIALS                  = var.INTERNAL_EAVE_CREDENTIALS
+  iap_enabled                       = true
   iap_oauth_client_id               = var.IAP_OAUTH_CLIENT_ID
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
-  iap_enabled                       = true
 }
 
 module "playground_todoapp" {

@@ -19,6 +19,7 @@ module "secret_manager_secrets" {
       data = var.OPENAI_API_KEY
       accessors = [
         data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
+        data.google_service_account.app_service_accounts[module.dashboard_app.service_account_id].member,
         data.google_service_account.app_service_accounts[module.playground_quizapp.service_account_id].member,
         data.google_service_account.app_service_accounts[module.playground_todoapp.service_account_id].member,
       ],

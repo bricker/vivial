@@ -40,14 +40,6 @@ variable "cloudsql_instance_name" {
   type = string
 }
 
-variable "network_name" {
-  type = string
-}
-
-variable "subnetwork_self_link" {
-  type = string
-}
-
 variable "release_version" {
   type = string
 }
@@ -69,10 +61,24 @@ variable "impersonator_role_name" {
   type = string
 }
 
-variable "compute_vm_accessor_role_name" {
-  type = string
+variable "impersonators" {
+  type=list(string)
+  default = []
 }
 
+variable "network_name" {
+  type=string
+}
+variable "subnetwork_self_link" {
+  type=string
+}
+variable "compute_oslogin_role_name" {
+  type=string
+}
+variable "service_account_user_role_name" {
+  type=string
+}
 variable "bastion_accessors" {
-  type = list(string)
+  type=list(string)
+  default = []
 }
