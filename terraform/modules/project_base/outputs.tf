@@ -41,7 +41,12 @@ output "secret_accessor_role_name" {
   value = module.secret_accessor_role.name
 }
 
-output "compute_vm_accessor_role_name" {
-  value = module.compute_vm_accessor_role.name
+output "compute_oslogin_role_name" {
+  value = module.compute_oslogin_role.name
+}
+
+
+output "service_account_user_role_name" {
+  value = module.service_account_user_role.name
 }
 

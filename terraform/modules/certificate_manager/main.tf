@@ -1,4 +1,8 @@
 resource "google_certificate_manager_certificate" "default" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   name = var.cert_name
   managed {
     domains = var.domains != null ? var.domains : [var.hostname]
@@ -6,6 +10,10 @@ resource "google_certificate_manager_certificate" "default" {
 }
 
 resource "google_certificate_manager_certificate_map_entry" "default" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   map          = data.google_certificate_manager_certificate_map.given.name
   name         = var.entry_name
   certificates = [google_certificate_manager_certificate.default.id]
@@ -33,5 +41,3 @@ resource "google_certificate_manager_certificate_map_entry" "default" {
 #     ]
 #   }
 # }
-
-

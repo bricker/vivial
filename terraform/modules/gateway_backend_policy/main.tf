@@ -1,4 +1,8 @@
 resource "kubernetes_manifest" "backend_policy" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   manifest = {
     apiVersion = "networking.gke.io/v1"
     kind       = "GCPBackendPolicy"
