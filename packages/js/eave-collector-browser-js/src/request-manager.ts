@@ -75,11 +75,11 @@ class RequestManager {
   constructor() {
     this.#queue = new RequestQueue();
 
-    // @ts-ignore: this is a known global variable implicitly set on the window.
-    if (!window.EAVE_CLIENT_ID) {
-      logger.warn("EAVE_CLIENT_ID is not set.");
-      return;
-    }
+    // // @ts-ignore: this is a known global variable implicitly set on the window.
+    // if (!window.EAVE_CLIENT_ID) {
+    //   logger.warn("EAVE_CLIENT_ID is not set.");
+    //   return;
+    // }
     // this.startAutoflush();
   }
 

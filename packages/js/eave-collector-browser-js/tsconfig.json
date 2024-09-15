@@ -2,6 +2,7 @@
   "extends": "../../../develop/javascript/es-config/ts/tsconfig-base.json",
   "include": ["src/**/*.ts", "src/**/*.js", "tests/**/*.ts", "tests/**/*.js"],
   "compilerOptions": {
-    "target": "ES2015"
+    "target": "ES2016",
+    "types": ["chrome-types"]
   }
 }

@@ -30,6 +30,7 @@ function getNameOfClickedMouseButton(event: MouseEvent): string {
  * Handle click event
  */
 export async function clickEventHandler(event: MouseEvent) {
+  console.log("[eave] click event");
   const timestamp = currentTimestampSeconds();
   let eventTarget: TargetProperties | null = null;
 
