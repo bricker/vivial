@@ -31,7 +31,7 @@ module "cloudsql_user_role" {
 
 moved {
   from = module.compute_vm_accessor_role
-  to = module.compute_oslogin_role
+  to   = module.compute_oslogin_role
 }
 
 module "compute_oslogin_role" {

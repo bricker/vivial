@@ -15,5 +15,5 @@ module "cloudsql_eave_core" {
 
 moved {
   from = module.cloudsql_iam
-  to = module.cloudsql_eave_core.module.cloudsql_iam
+  to   = module.cloudsql_eave_core.module.cloudsql_iam
 }

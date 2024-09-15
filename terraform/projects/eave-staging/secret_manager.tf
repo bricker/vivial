@@ -1,6 +1,6 @@
 moved {
   from = module.secret_manager_secrets
-  to = module.app_secrets.module.secret_manager_secrets
+  to   = module.app_secrets.module.secret_manager_secrets
 }
 
 module "app_secrets" {

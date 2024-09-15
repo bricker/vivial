@@ -62,23 +62,23 @@ variable "impersonator_role_name" {
 }
 
 variable "impersonators" {
-  type=list(string)
+  type    = list(string)
   default = []
 }
 
 variable "network_name" {
-  type=string
+  type = string
 }
 variable "subnetwork_self_link" {
-  type=string
+  type = string
 }
 variable "compute_oslogin_role_name" {
-  type=string
+  type = string
 }
 variable "service_account_user_role_name" {
-  type=string
+  type = string
 }
 variable "bastion_accessors" {
-  type=list(string)
+  type    = list(string)
   default = []
 }

@@ -15,12 +15,12 @@ module "core_api_app" {
   kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
 
-  impersonator_role_name        = module.project_base.impersonator_role_name
-  compute_oslogin_role_name = module.project_base.compute_oslogin_role_name
+  impersonator_role_name         = module.project_base.impersonator_role_name
+  compute_oslogin_role_name      = module.project_base.compute_oslogin_role_name
   service_account_user_role_name = module.project_base.service_account_user_role_name
-  network_name                  = module.project_base.network_name
-  subnetwork_self_link          = module.project_base.subnetwork_self_link
-  bastion_accessors             = ["user:bryan@eave.fyi"]
+  network_name                   = module.project_base.network_name
+  subnetwork_self_link           = module.project_base.subnetwork_self_link
+  bastion_accessors              = ["user:bryan@eave.fyi"]
 
   LOG_LEVEL        = "DEBUG"
   release_version  = "latest"

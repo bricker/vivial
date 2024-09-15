@@ -11,12 +11,12 @@ resource "google_service_account" "bastion_sa" {
 }
 
 resource "google_compute_instance" "bastion" {
-  name                = var.name
-  description         = "IAP tunnel for impersonating ${var.target_service_account_id} from local workstations."
-  can_ip_forward      = false
-  deletion_protection = false
-  enable_display      = false
-  machine_type        = "e2-micro"
+  name                      = var.name
+  description               = "IAP tunnel for impersonating ${var.target_service_account_id} from local workstations."
+  can_ip_forward            = false
+  deletion_protection       = false
+  enable_display            = false
+  machine_type              = "e2-micro"
   allow_stopping_for_update = true
   metadata = {
     block-project-ssh-keys = "true"
@@ -53,9 +53,9 @@ resource "google_compute_instance" "bastion" {
   network_interface {
     internal_ipv6_prefix_length = 0
     network                     = data.google_compute_network.given.self_link
-    subnetwork  = var.subnetwork_self_link
-    queue_count = 0
-    stack_type  = "IPV4_ONLY"
+    subnetwork                  = var.subnetwork_self_link
+    queue_count                 = 0
+    stack_type                  = "IPV4_ONLY"
   }
   reservation_affinity {
     type = "ANY_RESERVATION"

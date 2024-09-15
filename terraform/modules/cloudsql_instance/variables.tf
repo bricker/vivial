@@ -22,9 +22,9 @@ variable "environment" {
 }
 
 variable "cloudsql_user_role_name" {
-  type=string
+  type = string
 }
 
 variable "cloudsql_user_role_members" {
-  type=list(string)
+  type = list(string)
 }
