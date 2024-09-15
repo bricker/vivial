@@ -25,8 +25,8 @@ resource "google_compute_instance" "bastion" {
       set -e
       sudo apt-get update
 
-      sudo apt install postgresql-client
-      sudo apt-get install wget
+      sudo apt install -y postgresql-client
+      sudo apt install -y wget
       wget https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.8.2/cloud-sql-proxy.linux.amd64 -O cloud-sql-proxy
       chmod +x cloud-sql-proxy
       ./cloud-sql-proxy \
@@ -54,7 +54,6 @@ resource "google_compute_instance" "bastion" {
     internal_ipv6_prefix_length = 0
     network                     = data.google_compute_network.given.self_link
     subnetwork  = var.subnetwork_self_link
-    # network_ip                  = "10.128.0.14"
     queue_count = 0
     stack_type  = "IPV4_ONLY"
   }
