@@ -8,8 +8,7 @@ resource "kubernetes_deployment" "app" {
     (local.app_name) = {
       app_name = local.app_name,
       analytics_disabled = false,
-      ingest_api_base_url = "http://${local.internal_analytics_app_name}.eave.svc.cluster.local"
-      #"TODO do we even need to set this?? can we just keep the main.tf share config value?
+      ingest_api_base_url = "http://${local.internal_analytics_app_name}.${var.kube_namespace_name}.svc.cluster.local"
     },
     (local.internal_analytics_app_name) = {
       app_name = local.internal_analytics_app_name,
@@ -137,7 +136,6 @@ resource "kubernetes_deployment" "app" {
             value = "--bind=0.0.0.0:${local.app_port.number} --workers=3 --timeout=90"
           }
           env {
-            # TODO: Check that override works correctly
             name = "EAVE_ANALYTICS_DISABLED"
             value = each.value.analytics_disabled ? "1" : "0"
           }
