@@ -1,6 +1,10 @@
 // https://cloud.google.com/kubernetes-engine/docs/quickstarts/create-cluster-using-terraform
 
 resource "google_container_cluster" "default" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   name             = var.cluster_name
   location         = var.location
   network          = data.google_compute_network.given.self_link

@@ -1,11 +1,12 @@
 resource "kubernetes_deployment" "app" {
-  wait_for_rollout = false
-
   lifecycle {
+    prevent_destroy = true
     ignore_changes = [
       spec[0].template[0].metadata[0].annotations["kubectl.kubernetes.io/restartedAt"],
     ]
   }
+
+  wait_for_rollout = false
 
   metadata {
     name      = local.app_name

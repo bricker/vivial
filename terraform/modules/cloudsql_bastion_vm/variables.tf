@@ -18,7 +18,11 @@ variable "subnetwork_self_link" {
   type = string
 }
 
-variable "compute_vm_accessor_role_name" {
+variable "compute_oslogin_role_name" {
+  type = string
+}
+
+variable "service_account_user_role_name" {
   type = string
 }
 

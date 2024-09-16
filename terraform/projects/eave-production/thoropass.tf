@@ -1,4 +1,8 @@
 resource "google_service_account" "thoropass_integration_sa_prod" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   project      = data.google_project.default.project_id
   account_id   = "thoropass-integration"
   display_name = "Thoropass Integration (Production)"
@@ -6,6 +10,10 @@ resource "google_service_account" "thoropass_integration_sa_prod" {
 }
 
 resource "google_service_account" "thoropass_integration_sa_stg" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   project      = data.google_project.staging.project_id
   account_id   = "thoropass-integration"
   display_name = "Thoropass Integration (Staging)"
@@ -13,6 +21,10 @@ resource "google_service_account" "thoropass_integration_sa_stg" {
 }
 
 resource "google_organization_iam_custom_role" "thoropass_role" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   org_id      = local.org_id
   role_id     = "eave.thoropass"
   title       = "Thoropass"
@@ -55,6 +67,10 @@ resource "google_organization_iam_custom_role" "thoropass_role" {
 }
 
 resource "google_organization_iam_binding" "org_thoropass_access" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   org_id = local.org_id
   role   = google_organization_iam_custom_role.thoropass_role.id
 
