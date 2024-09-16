@@ -17,6 +17,10 @@ module "app_iam_role" {
 }
 
 resource "google_project_iam_binding" "project_app_role_members" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   # Add the new app role to the app service account
   project = data.google_project.default.project_id
   role    = module.app_iam_role.id

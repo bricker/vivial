@@ -1,4 +1,8 @@
 resource "google_project_iam_binding" "project_cloudsql_user_role_members" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   project = data.google_project.default.project_id
   role    = data.google_iam_role.cloudsql_user_role.id
   members = var.members

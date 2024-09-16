@@ -26,7 +26,7 @@ data "google_service_account" "app_service_account" {
 }
 
 data "google_service_account" "cloudsql_bastion_service_account" {
-  account_id = module.cloudsql_bastion.service_account_id
+  account_id = module.bastion.service_account_id
 }
 
 data "google_iam_role" "impersonator_role" {

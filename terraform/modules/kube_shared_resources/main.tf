@@ -1,10 +1,18 @@
 resource "kubernetes_namespace" "eave" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   metadata {
     name = "eave"
   }
 }
 
 resource "kubernetes_config_map" "shared" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   metadata {
     name      = "shared"
     namespace = kubernetes_namespace.eave.metadata[0].name

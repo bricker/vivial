@@ -1,4 +1,8 @@
 resource "kubernetes_service" "default" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   metadata {
     name      = var.service_name
     namespace = var.namespace
@@ -25,6 +29,10 @@ resource "kubernetes_service" "default" {
 
 # https://cloud.google.com/kubernetes-engine/docs/how-to/configure-gateway-resources#configure_health_check
 resource "kubernetes_manifest" "healthcheck_policy" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   manifest = {
     apiVersion = "networking.gke.io/v1"
     kind       = "HealthCheckPolicy"

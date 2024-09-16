@@ -1,8 +1,16 @@
 resource "google_compute_global_address" "default" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   name = var.name
 }
 
 resource "google_dns_record_set" "default" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   managed_zone = data.google_dns_managed_zone.given.name
   name         = "${var.name}.${data.google_dns_managed_zone.given.dns_name}"
   type         = "A"
