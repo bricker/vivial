@@ -1,3 +1,8 @@
+moved {
+  from = kubernetes_deployment.app
+  to = kubernetes_deployment.app["core-api"]
+}
+
 resource "kubernetes_deployment" "app" {
   for_each = {
     (local.app_name) = {
