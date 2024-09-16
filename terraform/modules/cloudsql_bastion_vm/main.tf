@@ -22,12 +22,14 @@ resource "google_compute_instance" "bastion" {
     block-project-ssh-keys = "true"
     enable-oslogin-2fa     = "true"
     startup-script         = <<-EOT
-      set -e
       sudo apt-get update
-
       sudo apt install -y postgresql-client
       sudo apt install -y wget
-      wget https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.8.2/cloud-sql-proxy.linux.amd64 -O cloud-sql-proxy
+
+      if ! test -f cloud-sql-proxy; then
+        wget https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.8.2/cloud-sql-proxy.linux.amd64 -O cloud-sql-proxy
+      fi
+
       chmod +x cloud-sql-proxy
       ./cloud-sql-proxy \
         --private-ip \
