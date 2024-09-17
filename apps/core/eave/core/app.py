@@ -7,9 +7,7 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Route
 
 import eave.stdlib.time
-
 from eave.collectors.sqlalchemy import SQLAlchemyCollectorManager
-from eave.collectors.starlette import StarletteCollectorManager
 from eave.core.internal.oauth.google import (
     GOOGLE_OAUTH_AUTHORIZE_PATH,
     GOOGLE_OAUTH_CALLBACK_PATH,
@@ -372,5 +370,5 @@ app = starlette.applications.Starlette(
 )
 
 if SHARED_CONFIG.analytics_enabled:
-    StarletteCollectorManager.start(app)
-    # SQLAlchemyCollectorManager.start(engine=async_engine)
+    # StarletteCollectorManager.start(app)
+    SQLAlchemyCollectorManager.start(engine=async_engine)
