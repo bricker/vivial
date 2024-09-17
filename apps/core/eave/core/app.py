@@ -20,7 +20,8 @@ from eave.core.public.requests.data_ingestion import (
     ServerDataIngestionEndpoint,
 )
 from eave.core.public.requests.metabase_proxy import MetabaseAuthEndpoint, MetabaseProxyEndpoint, MetabaseProxyRouter
-from eave.stdlib import cache, logging
+from eave.stdlib import cache
+from eave.stdlib.logging import eaveLogger
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.core_api.operations.account import GetMyAccountRequest
@@ -337,7 +338,7 @@ async def graceful_shutdown() -> None:
         if client := cache.initialized_client():
             await client.close()
     except Exception as e:
-        logging.eaveLogger.exception(e)
+        eaveLogger.exception(e)
 
 
 app = starlette.applications.Starlette(
@@ -371,5 +372,8 @@ app = starlette.applications.Starlette(
 )
 
 if SHARED_CONFIG.analytics_enabled:
+    print("wee")
+    import logging
+    logging.getLogger("DEBUG-AGENT").debug("woo")
     StarletteCollectorManager.start(app)
     SQLAlchemyCollectorManager.start(engine=async_engine)
