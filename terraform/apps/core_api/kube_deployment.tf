@@ -1,18 +1,18 @@
 moved {
   from = kubernetes_deployment.app
-  to = kubernetes_deployment.app["core-api"]
+  to   = kubernetes_deployment.app["core-api"]
 }
 
 resource "kubernetes_deployment" "app" {
   for_each = {
     (local.app_name) = {
-      app_name = local.app_name,
-      analytics_disabled = false,
+      app_name            = local.app_name,
+      analytics_disabled  = false,
       ingest_api_base_url = "http://${local.internal_analytics_app_name}.${var.kube_namespace_name}.svc.cluster.local"
     },
     (local.internal_analytics_app_name) = {
-      app_name = local.internal_analytics_app_name,
-      analytics_disabled = true,
+      app_name            = local.internal_analytics_app_name,
+      analytics_disabled  = true,
       ingest_api_base_url = "intentionally-not-a-url"
     }
   }
@@ -136,11 +136,11 @@ resource "kubernetes_deployment" "app" {
             value = "--bind=0.0.0.0:${local.app_port.number} --workers=3 --timeout=90"
           }
           env {
-            name = "EAVE_ANALYTICS_DISABLED"
+            name  = "EAVE_ANALYTICS_DISABLED"
             value = each.value.analytics_disabled ? "1" : "0"
           }
           env {
-            name = "EAVE_INGEST_BASE_URL"
+            name  = "EAVE_INGEST_BASE_URL"
             value = each.value.ingest_api_base_url
           }
 

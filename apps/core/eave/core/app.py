@@ -1,6 +1,4 @@
 import aiohttp.hdrs
-from eave.collectors.sqlalchemy import SQLAlchemyCollectorManager
-from eave.collectors.starlette import StarletteCollectorManager
 import starlette.applications
 import starlette.endpoints
 from asgiref.typing import ASGI3Application
@@ -9,6 +7,8 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Route
 
 import eave.stdlib.time
+from eave.collectors.sqlalchemy import SQLAlchemyCollectorManager
+from eave.collectors.starlette import StarletteCollectorManager
 from eave.core.internal.oauth.google import (
     GOOGLE_OAUTH_AUTHORIZE_PATH,
     GOOGLE_OAUTH_CALLBACK_PATH,

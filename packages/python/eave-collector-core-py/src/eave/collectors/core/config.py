@@ -67,7 +67,6 @@ def is_development() -> bool:
 
 def telemetry_disabled() -> bool:
     """Logging telemetry disabled"""
-    return True
     return os.getenv("EAVE_DISABLE_TELEMETRY") is not None
 
 

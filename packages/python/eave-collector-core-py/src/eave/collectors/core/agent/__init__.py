@@ -70,7 +70,7 @@ class EaveAgent(Agent):
             if self.is_alive():
                 return
 
-            self._thread = Thread(target=self._worker_event_loop, name="eave-agent", daemon=True)
+            self._thread = Thread(target=self._worker_event_loop, daemon=True)
             self._thread.start()
             atexit.register(self.stop)
 
