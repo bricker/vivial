@@ -76,8 +76,8 @@ resource "google_compute_instance" "bastion" {
     scopes = ["https://www.googleapis.com/auth/cloud-platform"]
   }
   shielded_instance_config {
-    enable_integrity_monitoring = false
-    enable_secure_boot          = false
-    enable_vtpm                 = false
+    enable_integrity_monitoring = true
+    enable_secure_boot          = true
+    enable_vtpm                 = true
   }
 }
