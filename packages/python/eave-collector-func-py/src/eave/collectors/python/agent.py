@@ -132,5 +132,5 @@ def start_controller() -> None:
         _cleanup()
 
 
-if __name__ == "__main__":
-    start_controller()
+# if __name__ == "__main__":
+#     start_controller()
