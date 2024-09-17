@@ -44,7 +44,7 @@ class Agent(abc.ABC):
     @abc.abstractmethod
     def put(self, payload: Batchable) -> None: ...
 
-
+junk_logger = logging.getLogger("DEBUG-AGENT")
 class EaveAgent(Agent):
     _queue_params: QueueParams
     queue: Queue
@@ -61,6 +61,7 @@ class EaveAgent(Agent):
         self._lock = Lock()
         self._logger = logger
         self._data_handler = data_handler
+        junk_logger.debug(f"init agent w/ handler {data_handler}")
 
     def is_alive(self) -> bool:
         return self._thread is not None and self._thread.is_alive()
@@ -69,8 +70,9 @@ class EaveAgent(Agent):
         with self._lock:
             if self.is_alive():
                 return
+            junk_logger.debug(f"started agent {id(self)}...")
 
-            self._thread = Thread(target=self._worker_event_loop, daemon=True)
+            self._thread = Thread(target=self._worker_event_loop, name="eave-agent", daemon=True)
             self._thread.start()
             atexit.register(self.stop)
 
@@ -115,6 +117,7 @@ class EaveAgent(Agent):
         queue_closed = False
 
         while True:
+            junk_logger.debug(f"num fails: {failsafe_counter}")
             force_flush = False
 
             try:
@@ -123,6 +126,7 @@ class EaveAgent(Agent):
                 # If the queue has been closed by the controlling process, then don't block, so that the queue is flushed as quickly as possible.
                 payload = self.queue.get(block=(not queue_closed), timeout=timeout)
                 self.queue.task_done()
+                junk_logger.debug(f"queu item: {payload}")
 
                 if payload == _QUEUE_CLOSED_SENTINEL:
                     # By setting this, the queue will now be processed as quickly as possible.
@@ -149,6 +153,7 @@ class EaveAgent(Agent):
                 or buflen >= self._queue_params.maxsize
                 or now - last_flush >= self._queue_params.flush_frequency_seconds
             ):
+                junk_logger.debug("had an event to send")
                 try:
                     self._logger.debug(
                         "Sending data batch to Eave. buflen=%d, last_flush=%s, force_flush=%s, failsafe_counter=%d",
