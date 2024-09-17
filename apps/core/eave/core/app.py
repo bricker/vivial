@@ -371,4 +371,4 @@ app = starlette.applications.Starlette(
 
 if SHARED_CONFIG.analytics_enabled:
     # StarletteCollectorManager.start(app)
-    SQLAlchemyCollectorManager.start(engine=async_engine)
+    SQLAlchemyCollectorManager.stop() #start(engine=async_engine)
