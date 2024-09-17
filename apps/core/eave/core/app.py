@@ -1,4 +1,6 @@
 import aiohttp.hdrs
+from eave.collectors.sqlalchemy import SQLAlchemyCollectorManager
+from eave.collectors.starlette import StarletteCollectorManager
 import starlette.applications
 import starlette.endpoints
 from asgiref.typing import ASGI3Application
@@ -7,9 +9,6 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Route
 
 import eave.stdlib.time
-from eave.collectors.core.json import compact_json
-
-# from eave.collectors.sqlalchemy import SQLAlchemyCollectorManager
 from eave.core.internal.oauth.google import (
     GOOGLE_OAUTH_AUTHORIZE_PATH,
     GOOGLE_OAUTH_CALLBACK_PATH,
@@ -372,6 +371,5 @@ app = starlette.applications.Starlette(
 )
 
 if SHARED_CONFIG.analytics_enabled:
-    print(compact_json({"does this": "crash"}))
-    # StarletteCollectorManager.start(app)
-    # SQLAlchemyCollectorManager.start(engine=async_engine)
+    StarletteCollectorManager.start(app)
+    SQLAlchemyCollectorManager.start(engine=async_engine)
