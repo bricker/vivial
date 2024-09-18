@@ -21,7 +21,6 @@ from eave.core.public.requests.data_ingestion import (
 )
 from eave.core.public.requests.metabase_proxy import MetabaseAuthEndpoint, MetabaseProxyEndpoint, MetabaseProxyRouter
 from eave.stdlib import cache
-from eave.stdlib.logging import eaveLogger
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.core_api.operations.account import GetMyAccountRequest
@@ -35,6 +34,7 @@ from eave.stdlib.core_api.operations.virtual_event import GetMyVirtualEventDetai
 from eave.stdlib.headers import (
     EAVE_ORIGIN_HEADER,
 )
+from eave.stdlib.logging import eaveLogger
 from eave.stdlib.middleware.deny_public_request import DenyPublicRequestASGIMiddleware
 from eave.stdlib.middleware.exception_handling import ExceptionHandlingASGIMiddleware
 from eave.stdlib.middleware.logging import LoggingASGIMiddleware
@@ -372,8 +372,5 @@ app = starlette.applications.Starlette(
 )
 
 if SHARED_CONFIG.analytics_enabled:
-    print("wee")
-    import logging
-    logging.getLogger("DEBUG-AGENT").debug("woo")
     StarletteCollectorManager.start(app)
     SQLAlchemyCollectorManager.start(engine=async_engine)
