@@ -10,6 +10,7 @@ _EAVE_LOGGER_NAME = "eave-collector-telemetry"
 _EAVE_ROOT_LOGGER = logging.getLogger(_EAVE_LOGGER_NAME)
 _EAVE_LOGGING_AGENT_LOGGER = logging.getLogger("eave-logging")
 
+
 class _EaveTelemetryHandler(logging.Handler):
     _agent: EaveAgent
 
@@ -29,6 +30,7 @@ class _EaveTelemetryFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         log = super().filter(record)
         return log and record.name.startswith(_EAVE_LOGGER_NAME)
+
 
 if not config.telemetry_disabled():
     _eave_telemetry_filter = _EaveTelemetryFilter()
