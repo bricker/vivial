@@ -2,7 +2,7 @@ import os
 
 from eave.collectors.core.config import (
     EaveCredentials,
-    eave_api_base_url,
+    eave_ingest_base_url,
     eave_env,
     is_development,
     queue_flush_frequency_seconds,
@@ -13,13 +13,13 @@ from .base import BaseTestCase
 
 
 class ConfigTest(BaseTestCase):
-    async def test_eave_api_base_url(self) -> None:
-        if "EAVE_API_BASE_URL_PUBLIC" in os.environ:
-            del os.environ["EAVE_API_BASE_URL_PUBLIC"]
-        assert eave_api_base_url() == "https://api.eave.fyi"
+    async def test_eave_ingest_base_url(self) -> None:
+        if "EAVE_INGEST_BASE_URL" in os.environ:
+            del os.environ["EAVE_INGEST_BASE_URL"]
+        assert eave_ingest_base_url() == "https://api.eave.fyi"
 
-        os.environ["EAVE_API_BASE_URL_PUBLIC"] = "https://eave.test"
-        assert eave_api_base_url() == "https://eave.test"
+        os.environ["EAVE_INGEST_BASE_URL"] = "https://eave.test"
+        assert eave_ingest_base_url() == "https://eave.test"
 
     async def test_eave_credentials_missing(self) -> None:
         del os.environ["EAVE_CREDENTIALS"]
