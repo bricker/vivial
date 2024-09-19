@@ -11,8 +11,7 @@ resource "kubernetes_deployment" "app" {
       analytics_disabled  = false,
       ingest_api_base_url = "http://${local.internal_analytics_app_name}.${var.kube_namespace_name}.svc.cluster.local"
       match_labels = {
-        app       = local.app_name
-        app_group = local.app_name
+        app = local.app_name
       }
     },
     (local.internal_analytics_app_name) = {
@@ -24,11 +23,21 @@ resource "kubernetes_deployment" "app" {
         app_group = local.app_name
         app       = local.internal_analytics_app_name
       }
+    },
+    core_api_temp_backup = {
+      app_name            = local.app_name,
+      deploy_name         = "core-api-temp-backup",
+      analytics_disabled  = false,
+      ingest_api_base_url = "http://${local.internal_analytics_app_name}.${var.kube_namespace_name}.svc.cluster.local"
+      match_labels = {
+        app       = local.app_name
+        app_group = local.app_name
+      }
     }
   }
 
   lifecycle {
-    prevent_destroy = true
+    # prevent_destroy = true
     ignore_changes = [
       spec[0].template[0].metadata[0].annotations["kubectl.kubernetes.io/restartedAt"],
     ]
