@@ -118,20 +118,27 @@ class EaveAgent(Agent):
             force_flush = False
 
             try:
+                # track elapsed time so that there's never more than flush_frequency_seconds between flushes
                 elapsed = time.time() - last_flush
                 timeout = max(0, self._queue_params.flush_frequency_seconds - elapsed)
-                # If the queue has been closed by the controlling process, then don't block, so that the queue is flushed as quickly as possible.
-                payload = self.queue.get(block=(not queue_closed), timeout=timeout)
-                self.queue.task_done()
 
-                if payload == _QUEUE_CLOSED_SENTINEL:
-                    # By setting this, the queue will now be processed as quickly as possible.
-                    # We'll no longer wait for an item to be placed on the queue; we'll instead
-                    # process the queue immediately until an `Empty` exception is raised, and then force-flush
-                    # and end the process.
-                    queue_closed = True
+                # once timeout reaches 0, force flush the buffer (and therefore reset last_flush).
+                # this prevents CPU usage from ballooning from this loop having 0 delay.
+                if timeout == 0:
+                    force_flush = True
                 else:
-                    buffer.append(payload)
+                    # If the queue has been closed by the controlling process, then don't block, so that the queue is flushed as quickly as possible.
+                    payload = self.queue.get(block=(not queue_closed), timeout=timeout)
+                    self.queue.task_done()
+
+                    if payload == _QUEUE_CLOSED_SENTINEL:
+                        # By setting this, the queue will now be processed as quickly as possible.
+                        # We'll no longer wait for an item to be placed on the queue; we'll instead
+                        # process the queue immediately until an `Empty` exception is raised, and then force-flush
+                        # and end the process.
+                        queue_closed = True
+                    else:
+                        buffer.append(payload)
             except Empty:
                 # The queue is empty. If the queue has been closed by the controlling process, then do a final flush.
                 if queue_closed:
@@ -144,29 +151,31 @@ class EaveAgent(Agent):
             now = time.time()
 
             buflen = len(buffer)
-            if buflen > 0 and (
+            if (
                 force_flush
                 or buflen >= self._queue_params.maxsize
                 or now - last_flush >= self._queue_params.flush_frequency_seconds
             ):
-                try:
-                    self._logger.debug(
-                        "Sending data batch to Eave. buflen=%d, last_flush=%s, force_flush=%s, failsafe_counter=%d",
-                        buflen,
-                        str(last_flush),
-                        str(force_flush),
-                        failsafe_counter,
-                    )
+                if buflen > 0:
+                    try:
+                        self._logger.debug(
+                            "Sending data batch to Eave. buflen=%d, last_flush=%s, force_flush=%s, failsafe_counter=%d",
+                            buflen,
+                            str(last_flush),
+                            str(force_flush),
+                            failsafe_counter,
+                        )
 
-                    await self._data_handler.send_buffer(buffer)
-                    buffer.clear()
-                    buflen = 0
-                    failsafe_counter = 0
-                    last_flush = now
-                except Exception as e:
-                    # Probably a failed network request.
-                    self._logger.exception(e)
-                    failsafe_counter += 1
+                        await self._data_handler.send_buffer(buffer)
+                        buffer.clear()
+                        buflen = 0
+                        failsafe_counter = 0
+                    except Exception as e:
+                        # Probably a failed network request.
+                        self._logger.exception(e)
+                        failsafe_counter += 1
+
+                last_flush = now
 
             if failsafe_counter >= _FAILSAFE_MAX_FAILURES:
                 raise TooManyFailuresError("Eave agent failsafe threshold reached! Terminating.")

@@ -27,7 +27,7 @@ class LogsHandler(DataHandler[LogPayload]):
         async with aiohttp.ClientSession() as session:
             await session.request(
                 method="POST",
-                url=f"{config.eave_api_base_url()}/public/ingest/log",
+                url=f"{config.eave_ingest_base_url()}/public/ingest/log",
                 data=body.to_json(),
                 compress="gzip",
                 headers=headers,

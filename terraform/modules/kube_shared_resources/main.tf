@@ -27,6 +27,7 @@ resource "kubernetes_config_map" "shared" {
     EAVE_API_BASE_URL_PUBLIC       = "https://api.${var.root_domain}"
     EAVE_API_BASE_URL_INTERNAL     = "http://core-api.${kubernetes_namespace.eave.metadata[0].name}.svc.cluster.local"
     EAVE_DASHBOARD_BASE_URL_PUBLIC = "https://dashboard.${var.root_domain}"
+    EAVE_INGEST_BASE_URL           = "https://api.${var.root_domain}"
 
     EAVE_SLACK_SIGNUPS_CHANNEL_ID = var.eave_slack_signups_channel_id
   }

@@ -8,6 +8,7 @@ from eave.collectors.core.datastructures import LogPayload
 
 _EAVE_LOGGER_NAME = "eave-collector-telemetry"
 _EAVE_ROOT_LOGGER = logging.getLogger(_EAVE_LOGGER_NAME)
+_EAVE_LOGGING_AGENT_LOGGER = logging.getLogger("eave-logging")
 
 
 class _EaveTelemetryHandler(logging.Handler):
@@ -18,7 +19,7 @@ class _EaveTelemetryHandler(logging.Handler):
         # intentionally give telem agent a separate logger from the one
         # used by the atom agent, so as to not cause inf loop of logger
         # generating logs it then feeds to its own write queue
-        self._agent = EaveAgent(logger=logging.getLogger("eave-logging"), data_handler=LogsHandler())
+        self._agent = EaveAgent(logger=_EAVE_LOGGING_AGENT_LOGGER, data_handler=LogsHandler())
         self._agent.start()
 
     def emit(self, record: logging.LogRecord) -> None:
@@ -43,6 +44,7 @@ if config.is_development():
     _stream_handler = logging.StreamHandler(sys.stdout)
     _stream_handler.setLevel(logging.DEBUG)
     _EAVE_ROOT_LOGGER.addHandler(_stream_handler)
+    _EAVE_LOGGING_AGENT_LOGGER.addHandler(_stream_handler)
 
 
 def eave_logger_factory(pkg_name: str) -> logging.Logger:
