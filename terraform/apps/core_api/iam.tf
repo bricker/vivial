@@ -19,17 +19,21 @@ module "app_iam_role" {
 }
 
 resource "google_project_iam_binding" "project_app_role_members" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   # Add the new app role to the app service account
   project = data.google_project.default.project_id
   role    = module.app_iam_role.id
-  members = [ data.google_service_account.app_service_account.member ]
+  members = [data.google_service_account.app_service_account.member]
 }
 
 resource "google_service_account_iam_binding" "sa_impersonator_role_members" {
   # Add impersonators to the app service account
   service_account_id = data.google_service_account.app_service_account.id
   role               = data.google_iam_role.impersonator_role.id
-  members             = [
+  members = [
     data.google_service_account.cloudsql_bastion_service_account.member
   ]
 }

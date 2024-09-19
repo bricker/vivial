@@ -1,3 +1,5 @@
+import { UAParser } from "@ua-parser-js/pro-business";
+import { logger } from "../internal/logging";
 import { DeviceProperties } from "../types";
 
 export async function getUserAgentProperties(): Promise<DeviceProperties> {
@@ -10,11 +12,38 @@ export async function getUserAgentProperties(): Promise<DeviceProperties> {
     screen_avail_height: screen.availHeight,
   };
 
+  // assume this is false unless UA data tells us otherwise
+  deviceProperties.mobile = false;
+
   // @ts-ignore: navigator.userAgentData does not have wide support.
   // It's not available in ES2015 (our target), but in case it _is_ available we should use it.
   // Additionally, it is only available in secure contexts (https) in any browser.
   const userAgentData = navigator.userAgentData;
   if (!userAgentData) {
+    // fallback to UAParser.js (pro license)
+    const parsedUA = new UAParser(navigator.userAgent).getResult();
+    const browser = parsedUA.browser;
+    if (browser.name && browser.version) {
+      deviceProperties.brands = [
+        {
+          brand: browser.name,
+          version: browser.version,
+        },
+      ];
+    }
+    if (parsedUA.os.name) {
+      deviceProperties.platform = parsedUA.os.name;
+    }
+    if (parsedUA.os.version) {
+      deviceProperties.platform_version = parsedUA.os.version;
+    }
+    // assume if a form-factor is specified then device is not a PC
+    const deviceFormFactor = parsedUA.device.type;
+    if (deviceFormFactor) {
+      deviceProperties.mobile = ["mobile", "tablet", "wearable"].includes(deviceFormFactor);
+      deviceProperties.form_factor = deviceFormFactor.toLowerCase();
+      deviceProperties.model = parsedUA.device.model;
+    }
     return deviceProperties;
   }
 
@@ -45,7 +74,7 @@ export async function getUserAgentProperties(): Promise<DeviceProperties> {
     }
 
     if (formFactor) {
-      deviceProperties.form_factor = formFactor;
+      deviceProperties.form_factor = formFactor.toLowerCase();
     }
 
     if (model) {
@@ -58,7 +87,7 @@ export async function getUserAgentProperties(): Promise<DeviceProperties> {
   } catch (e) {
     // Probably `NotAllowedError`, indicating the user denied some permissions.
     // That's okay, we'll just return the basic data we already have.
-    console.warn(e);
+    logger.warn(e);
   }
 
   return deviceProperties;

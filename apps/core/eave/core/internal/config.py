@@ -3,7 +3,7 @@ import os
 from functools import cached_property
 from typing import Any
 
-from eave.stdlib.config import SHARED_CONFIG, ConfigBase, get_required_env, get_secret
+from eave.stdlib.config import ConfigBase, get_secret
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.util import b64decode
 

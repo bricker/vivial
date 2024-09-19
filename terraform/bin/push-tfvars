@@ -4,7 +4,7 @@ set -euo pipefail
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-function main () (
+function main() (
 	local project="$1"
 	local itemid="$2"
 	local fieldid="$3"

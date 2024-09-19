@@ -1,11 +1,12 @@
 import { isTrackingConsentRevoked } from "./consent";
-import { TRACKER_URL } from "./internal/compile-config";
-import { LOG_TAG } from "./internal/constants";
+import { sendBeaconWithEaveAuth } from "./internal/beacon";
+import { ATOM_TRACKER_URL } from "./internal/compile-config";
 import {
   EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE,
   EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE,
   VISIBILITY_CHANGE_EVENT_TYPE,
 } from "./internal/js-events";
+import { logger } from "./internal/logging";
 import { getCorrelationContext } from "./properties/correlation-context";
 import { getUserAgentProperties } from "./properties/device";
 import { getCurrentPageProperties } from "./properties/page";
@@ -76,7 +77,7 @@ class RequestManager {
 
     // @ts-ignore: this is a known global variable implicitly set on the window.
     if (!window.EAVE_CLIENT_ID) {
-      console.warn(LOG_TAG, "EAVE_CLIENT_ID is not set.");
+      logger.warn("EAVE_CLIENT_ID is not set.");
       return;
     }
     // this.startAutoflush();
@@ -88,7 +89,7 @@ class RequestManager {
     }
 
     if (isTrackingConsentRevoked()) {
-      console.debug(LOG_TAG, "Tracking consent not given, queue won't autoflush.");
+      logger.debug("Tracking consent not given, queue won't autoflush.");
       return;
     }
 
@@ -172,7 +173,7 @@ class RequestManager {
   queueEvent(payload: BrowserEventPayload) {
     if (isTrackingConsentRevoked()) {
       this.#queue.push(payload);
-      console.debug(LOG_TAG, "Queued event", payload);
+      logger.debug("Queued event", payload);
     } else {
       this.#sendBatch([payload]);
     }
@@ -190,36 +191,15 @@ class RequestManager {
       return;
     }
 
-    try {
-      const json = JSON.stringify({
+    sendBeaconWithEaveAuth({
+      jsonBody: {
         events: {
           browser_event: payloads,
         },
-      });
-
-      // Important note: The `type` property here should be `application/x-www-form-urlencoded`, because that mimetype is CORS-safelisted as documented here:
-      // https://fetch.spec.whatwg.org/#cors-safelisted-request-header
-      // If set to a non-safe mimetype (eg application/json), sendBeacon will send a pre-flight CORS request (OPTIONS) to the server, and the server is then responsible
-      // for responding with CORS "access-control-allow-*" headers. That's okay, but it adds unnecessary overhead to both the client and the server.
-      const blob = new Blob([json], {
-        type: "application/x-www-form-urlencoded; charset=UTF-8",
-      });
-
-      // @ts-ignore: this is a known global variable implicitly set on the window.
-      const clientId: string | undefined = window.EAVE_CLIENT_ID;
-
-      console.debug(LOG_TAG, "Sending events", payloads);
-
-      const success = navigator.sendBeacon(`${TRACKER_URL}?clientId=${clientId}`, blob);
-
-      if (!success) {
-        console.warn(LOG_TAG, "failed to send analytics.");
-        return;
-      }
-    } catch (e) {
-      console.error(LOG_TAG, e);
-      return;
-    }
+      },
+      url: ATOM_TRACKER_URL,
+      logger,
+    });
   }
 
   /**

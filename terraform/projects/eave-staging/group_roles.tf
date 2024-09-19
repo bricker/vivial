@@ -10,7 +10,7 @@ module "custom_developer_role" {
 
 resource "google_project_iam_binding" "project_developer_role_members" {
   project = data.google_project.default.id
-  role = module.custom_developer_role.id
+  role    = module.custom_developer_role.id
   members = [
     "group:developers@eave.fyi",
   ]
@@ -27,7 +27,7 @@ module "custom_everybody_role" {
 
 resource "google_project_iam_binding" "project_everybody_role_members" {
   project = data.google_project.default.id
-  role = module.custom_everybody_role.id
+  role    = module.custom_everybody_role.id
   members = [
     "group:everybody@eave.fyi",
   ]

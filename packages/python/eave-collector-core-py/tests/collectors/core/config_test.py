@@ -14,7 +14,8 @@ from .base import BaseTestCase
 
 class ConfigTest(BaseTestCase):
     async def test_eave_api_base_url(self) -> None:
-        del os.environ["EAVE_API_BASE_URL_PUBLIC"]
+        if "EAVE_API_BASE_URL_PUBLIC" in os.environ:
+            del os.environ["EAVE_API_BASE_URL_PUBLIC"]
         assert eave_api_base_url() == "https://api.eave.fyi"
 
         os.environ["EAVE_API_BASE_URL_PUBLIC"] = "https://eave.test"

@@ -1,4 +1,4 @@
-import { requestManager } from "../beacon";
+import { requestManager } from "../request-manager";
 import { TargetProperties } from "../types";
 import { getElementAttributes } from "../util/dom-helpers";
 import { currentTimestampSeconds } from "../util/timestamp";

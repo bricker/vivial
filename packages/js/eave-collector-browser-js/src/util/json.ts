@@ -1,4 +1,4 @@
-import { LOG_TAG } from "../internal/constants";
+import { logger } from "../internal/logging";
 import { JsonValue } from "../types";
 
 export function safeJSONParse<T extends JsonValue>(value: string | null): T | null {
@@ -9,7 +9,7 @@ export function safeJSONParse<T extends JsonValue>(value: string | null): T | nu
   try {
     return JSON.parse(value);
   } catch (e) {
-    console.error(LOG_TAG, e);
+    logger.error(e);
     return null;
   }
 }

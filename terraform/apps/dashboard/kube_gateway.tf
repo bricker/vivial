@@ -26,6 +26,10 @@ module "gateway_backend_policy" {
 }
 
 resource "kubernetes_manifest" "app_httproute" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   manifest = {
     apiVersion = "gateway.networking.k8s.io/v1beta1"
     kind       = "HTTPRoute"

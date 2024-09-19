@@ -1,27 +1,31 @@
 variable "name" {
-  type=string
+  type = string
 }
 
 variable "target_service_account_id" {
-  type=string
+  type = string
 }
 
 variable "cloudsql_instance_name" {
-  type=string
+  type = string
 }
 
 variable "network_name" {
-  type=string
+  type = string
 }
 
 variable "subnetwork_self_link" {
-  type=string
+  type = string
 }
 
-variable "compute_vm_accessor_role_name" {
-  type=string
+variable "compute_oslogin_role_name" {
+  type = string
+}
+
+variable "service_account_user_role_name" {
+  type = string
 }
 
 variable "accessors" {
-  type=list(string)
+  type = list(string)
 }

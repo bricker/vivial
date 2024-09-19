@@ -33,6 +33,7 @@ module "dns_zone_base_domain" {
         "198.49.23.145",
       ],
     },
+
     {
       type = "TXT",
       datas = [
@@ -40,6 +41,7 @@ module "dns_zone_base_domain" {
         "slack-domain-verification=1SCpHl5o3Nujmr3pdBCFAP3lIKwr81hSUQD9FJ5y",
       ],
     },
+
     {
       type      = "TXT",
       subdomain = "_dmarc"
@@ -47,6 +49,7 @@ module "dns_zone_base_domain" {
         "\"v=DMARC1;p=none;rua=mailto:dmarc-reports@eave.fyi;ruf=mailto:dmarc-reports@eave.fyi;sp=none;ri=86400\"",
       ],
     },
+
     {
       type      = "TXT",
       subdomain = "google._domainkey"
@@ -56,6 +59,7 @@ module "dns_zone_base_domain" {
         "\"v=DKIM1;k=rsa;p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAg5ylMKypT874J8l+7Eh2BrWLLI1tRKTkXmUGgMv673x6UJypEulq6Q+QfS2EmqT4t7bLCC9aEIDRpAapKm6YmX4wZyyv45GEuFgJgLkSSrQ7vJKl6i6Nz6rkykK14GovOBPTvLOwm0hy8C0l7KuCj/VGfG3uRT8ge0yu/qiGNApQKLCJdcPuS2o3bmxqgqfzi\" \"6X8rEvWOlqM7mscv/z/xXqTiwMlwdk6jAB1bDSVCmc76mYACDfTQ1XoflDG0E9H3oIa1I6PMryE3hgQpBxF9kL2gSD7XIqWNn+zK6NEPgyeBXf5RKylW81BT8FWKjitQZI4GTBUJueYYDmPFdoDDwIDAQAB\"",
       ],
     },
+
     {
       type      = "CNAME",
       subdomain = "tlhahrxjw5anplz9yyg7"
@@ -63,6 +67,7 @@ module "dns_zone_base_domain" {
         "verify.squarespace.com.",
       ],
     },
+
     {
       type      = "CNAME",
       subdomain = "www"
@@ -79,6 +84,7 @@ module "dns_zone_base_domain" {
         "gv-boykc4q5i3uucd.dv.googlehosted.com.",
       ],
     },
+
     {
       type      = "CNAME",
       subdomain = "jjeu6awts77f"
@@ -86,6 +92,7 @@ module "dns_zone_base_domain" {
         "gv-4y2ruslvifcdd7.dv.googlehosted.com.",
       ],
     },
+
     {
       type      = "CNAME",
       subdomain = "orgaarcdmnxh"

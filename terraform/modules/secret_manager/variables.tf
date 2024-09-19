@@ -8,7 +8,7 @@ variable "secret_data" {
 }
 
 variable "accessors" {
-  type=list(string)
+  type = list(string)
 }
 
 variable "secret_accessor_role_name" {

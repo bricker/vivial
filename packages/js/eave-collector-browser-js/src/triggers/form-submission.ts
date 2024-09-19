@@ -1,5 +1,5 @@
-import { requestManager } from "../beacon";
-import { LOG_TAG } from "../internal/constants";
+import { logger } from "../internal/logging";
+import { requestManager } from "../request-manager";
 import { getElementAttributes } from "../util/dom-helpers";
 import { currentTimestampSeconds } from "../util/timestamp";
 import { castEventTargetToHtmlElement } from "../util/type-helpers";
@@ -19,7 +19,7 @@ export async function formSubmitEventHandler(event: SubmitEvent) {
 
   if (!element || nodeName !== "FORM") {
     // The target is not an Element
-    console.warn(LOG_TAG, "Invalid event target for form submit");
+    logger.warn("Invalid event target for form submit");
     return;
   }
 
