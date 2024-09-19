@@ -38,7 +38,7 @@ class AtomHandler(DataHandler[EventPayload]):
         async with aiohttp.ClientSession() as session:
             await session.request(
                 method="POST",
-                url=f"{config.eave_api_base_url()}/public/ingest/server",
+                url=f"{config.eave_ingest_base_url()}/public/ingest/server",
                 data=body.to_json(),
                 compress="gzip",
                 headers=headers,

@@ -1,4 +1,5 @@
 ## Sensitive Variables
+
 You need to create a `.auto.tfvars` file in each project directory (`eave-production`, etc). Run `terraform plan` and it will tell you which variables are missing.
 
 ### Using the 1Password CLI

@@ -10,6 +10,10 @@ resource "google_project" "main" {
 }
 
 resource "google_resource_manager_lien" "main" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   parent       = "projects/${google_project.main.number}"
   restrictions = ["resourcemanager.projects.delete"]
   reason       = "Terraform-managed GCP Projects should never be deleted."

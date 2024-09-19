@@ -7,6 +7,8 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Route
 
 import eave.stdlib.time
+from eave.collectors.sqlalchemy import SQLAlchemyCollectorManager
+from eave.collectors.starlette import StarletteCollectorManager
 from eave.core.internal.oauth.google import (
     GOOGLE_OAUTH_AUTHORIZE_PATH,
     GOOGLE_OAUTH_CALLBACK_PATH,
@@ -23,7 +25,7 @@ from eave.core.public.requests.data_ingestion import (
     ServerDataIngestionEndpoint,
 )
 from eave.core.public.requests.metabase_proxy import MetabaseAuthEndpoint, MetabaseProxyEndpoint, MetabaseProxyRouter
-from eave.stdlib import cache, logging
+from eave.stdlib import cache
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.models.client_credentials import CredentialsAuthMethod
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
@@ -39,6 +41,7 @@ from eave.stdlib.core_api.operations.virtual_event import GetMyVirtualEventDetai
 from eave.stdlib.headers import (
     EAVE_ORIGIN_HEADER,
 )
+from eave.stdlib.logging import eaveLogger
 from eave.stdlib.middleware.deny_public_request import DenyPublicRequestASGIMiddleware
 from eave.stdlib.middleware.exception_handling import ExceptionHandlingASGIMiddleware
 from eave.stdlib.middleware.logging import LoggingASGIMiddleware
@@ -364,7 +367,7 @@ async def graceful_shutdown() -> None:
         if client := cache.initialized_client():
             await client.close()
     except Exception as e:
-        logging.eaveLogger.exception(e)
+        eaveLogger.exception(e)
 
 
 app = starlette.applications.Starlette(
@@ -397,5 +400,6 @@ app = starlette.applications.Starlette(
     on_shutdown=[graceful_shutdown],
 )
 
-# StarletteCollectorManager.start(app)
-# SQLAlchemyCollectorManager.start(engine=async_engine)
+if SHARED_CONFIG.analytics_enabled:
+    StarletteCollectorManager.start(app)
+    SQLAlchemyCollectorManager.start(engine=async_engine)

@@ -18,16 +18,24 @@ resource "google_compute_instance" "bastion" {
   enable_display            = false
   machine_type              = "e2-micro"
   allow_stopping_for_update = true
+
+  # confidential_instance_config {
+  #   enable_confidential_compute = true
+  #   confidential_instance_type = "TDX"
+  # }
+
   metadata = {
     block-project-ssh-keys = "true"
     enable-oslogin-2fa     = "true"
     startup-script         = <<-EOT
-      set -e
       sudo apt-get update
-
       sudo apt install -y postgresql-client
       sudo apt install -y wget
-      wget https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.8.2/cloud-sql-proxy.linux.amd64 -O cloud-sql-proxy
+
+      if ! test -f cloud-sql-proxy; then
+        wget https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.8.2/cloud-sql-proxy.linux.amd64 -O cloud-sql-proxy
+      fi
+
       chmod +x cloud-sql-proxy
       ./cloud-sql-proxy \
         --private-ip \

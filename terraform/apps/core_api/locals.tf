@@ -1,7 +1,8 @@
 locals {
-  app_name      = "core-api"
-  domain_prefix = "api"
-  domain        = trimsuffix(google_dns_record_set.default.name, ".")
+  app_name                    = "core-api"
+  internal_analytics_app_name = "core-api-internal-analytics"
+  domain_prefix               = "api"
+  domain                      = trimsuffix(google_dns_record_set.default.name, ".")
 
   preset_production = var.environment == "PROD"
 
