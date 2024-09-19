@@ -6,6 +6,7 @@ resource "google_project_service" "services" {
     "bigquery.googleapis.com",             # BigQuery API
     "bigtableadmin.googleapis.com",        # Bigtable Admin API, used by Thoropass
     "certificatemanager.googleapis.com",   # Certificate Manager API
+    "cloudasset.googleapis.com",           # Cloud Asset API, required for compliance
     "cloudaicompanion.googleapis.com",     # Gemini
     "cloudbuild.googleapis.com",           # Cloud Build API
     "cloudkms.googleapis.com",             # Cloud Key Management Service (KMS) API
