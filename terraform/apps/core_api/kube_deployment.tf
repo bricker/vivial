@@ -7,13 +7,23 @@ resource "kubernetes_deployment" "app" {
   for_each = {
     (local.app_name) = {
       app_name            = local.app_name,
+      deploy_name         = local.app_name,
       analytics_disabled  = false,
       ingest_api_base_url = "http://${local.internal_analytics_app_name}.${var.kube_namespace_name}.svc.cluster.local"
+      match_labels = {
+        app       = local.app_name
+        app_group = local.app_name
+      }
     },
     (local.internal_analytics_app_name) = {
       app_name            = local.internal_analytics_app_name,
+      deploy_name         = local.internal_analytics_app_name,
       analytics_disabled  = true,
       ingest_api_base_url = "intentionally-not-a-url"
+      match_labels = {
+        app_group = local.app_name
+        app       = local.internal_analytics_app_name
+      }
     }
   }
 
@@ -27,7 +37,7 @@ resource "kubernetes_deployment" "app" {
   wait_for_rollout = false
 
   metadata {
-    name      = each.value.app_name
+    name      = each.value.deploy_name
     namespace = var.kube_namespace_name
     labels = {
       app = each.value.app_name
@@ -36,10 +46,7 @@ resource "kubernetes_deployment" "app" {
 
   spec {
     selector {
-      match_labels = {
-        app_group = local.app_name
-        app = each.value.app_name
-      }
+      match_labels = each.value.match_labels
     }
 
     replicas = 2
@@ -52,10 +59,8 @@ resource "kubernetes_deployment" "app" {
 
     template {
       metadata {
-        name = each.value.app_name
-        labels = {
-          app = each.value.app_name
-        }
+        name   = each.value.app_name
+        labels = each.value.match_labels
       }
       spec {
         service_account_name = module.service_accounts.ksa_name
