@@ -32,7 +32,8 @@ resource "kubernetes_deployment" "app" {
     name      = each.value.deploy_name
     namespace = var.kube_namespace_name
     labels = {
-      app = each.value.app_name
+      app_group = local.app_name
+      app       = each.value.app_name
     }
   }
 
