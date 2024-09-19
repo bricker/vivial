@@ -11,7 +11,8 @@ resource "kubernetes_deployment" "app" {
       analytics_disabled  = false,
       ingest_api_base_url = "http://${local.internal_analytics_app_name}.${var.kube_namespace_name}.svc.cluster.local"
       match_labels = {
-        app = local.app_name
+        app       = local.app_name
+        app_group = local.app_name
       }
     },
     (local.internal_analytics_app_name) = {
