@@ -9,17 +9,20 @@ function _print_help() (
 	statusmsg -o "Usage: deploy-service -s service [-f dockerfile]"
 	statusmsg -o "  -s service : Required. The name of the kubernertes service to build and deploy. eg 'core-api' or 'dashboard'"
 	statusmsg -o "  -f dockerfile : Optional. The path to the Dockerfile relative to EAVE_HOME. If omitted, uses the Dockerfile in the current directory or fails if it doesn't exist."
+	statusmsg -o "	-g group : Optional. The k8s group key and value, separated by an equal sign, to deploy to. e.g. 'app_group=core-api'"
 	statusmsg -o "  -h : Print this message."
 )
 
 function main() (
 	local service=""
 	local dockerfile=""
+	local group=""
 
-	while getopts "s:f:h" argname; do
+	while getopts "s:f:g:h" argname; do
 		case "$argname" in
 		s) service=$OPTARG ;;
 		f) dockerfile=$OPTARG ;;
+		g) group=$OPTARG ;;
 		h)
 			_print_help
 			exit 0
@@ -68,9 +71,13 @@ function main() (
 		docker push --all-tags "$imagename"
 	fi
 
-	statusmsg -a "Rolling out $imagename:$gitsha to $service"
+	statusmsg -a "Rolling out $imagename:$gitsha to $service (group ${group:-<none>})"
 	if e.confirm; then
-		kubectl --context="$gcloudproject" -n eave rollout restart deployment/"$service"
+		if test -z "$group"; then
+			kubectl --context="$gcloudproject" -n eave rollout restart deployment/"$service"
+		else
+			kubectl --context="$gcloudproject" -n eave rollout restart deployment --selector="$group"
+		fi
 	fi
 )
 

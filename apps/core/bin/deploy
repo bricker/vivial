@@ -12,7 +12,7 @@ function main() (
 	bin/lint
 	bin/run-db-migration
 
-	"${EAVE_HOME}"/develop/deploy/bin/deploy-service -s core-api
+	"${EAVE_HOME}"/develop/deploy/bin/deploy-service -s core-api -g app_group=core-api
 )
 
 main "$@"
