@@ -18,7 +18,7 @@
     "eslint-config-prettier": "9.x",
     "eslint-plugin-cypress": "3.x",
     "eslint-plugin-import": "2.x",
-    "express": "^4.19.2",
+    "express": "^4.21.0",
     "prettier": "3.x",
     "prettier-plugin-organize-imports": "3.x",
     "sinon": "^17.0.1",
