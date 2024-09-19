@@ -20,6 +20,7 @@ resource "google_project_service" "services" {
     "dlp.googleapis.com",                  # Data Loss Prevention
     "dns.googleapis.com",                  # Cloud DNS API
     "domains.googleapis.com",              # Cloud Domains API
+    "firewallinsights.googleapis.com",     # Firewall Insights
     "iam.googleapis.com",                  # Identity and Access Management (IAM) API
     "iap.googleapis.com",                  # Identity-Aware Proxy API
     "iamcredentials.googleapis.com",       # IAM Service Account Credentials API
@@ -27,6 +28,7 @@ resource "google_project_service" "services" {
     "monitoring.googleapis.com",           # Cloud Monitoring API
     "networkconnectivity.googleapis.com",  # Network Connectivity API
     "networkmanagement.googleapis.com",    # Network Management API
+    "osconfig.googleapis.com",             # VM Manager (OS Config API), required for compliance
     "pubsub.googleapis.com",               # Cloud Pub/Sub API
     "pubsublite.googleapis.com",           # Pub/Sub Lite API, used by Thoropass
     "secretmanager.googleapis.com",        # Secret Manager API

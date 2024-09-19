@@ -15,6 +15,8 @@ module "custom_gke_node_role" {
   role_id = "eave.gkeNode"
   title   = "GKE Node"
   base_roles = [
+    "roles/container.defaultNodeServiceAccount",
+    # "roles/artifactregistry.reader",
     "roles/logging.logWriter",
     "roles/monitoring.metricWriter",
     "roles/monitoring.viewer",
