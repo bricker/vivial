@@ -1,4 +1,8 @@
 resource "google_compute_backend_bucket" "default" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   name        = "${var.name}-backend"
   bucket_name = google_storage_bucket.default.name
   enable_cdn  = true
@@ -23,11 +27,19 @@ resource "google_compute_backend_bucket" "default" {
 # }
 
 resource "google_compute_url_map" "default" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   name            = "${var.name}-lb-urlmap"
   default_service = google_compute_backend_bucket.default.id
 }
 
 resource "google_compute_target_https_proxy" "default" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   name            = "${var.name}-lb-https-proxy"
   url_map         = google_compute_url_map.default.id
   certificate_map = "//certificatemanager.googleapis.com/${data.google_certificate_manager_certificate_map.given.id}"
@@ -35,6 +47,10 @@ resource "google_compute_target_https_proxy" "default" {
 }
 
 resource "google_compute_global_forwarding_rule" "default" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   name                  = "${var.name}-lb-forwarding-rule"
   ip_protocol           = "TCP"
   load_balancing_scheme = "EXTERNAL_MANAGED"

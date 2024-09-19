@@ -1,6 +1,10 @@
 # https://cloud.google.com/storage/docs/access-logs
 
 resource "google_storage_bucket" "usage_logs" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   name                        = "logs.${google_project.main.project_id}.eave.fyi"
   force_destroy               = false
   location                    = "us-central1"
