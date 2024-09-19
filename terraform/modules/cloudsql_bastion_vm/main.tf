@@ -18,6 +18,12 @@ resource "google_compute_instance" "bastion" {
   enable_display            = false
   machine_type              = "e2-micro"
   allow_stopping_for_update = true
+
+  # confidential_instance_config {
+  #   enable_confidential_compute = true
+  #   confidential_instance_type = "TDX"
+  # }
+
   metadata = {
     block-project-ssh-keys = "true"
     enable-oslogin-2fa     = "true"
