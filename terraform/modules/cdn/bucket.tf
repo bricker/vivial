@@ -2,6 +2,10 @@
 
 
 resource "google_storage_bucket" "default" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   name                        = "${var.name}.${var.root_domain}"
   default_event_based_hold    = false
   enable_object_retention     = false
@@ -28,7 +32,6 @@ resource "google_storage_bucket" "default" {
       matches_prefix             = []
       matches_storage_class      = []
       matches_suffix             = []
-      no_age                     = false
       noncurrent_time_before     = null
       num_newer_versions         = 3
       with_state                 = "ARCHIVED"
@@ -47,6 +50,10 @@ resource "google_storage_bucket" "default" {
 }
 
 resource "google_storage_bucket_iam_member" "cdn_allusers" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   bucket = google_storage_bucket.default.name
   role   = "roles/storage.objectViewer"
   member = "allUsers"

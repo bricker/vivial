@@ -1,5 +1,9 @@
 # https://cloud.google.com/kubernetes-engine/docs/concepts/gateway-api
 resource "kubernetes_manifest" "gateway" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   manifest = {
     apiVersion = "gateway.networking.k8s.io/v1beta1"
     kind       = "Gateway"
@@ -53,6 +57,10 @@ resource "kubernetes_manifest" "gateway" {
 
 # https://cloud.google.com/kubernetes-engine/docs/how-to/configure-gateway-resources#configure_ssl_policies
 resource "kubernetes_manifest" "gateway_policy" {
+  lifecycle {
+    prevent_destroy = true
+  }
+
   manifest = {
     apiVersion = "networking.gke.io/v1"
     kind       = "GCPGatewayPolicy"

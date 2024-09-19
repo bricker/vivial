@@ -10,7 +10,7 @@ resource "google_dns_managed_zone" "default" {
 
 resource "google_dns_record_set" "records" {
   for_each = {
-    for record in var.records: join("_", [record.type, coalesce(record.subdomain, "apex")]) => record
+    for record in var.records : join("_", [record.type, coalesce(record.subdomain, "apex")]) => record
   }
 
   managed_zone = google_dns_managed_zone.default.name
