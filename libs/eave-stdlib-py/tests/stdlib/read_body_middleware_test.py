@@ -7,6 +7,7 @@ from aiohttp.compression_utils import ZLibCompressor
 from httpx import AsyncClient
 from starlette.routing import Route
 
+from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.headers import ENCODING_GZIP
 from eave.stdlib.middleware.read_body import ReadBodyASGIMiddleware
 
@@ -28,7 +29,14 @@ class TestReadBodyASGIMiddleware(StdlibBaseTestCase):
 
         self.dummy_app = starlette.applications.Starlette(
             routes=[
-                Route(methods=[e.config.method], path=e.config.path, endpoint=ReadBodyASGIMiddleware(app=e))
+                Route(
+                    methods=[e.config.method],
+                    path=e.config.path,
+                    endpoint=ReadBodyASGIMiddleware(
+                        app=e,
+                        config=CoreApiEndpointConfiguration(path=e.config.path, method=e.config.method),
+                    ),
+                )
                 for e in endpoints
             ],
         )

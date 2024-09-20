@@ -5,6 +5,7 @@ from httpx import AsyncClient
 from starlette.applications import Starlette
 from starlette.routing import Route
 
+from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.middleware.origin import OriginASGIMiddleware
 
@@ -28,7 +29,12 @@ class TestOriginMiddleware(StdlibBaseTestCase):
                 Route(
                     methods=[EchoGetEndpoint.config.method],
                     path=f"{EchoGetEndpoint.config.path}/origin-required",
-                    endpoint=OriginASGIMiddleware(app=EchoGetEndpoint),
+                    endpoint=OriginASGIMiddleware(
+                        app=EchoGetEndpoint,
+                        config=CoreApiEndpointConfiguration(
+                            path=EchoGetEndpoint.config.path, method=EchoGetEndpoint.config.method
+                        ),
+                    ),
                 ),
             ],
         )

@@ -6,6 +6,7 @@ import asgiref.typing
 import starlette.types
 from starlette.requests import Request
 
+from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.logging import LogContext
 
 
@@ -15,9 +16,11 @@ class EaveASGIMiddleware(ABC):
     """
 
     app: asgiref.typing.ASGI3Application
+    config: CoreApiEndpointConfiguration
 
-    def __init__(self, app: asgiref.typing.ASGI3Application) -> None:
+    def __init__(self, app: asgiref.typing.ASGI3Application, config: CoreApiEndpointConfiguration) -> None:
         self.app = cast(asgiref.typing.ASGI3Application, app)
+        self.config = config
 
     async def process_request(
         self,

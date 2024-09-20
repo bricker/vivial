@@ -4,6 +4,7 @@ import starlette.applications
 from httpx import AsyncClient
 from starlette.routing import Route
 
+from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.middleware.deny_public_request import DenyPublicRequestASGIMiddleware
 
 from .base import StdlibBaseTestCase
@@ -18,7 +19,14 @@ class TestDenyPublicRequestASGIMiddleware(StdlibBaseTestCase):
 
         self.dummy_app = starlette.applications.Starlette(
             routes=[
-                Route(methods=[e.config.method], path=e.config.path, endpoint=DenyPublicRequestASGIMiddleware(app=e))
+                Route(
+                    methods=[e.config.method],
+                    path=e.config.path,
+                    endpoint=DenyPublicRequestASGIMiddleware(
+                        app=e,
+                        config=CoreApiEndpointConfiguration(path=e.config.path, method=e.config.method),
+                    ),
+                )
                 for e in endpoints
             ],
         )

@@ -14,10 +14,7 @@ from eave.core.internal.oauth.google import (
     GOOGLE_OAUTH_CALLBACK_PATH,
 )
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
-from eave.core.public.middleware.credentials import (
-    ClientCredentialsFromHeadersASGIMiddleware,
-    ClientCredentialsFromQueryParamsASGIMiddleware,
-)
+from eave.core.public.middleware.credentials import CredsAuthMiddleware
 from eave.core.public.requests import data_collector_config
 from eave.core.public.requests.data_ingestion import (
     BrowserDataIngestionEndpoint,
@@ -172,26 +169,24 @@ def make_route(
     # The first middleware, starting from here (the top), directly wraps the route handler.
     # Then, each one wraps the previous one.
     if config.auth_required:
-        endpoint = AuthASGIMiddleware(app=endpoint)
+        endpoint = AuthASGIMiddleware(app=endpoint, config=config)
 
-    if config.creds_auth_method == CredentialsAuthMethod.headers:
-        endpoint = ClientCredentialsFromHeadersASGIMiddleware(app=endpoint)
-
-    if config.creds_auth_method == CredentialsAuthMethod.query_params:
-        endpoint = ClientCredentialsFromQueryParamsASGIMiddleware(app=endpoint)
+    if config.creds_auth_method is not None:
+        endpoint = CredsAuthMiddleware(app=endpoint, config=config)
 
     if config.origin_required:
-        endpoint = OriginASGIMiddleware(app=endpoint)
+        endpoint = OriginASGIMiddleware(app=endpoint, config=config)
 
-    endpoint = ReadBodyASGIMiddleware(app=endpoint)
+    endpoint = ReadBodyASGIMiddleware(app=endpoint, config=config)
 
     if not config.is_public:
-        endpoint = DenyPublicRequestASGIMiddleware(app=endpoint)
+        endpoint = DenyPublicRequestASGIMiddleware(app=endpoint, config=config)
 
-    endpoint = LoggingASGIMiddleware(app=endpoint)
-    endpoint = RequestIntegrityASGIMiddleware(app=endpoint)
+    endpoint = LoggingASGIMiddleware(app=endpoint, config=config)
+    endpoint = RequestIntegrityASGIMiddleware(app=endpoint, config=config)
     endpoint = ExceptionHandlingASGIMiddleware(
-        app=endpoint
+        app=endpoint,
+        config=config,
     )  # This wraps everything and is the first middleware that gets called.
 
     # ^^ When deciding the order of middlewares, start here and go up ^^
