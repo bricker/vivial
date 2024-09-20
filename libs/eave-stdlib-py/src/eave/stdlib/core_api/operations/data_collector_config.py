@@ -1,4 +1,3 @@
-import uuid
 from typing import Unpack
 
 from aiohttp.hdrs import METH_POST
