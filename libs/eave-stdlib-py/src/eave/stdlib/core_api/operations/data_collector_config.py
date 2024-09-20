@@ -27,16 +27,21 @@ class GetDataCollectorConfigRequest(CoreApiEndpoint):
     @classmethod
     async def perform(
         cls,
-        *,
-        account_id: uuid.UUID | str,
-        access_token: str,
+        client_id: str,
+        client_secret: str,
         **kwargs: Unpack[requests_util.CommonRequestArgs],
     ) -> ResponseBody:
+        kwargs.update(
+            {
+                "addl_headers": {
+                    "eave-client-id": client_id,
+                    "eave-client-secret": client_secret,
+                }
+            }
+        )
         response = await requests_util.make_request(
             config=cls.config,
             input=None,
-            account_id=account_id,
-            access_token=access_token,
             **kwargs,
         )
 
