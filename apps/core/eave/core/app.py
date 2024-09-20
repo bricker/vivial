@@ -274,6 +274,7 @@ routes = [
             auth_required=True,
             origin_required=False,
             is_public=True,  # This is True because embed.eave.fyi forwards to this endpoint via the LB, which sets the eave-lb header.
+            creds_auth_method=None,
         ),
         endpoint=MetabaseAuthEndpoint,
     ),
@@ -284,6 +285,7 @@ routes = [
             auth_required=True,
             origin_required=False,
             is_public=True,  # This is True because embed.eave.fyi forwards to this endpoint via the LB, which sets the eave-lb header.
+            creds_auth_method=None,
         ),
         endpoint=MetabaseProxyEndpoint,
         addl_methods=[
@@ -302,6 +304,7 @@ routes = [
             auth_required=False,
             origin_required=False,
             is_public=True,
+            creds_auth_method=None,
         ),
         endpoint=google_oauth.GoogleOAuthAuthorize,
     ),
@@ -312,6 +315,7 @@ routes = [
             auth_required=False,
             origin_required=False,
             is_public=True,
+            creds_auth_method=None,
         ),
         endpoint=google_oauth.GoogleOAuthCallback,
     ),
@@ -322,6 +326,7 @@ routes = [
             auth_required=False,
             origin_required=False,
             is_public=True,
+            creds_auth_method=None,
         ),
         endpoint=noop.NoopEndpoint,
     ),

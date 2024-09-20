@@ -13,7 +13,7 @@ class CoreApiEndpointConfiguration(EndpointConfiguration):
         method: str,
         auth_required: bool = True,
         origin_required: bool = True,
-        creds_auth_method: CredentialsAuthMethod | None = None,
+        creds_auth_method: CredentialsAuthMethod | None = CredentialsAuthMethod.headers,
         is_public: bool = False,
     ) -> None:
         super().__init__(
