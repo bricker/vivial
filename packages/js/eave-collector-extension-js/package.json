@@ -1,0 +1,27 @@
+{
+  "name": "eave-collector-extension",
+  "version": "1.0.0",
+  "description": "client-side browser extension tracing",
+  "type": "module",
+  "scripts": {
+    "test": "ava tests/unit/**/*.ts"
+  },
+  "author": "eave.fyi",
+  "license": "GPL-3.0-only",
+  "devDependencies": {
+    "ava": "^6.1.2",
+    "eslint-config-prettier": "9.x",
+    "eslint-plugin-cypress": "3.x",
+    "eslint-plugin-import": "2.x",
+    "express": "^4.19.2",
+    "prettier": "3.x",
+    "prettier-plugin-organize-imports": "3.x",
+    "sinon": "^17.0.1",
+    "ts-loader": "^9.5.1"
+  },
+  "eslintConfig": {
+    "parserOptions": {
+      "project": "./tsconfig.json"
+    }
+  }
+}
