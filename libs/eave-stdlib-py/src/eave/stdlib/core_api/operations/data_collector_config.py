@@ -31,14 +31,15 @@ class GetDataCollectorConfigRequest(CoreApiEndpoint):
         client_secret: str,
         **kwargs: Unpack[requests_util.CommonRequestArgs],
     ) -> ResponseBody:
-        kwargs.update(
+        addl_headers = kwargs.get("addl_headers") or {}
+        addl_headers.update(
             {
-                "addl_headers": {
-                    "eave-client-id": client_id,
-                    "eave-client-secret": client_secret,
-                }
+                "eave-client-id": client_id,
+                "eave-client-secret": client_secret,
             }
         )
+        kwargs.update({"addl_headers": addl_headers})
+
         response = await requests_util.make_request(
             config=cls.config,
             input=None,
