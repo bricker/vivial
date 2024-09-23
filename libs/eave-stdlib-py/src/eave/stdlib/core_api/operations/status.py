@@ -14,6 +14,7 @@ class Status(CoreApiEndpoint):
         auth_required=False,
         origin_required=False,
         is_public=True,
+        creds_auth_method=None,
     )
 
     class ResponseBody(BaseResponseBody):

@@ -3,6 +3,10 @@ from dataclasses import dataclass
 from typing import Self, TypedDict
 
 
+def eave_api_base_url() -> str:
+    return os.getenv("EAVE_API_BASE_URL", "https://api.eave.fyi")
+
+
 def eave_ingest_base_url() -> str:
     return os.getenv("EAVE_INGEST_BASE_URL", "https://api.eave.fyi")
 
@@ -77,3 +81,32 @@ def queue_flush_frequency_seconds() -> int:
         return 30
     else:
         return 30
+
+
+# NOTE: keep in sync w/ mirror definition eave std lib!
+# (until pydantic dep is removed or we decide to have collectors depend on it too)
+@dataclass(kw_only=True)
+class DataCollectorConfig:
+    user_table_name_patterns: list[str]
+    primary_key_patterns: list[str]
+    foreign_key_patterns: list[str]
+
+
+# assign the fallback value as the default
+remote_config = DataCollectorConfig(
+    user_table_name_patterns=[
+        r"users?$",
+        r"accounts?$",
+        r"customers?$",
+    ],
+    primary_key_patterns=[
+        r"^id$",
+        r"^uid$",
+    ],
+    foreign_key_patterns=[
+        # We don't want to capture fields that end in "id" but aren't foreign keys, like "kool_aid" or "mermaid".
+        # We therefore make an assumption that anything ending in "id" with SOME delimeter is a foreign key.
+        r".[_-]id$",  # delimeter = {_, -} Only matches when "id" is lower-case.
+        r".I[Dd]$",  # delimeter = capital "I" (eg UserId). This also handles underscores/hyphens when the "I" is capital.
+    ],
+)

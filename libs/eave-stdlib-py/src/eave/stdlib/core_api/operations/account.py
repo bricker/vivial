@@ -18,6 +18,7 @@ class GetMyAccountRequest(CoreApiEndpoint):
         auth_required=True,
         origin_required=True,
         is_public=True,
+        creds_auth_method=None,
     )
 
     class ResponseBody(BaseResponseBody):

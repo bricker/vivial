@@ -1,3 +1,4 @@
+from eave.stdlib.core_api.models.client_credentials import CredentialsAuthMethod
 from eave.stdlib.eave_origins import EaveApp
 from eave.stdlib.endpoints import Endpoint, EndpointConfiguration
 
@@ -12,6 +13,7 @@ class CoreApiEndpointConfiguration(EndpointConfiguration):
         method: str,
         auth_required: bool = True,
         origin_required: bool = True,
+        creds_auth_method: CredentialsAuthMethod | None = CredentialsAuthMethod.headers,
         is_public: bool = False,
     ) -> None:
         super().__init__(
@@ -21,6 +23,7 @@ class CoreApiEndpointConfiguration(EndpointConfiguration):
             audience=EaveApp.eave_api,
             auth_required=auth_required,
             origin_required=origin_required,
+            creds_auth_method=creds_auth_method,
             is_public=is_public,
         )
 

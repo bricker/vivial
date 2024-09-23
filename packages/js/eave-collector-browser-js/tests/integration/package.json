@@ -2,7 +2,7 @@
   "scripts": {
     "start": "PORT=3300 react-scripts start",
     "start-headless": "BROWSER=none npm start",
-    "test": "./bin/test",
+    "test": "./bin/cytest",
     "cy:test": "cypress run",
     "cy:open": "cypress open"
   },
