@@ -1,18 +1,15 @@
-function startCollecting() {
+function startCollecting({ clientId }: { clientId: string }) {
   // TODO: save client stuff and add a bunch of event listeners
   // TODO: add browser ext eslint plugins for vscode
-  chrome.storage.local
+  console.debug("eave extension collector started");
+  // chrome.storage.local;
 }
 
 async function sendAtom() {
   try {
-    const response = await fetch(`${eave_ingest_base_url}/public/ingest/extension`, {
+    const response = await fetch(`${eave_ingest_base_url}/public/ingest/extension?clientId=${clientId}`, {
       method: "POST",
-      body: JSON.stringify(),
-      headers: {
-        "eave-client-id": client_id,
-        "eave-client-secret": client_secret,
-      },
+      body: JSON.stringify(atoms),
     });
 
     if (!response.ok) {

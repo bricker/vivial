@@ -1,0 +1,1 @@
+../../packages/js/eave-collector-browser-js/dist/collector.js
