@@ -1,6 +1,7 @@
-function startCollecting(clientId: string, clientSecret: string) {
+function startCollecting() {
   // TODO: save client stuff and add a bunch of event listeners
-  // TODO: add browser ext eslint plugins
+  // TODO: add browser ext eslint plugins for vscode
+  chrome.storage.local
 }
 
 async function sendAtom() {

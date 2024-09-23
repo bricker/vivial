@@ -4,6 +4,7 @@ const config = {
   ignorePatterns: ["node_modules", "dist", ".*", "*.min.js", "collector.js"],
   env: {
     browser: true,
+    webextensions: true,
     es2022: true,
     node: true,
   },
