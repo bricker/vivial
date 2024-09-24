@@ -31,6 +31,10 @@ const configFunc = (env, argv) => {
     output: {
       filename: "collector.js",
       path: path.resolve(__dirname, "dist"),
+      library: "EaveBrowserCollector",
+      libraryTarget: "umd",
+      globalObject: "this",
+      umdNamedDefine: true,
     },
     devtool: false,
     optimization: {

@@ -3,19 +3,25 @@
   "version": "1.0.0",
   "description": "client-side web tracing",
   "type": "module",
-  "main": "src/main.ts",
+  "main": "dist/collector.js",
+  "types": "dist/collector.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "test": "npm run unit-test",
     "unit-test": "ava tests/unit/**/*.ts",
     "e2e-test": "npm run build && echo 'Copying current dist/collector.js to test app...' && cp dist/collector.js tests/integration/public/eave-client.min.js && cd tests/integration && npm test",
     "build": "webpack --mode=development",
-    "build-prod": "webpack --mode=production --no-devtool"
+    "build-prod": "webpack --mode=production --no-devtool",
+    "prepublishOnly": "npm run build-prod"
   },
   "author": "eave.fyi",
   "license": "GPL-3.0-only",
   "devDependencies": {
     "@types/webpack": "^5.28.5",
     "ava": "^6.1.2",
+    "dts-bundle": "^0.7.3",
     "eslint-config-prettier": "9.x",
     "eslint-plugin-cypress": "3.x",
     "eslint-plugin-import": "2.x",
