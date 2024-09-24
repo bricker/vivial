@@ -5,15 +5,17 @@ export class EaveLogger {
   tag: string;
   logIngestUrl: string;
   mode: Mode;
+  clientId: string;
 
-  constructor({ logIngestUrl, mode }: { logIngestUrl: string; mode: Mode }) {
+  constructor({ logIngestUrl, mode, clientId }: { logIngestUrl: string; mode: Mode; clientId: string }) {
     this.tag = "eave-collector-browser-js";
     this.logIngestUrl = logIngestUrl;
     this.mode = mode;
+    this.clientId = clientId;
   }
 
   #send(logs: LogPayload[]) {
-    sendWithClientId({ jsonBody: { logs }, url: this.logIngestUrl });
+    sendWithClientId({ jsonBody: { logs }, url: this.logIngestUrl, clientId: this.clientId });
   }
 
   #strjoin(args: any[]) {

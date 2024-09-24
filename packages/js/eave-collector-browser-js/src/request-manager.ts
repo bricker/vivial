@@ -1,6 +1,6 @@
 import { sendWithClientId } from "@eave-fyi/eave-collector-core";
 import { isTrackingConsentRevoked } from "./consent";
-import { ATOM_TRACKER_URL } from "./internal/compile-config";
+import { ATOM_TRACKER_URL, EAVE_CLIENT_ID } from "./internal/compile-config";
 import {
   EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE,
   EAVE_TRACKING_CONSENT_REVOKED_EVENT_TYPE,
@@ -199,7 +199,7 @@ class RequestManager {
       },
       url: ATOM_TRACKER_URL,
       logger,
-      clientId: window.EAVE_CLIENT_ID,
+      clientId: EAVE_CLIENT_ID,
     });
   }
 

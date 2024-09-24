@@ -14,7 +14,7 @@ export function sendWithClientId({
   try {
     const json = JSON.stringify(jsonBody);
 
-    logger.debug("Sending beacon", json);
+    logger.debug("Sending data", json);
 
     fetch(`${url}?clientId=${clientId}`, {
       method: "POST",
@@ -31,11 +31,11 @@ export function sendWithClientId({
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error("Network response was not ok");
+          throw new Error(`Network response ${response.status}`);
         }
       })
       .catch((error) => {
-        logger.error("Error sending beacon", error);
+        logger.error("Error sending data", error);
       });
   } catch (e) {
     logger.error(e);

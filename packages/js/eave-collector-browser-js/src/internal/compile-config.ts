@@ -19,3 +19,4 @@ atomUrl.pathname = atomUrl.pathname + atomUrlPath;
 export const ATOM_TRACKER_URL = atomUrl.href;
 
 export const MODE = WEBPACK_ENV_MODE || "production";
+export const EAVE_CLIENT_ID: string = window.EAVE_CLIENT_ID; // TODO: enforce set?

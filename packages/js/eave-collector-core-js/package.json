@@ -6,6 +6,7 @@
     "test": "ava"
   },
   "author": "eave.fyi",
+  "license": "GPL-3.0-only",
   "devDependencies": {
     "ava": "^6.1.3"
   }
