@@ -7,4 +7,6 @@ T = TypeVar("T", bound=Batchable)
 
 
 class DataHandler(ABC, Generic[T]):
+    async def on_setup(self) -> None: ...
+
     async def send_buffer(self, buffer: list[T]) -> None: ...

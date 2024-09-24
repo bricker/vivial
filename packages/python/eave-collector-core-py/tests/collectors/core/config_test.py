@@ -2,8 +2,8 @@ import os
 
 from eave.collectors.core.config import (
     EaveCredentials,
-    eave_ingest_base_url,
     eave_env,
+    eave_ingest_base_url,
     is_development,
     queue_flush_frequency_seconds,
     queue_maxsize,

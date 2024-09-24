@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import uuid
 from typing import Any, Union
@@ -12,6 +13,8 @@ class DatabaseTypesJSONEncoder(json.JSONEncoder):
     def default(self, o: Any) -> Any:
         if isinstance(o, uuid.UUID):
             return str(o)
+        elif isinstance(o, datetime):
+            return o.timestamp()
         else:
             super().default(o)
 

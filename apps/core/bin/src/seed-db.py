@@ -16,6 +16,7 @@ import sys
 
 sys.path.append(".")
 
+from eave.core.internal.orm.data_collector_config import DataCollectorConfigOrm
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 load_standard_dotenv_files()
@@ -62,10 +63,18 @@ async def seed_table_entries_for_team(team_id: uuid.UUID, row: int, session: Asy
         description=f"credentials for team {team_id} (database seed)",
     )
 
-    await ClientCredentialsOrm.query(session=session, params=ClientCredentialsOrm.QueryParams(team_id=team_id))
+    await ClientCredentialsOrm.query(
+        session=session,
+        params=ClientCredentialsOrm.QueryParams(team_id=team_id),
+    )
 
     creds.scope = ClientScope.readwrite
     await session.flush()
+
+    await DataCollectorConfigOrm.create(
+        session=session,
+        team_id=team_id,
+    )
 
     metabase_instance = await MetabaseInstanceOrm.create(
         session=session,

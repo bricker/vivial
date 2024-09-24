@@ -1,4 +1,3 @@
-import aiohttp
 from asgiref.typing import HTTPScope
 from starlette.requests import Request
 from starlette.responses import Response
@@ -12,81 +11,16 @@ from eave.core.internal.atoms.controllers.http_client_events import HttpClientEv
 from eave.core.internal.atoms.controllers.http_server_events import HttpServerEventsController
 from eave.core.internal.atoms.controllers.openai_chat_completion import OpenAIChatCompletionController
 from eave.core.internal.atoms.models.db_record_fields import GeoRecordField
-from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
-from eave.core.internal.orm.team import TeamOrm
-from eave.stdlib.api_util import get_header_value, get_header_value_or_exception
-from eave.stdlib.exceptions import ForbiddenError, UnauthorizedError
-from eave.stdlib.headers import EAVE_CLIENT_ID_HEADER, EAVE_CLIENT_SECRET_HEADER
+from eave.core.internal.orm.client_credentials import ClientCredentialsOrm
+from eave.stdlib.api_util import get_header_value
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.logging import LogContext
 from eave.stdlib.util import ensure_uuid
 
 
-async def get_client_creds_from_qp_or_origin(request: Request, origin_header: str) -> ClientCredentialsOrm:
-    client_id = request.query_params.get("clientId")
-
-    if client_id is None:
-        raise UnauthorizedError("missing clientId query param")
-
-    async with database.async_session.begin() as db_session:
-        creds = (
-            await ClientCredentialsOrm.query(
-                session=db_session,
-                params=ClientCredentialsOrm.QueryParams(
-                    id=ensure_uuid(client_id),
-                ),
-            )
-        ).one_or_none()
-
-        if not creds:
-            raise UnauthorizedError("invalid credentials")
-
-        if not (creds.scope & ClientScope.write) > 0:
-            raise ForbiddenError("invalid scope")
-
-        eave_team = await TeamOrm.one_or_exception(session=db_session, team_id=creds.team_id)
-
-        if not eave_team.origin_allowed(origin=origin_header):
-            raise ForbiddenError("invalid origin")
-
-        creds.touch(session=db_session)
-
-    return creds
-
-
-async def get_creds_from_headers(scope: HTTPScope) -> ClientCredentialsOrm:
-    # TODO: Move client credentials validation into middleware?
-    client_id = get_header_value_or_exception(scope=scope, name=EAVE_CLIENT_ID_HEADER)
-    client_secret = get_header_value_or_exception(scope=scope, name=EAVE_CLIENT_SECRET_HEADER)
-
-    async with database.async_session.begin() as db_session:
-        creds = (
-            await ClientCredentialsOrm.query(
-                session=db_session,
-                params=ClientCredentialsOrm.QueryParams(
-                    id=ensure_uuid(client_id),
-                    secret=client_secret,
-                ),
-            )
-        ).one_or_none()
-
-        if not creds:
-            raise UnauthorizedError("invalid credentials")
-
-        if not (creds.scope & ClientScope.write) > 0:
-            raise ForbiddenError("invalid scopes")
-
-        creds.touch(session=db_session)
-    return creds
-
-
 class BrowserDataIngestionEndpoint(HTTPEndpoint):
     async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
-        # client_id = get_header_value_or_exception(scope=scope, name=EAVE_CLIENT_ID_HEADER)
-        origin_header = get_header_value_or_exception(scope=scope, name=aiohttp.hdrs.ORIGIN)
         response = Response()
-
-        creds = await get_client_creds_from_qp_or_origin(request, origin_header)
 
         body = await request.json()
         input = DataIngestRequestBody.from_json(data=body)
@@ -112,6 +46,15 @@ class BrowserDataIngestionEndpoint(HTTPEndpoint):
                 coordinates=geo_coordinates,
             )
 
+            async with database.async_session.begin() as db_session:
+                creds = await ClientCredentialsOrm.one_or_exception(
+                    session=db_session,
+                    params=ClientCredentialsOrm.QueryParams(
+                        id=ensure_uuid(ctx.eave_client_id),
+                        team_id=ensure_uuid(ctx.eave_authed_team_id),
+                    ),
+                )
+
             handle = BrowserEventsController(client=creds)
             await handle.insert_with_geolocation(
                 events=events,
@@ -128,7 +71,14 @@ class ServerDataIngestionEndpoint(HTTPEndpoint):
         body = await request.json()
         input = DataIngestRequestBody.from_json(data=body)
 
-        creds = await get_creds_from_headers(scope)
+        async with database.async_session.begin() as db_session:
+            creds = await ClientCredentialsOrm.one_or_exception(
+                session=db_session,
+                params=ClientCredentialsOrm.QueryParams(
+                    id=ensure_uuid(ctx.eave_client_id),
+                    team_id=ensure_uuid(ctx.eave_authed_team_id),
+                ),
+            )
 
         db_events = input.events.get(EventType.db_event)
         if db_events and len(db_events) > 0:
@@ -166,21 +116,18 @@ class ServerDataIngestionEndpoint(HTTPEndpoint):
 
 class LogDataIngestionEndpoint(HTTPEndpoint):
     async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
-        # handle logs sent from browser collector that doesnt include client secret
-        # in request headers
-        origin_header = get_header_value(scope=scope, name=aiohttp.hdrs.ORIGIN)
-        creds: ClientCredentialsOrm | None = None
-        if origin_header:
-            creds = await get_client_creds_from_qp_or_origin(request, origin_header)
-
-        # enforce client auth for non-browser requests
-        if not creds:
-            creds = await get_creds_from_headers(scope)
-
         body = await request.json()
         input = LogIngestRequestBody.from_json(data=body)
 
         if input.logs:
+            async with database.async_session.begin() as db_session:
+                creds = await ClientCredentialsOrm.one_or_exception(
+                    session=db_session,
+                    params=ClientCredentialsOrm.QueryParams(
+                        id=ensure_uuid(ctx.eave_client_id),
+                        team_id=ensure_uuid(ctx.eave_authed_team_id),
+                    ),
+                )
             handle = AtomCollectorLogsController(client=creds)
             await handle.insert(
                 raw_logs=input.logs,
