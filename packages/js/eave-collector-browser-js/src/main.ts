@@ -25,74 +25,82 @@ import {
 } from "./triggers/navigation";
 import { EaveInterface } from "./types";
 
-const eaveInterface: EaveInterface = {
-  enableAll() {
-    setCookieConsentChoice(ConsentChoice.ACCEPTED);
-    setTrackingConsentChoice(ConsentChoice.ACCEPTED);
-  },
+function main() {
+  const eaveInterface: EaveInterface = {
+    enableAll() {
+      setCookieConsentChoice(ConsentChoice.ACCEPTED);
+      setTrackingConsentChoice(ConsentChoice.ACCEPTED);
+    },
 
-  disableAll() {
-    setCookieConsentChoice(ConsentChoice.REJECTED);
-    setTrackingConsentChoice(ConsentChoice.REJECTED);
-  },
+    disableAll() {
+      setCookieConsentChoice(ConsentChoice.REJECTED);
+      setTrackingConsentChoice(ConsentChoice.REJECTED);
+    },
 
-  enableCookies() {
-    setCookieConsentChoice(ConsentChoice.ACCEPTED);
-  },
+    enableCookies() {
+      setCookieConsentChoice(ConsentChoice.ACCEPTED);
+    },
 
-  disableCookies() {
-    setCookieConsentChoice(ConsentChoice.REJECTED);
-  },
+    disableCookies() {
+      setCookieConsentChoice(ConsentChoice.REJECTED);
+    },
 
-  enableTracking() {
-    setTrackingConsentChoice(ConsentChoice.ACCEPTED);
-  },
+    enableTracking() {
+      setTrackingConsentChoice(ConsentChoice.ACCEPTED);
+    },
 
-  disableTracking() {
-    setTrackingConsentChoice(ConsentChoice.REJECTED);
-  },
-};
+    disableTracking() {
+      setTrackingConsentChoice(ConsentChoice.REJECTED);
+    },
+  };
 
-// @ts-ignore: Adding an unknown property onto window (globalThis)
-window.eave = eaveInterface;
+  // @ts-ignore: Adding an unknown property onto window (globalThis)
+  window.eave = eaveInterface;
 
-startOrExtendSession();
-setOrTouchUserCookies();
-setTrafficSourceCookieIfNecessary();
-wrapNavigationStateChangeFunctions();
+  startOrExtendSession();
+  setOrTouchUserCookies();
+  setTrafficSourceCookieIfNecessary();
+  wrapNavigationStateChangeFunctions();
 
-// Register event listeners.
-// The order here is important!
-// The session cookie needs to be updated before anything else happens.
-window.addEventListener(EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, sessionEventHandler, { passive: true });
-window.addEventListener(HASHCHANGE_EVENT_TYPE, sessionEventHandler, { capture: true, passive: true });
-window.addEventListener(POPSTATE_EVENT_TYPE, sessionEventHandler, { capture: true, passive: true });
-document.body.addEventListener(CLICK_EVENT_TYPE, sessionEventHandler, { capture: true, passive: true });
-document.body.addEventListener(SUBMIT_EVENT_TYPE, sessionEventHandler, { capture: true, passive: true });
-// traffic source cookie should be set/reset at the same time as the session
-window.addEventListener(EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, setTrafficSourceCookieIfNecessary, { passive: true });
-window.addEventListener(HASHCHANGE_EVENT_TYPE, setTrafficSourceCookieIfNecessary, { capture: true, passive: true });
-window.addEventListener(POPSTATE_EVENT_TYPE, setTrafficSourceCookieIfNecessary, { capture: true, passive: true });
-document.body.addEventListener(CLICK_EVENT_TYPE, setTrafficSourceCookieIfNecessary, { capture: true, passive: true });
-document.body.addEventListener(SUBMIT_EVENT_TYPE, setTrafficSourceCookieIfNecessary, { capture: true, passive: true });
+  // Register event listeners.
+  // The order here is important!
+  // The session cookie needs to be updated before anything else happens.
+  window.addEventListener(EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, sessionEventHandler, { passive: true });
+  window.addEventListener(HASHCHANGE_EVENT_TYPE, sessionEventHandler, { capture: true, passive: true });
+  window.addEventListener(POPSTATE_EVENT_TYPE, sessionEventHandler, { capture: true, passive: true });
+  document.body.addEventListener(CLICK_EVENT_TYPE, sessionEventHandler, { capture: true, passive: true });
+  document.body.addEventListener(SUBMIT_EVENT_TYPE, sessionEventHandler, { capture: true, passive: true });
+  // traffic source cookie should be set/reset at the same time as the session
+  window.addEventListener(EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, setTrafficSourceCookieIfNecessary, { passive: true });
+  window.addEventListener(HASHCHANGE_EVENT_TYPE, setTrafficSourceCookieIfNecessary, { capture: true, passive: true });
+  window.addEventListener(POPSTATE_EVENT_TYPE, setTrafficSourceCookieIfNecessary, { capture: true, passive: true });
+  document.body.addEventListener(CLICK_EVENT_TYPE, setTrafficSourceCookieIfNecessary, { capture: true, passive: true });
+  document.body.addEventListener(SUBMIT_EVENT_TYPE, setTrafficSourceCookieIfNecessary, {
+    capture: true,
+    passive: true,
+  });
 
-// events handlers for firing atoms
-window.addEventListener(HASHCHANGE_EVENT_TYPE, hashChangeEventHandler, { capture: true, passive: true });
-window.addEventListener(POPSTATE_EVENT_TYPE, popStateEventHandler, { capture: true, passive: true });
-document.body.addEventListener(CLICK_EVENT_TYPE, clickEventHandler, { capture: true, passive: true });
-document.body.addEventListener(SUBMIT_EVENT_TYPE, formSubmitEventHandler, { capture: true, passive: true });
+  // events handlers for firing atoms
+  window.addEventListener(HASHCHANGE_EVENT_TYPE, hashChangeEventHandler, { capture: true, passive: true });
+  window.addEventListener(POPSTATE_EVENT_TYPE, popStateEventHandler, { capture: true, passive: true });
+  document.body.addEventListener(CLICK_EVENT_TYPE, clickEventHandler, { capture: true, passive: true });
+  document.body.addEventListener(SUBMIT_EVENT_TYPE, formSubmitEventHandler, { capture: true, passive: true });
 
-document.body.addEventListener(CLICK_EVENT_TYPE, logoutEventHandler, { passive: true });
+  document.body.addEventListener(CLICK_EVENT_TYPE, logoutEventHandler, { passive: true });
 
-window.addEventListener(EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE, cookiesEventHandler, { passive: true });
+  window.addEventListener(EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE, cookiesEventHandler, { passive: true });
 
-window.addEventListener(EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, requestManager, { passive: true });
-window.addEventListener(EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE, requestManager, { passive: true });
-document.addEventListener(VISIBILITY_CHANGE_EVENT_TYPE, requestManager);
+  window.addEventListener(EAVE_COOKIE_CONSENT_GRANTED_EVENT_TYPE, requestManager, { passive: true });
+  window.addEventListener(EAVE_COOKIE_CONSENT_REVOKED_EVENT_TYPE, requestManager, { passive: true });
+  document.addEventListener(VISIBILITY_CHANGE_EVENT_TYPE, requestManager);
 
-// TODO: Are these needed? Maybe for some browsers?
-// document.body.addEventListener("mouseup", handleClick, { capture: true, passive: true });
-// document.body.addEventListener("mousedown", handleClick, { capture: true, passive: true });
-// document.body.addEventListener("contextmenu", handleClick, { capture: true, passive: true });
+  // TODO: Are these needed? Maybe for some browsers?
+  // document.body.addEventListener("mouseup", handleClick, { capture: true, passive: true });
+  // document.body.addEventListener("mousedown", handleClick, { capture: true, passive: true });
+  // document.body.addEventListener("contextmenu", handleClick, { capture: true, passive: true });
 
-trackPageLoad().catch((e) => logger.error(e));
+  trackPageLoad().catch((e) => logger.error(e));
+}
+
+// TODO: only invoke when in browser script env; dont run when node env
+main();

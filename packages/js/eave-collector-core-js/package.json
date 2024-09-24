@@ -1,0 +1,12 @@
+{
+  "name": "@eave-fyi/eave-collector-core",
+  "version": "1.0.0",
+  "main": "src/main.ts",
+  "scripts": {
+    "test": "ava"
+  },
+  "author": "eave.fyi",
+  "devDependencies": {
+    "ava": "^6.1.3"
+  }
+}

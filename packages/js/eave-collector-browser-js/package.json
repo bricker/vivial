@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "client-side web tracing",
   "type": "module",
+  "main": "src/main.ts",
   "scripts": {
     "test": "npm run unit-test",
     "unit-test": "ava tests/unit/**/*.ts",
@@ -18,7 +19,6 @@
     "eslint-config-prettier": "9.x",
     "eslint-plugin-cypress": "3.x",
     "eslint-plugin-import": "2.x",
-    "express": "^4.19.2",
     "prettier": "3.x",
     "prettier-plugin-organize-imports": "3.x",
     "sinon": "^17.0.1",
@@ -34,6 +34,7 @@
     }
   },
   "dependencies": {
+    "@eave-fyi/eave-collector-core": "file:../eave-collector-core-js",
     "@ua-parser-js/pro-business": "^2.0.0-beta.3"
   }
 }

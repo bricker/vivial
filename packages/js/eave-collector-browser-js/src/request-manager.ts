@@ -1,5 +1,5 @@
+import { sendWithClientId } from "@eave-fyi/eave-collector-core";
 import { isTrackingConsentRevoked } from "./consent";
-import { sendBeaconWithEaveAuth } from "./internal/beacon";
 import { ATOM_TRACKER_URL } from "./internal/compile-config";
 import {
   EAVE_TRACKING_CONSENT_GRANTED_EVENT_TYPE,
@@ -191,7 +191,7 @@ class RequestManager {
       return;
     }
 
-    sendBeaconWithEaveAuth({
+    sendWithClientId({
       jsonBody: {
         events: {
           browser_event: payloads,
@@ -199,6 +199,7 @@ class RequestManager {
       },
       url: ATOM_TRACKER_URL,
       logger,
+      clientId: window.EAVE_CLIENT_ID,
     });
   }
 
