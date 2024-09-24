@@ -12,18 +12,18 @@ resource "google_storage_bucket" "usage_logs" {
   uniform_bucket_level_access = true
   public_access_prevention    = "enforced"
 
-  retention_policy {
-    retention_period = 31536000 # 365 days
+  versioning {
+    enabled = true
   }
 
-  # lifecycle_rule {
-  #   action {
-  #     type          = "Delete"
-  #   }
-  #   condition {
-  #     age                        = 31536000 # 365 days
-  #   }
-  # }
+  lifecycle_rule {
+    action {
+      type          = "Delete"
+    }
+    condition {
+      age                        = 365
+    }
+  }
 
   # logging {
   #   log_bucket = "xxx"
