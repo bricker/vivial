@@ -13,19 +13,15 @@ resource "google_service_account" "bastion_sa" {
 resource "google_compute_instance" "bastion" {
   name                      = var.name
   description               = "IAP tunnel for impersonating ${var.target_service_account_id} from local workstations."
+  machine_type              = "n2d-standard-2" # Required for confidential compute
+  allow_stopping_for_update = true
   can_ip_forward            = false
   deletion_protection       = false
   enable_display            = false
-  machine_type              = "e2-micro"
-  allow_stopping_for_update = true
-
-  # confidential_instance_config {
-  #   enable_confidential_compute = true
-  #   confidential_instance_type = "TDX"
-  # }
 
   metadata = {
     block-project-ssh-keys = "true"
+    enable-oslogin     = "true"
     enable-oslogin-2fa     = "true"
     startup-script         = <<-EOT
       sudo apt-get update
@@ -47,28 +43,25 @@ resource "google_compute_instance" "bastion" {
         ${data.google_sql_database_instance.given.connection_name}
     EOT
   }
+
   boot_disk {
     auto_delete = true
     mode        = "READ_WRITE"
     initialize_params {
-      enable_confidential_compute = false
-      image                       = "https://www.googleapis.com/compute/v1/projects/debian-cloud/global/images/debian-12-bookworm-v20240709"
-      provisioned_iops            = 0
-      provisioned_throughput      = 0
+      image                       = "projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20240830" # confidential compute compatible image
       size                        = 10
       type                        = "pd-standard"
     }
   }
+
   network_interface {
-    internal_ipv6_prefix_length = 0
+    nic_type    = "GVNIC" # Required for confidential compute
+    queue_count = 0
+    stack_type  = "IPV4_ONLY"
     network                     = data.google_compute_network.given.self_link
     subnetwork                  = var.subnetwork_self_link
-    queue_count                 = 0
-    stack_type                  = "IPV4_ONLY"
   }
-  reservation_affinity {
-    type = "ANY_RESERVATION"
-  }
+
   scheduling {
     automatic_restart           = false
     instance_termination_action = "STOP"
@@ -80,10 +73,12 @@ resource "google_compute_instance" "bastion" {
       seconds = 28800 # 8 hours
     }
   }
+
   service_account {
     email  = google_service_account.bastion_sa.email
     scopes = ["https://www.googleapis.com/auth/cloud-platform"]
   }
+
   shielded_instance_config {
     enable_integrity_monitoring = true
     enable_secure_boot          = true

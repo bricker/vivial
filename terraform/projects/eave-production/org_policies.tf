@@ -1,6 +1,12 @@
+resource "google_project_service" "org_policy_service" {
+  service = "orgpolicy.googleapis.com"
+  disable_dependent_services = false
+  disable_on_destroy         = false
+}
+
 # resource "google_org_policy_policy" "primary" {
-#   name   = "organizations/${module.project_base.gcp_project.org_id}/constraints/storage.publicAccessPrevention"
-#   parent = "organizations/${module.project_base.gcp_project.org_id}"
+#   name   = "organizations/${data.google_project.default.org_id}/constraints/storage.publicAccessPrevention"
+#   parent = "organizations/${data.google_project.default.org_id}"
 
 #   spec {
 #     rules {
@@ -10,8 +16,8 @@
 # }
 
 resource "google_org_policy_policy" "enable_osconfig" {
-  name   = "organizations/${module.project_base.gcp_project.org_id}/constraints/compute.requireOsConfig"
-  parent = "organizations/${module.project_base.gcp_project.org_id}"
+  name   = "organizations/${data.google_project.default.org_id}/policies/compute.requireOsConfig"
+  parent = "organizations/${data.google_project.default.org_id}"
 
   spec {
     rules {
