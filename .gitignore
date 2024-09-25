@@ -10,6 +10,7 @@ __pycache__
 .pytest_cache
 .*_cache
 node_modules
+.rollup.cache
 *.egg-info
 build/
 .build/
