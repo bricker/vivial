@@ -1,4 +1,5 @@
 import path from "node:path";
+import { nodeResolve } from "@rollup/plugin-node-resolve";
 
 export default {
   input: "./background/service-worker.js",
@@ -8,6 +9,9 @@ export default {
       format: "iife",
       // name: "PlaygroundExtension"
     }
+  ],
+  plugins: [
+    nodeResolve(),
   ],
 };
 
