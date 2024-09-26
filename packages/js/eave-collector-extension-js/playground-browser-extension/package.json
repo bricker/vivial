@@ -1,6 +1,8 @@
 {
   "type": "module",
-  "scripts": {},
+  "scripts": {
+    "build": "rollup --config rollup.config.js"
+  },
   "dependencies": {
     "@eave-fyi/eave-collector-extension": "file:.."
   },
@@ -9,6 +11,7 @@
     "@babel/preset-env": "^7.20.2",
     "babel-loader": "^9.1.0",
     "chrome-types": "^0.1.305",
+    "rollup": "^4.22.4",
     "ts-loader": "^9.5.1"
   },
   "eslintConfig": {

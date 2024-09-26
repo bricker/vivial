@@ -12,13 +12,14 @@
     "test": "npm run unit-test",
     "unit-test": "ava tests/unit/**/*.ts",
     "e2e-test": "npm run build && echo 'Copying current dist/collector.js to test app...' && cp dist/collector.js tests/integration/public/eave-client.min.js && cd tests/integration && npm test",
-    "build": "rollup --config rollup.config.js --environment MODE:development,EAVE_API_BASE_URL:https://api.eave.dev",
-    "build-prod": "rollup --config rollup.config.js --environment MODE:production,EAVE_API_BASE_URL:https://api.eave.fyi",
+    "build": "tsc && rollup -c --environment MODE:development,EAVE_API_BASE_URL:https://api.eave.dev",
+    "build-prod": "tsc && rollup -c --environment MODE:production,EAVE_API_BASE_URL:https://api.eave.fyi",
     "prepublishOnly": "npm run build-prod"
   },
   "author": "eave.fyi",
   "license": "GPL-3.0-only",
   "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-replace": "^6.0.1",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.0",

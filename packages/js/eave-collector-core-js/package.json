@@ -1,9 +1,12 @@
 {
   "name": "@eave-fyi/eave-collector-core",
   "version": "1.0.0",
-  "main": "src/main.ts",
+  "main": "dist/src/main.js",
+  "types": "dist/types/src/main.d.ts",
   "scripts": {
-    "test": "ava"
+    "build": "tsc",
+    "test": "ava",
+    "prepublishOnly": "npm run build"
   },
   "author": "eave.fyi",
   "license": "GPL-3.0-only",
