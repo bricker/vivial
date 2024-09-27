@@ -9,13 +9,11 @@
 // prettier-ignore
 const ingestUrlBase = WEBPACK_ENV_EAVE_API_BASE_URL || "https://api.eave.fyi";
 const logUrlPath = "/public/ingest/browser/log";
-const logUrl = new URL(ingestUrlBase);
-logUrl.pathname = logUrl.pathname + logUrlPath;
+const logUrl = new URL(logUrlPath, ingestUrlBase);
 export const LOG_TRACKER_URL = logUrl.href;
 
 const atomUrlPath = "/public/ingest/browser";
-const atomUrl = new URL(ingestUrlBase);
-atomUrl.pathname = atomUrl.pathname + atomUrlPath;
+const atomUrl = new URL(atomUrlPath, ingestUrlBase);
 export const ATOM_TRACKER_URL = atomUrl.href;
 
 export const MODE = WEBPACK_ENV_MODE || "production";
