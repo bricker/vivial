@@ -117,13 +117,14 @@ async def seed_database(db: AsyncEngine, team_id: uuid.UUID | None = None) -> No
     for row in range(num_rows):
         start = time.perf_counter()
 
-        if not team:
+        if not team_id:
             team = await TeamOrm.create(
                 session=session,
                 name=f"{socket.gethostname()}{row}",
                 allowed_origins=["*"],
             )
 
+        assert team
         await seed_table_entries_for_team(team_id=team.id, row=row, session=session)
 
         end = time.perf_counter()
