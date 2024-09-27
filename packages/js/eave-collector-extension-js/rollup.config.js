@@ -1,8 +1,8 @@
+import { nodeResolve } from "@rollup/plugin-node-resolve";
+import replace from "@rollup/plugin-replace";
+import terser from "@rollup/plugin-terser";
 import typescript from "@rollup/plugin-typescript";
 import path from "node:path";
-import terser from "@rollup/plugin-terser";
-import replace from "@rollup/plugin-replace";
-import { nodeResolve } from "@rollup/plugin-node-resolve";
 
 const trackerUrl = process.env.EAVE_API_BASE_URL || "https://api.eave.fyi";
 const mode = process.env.MODE;
@@ -23,18 +23,19 @@ export default {
       format: "iife",
       name,
       plugins: [
-        !isDevelopment && terser({
-          mangle: true,
-          compress: {
-            drop_console: !isDevelopment ? ["debug"] : false,
-          },
-          format: {
-            comments: false,
-            ecma: 2015,
-          },
-        }),
-      ]
-    }
+        !isDevelopment &&
+          terser({
+            mangle: true,
+            compress: {
+              drop_console: !isDevelopment ? ["debug"] : false,
+            },
+            format: {
+              comments: false,
+              ecma: 2015,
+            },
+          }),
+      ],
+    },
   ],
   context: "this",
   plugins: [

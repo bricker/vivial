@@ -7,4 +7,3 @@ export function startCollecting({ clientId }: { clientId: string }) {
   logger.debug("eave extension collector started", clientId, config);
   // chrome.storage.local;
 }
-

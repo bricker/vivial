@@ -1,6 +1,5 @@
 const config = {
-  extends: ["eslint:recommended", "prettier", "plugin:cypress/recommended"],
-  plugins: ["cypress"],
+  extends: ["eslint:recommended", "prettier"],
   ignorePatterns: ["node_modules", "dist", ".*", "*.min.js", "collector.js"],
   env: {
     browser: true,

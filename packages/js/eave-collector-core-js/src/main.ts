@@ -1,4 +1,4 @@
-import { sendWithClientId } from "./send";
 import { EaveLogger } from "./logging/logger";
+import { sendWithClientId } from "./send";
 
 export { EaveLogger, sendWithClientId };
