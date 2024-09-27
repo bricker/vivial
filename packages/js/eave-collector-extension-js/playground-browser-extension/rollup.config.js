@@ -10,6 +10,7 @@ export default {
       // name: "PlaygroundExtension"
     }
   ],
+  context: "this",
   plugins: [
     nodeResolve(),
   ],
