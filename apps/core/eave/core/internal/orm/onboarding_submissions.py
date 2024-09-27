@@ -24,7 +24,7 @@ class OnboardingSubmissionOrm(Base):
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=UUID_DEFAULT_EXPR)
-    team_id: Mapped[UUID] = mapped_column(primary_key=True)
+    team_id: Mapped[UUID] = mapped_column(primary_key=True, unique=True)
     languages: Mapped[list[str]] = mapped_column(
         type_=sqlalchemy.dialects.postgresql.ARRAY(
             item_type=sqlalchemy.types.String,
