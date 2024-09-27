@@ -4,7 +4,8 @@
     "build": "rollup --config rollup.config.js"
   },
   "dependencies": {
-    "@eave-fyi/eave-collector-extension": "file:.."
+    "@eave-fyi/eave-collector-extension": "file:../../packages/js/eave-collector-extension-js",
+    "eave-collector-browser": "file:../../packages/js/eave-collector-browser-js"
   },
   "devDependencies": {
     "@babel/core": "^7.20.7",

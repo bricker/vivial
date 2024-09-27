@@ -7,8 +7,18 @@ export class EaveLogger {
   mode: Mode;
   clientId: string;
 
-  constructor({ logIngestUrl, mode, clientId }: { logIngestUrl: string; mode: Mode; clientId: string }) {
-    this.tag = "eave-collector-browser-js";
+  constructor({
+    tag,
+    logIngestUrl,
+    mode,
+    clientId,
+  }: {
+    tag: string;
+    logIngestUrl: string;
+    mode: Mode;
+    clientId: string;
+  }) {
+    this.tag = tag;
     this.logIngestUrl = logIngestUrl;
     this.mode = mode;
     this.clientId = clientId;
