@@ -18,6 +18,12 @@ resource "google_compute_instance" "bastion" {
   can_ip_forward            = false
   deletion_protection       = false
   enable_display            = false
+  min_cpu_platform = "AMD Milan"
+
+  confidential_instance_config {
+    enable_confidential_compute = true
+    confidential_instance_type = "SEV"
+  }
 
   metadata = {
     block-project-ssh-keys = "true"
