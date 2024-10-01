@@ -49,14 +49,6 @@ variable "LOG_LEVEL" {
   default = "debug"
 }
 
-variable "EAVE_CREDENTIALS" {
-  type = object({
-    SERVER_CREDENTIALS = string,
-    CLIENT_ID          = string,
-  })
-  sensitive = true
-}
-
 variable "impersonator_role_name" {
   type = string
 }

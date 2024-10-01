@@ -125,14 +125,6 @@ class LogContext(JsonObject):
         self["eave_authed_account_id"] = value
 
     @property
-    def eave_authed_team_id(self) -> str | None:
-        return str(v) if (v := self.get("eave_authed_team_id")) else None
-
-    @eave_authed_team_id.setter
-    def eave_authed_team_id(self, value: str | None) -> None:
-        self["eave_authed_team_id"] = value
-
-    @property
     def eave_origin(self) -> str | None:
         return str(v) if (v := self.get("eave_origin")) else None
 

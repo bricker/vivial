@@ -108,46 +108,6 @@ class ConfigTest(StdlibBaseTestCase):
         )
         assert SHARED_CONFIG.eave_dashboard_base_url_public == "https://dashboard.eave.fyi"
 
-    async def test_eave_embed_base_url_public_with_env(self):
-        self.patch_env({"EAVE_EMBED_BASE_URL_PUBLIC": "https://embed.finny.com:8080"})
-        assert SHARED_CONFIG.eave_embed_base_url_public == "https://embed.finny.com:8080"
-        assert SHARED_CONFIG.eave_embed_hostname_public == "embed.finny.com"
-        assert SHARED_CONFIG.eave_embed_netloc_public == "embed.finny.com:8080"
-
-    async def test_eave_embed_base_url_public_fallback(self):
-        self.patch_env(
-            {
-                "EAVE_EMBED_BASE_URL_PUBLIC": None,
-                "EAVE_BASE_URL_PUBLIC": "https://finnyfinance.com",
-            }
-        )
-        assert SHARED_CONFIG.eave_embed_base_url_public == "https://embed.finnyfinance.com"
-        assert SHARED_CONFIG.eave_embed_hostname_public == "embed.finnyfinance.com"
-        assert SHARED_CONFIG.eave_embed_netloc_public == "embed.finnyfinance.com"
-
-    async def test_eave_embed_base_url_public_default(self):
-        self.patch_env(
-            {
-                "EAVE_EMBED_BASE_URL_PUBLIC": None,
-                "EAVE_BASE_URL_PUBLIC": None,
-            }
-        )
-        assert SHARED_CONFIG.eave_embed_base_url_public == "https://embed.eave.fyi"
-        assert SHARED_CONFIG.eave_embed_hostname_public == "embed.eave.fyi"
-        assert SHARED_CONFIG.eave_embed_netloc_public == "embed.eave.fyi"
-
-    async def test_eave_embed_base_url_internal_with_env(self):
-        self.patch_env({"EAVE_EMBED_BASE_URL_INTERNAL": "http://internal.embed.finny.com:8080"})
-        assert SHARED_CONFIG.eave_embed_base_url_internal == "http://internal.embed.finny.com:8080"
-        assert SHARED_CONFIG.eave_embed_hostname_internal == "internal.embed.finny.com"
-        assert SHARED_CONFIG.eave_embed_netloc_internal == "internal.embed.finny.com:8080"
-
-    async def test_eave_embed_base_url_internal_default(self):
-        self.patch_env({"EAVE_EMBED_BASE_URL_INTERNAL": None})
-        assert SHARED_CONFIG.eave_embed_base_url_internal == "http://metabase.svc.cluster.local"
-        assert SHARED_CONFIG.eave_embed_hostname_internal == "metabase.svc.cluster.local"
-        assert SHARED_CONFIG.eave_embed_netloc_internal == "metabase.svc.cluster.local"
-
     async def test_eave_cookie_domain_with_env(self):
         self.patch_env({"EAVE_BASE_URL_PUBLIC": "https://finny.com"})
         assert SHARED_CONFIG.eave_cookie_domain == "finny.com"

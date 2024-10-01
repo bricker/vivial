@@ -16,7 +16,6 @@ import sys
 
 sys.path.append(".")
 
-from eave.core.internal.orm.data_collector_config import DataCollectorConfigOrm
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 load_standard_dotenv_files()
@@ -38,10 +37,6 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engin
 
 import eave.core.internal
 import eave.core.internal.orm.base
-from eave.core.internal.orm.client_credentials import ClientCredentialsOrm, ClientScope
-from eave.core.internal.orm.metabase_instance import MetabaseInstanceOrm, MetabaseInstanceState
-from eave.core.internal.orm.team import TeamOrm
-from eave.core.internal.orm.virtual_event import VirtualEventOrm
 from eave.stdlib.logging import eaveLogger
 
 _EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
@@ -55,76 +50,20 @@ assert _GOOGLE_CLOUD_PROJECT != "eave-production"
 assert _GCLOUD_PROJECT != "eave-production"
 
 
-async def seed_table_entries_for_team(team_id: uuid.UUID, row: int, session: AsyncSession) -> None:
-    creds = await ClientCredentialsOrm.create(
-        session=session,
-        team_id=team_id,
-        scope=ClientScope.readwrite,
-        description=f"credentials for team {team_id} (database seed)",
-    )
-
-    await ClientCredentialsOrm.query(
-        session=session,
-        params=ClientCredentialsOrm.QueryParams(team_id=team_id),
-    )
-
-    creds.scope = ClientScope.readwrite
-    await session.flush()
-
-    await DataCollectorConfigOrm.create(
-        session=session,
-        team_id=team_id,
-    )
-
-    metabase_instance = await MetabaseInstanceOrm.create(
-        session=session,
-        team_id=team_id,
-        state=MetabaseInstanceState.READY,
-    )
-
-    # Hardcoded signing key for easier development. This is also hardcoded in the metabase environment variables in share.metabase.env.
-    metabase_instance.jwt_signing_key = "unsafe"
-    await session.flush()
-
-    for eavent in range(30):
-        words = ["foo", "bar", "bazz", "fizz", "buzz", "far", "fuzz", "bizz", "boo", "fazz"]
-        rand_desc = " ".join([words[random.randint(0, len(words) - 1)] for _ in range(random.randint(5, 40))])
-        await VirtualEventOrm.create(
-            session=session,
-            team_id=team_id,
-            view_id=f"{row}.{eavent}",
-            readable_name=f"Dummy event {row}.{eavent}",
-            description=rand_desc,
-        )
-
-
-async def seed_database(db: AsyncEngine, team_id: uuid.UUID | None = None) -> None:
+async def seed_database(db: AsyncEngine) -> None:
     session = AsyncSession(db)
 
-    # only need to create entries for 1 team if team_id to seed is provided
-    num_rows = 100 if team_id is None else 1
+    num_rows = 100
 
     # setup progress bar
     curr_progress = f"[0/{num_rows}] :: Seconds remaining: ???"
     sys.stdout.write(curr_progress)
     sys.stdout.flush()
 
-    team: TeamOrm | None = None
-
-    if team_id:
-        team = await TeamOrm.one_or_exception(session=session, team_id=team_id)
-
     for row in range(num_rows):
         start = time.perf_counter()
 
-        if not team:
-            team = await TeamOrm.create(
-                session=session,
-                name=f"{socket.gethostname()}{row}",
-                allowed_origins=["*"],
-            )
-
-        await seed_table_entries_for_team(team_id=team.id, row=row, session=session)
+        # TODO: Create records
 
         end = time.perf_counter()
         elapsed = end - start
@@ -144,7 +83,6 @@ async def seed_database(db: AsyncEngine, team_id: uuid.UUID | None = None) -> No
 
 async def main() -> None:
     parser = argparse.ArgumentParser(description="Database seeder")
-    parser.add_argument("-t", "--team_id", help="ID of an existing team to seed", type=uuid.UUID, required=False)
     parser.add_argument(
         "-d", "--database", help="Name of the database to seed", type=str, required=False, default=_EAVE_DB_NAME
     )
@@ -165,12 +103,9 @@ async def main() -> None:
     eaveLogger.fprint(logging.INFO, f"> GOOGLE_CLOUD_PROJECT: {_GOOGLE_CLOUD_PROJECT}")
     eaveLogger.fprint(logging.INFO, f"> Target Database: {seed_db.url.database}")
     eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {seed_db.url}")
-    if args.team_id:
-        eaveLogger.fprint(logging.WARNING, f"\nThis script will insert junk seed data for the {args.team_id} team.")
-    else:
-        eaveLogger.fprint(
-            logging.WARNING, f"\nThis script will insert junk seed data into the {seed_db.url.database} database."
-        )
+    eaveLogger.fprint(
+        logging.WARNING, f"\nThis script will insert junk seed data into the {seed_db.url.database} database."
+    )
 
     answer = input(
         eaveLogger.f(
@@ -182,7 +117,7 @@ async def main() -> None:
         return
 
     eaveLogger.fprint(logging.INFO, f"Starting to seed your db {seed_db.url.database}...")
-    await seed_database(db=seed_db, team_id=args.team_id)
+    await seed_database(db=seed_db)
     eaveLogger.fprint(logging.INFO, "\nYour database has been seeded!")
 
 

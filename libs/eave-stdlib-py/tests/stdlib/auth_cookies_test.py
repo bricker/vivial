@@ -35,7 +35,6 @@ class AuthCookiesTestBase(StdlibBaseTestCase):
         self.mock_response = Response()
 
         self.data_account_id = self.anystr("account_id")
-        self.data_team_id = self.anystr("team_id")
         self.data_access_token = self.anystr("access_token")
 
 

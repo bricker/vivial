@@ -28,7 +28,6 @@ module "core_api_app" {
 
   LOG_LEVEL        = "DEBUG"
   release_version  = "latest"
-  EAVE_CREDENTIALS = var.INTERNAL_EAVE_CREDENTIALS
 }
 
 module "dashboard_app" {
@@ -43,6 +42,5 @@ module "dashboard_app" {
   cdn_base_url     = module.cdn.url
   LOG_LEVEL        = "DEBUG"
   release_version  = "latest"
-  EAVE_CREDENTIALS = var.INTERNAL_EAVE_CREDENTIALS
   iap_enabled      = false
 }

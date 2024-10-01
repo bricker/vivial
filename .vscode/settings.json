@@ -55,7 +55,6 @@
       "action.yml"
     ],
     "https://json.schemastore.org/github-workflow": ".github/workflows/*.yml",
-    "kubernetes://schema/networking.gke.io/v1beta1%40frontendconfig": "file:///home/bryan/code/eave/eave-monorepo/kube/metabase/networking.yaml"
   },
   "graphql-config.dotEnvPath": "${workspaceFolder}/.env",
   "eslint.experimental.useFlatConfig": false,
@@ -87,12 +86,6 @@
     "${workspaceFolder}/develop/python/src",
     "${workspaceFolder}/libs/eave-stdlib-py/src",
     "${workspaceFolder}/libs/eave-pubsub-schemas/python/src",
-    "${workspaceFolder}/packages/python/eave-collector-core-py/src",
-    "${workspaceFolder}/packages/python/eave-collector-asyncpg-py/src",
-    "${workspaceFolder}/packages/python/eave-collector-sqlalchemy-py/src",
-    "${workspaceFolder}/packages/python/eave-collector-starlette-py/src",
-    "${workspaceFolder}/packages/python/eave-collector-django-orm-py/src",
-    "${workspaceFolder}/packages/python/eave-collector-openai-py/src",
   ],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,

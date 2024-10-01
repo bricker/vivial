@@ -7,34 +7,11 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Route
 
 import eave.stdlib.time
-from eave.collectors.sqlalchemy import SQLAlchemyCollectorManager
-from eave.collectors.starlette import StarletteCollectorManager
-from eave.core.internal.oauth.google import (
-    GOOGLE_OAUTH_AUTHORIZE_PATH,
-    GOOGLE_OAUTH_CALLBACK_PATH,
-)
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
-from eave.core.public.middleware.credentials import CredsAuthMiddleware
-from eave.core.public.requests import data_collector_config
-from eave.core.public.requests.data_ingestion import (
-    BrowserDataIngestionEndpoint,
-    LogDataIngestionEndpoint,
-    ServerDataIngestionEndpoint,
-)
-from eave.core.public.requests.metabase_proxy import MetabaseAuthEndpoint, MetabaseProxyEndpoint, MetabaseProxyRouter
 from eave.stdlib import cache
 from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.core_api.models.client_credentials import CredentialsAuthMethod
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
 from eave.stdlib.core_api.operations.account import GetMyAccountRequest
-from eave.stdlib.core_api.operations.client_credentials import GetMyClientCredentialsRequest
-from eave.stdlib.core_api.operations.data_collector_config import GetDataCollectorConfigRequest
-from eave.stdlib.core_api.operations.onboarding_submissions import (
-    CreateMyOnboardingSubmissionRequest,
-    GetMyOnboardingSubmissionRequest,
-)
-from eave.stdlib.core_api.operations.team import GetMyTeamRequest
-from eave.stdlib.core_api.operations.virtual_event import GetMyVirtualEventDetailsRequest, ListMyVirtualEventsRequest
 from eave.stdlib.headers import (
     EAVE_ORIGIN_HEADER,
 )
@@ -50,14 +27,9 @@ from .internal.database import async_engine
 from .public.exception_handlers import exception_handlers
 from .public.requests import (
     authed_account,
-    client_credentials,
     noop,
-    onboarding_submissions,
     status,
-    team,
-    virtual_event,
 )
-from .public.requests.oauth import google_oauth
 
 eave.stdlib.time.set_utc()
 
@@ -171,9 +143,6 @@ def make_route(
     if config.auth_required:
         endpoint = AuthASGIMiddleware(app=endpoint, config=config)
 
-    if config.creds_auth_method is not None:
-        endpoint = CredsAuthMiddleware(app=endpoint, config=config)
-
     if config.origin_required:
         endpoint = OriginASGIMiddleware(app=endpoint, config=config)
 
@@ -220,142 +189,17 @@ routes = [
     ),
     make_route(
         config=CoreApiEndpointConfiguration(
-            path="/public/ingest/server",
-            method=aiohttp.hdrs.METH_POST,
-            auth_required=False,
-            origin_required=False,
-            is_public=True,
-            creds_auth_method=CredentialsAuthMethod.headers,
-        ),
-        endpoint=ServerDataIngestionEndpoint,
-    ),
-    make_route(
-        config=CoreApiEndpointConfiguration(
-            path="/public/ingest/browser",
-            method=aiohttp.hdrs.METH_POST,
-            auth_required=False,
-            origin_required=False,
-            is_public=True,
-            creds_auth_method=CredentialsAuthMethod.query_params,
-        ),
-        endpoint=BrowserDataIngestionEndpoint,
-    ),
-    make_route(
-        config=CoreApiEndpointConfiguration(
-            path="/public/ingest/server/log",
-            method=aiohttp.hdrs.METH_POST,
-            auth_required=False,
-            origin_required=False,
-            is_public=True,
-            creds_auth_method=CredentialsAuthMethod.headers,
-        ),
-        endpoint=LogDataIngestionEndpoint,
-    ),
-    make_route(
-        config=CoreApiEndpointConfiguration(
-            path="/public/ingest/browser/log",
-            method=aiohttp.hdrs.METH_POST,
-            auth_required=False,
-            origin_required=False,
-            is_public=True,
-            creds_auth_method=CredentialsAuthMethod.query_params,
-        ),
-        endpoint=LogDataIngestionEndpoint,
-    ),
-    make_route(
-        config=CoreApiEndpointConfiguration(
-            path="/_/metabase/proxy/auth/sso",
-            method=aiohttp.hdrs.METH_GET,
-            auth_required=True,
-            origin_required=False,
-            is_public=True,  # This is True because embed.eave.fyi forwards to this endpoint via the LB, which sets the eave-lb header.
-            creds_auth_method=None,
-        ),
-        endpoint=MetabaseAuthEndpoint,
-    ),
-    make_route(
-        config=CoreApiEndpointConfiguration(
-            path="/_/metabase/proxy/{rest:path}",
-            method=aiohttp.hdrs.METH_GET,
-            auth_required=True,
-            origin_required=False,
-            is_public=True,  # This is True because embed.eave.fyi forwards to this endpoint via the LB, which sets the eave-lb header.
-            creds_auth_method=None,
-        ),
-        endpoint=MetabaseProxyEndpoint,
-        addl_methods=[
-            aiohttp.hdrs.METH_POST,
-            aiohttp.hdrs.METH_PUT,
-            aiohttp.hdrs.METH_PATCH,
-            aiohttp.hdrs.METH_DELETE,
-            aiohttp.hdrs.METH_HEAD,
-            aiohttp.hdrs.METH_OPTIONS,
-        ],
-    ),
-    make_route(
-        config=CoreApiEndpointConfiguration(
-            path=GOOGLE_OAUTH_AUTHORIZE_PATH,
-            method=aiohttp.hdrs.METH_GET,
-            auth_required=False,
-            origin_required=False,
-            is_public=True,
-            creds_auth_method=None,
-        ),
-        endpoint=google_oauth.GoogleOAuthAuthorize,
-    ),
-    make_route(
-        config=CoreApiEndpointConfiguration(
-            path=GOOGLE_OAUTH_CALLBACK_PATH,
-            method=aiohttp.hdrs.METH_GET,
-            auth_required=False,
-            origin_required=False,
-            is_public=True,
-            creds_auth_method=None,
-        ),
-        endpoint=google_oauth.GoogleOAuthCallback,
-    ),
-    make_route(
-        config=CoreApiEndpointConfiguration(
             path="/favicon.ico",
             method=aiohttp.hdrs.METH_GET,
             auth_required=False,
             origin_required=False,
             is_public=True,
-            creds_auth_method=None,
         ),
         endpoint=noop.NoopEndpoint,
     ),
     make_route(
-        config=GetMyTeamRequest.config,
-        endpoint=team.GetMyTeamEndpoint,
-    ),
-    make_route(
-        config=ListMyVirtualEventsRequest.config,
-        endpoint=virtual_event.ListMyVirtualEventsEndpoint,
-    ),
-    make_route(
-        config=GetMyVirtualEventDetailsRequest.config,
-        endpoint=virtual_event.GetMyVirtualEventDetailsEndpoint,
-    ),
-    make_route(
         config=GetMyAccountRequest.config,
         endpoint=authed_account.GetMyAccountEndpoint,
-    ),
-    make_route(
-        config=GetMyOnboardingSubmissionRequest.config,
-        endpoint=onboarding_submissions.GetMyOnboardingSubmissionEndpoint,
-    ),
-    make_route(
-        config=CreateMyOnboardingSubmissionRequest.config,
-        endpoint=onboarding_submissions.CreateMyOnboardingSubmissionEndpoint,
-    ),
-    make_route(
-        config=GetMyClientCredentialsRequest.config,
-        endpoint=client_credentials.GetMyClientCredentialsEndpoint,
-    ),
-    make_route(
-        config=GetDataCollectorConfigRequest.config,
-        endpoint=data_collector_config.GetDataCollectorConfigEndpoint,
     ),
 ]
 
@@ -395,11 +239,6 @@ app = starlette.applications.Starlette(
             ],
             allow_credentials=True,
         ),
-        Middleware(MetabaseProxyRouter),
     ],
     on_shutdown=[graceful_shutdown],
 )
-
-if SHARED_CONFIG.analytics_enabled:
-    StarletteCollectorManager.start(app)
-    SQLAlchemyCollectorManager.start(engine=async_engine)

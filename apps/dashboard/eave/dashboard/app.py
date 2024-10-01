@@ -10,7 +10,6 @@ from starlette.templating import Jinja2Templates
 import eave.stdlib.logging
 import eave.stdlib.requests_util
 import eave.stdlib.time
-from eave.collectors.starlette import StarletteCollectorManager
 from eave.stdlib.auth_cookies import delete_auth_cookies
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.operations.status import status_payload
@@ -48,10 +47,7 @@ def web_app_endpoint(request: Request) -> Response:
         "index.html.jinja",
         context={
             "asset_base": SHARED_CONFIG.asset_base,
-            "collector_asset_base": DASHBOARD_APP_CONFIG.collector_asset_base,
-            "eave_client_id": DASHBOARD_APP_CONFIG.eave_client_id,
             "api_base": SHARED_CONFIG.eave_api_base_url_public,
-            "embed_base": SHARED_CONFIG.eave_embed_base_url_public,
             "analytics_enabled": SHARED_CONFIG.analytics_enabled,
             "app_env": SHARED_CONFIG.eave_env,
             "app_version": SHARED_CONFIG.app_version,
@@ -74,5 +70,3 @@ app = Starlette(
         Route(path="/{rest:path}", methods=["GET"], endpoint=web_app_endpoint),
     ],
 )
-
-StarletteCollectorManager.start(app)

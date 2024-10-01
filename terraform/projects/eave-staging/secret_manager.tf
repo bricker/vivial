@@ -7,12 +7,6 @@ module "app_secrets" {
   source = "../../modules/app_secrets"
 
   secrets = {
-    EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64 = {
-      data = var.EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64,
-      accessors = [
-        data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
-      ],
-    },
     SLACK_SYSTEM_BOT_TOKEN = {
       data = var.SLACK_SYSTEM_BOT_TOKEN,
       accessors = [
