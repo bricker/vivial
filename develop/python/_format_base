@@ -8,6 +8,5 @@ source "${EAVE_HOME}"/develop/functions.bash
 	python-format .
 	if ! e.onlythismodule; then
 		"${EAVE_HOME}"/libs/eave-stdlib-py/bin/format
-		"${EAVE_HOME}"/libs/eave-pubsub-schemas/python/bin/format
 	fi
 )

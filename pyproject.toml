@@ -10,7 +10,6 @@ exclude = [
 venvPath="./.venv"
 extraPaths=[
     "**/vendor",
-    "./packages/python/*/src",
     "./apps/core",
     "./apps/dashboard",
     "./develop/python/src",

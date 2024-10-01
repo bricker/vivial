@@ -8,6 +8,5 @@ source "${EAVE_HOME}"/develop/functions.bash
 	python-test .
 	if ! e.onlythismodule; then
 		"${EAVE_HOME}"/libs/eave-stdlib-py/bin/test
-		"${EAVE_HOME}"/libs/eave-pubsub-schemas/python/bin/test
 	fi
 )

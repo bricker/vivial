@@ -219,7 +219,6 @@ app = starlette.applications.Starlette(
     exception_handlers=exception_handlers,
     middleware=[
         # CORS is needed only for dashboard to API communications.
-        # This is irrelevant for the browser collector, because the collector sends data with a content type (application/x-www-form-urlencoded) that is CORS-safelisted.
         Middleware(
             CORSMiddleware,
             allow_origins=[

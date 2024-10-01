@@ -279,14 +279,14 @@ function installcerts() (
 )
 
 function setupapps() (
-	statusmsg -pa "Running setup scripts in develop, libs, packages, and apps."
+	statusmsg -pa "Running setup scripts in develop, libs, and apps."
 
 	if e.confirm; then
 		cd "${EAVE_HOME}" || exit 1
 		python-activate-venv
 		node-activate-venv
 
-		for ss in {apps,libs,packages,develop,terraform}/**/bin/setup; do
+		for ss in {apps,libs,develop,terraform}/**/bin/setup; do
 			if e.norecurse "$ss"; then
 				continue
 			fi

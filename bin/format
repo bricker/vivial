@@ -9,7 +9,7 @@ source "$EAVE_HOME/develop/functions.bash"
 (
 	"${EAVE_HOME}"/develop/shared/format-shell bin
 
-	for ss in {apps,libs,packages,develop,terraform}/**/bin/format; do
+	for ss in {apps,libs,develop,terraform}/**/bin/format; do
 		if e.norecurse "$ss"; then
 			continue
 		fi

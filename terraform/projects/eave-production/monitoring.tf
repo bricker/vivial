@@ -25,14 +25,6 @@ module "monitoring" {
       }
     },
     {
-      service         = "cdn"
-      name            = "Eave CDN uptime check"
-      severity        = "CRITICAL"
-      host            = "cdn.${local.root_domain}"
-      path            = "/collector.js"
-      contains_string = "EAVE_CLIENT_ID" # Seems reasonably reliable
-    },
-    {
       service         = "marketing"
       name            = "Eave Marketing Website uptime check"
       severity        = "CRITICAL"

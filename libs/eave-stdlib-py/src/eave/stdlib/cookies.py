@@ -7,13 +7,9 @@ from .typing import HTTPFrameworkRequest, HTTPFrameworkResponse
 
 EAVE_COOKIE_PREFIX = "eavedash."
 EAVE_AUTH_COOKIE_PREFIX = f"{EAVE_COOKIE_PREFIX}auth."
-EAVE_OAUTH_COOKIE_PREFIX = f"{EAVE_COOKIE_PREFIX}oauth."
-EAVE_EMBED_COOKIE_PREFIX = f"{EAVE_COOKIE_PREFIX}embed."
 
 EAVE_ACCOUNT_ID_COOKIE_NAME = f"{EAVE_AUTH_COOKIE_PREFIX}account_id"
 EAVE_ACCESS_TOKEN_COOKIE_NAME = f"{EAVE_AUTH_COOKIE_PREFIX}access_token"
-
-EAVE_OAUTH_STATE_COOKIE_PREFIX = f"{EAVE_OAUTH_COOKIE_PREFIX}state_"
 
 
 def get_cookies_with_prefix(request: HTTPFrameworkRequest, prefix: str) -> dict[str, str]:

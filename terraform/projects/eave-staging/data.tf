@@ -17,8 +17,6 @@ data "google_service_account" "app_service_accounts" {
   for_each = toset([
     module.core_api_app.service_account_id,
     module.dashboard_app.service_account_id,
-    module.playground_todoapp.service_account_id,
-    module.playground_quizapp.service_account_id,
   ])
   account_id = each.value
 }
