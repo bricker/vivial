@@ -35,6 +35,7 @@ resource "google_organization_iam_custom_role" "thoropass_role" {
     "cloudbuild.builds.list",
     "cloudkms.keyRings.list",
     "cloudkms.cryptoKeys.list",
+    "cloudkms.cryptoKeys.getIamPolicy",
     "cloudsql.backupRuns.list",
     "cloudsql.instances.get",
     "cloudsql.instances.list",

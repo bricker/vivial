@@ -20,7 +20,11 @@ module "core_api_app" {
   service_account_user_role_name = module.project_base.service_account_user_role_name
   network_name                   = module.project_base.network_name
   subnetwork_self_link           = module.project_base.subnetwork_self_link
-  bastion_accessors              = ["user:bryan@eave.fyi"]
+  bastion_accessors              = [
+    # TODO: Make this a group, like `devops@eave.fyi` or something
+    "user:bryan@eave.fyi",
+    "user:liam@eave.fyi",
+  ]
 
   LOG_LEVEL        = "DEBUG"
   release_version  = "latest"
