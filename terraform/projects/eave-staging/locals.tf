@@ -2,6 +2,7 @@ locals {
   billing_account = "013F5E-137CB0-B6AA2A"
   org_id          = "482990375115"
   project_id      = "eave-staging"
+  project_number      = "264481035543"
   default_region  = "us-central1"
   default_zone    = "us-central1-a"
 
