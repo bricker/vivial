@@ -20,14 +20,14 @@ module "core_api_app" {
   service_account_user_role_name = module.project_base.service_account_user_role_name
   network_name                   = module.project_base.network_name
   subnetwork_self_link           = module.project_base.subnetwork_self_link
-  bastion_accessors              = [
+  bastion_accessors = [
     # TODO: Make this a group, like `devops@eave.fyi` or something
     "user:bryan@eave.fyi",
     "user:liam@eave.fyi",
   ]
 
-  LOG_LEVEL        = "DEBUG"
-  release_version  = "latest"
+  LOG_LEVEL       = "DEBUG"
+  release_version = "latest"
 }
 
 module "dashboard_app" {
@@ -39,8 +39,8 @@ module "dashboard_app" {
   kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
 
-  cdn_base_url     = module.cdn.url
-  LOG_LEVEL        = "DEBUG"
-  release_version  = "latest"
-  iap_enabled      = false
+  cdn_base_url    = module.cdn.url
+  LOG_LEVEL       = "DEBUG"
+  release_version = "latest"
+  iap_enabled     = false
 }

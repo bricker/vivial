@@ -1,20 +1,14 @@
-import typing
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Self
+from typing import Self
 from uuid import UUID
 
-from sqlalchemy import Index, PrimaryKeyConstraint, Select, func, or_, select
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-import eave.core.internal
-import eave.stdlib.exceptions
 from eave.stdlib.core_api.models.account import AuthenticatedAccount
-from eave.stdlib.exceptions import MissingOAuthCredentialsError
-from eave.stdlib.logging import LogContext
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR
@@ -22,9 +16,7 @@ from .util import UUID_DEFAULT_EXPR
 
 class AccountOrm(Base):
     __tablename__ = "accounts"
-    __table_args__ = (
-        PrimaryKeyConstraint("id"),
-    )
+    __table_args__ = (PrimaryKeyConstraint("id"),)
 
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     refresh_token: Mapped[str] = mapped_column()

@@ -2,12 +2,12 @@
 
 moved {
   from = google_compute_project_metadata_item.enable_oslogin
-  to = google_compute_project_metadata_item.metadata_items["enable-oslogin"]
+  to   = google_compute_project_metadata_item.metadata_items["enable-oslogin"]
 }
 
 moved {
   from = google_compute_project_metadata_item.enable_oslogin_2fa
-  to = google_compute_project_metadata_item.metadata_items["enable-oslogin-2fa"]
+  to   = google_compute_project_metadata_item.metadata_items["enable-oslogin-2fa"]
 }
 
 resource "google_compute_project_metadata_item" "metadata_items" {
@@ -24,11 +24,11 @@ resource "google_compute_project_metadata_item" "metadata_items" {
     # Mandatory for SOC-2 compliance
     "enable-osconfig" = "TRUE",
 
-     # Used by VM Manager
-     # Mandatory for SOC-2 compliance
+    # Used by VM Manager
+    # Mandatory for SOC-2 compliance
     "enable-guest-attributes" = "TRUE",
   }
 
-  key = each.key
+  key   = each.key
   value = each.value
 }

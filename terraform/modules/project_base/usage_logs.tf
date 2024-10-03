@@ -18,10 +18,10 @@ resource "google_storage_bucket" "usage_logs" {
 
   lifecycle_rule {
     action {
-      type          = "Delete"
+      type = "Delete"
     }
     condition {
-      age                        = 365
+      age = 365
     }
   }
 

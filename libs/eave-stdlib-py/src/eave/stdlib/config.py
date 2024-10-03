@@ -271,4 +271,5 @@ def _prefix_hostname(url: str, prefix: str) -> str:
     p = p._replace(netloc=f"{prefix}{p.netloc}")
     return p.geturl()
 
+
 SHARED_CONFIG = _EaveConfig()

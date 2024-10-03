@@ -1,4 +1,3 @@
-import enum
 
 from eave.stdlib.core_api.models import BaseResponseModel
 

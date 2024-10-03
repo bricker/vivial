@@ -15,8 +15,6 @@ from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.operations.status import status_payload
 from eave.stdlib.headers import MIME_TYPE_JSON
 
-from .config import DASHBOARD_APP_CONFIG
-
 eave.stdlib.time.set_utc()
 
 

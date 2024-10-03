@@ -32,7 +32,6 @@ from eave.stdlib.headers import (
     EAVE_ORIGIN_HEADER,
     EAVE_REQUEST_ID_HEADER,
 )
-from eave.stdlib.util import ensure_uuid
 
 
 class AnyStandardOrm(Protocol):
