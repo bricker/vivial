@@ -32,7 +32,7 @@ class AccountOrm(Base):
         email: str | None = None,
     ) -> Self:
         obj = cls(
-            refresh_token=refresh_token,
+            refresh_token="FIXME", # noqa
             email=email,
         )
 
