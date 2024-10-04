@@ -160,35 +160,6 @@ class _EaveConfig(ConfigBase):
             url=self.eave_base_url_public, prefix="dashboard."
         )
 
-    ## Embed URLs
-
-    @property
-    def eave_embed_base_url_public(self) -> str:
-        return os.getenv("EAVE_EMBED_BASE_URL_PUBLIC") or _prefix_hostname(
-            url=self.eave_base_url_public, prefix="embed."
-        )
-
-    @property
-    def eave_embed_hostname_public(self) -> str:
-        return urlparse(self.eave_embed_base_url_public).hostname or f"embed.{self.eave_hostname_public}"
-
-    @property
-    def eave_embed_netloc_public(self) -> str:
-        return urlparse(self.eave_embed_base_url_public).netloc or self.eave_embed_hostname_public
-
-    @property
-    def eave_embed_base_url_internal(self) -> str:
-        # This can't use `eave_base_url_internal` because this is a different Kubernetes namespace.
-        return os.getenv("EAVE_EMBED_BASE_URL_INTERNAL") or "http://metabase.svc.cluster.local"
-
-    @property
-    def eave_embed_hostname_internal(self) -> str:
-        return urlparse(self.eave_embed_base_url_internal).hostname or "metabase.svc.cluster.local"
-
-    @property
-    def eave_embed_netloc_internal(self) -> str:
-        return urlparse(self.eave_embed_base_url_internal).netloc or self.eave_embed_hostname_internal
-
     @property
     def eave_cookie_domain(self) -> str:
         return self.eave_hostname_public
@@ -300,24 +271,5 @@ def _prefix_hostname(url: str, prefix: str) -> str:
     p = p._replace(netloc=f"{prefix}{p.netloc}")
     return p.geturl()
 
-
-# TODO: Can/should we use Runtime Config? It's nifty but adds extra network requests.
-# def get_runtimeconfig(self, name: str) -> str | None:
-#     """
-#     https://cloud.google.com/python/docs/reference/runtimeconfig/latest
-#     https://github.com/googleapis/python-runtimeconfig
-#     """
-#     # Allow overrides
-#     if name in os.environ:
-#         return os.environ[name]
-
-#     client = google.cloud.runtimeconfig.Client()
-#     config = client.config("eave-global-config")
-
-#     variable = config.get_variable(name)
-#     if variable is None:
-#         return None
-
-#     return variable.text
 
 SHARED_CONFIG = _EaveConfig()

@@ -3,7 +3,6 @@ from typing import Generic, TypeVar
 import aiohttp
 import pydantic
 
-from eave.stdlib.core_api.models.client_credentials import CredentialsAuthMethod
 from eave.stdlib.eave_origins import EaveApp
 
 
@@ -14,7 +13,6 @@ class EndpointConfiguration:
     audience: EaveApp
     auth_required: bool
     origin_required: bool
-    creds_auth_method: CredentialsAuthMethod | None
     is_public: bool
 
     def __init__(
@@ -26,7 +24,6 @@ class EndpointConfiguration:
         audience: EaveApp,
         auth_required: bool,
         origin_required: bool,
-        creds_auth_method: CredentialsAuthMethod | None,
         is_public: bool = False,
     ) -> None:
         self.base_url = base_url
@@ -36,7 +33,6 @@ class EndpointConfiguration:
         self.auth_required = auth_required
         self.origin_required = origin_required
         self.is_public = is_public
-        self.creds_auth_method = creds_auth_method
 
     @property
     def url(self) -> str:

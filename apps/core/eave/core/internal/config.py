@@ -1,11 +1,8 @@
-import json
 import os
 from functools import cached_property
-from typing import Any
 
-from eave.stdlib.config import ConfigBase, get_secret
+from eave.stdlib.config import ConfigBase
 from eave.stdlib.eave_origins import EaveApp
-from eave.stdlib.util import b64decode
 
 
 class _AppConfig(ConfigBase):
@@ -43,19 +40,6 @@ class _AppConfig(ConfigBase):
     def db_name(self) -> str:
         key = "EAVE_DB_NAME"
         return os.getenv(key, "eave")
-
-    @cached_property
-    def eave_google_oauth_client_credentials(self) -> dict[str, Any]:
-        b64encoded = get_secret("EAVE_GOOGLE_OAUTH_CLIENT_CREDENTIALS_JSON_B64")
-        json_encoded = b64decode(b64encoded)
-        credentials: dict[str, Any] = json.loads(json_encoded)
-        return credentials
-
-    @property
-    def eave_google_oauth_client_id(self) -> str:
-        credentials = self.eave_google_oauth_client_credentials
-        client_id: str = credentials["web"]["client_id"]
-        return client_id
 
 
 CORE_API_APP_CONFIG = _AppConfig()

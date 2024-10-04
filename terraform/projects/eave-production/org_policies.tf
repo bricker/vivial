@@ -1,5 +1,5 @@
 resource "google_project_service" "org_policy_service" {
-  service = "orgpolicy.googleapis.com"
+  service                    = "orgpolicy.googleapis.com"
   disable_dependent_services = false
   disable_on_destroy         = false
 }

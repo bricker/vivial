@@ -47,30 +47,6 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
                 )
         port = 5100
 
-    elif re.match(r"^embed\.", flow.request.host):
-        # Prepend /_/metabase to the original path. This goes to core API and then proxies to metabase.
-        if len(flow.request.path_components) == 0 or flow.request.path_components[0] not in [
-            "auth",
-            "dashboard",
-            "app",
-            "api",
-        ]:
-            flow.kill()
-            raise PrivateEndpointAccessError("Unsupported path for embed host.")
-        port = 5100
-
-    elif re.search(r"\.mb\.", flow.request.host):
-        # NOTE! During local development, any request to the ".mb" subdomain routes to the locally-running Metabase instance.
-        # This is so you can use one metabase instance for all teams in local development.
-        # When accessing it in your browser, the prefix doesn't matter, eg http://anything.mb.eave.run:8080 .
-        port = 5400
-
-    elif re.match(r"^playground-todoapp\.", flow.request.host):
-        port = 5500
-
-    elif re.match(r"^playground-quizapp\.", flow.request.host):
-        port = 5600
-
     elif re.match(r"^cdn\.", flow.request.host):
         # This is the port for a webpack server.
         port = 3001

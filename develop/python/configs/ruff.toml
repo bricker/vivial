@@ -12,13 +12,11 @@ src = [
   # $EAVE_HOME/**/src isn't used because ** traverses leading-dot files (eg .venv)
   "$EAVE_HOME/apps/**/src",
   "$EAVE_HOME/libs/**/src",
-  "$EAVE_HOME/packages/**/src",
   "$EAVE_HOME/develop/**/src",
 ]
 
 [lint]
 logger-objects = [
-  "eave.collectors.core.logging.EAVE_LOGGER",
 ]
 
 # https://docs.astral.sh/ruff/rules/

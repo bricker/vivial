@@ -28,7 +28,7 @@ provider "google" {
   # See:
   # - https://github.com/hashicorp/terraform-provider-google/issues/1538#issuecomment-392385194
   # - https://github.com/hashicorp/terraform-provider-google/issues/17998
-  billing_project = local.project_id
+  billing_project       = local.project_id
   user_project_override = true
 }
 

@@ -7,7 +7,6 @@ from eave.stdlib.cookies import (
     EAVE_ACCESS_TOKEN_COOKIE_NAME,
     EAVE_ACCOUNT_ID_COOKIE_NAME,
     EAVE_AUTH_COOKIE_PREFIX,
-    EAVE_EMBED_COOKIE_PREFIX,
     delete_cookies_with_prefix,
     set_http_cookie,
 )
@@ -69,9 +68,4 @@ def delete_auth_cookies(request: HTTPFrameworkRequest, response: HTTPFrameworkRe
         response=response,
         prefix=EAVE_AUTH_COOKIE_PREFIX,
         # samesite="none",  # required for CORS-enabled cookies
-    )
-    delete_cookies_with_prefix(
-        request=request,
-        response=response,
-        prefix=EAVE_EMBED_COOKIE_PREFIX,
     )

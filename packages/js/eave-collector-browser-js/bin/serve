@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-
-set -eu
-
-(
-	npx webpack serve \
-		--mode=development \
-		--env "TRACKER_URL=https://api.eave.run:8080/public/ingest/browser"
-)

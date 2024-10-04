@@ -26,15 +26,12 @@ from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.database import init_database
 from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.base import get_base_metadata
-from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.core_api.models.account import AuthProvider
 from eave.stdlib.headers import (
     EAVE_ACCOUNT_ID_HEADER,
     EAVE_ORIGIN_HEADER,
     EAVE_REQUEST_ID_HEADER,
 )
-from eave.stdlib.util import ensure_uuid
 
 
 class AnyStandardOrm(Protocol):
@@ -201,29 +198,13 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
 
         return response
 
-    async def make_team(self, session: AsyncSession) -> TeamOrm:
-        team = await TeamOrm.create(session=session, name=self.anystr(), allowed_origins=["*.eave.test"])
-        return team
-
     async def make_account(
         self,
         session: AsyncSession,
-        team_id: uuid.UUID | None = None,
-        auth_provider: AuthProvider | None = None,
-        auth_id: str | None = None,
-        access_token: str | None = None,
         refresh_token: str | None = None,
     ) -> AccountOrm:
-        if not team_id:
-            team = await self.make_team(session=session)
-            team_id = ensure_uuid(team.id)
-
         account = await AccountOrm.create(
             session=session,
-            team_id=team_id,
-            auth_provider=auth_provider or AuthProvider.google,
-            auth_id=auth_id or self.anystr(),
-            access_token=access_token or self.anystr(),
             refresh_token=refresh_token or self.anystr(),
         )
 
@@ -231,10 +212,6 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
 
     async def get_eave_account(self, session: AsyncSession, /, id: UUID) -> AccountOrm | None:
         acct = await AccountOrm.one_or_none(session=session, params=AccountOrm.QueryParams(id=id))
-        return acct
-
-    async def get_eave_team(self, session: AsyncSession, /, id: UUID) -> TeamOrm | None:
-        acct = await TeamOrm.one_or_none(session=session, team_id=id)
         return acct
 
 

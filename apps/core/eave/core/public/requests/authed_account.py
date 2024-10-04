@@ -5,7 +5,6 @@ from starlette.responses import Response
 import eave.core.internal
 import eave.core.public
 from eave.core.internal.orm.account import AccountOrm
-from eave.core.internal.orm.team import TeamOrm
 from eave.stdlib.api_util import json_response
 from eave.stdlib.core_api.operations.account import (
     GetMyAccountRequest,
@@ -24,14 +23,9 @@ class GetMyAccountEndpoint(HTTPEndpoint):
                     id=ensure_uuid(ctx.eave_authed_account_id),
                 ),
             )
-            eave_team_orm = await TeamOrm.one_or_exception(
-                session=db_session,
-                team_id=eave_account_orm.team_id,
-            )
 
         return json_response(
             GetMyAccountRequest.ResponseBody(
                 account=eave_account_orm.api_model,
-                team=eave_team_orm.api_model,
             )
         )

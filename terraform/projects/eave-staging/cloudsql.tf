@@ -8,7 +8,6 @@ module "cloudsql_eave_core" {
   cloudsql_user_role_name = module.project_base.cloudsql_user_role_name
   cloudsql_user_role_members = [
     data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
-    data.google_service_account.app_service_accounts[module.playground_todoapp.service_account_id].member,
   ]
 
 }

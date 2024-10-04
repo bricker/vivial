@@ -29,9 +29,7 @@ $EAVE_HOME/bin/http-proxy
 Now, start whichever services you need, and access them using the respective domain under `*.eave.run:8080`. For example:
 
 - `http://api.eave.run:8080` -> Core API
-- `http://dashboard.eave.run:8080` -> Website
-- `http://apps.eave.run:8080/github` -> GitHub app
-- `http://metabase.eave.run:8080` -> Metabase
+- `http://dashboard.eave.run:8080` -> Dashboard
 
 This proxy serves three primary functions:
 
@@ -62,8 +60,6 @@ There are a few advantages to using a real domain instead of `/etc/hosts`:
 
 127.0.0.1   dashboard.eave.run
 127.0.0.1   api.eave.run
-127.0.0.1   apps.eave.run
-127.0.0.1   metabase.eave.run
 ```
 
 Alternatively, you can just use `*eave.localhost`, eg `http://dashboard.eave.localhost:8080`. For this to work, you'll need to update your `.env` file to use `localhost` for `EAVE_DASHBOARD_BASE_PUBLIC`, etc. Note that Google Oauth won't work if you do this.

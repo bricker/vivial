@@ -18,16 +18,16 @@ resource "google_compute_instance" "bastion" {
   can_ip_forward            = false
   deletion_protection       = false
   enable_display            = false
-  min_cpu_platform = "AMD Milan"
+  min_cpu_platform          = "AMD Milan"
 
   confidential_instance_config {
     enable_confidential_compute = true
-    confidential_instance_type = "SEV"
+    confidential_instance_type  = "SEV"
   }
 
   metadata = {
     block-project-ssh-keys = "true"
-    enable-oslogin     = "true"
+    enable-oslogin         = "true"
     enable-oslogin-2fa     = "true"
     startup-script         = <<-EOT
       sudo apt-get update
@@ -54,9 +54,9 @@ resource "google_compute_instance" "bastion" {
     auto_delete = true
     mode        = "READ_WRITE"
     initialize_params {
-      image                       = "projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20240830" # confidential compute compatible image
-      size                        = 10
-      type                        = "pd-standard"
+      image = "projects/ubuntu-os-cloud/global/images/ubuntu-2004-focal-v20240830" # confidential compute compatible image
+      size  = 10
+      type  = "pd-standard"
     }
   }
 
@@ -64,8 +64,8 @@ resource "google_compute_instance" "bastion" {
     nic_type    = "GVNIC" # Required for confidential compute
     queue_count = 0
     stack_type  = "IPV4_ONLY"
-    network                     = data.google_compute_network.given.self_link
-    subnetwork                  = var.subnetwork_self_link
+    network     = data.google_compute_network.given.self_link
+    subnetwork  = var.subnetwork_self_link
   }
 
   scheduling {

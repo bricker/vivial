@@ -13,7 +13,6 @@ from eave.stdlib.auth_cookies import (
     get_auth_cookies,
     set_auth_cookies,
 )
-from eave.stdlib.cookies import EAVE_EMBED_COOKIE_PREFIX
 from eave.stdlib.util import istr_eq
 
 from .base import StdlibBaseTestCase
@@ -35,7 +34,6 @@ class AuthCookiesTestBase(StdlibBaseTestCase):
         self.mock_response = Response()
 
         self.data_account_id = self.anystr("account_id")
-        self.data_team_id = self.anystr("team_id")
         self.data_access_token = self.anystr("access_token")
 
 
@@ -117,7 +115,6 @@ class AuthCookiesTest(AuthCookiesTestBase):
             {
                 EAVE_ACCESS_TOKEN_COOKIE_NAME: self.anystr(),
                 EAVE_ACCOUNT_ID_COOKIE_NAME: self.anystr(),
-                f"{EAVE_EMBED_COOKIE_PREFIX}xyz": self.anystr(),
             }
         )
 
@@ -127,4 +124,3 @@ class AuthCookiesTest(AuthCookiesTestBase):
 
         assert any(re.search(f'^{EAVE_ACCOUNT_ID_COOKIE_NAME}=""', v) for v in cookies)
         assert any(re.search(f'^{EAVE_ACCESS_TOKEN_COOKIE_NAME}=""', v) for v in cookies)
-        assert any(re.search(f'^{EAVE_EMBED_COOKIE_PREFIX}xyz=""', v) for v in cookies)
