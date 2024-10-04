@@ -5,7 +5,7 @@ moved {
 
 
 module "kubernetes_service" {
-  for_each = toset([local.app_name, local.internal_analytics_app_name])
+  for_each = toset([local.app_name])
 
   source       = "../../modules/kube_service"
   namespace    = var.kube_namespace_name

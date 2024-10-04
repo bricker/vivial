@@ -6,16 +6,9 @@ moved {
 resource "kubernetes_deployment" "app" {
   for_each = {
     (local.app_name) = {
-      app_name            = local.app_name,
-      deploy_name         = local.app_name,
-      analytics_disabled  = false,
-      ingest_api_base_url = "http://${local.internal_analytics_app_name}.${var.kube_namespace_name}.svc.cluster.local"
-    },
-    (local.internal_analytics_app_name) = {
-      app_name            = local.internal_analytics_app_name,
-      deploy_name         = local.internal_analytics_app_name,
-      analytics_disabled  = true,
-      ingest_api_base_url = "intentionally-not-a-url"
+      app_name           = local.app_name,
+      deploy_name        = local.app_name,
+      analytics_disabled = false,
     }
   }
 
@@ -143,10 +136,6 @@ resource "kubernetes_deployment" "app" {
           env {
             name  = "EAVE_ANALYTICS_DISABLED"
             value = each.value.analytics_disabled ? "1" : "0"
-          }
-          env {
-            name  = "EAVE_INGEST_BASE_URL"
-            value = each.value.ingest_api_base_url
           }
 
           # Necessary to prevent perpetual diff
