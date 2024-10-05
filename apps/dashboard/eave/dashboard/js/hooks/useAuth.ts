@@ -1,6 +1,6 @@
 import { isHTTPError, isUnauthorized, logUserOut } from "$eave-dashboard/js/util/http-util";
 import { useState } from "react";
-import { eaveOrigin, eaveWindow } from "../types";
+import { requestOrigin, myWindow } from "../types";
 
 export interface AuthedUserHook {
   validateUserAuth: () => void;
@@ -11,10 +11,10 @@ const useAuth = (): AuthedUserHook => {
   const [userIsAuthed, setUserIsAuthed] = useState(false);
 
   function validateUserAuth() {
-    fetch(`${eaveWindow.eavedash.apiBase}/public/me/account/query`, {
+    fetch(`${myWindow.app.apiBase}/public/me/account/query`, {
       method: "POST",
       headers: {
-        "eave-origin": eaveOrigin,
+        "eave-origin": requestOrigin,
       },
       credentials: "include",
     })

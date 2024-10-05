@@ -6,11 +6,9 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import "../static/css/app.css";
 import AuthenticationPage from "./components/Pages/AuthenticationPage";
-import { Dashboard, TabRevealer } from "./components/Pages/Dashboard";
-import Onboarding from "./components/Pages/Onboarding";
-import Waitlist from "./components/Pages/Waitlist";
 import AppContextProvider from "./context/Provider";
 import { theme } from "./theme";
+import DateGenerator from "./components/Pages/DateGenerator";
 
 const App = () => {
   return (
@@ -19,26 +17,15 @@ const App = () => {
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <Helmet>
-            <title>Eave - for your information.</title>
+            <title>Vivial</title>
           </Helmet>
           <BrowserRouter>
             <Routes>
+              <Route path="" element={<DateGenerator />} />
               <Route path="/signup" element={<AuthenticationPage type="signup" />} />
-
               <Route path="/login" element={<AuthenticationPage type="login" />} />
 
-              <Route element={<Dashboard />}>
-                <Route path="/setup" element={<TabRevealer name="setupTab" pathname="/setup" />} />
-                <Route path="/insights" element={<TabRevealer name="insightsTab" pathname="/insights" />} />
-                <Route path="/glossary" element={<TabRevealer name="glossaryTab" pathname="/glossary" />} />
-                <Route path="/settings" element={<TabRevealer name="settingsTab" pathname="/settings" />} />
-                <Route path="/team" element={<TabRevealer name="teamTab" pathname="/team" />} />
-              </Route>
-
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/waitlist" element={<Waitlist />} />
-
-              <Route path="*" element={<Navigate to="/onboarding" />} />
+              <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </BrowserRouter>
         </ThemeProvider>

@@ -1,7 +1,7 @@
 import { PaletteColor, PaletteColorOptions, createTheme } from "@mui/material";
 import { makeStyles } from "tss-react/mui";
 
-export interface EaveHeaderStyle {
+export interface MainHeaderStyle {
   height: number;
   marginBottom: number;
   md: {
@@ -10,7 +10,7 @@ export interface EaveHeaderStyle {
   };
 }
 
-export interface EaveFooterStyle {
+export interface MainFooterStyle {
   height: number;
 }
 
@@ -41,13 +41,13 @@ declare module "@mui/material/styles" {
   }
 
   interface Theme {
-    header: EaveHeaderStyle;
-    footer: EaveFooterStyle;
+    header: MainHeaderStyle;
+    footer: MainFooterStyle;
   }
 
   interface ThemeOptions {
-    header?: Partial<EaveHeaderStyle>;
-    footer?: Partial<EaveFooterStyle>;
+    header?: Partial<MainHeaderStyle>;
+    footer?: Partial<MainFooterStyle>;
   }
 }
 

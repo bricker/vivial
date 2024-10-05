@@ -1,7 +1,6 @@
 import Button from "$eave-dashboard/js/components/Button";
-import EaveSideBanner, { BannerStyle } from "$eave-dashboard/js/components/EaveSideBanner";
 import GoogleIcon from "$eave-dashboard/js/components/Icons/GoogleIcon";
-import { eaveWindow } from "$eave-dashboard/js/types";
+import { myWindow } from "$eave-dashboard/js/types";
 import { Typography } from "@mui/material";
 import React from "react";
 import { useSearchParams } from "react-router-dom";
@@ -114,7 +113,7 @@ const AuthenticationPage = ({ type }: { type: "signup" | "login" }) => {
             Join using your work email
           </Typography>
           <Button
-            to={`${eaveWindow.eavedash.apiBase}/oauth/google/authorize`}
+            to={`${myWindow.app.apiBase}/oauth/google/authorize`}
             className={classes.loginButton}
             variant="outlined"
             startIcon={<GoogleIcon className={classes.authIcon} />}
@@ -154,10 +153,6 @@ const AuthenticationPage = ({ type }: { type: "signup" | "login" }) => {
           )}
         </section>
       </div>
-      <EaveSideBanner
-        style={BannerStyle.FULL}
-        subtext="Discover unparalleled insights with Eave. Create your free account today."
-      />
     </div>
   );
 };
