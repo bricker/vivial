@@ -5,16 +5,7 @@ asyncpg
 slack-sdk
 aiohttp
 google-cloud-logging==3.11.0
-google-auth
-google-auth-httplib2
-google-auth-oauthlib
-google-cloud-bigquery-storage
-google-cloud-bigquery>=3.15.0
-requests_oauthlib
-oauthlib
 starlette
 asgiref @ git+https://github.com/django/asgiref@7c8d31c05957bd644f9cead04206f11a0011c3d4
-pyjwt
-inflect
 cryptography
-openai
+strawberry-graphql[asgi]

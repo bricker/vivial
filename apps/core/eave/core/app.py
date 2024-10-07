@@ -4,9 +4,17 @@ import starlette.endpoints
 from asgiref.typing import ASGI3Application
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
+from starlette.requests import Request
+from starlette.responses import Response
 from starlette.routing import Route
 
 import eave.stdlib.time
+from starlette.websockets import WebSocket
+from strawberry import Schema
+from strawberry.asgi import GraphQL
+from strawberry.schema.config import StrawberryConfig
+from eave.core.graphql.mutation import Mutation
+from eave.core.graphql.query import Query
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.stdlib import cache
 from eave.stdlib.config import SHARED_CONFIG
@@ -165,44 +173,15 @@ def make_route(
     return Route(path=config.path, methods=[config.method, *addl_methods], endpoint=endpoint)
 
 
-routes = [
-    ##
-    ## Public Endpoints
-    ##
-    Route(
-        path="/status",
-        endpoint=status.StatusEndpoint,
-        methods=[
-            aiohttp.hdrs.METH_GET,
-            aiohttp.hdrs.METH_POST,
-            aiohttp.hdrs.METH_PUT,
-            aiohttp.hdrs.METH_PATCH,
-            aiohttp.hdrs.METH_DELETE,
-            aiohttp.hdrs.METH_HEAD,
-            aiohttp.hdrs.METH_OPTIONS,
-        ],
-    ),
-    Route(
-        path="/healthz",
-        endpoint=status.HealthEndpoint,
-        methods=[aiohttp.hdrs.METH_GET],
-    ),
-    make_route(
-        config=CoreApiEndpointConfiguration(
-            path="/favicon.ico",
-            method=aiohttp.hdrs.METH_GET,
-            auth_required=False,
-            origin_required=False,
-            is_public=True,
-        ),
-        endpoint=noop.NoopEndpoint,
-    ),
-    make_route(
-        config=GetMyAccountRequest.config,
-        endpoint=authed_account.GetMyAccountEndpoint,
-    ),
-]
+graphql_schema = Schema(
+    query=Query,
+    mutation=Mutation,
+    config=StrawberryConfig(
+        auto_camel_case=True,
+    )
+)
 
+graphql_app = GraphQL(graphql_schema)
 
 async def graceful_shutdown() -> None:
     await async_engine.dispose()
@@ -215,7 +194,39 @@ async def graceful_shutdown() -> None:
 
 
 app = starlette.applications.Starlette(
-    routes=routes,
+    routes=[
+        Route(
+            path="/status",
+            endpoint=status.StatusEndpoint,
+            methods=[
+                aiohttp.hdrs.METH_GET,
+                aiohttp.hdrs.METH_POST,
+                aiohttp.hdrs.METH_PUT,
+                aiohttp.hdrs.METH_PATCH,
+                aiohttp.hdrs.METH_DELETE,
+                aiohttp.hdrs.METH_HEAD,
+                aiohttp.hdrs.METH_OPTIONS,
+            ],
+        ),
+        Route(
+            path="/healthz",
+            endpoint=status.HealthEndpoint,
+            methods=[aiohttp.hdrs.METH_GET],
+        ),
+        Route(
+            path="/favicon.ico",
+            endpoint=noop.NoopEndpoint,
+            methods=[aiohttp.hdrs.METH_GET],
+        ),
+        Route(
+            path="/graphql",
+            methods=[
+                aiohttp.hdrs.METH_GET,
+                aiohttp.hdrs.METH_POST,
+            ],
+            endpoint=graphql_app,
+        ),
+    ],
     exception_handlers=exception_handlers,
     middleware=[
         # CORS is needed only for dashboard to API communications.
