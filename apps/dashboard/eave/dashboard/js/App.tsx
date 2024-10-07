@@ -21,7 +21,7 @@ const App = () => {
           </Helmet>
           <BrowserRouter>
             <Routes>
-              <Route path="" element={<DateGenerator />} />
+              <Route path="/" element={<DateGenerator />} />
               <Route path="/signup" element={<AuthenticationPage type="signup" />} />
               <Route path="/login" element={<AuthenticationPage type="login" />} />
 

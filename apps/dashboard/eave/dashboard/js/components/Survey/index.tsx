@@ -1,7 +1,22 @@
-import { AppContext } from "$eave-dashboard/js/context/Provider";
 import { buttonStyles, textStyles } from "$eave-dashboard/js/theme";
+import {
+  Button,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  MenuItem,
+  Radio,
+  RadioGroup,
+  Select,
+  Slider,
+  ToggleButton,
+  ToggleButtonGroup,
+} from "@mui/material";
+import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import classNames from "classnames";
-import React, { useContext, useState } from "react";
+import dayjs from "dayjs";
+import React, { useState } from "react";
 import { makeStyles } from "tss-react/mui";
 
 const useStyles = makeStyles()((theme) => ({
@@ -47,22 +62,82 @@ const useStyles = makeStyles()((theme) => ({
   },
 }));
 
+const budgetOptions = [
+  {
+    value: 0,
+    label: "$",
+    ariaLabel: "Cheap as possible",
+  },
+  {
+    value: 1,
+    label: "$$",
+    ariaLabel: "Some money",
+  },
+  {
+    value: 2,
+    label: "$$$",
+    ariaLabel: "More money",
+  },
+  {
+    value: 3,
+    label: "$$$$",
+    ariaLabel: "Any amount",
+  },
+];
+
+const vibeOptions = ["sedentary", "active", "romantic", "casual", "intimate", "social"];
+
+const laNeighborhoodOptions = [
+  {
+    value: ["90011"], // TODO: fill in proper postal codes
+    label: "North Valley",
+  },
+  {
+    value: ["sv"],
+    label: "South Valley",
+  },
+  {
+    value: ["wl"],
+    label: "West LA",
+  },
+  {
+    value: ["c"],
+    label: "Central",
+  },
+  {
+    value: ["e"],
+    label: "East",
+  },
+  {
+    value: ["sl"],
+    label: "South LA",
+  },
+  {
+    value: ["h"],
+    label: "Harbor",
+  },
+];
+
 const Survey = () => {
   const { classes } = useStyles();
   const { classes: button } = buttonStyles();
   const { classes: text } = textStyles();
 
-  const { surveyNetworkStateCtx } = useContext(AppContext);
-  const [networkState] = surveyNetworkStateCtx!;
+  // const { surveyNetworkStateCtx } = useContext(AppContext);
+  // const [networkState] = surveyNetworkStateCtx!;
 
-  const [location, setLocation] = useState(["90011"]);
-  const [budget, setBudget] = useState(["$", "$$", "$$$", "$$$$"]);
+  // default time to tomorrow
+  const today = new Date();
+  const tomorrow = new Date(today.setDate(today.getDate() + 1)); // TODO: enforce 24h buffer
+  const [time, setTime] = useState(dayjs(tomorrow));
+  const [locations, setLocations] = useState(() => [...Array(laNeighborhoodOptions.length).keys()]);
+  const [budget, setBudget] = useState(budgetOptions.length - 1);
   const [attendees, setAttendees] = useState(2);
-  const [time, setTime] = useState(new Date());
-  const [vibe, setVibe] = useState<string | undefined>(undefined);
+  const [vibe, setVibe] = useState<string[]>(() => vibeOptions);
 
   const handleSubmitClick = () => {
     // TODO: post data
+    console.log("sending off: ", { time, locations, budget, attendees, vibe });
   };
 
   return (
@@ -78,52 +153,88 @@ const Survey = () => {
         </div>
 
         {/* Questions */}
-        <div className={classes.questionsContainer}>
-          <label>
-            When will your date be? {/* TODO: proper date range selector + enforce 24h buffer */}
-            <input name="time" type="datetime-local" value={time.toISOString()} onChange={(e) => setTime(new Date(e.target.value))} />
-          </label>
+        <FormControl className={classes.questionsContainer}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <FormLabel id="date-picker-label">When will your date be?</FormLabel>
+            <DateTimePicker
+              label="Date time picker"
+              value={time}
+              onChange={(newValue) => setTime(newValue || dayjs(tomorrow))}
+            />
+          </LocalizationProvider>
 
-          <label>
-            What area of Los Angeles would you like the date to be in? {/* TODO: proper tyupe */}
-            <input name="location" value={location} onChange={(e) => setLocation(e.target.value)} />
-          </label>
+          <FormLabel id="locations-selector-label">
+            What areas of Los Angeles can the date be in? {/* TODO: proper tyupe */}
+          </FormLabel>
+          <ToggleButtonGroup
+            id="locations-selector"
+            value={locations}
+            onChange={(_e, newIndices) => setLocations(newIndices)}
+            aria-label="date area locations selector"
+          >
+            {laNeighborhoodOptions.map((neighborhood, i) => {
+              return (
+                <ToggleButton value={i} key={neighborhood.label} aria-label={neighborhood.label}>
+                  {neighborhood.label}
+                </ToggleButton>
+              );
+            })}
+          </ToggleButtonGroup>
 
-          <label>
-            What is your budget? <input name="budget" value={budget} onChange={(e) => setBudget(e.target.value)} />
-          </label>
+          <FormLabel id="budget-selector">What is your budget?</FormLabel>
+          <Slider
+            aria-label="Budget selection slider"
+            value={budgetOptions[budget]?.value || budgetOptions.length - 1}
+            onChange={(_e, newValue) => setBudget(newValue as number)}
+            getAriaValueText={(_value, index) => budgetOptions[index]?.ariaLabel || "Any amount"}
+            step={1}
+            min={0}
+            max={budgetOptions.length - 1}
+            marks={budgetOptions}
+          />
 
-          <label>
-            How many people are you planning for?{" "}
-            <input name="attendees" type="number" value={attendees} onChange={(e) => setAttendees(parseInt(e.target.value))} />
-          </label>
+          <FormLabel id="attendees-group-label">How many people are you going on the date?</FormLabel>
+          <FormControl>
+            <RadioGroup
+              aria-labelledby="attendees-group-label"
+              name="attendees-group"
+              value={attendees}
+              onChange={(e) => setAttendees(parseInt(e.target.value))}
+            >
+              <FormControlLabel value={1} control={<Radio />} label="1" />
+              <FormControlLabel value={2} control={<Radio />} label="2" />
+            </RadioGroup>
+          </FormControl>
 
-          <label>
-            What is the vibe?
-            <select name="vibe" value={vibe} onChange={(e) => setVibe(e.target.value)} multiple={true}>
-              <option value="sedentary">Sedentary</option>
-              <option value="active">Active</option>
-              <option value="romantic">Romantic</option>
-              <option value="casual">Casual</option>
-              <option value="intimate">Intimiate</option>
-              <option value="social">Social</option>
-            </select>
-          </label>
-        </div>
+          <FormLabel id="vibe-selector-label">What's the vibe?</FormLabel>
+          <Select
+            labelId="vibe-selector-label"
+            id="vibe-selector"
+            value={vibe}
+            onChange={(e) => setVibe(e.target.value instanceof Array ? e.target.value : [e.target.value])}
+            autoWidth
+            aria-labelledby="vibe-selector-label"
+            multiple
+          >
+            {vibeOptions.map((option) => {
+              return (
+                <MenuItem value={option} key={option}>
+                  {option.toLocaleUpperCase()}
+                </MenuItem>
+              );
+            })}
+          </Select>
+        </FormControl>
 
-        {networkState.formSubmitIsErroring && (
+        {/* {networkState.formSubmitIsErroring && (
           <div className={classNames(text.subHeader, text.error)}>
             ERROR: Form could not be submitted. Please try again later.
           </div>
-        )}
+        )} */}
         <div className={classes.submitContainer}>
-          <button
-            className={classNames(button.darkBlue, { [button.disabled]: !allFieldsValid })}
-            onClick={handleSubmitClick}
-            disabled={!allFieldsValid}
-          >
+          <Button variant="contained" onClick={handleSubmitClick}>
             Show me my Date
-          </button>
+          </Button>
         </div>
       </div>
     </div>
