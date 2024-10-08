@@ -1,3 +1,4 @@
+import hashlib
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
@@ -13,14 +14,17 @@ from eave.stdlib.core_api.models.account import AuthenticatedAccount
 from .base import Base
 from .util import UUID_DEFAULT_EXPR
 
+def hash_password(plaintext_password: str) -> str:
+    hashed = hashlib.sha256(plaintext_password.encode(), usedforsecurity=True).hexdigest()
+    return hashed
 
 class AccountOrm(Base):
     __tablename__ = "accounts"
     __table_args__ = (PrimaryKeyConstraint("id"),)
 
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    refresh_token: Mapped[str] = mapped_column()
     email: Mapped[str | None] = mapped_column(server_default=None)
+    hashed_password: Mapped[str] = mapped_column()
     last_login: Mapped[datetime | None] = mapped_column(server_default=func.current_timestamp(), nullable=True)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -29,11 +33,12 @@ class AccountOrm(Base):
     async def create(
         cls,
         session: AsyncSession,
-        email: str | None = None,
+        email: str,
+        plaintext_password: str,
     ) -> Self:
         obj = cls(
-            refresh_token=refresh_token,
             email=email,
+            hashed_password=hash_password(plaintext_password),
         )
 
         session.add(obj)
@@ -41,9 +46,14 @@ class AccountOrm(Base):
         return obj
 
     @dataclass
+    class AuthQueryParams:
+        email: str
+        plaintext_password: str
+
+    @dataclass
     class QueryParams:
         id: uuid.UUID | None = None
-        refresh_token: str | None = None
+        auth: "AccountOrm.AuthQueryParams | None" = None
 
     @classmethod
     def _build_query(cls, params: QueryParams) -> Select[tuple[Self]]:
@@ -52,8 +62,9 @@ class AccountOrm(Base):
         if params.id is not None:
             lookup = lookup.where(cls.id == params.id)
 
-        if params.refresh_token is not None:
-            lookup = lookup.where(cls.refresh_token == params.refresh_token)
+        if params.auth is not None:
+            lookup = lookup.where(cls.email == params.auth.email)
+            lookup = lookup.where(cls.hashed_password == hash_password(params.auth.plaintext_password))
 
         assert lookup.whereclause is not None, "Invalid parameters"
         return lookup
