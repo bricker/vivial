@@ -4,10 +4,8 @@ import {
   FormControl,
   FormControlLabel,
   FormLabel,
-  MenuItem,
   Radio,
   RadioGroup,
-  Select,
   Slider,
   ToggleButton,
   ToggleButtonGroup,
@@ -85,7 +83,7 @@ const budgetOptions = [
   },
 ];
 
-const vibeOptions = ["sedentary", "active", "romantic", "casual", "intimate", "social"];
+// const vibeOptions = ["sedentary", "active", "romantic", "casual", "intimate", "social"];
 
 const laNeighborhoodOptions = [
   {
@@ -131,13 +129,13 @@ const Survey = () => {
   const tomorrow = new Date(today.setDate(today.getDate() + 1)); // TODO: enforce 24h buffer
   const [time, setTime] = useState(dayjs(tomorrow));
   const [locations, setLocations] = useState(() => [...Array(laNeighborhoodOptions.length).keys()]);
-  const [budget, setBudget] = useState(budgetOptions.length - 1);
+  const [budget, setBudget] = useState(2);
   const [attendees, setAttendees] = useState(2);
-  const [vibe, setVibe] = useState<string[]>(() => vibeOptions);
+  // const [vibe, setVibe] = useState<string[]>(() => vibeOptions);
 
   const handleSubmitClick = () => {
     // TODO: post data
-    console.log("sending off: ", { time, locations, budget, attendees, vibe });
+    console.log("sending off: ", { time, locations, budget, attendees /*vibe*/ });
   };
 
   return (
@@ -206,7 +204,7 @@ const Survey = () => {
             </RadioGroup>
           </FormControl>
 
-          <FormLabel id="vibe-selector-label">What's the vibe?</FormLabel>
+          {/* <FormLabel id="vibe-selector-label">What's the vibe?</FormLabel>
           <Select
             labelId="vibe-selector-label"
             id="vibe-selector"
@@ -223,7 +221,7 @@ const Survey = () => {
                 </MenuItem>
               );
             })}
-          </Select>
+          </Select> */}
         </FormControl>
 
         {/* {networkState.formSubmitIsErroring && (
