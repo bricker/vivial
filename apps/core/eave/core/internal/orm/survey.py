@@ -29,8 +29,9 @@ class SurveyOrm(Base):
     visitor_id: Mapped[str] = mapped_column()
     account_id: Mapped[UUID | None] = mapped_column()
     start_time: Mapped[datetime] = mapped_column()
+    """UTC timezone"""
     zip_codes: Mapped[list[str]] = mapped_column()
-    budget: Mapped[str] = mapped_column()
+    budget: Mapped[int] = mapped_column()
     headcount: Mapped[int] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -42,7 +43,7 @@ class SurveyOrm(Base):
         visitor_id: str,
         start_time: datetime,
         zip_codes: list[str],
-        budget: str,
+        budget: int,
         headcount: int,
         account_id: UUID | None = None,
     ) -> Self:

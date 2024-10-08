@@ -9,5 +9,5 @@ class Survey(BaseResponseModel):
     account_id: uuid.UUID | None
     start_time: datetime.datetime
     zip_codes: list[str]
-    budget: str
+    budget: int
     headcount: int
