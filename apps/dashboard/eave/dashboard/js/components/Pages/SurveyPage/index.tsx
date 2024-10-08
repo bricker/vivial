@@ -1,4 +1,4 @@
-import { buttonStyles, textStyles } from "$eave-dashboard/js/theme";
+import { textStyles } from "$eave-dashboard/js/theme";
 import {
   Button,
   FormControl,
@@ -16,6 +16,7 @@ import classNames from "classnames";
 import dayjs from "dayjs";
 import React, { useState } from "react";
 import { makeStyles } from "tss-react/mui";
+import OutingLoader from "../../OutingLoader/index.js";
 
 const useStyles = makeStyles()((theme) => ({
   main: {
@@ -116,9 +117,8 @@ const laNeighborhoodOptions = [
   },
 ];
 
-const Survey = () => {
+const SurveyPage = () => {
   const { classes } = useStyles();
-  const { classes: button } = buttonStyles();
   const { classes: text } = textStyles();
 
   // const { surveyNetworkStateCtx } = useContext(AppContext);
@@ -138,12 +138,14 @@ const Survey = () => {
     console.log("sending off: ", { time, locations, budget, attendees /*vibe*/ });
   };
 
+  if (surveySubmitLoading) {
+    return <OutingLoader />;
+  }
+
   return (
     <div className={classes.main}>
       <div className={classes.contentContainer}>
-        {/* Header */}
         <div>
-          {/* Title and Copy Button */}
           <div className={classes.titleContainer}>
             <h1 className={classNames(text.headerII, text.bold)}>Let's Plan your Date!</h1>
           </div>
@@ -161,9 +163,7 @@ const Survey = () => {
             />
           </LocalizationProvider>
 
-          <FormLabel id="locations-selector-label">
-            What areas of Los Angeles can the date be in? {/* TODO: proper tyupe */}
-          </FormLabel>
+          <FormLabel id="locations-selector-label">What areas of Los Angeles can the date be in?</FormLabel>
           <ToggleButtonGroup
             id="locations-selector"
             value={locations}
@@ -239,4 +239,4 @@ const Survey = () => {
   );
 };
 
-export default Survey;
+export default SurveyPage;
