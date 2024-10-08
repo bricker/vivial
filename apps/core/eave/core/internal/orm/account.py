@@ -1,11 +1,12 @@
 import hashlib
+import re
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Self
+from typing import Literal, Self
 from uuid import UUID
 
-from sqlalchemy import PrimaryKeyConstraint, Select, func, select
+from sqlalchemy import Index, PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -14,17 +15,46 @@ from eave.stdlib.core_api.models.account import AuthenticatedAccount
 from .base import Base
 from .util import UUID_DEFAULT_EXPR
 
+class WeakPasswordError(Exception):
+    pass
+
+def validate_password_or_exception(plaintext_password: str) -> Literal[True]:
+    if (
+        len(plaintext_password) >= 8
+        and re.search("[0-9]", plaintext_password)
+        and re.search("[a-zA-Z]", plaintext_password)
+        and re.search("[^a-zA-Z0-9]", plaintext_password)
+    ):
+        return True
+    else:
+        raise WeakPasswordError()
+
 def hash_password(plaintext_password: str) -> str:
+    if plaintext_password is None or len(plaintext_password) == 0:
+        raise ValueError("Invalid password")
+
     hashed = hashlib.sha256(plaintext_password.encode(), usedforsecurity=True).hexdigest()
     return hashed
 
 class AccountOrm(Base):
     __tablename__ = "accounts"
-    __table_args__ = (PrimaryKeyConstraint("id"),)
+    __table_args__ = (
+        PrimaryKeyConstraint("id"),
+        Index(
+            "unique_email",
+            "email",
+            unique=True,
+        ),
+        Index(
+            None,
+            "email",
+            "hashed_password",
+        )
+    )
 
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    email: Mapped[str | None] = mapped_column(server_default=None)
-    hashed_password: Mapped[str] = mapped_column()
+    email: Mapped[str] = mapped_column()
+    SALT!!! hashed_password: Mapped[str] = mapped_column()
     last_login: Mapped[datetime | None] = mapped_column(server_default=func.current_timestamp(), nullable=True)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -63,6 +93,7 @@ class AccountOrm(Base):
             lookup = lookup.where(cls.id == params.id)
 
         if params.auth is not None:
+            assert params.auth.email and params.auth.plaintext_password
             lookup = lookup.where(cls.email == params.auth.email)
             lookup = lookup.where(cls.hashed_password == hash_password(params.auth.plaintext_password))
 
