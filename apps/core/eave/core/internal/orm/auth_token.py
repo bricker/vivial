@@ -1,20 +1,17 @@
-import uuid
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Self
+from typing import Self, Sequence
 from uuid import UUID, uuid4
 
-from sqlalchemy import ForeignKeyConstraint, Index, PrimaryKeyConstraint, Select, func, select
+from sqlalchemy import ForeignKeyConstraint, Index, PrimaryKeyConstraint, ScalarResult, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
-
-from eave.stdlib.core_api.models.account import AuthenticatedAccount
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR
 
 
-class AuthTokensOrm(Base):
+class AuthTokenOrm(Base):
     __tablename__ = "auth_tokens"
     __table_args__ = (
         PrimaryKeyConstraint("id"),
@@ -26,14 +23,13 @@ class AuthTokensOrm(Base):
         Index(
             None,
             "account_id",
-            "jwi",
-            unique=True,
+            "jti",
         ),
     )
 
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     account_id: Mapped[UUID] = mapped_column()
-    jwi: Mapped[UUID] = mapped_column() # This is separate from the `id` so that we can update it for new token pairs.
+    jti: Mapped[UUID] = mapped_column(unique=True) # This is separate from the `id` so that we can update it for new token pairs.
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -41,9 +37,11 @@ class AuthTokensOrm(Base):
     async def create(
         cls,
         session: AsyncSession,
+        account_id: UUID,
     ) -> Self:
         obj = cls(
-            jwi=uuid4(),
+            account_id=account_id,
+            jti=uuid4(),
         )
 
         session.add(obj)
@@ -52,32 +50,30 @@ class AuthTokensOrm(Base):
 
     @dataclass
     class QueryParams:
-        jwi: uuid.UUID
-        account_id: uuid.UUID
+        account_id: UUID
+        jti: UUID
 
     @classmethod
     def _build_query(cls, params: QueryParams) -> Select[tuple[Self]]:
-        lookup = select(cls).limit(1)
-        lookup = lookup.where(cls.jwi == params.jwi)
+        lookup = select(cls)
         lookup = lookup.where(cls.account_id == params.account_id)
+        lookup = lookup.where(cls.jti == params.jti)
 
         assert lookup.whereclause is not None, "Invalid parameters"
         return lookup
 
     @classmethod
-    async def query(cls, session: AsyncSession, params: QueryParams) -> Self:
+    async def query(cls, session: AsyncSession, params: QueryParams) -> ScalarResult[Self]:
         lookup = cls._build_query(params=params)
-        result = (await session.scalars(lookup)).one()
+        result = await session.scalars(lookup)
         return result
 
     @classmethod
     async def one_or_exception(cls, session: AsyncSession, params: QueryParams) -> Self:
-        lookup = cls._build_query(params=params)
-        result = (await session.scalars(lookup)).one()
-        return result
+        result = await cls.query(session=session, params=params)
+        return result.one()
 
     @classmethod
     async def one_or_none(cls, session: AsyncSession, params: QueryParams) -> Self | None:
-        lookup = cls._build_query(params=params)
-        result = await session.scalar(lookup)
-        return result
+        result = await cls.query(session=session, params=params)
+        return result.one_or_none()
