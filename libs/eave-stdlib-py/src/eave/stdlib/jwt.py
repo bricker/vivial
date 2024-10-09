@@ -167,11 +167,10 @@ def validate_jws_or_exception(
 
     if not (
         jws.payload.aud == expected_audience
-        and jws.payload.nbf
-        and issued_at < (now + ALLOWED_CLOCK_DRIFT_SECONDS) # allow clock drift
-        and round(expired_at) == round(
-            expected_expiry.timestamp()
-        )  # conversion between datetime and float is inexact wrt decimal precision. For our needs, second precision is adequate.
+
+        and jws.payload.nbf < grace_now
+        and issued_at < grace_now
+        and expires_at > grace_now
         and now > not_before
     ):
         raise exceptions.InvalidJWSError()
