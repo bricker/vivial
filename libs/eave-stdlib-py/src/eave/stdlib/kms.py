@@ -25,12 +25,20 @@ KMS_KEYRING_NAME = "primary"
 _kms_client = kms.KeyManagementServiceClient()
 
 def get_key(key_name: str) -> str:
-    key_name = _kms_client.crypto_key_path(
+    key_path = _kms_client.crypto_key_path(
         project=SHARED_CONFIG.google_cloud_project,
         location=KMS_KEYRING_LOCATION,
         key_ring=KMS_KEYRING_NAME,
-        crypto_key=signing_key.id,
+        crypto_key=key_name,
     )
+
+    key = _kms_client.get_crypto_key(request=kms.GetCryptoKeyRequest(name=key_path))
+    key.primary
+    versions = _kms_client.list_crypto_key_versions(
+        request=kms.ListCryptoKeyVersionsRequest(parent=key_name)
+    )
+
+
 
 
 
@@ -105,82 +113,3 @@ def verify_signature_or_exception(
             return True
         case _:
             raise eave_exceptions.InvalidSignatureError(f"Unsupported algorithm: {signing_key.algorithm}")
-
-
-def _fetch_public_key(signing_key: SigningKeyDetails) -> PublicKeyTypes:
-    """
-    Makes a network request to Google KMS to fetch the
-    public key associated with `sigining_key`.
-    """
-    kms_client = kms.KeyManagementServiceClient()
-
-    key_version_name = kms_client.crypto_key_version_path(
-        project=SHARED_CONFIG.google_cloud_project,
-        location=KMS_KEYRING_LOCATION,
-        key_ring=KMS_KEYRING_NAME,
-        crypto_key=signing_key.id,
-        crypto_key_version=signing_key.version,
-    )
-    public_key_from_kms = kms_client.get_public_key(request={"name": key_version_name})
-    public_key_from_pem = serialization.load_pem_public_key(
-        data=public_key_from_kms.pem.encode(), backend=default_backend()
-    )
-
-    return public_key_from_pem
-
-
-def get_public_key(signing_key: SigningKeyDetails) -> PublicKeyTypes:
-    """
-    Get the public key PEM associated with `signing_key`,
-    or from an in-memory cache if previously computed.
-    """
-    if signing_key in _PUBLIC_KEYS_CACHE:
-        return _PUBLIC_KEYS_CACHE[signing_key]
-    result = _fetch_public_key(signing_key)
-    _PUBLIC_KEYS_CACHE[signing_key] = result
-    return result
-
-
-def preload_public_keys() -> None:
-    """
-    Preloads all PEM public keys for all registered signing keys
-    to accelerate signature verification middleware.
-    """
-    for signing_key in _SIGNING_KEYS.values():
-        _PUBLIC_KEYS_CACHE[signing_key] = _fetch_public_key(signing_key)
-
-
-def build_message_to_sign(
-    method: str,
-    path: str,
-    ts: int,
-    request_id: uuid.UUID | str,
-    audience: EaveApp | str,
-    origin: EaveApp | str,
-    payload: str,
-    team_id: Optional[uuid.UUID | str],
-    account_id: Optional[uuid.UUID | str],
-    ctx: Optional[LogContext] = None,
-) -> str:
-    signature_elements: list[str] = [
-        str(origin),
-        method,
-        str(audience),
-        path,
-        str(ts),
-        str(request_id),
-        payload,
-    ]
-
-    if team_id:
-        signature_elements.append(str(team_id))
-
-    if account_id:
-        signature_elements.append(str(account_id))
-
-    signature_message = ":".join(signature_elements)
-    return signature_message
-
-
-def make_sig_ts() -> int:
-    return int(time.time())
