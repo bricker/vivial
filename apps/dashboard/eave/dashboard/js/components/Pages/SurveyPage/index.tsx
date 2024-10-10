@@ -1,3 +1,4 @@
+import { AppContext } from "$eave-dashboard/js/context/AppContext.js";
 import { textStyles } from "$eave-dashboard/js/theme";
 import {
   Button,
@@ -14,7 +15,7 @@ import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import classNames from "classnames";
 import dayjs from "dayjs";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { makeStyles } from "tss-react/mui";
 import OutingLoader from "../../OutingLoader/index.js";
 
@@ -121,8 +122,8 @@ const SurveyPage = () => {
   const { classes } = useStyles();
   const { classes: text } = textStyles();
 
-  // const { surveyNetworkStateCtx } = useContext(AppContext);
-  // const [networkState] = surveyNetworkStateCtx!;
+  const { submitSurvey } = useContext(AppContext);
+  const [networkState] = submitSurvey!.networkState;
 
   // default time to tomorrow
   const today = new Date();
@@ -134,11 +135,13 @@ const SurveyPage = () => {
   // const [vibe, setVibe] = useState<string[]>(() => vibeOptions);
 
   const handleSubmitClick = () => {
-    // TODO: post data
     console.log("sending off: ", { time, locations, budget, attendees /*vibe*/ });
+    submitSurvey!.execute({
+      // TODO: post data
+    })
   };
 
-  if (surveySubmitLoading) {
+  if (networkState.loading) {
     return <OutingLoader />;
   }
 
@@ -224,11 +227,11 @@ const SurveyPage = () => {
           </Select> */}
         </FormControl>
 
-        {/* {networkState.formSubmitIsErroring && (
+        {networkState.error && (
           <div className={classNames(text.subHeader, text.error)}>
             ERROR: Form could not be submitted. Please try again later.
           </div>
-        )} */}
+        )}
         <div className={classes.submitContainer}>
           <Button variant="contained" onClick={handleSubmitClick}>
             Show me my Date
