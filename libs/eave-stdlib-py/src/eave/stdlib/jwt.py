@@ -1,15 +1,24 @@
 import enum
 import json
+import threading
 import time
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Literal, Optional, Self
 
+from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.logging import LogContext
+
 from . import exceptions, signing
 from . import util as eave_util
 
+threading.local["log_context"] = LogContext()
+
 ALLOWED_CLOCK_DRIFT_SECONDS = 60
+
+class InvalidJWTError(Exception):
+    pass
 
 @dataclass
 class JWTRegisteredClaims:
@@ -48,7 +57,7 @@ class JWTRegisteredClaims:
 class JWSHeader:
     typ: str
     alg: str
-    kid: int
+    kid: str
 
     @classmethod
     def from_b64(cls, header_encoded: str) -> Self:
@@ -91,35 +100,34 @@ class JWS:
 
 def create_jws(
     *,
-    signing_key: SigningKeyDetails,
     purpose: str,
     issuer: str,
     audience: str,
     subject: str,
-    issued_at: int | None = None,
     not_before: int | None = None,
     jwt_id: str | None = None,
-    exp_minutes: int = 10,
+    max_age_minutes: int = 10,
+    ctx: LogContext,
 ) -> str:
     # all time formats are expected to be in the format of an integer
     # number of seconds since epoch (aka NumericDate)
     # https://www.rfc-editor.org/rfc/rfc7519
     now = int(time.time())
-    exp = now + (60 * exp_minutes)
+    exp = now + (60 * max_age_minutes)
 
-    if issued_at is None:
-        issued_at = now
     if not_before is None:
-        not_before = issued_at
+        not_before = now
     if jwt_id is None:
         jwt_id = str(uuid.uuid4())
+
+    crypto_key_version = SHARED_CONFIG.jws_signing_key_version_path
 
     jws_header = JWSHeader(typ="JWT", alg=signing_key.algorithm.value, kid=signing_key.version)
     jwt_payload = JWTRegisteredClaims(
         iss=issuer,
         aud=audience,
         sub=subject,
-        iat=issued_at,
+        iat=now,
         exp=exp,
         nbf=not_before,
         jti=jwt_id,
@@ -132,7 +140,7 @@ def create_jws(
         signature="",
     )
 
-    signature_b64 = signing.sign_b64(signing_key=signing_key, data=jws.message)
+    signature_b64 = signing.mac_sign_b64(data=jws.message, ctx=ctx)
     jws.signature = signature_b64
     return str(jws)
 
@@ -141,6 +149,7 @@ def validate_jws_or_exception(
     encoded_jws: str,
     expected_issuer: str,
     expected_audience: str,
+    ctx: LogContext,
 ) -> JWS:
     """
     Validate the JWT according to https://datatracker.ietf.org/doc/html/rfc7519#section-7.2
@@ -152,30 +161,31 @@ def validate_jws_or_exception(
     then the JWT is valid and verified.
     """
 
+    # This should be before signature verification because that makes a network request that takes some time.
+    now = int(time.time())
+
     jws = JWS.from_str(jwt_encoded=encoded_jws)
 
-    signing.verify_signature_or_exception(
+    signing.mac_verify_or_exception(
+        kid=jws.header.kid,
         message=jws.message,
-        signature=jws.signature,
+        mac_b64=jws.signature,
+        ctx=ctx,
     )
 
-    now = time.time()
-    grace_now = now + ALLOWED_CLOCK_DRIFT_SECONDS
     expires_at = float(jws.payload.exp)
-    issued_at = float(jws.payload.iat)
     not_before = float(jws.payload.nbf)
 
-    if not (
-        jws.payload.aud == expected_audience
+    if jws.payload.iss != expected_issuer:
+        raise InvalidJWTError("iss")
+    if jws.payload.aud != expected_audience:
+        raise InvalidJWTError("aud")
+    if now < not_before - ALLOWED_CLOCK_DRIFT_SECONDS:
+        raise InvalidJWTError("nbf")
+    if now > expires_at + ALLOWED_CLOCK_DRIFT_SECONDS:
+        raise InvalidJWTError("exp")
 
-        and jws.payload.nbf < grace_now
-        and issued_at < grace_now
-        and expires_at > grace_now
-        and now > not_before
-    ):
-        raise exceptions.InvalidJWSError()
-    else:
-        return jws
+    return jws
 
 
 def validate_jws_pair_or_exception(
@@ -191,32 +201,19 @@ def validate_jws_pair_or_exception(
     then the JWTs belong together and are both verified.
     """
 
-    jwt_a = JWT.from_str(jwt_encoded=jwt_encoded_a)
-    jwt_b = JWT.from_str(jwt_encoded=jwt_encoded_b)
+    jws_a = JWS.from_str(jwt_encoded=jwt_encoded_a)
+    jws_b = JWS.from_str(jwt_encoded=jwt_encoded_b)
 
-    if (jwt_encoded_a == jwt_encoded_b) or (jwt_a.signature == jwt_b.signature):
+    if (jwt_encoded_a == jwt_encoded_b) or (jws_a.signature == jws_b.signature):
         raise exceptions.InvalidJWSError("matching tokens or signatures")
 
-    signing.verify_signature_or_exception(
-        signing_key=signing_key,
-        message=jwt_a.message,
-        signature=jwt_a.signature,
-    )
+    if not jws_a.payload.iss == jws_b.payload.iss:
+        raise exceptions.InvalidJWSError("iss")
+    if not jws_a.payload.aud == jws_b.payload.aud:
+        raise exceptions.InvalidJWSError("aud")
+    if not jws_a.payload.sub == jws_b.payload.sub:
+        raise exceptions.InvalidJWSError("sub")
+    if not jws_a.payload.jti == jws_b.payload.jti:
+        raise exceptions.InvalidJWSError("jti")
 
-    signing.verify_signature_or_exception(
-        signing_key=signing_key,
-        message=jwt_b.message,
-        signature=jwt_b.signature,
-    )
-
-    if not (
-        jwt_a.payload.iss == jwt_b.payload.iss
-        and jwt_a.payload.aud == jwt_b.payload.aud
-        and jwt_a.payload.sub == jwt_b.payload.sub
-        and jwt_a.payload.jti == jwt_b.payload.jti
-        and jwt_a.payload.iat == jwt_b.payload.iat
-        and jwt_a.payload.nbf == jwt_b.payload.nbf
-    ):
-        raise exceptions.InvalidJWSError()
-    else:
-        return True
+    return True

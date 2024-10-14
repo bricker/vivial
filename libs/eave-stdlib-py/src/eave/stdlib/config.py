@@ -164,6 +164,10 @@ class _EaveConfig(ConfigBase):
     def eave_cookie_domain(self) -> str:
         return self.eave_hostname_public
 
+    @property
+    def jws_signing_key_version_path(self) -> str:
+        return os.getenv("JWS_SIGNING_KEY_VERSION_PATH", f"projects/{self.google_cloud_project}/locations/global/keyRings/primary/cryptoKeys/jws-signing-key/cryptoKeyVersions/1")
+
     @cached_property
     def redis_connection(self) -> tuple[str, int, str] | None:
         key = "REDIS_HOST_PORT"
