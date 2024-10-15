@@ -1,21 +1,23 @@
-from uuid import UUID, uuid4
-from eave.stdlib.exceptions import InvalidJWSError
-from eave.stdlib.jwt import create_jws, JWTPurpose, validate_jws_or_exception, validate_jws_pair_or_exception
+from uuid import uuid4
+
 import strawberry
+
+import eave.core.internal.database
 from eave.core.graphql.types.authentication import Account
 from eave.core.graphql.types.user_profile import UserProfile
-import eave.core.internal.database
-from starlette.requests import Request
-from starlette.responses import Response
-
 from eave.core.internal.orm.account import AccountOrm, test_password_strength_or_exception
-from ..types.authentication import AuthTokenPair, LoginError, LoginResult, LoginSuccess, AuthenticationErrorCode
+from eave.stdlib.exceptions import InvalidJWSError
+from eave.stdlib.jwt import JWTPurpose, create_jws, validate_jws_or_exception, validate_jws_pair_or_exception
+
+from ..types.authentication import AuthenticationErrorCode, AuthTokenPair, LoginError, LoginResult, LoginSuccess
 
 JWT_ISSUER = "core-api"
 JWT_AUDIENCE = "core-api"
 
+
 async def register_mutation(*, info: strawberry.Info, email: str, plaintext_password: str) -> None:
     test_password_strength_or_exception(plaintext_password)
+
 
 async def login_mutation(*, info: strawberry.Info, email: str, plaintext_password: str) -> LoginResult:
     async with eave.core.internal.database.async_session.begin() as db_session:
@@ -38,6 +40,7 @@ async def login_mutation(*, info: strawberry.Info, email: str, plaintext_passwor
             # TODO: Currently this won't be reached because credential failure will throw its own error.
             return LoginError(error_code=AuthenticationErrorCode.INVALID_CREDENTIALS)
 
+
 async def refresh_tokens_mutation(*, info: strawberry.Info, access_token: str, refresh_token: str) -> AuthTokenPair:
     access_jws = validate_jws_or_exception(
         encoded_jws=access_token,
@@ -59,8 +62,10 @@ async def refresh_tokens_mutation(*, info: strawberry.Info, access_token: str, r
         # TODO: Currently this won't be reached.
         raise InvalidJWSError("mismatched tokens")
 
+
 async def logout_mutation() -> None:
     pass
+
 
 def _make_auth_token_pair(*, account_id: str) -> AuthTokenPair:
     jwt_id = str(uuid4())
@@ -80,7 +85,7 @@ def _make_auth_token_pair(*, account_id: str) -> AuthTokenPair:
         audience=JWT_AUDIENCE,
         subject=account_id,
         jwt_id=jwt_id,
-        max_age_minutes=60*24*365,
+        max_age_minutes=60 * 24 * 365,
     )
 
     return AuthTokenPair(access_token=access_token, refresh_token=refresh_token)

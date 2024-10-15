@@ -1,25 +1,24 @@
 import enum
 import json
-import threading
 import time
 import uuid
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Literal, Optional, Self
+from typing import Literal, Self
 
 from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.logging import LogContext
 
 from . import exceptions, signing
 from . import util as eave_util
 
 ALLOWED_CLOCK_DRIFT_SECONDS = 60
 
+
 @dataclass
 class JWTRegisteredClaims:
     """
     https://datatracker.ietf.org/doc/html/rfc7519#section-4.1
     """
+
     iss: str
     aud: str
     sub: str
@@ -47,6 +46,7 @@ class JWTRegisteredClaims:
 
     def to_b64(self) -> str:
         return eave_util.b64encode(json.dumps(self.__dict__))
+
 
 @dataclass
 class JWSHeader:
@@ -92,9 +92,11 @@ class JWS:
     def __str__(self) -> str:
         return f"{self.message}.{self.signature}"
 
+
 class JWTPurpose(enum.StrEnum):
     ACCESS = "ACCESS"
     REFRESH = "REFRESH"
+
 
 def create_jws(
     *,
@@ -141,6 +143,7 @@ def create_jws(
     signature_b64 = signing.mac_sign_b64(data=jws.message)
     jws.signature = signature_b64
     return str(jws)
+
 
 def validate_jws_or_exception(
     *,
@@ -207,7 +210,6 @@ def validate_jws_pair_or_exception(
         raise exceptions.InvalidJWSError("invalid purpose")
     if not refresh_token.payload.pur == JWTPurpose.REFRESH:
         raise exceptions.InvalidJWSError("invalid purpose")
-
 
     if not access_token.payload.iss == refresh_token.payload.iss:
         raise exceptions.InvalidJWSError("iss")

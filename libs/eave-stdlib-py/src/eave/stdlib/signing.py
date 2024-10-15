@@ -1,26 +1,16 @@
 import base64
-import enum
-import hashlib
-from dataclasses import dataclass
-import time
-from typing import Literal, Optional, cast
-import uuid
-
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import ec, padding, rsa, utils
-from cryptography.hazmat.primitives.asymmetric.types import PublicKeyTypes
-from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.eave_origins import EaveApp
+from typing import Literal
 
 from google.cloud import kms
+
+from eave.stdlib.config import SHARED_CONFIG
 
 from . import checksum
 from . import exceptions as eave_exceptions
 from . import util as eave_util
-from .logging import LogContext
 
 _CRYPTO_KEY_VERSION_CACHE: dict[str, kms.CryptoKeyVersion] = {}
+
 
 def get_key_version(key_version_path: str) -> kms.CryptoKeyVersion:
     kms_client = kms.KeyManagementServiceClient()
@@ -32,6 +22,7 @@ def get_key_version(key_version_path: str) -> kms.CryptoKeyVersion:
         _CRYPTO_KEY_VERSION_CACHE[key_version_path] = key_version
 
     return key_version
+
 
 def mac_sign_b64(*, data: str | bytes) -> str:
     """
@@ -57,9 +48,11 @@ def mac_sign_b64(*, data: str | bytes) -> str:
     return eave_util.b64encode(sign_response.mac)
 
 
-def mac_verify_or_exception(*,
+def mac_verify_or_exception(
+    *,
     kid: str,
-    message: str | bytes, mac_b64: str | bytes,
+    message: str | bytes,
+    mac_b64: str | bytes,
 ) -> Literal[True]:
     """
     Verifies the signature matches the message.
@@ -80,7 +73,9 @@ def mac_verify_or_exception(*,
     mac_bytes = base64.b64decode(mac_b64)
     mac_crc32c = checksum.generate_checksum(mac_bytes)
 
-    verify_request = kms.MacVerifyRequest(name=key_version_path, data=message_bytes, data_crc32c=data_crc32c, mac_crc32c=mac_crc32c)
+    verify_request = kms.MacVerifyRequest(
+        name=key_version_path, data=message_bytes, data_crc32c=data_crc32c, mac_crc32c=mac_crc32c
+    )
     verify_response = kms_client.mac_verify(request=verify_request)
 
     if verify_response.verified_data_crc32c is False:

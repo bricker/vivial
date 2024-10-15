@@ -30,14 +30,14 @@ resource "google_project_service" "services" {
     "networkmanagement.googleapis.com",    # Network Management API
     "osconfig.googleapis.com",             # VM Manager (OS Config API), required for compliance
     "places-backend.googleapis.com",
-    "pubsub.googleapis.com",               # Cloud Pub/Sub API
-    "pubsublite.googleapis.com",           # Pub/Sub Lite API, used by Thoropass
-    "secretmanager.googleapis.com",        # Secret Manager API
-    "servicenetworking.googleapis.com",    # Service Networking API
-    "serviceusage.googleapis.com",         # Service Usage API, used by Thoropass
-    "sourcerepo.googleapis.com",           # Cloud Source Repositories API
-    "sqladmin.googleapis.com",             # Cloud SQL Admin API
-    "storage-api.googleapis.com",          # Google Cloud Storage JSON API
+    "pubsub.googleapis.com",            # Cloud Pub/Sub API
+    "pubsublite.googleapis.com",        # Pub/Sub Lite API, used by Thoropass
+    "secretmanager.googleapis.com",     # Secret Manager API
+    "servicenetworking.googleapis.com", # Service Networking API
+    "serviceusage.googleapis.com",      # Service Usage API, used by Thoropass
+    "sourcerepo.googleapis.com",        # Cloud Source Repositories API
+    "sqladmin.googleapis.com",          # Cloud SQL Admin API
+    "storage-api.googleapis.com",       # Google Cloud Storage JSON API
   ])
 
   service = each.value

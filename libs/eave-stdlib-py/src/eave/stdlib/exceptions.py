@@ -128,6 +128,7 @@ class InvalidAuthError(UnauthorizedError):
 class InvalidJWSError(UnauthorizedError):
     pass
 
+
 class InvalidJWTError(UnauthorizedError):
     pass
 

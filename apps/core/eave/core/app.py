@@ -4,22 +4,18 @@ import starlette.endpoints
 from asgiref.typing import ASGI3Application
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
-from starlette.requests import Request
-from starlette.responses import Response
 from starlette.routing import Route
-
-import eave.stdlib.time
-from starlette.websockets import WebSocket
 from strawberry import Schema
 from strawberry.asgi import GraphQL
 from strawberry.schema.config import StrawberryConfig
+
+import eave.stdlib.time
 from eave.core.graphql.mutation import Mutation
 from eave.core.graphql.query import Query
 from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.stdlib import cache
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
-from eave.stdlib.core_api.operations.account import GetMyAccountRequest
 from eave.stdlib.headers import (
     EAVE_ORIGIN_HEADER,
 )
@@ -34,7 +30,6 @@ from eave.stdlib.middleware.request_integrity import RequestIntegrityASGIMiddlew
 from .internal.database import async_engine
 from .public.exception_handlers import exception_handlers
 from .public.requests import (
-    authed_account,
     noop,
     status,
 )
@@ -178,10 +173,11 @@ graphql_schema = Schema(
     mutation=Mutation,
     config=StrawberryConfig(
         auto_camel_case=True,
-    )
+    ),
 )
 
 graphql_app = GraphQL(graphql_schema)
+
 
 async def graceful_shutdown() -> None:
     await async_engine.dispose()

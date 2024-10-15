@@ -1,5 +1,7 @@
 from uuid import UUID
+
 import strawberry as sb
+
 
 @sb.type
 class MutationResult:
