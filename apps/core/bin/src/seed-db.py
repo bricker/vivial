@@ -32,7 +32,7 @@ import time
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 
-import eave.core.internal
+import eave.core.internal.database
 import eave.core.internal.orm.base
 from eave.stdlib.logging import eaveLogger
 

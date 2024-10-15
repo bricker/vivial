@@ -15,6 +15,7 @@ dependencies = [
   "google-cloud-redis",
   "google-cloud-compute",
   "google-cloud-bigquery",
+  "google-cloud-kms",
   "openai>=1.7.1",
   "tiktoken==0.5.*",
   "slack-sdk",
@@ -26,7 +27,6 @@ dependencies = [
   "redis[hiredis]",
   "multidict",
   "aiohttp",
-  "pyjwt",
   "crc32c",
   "inflect",
 ]

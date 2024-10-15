@@ -48,8 +48,7 @@ class ExceptionHandlingASGIMiddleware(EaveASGIMiddleware):
                 raise
 
             if not response_started:
-                # In production, all errors return a 500 as a security precaution for internal APIs.
-                # For public APIs, more useful response codes will be returned, but there are currently no public APIs.
+                # In production, all errors return a 500 as a security precaution.
                 model = ErrorResponse(
                     status_code=http.HTTPStatus.INTERNAL_SERVER_ERROR,
                     error_message=http.HTTPStatus.INTERNAL_SERVER_ERROR.phrase,

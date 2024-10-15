@@ -5,13 +5,16 @@ from asgiref.typing import ASGI3Application
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Route
+from strawberry import Schema
+from strawberry.asgi import GraphQL
+from strawberry.schema.config import StrawberryConfig
 
 import eave.stdlib.time
-from eave.core.public.middleware.authentication import AuthASGIMiddleware
+from eave.core.graphql.mutation import Mutation
+from eave.core.graphql.query import Query
 from eave.stdlib import cache
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
-from eave.stdlib.core_api.operations.account import GetMyAccountRequest
 from eave.stdlib.headers import (
     EAVE_ORIGIN_HEADER,
 )
@@ -24,9 +27,7 @@ from eave.stdlib.middleware.read_body import ReadBodyASGIMiddleware
 from eave.stdlib.middleware.request_integrity import RequestIntegrityASGIMiddleware
 
 from .internal.database import async_engine
-from .public.exception_handlers import exception_handlers
 from .public.requests import (
-    authed_account,
     noop,
     status,
 )
@@ -140,8 +141,8 @@ def make_route(
     # When deciding the order of middlewares, start at the _bottom_ of this block and go up.
     # The first middleware, starting from here (the top), directly wraps the route handler.
     # Then, each one wraps the previous one.
-    if config.auth_required:
-        endpoint = AuthASGIMiddleware(app=endpoint, config=config)
+    # if config.auth_required:
+    #     endpoint = AuthASGIMiddleware(app=endpoint, config=config)
 
     if config.origin_required:
         endpoint = OriginASGIMiddleware(app=endpoint, config=config)
@@ -165,43 +166,15 @@ def make_route(
     return Route(path=config.path, methods=[config.method, *addl_methods], endpoint=endpoint)
 
 
-routes = [
-    ##
-    ## Public Endpoints
-    ##
-    Route(
-        path="/status",
-        endpoint=status.StatusEndpoint,
-        methods=[
-            aiohttp.hdrs.METH_GET,
-            aiohttp.hdrs.METH_POST,
-            aiohttp.hdrs.METH_PUT,
-            aiohttp.hdrs.METH_PATCH,
-            aiohttp.hdrs.METH_DELETE,
-            aiohttp.hdrs.METH_HEAD,
-            aiohttp.hdrs.METH_OPTIONS,
-        ],
+graphql_schema = Schema(
+    query=Query,
+    mutation=Mutation,
+    config=StrawberryConfig(
+        auto_camel_case=True,
     ),
-    Route(
-        path="/healthz",
-        endpoint=status.HealthEndpoint,
-        methods=[aiohttp.hdrs.METH_GET],
-    ),
-    make_route(
-        config=CoreApiEndpointConfiguration(
-            path="/favicon.ico",
-            method=aiohttp.hdrs.METH_GET,
-            auth_required=False,
-            origin_required=False,
-            is_public=True,
-        ),
-        endpoint=noop.NoopEndpoint,
-    ),
-    make_route(
-        config=GetMyAccountRequest.config,
-        endpoint=authed_account.GetMyAccountEndpoint,
-    ),
-]
+)
+
+graphql_app = GraphQL(graphql_schema)
 
 
 async def graceful_shutdown() -> None:
@@ -215,8 +188,38 @@ async def graceful_shutdown() -> None:
 
 
 app = starlette.applications.Starlette(
-    routes=routes,
-    exception_handlers=exception_handlers,
+    routes=[
+        Route(
+            path="/status",
+            endpoint=status.StatusEndpoint,
+            methods=[
+                aiohttp.hdrs.METH_GET,
+                aiohttp.hdrs.METH_POST,
+                aiohttp.hdrs.METH_PUT,
+                aiohttp.hdrs.METH_PATCH,
+                aiohttp.hdrs.METH_DELETE,
+                aiohttp.hdrs.METH_HEAD,
+                aiohttp.hdrs.METH_OPTIONS,
+            ],
+        ),
+        Route(
+            path="/healthz",
+            endpoint=status.HealthEndpoint,
+            methods=[aiohttp.hdrs.METH_GET],
+        ),
+        Route(
+            path="/favicon.ico",
+            endpoint=noop.NoopEndpoint,
+            methods=[aiohttp.hdrs.METH_GET],
+        ),
+        Route(
+            path="/graphql",
+            methods=[
+                aiohttp.hdrs.METH_POST,
+            ],
+            endpoint=graphql_app,
+        ),
+    ],
     middleware=[
         # CORS is needed only for dashboard to API communications.
         Middleware(

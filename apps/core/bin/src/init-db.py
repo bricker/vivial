@@ -15,7 +15,7 @@ load_standard_dotenv_files()
 import asyncio
 import logging
 
-import eave.core.internal
+import eave.core.internal.database
 import eave.core.internal.orm
 import eave.core.internal.orm.base
 from eave.core.internal.config import CORE_API_APP_CONFIG

@@ -16,7 +16,7 @@ from sqlalchemy import literal_column, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import eave.core.app
-import eave.core.internal
+import eave.core.internal.database
 import eave.core.internal.orm
 import eave.stdlib.eave_origins
 import eave.stdlib.requests_util
@@ -205,7 +205,8 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
     ) -> AccountOrm:
         account = await AccountOrm.create(
             session=session,
-            refresh_token=refresh_token or self.anystr(),
+            email=self.anystr(),
+            plaintext_password=self.anystr(),
         )
 
         return account
