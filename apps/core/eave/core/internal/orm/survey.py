@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Self
 from uuid import UUID
 
+from eave.stdlib.core_api.models.search_region import SearchRegionCode
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -54,6 +55,9 @@ class SurveyOrm(Base):
             headcount=headcount,
         )
 
+        if not obj.validate():
+            raise Exception("Survey data invalid")
+
         session.add(obj)
         await session.flush()
         return obj
@@ -89,3 +93,6 @@ class SurveyOrm(Base):
         lookup = cls._build_query(params=params)
         result = await session.scalar(lookup)
         return result
+
+    def validate(self) -> bool:
+        return all(SearchRegionCode.from_str(code) is not None for code in self.search_area_ids)
