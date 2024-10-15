@@ -18,7 +18,7 @@ import uuid  # noqa
 import eave.core.internal.database
 import eave.core.internal.orm as orm  # noqa
 import eave.core.internal.orm.base
-from eave.core.internal import CORE_API_APP_CONFIG  # noqa
+from eave.core.internal.config import CORE_API_APP_CONFIG  # noqa
 from eave.stdlib.config import SHARED_CONFIG  # noqa
 from eave.stdlib.logging import eaveLogger  # noqa
 
