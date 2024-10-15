@@ -1,8 +1,20 @@
 import enum
 from typing import Annotated
+from uuid import UUID
 import strawberry
 
-from eave.core.graphql.types.account import Account
+from eave.core.graphql.types.user_profile import UserProfile
+
+@strawberry.type
+class Account:
+    id: UUID = strawberry.field()
+    email: str = strawberry.field()
+    user_profile: UserProfile
+
+@strawberry.type
+class AuthTokenPair:
+    access_token: str
+    refresh_token: str
 
 @strawberry.enum
 class AuthenticationErrorCode(enum.StrEnum):
@@ -11,7 +23,7 @@ class AuthenticationErrorCode(enum.StrEnum):
 @strawberry.type
 class LoginSuccess:
     account: Account
-    auth_tokens: AuthTokens
+    auth_tokens: AuthTokenPair
 
 @strawberry.type
 class LoginError:

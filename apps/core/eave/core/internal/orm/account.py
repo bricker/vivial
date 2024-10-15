@@ -1,4 +1,6 @@
 import hashlib
+import hmac
+import os
 import re
 import uuid
 from dataclasses import dataclass
@@ -6,6 +8,7 @@ from datetime import datetime
 from typing import Literal, Self
 from uuid import UUID
 
+from eave.stdlib.util import b64decode, b64encode
 from sqlalchemy import Index, PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -18,7 +21,10 @@ from .util import UUID_DEFAULT_EXPR
 class WeakPasswordError(Exception):
     pass
 
-def validate_password_or_exception(plaintext_password: str) -> Literal[True]:
+class InvalidPasswordError(Exception):
+    pass
+
+def test_password_strength_or_exception(plaintext_password: str) -> Literal[True]:
     if (
         len(plaintext_password) >= 8
         and len(plaintext_password) < 256 # This is just to keep memory usage reasonable while hashing
@@ -29,6 +35,21 @@ def validate_password_or_exception(plaintext_password: str) -> Literal[True]:
         return True
     else:
         raise WeakPasswordError()
+
+def derive_password_key(plaintext_password: str, salt: bytes) -> str:
+    if not plaintext_password:
+        raise ValueError("Invalid password")
+
+    # I'm just using the recommended parameter values from the RFC here: https://datatracker.ietf.org/doc/html/rfc7914.html#section-2
+    hashed = hashlib.scrypt(
+        password=plaintext_password.encode(),
+        salt=salt,
+        n=pow(2,14), # This is based on some benchmarking
+        r=8,
+        p=1,
+    )
+
+    return b64encode(hashed)
 
 class AccountOrm(Base):
     __tablename__ = "accounts"
@@ -51,9 +72,13 @@ class AccountOrm(Base):
         email: str,
         plaintext_password: str,
     ) -> Self:
+        salt = os.urandom(16)
+        password_key = derive_password_key(plaintext_password=plaintext_password, salt=salt)
+
         obj = cls(
             email=email,
-            hashed_password=hash_password(plaintext_password),
+            password_key_salt=salt,
+            password_key=password_key,
         )
 
         session.add(obj)
@@ -96,12 +121,12 @@ class AccountOrm(Base):
         result = await session.scalar(lookup)
         return result
 
-    def validate_password_or_exception(self, plaintext_password: str) -> Literal[True]:
-        pass
+    def validate_password_or_exception(self, plaintext_password: str) -> bool:
+        expected_password_key = derive_password_key(plaintext_password=plaintext_password, salt=self.password_key_salt.encode())
 
-    def derive_password_key(self, plaintext_password: str) -> str:
-        if not plaintext_password:
-            raise ValueError("Invalid password")
-
-        hashed = hashlib.scrypt(plaintext_password.encode(), salt=x)
-        return hashed
+        # This isn't using hmac but this comparison function is resistant to timing attacks.
+        matched = hmac.compare_digest(expected_password_key, self.password_key)
+        if not matched:
+            raise InvalidPasswordError()
+        else:
+            return True

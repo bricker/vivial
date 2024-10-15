@@ -29,6 +29,7 @@ resource "google_project_service" "services" {
     "networkconnectivity.googleapis.com",  # Network Connectivity API
     "networkmanagement.googleapis.com",    # Network Management API
     "osconfig.googleapis.com",             # VM Manager (OS Config API), required for compliance
+    "places-backend.googleapis.com",
     "pubsub.googleapis.com",               # Cloud Pub/Sub API
     "pubsublite.googleapis.com",           # Pub/Sub Lite API, used by Thoropass
     "secretmanager.googleapis.com",        # Secret Manager API

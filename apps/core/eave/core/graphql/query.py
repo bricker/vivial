@@ -1,7 +1,8 @@
 import strawberry
 
-from eave.core.graphql.types.account import AuthenticatedUser
+from eave.core.graphql.resolvers.viewer import viewer_query
+from eave.core.graphql.types.authentication import Account
 
 @strawberry.type
 class Query:
-    viewer: AuthenticatedUser = strawberry.field(resolver=x)
+    viewer: Account = strawberry.field(resolver=viewer_query)

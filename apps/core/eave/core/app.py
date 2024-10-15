@@ -221,7 +221,6 @@ app = starlette.applications.Starlette(
         Route(
             path="/graphql",
             methods=[
-                aiohttp.hdrs.METH_GET,
                 aiohttp.hdrs.METH_POST,
             ],
             endpoint=graphql_app,

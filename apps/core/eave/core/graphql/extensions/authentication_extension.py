@@ -1,10 +1,12 @@
 from typing import Any, Awaitable, Callable
 
 from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME
+from eave.stdlib.jwt import JWTPurpose, validate_jws_or_exception
 import strawberry
 from strawberry.extensions import FieldExtension
 
 from eave.core.graphql.context import GraphQLContext
+from eave.core.graphql.resolvers.authentication import JWT_AUDIENCE, JWT_ISSUER
 
 class AuthenticationExtension(FieldExtension):
     async def resolve_async(
@@ -14,11 +16,16 @@ class AuthenticationExtension(FieldExtension):
         info: strawberry.Info[GraphQLContext],
         **kwargs
     ) -> Any:
-        encrypted_jwt = info.context.request.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME)
-        if not encrypted_jwt:
+        jws = info.context.request.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME)
+        if not jws:
             raise Exception("missing access token")
 
-        validated_jwt = jwt.validate_jwt_or_exception(jwt=encrypted_jwt)
+        validate_jws_or_exception(
+            encoded_jws=jws,
+            expected_audience=JWT_AUDIENCE,
+            expected_issuer=JWT_ISSUER,
+            expected_purpose=JWTPurpose.ACCESS
+        )
 
         result = await next_(source, info, **kwargs)
         return result

@@ -33,7 +33,7 @@ def get_key_version(key_version_path: str) -> kms.CryptoKeyVersion:
 
     return key_version
 
-def mac_sign_b64(*, data: str | bytes, ctx: LogContext) -> str:
+def mac_sign_b64(*, data: str | bytes) -> str:
     """
     Signs the data with GCP KMS, and returns the base64-encoded signature
     """
@@ -49,9 +49,9 @@ def mac_sign_b64(*, data: str | bytes, ctx: LogContext) -> str:
     sign_response = kms_client.mac_sign(request=sign_request)
 
     if sign_response.verified_data_crc32c is False:
-        raise eave_exceptions.InvalidChecksumError("data crc32c failed verification on server", ctx)
+        raise eave_exceptions.InvalidChecksumError("data crc32c failed verification on server")
     if sign_response.name != sign_request.name:
-        raise eave_exceptions.InvalidChecksumError("unexpected key name", ctx)
+        raise eave_exceptions.InvalidChecksumError("unexpected key name")
 
     checksum.validate_checksum_or_exception(data=sign_response.mac, checksum=sign_response.mac_crc32c)
     return eave_util.b64encode(sign_response.mac)
@@ -59,7 +59,7 @@ def mac_sign_b64(*, data: str | bytes, ctx: LogContext) -> str:
 
 def mac_verify_or_exception(*,
     kid: str,
-    message: str | bytes, mac_b64: str | bytes, ctx: LogContext
+    message: str | bytes, mac_b64: str | bytes,
 ) -> Literal[True]:
     """
     Verifies the signature matches the message.
@@ -74,15 +74,13 @@ def mac_verify_or_exception(*,
     key_version_path_dict["crypto_key_version"] = kid
     key_version_path = kms_client.crypto_key_version_path(**key_version_path_dict)
 
-    key_version = get_key_version(key_version_path)
-
     message_bytes = eave_util.ensure_bytes(message)
     data_crc32c = checksum.generate_checksum(message_bytes)
 
     mac_bytes = base64.b64decode(mac_b64)
     mac_crc32c = checksum.generate_checksum(mac_bytes)
 
-    verify_request = kms.MacVerifyRequest(name=SHARED_CONFIG.jws_signing_key_version_path, data=message_bytes, data_crc32c=data_crc32c, mac_crc32c=mac_crc32c)
+    verify_request = kms.MacVerifyRequest(name=key_version_path, data=message_bytes, data_crc32c=data_crc32c, mac_crc32c=mac_crc32c)
     verify_response = kms_client.mac_verify(request=verify_request)
 
     if verify_response.verified_data_crc32c is False:

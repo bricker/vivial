@@ -13,12 +13,7 @@ from eave.stdlib.logging import LogContext
 from . import exceptions, signing
 from . import util as eave_util
 
-threading.local["log_context"] = LogContext()
-
 ALLOWED_CLOCK_DRIFT_SECONDS = 60
-
-class InvalidJWTError(Exception):
-    pass
 
 @dataclass
 class JWTRegisteredClaims:
@@ -97,6 +92,9 @@ class JWS:
     def __str__(self) -> str:
         return f"{self.message}.{self.signature}"
 
+class JWTPurpose(enum.StrEnum):
+    ACCESS = "ACCESS"
+    REFRESH = "REFRESH"
 
 def create_jws(
     *,
@@ -107,7 +105,6 @@ def create_jws(
     not_before: int | None = None,
     jwt_id: str | None = None,
     max_age_minutes: int = 10,
-    ctx: LogContext,
 ) -> str:
     # all time formats are expected to be in the format of an integer
     # number of seconds since epoch (aka NumericDate)
@@ -120,9 +117,10 @@ def create_jws(
     if jwt_id is None:
         jwt_id = str(uuid.uuid4())
 
-    crypto_key_version = SHARED_CONFIG.jws_signing_key_version_path
+    crypto_key_version = signing.get_key_version(SHARED_CONFIG.jws_signing_key_version_path)
+    crypto_key_kid = crypto_key_version.name.split("/")[-1]
 
-    jws_header = JWSHeader(typ="JWT", alg=signing_key.algorithm.value, kid=signing_key.version)
+    jws_header = JWSHeader(typ="JWT", alg=crypto_key_version.algorithm.name, kid=crypto_key_kid)
     jwt_payload = JWTRegisteredClaims(
         iss=issuer,
         aud=audience,
@@ -140,7 +138,7 @@ def create_jws(
         signature="",
     )
 
-    signature_b64 = signing.mac_sign_b64(data=jws.message, ctx=ctx)
+    signature_b64 = signing.mac_sign_b64(data=jws.message)
     jws.signature = signature_b64
     return str(jws)
 
@@ -149,7 +147,7 @@ def validate_jws_or_exception(
     encoded_jws: str,
     expected_issuer: str,
     expected_audience: str,
-    ctx: LogContext,
+    expected_purpose: JWTPurpose,
 ) -> JWS:
     """
     Validate the JWT according to https://datatracker.ietf.org/doc/html/rfc7519#section-7.2
@@ -170,28 +168,29 @@ def validate_jws_or_exception(
         kid=jws.header.kid,
         message=jws.message,
         mac_b64=jws.signature,
-        ctx=ctx,
     )
 
     expires_at = float(jws.payload.exp)
     not_before = float(jws.payload.nbf)
 
     if jws.payload.iss != expected_issuer:
-        raise InvalidJWTError("iss")
+        raise exceptions.InvalidJWTError("iss")
     if jws.payload.aud != expected_audience:
-        raise InvalidJWTError("aud")
+        raise exceptions.InvalidJWTError("aud")
     if now < not_before - ALLOWED_CLOCK_DRIFT_SECONDS:
-        raise InvalidJWTError("nbf")
+        raise exceptions.InvalidJWTError("nbf")
     if now > expires_at + ALLOWED_CLOCK_DRIFT_SECONDS:
-        raise InvalidJWTError("exp")
+        raise exceptions.InvalidJWTError("exp")
+    if jws.payload.pur != expected_purpose:
+        raise exceptions.InvalidJWTError("pur")
 
     return jws
 
 
 def validate_jws_pair_or_exception(
-    jwt_encoded_a: str,
-    jwt_encoded_b: str,
-    signing_key: signing.SigningKeyDetails,
+    *,
+    access_token: JWS,
+    refresh_token: JWS,
 ) -> Literal[True]:
     """
     Verifies the the two JWTs (most commonly an Access Token and Refresh Token pair) belong together.
@@ -201,19 +200,22 @@ def validate_jws_pair_or_exception(
     then the JWTs belong together and are both verified.
     """
 
-    jws_a = JWS.from_str(jwt_encoded=jwt_encoded_a)
-    jws_b = JWS.from_str(jwt_encoded=jwt_encoded_b)
-
-    if (jwt_encoded_a == jwt_encoded_b) or (jws_a.signature == jws_b.signature):
+    if access_token.signature == refresh_token.signature:
         raise exceptions.InvalidJWSError("matching tokens or signatures")
 
-    if not jws_a.payload.iss == jws_b.payload.iss:
+    if not access_token.payload.pur == JWTPurpose.ACCESS:
+        raise exceptions.InvalidJWSError("invalid purpose")
+    if not refresh_token.payload.pur == JWTPurpose.REFRESH:
+        raise exceptions.InvalidJWSError("invalid purpose")
+
+
+    if not access_token.payload.iss == refresh_token.payload.iss:
         raise exceptions.InvalidJWSError("iss")
-    if not jws_a.payload.aud == jws_b.payload.aud:
+    if not access_token.payload.aud == refresh_token.payload.aud:
         raise exceptions.InvalidJWSError("aud")
-    if not jws_a.payload.sub == jws_b.payload.sub:
+    if not access_token.payload.sub == refresh_token.payload.sub:
         raise exceptions.InvalidJWSError("sub")
-    if not jws_a.payload.jti == jws_b.payload.jti:
+    if not access_token.payload.jti == refresh_token.payload.jti:
         raise exceptions.InvalidJWSError("jti")
 
     return True
