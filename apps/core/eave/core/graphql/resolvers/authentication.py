@@ -31,7 +31,7 @@ async def login_mutation(*, info: strawberry.Info, email: str, plaintext_passwor
             account = Account(
                 id=account.id,
                 email=account.email,
-                user_profile=UserProfile(),
+                user_profile=UserProfile(name="example"),
             )
             return LoginSuccess(account=account, auth_tokens=auth_token_pair)
         else:

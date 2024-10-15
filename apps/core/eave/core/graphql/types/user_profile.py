@@ -5,4 +5,4 @@ import strawberry
 
 @strawberry.type
 class UserProfile:
-    pass
+    name: str

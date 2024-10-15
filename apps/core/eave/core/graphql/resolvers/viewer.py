@@ -7,5 +7,5 @@ async def viewer_query() -> Account:
     return Account(
         id=uuid4(),
         email="example@vivialapp.com",
-        user_profile=UserProfile(),
+        user_profile=UserProfile(name="example"),
     )
