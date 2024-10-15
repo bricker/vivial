@@ -12,7 +12,6 @@ from strawberry.schema.config import StrawberryConfig
 import eave.stdlib.time
 from eave.core.graphql.mutation import Mutation
 from eave.core.graphql.query import Query
-from eave.core.public.middleware.authentication import AuthASGIMiddleware
 from eave.stdlib import cache
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.operations import CoreApiEndpointConfiguration
@@ -28,7 +27,6 @@ from eave.stdlib.middleware.read_body import ReadBodyASGIMiddleware
 from eave.stdlib.middleware.request_integrity import RequestIntegrityASGIMiddleware
 
 from .internal.database import async_engine
-from .public.exception_handlers import exception_handlers
 from .public.requests import (
     noop,
     status,
@@ -143,8 +141,8 @@ def make_route(
     # When deciding the order of middlewares, start at the _bottom_ of this block and go up.
     # The first middleware, starting from here (the top), directly wraps the route handler.
     # Then, each one wraps the previous one.
-    if config.auth_required:
-        endpoint = AuthASGIMiddleware(app=endpoint, config=config)
+    # if config.auth_required:
+    #     endpoint = AuthASGIMiddleware(app=endpoint, config=config)
 
     if config.origin_required:
         endpoint = OriginASGIMiddleware(app=endpoint, config=config)
@@ -222,7 +220,6 @@ app = starlette.applications.Starlette(
             endpoint=graphql_app,
         ),
     ],
-    exception_handlers=exception_handlers,
     middleware=[
         # CORS is needed only for dashboard to API communications.
         Middleware(
