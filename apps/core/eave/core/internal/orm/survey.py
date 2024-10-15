@@ -6,6 +6,8 @@ from uuid import UUID
 
 from eave.stdlib.core_api.models.search_region import SearchRegionCode
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func, select
+import sqlalchemy
+import sqlalchemy.dialects.postgresql
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -29,7 +31,12 @@ class SurveyOrm(Base):
     visitor_id: Mapped[str] = mapped_column()
     account_id: Mapped[UUID | None] = mapped_column()
     start_time: Mapped[datetime] = mapped_column()
-    search_area_ids: Mapped[list[str]] = mapped_column()
+    search_area_ids: Mapped[list[str]] = mapped_column(
+        type_=sqlalchemy.dialects.postgresql.ARRAY(
+            item_type=sqlalchemy.types.String,
+            dimensions=1,
+        ),
+    )
     budget: Mapped[int] = mapped_column()
     headcount: Mapped[int] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())

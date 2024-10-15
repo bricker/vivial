@@ -1,4 +1,4 @@
-import datetime
+from datetime import datetime
 from eave.core.graphql.types.outing import Outing
 from eave.core.internal import database
 from eave.core.internal.orm.outing import OutingOrm
@@ -19,7 +19,7 @@ async def submit_survey_for_plan_mutation(
         survey = await SurveyOrm.create(
             session=db_session,
             visitor_id=visitor_id,
-            start_time=datetime.datetime.fromisoformat(start_time_iso),
+            start_time=datetime.fromisoformat(start_time_iso),
             search_area_ids=search_area_ids,
             budget=budget,
             headcount=headcount,
