@@ -1,3 +1,4 @@
+from eave.core.graphql.resolvers.survey import submit_survey_for_plan_mutation
 import strawberry
 
 from eave.core.graphql.resolvers.authentication import (
@@ -14,3 +15,4 @@ class Mutation:
     login = strawberry.mutation(resolver=login_mutation)
     refresh_tokens = strawberry.mutation(resolver=refresh_tokens_mutation)
     logout = strawberry.mutation(resolver=logout_mutation)
+    submit_survey_for_plan = strawberry.mutation(resolver=submit_survey_for_plan_mutation)
