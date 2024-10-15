@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import Self
 from uuid import UUID
 
-from eave.stdlib.core_api.models.survey import Survey
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -30,7 +29,7 @@ class SurveyOrm(Base):
     account_id: Mapped[UUID | None] = mapped_column()
     start_time: Mapped[datetime] = mapped_column()
     zip_codes: Mapped[list[str]] = mapped_column()
-    budget: Mapped[str] = mapped_column()
+    budget: Mapped[int] = mapped_column()
     headcount: Mapped[int] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -42,7 +41,7 @@ class SurveyOrm(Base):
         visitor_id: str,
         start_time: datetime,
         zip_codes: list[str],
-        budget: str,
+        budget: int,
         headcount: int,
         account_id: UUID | None = None,
     ) -> Self:
@@ -90,7 +89,3 @@ class SurveyOrm(Base):
         lookup = cls._build_query(params=params)
         result = await session.scalar(lookup)
         return result
-
-    @property
-    def api_model(self) -> Survey:
-        return Survey.from_orm(self)

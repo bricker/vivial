@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import Self
 from uuid import UUID
 
-from eave.stdlib.core_api.models.outing import Outing
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -88,7 +87,3 @@ class OutingOrm(Base):
         lookup = cls._build_query(params=params)
         result = await session.scalar(lookup)
         return result
-
-    @property
-    def api_model(self) -> Outing:
-        return Outing.from_orm(self)
