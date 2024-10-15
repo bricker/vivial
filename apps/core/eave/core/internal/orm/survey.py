@@ -28,7 +28,7 @@ class SurveyOrm(Base):
     visitor_id: Mapped[str] = mapped_column()
     account_id: Mapped[UUID | None] = mapped_column()
     start_time: Mapped[datetime] = mapped_column()
-    zip_codes: Mapped[list[str]] = mapped_column()
+    search_area_ids: Mapped[list[str]] = mapped_column()
     budget: Mapped[int] = mapped_column()
     headcount: Mapped[int] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
@@ -40,7 +40,7 @@ class SurveyOrm(Base):
         session: AsyncSession,
         visitor_id: str,
         start_time: datetime,
-        zip_codes: list[str],
+        search_area_ids: list[str],
         budget: int,
         headcount: int,
         account_id: UUID | None = None,
@@ -49,7 +49,7 @@ class SurveyOrm(Base):
             visitor_id=visitor_id,
             account_id=account_id,
             start_time=start_time,
-            zip_codes=zip_codes,
+            search_area_ids=search_area_ids,
             budget=budget,
             headcount=headcount,
         )
