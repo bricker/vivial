@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Annotated
 from uuid import UUID
 
 import strawberry
@@ -13,16 +12,3 @@ class Survey:
     search_area_ids: list[str]
     budget: int
     headcount: int
-
-
-@strawberry.type
-class SurveySubmitSuccess:
-    pass
-
-
-@strawberry.type
-class SurveySubmitError:
-    pass
-
-
-SurveySubmitResult = Annotated[SurveySubmitSuccess | SurveySubmitError, strawberry.union("SurveySubmitResult")]

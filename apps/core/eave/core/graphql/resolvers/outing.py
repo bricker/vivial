@@ -2,7 +2,13 @@ from datetime import datetime
 
 import strawberry
 
-from eave.core.graphql.types.outing import Outing
+from eave.core.graphql.types.outing import (
+    Outing,
+    ReplanOutingResult,
+    ReplanOutingSuccess,
+    SurveySubmitResult,
+    SurveySubmitSuccess,
+)
 from eave.core.internal import database
 from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.survey import SurveyOrm
@@ -17,7 +23,7 @@ async def outing_from_survey_mutation(
     search_area_ids: list[str],
     budget: int,
     headcount: int,
-) -> Outing:
+) -> SurveySubmitResult:
     async with database.async_session.begin() as db_session:
         survey = await SurveyOrm.create(
             session=db_session,
@@ -36,15 +42,17 @@ async def outing_from_survey_mutation(
             account_id=None,
         )
 
-    return Outing(
-        id=outing.id,
-        visitor_id=outing.visitor_id,
-        account_id=outing.account_id,
-        survey_id=outing.survey_id,
+    return SurveySubmitSuccess(
+        outing=Outing(
+            id=outing.id,
+            visitor_id=outing.visitor_id,
+            account_id=outing.account_id,
+            survey_id=outing.survey_id,
+        )
     )
 
 
-async def replan_outing_mutation(*, info: strawberry.Info, outing_id: str) -> Outing:
+async def replan_outing_mutation(*, info: strawberry.Info, outing_id: str) -> ReplanOutingResult:
     async with database.async_session.begin() as db_session:
         original_outing = await OutingOrm.one_or_exception(
             session=db_session,
@@ -59,9 +67,11 @@ async def replan_outing_mutation(*, info: strawberry.Info, outing_id: str) -> Ou
             account_id=original_outing.account_id,
         )
 
-    return Outing(
-        id=outing.id,
-        visitor_id=outing.visitor_id,
-        account_id=outing.account_id,
-        survey_id=outing.survey_id,
+    return ReplanOutingSuccess(
+        outing=Outing(
+            id=outing.id,
+            visitor_id=outing.visitor_id,
+            account_id=outing.account_id,
+            survey_id=outing.survey_id,
+        )
     )
