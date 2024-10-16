@@ -1,4 +1,5 @@
 import uuid
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Self
@@ -71,9 +72,9 @@ class OutingOrm(Base):
         return lookup
 
     @classmethod
-    async def query(cls, session: AsyncSession, params: QueryParams) -> Self:
+    async def query(cls, session: AsyncSession, params: QueryParams) -> Sequence[Self]:
         lookup = cls._build_query(params=params)
-        result = (await session.scalars(lookup)).one()
+        result = (await session.scalars(lookup)).all()
         return result
 
     @classmethod
