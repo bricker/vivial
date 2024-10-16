@@ -15,14 +15,18 @@ class TestOutingEndpoints(BaseTestCase):
                 "query": """
 mutation {
     outingFromSurvey(visitorId: "abc124", startTimeIso: "2024-10-16T21:14:41", searchAreaIds: ["us_ca_la"], budget: 1, headcount: 2) {
-        id
+        ... on SurveySubmitSuccess {
+            outing {
+                id
+            }
+        }
     }
 }
 """
             },
         )
         assert response.status_code == HTTPStatus.OK
-        assert response.json().get("data").get("outingFromSurvey").get("id") is not None
+        assert response.json().get("data").get("outingFromSurvey").get("outing").get("id") is not None
 
     async def test_replan(self) -> None:
         async with self.db_session.begin() as sess:
@@ -47,14 +51,18 @@ mutation {
                 "query": f"""
 mutation {{
     replanOuting(outingId: "{outing.id}") {{
-        id
+        ... on ReplanOutingSuccess {{
+            outing {{
+                id
+            }}
+        }}
     }}
 }}
 """
             },
         )
         assert response.status_code == HTTPStatus.OK
-        assert response.json().get("data").get("replanOuting").get("id") is not None
+        assert response.json().get("data").get("replanOuting").get("outing").get("id") is not None
 
     async def test_replan_bad_param_fails(self) -> None:
         # try to replan an outing that doesn't exist
@@ -64,7 +72,11 @@ mutation {{
                 "query": """
 mutation {
     replanOuting(outingId: "d27a86dd-f894-4024-9b6c-cdc66fc2f419") {
-        id
+        ... on ReplanOutingSuccess {
+            outing {
+                id
+            }
+        }
     }
 }
 """

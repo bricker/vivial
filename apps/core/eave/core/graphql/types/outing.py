@@ -20,7 +20,7 @@ class SurveySubmitSuccess:
 
 @strawberry.type
 class SurveySubmitError:
-    pass
+    error_message: str
 
 
 SurveySubmitResult = Annotated[SurveySubmitSuccess | SurveySubmitError, strawberry.union("SurveySubmitResult")]
@@ -33,7 +33,7 @@ class ReplanOutingSuccess:
 
 @strawberry.type
 class ReplanOutingError:
-    pass
+    error_message: str
 
 
 ReplanOutingResult = Annotated[ReplanOutingSuccess | ReplanOutingError, strawberry.union("ReplanOutingResult")]
