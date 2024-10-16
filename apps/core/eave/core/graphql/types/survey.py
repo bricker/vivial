@@ -1,7 +1,8 @@
+from datetime import datetime
 from typing import Annotated
 from uuid import UUID
+
 import strawberry
-from datetime import datetime
 
 
 @strawberry.type

@@ -4,12 +4,13 @@ from datetime import datetime
 from typing import Self
 from uuid import UUID
 
-from eave.stdlib.core_api.models.search_region import SearchRegionCode
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func, select
 import sqlalchemy
 import sqlalchemy.dialects.postgresql
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+
+from eave.stdlib.core_api.models.search_region import SearchRegionCode
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR

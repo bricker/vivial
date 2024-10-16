@@ -1,9 +1,11 @@
 from datetime import datetime
+
+import strawberry
+
 from eave.core.graphql.types.outing import Outing
 from eave.core.internal import database
 from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.survey import SurveyOrm
-import strawberry
 
 
 async def submit_survey_for_plan_mutation(

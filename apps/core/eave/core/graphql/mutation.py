@@ -1,4 +1,3 @@
-from eave.core.graphql.resolvers.survey import submit_survey_for_plan_mutation
 import strawberry
 
 from eave.core.graphql.resolvers.authentication import (
@@ -7,6 +6,7 @@ from eave.core.graphql.resolvers.authentication import (
     refresh_tokens_mutation,
     register_mutation,
 )
+from eave.core.graphql.resolvers.survey import submit_survey_for_plan_mutation
 
 
 @strawberry.type
