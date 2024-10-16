@@ -15,24 +15,39 @@ JWT_ISSUER = "core-api"
 JWT_AUDIENCE = "core-api"
 
 
-async def register_mutation(*, info: strawberry.Info, email: str, plaintext_password: str) -> None:
+async def register_mutation(*, info: strawberry.Info, email: str, plaintext_password: str) -> LoginResult:
     test_password_strength_or_exception(plaintext_password)
 
+    async with eave.core.internal.database.async_session.begin() as db_session:
+        account_orm = await AccountOrm.create(
+            session=db_session,
+            email=email,
+            plaintext_password=plaintext_password,
+        )
+
+    auth_token_pair = _make_auth_token_pair(account_id=str(account_orm.id))
+    account = Account(
+        id=account_orm.id,
+        email=account_orm.email,
+        user_profile=UserProfile(name="example"),
+    )
+
+    return LoginSuccess(account=account, auth_tokens=auth_token_pair)
 
 async def login_mutation(*, info: strawberry.Info, email: str, plaintext_password: str) -> LoginResult:
     async with eave.core.internal.database.async_session.begin() as db_session:
-        account = await AccountOrm.one_or_exception(
+        account_orm = await AccountOrm.one_or_exception(
             session=db_session,
             params=AccountOrm.QueryParams(
                 email=email,
             ),
         )
 
-        if account.validate_password_or_exception(plaintext_password):
-            auth_token_pair = _make_auth_token_pair(account_id=str(account.id))
+        if account_orm.validate_password_or_exception(plaintext_password):
+            auth_token_pair = _make_auth_token_pair(account_id=str(account_orm.id))
             account = Account(
-                id=account.id,
-                email=account.email,
+                id=account_orm.id,
+                email=account_orm.email,
                 user_profile=UserProfile(name="example"),
             )
             return LoginSuccess(account=account, auth_tokens=auth_token_pair)
