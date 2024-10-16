@@ -3,7 +3,7 @@ from http import HTTPStatus
 from .base import BaseTestCase
 
 
-class TestSurveySubmissionEndpoint(BaseTestCase):
+class TestSurveyEndpoint(BaseTestCase):
     async def test_survey_submit(self) -> None:
         response = await self.httpclient.post(
             "/graphql",
