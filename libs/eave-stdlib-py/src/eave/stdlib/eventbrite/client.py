@@ -77,116 +77,81 @@ class EventbriteClient:
     async def get_event_by_id(self, *, event_id: str, query: GetEventQuery | None = None) -> Event | None:
         """https://www.eventbrite.com/platform/api#/reference/event/retrieve/retrieve-an-event"""
 
-        try:
-            response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}", params=query)
-            j = await response.json()
-            return j
-        except Exception as e:
-            logging.exception(e)
-            return None
+        response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}", params=query)
+        j = await response.json()
+        return j
 
     async def get_organizer_by_id(self, *, organizer_id: str) -> Organizer | None:
         """not documented"""
 
-        try:
-            response = await self.make_request(method=HTTPMethod.GET, path=f"/organizers/{organizer_id}")
-            j = await response.json()
-            return j
-        except Exception as e:
-            logging.exception(e)
-            return None
+        response = await self.make_request(method=HTTPMethod.GET, path=f"/organizers/{organizer_id}")
+        j = await response.json()
+        return j
 
     async def list_events_for_organizer(
         self, *, organizer_id: str, query: ListEventsQuery | None = None
     ) -> list[Event]:
         """not documented"""
 
-        try:
-            response = await self.make_request(
-                method=HTTPMethod.GET, path=f"/organizers/{organizer_id}/events", params=query
-            )
-            j = await response.json()
-            return j["events"]
-        except Exception as e:
-            logging.exception(e)
-            return []
+        response = await self.make_request(
+            method=HTTPMethod.GET, path=f"/organizers/{organizer_id}/events", params=query
+        )
+        j = await response.json()
+        return j["events"]
 
     async def list_ticket_classes_for_sale_for_event(
         self, *, event_id: str, query: ListTicketClassesForSaleQuery | None = None
     ) -> list[TicketClass]:
         """https://www.eventbrite.com/platform/api#/reference/ticket-class/list/list-ticket-classes-available-for-sale-by-event"""
 
-        try:
-            response = await self.make_request(
-                method=HTTPMethod.GET, path=f"/events/{event_id}/ticket_classes/for_sale", params=query
-            )
-            j = await response.json()
-            return j["ticket_classes"]
-        except Exception as e:
-            logging.exception(e)
-            return []
+        response = await self.make_request(
+            method=HTTPMethod.GET, path=f"/events/{event_id}/ticket_classes/for_sale", params=query
+        )
+        j = await response.json()
+        return j["ticket_classes"]
 
     async def list_default_questions_for_event(
         self, *, event_id: str, query: ListDefaultQuestionsQuery | None = None
     ) -> list[Question]:
         """https://www.eventbrite.com/platform/api#/reference/questions/list-default-questions/list-default-questions-by-event"""
 
-        try:
-            response = await self.make_request(
-                method=HTTPMethod.GET, path=f"/events/{event_id}/canned_questions", params=query
-            )
-            j = await response.json()
-            return j["questions"]
-        except Exception as e:
-            logging.exception(e)
-            return []
+        response = await self.make_request(
+            method=HTTPMethod.GET, path=f"/events/{event_id}/canned_questions", params=query
+        )
+        j = await response.json()
+        return j["questions"]
 
     async def list_custom_questions_for_event(
         self, *, event_id: str, query: ListCustomQuestionsQuery | None = None
     ) -> list[Question]:
         """https://www.eventbrite.com/platform/api#/reference/questions/list-custom-questions/list-custom-questions-by-event"""
 
-        try:
-            response = await self.make_request(
-                method=HTTPMethod.GET, path=f"/events/{event_id}/questions", params=query
-            )
-            j = await response.json()
-            return j["questions"]
-        except Exception as e:
-            logging.exception(e)
-            return []
+        response = await self.make_request(
+            method=HTTPMethod.GET, path=f"/events/{event_id}/questions", params=query
+        )
+        j = await response.json()
+        return j["questions"]
 
     async def list_formats(self) -> list[Format]:
         """https://www.eventbrite.com/platform/api#/reference/formats/list/list-formats"""
 
-        try:
-            response = await self.make_request(method=HTTPMethod.GET, path="/formats")
-            j = await response.json()
-            return j["formats"]
-        except Exception as e:
-            logging.exception(e)
-            return []
+        response = await self.make_request(method=HTTPMethod.GET, path="/formats")
+        j = await response.json()
+        return j["formats"]
 
     async def list_categories(self) -> list[Category]:
         """https://www.eventbrite.com/platform/api#/reference/categories/list/list-of-categories"""
 
-        try:
-            response = await self.make_request(method=HTTPMethod.GET, path="/categories")
-            j = await response.json()
-            return j["categories"]
-        except Exception as e:
-            logging.exception(e)
-            return []
+        response = await self.make_request(method=HTTPMethod.GET, path="/categories")
+        j = await response.json()
+        return j["categories"]
 
     async def list_subcategories(self) -> list[Subcategory]:
         """https://www.eventbrite.com/platform/api#/reference/categories/list/list-of-subcategories"""
-        try:
-            response = await self.make_request(method=HTTPMethod.GET, path="/subcategories")
-            j = await response.json()
-            return j["subcategories"]
-        except Exception as e:
-            logging.exception(e)
-            return []
+
+        response = await self.make_request(method=HTTPMethod.GET, path="/subcategories")
+        j = await response.json()
+        return j["subcategories"]
 
     async def make_request(
         self,

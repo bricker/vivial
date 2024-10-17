@@ -1,7 +1,8 @@
+from typing import TypedDict
 from .shared import MultipartText
 
 
-class Question:
+class Question(TypedDict, total=False):
     """https://www.eventbrite.com/platform/api#/reference/questions"""
 
     id: str | None
