@@ -1,7 +1,14 @@
+
+
+
+
+
 Set up temporary hardcoded data. 
-    Set up hardcoded survey data.
     Set up hardcoded user preferences data.
     Set up hardcoded partner preferences data.
+
+
+
 
 
 
@@ -20,6 +27,7 @@ Add rate limit fallbacks for Eventbrite API.
 Add rate limit fallbacks for Google APIs (if needed).
 Outstanding TODOs.
 Documentation.
+Delete this file.
 
 
 

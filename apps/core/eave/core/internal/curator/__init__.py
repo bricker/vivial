@@ -1,27 +1,22 @@
-from datetime import datetime
-from uuid import UUID
-
-import strawberry
-
-
+# TODO: Remove mock data imports.
+from eave.core.internal.curator.mock import Survey
+from eave.core.internal.curator.mock import UserPreferences
+from eave.core.internal.curator.mock import PartnerPreferences
 
 
 
 
-# TODO: remove
+
+
+# TODO: Remove test function.
 def main():
 
 
-    @strawberry.type
-    class Survey:
-        id: UUID
-        visitor_id: str
-        start_time: datetime
-        search_area_ids: list[str]
-        budget: int
-        headcount: int
     
-    print("hi")
+    
+
+    print(Survey.start_time)
+    print("Curating date...")
 
 
 
