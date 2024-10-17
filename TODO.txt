@@ -1,0 +1,27 @@
+Set up temporary hardcoded data. 
+    Set up hardcoded survey data.
+    Set up hardcoded user preferences data.
+    Set up hardcoded partner preferences data.
+
+
+
+
+
+
+Set up base "Experience Curator" class.
+Create experience constraints (ensure that defaults are always in place).
+Combine interests.
+Get the activity.
+Get the thing to do.
+Get the restauraunt.
+Connect to Eventbrite API Client (pending Bryan).
+Connect to Google API Client(s) (pending Bryan).
+Add rate limit fallbacks for Eventbrite API.
+Add rate limit fallbacks for Google APIs (if needed).
+Outstanding TODOs.
+Documentation.
+
+
+
+
+
