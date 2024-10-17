@@ -23,6 +23,7 @@ Get the thing to do.
 Get the restauraunt.
 Connect to Eventbrite API Client (pending Bryan).
 Connect to Google API Client(s) (pending Bryan).
+Ensure that radius is converted from miles to meters before being sent to Google.
 Add rate limit fallbacks for Eventbrite API.
 Add rate limit fallbacks for Google APIs (if needed).
 Outstanding TODOs.

@@ -1,5 +1,9 @@
 from dataclasses import dataclass
 
+@dataclass
+class Radius:
+    miles: float
+    meters: float
 
 @dataclass
 class GeoArea:
@@ -7,4 +11,4 @@ class GeoArea:
     key: str
     lat: float
     lon: float
-    rad: float
+    rad: Radius
