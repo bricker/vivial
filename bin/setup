@@ -86,6 +86,7 @@ function setuppython() (
 				statusmsg -i "Often this is due to a missing or invalid dependency. Check the following resources for potential fixes:"
 				statusmsg -i "* Suggested build environment: https://github.com/pyenv/pyenv/wiki#suggested-build-environment"
 				statusmsg -i "* \"cannot stat 'Modules/_crypt'\" (or similar): https://github.com/pyenv/pyenv/issues/2823#issuecomment-1769081965"
+				statusmsg -i "* \"Missing the lzma lib?\" (or similar): https://stackoverflow.com/a/77216449/885036"
 			fi
 
 			pyenv version
@@ -208,24 +209,6 @@ function installjq() (
 				fi
 				;;
 			esac
-		fi
-	fi
-)
-
-function installyq() (
-	if ! e.force && e.cmd-exists "yq"; then
-		statusmsg -o "yq already installed."
-	else
-		statusmsg -pa "Installing the 'yq' command line utility."
-		statusmsg -i "The yq program is used to parse Google Cloud configuration files (eg app.yaml and build.yaml)"
-
-		if e.confirm; then
-			if e.cmd-exists "brew"; then
-				brew install yq
-			else
-				statusmsg -e "yq is installed via Homebrew, which wasn't found in your PATH."
-				statusmsg -e "Install homebrew and re-run this script, or install 'yq' manually (it may be available in your operating system's package repositories)."
-			fi
 		fi
 	fi
 )

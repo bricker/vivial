@@ -83,7 +83,7 @@ def b64decode(data: str | bytes, *, urlsafe: bool = False) -> str:
     if urlsafe:
         return base64.urlsafe_b64decode(b).decode()
     else:
-        return base64.b64decode(b).decode()
+        return base64.b64decode(b, validate=True).decode()
 
 
 def ensure_bytes(data: str | bytes | dict) -> bytes:
