@@ -1,4 +1,4 @@
-from eave.core.curator.areas.geo_area import GeoArea
+from .geo_area import GeoArea
 
 
 LOS_ANGELES_AREAS = [

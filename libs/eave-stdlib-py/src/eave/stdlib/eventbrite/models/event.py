@@ -2,7 +2,6 @@ from datetime import datetime
 from enum import StrEnum
 from typing import TypedDict
 
-from .bookmark import BookmarkInfo
 from .category import Category, Subcategory
 from .checkout_settings import CheckoutSettings
 from .event_sales_status import EventSalesStatus
@@ -231,9 +230,6 @@ class Event(TypedDict, total=False):
 
     music_properties: MusicProperties | None
     """This is an object of properties that detail dimensions of music events."""
-
-    bookmark_info: BookmarkInfo | None
-    """The bookmark information on the event, requires the bookmark_info expansion"""
 
     ticket_availability: TicketAvailability | None
     """Additional data about general tickets information (optional)."""
