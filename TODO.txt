@@ -1,21 +1,11 @@
 
 
-
-
-
-Set up temporary hardcoded data. 
-    Set up hardcoded user preferences data.
-    Set up hardcoded partner preferences data.
-
-
-
-
-
-
-
-
-
 Set up base "Experience Curator" class.
+Execte curator class in main()
+
+
+
+
 Create experience constraints (ensure that defaults are always in place).
 Combine interests.
 Get the activity.

@@ -1,43 +1,36 @@
 # TODO: Delete this file.
 
+from models import OutingConstraints, EventbriteCategory, UserPreferences
 from datetime import datetime
-from urllib import response
 
-from attr import dataclass
-from flask import request
-
-from dataclasses import dataclass
-
-class MockSurvey:
-    id = "UUID"
-    visitor_id = "UUID"
-    start_time = datetime.fromisoformat("2024-10-17T20:24:24+0000"),
-    search_area_ids = []
-    budget = 3
-    headcount = 2
-
-@dataclass
-class Category:
-    id: str
-    subcategory_ids: list[str]
+MockOutingConstraints = OutingConstraints(
+    id = "UUID",
+    visitor_id = "UUID",
+    start_time = datetime.fromisoformat("2024-10-20T01:00:00.000Z"),
+    search_area_ids = [],
+    budget = 3,
+    headcount = 2,
+)
 
 # 103: Music, 3008: Hip-Hop
-mock_category_1 = Category(id="103", subcategory_ids=["3008", "3012"])
-mock_category_2 = Category(id="105", subcategory_ids=["5001"])
-mock_category_3 = Category(id="103", subcategory_ids=["3008", "3013"])
-mock_category_4 = Category(id="104", subcategory_ids=["4007"])
+mock_category_1 = EventbriteCategory(id="103", subcategory_ids=["3008", "3012"])
+mock_category_2 = EventbriteCategory(id="105", subcategory_ids=["5001"])
+mock_category_3 = EventbriteCategory(id="103", subcategory_ids=["3008", "3013"])
+mock_category_4 = EventbriteCategory(id="104", subcategory_ids=["4007"])
 
-class MockUserPreferences:
-    is_open_to_bars = True
-    requires_wheelchair_accessibility = False 
-    google_food_types = ["mexican_restaurant", "sushi_restaurant"]
-    eventbrite_categories = [mock_category_1, mock_category_2]
+MockUserPreferences = UserPreferences(
+  open_to_bars = True,
+  requires_wheelchair_accessibility = False,
+  google_food_types = ["mexican_restaurant", "sushi_restaurant"],
+  eventbrite_categories = [mock_category_1, mock_category_2],
+)
 
-class MockPartnerPreferences:
-    is_open_to_bars = True
-    requires_wheelchair_accessibility = False 
-    google_food_types = ["mexican_restaurant", "chinese_restaurant"]
-    eventbrite_categories = [mock_category_3, mock_category_4]
+MockPartnerPreferences = UserPreferences(
+  open_to_bars = True,
+  requires_wheelchair_accessibility = False,
+  google_food_types = ["mexican_restaurant", "chinese_restaurant"],
+  eventbrite_categories = [mock_category_3, mock_category_4],
+)
 
 class MockVivialAPI:
     response = {
