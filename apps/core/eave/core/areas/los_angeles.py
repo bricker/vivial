@@ -1,6 +1,6 @@
 from eave.core.areas.search_region_code import SearchRegionCode
-from .geo_area import GeoArea
 
+from .geo_area import GeoArea
 
 LOS_ANGELES_AREAS = [
     GeoArea(name="Central LA & Hollywood", key=SearchRegionCode.US_CA_LA1, lat=34.065730, lon=-118.323769, rad=5.78),

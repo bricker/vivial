@@ -1,8 +1,9 @@
 from datetime import datetime
 from uuid import UUID
-from eave.core.areas.search_region_code import SearchRegionCode
+
 import strawberry
 
+from eave.core.areas.search_region_code import SearchRegionCode
 from eave.core.graphql.types.outing import (
     Outing,
     ReplanOutingResult,

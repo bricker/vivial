@@ -2,7 +2,6 @@ from datetime import datetime
 from http import HTTPStatus
 
 from eave.core.areas.search_region_code import SearchRegionCode
-
 from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.survey import SurveyOrm
 
