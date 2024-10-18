@@ -14,7 +14,27 @@ class TestOutingEndpoints(BaseTestCase):
             json={
                 "query": f"""
 mutation {{
-    outingFromSurvey(visitorId: "{self.anyuuid()}", startTimeIso: "2024-10-16T21:14:41", searchAreaIds: ["us_ca_la"], budget: 1, headcount: 2) {{
+    outingFromSurvey(visitorId: "{self.anyuuid()}", startTime: "2024-10-16T21:14:41", searchAreaIds: ["us_ca_la"], budget: 1, headcount: 2) {{
+        ... on SurveySubmitSuccess {{
+            outing {{
+                id
+            }}
+        }}
+    }}
+}}
+"""
+            },
+        )
+        assert response.status_code == HTTPStatus.OK
+        assert response.json().get("data").get("outingFromSurvey").get("outing").get("id") is not None
+
+    async def test_survey_submit_start_time_with_tz_info(self) -> None:
+        response = await self.httpclient.post(
+            "/graphql",
+            json={
+                "query": f"""
+mutation {{
+    outingFromSurvey(visitorId: "{self.anyuuid()}", startTime: "2024-10-18T20:06:48.956Z", searchAreaIds: ["us_ca_la"], budget: 1, headcount: 2) {{
         ... on SurveySubmitSuccess {{
             outing {{
                 id

@@ -58,7 +58,7 @@ class SurveyOrm(Base):
         obj = cls(
             visitor_id=visitor_id,
             account_id=account_id,
-            start_time=start_time,
+            start_time=start_time.replace(tzinfo=None),
             search_area_ids=search_area_ids,
             budget=budget,
             headcount=headcount,

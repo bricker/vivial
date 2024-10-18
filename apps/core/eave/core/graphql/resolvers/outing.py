@@ -19,7 +19,7 @@ async def outing_from_survey_mutation(
     *,
     info: strawberry.Info,
     visitor_id: UUID,
-    start_time_iso: str,
+    start_time: datetime,
     search_area_ids: list[str],
     budget: int,
     headcount: int,
@@ -28,7 +28,7 @@ async def outing_from_survey_mutation(
         survey = await SurveyOrm.create(
             session=db_session,
             visitor_id=visitor_id,
-            start_time=datetime.fromisoformat(start_time_iso),
+            start_time=start_time,
             search_area_ids=search_area_ids,
             budget=budget,
             headcount=headcount,
@@ -52,7 +52,7 @@ async def outing_from_survey_mutation(
     )
 
 
-async def replan_outing_mutation(*, info: strawberry.Info, outing_id: str) -> ReplanOutingResult:
+async def replan_outing_mutation(*, info: strawberry.Info, outing_id: UUID) -> ReplanOutingResult:
     async with database.async_session.begin() as db_session:
         original_outing = await OutingOrm.one_or_exception(
             session=db_session,
