@@ -32,7 +32,7 @@ class OutingOrm(Base):
     )
 
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    visitor_id: Mapped[str] = mapped_column()
+    visitor_id: Mapped[UUID] = mapped_column()
     account_id: Mapped[UUID | None] = mapped_column()
     survey_id: Mapped[UUID] = mapped_column()
     # TODO date fields
@@ -43,7 +43,7 @@ class OutingOrm(Base):
     async def create(
         cls,
         session: AsyncSession,
-        visitor_id: str,
+        visitor_id: UUID,
         survey_id: UUID,
         account_id: UUID | None = None,
     ) -> Self:

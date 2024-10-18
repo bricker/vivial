@@ -30,7 +30,7 @@ class SurveyOrm(Base):
     )
 
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    visitor_id: Mapped[str] = mapped_column()
+    visitor_id: Mapped[UUID] = mapped_column()
     account_id: Mapped[UUID | None] = mapped_column()
     start_time: Mapped[datetime] = mapped_column()
     search_area_ids: Mapped[list[str]] = mapped_column(
@@ -48,7 +48,7 @@ class SurveyOrm(Base):
     async def create(
         cls,
         session: AsyncSession,
-        visitor_id: str,
+        visitor_id: UUID,
         start_time: datetime,
         search_area_ids: list[str],
         budget: int,

@@ -1,5 +1,5 @@
 from datetime import datetime
-
+from uuid import UUID
 import strawberry
 
 from eave.core.graphql.types.outing import (
@@ -18,7 +18,7 @@ from eave.stdlib.util import ensure_uuid
 async def outing_from_survey_mutation(
     *,
     info: strawberry.Info,
-    visitor_id: str,
+    visitor_id: UUID,
     start_time_iso: str,
     search_area_ids: list[str],
     budget: int,

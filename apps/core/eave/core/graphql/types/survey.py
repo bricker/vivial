@@ -7,7 +7,7 @@ import strawberry
 @strawberry.type
 class Survey:
     id: UUID
-    visitor_id: str
+    visitor_id: UUID
     start_time: datetime
     search_area_ids: list[str]
     budget: int

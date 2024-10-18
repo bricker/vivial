@@ -12,16 +12,16 @@ class TestOutingEndpoints(BaseTestCase):
         response = await self.httpclient.post(
             "/graphql",
             json={
-                "query": """
-mutation {
-    outingFromSurvey(visitorId: "abc124", startTimeIso: "2024-10-16T21:14:41", searchAreaIds: ["us_ca_la"], budget: 1, headcount: 2) {
-        ... on SurveySubmitSuccess {
-            outing {
+                "query": f"""
+mutation {{
+    outingFromSurvey(visitorId: "{self.anyuuid()}", startTimeIso: "2024-10-16T21:14:41", searchAreaIds: ["us_ca_la"], budget: 1, headcount: 2) {{
+        ... on SurveySubmitSuccess {{
+            outing {{
                 id
-            }
-        }
-    }
-}
+            }}
+        }}
+    }}
+}}
 """
             },
         )
@@ -32,7 +32,7 @@ mutation {
         async with self.db_session.begin() as sess:
             survey = await SurveyOrm.create(
                 session=sess,
-                visitor_id="abc",
+                visitor_id=self.anyuuid(),
                 start_time=datetime.now(),
                 search_area_ids=["us_ca_la"],
                 budget=1,
