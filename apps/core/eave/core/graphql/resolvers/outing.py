@@ -1,5 +1,6 @@
 from datetime import datetime
 from uuid import UUID
+from eave.stdlib.core_api.models.search_region import SearchRegionCode
 import strawberry
 
 from eave.core.graphql.types.outing import (
@@ -25,11 +26,15 @@ async def outing_from_survey_mutation(
     headcount: int,
 ) -> SurveySubmitResult:
     async with database.async_session.begin() as db_session:
+        search_areas: list[SearchRegionCode] = []
+        for area_id in search_area_ids:
+            if region := SearchRegionCode.from_str(area_id):
+                search_areas.append(region)
         survey = await SurveyOrm.create(
             session=db_session,
             visitor_id=visitor_id,
             start_time=start_time,
-            search_area_ids=search_area_ids,
+            search_area_ids=search_areas,
             budget=budget,
             headcount=headcount,
         )

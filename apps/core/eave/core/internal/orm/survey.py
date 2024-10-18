@@ -50,7 +50,7 @@ class SurveyOrm(Base):
         session: AsyncSession,
         visitor_id: UUID,
         start_time: datetime,
-        search_area_ids: list[str],
+        search_area_ids: list[SearchRegionCode],
         budget: int,
         headcount: int,
         account_id: UUID | None = None,

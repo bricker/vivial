@@ -1,6 +1,8 @@
 from datetime import datetime
 from http import HTTPStatus
 
+from eave.stdlib.core_api.models.search_region import SearchRegionCode
+
 from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.survey import SurveyOrm
 
@@ -54,7 +56,7 @@ mutation {{
                 session=sess,
                 visitor_id=self.anyuuid(),
                 start_time=datetime.now(),
-                search_area_ids=["us_ca_la"],
+                search_area_ids=[SearchRegionCode.US_CA_LA],
                 budget=1,
                 headcount=1,
             )
