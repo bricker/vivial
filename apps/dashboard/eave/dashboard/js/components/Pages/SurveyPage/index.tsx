@@ -132,13 +132,16 @@ const SurveyPage = () => {
   const [locations, setLocations] = useState(() => [...Array(laNeighborhoodOptions.length).keys()]);
   const [budget, setBudget] = useState(2);
   const [attendees, setAttendees] = useState(2);
-  // const [vibe, setVibe] = useState<string[]>(() => vibeOptions);
+  // TODO: client side validation!
 
   const handleSubmitClick = () => {
-    console.log("sending off: ", { time, locations, budget, attendees /*vibe*/ });
     submitSurvey!.execute({
-      // TODO: post data
-    })
+      visitorId: "TODO UUID",
+      startTime: time.toDate(),
+      searchAreaIds: locations, // TODO: convert to area codes
+      budget: budget,
+      headcount: attendees,
+    });
   };
 
   if (networkState.loading) {
@@ -162,7 +165,7 @@ const SurveyPage = () => {
             <DateTimePicker
               label="Date time picker"
               value={time}
-              onChange={(newValue) => setTime(newValue || dayjs(tomorrow))}
+              onChange={(newValue: any) => setTime(newValue || dayjs(tomorrow))}
             />
           </LocalizationProvider>
 
