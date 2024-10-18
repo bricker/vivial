@@ -11,7 +11,7 @@ from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func,
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.stdlib.core_api.models.search_region import SearchRegionCode
+from eave.core.areas.search_region_code import SearchRegionCode
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR

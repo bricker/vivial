@@ -1,7 +1,7 @@
 from datetime import datetime
 from http import HTTPStatus
 
-from eave.stdlib.core_api.models.search_region import SearchRegionCode
+from eave.core.areas.search_region_code import SearchRegionCode
 
 from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.survey import SurveyOrm
@@ -16,7 +16,7 @@ class TestOutingEndpoints(BaseTestCase):
             json={
                 "query": f"""
 mutation {{
-    outingFromSurvey(visitorId: "{self.anyuuid()}", startTime: "2024-10-16T21:14:41", searchAreaIds: ["us_ca_la"], budget: 1, headcount: 2) {{
+    submitSurvey(visitorId: "{self.anyuuid()}", startTime: "2024-10-16T21:14:41", searchAreaIds: ["us_ca_la"], budget: 1, headcount: 2) {{
         ... on SurveySubmitSuccess {{
             outing {{
                 id
@@ -28,7 +28,7 @@ mutation {{
             },
         )
         assert response.status_code == HTTPStatus.OK
-        assert response.json().get("data").get("outingFromSurvey").get("outing").get("id") is not None
+        assert response.json().get("data").get("submitSurvey").get("outing").get("id") is not None
 
     async def test_survey_submit_start_time_with_tz_info(self) -> None:
         response = await self.httpclient.post(
@@ -36,7 +36,7 @@ mutation {{
             json={
                 "query": f"""
 mutation {{
-    outingFromSurvey(visitorId: "{self.anyuuid()}", startTime: "2024-10-18T20:06:48.956Z", searchAreaIds: ["us_ca_la"], budget: 1, headcount: 2) {{
+    submitSurvey(visitorId: "{self.anyuuid()}", startTime: "2024-10-18T20:06:48.956Z", searchAreaIds: ["us_ca_la"], budget: 1, headcount: 2) {{
         ... on SurveySubmitSuccess {{
             outing {{
                 id
@@ -48,7 +48,7 @@ mutation {{
             },
         )
         assert response.status_code == HTTPStatus.OK
-        assert response.json().get("data").get("outingFromSurvey").get("outing").get("id") is not None
+        assert response.json().get("data").get("submitSurvey").get("outing").get("id") is not None
 
     async def test_replan(self) -> None:
         async with self.db_session.begin() as sess:

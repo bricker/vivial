@@ -1,6 +1,6 @@
 from datetime import datetime
 from uuid import UUID
-from eave.stdlib.core_api.models.search_region import SearchRegionCode
+from eave.core.areas.search_region_code import SearchRegionCode
 import strawberry
 
 from eave.core.graphql.types.outing import (
@@ -16,7 +16,7 @@ from eave.core.internal.orm.survey import SurveyOrm
 from eave.stdlib.util import ensure_uuid
 
 
-async def outing_from_survey_mutation(
+async def submit_survey_mutation(
     *,
     info: strawberry.Info,
     visitor_id: UUID,
