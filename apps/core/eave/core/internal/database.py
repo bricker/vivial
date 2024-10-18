@@ -105,7 +105,7 @@ if SHARED_CONFIG.eave_env in [EaveEnvironment.development, EaveEnvironment.test]
             await connection.run_sync(get_base_metadata().create_all)
 
             # install pg_trgm extension (used for some fuzzy match operations)
-            try:
-                await connection.execute(sqlalchemy.text("CREATE EXTENSION pg_trgm"))
-            except Exception as e:
-                print("pg_trgm already installed.", e)
+            # try:
+            #     await connection.execute(sqlalchemy.text("CREATE EXTENSION pg_trgm"))
+            # except Exception as e:
+            #     print("pg_trgm already installed.", e)
