@@ -4,8 +4,6 @@ from models import OutingConstraints, EventbriteCategory, User, UserPreferences
 from datetime import datetime
 
 MockOutingConstraints = OutingConstraints(
-    id = "UUID",
-    visitor_id = "UUID",
     start_time = datetime.fromisoformat("2024-10-20T01:00:00.000Z"),
     search_area_ids = [],
     budget = 3,

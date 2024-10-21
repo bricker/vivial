@@ -8,8 +8,6 @@ class OutingPlan:
 
 @dataclass
 class OutingConstraints:
-    id: str
-    visitor_id: str
     start_time: datetime
     search_area_ids: list[str]
     budget: int

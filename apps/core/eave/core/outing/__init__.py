@@ -2,6 +2,8 @@
 from mock_data import MockOutingConstraints, MockUser, MockPartner, MockVivialAPI, MockEventbriteAPI, MockGoogleAPI
 
 from models import OutingPlan, OutingConstraints, User, EventbriteCategory, UserPreferences
+from ..areas.geo_area import GeoArea
+
 import random
 
 
@@ -12,12 +14,22 @@ import random
 
 
 class Outing:
-    constraints: OutingConstraints
     preferences: UserPreferences
+    constraints: OutingConstraints
 
-    def __init__(self, constraints: OutingConstraints, group: list[User]) -> None:
-        self.constraints = constraints
+    # TODO: OutingActivity type.
+    # TODO: OutingRestauraunt type.
+    activity: object | None
+    restaurant: object | None
+
+
+    # TODO: OutingActivity type.
+    # TODO: OutingRestauraunt type.
+    def __init__(self, group: list[User], constraints: OutingConstraints, activity: object | None, restaurant: object | None) -> None:
         self.preferences = self.combine_preferences(group)
+        self.constraints = constraints
+        self.activity = activity
+        self.restaurant = restaurant
 
 
     def combine_food_types(self, group: list[User]) -> list[str]:
@@ -84,13 +96,29 @@ class Outing:
         return UserPreferences(open_to_bars, requires_wheelchair_accessibility, google_food_types, eventbrite_categories)
 
 
-    def plan(self) -> OutingPlan:
-        return OutingPlan(restaurant={}, activity={})
 
+    # TODO: OutingActivity type.
+    def plan_activity(self) -> object:
+
+
+
+
+
+
+        return {}
+
+
+
+
+    def get_plan(self) -> OutingPlan:
+        return OutingPlan(activity=self.activity, restaurant=self.restaurant)
 
 # TODO: Remove test function.
 def main() -> None:
-    outing = Outing(MockOutingConstraints, [MockUser, MockPartner])
-    outing.plan()
+    outing = Outing([MockUser, MockPartner], MockOutingConstraints, None, None)
+    outing.plan_activity()
+    # outing.plan_restaurant()
+    outing.get_plan()
+
 
 main()

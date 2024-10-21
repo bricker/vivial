@@ -1,14 +1,12 @@
 
 
 
-
-
-Combine interests.
-
-
-
 Get the activity.
-Get the thing to do.
+
+
+
+
+
 Get the restauraunt.
 Connect to Eventbrite API Client.
 Connect to Google API Client(s) (use Google official Python SDK)
