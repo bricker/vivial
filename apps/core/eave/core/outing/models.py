@@ -14,7 +14,11 @@ class OutingConstraints:
     headcount: int
 
 @dataclass
-class EventbriteCategory:
+class RestaurantCategory:
+    id: str
+
+@dataclass
+class ActivityCategory:
     id: str
     subcategory_id: str
 
@@ -22,8 +26,8 @@ class EventbriteCategory:
 class UserPreferences:
     open_to_bars: bool
     requires_wheelchair_accessibility: bool
-    google_food_types: list[str]
-    eventbrite_categories: list[EventbriteCategory]
+    restaurant_categories: list[RestaurantCategory]
+    activity_categories: list[ActivityCategory]
 
 @dataclass
 class User:

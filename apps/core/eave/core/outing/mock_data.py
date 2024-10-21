@@ -1,6 +1,6 @@
 # TODO: Delete this file.
 
-from models import OutingConstraints, EventbriteCategory, User, UserPreferences
+from models import OutingConstraints, RestaurantCategory, ActivityCategory, User, UserPreferences
 from datetime import datetime
 
 MockOutingConstraints = OutingConstraints(
@@ -11,13 +11,13 @@ MockOutingConstraints = OutingConstraints(
 )
 
 # 103: Music, 3008: Hip-Hop
-mock_category_1 = EventbriteCategory(id="103", subcategory_id="3008")
-mock_category_2 = EventbriteCategory(id="103", subcategory_id="3012")
-mock_category_3 = EventbriteCategory(id="105", subcategory_id="5001")
+mock_category_1 = ActivityCategory(id="103", subcategory_id="3008")
+mock_category_2 = ActivityCategory(id="103", subcategory_id="3012")
+mock_category_3 = ActivityCategory(id="105", subcategory_id="5001")
 
-mock_category_4 = EventbriteCategory(id="103", subcategory_id="3008")
-mock_category_5 = EventbriteCategory(id="103", subcategory_id="3013")
-mock_category_6 = EventbriteCategory(id="104", subcategory_id="4007")
+mock_category_4 = ActivityCategory(id="103", subcategory_id="3008")
+mock_category_5 = ActivityCategory(id="103", subcategory_id="3013")
+mock_category_6 = ActivityCategory(id="104", subcategory_id="4007")
 
 MockUser = User(
     id=None,
@@ -25,8 +25,8 @@ MockUser = User(
     preferences=(UserPreferences(
         open_to_bars = True,
         requires_wheelchair_accessibility =False,
-        google_food_types = ["sushi_restaurant", "mexican_restaurant", "american_restaurant", "brazilian_restaurant"],
-        eventbrite_categories = [mock_category_1, mock_category_2, mock_category_3],
+        restaurant_categories = [RestaurantCategory("sushi_restaurant"), RestaurantCategory("mexican_restaurant"), RestaurantCategory("american_restaurant"), RestaurantCategory("brazilian_restaurant")],
+        activity_categories = [mock_category_1, mock_category_2, mock_category_3],
     ))
 )
 
@@ -36,8 +36,8 @@ MockPartner = User(
     preferences=(UserPreferences(
         open_to_bars = True,
         requires_wheelchair_accessibility = False,
-        google_food_types = ["chinese_restaurant", "fast_food_restaurant", "ice_cream_shop", "mexican_restaurant"],
-        eventbrite_categories = [mock_category_4, mock_category_5, mock_category_6],
+        restaurant_categories = [RestaurantCategory("chinese_restaurant"), RestaurantCategory("fast_food_restaurant"), RestaurantCategory("ice_cream_shop"), RestaurantCategory("mexican_restaurant")],
+        activity_categories = [mock_category_4, mock_category_5, mock_category_6],
     ))
 )
 

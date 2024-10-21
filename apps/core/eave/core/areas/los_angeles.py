@@ -1,5 +1,7 @@
 from .geo_area import GeoArea, Radius
 
+# TODO: Store area data in database.
+# TODO: Convert meters programmatically instead of hardcoding.
 LOS_ANGELES_AREAS = [
     GeoArea(name="Central LA & Hollywood", key="us_ca_la_1", lat=34.065730, lon=-118.323769, rad=(Radius(miles=5.78, meters=9302.008))),
     GeoArea(name="Downtown Los Angeles", key="us_ca_la_2", lat=34.046422, lon=-118.245325, rad=(Radius(miles=1.69, meters=2719.791))),
