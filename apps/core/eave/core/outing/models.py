@@ -18,7 +18,7 @@ class OutingConstraints:
 @dataclass
 class EventbriteCategory:
     id: str
-    subcategory_ids: list[str]
+    subcategory_id: str
 
 @dataclass
 class UserPreferences:
@@ -26,3 +26,9 @@ class UserPreferences:
     requires_wheelchair_accessibility: bool
     google_food_types: list[str]
     eventbrite_categories: list[EventbriteCategory]
+
+@dataclass
+class User:
+    id: str | None
+    visitor_id: str | None
+    preferences: UserPreferences

@@ -1,22 +1,22 @@
 
 
-Set up base "Experience Curator" class.
-Execte curator class in main()
 
 
 
-
-Create experience constraints (ensure that defaults are always in place).
 Combine interests.
+
+
+
 Get the activity.
 Get the thing to do.
 Get the restauraunt.
-Connect to Eventbrite API Client (pending Bryan).
-Connect to Google API Client(s) (pending Bryan).
+Connect to Eventbrite API Client.
+Connect to Google API Client(s) (use Google official Python SDK)
 Ensure that radius is converted from miles to meters before being sent to Google.
 Add rate limit fallbacks for Eventbrite API.
 Add rate limit fallbacks for Google APIs (if needed).
 Outstanding TODOs.
+Integration tests.
 Documentation.
 Delete this file.
 
