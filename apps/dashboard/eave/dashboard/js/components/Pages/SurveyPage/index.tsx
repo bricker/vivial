@@ -85,36 +85,34 @@ const budgetOptions = [
   },
 ];
 
-// const vibeOptions = ["sedentary", "active", "romantic", "casual", "intimate", "social"];
-
 const laNeighborhoodOptions = [
   {
-    value: ["90011"], // TODO: fill in proper postal codes
-    label: "North Valley",
+    value: "us_ca_la",
+    label: "All LA Areas",
   },
   {
-    value: ["sv"],
-    label: "South Valley",
+    value: "us_ca_la_1",
+    label: "Central LA & Hollywood",
   },
   {
-    value: ["wl"],
-    label: "West LA",
+    value: "us_ca_la_2",
+    label: "Downtown Los Angeles",
   },
   {
-    value: ["c"],
-    label: "Central",
+    value: "us_ca_la_3",
+    label: "Pasadena, Glendale, & Northeast LA",
   },
   {
-    value: ["e"],
-    label: "East",
+    value: "us_ca_la_4",
+    label: "Westside",
   },
   {
-    value: ["sl"],
-    label: "South LA",
+    value: "us_ca_la_5",
+    label: "South Bay",
   },
   {
-    value: ["h"],
-    label: "Harbor",
+    value: "us_ca_la_6",
+    label: "San Gabriel Valley",
   },
 ];
 
@@ -136,9 +134,9 @@ const SurveyPage = () => {
 
   const handleSubmitClick = () => {
     submitSurvey!.execute({
-      visitorId: "TODO UUID",
+      visitorId: "TODO UUID", // TODO:!!!
       startTime: time.toDate(),
-      searchAreaIds: locations, // TODO: convert to area codes
+      searchAreaIds: locations.map((idx) => laNeighborhoodOptions[idx]!.value),
       budget: budget,
       headcount: attendees,
     });
@@ -209,25 +207,6 @@ const SurveyPage = () => {
               <FormControlLabel value={2} control={<Radio />} label="2" />
             </RadioGroup>
           </FormControl>
-
-          {/* <FormLabel id="vibe-selector-label">What's the vibe?</FormLabel>
-          <Select
-            labelId="vibe-selector-label"
-            id="vibe-selector"
-            value={vibe}
-            onChange={(e) => setVibe(e.target.value instanceof Array ? e.target.value : [e.target.value])}
-            autoWidth
-            aria-labelledby="vibe-selector-label"
-            multiple
-          >
-            {vibeOptions.map((option) => {
-              return (
-                <MenuItem value={option} key={option}>
-                  {option.toLocaleUpperCase()}
-                </MenuItem>
-              );
-            })}
-          </Select> */}
         </FormControl>
 
         {networkState.error && (
