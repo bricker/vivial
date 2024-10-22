@@ -17,6 +17,7 @@ import classNames from "classnames";
 import dayjs from "dayjs";
 import React, { useContext, useState } from "react";
 import { makeStyles } from "tss-react/mui";
+import ErrorBox from "../../ErrorBox";
 import OutingLoader from "../../OutingLoader";
 
 const useStyles = makeStyles()((theme) => ({
@@ -191,7 +192,7 @@ const SurveyPage = () => {
               value={time}
               onChange={(newValue: any) => setTime(newValue || dayjs(tomorrow))}
             />
-            {errors["time"] && <div>{errors["time"]}</div>}
+            {errors["time"] && <ErrorBox>{errors["time"]}</ErrorBox>}
           </LocalizationProvider>
 
           <FormLabel id="locations-selector-label">What areas of Los Angeles can the date be in?</FormLabel>
@@ -209,7 +210,7 @@ const SurveyPage = () => {
               );
             })}
           </ToggleButtonGroup>
-          {errors["locations"] && <div>{errors["locations"]}</div>}
+          {errors["locations"] && <ErrorBox>{errors["locations"]}</ErrorBox>}
 
           <FormLabel id="budget-selector">What is your budget?</FormLabel>
           <Slider
