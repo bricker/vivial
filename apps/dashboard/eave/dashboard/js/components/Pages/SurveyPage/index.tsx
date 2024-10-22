@@ -16,7 +16,8 @@ import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import classNames from "classnames";
 import dayjs from "dayjs";
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 import ErrorBox from "../../ErrorBox";
 import OutingLoader from "../../OutingLoader";
@@ -121,7 +122,7 @@ const laNeighborhoodOptions = [
 const SurveyPage = () => {
   const { classes } = useStyles();
   const { classes: text } = textStyles();
-
+  const navigate = useNavigate();
   const { submitSurvey } = useContext(AppContext);
   const [networkState] = submitSurvey!.networkState;
 
@@ -172,6 +173,12 @@ const SurveyPage = () => {
       });
     }
   };
+
+  useEffect(() => {
+    if (networkState.data?.outingId) {
+      navigate(`/outing/${networkState.data.outingId}`);
+    }
+  }, [navigate, networkState]);
 
   if (networkState.loading) {
     return <OutingLoader />;
