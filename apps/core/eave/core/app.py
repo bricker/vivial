@@ -166,7 +166,7 @@ def make_route(
     return Route(path=config.path, methods=[config.method, *addl_methods], endpoint=endpoint)
 
 
-graphql_schema = Schema(
+schema = Schema(
     query=Query,
     mutation=Mutation,
     config=StrawberryConfig(
@@ -174,7 +174,7 @@ graphql_schema = Schema(
     ),
 )
 
-graphql_app = GraphQL(graphql_schema)
+graphql_app = GraphQL(schema)
 
 
 async def graceful_shutdown() -> None:
