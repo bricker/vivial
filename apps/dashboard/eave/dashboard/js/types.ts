@@ -7,6 +7,7 @@ export type GlobalWindow = Window &
       apiBase?: string;
       embedBase?: string;
       assetBase?: string;
+      visitorId?: string;
     };
   };
 

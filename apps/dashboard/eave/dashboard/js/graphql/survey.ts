@@ -41,7 +41,7 @@ function surveySubmitExecute({req, ctx}: { req: SurveySubmitRequest, ctx: Survey
       }
     }
     ... on SurveySubmitError {
-      error_code
+      errorCode
     }
   }
 }`,

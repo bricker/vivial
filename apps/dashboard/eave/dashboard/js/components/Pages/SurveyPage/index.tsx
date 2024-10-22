@@ -1,5 +1,6 @@
 import { AppContext } from "$eave-dashboard/js/context/AppContext";
 import { textStyles } from "$eave-dashboard/js/theme";
+import { myWindow } from "$eave-dashboard/js/types";
 import {
   Button,
   FormControl,
@@ -161,7 +162,7 @@ const SurveyPage = () => {
     if (Object.keys(newErrors).length === 0) {
       submitSurvey!.execute({
         req: {
-          visitorId: "TODO UUID", // TODO:!!!
+          visitorId: myWindow.app.visitorId!,
           startTime: time.toDate(),
           searchAreaIds: locations.map((idx) => laNeighborhoodOptions[idx]!.value),
           budget: budget,
