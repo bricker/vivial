@@ -124,7 +124,7 @@ const SurveyPage = () => {
   const { classes: text } = textStyles();
   const navigate = useNavigate();
   const { submitSurvey } = useContext(AppContext);
-  const [networkState] = submitSurvey!.networkState;
+  const [networkState, setNetworkState] = submitSurvey!.networkState;
 
   // default time to tomorrow
   const today = new Date();
@@ -138,9 +138,9 @@ const SurveyPage = () => {
 
   const validate = () => {
     const newErrors: any = {};
-    const today = new Date();
-    const tomorrow = dayjs(new Date(today.setDate(today.getDate() + 1))); // TODO: make better
-    const nextMonth = dayjs(new Date(today.setMonth(today.getMonth() + 1)));
+    const today = dayjs();
+    const tomorrow = today.add(1, "day");
+    const nextMonth = today.add(1, "month");
 
     if (time < tomorrow) {
       newErrors["time"] = "Must be 24 hours or more from now";
@@ -174,13 +174,19 @@ const SurveyPage = () => {
     }
   };
 
+  // go to outing display page once data is loaded
   useEffect(() => {
     if (networkState.data?.outingId) {
       navigate(`/outing/${networkState.data.outingId}`);
+      // clear response data so that back-nav works
+      setNetworkState((prev) => ({
+        ...prev,
+        data: undefined,
+      }));
     }
   }, [navigate, networkState]);
 
-  if (networkState.loading) {
+  if (networkState.loading || networkState.data) {
     return <OutingLoader />;
   }
 

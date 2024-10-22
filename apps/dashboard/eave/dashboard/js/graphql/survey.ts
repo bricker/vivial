@@ -1,5 +1,4 @@
-import { useContext, useState } from "react";
-import { AppContext } from "../context/AppContext";
+import { useState } from "react";
 import { NetworkState } from "../types";
 import { GRAPHQL_API_BASE } from "../util/http-util";
 
