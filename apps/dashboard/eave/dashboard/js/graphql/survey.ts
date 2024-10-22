@@ -86,11 +86,12 @@ type SurveySubmitEncapsulation = {
 };
 
 export type SurveySubmitCtx = { submitSurvey?: SurveySubmitEncapsulation };
-export const submitSurvey: SurveySubmitCtx = {
+// must be a function so that useState isnt invoked in global scope
+export const submitSurvey = () => ({
   submitSurvey: {
     execute: surveySubmitExecute,
     networkState: useState<SurveySubmitNetworkState>({
       loading: false,
     }),
   },
-};
+});

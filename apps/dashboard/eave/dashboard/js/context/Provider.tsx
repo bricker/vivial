@@ -4,7 +4,7 @@ import { submitSurvey } from "../graphql/survey";
 
 const AppContextProvider = ({ children }: { children: React.ReactNode }) => {
   const ctx: AppContextProps = {
-    ...submitSurvey,
+    ...submitSurvey(),
   };
 
   return <AppContext.Provider value={ctx}>{children}</AppContext.Provider>;
