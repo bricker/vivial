@@ -29,10 +29,10 @@ function surveySubmitExecute({req, ctx}: { req: SurveySubmitRequest, ctx: Survey
     body: JSON.stringify({
       query: `mutation {
   submitSurvey(
-    visitorId: "${req.visitorId}", 
-    startTime: "${req.startTime.toISOString()}", 
-    searchAreaIds: ${req.searchAreaIds}, 
-    budget: ${req.budget}, 
+    visitorId: "${req.visitorId}",
+    startTime: "${req.startTime.toISOString()}",
+    searchAreaIds: ${JSON.stringify(req.searchAreaIds)},
+    budget: ${req.budget},
     headcount: ${req.budget}) {
     __typename
     ... on SurveySubmitSuccess {
@@ -53,12 +53,12 @@ function surveySubmitExecute({req, ctx}: { req: SurveySubmitRequest, ctx: Survey
     .then((data) => {
       // handle gql error
       if (data.__typename === "SurveySubmitError" || data.data === null) {
-        throw new Error(data?.data?.error_code || "INTERNAL_SERVER_ERROR");
+        throw new Error(data?.data?.submitSurvey?.errorCode || "INTERNAL_SERVER_ERROR");
       }
 
       setNetworkState((prev) => ({
         ...prev,
-        data: { outingId: data.data.outing.id },
+        data: { outingId: data.data.submitSurvey.outing.id },
       }));
     })
     .catch((error) => {
