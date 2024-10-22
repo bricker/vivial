@@ -1,6 +1,6 @@
 import { isHTTPError, isUnauthorized, logUserOut } from "$eave-dashboard/js/util/http-util";
 import { useState } from "react";
-import { requestOrigin, myWindow } from "../types";
+import { myWindow, requestOrigin } from "../types";
 
 export interface AuthedUserHook {
   validateUserAuth: () => void;

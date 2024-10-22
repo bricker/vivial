@@ -13,7 +13,7 @@ type SurveySubmitResponse = {
   outingId: string;
 };
 
-function surveySubmitExecute({req, ctx}: { req: SurveySubmitRequest, ctx: SurveySubmitEncapsulation}): void {
+function surveySubmitExecute({ req, ctx }: { req: SurveySubmitRequest; ctx: SurveySubmitEncapsulation }): void {
   const [, setNetworkState] = ctx.networkState;
 
   setNetworkState({
@@ -79,7 +79,7 @@ type SurveySubmitNetworkState = NetworkState & {
 };
 
 type SurveySubmitEncapsulation = {
-  execute: ({req, ctx}: { req: SurveySubmitRequest, ctx: SurveySubmitEncapsulation}) => void;
+  execute: ({ req, ctx }: { req: SurveySubmitRequest; ctx: SurveySubmitEncapsulation }) => void;
   networkState: [SurveySubmitNetworkState, React.Dispatch<React.SetStateAction<SurveySubmitNetworkState>>];
 };
 

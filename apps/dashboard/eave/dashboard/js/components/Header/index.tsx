@@ -36,9 +36,7 @@ const Header = () => {
   return (
     <header className={classes.outerContainer}>
       <div className={classes.innerContainer}>
-        <div className={classes.logoContainer}>
-          VIVIAL
-        </div>
+        <div className={classes.logoContainer}>VIVIAL</div>
       </div>
     </header>
   );
