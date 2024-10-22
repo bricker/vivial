@@ -1,4 +1,4 @@
-import { AppContext } from "$eave-dashboard/js/context/AppContext.js";
+import { AppContext } from "$eave-dashboard/js/context/AppContext";
 import { textStyles } from "$eave-dashboard/js/theme";
 import {
   Button,
@@ -17,7 +17,7 @@ import classNames from "classnames";
 import dayjs from "dayjs";
 import React, { useContext, useState } from "react";
 import { makeStyles } from "tss-react/mui";
-import OutingLoader from "../../OutingLoader/index.js";
+import OutingLoader from "../../OutingLoader";
 
 const useStyles = makeStyles()((theme) => ({
   main: {
@@ -125,21 +125,47 @@ const SurveyPage = () => {
 
   // default time to tomorrow
   const today = new Date();
-  const tomorrow = new Date(today.setDate(today.getDate() + 1)); // TODO: enforce 24h buffer
+  const tomorrow = new Date(today.setDate(today.getDate() + 1));
   const [time, setTime] = useState(dayjs(tomorrow));
-  const [locations, setLocations] = useState(() => [...Array(laNeighborhoodOptions.length).keys()]);
+  // indices of selected laNeighborhood entries
+  const [locations, setLocations] = useState(() => [0]);
   const [budget, setBudget] = useState(2);
   const [attendees, setAttendees] = useState(2);
-  // TODO: client side validation!
+  const [errors, setErrors] = useState<any>({});
+
+  const validate = () => {
+    const newErrors: any = {};
+    const today = new Date();
+    const tomorrow = dayjs(new Date(today.setDate(today.getDate() + 1))); // TODO: make better
+    const nextMonth = dayjs(new Date(today.setMonth(today.getMonth() + 1)));
+
+    if (time < tomorrow) {
+      newErrors["time"] = "Must be 24 hours or more from now";
+    }
+    if (time > nextMonth) {
+      newErrors["time"] = "Must be less than one month from now";
+    }
+
+    if (locations.length < 1) {
+      newErrors["locations"] = "At least one location must be selected";
+    }
+
+    return newErrors;
+  };
 
   const handleSubmitClick = () => {
-    submitSurvey!.execute({
-      visitorId: "TODO UUID", // TODO:!!!
-      startTime: time.toDate(),
-      searchAreaIds: locations.map((idx) => laNeighborhoodOptions[idx]!.value),
-      budget: budget,
-      headcount: attendees,
-    });
+    const newErrors = validate();
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length === 0) {
+      submitSurvey!.execute({
+        visitorId: "TODO UUID", // TODO:!!!
+        startTime: time.toDate(),
+        searchAreaIds: locations.map((idx) => laNeighborhoodOptions[idx]!.value),
+        budget: budget,
+        headcount: attendees,
+      });
+    }
   };
 
   if (networkState.loading) {
@@ -165,6 +191,7 @@ const SurveyPage = () => {
               value={time}
               onChange={(newValue: any) => setTime(newValue || dayjs(tomorrow))}
             />
+            {errors["time"] && <div>{errors["time"]}</div>}
           </LocalizationProvider>
 
           <FormLabel id="locations-selector-label">What areas of Los Angeles can the date be in?</FormLabel>
@@ -182,6 +209,7 @@ const SurveyPage = () => {
               );
             })}
           </ToggleButtonGroup>
+          {errors["locations"] && <div>{errors["locations"]}</div>}
 
           <FormLabel id="budget-selector">What is your budget?</FormLabel>
           <Slider

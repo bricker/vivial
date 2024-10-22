@@ -1,4 +1,4 @@
-import { myWindow } from "../types.js";
+import { myWindow } from "../types";
 
 export interface HTTPResponse {
   status: number;

@@ -1,5 +1,6 @@
 export const requestOrigin = "web_app";
 
+// TODO: add visitor_id here?
 export type GlobalWindow = Window &
   typeof globalThis & {
     app: {
