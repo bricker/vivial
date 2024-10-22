@@ -14,9 +14,8 @@ type SurveySubmitResponse = {
   outingId: string;
 };
 
-function surveySubmitExecute(req: SurveySubmitRequest): void {
-  const { submitSurvey } = useContext(AppContext);
-  const [, setNetworkState] = submitSurvey!.networkState;
+function surveySubmitExecute({req, ctx}: { req: SurveySubmitRequest, ctx: SurveySubmitEncapsulation}): void {
+  const [, setNetworkState] = ctx.networkState;
 
   setNetworkState({
     loading: true,
@@ -53,7 +52,7 @@ function surveySubmitExecute(req: SurveySubmitRequest): void {
     })
     .then((data) => {
       // handle gql error
-      if (data.__typename === "SurveySubmitError" || data.data === undefined) {
+      if (data.__typename === "SurveySubmitError" || data.data === null) {
         throw new Error(data?.data?.error_code || "INTERNAL_SERVER_ERROR");
       }
 
@@ -81,17 +80,19 @@ type SurveySubmitNetworkState = NetworkState & {
 };
 
 type SurveySubmitEncapsulation = {
-  execute: (req: SurveySubmitRequest) => void;
+  execute: ({req, ctx}: { req: SurveySubmitRequest, ctx: SurveySubmitEncapsulation}) => void;
   networkState: [SurveySubmitNetworkState, React.Dispatch<React.SetStateAction<SurveySubmitNetworkState>>];
 };
 
 export type SurveySubmitCtx = { submitSurvey?: SurveySubmitEncapsulation };
 // must be a function so that useState isnt invoked in global scope
-export const submitSurvey = () => ({
-  submitSurvey: {
-    execute: surveySubmitExecute,
-    networkState: useState<SurveySubmitNetworkState>({
-      loading: false,
-    }),
-  },
-});
+export function submitSurvey(): SurveySubmitCtx {
+  return {
+    submitSurvey: {
+      execute: surveySubmitExecute,
+      networkState: useState<SurveySubmitNetworkState>({
+        loading: false,
+      }),
+    },
+  };
+}

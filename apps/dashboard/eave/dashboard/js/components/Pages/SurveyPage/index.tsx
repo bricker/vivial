@@ -160,11 +160,14 @@ const SurveyPage = () => {
 
     if (Object.keys(newErrors).length === 0) {
       submitSurvey!.execute({
-        visitorId: "TODO UUID", // TODO:!!!
-        startTime: time.toDate(),
-        searchAreaIds: locations.map((idx) => laNeighborhoodOptions[idx]!.value),
-        budget: budget,
-        headcount: attendees,
+        req: {
+          visitorId: "TODO UUID", // TODO:!!!
+          startTime: time.toDate(),
+          searchAreaIds: locations.map((idx) => laNeighborhoodOptions[idx]!.value),
+          budget: budget,
+          headcount: attendees,
+        },
+        ctx: submitSurvey!,
       });
     }
   };
