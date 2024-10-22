@@ -127,9 +127,8 @@ const SurveyPage = () => {
   const [networkState, setNetworkState] = submitSurvey!.networkState;
 
   // default time to tomorrow
-  const today = new Date();
-  const tomorrow = new Date(today.setDate(today.getDate() + 1));
-  const [time, setTime] = useState(dayjs(tomorrow));
+  const tomorrow = dayjs().add(1, "day").add(3, "hour");
+  const [time, setTime] = useState(tomorrow);
   // indices of selected laNeighborhood entries
   const [locations, setLocations] = useState(() => [0]);
   const [budget, setBudget] = useState(2);
@@ -232,7 +231,7 @@ const SurveyPage = () => {
           <FormLabel id="budget-selector">What is your budget?</FormLabel>
           <Slider
             aria-label="Budget selection slider"
-            value={budgetOptions[budget]?.value || budgetOptions.length - 1}
+            value={budgetOptions[budget]!.value}
             onChange={(_e, newValue) => setBudget(newValue as number)}
             getAriaValueText={(_value, index) => budgetOptions[index]?.ariaLabel || "Any amount"}
             step={1}
