@@ -1,12 +1,11 @@
 import Button from "$eave-dashboard/js/components/Button";
-import EaveSideBanner, { BannerStyle } from "$eave-dashboard/js/components/EaveSideBanner";
 import GoogleIcon from "$eave-dashboard/js/components/Icons/GoogleIcon";
-import { eaveWindow } from "$eave-dashboard/js/types";
+import { myWindow } from "$eave-dashboard/js/types";
 import { Typography } from "@mui/material";
 import React from "react";
 import { useSearchParams } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
-import ErrorIcon from "../../Icons/ErrorIcon";
+import ErrorBox from "../../ErrorBox";
 
 const makeClasses = makeStyles()((theme) => ({
   container: {
@@ -74,20 +73,6 @@ const makeClasses = makeStyles()((theme) => ({
     textAlign: "center",
     maxWidth: 400,
   },
-  errorBox: {
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: 16,
-    width: "100%",
-    padding: 16,
-    backgroundColor: "#ff38380d",
-    color: "#AD0000",
-    marginBottom: 15,
-    border: "1px solid #ff383840",
-    borderRadius: 8,
-  },
   fullWidth: {
     width: "100%",
   },
@@ -114,7 +99,7 @@ const AuthenticationPage = ({ type }: { type: "signup" | "login" }) => {
             Join using your work email
           </Typography>
           <Button
-            to={`${eaveWindow.eavedash.apiBase}/oauth/google/authorize`}
+            to={`${myWindow.app.apiBase}/oauth/google/authorize`}
             className={classes.loginButton}
             variant="outlined"
             startIcon={<GoogleIcon className={classes.authIcon} />}
@@ -138,26 +123,19 @@ const AuthenticationPage = ({ type }: { type: "signup" | "login" }) => {
             </Typography>
           </Typography>
           {searchParams.get("error") && (
-            <div className={classes.errorBox}>
-              <ErrorIcon color="#AD0000" />
-              <Typography variant="subtitle1">
-                {(() => {
-                  switch (searchParams.get("error")) {
-                    case AuthErrorCodes.INVALID_EMAIL:
-                      return "Please sign up with your work email address.";
-                    default:
-                      return "We encountered an error signing you up. Please try again later.";
-                  }
-                })()}
-              </Typography>
-            </div>
+            <ErrorBox>
+              {(() => {
+                switch (searchParams.get("error")) {
+                  case AuthErrorCodes.INVALID_EMAIL:
+                    return "Please sign up with your work email address.";
+                  default:
+                    return "We encountered an error signing you up. Please try again later.";
+                }
+              })()}
+            </ErrorBox>
           )}
         </section>
       </div>
-      <EaveSideBanner
-        style={BannerStyle.FULL}
-        subtext="Discover unparalleled insights with Eave. Create your free account today."
-      />
     </div>
   );
 };

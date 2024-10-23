@@ -1,9 +1,9 @@
-import { eaveWindow } from "$eave-dashboard/js/types";
+import { myWindow } from "$eave-dashboard/js/types";
 
 export function imageUrl(filename: string): string {
-  return `${eaveWindow.eavedash.assetBase}/images/${filename}`;
+  return `${myWindow.app.assetBase}/images/${filename}`;
 }
 
 export function jsUrl(filename: string): string {
-  return `${eaveWindow.eavedash.assetBase}/dist/${filename}`;
+  return `${myWindow.app.assetBase}/dist/${filename}`;
 }

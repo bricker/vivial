@@ -1,6 +1,5 @@
 import React from "react";
 import { makeStyles } from "tss-react/mui";
-import EaveLogo from "../EaveLogo";
 
 const makeClasses = makeStyles()((theme) => ({
   outerContainer: {
@@ -37,9 +36,7 @@ const Header = () => {
   return (
     <header className={classes.outerContainer}>
       <div className={classes.innerContainer}>
-        <div className={classes.logoContainer}>
-          <EaveLogo />
-        </div>
+        <div className={classes.logoContainer}>VIVIAL</div>
       </div>
     </header>
   );
