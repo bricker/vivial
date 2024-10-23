@@ -7,9 +7,22 @@ from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.eventbrite.models.venue import Venue
 
-from ..areas.geo_area import GeoArea
+from ..data.areas import GeoArea
 from ..areas.los_angeles import LOS_ANGELES_AREAS
 
+EVENTBRITE_ALLOWED_FORMAT_IDS = [
+    5, # Festival
+    6, # Performance
+    7, # Screening
+    8, # Gala
+    9, # Class
+    11, # Party
+    13, # Tournament
+    14, # Game
+    16, # Tour
+    17, # Attraction
+    100, # Other
+]
 
 async def get_eventbrite_events() -> None:
     client = EventbriteClient(api_key=os.environ["EVENTBRITE_API_KEY"])
