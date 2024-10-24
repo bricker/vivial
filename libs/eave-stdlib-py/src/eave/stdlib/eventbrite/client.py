@@ -7,7 +7,7 @@ from typing import Any, TypedDict
 import aiohttp
 
 from .models.category import Category, Subcategory
-from .models.event import Event
+from .models.event import Event, EventDescription
 from .models.format import Format
 from .models.organizer import Organizer
 from .models.question import Question
@@ -78,6 +78,13 @@ class EventbriteClient:
         """https://www.eventbrite.com/platform/api#/reference/event/retrieve/retrieve-an-event"""
 
         response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}", params=query)
+        j = await response.json()
+        return j
+
+    async def get_event_description(self, *, event_id: str, query: GetEventQuery | None = None) -> EventDescription | None:
+        """https://www.eventbrite.com/platform/api#/reference/event-description/retrieve-full-html-description"""
+
+        response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}/description", params=query)
         j = await response.json()
         return j
 

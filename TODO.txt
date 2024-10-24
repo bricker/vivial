@@ -2,21 +2,33 @@
 
 
 
-Fetch food type conversions.
-Fetch activity category conversion.
+
+
+Get the activity.
+  Apply constraints.
+  Apply user preferences.
+  Apply Lana requirements.
 
 
 
-Get the activity (pending Lana feedback).
+Consolidate types.
+
+
 Get the restauraunt (pending Lana feedback).
+  Fetch restauraunt conversions.
+  Apply constraints.
+  Apply user preferences.
+  Apply Lana requirements.
 Connect to Eventbrite API Client.
 Connect to Google API Client(s) (use Google official Python SDK)
+Connect to vivial database.
 Ensure that radius is converted from miles to meters before being sent to Google.
 Add rate limit fallbacks for Eventbrite API.
 Add rate limit fallbacks for Google APIs (if needed).
 Outstanding TODOs.
 Integration tests.
-Documentation.
+Code Documentation.
+Product Documentation.
 Delete this file.
 
 
