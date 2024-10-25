@@ -8,11 +8,14 @@ from datetime import datetime
 from typing import Literal, Self
 from uuid import UUID
 
+from eave.stdlib.exceptions import InvalidDataError
 from sqlalchemy import PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.stdlib.util import b64encode
+
+from eave.core.graphql.types.authentication import Account, AuthenticationErrorCode
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR
@@ -84,8 +87,7 @@ class AccountOrm(Base):
             password_key=password_key,
         )
 
-        if not obj.validate():
-            raise Exception("Invalid account creation details")
+        obj.validate_or_exception()
 
         session.add(obj)
         await session.flush()
@@ -121,14 +123,10 @@ class AccountOrm(Base):
         result = await session.scalar(lookup)
         return result
 
-    def validate(self) -> bool:
-        """Returns True for valid model data"""
+    def validate_or_exception(self) -> None:
         email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-        return all(
-            [
-                re.match(email_pattern, self.email) is not None,
-            ]
-        )
+        if re.match(email_pattern, self.email) is None:
+            raise InvalidDataError(code=AuthenticationErrorCode.INVALID_EMAIL)
 
     def validate_password_or_exception(self, plaintext_password: str) -> bool:
         expected_password_key = derive_password_key(

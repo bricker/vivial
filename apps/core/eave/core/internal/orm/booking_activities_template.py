@@ -36,7 +36,7 @@ class BookingActivityTemplateOrm(Base):
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     booking_id: Mapped[UUID] = mapped_column()
     activity_name: Mapped[str] = mapped_column()
-    activity_datetime: Mapped[datetime] = mapped_column()
+    activity_start_time: Mapped[datetime] = mapped_column()
     num_attendees: Mapped[int] = mapped_column()
     booking_link: Mapped[str | None] = mapped_column()
     """HTTP link to site for manual booking (possibly affialate), if available"""
@@ -57,7 +57,7 @@ class BookingActivityTemplateOrm(Base):
         session: AsyncSession,
         booking_id: UUID,
         activity_name: str,
-        activity_datetime: datetime,
+        activity_start_time: datetime,
         num_attendees: int,
         booking_link: str | None,
         activity_location_address1: str,
@@ -71,7 +71,7 @@ class BookingActivityTemplateOrm(Base):
         obj = cls(
             booking_id=booking_id,
             activity_name=activity_name,
-            activity_datetime=activity_datetime,
+            activity_start_time=activity_start_time,
             num_attendees=num_attendees,
             booking_link=booking_link,
             activity_location_address1=activity_location_address1,

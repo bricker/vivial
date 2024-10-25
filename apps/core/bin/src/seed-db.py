@@ -99,14 +99,14 @@ async def seed_database(db: AsyncEngine) -> None:
             session=session,
             outing_id=outing.id,
             activity_id=str(uuid.uuid4()),
-            activity_datetime=datetime.datetime.now(),
+            activity_start_time=datetime.datetime.now(),
             num_attendees=2,
         )
         outing_reservation = await OutingReservationOrm.create(
             session=session,
             outing_id=outing.id,
             reservation_id=str(uuid.uuid4()),
-            reservation_datetime=datetime.datetime.now(),
+            reservation_start_time=datetime.datetime.now(),
             num_attendees=2,
         )
         reserver_details = await ReserverDetailsOrm.create(
@@ -129,7 +129,7 @@ async def seed_database(db: AsyncEngine) -> None:
             session=session,
             booking_id=booking.id,
             activity_name="Biking in McDonalds parking lot",
-            activity_datetime=outing_activity.activity_datetime,
+            activity_start_time=outing_activity.activity_start_time,
             num_attendees=outing_activity.num_attendees,
             booking_link="https://micndontlds.com",
             activity_location_address1="101 Mcdonald St",
@@ -144,7 +144,7 @@ async def seed_database(db: AsyncEngine) -> None:
             session=session,
             booking_id=booking.id,
             reservation_name="Red lobster dumpster",
-            reservation_datetime=outing_reservation.reservation_datetime,
+            reservation_start_time=outing_reservation.reservation_start_time,
             num_attendees=outing_reservation.num_attendees,
             booking_link="https://redlobster.yum",
             reservation_location_address1="3269 Abandoned Alley Way",

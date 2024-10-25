@@ -6,9 +6,12 @@ from datetime import datetime
 from typing import Self
 from uuid import UUID
 
+from eave.stdlib.exceptions import InvalidDataError
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
+
+from eave.core.graphql.types.reserver_details import SubmitReserverDetailsErrorCode
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR
@@ -50,21 +53,16 @@ class ReserverDetailsOrm(Base):
             phone_number=phone_number,
         )
 
-        if not obj.validate():
-            raise Exception("Invalid reserver details")
+        obj.validate_or_exception()
 
         session.add(obj)
         await session.flush()
         return obj
 
-    def validate(self) -> bool:
-        """Returns True for valid model data"""
+    def validate_or_exception(self) -> None:
         phone_number_pattern = r"^\+?1?\d{10}$"  # TODO: something better
-        return all(
-            [
-                re.match(phone_number_pattern, self.phone_number) is not None,
-            ]
-        )
+        if re.match(phone_number_pattern, self.phone_number) is None:
+            raise InvalidDataError(code=SubmitReserverDetailsErrorCode.INVALID_PHONE_NUMBER)
 
     @dataclass
     class QueryParams:

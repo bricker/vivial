@@ -29,7 +29,7 @@ class OutingActivityOrm(Base):
     outing_id: Mapped[UUID] = mapped_column()
     activity_id: Mapped[str] = mapped_column()
     """ID of activity in remote eventbrite table"""  # TODO: probably wont alwyas be only eventbrite.. how to make flexible? another field to specify id src?
-    activity_datetime: Mapped[datetime] = mapped_column()
+    activity_start_time: Mapped[datetime] = mapped_column()
     num_attendees: Mapped[int] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -40,13 +40,13 @@ class OutingActivityOrm(Base):
         session: AsyncSession,
         outing_id: UUID,
         activity_id: str,
-        activity_datetime: datetime,
+        activity_start_time: datetime,
         num_attendees: int,
     ) -> Self:
         obj = cls(
             outing_id=outing_id,
             activity_id=activity_id,
-            activity_datetime=activity_datetime,
+            activity_start_time=activity_start_time,
             num_attendees=num_attendees,
         )
 

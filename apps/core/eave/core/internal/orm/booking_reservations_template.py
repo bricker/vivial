@@ -36,7 +36,7 @@ class BookingReservationTemplateOrm(Base):
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     booking_id: Mapped[UUID] = mapped_column()
     reservation_name: Mapped[str] = mapped_column()
-    reservation_datetime: Mapped[datetime] = mapped_column()
+    reservation_start_time: Mapped[datetime] = mapped_column()
     num_attendees: Mapped[int] = mapped_column()
     booking_link: Mapped[str | None] = mapped_column()
     """HTTP link to site for manual booking (possibly affialate), if available"""
@@ -57,7 +57,7 @@ class BookingReservationTemplateOrm(Base):
         session: AsyncSession,
         booking_id: UUID,
         reservation_name: str,
-        reservation_datetime: datetime,
+        reservation_start_time: datetime,
         num_attendees: int,
         booking_link: str | None,
         reservation_location_address1: str,
@@ -71,7 +71,7 @@ class BookingReservationTemplateOrm(Base):
         obj = cls(
             booking_id=booking_id,
             reservation_name=reservation_name,
-            reservation_datetime=reservation_datetime,
+            reservation_start_time=reservation_start_time,
             num_attendees=num_attendees,
             booking_link=booking_link,
             reservation_location_address1=reservation_location_address1,

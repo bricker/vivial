@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from typing import Self
 from uuid import UUID
 
+from eave.stdlib.exceptions import InvalidDataError, StartTimeTooLateError, StartTimeTooSoonError
 import sqlalchemy
 import sqlalchemy.dialects.postgresql
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func, select
@@ -12,9 +13,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.areas.search_region_code import SearchRegionCode
+from eave.core.graphql.types.outing import SurveySubmitErrorCode
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR
+from .util import UUID_DEFAULT_EXPR, validate_time_within_bounds_or_exception
 
 
 class SurveyOrm(Base):
@@ -64,8 +66,7 @@ class SurveyOrm(Base):
             headcount=headcount,
         )
 
-        if not obj.validate():
-            raise Exception("Survey data invalid")
+        obj.validate()
 
         session.add(obj)
         await session.flush()
@@ -103,13 +104,12 @@ class SurveyOrm(Base):
         result = await session.scalar(lookup)
         return result
 
-    def validate(self) -> bool:
-        """Returns True for valid model data"""
-        return all(
-            [
-                # all(SearchRegionCode.from_str(code) is not None for code in self.search_area_ids),
-                len(self.search_area_ids) > 0,
-                datetime.now() - self.start_time >= timedelta(hours=24),
-                datetime.now() - self.start_time < timedelta(days=30),
-            ]
-        )
+    def validate(self) -> None:
+        if not len(self.search_area_ids) > 0:
+            raise InvalidDataError(code=SurveySubmitErrorCode.ONE_SEARCH_REGION_REQUIRED)
+        try:
+            validate_time_within_bounds_or_exception(self.start_time)
+        except StartTimeTooSoonError:
+            raise InvalidDataError(code=SurveySubmitErrorCode.START_TIME_TOO_SOON)
+        except StartTimeTooLateError:
+            raise InvalidDataError(code=SurveySubmitErrorCode.START_TIME_TOO_LATE)

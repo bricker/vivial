@@ -29,7 +29,7 @@ class OutingReservationOrm(Base):
     outing_id: Mapped[UUID] = mapped_column()
     reservation_id: Mapped[str] = mapped_column()
     """ID of reservation in remote google locations table"""  # TODO: probably wont alwyas be only google.. how to make flexible? another field to specify id src?
-    reservation_datetime: Mapped[datetime] = mapped_column()
+    reservation_start_time: Mapped[datetime] = mapped_column()
     num_attendees: Mapped[int] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -40,13 +40,13 @@ class OutingReservationOrm(Base):
         session: AsyncSession,
         outing_id: UUID,
         reservation_id: str,
-        reservation_datetime: datetime,
+        reservation_start_time: datetime,
         num_attendees: int,
     ) -> Self:
         obj = cls(
             outing_id=outing_id,
             reservation_id=reservation_id,
-            reservation_datetime=reservation_datetime,
+            reservation_start_time=reservation_start_time,
             num_attendees=num_attendees,
         )
 

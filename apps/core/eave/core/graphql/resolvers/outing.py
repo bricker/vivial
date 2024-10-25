@@ -1,13 +1,19 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from uuid import UUID, uuid4
 
+from eave.stdlib.exceptions import InvalidDataError, StartTimeTooLateError, StartTimeTooSoonError
+from eave.stdlib.logging import LOGGER
 import strawberry
 
 from eave.core.areas.search_region_code import SearchRegionCode
 from eave.core.graphql.types.outing import (
     Outing,
+    ReplanOutingError,
+    ReplanOutingErrorCode,
     ReplanOutingResult,
     ReplanOutingSuccess,
+    SurveySubmitError,
+    SurveySubmitErrorCode,
     SurveySubmitResult,
     SurveySubmitSuccess,
 )
@@ -16,6 +22,7 @@ from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.outing_activity import OutingActivityOrm
 from eave.core.internal.orm.outing_reservation import OutingReservationOrm
 from eave.core.internal.orm.survey import SurveyOrm
+from eave.core.internal.orm.util import validate_time_within_bounds_or_exception
 
 
 async def create_outing_plan(
@@ -35,14 +42,14 @@ async def create_outing_plan(
             session=db_session,
             outing_id=outing.id,
             activity_id=str(uuid4()),
-            activity_datetime=datetime.now(),
+            activity_start_time=datetime.now(),
             num_attendees=2,
         )
         _outing_reservation = await OutingReservationOrm.create(
             session=db_session,
             outing_id=outing.id,
             reservation_id=str(uuid4()),
-            reservation_datetime=datetime.now(),
+            reservation_start_time=datetime.now(),
             num_attendees=2,
         )
     return outing
@@ -57,20 +64,24 @@ async def submit_survey_mutation(
     budget: int,
     headcount: int,
 ) -> SurveySubmitResult:
-    async with database.async_session.begin() as db_session:
-        search_areas: list[SearchRegionCode] = []
-        for area_id in search_area_ids:
-            if region := SearchRegionCode.from_str(area_id):
-                search_areas.append(region)
-        survey = await SurveyOrm.create(
-            session=db_session,
-            visitor_id=visitor_id,
-            start_time=start_time,
-            search_area_ids=search_areas,
-            budget=budget,
-            headcount=headcount,
-            account_id=None,  # TODO: look for auth attached to request
-        )
+    try:
+        async with database.async_session.begin() as db_session:
+            search_areas: list[SearchRegionCode] = []
+            for area_id in search_area_ids:
+                if region := SearchRegionCode.from_str(area_id):
+                    search_areas.append(region)
+            survey = await SurveyOrm.create(
+                session=db_session,
+                visitor_id=visitor_id,
+                start_time=start_time,
+                search_area_ids=search_areas,
+                budget=budget,
+                headcount=headcount,
+                account_id=None,  # TODO: look for auth attached to request
+            )
+    except InvalidDataError as e:
+        LOGGER.exception(e)
+        return SurveySubmitError(error_code=SurveySubmitErrorCode(e.code))
 
     outing = await create_outing_plan(
         visitor_id=survey.visitor_id,
@@ -94,17 +105,32 @@ async def replan_outing_mutation(
     visitor_id: UUID,
     outing_id: UUID,
 ) -> ReplanOutingResult:
-    async with database.async_session.begin() as db_session:
-        original_outing = await OutingOrm.one_or_exception(
-            session=db_session,
-            params=OutingOrm.QueryParams(id=outing_id),
-        )
+    try:
+        async with database.async_session.begin() as db_session:
+            original_outing = await OutingOrm.one_or_exception(
+                session=db_session,
+                params=OutingOrm.QueryParams(id=outing_id),
+            )
+            survey = await SurveyOrm.one_or_exception(
+                session=db_session, params=SurveyOrm.QueryParams(id=original_outing.survey_id)
+            )
 
-    outing = await create_outing_plan(
-        visitor_id=visitor_id,
-        survey_id=original_outing.survey_id,
-        account_id=original_outing.account_id,  # TODO: this is wrong; look for any auth attached to the request instead
-    )
+            validate_time_within_bounds_or_exception(survey.start_time)
+
+        outing = await create_outing_plan(
+            visitor_id=visitor_id,
+            survey_id=original_outing.survey_id,
+            account_id=original_outing.account_id,  # TODO: this is wrong; look for any auth attached to the request instead
+        )
+    except InvalidDataError as e:
+        LOGGER.exception(e)
+        return ReplanOutingError(error_code=ReplanOutingErrorCode(e.code))
+    except StartTimeTooLateError as e:
+        LOGGER.exception(e)
+        return ReplanOutingError(error_code=ReplanOutingErrorCode.START_TIME_TOO_LATE)
+    except StartTimeTooSoonError as e:
+        LOGGER.exception(e)
+        return ReplanOutingError(error_code=ReplanOutingErrorCode.START_TIME_TOO_SOON)
 
     return ReplanOutingSuccess(
         outing=Outing(
