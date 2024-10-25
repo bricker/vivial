@@ -1,4 +1,3 @@
-import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime
@@ -10,31 +9,28 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR
 
 
-class OutingOrm(Base):
-    __tablename__ = "outings"
+class OutingActivityOrm(Base):
+    """Pivot table between `outings` and `activities` tables. (`activities` is a remote dataset)"""
+
+    __tablename__ = "outing_activities"
     __table_args__ = (
-        PrimaryKeyConstraint("id"),
+        PrimaryKeyConstraint("outing_id", "activity_id", name="outing_activity_pivot_pk"),
         ForeignKeyConstraint(
-            ["survey_id"],
-            ["surveys.id"],
+            ["outing_id"],
+            ["outings.id"],
             ondelete="CASCADE",
-            name="survey_id_outing_fk",
+            name="outing_id_activity_pivot_fk",
         ),
-        ForeignKeyConstraint(
-            ["account_id"],
-            ["accounts.id"],
-            ondelete="CASCADE",
-            name="account_id_outing_fk",
-        ),
+        # no fk for activity_id bcus it's a remote db
     )
 
-    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    visitor_id: Mapped[UUID] = mapped_column()
-    account_id: Mapped[UUID | None] = mapped_column()
-    survey_id: Mapped[UUID] = mapped_column()
+    outing_id: Mapped[UUID] = mapped_column()
+    activity_id: Mapped[str] = mapped_column()
+    """ID of activity in remote eventbrite table"""  # TODO: probably wont alwyas be only eventbrite.. how to make flexible? another field to specify id src?
+    activity_datetime: Mapped[datetime] = mapped_column()
+    num_attendees: Mapped[int] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -42,14 +38,16 @@ class OutingOrm(Base):
     async def create(
         cls,
         session: AsyncSession,
-        visitor_id: UUID,
-        survey_id: UUID,
-        account_id: UUID | None = None,
+        outing_id: UUID,
+        activity_id: str,
+        activity_datetime: datetime,
+        num_attendees: int,
     ) -> Self:
         obj = cls(
-            visitor_id=visitor_id,
-            account_id=account_id,
-            survey_id=survey_id,
+            outing_id=outing_id,
+            activity_id=activity_id,
+            activity_datetime=activity_datetime,
+            num_attendees=num_attendees,
         )
 
         session.add(obj)
@@ -58,14 +56,18 @@ class OutingOrm(Base):
 
     @dataclass
     class QueryParams:
-        id: uuid.UUID | None = None
+        outing_id: UUID | None = None
+        activity_id: str | None = None
 
     @classmethod
     def _build_query(cls, params: QueryParams) -> Select[tuple[Self]]:
         lookup = select(cls)
 
-        if params.id is not None:
-            lookup = lookup.where(cls.id == params.id)
+        if params.outing_id is not None:
+            lookup = lookup.where(cls.outing_id == params.outing_id)
+
+        if params.activity_id is not None:
+            lookup = lookup.where(cls.activity_id == params.activity_id)
 
         assert lookup.whereclause is not None, "Invalid parameters"
         return lookup

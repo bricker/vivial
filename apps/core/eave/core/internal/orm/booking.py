@@ -13,28 +13,20 @@ from .base import Base
 from .util import UUID_DEFAULT_EXPR
 
 
-class OutingOrm(Base):
-    __tablename__ = "outings"
+class BookingOrm(Base):
+    __tablename__ = "bookings"
     __table_args__ = (
         PrimaryKeyConstraint("id"),
         ForeignKeyConstraint(
-            ["survey_id"],
-            ["surveys.id"],
+            ["reserver_details_id"],
+            ["reserver_details.id"],
             ondelete="CASCADE",
-            name="survey_id_outing_fk",
-        ),
-        ForeignKeyConstraint(
-            ["account_id"],
-            ["accounts.id"],
-            ondelete="CASCADE",
-            name="account_id_outing_fk",
+            name="reserver_details_booking_fk",
         ),
     )
 
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
-    visitor_id: Mapped[UUID] = mapped_column()
-    account_id: Mapped[UUID | None] = mapped_column()
-    survey_id: Mapped[UUID] = mapped_column()
+    reserver_details_id: Mapped[UUID] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -42,14 +34,10 @@ class OutingOrm(Base):
     async def create(
         cls,
         session: AsyncSession,
-        visitor_id: UUID,
-        survey_id: UUID,
-        account_id: UUID | None = None,
+        account_id: UUID,
     ) -> Self:
         obj = cls(
-            visitor_id=visitor_id,
             account_id=account_id,
-            survey_id=survey_id,
         )
 
         session.add(obj)
