@@ -1,11 +1,10 @@
 import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Self
 from uuid import UUID
 
-from eave.stdlib.exceptions import InvalidDataError, StartTimeTooLateError, StartTimeTooSoonError
 import sqlalchemy
 import sqlalchemy.dialects.postgresql
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func, select
@@ -14,6 +13,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.areas.search_region_code import SearchRegionCode
 from eave.core.graphql.types.outing import SurveySubmitErrorCode
+from eave.stdlib.exceptions import InvalidDataError, StartTimeTooLateError, StartTimeTooSoonError
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR, validate_time_within_bounds_or_exception

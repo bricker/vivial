@@ -6,12 +6,12 @@ from datetime import datetime
 from typing import Self
 from uuid import UUID
 
-from eave.stdlib.exceptions import InvalidDataError
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.graphql.types.reserver_details import SubmitReserverDetailsErrorCode
+from eave.stdlib.exceptions import InvalidDataError
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR

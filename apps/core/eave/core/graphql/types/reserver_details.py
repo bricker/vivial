@@ -29,4 +29,6 @@ class SubmitReserverDetailsError:
     error_code: SubmitReserverDetailsErrorCode
 
 
-SubmitReserverDetailsResult = Annotated[SubmitReserverDetailsSuccess | SubmitReserverDetailsError, strawberry.union("SubmitReserverDetailsResult")]
+SubmitReserverDetailsResult = Annotated[
+    SubmitReserverDetailsSuccess | SubmitReserverDetailsError, strawberry.union("SubmitReserverDetailsResult")
+]

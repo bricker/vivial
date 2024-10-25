@@ -8,14 +8,13 @@ from datetime import datetime
 from typing import Literal, Self
 from uuid import UUID
 
-from eave.stdlib.exceptions import InvalidDataError
 from sqlalchemy import PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
+from eave.core.graphql.types.authentication import AuthenticationErrorCode
+from eave.stdlib.exceptions import InvalidDataError
 from eave.stdlib.util import b64encode
-
-from eave.core.graphql.types.authentication import Account, AuthenticationErrorCode
 
 from .base import Base
 from .util import UUID_DEFAULT_EXPR

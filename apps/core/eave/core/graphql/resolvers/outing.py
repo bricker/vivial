@@ -1,8 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from uuid import UUID, uuid4
 
-from eave.stdlib.exceptions import InvalidDataError, StartTimeTooLateError, StartTimeTooSoonError
-from eave.stdlib.logging import LOGGER
 import strawberry
 
 from eave.core.areas.search_region_code import SearchRegionCode
@@ -23,6 +21,8 @@ from eave.core.internal.orm.outing_activity import OutingActivityOrm
 from eave.core.internal.orm.outing_reservation import OutingReservationOrm
 from eave.core.internal.orm.survey import SurveyOrm
 from eave.core.internal.orm.util import validate_time_within_bounds_or_exception
+from eave.stdlib.exceptions import InvalidDataError, StartTimeTooLateError, StartTimeTooSoonError
+from eave.stdlib.logging import LOGGER
 
 
 async def create_outing_plan(
