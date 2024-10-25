@@ -1,10 +1,10 @@
 
-from budget import ACTIVITY_BUDGET_MAP, RESTAURANT_BUDGET_MAP
+from constants import ACTIVITY_BUDGET_MAP, RESTAURANT_BUDGET_MAP, RESTAURANT_FIELD_MASK
 from models import OutingPlan, Restaurant, OutingConstraints, User, RestaurantCategory, ActivityCategory, UserPreferences, Activity
 from dataclasses import dataclass
 
 
-
+from eave.stdlib.google.google_places.client import Place
 
 # from eave.core.areas.los_angeles import LOS_ANGELES_AREA_MAP
 # TODO: remove temp hardcoding
@@ -135,7 +135,7 @@ class Outing:
         return UserPreferences(open_to_bars, requires_wheelchair_accessibility, restaurant_categories, activity_categories)
 
 
-    async def plan_activity(self) -> Event | Activity | Restaurant | None:
+    async def plan_activity(self) -> Event | Activity | Place | None:
         activity_start_time = self.constraints.start_time + timedelta(minutes=120)
         activity_end_time = activity_start_time + timedelta(minutes=120)
         random.shuffle(self.constraints.search_area_ids)
@@ -151,7 +151,7 @@ class Outing:
                 #     category_id=category.id,
                 #     subcategory_id=category.subcategory_id,
                 #     start_time=activity_start_time,
-                #     budget=ACTIVITY_BUDGET_MAP[self.constraints.budget]["max"],
+                #     budget=ACTIVITY_BUDGET_MAP[self.constraints.budget],
                 # )
                 random.shuffle(events)
                 for event in events:
@@ -174,7 +174,7 @@ class Outing:
                 #     category_id=category.id,
                 #     subcategory_id=category.subcategory_id,
                 #     open_during=TimeInterval(activity_start_time, activity_end_time),
-                #     budget=ACTIVITY_BUDGET_MAP[self.constraints.budget]["max"],
+                #     budget=ACTIVITY_BUDGET_MAP[self.constraints.budget],
                 # )
                 # if len(activities) > 0:
                 #     random.shuffle(activities)
@@ -190,24 +190,26 @@ class Outing:
         # if self.preferences.open_to_bars and activity_start_time.hour >= 17:
         for search_area_id in self.constraints.search_area_ids:
             area = LOS_ANGELES_AREA_MAP[search_area_id]
-
-            # print("about to fetch bars")
-            nearby_sushi = await self.places.search_nearby(
-                field_mask=["places.displayName"],
+            if bars_nearby := await self.places.search_nearby(
+                field_mask=RESTAURANT_FIELD_MASK,
                 latitude=area.lat,
                 longitude=area.lon,
                 radius=area.rad.meters,
-                included_types=["sushi_restaurant"],
-            )
-            # if places := nearby_sushi.get("places"):
-            #     random.shuffle(places)
-            #     for bar in places:
-            #         # pprint.pp(bar)
-            #         break
-
-
-            # Check accessibility.
-            # Check hours of operation.
+                included_types=["bar"],
+                excluded_types=None,
+                included_primary_types=None,
+                excluded_primary_types=None,
+                language_code=None,
+                max_result_count= None,
+                rank_preference=None,
+                region_code=None,
+            ):
+                random.shuffle(bars_nearby)
+                for bar in bars_nearby:
+                    print(bar)
+                    # Check accessibility.
+                    # Check hours of operation.
+                    # Check price.
 
 
 

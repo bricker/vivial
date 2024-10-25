@@ -1,0 +1,22 @@
+from enum import StrEnum
+
+class FuelType(StrEnum):
+    FUEL_TYPE_UNSPECIFIED = "FUEL_TYPE_UNSPECIFIED"
+    DIESEL = "DIESEL"
+    REGULAR_UNLEADED = "REGULAR_UNLEADED"
+    MIDGRADE = "MIDGRADE"
+    PREMIUM = "PREMIUM"
+    SP91 = "SP91"
+    SP91_E10 = "SP91_E10"
+    SP92 = "SP92"
+    SP95 = "SP95"
+    SP95_E10 = "SP95_E10"
+    SP98 = "SP98"
+    SP99 = "SP99"
+    SP100 = "SP100"
+    LPG = "LPG"
+    E80 = "E80"
+    E85 = "E85"
+    METHANE = "METHANE"
+    BIO_DIESEL = "BIO_DIESEL"
+    TRUCK_DIESEL = "TRUCK_DIESEL"
