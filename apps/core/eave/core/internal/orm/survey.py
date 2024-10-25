@@ -66,7 +66,7 @@ class SurveyOrm(Base):
             headcount=headcount,
         )
 
-        obj.validate()
+        obj.validate_or_exception()
 
         session.add(obj)
         await session.flush()
@@ -104,7 +104,7 @@ class SurveyOrm(Base):
         result = await session.scalar(lookup)
         return result
 
-    def validate(self) -> None:
+    def validate_or_exception(self) -> None:
         if not len(self.search_area_ids) > 0:
             raise InvalidDataError(code=SurveySubmitErrorCode.ONE_SEARCH_REGION_REQUIRED)
         try:
