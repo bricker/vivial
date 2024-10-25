@@ -23,6 +23,10 @@ async def submit_reserver_details_mutation(
     last_name: str,
     phone_number: str,
 ) -> SubmitReserverDetailsResult:
+    """
+    phone_number parameter must be digits only (with the exception of country code +) to pass validation
+    e.g. "+11234567890" or "1234567890"
+    """
     try:
         async with database.async_session.begin() as db_session:
             reserver_details = await ReserverDetailsOrm.create(
