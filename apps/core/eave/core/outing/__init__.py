@@ -1,10 +1,24 @@
 
-from constants import ACTIVITY_BUDGET_MAP, RESTAURANT_BUDGET_MAP, RESTAURANT_FIELD_MASK
-from models import OutingPlan, Restaurant, OutingConstraints, User, RestaurantCategory, ActivityCategory, UserPreferences, Activity
 from dataclasses import dataclass
+from datetime import datetime, timedelta
+import random
+import asyncio
+import os
+
+from eave.stdlib.eventbrite.client import EventbriteClient
+from eave.stdlib.eventbrite.models.event import Event, EventStatus
+
+from eave.stdlib.google.places.client import GooglePlacesClient
+from eave.stdlib.google.places.models.place import Place
+
+from models import OutingPlan, Restaurant, OutingConstraints, User, RestaurantCategory, ActivityCategory, UserPreferences, Activity
+from constants import ACTIVITY_BUDGET_MAP, RESTAURANT_BUDGET_MAP, RESTAURANT_FIELD_MASK
 
 
-from eave.stdlib.google.google_places.client import Place
+
+
+
+
 
 # from eave.core.areas.los_angeles import LOS_ANGELES_AREA_MAP
 # TODO: remove temp hardcoding
@@ -39,25 +53,10 @@ LOS_ANGELES_AREA_MAP = {
 
 
 
-from eave.stdlib.eventbrite.models.event import Event, EventStatus
-from eave.stdlib.eventbrite.client import EventbriteClient
-from eave.stdlib.google.google_places.client import GooglePlacesClient
 
-from datetime import datetime, timedelta
-import googlemaps
-import random
-import asyncio
-import os
-
-
-import pprint
 
 class Outing:
-    # googlemaps = googlemaps.Client(key=os.environ["GOOGLE_MAPS_API_KEY"])
-
-
-    # TODO: remove to GOOGLE_PLACES_API_KEY
-    places = GooglePlacesClient(api_key=os.environ["GOOGLE_MAPS_API_KEY"])
+    places = GooglePlacesClient(api_key=os.environ["GOOGLE_PLACES_API_KEY"])
     eventbrite = EventbriteClient(api_key=os.environ["EVENTBRITE_API_KEY"])
     preferences: UserPreferences
     constraints: OutingConstraints

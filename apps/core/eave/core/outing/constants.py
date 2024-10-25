@@ -1,30 +1,19 @@
+from eave.stdlib.google.places.models.price_level import PriceLevel
+
 ACTIVITY_BUDGET_MAP = {
+    0: 0,
     1: 10,
     2: 50,
     3: 150,
     4: None,
 }
 
-# TODO: don't need this
-
-# TODO map to google PriceLevel
 RESTAURANT_BUDGET_MAP = {
-    1: {
-        min: 0,
-        max: 10,
-    },
-    2: {
-        min: 11,
-        max: 30,
-    },
-    3: {
-        min: 31,
-        max: 60,
-    },
-    4: {
-        min: 61,
-        max: None,
-    },
+    0: PriceLevel.PRICE_LEVEL_FREE,
+    1: PriceLevel.PRICE_LEVEL_INEXPENSIVE,
+    2: PriceLevel.PRICE_LEVEL_MODERATE,
+    3: PriceLevel.PRICE_LEVEL_EXPENSIVE,
+    4: PriceLevel.PRICE_LEVEL_VERY_EXPENSIVE,
 }
 
 RESTAURANT_FIELD_MASK = [
