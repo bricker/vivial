@@ -1,7 +1,7 @@
 import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Self
 from uuid import UUID
 
@@ -104,4 +104,12 @@ class SurveyOrm(Base):
         return result
 
     def validate(self) -> bool:
-        return all(SearchRegionCode.from_str(code) is not None for code in self.search_area_ids)
+        """Returns True for valid model data"""
+        return all(
+            [
+                # all(SearchRegionCode.from_str(code) is not None for code in self.search_area_ids),
+                len(self.search_area_ids) > 0,
+                datetime.now() - self.start_time >= timedelta(hours=24),
+                datetime.now() - self.start_time < timedelta(days=30),
+            ]
+        )

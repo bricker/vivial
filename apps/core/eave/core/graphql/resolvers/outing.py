@@ -1,5 +1,5 @@
 from datetime import datetime
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import strawberry
 
@@ -13,8 +13,39 @@ from eave.core.graphql.types.outing import (
 )
 from eave.core.internal import database
 from eave.core.internal.orm.outing import OutingOrm
+from eave.core.internal.orm.outing_activity import OutingActivityOrm
+from eave.core.internal.orm.outing_reservation import OutingReservationOrm
 from eave.core.internal.orm.survey import SurveyOrm
-from eave.stdlib.util import ensure_uuid
+
+
+async def create_outing_plan(
+    visitor_id: UUID,
+    survey_id: UUID,
+    account_id: UUID | None,
+) -> OutingOrm:
+    # TODO: actually call the planning function instead
+    async with database.async_session.begin() as db_session:
+        outing = await OutingOrm.create(
+            session=db_session,
+            visitor_id=visitor_id,
+            survey_id=survey_id,
+            account_id=account_id,
+        )
+        _outing_activity = await OutingActivityOrm.create(
+            session=db_session,
+            outing_id=outing.id,
+            activity_id=str(uuid4()),
+            activity_datetime=datetime.now(),
+            num_attendees=2,
+        )
+        _outing_reservation = await OutingReservationOrm.create(
+            session=db_session,
+            outing_id=outing.id,
+            reservation_id=str(uuid4()),
+            reservation_datetime=datetime.now(),
+            num_attendees=2,
+        )
+    return outing
 
 
 async def submit_survey_mutation(
@@ -38,15 +69,14 @@ async def submit_survey_mutation(
             search_area_ids=search_areas,
             budget=budget,
             headcount=headcount,
+            account_id=None,  # TODO: look for auth attached to request
         )
 
-        # TODO: actually call the planning function instead
-        outing = await OutingOrm.create(
-            session=db_session,
-            visitor_id=visitor_id,
-            survey_id=survey.id,
-            account_id=None,
-        )
+    outing = await create_outing_plan(
+        visitor_id=survey.visitor_id,
+        survey_id=survey.id,
+        account_id=survey.account_id,
+    )
 
     return SurveySubmitSuccess(
         outing=Outing(
@@ -58,20 +88,23 @@ async def submit_survey_mutation(
     )
 
 
-async def replan_outing_mutation(*, info: strawberry.Info, outing_id: UUID) -> ReplanOutingResult:
+async def replan_outing_mutation(
+    *,
+    info: strawberry.Info,
+    visitor_id: UUID,
+    outing_id: UUID,
+) -> ReplanOutingResult:
     async with database.async_session.begin() as db_session:
         original_outing = await OutingOrm.one_or_exception(
             session=db_session,
-            params=OutingOrm.QueryParams(id=ensure_uuid(outing_id)),
+            params=OutingOrm.QueryParams(id=outing_id),
         )
 
-        # TODO: actually call the planning function instead
-        outing = await OutingOrm.create(
-            session=db_session,
-            visitor_id=original_outing.visitor_id,
-            survey_id=original_outing.survey_id,
-            account_id=original_outing.account_id,
-        )
+    outing = await create_outing_plan(
+        visitor_id=visitor_id,
+        survey_id=original_outing.survey_id,
+        account_id=original_outing.account_id,  # TODO: this is wrong; look for any auth attached to the request instead
+    )
 
     return ReplanOutingSuccess(
         outing=Outing(

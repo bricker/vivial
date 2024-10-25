@@ -9,7 +9,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR
 
 
 class AccountBookingOrm(Base):
@@ -32,7 +31,6 @@ class AccountBookingOrm(Base):
             ondelete="CASCADE",
             name="booking_id_account_booking_fk",
         ),
-
         # reverse index to facilitate searching for other accounts
         # associated w/ a booking
         Index(
@@ -41,7 +39,6 @@ class AccountBookingOrm(Base):
         ),
     )
 
-    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     account_id: Mapped[UUID] = mapped_column()
     booking_id: Mapped[UUID] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())

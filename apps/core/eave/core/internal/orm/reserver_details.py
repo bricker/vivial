@@ -1,3 +1,4 @@
+import re
 import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -49,9 +50,21 @@ class ReserverDetailsOrm(Base):
             phone_number=phone_number,
         )
 
+        if not obj.validate():
+            raise Exception("Invalid reserver details")
+
         session.add(obj)
         await session.flush()
         return obj
+
+    def validate(self) -> bool:
+        """Returns True for valid model data"""
+        phone_number_pattern = r"^\+?1?\d{10}$"  # TODO: something better
+        return all(
+            [
+                re.match(phone_number_pattern, self.phone_number) is not None,
+            ]
+        )
 
     @dataclass
     class QueryParams:

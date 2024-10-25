@@ -84,6 +84,9 @@ class AccountOrm(Base):
             password_key=password_key,
         )
 
+        if not obj.validate():
+            raise Exception("Invalid account creation details")
+
         session.add(obj)
         await session.flush()
         return obj
@@ -117,6 +120,15 @@ class AccountOrm(Base):
         lookup = cls._build_query(params=params)
         result = await session.scalar(lookup)
         return result
+
+    def validate(self) -> bool:
+        """Returns True for valid model data"""
+        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        return all(
+            [
+                re.match(email_pattern, self.email) is not None,
+            ]
+        )
 
     def validate_password_or_exception(self, plaintext_password: str) -> bool:
         expected_password_key = derive_password_key(
