@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 from datetime import datetime
 
+
+# TODO: Clean up / move into other files.
+
 @dataclass
 class OutingPlan:
     activity: object # TODO: Activity Schema
@@ -9,13 +12,6 @@ class OutingPlan:
 
 
 
-
-
-
-
-@dataclass
-class OutingRestaurant:
-    name: str
 
 
 
@@ -121,4 +117,6 @@ class Activity:
 @dataclass
 class Restaurant:
     id: str
+    accepts_reservations: bool
+    location: Location
 
