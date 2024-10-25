@@ -138,10 +138,11 @@ const SurveyPage = () => {
   const validate = () => {
     const newErrors: any = {};
     const today = dayjs();
-    const tomorrow = today.add(1, "day");
+    // refetch tommorow in case tab has been sitting open a super long time
+    const currTomorrow = today.add(1, "day");
     const nextMonth = today.add(1, "month");
 
-    if (time < tomorrow) {
+    if (time < currTomorrow) {
       newErrors["time"] = "Must be 24 hours or more from now";
     }
     if (time > nextMonth) {
@@ -206,7 +207,7 @@ const SurveyPage = () => {
             <DateTimePicker
               label="Date time picker"
               value={time}
-              onChange={(newValue: any) => setTime(newValue || dayjs(tomorrow))}
+              onChange={(newValue: any) => setTime(newValue || tomorrow)}
             />
             {errors["time"] && <ErrorBox>{errors["time"]}</ErrorBox>}
           </LocalizationProvider>
@@ -246,7 +247,7 @@ const SurveyPage = () => {
               aria-labelledby="attendees-group-label"
               name="attendees-group"
               value={attendees}
-              onChange={(e) => setAttendees(parseInt(e.target.value))}
+              onChange={(e) => setAttendees(parseInt(e.target.value, 10))}
             >
               <FormControlLabel value={1} control={<Radio />} label="1" />
               <FormControlLabel value={2} control={<Radio />} label="2" />
