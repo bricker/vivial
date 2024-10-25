@@ -38,9 +38,15 @@ class ReserverDetailsOrm(Base):
         cls,
         session: AsyncSession,
         account_id: UUID,
+        first_name: str,
+        last_name: str,
+        phone_number: str,
     ) -> Self:
         obj = cls(
             account_id=account_id,
+            first_name=first_name,
+            last_name=last_name,
+            phone_number=phone_number,
         )
 
         session.add(obj)

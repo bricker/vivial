@@ -34,10 +34,10 @@ class BookingOrm(Base):
     async def create(
         cls,
         session: AsyncSession,
-        account_id: UUID,
+        reserver_details_id: UUID,
     ) -> Self:
         obj = cls(
-            account_id=account_id,
+            reserver_details_id=reserver_details_id,
         )
 
         session.add(obj)

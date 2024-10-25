@@ -23,7 +23,7 @@ class BookingActivityTemplateOrm(Base):
         PrimaryKeyConstraint(
             "booking_id",
             "id",
-            "booking_activity_template_pk",
+            name="booking_activity_template_pk",
         ),
         ForeignKeyConstraint(
             ["booking_id"],
@@ -35,7 +35,7 @@ class BookingActivityTemplateOrm(Base):
 
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     booking_id: Mapped[UUID] = mapped_column()
-    activity_name: Mapped[UUID] = mapped_column()
+    activity_name: Mapped[str] = mapped_column()
     activity_datetime: Mapped[datetime] = mapped_column()
     num_attendees: Mapped[int] = mapped_column()
     booking_link: Mapped[str | None] = mapped_column()
@@ -56,7 +56,7 @@ class BookingActivityTemplateOrm(Base):
         cls,
         session: AsyncSession,
         booking_id: UUID,
-        activity_name: UUID,
+        activity_name: str,
         activity_datetime: datetime,
         num_attendees: int,
         booking_link: str | None,

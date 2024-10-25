@@ -23,7 +23,7 @@ class BookingReservationTemplateOrm(Base):
         PrimaryKeyConstraint(
             "booking_id",
             "id",
-            "booking_reservation_template_pk",
+            name="booking_reservation_template_pk",
         ),
         ForeignKeyConstraint(
             ["booking_id"],
@@ -35,7 +35,7 @@ class BookingReservationTemplateOrm(Base):
 
     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
     booking_id: Mapped[UUID] = mapped_column()
-    reservation_name: Mapped[UUID] = mapped_column()
+    reservation_name: Mapped[str] = mapped_column()
     reservation_datetime: Mapped[datetime] = mapped_column()
     num_attendees: Mapped[int] = mapped_column()
     booking_link: Mapped[str | None] = mapped_column()
@@ -56,7 +56,7 @@ class BookingReservationTemplateOrm(Base):
         cls,
         session: AsyncSession,
         booking_id: UUID,
-        reservation_name: UUID,
+        reservation_name: str,
         reservation_datetime: datetime,
         num_attendees: int,
         booking_link: str | None,
