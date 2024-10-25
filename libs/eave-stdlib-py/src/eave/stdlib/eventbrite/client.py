@@ -7,11 +7,12 @@ from typing import Any, TypedDict
 import aiohttp
 
 from .models.category import Category, Subcategory
-from .models.event import Event, EventDescription
+from .models.event import Event
 from .models.format import Format
 from .models.organizer import Organizer
 from .models.question import Question
 from .models.ticket_class import PointOfSale, TicketClass
+from .models.shared import MultipartText
 
 
 class OrderBy(StrEnum):
@@ -81,7 +82,7 @@ class EventbriteClient:
         j = await response.json()
         return j
 
-    async def get_event_description(self, *, event_id: str, query: GetEventQuery | None = None) -> EventDescription | None:
+    async def get_event_description(self, *, event_id: str, query: GetEventQuery | None = None) -> MultipartText | None:
         """https://www.eventbrite.com/platform/api#/reference/event-description/retrieve-full-html-description"""
 
         response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}/description", params=query)
