@@ -193,14 +193,15 @@ class Outing:
 
             # print("about to fetch bars")
             nearby_sushi = await self.places.search_nearby(
-                types=["sushi_restaurant"],
-                lat=area.lat,
-                lon=area.lon,
+                field_mask=["places.displayName"],
+                latitude=area.lat,
+                longitude=area.lon,
                 radius=area.rad.meters,
+                included_types=["sushi_restaurant"],
             )
-            # if results := nearby_sushi.get("results"):
-            #     random.shuffle(results)
-            #     for bar in results:
+            # if places := nearby_sushi.get("places"):
+            #     random.shuffle(places)
+            #     for bar in places:
             #         # pprint.pp(bar)
             #         break
 
