@@ -27,7 +27,7 @@ async def main() -> None:
         preferences=(UserPreferences(
             open_to_bars = True,
             requires_wheelchair_accessibility =False,
-            restaurant_categories = [Category(id="sushi_restaurant"), Category(id="mexican_restaurant"), Category(id="american_restaurant"), Category(id="brazilian_restaurant")],
+            restaurant_categories = [Category(id="sushi_restaurant"), Category(id="american_restaurant"), Category(id="brazilian_restaurant")],
             activity_categories = [test_category_1, test_category_2, test_category_3],
         ))
     )
@@ -37,7 +37,7 @@ async def main() -> None:
         preferences=(UserPreferences(
             open_to_bars = True,
             requires_wheelchair_accessibility = False,
-            restaurant_categories = [Category(id="chinese_restaurant"), Category(id="fast_food_restaurant"), Category(id="ice_cream_shop"), Category(id="mexican_restaurant")],
+            restaurant_categories = [Category(id="chinese_restaurant"), Category(id="fast_food_restaurant"), Category(id="mexican_restaurant")],
             activity_categories = [test_category_4, test_category_5, test_category_6],
         ))
     )

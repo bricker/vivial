@@ -8,7 +8,6 @@ from .models.rank_preference import RankPreference
 
 
 # TODO: Note about official google maps SDK.
-
 class GooglePlacesClient:
     base_url = "https://places.googleapis.com/v1/places"
     api_key: str

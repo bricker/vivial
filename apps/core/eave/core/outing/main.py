@@ -156,26 +156,28 @@ class Outing:
                 #     self.activity = Activity(activities[0]**)
                 #     return self.activity
 
-        # CASE 3: Recommend a bar as the activity if it's evening.
-        is_evening = is_early_evening(activity_start_time) or is_late_evening(activity_start_time)
-        if self.preferences.open_to_bars and is_evening:
-            for search_area_id in self.constraints.search_area_ids:
-                area = LOS_ANGELES_AREA_MAP[search_area_id]
-                if bars_nearby := await self.places.search_nearby(
-                    field_mask=RESTAURANT_FIELD_MASK,
-                    latitude=area.lat,
-                    longitude=area.lon,
-                    radius=area.rad.meters,
-                    included_primary_types=["bar"]
-                ):
-                    random.shuffle(bars_nearby)
-                    for bar in bars_nearby:
-                        will_be_open = place_will_be_open(bar, activity_start_time, activity_end_time)
-                        is_in_budget = place_is_in_budget(bar, self.constraints.budget)
-                        is_accessible = place_is_accessible(bar, self.preferences.requires_wheelchair_accessibility)
-                        if will_be_open and is_in_budget and is_accessible:
-                            self.activity = Place(**bar)
-                            return self.activity
+        # CASE 3: Recommend a bar or an ice cream shop as a fallback activity.
+        place_type = "ice_cream_shop"
+        if (is_early_evening(activity_start_time) or is_late_evening(activity_start_time)) and self.preferences.open_to_bars:
+            place_type = "bar"
+
+        for search_area_id in self.constraints.search_area_ids:
+            area = LOS_ANGELES_AREA_MAP[search_area_id]
+            if places_nearby := await self.places.search_nearby(
+                field_mask=RESTAURANT_FIELD_MASK,
+                latitude=area.lat,
+                longitude=area.lon,
+                radius=area.rad.meters,
+                included_primary_types=[place_type]
+            ):
+                random.shuffle(places_nearby)
+                for place in places_nearby:
+                    will_be_open = place_will_be_open(place, activity_start_time, activity_end_time)
+                    is_in_budget = place_is_in_budget(place, self.constraints.budget)
+                    is_accessible = place_is_accessible(place, self.preferences.requires_wheelchair_accessibility)
+                    if will_be_open and is_in_budget and is_accessible:
+                        self.activity = Place(**place)
+                        return self.activity
 
         # CASE 4: No suitable activity was found :(
         self.activity = None
