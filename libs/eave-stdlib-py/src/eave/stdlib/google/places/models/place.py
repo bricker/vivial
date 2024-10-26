@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from typing import TypedDict
 from .localized_text import LocalizedText
 from .address_component import AddressComponent
 from .plus_code import PlusCode
@@ -20,8 +20,7 @@ from .area_summary import AreaSummary
 from .address_descriptor import AddressDescriptor
 from .accessibility_options import AccessibilityOptions
 
-@dataclass
-class Place:
+class Place(TypedDict, total=False):
     name: str | None
     id: str | None
     displayName: LocalizedText | None

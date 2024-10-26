@@ -1,7 +1,6 @@
-from dataclasses import dataclass
+from typing import TypedDict
 from .connector_aggregation import ConnectorAggregation
 
-@dataclass
-class EVChargeOptions:
+class EVChargeOptions(TypedDict, total=False):
     connectorCount: int
     connectorAggregation: list[ConnectorAggregation]

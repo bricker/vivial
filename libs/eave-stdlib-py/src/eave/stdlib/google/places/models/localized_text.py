@@ -1,6 +1,5 @@
-from dataclasses import dataclass
+from typing import TypedDict
 
-@dataclass
-class LocalizedText:
+class LocalizedText(TypedDict, total=False):
     text: str
     languageCode: str

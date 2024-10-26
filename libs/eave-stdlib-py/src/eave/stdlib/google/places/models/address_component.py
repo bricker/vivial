@@ -1,7 +1,6 @@
-from dataclasses import dataclass
+from typing import TypedDict
 
-@dataclass
-class AddressComponent:
+class AddressComponent(TypedDict, total=False):
     longText: str
     shortText: str
     types: list[str]

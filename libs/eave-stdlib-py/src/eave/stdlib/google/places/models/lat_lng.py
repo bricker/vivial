@@ -1,6 +1,5 @@
-from dataclasses import dataclass
+from typing import TypedDict
 
-@dataclass
-class LatLng:
+class LatLng(TypedDict, total=False):
     latitude: float
     longitude: float

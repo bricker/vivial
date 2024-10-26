@@ -1,9 +1,8 @@
-from dataclasses import dataclass
+from typing import TypedDict
 from .localized_text import LocalizedText
 from .author_attribution import AuthorAttribution
 
-@dataclass
-class Review:
+class Review(TypedDict, total=False):
     name: str
     relativePublishTimeDescription: str
     text: LocalizedText

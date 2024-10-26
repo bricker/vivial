@@ -1,6 +1,5 @@
-from dataclasses import dataclass
+from typing import TypedDict
 from .fuel_price import FuelPrice
 
-@dataclass
-class FuelOptions:
+class FuelOptions(TypedDict, total=False):
     fuelPrices: list[FuelPrice]

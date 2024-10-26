@@ -1,8 +1,7 @@
-from dataclasses import dataclass
+from typing import TypedDict
 from .date import Date
 
-@dataclass
-class Point:
+class Point(TypedDict, total=False):
     date: Date
     truncated: bool
     day: int

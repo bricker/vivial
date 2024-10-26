@@ -1,7 +1,6 @@
-from dataclasses import dataclass
+from typing import TypedDict
 from .point import Point
 
-@dataclass
-class Period:
+class Period(TypedDict, total=False):
     open: Point
     close: Point

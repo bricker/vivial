@@ -1,6 +1,5 @@
-from dataclasses import dataclass
+from typing import TypedDict
 
-@dataclass
-class SubDestination:
+class SubDestination(TypedDict, total=False):
     name: str
     id: str

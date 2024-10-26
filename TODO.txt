@@ -3,19 +3,9 @@
 
 
 
-
-Get the activity.
+Get the restauraunt.
   Apply constraints.
   Apply user preferences.
-  Apply Lana requirements.
-
-
-
-Get the restauraunt (pending Lana feedback).
-  Fetch restauraunt conversions.
-  Apply constraints.
-  Apply user preferences.
-  Apply Lana requirements.
 
 
 Outstanding TODOs.
@@ -23,6 +13,7 @@ Integration tests.
 Code Documentation.
 Product Documentation.
 Delete this file.
+
 
 
 

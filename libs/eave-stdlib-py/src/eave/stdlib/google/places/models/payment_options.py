@@ -1,7 +1,6 @@
-from dataclasses import dataclass
+from typing import TypedDict
 
-@dataclass
-class PaymentOptions:
+class PaymentOptions(TypedDict, total=False):
     acceptsCreditCards: bool
     acceptsDebitCards: bool
     acceptsCashOnly: bool

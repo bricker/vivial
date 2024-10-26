@@ -1,7 +1,6 @@
-from dataclasses import dataclass
+from typing import TypedDict
 
-@dataclass
-class Date:
+class Date(TypedDict, total=False):
     year: int
     month: int
     day: int

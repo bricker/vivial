@@ -1,6 +1,5 @@
-from dataclasses import dataclass
+from typing import TypedDict
 from .content_block import ContentBlock
 
-@dataclass
-class AreaSummary:
+class AreaSummary(TypedDict, total=False):
     contentBlocks: list[ContentBlock]

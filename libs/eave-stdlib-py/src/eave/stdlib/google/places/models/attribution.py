@@ -1,6 +1,5 @@
-from dataclasses import dataclass
+from typing import TypedDict
 
-@dataclass
-class Attribution:
+class Attribution(TypedDict, total=False):
     provider: str
     providerUri: str

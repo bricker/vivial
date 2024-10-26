@@ -23,14 +23,14 @@ class GooglePlacesClient:
             latitude: float,
             longitude: float,
             radius: float,
-            included_types: list[str] | None,
-            excluded_types: list[str] | None,
-            included_primary_types: list[str] | None,
-            excluded_primary_types: list[str] | None,
-            language_code: str | None,
-            max_result_count: int | None,
-            rank_preference: RankPreference | None,
-            region_code: str | None,
+            included_primary_types: list[str] | None = None,
+            excluded_primary_types: list[str] | None = None,
+            included_types: list[str] | None = None,
+            excluded_types: list[str] | None = None,
+            language_code: str | None = None,
+            max_result_count: int | None = None,
+            rank_preference: RankPreference | None = None,
+            region_code: str | None = None,
         ) -> list[Place] | None:
         """https://developers.google.com/maps/documentation/places/web-service/nearby-search"""
 

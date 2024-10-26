@@ -1,8 +1,7 @@
-from dataclasses import dataclass
+from typing import TypedDict
 from .author_attribution import AuthorAttribution
 
-@dataclass
-class Photo:
+class Photo(TypedDict, total=False):
     name: str
     widthPx: int
     heightPx: int

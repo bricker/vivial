@@ -1,9 +1,8 @@
-from dataclasses import dataclass
+from typing import TypedDict
 from .localized_text import LocalizedText
 from .spatial_relationship import SpatialRelationship
 
-@dataclass
-class Landmark:
+class Landmark(TypedDict, total=False):
     name: str
     placeId: str
     displayName: LocalizedText

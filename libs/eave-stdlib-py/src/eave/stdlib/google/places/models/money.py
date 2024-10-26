@@ -1,7 +1,6 @@
-from dataclasses import dataclass
+from typing import TypedDict
 
-@dataclass
-class Money:
+class Money(TypedDict, total=False):
     currencyCode: str
     units: str
     nanos: int

@@ -1,6 +1,5 @@
-from dataclasses import dataclass
+from typing import TypedDict
 
-@dataclass
-class PlusCode:
+class PlusCode(TypedDict, total=False):
     globalCode: str
     compoundCode: str

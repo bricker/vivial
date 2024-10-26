@@ -1,6 +1,5 @@
-from dataclasses import dataclass
+from typing import TypedDict
 from .date import Date
 
-@dataclass
-class SpecialDay:
+class SpecialDay(TypedDict, total=False):
     date: Date

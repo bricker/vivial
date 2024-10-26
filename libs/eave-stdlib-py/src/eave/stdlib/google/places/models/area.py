@@ -1,9 +1,8 @@
-from dataclasses import dataclass
+from typing import TypedDict
 from .localized_text import LocalizedText
 from .containment import Containment
 
-@dataclass
-class Area:
+class Area(TypedDict, total=False):
     name: str
     placeId: str
     displayName: LocalizedText

@@ -1,7 +1,6 @@
-from dataclasses import dataclass
+from typing import TypedDict
 from .review import Review
 
-@dataclass
-class References:
+class References(TypedDict, total=False):
     reviews: list[Review]
     places: list[str]

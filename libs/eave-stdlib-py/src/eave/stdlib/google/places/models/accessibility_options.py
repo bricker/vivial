@@ -1,7 +1,6 @@
-from dataclasses import dataclass
+from typing import TypedDict
 
-@dataclass
-class AccessibilityOptions:
+class AccessibilityOptions(TypedDict, total=False):
     wheelchairAccessibleParking: bool
     wheelchairAccessibleEntrance: bool
     wheelchairAccessibleRestroom: bool

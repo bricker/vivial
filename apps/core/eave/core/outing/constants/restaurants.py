@@ -1,12 +1,5 @@
 from eave.stdlib.google.places.models.price_level import PriceLevel
-
-ACTIVITY_BUDGET_MAP = {
-    0: 0,
-    1: 10,
-    2: 50,
-    3: 150,
-    4: None,
-}
+from models.category import Category
 
 RESTAURANT_BUDGET_MAP = {
     0: PriceLevel.PRICE_LEVEL_FREE,
@@ -37,4 +30,17 @@ RESTAURANT_FIELD_MASK = [
     "places.userRatingCount",
     "places.websiteUri",
     "places.reservable",
+]
+
+BREAKFAST_RESTAURANT_CATEGORIES = [
+    Category(id="coffee_shop"),
+    Category(id="breakfast_restaurant"),
+    Category(id= "bakery"),
+    Category(id="cafe"),
+]
+
+BRUNCH_RESTAURANT_CATEGORIES = [
+    Category(id="brunch_restaurant"),
+    Category(id="breakfast_restaurant"),
+    Category(id="cafe"),
 ]

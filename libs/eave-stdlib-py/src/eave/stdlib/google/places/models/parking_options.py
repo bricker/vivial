@@ -1,7 +1,6 @@
-from dataclasses import dataclass
+from typing import TypedDict
 
-@dataclass
-class ParkingOptions:
+class ParkingOptions(TypedDict, total=False):
     freeParkingLot: bool
     paidParkingLot: bool
     freeStreetParking: bool

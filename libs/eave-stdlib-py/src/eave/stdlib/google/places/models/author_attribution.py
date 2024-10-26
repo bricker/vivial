@@ -1,7 +1,6 @@
-from dataclasses import dataclass
+from typing import TypedDict
 
-@dataclass
-class AuthorAttribution:
+class AuthorAttribution(TypedDict, total=False):
     displayName: str
     uri: str
     photoUri: str

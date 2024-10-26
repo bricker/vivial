@@ -1,7 +1,6 @@
-from dataclasses import dataclass
+from typing import TypedDict
 from .lat_lng import LatLng
 
-@dataclass
-class Viewport:
+class Viewport(TypedDict, total=False):
     low: LatLng
     high: LatLng
