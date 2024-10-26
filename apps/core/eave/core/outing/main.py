@@ -1,6 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 import random
-import asyncio
 import os
 
 from eave.stdlib.eventbrite.client import EventbriteClient
@@ -8,11 +7,12 @@ from eave.stdlib.google.places.client import GooglePlacesClient
 
 from eave.stdlib.eventbrite.models.event import Event, EventStatus
 from eave.stdlib.google.places.models.place import Place
+from models.geo_area import GeoArea
 from models.outing import OutingConstraints, OutingPlan
 from models.user import UserPreferences, User
 from models.category import Category
 
-from constants.restaurants import RESTAURANT_BUDGET_MAP, RESTAURANT_FIELD_MASK, BREAKFAST_RESTAURANT_CATEGORIES, BRUNCH_RESTAURANT_CATEGORIES
+from constants.restaurants import RESTAURANT_FIELD_MASK, BREAKFAST_RESTAURANT_CATEGORIES, BRUNCH_RESTAURANT_CATEGORIES
 from constants.activities import ACTIVITY_BUDGET_MAP
 from constants.areas import LOS_ANGELES_AREA_MAP
 
@@ -31,7 +31,7 @@ class Outing:
     restaurant: Place | None
 
 
-    def __init__(self, group: list[User], constraints: OutingConstraints, activity: Event | Place | None, restaurant: Restaurant | None) -> None:
+    def __init__(self, group: list[User], constraints: OutingConstraints, activity: Event | Place | None = None, restaurant: Place | None = None) -> None:
         self.preferences = self.__combine_preferences(group)
         self.constraints = constraints
         self.activity = activity
@@ -182,10 +182,9 @@ class Outing:
         return self.activity
 
 
-
-
-
     async def plan_restaurant(self) -> Place | None:
+        arrival_time = self.constraints.start_time
+        departure_time = arrival_time + timedelta(minutes=90)
         restaurant_categories = self.preferences.restaurant_categories
         search_areas = []
 
@@ -197,66 +196,48 @@ class Outing:
             restaurant_categories = BRUNCH_RESTAURANT_CATEGORIES
             random.shuffle(restaurant_categories)
 
-        # If an activity has been selected, use that as the restaurant location restriction.
+        # If an activity has been selected, use that as the search area.
         if self.activity:
+            location = self.activity.get("location")
+            if location is None:
+                location = self.activity.get("venue")
+            if location:
+                lat = location.get("latitude")
+                lon = location.get("longitude")
+                if lat and lon:
+                    search_areas = [GeoArea(lat=lat, lon=lon, rad_miles=5)]
 
+        # Otherwise, use the search areas specified in the date constraints.
+        else:
+            for search_area_id in self.constraints.search_area_ids:
+                search_areas.append(LOS_ANGELES_AREA_MAP[search_area_id])
+            random.shuffle(search_areas)
 
+        # Find a restaurant that meets the outing constraints.
+        for area in search_areas:
+            for category in restaurant_categories:
+                if restaurants_nearby := await self.places.search_nearby(
+                    field_mask=RESTAURANT_FIELD_MASK,
+                    latitude=area.lat,
+                    longitude=area.lon,
+                    radius=area.rad.meters,
+                    included_primary_types=[category.id]
+                ):
+                    random.shuffle(restaurants_nearby)
+                    for restaurant in restaurants_nearby:
+                        will_be_open = place_will_be_open(restaurant, arrival_time, departure_time)
+                        is_in_budget = place_is_in_budget(restaurant, self.constraints.budget)
+                        is_accessible = place_is_accessible(restaurant, self.preferences.requires_wheelchair_accessibility)
+                        if will_be_open and is_in_budget and is_accessible:
+                            self.restaurant = Place(**restaurant)
+                            return self.restaurant
 
-
-
-
+        # No restaurant was found :(
         self.restaurant = None
         return self.restaurant
-
-
-
 
 
     async def plan(self) -> OutingPlan:
         await self.plan_activity()
         await self.plan_restaurant()
         return OutingPlan(self.activity, self.restaurant)
-
-
-
-# TODO: Remove test function.
-async def main() -> None:
-    test_outing_constraints = OutingConstraints(
-        start_time = datetime.fromisoformat("2024-10-25T19:42:31.946205"),
-        search_area_ids = ["us_ca_la_2"],
-        budget = 3,
-        headcount = 2,
-    )
-    test_category_1 = Category(id="103", subcategory_id="3008")
-    test_category_2 = Category(id="103", subcategory_id="3012")
-    test_category_3 = Category(id="105", subcategory_id="5001")
-    test_category_4 = Category(id="103", subcategory_id="3008")
-    test_category_5 = Category(id="103", subcategory_id="3013")
-    test_category_6 = Category(id="104", subcategory_id="4007")
-    test_user_1 = User(
-        id=None,
-        visitor_id=None,
-        preferences=(UserPreferences(
-            open_to_bars = True,
-            requires_wheelchair_accessibility =True,
-            restaurant_categories = [Category(id="sushi_restaurant"), Category(id="mexican_restaurant"), Category(id="american_restaurant"), Category(id="brazilian_restaurant")],
-            activity_categories = [test_category_1, test_category_2, test_category_3],
-        ))
-    )
-    test_user_2 = User(
-        id="",
-        visitor_id="",
-        preferences=(UserPreferences(
-            open_to_bars = True,
-            requires_wheelchair_accessibility = False,
-            restaurant_categories = [Category(id="chinese_restaurant"), Category(id="fast_food_restaurant"), Category(id="ice_cream_shop"), Category(id="mexican_restaurant")],
-            activity_categories = [test_category_4, test_category_5, test_category_6],
-        ))
-    )
-
-    outing = Outing([test_user_1, test_user_2], test_outing_constraints, None, None)
-    plan = await outing.plan()
-
-
-if __name__ == "__main__":
-    asyncio.run(main())

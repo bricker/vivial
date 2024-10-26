@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from category import Category
+from .category import Category
 
 @dataclass
 class UserPreferences:

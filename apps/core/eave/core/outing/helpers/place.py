@@ -1,7 +1,6 @@
 from datetime import datetime
-from eave.stdlib.google.places.models import accessibility_options
 from eave.stdlib.google.places.models.place import Place
-from constants import RESTAURANT_BUDGET_MAP
+from constants.restaurants import RESTAURANT_BUDGET_MAP
 
 def place_will_be_open(place: Place, arrival_time: datetime, departure_time: datetime) -> bool:
     open_hours = place.get("regularOpeningHours")
