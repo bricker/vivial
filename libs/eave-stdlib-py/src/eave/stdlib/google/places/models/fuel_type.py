@@ -1,5 +1,6 @@
 from enum import StrEnum
 
+
 class FuelType(StrEnum):
     FUEL_TYPE_UNSPECIFIED = "FUEL_TYPE_UNSPECIFIED"
     DIESEL = "DIESEL"

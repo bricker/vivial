@@ -1,5 +1,6 @@
 from enum import StrEnum
 
+
 class PriceLevel(StrEnum):
     PRICE_LEVEL_UNSPECIFIED = "PRICE_LEVEL_UNSPECIFIED"
     PRICE_LEVEL_FREE = "PRICE_LEVEL_FREE"

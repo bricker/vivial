@@ -1,5 +1,6 @@
 from typing import TypedDict
 
+
 class ParkingOptions(TypedDict, total=False):
     freeParkingLot: bool
     paidParkingLot: bool

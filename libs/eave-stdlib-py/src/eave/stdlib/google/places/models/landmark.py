@@ -1,6 +1,8 @@
 from typing import TypedDict
+
 from .localized_text import LocalizedText
 from .spatial_relationship import SpatialRelationship
+
 
 class Landmark(TypedDict, total=False):
     name: str

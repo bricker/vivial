@@ -1,24 +1,26 @@
 from typing import TypedDict
-from .localized_text import LocalizedText
-from .address_component import AddressComponent
-from .plus_code import PlusCode
-from .lat_lng import LatLng
-from .viewport import Viewport
-from .review import Review
-from .opening_hours import OpeningHours
-from .photo import Photo
-from .business_status import BusinessStatus
-from .price_level import PriceLevel
-from .attribution import Attribution
-from .payment_options import PaymentOptions
-from .parking_options import ParkingOptions
-from .sub_destination import SubDestination
-from .fuel_options import FuelOptions
-from .ev_charge_options import EVChargeOptions
-from .generative_summary import GenerativeSummary
-from .area_summary import AreaSummary
-from .address_descriptor import AddressDescriptor
+
 from .accessibility_options import AccessibilityOptions
+from .address_component import AddressComponent
+from .address_descriptor import AddressDescriptor
+from .area_summary import AreaSummary
+from .attribution import Attribution
+from .business_status import BusinessStatus
+from .ev_charge_options import EVChargeOptions
+from .fuel_options import FuelOptions
+from .generative_summary import GenerativeSummary
+from .lat_lng import LatLng
+from .localized_text import LocalizedText
+from .opening_hours import OpeningHours
+from .parking_options import ParkingOptions
+from .payment_options import PaymentOptions
+from .photo import Photo
+from .plus_code import PlusCode
+from .price_level import PriceLevel
+from .review import Review
+from .sub_destination import SubDestination
+from .viewport import Viewport
+
 
 class Place(TypedDict, total=False):
     name: str | None

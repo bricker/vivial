@@ -1,5 +1,7 @@
 from dataclasses import dataclass
+
 from .category import Category
+
 
 @dataclass
 class UserPreferences:
@@ -7,6 +9,7 @@ class UserPreferences:
     requires_wheelchair_accessibility: bool
     restaurant_categories: list[Category]
     activity_categories: list[Category]
+
 
 @dataclass
 class User:

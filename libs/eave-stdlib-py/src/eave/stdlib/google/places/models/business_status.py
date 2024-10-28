@@ -1,5 +1,6 @@
 from enum import StrEnum
 
+
 class BusinessStatus(StrEnum):
     BUSINESS_STATUS_UNSPECIFIED = "BUSINESS_STATUS_UNSPECIFIED"
     OPERATIONAL = "OPERATIONAL"

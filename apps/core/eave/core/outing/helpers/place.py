@@ -1,6 +1,9 @@
 from datetime import datetime
-from eave.stdlib.google.places.models.place import Place
+
 from constants.restaurants import RESTAURANT_BUDGET_MAP
+
+from eave.stdlib.google.places.models.place import Place
+
 
 def place_will_be_open(place: Place, arrival_time: datetime, departure_time: datetime) -> bool:
     open_hours = place.get("regularOpeningHours")
@@ -15,7 +18,7 @@ def place_will_be_open(place: Place, arrival_time: datetime, departure_time: dat
     for period in open_periods:
         if open := period.get("open"):
             day = open.get("day")
-            if (day == arrival_time.weekday()):
+            if day == arrival_time.weekday():
                 relevant_periods.append(period)
 
     if not relevant_periods:
@@ -50,10 +53,7 @@ def place_is_in_budget(place: Place, budget: int) -> bool:
     return place.get("priceLevel") == RESTAURANT_BUDGET_MAP[budget]
 
 
-def place_is_accessible(place: Place, requires_wheelchair_accessibility: bool) -> bool:
-    if not requires_wheelchair_accessibility:
-        return True
-
+def place_is_accessible(place: Place) -> bool:
     accessibility_options = place.get("accessibilityOptions")
     if accessibility_options is None:
         return False

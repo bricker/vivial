@@ -7,8 +7,8 @@ from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.eventbrite.models.venue import Venue
 
-from ..outing.models.geo_area import GeoArea
 from ..outing.constants.areas import LOS_ANGELES_AREAS
+from ..outing.models.geo_area import GeoArea
 
 
 async def get_eventbrite_events() -> None:
@@ -77,12 +77,13 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
     # Haversine formula
     dlat = lat2 - lat1
     dlon = lon2 - lon1
-    a = math.sin(dlat / 2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2)**2
+    a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
     c = 2 * math.asin(math.sqrt(a))
 
     # Radius of Earth in kilometers (mean value)
     r = 6371.0
     return c * r
+
 
 if __name__ == "__main__":
     asyncio.run(get_eventbrite_events())

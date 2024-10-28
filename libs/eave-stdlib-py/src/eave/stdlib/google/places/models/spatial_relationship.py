@@ -1,5 +1,6 @@
 from enum import StrEnum
 
+
 class SpatialRelationship(StrEnum):
     NEAR = "NEAR"
     WITHIN = "WITHIN"

@@ -1,6 +1,8 @@
 from typing import TypedDict
-from .localized_text import LocalizedText
+
 from .author_attribution import AuthorAttribution
+from .localized_text import LocalizedText
+
 
 class Review(TypedDict, total=False):
     name: str

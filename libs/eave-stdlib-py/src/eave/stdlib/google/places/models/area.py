@@ -1,6 +1,8 @@
 from typing import TypedDict
-from .localized_text import LocalizedText
+
 from .containment import Containment
+from .localized_text import LocalizedText
+
 
 class Area(TypedDict, total=False):
     name: str

@@ -1,5 +1,6 @@
 from enum import StrEnum
 
+
 class SecondaryHoursType(StrEnum):
     SECONDARY_HOURS_TYPE_UNSPECIFIED = "SECONDARY_HOURS_TYPE_UNSPECIFIED"
     DRIVE_THROUGH = "DRIVE_THROUGH"

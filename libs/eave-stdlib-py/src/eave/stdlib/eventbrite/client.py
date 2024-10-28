@@ -1,4 +1,3 @@
-import logging
 from collections.abc import Mapping
 from enum import StrEnum
 from http import HTTPMethod
@@ -11,8 +10,8 @@ from .models.event import Event
 from .models.format import Format
 from .models.organizer import Organizer
 from .models.question import Question
-from .models.ticket_class import PointOfSale, TicketClass
 from .models.shared import MultipartText
+from .models.ticket_class import PointOfSale, TicketClass
 
 
 class OrderBy(StrEnum):
@@ -134,9 +133,7 @@ class EventbriteClient:
     ) -> list[Question]:
         """https://www.eventbrite.com/platform/api#/reference/questions/list-custom-questions/list-custom-questions-by-event"""
 
-        response = await self.make_request(
-            method=HTTPMethod.GET, path=f"/events/{event_id}/questions", params=query
-        )
+        response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}/questions", params=query)
         j = await response.json()
         return j["questions"]
 
