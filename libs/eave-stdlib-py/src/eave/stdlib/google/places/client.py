@@ -23,6 +23,7 @@ class GooglePlacesClient:
     https://github.com/googlemaps/google-maps-services-python
 
     """
+
     base_url = "https://places.googleapis.com/v1/places"
     api_key: str
 

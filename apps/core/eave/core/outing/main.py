@@ -26,6 +26,7 @@ class Outing:
     Currently, an outing consists of food and a thing - eat at a well-rated
     restaurant, then go to an event or engage in a cute activity.
     """
+
     places = GooglePlacesClient(api_key=os.environ["GOOGLE_PLACES_API_KEY"])
     eventbrite = EventbriteClient(api_key=os.environ["EVENTBRITE_API_KEY"])
     preferences: UserPreferences
