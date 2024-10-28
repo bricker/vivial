@@ -44,8 +44,8 @@ async def main() -> None:
 
     test_outing = Outing([test_user_1, test_user_2], test_outing_constraints)
     test_outing_plan = await test_outing.plan()
-    test_restaurant_name = test_outing_plan.restaurant.get("displayName")
-    test_activity_name = test_outing_plan.activity.get("displayName")
+    test_restaurant_name = test_outing_plan.restaurant.details.get("displayName")
+    test_activity_name = test_outing_plan.activity.details.get("displayName")
 
     print(f"Dinner at {test_restaurant_name.get("text")}, then drinks at {test_activity_name.get("text")}.")
     print(" ")

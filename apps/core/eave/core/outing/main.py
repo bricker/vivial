@@ -8,7 +8,7 @@ from eave.stdlib.google.places.client import GooglePlacesClient
 from eave.stdlib.eventbrite.models.event import Event, EventStatus
 from eave.stdlib.google.places.models.place import Place
 from models.geo_area import GeoArea
-from models.outing import OutingConstraints, OutingPlan
+from models.outing import OutingConstraints, OutingPlan, OutingSource, OutingComponent
 from models.user import UserPreferences, User
 from models.category import Category
 
@@ -20,6 +20,10 @@ from helpers.place import place_will_be_open, place_is_in_budget, place_is_acces
 from helpers.time import is_early_morning, is_late_morning, is_early_evening, is_late_evening
 
 
+# TODO: Convert shuffle to choosing an index
+
+
+
 # TODO: Convert internal restaurant category mappings to Google Places category mappings (pending Bryan).
 # TODO: Convert internal event category mappings to Eventbrite category mappings (pending Bryan).
 class Outing:
@@ -27,11 +31,11 @@ class Outing:
     eventbrite = EventbriteClient(api_key=os.environ["EVENTBRITE_API_KEY"])
     preferences: UserPreferences
     constraints: OutingConstraints
-    activity: Event | Place | None
-    restaurant: Place | None
+    activity: OutingComponent | None
+    restaurant: OutingComponent | None
 
 
-    def __init__(self, group: list[User], constraints: OutingConstraints, activity: Event | Place | None = None, restaurant: Place | None = None) -> None:
+    def __init__(self, group: list[User], constraints: OutingConstraints, activity: OutingComponent | None = None, restaurant: OutingComponent | None = None) -> None:
         self.preferences = self.__combine_preferences(group)
         self.constraints = constraints
         self.activity = activity
@@ -108,7 +112,7 @@ class Outing:
         )
 
 
-    async def plan_activity(self) -> Event | Place | None:
+    async def plan_activity(self) -> OutingComponent | None:
         activity_start_time = self.constraints.start_time + timedelta(minutes=120)
         activity_end_time = activity_start_time + timedelta(minutes=90)
         random.shuffle(self.constraints.search_area_ids)
@@ -135,7 +139,7 @@ class Outing:
                             if has_available_tickets and is_live:
                                 if description := await self.eventbrite.get_event_description(event_id=event["id"]):
                                     event_details["description"] = description
-                                    self.activity = Event(**event_details)
+                                    self.activity = OutingComponent(OutingSource.EVENTBRITE, event_details)
                                     return self.activity
 
         # CASE 2: Recommend an "evergreen" activity from our manually curated database.
@@ -153,7 +157,7 @@ class Outing:
                 # )
                 # if len(activities) > 0:
                 #     random.shuffle(activities)
-                #     self.activity = Activity(activities[0]**)
+                #     self.activity = OutingComponent(OutingSource.INTERNAL, activities[0])
                 #     return self.activity
 
         # CASE 3: Recommend a bar or an ice cream shop as a fallback activity.
@@ -176,7 +180,7 @@ class Outing:
                     is_in_budget = place_is_in_budget(place, self.constraints.budget)
                     is_accessible = place_is_accessible(place, self.preferences.requires_wheelchair_accessibility)
                     if will_be_open and is_in_budget and is_accessible:
-                        self.activity = Place(**place)
+                        self.activity = OutingComponent(OutingSource.GOOGLE, place)
                         return self.activity
 
         # CASE 4: No suitable activity was found :(
@@ -184,7 +188,7 @@ class Outing:
         return self.activity
 
 
-    async def plan_restaurant(self) -> Place | None:
+    async def plan_restaurant(self) -> OutingComponent | None:
         arrival_time = self.constraints.start_time
         departure_time = arrival_time + timedelta(minutes=90)
         restaurant_categories = self.preferences.restaurant_categories
@@ -200,9 +204,12 @@ class Outing:
 
         # If an activity has been selected, use that as the search area.
         if self.activity:
-            location = self.activity.get("location")
-            if location is None:
-                location = self.activity.get("venue")
+            location = None
+            if self.activity.source == OutingSource.GOOGLE:
+                location = self.activity.details.get("location")
+            elif self.activity.source == OutingSource.EVENTBRITE:
+                location = self.activity.details.get("venue")
+
             if location:
                 lat = location.get("latitude")
                 lon = location.get("longitude")
@@ -231,7 +238,7 @@ class Outing:
                         is_in_budget = place_is_in_budget(restaurant, self.constraints.budget)
                         is_accessible = place_is_accessible(restaurant, self.preferences.requires_wheelchair_accessibility)
                         if will_be_open and is_in_budget and is_accessible:
-                            self.restaurant = Place(**restaurant)
+                            self.restaurant = OutingComponent(OutingSource.GOOGLE, restaurant)
                             return self.restaurant
 
         # No restaurant was found :(
