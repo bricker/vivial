@@ -8,6 +8,8 @@ from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func,
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
+from eave.stdlib.core_api.models.enums import ActivitySource
+
 from .base import Base
 
 
@@ -28,7 +30,9 @@ class OutingActivityOrm(Base):
 
     outing_id: Mapped[UUID] = mapped_column()
     activity_id: Mapped[str] = mapped_column()
-    """ID of activity in remote eventbrite table"""  # TODO: probably wont alwyas be only eventbrite.. how to make flexible? another field to specify id src?
+    """ID of activity in remote table"""
+    activity_source: Mapped[str] = mapped_column()
+    """ActivitySource enum value"""
     activity_start_time: Mapped[datetime] = mapped_column()
     num_attendees: Mapped[int] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
@@ -40,6 +44,7 @@ class OutingActivityOrm(Base):
         session: AsyncSession,
         outing_id: UUID,
         activity_id: str,
+        activity_source: ActivitySource,
         activity_start_time: datetime,
         num_attendees: int,
     ) -> Self:
@@ -47,6 +52,7 @@ class OutingActivityOrm(Base):
             outing_id=outing_id,
             activity_id=activity_id,
             activity_start_time=activity_start_time,
+            activity_source=activity_source,
             num_attendees=num_attendees,
         )
 

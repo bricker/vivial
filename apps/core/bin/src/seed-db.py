@@ -15,6 +15,8 @@ UNDER NO CIRCUMSTANCES SHOULD THIS BE EVER RUN AGAINST PROD
 import datetime
 import sys
 
+from eave.stdlib.core_api.models.enums import ActivitySource, ReservationSource
+
 from eave.core.internal.orm.account_booking import AccountBookingOrm
 from eave.core.internal.orm.booking import BookingOrm
 from eave.core.internal.orm.booking_activities_template import BookingActivityTemplateOrm
@@ -99,6 +101,7 @@ async def seed_database(db: AsyncEngine) -> None:
             session=session,
             outing_id=outing.id,
             activity_id=str(uuid.uuid4()),
+            activity_source=ActivitySource.SELF,
             activity_start_time=datetime.datetime.now(),
             num_attendees=2,
         )
@@ -106,6 +109,7 @@ async def seed_database(db: AsyncEngine) -> None:
             session=session,
             outing_id=outing.id,
             reservation_id=str(uuid.uuid4()),
+            reservation_source=ReservationSource.SELF,
             reservation_start_time=datetime.datetime.now(),
             num_attendees=2,
         )

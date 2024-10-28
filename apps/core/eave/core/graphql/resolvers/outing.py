@@ -21,6 +21,7 @@ from eave.core.internal.orm.outing_activity import OutingActivityOrm
 from eave.core.internal.orm.outing_reservation import OutingReservationOrm
 from eave.core.internal.orm.survey import SurveyOrm
 from eave.core.internal.orm.util import validate_time_within_bounds_or_exception
+from eave.stdlib.core_api.models.enums import ActivitySource, ReservationSource
 from eave.stdlib.exceptions import InvalidDataError, StartTimeTooLateError, StartTimeTooSoonError
 from eave.stdlib.logging import LOGGER
 
@@ -42,6 +43,7 @@ async def create_outing_plan(
             session=db_session,
             outing_id=outing.id,
             activity_id=str(uuid4()),
+            activity_source=ActivitySource.EVENTBRITE,
             activity_start_time=datetime.now(),
             num_attendees=2,
         )
@@ -49,6 +51,7 @@ async def create_outing_plan(
             session=db_session,
             outing_id=outing.id,
             reservation_id=str(uuid4()),
+            reservation_source=ReservationSource.GOOGLE_PLACES,
             reservation_start_time=datetime.now(),
             num_attendees=2,
         )
