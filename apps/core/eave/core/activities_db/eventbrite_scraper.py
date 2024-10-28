@@ -60,7 +60,7 @@ def find_area_id(venue: Venue) -> GeoArea | None:
     closest_area: GeoArea | None = None
 
     for area in LOS_ANGELES_AREAS:
-        distance = haversine_distance(float(event_lat), float(event_lon), area.lat, area.lon)
+        distance = haversine_distance(float(event_lat), float(event_lon), float(area.lat), float(area.lon))
         if distance < min_distance:
             min_distance = distance
             closest_area = area
