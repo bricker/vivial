@@ -10,6 +10,8 @@ RESTAURANT_BUDGET_MAP = {
     4: PriceLevel.PRICE_LEVEL_VERY_EXPENSIVE,
 }
 
+# You must pass a field mask to the Google Places API to specify the list of fields to return in the response.
+# Reference: https://developers.google.com/maps/documentation/places/web-service/nearby-search
 RESTAURANT_FIELD_MASK = [
     "places.id",
     "places.displayName",

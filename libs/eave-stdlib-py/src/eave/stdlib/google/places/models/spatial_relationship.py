@@ -2,6 +2,8 @@ from enum import StrEnum
 
 
 class SpatialRelationship(StrEnum):
+    """https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#SpatialRelationship"""
+
     NEAR = "NEAR"
     WITHIN = "WITHIN"
     BESIDE = "BESIDE"

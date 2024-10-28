@@ -12,6 +12,12 @@ class TimeCategory(StrEnum):
 
 
 def get_time_category(hour: int) -> TimeCategory:
+    """
+    Given an hour of the day in range(24), return the "time category" for that
+    day (e.g. early morning, late afternoon, early evening, etc.)
+
+    Note that midnight - 3:59 AM is considered "late evening" in this context.
+    """
     if hour < 4:
         return TimeCategory.LATE_EVENING  # midnight - 3:59 AM
 
@@ -34,24 +40,42 @@ def get_time_category(hour: int) -> TimeCategory:
 
 
 def is_early_morning(timestamp: datetime) -> bool:
+    """
+    Given a timestamp return True if time is in the early morning.
+    """
     return get_time_category(timestamp.hour) == TimeCategory.EARLY_MORNING
 
 
 def is_late_morning(timestamp: datetime) -> bool:
+    """
+    Given a timestamp return True if time is in the late morning.
+    """
     return get_time_category(timestamp.hour) == TimeCategory.LATE_MORNING
 
 
 def is_early_afternoon(timestamp: datetime) -> bool:
+    """
+    Given a timestamp return True if time is in the early afternoon.
+    """
     return get_time_category(timestamp.hour) == TimeCategory.EARLY_AFTERNOON
 
 
 def is_late_afternoon(timestamp: datetime) -> bool:
+    """
+    Given a timestamp return True if time is in the late afternoon.
+    """
     return get_time_category(timestamp.hour) == TimeCategory.LATE_AFTERNOON
 
 
 def is_early_evening(timestamp: datetime) -> bool:
+    """
+    Given a timestamp return True if time is in the early evening.
+    """
     return get_time_category(timestamp.hour) == TimeCategory.EARLY_EVENING
 
 
 def is_late_evening(timestamp: datetime) -> bool:
+    """
+    Given a timestamp return True if time is in the late evening.
+    """
     return get_time_category(timestamp.hour) == TimeCategory.LATE_EVENING

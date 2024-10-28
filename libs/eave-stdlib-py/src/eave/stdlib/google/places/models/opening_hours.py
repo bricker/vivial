@@ -6,6 +6,8 @@ from .special_day import SpecialDay
 
 
 class OpeningHours(TypedDict, total=False):
+    """https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#OpeningHours"""
+
     periods: list[Period]
     weekdayDescriptions: list[str]
     secondaryHoursType: SecondaryHoursType

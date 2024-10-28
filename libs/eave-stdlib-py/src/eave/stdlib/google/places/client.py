@@ -8,8 +8,21 @@ from .models.place import Place
 from .models.rank_preference import RankPreference
 
 
-# TODO: Note about official google maps SDK.
 class GooglePlacesClient:
+    """
+    Python client for the Google Places API (New).
+
+    There are two Google Places APIs - the "Google Places API" and the "Google
+    Places API (New)." We are using the new one.
+
+    The official Python client for Google Maps services currently only has
+    support for the old Places API. When they add support for the new Places API,
+    we should switch to the official client.
+
+    https://developers.google.com/maps/documentation/places/web-service/overview
+    https://github.com/googlemaps/google-maps-services-python
+
+    """
     base_url = "https://places.googleapis.com/v1/places"
     api_key: str
 

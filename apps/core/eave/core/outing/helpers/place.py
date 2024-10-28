@@ -6,6 +6,12 @@ from eave.stdlib.google.places.models.place import Place
 
 
 def place_will_be_open(place: Place, arrival_time: datetime, departure_time: datetime) -> bool:
+    """
+    Given a place from the Google Places API, determine whether or not that
+    place will be open during the given time period.
+
+    https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#OpeningHours
+    """
     open_hours = place.get("regularOpeningHours")
     if open_hours is None:
         return False
@@ -50,10 +56,22 @@ def place_will_be_open(place: Place, arrival_time: datetime, departure_time: dat
 
 
 def place_is_in_budget(place: Place, budget: int) -> bool:
+    """
+    Given a place from the Google Places API, determine whether or not that
+    place is within the user's budget for the date.
+
+    https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#PriceLevel
+    """
     return place.get("priceLevel") == RESTAURANT_BUDGET_MAP[budget]
 
 
 def place_is_accessible(place: Place) -> bool:
+    """
+    Given a place from the Google Places API, determine whether or not that
+    place is accessible for people in wheelchairs.
+
+    https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#AccessibilityOptions
+    """
     accessibility_options = place.get("accessibilityOptions")
     if accessibility_options is None:
         return False

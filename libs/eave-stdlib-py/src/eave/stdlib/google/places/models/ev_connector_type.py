@@ -2,6 +2,8 @@ from enum import StrEnum
 
 
 class EVConnectorType(StrEnum):
+    """https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#EVConnectorType"""
+
     EV_CONNECTOR_TYPE_UNSPECIFIED = "EV_CONNECTOR_TYPE_UNSPECIFIED"
     EV_CONNECTOR_TYPE_OTHER = "EV_CONNECTOR_TYPE_OTHER"
     EV_CONNECTOR_TYPE_J1772 = "EV_CONNECTOR_TYPE_J1772"

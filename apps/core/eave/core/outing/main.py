@@ -19,6 +19,13 @@ from eave.stdlib.google.places.client import GooglePlacesClient
 # TODO: Convert internal restaurant category mappings to Google Places category mappings (pending Bryan).
 # TODO: Convert internal event category mappings to Eventbrite category mappings (pending Bryan).
 class Outing:
+    """
+    Use this class to plan an outing for a group of users based on their outing
+    constraints and personal preferences.
+
+    Currently, an outing consists of food and a thing - eat at a well-rated
+    restaurant, then go to an event or engage in a cute activity.
+    """
     places = GooglePlacesClient(api_key=os.environ["GOOGLE_PLACES_API_KEY"])
     eventbrite = EventbriteClient(api_key=os.environ["EVENTBRITE_API_KEY"])
     preferences: UserPreferences
@@ -39,16 +46,25 @@ class Outing:
         self.restaurant = restaurant
 
     def __combine_restaurant_categories(self, group: list[User]) -> list[Category]:
+        """
+        Given a group of users, combine their restaurant category preferences
+        into one list of preferences.
+
+        The preferences that the users have in common will always be at the
+        front of the list.
+        """
         category_map = {}
         intersection = []
         difference = []
 
+        # Create a map of category IDs with occurance counts.
         for user in group:
             for category in user.preferences.restaurant_categories:
                 if category.id not in category_map:
                     category_map[category.id] = 0
                 category_map[category.id] += 1
 
+        # Use the map of category ID occurance counts to find the common categories.
         for category_id in category_map:
             if category_map[category_id] == len(group):
                 intersection.append(Category(id=category_id))
@@ -60,10 +76,18 @@ class Outing:
         return intersection + difference
 
     def __combine_activity_categories(self, group: list[User]) -> list[Category]:
+        """
+        Given a group of users, combine their activity category preferences
+        into one list of preferences.
+
+        The preferences that the users have in common will always be at the
+        front of the list.
+        """
         category_map = {}
         intersection = []
         difference = []
 
+        # Create a map of category / subcategory IDs with occurance counts.
         for user in group:
             for category in user.preferences.activity_categories:
                 if category.id not in category_map:
@@ -72,6 +96,7 @@ class Outing:
                     category_map[category.id][category.subcategory_id] = 0
                 category_map[category.id][category.subcategory_id] += 1
 
+        # Use the map of category / subcategory ID occurance counts to find the common categories.
         for category_id in category_map:
             for subcategory_id in category_map[category_id]:
                 if category_map[category_id][subcategory_id] == len(group):
@@ -84,18 +109,30 @@ class Outing:
         return intersection + difference
 
     def __combine_wheelchair_needs(self, group: list[User]) -> bool:
+        """
+        Given a group of users, return True if any of the users requires
+        wheelchair accessibility.
+        """
         for user in group:
             if user.preferences.requires_wheelchair_accessibility:
                 return True
         return False
 
     def __combine_bar_openness(self, group: list[User]) -> bool:
+        """
+        Given a group of users, return False if any of the users is not open to
+        going to a bar.
+        """
         for user in group:
             if not user.preferences.open_to_bars:
                 return False
         return True
 
     def __combine_preferences(self, group: list[User]) -> UserPreferences:
+        """
+        Given a group of users, combine their outing preferences. The logic
+        throughout this class gives priority to common preferences.
+        """
         return UserPreferences(
             restaurant_categories=self.__combine_restaurant_categories(group),
             activity_categories=self.__combine_activity_categories(group),
@@ -104,6 +141,14 @@ class Outing:
         )
 
     async def plan_activity(self) -> OutingComponent | None:
+        """
+        Plan an activity for the outing, taking into consideration the outing
+        constraints and group preferences.
+
+        For now, the activity always happens after a meal. We plan the activity
+        first, then we find a restaurant nearby that users can eat at before
+        the activity.
+        """
         activity_start_time = self.constraints.start_time + timedelta(minutes=120)
         activity_end_time = activity_start_time + timedelta(minutes=90)
         random.shuffle(self.constraints.search_area_ids)
@@ -152,10 +197,9 @@ class Outing:
                     return self.activity
 
         # CASE 3: Recommend a bar or an ice cream shop as a fallback activity.
+        is_evening = is_early_evening(activity_start_time) or is_late_evening(activity_start_time)
         place_type = "ice_cream_shop"
-        if (
-            is_early_evening(activity_start_time) or is_late_evening(activity_start_time)
-        ) and self.preferences.open_to_bars:
+        if is_evening and self.preferences.open_to_bars:
             place_type = "bar"
 
         for search_area_id in self.constraints.search_area_ids:
@@ -182,6 +226,12 @@ class Outing:
         return self.activity
 
     async def plan_restaurant(self) -> OutingComponent | None:
+        """
+        Plan a restaurant for the outing, taking into consideration the outing
+        activity, outing constraints and group preferences.
+
+        For now, the meal always happens before the activity.
+        """
         arrival_time = self.constraints.start_time
         departure_time = arrival_time + timedelta(minutes=90)
         restaurant_categories = self.preferences.restaurant_categories
@@ -240,6 +290,10 @@ class Outing:
         return self.restaurant
 
     async def plan(self) -> OutingPlan:
+        """
+        Plan an outing for a group of users, taking into consideration outing
+        constraints and group preferences.
+        """
         await self.plan_activity()
         await self.plan_restaurant()
         return OutingPlan(self.activity, self.restaurant)

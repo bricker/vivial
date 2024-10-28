@@ -23,6 +23,8 @@ from .viewport import Viewport
 
 
 class Place(TypedDict, total=False):
+    """https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#Place"""
+
     name: str | None
     id: str | None
     displayName: LocalizedText | None

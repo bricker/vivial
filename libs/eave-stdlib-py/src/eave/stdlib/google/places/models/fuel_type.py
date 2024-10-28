@@ -2,6 +2,8 @@ from enum import StrEnum
 
 
 class FuelType(StrEnum):
+    """https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#FuelType"""
+
     FUEL_TYPE_UNSPECIFIED = "FUEL_TYPE_UNSPECIFIED"
     DIESEL = "DIESEL"
     REGULAR_UNLEADED = "REGULAR_UNLEADED"
