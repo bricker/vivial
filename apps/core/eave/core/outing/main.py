@@ -19,11 +19,6 @@ from constants.areas import LOS_ANGELES_AREA_MAP
 from helpers.place import place_will_be_open, place_is_in_budget, place_is_accessible
 from helpers.time import is_early_morning, is_late_morning, is_early_evening, is_late_evening
 
-
-# TODO: Convert shuffle to choosing an index
-
-
-
 # TODO: Convert internal restaurant category mappings to Google Places category mappings (pending Bryan).
 # TODO: Convert internal event category mappings to Eventbrite category mappings (pending Bryan).
 class Outing:
@@ -155,10 +150,9 @@ class Outing:
                 #     end_time=activity_end_time,
                 #     budget=ACTIVITY_BUDGET_MAP[self.constraints.budget],
                 # )
-                # if len(activities) > 0:
-                #     random.shuffle(activities)
-                #     self.activity = OutingComponent(OutingSource.INTERNAL, activities[0])
-                #     return self.activity
+                if len(activities):
+                    self.activity = OutingComponent(OutingSource.INTERNAL, random.choice(activities))
+                    return self.activity
 
         # CASE 3: Recommend a bar or an ice cream shop as a fallback activity.
         place_type = "ice_cream_shop"
