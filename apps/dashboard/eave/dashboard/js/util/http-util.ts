@@ -1,3 +1,5 @@
+import { myWindow } from "../types";
+
 export interface HTTPResponse {
   status: number;
   ok: boolean;
@@ -17,3 +19,5 @@ export function isHTTPError(httpResponse: HTTPResponse): boolean {
 export function logUserOut(): void {
   window.location.assign("/logout");
 }
+
+export const GRAPHQL_API_BASE = `${myWindow.app.apiBase}/graphql`;

@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
 
+from models.search_region_code import SearchRegionCode
+
 from eave.stdlib.eventbrite.models.event import Event
 from eave.stdlib.google.places.models.place import Place
 
@@ -27,6 +29,6 @@ class OutingPlan:
 @dataclass
 class OutingConstraints:
     start_time: datetime
-    search_area_ids: list[str]
+    search_area_ids: list[SearchRegionCode]
     budget: int
     headcount: int

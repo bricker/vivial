@@ -4,6 +4,7 @@ from datetime import datetime
 from main import Outing
 from models.category import Category
 from models.outing import OutingConstraints
+from models.search_region_code import SearchRegionCode
 from models.user import User, UserPreferences
 
 
@@ -11,7 +12,7 @@ from models.user import User, UserPreferences
 async def main() -> None:
     test_outing_constraints = OutingConstraints(
         start_time=datetime.fromisoformat("2024-10-25T19:42:31.946205"),
-        search_area_ids=["us_ca_la_2"],
+        search_area_ids=[SearchRegionCode.US_CA_LA2],
         budget=2,
         headcount=2,
     )
