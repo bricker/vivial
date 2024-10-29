@@ -257,7 +257,6 @@ class Outing:
 
         # TODO: Sort areas by distance to the activity location.
         search_areas += list(LOS_ANGELES_AREA_MAP.values())
-        random.shuffle(search_areas)
 
         # Find a restaurant that meets the outing constraints.
         for area in search_areas:
