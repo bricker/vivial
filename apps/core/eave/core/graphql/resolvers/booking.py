@@ -1,10 +1,10 @@
 from uuid import UUID
 
-from attr import dataclass
-from eave.stdlib.config import SHARED_CONFIG
 import strawberry
+from attr import dataclass
 from sqlalchemy.ext.asyncio import AsyncSession
 
+import eave.stdlib.slack
 from eave.core.graphql.types.booking import (
     Booking,
     CreateBookingError,
@@ -24,9 +24,9 @@ from eave.core.internal.orm.outing_reservation import OutingReservationOrm
 from eave.core.internal.orm.reserver_details import ReserverDetailsOrm
 from eave.core.internal.orm.survey import SurveyOrm
 from eave.core.internal.orm.util import validate_time_within_bounds_or_exception
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.exceptions import InvalidDataError, StartTimeTooLateError, StartTimeTooSoonError
 from eave.stdlib.logging import LOGGER
-import eave.stdlib.slack
 
 
 @dataclass
