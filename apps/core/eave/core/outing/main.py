@@ -8,7 +8,7 @@ from helpers.place import place_is_accessible, place_is_in_budget, place_will_be
 from helpers.time import is_early_evening, is_early_morning, is_late_evening, is_late_morning
 from models.category import Category
 from models.geo_area import GeoArea
-from models.outing import OutingComponent, OutingConstraints, OutingPlan, OutingSource
+from models.outing import ActivitySource, OutingComponent, OutingConstraints, OutingPlan, RestaurantSource
 from models.user import User, UserPreferences
 
 from eave.stdlib.eventbrite.client import EventbriteClient
@@ -176,7 +176,7 @@ class Outing:
                             if has_available_tickets and is_live:
                                 if description := await self.eventbrite.get_event_description(event_id=event["id"]):
                                     event_details["description"] = description
-                                    self.activity = OutingComponent(OutingSource.EVENTBRITE, event_details)
+                                    self.activity = OutingComponent(ActivitySource.EVENTBRITE, event_details)
                                     return self.activity
 
         # CASE 2: Recommend an "evergreen" activity from our manually curated database.
@@ -194,7 +194,7 @@ class Outing:
                 # )
                 if len(activities):
                     random.shuffle(activities)
-                    self.activity = OutingComponent(OutingSource.INTERNAL, activities[0])
+                    self.activity = OutingComponent(ActivitySource.INTERNAL, activities[0])
                     return self.activity
 
         # CASE 3: Recommend a bar or an ice cream shop as a fallback activity.
@@ -219,7 +219,7 @@ class Outing:
                     will_be_open = place_will_be_open(place, activity_start_time, activity_end_time)
                     is_in_budget = place_is_in_budget(place, self.constraints.budget)
                     if will_be_open and is_in_budget:
-                        self.activity = OutingComponent(OutingSource.GOOGLE, place)
+                        self.activity = OutingComponent(RestaurantSource.GOOGLE, place)
                         return self.activity
 
         # CASE 4: No suitable activity was found :(
@@ -249,9 +249,9 @@ class Outing:
         # If an activity has been selected, use that as the search area.
         if self.activity and self.activity.details:
             location = None
-            if self.activity.source == OutingSource.GOOGLE:
+            if self.activity.source == RestaurantSource.GOOGLE:
                 location = self.activity.details.get("location")
-            elif self.activity.source == OutingSource.EVENTBRITE:
+            elif self.activity.source == ActivitySource.EVENTBRITE:
                 location = self.activity.details.get("venue")
 
             if location:
@@ -283,7 +283,7 @@ class Outing:
                         will_be_open = place_will_be_open(restaurant, arrival_time, departure_time)
                         is_in_budget = place_is_in_budget(restaurant, self.constraints.budget)
                         if will_be_open and is_in_budget:
-                            self.restaurant = OutingComponent(OutingSource.GOOGLE, restaurant)
+                            self.restaurant = OutingComponent(RestaurantSource.GOOGLE, restaurant)
                             return self.restaurant
 
         # No restaurant was found :(

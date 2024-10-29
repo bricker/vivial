@@ -8,15 +8,18 @@ from eave.stdlib.eventbrite.models.event import Event
 from eave.stdlib.google.places.models.place import Place
 
 
-class OutingSource(StrEnum):
+class ActivitySource(StrEnum):
     INTERNAL = "INTERNAL"
-    GOOGLE = "GOOGLE"
     EVENTBRITE = "EVENTBRITE"
+
+
+class RestaurantSource(StrEnum):
+    GOOGLE = "GOOGLE"
 
 
 @dataclass
 class OutingComponent:
-    source: OutingSource
+    source: ActivitySource | RestaurantSource
     details: Event | Place | None
 
 
