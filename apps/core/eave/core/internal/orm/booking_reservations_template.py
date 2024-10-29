@@ -38,7 +38,7 @@ class BookingReservationTemplateOrm(Base):
     reservation_name: Mapped[str] = mapped_column()
     reservation_start_time: Mapped[datetime] = mapped_column()
     num_attendees: Mapped[int] = mapped_column()
-    booking_link: Mapped[str | None] = mapped_column()
+    external_booking_link: Mapped[str | None] = mapped_column()
     """HTTP link to site for manual booking (possibly affialate), if available"""
     reservation_location_address1: Mapped[str] = mapped_column()
     reservation_location_address2: Mapped[str] = mapped_column()
@@ -59,7 +59,7 @@ class BookingReservationTemplateOrm(Base):
         reservation_name: str,
         reservation_start_time: datetime,
         num_attendees: int,
-        booking_link: str | None,
+        external_booking_link: str | None,
         reservation_location_address1: str,
         reservation_location_address2: str,
         reservation_location_city: str,
@@ -73,7 +73,7 @@ class BookingReservationTemplateOrm(Base):
             reservation_name=reservation_name,
             reservation_start_time=reservation_start_time,
             num_attendees=num_attendees,
-            booking_link=booking_link,
+            external_booking_link=external_booking_link,
             reservation_location_address1=reservation_location_address1,
             reservation_location_address2=reservation_location_address2,
             reservation_location_city=reservation_location_city,

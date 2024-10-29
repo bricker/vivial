@@ -38,7 +38,7 @@ class BookingActivityTemplateOrm(Base):
     activity_name: Mapped[str] = mapped_column()
     activity_start_time: Mapped[datetime] = mapped_column()
     num_attendees: Mapped[int] = mapped_column()
-    booking_link: Mapped[str | None] = mapped_column()
+    external_booking_link: Mapped[str | None] = mapped_column()
     """HTTP link to site for manual booking (possibly affialate), if available"""
     activity_location_address1: Mapped[str] = mapped_column()
     activity_location_address2: Mapped[str] = mapped_column()
@@ -59,7 +59,7 @@ class BookingActivityTemplateOrm(Base):
         activity_name: str,
         activity_start_time: datetime,
         num_attendees: int,
-        booking_link: str | None,
+        external_booking_link: str | None,
         activity_location_address1: str,
         activity_location_address2: str,
         activity_location_city: str,
@@ -73,7 +73,7 @@ class BookingActivityTemplateOrm(Base):
             activity_name=activity_name,
             activity_start_time=activity_start_time,
             num_attendees=num_attendees,
-            booking_link=booking_link,
+            external_booking_link=external_booking_link,
             activity_location_address1=activity_location_address1,
             activity_location_address2=activity_location_address2,
             activity_location_city=activity_location_city,
