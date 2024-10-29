@@ -256,7 +256,8 @@ class Outing:
             search_areas = [GeoArea(lat=self.activity.location.lat, lon=self.activity.location.lon, rad_miles=5)]
 
         # TODO: Sort areas by distance to the activity location.
-        search_areas += list(LOS_ANGELES_AREA_MAP.values())
+        for search_area_id in self.constraints.search_area_ids:
+            search_areas.append(LOS_ANGELES_AREA_MAP[search_area_id])
 
         # Find a restaurant that meets the outing constraints.
         for area in search_areas:
