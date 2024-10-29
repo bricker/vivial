@@ -1,17 +1,21 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from constants.restaurants import RESTAURANT_BUDGET_MAP
+from constants.zoneinfo import LOS_ANGELES_ZONE_INFO
 
 from eave.stdlib.google.places.models.place import Place
 
 
-def place_will_be_open(place: Place, arrival_time: datetime, departure_time: datetime) -> bool:
+def place_will_be_open(place: Place, utc_arrival_time: datetime, utc_departure_time: datetime) -> bool:
     """
     Given a place from the Google Places API, determine whether or not that
     place will be open during the given time period.
 
     https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#OpeningHours
     """
+    local_arrival_time = utc_arrival_time.replace(tzinfo=LOS_ANGELES_ZONE_INFO)
+    local_departure_time = utc_departure_time.replace(tzinfo=LOS_ANGELES_ZONE_INFO)
+
     open_hours = place.get("regularOpeningHours")
     if open_hours is None:
         return False
@@ -20,38 +24,27 @@ def place_will_be_open(place: Place, arrival_time: datetime, departure_time: dat
     if open_periods is None:
         return False
 
-    relevant_periods = []
     for period in open_periods:
         if open := period.get("open"):
-            day = open.get("day")
-            if day == arrival_time.weekday():
-                relevant_periods.append(period)
-
-    if not relevant_periods:
-        return False
-
-    for period in relevant_periods:
-        open = period.get("open")
-        close = period.get("close")
-        if open and close:
+            is_relevant = open.get("day") == local_arrival_time.weekday()
             open_hour = open.get("hour")
             open_minute = open.get("minute")
-            if open_hour == arrival_time.hour and open_minute >= arrival_time.minute:
-                return True
 
-            if open_hour < arrival_time.hour:
-                close_day = close.get("day")
-                if close_day is not departure_time.day:
-                    return True
+            if is_relevant and open_hour is not None and open_minute is not None:
+                open_time = local_arrival_time.replace(hour=open_hour, minute=open_minute)
 
-                close_hour = close.get("hour")
-                close_minute = close.get("minute")
-                if close_hour == departure_time.hour and close_minute >= departure_time.minute:
-                    return True
+                if close := period.get("close"):
+                    close_hour = close.get("hour")
+                    close_minute = close.get("minute")
 
-                if close_hour > departure_time.hour:
-                    return True
+                    if close_hour is not None and close_minute is not None:
+                        close_time = local_arrival_time.replace(hour=close_hour, minute=close_minute)
 
+                        if close.get("day") != local_arrival_time.weekday():
+                            close_time = close_time + timedelta(days=1)  # Place closes the next day.
+
+                        if open_time <= local_arrival_time and close_time >= local_departure_time:
+                            return True
     return False
 
 
@@ -65,7 +58,7 @@ def place_is_in_budget(place: Place, budget: int) -> bool:
     return place.get("priceLevel") == RESTAURANT_BUDGET_MAP[budget]
 
 
-def place_is_accessible(place: Place) -> bool:
+def place_is_accessible(place: Place) -> bool | None:
     """
     Given a place from the Google Places API, determine whether or not that
     place is accessible for people in wheelchairs.
@@ -81,7 +74,4 @@ def place_is_accessible(place: Place) -> bool:
     can_pee = accessibility_options.get("wheelchairAccessibleRestroom")
     can_sit = accessibility_options.get("wheelchairAccessibleSeating")
 
-    if can_enter and can_park and can_pee and can_sit:
-        return True
-
-    return False
+    return can_enter and can_park and can_pee and can_sit

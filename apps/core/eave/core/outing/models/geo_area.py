@@ -7,6 +7,12 @@ class Radius:
     meters: float
 
 
+@dataclass
+class GeoLocation:
+    lat: float | str
+    lon: float | str
+
+
 class GeoArea:
     lat: float | str
     lon: float | str

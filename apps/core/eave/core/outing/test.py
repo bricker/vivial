@@ -1,14 +1,15 @@
 import asyncio
 from datetime import datetime
 
-from main import Outing
 from models.category import Category
 from models.outing import OutingConstraints
 from models.search_region_code import SearchRegionCode
 from models.user import User, UserPreferences
 
+from . import Outing
 
-# TODO: Write thorough tests once all relevant tables / endpoints are ready (pending Bryan).
+
+# TODO: Write thorough automated tests once all relevant tables / endpoints are ready (pending Bryan).
 async def main() -> None:
     test_outing_constraints = OutingConstraints(
         start_time=datetime.fromisoformat("2024-10-25T19:42:31.946205"),
@@ -58,12 +59,12 @@ async def main() -> None:
     test_outing = Outing([test_user_1, test_user_2], test_outing_constraints)
     test_outing_plan = await test_outing.plan()
 
-    if test_outing_plan.restaurant and test_outing_plan.restaurant.details and test_outing_plan:
-        if test_restaurant_name := test_outing_plan.restaurant.details.get("displayName"):
+    if test_outing_plan.restaurant and test_outing_plan.restaurant.external_details and test_outing_plan:
+        if test_restaurant_name := test_outing_plan.restaurant.external_details.get("displayName"):
             print(f"Dinner at {test_restaurant_name.get("text")}")
 
-    if test_outing_plan.activity and test_outing_plan.activity.details:
-        if test_activity_name := test_outing_plan.activity.details.get("displayName"):
+    if test_outing_plan.activity and test_outing_plan.activity.external_details:
+        if test_activity_name := test_outing_plan.activity.external_details.get("displayName"):
             print(f"then hang at {test_activity_name.get("text")}.")
 
 

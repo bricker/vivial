@@ -65,8 +65,7 @@ class GooglePlacesClient:
             method=HTTPMethod.POST, path="searchNearby", field_mask=field_mask, payload=payload
         )
         j = await response.json()
-        if places := j.get("places"):
-            return places
+        return j.get("places")
 
     async def make_request(
         self, *, method: HTTPMethod, path: str, field_mask: list[str], payload: Any
