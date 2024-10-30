@@ -1,3 +1,13 @@
+from dataclasses import dataclass
+
+@dataclass(kw_only=True)
+class RestaurantCategory:
+    id: str
+    name: str
+    is_default: bool
+    google_category_ids: list[str]
+
+
 RESTAURANT_CATEGORIES = [
     RestaurantCategory(
         id="ccb375f8e428489eac14192d12f0fd5a",
