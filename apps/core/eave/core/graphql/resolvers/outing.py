@@ -19,8 +19,8 @@ from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.outing_activity import OutingActivityOrm
 from eave.core.internal.orm.outing_reservation import OutingReservationOrm
 from eave.core.internal.orm.survey import SurveyOrm
-from eave.core.outing.models.search_region_code import SearchRegionCode
 from eave.core.internal.orm.util import validate_time_within_bounds_or_exception
+from eave.core.outing.models.search_region_code import SearchRegionCode
 from eave.stdlib.core_api.models.enums import ActivitySource, ReservationSource
 from eave.stdlib.exceptions import InvalidDataError, StartTimeTooLateError, StartTimeTooSoonError
 from eave.stdlib.logging import LOGGER
@@ -56,6 +56,7 @@ async def create_outing_plan(
             num_attendees=2,
         )
     return outing
+
 
 async def submit_survey_mutation(
     *,

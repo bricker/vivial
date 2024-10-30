@@ -185,20 +185,20 @@ class Outing:
         # for search_area_id in self.constraints.search_area_ids:
         #     for category in self.preferences.activity_categories:
         #         activities = []
-                # TODO: Fetch from internal database when that is ready (pending Bryan).
-                # activities = get_evergreen_activities(
-                #     search_area_id=search_area_id,
-                #     category_id=category.id,
-                #     subcategory_id=category.subcategory_id,
-                #     start_time=activity_start_time,
-                #     end_time=activity_end_time,
-                #     budget=ACTIVITY_BUDGET_MAP[self.constraints.budget],
-                # )
-                # if len(activities):
-                #     random.shuffle(activities)
-                #     geo_location = GeoLocation(TODO)
-                #     self.activity = OutingComponent(ActivitySource.INTERNAL, activities[0], geo_location)
-                #     return self.activity
+        # TODO: Fetch from internal database when that is ready (pending Bryan).
+        # activities = get_evergreen_activities(
+        #     search_area_id=search_area_id,
+        #     category_id=category.id,
+        #     subcategory_id=category.subcategory_id,
+        #     start_time=activity_start_time,
+        #     end_time=activity_end_time,
+        #     budget=ACTIVITY_BUDGET_MAP[self.constraints.budget],
+        # )
+        # if len(activities):
+        #     random.shuffle(activities)
+        #     geo_location = GeoLocation(TODO)
+        #     self.activity = OutingComponent(ActivitySource.INTERNAL, activities[0], geo_location)
+        #     return self.activity
 
         # CASE 3: Recommend a bar or an ice cream shop as a fallback activity.
         is_evening = is_early_evening(activity_start_time) or is_late_evening(activity_start_time)

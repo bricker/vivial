@@ -11,8 +11,8 @@ from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func,
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.core.outing.models.search_region_code import SearchRegionCode
 from eave.core.graphql.types.outing import SurveySubmitErrorCode
+from eave.core.outing.models.search_region_code import SearchRegionCode
 from eave.stdlib.exceptions import InvalidDataError, StartTimeTooLateError, StartTimeTooSoonError
 
 from .base import Base
