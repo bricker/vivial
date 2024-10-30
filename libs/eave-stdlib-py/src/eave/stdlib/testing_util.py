@@ -344,6 +344,19 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getsha256(self, name: str) -> bytes:
         return self.getbytes(name)
 
+    def anyemail(self, name: str | None = None) -> str:
+        if name is None:
+            name = uuid.uuid4().hex
+
+        assert name not in self.testdata, f"test value {name} is already in use. Use getemail() to retrieve it."
+        data = f"{name}+{uuid.uuid4().hex}@gmail.com"
+        self.testdata[name] = data
+        return data
+
+    def getemail(self, name: str) -> str:
+        assert name in self.testdata, f"test value {name} has not been set. Use anyemail() to set it."
+        return self.testdata[name]
+
     def b64encode(self, value: str, urlsafe: bool = False) -> str:
         b = value.encode()
         if urlsafe:

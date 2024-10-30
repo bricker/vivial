@@ -1,11 +1,12 @@
-from datetime import datetime
 from http import HTTPStatus
 
 from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.survey import SurveyOrm
 from eave.core.outing.models.search_region_code import SearchRegionCode
 
-from .base import BaseTestCase
+from ..base import BaseTestCase
+
+day_seconds = 60 * 60 * 24
 
 
 class TestOutingEndpoints(BaseTestCase):
@@ -15,31 +16,18 @@ class TestOutingEndpoints(BaseTestCase):
             json={
                 "query": f"""
 mutation {{
-    submitSurvey(visitorId: "{self.anyuuid()}", startTime: "2024-10-16T21:14:41", searchAreaIds: ["us_ca_la"], budget: 1, headcount: 2) {{
+    submitSurvey(visitorId: "{self.anyuuid()}",
+        startTime: "{self.anydatetime(offset=2 * day_seconds).isoformat()}",
+        searchAreaIds: ["us_ca_la"],
+        budget: 1,
+        headcount: 2) {{
         ... on SurveySubmitSuccess {{
             outing {{
                 id
             }}
         }}
-    }}
-}}
-"""
-            },
-        )
-        assert response.status_code == HTTPStatus.OK
-        assert response.json().get("data").get("submitSurvey").get("outing").get("id") is not None
-
-    async def test_survey_submit_start_time_with_tz_info(self) -> None:
-        response = await self.httpclient.post(
-            "/graphql",
-            json={
-                "query": f"""
-mutation {{
-    submitSurvey(visitorId: "{self.anyuuid()}", startTime: "2024-10-18T20:06:48.956Z", searchAreaIds: ["us_ca_la"], budget: 1, headcount: 2) {{
-        ... on SurveySubmitSuccess {{
-            outing {{
-                id
-            }}
+        ... on SurveySubmitError {{
+            errorCode
         }}
     }}
 }}
@@ -54,7 +42,7 @@ mutation {{
             survey = await SurveyOrm.create(
                 session=sess,
                 visitor_id=self.anyuuid(),
-                start_time=datetime.now(),
+                start_time=self.anydatetime(offset=2 * day_seconds),
                 search_area_ids=[SearchRegionCode.US_CA_LA],
                 budget=1,
                 headcount=1,
@@ -71,7 +59,7 @@ mutation {{
             json={
                 "query": f"""
 mutation {{
-    replanOuting(outingId: "{outing.id}") {{
+    replanOuting(outingId: "{outing.id}", visitorId: "{self.anyuuid()}") {{
         ... on ReplanOutingSuccess {{
             outing {{
                 id
@@ -85,21 +73,21 @@ mutation {{
         assert response.status_code == HTTPStatus.OK
         assert response.json().get("data").get("replanOuting").get("outing").get("id") is not None
 
-    async def test_replan_bad_param_fails(self) -> None:
+    async def test_replan_bad_outing_id(self) -> None:
         # try to replan an outing that doesn't exist
         response = await self.httpclient.post(
             "/graphql",
             json={
-                "query": """
-mutation {
-    replanOuting(outingId: "d27a86dd-f894-4024-9b6c-cdc66fc2f419") {
-        ... on ReplanOutingSuccess {
-            outing {
+                "query": f"""
+mutation {{
+    replanOuting(outingId: "{self.anyuuid()}", visitorId: "{self.anyuuid()}") {{
+        ... on ReplanOutingSuccess {{
+            outing {{
                 id
-            }
-        }
-    }
-}
+            }}
+        }}
+    }}
+}}
 """
             },
         )

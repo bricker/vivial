@@ -23,6 +23,7 @@ class AuthTokenPair:
 @strawberry.enum
 class AuthenticationErrorCode(enum.StrEnum):
     INVALID_CREDENTIALS = "INVALID_CREDENTIALS"
+    INVALID_EMAIL = "INVALID_EMAIL"
 
 
 @strawberry.type
