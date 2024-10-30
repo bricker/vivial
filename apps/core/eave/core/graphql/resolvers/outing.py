@@ -56,8 +56,6 @@ async def create_outing_plan(
             num_attendees=2,
         )
     return outing
->>>>>>> main
-
 
 async def submit_survey_mutation(
     *,
