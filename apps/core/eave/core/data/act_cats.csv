@@ -1,0 +1,91 @@
+Default?,Vivial Category,Vivial Category ID,Vivial Subcategory,Vivial Subcategory ID,In Vivial Curated DB?,EventBrite Category Label,EB Category ID,EB Subcategory Label,EB Subcategory ID
+Yes,Seasonal & Holiday,<uuid>,St Patricks Day,<uuid>,FALSE,Seasonal & Holiday,116,St Patricks Day,16001
+Yes,Seasonal & Holiday,<uuid>,Easter,<uuid>,FALSE,Seasonal & Holiday,116,Easter,16002
+Yes,Seasonal & Holiday,<uuid>,Independence Day,<uuid>,FALSE,Seasonal & Holiday,116,Independence Day,16003
+Yes,Seasonal & Holiday,<uuid>,Halloween/Haunt,<uuid>,FALSE,Seasonal & Holiday,116,Halloween/Haunt,16004
+Yes,Seasonal & Holiday,<uuid>,Thanksgiving,<uuid>,FALSE,Seasonal & Holiday,116,Thanksgiving,16005
+Yes,Seasonal & Holiday,<uuid>,Christmas,<uuid>,FALSE,Seasonal & Holiday,116,Christmas,16006
+Yes,Seasonal & Holiday,<uuid>,Channukah,<uuid>,FALSE,Seasonal & Holiday,116,Channukah,16007
+Yes,Seasonal & Holiday,<uuid>,Fall events,<uuid>,FALSE,Seasonal & Holiday,116,Fall events,16008
+Yes,Seasonal & Holiday,<uuid>,New Years Eve,<uuid>,FALSE,Seasonal & Holiday,116,New Years Eve,16009
+Yes,Seasonal & Holiday,<uuid>,Other,<uuid>,FALSE,Seasonal & Holiday,116,Other,16999
+Yes,Food & Drink,<uuid>,Beer,<uuid>,FALSE,Food & Drink,110,Beer,10001
+Yes,Food & Drink,<uuid>,Wine,<uuid>,FALSE,Food & Drink,110,Wine,10002
+Yes,Food & Drink,<uuid>,Food,<uuid>,FALSE,Food & Drink,110,Food,10003
+Yes,Food & Drink,<uuid>,Spirits,<uuid>,FALSE,Food & Drink,110,Spirits,10004
+Yes,Food & Drink,<uuid>,Other,<uuid>,FALSE,Food & Drink,110,Other,10999
+Yes,"Film, Media & Entertainment",<uuid>,TV,<uuid>,FALSE,"Film, Media & Entertainment",104,TV,4001
+Yes,"Film, Media & Entertainment",<uuid>,Film,<uuid>,FALSE,"Film, Media & Entertainment",104,Film,4002
+Yes,"Film, Media & Entertainment",<uuid>,Anime,<uuid>,FALSE,"Film, Media & Entertainment",104,Anime,4003
+Yes,"Film, Media & Entertainment",<uuid>,Gaming,<uuid>,FALSE,"Film, Media & Entertainment",104,Gaming,4004
+Yes,"Film, Media & Entertainment",<uuid>,Comics,<uuid>,FALSE,"Film, Media & Entertainment",104,Comics,4005
+Yes,"Film, Media & Entertainment",<uuid>,Adult,<uuid>,FALSE,"Film, Media & Entertainment",104,Adult,4006
+Yes,"Film, Media & Entertainment",<uuid>,Comedy,<uuid>,FALSE,"Film, Media & Entertainment",104,Comedy,4007
+Yes,"Film, Media & Entertainment",<uuid>,Comedy,<uuid>,FALSE,Performing & Visual Arts,105,Comedy,5010
+Yes,"Film, Media & Entertainment",<uuid>,Boats & Cruises,<uuid>,FALSE,"Auto, Boat & Air",118,Boat,18003
+Yes,"Film, Media & Entertainment",<uuid>,Other,<uuid>,FALSE,"Film, Media & Entertainment",104,Other,4999
+Yes,Music,<uuid>,Alternative / Indie,<uuid>,FALSE,Music,103,Alternative,3001
+Yes,Music,<uuid>,Alternative / Indie,<uuid>,FALSE,Music,103,Indie,3009
+Yes,Music,<uuid>,Blues & Jazz,<uuid>,FALSE,Music,103,Blues & Jazz,3002
+Yes,Music,<uuid>,Blues & Jazz,<uuid>,FALSE,Music,103,Blues,3022
+Yes,Music,<uuid>,Blues & Jazz,<uuid>,FALSE,Music,103,Jazz,3027
+Yes,Music,<uuid>,Classical,<uuid>,FALSE,Music,103,Classical,3003
+Yes,Music,<uuid>,Country,<uuid>,FALSE,Music,103,Country,3004
+Yes,Music,<uuid>,EDM / Electronic,<uuid>,FALSE,Music,103,EDM / Electronic,3006
+Yes,Music,<uuid>,EDM / Electronic,<uuid>,FALSE,Music,103,EDM,3024
+Yes,Music,<uuid>,EDM / Electronic,<uuid>,FALSE,Music,103,Electronic,3025
+Yes,Music,<uuid>,Americana,<uuid>,FALSE,Music,103,Folk,3007
+Yes,Music,<uuid>,Americana,<uuid>,FALSE,Music,103,Acoustic,3019
+Yes,Music,<uuid>,Americana,<uuid>,FALSE,Music,103,Americana,3020
+Yes,Music,<uuid>,Americana,<uuid>,FALSE,Music,103,Bluegrass,3021
+Yes,Music,<uuid>,Hip Hop / Rap,<uuid>,FALSE,Music,103,Hip Hop / Rap,3008
+Yes,Music,<uuid>,Latin,<uuid>,FALSE,Music,103,Latin,3010
+Yes,Music,<uuid>,Metal,<uuid>,FALSE,Music,103,Metal,3011
+Yes,Music,<uuid>,Opera,<uuid>,FALSE,Music,103,Opera,3012
+Yes,Music,<uuid>,Pop,<uuid>,FALSE,Music,103,Pop,3013
+Yes,Music,<uuid>,R&B,<uuid>,FALSE,Music,103,R&B,3014
+Yes,Music,<uuid>,Reggae,<uuid>,FALSE,Music,103,Reggae,3015
+Yes,Music,<uuid>,Rock,<uuid>,FALSE,Music,103,Rock,3017
+Yes,Music,<uuid>,Top 40,<uuid>,FALSE,Music,103,Top 40,3018
+Yes,Music,<uuid>,DJ/Dance,<uuid>,FALSE,Music,103,DJ/Dance,3023
+Yes,Music,<uuid>,Experimental,<uuid>,FALSE,Music,103,Experimental,3026
+Yes,Music,<uuid>,Experimental,<uuid>,FALSE,Music,103,Psychedelic,3028
+Yes,Music,<uuid>,Punk/Hardcore,<uuid>,FALSE,Music,103,Punk/Hardcore,3029
+Yes,Music,<uuid>,Singer/Songwriter,<uuid>,FALSE,Music,103,Singer/Songwriter,3030
+Yes,Music,<uuid>,World,<uuid>,FALSE,Music,103,World,3031
+Yes,Music,<uuid>,World,<uuid>,FALSE,Music,103,Cultural,3005
+Yes,Music,<uuid>,Other,<uuid>,FALSE,Music,103,Other,3999
+Yes,Arts & Theater,<uuid>,Theatre,<uuid>,FALSE,Performing & Visual Arts,105,Theatre,5001
+Yes,Arts & Theater,<uuid>,Musical,<uuid>,FALSE,Performing & Visual Arts,105,Musical,5002
+Yes,Arts & Theater,<uuid>,Ballet,<uuid>,FALSE,Performing & Visual Arts,105,Ballet,5003
+Yes,Arts & Theater,<uuid>,Dance,<uuid>,FALSE,Performing & Visual Arts,105,Dance,5004
+Yes,Arts & Theater,<uuid>,Opera,<uuid>,FALSE,Performing & Visual Arts,105,Opera,5005
+Yes,Arts & Theater,<uuid>,Orchestra,<uuid>,FALSE,Performing & Visual Arts,105,Orchestra,5006
+Yes,Arts & Theater,<uuid>,Craft,<uuid>,FALSE,Performing & Visual Arts,105,Craft,5007
+Yes,Arts & Theater,<uuid>,Fine Art,<uuid>,FALSE,Performing & Visual Arts,105,Fine Art,5008
+Yes,Arts & Theater,<uuid>,Literary Arts,<uuid>,FALSE,Performing & Visual Arts,105,Literary Arts,5009
+Yes,Arts & Theater,<uuid>,Sculpture,<uuid>,FALSE,Performing & Visual Arts,105,Sculpture,5011
+Yes,Arts & Theater,<uuid>,Painting,<uuid>,FALSE,Performing & Visual Arts,105,Painting,5012
+Yes,Arts & Theater,<uuid>,Design,<uuid>,FALSE,Performing & Visual Arts,105,Design,5013
+Yes,Arts & Theater,<uuid>,Jewelry,<uuid>,FALSE,Performing & Visual Arts,105,Jewelry,5014
+Yes,Arts & Theater,<uuid>,Other,<uuid>,FALSE,Performing & Visual Arts,105,Other,5999
+Yes,Arts & Theater,<uuid>,Museums,<uuid>,TRUE,,,,
+No,Hobbies,<uuid>,Auto,<uuid>,FALSE,"Auto, Boat & Air",118,Auto,18001
+No,Hobbies,<uuid>,Motorcycle/ATV,<uuid>,FALSE,"Auto, Boat & Air",118,Motorcycle/ATV,18002
+No,Hobbies,<uuid>,Air,<uuid>,FALSE,"Auto, Boat & Air",118,Air,18004
+No,Hobbies,<uuid>,Anime/Comics,<uuid>,FALSE,Hobbies & Special Interest,119,Anime/Comics,19001
+No,Hobbies,<uuid>,Gaming,<uuid>,FALSE,Hobbies & Special Interest,119,Gaming,19002
+No,Hobbies,<uuid>,DIY,<uuid>,FALSE,Hobbies & Special Interest,119,DIY,19003
+No,Hobbies,<uuid>,Photography,<uuid>,FALSE,Hobbies & Special Interest,119,Photography,19004
+No,Hobbies,<uuid>,Knitting,<uuid>,FALSE,Hobbies & Special Interest,119,Knitting,19005
+No,Hobbies,<uuid>,Books,<uuid>,TRUE,Hobbies & Special Interest,119,Books,19006
+No,Hobbies,<uuid>,Adult,<uuid>,FALSE,Hobbies & Special Interest,119,Adult,19007
+No,Hobbies,<uuid>,Drawing & Painting,<uuid>,FALSE,Hobbies & Special Interest,119,Drawing & Painting,19008
+No,Hobbies,<uuid>,Pets & Animals,<uuid>,TRUE,Home & Lifestyle,117,Pets & Animals,17002
+No,Hobbies,<uuid>,Home & Garden,<uuid>,FALSE,Home & Lifestyle,117,Home & Garden,17003
+Yes,Fitness & Outdoors,<uuid>,Hiking,<uuid>,TRUE,Travel & Outdoor,109,Hiking,9001
+No,Fitness & Outdoors,<uuid>,Kayaking,<uuid>,TRUE,Travel & Outdoor,109,Kayaking,9003
+No,Fitness & Outdoors,<uuid>,Climbing,<uuid>,TRUE,Travel & Outdoor,109,Climbing,9005
+Yes,Fitness & Outdoors,<uuid>,Walking,<uuid>,TRUE,,,,
+No,Fitness & Outdoors,<uuid>,Biking,<uuid>,TRUE,,,,
+Yes,Fitness & Outdoors,<uuid>,Botanical Gardens,<uuid>,TRUE,,,,
