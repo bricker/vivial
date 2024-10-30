@@ -29,7 +29,7 @@ class ReserverDetailsOrm(Base):
         ),
     )
 
-    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR, unique=True)
     account_id: Mapped[UUID] = mapped_column()
     first_name: Mapped[str] = mapped_column()
     last_name: Mapped[str] = mapped_column()
