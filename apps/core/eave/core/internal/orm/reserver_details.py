@@ -20,7 +20,7 @@ from .util import UUID_DEFAULT_EXPR
 class ReserverDetailsOrm(Base):
     __tablename__ = "reserver_details"
     __table_args__ = (
-        PrimaryKeyConstraint("id"),
+        PrimaryKeyConstraint("account_id", "id", name="account_id_id_pk"),
         ForeignKeyConstraint(
             ["account_id"],
             ["accounts.id"],
@@ -66,11 +66,15 @@ class ReserverDetailsOrm(Base):
 
     @dataclass
     class QueryParams:
+        account_id: uuid.UUID | None = None
         id: uuid.UUID | None = None
 
     @classmethod
     def _build_query(cls, params: QueryParams) -> Select[tuple[Self]]:
         lookup = select(cls).limit(1)
+
+        if params.account_id is not None:
+            lookup = lookup.where(cls.account_id == params.account_id)
 
         if params.id is not None:
             lookup = lookup.where(cls.id == params.id)
