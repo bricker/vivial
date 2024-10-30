@@ -26,6 +26,9 @@ from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.database import init_database
 from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.base import get_base_metadata
+from eave.core.internal.orm.outing import OutingOrm
+from eave.core.internal.orm.survey import SurveyOrm
+from eave.core.internal.outing.models.search_region_code import SearchRegionCode
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.headers import (
     EAVE_ACCOUNT_ID_HEADER,
@@ -201,11 +204,10 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
     async def make_account(
         self,
         session: AsyncSession,
-        refresh_token: str | None = None,
     ) -> AccountOrm:
         account = await AccountOrm.create(
             session=session,
-            email=self.anystr(),
+            email=self.anyemail(),
             plaintext_password=self.anystr(),
         )
 
@@ -214,6 +216,38 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
     async def get_eave_account(self, session: AsyncSession, /, id: UUID) -> AccountOrm | None:
         acct = await AccountOrm.one_or_none(session=session, params=AccountOrm.QueryParams(id=id))
         return acct
+
+    async def make_outing(
+        self,
+        session: AsyncSession,
+        account_id: UUID | None = None,
+        survey_id: UUID | None = None,
+    ) -> OutingOrm:
+        act_id = account_id
+        if act_id is None:
+            account = await self.make_account(session=session)
+            act_id = account.id
+
+        surv_id = survey_id
+        if surv_id is None:
+            survey = await SurveyOrm.create(
+                session=session,
+                visitor_id=self.anyuuid(),
+                start_time=self.anydatetime(offset=2 * 60 * 60 * 24),
+                search_area_ids=[SearchRegionCode.US_CA_LA],
+                budget=self.anyint(min=0, max=3),
+                headcount=self.anyint(min=1, max=2),
+            )
+            surv_id = survey.id
+
+        outing = await OutingOrm.create(
+            session=session,
+            visitor_id=self.anyuuid(),
+            account_id=act_id,
+            survey_id=surv_id,
+        )
+
+        return outing
 
 
 def assert_schemas_match(a: tuple[SchemaField, ...], b: tuple[SchemaField, ...]) -> None:

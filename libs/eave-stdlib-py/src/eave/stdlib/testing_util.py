@@ -344,6 +344,19 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getsha256(self, name: str) -> bytes:
         return self.getbytes(name)
 
+    def anyemail(self, name: str | None = None) -> str:
+        if name is None:
+            name = uuid.uuid4().hex
+
+        assert name not in self.testdata, f"test value {name} is already in use. Use getemail() to retrieve it."
+        data = f"{name}+{uuid.uuid4().hex}@gmail.com"
+        self.testdata[name] = data
+        return data
+
+    def getemail(self, name: str) -> str:
+        assert name in self.testdata, f"test value {name} has not been set. Use anyemail() to set it."
+        return self.testdata[name]
+
     def b64encode(self, value: str, urlsafe: bool = False) -> str:
         b = value.encode()
         if urlsafe:
@@ -449,7 +462,11 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         )
 
     def mock_slack_client(self) -> None:
-        self.patch(name="slack client", patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient"))
+        self.patch(
+            name="slack client",
+            patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient.chat_postMessage"),
+            return_value={},
+        )
 
     def logged_event(self, *args: Any, **kwargs: Any) -> bool:
         mock = self.get_mock("analytics")
@@ -473,7 +490,9 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         # No calls matched the given args
         return False
 
-    def patch(self, patch: unittest.mock._patch, name: str | None = None) -> unittest.mock.Mock:
+    def patch(
+        self, patch: unittest.mock._patch, name: str | None = None, return_value: Any | None = None
+    ) -> unittest.mock.Mock:
         m = patch.start()
         m._testMethodName = self._testMethodName  # noqa: SLF001
 
@@ -482,6 +501,9 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
                 name = f"{patch.target.__name__}.{patch.attribute}"
             else:
                 name = f"{patch.target}.{patch.attribute}"
+
+        if return_value is not None:
+            m.return_value = return_value
 
         self._active_patches[name] = patch
         self.active_mocks[name] = m

@@ -12,6 +12,8 @@ from sqlalchemy import PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
+from eave.core.graphql.types.authentication import AuthenticationErrorCode
+from eave.stdlib.exceptions import InvalidDataError
 from eave.stdlib.util import b64encode
 
 from .base import Base
@@ -62,6 +64,7 @@ class AccountOrm(Base):
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     email: Mapped[str] = mapped_column(unique=True)
     password_key_salt: Mapped[str] = mapped_column()
+    """hex encoded byte string"""
     password_key: Mapped[str] = mapped_column()
     last_login: Mapped[datetime | None] = mapped_column(server_default=func.current_timestamp(), nullable=True)
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
@@ -79,9 +82,11 @@ class AccountOrm(Base):
 
         obj = cls(
             email=email,
-            password_key_salt=salt,
+            password_key_salt=salt.hex(),
             password_key=password_key,
         )
+
+        obj.validate_or_exception()
 
         session.add(obj)
         await session.flush()
@@ -94,7 +99,7 @@ class AccountOrm(Base):
 
     @classmethod
     def _build_query(cls, params: QueryParams) -> Select[tuple[Self]]:
-        lookup = select(cls).limit(1)
+        lookup = select(cls)
 
         if params.id is not None:
             lookup = lookup.where(cls.id == params.id)
@@ -104,12 +109,6 @@ class AccountOrm(Base):
 
         assert lookup.whereclause is not None, "Invalid parameters"
         return lookup
-
-    @classmethod
-    async def query(cls, session: AsyncSession, params: QueryParams) -> Self:
-        lookup = cls._build_query(params=params)
-        result = (await session.scalars(lookup)).one()
-        return result
 
     @classmethod
     async def one_or_exception(cls, session: AsyncSession, params: QueryParams) -> Self:
@@ -123,9 +122,14 @@ class AccountOrm(Base):
         result = await session.scalar(lookup)
         return result
 
+    def validate_or_exception(self) -> None:
+        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        if re.match(email_pattern, self.email) is None:
+            raise InvalidDataError(code=AuthenticationErrorCode.INVALID_EMAIL)
+
     def validate_password_or_exception(self, plaintext_password: str) -> bool:
         expected_password_key = derive_password_key(
-            plaintext_password=plaintext_password, salt=self.password_key_salt.encode()
+            plaintext_password=plaintext_password, salt=bytes.fromhex(self.password_key_salt)
         )
 
         # This isn't using hmac but this comparison function is resistant to timing attacks.

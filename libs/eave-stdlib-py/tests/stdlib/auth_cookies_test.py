@@ -120,7 +120,7 @@ class AuthCookiesTest(AuthCookiesTestBase):
 
         delete_auth_cookies(request=self.mock_request, response=self.mock_response)
         cookies = [v for k, v in self.mock_response.headers.items() if istr_eq(k, aiohttp.hdrs.SET_COOKIE)]
-        assert len(cookies) == 3
+        assert len(cookies) == 2
 
         assert any(re.search(f'^{EAVE_ACCOUNT_ID_COOKIE_NAME}=""', v) for v in cookies)
         assert any(re.search(f'^{EAVE_ACCESS_TOKEN_COOKIE_NAME}=""', v) for v in cookies)

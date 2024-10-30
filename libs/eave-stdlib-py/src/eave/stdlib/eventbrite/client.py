@@ -1,4 +1,3 @@
-import logging
 from collections.abc import Mapping
 from enum import StrEnum
 from http import HTTPMethod
@@ -11,6 +10,7 @@ from .models.event import Event
 from .models.format import Format
 from .models.organizer import Organizer
 from .models.question import Question
+from .models.shared import MultipartText
 from .models.ticket_class import PointOfSale, TicketClass
 
 
@@ -81,6 +81,13 @@ class EventbriteClient:
         j = await response.json()
         return j
 
+    async def get_event_description(self, *, event_id: str, query: GetEventQuery | None = None) -> MultipartText | None:
+        """https://www.eventbrite.com/platform/api#/reference/event-description/retrieve-full-html-description"""
+
+        response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}/description", params=query)
+        j = await response.json()
+        return j
+
     async def get_organizer_by_id(self, *, organizer_id: str) -> Organizer | None:
         """not documented"""
 
@@ -126,9 +133,7 @@ class EventbriteClient:
     ) -> list[Question]:
         """https://www.eventbrite.com/platform/api#/reference/questions/list-custom-questions/list-custom-questions-by-event"""
 
-        response = await self.make_request(
-            method=HTTPMethod.GET, path=f"/events/{event_id}/questions", params=query
-        )
+        response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}/questions", params=query)
         j = await response.json()
         return j["questions"]
 

@@ -7,8 +7,8 @@ from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.eventbrite.models.venue import Venue
 
-from ..data.areas import GeoArea
-from ..areas.los_angeles import LOS_ANGELES_AREAS
+from ..internal.outing.constants.areas import LOS_ANGELES_AREAS
+from ..internal.outing.models.geo_area import GeoArea
 
 EVENTBRITE_ALLOWED_FORMAT_IDS = [
     5, # Festival
@@ -73,7 +73,7 @@ def find_area_id(venue: Venue) -> GeoArea | None:
     closest_area: GeoArea | None = None
 
     for area in LOS_ANGELES_AREAS:
-        distance = haversine_distance(float(event_lat), float(event_lon), area.lat, area.lon)
+        distance = haversine_distance(float(event_lat), float(event_lon), float(area.lat), float(area.lon))
         if distance < min_distance:
             min_distance = distance
             closest_area = area
@@ -90,12 +90,13 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
     # Haversine formula
     dlat = lat2 - lat1
     dlon = lon2 - lon1
-    a = math.sin(dlat / 2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2)**2
+    a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
     c = 2 * math.asin(math.sqrt(a))
 
     # Radius of Earth in kilometers (mean value)
     r = 6371.0
     return c * r
+
 
 if __name__ == "__main__":
     asyncio.run(get_eventbrite_events())
