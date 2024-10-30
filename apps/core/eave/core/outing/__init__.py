@@ -175,11 +175,13 @@ class Outing:
                                 if description := await self.eventbrite.get_event_description(event_id=event["id"]):
                                     event_details["description"] = description
                                 if venue := event_details.get("venue"):
-                                    geo_location = GeoLocation(venue.get("latitude"), venue.get("longitude"))
-                                    self.activity = OutingComponent(
-                                        ActivitySource.EVENTBRITE, event_details, geo_location
-                                    )
-                                    return self.activity
+                                    lat = venue.get("latitude")
+                                    lon = venue.get("longitude")
+                                    if lat and lon:
+                                        self.activity = OutingComponent(
+                                            ActivitySource.EVENTBRITE, event_details, GeoLocation(lat, lon)
+                                        )
+                                        return self.activity
 
         # CASE 2: Recommend an "evergreen" activity from our manually curated database.
         # for search_area_id in self.constraints.search_area_ids:
@@ -223,9 +225,13 @@ class Outing:
                     is_in_budget = place_is_in_budget(place, self.constraints.budget)
                     if will_be_open and is_in_budget:
                         if location := place.get("location"):
-                            geo_location = GeoLocation(location.get("latitude"), location.get("longitude"))
-                            self.activity = OutingComponent(RestaurantSource.GOOGLE_PLACES, place, geo_location)
-                            return self.activity
+                            lat = location.get("latitude")
+                            lon = location.get("longitude")
+                            if lat and lon:
+                                self.activity = OutingComponent(
+                                    RestaurantSource.GOOGLE_PLACES, place, GeoLocation(lat, lon)
+                                )
+                                return self.activity
 
         # CASE 4: No suitable activity was found :(
         self.activity = None

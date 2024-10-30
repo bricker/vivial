@@ -58,7 +58,7 @@ def place_is_in_budget(place: Place, budget: int) -> bool:
     return place.get("priceLevel") == RESTAURANT_BUDGET_MAP[budget]
 
 
-def place_is_accessible(place: Place) -> bool | None:
+def place_is_accessible(place: Place) -> bool:
     """
     Given a place from the Google Places API, determine whether or not that
     place is accessible for people in wheelchairs.
@@ -74,4 +74,4 @@ def place_is_accessible(place: Place) -> bool | None:
     can_pee = accessibility_options.get("wheelchairAccessibleRestroom")
     can_sit = accessibility_options.get("wheelchairAccessibleSeating")
 
-    return can_enter and can_park and can_pee and can_sit
+    return bool(can_enter and can_park and can_pee and can_sit)
