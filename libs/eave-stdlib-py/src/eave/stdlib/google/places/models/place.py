@@ -1,0 +1,91 @@
+from typing import TypedDict
+
+from .accessibility_options import AccessibilityOptions
+from .address_component import AddressComponent
+from .address_descriptor import AddressDescriptor
+from .area_summary import AreaSummary
+from .attribution import Attribution
+from .business_status import BusinessStatus
+from .ev_charge_options import EVChargeOptions
+from .fuel_options import FuelOptions
+from .generative_summary import GenerativeSummary
+from .lat_lng import LatLng
+from .localized_text import LocalizedText
+from .opening_hours import OpeningHours
+from .parking_options import ParkingOptions
+from .payment_options import PaymentOptions
+from .photo import Photo
+from .plus_code import PlusCode
+from .price_level import PriceLevel
+from .review import Review
+from .sub_destination import SubDestination
+from .viewport import Viewport
+
+
+class Place(TypedDict, total=False):
+    """https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#Place"""
+
+    name: str | None
+    id: str | None
+    displayName: LocalizedText | None
+    types: list[str] | None
+    primaryType: str | None
+    primaryTypeDisplayName: LocalizedText | None
+    nationalPhoneNumber: str | None
+    internationalPhoneNumber: str | None
+    formattedAddress: str | None
+    shortFormattedAddress: str | None
+    addressComponents: list[AddressComponent] | None
+    plusCode: PlusCode | None
+    location: LatLng | None
+    viewport: Viewport | None
+    rating: float | None
+    googleMapsUri: str | None
+    websiteUri: str | None
+    reviews: list[Review] | None
+    regularOpeningHours: OpeningHours | None
+    photos: Photo | None
+    adrFormatAddress: str | None
+    businessStatus: BusinessStatus | None
+    priceLevel: PriceLevel | None
+    attributions: list[Attribution] | None
+    iconMaskBaseUri: str | None
+    iconBackgroundColor: str | None
+    currentOpeningHours: OpeningHours
+    currentSecondaryOpeningHours: list[OpeningHours] | None
+    regularSecondaryOpeningHours: list[OpeningHours] | None
+    editorialSummary: LocalizedText | None
+    paymentOptions: PaymentOptions | None
+    parkingOptions: ParkingOptions | None
+    subDestinations: list[SubDestination] | None
+    fuelOptions: FuelOptions | None
+    evChargeOptions: EVChargeOptions | None
+    generativeSummary: GenerativeSummary | None
+    areaSummary: AreaSummary | None
+    addressDescriptor: AddressDescriptor | None
+    utcOffsetMinutes: int | None
+    userRatingCount: int | None
+    takeout: bool | None
+    delivery: bool | None
+    dineIn: bool | None
+    curbsidePickup: bool | None
+    reservable: bool | None
+    servesBreakfast: bool | None
+    servesLunch: bool | None
+    servesDinner: bool | None
+    servesBeer: bool | None
+    servesWine: bool | None
+    servesBrunch: bool | None
+    servesVegetarianFood: bool | None
+    outdoorSeating: bool | None
+    liveMusic: bool | None
+    menuForChildren: bool | None
+    servesCocktails: bool | None
+    servesDessert: bool | None
+    servesCoffee: bool | None
+    goodForChildren: bool | None
+    allowsDogs: bool | None
+    restroom: bool | None
+    goodForGroups: bool | None
+    goodForWatchingSports: bool | None
+    accessibilityOptions: AccessibilityOptions | None

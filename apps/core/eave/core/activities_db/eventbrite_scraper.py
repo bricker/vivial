@@ -7,8 +7,8 @@ from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.eventbrite.models.venue import Venue
 
-from ..areas.geo_area import GeoArea
-from ..areas.los_angeles import LOS_ANGELES_AREAS
+from ..outing.constants.areas import LOS_ANGELES_AREAS
+from ..outing.models.geo_area import GeoArea
 
 
 async def get_eventbrite_events() -> None:
@@ -60,7 +60,7 @@ def find_area_id(venue: Venue) -> GeoArea | None:
     closest_area: GeoArea | None = None
 
     for area in LOS_ANGELES_AREAS:
-        distance = haversine_distance(float(event_lat), float(event_lon), area.lat, area.lon)
+        distance = haversine_distance(float(event_lat), float(event_lon), float(area.lat), float(area.lon))
         if distance < min_distance:
             min_distance = distance
             closest_area = area

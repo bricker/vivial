@@ -10,6 +10,7 @@ from .models.event import Event
 from .models.format import Format
 from .models.organizer import Organizer
 from .models.question import Question
+from .models.shared import MultipartText
 from .models.ticket_class import PointOfSale, TicketClass
 
 
@@ -77,6 +78,13 @@ class EventbriteClient:
         """https://www.eventbrite.com/platform/api#/reference/event/retrieve/retrieve-an-event"""
 
         response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}", params=query)
+        j = await response.json()
+        return j
+
+    async def get_event_description(self, *, event_id: str, query: GetEventQuery | None = None) -> MultipartText | None:
+        """https://www.eventbrite.com/platform/api#/reference/event-description/retrieve-full-html-description"""
+
+        response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}/description", params=query)
         j = await response.json()
         return j
 
