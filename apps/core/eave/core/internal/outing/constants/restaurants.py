@@ -1,6 +1,6 @@
-from models.category import Category
-
 from eave.stdlib.google.places.models.price_level import PriceLevel
+
+from ..models.category import Category
 
 RESTAURANT_BUDGET_MAP = {
     0: PriceLevel.PRICE_LEVEL_FREE,

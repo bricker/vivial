@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from models.geo_area import GeoLocation
-from models.search_region_code import SearchRegionCode
-from models.sources import ActivitySource, RestaurantSource
-
 from eave.stdlib.eventbrite.models.event import Event
 from eave.stdlib.google.places.models.place import Place
+
+from .geo_area import GeoLocation
+from .search_region_code import SearchRegionCode
+from .sources import ActivitySource, RestaurantSource
 
 
 @dataclass

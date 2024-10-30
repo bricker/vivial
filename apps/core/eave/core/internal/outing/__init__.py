@@ -1,20 +1,20 @@
-import os
 import random
 from datetime import timedelta
 
-from constants.areas import LOS_ANGELES_AREA_MAP
-from constants.restaurants import BREAKFAST_RESTAURANT_CATEGORIES, BRUNCH_RESTAURANT_CATEGORIES, RESTAURANT_FIELD_MASK
-from helpers.place import place_is_accessible, place_is_in_budget, place_will_be_open
-from helpers.time import is_early_evening, is_early_morning, is_late_evening, is_late_morning
-from models.category import Category
-from models.geo_area import GeoArea, GeoLocation
-from models.outing import OutingComponent, OutingConstraints, OutingPlan
-from models.sources import ActivitySource, RestaurantSource
-from models.user import User, UserPreferences
-
+from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.google.places.client import GooglePlacesClient
+
+from .constants.areas import LOS_ANGELES_AREA_MAP
+from .constants.restaurants import BREAKFAST_RESTAURANT_CATEGORIES, BRUNCH_RESTAURANT_CATEGORIES, RESTAURANT_FIELD_MASK
+from .helpers.place import place_is_accessible, place_is_in_budget, place_will_be_open
+from .helpers.time import is_early_evening, is_early_morning, is_late_evening, is_late_morning
+from .models.category import Category
+from .models.geo_area import GeoArea, GeoLocation
+from .models.outing import OutingComponent, OutingConstraints, OutingPlan
+from .models.sources import ActivitySource, RestaurantSource
+from .models.user import User, UserPreferences
 
 
 # TODO: Convert internal restaurant category mappings to Google Places category mappings (pending Bryan).
@@ -28,8 +28,8 @@ class Outing:
     restaurant, then go to an event or engage in a cute activity.
     """
 
-    places = GooglePlacesClient(api_key=os.environ["GOOGLE_PLACES_API_KEY"])
-    eventbrite = EventbriteClient(api_key=os.environ["EVENTBRITE_API_KEY"])
+    places = GooglePlacesClient(api_key=CORE_API_APP_CONFIG.google_places_api_key)
+    eventbrite = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
     preferences: UserPreferences
     constraints: OutingConstraints
     activity: OutingComponent | None

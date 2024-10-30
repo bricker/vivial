@@ -1,5 +1,5 @@
-from models.geo_area import GeoArea
-from models.search_region_code import SearchRegionCode
+from ..models.geo_area import GeoArea
+from ..models.search_region_code import SearchRegionCode
 
 us_ca_la_1 = GeoArea(
     name="Central LA & Hollywood", key=SearchRegionCode.US_CA_LA1, lat=34.065730, lon=-118.323769, rad_miles=5.78

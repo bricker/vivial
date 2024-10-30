@@ -28,7 +28,7 @@ from eave.core.internal.orm.reserver_details import ReserverDetailsOrm
 
 sys.path.append(".")
 
-from eave.core.outing.models.search_region_code import SearchRegionCode
+from eave.core.internal.outing.models.search_region_code import SearchRegionCode
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 load_standard_dotenv_files()

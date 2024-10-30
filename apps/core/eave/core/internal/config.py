@@ -41,5 +41,17 @@ class _AppConfig(ConfigBase):
         key = "EAVE_DB_NAME"
         return os.getenv(key, "eave")
 
+    @cached_property
+    def google_places_api_key(self) -> str:
+        value = os.getenv("GOOGLE_PLACES_API_KEY")
+        assert value is not None, "Google Places API key not set"
+        return value
+
+    @cached_property
+    def eventbrite_api_key(self) -> str:
+        value = os.getenv("EVENTBRITE_API_KEY")
+        assert value is not None, "Eventbrite API key not set"
+        return value
+
 
 CORE_API_APP_CONFIG = _AppConfig()

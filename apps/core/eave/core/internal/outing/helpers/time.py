@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import StrEnum
 
-from constants.zoneinfo import LOS_ANGELES_ZONE_INFO
+from ..constants.zoneinfo import LOS_ANGELES_ZONE_INFO
 
 
 class TimeCategory(StrEnum):

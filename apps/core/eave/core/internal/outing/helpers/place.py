@@ -1,9 +1,9 @@
 from datetime import datetime, timedelta
 
-from constants.restaurants import RESTAURANT_BUDGET_MAP
-from constants.zoneinfo import LOS_ANGELES_ZONE_INFO
-
 from eave.stdlib.google.places.models.place import Place
+
+from ..constants.restaurants import RESTAURANT_BUDGET_MAP
+from ..constants.zoneinfo import LOS_ANGELES_ZONE_INFO
 
 
 def place_will_be_open(place: Place, utc_arrival_time: datetime, utc_departure_time: datetime) -> bool:
