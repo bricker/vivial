@@ -17,6 +17,7 @@ class Outing:
 class SurveySubmitErrorCode(enum.StrEnum):
     START_TIME_TOO_SOON = "START_TIME_TOO_SOON"
     START_TIME_TOO_LATE = "START_TIME_TOO_LATE"
+    ONE_SEARCH_REGION_REQUIRED = "ONE_SEARCH_REGION_REQUIRED"
 
 
 @strawberry.type
@@ -34,7 +35,8 @@ SurveySubmitResult = Annotated[SurveySubmitSuccess | SurveySubmitError, strawber
 
 @strawberry.enum
 class ReplanOutingErrorCode(enum.StrEnum):
-    START_TIME_PASSED = "START_TIME_PASSED"
+    START_TIME_TOO_SOON = "START_TIME_TOO_SOON"
+    START_TIME_TOO_LATE = "START_TIME_TOO_LATE"
 
 
 @strawberry.type

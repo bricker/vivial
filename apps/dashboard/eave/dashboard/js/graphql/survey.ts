@@ -13,6 +13,17 @@ type SurveySubmitResponse = {
   outingId: string;
 };
 
+type SurveySubmitNetworkState = NetworkState & {
+  data?: SurveySubmitResponse;
+};
+
+type SurveySubmitEncapsulation = {
+  execute: ({ req, ctx }: { req: SurveySubmitRequest; ctx: SurveySubmitEncapsulation }) => void;
+  networkState: [SurveySubmitNetworkState, React.Dispatch<React.SetStateAction<SurveySubmitNetworkState>>];
+};
+
+export type SurveySubmitCtx = { submitSurvey?: SurveySubmitEncapsulation };
+
 function surveySubmitExecute({ req, ctx }: { req: SurveySubmitRequest; ctx: SurveySubmitEncapsulation }): void {
   const [, setNetworkState] = ctx.networkState;
 
@@ -74,16 +85,6 @@ function surveySubmitExecute({ req, ctx }: { req: SurveySubmitRequest; ctx: Surv
     });
 }
 
-type SurveySubmitNetworkState = NetworkState & {
-  data?: SurveySubmitResponse;
-};
-
-type SurveySubmitEncapsulation = {
-  execute: ({ req, ctx }: { req: SurveySubmitRequest; ctx: SurveySubmitEncapsulation }) => void;
-  networkState: [SurveySubmitNetworkState, React.Dispatch<React.SetStateAction<SurveySubmitNetworkState>>];
-};
-
-export type SurveySubmitCtx = { submitSurvey?: SurveySubmitEncapsulation };
 // must be a function so that useState isnt invoked in global scope
 export function submitSurvey(): SurveySubmitCtx {
   return {

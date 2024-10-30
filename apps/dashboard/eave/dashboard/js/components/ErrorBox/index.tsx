@@ -3,7 +3,7 @@ import React from "react";
 import { makeStyles } from "tss-react/mui";
 import ErrorIcon from "../Icons/ErrorIcon";
 
-const makeClasses = makeStyles()((theme) => ({
+const makeClasses = makeStyles()((_theme) => ({
   errorBox: {
     display: "flex",
     flexDirection: "row",
