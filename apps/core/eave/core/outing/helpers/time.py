@@ -20,7 +20,7 @@ def get_time_category(utc_timestamp: datetime) -> TimeCategory:
 
     Note that midnight - 3:59 AM is considered "late evening" in this context.
     """
-    local_timestamp = utc_timestamp.replace(tzinfo=LOS_ANGELES_ZONE_INFO)
+    local_timestamp = utc_timestamp.astimezone(LOS_ANGELES_ZONE_INFO)
     if local_timestamp.hour < 4:
         return TimeCategory.LATE_EVENING  # midnight - 3:59 AM
 

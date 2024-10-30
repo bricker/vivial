@@ -13,8 +13,8 @@ def place_will_be_open(place: Place, utc_arrival_time: datetime, utc_departure_t
 
     https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#OpeningHours
     """
-    local_arrival_time = utc_arrival_time.replace(tzinfo=LOS_ANGELES_ZONE_INFO)
-    local_departure_time = utc_departure_time.replace(tzinfo=LOS_ANGELES_ZONE_INFO)
+    local_arrival_time = utc_arrival_time.astimezone(LOS_ANGELES_ZONE_INFO)
+    local_departure_time = utc_departure_time.astimezone(LOS_ANGELES_ZONE_INFO)
 
     open_hours = place.get("regularOpeningHours")
     if open_hours is None:
