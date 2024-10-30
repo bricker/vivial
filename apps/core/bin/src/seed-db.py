@@ -77,6 +77,7 @@ async def seed_database(db: AsyncEngine) -> None:
         start = time.perf_counter()
 
         visitor_id = uuid.uuid4()
+        dummy_date = datetime.datetime.now() + datetime.timedelta(days=2)
         account = await AccountOrm.create(
             session=session,
             email=f"john{row}@gmail.com",
@@ -86,7 +87,7 @@ async def seed_database(db: AsyncEngine) -> None:
             session=session,
             visitor_id=visitor_id,
             account_id=account.id,
-            start_time=datetime.datetime.now(),
+            start_time=dummy_date,
             search_area_ids=[SearchRegionCode.US_CA_LA],
             budget=2,
             headcount=2,
@@ -102,7 +103,7 @@ async def seed_database(db: AsyncEngine) -> None:
             outing_id=outing.id,
             activity_id=str(uuid.uuid4()),
             activity_source=ActivitySource.SELF,
-            activity_start_time=datetime.datetime.now(),
+            activity_start_time=dummy_date,
             num_attendees=2,
         )
         outing_reservation = await OutingReservationOrm.create(
@@ -110,7 +111,7 @@ async def seed_database(db: AsyncEngine) -> None:
             outing_id=outing.id,
             reservation_id=str(uuid.uuid4()),
             reservation_source=ReservationSource.SELF,
-            reservation_start_time=datetime.datetime.now(),
+            reservation_start_time=dummy_date,
             num_attendees=2,
         )
         reserver_details = await ReserverDetailsOrm.create(

@@ -30,7 +30,8 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(
             ["account_id"], ["accounts.id"], name="account_id_reserver_details_fk", ondelete="CASCADE"
         ),
-        sa.PrimaryKeyConstraint("id"),
+        sa.PrimaryKeyConstraint("account_id", "id", name="account_id_id_pk"),
+        sa.UniqueConstraint("id", name="reserver_details_id_unique"),
     )
     op.create_table(
         "bookings",
