@@ -74,21 +74,21 @@ class EventbriteClient:
     def __init__(self, api_key: str) -> None:
         self.api_key = api_key
 
-    async def get_event_by_id(self, *, event_id: str, query: GetEventQuery | None = None) -> Event | None:
+    async def get_event_by_id(self, *, event_id: str, query: GetEventQuery | None = None) -> Event:
         """https://www.eventbrite.com/platform/api#/reference/event/retrieve/retrieve-an-event"""
 
         response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}", params=query)
         j = await response.json()
         return j
 
-    async def get_event_description(self, *, event_id: str, query: GetEventQuery | None = None) -> MultipartText | None:
+    async def get_event_description(self, *, event_id: str) -> MultipartText:
         """https://www.eventbrite.com/platform/api#/reference/event-description/retrieve-full-html-description"""
 
-        response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}/description", params=query)
+        response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}/description")
         j = await response.json()
         return j
 
-    async def get_organizer_by_id(self, *, organizer_id: str) -> Organizer | None:
+    async def get_organizer_by_id(self, *, organizer_id: str) -> Organizer:
         """not documented"""
 
         response = await self.make_request(method=HTTPMethod.GET, path=f"/organizers/{organizer_id}")

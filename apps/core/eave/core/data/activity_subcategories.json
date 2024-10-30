@@ -1,0 +1,722 @@
+[
+  {
+    "category_id": "13bbe1b5cf1e460bbbbf4ea7e457e729",
+    "eventbrite_subcategory_id": "16001",
+    "id": "2e01d51a964c462680f4b14b2632041e",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "St Patricks Day"
+  },
+  {
+    "category_id": "13bbe1b5cf1e460bbbbf4ea7e457e729",
+    "eventbrite_subcategory_id": "16002",
+    "id": "5659817c8336425d918c24493dc52287",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Easter"
+  },
+  {
+    "category_id": "13bbe1b5cf1e460bbbbf4ea7e457e729",
+    "eventbrite_subcategory_id": "16003",
+    "id": "bd57a4e9705046e5849b1dab23c36493",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Independence Day"
+  },
+  {
+    "category_id": "13bbe1b5cf1e460bbbbf4ea7e457e729",
+    "eventbrite_subcategory_id": "16004",
+    "id": "71c6411d6387423a8240be17b504e038",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Halloween/Haunt"
+  },
+  {
+    "category_id": "13bbe1b5cf1e460bbbbf4ea7e457e729",
+    "eventbrite_subcategory_id": "16005",
+    "id": "8945d466b9a1427eb3a3a9b813e2fc11",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Thanksgiving"
+  },
+  {
+    "category_id": "13bbe1b5cf1e460bbbbf4ea7e457e729",
+    "eventbrite_subcategory_id": "16006",
+    "id": "39cd46ea19ab4b828c28888eb7cfa111",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Christmas"
+  },
+  {
+    "category_id": "13bbe1b5cf1e460bbbbf4ea7e457e729",
+    "eventbrite_subcategory_id": "16007",
+    "id": "bb607afdfa4c4682adea418b91201d64",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Channukah"
+  },
+  {
+    "category_id": "13bbe1b5cf1e460bbbbf4ea7e457e729",
+    "eventbrite_subcategory_id": "16008",
+    "id": "371c717294d04653bac305a2ac06cd14",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Fall events"
+  },
+  {
+    "category_id": "13bbe1b5cf1e460bbbbf4ea7e457e729",
+    "eventbrite_subcategory_id": "16009",
+    "id": "65d9bed8d9da4b9db141cd16ea7c72b5",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "New Years Eve"
+  },
+  {
+    "category_id": "13bbe1b5cf1e460bbbbf4ea7e457e729",
+    "eventbrite_subcategory_id": "16999",
+    "id": "157efd86817f471e80981f674687b62f",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Other"
+  },
+  {
+    "category_id": "63eec9afdeaf462b83613bab22ddea5d",
+    "eventbrite_subcategory_id": "10001",
+    "id": "514ecf0c510d4667841a4fb492c2ea18",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Beer"
+  },
+  {
+    "category_id": "63eec9afdeaf462b83613bab22ddea5d",
+    "eventbrite_subcategory_id": "10002",
+    "id": "68d073b763d6409ea9c3f6793e9c1850",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Wine"
+  },
+  {
+    "category_id": "63eec9afdeaf462b83613bab22ddea5d",
+    "eventbrite_subcategory_id": "10003",
+    "id": "524ec8cc7bb046898b86bec861182c13",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Food"
+  },
+  {
+    "category_id": "63eec9afdeaf462b83613bab22ddea5d",
+    "eventbrite_subcategory_id": "10004",
+    "id": "6eaf2131e5624279b6e65094585b3d37",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Spirits"
+  },
+  {
+    "category_id": "63eec9afdeaf462b83613bab22ddea5d",
+    "eventbrite_subcategory_id": "10999",
+    "id": "0ef79bae2c8343d0a57b5205594ef14b",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Other"
+  },
+  {
+    "category_id": "feea8835e216477a8ccaf27fa455a763",
+    "eventbrite_subcategory_id": "4001",
+    "id": "cdfa57d0ccfa4359912bbaa56125921f",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "TV"
+  },
+  {
+    "category_id": "feea8835e216477a8ccaf27fa455a763",
+    "eventbrite_subcategory_id": "4002",
+    "id": "bb31654a716f409a83321e26e709b5df",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Film"
+  },
+  {
+    "category_id": "feea8835e216477a8ccaf27fa455a763",
+    "eventbrite_subcategory_id": "4003",
+    "id": "de8bbd11a659451697067f995e5fb44a",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Anime"
+  },
+  {
+    "category_id": "feea8835e216477a8ccaf27fa455a763",
+    "eventbrite_subcategory_id": "4004",
+    "id": "92315cc234ea44b183905a2d0336f794",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Gaming"
+  },
+  {
+    "category_id": "feea8835e216477a8ccaf27fa455a763",
+    "eventbrite_subcategory_id": "4005",
+    "id": "23d9a865fb6d4516baa3ed065596c6f8",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Comics"
+  },
+  {
+    "category_id": "feea8835e216477a8ccaf27fa455a763",
+    "eventbrite_subcategory_id": "4006",
+    "id": "25c71fe5944d45a18f249882587e9b51",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Adult"
+  },
+  {
+    "category_id": "feea8835e216477a8ccaf27fa455a763",
+    "eventbrite_subcategory_id": "4007",
+    "id": "8c25c40d14aa48418d3262cfb6935c9c",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Comedy"
+  },
+  {
+    "category_id": "feea8835e216477a8ccaf27fa455a763",
+    "eventbrite_subcategory_id": "5010",
+    "id": "441342bcff0c47e69d63a111457a3df4",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Comedy"
+  },
+  {
+    "category_id": "feea8835e216477a8ccaf27fa455a763",
+    "eventbrite_subcategory_id": "18003",
+    "id": "763bd880e1f14b7ab20095620d80ea9e",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Boats & Cruises"
+  },
+  {
+    "category_id": "feea8835e216477a8ccaf27fa455a763",
+    "eventbrite_subcategory_id": "4999",
+    "id": "3e22d8e5c876429fb3e167ae0c058747",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Other"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3001",
+    "id": "b96bb207f82c439ba5be3df7981cecae",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Alternative / Indie"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3009",
+    "id": "e3473c60345647edbc262966ec8ea945",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Alternative / Indie"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3002",
+    "id": "3fee837d5675429890b849f91ce9d0e1",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Blues & Jazz"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3022",
+    "id": "53623736ff0a4075b016a197586d4b9d",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Blues & Jazz"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3027",
+    "id": "ebdf81231edf428790b1fa4d0f4c599c",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Blues & Jazz"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3003",
+    "id": "fbcb3761b86c45c291f55ba20148709d",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Classical"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3004",
+    "id": "4f1887bd84f145c3b9a7b3df8c612986",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Country"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3006",
+    "id": "8bae20bbf0674c80bcb285b30a5898b8",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "EDM / Electronic"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3024",
+    "id": "ffb7ad76d1144f24b28588bdfb29dc7f",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "EDM / Electronic"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3025",
+    "id": "c9e620386c3b437bbefc5fdad74cdffa",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "EDM / Electronic"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3007",
+    "id": "723721e71da541aba048e95f8ccefb10",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Americana"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3019",
+    "id": "47bad6e285de43019fd04c47a5b3da40",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Americana"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3020",
+    "id": "d8dde45a804e46259b04d6f9e2993a69",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Americana"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3021",
+    "id": "cde7b8bf67f04d2abeff888709f1da7f",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Americana"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3008",
+    "id": "3c7e3a44dec44f81a0111cb000d26cce",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Hip Hop / Rap"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3010",
+    "id": "97691ec3ecef4bd09275da55db2d4478",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Latin"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3011",
+    "id": "6119ded14523446a9754299e05864483",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Metal"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3012",
+    "id": "a61e7967d47d4b45a4b4548cfb5ed760",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Opera"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3013",
+    "id": "d75777f43ad24db2a9b0d10396c2481d",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Pop"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3014",
+    "id": "7132ae4a20494882b819b71ab0dec7d6",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "R&B"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3015",
+    "id": "2c43930d3b064effbf897bd7b4229bb9",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Reggae"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3017",
+    "id": "202632e7e4da4dd09e1997745acef3aa",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Rock"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3018",
+    "id": "ca44314ccc2146d98f6894581f2aa5f3",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Top 40"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3023",
+    "id": "ac31f9c494984f2abdac13331c9e31f6",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "DJ/Dance"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3026",
+    "id": "faadbf0bb62147e491896f496661b519",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Experimental"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3028",
+    "id": "8b467b1181124e7c8ca057353ac02861",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Experimental"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3029",
+    "id": "cdf51411163f46d4ad7b904686b2b318",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Punk/Hardcore"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3030",
+    "id": "753f830b6ded4e0b9a7ba4a4f7ed3b0c",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Singer/Songwriter"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3031",
+    "id": "f7ec645289d64838a14a4aae5d97a591",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "World"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3005",
+    "id": "ecaff2a0d2fc499db5bc812ee374e997",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "World"
+  },
+  {
+    "category_id": "22934eb825f24605bc0ae9fcfc902c26",
+    "eventbrite_subcategory_id": "3999",
+    "id": "63fd3799177640ea8b5f00a9edacf507",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Other"
+  },
+  {
+    "category_id": "00c4d17b24f84955819ea72b0b56a1b6",
+    "eventbrite_subcategory_id": "5001",
+    "id": "22683fbeae0d4804938c03309ac5bd59",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Theatre"
+  },
+  {
+    "category_id": "00c4d17b24f84955819ea72b0b56a1b6",
+    "eventbrite_subcategory_id": "5002",
+    "id": "0108897ea85c4fa99dc36e94a766b6a4",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Musical"
+  },
+  {
+    "category_id": "00c4d17b24f84955819ea72b0b56a1b6",
+    "eventbrite_subcategory_id": "5003",
+    "id": "a7b3dcf2d63440c98c84d97177770c04",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Ballet"
+  },
+  {
+    "category_id": "00c4d17b24f84955819ea72b0b56a1b6",
+    "eventbrite_subcategory_id": "5004",
+    "id": "c826b16980464d989b17e1609364051c",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Dance"
+  },
+  {
+    "category_id": "00c4d17b24f84955819ea72b0b56a1b6",
+    "eventbrite_subcategory_id": "5005",
+    "id": "24c9390dbd1d4290bea7e344d635689c",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Opera"
+  },
+  {
+    "category_id": "00c4d17b24f84955819ea72b0b56a1b6",
+    "eventbrite_subcategory_id": "5006",
+    "id": "fa15ed58a2a245cfa9daf3356dfdd978",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Orchestra"
+  },
+  {
+    "category_id": "00c4d17b24f84955819ea72b0b56a1b6",
+    "eventbrite_subcategory_id": "5007",
+    "id": "4674c9eed1094e0087405c82996ee171",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Craft"
+  },
+  {
+    "category_id": "00c4d17b24f84955819ea72b0b56a1b6",
+    "eventbrite_subcategory_id": "5008",
+    "id": "3082d58591c8456d942e43129a9af1a7",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Fine Art"
+  },
+  {
+    "category_id": "00c4d17b24f84955819ea72b0b56a1b6",
+    "eventbrite_subcategory_id": "5009",
+    "id": "bb6e5f085ced4b5c823e4894cc49fc48",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Literary Arts"
+  },
+  {
+    "category_id": "00c4d17b24f84955819ea72b0b56a1b6",
+    "eventbrite_subcategory_id": "5011",
+    "id": "d0f809cfdac242caa20affc14973f38d",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Sculpture"
+  },
+  {
+    "category_id": "00c4d17b24f84955819ea72b0b56a1b6",
+    "eventbrite_subcategory_id": "5012",
+    "id": "bc189ac0441b4c3d9c87701757466134",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Painting"
+  },
+  {
+    "category_id": "00c4d17b24f84955819ea72b0b56a1b6",
+    "eventbrite_subcategory_id": "5013",
+    "id": "8beff824bc72480f873aaf973c326a02",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Design"
+  },
+  {
+    "category_id": "00c4d17b24f84955819ea72b0b56a1b6",
+    "eventbrite_subcategory_id": "5014",
+    "id": "fc0b30e27c984001bc9769d639ea3d13",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Jewelry"
+  },
+  {
+    "category_id": "00c4d17b24f84955819ea72b0b56a1b6",
+    "eventbrite_subcategory_id": "5999",
+    "id": "40dc5e2bfb2442aaab9ea566757414c5",
+    "is_default": true,
+    "is_manually_curated": false,
+    "name": "Other"
+  },
+  {
+    "category_id": "00c4d17b24f84955819ea72b0b56a1b6",
+    "eventbrite_subcategory_id": "",
+    "id": "c82e232c7383435f95f3ef773ab628a8",
+    "is_default": true,
+    "is_manually_curated": true,
+    "name": "Museums"
+  },
+  {
+    "category_id": "c676baff7f0c478384c61e0a6a7d51c3",
+    "eventbrite_subcategory_id": "18001",
+    "id": "d5f522da61a940fc8441ea9b0aac7e5b",
+    "is_default": false,
+    "is_manually_curated": false,
+    "name": "Auto"
+  },
+  {
+    "category_id": "c676baff7f0c478384c61e0a6a7d51c3",
+    "eventbrite_subcategory_id": "18002",
+    "id": "c50bd02afae44dd7a7209f787d7fa490",
+    "is_default": false,
+    "is_manually_curated": false,
+    "name": "Motorcycle/ATV"
+  },
+  {
+    "category_id": "c676baff7f0c478384c61e0a6a7d51c3",
+    "eventbrite_subcategory_id": "18004",
+    "id": "f097f21ff4b2482187405a3673d3592b",
+    "is_default": false,
+    "is_manually_curated": false,
+    "name": "Air"
+  },
+  {
+    "category_id": "c676baff7f0c478384c61e0a6a7d51c3",
+    "eventbrite_subcategory_id": "19001",
+    "id": "dd52cba4dcb04dc6bb68cbfd04718f0d",
+    "is_default": false,
+    "is_manually_curated": false,
+    "name": "Anime/Comics"
+  },
+  {
+    "category_id": "c676baff7f0c478384c61e0a6a7d51c3",
+    "eventbrite_subcategory_id": "19002",
+    "id": "8837e82faec74d0bb1d3e2af8fcca9cf",
+    "is_default": false,
+    "is_manually_curated": false,
+    "name": "Gaming"
+  },
+  {
+    "category_id": "c676baff7f0c478384c61e0a6a7d51c3",
+    "eventbrite_subcategory_id": "19003",
+    "id": "97b0ae622ff44666a72844238a9baf16",
+    "is_default": false,
+    "is_manually_curated": false,
+    "name": "DIY"
+  },
+  {
+    "category_id": "c676baff7f0c478384c61e0a6a7d51c3",
+    "eventbrite_subcategory_id": "19004",
+    "id": "9de5c2b994db4500acf440abf6f198d8",
+    "is_default": false,
+    "is_manually_curated": false,
+    "name": "Photography"
+  },
+  {
+    "category_id": "c676baff7f0c478384c61e0a6a7d51c3",
+    "eventbrite_subcategory_id": "19005",
+    "id": "d4269595c7e1434b873c0fe099fb184a",
+    "is_default": false,
+    "is_manually_curated": false,
+    "name": "Knitting"
+  },
+  {
+    "category_id": "c676baff7f0c478384c61e0a6a7d51c3",
+    "eventbrite_subcategory_id": "19006",
+    "id": "fe350edb0d6246ea90ad6d903b98a4f8",
+    "is_default": false,
+    "is_manually_curated": true,
+    "name": "Books"
+  },
+  {
+    "category_id": "c676baff7f0c478384c61e0a6a7d51c3",
+    "eventbrite_subcategory_id": "19007",
+    "id": "6127f02b77b1424e918318e1d6372e3a",
+    "is_default": false,
+    "is_manually_curated": false,
+    "name": "Adult"
+  },
+  {
+    "category_id": "c676baff7f0c478384c61e0a6a7d51c3",
+    "eventbrite_subcategory_id": "19008",
+    "id": "cb18510e3d64481eab80dd732c8056b1",
+    "is_default": false,
+    "is_manually_curated": false,
+    "name": "Drawing & Painting"
+  },
+  {
+    "category_id": "c676baff7f0c478384c61e0a6a7d51c3",
+    "eventbrite_subcategory_id": "17002",
+    "id": "62743d56094140fba6827a1173608a86",
+    "is_default": false,
+    "is_manually_curated": true,
+    "name": "Pets & Animals"
+  },
+  {
+    "category_id": "c676baff7f0c478384c61e0a6a7d51c3",
+    "eventbrite_subcategory_id": "17003",
+    "id": "566ac35bde15442ea93fdcb75f04607e",
+    "is_default": false,
+    "is_manually_curated": false,
+    "name": "Home & Garden"
+  },
+  {
+    "category_id": "240d1e8650d5448c886097fda3b0f1ce",
+    "eventbrite_subcategory_id": "9001",
+    "id": "7e4731b40397457ab4a9eb4dee9dd6fa",
+    "is_default": true,
+    "is_manually_curated": true,
+    "name": "Hiking"
+  },
+  {
+    "category_id": "240d1e8650d5448c886097fda3b0f1ce",
+    "eventbrite_subcategory_id": "9003",
+    "id": "dec5835b875c4c018214c57026210c56",
+    "is_default": false,
+    "is_manually_curated": true,
+    "name": "Kayaking"
+  },
+  {
+    "category_id": "240d1e8650d5448c886097fda3b0f1ce",
+    "eventbrite_subcategory_id": "9005",
+    "id": "3b543e21019a4d6c8f669278dc673293",
+    "is_default": false,
+    "is_manually_curated": true,
+    "name": "Climbing"
+  },
+  {
+    "category_id": "240d1e8650d5448c886097fda3b0f1ce",
+    "eventbrite_subcategory_id": "",
+    "id": "8f752c49c0f74c75a6c1c06470454cc0",
+    "is_default": true,
+    "is_manually_curated": true,
+    "name": "Walking"
+  },
+  {
+    "category_id": "240d1e8650d5448c886097fda3b0f1ce",
+    "eventbrite_subcategory_id": "",
+    "id": "b4897021529a43228be169d235da4ecc",
+    "is_default": false,
+    "is_manually_curated": true,
+    "name": "Biking"
+  },
+  {
+    "category_id": "240d1e8650d5448c886097fda3b0f1ce",
+    "eventbrite_subcategory_id": "",
+    "id": "368f8c198abc49898acf8f3e53a402cf",
+    "is_default": true,
+    "is_manually_curated": true,
+    "name": "Botanical Gardens"
+  }
+]
