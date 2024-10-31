@@ -41,11 +41,12 @@ class BookingActivityTemplateOrm(Base):
     external_booking_link: Mapped[str | None] = mapped_column()
     """HTTP link to site for manual booking (possibly affiliate), if available"""
     activity_location_address1: Mapped[str] = mapped_column()
-    activity_location_address2: Mapped[str] = mapped_column()
+    activity_location_address2: Mapped[str | None] = mapped_column()
     activity_location_city: Mapped[str] = mapped_column()
     activity_location_region: Mapped[str] = mapped_column()
     """Name of region. e.g. state, province, territory, prefecture"""
     activity_location_country: Mapped[str] = mapped_column()
+    activity_location_postal_code: Mapped[str] = mapped_column()
     activity_location_latitude: Mapped[float] = mapped_column()
     activity_location_longitude: Mapped[float] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
@@ -61,9 +62,10 @@ class BookingActivityTemplateOrm(Base):
         num_attendees: int,
         external_booking_link: str | None,
         activity_location_address1: str,
-        activity_location_address2: str,
+        activity_location_address2: str | None,
         activity_location_city: str,
         activity_location_region: str,
+        activity_location_postal_code: str,
         activity_location_country: str,
         activity_location_latitude: float,
         activity_location_longitude: float,
@@ -78,6 +80,7 @@ class BookingActivityTemplateOrm(Base):
             activity_location_address2=activity_location_address2,
             activity_location_city=activity_location_city,
             activity_location_region=activity_location_region,
+            activity_location_postal_code=activity_location_postal_code,
             activity_location_country=activity_location_country,
             activity_location_latitude=activity_location_latitude,
             activity_location_longitude=activity_location_longitude,
