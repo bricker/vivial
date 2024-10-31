@@ -7,8 +7,8 @@ from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.eventbrite.models.venue import Venue
 
-from ..internal.outing.constants.areas import LOS_ANGELES_AREAS
-from ..internal.outing.models.geo_area import GeoArea
+from ..outing.constants.areas import LOS_ANGELES_AREAS
+from ..outing.models.geo_area import GeoArea
 
 
 async def get_eventbrite_events() -> None:
