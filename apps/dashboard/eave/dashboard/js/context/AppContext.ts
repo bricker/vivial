@@ -1,6 +1,7 @@
 import { createContext } from "react";
-import { SurveySubmitCtx } from "../graphql/survey.js";
+import { ReplanOutingCtx } from "../graphql/outing";
+import { SurveySubmitCtx } from "../graphql/survey";
 
-export type AppContextProps = SurveySubmitCtx; // & union other types
+export type AppContextProps = SurveySubmitCtx & ReplanOutingCtx;
 
 export const AppContext = createContext<AppContextProps>({});
