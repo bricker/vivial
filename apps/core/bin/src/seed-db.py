@@ -87,7 +87,7 @@ async def seed_database(db: AsyncEngine) -> None:
             visitor_id=visitor_id,
             account_id=account.id,
             start_time=dummy_date,
-            search_area_ids=[SearchRegionCode.US_CA_LA],
+            search_area_ids=[SearchRegionCode.US_CA_LA1],
             budget=2,
             headcount=2,
         )

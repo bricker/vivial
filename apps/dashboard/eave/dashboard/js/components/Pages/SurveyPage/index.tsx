@@ -90,10 +90,6 @@ const budgetOptions = [
 
 const laNeighborhoodOptions = [
   {
-    value: "us_ca_la",
-    label: "All LA Areas",
-  },
-  {
     value: "us_ca_la_1",
     label: "Central LA & Hollywood",
   },
@@ -130,7 +126,7 @@ const SurveyPage = () => {
   const tomorrow = dayjs().add(1, "day").add(3, "hour");
   const [time, setTime] = useState(tomorrow);
   // indices of selected laNeighborhood entries
-  const [locations, setLocations] = useState(() => [0]);
+  const [locations, setLocations] = useState(() => [...Array(laNeighborhoodOptions.length)]);
   const [budget, setBudget] = useState(2);
   const [attendees, setAttendees] = useState(2);
   const [errors, setErrors] = useState<any>({});

@@ -18,7 +18,7 @@ class TestOutingEndpoints(BaseTestCase):
 mutation {{
     submitSurvey(visitorId: "{self.anyuuid()}",
         startTime: "{self.anydatetime(offset=2 * day_seconds).isoformat()}",
-        searchAreaIds: ["us_ca_la"],
+        searchAreaIds: ["us_ca_la_1"],
         budget: 1,
         headcount: 2) {{
         ... on SurveySubmitSuccess {{
@@ -43,7 +43,7 @@ mutation {{
                 session=sess,
                 visitor_id=self.anyuuid(),
                 start_time=self.anydatetime(offset=2 * day_seconds),
-                search_area_ids=[SearchRegionCode.US_CA_LA],
+                search_area_ids=[SearchRegionCode.US_CA_LA1],
                 budget=1,
                 headcount=1,
             )
