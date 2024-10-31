@@ -20,9 +20,8 @@ from eave.core.internal.orm.outing_activity import OutingActivityOrm
 from eave.core.internal.orm.outing_reservation import OutingReservationOrm
 from eave.core.internal.orm.survey import SurveyOrm
 from eave.core.internal.orm.util import validate_time_within_bounds_or_exception
-from eave.core.outing import Outing as OutingPlanGenerator
-from eave.core.outing.models.outing import OutingConstraints
 from eave.core.outing.models.search_region_code import SearchRegionCode
+from eave.core.outing.planner import Outing as OutingPlanGenerator
 from eave.stdlib.exceptions import InvalidDataError, StartTimeTooLateError, StartTimeTooSoonError
 from eave.stdlib.logging import LOGGER
 
@@ -41,12 +40,7 @@ async def create_outing_plan(
 
     planner = OutingPlanGenerator(
         group=[],  # TODO: pass user preferences
-        constraints=OutingConstraints(
-            start_time=survey.start_time,
-            search_area_ids=survey.search_region_codes,
-            budget=survey.budget,
-            headcount=survey.headcount,
-        ),
+        constraints=survey,
     )
     plan = await planner.plan()
 

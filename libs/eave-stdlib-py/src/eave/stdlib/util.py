@@ -4,9 +4,9 @@ import hashlib
 import json
 import re
 import uuid
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Mapping
 from functools import wraps
-from typing import Any, Literal, Mapping, ParamSpec, TypeVar
+from typing import Any, Literal, ParamSpec, TypeVar
 
 import inflect
 

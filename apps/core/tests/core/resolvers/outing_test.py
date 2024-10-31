@@ -1,11 +1,10 @@
-from http import HTTPStatus
 import unittest.mock
-
-from eave.stdlib.eventbrite.models.event import Event
+from http import HTTPStatus
 
 from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.survey import SurveyOrm
 from eave.core.outing.models.search_region_code import SearchRegionCode
+from eave.stdlib.eventbrite.models.event import Event
 
 from ..base import BaseTestCase
 

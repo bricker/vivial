@@ -1,8 +1,5 @@
 from uuid import UUID
 
-from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery
-from eave.stdlib.google.places.client import GooglePlacesClient
-from eave.stdlib.util import extract_nested_field
 import strawberry
 from attr import dataclass
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,11 +25,13 @@ from eave.core.internal.orm.outing_reservation import OutingReservationOrm
 from eave.core.internal.orm.reserver_details import ReserverDetailsOrm
 from eave.core.internal.orm.survey import SurveyOrm
 from eave.core.internal.orm.util import validate_time_within_bounds_or_exception
-from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.exceptions import InvalidDataError, StartTimeTooLateError, StartTimeTooSoonError
-from eave.stdlib.logging import LOGGER
-
 from eave.core.outing.models.sources import EventSource
+from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery
+from eave.stdlib.exceptions import InvalidDataError, StartTimeTooLateError, StartTimeTooSoonError
+from eave.stdlib.google.places.client import GooglePlacesClient
+from eave.stdlib.logging import LOGGER
+from eave.stdlib.util import extract_nested_field
 
 
 @dataclass

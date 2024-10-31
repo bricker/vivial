@@ -2,16 +2,16 @@ import asyncio
 from datetime import datetime
 
 from models.category import Category
-from models.outing import OutingConstraints
 from models.search_region_code import SearchRegionCode
 from models.user import User, UserPreferences
 
+from eave.core.internal.orm.survey import SurveyOrm
 from eave.core.outing import Outing
 
 
 # TODO: Write thorough automated tests once all relevant tables / endpoints are ready (pending Bryan).
 async def main() -> None:
-    test_outing_constraints = OutingConstraints(
+    test_outing_constraints = SurveyOrm(
         start_time=datetime.fromisoformat("2024-10-25T19:42:31.946205"),
         search_area_ids=[SearchRegionCode.US_CA_LA2],
         budget=2,
