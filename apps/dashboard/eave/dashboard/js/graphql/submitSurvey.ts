@@ -2,29 +2,30 @@ import { useState } from "react";
 import { NetworkState } from "../types";
 import { GRAPHQL_API_BASE } from "../util/http-util";
 
-type SurveySubmitRequest = {
+type SubmitSurveyRequest = {
   visitorId: string;
   startTime: Date;
   searchAreaIds: Array<string>;
   budget: number;
   headcount: number;
 };
-type SurveySubmitResponse = {
+
+type SubmitSurveyResponse = {
   outingId: string;
 };
 
-type SurveySubmitNetworkState = NetworkState & {
-  data?: SurveySubmitResponse;
+type SubmitSurveyNetworkState = NetworkState & {
+  data?: SubmitSurveyResponse;
 };
 
-type SurveySubmitEncapsulation = {
-  execute: ({ req, ctx }: { req: SurveySubmitRequest; ctx: SurveySubmitEncapsulation }) => void;
-  networkState: [SurveySubmitNetworkState, React.Dispatch<React.SetStateAction<SurveySubmitNetworkState>>];
+type SubmitSurveyEncapsulation = {
+  execute: ({ req, ctx }: { req: SubmitSurveyRequest; ctx: SubmitSurveyEncapsulation }) => void;
+  networkState: [SubmitSurveyNetworkState, React.Dispatch<React.SetStateAction<SubmitSurveyNetworkState>>];
 };
 
-export type SurveySubmitCtx = { submitSurvey?: SurveySubmitEncapsulation };
+export type SubmitSurveyCtx = { submitSurvey?: SubmitSurveyEncapsulation };
 
-function surveySubmitExecute({ req, ctx }: { req: SurveySubmitRequest; ctx: SurveySubmitEncapsulation }): void {
+function submitSurveyExecute({ req, ctx }: { req: SubmitSurveyRequest; ctx: SubmitSurveyEncapsulation }): void {
   const [, setNetworkState] = ctx.networkState;
 
   setNetworkState({
@@ -45,12 +46,12 @@ function surveySubmitExecute({ req, ctx }: { req: SurveySubmitRequest; ctx: Surv
     budget: ${req.budget},
     headcount: ${req.budget}) {
     __typename
-    ... on SurveySubmitSuccess {
+    ... on SubmitSurveySuccess {
       outing {
         id
       }
     }
-    ... on SurveySubmitError {
+    ... on SubmitSurveyError {
       errorCode
     }
   }
@@ -62,7 +63,7 @@ function surveySubmitExecute({ req, ctx }: { req: SurveySubmitRequest; ctx: Surv
     })
     .then((data) => {
       // handle gql error
-      if (data.__typename === "SurveySubmitError" || data.data === null) {
+      if (data.__typename === "SubmitSurveyError" || data.data === null) {
         throw new Error(data?.data?.submitSurvey?.errorCode || "INTERNAL_SERVER_ERROR");
       }
 
@@ -86,11 +87,11 @@ function surveySubmitExecute({ req, ctx }: { req: SurveySubmitRequest; ctx: Surv
 }
 
 // must be a function so that useState isnt invoked in global scope
-export function submitSurvey(): SurveySubmitCtx {
+export function submitSurvey(): SubmitSurveyCtx {
   return {
     submitSurvey: {
-      execute: surveySubmitExecute,
-      networkState: useState<SurveySubmitNetworkState>({
+      execute: submitSurveyExecute,
+      networkState: useState<SubmitSurveyNetworkState>({
         loading: false,
       }),
     },

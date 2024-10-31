@@ -1,11 +1,15 @@
 import { AppContext, AppContextProps } from "$eave-dashboard/js/context/AppContext";
 import React from "react";
-import { replanOuting } from "../graphql/outing";
-import { submitSurvey } from "../graphql/survey";
+import { createBooking } from "../graphql/createBooking";
+import { replanOuting } from "../graphql/replanOuting";
+import { submitReserverDetails } from "../graphql/submitReserverDetails";
+import { submitSurvey } from "../graphql/submitSurvey";
 
 const AppContextProvider = ({ children }: { children: React.ReactNode }) => {
   const ctx: AppContextProps = {
     ...submitSurvey(),
+    ...submitReserverDetails(),
+    ...createBooking(),
     ...replanOuting(),
   };
 
