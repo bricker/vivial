@@ -1,14 +1,15 @@
 import random
 from datetime import timedelta
 
+from google.maps import places_v1
+
 from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.eventbrite.models.event import EventStatus
-from eave.stdlib.google.places.client import GooglePlacesClient
 
 from .constants.areas import LOS_ANGELES_AREA_MAP
 from .constants.restaurants import BREAKFAST_RESTAURANT_CATEGORIES, BRUNCH_RESTAURANT_CATEGORIES, RESTAURANT_FIELD_MASK
-from .helpers.place import place_is_accessible, place_is_in_budget, place_will_be_open
+from .helpers.place import get_places_nearby, place_is_accessible, place_is_in_budget, place_will_be_open
 from .helpers.time import is_early_evening, is_early_morning, is_late_evening, is_late_morning
 from .models.category import Category
 from .models.geo_area import GeoArea, GeoLocation
@@ -28,7 +29,7 @@ class Outing:
     restaurant, then go to an event or engage in a cute activity.
     """
 
-    places = GooglePlacesClient(api_key=CORE_API_APP_CONFIG.google_places_api_key)
+    places = places_v1.PlacesClient()
     eventbrite = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
     preferences: UserPreferences
     constraints: OutingConstraints
@@ -179,7 +180,9 @@ class Outing:
                                     lon = venue.get("longitude")
                                     if lat and lon:
                                         self.activity = OutingComponent(
-                                            ActivitySource.EVENTBRITE, event_details, GeoLocation(lat, lon)
+                                            source=ActivitySource.EVENTBRITE,
+                                            event=event_details,
+                                            location=GeoLocation(lat, lon),
                                         )
                                         return self.activity
 
@@ -199,7 +202,7 @@ class Outing:
         # if len(activities):
         #     random.shuffle(activities)
         #     geo_location = GeoLocation(TODO)
-        #     self.activity = OutingComponent(ActivitySource.INTERNAL, activities[0], geo_location)
+        #     self.activity = OutingComponent(TODO)
         #     return self.activity
 
         # CASE 3: Recommend a bar or an ice cream shop as a fallback activity.
@@ -210,28 +213,28 @@ class Outing:
 
         for search_area_id in self.constraints.search_area_ids:
             area = LOS_ANGELES_AREA_MAP[search_area_id]
-            if places_nearby := await self.places.search_nearby(
-                field_mask=RESTAURANT_FIELD_MASK,
+            places_nearby = get_places_nearby(
+                client=self.places,
                 latitude=area.lat,
                 longitude=area.lon,
-                radius=area.rad.meters,
+                radius_meters=area.rad.meters,
                 included_primary_types=[place_type],
-            ):
-                random.shuffle(places_nearby)
-                for place in places_nearby:
-                    if self.preferences.requires_wheelchair_accessibility and not place_is_accessible(place):
-                        continue
-                    will_be_open = place_will_be_open(place, activity_start_time, activity_end_time)
-                    is_in_budget = place_is_in_budget(place, self.constraints.budget)
-                    if will_be_open and is_in_budget:
-                        if location := place.get("location"):
-                            lat = location.get("latitude")
-                            lon = location.get("longitude")
-                            if lat and lon:
-                                self.activity = OutingComponent(
-                                    RestaurantSource.GOOGLE_PLACES, place, GeoLocation(lat, lon)
-                                )
-                                return self.activity
+                field_mask=RESTAURANT_FIELD_MASK,
+            )
+            random.shuffle(places_nearby)
+            for place in places_nearby:
+                if self.preferences.requires_wheelchair_accessibility and not place_is_accessible(place):
+                    continue
+                will_be_open = place_will_be_open(place, activity_start_time, activity_end_time)
+                is_in_budget = place_is_in_budget(place, self.constraints.budget)
+                if will_be_open and is_in_budget and place.location:
+                    lat = place.location.latitude
+                    lon = place.location.longitude
+                    if lat and lon:
+                        self.activity = OutingComponent(
+                            source=RestaurantSource.GOOGLE_PLACES, place=place, location=GeoLocation(lat, lon)
+                        )
+                        return self.activity
 
         # CASE 4: No suitable activity was found :(
         self.activity = None
@@ -268,28 +271,31 @@ class Outing:
         # Find a restaurant that meets the outing constraints.
         for area in search_areas:
             for category in restaurant_categories:
-                if restaurants_nearby := await self.places.search_nearby(
-                    field_mask=RESTAURANT_FIELD_MASK,
+                restaurants_nearby = get_places_nearby(
+                    client=self.places,
                     latitude=area.lat,
                     longitude=area.lon,
-                    radius=area.rad.meters,
+                    radius_meters=area.rad.meters,
                     included_primary_types=[category.id],
-                ):
-                    random.shuffle(restaurants_nearby)
-                    for restaurant in restaurants_nearby:
-                        if self.preferences.requires_wheelchair_accessibility and not place_is_accessible(restaurant):
-                            continue
-                        will_be_open = place_will_be_open(restaurant, arrival_time, departure_time)
-                        is_in_budget = place_is_in_budget(restaurant, self.constraints.budget)
-                        if will_be_open and is_in_budget:
-                            if location := restaurant.get("location"):
-                                lat = location.get("latitude")
-                                lon = location.get("longitude")
-                                if lat and lon:
-                                    self.restaurant = OutingComponent(
-                                        RestaurantSource.GOOGLE_PLACES, restaurant, GeoLocation(lat, lon)
-                                    )
-                                    return self.restaurant
+                    field_mask=RESTAURANT_FIELD_MASK,
+                )
+                random.shuffle(restaurants_nearby)
+                for restaurant in restaurants_nearby:
+                    if self.preferences.requires_wheelchair_accessibility and not place_is_accessible(restaurant):
+                        continue
+                    will_be_open = place_will_be_open(restaurant, arrival_time, departure_time)
+                    is_in_budget = place_is_in_budget(restaurant, self.constraints.budget)
+                    if will_be_open and is_in_budget:
+                        if restaurant.location:
+                            lat = restaurant.location.latitude
+                            lon = restaurant.location.longitude
+                            if lat and lon:
+                                self.restaurant = OutingComponent(
+                                    source=RestaurantSource.GOOGLE_PLACES,
+                                    place=restaurant,
+                                    location=GeoLocation(lat, lon),
+                                )
+                                return self.restaurant
 
         # No restaurant was found :(
         self.restaurant = None
