@@ -17,7 +17,10 @@ def get_places_nearby(
     field_mask: str,
 ) -> MutableSequence[Place]:
     """
-    TODO: docs
+    Given a Google Places API client, use it to search for places nearby the
+    given latitude and longitude that meet the given constraints.
+
+    https://developers.google.com/maps/documentation/places/web-service/nearby-search
     """
     location_restriction = SearchNearbyRequest.LocationRestriction()
     location_restriction.circle.radius = radius_meters
@@ -46,6 +49,7 @@ def place_will_be_open(place: Place, utc_arrival_time: datetime, utc_departure_t
 
     for period in place.regular_opening_hours.periods:
         is_relevant = period.open_ and (period.open_.day == local_arrival_time.weekday())
+
         if is_relevant and period.open_.hour is not None and period.open_.minute is not None:
             open_time = local_arrival_time.replace(hour=period.open_.hour, minute=period.open_.minute)
 
