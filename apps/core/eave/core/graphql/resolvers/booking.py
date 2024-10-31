@@ -1,5 +1,8 @@
 from uuid import UUID
 
+from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery
+from eave.stdlib.google.places.client import GooglePlacesClient
+from eave.stdlib.util import extract_nested_field
 import strawberry
 from attr import dataclass
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,6 +16,7 @@ from eave.core.graphql.types.booking import (
     CreateBookingSuccess,
 )
 from eave.core.internal import database
+from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.account_booking import AccountBookingOrm
 from eave.core.internal.orm.booking import BookingOrm
@@ -28,6 +32,8 @@ from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.exceptions import InvalidDataError, StartTimeTooLateError, StartTimeTooSoonError
 from eave.stdlib.logging import LOGGER
 
+from eave.core.outing.models.sources import EventSource
+
 
 @dataclass
 class BookingDetails:
@@ -35,34 +41,184 @@ class BookingDetails:
     reservations: list[BookingReservationTemplateOrm]
 
 
+@dataclass
+class EventDetails:
+    name: str
+    latitude: float
+    longitude: float
+    address1: str
+    address2: str
+    city: str
+    region: str
+    country: str
+    postal_code: str
+    uri: str
+
+
+async def _get_event_details(
+    places_client: GooglePlacesClient, activities_client: EventbriteClient, event_source: EventSource, remote_id: str
+) -> EventDetails:
+    name = address1 = address2 = city = region = postal_code = country = lat = lon = booking_uri = None
+    match event_source:
+        case EventSource.INTERNAL:
+            # TODO: fetch from internal db
+            details = None
+        case EventSource.GOOGLE_PLACES:
+            details = await places_client.get_place_details(
+                id=remote_id,
+                field_mask=["displayName.text", "addressComponents", "location", "websiteUri"],
+            )
+
+            name = extract_nested_field(details, "displayName", "text")
+            booking_uri = details.get("websiteUri")
+            country = next(
+                (
+                    component.get("shortText")
+                    for component in details.get("addressComponents") or []
+                    if "country" in component.get("types", [])
+                ),
+                None,
+            )
+            region = next(
+                (
+                    component.get("shortText")
+                    for component in details.get("addressComponents") or []
+                    if "administrative_area_level_1" in component.get("types", [])
+                ),
+                None,
+            )
+            city = next(
+                (
+                    component.get("longText")
+                    for component in details.get("addressComponents") or []
+                    if "locality" in component.get("types", [])
+                ),
+                None,
+            )
+            postal_code = next(
+                (
+                    component.get("longText")
+                    for component in details.get("addressComponents") or []
+                    if "postal_code" in component.get("types", [])
+                ),
+                None,
+            )
+            address1 = next(
+                (
+                    component.get("longText")
+                    for component in details.get("addressComponents") or []
+                    if "street_address" in component.get("types", [])
+                ),
+                None,
+            ) or " ".join(  # fallback to constructing address from more granular components
+                [
+                    next(
+                        (
+                            component.get("longText", "")
+                            for component in details.get("addressComponents") or []
+                            if "street_number" in component.get("types", [])
+                        ),
+                        "",
+                    ),
+                    next(
+                        (
+                            component.get("longText", "")
+                            for component in details.get("addressComponents") or []
+                            if "route" in component.get("types", [])
+                        ),
+                        "",
+                    ),
+                ]
+            )
+            address2 = next(
+                (
+                    component.get("longText")
+                    for component in details.get("addressComponents") or []
+                    if "subpremise" in component.get("types", [])
+                ),
+                None,
+            )
+            lat = extract_nested_field(details, "location", "latitude")
+            lon = extract_nested_field(details, "location", "longitude")
+        case EventSource.EVENTBRITE:
+            details = await activities_client.get_event_by_id(
+                event_id=remote_id,
+                query=GetEventQuery(expand="venue"),
+            )
+            name = extract_nested_field(details, "name", "text")
+            booking_uri = details.get("url")
+            address1 = extract_nested_field(details, "venue", "address", "address_1")
+            address2 = extract_nested_field(details, "venue", "address", "address_2")
+            city = extract_nested_field(details, "venue", "address", "city")
+            region = extract_nested_field(details, "venue", "address", "region")
+            postal_code = extract_nested_field(details, "venue", "address", "postal_code")
+            country = extract_nested_field(details, "venue", "address", "country")
+            lat = extract_nested_field(details, "venue", "latitude")
+            lon = extract_nested_field(details, "venue", "longitude")
+
+    assert name is not None
+    assert lat is not None
+    assert lon is not None
+    assert address1 is not None
+    assert address2 is not None  # TODO: maybe ok if addr2 is nullable? not everywhere has appartment number or somthing
+    assert city is not None
+    assert region is not None
+    assert postal_code is not None
+    assert country is not None
+    assert booking_uri is not None
+
+    return EventDetails(
+        name=name,
+        latitude=float(lat),
+        longitude=float(lon),
+        address1=address1,
+        address2=address2,
+        city=city,
+        region=region,
+        postal_code=postal_code,
+        country=country,
+        uri=booking_uri,
+    )
+
+
 async def _create_templates_from_outing(
     db_session: AsyncSession,
     booking_id: UUID,
     outing: OutingOrm,
 ) -> BookingDetails:
+    places_client = GooglePlacesClient(api_key=CORE_API_APP_CONFIG.google_places_api_key)
+    activities_client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
+
     activities = await OutingActivityOrm.query(
         session=db_session,
         params=OutingActivityOrm.QueryParams(outing_id=outing.id),
     )
     activity_details = []
     for activity in activities:
-        # TODO: fetch activity details from remote src
+        src = EventSource.from_str(activity.activity_source)
+        assert src is not None
+        details = await _get_event_details(
+            places_client=places_client,
+            activities_client=activities_client,
+            event_source=src,
+            remote_id=activity.activity_id,
+        )
 
         activity_details.append(
             await BookingActivityTemplateOrm.create(
                 session=db_session,
                 booking_id=booking_id,
-                activity_name="Biking in McDonalds parking lot",
+                activity_name=details.name,
                 activity_start_time=activity.activity_start_time,
                 num_attendees=activity.num_attendees,
-                external_booking_link="https://micndontlds.com",
-                activity_location_address1="101 Mcdonald St",
-                activity_location_address2="Unit 666",
-                activity_location_city="LA",
-                activity_location_region="CA",
-                activity_location_country="USA",
-                activity_location_latitude=0,
-                activity_location_longitude=0,
+                external_booking_link=details.uri,
+                activity_location_address1=details.address1,
+                activity_location_address2=details.address2,
+                activity_location_city=details.city,
+                activity_location_region=details.region,
+                activity_location_country=details.country,
+                activity_location_latitude=details.latitude,
+                activity_location_longitude=details.longitude,
             )
         )
 
@@ -72,23 +228,30 @@ async def _create_templates_from_outing(
     )
     reservation_details = []
     for reservation in reservations:
-        # TODO: fetch dteails from remote
+        src = EventSource.from_str(reservation.reservation_source)
+        assert src is not None
+        details = await _get_event_details(
+            places_client=places_client,
+            activities_client=activities_client,
+            event_source=src,
+            remote_id=reservation.reservation_id,
+        )
 
         reservation_details.append(
             await BookingReservationTemplateOrm.create(
                 session=db_session,
                 booking_id=booking_id,
-                reservation_name="Red lobster dumpster",
+                reservation_name=details.name,
                 reservation_start_time=reservation.reservation_start_time,
                 num_attendees=reservation.num_attendees,
-                external_booking_link="https://redlobster.yum",
-                reservation_location_address1="3269 Abandoned Alley Way",
-                reservation_location_address2="",
-                reservation_location_city="LA",
-                reservation_location_region="CA",
-                reservation_location_country="USA",
-                reservation_location_latitude=0,
-                reservation_location_longitude=1,
+                external_booking_link=details.uri,
+                reservation_location_address1=details.address1,
+                reservation_location_address2=details.address2,
+                reservation_location_city=details.city,
+                reservation_location_region=details.region,
+                reservation_location_country=details.country,
+                reservation_location_latitude=details.latitude,
+                reservation_location_longitude=details.longitude,
             )
         )
 
