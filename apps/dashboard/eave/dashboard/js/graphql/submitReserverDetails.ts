@@ -8,6 +8,7 @@ type SubmitReserverDetailsRequest = {
   lastName: string;
   phoneNumber: string;
 };
+
 type SubmitReserverDetailsResponse = {
   reserverDetailsId: string;
 };

@@ -7,6 +7,7 @@ type CreateBookingRequest = {
   outingId: string;
   reserverDetailsId: string;
 };
+
 type CreateBookingResponse = {
   bookingId: string;
 };

@@ -6,6 +6,7 @@ type ReplanOutingRequest = {
   visitorId: string;
   outingId: string;
 };
+
 type ReplanOutingResponse = {
   outingId: string;
 };

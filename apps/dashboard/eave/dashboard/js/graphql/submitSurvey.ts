@@ -9,6 +9,7 @@ type SubmitSurveyRequest = {
   budget: number;
   headcount: number;
 };
+
 type SubmitSurveyResponse = {
   outingId: string;
 };
