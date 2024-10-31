@@ -1,5 +1,5 @@
 from datetime import datetime
-from uuid import UUID, uuid4
+from uuid import UUID
 
 import strawberry
 
@@ -20,41 +20,63 @@ from eave.core.internal.orm.outing_activity import OutingActivityOrm
 from eave.core.internal.orm.outing_reservation import OutingReservationOrm
 from eave.core.internal.orm.survey import SurveyOrm
 from eave.core.internal.orm.util import validate_time_within_bounds_or_exception
+from eave.core.outing import Outing as OutingPlanGenerator
+from eave.core.outing.models.outing import OutingConstraints
 from eave.core.outing.models.search_region_code import SearchRegionCode
-from eave.stdlib.core_api.models.enums import ActivitySource, ReservationSource
 from eave.stdlib.exceptions import InvalidDataError, StartTimeTooLateError, StartTimeTooSoonError
 from eave.stdlib.logging import LOGGER
 
 
 async def create_outing_plan(
     visitor_id: UUID,
-    survey_id: UUID,
+    survey: SurveyOrm,
     account_id: UUID | None,
 ) -> OutingOrm:
-    # TODO: actually call the planning function instead
+    # TODO: fetch user preferences
+    # async with database.async_session.begin() as db_session:
+    #     account = await AccountOrm.one_or_exception(
+    #         session=db_session,
+    #         params=AccountOrm.QueryParams(id=account_id),
+    #     )
+
+    planner = OutingPlanGenerator(
+        group=[],  # TODO: pass user preferences
+        constraints=OutingConstraints(
+            start_time=survey.start_time,
+            search_area_ids=survey.search_region_codes,
+            budget=survey.budget,
+            headcount=survey.headcount,
+        ),
+    )
+    plan = await planner.plan()
+
     async with database.async_session.begin() as db_session:
         outing = await OutingOrm.create(
             session=db_session,
             visitor_id=visitor_id,
-            survey_id=survey_id,
+            survey_id=survey.id,
             account_id=account_id,
         )
-        _outing_activity = await OutingActivityOrm.create(
-            session=db_session,
-            outing_id=outing.id,
-            activity_id=str(uuid4()),
-            activity_source=ActivitySource.EVENTBRITE,
-            activity_start_time=datetime.now(),
-            num_attendees=2,
-        )
-        _outing_reservation = await OutingReservationOrm.create(
-            session=db_session,
-            outing_id=outing.id,
-            reservation_id=str(uuid4()),
-            reservation_source=ReservationSource.GOOGLE_PLACES,
-            reservation_start_time=datetime.now(),
-            num_attendees=2,
-        )
+
+        if plan.activity and (activity_id := plan.activity.external_details.get("id")):
+            await OutingActivityOrm.create(
+                session=db_session,
+                outing_id=outing.id,
+                activity_id=activity_id,
+                activity_source=plan.activity.source,
+                activity_start_time=plan.activity.start_time,
+                num_attendees=survey.headcount,
+            )
+
+        if plan.restaurant and (reservation_id := plan.restaurant.external_details.get("id")):
+            await OutingReservationOrm.create(
+                session=db_session,
+                outing_id=outing.id,
+                reservation_id=reservation_id,
+                reservation_source=plan.restaurant.source,
+                reservation_start_time=plan.restaurant.start_time,
+                num_attendees=survey.headcount,
+            )
     return outing
 
 
@@ -88,7 +110,7 @@ async def submit_survey_mutation(
 
     outing = await create_outing_plan(
         visitor_id=survey.visitor_id,
-        survey_id=survey.id,
+        survey=survey,
         account_id=survey.account_id,
     )
 
@@ -122,7 +144,7 @@ async def replan_outing_mutation(
 
         outing = await create_outing_plan(
             visitor_id=visitor_id,
-            survey_id=original_outing.survey_id,
+            survey=survey,
             account_id=original_outing.account_id,  # TODO: this is wrong; look for any auth attached to the request instead
         )
     except InvalidDataError as e:

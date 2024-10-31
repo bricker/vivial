@@ -6,14 +6,15 @@ from eave.stdlib.google.places.models.place import Place
 
 from .geo_area import GeoLocation
 from .search_region_code import SearchRegionCode
-from .sources import ActivitySource, RestaurantSource
+from .sources import EventSource
 
 
 @dataclass
 class OutingComponent:
-    source: ActivitySource | RestaurantSource
+    source: EventSource
     external_details: Event | Place
     location: GeoLocation
+    start_time: datetime
 
 
 @dataclass

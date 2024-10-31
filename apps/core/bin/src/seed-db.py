@@ -15,8 +15,6 @@ UNDER NO CIRCUMSTANCES SHOULD THIS BE EVER RUN AGAINST PROD
 import datetime
 import sys
 
-from eave.stdlib.core_api.models.enums import ActivitySource, ReservationSource
-
 from eave.core.internal.orm.account_booking import AccountBookingOrm
 from eave.core.internal.orm.booking import BookingOrm
 from eave.core.internal.orm.booking_activities_template import BookingActivityTemplateOrm
@@ -25,6 +23,7 @@ from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.outing_activity import OutingActivityOrm
 from eave.core.internal.orm.outing_reservation import OutingReservationOrm
 from eave.core.internal.orm.reserver_details import ReserverDetailsOrm
+from eave.core.outing.models.sources import EventSource
 
 sys.path.append(".")
 
@@ -102,7 +101,7 @@ async def seed_database(db: AsyncEngine) -> None:
             session=session,
             outing_id=outing.id,
             activity_id=str(uuid.uuid4()),
-            activity_source=ActivitySource.SELF,
+            activity_source=EventSource.EVENTBRITE,
             activity_start_time=dummy_date,
             num_attendees=2,
         )
@@ -110,7 +109,7 @@ async def seed_database(db: AsyncEngine) -> None:
             session=session,
             outing_id=outing.id,
             reservation_id=str(uuid.uuid4()),
-            reservation_source=ReservationSource.SELF,
+            reservation_source=EventSource.GOOGLE_PLACES,
             reservation_start_time=dummy_date,
             num_attendees=2,
         )

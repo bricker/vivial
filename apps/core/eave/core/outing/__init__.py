@@ -13,7 +13,7 @@ from .helpers.time import is_early_evening, is_early_morning, is_late_evening, i
 from .models.category import Category
 from .models.geo_area import GeoArea, GeoLocation
 from .models.outing import OutingComponent, OutingConstraints, OutingPlan
-from .models.sources import ActivitySource, RestaurantSource
+from .models.sources import EventSource
 from .models.user import User, UserPreferences
 
 
@@ -179,7 +179,10 @@ class Outing:
                                     lon = venue.get("longitude")
                                     if lat and lon:
                                         self.activity = OutingComponent(
-                                            ActivitySource.EVENTBRITE, event_details, GeoLocation(lat, lon)
+                                            source=EventSource.EVENTBRITE,
+                                            external_details=event_details,
+                                            location=GeoLocation(lat, lon),
+                                            start_time=activity_start_time,
                                         )
                                         return self.activity
 
@@ -229,7 +232,10 @@ class Outing:
                             lon = location.get("longitude")
                             if lat and lon:
                                 self.activity = OutingComponent(
-                                    RestaurantSource.GOOGLE_PLACES, place, GeoLocation(lat, lon)
+                                    source=EventSource.GOOGLE_PLACES,
+                                    external_details=place,
+                                    location=GeoLocation(lat, lon),
+                                    start_time=activity_start_time,
                                 )
                                 return self.activity
 
@@ -287,7 +293,10 @@ class Outing:
                                 lon = location.get("longitude")
                                 if lat and lon:
                                     self.restaurant = OutingComponent(
-                                        RestaurantSource.GOOGLE_PLACES, restaurant, GeoLocation(lat, lon)
+                                        source=EventSource.GOOGLE_PLACES,
+                                        external_details=restaurant,
+                                        location=GeoLocation(lat, lon),
+                                        start_time=arrival_time,
                                     )
                                     return self.restaurant
 

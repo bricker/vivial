@@ -46,6 +46,14 @@ class SurveyOrm(Base):
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
+    @property
+    def search_region_codes(self) -> list[SearchRegionCode]:
+        codes = []
+        for area_id in self.search_area_ids:
+            if region_code := SearchRegionCode.from_str(area_id):
+                codes.append(region_code)
+        return codes
+
     @classmethod
     async def create(
         cls,
