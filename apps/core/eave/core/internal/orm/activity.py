@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import Literal, Self
 from uuid import UUID
 
+from eave.stdlib.core_api.models.enums import ActivitySource
 from sqlalchemy import Index, PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column

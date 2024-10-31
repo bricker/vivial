@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import Literal, Self
 from uuid import UUID
 
+from eave.stdlib.core_api.models.enums import ActivitySource
 from sqlalchemy import Index, PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -17,10 +18,6 @@ from eave.stdlib.util import b64encode
 
 from .base import Base
 from .util import PG_UUID_EXPR
-
-class EventSource(StrEnum):
-    eventbrite = "eventbrite"
-
 
 class EventIndexOrm(Base):
     __tablename__ = "event_index"
@@ -54,7 +51,7 @@ class EventIndexOrm(Base):
     async def create(
         cls,
         session: AsyncSession,
-        source: EventSource,
+        source: ActivitySource,
         source_ref: str,
         search_area_id: str,
     ) -> Self:
