@@ -1,6 +1,6 @@
 import { createContext } from "react";
 import { CreateBookingCtx } from "../graphql/createBooking";
-import { ReplanOutingCtx } from "../graphql/outing";
+import { ReplanOutingCtx } from "../graphql/replanOuting";
 import { SubmitReserverDetailsCtx } from "../graphql/submitReserverDetails";
 import { SubmitSurveyCtx } from "../graphql/submitSurvey";
 

@@ -1,7 +1,7 @@
 import { AppContext, AppContextProps } from "$eave-dashboard/js/context/AppContext";
 import React from "react";
 import { createBooking } from "../graphql/createBooking";
-import { replanOuting } from "../graphql/outing";
+import { replanOuting } from "../graphql/replanOuting";
 import { submitReserverDetails } from "../graphql/submitReserverDetails";
 import { submitSurvey } from "../graphql/submitSurvey";
 
