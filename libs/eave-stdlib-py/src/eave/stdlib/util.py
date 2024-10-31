@@ -6,7 +6,7 @@ import re
 import uuid
 from collections.abc import Awaitable, Callable
 from functools import wraps
-from typing import Any, Literal, ParamSpec, TypeVar
+from typing import Any, Literal, Mapping, ParamSpec, TypeVar
 
 import inflect
 
@@ -241,9 +241,6 @@ def erasetype(data: JsonObject, key: str, default: JsonValue | None = None) -> A
         return None
 
 
-T = TypeVar("T")
-
-
 def suppress(e: type[Exception], func: Callable[[], T]) -> T | None:
     """
     Proxy to contextlib.suppress(), but with the ability to do it on a single line
@@ -287,3 +284,25 @@ def istr_eq(a: str, b: str) -> bool:
     Case-insensitive comparison of two strings
     """
     return a.lower() == b.lower()
+
+
+def extract_nested_field(d: Mapping[str, Any], *fields: str) -> Any | None:
+    """Extract a field value from nested dictionaries. Returns None if
+    the `fields` path did not lead to a value that existed in `d`.
+    (Doesnt work with array members)
+
+    e.g.
+    d = { "place": { "location": { "latitude": "-34.2424" }}}
+    extract_nested_field(d, "place", "location", "latitude")
+    > "-34.2424"
+    extract_nested_field(d, "place", "location", "longitude")
+    > None
+    """
+    curr_val = None
+    curr_dict = d
+    for field in fields:
+        if val := curr_dict.get(field):
+            curr_val = val
+        else:
+            return None
+    return curr_val

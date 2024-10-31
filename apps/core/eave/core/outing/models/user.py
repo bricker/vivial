@@ -15,4 +15,4 @@ class UserPreferences:
 class User:
     id: str | None
     visitor_id: str | None
-    preferences: UserPreferences
+    preferences: UserPreferences | None

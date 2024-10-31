@@ -62,10 +62,20 @@ class GooglePlacesClient:
             "regionCode": region_code,
         }
         response = await self.make_request(
-            method=HTTPMethod.POST, path="searchNearby", field_mask=field_mask, payload=payload
+            method=HTTPMethod.POST, path=":searchNearby", field_mask=field_mask, payload=payload
         )
         j = await response.json()
         return j.get("places")
+
+    async def get_place_details(self, *, field_mask: list[str], id: str) -> Place:
+        """https://developers.google.com/maps/documentation/places/web-service/place-details"""
+        response = await self.make_request(
+            method=HTTPMethod.GET,
+            path=f"/{id}",
+            field_mask=field_mask,
+            payload={},
+        )
+        return await response.json()
 
     async def make_request(
         self, *, method: HTTPMethod, path: str, field_mask: list[str], payload: Any
@@ -73,7 +83,7 @@ class GooglePlacesClient:
         async with aiohttp.ClientSession(raise_for_status=True) as session:
             response = await session.request(
                 method=method,
-                url=f"{self.base_url}:{path}",
+                url=f"{self.base_url}{path}",
                 headers={
                     "Content-Type": "application/json",
                     "X-Goog-Api-Key": self.api_key,

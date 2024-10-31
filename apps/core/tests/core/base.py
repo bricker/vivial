@@ -234,7 +234,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
                 session=session,
                 visitor_id=self.anyuuid(),
                 start_time=self.anydatetime(offset=2 * 60 * 60 * 24),
-                search_area_ids=[SearchRegionCode.US_CA_LA],
+                search_area_ids=[SearchRegionCode.US_CA_LA1],
                 budget=self.anyint(min=0, max=3),
                 headcount=self.anyint(min=1, max=2),
             )

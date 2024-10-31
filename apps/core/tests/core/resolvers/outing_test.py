@@ -1,4 +1,7 @@
 from http import HTTPStatus
+import unittest.mock
+
+from eave.stdlib.eventbrite.models.event import Event
 
 from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.survey import SurveyOrm
@@ -10,6 +13,24 @@ day_seconds = 60 * 60 * 24
 
 
 class TestOutingEndpoints(BaseTestCase):
+    async def asyncSetUp(self) -> None:
+        await super().asyncSetUp()
+        self.patch(
+            name="eventbrite get_event_by_id",
+            patch=unittest.mock.patch("eave.stdlib.eventbrite.client.EventbriteClient.get_event_by_id"),
+            return_value=Event(),
+        )
+        self.patch(
+            name="eventbrite get_event_description",
+            patch=unittest.mock.patch("eave.stdlib.eventbrite.client.EventbriteClient.get_event_description"),
+            return_value="description",
+        )
+        self.patch(
+            name="google places searchNearby",
+            patch=unittest.mock.patch("eave.stdlib.google.places.client.GooglePlacesClient.search_nearby"),
+            return_value=[],
+        )
+
     async def test_survey_submit(self) -> None:
         response = await self.httpclient.post(
             "/graphql",

@@ -115,17 +115,14 @@ class Outing:
         Given a group of users, return True if any of the users requires
         wheelchair accessibility.
         """
-        return any(user.preferences.requires_wheelchair_accessibility for user in group)
+        return any(user.preferences.requires_wheelchair_accessibility for user in group if user.preferences)
 
     def __combine_bar_openness(self, group: list[User]) -> bool:
         """
         Given a group of users, return False if any of the users is not open to
         going to a bar.
         """
-        for user in group:
-            if not user.preferences.open_to_bars:
-                return False
-        return True
+        return all(user.preferences.open_to_bars for user in group if user.preferences)
 
     def __combine_preferences(self, group: list[User]) -> UserPreferences:
         """

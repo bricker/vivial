@@ -39,7 +39,7 @@ class BookingActivityTemplateOrm(Base):
     activity_start_time: Mapped[datetime] = mapped_column()
     num_attendees: Mapped[int] = mapped_column()
     external_booking_link: Mapped[str | None] = mapped_column()
-    """HTTP link to site for manual booking (possibly affialate), if available"""
+    """HTTP link to site for manual booking (possibly affiliate), if available"""
     activity_location_address1: Mapped[str] = mapped_column()
     activity_location_address2: Mapped[str] = mapped_column()
     activity_location_city: Mapped[str] = mapped_column()
