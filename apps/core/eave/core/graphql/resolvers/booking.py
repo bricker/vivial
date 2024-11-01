@@ -2,7 +2,7 @@ from uuid import UUID
 
 import strawberry
 from attr import dataclass
-from google.maps.places_v1.services.places import PlacesClient
+from google.maps.places_v1.services.places import PlacesAsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import eave.stdlib.slack
@@ -56,7 +56,7 @@ class EventDetails:
 
 
 async def _get_event_details(
-    places_client: PlacesClient, activities_client: EventbriteClient, event_source: EventSource, remote_id: str
+    places_client: PlacesAsyncClient, activities_client: EventbriteClient, event_source: EventSource, remote_id: str
 ) -> EventDetails:
     name = address1 = address2 = city = region = postal_code = country = lat = lon = booking_uri = None
     match event_source:
@@ -64,7 +64,7 @@ async def _get_event_details(
             # TODO: fetch from internal db
             details = None
         case EventSource.GOOGLE_PLACES:
-            details = get_place(
+            details = await get_place(
                 client=places_client,
                 id=remote_id,
                 # field_mask=",".join(["displayName.text", "addressComponents", "location", "websiteUri"]),
@@ -163,7 +163,7 @@ async def _create_templates_from_outing(
     booking_id: UUID,
     outing: OutingOrm,
 ) -> BookingDetails:
-    places_client = PlacesClient()
+    places_client = PlacesAsyncClient()
     activities_client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
 
     activities = await OutingActivityOrm.query(

@@ -1,22 +1,22 @@
 from collections.abc import MutableSequence
 from datetime import datetime, timedelta
 
-from google.maps.places_v1 import PlacesClient
+from google.maps.places_v1 import PlacesAsyncClient
 from google.maps.places_v1.types import GetPlaceRequest, Place, SearchNearbyRequest
 
 from ..constants.restaurants import RESTAURANT_BUDGET_MAP
 from ..constants.zoneinfo import LOS_ANGELES_ZONE_INFO
 
 
-def get_place(
-    client: PlacesClient,
+async def get_place(
+    client: PlacesAsyncClient,
     id: str,
 ) -> Place:
-    return client.get_place(request=GetPlaceRequest(name=f"places/{id}"))
+    return await client.get_place(request=GetPlaceRequest(name=f"places/{id}"))
 
 
-def get_places_nearby(
-    client: PlacesClient,
+async def get_places_nearby(
+    client: PlacesAsyncClient,
     latitude: float | str,
     longitude: float | str,
     radius_meters: float,
@@ -37,7 +37,7 @@ def get_places_nearby(
         location_restriction=location_restriction,
         included_primary_types=included_primary_types,
     )
-    response = client.search_nearby(request=request, metadata=[("x-goog-fieldmask", field_mask)])
+    response = await client.search_nearby(request=request, metadata=[("x-goog-fieldmask", field_mask)])
     return response.places or []
 
 

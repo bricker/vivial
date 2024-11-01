@@ -35,7 +35,7 @@ class TestOutingEndpoints(BaseTestCase):
         )
         self.patch(
             name="google places searchNearby",
-            patch=unittest.mock.patch("google.maps.places_v1.services.places.client.PlacesClient.search_nearby"),
+            patch=unittest.mock.patch("google.maps.places_v1.services.places.async_client.PlacesAsyncClient.search_nearby"),
             return_value=MockPlacesResponse([]),
         )
 

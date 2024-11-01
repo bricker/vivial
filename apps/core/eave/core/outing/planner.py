@@ -30,7 +30,7 @@ class Outing:
     restaurant, then go to an event or engage in a cute activity.
     """
 
-    places = places_v1.PlacesClient()
+    places = places_v1.PlacesAsyncClient()
     eventbrite = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
     preferences: UserPreferences
     constraints: SurveyOrm
@@ -214,7 +214,7 @@ class Outing:
 
         for search_area_id in self.constraints.search_region_codes:
             area = LOS_ANGELES_AREA_MAP[search_area_id]
-            places_nearby = get_places_nearby(
+            places_nearby = await get_places_nearby(
                 client=self.places,
                 field_mask=RESTAURANT_FIELD_MASK,
                 latitude=area.lat,
@@ -275,7 +275,7 @@ class Outing:
         # Find a restaurant that meets the outing constraints.
         for area in search_areas:
             for category in restaurant_categories:
-                restaurants_nearby = get_places_nearby(
+                restaurants_nearby = await get_places_nearby(
                     client=self.places,
                     field_mask=RESTAURANT_FIELD_MASK,
                     latitude=area.lat,
