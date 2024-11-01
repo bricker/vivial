@@ -1,0 +1,13 @@
+mutation createBooking($accountId: UUID!, $outingId: UUID!, $reserverDetailsId: UUID!) {
+  createBooking(accountId: $accountId, outingId: $outingId, reserverDetailsId: $reserverDetailsId) {
+    __typename
+    ... on CreateBookingSuccess {
+      booking {
+        id
+      }
+    }
+    ... on CreateBookingError {
+      errorCode
+    }
+  }
+}

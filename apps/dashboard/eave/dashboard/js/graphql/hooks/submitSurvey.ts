@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { NetworkState } from "../types";
-import { GRAPHQL_API_BASE } from "../util/http-util";
+import { NetworkState } from "../../types";
+import { GRAPHQL_API_BASE } from "../../util/http-util";
+import query from "../mutation/submitSurvey.graphql";
 
 type SubmitSurveyRequest = {
   visitorId: string;
@@ -38,24 +39,11 @@ function submitSurveyExecute({ req, ctx }: { req: SubmitSurveyRequest; ctx: Subm
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      query: `mutation {
-  submitSurvey(
-    visitorId: "${req.visitorId}",
-    startTime: "${req.startTime.toISOString()}",
-    searchAreaIds: ${JSON.stringify(req.searchAreaIds)},
-    budget: ${req.budget},
-    headcount: ${req.budget}) {
-    __typename
-    ... on SubmitSurveySuccess {
-      outing {
-        id
-      }
-    }
-    ... on SubmitSurveyError {
-      errorCode
-    }
-  }
-}`,
+      query,
+      variables: {
+        ...req,
+        startTime: req.startTime.toISOString(),
+      },
     }),
   })
     .then((resp) => {

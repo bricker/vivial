@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { NetworkState } from "../types";
-import { GRAPHQL_API_BASE } from "../util/http-util";
+import { NetworkState } from "../../types";
+import { GRAPHQL_API_BASE } from "../../util/http-util";
+import query from "../mutation/submitReserverDetails.graphql";
 
 type SubmitReserverDetailsRequest = {
   accountId: string;
@@ -46,23 +47,8 @@ function submitReserverDetailsExecute({
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      query: `mutation {
-  submitReserverDetails(
-    accountId: "${req.accountId}",
-    firstName: "${req.firstName}",
-    lastName: "${req.lastName}",
-    phoneNumber: "${req.phoneNumber}") {
-    __typename
-    ... on SubmitReserverDetailsSuccess {
-      reserverDetails {
-        id
-      }
-    }
-    ... on SubmitReserverDetailsError {
-      errorCode
-    }
-  }
-}`,
+      query,
+      variables: req,
     }),
   })
     .then((resp) => {
