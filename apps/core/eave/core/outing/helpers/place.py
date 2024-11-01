@@ -2,10 +2,17 @@ from collections.abc import MutableSequence
 from datetime import datetime, timedelta
 
 from google.maps.places_v1 import PlacesClient
-from google.maps.places_v1.types import Place, SearchNearbyRequest
+from google.maps.places_v1.types import GetPlaceRequest, Place, SearchNearbyRequest
 
 from ..constants.restaurants import RESTAURANT_BUDGET_MAP
 from ..constants.zoneinfo import LOS_ANGELES_ZONE_INFO
+
+
+def get_place(
+    client: PlacesClient,
+    id: str,
+) -> Place:
+    return client.get_place(request=GetPlaceRequest(name=f"places/{id}"))
 
 
 def get_places_nearby(

@@ -1,6 +1,8 @@
 import unittest.mock
 from http import HTTPStatus
 
+from google.maps.places_v1.types import Place
+
 from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.survey import SurveyOrm
 from eave.core.outing.models.search_region_code import SearchRegionCode
@@ -9,6 +11,13 @@ from eave.stdlib.eventbrite.models.event import Event
 from ..base import BaseTestCase
 
 day_seconds = 60 * 60 * 24
+
+
+class MockPlacesResponse:
+    places: list[Place]
+
+    def __init__(self, places: list[Place]):
+        self.places = places
 
 
 class TestOutingEndpoints(BaseTestCase):
@@ -26,8 +35,8 @@ class TestOutingEndpoints(BaseTestCase):
         )
         self.patch(
             name="google places searchNearby",
-            patch=unittest.mock.patch("eave.stdlib.google.places.client.GooglePlacesClient.search_nearby"),
-            return_value=[],
+            patch=unittest.mock.patch("google.maps.places_v1.services.places.client.PlacesClient.search_nearby"),
+            return_value=MockPlacesResponse([]),
         )
 
     async def test_survey_submit(self) -> None:

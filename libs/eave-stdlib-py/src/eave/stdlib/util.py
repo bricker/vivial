@@ -292,11 +292,13 @@ def extract_nested_field(d: Mapping[str, Any], *fields: str) -> Any | None:
     (Doesnt work with array members)
 
     e.g.
+    ```
     d = { "place": { "location": { "latitude": "-34.2424" }}}
     extract_nested_field(d, "place", "location", "latitude")
     > "-34.2424"
     extract_nested_field(d, "place", "location", "longitude")
     > None
+    ```
     """
     curr_val = None
     curr_dict = d

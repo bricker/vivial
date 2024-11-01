@@ -52,21 +52,28 @@ async def create_outing_plan(
             account_id=account_id,
         )
 
-        if plan.activity and (activity_id := plan.activity.external_details.get("id")):
-            await OutingActivityOrm.create(
-                session=db_session,
-                outing_id=outing.id,
-                activity_id=activity_id,
-                activity_source=plan.activity.source,
-                activity_start_time=plan.activity.start_time,
-                num_attendees=survey.headcount,
-            )
+        if plan.activity:
+            activity_id = None
+            if plan.activity.event and (event_id := plan.activity.event.get("id")):
+                activity_id = event_id
+            elif plan.activity.place:
+                activity_id = plan.activity.place.id
 
-        if plan.restaurant and (reservation_id := plan.restaurant.external_details.get("id")):
+            if activity_id:
+                await OutingActivityOrm.create(
+                    session=db_session,
+                    outing_id=outing.id,
+                    activity_id=activity_id,
+                    activity_source=plan.activity.source,
+                    activity_start_time=plan.activity.start_time,
+                    num_attendees=survey.headcount,
+                )
+
+        if plan.restaurant and plan.restaurant.place:
             await OutingReservationOrm.create(
                 session=db_session,
                 outing_id=outing.id,
-                reservation_id=reservation_id,
+                reservation_id=plan.restaurant.place.id,
                 reservation_source=plan.restaurant.source,
                 reservation_start_time=plan.restaurant.start_time,
                 num_attendees=survey.headcount,

@@ -1,6 +1,8 @@
 import random
 from datetime import timedelta
+
 from google.maps import places_v1
+
 from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.orm.survey import SurveyOrm
 from eave.stdlib.eventbrite.client import EventbriteClient
