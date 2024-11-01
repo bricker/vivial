@@ -47,7 +47,7 @@ class EventDetails:
     latitude: float
     longitude: float
     address1: str
-    address2: str
+    address2: str | None
     city: str
     region: str
     country: str
@@ -137,7 +137,6 @@ async def _get_event_details(
     assert lat is not None
     assert lon is not None
     assert address1 is not None
-    assert address2 is not None  # TODO: maybe ok if addr2 is nullable? not everywhere has appartment number or somthing
     assert city is not None
     assert region is not None
     assert postal_code is not None
