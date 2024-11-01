@@ -54,6 +54,8 @@ async def create_outing_plan(
 
         if plan.activity:
             activity_id = None
+            # an activity can be either an event or a restaurant (place)
+            # so we have to check both `event` and `place` fields
             if plan.activity.event and (event_id := plan.activity.event.get("id")):
                 activity_id = event_id
             elif plan.activity.place:
