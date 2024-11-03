@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import Required, TypedDict
 
 from .shared import MultipartText
 
@@ -6,10 +6,10 @@ from .shared import MultipartText
 class Question(TypedDict, total=False):
     """https://www.eventbrite.com/platform/api#/reference/questions"""
 
-    id: str | None
+    id: Required[str]
     """nodoc"""
 
-    resource_uri: str | None
+    resource_uri: Required[str]
     """nodoc"""
 
     type: str | None

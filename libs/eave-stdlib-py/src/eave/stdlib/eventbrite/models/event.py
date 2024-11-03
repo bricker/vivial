@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import StrEnum
-from typing import TypedDict
+from typing import Literal, Required, TypedDict, Unpack
 
 from .category import Category, Subcategory
 from .checkout_settings import CheckoutSettings
@@ -42,7 +42,7 @@ class EventStatus(StrEnum):
 class EventDescription(TypedDict, total=False):
     """https://www.eventbrite.com/platform/api#/reference/event-description"""
 
-    description: str | None
+    description: str
 
 
 class HasDigitalContent(TypedDict, total=False):
@@ -55,67 +55,66 @@ class HasDigitalContent(TypedDict, total=False):
     digital_content_relative_url: str | None
     """not documented"""
 
-
 class Event(TypedDict, total=False):
     """https://www.eventbrite.com/platform/api#/reference/event"""
 
     # Expansions: ticket_availability,external_ticketing,basic_inventory_info,event_sales_status,listing_properties,checkout_settings,music_properties,publish_settings,refund_policy,bookmark_info,category,subcategory,format,venue,organizer
 
-    id: str | None
+    id: str
     """Event ID"""
 
-    resource_uri: str | None
+    resource_uri: str
     """Is an absolute URL to the API endpoint that will return you the canonical representation of the event."""
 
-    name: MultipartText | None
+    name: MultipartText
     """Event name"""
 
-    summary: str | None
-    """Event summary. Short summary describing the event and its purpose. Event summaryThis is a plaintext field and will have any supplied HTML removed from it."""
+    summary: str
+    """Event summary. Short summary describing the event and its purpose. This is a plaintext field and will have any supplied HTML removed from it."""
 
-    description: MultipartText | None
+    description: MultipartText
     """DEPRECATED - Event description (contents of the event page). May be long and have significant formatting."""
 
-    start: DatetimeWithTimezone | None
+    start: DatetimeWithTimezone
     """Start date/time of the event"""
 
-    end: DatetimeWithTimezone | None
+    end: DatetimeWithTimezone
     """End date/time of the event"""
 
-    url: str | None
+    url: str
     """The URL to the event page for this event on Eventbrite"""
 
-    vanity_url: str | None
+    vanity_url: str
     """The vanity URL to the event page for this event on Eventbrite"""
 
-    created: datetime | None
+    created: Required[str]
     """When the event was created"""
 
-    changed: datetime | None
+    changed: Required[str]
     """When the event was last changed"""
 
-    published: datetime | None
+    published: str | None
     """When the event was first published"""
 
-    status: EventStatus | None
+    status: EventStatus
     """Status of the event"""
 
-    currency: str | None
+    currency: str
     """The ISO 4217 currency code for this event"""
 
-    online_event: bool | None
+    online_event: bool
     """If this event doesn't have a venue and is only held online"""
 
-    organization_id: str | None
+    organization_id: str
     """Organization owning the event"""
 
-    organizer_id: str | None
+    organizer_id: str
     """ID of the event organizer"""
 
     logo_id: str | None
     """Image ID of the event logo"""
 
-    venue_id: str | None
+    venue_id: str
     """Event venue ID"""
 
     format_id: str | None
@@ -127,16 +126,16 @@ class Event(TypedDict, total=False):
     subcategory_id: str | None
     """Event subcategory (Expansion: subcategory)"""
 
-    listed: bool | None
+    listed: bool
     """Is this event publicly searchable on Eventbrite?"""
 
-    shareable: bool | None
+    shareable: bool
     """Can this event show social sharing buttons?"""
 
-    invite_only: bool | None
+    invite_only: bool
     """Can only people with invites see the event page?"""
 
-    show_remaining: bool | None
+    show_remaining: bool
     """Should the event page show the number of tickets left?"""
 
     capacity: int | None
@@ -145,52 +144,52 @@ class Event(TypedDict, total=False):
     capacity_is_custom: bool | None
     """If True, the value of capacity is a custom-set value; if False, it's a calculated value of the total of all ticket capacities."""
 
-    tx_time_limit: str | None
+    tx_time_limit: str
     """Maximum duration (in seconds) of a transaction"""
 
-    hide_start_date: bool | None
+    hide_start_date: bool
     """If true, the event's start date should never be displayed to attendees."""
 
-    hide_end_date: bool | None
+    hide_end_date: bool
     """If true, the event's end date should never be displayed to attendees."""
 
-    locale: str | None
+    locale: str
     """The event Locale"""
 
-    is_locked: bool | None
+    is_locked: bool
     """nodoc"""
 
-    privacy_setting: str | None
+    privacy_setting: str
     """no documentation provided - "unlocked" is the only value I've seen."""
 
-    is_externally_ticketed: bool | None
+    is_externally_ticketed: bool
     """true, if the Event is externally ticketed"""
 
-    is_series: bool | None
+    is_series: bool
     """If the event is part of a series"""
 
-    is_series_parent: bool | None
+    is_series_parent: bool
     """If the event is part of a series and is the series parent"""
 
     series_id: str | None
     """If the event is part of a series, this is the event id of the series parent. If the event is not part of a series, this field is omitted."""
 
-    is_reserved_seating: bool | None
+    is_reserved_seating: bool
     """If the events has been set to have reserved seatings"""
 
-    show_pick_a_seat: bool | None
+    show_pick_a_seat: bool
     """Enables to show pick a seat option"""
 
-    show_seatmap_thumbnail: bool | None
+    show_seatmap_thumbnail: bool
     """Enables to show seat map thumbnail"""
 
-    show_colors_in_seatmap_thumbnail: bool | None
+    show_colors_in_seatmap_thumbnail: bool
     """For reserved seating event, if venue map thumbnail should have colors on the event page."""
 
-    is_free: bool | None
+    is_free: bool
     """Allows to set a free event"""
 
-    source: str | None
+    source: str
     """Source of the event (defaults to API)"""
 
     version: str | None

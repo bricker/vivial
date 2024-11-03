@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import TypedDict
+from typing import Required, TypedDict
 
 
 class CheckoutMethod(StrEnum):
@@ -35,10 +35,10 @@ class OfflineSettings(TypedDict, total=False):
 class CheckoutSettings(TypedDict, total=False):
     """Additional data about the checkout settings of the Event."""
 
-    id: str | None
+    id: Required[str]
     """not documented"""
 
-    resource_uri: str | None
+    resource_uri: Required[str]
     """not documented"""
 
     created: str | None

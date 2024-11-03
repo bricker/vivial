@@ -1,7 +1,7 @@
 from enum import StrEnum
-from typing import TypedDict
+from typing import Required, TypedDict
 
-from .shared import Price
+from .shared import CurrencyCost
 
 
 class PointOfSale(StrEnum):
@@ -90,26 +90,27 @@ class TicketClassCategory(StrEnum):
 class TicketClassCostBreakdown(TypedDict, total=False):
     """Cost of the ticket"""
 
-    actual_cost: Price | None
+    actual_cost: CurrencyCost | None
     """The total cost for this ticket class less the fee"""
 
-    actual_fee: Price | None
+    actual_fee: CurrencyCost | None
     """The fee for this ticket class"""
 
-    cost: Price | None
+    cost: CurrencyCost | None
     """The display cost for the ticket"""
 
-    fee: Price | None
+    fee: CurrencyCost | None
     """The fee that should be included in the price (0 if include_fee is false)."""
 
-    tax: Price | None
+    tax: CurrencyCost | None
     """The ticket's base or discounted tax amount"""
 
 
 class Variant(TypedDict, total=False):
-    id: str | None
+    id: str
+    """ID of this ticket variant."""
 
-    category: TicketClassCategory | None
+    category: TicketClassCategory
     """Ticket category to which a ticket variant belongs."""
 
     primary: bool | None
@@ -128,7 +129,7 @@ class Variant(TypedDict, total=False):
     For a primary default variant like "Best Available" or "Full Price", name is not returned.
     """
 
-    display_name: str | None
+    display_name: str
     """
     Pretty long name of this ticket variant.
     For tiered inventory tickets, this includes the tier name.
@@ -138,43 +139,43 @@ class Variant(TypedDict, total=False):
     description: str | None
     """Long description of this ticket variant if defined."""
 
-    free: bool | None
+    free: bool
     """whether this ticket variant is free. for donation ticket variant, this value is false."""
 
-    cost: Price | None
+    cost: CurrencyCost | None
     """The display cost for the variant"""
 
-    total_cost: Price | None
+    total_cost: CurrencyCost | None
     """The total cost for the variant including fee and tax"""
 
-    fee: Price | None
+    fee: CurrencyCost | None
     """The fee that should be included in the price."""
 
-    tax: Price | None
+    tax: CurrencyCost | None
     """The variant's base or discounted tax amount."""
 
-    tax_and_fee: Price | None
+    tax_and_fee: CurrencyCost | None
     """fee plus tax."""
 
-    original_cost: Price | None
+    original_cost: CurrencyCost | None
     """The original cost before discount is applied if this variant is discounted."""
 
-    original_total_cost: Price | None
+    original_total_cost: CurrencyCost | None
     """The original total cost before discount is applied if this variant is discounted."""
 
-    original_fee: Price | None
+    original_fee: CurrencyCost | None
     """The original fee before discount is applied if this variant is discounted."""
 
-    original_tax: Price | None
+    original_tax: CurrencyCost | None
     """The original tax before discount is applied if this variant is discounted."""
 
-    display_shipping_fee: Price | None
+    display_shipping_fee: CurrencyCost | None
     """not documented"""
 
-    on_sale_status: OnSaleStatus | None
+    on_sale_status: OnSaleStatus
     """The status of the ticket variant. These can change based on on/off sale dates, ticket variant state, or current inventory."""
 
-    amount_off: Price | None
+    amount_off: CurrencyCost | None
     """The discounted amount if this variant is discounted."""
 
     percent_off: str | None
@@ -281,10 +282,10 @@ class TicketClass(TypedDict, total=False):
 
     # Expansions: event, image
 
-    id: str | None
+    id: str
     """nodoc"""
 
-    resource_uri: str | None
+    resource_uri: str
     """nodoc"""
 
     description: str | None
@@ -305,16 +306,16 @@ class TicketClass(TypedDict, total=False):
     delivery_methods: list[DeliveryMethod] | None
     """A list of the available delivery methods for this ticket class"""
 
-    cost: Price | None
+    cost: CurrencyCost | None
     """
     Cost of the ticket (currently currency must match event currency) e.g. $45 would be 'USD,4500'
     NOTE: This type is incorrectly documented in the API documentation. It's documented as a `TicketClassCostBreakdown` but the actual response is a `Price`.
     """
 
-    fee: Price | None
+    fee: CurrencyCost | None
     """not documented"""
 
-    tax: Price | None
+    tax: CurrencyCost | None
     """not documented"""
 
     image_id: str | None
@@ -370,7 +371,7 @@ class TicketClass(TypedDict, total=False):
     # split_fee: bool | None
     """Absorb the payment fee, but show the eventbrite fee"""
 
-    secondary_assignment_enabled: bool | None
+    secondary_assignment_enabled: bool
     """Has secondary barcode assignment enabled (for ex/ RFID)"""
 
     inventory_tier_id: str | None
@@ -385,7 +386,7 @@ class TicketClass(TypedDict, total=False):
     maximum_quantity_per_order_without_pending: int | None
     """not documented"""
 
-    on_sale_status: OnSaleStatus | None
+    on_sale_status: OnSaleStatus
     """The status of the ticket class. These can change based on on/off sale dates, ticket class state, or current inventory."""
 
     has_pdf_ticket: bool | None
@@ -400,7 +401,7 @@ class TicketClass(TypedDict, total=False):
     variant_id: str | None
     """not documented"""
 
-    variant_input_type: VariantInputType | None
+    variant_input_type: VariantInputType
     """
     Type of variants for this ticket.
     A ticket may have more than one variant.

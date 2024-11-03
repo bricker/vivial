@@ -109,3 +109,9 @@ if SHARED_CONFIG.eave_env in [EaveEnvironment.development, EaveEnvironment.test]
             #     await connection.execute(sqlalchemy.text("CREATE EXTENSION pg_trgm"))
             # except Exception as e:
             #     print("pg_trgm already installed.", e)
+
+            # install postgis extension
+            try:
+                await connection.execute(sqlalchemy.text("CREATE EXTENSION postgis"))
+            except Exception as e:
+                print("postgis already installed.", e)

@@ -1,65 +1,30 @@
-from typing import TypedDict
+from typing import Required, TypedDict
 
-
-class Address(TypedDict, total=False):
-    """https://www.eventbrite.com/platform/api#/introduction/basic-types/address"""
-
-    address_1: str | None
-    """The street/location address (part 1)"""
-
-    address_2: str | None
-    """The street/location address (part 2)"""
-
-    city: str | None
-    """City"""
-
-    region: str | None
-    """ISO 3166-2 2- or 3-character region code for the state, province, region, or district"""
-
-    postal_code: str | None
-    """Postal code"""
-
-    country: str | None
-    """ISO 3166-1 2-character international code for the country"""
-
-    latitude: str | None
-    """Latitude portion of the address coordinates"""
-
-    longitude: str | None
-    """Longitude portion of the address coordinates"""
-
-    localized_address_display: str | None
-    """The format of the address display localized to the address country"""
-
-    localized_area_display: str | None
-    """The format of the address's area display localized to the address country"""
-
-    localized_multi_line_address_display: list[str] | None
-    """The multi-line format order of the address display localized to the address country, where each line is an item in the list"""
+from eave.stdlib.eventbrite.models.shared import Address
 
 
 class Venue(TypedDict, total=False):
     """https://www.eventbrite.com/platform/api#/reference/venue"""
 
-    id: str | None
+    id: str
     """Venue ID"""
 
-    resource_uri: str | None
+    resource_uri: str
 
-    name: str | None
+    name: Required[str]
     """Venue name"""
 
     age_restriction: str | None
     """Age restriction of the venue"""
 
-    capacity: str | None
+    capacity: int | None
     """Venue capacity"""
 
     address: Address | None
     """The address of the venue"""
 
-    latitude: str | None
+    latitude: str
     """Latitude coordinates of the Venue address."""
 
-    longitude: str | None
+    longitude: str
     """Longitude coordinates of the Venue address."""

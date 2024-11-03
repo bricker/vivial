@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import TypedDict
+from typing import Required, TypedDict
 
 
 class AgeRestriction(StrEnum):
@@ -20,7 +20,7 @@ class AgeRestriction(StrEnum):
 
 
 class MusicProperties(TypedDict, total=False):
-    resource_uri: str | None
+    resource_uri: str
 
     age_restriction: AgeRestriction | None
     """Minimum age requirement of event attendees."""

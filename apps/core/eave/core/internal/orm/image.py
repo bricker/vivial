@@ -22,22 +22,14 @@ from eave.stdlib.util import b64encode
 from .base import Base
 from .util import PG_UUID_EXPR
 
-class ActivityOrm(Base):
-    __tablename__ = "activities"
+class ImageOrm(Base):
+    __tablename__ = "images"
     __table_args__ = (
         PrimaryKeyConstraint("id"),
     )
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
-    title: Mapped[str] = mapped_column()
-    description: Mapped[str] = mapped_column()
-    coordinates: Mapped[WKBElement] = mapped_column(type_=Geography(geometry_type="POINT", srid=4326))
-    category_id: Mapped[UUID] = mapped_column()
-    subcategory_id: Mapped[UUID] = mapped_column()
-    duration_minutes: Mapped[int] = mapped_column()
-    availability: Mapped[str] = mapped_column()
-    address: Mapped[str] = mapped_column()
-    is_bookable: Mapped[bool] = mapped_column()
-    booking_url: Mapped[str] = mapped_column()
+    src: Mapped[str] = mapped_column()
+    alt: Mapped[str] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())

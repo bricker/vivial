@@ -1,4 +1,5 @@
 from enum import StrEnum
+from typing import TypedDict
 
 from eave.stdlib.eventbrite.models.shared import DatetimeWithTimezone
 
@@ -57,21 +58,22 @@ class EventSalesStatusMessageCode(StrEnum):
     """Custom text when an event has their sales postponed."""
 
 
-class EventSalesStatus:
+class EventSalesStatus(TypedDict, total=False):
     """Additional data about the sales status of the event."""
 
-    sales_status: EventSalesStatusSalesStatus | None
+    sales_status: EventSalesStatusSalesStatus
     """Current sales status of the event."""
 
     start_sales_date: DatetimeWithTimezone | None
     """The earliest start time when a visible ticket is or will be available"""
 
-    message: str | None
+    message: str
     """Custom message associated with the current event sales status."""
 
-    message_type: EventSalesStatusMessageType | None
+    message_type: EventSalesStatusMessageType
+    """nodoc"""
 
-    message_code: EventSalesStatusMessageCode | None
+    message_code: EventSalesStatusMessageCode
     """The message returned is overridden by the following event status message."""
 
     currency: str | None

@@ -1,22 +1,22 @@
-from typing import TypedDict
+from typing import Required, TypedDict
 
 
 class Format(TypedDict, total=False):
     """https://www.eventbrite.com/platform/api#/reference/formats"""
 
-    id: str | None
+    id: str
     """Format ID"""
 
-    resource_uri: str | None
+    resource_uri: str
 
-    name: str | None
+    name: str
     """Format name"""
 
-    name_localized: str | None
+    name_localized: str
     """Localized format name"""
 
-    short_name: str | None
+    short_name: str
     """Short name for a format"""
 
-    short_name_localized: str | None
+    short_name_localized: str
     """Localized short name for a format"""
