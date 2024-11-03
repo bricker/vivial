@@ -1,9 +1,10 @@
-from collections.abc import Mapping
+from collections.abc import Generator, Mapping
 from enum import StrEnum
 from http import HTTPMethod
-from typing import Any, TypedDict
+from typing import Any, AsyncIterator, Awaitable, Callable, TypeVar, TypedDict
 
 import aiohttp
+from eave.stdlib.eventbrite.models.pagination import Pagination
 
 from .models.category import Category, Subcategory
 from .models.event import Event
@@ -42,7 +43,6 @@ class ListEventsQuery(TypedDict, total=False):
     only_public: bool
     """True = Filter public Events"""
 
-
 class ListTicketClassesForSaleQuery(TypedDict, total=False):
     pos: PointOfSale
     """Only return ticket classes valid for the given point of sale. If unspecified, online is the default value."""
@@ -66,6 +66,38 @@ class ListCustomQuestionsQuery(TypedDict, total=False):
     as_owner: bool
     """Return private Events and fields."""
 
+T = TypeVar("T")
+def paginated(data_key: str, data_type: type[T]) -> Callable[..., Callable[..., AsyncIterator[T]]]:
+    def decorator(f: Callable[..., Awaitable[aiohttp.ClientResponse]]) -> Callable[..., AsyncIterator[T]]:
+        async def _inner(*args, **kwargs) -> AsyncIterator[T]:
+            ctoken: str | None = None
+
+            # These are here to avoid an infinite loop locking up the whole process.
+            # Infinite loop could occur if there is a bug in the pagination logic on either client or server.
+            current_iter = 0
+            max_iter = 50 # Effectively the maximum number of pages we'll fetch.
+
+            while current_iter < max_iter:
+                current_iter += 1
+
+                response = await f(*args, **kwargs, continuation=ctoken)
+                j = await response.json()
+                yield j[data_key]
+
+                # Pagination - https://www.eventbrite.com/platform/api#/introduction/paginated-responses
+                pagination: Pagination | None = j.get("pagination")
+                if not pagination:
+                    break
+
+                has_more_items = pagination.get("has_more_items", False)
+                if not has_more_items:
+                    break
+
+                ctoken = pagination.get("continuation")
+                if not ctoken:
+                    break
+        return _inner
+    return decorator
 
 class EventbriteClient:
     base_url = "https://www.eventbrite.com/api/v3"
@@ -95,47 +127,47 @@ class EventbriteClient:
         j = await response.json()
         return j
 
+    @paginated("events", list[Event])
     async def list_events_for_organizer(
-        self, *, organizer_id: str, query: ListEventsQuery | None = None
-    ) -> list[Event]:
+        self, *, organizer_id: str, query: ListEventsQuery | None = None, continuation: str | None = None
+    ) -> aiohttp.ClientResponse:
         """not documented"""
 
         response = await self.make_request(
-            method=HTTPMethod.GET, path=f"/organizers/{organizer_id}/events", params=query
+            method=HTTPMethod.GET, path=f"/organizers/{organizer_id}/events", params=query, continuation=continuation,
         )
-        j = await response.json()
-        return j["events"]
+        return response
 
+    @paginated("ticket_classes", list[TicketClass])
     async def list_ticket_classes_for_sale_for_event(
-        self, *, event_id: str, query: ListTicketClassesForSaleQuery | None = None
-    ) -> list[TicketClass]:
+        self, *, event_id: str, query: ListTicketClassesForSaleQuery | None = None, continuation: str | None = None
+    ) -> aiohttp.ClientResponse:
         """https://www.eventbrite.com/platform/api#/reference/ticket-class/list/list-ticket-classes-available-for-sale-by-event"""
 
         response = await self.make_request(
-            method=HTTPMethod.GET, path=f"/events/{event_id}/ticket_classes/for_sale", params=query
+            method=HTTPMethod.GET, path=f"/events/{event_id}/ticket_classes/for_sale", params=query, continuation=continuation,
         )
-        j = await response.json()
-        return j["ticket_classes"]
+        return response
 
+    @paginated("questions", list[Question])
     async def list_default_questions_for_event(
-        self, *, event_id: str, query: ListDefaultQuestionsQuery | None = None
-    ) -> list[Question]:
+        self, *, event_id: str, query: ListDefaultQuestionsQuery | None = None, continuation: str | None = None
+    ) -> aiohttp.ClientResponse:
         """https://www.eventbrite.com/platform/api#/reference/questions/list-default-questions/list-default-questions-by-event"""
 
         response = await self.make_request(
-            method=HTTPMethod.GET, path=f"/events/{event_id}/canned_questions", params=query
+            method=HTTPMethod.GET, path=f"/events/{event_id}/canned_questions", params=query, continuation=continuation,
         )
-        j = await response.json()
-        return j["questions"]
+        return response
 
+    @paginated("questions", list[Question])
     async def list_custom_questions_for_event(
-        self, *, event_id: str, query: ListCustomQuestionsQuery | None = None
-    ) -> list[Question]:
+        self, *, event_id: str, query: ListCustomQuestionsQuery | None = None, continuation: str | None = None
+    ) -> aiohttp.ClientResponse:
         """https://www.eventbrite.com/platform/api#/reference/questions/list-custom-questions/list-custom-questions-by-event"""
 
-        response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}/questions", params=query)
-        j = await response.json()
-        return j["questions"]
+        response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}/questions", params=query, continuation=continuation)
+        return response
 
     async def list_formats(self) -> list[Format]:
         """https://www.eventbrite.com/platform/api#/reference/formats/list/list-formats"""
@@ -144,19 +176,19 @@ class EventbriteClient:
         j = await response.json()
         return j["formats"]
 
-    async def list_categories(self) -> list[Category]:
+    @paginated("categories", list[Category])
+    async def list_categories(self, *, continuation: str | None = None) -> aiohttp.ClientResponse:
         """https://www.eventbrite.com/platform/api#/reference/categories/list/list-of-categories"""
 
-        response = await self.make_request(method=HTTPMethod.GET, path="/categories")
-        j = await response.json()
-        return j["categories"]
+        response = await self.make_request(method=HTTPMethod.GET, path="/categories", continuation=continuation)
+        return response
 
-    async def list_subcategories(self) -> list[Subcategory]:
+    @paginated("subcategories", list[Subcategory])
+    async def list_subcategories(self, *, continuation: str | None = None) -> aiohttp.ClientResponse:
         """https://www.eventbrite.com/platform/api#/reference/categories/list/list-of-subcategories"""
 
-        response = await self.make_request(method=HTTPMethod.GET, path="/subcategories")
-        j = await response.json()
-        return j["subcategories"]
+        response = await self.make_request(method=HTTPMethod.GET, path="/subcategories", continuation=continuation)
+        return response
 
     async def make_request(
         self,
@@ -165,7 +197,13 @@ class EventbriteClient:
         path: str,
         json: dict[str, Any] | None = None,
         params: Mapping[str, Any] | None = None,
+        continuation: str | None = None
     ) -> aiohttp.ClientResponse:
+        # Copy the params
+        params = dict(params) if params else {}
+        if continuation:
+            params["continuation"] = continuation
+
         async with aiohttp.ClientSession(raise_for_status=True) as session:
             response = await session.request(
                 method=method,
@@ -177,12 +215,5 @@ class EventbriteClient:
 
             # Consume the body while the session is still open
             await response.read()
-
-        # TODO: Pagination - https://www.eventbrite.com/platform/api#/introduction/paginated-responses
-        # Ideally it is handled automatically, and the list_* client functions return a lazy iterator.
-        # j = await response.json()
-        # if pagination := j.get("pagination"):
-        #     if pagination.get("has_more_items"):
-        #         # make another request with continuation_token
 
         return response

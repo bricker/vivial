@@ -6,6 +6,9 @@ from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.google.places.client import GooglePlacesClient
 
+from eave.core.internal.orm.eventbrite_event import EventbriteEventOrm
+from eave.core.outing.constants.activities import ACTIVITY_BUDGET_MAP_CENTS
+
 from .constants.areas import LOS_ANGELES_AREA_MAP
 from .constants.restaurants import BREAKFAST_RESTAURANT_CATEGORIES, BRUNCH_RESTAURANT_CATEGORIES, RESTAURANT_FIELD_MASK
 from .helpers.place import place_is_accessible, place_is_in_budget, place_will_be_open
@@ -16,6 +19,7 @@ from .models.outing import OutingComponent, OutingConstraints, OutingPlan
 from .models.sources import ActivitySource, RestaurantSource
 from .models.user import User, UserPreferences
 
+import eave.core.internal.database
 
 # TODO: Convert internal restaurant category mappings to Google Places category mappings (pending Bryan).
 # TODO: Convert internal event category mappings to Eventbrite category mappings (pending Bryan).
@@ -28,8 +32,8 @@ class Outing:
     restaurant, then go to an event or engage in a cute activity.
     """
 
-    places = GooglePlacesClient(api_key=CORE_API_APP_CONFIG.google_places_api_key)
-    eventbrite = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
+    places: GooglePlacesClient
+    eventbrite: EventbriteClient
     preferences: UserPreferences
     constraints: OutingConstraints
     activity: OutingComponent | None
@@ -42,6 +46,8 @@ class Outing:
         activity: OutingComponent | None = None,
         restaurant: OutingComponent | None = None,
     ) -> None:
+        self.places = GooglePlacesClient(api_key=CORE_API_APP_CONFIG.google_places_api_key)
+        self.eventbrite = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
         self.preferences = self.__combine_preferences(group)
         self.constraints = constraints
         self.activity = activity
@@ -155,9 +161,15 @@ class Outing:
         # CASE 1: Recommend and Eventbrite event.
         for search_area_id in self.constraints.search_area_ids:
             for category in self.preferences.activity_categories:
-                events = []
-                # TODO: Fetch from internal database when that is ready (pending Bryan).
-                # TODO: Pass in expansions: venue,ticket_availability (pending Bryan)
+                async with eave.core.internal.database.async_session.begin() as db_session:
+                    results = await EventbriteEventOrm.query(
+                        db_session,
+                        params=EventbriteEventOrm.QueryParams(
+                            time_range_contains=activity_start_time,
+                            cost_range_contains=ACTIVITY_BUDGET_MAP_CENTS[self.constraints.budget],
+                            subcategory_id=category.subcategory_id,
+                        ),
+                    )
                 # events = get_eventbrite_events(
                 #     search_area_id=search_area_id,
                 #     category_id=category.id,

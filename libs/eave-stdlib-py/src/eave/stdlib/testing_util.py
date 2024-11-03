@@ -259,6 +259,34 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getalpha(self, name: str) -> str:
         return self.getstr(name)
 
+    def anylatitude(self, name: str | None = None) -> str:
+        if name is None:
+            name = uuid.uuid4().hex
+
+        assert name not in self.testdata, f"test value {name} is already in use. Use getlatitude() to retrieve it."
+
+        # Get an int between (-90*10^5,90*10^5), and divide by 10^5 to get a value with 5 decimals of precision
+        data = random.randint(-90*(10**5), 90*(10**5)) / 10**5
+        self.testdata[name] = str(data)
+        return self.getlatitude(name=name)
+
+    def getlatitude(self, name: str) -> str:
+        return self.getstr(name)
+
+    def anylongitude(self, name: str | None = None) -> str:
+        if name is None:
+            name = uuid.uuid4().hex
+
+        assert name not in self.testdata, f"test value {name} is already in use. Use getlongitude() to retrieve it."
+
+        # Get an int between (-180*10^5,180*10^5), and divide by 10^5 to get a value with 5 decimals of precision
+        data = random.randint(-180*(10**5), 180*(10**5)) / 10**5
+        self.testdata[name] = str(data)
+        return self.getlatitude(name=name)
+
+    def getlongitude(self, name: str) -> str:
+        return self.getstr(name)
+
     def anyint(self, name: str | None = None, *, min: int = 0, max: int = 9999) -> int:
         if name is None:
             name = uuid.uuid4().hex

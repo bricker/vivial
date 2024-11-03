@@ -7,6 +7,10 @@ class GeoCoordinates:
     lat: str
     long: str
 
+    @property
+    def wkt(self) -> str:
+        return f"POINT({self.long} {self.lat})" # long,lat is the correct order. See https://postgis.net/documentation/tips/lon-lat-or-lat-lon/
+
 def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """https://en.wikipedia.org/wiki/Haversine_formula"""
 

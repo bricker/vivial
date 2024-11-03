@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from uuid import UUID
 
 
 class Category:
@@ -11,17 +12,23 @@ class Category:
 
 @dataclass(kw_only=True)
 class ActivityCategory:
-    id: str
+    id: UUID
     name: str
 
 @dataclass(kw_only=True)
 class ActivitySubcategory:
-    id: str
+    id: UUID
     name: str
     is_default: bool
     is_manually_curated: bool
-    category_id: str
+    category_id: UUID
     eventbrite_subcategory_ids: list[str]
+
+@dataclass(kw_only=True)
+class ActivityFormat:
+    id: UUID
+    name: str
+    eventbrite_format_id: str
 
 @dataclass(kw_only=True)
 class RestaurantCategory:

@@ -1,7 +1,7 @@
 import os
 from functools import cached_property
 
-from eave.stdlib.config import ConfigBase
+from eave.stdlib.config import ConfigBase, get_required_env
 from eave.stdlib.eave_origins import EaveApp
 
 
@@ -43,15 +43,11 @@ class _AppConfig(ConfigBase):
 
     @cached_property
     def google_places_api_key(self) -> str:
-        value = os.getenv("GOOGLE_PLACES_API_KEY")
-        assert value is not None, "Google Places API key not set"
-        return value
+        return get_required_env("GOOGLE_PLACES_API_KEY")
 
     @cached_property
     def eventbrite_api_key(self) -> str:
-        value = os.getenv("EVENTBRITE_API_KEY")
-        assert value is not None, "Eventbrite API key not set"
-        return value
+        return get_required_env("EVENTBRITE_API_KEY")
 
 
 CORE_API_APP_CONFIG = _AppConfig()
