@@ -9,10 +9,10 @@ from eave.core.graphql.types.outing import (
     ReplanOutingErrorCode,
     ReplanOutingResult,
     ReplanOutingSuccess,
-    SurveySubmitError,
-    SurveySubmitErrorCode,
-    SurveySubmitResult,
-    SurveySubmitSuccess,
+    SubmitSurveyError,
+    SubmitSurveyErrorCode,
+    SubmitSurveyResult,
+    SubmitSurveySuccess,
 )
 from eave.core.internal import database
 from eave.core.internal.orm.outing import OutingOrm
@@ -66,7 +66,7 @@ async def submit_survey_mutation(
     search_area_ids: list[str],
     budget: int,
     headcount: int,
-) -> SurveySubmitResult:
+) -> SubmitSurveyResult:
     try:
         async with database.async_session.begin() as db_session:
             search_areas: list[SearchRegionCode] = []
@@ -84,7 +84,7 @@ async def submit_survey_mutation(
             )
     except InvalidDataError as e:
         LOGGER.exception(e)
-        return SurveySubmitError(error_code=SurveySubmitErrorCode(e.code))
+        return SubmitSurveyError(error_code=SubmitSurveyErrorCode(e.code))
 
     outing = await create_outing_plan(
         visitor_id=survey.visitor_id,
@@ -92,7 +92,7 @@ async def submit_survey_mutation(
         account_id=survey.account_id,
     )
 
-    return SurveySubmitSuccess(
+    return SubmitSurveySuccess(
         outing=Outing(
             id=outing.id,
             visitor_id=outing.visitor_id,

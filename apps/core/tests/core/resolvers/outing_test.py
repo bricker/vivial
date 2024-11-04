@@ -21,12 +21,12 @@ mutation {{
         searchAreaIds: ["us_ca_la"],
         budget: 1,
         headcount: 2) {{
-        ... on SurveySubmitSuccess {{
+        ... on SubmitSurveySuccess {{
             outing {{
                 id
             }}
         }}
-        ... on SurveySubmitError {{
+        ... on SubmitSurveyError {{
             errorCode
         }}
     }}

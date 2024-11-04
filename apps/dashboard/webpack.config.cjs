@@ -34,6 +34,11 @@ module.exports = {
         test: /\.(png|jpg|jpeg|gif)$/,
         loader: "file-loader",
       },
+      {
+        test: /\.(graphql|gql)$/,
+        exclude: /node_modules/,
+        loader: "raw-loader",
+      },
     ],
   },
 
