@@ -1,8 +1,8 @@
 import { createContext } from "react";
-import { CreateBookingCtx } from "../graphql/createBooking";
-import { ReplanOutingCtx } from "../graphql/replanOuting";
-import { SubmitReserverDetailsCtx } from "../graphql/submitReserverDetails";
-import { SubmitSurveyCtx } from "../graphql/submitSurvey";
+import { CreateBookingCtx } from "../graphql/hooks/createBooking";
+import { ReplanOutingCtx } from "../graphql/hooks/replanOuting";
+import { SubmitReserverDetailsCtx } from "../graphql/hooks/submitReserverDetails";
+import { SubmitSurveyCtx } from "../graphql/hooks/submitSurvey";
 
 export type AppContextProps = SubmitSurveyCtx & SubmitReserverDetailsCtx & CreateBookingCtx & ReplanOutingCtx;
 

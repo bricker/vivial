@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { NetworkState } from "../types";
-import { GRAPHQL_API_BASE } from "../util/http-util";
+import { NetworkState } from "../../types";
+import { GRAPHQL_API_BASE } from "../../util/http-util";
+import query from "../mutation/createBooking.graphql";
 
 type CreateBookingRequest = {
   accountId: string;
@@ -36,22 +37,8 @@ function createBookingExecute({ req, ctx }: { req: CreateBookingRequest; ctx: Cr
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      query: `mutation {
-  createBooking(
-    accountId: "${req.accountId}",
-    outingId: "${req.outingId}",
-    reserverDetailsId: "${req.reserverDetailsId}") {
-    __typename
-    ... on CreateBookingSuccess {
-      booking {
-        id
-      }
-    }
-    ... on CreateBookingError {
-      errorCode
-    }
-  }
-}`,
+      query,
+      variables: req,
     }),
   })
     .then((resp) => {

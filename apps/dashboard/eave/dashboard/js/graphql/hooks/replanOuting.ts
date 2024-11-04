@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { NetworkState } from "../types";
-import { GRAPHQL_API_BASE } from "../util/http-util";
+import { NetworkState } from "../../types";
+import { GRAPHQL_API_BASE } from "../../util/http-util";
+import query from "../mutation/replanOuting.graphql";
 
 type ReplanOutingRequest = {
   visitorId: string;
@@ -35,21 +36,8 @@ function replanOutingExecute({ req, ctx }: { req: ReplanOutingRequest; ctx: Repl
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      query: `mutation {
-  replanOuting(
-    visitorId: "${req.visitorId}",
-    outingId: "${req.outingId}") {
-    __typename
-    ... on ReplanOutingSuccess {
-      outing {
-        id
-      }
-    }
-    ... on ReplanOutingError {
-      errorCode
-    }
-  }
-}`,
+      query,
+      variables: req,
     }),
   })
     .then((resp) => {
