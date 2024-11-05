@@ -1,5 +1,5 @@
-mutation submitReserverDetails($accountId: UUID!, $firstName: String!, $lastName: String!, $phoneNumber: String!) {
-  submitReserverDetails(accountId: $accountId, firstName: $firstName, lastName: $lastName, phoneNumber: $phoneNumber) {
+mutation submitReserverDetails($input: ReserverDetailsInput) {
+  submitReserverDetails(input: $input) {
     __typename
     ... on SubmitReserverDetailsSuccess {
       reserverDetails {

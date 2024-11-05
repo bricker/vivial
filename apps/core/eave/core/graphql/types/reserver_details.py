@@ -14,6 +14,14 @@ class ReserverDetails:
     phone_number: str
 
 
+@strawberry.input
+class ReserverDetailsInput:
+    account_id: UUID
+    first_name: str
+    last_name: str
+    phone_number: str
+
+
 @strawberry.enum
 class SubmitReserverDetailsErrorCode(enum.StrEnum):
     INVALID_PHONE_NUMBER = "INVALID_PHONE_NUMBER"
