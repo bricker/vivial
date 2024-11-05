@@ -1,17 +1,5 @@
-mutation submitSurvey(
-  $visitorId: UUID!
-  $startTime: DateTime!
-  $searchAreaIds: [String!]!
-  $budget: Int!
-  $headcount: Int!
-) {
-  submitSurvey(
-    visitorId: $visitorId
-    startTime: $startTime
-    searchAreaIds: $searchAreaIds
-    budget: $budget
-    headcount: $headcount
-  ) {
+mutation submitSurvey($input: SurveyInput) {
+  submitSurvey(input: $input) {
     __typename
     ... on SubmitSurveySuccess {
       outing {

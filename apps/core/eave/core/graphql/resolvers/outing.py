@@ -14,6 +14,7 @@ from eave.core.graphql.types.outing import (
     SubmitSurveyResult,
     SubmitSurveySuccess,
 )
+from eave.core.graphql.types.survey import SurveyInput
 from eave.core.internal import database
 from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.outing_activity import OutingActivityOrm
@@ -61,25 +62,21 @@ async def create_outing_plan(
 async def submit_survey_mutation(
     *,
     info: strawberry.Info,
-    visitor_id: UUID,
-    start_time: datetime,
-    search_area_ids: list[str],
-    budget: int,
-    headcount: int,
+    input: SurveyInput,
 ) -> SubmitSurveyResult:
     try:
         async with database.async_session.begin() as db_session:
             search_areas: list[SearchRegionCode] = []
-            for area_id in search_area_ids:
+            for area_id in input.search_area_ids:
                 if region := SearchRegionCode.from_str(area_id):
                     search_areas.append(region)
             survey = await SurveyOrm.create(
                 session=db_session,
-                visitor_id=visitor_id,
-                start_time=start_time,
+                visitor_id=input.visitor_id,
+                start_time=input.start_time,
                 search_area_ids=search_areas,
-                budget=budget,
-                headcount=headcount,
+                budget=input.budget,
+                headcount=input.headcount,
                 account_id=None,  # TODO: look for auth attached to request
             )
     except InvalidDataError as e:

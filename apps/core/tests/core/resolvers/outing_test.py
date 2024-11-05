@@ -16,11 +16,13 @@ class TestOutingEndpoints(BaseTestCase):
             json={
                 "query": f"""
 mutation {{
-    submitSurvey(visitorId: "{self.anyuuid()}",
+    submitSurvey(input: {{
+        visitorId: "{self.anyuuid()}",
         startTime: "{self.anydatetime(offset=2 * day_seconds).isoformat()}",
         searchAreaIds: ["us_ca_la"],
         budget: 1,
-        headcount: 2) {{
+        headcount: 2
+    }}) {{
         ... on SubmitSurveySuccess {{
             outing {{
                 id
