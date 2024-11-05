@@ -27,7 +27,9 @@ class TestBookingEndpoints(BaseTestCase):
             json={
                 "query": f"""
 mutation {{
-    createBooking(accountId: "{account.id}", outingId: "{outing.id}", reserverDetailsId: "{reserver_details.id}") {{
+    createBooking(input: {{
+        accountId: "{account.id}", outingId: "{outing.id}", reserverDetailsId: "{reserver_details.id}"
+    }}) {{
         ... on CreateBookingSuccess {{
             booking {{
                 id
@@ -78,7 +80,9 @@ mutation {{
             json={
                 "query": f"""
 mutation {{
-    createBooking(accountId: "{account.id}", outingId: "{outing.id}", reserverDetailsId: "{reserver_details.id}") {{
+    createBooking(input: {{
+        accountId: "{account.id}", outingId: "{outing.id}", reserverDetailsId: "{reserver_details.id}"
+    }}) {{
         ... on CreateBookingSuccess {{
             booking {{
                 id
