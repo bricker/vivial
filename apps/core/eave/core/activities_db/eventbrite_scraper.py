@@ -76,7 +76,7 @@ async def get_eventbrite_events() -> None:
                         continue
                     if (lat := venue.get("latitude")) is None:
                         continue
-                    if (long := venue.get("longitude")) is None:
+                    if (lon := venue.get("longitude")) is None:
                         continue
                     if (ticket_availability := event.get("ticket_availability")) is None:
                         continue
@@ -122,7 +122,7 @@ async def get_eventbrite_events() -> None:
                         end_time=end_time,
                         min_cost_cents=min_cost_cents,
                         max_cost_cents=max_cost_cents,
-                        coordinates=GeoCoordinates(lat=lat, long=long),
+                        coordinates=GeoCoordinates(lat=lat, lon=lon),
                         subcategory_id=vivial_subcategory.id,
                         format_id=vivial_format.id,
                     )

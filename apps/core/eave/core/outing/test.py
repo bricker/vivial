@@ -6,7 +6,7 @@ from models.outing import OutingConstraints
 from models.search_region_code import SearchRegionCode
 from models.user import User, UserPreferences
 
-from eave.core.outing import Outing
+from eave.core.outing.outing import Outing
 
 
 # TODO: Write thorough automated tests once all relevant tables / endpoints are ready (pending Bryan).

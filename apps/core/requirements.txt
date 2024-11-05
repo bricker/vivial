@@ -2,6 +2,7 @@ uvicorn[standard]
 gunicorn
 SQLAlchemy[asyncio]
 GeoAlchemy2==0.15.*
+shapely==2.0.*
 asyncpg
 slack-sdk
 aiohttp

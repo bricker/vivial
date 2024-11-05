@@ -11,16 +11,22 @@ from typing import Literal, Self
 from uuid import UUID
 
 from eave.stdlib.core_api.models.enums import ActivitySource
-from eave.stdlib.geo import GeoCoordinates
+from eave.stdlib.geo import SpatialReferenceSystemId
 from eave.stdlib.ranges import BoundInclusivity, BoundRange
 from eave.stdlib.typing import NOT_GIVEN, NotGiven
+import geoalchemy2
 from geoalchemy2.elements import WKBElement, WKTElement
+from geoalchemy2.functions import ST_DWithin
+from shapely import to_wkb
+import shapely
 from sqlalchemy import NUMERIC, Index, PrimaryKeyConstraint, ScalarResult, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import INT4RANGE, TSRANGE, TSTZRANGE, Range
 from geoalchemy2.types import Geography
 from eave.stdlib.util import b64encode
+
+from eave.core.outing.models.geo_area import GeoArea
 
 from .base import Base
 from .util import PG_UUID_EXPR
@@ -37,7 +43,7 @@ class EventbriteEventOrm(Base):
     title: Mapped[str] = mapped_column()
     time_range: Mapped[Range[datetime]] = mapped_column(TSTZRANGE)
     cost_cents_range: Mapped[Range[int]] = mapped_column(INT4RANGE)
-    coordinates: Mapped[WKBElement | WKTElement] = mapped_column(type_=Geography(geometry_type="POINT", srid=4326)) # The union type is necessary because the coordinates are set as a WKTElement, but received as a WKBElement, so the type is different dependending on how it was built.
+    coordinates: Mapped[WKBElement] = mapped_column(type_=Geography(geometry_type="POINT", srid=SpatialReferenceSystemId.LAT_LON))
     subcategory_id: Mapped[UUID] = mapped_column()
     format_id: Mapped[UUID] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
@@ -51,7 +57,8 @@ class EventbriteEventOrm(Base):
         end_time: datetime | None,
         min_cost_cents: int | None,
         max_cost_cents: int | None,
-        coordinates: GeoCoordinates,
+        lat: float,
+        lon: float,
         subcategory_id: UUID,
         format_id: UUID,
     ) -> Self:
@@ -65,7 +72,11 @@ class EventbriteEventOrm(Base):
         if max_cost_cents is not None:
             max_cost_cents += 1
         self.cost_cents_range=Range(lower=min_cost_cents, upper=max_cost_cents, bounds="[)")
-        self.coordinates=WKTElement(coordinates.wkt)
+
+        # lon,lat is the correct order, see: https://postgis.net/documentation/tips/lon-lat-or-lat-lon/
+        point = shapely.Point(lon, lat)
+        self.coordinates=geoalchemy2.shape.from_shape(point, srid=SpatialReferenceSystemId.LAT_LON, extended=False)
+
         self.subcategory_id=subcategory_id
         self.format_id = format_id
         return self
@@ -75,6 +86,7 @@ class EventbriteEventOrm(Base):
         eventbrite_event_id: str | NotGiven = NOT_GIVEN
         cost_range_contains: int | NotGiven = NOT_GIVEN
         time_range_contains: datetime | NotGiven = NOT_GIVEN
+        within_area: GeoArea | NotGiven = NOT_GIVEN
         subcategory_id: UUID | NotGiven = NOT_GIVEN
         limit: int | NotGiven = NOT_GIVEN
 
@@ -93,6 +105,10 @@ class EventbriteEventOrm(Base):
 
         if not isinstance(params.time_range_contains, NotGiven):
             lookup = lookup.where(cls.time_range.contains(params.time_range_contains))
+
+        if not isinstance(params.within_area, NotGiven):
+            area_center = geoalchemy2.shape.from_shape(params.within_area.center, srid=SpatialReferenceSystemId.LAT_LON, extended=False)
+            lookup = lookup.where(ST_DWithin(cls.coordinates, area_center, params.within_area.rad.meters))
 
         if not isinstance(params.limit, NotGiven):
             lookup = lookup.limit(params.limit)

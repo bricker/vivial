@@ -3,8 +3,8 @@ from datetime import datetime
 
 from eave.stdlib.eventbrite.models.event import Event
 from eave.stdlib.google.places.models.place import Place
+from shapely import Point
 
-from .geo_area import GeoLocation
 from .search_region_code import SearchRegionCode
 from .sources import ActivitySource, RestaurantSource
 
@@ -13,7 +13,7 @@ from .sources import ActivitySource, RestaurantSource
 class OutingComponent:
     source: ActivitySource | RestaurantSource
     external_details: Event | Place
-    location: GeoLocation
+    location: Point
 
 
 @dataclass
