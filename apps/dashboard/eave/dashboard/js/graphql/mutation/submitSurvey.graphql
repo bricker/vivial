@@ -1,0 +1,25 @@
+mutation submitSurvey(
+  $visitorId: UUID!
+  $startTime: DateTime!
+  $searchAreaIds: [String!]!
+  $budget: Int!
+  $headcount: Int!
+) {
+  submitSurvey(
+    visitorId: $visitorId
+    startTime: $startTime
+    searchAreaIds: $searchAreaIds
+    budget: $budget
+    headcount: $headcount
+  ) {
+    __typename
+    ... on SubmitSurveySuccess {
+      outing {
+        id
+      }
+    }
+    ... on SubmitSurveyError {
+      errorCode
+    }
+  }
+}

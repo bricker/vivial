@@ -1,19 +1,32 @@
 from dataclasses import dataclass
 from datetime import datetime
 
+from google.maps.places_v1.types import Place
+
 from eave.stdlib.eventbrite.models.event import Event
-from eave.stdlib.google.places.models.place import Place
 from shapely import Point
 
 from .search_region_code import SearchRegionCode
 from .sources import ActivitySource, RestaurantSource
 
 
-@dataclass
 class OutingComponent:
     source: ActivitySource | RestaurantSource
-    external_details: Event | Place
+    event: Event | None
+    place: Place | None
     location: Point
+
+    def __init__(
+        self,
+        source: ActivitySource | RestaurantSource,
+        location: Point,
+        event: Event | None = None,
+        place: Place | None = None,
+    ) -> None:
+        self.source = source
+        self.location = location
+        self.event = event
+        self.place = place
 
 
 @dataclass

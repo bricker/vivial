@@ -4,7 +4,8 @@
     "eave/dashboard/js/**/*.ts",
     "eave/dashboard/js/**/*.tsx",
     "eave/dashboard/js/**/*.js",
-    "eave/dashboard/js/**/*.jsx"
+    "eave/dashboard/js/**/*.jsx",
+    "graphql.config.ts"
   ],
   "compilerOptions": {
     "jsx": "react",

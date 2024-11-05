@@ -14,23 +14,23 @@ class Outing:
 
 
 @strawberry.enum
-class SurveySubmitErrorCode(enum.StrEnum):
+class SubmitSurveyErrorCode(enum.StrEnum):
     START_TIME_TOO_SOON = "START_TIME_TOO_SOON"
     START_TIME_TOO_LATE = "START_TIME_TOO_LATE"
     ONE_SEARCH_REGION_REQUIRED = "ONE_SEARCH_REGION_REQUIRED"
 
 
 @strawberry.type
-class SurveySubmitSuccess:
+class SubmitSurveySuccess:
     outing: Outing
 
 
 @strawberry.type
-class SurveySubmitError:
-    error_code: SurveySubmitErrorCode
+class SubmitSurveyError:
+    error_code: SubmitSurveyErrorCode
 
 
-SurveySubmitResult = Annotated[SurveySubmitSuccess | SurveySubmitError, strawberry.union("SurveySubmitResult")]
+SubmitSurveyResult = Annotated[SubmitSurveySuccess | SubmitSurveyError, strawberry.union("SubmitSurveyResult")]
 
 
 @strawberry.enum

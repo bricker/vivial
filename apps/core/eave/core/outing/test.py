@@ -58,14 +58,14 @@ async def main() -> None:
 
     test_outing = Outing([test_user_1, test_user_2], test_outing_constraints)
     test_outing_plan = await test_outing.plan()
+    test_restaurant = test_outing_plan.restaurant and test_outing_plan.restaurant.place
+    test_activity = test_outing_plan.activity and test_outing_plan.activity.place
 
-    if test_outing_plan.restaurant and test_outing_plan.restaurant.external_details and test_outing_plan:
-        if test_restaurant_name := test_outing_plan.restaurant.external_details.get("displayName"):
-            print(f"Dinner at {test_restaurant_name.get("text")}")
+    if test_restaurant and test_restaurant.display_name:
+        print(f"Dinner at {test_restaurant.display_name.text}")
 
-    if test_outing_plan.activity and test_outing_plan.activity.external_details:
-        if test_activity_name := test_outing_plan.activity.external_details.get("displayName"):
-            print(f"then hang at {test_activity_name.get("text")}.")
+    if test_activity and test_activity.display_name:
+        print(f"then hang at {test_activity.display_name.text}.")
 
 
 if __name__ == "__main__":

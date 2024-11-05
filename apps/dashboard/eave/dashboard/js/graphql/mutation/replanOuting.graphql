@@ -1,0 +1,13 @@
+mutation replanOuting($visitorId: UUID!, $outingId: UUID!) {
+  replanOuting(visitorId: $visitorId, outingId: $outingId) {
+    __typename
+    ... on ReplanOutingSuccess {
+      outing {
+        id
+      }
+    }
+    ... on ReplanOutingError {
+      errorCode
+    }
+  }
+}
