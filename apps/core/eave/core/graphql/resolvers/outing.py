@@ -7,6 +7,7 @@ from eave.core.graphql.types.outing import (
     Outing,
     ReplanOutingError,
     ReplanOutingErrorCode,
+    ReplanOutingInput,
     ReplanOutingResult,
     ReplanOutingSuccess,
     SubmitSurveyError,
@@ -102,14 +103,13 @@ async def submit_survey_mutation(
 async def replan_outing_mutation(
     *,
     info: strawberry.Info,
-    visitor_id: UUID,
-    outing_id: UUID,
+    input: ReplanOutingInput,
 ) -> ReplanOutingResult:
     try:
         async with database.async_session.begin() as db_session:
             original_outing = await OutingOrm.one_or_exception(
                 session=db_session,
-                params=OutingOrm.QueryParams(id=outing_id),
+                params=OutingOrm.QueryParams(id=input.outing_id),
             )
             survey = await SurveyOrm.one_or_exception(
                 session=db_session, params=SurveyOrm.QueryParams(id=original_outing.survey_id)
@@ -118,7 +118,7 @@ async def replan_outing_mutation(
             validate_time_within_bounds_or_exception(survey.start_time)
 
         outing = await create_outing_plan(
-            visitor_id=visitor_id,
+            visitor_id=input.visitor_id,
             survey_id=original_outing.survey_id,
             account_id=original_outing.account_id,  # TODO: this is wrong; look for any auth attached to the request instead
         )

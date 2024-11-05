@@ -1,4 +1,4 @@
-mutation submitReserverDetails($input: ReserverDetailsInput) {
+mutation submitReserverDetails($input: ReserverDetailsInput!) {
   submitReserverDetails(input: $input) {
     __typename
     ... on SubmitReserverDetailsSuccess {

@@ -13,6 +13,12 @@ class Outing:
     survey_id: UUID
 
 
+@strawberry.input
+class ReplanOutingInput:
+    visitor_id: UUID
+    outing_id: UUID
+
+
 @strawberry.enum
 class SubmitSurveyErrorCode(enum.StrEnum):
     START_TIME_TOO_SOON = "START_TIME_TOO_SOON"

@@ -61,7 +61,9 @@ mutation {{
             json={
                 "query": f"""
 mutation {{
-    replanOuting(outingId: "{outing.id}", visitorId: "{self.anyuuid()}") {{
+    replanOuting(input: {{
+        outingId: "{outing.id}", visitorId: "{self.anyuuid()}"
+    }}) {{
         ... on ReplanOutingSuccess {{
             outing {{
                 id
@@ -82,7 +84,9 @@ mutation {{
             json={
                 "query": f"""
 mutation {{
-    replanOuting(outingId: "{self.anyuuid()}", visitorId: "{self.anyuuid()}") {{
+    replanOuting(input: {{
+        outingId: "{self.anyuuid()}", visitorId: "{self.anyuuid()}"
+    }}) {{
         ... on ReplanOutingSuccess {{
             outing {{
                 id

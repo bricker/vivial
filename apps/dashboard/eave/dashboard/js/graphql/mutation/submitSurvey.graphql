@@ -1,4 +1,4 @@
-mutation submitSurvey($input: SurveyInput) {
+mutation submitSurvey($input: SurveyInput!) {
   submitSurvey(input: $input) {
     __typename
     ... on SubmitSurveySuccess {
