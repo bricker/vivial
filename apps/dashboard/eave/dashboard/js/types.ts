@@ -1,11 +1,10 @@
 export const requestOrigin = "web_app";
 
-// TODO: add visitor_id here?
 export type GlobalWindow = Window &
   typeof globalThis & {
     app: {
       apiBase?: string;
-      embedBase?: string;
+      appEnv?: string;
       assetBase?: string;
       visitorId?: string;
       analytics?: any;
@@ -14,6 +13,7 @@ export type GlobalWindow = Window &
 
 // The additional properties are set in the template header, so we know they exist.
 export const myWindow: GlobalWindow = window as GlobalWindow;
+export const isProdMode = myWindow.app.appEnv === "production";
 
 /** Helper type to union w/ response data types */
 export type NetworkState = {
