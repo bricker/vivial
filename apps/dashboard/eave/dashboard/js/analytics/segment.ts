@@ -1,5 +1,5 @@
 import { AnalyticsBrowser } from "@segment/analytics-next";
-import { isProdMode, myWindow } from "../types";
+import { isDevMode, myWindow } from "../types";
 
 const analytics = AnalyticsBrowser.load({ writeKey: myWindow.app.segmentWriteKey! });
 
@@ -15,7 +15,7 @@ export enum EventName {
  * @param extraProperties https://segment.com/docs/connections/spec/track/#properties
  */
 export async function track(eventName: EventName, extraProperties?: object) {
-  if (isProdMode) {
+  if (!isDevMode) {
     await analytics.track(eventName, extraProperties);
   }
 }
@@ -29,7 +29,7 @@ export async function track(eventName: EventName, extraProperties?: object) {
  * @param extraProperties https://segment.com/docs/connections/spec/page/#properties
  */
 export async function pageView(category?: string, name?: string, extraProperties?: object) {
-  if (isProdMode) {
+  if (!isDevMode) {
     await analytics.page(category, name, extraProperties);
   }
 }
