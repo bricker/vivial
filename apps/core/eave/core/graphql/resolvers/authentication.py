@@ -2,6 +2,7 @@ from uuid import uuid4
 
 import strawberry
 
+from eave.core.analytics import ANALYTICS
 import eave.core.internal.database
 from eave.core.graphql.types.authentication import Account
 from eave.core.graphql.types.user_profile import UserProfile
@@ -17,6 +18,21 @@ JWT_AUDIENCE = "core-api"
 
 async def register_mutation(*, info: strawberry.Info, email: str, plaintext_password: str) -> None:
     test_password_strength_or_exception(plaintext_password)
+
+    # TODO: the rest of account creation???
+    async with eave.core.internal.database.async_session.begin() as db_session:
+        account = await AccountOrm.create(
+            session=db_session,
+            email=email,
+            plaintext_password=plaintext_password,
+        )
+
+    ANALYTICS.identify(
+        str(account.id),
+        {
+            "email": account.email,
+        },
+    )
 
 
 async def login_mutation(*, info: strawberry.Info, email: str, plaintext_password: str) -> LoginResult:

@@ -1,7 +1,7 @@
 import os
 from functools import cached_property
 
-from eave.stdlib.config import ConfigBase
+from eave.stdlib.config import ConfigBase, EaveEnvironment
 from eave.stdlib.eave_origins import EaveApp
 
 
@@ -9,6 +9,25 @@ class _AppConfig(ConfigBase):
     @property
     def eave_origin(self) -> EaveApp:
         return EaveApp.eave_api
+
+    @property
+    def eave_env(self) -> EaveEnvironment:
+        strenv = os.getenv("EAVE_ENV") or "production"
+        match strenv:
+            case "test":
+                return EaveEnvironment.test
+            case "development":
+                return EaveEnvironment.development
+            case "staging":
+                return EaveEnvironment.staging
+            case "production":
+                return EaveEnvironment.production
+            case _:
+                return EaveEnvironment.production
+
+    @property
+    def is_dev_env(self) -> bool:
+        return self.eave_env not in [EaveEnvironment.production, EaveEnvironment.staging]
 
     @cached_property
     def db_host(self) -> str | None:
@@ -58,5 +77,6 @@ class _AppConfig(ConfigBase):
         value = os.getenv("SEGMENT_CORE_API_WRITE_KEY")
         assert value is not None, "Segment core API write key not set"
         return value
+
 
 CORE_API_APP_CONFIG = _AppConfig()
