@@ -35,6 +35,17 @@ export async function pageView(category?: string, name?: string, extraProperties
 }
 
 /**
+ * Identify a user, associating all future tracking events with `userId`
+ * https://segment.com/docs/connections/spec/identify/
+ *
+ * @param userId ID for a user (UUIDv4 from database recommended)
+ * @param extraProperties https://segment.com/docs/connections/spec/identify/#custom-traits
+ */
+export async function identify(userId: string, extraProperties?: object) {
+  await analytics.identify(userId, extraProperties);
+}
+
+/**
  * Get Segment anonymousId.
  * Will wait up to 0.5 seconds to recieve a value from Segement before rejecting.
  * Segment can have a null anonymousId value (temporarily) if none is found
