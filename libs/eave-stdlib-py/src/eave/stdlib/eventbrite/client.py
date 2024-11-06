@@ -1,7 +1,10 @@
-from collections.abc import Generator, Mapping
+import json
+from collections.abc import Generator, Mapping, AsyncIterator, Awaitable, Callable
 from enum import StrEnum
 from http import HTTPMethod
-from typing import Any, AsyncIterator, Awaitable, Callable, TypeVar, TypedDict
+from typing import Any, TypeVar, TypedDict, Literal, cast
+from urllib.parse import urlencode
+from functools import wraps
 
 import aiohttp
 from eave.stdlib.eventbrite.models.pagination import Pagination
@@ -14,12 +17,15 @@ from .models.question import Question
 from .models.shared import MultipartText
 from .models.ticket_class import PointOfSale, TicketClass
 
+class QueryBoolean(StrEnum):
+    TRUE = "true"
+    FALSE = "false"
 
 class OrderBy(StrEnum):
-    start_asc = "start_asc"
-    start_desc = "start_desc"
-    created_asc = "created_asc"
-    created_desc = "created_desc"
+    START_ASC = "start_asc"
+    START_DESC = "start_desc"
+    CREATED_ASC = "created_asc"
+    CREATED_DESC = "created_desc"
 
 
 class GetEventQuery(TypedDict, total=False):
@@ -40,7 +46,7 @@ class ListEventsQuery(TypedDict, total=False):
     start_date: str
     """Filter Events by a specified date range."""
 
-    only_public: bool
+    only_public: QueryBoolean
     """True = Filter public Events"""
 
 class ListTicketClassesForSaleQuery(TypedDict, total=False):
@@ -58,18 +64,18 @@ class ListTicketClassesForSaleQuery(TypedDict, total=False):
 
 
 class ListDefaultQuestionsQuery(TypedDict, total=False):
-    include_all: bool
+    include_all: QueryBoolean
     """Return the whole list of canned included or not"""
 
 
 class ListCustomQuestionsQuery(TypedDict, total=False):
-    as_owner: bool
+    as_owner: QueryBoolean
     """Return private Events and fields."""
 
-T = TypeVar("T")
-def paginated(data_key: str, data_type: type[T]) -> Callable[..., Callable[..., AsyncIterator[T]]]:
-    def decorator(f: Callable[..., Awaitable[aiohttp.ClientResponse]]) -> Callable[..., AsyncIterator[T]]:
-        async def _inner(*args, **kwargs) -> AsyncIterator[T]:
+def paginated[T, **P](data_key: str, data_type: type[T]) -> Callable[[Callable[P, Awaitable[aiohttp.ClientResponse]]], Callable[P, AsyncIterator[T]]]:
+    def decorator(f: Callable[P, Awaitable[aiohttp.ClientResponse]]) -> Callable[P, AsyncIterator[T]]:
+        @wraps(f)
+        async def _inner(*args: P.args, **kwargs: P.kwargs) -> AsyncIterator[T]:
             ctoken: str | None = None
 
             # These are here to avoid an infinite loop locking up the whole process.
@@ -80,7 +86,8 @@ def paginated(data_key: str, data_type: type[T]) -> Callable[..., Callable[..., 
             while current_iter < max_iter:
                 current_iter += 1
 
-                response = await f(*args, **kwargs, continuation=ctoken)
+                kwargs["continuation"] = ctoken
+                response = await f(*args, **kwargs)
                 j = await response.json()
                 yield j[data_key]
 
@@ -109,7 +116,7 @@ class EventbriteClient:
     async def get_event_by_id(self, *, event_id: str, query: GetEventQuery | None = None) -> Event:
         """https://www.eventbrite.com/platform/api#/reference/event/retrieve/retrieve-an-event"""
 
-        response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}", params=query)
+        response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}", query=query)
         j = await response.json()
         return j
 
@@ -134,7 +141,7 @@ class EventbriteClient:
         """not documented"""
 
         response = await self.make_request(
-            method=HTTPMethod.GET, path=f"/organizers/{organizer_id}/events", params=query, continuation=continuation,
+            method=HTTPMethod.GET, path=f"/organizers/{organizer_id}/events", query=query, continuation=continuation,
         )
         return response
 
@@ -145,7 +152,7 @@ class EventbriteClient:
         """https://www.eventbrite.com/platform/api#/reference/ticket-class/list/list-ticket-classes-available-for-sale-by-event"""
 
         response = await self.make_request(
-            method=HTTPMethod.GET, path=f"/events/{event_id}/ticket_classes/for_sale", params=query, continuation=continuation,
+            method=HTTPMethod.GET, path=f"/events/{event_id}/ticket_classes/for_sale", query=query, continuation=continuation,
         )
         return response
 
@@ -156,7 +163,7 @@ class EventbriteClient:
         """https://www.eventbrite.com/platform/api#/reference/questions/list-default-questions/list-default-questions-by-event"""
 
         response = await self.make_request(
-            method=HTTPMethod.GET, path=f"/events/{event_id}/canned_questions", params=query, continuation=continuation,
+            method=HTTPMethod.GET, path=f"/events/{event_id}/canned_questions", query=query, continuation=continuation,
         )
         return response
 
@@ -166,7 +173,7 @@ class EventbriteClient:
     ) -> aiohttp.ClientResponse:
         """https://www.eventbrite.com/platform/api#/reference/questions/list-custom-questions/list-custom-questions-by-event"""
 
-        response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}/questions", params=query, continuation=continuation)
+        response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}/questions", query=query, continuation=continuation)
         return response
 
     async def list_formats(self) -> list[Format]:
@@ -195,22 +202,22 @@ class EventbriteClient:
         *,
         method: HTTPMethod,
         path: str,
-        json: dict[str, Any] | None = None,
-        params: Mapping[str, Any] | None = None,
+        body: dict[str, Any] | None = None,
+        query: Mapping[str, Any] | None = None,
         continuation: str | None = None
     ) -> aiohttp.ClientResponse:
         # Copy the params
-        params = dict(params) if params else {}
+        query = dict(query) if query else {}
         if continuation:
-            params["continuation"] = continuation
+            query["continuation"] = continuation
 
         async with aiohttp.ClientSession(raise_for_status=True) as session:
             response = await session.request(
                 method=method,
                 url=f"{self.base_url}/{path}",
                 headers={"Authorization": f"Bearer {self.api_key}"},
-                params=params,
-                json=json,
+                params=query,
+                json=body,
             )
 
             # Consume the body while the session is still open

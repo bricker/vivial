@@ -70,11 +70,10 @@ A map of { "eventbrite_format_id" => "vivial_format_id" }
 """
 
 for fmt in ACTIVITY_FORMATS:
-    for ebid in fmt.eventbrite_format_id:
-        if ebid in _EB_FORMATS_TO_VIVIAL:
-            LOGGER.warning(f"Duplicate eventbrite_format_id found: {ebid}")
+    if fmt.eventbrite_format_id in _EB_FORMATS_TO_VIVIAL:
+        LOGGER.warning(f"Duplicate eventbrite_format_id found: {fmt.eventbrite_format_id}")
 
-        _EB_FORMATS_TO_VIVIAL[ebid] = fmt
+    _EB_FORMATS_TO_VIVIAL[fmt.eventbrite_format_id] = fmt
 
 def get_vivial_format_from_eventbrite_format_id(eventbrite_format_id: str) -> ActivityFormat | None:
     return _EB_FORMATS_TO_VIVIAL.get(eventbrite_format_id)

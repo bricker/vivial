@@ -5,11 +5,10 @@ import os
 from zoneinfo import ZoneInfo
 
 from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.eventbrite.client import EventbriteClient, OrderBy
+from eave.stdlib.eventbrite.client import EventbriteClient, OrderBy, QueryBoolean
 from eave.stdlib.eventbrite.models.event import Event, EventStatus
 from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.eventbrite.models.venue import Venue
-from eave.stdlib.geo import GeoCoordinates
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.ranges import BoundRange
 from eave.stdlib.util import unwrap
@@ -25,19 +24,9 @@ import eave.core.internal.database
 
 # These are hand-picked by Vivial staff
 _EVENTBRITE_ORGANIZER_IDS = [
-    "46435628873",
+    "46435628873", # https://www.eventbrite.com/o/vip-46435628873
+    "8155301277", # https://www.eventbrite.com/o/supreme-hollywood-group-8155301277
 ]
-
-def _exclude_event(event: Event) -> bool:
-    return (
-        event.get("online_event") is True
-        or event.get("is_locked") is True
-        or event.get("show_pick_a_seat") is True
-        or event.get("is_sold_out") is True
-        or event.get("category_id") is None
-        or event.get("subcategory_id") is None
-        or event.get("format_id") is None
-    )
 
 async def get_eventbrite_events() -> None:
     client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
@@ -46,49 +35,89 @@ async def get_eventbrite_events() -> None:
         paginator = client.list_events_for_organizer(
             organizer_id=organizer_id,
             query={
-                "order_by": OrderBy.start_asc,
-                "status": EventStatus.live,
-                "only_public": True,
+                "order_by": OrderBy.START_ASC,
+                "status": EventStatus.LIVE,
+                "only_public": QueryBoolean.TRUE,
                 "expand": ",".join(
                     [
-                        Expansion.ticket_availability,
-                        Expansion.category,
-                        Expansion.subcategory,
-                        Expansion.event_sales_status,
-                        Expansion.music_properties,
-                        Expansion.venue,
+                        Expansion.TICKET_AVAILABILITY,
+                        Expansion.CATEGORY,
+                        Expansion.SUBCATEGORY,
+                        Expansion.FORMAT,
+                        Expansion.VENUE,
                     ]
                 ),
             },
         )
 
+        pagenum=0
         async for batch in paginator:
-            # FIXME: This will ignore events that may have previously been added into the database, if their settings were changed to become excluded.
-            events = [event for event in batch if not _exclude_event(event)]
+            pagenum += 1
+            LOGGER.debug(f"organizer {organizer_id}; pagenum {pagenum}")
 
             async with eave.core.internal.database.async_session.begin() as db_session:
-                for event in events:
+                evnum = 0
+                for event in batch:
+                    evnum += 1
+                    # FIXME: This will ignore events that may have previously been added into the database, if their settings were changed to become excluded.
+
                     if (eventbrite_event_id := event.get("id")) is None:
+                        LOGGER.warning("No eventbrite event id; skipping")
                         continue
+
+                    pfx = f"[{evnum}/{len(batch)}; {eventbrite_event_id}]"
+                    LOGGER.debug(f"{pfx} processing event", { "eventbrite_organizer_id": organizer_id })
+
+                    if event.get("online_event") is True:
+                        LOGGER.debug(f"{pfx} online_event=True; skipping", { "eventbrite_event_id": eventbrite_event_id })
+                        continue
+
+                    if event.get("is_locked") is True:
+                        LOGGER.debug(f"{pfx} is_locked=True; skipping", { "eventbrite_event_id": eventbrite_event_id })
+                        continue
+
+                    if event.get("show_pick_a_seat") is True:
+                        LOGGER.debug(f"{pfx} show_pick_a_seat=True skipping", { "eventbrite_event_id": eventbrite_event_id })
+                        continue
+
+                    if event.get("is_sold_out") is True:
+                        LOGGER.debug(f"{pfx} is_sold_out=True; skipping", { "eventbrite_event_id": eventbrite_event_id })
+                        continue
+
+                    if event.get("category_id") is None:
+                        LOGGER.debug(f"{pfx} category_id=None; skipping", { "eventbrite_event_id": eventbrite_event_id })
+                        continue
+
+                    if (eb_subcategory_id := event.get("subcategory_id")) is None:
+                        LOGGER.debug(f"{pfx} subcategory_id=None; skipping", { "eventbrite_event_id": eventbrite_event_id })
+                        continue
+
+                    if (eb_format_id := event.get("format_id")) is None:
+                        LOGGER.debug(f"{pfx} format_id=None; skipping", { "eventbrite_event_id": eventbrite_event_id })
+                        continue
+
                     if not (event_name := event.get("name")):
+                        LOGGER.warning(f"{pfx} No eventbrite event name; skipping", { "eventbrite_event_id": eventbrite_event_id })
                         continue
                     if (venue := event.get("venue")) is None:
+                        LOGGER.warning(f"{pfx} No eventbrite event venue; skipping", { "eventbrite_event_id": eventbrite_event_id })
                         continue
                     if (lat := venue.get("latitude")) is None:
+                        LOGGER.warning(f"{pfx} No venue latitude; skipping", { "eventbrite_event_id": eventbrite_event_id })
                         continue
                     if (lon := venue.get("longitude")) is None:
+                        LOGGER.warning(f"{pfx} No venue longitude; skipping", { "eventbrite_event_id": eventbrite_event_id })
                         continue
                     if (ticket_availability := event.get("ticket_availability")) is None:
+                        LOGGER.warning(f"{pfx} No eventbrite ticket_availability; skipping", { "eventbrite_event_id": eventbrite_event_id })
                         continue
 
-                    if not (eb_subcategory_id := event.get("subcategory_id")):
-                        continue
                     if not (vivial_subcategory := get_vivial_subcategory_from_eventbrite_subcategory_id(eb_subcategory_id)):
+                        LOGGER.warning(f"{pfx} No mapped vivial category; skipping", { "eventbrite_event_id": eventbrite_event_id })
                         continue
 
-                    if not (eb_format_id := event.get("format_id")):
-                        continue
                     if not (vivial_format := get_vivial_format_from_eventbrite_format_id(eb_format_id)):
+                        LOGGER.warning(f"{pfx} No mapped vivial format; skipping", { "eventbrite_event_id": eventbrite_event_id })
                         continue
 
                     if (minimum_ticket_price := ticket_availability.get("minimum_ticket_price")) is not None:
@@ -113,8 +142,12 @@ async def get_eventbrite_events() -> None:
 
                     target = (await EventbriteEventOrm.query(session=db_session, params=EventbriteEventOrm.QueryParams(eventbrite_event_id=eventbrite_event_id))).one_or_none()
                     if not target:
+                        LOGGER.debug(f"{pfx} new event - adding to database", { "eventbrite_event_id": eventbrite_event_id })
                         target = EventbriteEventOrm(eventbrite_event_id=eventbrite_event_id)
                         db_session.add(target)
+                    else:
+                        LOGGER.debug(f"{pfx} existing event - updating database", { "eventbrite_event_id": eventbrite_event_id })
+
 
                     target.update(
                         title=event_name["text"],
@@ -122,36 +155,11 @@ async def get_eventbrite_events() -> None:
                         end_time=end_time,
                         min_cost_cents=min_cost_cents,
                         max_cost_cents=max_cost_cents,
-                        coordinates=GeoCoordinates(lat=lat, lon=lon),
+                        lat=float(lat),
+                        lon=float(lon),
                         subcategory_id=vivial_subcategory.id,
                         format_id=vivial_format.id,
                     )
 
-                    # if venue := event.get("venue"):
-                    #     area_id = find_area_id(venue)
-                    #     if area_id:
-                    #         if address := venue.get("address"):
-                    #             print(address.get("localized_address_display"), " ---> ", area_id.name)
-
-
-# def find_area_id(venue: Venue) -> GeoArea | None:
-#     address = venue.get("address")
-#     if not address:
-#         return None
-
-#     event_lat = address.get("latitude")
-#     event_lon = address.get("longitude")
-
-#     if event_lat is None or event_lon is None:
-#         return None
-
-#     min_distance = math.inf
-#     closest_area: GeoArea | None = None
-
-#     for area in LOS_ANGELES_AREAS:
-#         distance = haversine_distance(float(event_lat), float(event_lon), float(area.lat), float(area.lon))
-#         if distance < min_distance:
-#             min_distance = distance
-#             closest_area = area
-
-#     return closest_area
+if __name__ == "__main__":
+    asyncio.run(get_eventbrite_events())

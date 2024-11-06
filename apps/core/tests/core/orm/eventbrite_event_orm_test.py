@@ -168,10 +168,10 @@ class TestEventbriteEventOrm(BaseTestCase):
                 title=self.anystr(),
                 subcategory_id=self.anyuuid(),
                 format_id=self.anyuuid(),
-                start_time=self.anydatetime("start_time", offset=-60*60*24),
-                end_time=self.anydatetime("end_time", offset=60*60*24),
-                min_cost_cents=self.anyint("min_cost", min=0, max=999),
-                max_cost_cents=self.anyint("max_cost", min=2000, max=9999),
+                start_time=self.anydatetime(),
+                end_time=self.anydatetime(),
+                min_cost_cents=self.anyint(),
+                max_cost_cents=self.anyint(),
                 lat=self.anylatitude("lat"),
                 lon=self.anylongitude("lon"),
             )
@@ -190,7 +190,7 @@ class TestEventbriteEventOrm(BaseTestCase):
             assert len(results) == 1, "query failed, but expected 1 result"
 
             # Move the search area to the antipode
-            antipodesign = 1 if self.getlongitude("lon") <= 0  else -1
+            antipodesign = 1 if self.getlongitude("lon") <= 0 else -1
             search_area = GeoArea(lat=-self.getlatitude("lat"), lon=self.getlongitude("lon")+(180*antipodesign), rad_miles=0.1)
             results = (await EventbriteEventOrm.query(
                 session,

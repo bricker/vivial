@@ -3,20 +3,20 @@ from typing import Required, TypedDict
 
 
 class AgeRestriction(StrEnum):
-    all_ages = "all_ages"
-    gte_12 = "12+"
-    gte_13 = "13+"
-    gte_14 = "14+"
-    gte_15 = "15+"
-    gte_16 = "16+"
-    gte_17 = "17+"
-    gte_18 = "18+"
-    gte_19 = "19+"
-    gte_21 = "21+"
-    under_14_with_guardian = "under_14_with_guardian"
-    under_16_with_guardian = "under_16_with_guardian"
-    under_18_with_guardian = "under_18_with_guardian"
-    under_21_with_guardian = "under_21_with_guardian"
+    ALL_AGES = "all_ages"
+    GTE_12 = "12+"
+    GTE_13 = "13+"
+    GTE_14 = "14+"
+    GTE_15 = "15+"
+    GTE_16 = "16+"
+    GTE_17 = "17+"
+    GTE_18 = "18+"
+    GTE_19 = "19+"
+    GTE_21 = "21+"
+    UNDER_14_WITH_GUARDIAN = "under_14_with_guardian"
+    UNDER_16_WITH_GUARDIAN = "under_16_with_guardian"
+    UNDER_18_WITH_GUARDIAN = "under_18_with_guardian"
+    UNDER_21_WITH_GUARDIAN = "under_21_with_guardian"
 
 
 class MusicProperties(TypedDict, total=False):

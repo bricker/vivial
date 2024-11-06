@@ -2,57 +2,57 @@ from enum import StrEnum
 
 
 class Expansion(StrEnum):
-    logo = "logo"
+    LOGO = "logo"
     """Event image logo."""
 
-    venue = "venue"
+    VENUE = "venue"
     """Event Venue."""
 
-    organizer = "organizer"
+    ORGANIZER = "organizer"
     """Event Organizer."""
 
-    format_ = "format"
+    FORMAT = "format"
     """Event Format."""
 
-    category = "category"
+    CATEGORY = "category"
     """Event Category."""
 
-    subcategory = "subcategory"
+    SUBCATEGORY = "subcategory"
     """Event Subcategory."""
 
-    bookmark_info = "bookmark_info"
+    BOOKMARK_INFO = "bookmark_info"
     """
     Indicates whether a user has saved the Event as a bookmark.
     Returns false if there are no bookmarks.
     If there are bookmarks, returns a a dictionary specifying the number of end-users who have bookmarked the Event as a count object like {count:3}.
     """
 
-    refund_policy = "refund_policy"
+    REFUND_POLICY = "refund_policy"
     """Event Refund Policy."""
 
-    ticket_availability = "ticket_availability"
+    TICKET_AVAILABILITY = "ticket_availability"
     """Overview of availability of all Ticket Classes"""
 
-    external_ticketing = "external_ticketing"
+    EXTERNAL_TICKETING = "external_ticketing"
     """External ticketing data for the Event."""
 
-    music_properties = "music_properties"
+    MUSIC_PROPERTIES = "music_properties"
     """Event Music Properties"""
 
-    publish_settings = "publish_settings"
+    PUBLISH_SETTINGS = "publish_settings"
     """Event publish settings."""
 
-    basic_inventory_info = "basic_inventory_info"
+    BASIC_INVENTORY_INFO = "basic_inventory_info"
     """Indicates whether the event has Ticket Classes, Inventory Tiers, Donation Ticket Classes, Ticket Rules, Inventory Add-Ons, and/or Admission Inventory Tiers."""
 
-    event_sales_status = "event_sales_status"
+    EVENT_SALES_STATUS = "event_sales_status"
     """Event's sales status details"""
 
-    checkout_settings = "checkout_settings"
+    CHECKOUT_SETTINGS = "checkout_settings"
     """Event checkout and payment settings."""
 
-    listing_properties = "listing_properties"
+    LISTING_PROPERTIES = "listing_properties"
     """Display/listing details about the event"""
 
-    has_digital_content = "has_digital_content"
+    HAS_DIGITAL_CONTENT = "has_digital_content"
     """Whether or not an event Has Digital Content"""

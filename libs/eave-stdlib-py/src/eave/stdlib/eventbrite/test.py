@@ -19,7 +19,7 @@ async def main() -> None:
             print()
 
             organizer_events = await client.list_events_for_organizer(
-                organizer_id=organizer_id, query={"status": EventStatus.live, "order_by": OrderBy.start_asc}
+                organizer_id=organizer_id, query={"status": EventStatus.LIVE, "order_by": OrderBy.START_ASC}
             )
             print("organizer_events:", organizer_events)
             print()

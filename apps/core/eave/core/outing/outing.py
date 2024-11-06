@@ -183,7 +183,7 @@ class Outing:
                     if event_details := await self.eventbrite.get_event_by_id(event_id=event["id"]):
                         if ticket_availability := event_details.get("ticket_availability"):
                             has_available_tickets = ticket_availability.get("has_available_tickets")
-                            is_live = event_details.get("status") == EventStatus.live
+                            is_live = event_details.get("status") == EventStatus.LIVE
                             if has_available_tickets and is_live:
                                 if description := await self.eventbrite.get_event_description(event_id=event["id"]):
                                     event_details["description"] = description

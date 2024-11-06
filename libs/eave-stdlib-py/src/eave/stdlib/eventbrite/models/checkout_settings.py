@@ -5,13 +5,13 @@ from typing import Required, TypedDict
 class CheckoutMethod(StrEnum):
     """The checkout method to use for completing consumer payment for tickets or other goods."""
 
-    paypal = "paypal"
+    PAYPAL = "paypal"
 
-    eventbrite = "eventbrite"
+    EVENTBRITE = "eventbrite"
 
-    authnet = "authnet"
+    AUTHNET = "authnet"
 
-    offline = "offline"
+    OFFLINE = "offline"
 
 
 class PaymentMethod(StrEnum):

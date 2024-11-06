@@ -20,22 +20,22 @@ from .venue import Venue
 
 
 class EventStatus(StrEnum):
-    draft = "draft"
+    DRAFT = "draft"
     """A preliminary form of a possible future Event."""
 
-    live = "live"
+    LIVE = "live"
     """The Event can accept registrations or purchases if ticket classes are available."""
 
-    started = "started"
+    STARTED = "started"
     """The Event start date has passed."""
 
-    ended = "ended"
+    ENDED = "ended"
     """The Event end date has passed."""
 
-    completed = "completed"
+    COMPLETED = "completed"
     """The funds for your Event have been paid out."""
 
-    canceled = "canceled"
+    CANCELED = "canceled"
     """The Event has been canceled."""
 
 
