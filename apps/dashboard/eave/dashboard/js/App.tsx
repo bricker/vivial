@@ -4,7 +4,7 @@ import { CookiesProvider, withCookies } from "react-cookie";
 import { Helmet } from "react-helmet";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import "../static/css/app.css";
-import { page } from "./analytics/segment";
+import { pageView } from "./analytics/segment";
 import AuthenticationPage from "./components/Pages/AuthenticationPage";
 import OutingPage from "./components/Pages/OutingPage";
 import SurveyPage from "./components/Pages/SurveyPage";
@@ -14,7 +14,7 @@ import { theme } from "./theme";
 
 const App = () => {
   const fireAnalyticsPageView = (locationName: string) => {
-    page();
+    pageView();
   };
 
   return (

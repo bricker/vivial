@@ -21,6 +21,7 @@ import { useNavigate } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 import ErrorBox from "../../ErrorBox";
 import OutingLoader from "../../OutingLoader";
+import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
 
 const useStyles = makeStyles()((theme) => ({
   main: {
@@ -156,14 +157,14 @@ const SurveyPage = () => {
     return newErrors;
   };
 
-  const handleSubmitClick = () => {
+  const handleSubmitClick = async () => {
     const newErrors = validate();
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
       submitSurvey!.execute({
         req: {
-          visitorId: myWindow.app.visitorId!,
+          visitorId: await getVisitorId(),
           startTime: time.toDate(),
           searchAreaIds: locations.map((idx) => laNeighborhoodOptions[idx]!.value),
           budget: budget,
