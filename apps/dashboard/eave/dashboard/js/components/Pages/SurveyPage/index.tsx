@@ -1,6 +1,6 @@
+import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
 import { AppContext } from "$eave-dashboard/js/context/AppContext";
 import { textStyles } from "$eave-dashboard/js/theme";
-import { myWindow } from "$eave-dashboard/js/types";
 import {
   Button,
   FormControl,
@@ -21,7 +21,6 @@ import { useNavigate } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
 import ErrorBox from "../../ErrorBox";
 import OutingLoader from "../../OutingLoader";
-import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
 
 const useStyles = makeStyles()((theme) => ({
   main: {

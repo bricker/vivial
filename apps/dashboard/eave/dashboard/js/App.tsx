@@ -13,7 +13,7 @@ import AppContextProvider from "./context/Provider";
 import { theme } from "./theme";
 
 const App = () => {
-  const fireAnalyticsPageView = (locationName: string) => {
+  const fireAnalyticsPageView = (_: string) => {
     pageView();
   };
 

@@ -20,9 +20,9 @@ export async function getVisitorId(): Promise<string> {
   if (anonId) {
     return anonId;
   }
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     const interval = setInterval(() => {
-      let id = myWindow.analytics?.user()?.anonymousId();
+      const id = myWindow.analytics?.user()?.anonymousId();
       if (id !== null) {
         clearInterval(interval);
         resolve(id);
