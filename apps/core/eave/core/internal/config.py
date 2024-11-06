@@ -53,5 +53,10 @@ class _AppConfig(ConfigBase):
         assert value is not None, "Eventbrite API key not set"
         return value
 
+    @cached_property
+    def segment_write_key(self) -> str:
+        value = os.getenv("SEGMENT_CORE_API_WRITE_KEY")
+        assert value is not None, "Segment core API write key not set"
+        return value
 
 CORE_API_APP_CONFIG = _AppConfig()
