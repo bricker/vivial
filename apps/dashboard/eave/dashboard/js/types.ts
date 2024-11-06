@@ -7,7 +7,6 @@ export type GlobalWindow = Window &
       appEnv?: string;
       assetBase?: string;
     };
-    analytics?: any;
   };
 
 // The additional properties are set in the template header, so we know they exist.

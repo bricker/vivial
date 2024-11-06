@@ -1,31 +1,63 @@
-import { isProdMode, myWindow } from "../types";
+import { AnalyticsBrowser } from "@segment/analytics-next";
+import { isProdMode } from "../types";
 
-export function track(eventName: string, data?: object) {
+const analytics = AnalyticsBrowser.load({ writeKey: "GcB5ShHbFcZZKIGTlvanJerSyKp9yJNv" });
+
+export enum EventName {
+  CLICK = "click",
+}
+
+/**
+ * Track a user action
+ * https://segment.com/docs/connections/spec/track/
+ *
+ * @param eventName generic action name. (specifics of action target can be set in `extraProperties`)
+ * @param extraProperties https://segment.com/docs/connections/spec/track/#properties
+ */
+export async function track(eventName: EventName, extraProperties?: object) {
   if (isProdMode) {
-    myWindow.analytics?.track(eventName, data);
+    await analytics.track(eventName, extraProperties);
   }
 }
 
-export function pageView(pageName?: string, data?: object) {
+/**
+ * Track a user viewing a page
+ * https://segment.com/docs/connections/spec/page/
+ *
+ * @param category category of the page e.g. "Retail Page"
+ * @param name name of specific page e.g. "Checkout"
+ * @param extraProperties https://segment.com/docs/connections/spec/page/#properties
+ */
+export async function pageView(category?: string, name?: string, extraProperties?: object) {
   if (isProdMode) {
-    myWindow.analytics?.page(pageName, data);
+    await analytics.page(category, name, extraProperties);
   }
 }
 
-/** Segment anonymousId
+/**
+ * Get Segment anonymousId.
+ * Will wait up to 0.5 seconds to recieve a value from Segement before rejecting.
+ * Segment can have a null anonymousId value (temporarily) if none is found
+ * in cookies + localStorage. Calling `anonymousId()` and receiving null triggers
+ * setting a new value for future calls.
  * https://segment.com/docs/connections/sources/catalog/libraries/website/javascript/identity/#retrieve-the-anonymous-id
  */
 export async function getVisitorId(): Promise<string> {
-  const anonId = myWindow.analytics?.user()?.anonymousId();
+  const anonId = (await analytics.user()).anonymousId();
   if (anonId) {
     return anonId;
   }
-  return new Promise((resolve, _reject) => {
-    const interval = setInterval(() => {
-      const id = myWindow.analytics?.user()?.anonymousId();
-      if (id !== null) {
+  return new Promise((resolve, reject) => {
+    let intervalCounter = 5;
+    const interval = setInterval(async () => {
+      const id = (await analytics.user()).anonymousId();
+      if (id) {
         clearInterval(interval);
         resolve(id);
+      } else {
+        if (intervalCounter-- === 0) {
+          reject();
+        }
       }
     }, 100); // Check every 100ms
   });

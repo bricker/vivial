@@ -13,8 +13,8 @@ import AppContextProvider from "./context/Provider";
 import { theme } from "./theme";
 
 const App = () => {
-  const fireAnalyticsPageView = (_: string) => {
-    pageView();
+  const fireAnalyticsPageView = async (_: string) => {
+    await pageView();
   };
 
   return (
