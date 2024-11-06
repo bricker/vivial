@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from shapely import to_wkb, Point
+from shapely import Point
 
 
 @dataclass
@@ -10,6 +10,7 @@ class Radius:
     @property
     def meters(self) -> float:
         return self.miles * 1609.34
+
 
 class GeoArea:
     lat: float
@@ -24,7 +25,9 @@ class GeoArea:
     ) -> None:
         self.lat = lat
         self.lon = lon
-        self.center = Point(self.lon, self.lat) # lon,lat is the correct order. see: https://postgis.net/documentation/tips/lon-lat-or-lat-lon/
+        self.center = Point(
+            self.lon, self.lat
+        )  # lon,lat is the correct order. see: https://postgis.net/documentation/tips/lon-lat-or-lat-lon/
         self.rad = Radius(miles=rad_miles)
         self.name = name
         self.key = key

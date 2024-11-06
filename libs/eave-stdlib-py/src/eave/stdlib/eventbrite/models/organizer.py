@@ -1,4 +1,4 @@
-from typing import Required, TypedDict
+from typing import TypedDict
 
 from eave.stdlib.eventbrite.models.logo import Logo
 

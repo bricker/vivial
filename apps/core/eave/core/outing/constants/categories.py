@@ -1,8 +1,7 @@
 from uuid import UUID
 
-from eave.stdlib.logging import LOGGER
 from eave.core.outing.models.category import ActivityCategory, ActivitySubcategory
-
+from eave.stdlib.logging import LOGGER
 
 ACTIVITY_CATEGORIES = [
     ActivityCategory(
@@ -681,6 +680,7 @@ for cat in ACTIVITY_SUBCATEGORIES:
             LOGGER.warning(f"Duplicate eventbrite_subcategory_id found: {ebid}")
 
         _EB_SUBCATS_TO_VIVIAL[ebid] = cat
+
 
 def get_vivial_subcategory_from_eventbrite_subcategory_id(eventbrite_subcategory_id: str) -> ActivitySubcategory | None:
     return _EB_SUBCATS_TO_VIVIAL.get(eventbrite_subcategory_id)

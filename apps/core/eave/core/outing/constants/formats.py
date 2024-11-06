@@ -1,10 +1,7 @@
-
 from uuid import UUID
 
-from eave.stdlib.logging import LOGGER
-
 from eave.core.outing.models.category import ActivityFormat
-
+from eave.stdlib.logging import LOGGER
 
 ACTIVITY_FORMATS = [
     ActivityFormat(
@@ -74,6 +71,7 @@ for fmt in ACTIVITY_FORMATS:
         LOGGER.warning(f"Duplicate eventbrite_format_id found: {fmt.eventbrite_format_id}")
 
     _EB_FORMATS_TO_VIVIAL[fmt.eventbrite_format_id] = fmt
+
 
 def get_vivial_format_from_eventbrite_format_id(eventbrite_format_id: str) -> ActivityFormat | None:
     return _EB_FORMATS_TO_VIVIAL.get(eventbrite_format_id)

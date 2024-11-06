@@ -1,4 +1,4 @@
-from typing import Required, TypedDict
+from typing import TypedDict
 
 from eave.stdlib.eventbrite.models.shared import CartesianCoordinates, Image
 
@@ -27,6 +27,7 @@ class OriginalImage(TypedDict, total=False):
 
     height: int
     """The height of the image in pixels"""
+
 
 class Logo(Image, total=False):
     crop_mask: CropMask | None

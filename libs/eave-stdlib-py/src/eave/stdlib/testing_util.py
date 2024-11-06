@@ -266,7 +266,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         assert name not in self.testdata, f"test value {name} is already in use."
 
         # Get an int between (-90*10^5,90*10^5), and divide by 10^5 to get a value with 5 decimals of precision
-        data = random.randint(-90*(10**5), 90*(10**5)) / 10**5
+        data = random.randint(-90 * (10**5), 90 * (10**5)) / 10**5
         self.testdata[name] = data
         return self.getlatitude(name=name)
 
@@ -280,7 +280,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         assert name not in self.testdata, f"test value {name} is already in use."
 
         # Get an int between (-180*10^5,180*10^5), and divide by 10^5 to get a value with 5 decimals of precision
-        data = random.randint(-180*(10**5), 180*(10**5)) / 10**5
+        data = random.randint(-180 * (10**5), 180 * (10**5)) / 10**5
         self.testdata[name] = data
         return self.getlatitude(name=name)
 

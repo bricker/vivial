@@ -1,6 +1,5 @@
-from datetime import datetime
 from enum import StrEnum
-from typing import Literal, Required, TypedDict, Unpack
+from typing import Required, TypedDict
 
 from .category import Category, Subcategory
 from .checkout_settings import CheckoutSettings
@@ -54,6 +53,7 @@ class HasDigitalContent(TypedDict, total=False):
 
     digital_content_relative_url: str | None
     """not documented"""
+
 
 class Event(TypedDict, total=False):
     """https://www.eventbrite.com/platform/api#/reference/event"""

@@ -3,12 +3,12 @@ from datetime import timedelta
 
 from google.maps import places_v1
 
+import eave.core.internal.database
 from eave.core.internal.config import CORE_API_APP_CONFIG
-from eave.stdlib.eventbrite.client import EventbriteClient
-from eave.stdlib.eventbrite.models.event import EventStatus
-
 from eave.core.internal.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.outing.constants.activities import ACTIVITY_BUDGET_MAP_CENTS
+from eave.stdlib.eventbrite.client import EventbriteClient
+from eave.stdlib.eventbrite.models.event import EventStatus
 
 from .constants.areas import LOS_ANGELES_AREA_MAP
 from .constants.restaurants import BREAKFAST_RESTAURANT_CATEGORIES, BRUNCH_RESTAURANT_CATEGORIES, RESTAURANT_FIELD_MASK
@@ -20,7 +20,6 @@ from .models.outing import OutingComponent, OutingConstraints, OutingPlan
 from .models.sources import ActivitySource, RestaurantSource
 from .models.user import User, UserPreferences
 
-import eave.core.internal.database
 
 # TODO: Convert internal restaurant category mappings to Google Places category mappings (pending Bryan).
 # TODO: Convert internal event category mappings to Eventbrite category mappings (pending Bryan).

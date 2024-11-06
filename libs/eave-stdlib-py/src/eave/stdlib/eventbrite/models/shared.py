@@ -41,6 +41,7 @@ class CurrencyCost(TypedDict, total=True):
     display: str
     """Provided for your convenience; its formatting may change depending on the locale you query the API with (for example, commas for decimal separators in European locales)."""
 
+
 class Address(TypedDict, total=False):
     """https://www.eventbrite.com/platform/api#/introduction/basic-types/address"""
 

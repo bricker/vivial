@@ -10,10 +10,12 @@ class Category:
         self.id = id
         self.subcategory_id = subcategory_id
 
+
 @dataclass(kw_only=True)
 class ActivityCategory:
     id: UUID
     name: str
+
 
 @dataclass(kw_only=True)
 class ActivitySubcategory:
@@ -24,11 +26,13 @@ class ActivitySubcategory:
     category_id: UUID
     eventbrite_subcategory_ids: list[str]
 
+
 @dataclass(kw_only=True)
 class ActivityFormat:
     id: UUID
     name: str
     eventbrite_format_id: str
+
 
 @dataclass(kw_only=True)
 class RestaurantCategory:

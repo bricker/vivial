@@ -1,32 +1,21 @@
-from decimal import Decimal
-from enum import StrEnum
-import hashlib
-import hmac
-import os
-import re
-import uuid
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Literal, Self
+from typing import Self
 from uuid import UUID
 
-from eave.stdlib.core_api.models.enums import ActivitySource
-from eave.stdlib.geo import SpatialReferenceSystemId
-from eave.stdlib.ranges import BoundInclusivity, BoundRange
-from eave.stdlib.typing import NOT_GIVEN, NotGiven
 import geoalchemy2
-from geoalchemy2.elements import WKBElement, WKTElement
-from geoalchemy2.functions import ST_DWithin
-from shapely import to_wkb
 import shapely
-from sqlalchemy import NUMERIC, Index, PrimaryKeyConstraint, ScalarResult, Select, func, select
+from geoalchemy2.elements import WKBElement
+from geoalchemy2.functions import ST_DWithin
+from geoalchemy2.types import Geography
+from sqlalchemy import PrimaryKeyConstraint, ScalarResult, Select, func, select
+from sqlalchemy.dialects.postgresql import INT4RANGE, TSTZRANGE, Range
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.dialects.postgresql import INT4RANGE, TSRANGE, TSTZRANGE, Range
-from geoalchemy2.types import Geography
-from eave.stdlib.util import b64encode
 
 from eave.core.outing.models.geo_area import GeoArea
+from eave.stdlib.geo import SpatialReferenceSystemId
+from eave.stdlib.typing import NOT_GIVEN, NotGiven
 
 from .base import Base
 from .util import PG_UUID_EXPR
@@ -34,16 +23,16 @@ from .util import PG_UUID_EXPR
 
 class EventbriteEventOrm(Base):
     __tablename__ = "eventbrite_events"
-    __table_args__ = (
-        PrimaryKeyConstraint("id"),
-    )
+    __table_args__ = (PrimaryKeyConstraint("id"),)
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     eventbrite_event_id: Mapped[str] = mapped_column(unique=True)
     title: Mapped[str] = mapped_column()
     time_range: Mapped[Range[datetime]] = mapped_column(TSTZRANGE)
     cost_cents_range: Mapped[Range[int]] = mapped_column(INT4RANGE)
-    coordinates: Mapped[WKBElement] = mapped_column(type_=Geography(geometry_type="POINT", srid=SpatialReferenceSystemId.LAT_LON))
+    coordinates: Mapped[WKBElement] = mapped_column(
+        type_=Geography(geometry_type="POINT", srid=SpatialReferenceSystemId.LAT_LON)
+    )
     subcategory_id: Mapped[UUID] = mapped_column()
     format_id: Mapped[UUID] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
@@ -62,8 +51,8 @@ class EventbriteEventOrm(Base):
         subcategory_id: UUID,
         format_id: UUID,
     ) -> Self:
-        self.title=title
-        self.time_range=Range(lower=start_time, upper=end_time, bounds="[)")
+        self.title = title
+        self.time_range = Range(lower=start_time, upper=end_time, bounds="[)")
 
         # The int4range range type in postgresql always uses the lower-inclusive bounds ("[)"), so the given "bounds" value here is actually ignored on insert.
         # Because the upper bound is exclusive, but the max_cost_cents value passed in is interpreted as the maximum amount the user is willing to pay (i.e. inclusive),
@@ -71,13 +60,13 @@ class EventbriteEventOrm(Base):
         # https://www.postgresql.org/docs/current/rangetypes.html#RANGETYPES-DISCRETE
         if max_cost_cents is not None:
             max_cost_cents += 1
-        self.cost_cents_range=Range(lower=min_cost_cents, upper=max_cost_cents, bounds="[)")
+        self.cost_cents_range = Range(lower=min_cost_cents, upper=max_cost_cents, bounds="[)")
 
         # lon,lat is the correct order, see: https://postgis.net/documentation/tips/lon-lat-or-lat-lon/
         point = shapely.Point(lon, lat)
-        self.coordinates=geoalchemy2.shape.from_shape(point, srid=SpatialReferenceSystemId.LAT_LON, extended=False)
+        self.coordinates = geoalchemy2.shape.from_shape(point, srid=SpatialReferenceSystemId.LAT_LON, extended=False)
 
-        self.subcategory_id=subcategory_id
+        self.subcategory_id = subcategory_id
         self.format_id = format_id
         return self
 
@@ -107,7 +96,9 @@ class EventbriteEventOrm(Base):
             lookup = lookup.where(cls.time_range.contains(params.time_range_contains))
 
         if not isinstance(params.within_area, NotGiven):
-            area_center = geoalchemy2.shape.from_shape(params.within_area.center, srid=SpatialReferenceSystemId.LAT_LON, extended=False)
+            area_center = geoalchemy2.shape.from_shape(
+                params.within_area.center, srid=SpatialReferenceSystemId.LAT_LON, extended=False
+            )
             lookup = lookup.where(ST_DWithin(cls.coordinates, area_center, params.within_area.rad.meters))
 
         if not isinstance(params.limit, NotGiven):

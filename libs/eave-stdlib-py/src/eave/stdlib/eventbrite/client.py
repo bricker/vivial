@@ -1,12 +1,11 @@
-import json
-from collections.abc import Generator, Mapping, AsyncIterator, Awaitable, Callable
+from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from enum import StrEnum
-from http import HTTPMethod
-from typing import Any, TypeVar, TypedDict, Literal, cast
-from urllib.parse import urlencode
 from functools import wraps
+from http import HTTPMethod
+from typing import Any, TypedDict
 
 import aiohttp
+
 from eave.stdlib.eventbrite.models.pagination import Pagination
 
 from .models.category import Category, Subcategory
@@ -17,9 +16,11 @@ from .models.question import Question
 from .models.shared import MultipartText
 from .models.ticket_class import PointOfSale, TicketClass
 
+
 class QueryBoolean(StrEnum):
     TRUE = "true"
     FALSE = "false"
+
 
 class OrderBy(StrEnum):
     START_ASC = "start_asc"
@@ -49,6 +50,7 @@ class ListEventsQuery(TypedDict, total=False):
     only_public: QueryBoolean
     """True = Filter public Events"""
 
+
 class ListTicketClassesForSaleQuery(TypedDict, total=False):
     pos: PointOfSale
     """Only return ticket classes valid for the given point of sale. If unspecified, online is the default value."""
@@ -72,7 +74,10 @@ class ListCustomQuestionsQuery(TypedDict, total=False):
     as_owner: QueryBoolean
     """Return private Events and fields."""
 
-def paginated[T, **P](data_key: str, data_type: type[T]) -> Callable[[Callable[P, Awaitable[aiohttp.ClientResponse]]], Callable[P, AsyncIterator[T]]]:
+
+def paginated[T, **P](
+    data_key: str, data_type: type[T]
+) -> Callable[[Callable[P, Awaitable[aiohttp.ClientResponse]]], Callable[P, AsyncIterator[T]]]:
     def decorator(f: Callable[P, Awaitable[aiohttp.ClientResponse]]) -> Callable[P, AsyncIterator[T]]:
         @wraps(f)
         async def _inner(*args: P.args, **kwargs: P.kwargs) -> AsyncIterator[T]:
@@ -81,7 +86,7 @@ def paginated[T, **P](data_key: str, data_type: type[T]) -> Callable[[Callable[P
             # These are here to avoid an infinite loop locking up the whole process.
             # Infinite loop could occur if there is a bug in the pagination logic on either client or server.
             current_iter = 0
-            max_iter = 50 # Effectively the maximum number of pages we'll fetch.
+            max_iter = 50  # Effectively the maximum number of pages we'll fetch.
 
             while current_iter < max_iter:
                 current_iter += 1
@@ -103,8 +108,11 @@ def paginated[T, **P](data_key: str, data_type: type[T]) -> Callable[[Callable[P
                 ctoken = pagination.get("continuation")
                 if not ctoken:
                     break
+
         return _inner
+
     return decorator
+
 
 class EventbriteClient:
     base_url = "https://www.eventbrite.com/api/v3"
@@ -141,7 +149,10 @@ class EventbriteClient:
         """not documented"""
 
         response = await self.make_request(
-            method=HTTPMethod.GET, path=f"/organizers/{organizer_id}/events", query=query, continuation=continuation,
+            method=HTTPMethod.GET,
+            path=f"/organizers/{organizer_id}/events",
+            query=query,
+            continuation=continuation,
         )
         return response
 
@@ -152,7 +163,10 @@ class EventbriteClient:
         """https://www.eventbrite.com/platform/api#/reference/ticket-class/list/list-ticket-classes-available-for-sale-by-event"""
 
         response = await self.make_request(
-            method=HTTPMethod.GET, path=f"/events/{event_id}/ticket_classes/for_sale", query=query, continuation=continuation,
+            method=HTTPMethod.GET,
+            path=f"/events/{event_id}/ticket_classes/for_sale",
+            query=query,
+            continuation=continuation,
         )
         return response
 
@@ -163,7 +177,10 @@ class EventbriteClient:
         """https://www.eventbrite.com/platform/api#/reference/questions/list-default-questions/list-default-questions-by-event"""
 
         response = await self.make_request(
-            method=HTTPMethod.GET, path=f"/events/{event_id}/canned_questions", query=query, continuation=continuation,
+            method=HTTPMethod.GET,
+            path=f"/events/{event_id}/canned_questions",
+            query=query,
+            continuation=continuation,
         )
         return response
 
@@ -173,7 +190,9 @@ class EventbriteClient:
     ) -> aiohttp.ClientResponse:
         """https://www.eventbrite.com/platform/api#/reference/questions/list-custom-questions/list-custom-questions-by-event"""
 
-        response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}/questions", query=query, continuation=continuation)
+        response = await self.make_request(
+            method=HTTPMethod.GET, path=f"/events/{event_id}/questions", query=query, continuation=continuation
+        )
         return response
 
     async def list_formats(self) -> list[Format]:
@@ -204,7 +223,7 @@ class EventbriteClient:
         path: str,
         body: dict[str, Any] | None = None,
         query: Mapping[str, Any] | None = None,
-        continuation: str | None = None
+        continuation: str | None = None,
     ) -> aiohttp.ClientResponse:
         # Copy the params
         query = dict(query) if query else {}

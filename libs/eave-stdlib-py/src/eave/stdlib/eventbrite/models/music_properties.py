@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import Required, TypedDict
+from typing import TypedDict
 
 
 class AgeRestriction(StrEnum):

@@ -1,6 +1,6 @@
 from typing import TypedDict
 
-from eave.stdlib.eventbrite.models.shared import DatetimeWithTimezone, CurrencyCost
+from eave.stdlib.eventbrite.models.shared import CurrencyCost, DatetimeWithTimezone
 
 
 class TicketAvailability(TypedDict, total=False):

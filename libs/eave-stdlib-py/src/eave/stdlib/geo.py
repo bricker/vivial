@@ -1,9 +1,10 @@
-from dataclasses import dataclass
-from enum import IntEnum
 import math
+from enum import IntEnum
+
 
 class SpatialReferenceSystemId(IntEnum):
     LAT_LON = 4326
+
 
 def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """https://en.wikipedia.org/wiki/Haversine_formula"""
