@@ -246,6 +246,12 @@ class _EaveConfig(ConfigBase):
         value = os.getenv("EAVE_SLACK_SIGNUPS_CHANNEL_ID")
         return value
 
+    @cached_property
+    def segment_website_write_key(self) -> str:
+        value = os.getenv("SEGMENT_WEBSITE_WRITE_KEY")
+        assert value is not None, "Segment website write key not set"
+        return value
+
 
 def get_secret(name: str) -> str:
     # Allow overrides from the environment

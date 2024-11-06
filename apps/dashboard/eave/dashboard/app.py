@@ -49,6 +49,7 @@ def web_app_endpoint(request: Request) -> Response:
             "analytics_enabled": SHARED_CONFIG.analytics_enabled,
             "app_env": SHARED_CONFIG.eave_env,
             "app_version": SHARED_CONFIG.app_version,
+            "segment_write_key": SHARED_CONFIG.segment_website_write_key,
         },
     )
 

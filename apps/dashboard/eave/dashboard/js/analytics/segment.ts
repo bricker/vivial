@@ -1,7 +1,7 @@
 import { AnalyticsBrowser } from "@segment/analytics-next";
-import { isProdMode } from "../types";
+import { isProdMode, myWindow } from "../types";
 
-const analytics = AnalyticsBrowser.load({ writeKey: "GcB5ShHbFcZZKIGTlvanJerSyKp9yJNv" });
+const analytics = AnalyticsBrowser.load({ writeKey: myWindow.app.segmentWriteKey! });
 
 export enum EventName {
   CLICK = "click",

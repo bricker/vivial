@@ -6,6 +6,7 @@ export type GlobalWindow = Window &
       apiBase?: string;
       appEnv?: string;
       assetBase?: string;
+      segmentWriteKey?: string;
     };
   };
 
