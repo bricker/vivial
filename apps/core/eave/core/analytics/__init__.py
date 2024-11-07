@@ -1,8 +1,9 @@
 from uuid import UUID
-from eave.stdlib.typing import JsonObject
+
 import segment.analytics
 
 from eave.core.internal.config import CORE_API_APP_CONFIG
+from eave.stdlib.typing import JsonObject
 
 
 class AnalyticsTracker:

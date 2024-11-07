@@ -2,8 +2,8 @@ from uuid import uuid4
 
 import strawberry
 
-from eave.core.analytics import ANALYTICS
 import eave.core.internal.database
+from eave.core.analytics import ANALYTICS
 from eave.core.graphql.types.authentication import Account
 from eave.core.graphql.types.user_profile import UserProfile
 from eave.core.internal.orm.account import AccountOrm, test_password_strength_or_exception
