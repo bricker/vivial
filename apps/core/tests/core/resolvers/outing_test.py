@@ -10,25 +10,32 @@ day_seconds = 60 * 60 * 24
 
 
 class TestOutingEndpoints(BaseTestCase):
-    async def test_survey_submit(self) -> None:
+    async def test_plan_outing(self) -> None:
+        vis_id = self.anyuuid()
+
         response = await self.httpclient.post(
             "/graphql",
             json={
                 "query": f"""
 mutation {{
-    submitSurvey(input: {{
-        visitorId: "{self.anyuuid()}",
+    planOuting(input: {{
+        visitorId: "{vis_id}",
         startTime: "{self.anydatetime(offset=2 * day_seconds).isoformat()}",
-        searchAreaIds: ["us_ca_la_1"],
-        budget: 1,
-        headcount: 2
+        searchAreaIds: [US_CA_LA1],
+        budget: ONE,
+        headcount: 2,
+        group: [
+            {{
+                visitorId: "{vis_id}",
+            }},
+        ]
     }}) {{
-        ... on SubmitSurveySuccess {{
+        ... on PlanOutingSuccess {{
             outing {{
                 id
             }}
         }}
-        ... on SubmitSurveyError {{
+        ... on PlanOutingError {{
             errorCode
         }}
     }}
@@ -37,7 +44,7 @@ mutation {{
             },
         )
         assert response.status_code == HTTPStatus.OK
-        assert response.json().get("data").get("submitSurvey").get("outing").get("id") is not None
+        assert response.json().get("data").get("planOuting").get("outing").get("id") is not None
 
     async def test_replan(self) -> None:
         async with self.db_session.begin() as sess:
