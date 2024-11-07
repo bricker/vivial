@@ -5,6 +5,7 @@ from attr import dataclass
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import eave.stdlib.slack
+from eave.core.analytics import ANALYTICS
 from eave.core.graphql.types.booking import (
     Booking,
     CreateBookingError,
@@ -221,6 +222,18 @@ async def create_booking_mutation(
         return CreateBookingError(error_code=CreateBookingErrorCode(e.code))
 
     await _notify_slack(booking_details, account_id, reserver_details_id)
+
+    ANALYTICS.track(
+        event_name="booking created",
+        account_id=account_id,
+        extra_properties={
+            "booking_constraints": {
+                "headcount": survey.headcount,
+                "budget": survey.budget,
+                "search_areas": survey.search_area_ids,
+            }
+        },
+    )
 
     return CreateBookingSuccess(
         booking=Booking(
