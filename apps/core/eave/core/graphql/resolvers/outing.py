@@ -84,9 +84,8 @@ MOCK_OUTING = Outing(
                 address_1="8433 Sunset Blvd",
                 address_2=None,
                 city="Hollywood",
-                state_code="CA",
-                zip_code=90069,
-                country_code=1,
+                state="CA",
+                zip_code="90069",
             ),
         ),
         photos=Photos(
