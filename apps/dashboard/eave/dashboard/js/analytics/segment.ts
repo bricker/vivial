@@ -55,7 +55,7 @@ export async function identify({ userId, extraProperties }: { userId: string; ex
 
 /**
  * Get Segment anonymousId.
- * Will wait up to 0.5 seconds to recieve a value from Segement before rejecting.
+ * Will wait up to 0.5 seconds to receive a value from Segment before rejecting.
  * Segment can have a null anonymousId value (temporarily) if none is found
  * in cookies + localStorage. Calling `anonymousId()` and receiving null triggers
  * setting a new value for future calls.
