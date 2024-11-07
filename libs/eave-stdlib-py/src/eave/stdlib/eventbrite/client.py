@@ -3,23 +3,21 @@ from enum import StrEnum
 from functools import wraps
 from http import HTTPMethod
 from typing import Any, TypedDict
+from dataclasses import dataclass
 
 import aiohttp
 
+from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.eventbrite.models.pagination import Pagination
+from eave.stdlib.typing import NOT_GIVEN, NotGiven
 
 from .models.category import Category, Subcategory
-from .models.event import Event
+from .models.event import Event, EventStatus
 from .models.format import Format
 from .models.organizer import Organizer
 from .models.question import Question
 from .models.shared import MultipartText
 from .models.ticket_class import PointOfSale, TicketClass
-
-
-class QueryBoolean(StrEnum):
-    TRUE = "true"
-    FALSE = "false"
 
 
 class OrderBy(StrEnum):
@@ -29,51 +27,109 @@ class OrderBy(StrEnum):
     CREATED_DESC = "created_desc"
 
 
-class GetEventQuery(TypedDict, total=False):
-    expand: str
-    """included expansions, comma-delimited"""
+@dataclass(kw_only=True)
+class GetEventQuery:
+    expand: list[Expansion] | NotGiven = NOT_GIVEN
+    """included expansions"""
 
+    def compile(self) -> Mapping[str, Any]:
+        params: dict[str, Any] = {}
 
-class ListEventsQuery(TypedDict, total=False):
-    expand: str
-    """included expansions, comma-delimited"""
+        if not isinstance(self.expand, NotGiven):
+            params["expand"] = ",".join(self.expand)
 
-    status: str
+        return params
+
+@dataclass(kw_only=True)
+class ListEventsQuery:
+    expand: list[Expansion] | NotGiven = NOT_GIVEN
+    """included expansions"""
+
+    status: EventStatus | NotGiven = NOT_GIVEN
     """Filter Events by status. Specify multiple status values as a comma delimited string"""
 
-    order_by: OrderBy
+    order_by: OrderBy | NotGiven = NOT_GIVEN
     """Sort order of list of Events"""
 
-    start_date: str
+    start_date: str | NotGiven = NOT_GIVEN
     """Filter Events by a specified date range."""
 
-    only_public: QueryBoolean
+    only_public: bool | NotGiven = NOT_GIVEN
     """True = Filter public Events"""
 
+    def compile(self) -> Mapping[str, Any]:
+        params: dict[str, Any] = {}
 
-class ListTicketClassesForSaleQuery(TypedDict, total=False):
-    pos: PointOfSale
+        if not isinstance(self.expand, NotGiven):
+            params["expand"] = ",".join(self.expand)
+
+        if not isinstance(self.status, NotGiven):
+            params["status"] = self.status.value
+
+        if not isinstance(self.order_by, NotGiven):
+            params["order_by"] = self.order_by.value
+
+        if not isinstance(self.start_date, NotGiven):
+            params["start_date"] = self.start_date
+
+        if not isinstance(self.only_public, NotGiven):
+            params["only_public"] = "true" if self.only_public else "false"
+
+        return params
+
+@dataclass(kw_only=True)
+class ListTicketClassesForSaleQuery:
+    pos: PointOfSale | NotGiven = NOT_GIVEN
     """Only return ticket classes valid for the given point of sale. If unspecified, online is the default value."""
 
-    code: str
+    code: str | NotGiven = NOT_GIVEN
     """
     Only return ticket classes associated with this promo code.
     A promo code may apply discount, unlock hidden tickets, or change availability/remaining quantity of the tickets.
     """
 
-    hold_id: str
+    hold_id: str | NotGiven = NOT_GIVEN
     """Only return ticket classes associated with this composite hold id. Requesting user must have event permissions to sell from holds."""
 
+    def compile(self) -> Mapping[str, Any]:
+        params: dict[str, Any] = {}
 
-class ListDefaultQuestionsQuery(TypedDict, total=False):
-    include_all: QueryBoolean
+        if not isinstance(self.pos, NotGiven):
+            params["pos"] = self.pos.value
+
+        if not isinstance(self.code, NotGiven):
+            params["code"] = self.code
+
+        if not isinstance(self.hold_id, NotGiven):
+            params["hold_id"] = self.hold_id
+
+        return params
+
+@dataclass(kw_only=True)
+class ListDefaultQuestionsQuery:
+    include_all: bool | NotGiven = NOT_GIVEN
     """Return the whole list of canned included or not"""
 
+    def compile(self) -> Mapping[str, Any]:
+        params: dict[str, Any] = {}
 
-class ListCustomQuestionsQuery(TypedDict, total=False):
-    as_owner: QueryBoolean
+        if not isinstance(self.include_all, NotGiven):
+            params["include_all"] = "true" if self.include_all else "false"
+
+        return params
+
+@dataclass(kw_only=True)
+class ListCustomQuestionsQuery:
+    as_owner: bool | NotGiven = NOT_GIVEN
     """Return private Events and fields."""
 
+    def compile(self) -> Mapping[str, Any]:
+        params: dict[str, Any] = {}
+
+        if not isinstance(self.as_owner, NotGiven):
+            params["as_owner"] = "true" if self.as_owner else "false"
+
+        return params
 
 def paginated[T, **P](
     data_key: str, data_type: type[T]
@@ -124,7 +180,7 @@ class EventbriteClient:
     async def get_event_by_id(self, *, event_id: str, query: GetEventQuery | None = None) -> Event:
         """https://www.eventbrite.com/platform/api#/reference/event/retrieve/retrieve-an-event"""
 
-        response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}", query=query)
+        response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}", query=query.compile() if query else None)
         j = await response.json()
         return j
 
@@ -151,7 +207,7 @@ class EventbriteClient:
         response = await self.make_request(
             method=HTTPMethod.GET,
             path=f"/organizers/{organizer_id}/events",
-            query=query,
+            query=query.compile() if query else None,
             continuation=continuation,
         )
         return response
@@ -165,7 +221,7 @@ class EventbriteClient:
         response = await self.make_request(
             method=HTTPMethod.GET,
             path=f"/events/{event_id}/ticket_classes/for_sale",
-            query=query,
+            query=query.compile() if query else None,
             continuation=continuation,
         )
         return response
@@ -179,7 +235,7 @@ class EventbriteClient:
         response = await self.make_request(
             method=HTTPMethod.GET,
             path=f"/events/{event_id}/canned_questions",
-            query=query,
+            query=query.compile() if query else None,
             continuation=continuation,
         )
         return response
@@ -191,7 +247,7 @@ class EventbriteClient:
         """https://www.eventbrite.com/platform/api#/reference/questions/list-custom-questions/list-custom-questions-by-event"""
 
         response = await self.make_request(
-            method=HTTPMethod.GET, path=f"/events/{event_id}/questions", query=query, continuation=continuation
+            method=HTTPMethod.GET, path=f"/events/{event_id}/questions", query=query.compile() if query else None, continuation=continuation
         )
         return response
 

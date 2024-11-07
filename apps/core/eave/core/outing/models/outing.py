@@ -6,6 +6,8 @@ from shapely import Point
 
 from eave.stdlib.eventbrite.models.event import Event
 
+from eave.core.lib.geo import GeoLocation
+
 from .search_region_code import SearchRegionCode
 from .sources import ActivitySource, RestaurantSource
 
@@ -14,12 +16,12 @@ class OutingComponent:
     source: ActivitySource | RestaurantSource
     event: Event | None
     place: Place | None
-    location: Point
+    location: GeoLocation
 
     def __init__(
         self,
         source: ActivitySource | RestaurantSource,
-        location: Point,
+        location: GeoLocation,
         event: Event | None = None,
         place: Place | None = None,
     ) -> None:

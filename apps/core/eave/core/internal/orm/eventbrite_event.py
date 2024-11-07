@@ -8,13 +8,13 @@ import shapely
 from geoalchemy2.elements import WKBElement
 from geoalchemy2.functions import ST_DWithin
 from geoalchemy2.types import Geography
-from sqlalchemy import PrimaryKeyConstraint, ScalarResult, Select, func, select
+from sqlalchemy import PrimaryKeyConstraint, ScalarResult, Select, func, or_, select
 from sqlalchemy.dialects.postgresql import INT4RANGE, TSTZRANGE, Range
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
+from eave.core.lib.geo import GeoLocation, SpatialReferenceSystemId
 from eave.core.outing.models.geo_area import GeoArea
-from eave.stdlib.geo import SpatialReferenceSystemId
 from eave.stdlib.typing import NOT_GIVEN, NotGiven
 
 from .base import Base
@@ -60,12 +60,9 @@ class EventbriteEventOrm(Base):
         # https://www.postgresql.org/docs/current/rangetypes.html#RANGETYPES-DISCRETE
         if max_cost_cents is not None:
             max_cost_cents += 1
+
         self.cost_cents_range = Range(lower=min_cost_cents, upper=max_cost_cents, bounds="[)")
-
-        # lon,lat is the correct order, see: https://postgis.net/documentation/tips/lon-lat-or-lat-lon/
-        point = shapely.Point(lon, lat)
-        self.coordinates = geoalchemy2.shape.from_shape(point, srid=SpatialReferenceSystemId.LAT_LON, extended=False)
-
+        self.coordinates = GeoLocation(lat=lat, lon=lon).geoalchemy_shape()
         self.subcategory_id = subcategory_id
         self.format_id = format_id
         return self
@@ -75,19 +72,20 @@ class EventbriteEventOrm(Base):
         eventbrite_event_id: str | NotGiven = NOT_GIVEN
         cost_range_contains: int | NotGiven = NOT_GIVEN
         time_range_contains: datetime | NotGiven = NOT_GIVEN
-        within_area: GeoArea | NotGiven = NOT_GIVEN
-        subcategory_id: UUID | NotGiven = NOT_GIVEN
-        limit: int | NotGiven = NOT_GIVEN
+        within_areas: list[GeoArea] | NotGiven = NOT_GIVEN
+        subcategory_ids: list[UUID] | NotGiven = NOT_GIVEN
 
     @classmethod
-    def _build_query(cls, params: QueryParams) -> Select[tuple[Self]]:
+    def select(cls, params: QueryParams) -> Select[tuple[Self]]:
         lookup = select(cls)
 
         if not isinstance(params.eventbrite_event_id, NotGiven):
             lookup = lookup.where(cls.eventbrite_event_id == params.eventbrite_event_id)
 
-        if not isinstance(params.subcategory_id, NotGiven):
-            lookup = lookup.where(cls.subcategory_id == params.subcategory_id)
+        if not isinstance(params.subcategory_ids, NotGiven):
+            lookup = lookup.where(
+                or_(*[cls.subcategory_id == subcategory_id for subcategory_id in params.subcategory_ids])
+            )
 
         if not isinstance(params.cost_range_contains, NotGiven):
             lookup = lookup.where(cls.cost_cents_range.contains(params.cost_range_contains))
@@ -95,20 +93,19 @@ class EventbriteEventOrm(Base):
         if not isinstance(params.time_range_contains, NotGiven):
             lookup = lookup.where(cls.time_range.contains(params.time_range_contains))
 
-        if not isinstance(params.within_area, NotGiven):
-            area_center = geoalchemy2.shape.from_shape(
-                params.within_area.center, srid=SpatialReferenceSystemId.LAT_LON, extended=False
+        if not isinstance(params.within_areas, NotGiven):
+            lookup = lookup.where(
+                or_(
+                    *[
+                        ST_DWithin(
+                            cls.coordinates,
+                            area.center.geoalchemy_shape(),
+                            area.rad.meters
+                        )
+                        for area in params.within_areas
+                    ]
+                )
             )
-            lookup = lookup.where(ST_DWithin(cls.coordinates, area_center, params.within_area.rad.meters))
-
-        if not isinstance(params.limit, NotGiven):
-            lookup = lookup.limit(params.limit)
 
         assert lookup.whereclause is not None, "Invalid parameters"
         return lookup
-
-    @classmethod
-    async def query(cls, session: AsyncSession, params: QueryParams) -> ScalarResult[Self]:
-        lookup = cls._build_query(params=params)
-        result = await session.scalars(lookup)
-        return result

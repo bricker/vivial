@@ -7,7 +7,7 @@ from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.outing.constants.categories import get_vivial_subcategory_from_eventbrite_subcategory_id
 from eave.core.outing.constants.formats import get_vivial_format_from_eventbrite_format_id
-from eave.stdlib.eventbrite.client import EventbriteClient, OrderBy, QueryBoolean
+from eave.stdlib.eventbrite.client import EventbriteClient, ListEventsQuery, OrderBy
 from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.logging import LOGGER
@@ -25,20 +25,18 @@ async def get_eventbrite_events() -> None:
     for organizer_id in _EVENTBRITE_ORGANIZER_IDS:
         paginator = client.list_events_for_organizer(
             organizer_id=organizer_id,
-            query={
-                "order_by": OrderBy.START_ASC,
-                "status": EventStatus.LIVE,
-                "only_public": QueryBoolean.TRUE,
-                "expand": ",".join(
-                    [
-                        Expansion.TICKET_AVAILABILITY,
-                        Expansion.CATEGORY,
-                        Expansion.SUBCATEGORY,
-                        Expansion.FORMAT,
-                        Expansion.VENUE,
-                    ]
-                ),
-            },
+            query=ListEventsQuery(
+                order_by=OrderBy.START_ASC,
+                status=EventStatus.LIVE,
+                only_public=True,
+                expand=[
+                    Expansion.TICKET_AVAILABILITY,
+                    Expansion.CATEGORY,
+                    Expansion.SUBCATEGORY,
+                    Expansion.FORMAT,
+                    Expansion.VENUE,
+                ],
+            ),
         )
 
         pagenum = 0

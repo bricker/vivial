@@ -1,16 +1,19 @@
 import random
 from datetime import timedelta
 
+from eave.stdlib.logging import LOGGER
 from google.maps import places_v1
+from sqlalchemy import func
 
 import eave.core.internal.database
 from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.orm.eventbrite_event import EventbriteEventOrm
+from eave.core.lib.geo import GeoLocation
 from eave.core.outing.constants.activities import ACTIVITY_BUDGET_MAP_CENTS
 from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.eventbrite.models.event import EventStatus
 
-from .constants.areas import LOS_ANGELES_AREA_MAP
+from .constants.areas import ALL_AREAS, LOS_ANGELES_AREA_MAP
 from .constants.restaurants import BREAKFAST_RESTAURANT_CATEGORIES, BRUNCH_RESTAURANT_CATEGORIES, RESTAURANT_FIELD_MASK
 from .helpers.place import get_places_nearby, place_is_accessible, place_is_in_budget, place_will_be_open
 from .helpers.time import is_early_evening, is_early_morning, is_late_evening, is_late_morning
@@ -158,44 +161,54 @@ class Outing:
         activity_end_time = activity_start_time + timedelta(minutes=90)
         random.shuffle(self.constraints.search_area_ids)
 
-        # CASE 1: Recommend and Eventbrite event.
-        for search_area_id in self.constraints.search_area_ids:
-            for category in self.preferences.activity_categories:
-                async with eave.core.internal.database.async_session.begin() as db_session:
-                    results = await EventbriteEventOrm.query(
-                        db_session,
-                        params=EventbriteEventOrm.QueryParams(
-                            time_range_contains=activity_start_time,
-                            cost_range_contains=ACTIVITY_BUDGET_MAP_CENTS[self.constraints.budget],
-                            subcategory_id=category.subcategory_id,
-                        ),
+        # CASE 1: Recommend an Eventbrite event.
+        query = EventbriteEventOrm.select(
+            params=EventbriteEventOrm.QueryParams(
+                time_range_contains=activity_start_time,
+                cost_range_contains=ACTIVITY_BUDGET_MAP_CENTS[self.constraints.budget],
+                within_areas=[ALL_AREAS[search_area_id] for search_area_id in self.constraints.search_area_ids],
+                subcategory_ids=[cat.id for cat in self.preferences.activity_categories],
+            ),
+        ).order_by(func.random())
+
+        async with eave.core.internal.database.async_session.begin() as db_session:
+            results = await db_session.scalars(query)
+
+            for event in results:
+                try:
+                    event_details = await self.eventbrite.get_event_by_id(event_id=event.eventbrite_event_id)
+
+                    if not (ticket_availability := event_details.get("ticket_availability")):
+                        continue
+
+                    if not ticket_availability.get("has_available_tickets"):
+                        continue
+
+                    if event_details.get("status") != EventStatus.LIVE:
+                        continue
+
+                    if not (venue := event_details.get("venue")):
+                        continue
+
+                    if (lat := venue.get("latitude")) is None:
+                        continue
+
+                    if (lon := venue.get("longitude")) is None:
+                        continue
+
+                    description = await self.eventbrite.get_event_description(event_id=event.eventbrite_event_id)
+                    event_details["description"] = description
+
+                    self.activity = OutingComponent(
+                        source=ActivitySource.EVENTBRITE,
+                        event=event_details,
+                        location=GeoLocation(lat=float(lat), lon=float(lon)),
                     )
-                # events = get_eventbrite_events(
-                #     search_area_id=search_area_id,
-                #     category_id=category.id,
-                #     subcategory_id=category.subcategory_id,
-                #     start_time=activity_start_time,
-                #     budget=ACTIVITY_BUDGET_MAP[self.constraints.budget],
-                # )
-                random.shuffle(events)
-                for event in events:
-                    if event_details := await self.eventbrite.get_event_by_id(event_id=event["id"]):
-                        if ticket_availability := event_details.get("ticket_availability"):
-                            has_available_tickets = ticket_availability.get("has_available_tickets")
-                            is_live = event_details.get("status") == EventStatus.LIVE
-                            if has_available_tickets and is_live:
-                                if description := await self.eventbrite.get_event_description(event_id=event["id"]):
-                                    event_details["description"] = description
-                                if venue := event_details.get("venue"):
-                                    lat = venue.get("latitude")
-                                    lon = venue.get("longitude")
-                                    if lat and lon:
-                                        self.activity = OutingComponent(
-                                            source=ActivitySource.EVENTBRITE,
-                                            event=event_details,
-                                            location=GeoLocation(lat, lon),
-                                        )
-                                        return self.activity
+                    return self.activity
+
+                except Exception as e:
+                    LOGGER.exception(e)
+                    continue
 
         # CASE 2: Recommend an "evergreen" activity from our manually curated database.
         # for search_area_id in self.constraints.search_area_ids:
@@ -243,7 +256,7 @@ class Outing:
                     lon = place.location.longitude
                     if lat and lon:
                         self.activity = OutingComponent(
-                            source=RestaurantSource.GOOGLE_PLACES, place=place, location=GeoLocation(lat, lon)
+                            source=RestaurantSource.GOOGLE_PLACES, place=place, location=GeoLocation(lat=lat, lon=lon)
                         )
                         return self.activity
 
@@ -284,8 +297,8 @@ class Outing:
             for category in restaurant_categories:
                 restaurants_nearby = get_places_nearby(
                     client=self.places,
-                    latitude=area.lat,
-                    longitude=area.lon,
+                    latitude=area.center.lat,
+                    longitude=area.center.lon,
                     radius_meters=area.rad.meters,
                     included_primary_types=[category.id],
                     field_mask=RESTAURANT_FIELD_MASK,
@@ -304,7 +317,7 @@ class Outing:
                                 self.restaurant = OutingComponent(
                                     source=RestaurantSource.GOOGLE_PLACES,
                                     place=restaurant,
-                                    location=GeoLocation(lat, lon),
+                                    location=GeoLocation(lat=lat, lon=lon),
                                 )
                                 return self.restaurant
 
