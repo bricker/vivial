@@ -3,6 +3,7 @@ from uuid import UUID
 import segment.analytics
 
 from eave.core.internal.config import CORE_API_APP_CONFIG
+from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.typing import JsonObject
 
 
@@ -10,7 +11,7 @@ class AnalyticsTracker:
     def __init__(self) -> None:
         segment.analytics.write_key = CORE_API_APP_CONFIG.segment_write_key
 
-        if CORE_API_APP_CONFIG.is_dev_env:
+        if not (SHARED_CONFIG.is_staging or SHARED_CONFIG.is_production):
             segment.analytics.debug = True
             segment.analytics.on_error = lambda error, _: print("Segment analytics error:", error)
             # dont deliver analytics events to segment in dev mode
