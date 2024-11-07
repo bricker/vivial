@@ -27,8 +27,12 @@ async def register_mutation(*, info: strawberry.Info, email: str, plaintext_pass
             plaintext_password=plaintext_password,
         )
 
+    ANALYTICS.alias(
+        visitor_id=info.variable_values["visitor_id"],  # TODO: real value
+        account_id=account.id,
+    )
     ANALYTICS.identify(
-        str(account.id),
+        account.id,
         {
             "email": account.email,
         },
