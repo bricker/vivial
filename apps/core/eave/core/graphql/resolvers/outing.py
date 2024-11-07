@@ -4,25 +4,25 @@ from uuid import UUID, uuid4
 import strawberry
 
 from eave.core.graphql.types.activity import Activity, ActivityTicketInfo, ActivityVenue
-from eave.core.graphql.types.activity import (
-    ActivitySource as ActivitySourceGQLType,
-)  # conflicts with ActivitySource model
-from eave.core.graphql.types.location import InternalAreaId, Location
+from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import (
     Outing,
+    OutingBudget,
     PlanOutingSuccess,
     ReplanOutingResult,
     ReplanOutingSuccess,
     SubmitSurveyResult,
 )
 from eave.core.graphql.types.photos import Photos
-from eave.core.graphql.types.restaurant import Restaurant, RestaurantSource
+from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.internal import database
 from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.outing_activity import OutingActivityOrm
 from eave.core.internal.orm.outing_reservation import OutingReservationOrm
+from core.outing.models.search_region_code import SearchRegionCode
+from eave.core.outing.models.sources import ActivitySource, RestaurantSource
 from eave.core.outing.constants.zoneinfo import LOS_ANGELES_ZONE_INFO
-from eave.stdlib.core_api.models.enums import ActivitySource, ReservationSource
+from eave.stdlib.core_api.models.enums import ReservationSource
 
 from ..inputs.user import UserInput
 
@@ -32,7 +32,7 @@ MOCK_OUTING = Outing(
     visitor_id=uuid4(),
     account_id=uuid4(),
     survey_id=uuid4(),
-    budget=3,
+    budget=OutingBudget.THREE,
     headcount=2,
     driving_time="25 min",
     restaurant_arrival_time=(datetime(2024, 10, 15, hour=6, tzinfo=LOS_ANGELES_ZONE_INFO)),
@@ -41,12 +41,12 @@ MOCK_OUTING = Outing(
         source=RestaurantSource.GOOGLE_PLACES,
         name="Zarape Cocina & Cantina",
         location=Location(
-            internal_area_id=InternalAreaId.US_CA_LA1,
+            internal_area_id=SearchRegionCode.US_CA_LA1,
             directions_uri="https://g.co/kgs/o6Z9PpR",
             address_1="8351 Santa Monica Blvd",
             address_2=None,
             city="West Hollywood",
-            state_code="CA",
+            state="CA",
             zip_code=90069,
             country_code=1,
         ),
@@ -68,7 +68,7 @@ MOCK_OUTING = Outing(
         customer_favorites="Chicken Fajitas, Strawberry Margarita",
     ),
     activity=Activity(
-        source=ActivitySourceGQLType.EVENTBRITE,
+        source=ActivitySource.EVENTBRITE,
         ticket_info=ActivityTicketInfo(
             type="General Admission",
             notes="Tickets will be delivered electronically to you via email. No assigned seating.",

@@ -1,15 +1,9 @@
-from enum import StrEnum
-
 import strawberry
+
+from eave.core.outing.models.sources import ActivitySource
 
 from .location import Location
 from .photos import Photos
-
-
-@strawberry.enum
-class ActivitySource(StrEnum):
-    EVENTBRITE = "EVENTBRITE"
-    INTERNAL = "INTERNAL"
 
 
 @strawberry.type

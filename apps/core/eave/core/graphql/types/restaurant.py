@@ -1,14 +1,9 @@
-from enum import StrEnum
-
 import strawberry
+
+from eave.core.outing.models.sources import RestaurantSource
 
 from .location import Location
 from .photos import Photos
-
-
-@strawberry.enum
-class RestaurantSource(StrEnum):
-    GOOGLE_PLACES = "GOOGLE_PLACES"
 
 
 @strawberry.type

@@ -9,13 +9,21 @@ from .activity import Activity
 from .restaurant import Restaurant
 
 
+@strawberry.enum
+class OutingBudget(enum.IntEnum):
+    ONE = 1
+    TWO = 2
+    THREE = 3
+    FOUR = 4
+
+
 @strawberry.type
 class Outing:
     id: UUID
     visitor_id: UUID
     account_id: UUID | None
     survey_id: UUID
-    budget: int
+    budget: OutingBudget
     headcount: int
     activity: Activity | None
     activity_start_time: datetime | None
