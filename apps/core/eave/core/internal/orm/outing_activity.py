@@ -8,7 +8,7 @@ from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func,
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.stdlib.core_api.models.enums import ActivitySource
+from eave.core.outing.models.sources import ActivitySource
 
 from .base import Base
 
