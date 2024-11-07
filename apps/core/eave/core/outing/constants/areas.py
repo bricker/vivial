@@ -1,5 +1,5 @@
-from ..models.geo_area import GeoArea
 from ...graphql.types.search_region_code import SearchRegionCode
+from ..models.geo_area import GeoArea
 
 LOS_ANGELES_AREA_MAP = {
     SearchRegionCode.US_CA_LA1: GeoArea(
