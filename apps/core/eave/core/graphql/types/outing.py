@@ -1,8 +1,12 @@
 import enum
+from datetime import datetime
 from typing import Annotated
 from uuid import UUID
 
 import strawberry
+
+from .activity import Activity
+from .restaurant import Restaurant
 
 
 @strawberry.type
@@ -11,6 +15,13 @@ class Outing:
     visitor_id: UUID
     account_id: UUID | None
     survey_id: UUID
+    budget: int
+    headcount: int
+    activity: Activity | None
+    activity_start_time: datetime | None
+    restaurant: Restaurant | None
+    restaurant_arrival_time: datetime | None
+    driving_time: str
 
 
 @strawberry.enum
@@ -21,7 +32,7 @@ class SubmitSurveyErrorCode(enum.StrEnum):
 
 
 @strawberry.type
-class SubmitSurveySuccess:
+class PlanOutingSuccess:
     outing: Outing
 
 
@@ -30,7 +41,7 @@ class SubmitSurveyError:
     error_code: SubmitSurveyErrorCode
 
 
-SubmitSurveyResult = Annotated[SubmitSurveySuccess | SubmitSurveyError, strawberry.union("SubmitSurveyResult")]
+SubmitSurveyResult = Annotated[PlanOutingSuccess | SubmitSurveyError, strawberry.union("SubmitSurveyResult")]
 
 
 @strawberry.enum
