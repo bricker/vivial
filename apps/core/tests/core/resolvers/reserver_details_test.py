@@ -16,7 +16,9 @@ class TestReserverDetailsEndpoints(BaseTestCase):
             json={
                 "query": f"""
 mutation {{
-    submitReserverDetails(accountId: "{account.id}", firstName: "{self.anystr("first")}", lastName: "{self.anystr("last")}", phoneNumber: "{phone_num}") {{
+    submitReserverDetails(input: {{
+        accountId: "{account.id}", firstName: "{self.anystr("first")}", lastName: "{self.anystr("last")}", phoneNumber: "{phone_num}"
+    }}) {{
         ... on SubmitReserverDetailsSuccess {{
             reserverDetails {{
                 id
@@ -52,7 +54,9 @@ mutation {{
             json={
                 "query": f"""
 mutation {{
-    submitReserverDetails(accountId: "{account.id}", firstName: "{self.anystr("first")}", lastName: "{self.anystr("last")}", phoneNumber: "{phone_num}") {{
+    submitReserverDetails(input: {{
+        accountId: "{account.id}", firstName: "{self.anystr("first")}", lastName: "{self.anystr("last")}", phoneNumber: "{phone_num}"
+        }}) {{
         ... on SubmitReserverDetailsSuccess {{
             reserverDetails {{
                 id

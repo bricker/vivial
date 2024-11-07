@@ -12,3 +12,12 @@ class Survey:
     search_area_ids: list[str]
     budget: int
     headcount: int
+
+
+@strawberry.input
+class SurveyInput:
+    visitor_id: UUID
+    start_time: datetime
+    search_area_ids: list[str]
+    budget: int
+    headcount: int

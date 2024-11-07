@@ -1,6 +1,7 @@
-from core.outing.models.search_region_code import SearchRegionCode
-
 import strawberry
+
+from eave.core.graphql.types.search_region_code import SearchRegionCode
+
 
 @strawberry.type
 class Location:

@@ -67,22 +67,22 @@ const useStyles = makeStyles()((theme) => ({
 
 const budgetOptions = [
   {
-    value: 0,
+    value: 1,
     label: "$",
     ariaLabel: "Cheap as possible",
   },
   {
-    value: 1,
+    value: 2,
     label: "$$",
     ariaLabel: "Some money",
   },
   {
-    value: 2,
+    value: 3,
     label: "$$$",
     ariaLabel: "More money",
   },
   {
-    value: 3,
+    value: 4,
     label: "$$$$",
     ariaLabel: "Any amount",
   },
@@ -90,31 +90,27 @@ const budgetOptions = [
 
 const laNeighborhoodOptions = [
   {
-    value: "us_ca_la",
-    label: "All LA Areas",
-  },
-  {
-    value: "us_ca_la_1",
+    value: "US_CA_LA1",
     label: "Central LA & Hollywood",
   },
   {
-    value: "us_ca_la_2",
+    value: "US_CA_LA2",
     label: "Downtown Los Angeles",
   },
   {
-    value: "us_ca_la_3",
+    value: "US_CA_LA3",
     label: "Pasadena, Glendale, & Northeast LA",
   },
   {
-    value: "us_ca_la_4",
+    value: "US_CA_LA4",
     label: "Westside",
   },
   {
-    value: "us_ca_la_5",
+    value: "US_CA_LA5",
     label: "South Bay",
   },
   {
-    value: "us_ca_la_6",
+    value: "US_CA_LA6",
     label: "San Gabriel Valley",
   },
 ];
