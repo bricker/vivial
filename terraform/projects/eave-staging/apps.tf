@@ -24,7 +24,7 @@ module "core_api_app" {
 
   LOG_LEVEL        = "DEBUG"
   release_version  = "latest"
-  EAVE_CREDENTIALS = var.INTERNAL_EAVE_CREDENTIALS
+  SEGMENT_CORE_API_WRITE_KEY = "uUjBMbm9CcTL9XV1Rf6S9xGpLnvtCObZ"
 }
 
 module "dashboard_app" {
@@ -39,7 +39,6 @@ module "dashboard_app" {
   cdn_base_url                      = module.cdn.url
   LOG_LEVEL                         = "DEBUG"
   release_version                   = "latest"
-  EAVE_CREDENTIALS                  = var.INTERNAL_EAVE_CREDENTIALS
   iap_enabled                       = true
   iap_oauth_client_id               = var.IAP_OAUTH_CLIENT_ID
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name

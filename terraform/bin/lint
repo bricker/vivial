@@ -6,7 +6,13 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 (
 	cd "$(e.parentpath)"
-	terraform validate
 	terraform fmt -recursive -check .
+	for tf_proj in ./projects/*;
+	do
+		statusmsg "Linting terraform project $tf_proj"
+		pushd "$tf_proj" > /dev/null
+		terraform validate
+		popd > /dev/null
+	done
 	"${EAVE_HOME}"/develop/shared/lint-shell .
 )
