@@ -24,7 +24,7 @@ async def main() -> None:
     test_category_5 = Category(id="103", subcategory_id="3013")
     test_category_6 = Category(id="104", subcategory_id="4007")
     test_user_1 = User(
-        id=None,
+        account_id=None,
         visitor_id=None,
         preferences=(
             UserPreferences(
@@ -40,7 +40,7 @@ async def main() -> None:
         ),
     )
     test_user_2 = User(
-        id="",
+        account_id="",
         visitor_id="",
         preferences=(
             UserPreferences(
