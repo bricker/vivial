@@ -28,10 +28,15 @@ async def register_mutation(*, info: strawberry.Info, email: str, plaintext_pass
         )
 
     ANALYTICS.identify(
-        account.id,
-        {
+        account_id=account.id,
+        # TODO: visitor_id
+        extra_properties={
             "email": account.email,
         },
+    )
+    ANALYTICS.track(
+        event_name="signup",
+        account_id=account.id,
     )
 
 

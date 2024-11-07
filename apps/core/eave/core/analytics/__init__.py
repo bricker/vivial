@@ -15,12 +15,21 @@ class AnalyticsTracker:
             # dont deliver analytics events to segment in dev mode
             segment.analytics.send = False
 
-    def identify(self, account_id: UUID, extra_properties: JsonObject | None = None) -> None:
+    def identify(
+        self,
+        account_id: UUID,
+        visitor_id: UUID | None = None,
+        extra_properties: JsonObject | None = None,
+    ) -> None:
         """Identify a user.
         Should only be called on account creation, or update.
         https://segment.com/docs/connections/sources/catalog/libraries/server/python/#identify
         """
-        segment.analytics.identify(user_id=str(account_id), traits=extra_properties)
+        segment.analytics.identify(
+            user_id=str(account_id),
+            traits=extra_properties,
+            anonymous_id=str(visitor_id) if visitor_id else None,
+        )
 
     def track(
         self,
