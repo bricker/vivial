@@ -3,9 +3,9 @@ from datetime import datetime
 
 from models.category import Category
 from models.outing import OutingConstraints
-from models.search_region_code import SearchRegionCode
 from models.user import User, UserPreferences
 
+from eave.core.graphql.types.search_region_code import SearchRegionCode
 from eave.core.outing import Outing
 
 

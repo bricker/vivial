@@ -11,6 +11,13 @@ class Booking:
     reserver_details_id: UUID
 
 
+@strawberry.input
+class CreateBookingInput:
+    account_id: UUID  # TODO: need this here? or get auth from elsewhere?
+    outing_id: UUID
+    reserver_details_id: UUID
+
+
 @strawberry.enum
 class CreateBookingErrorCode(enum.StrEnum):
     START_TIME_TOO_SOON = "START_TIME_TOO_SOON"
