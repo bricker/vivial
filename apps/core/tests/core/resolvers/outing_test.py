@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.survey import SurveyOrm
-from eave.core.outing.models.search_region_code import SearchRegionCode
+from eave.core.graphql.types.search_region_code import SearchRegionCode
 
 from ..base import BaseTestCase
 
@@ -19,7 +19,7 @@ mutation {{
     submitSurvey(input: {{
         visitorId: "{self.anyuuid()}",
         startTime: "{self.anydatetime(offset=2 * day_seconds).isoformat()}",
-        searchAreaIds: ["us_ca_la"],
+        searchAreaIds: ["us_ca_la_1"],
         budget: 1,
         headcount: 2
     }}) {{
@@ -45,7 +45,7 @@ mutation {{
                 session=sess,
                 visitor_id=self.anyuuid(),
                 start_time=self.anydatetime(offset=2 * day_seconds),
-                search_area_ids=[SearchRegionCode.US_CA_LA],
+                search_area_ids=[SearchRegionCode.US_CA_LA1],
                 budget=1,
                 headcount=1,
             )

@@ -11,8 +11,8 @@ from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func,
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.core.graphql.types.outing import SubmitSurveyErrorCode
-from eave.core.outing.models.search_region_code import SearchRegionCode
+from eave.core.graphql.types.outing import PlanOutingErrorCode
+from eave.core.graphql.types.search_region_code import SearchRegionCode
 from eave.stdlib.exceptions import InvalidDataError, StartTimeTooLateError, StartTimeTooSoonError
 
 from .base import Base
@@ -106,10 +106,10 @@ class SurveyOrm(Base):
 
     def validate_or_exception(self) -> None:
         if not len(self.search_area_ids) > 0:
-            raise InvalidDataError(code=SubmitSurveyErrorCode.ONE_SEARCH_REGION_REQUIRED)
+            raise InvalidDataError(code=PlanOutingErrorCode.ONE_SEARCH_REGION_REQUIRED)
         try:
             validate_time_within_bounds_or_exception(self.start_time)
         except StartTimeTooSoonError:
-            raise InvalidDataError(code=SubmitSurveyErrorCode.START_TIME_TOO_SOON)
+            raise InvalidDataError(code=PlanOutingErrorCode.START_TIME_TOO_SOON)
         except StartTimeTooLateError:
-            raise InvalidDataError(code=SubmitSurveyErrorCode.START_TIME_TOO_LATE)
+            raise InvalidDataError(code=PlanOutingErrorCode.START_TIME_TOO_LATE)

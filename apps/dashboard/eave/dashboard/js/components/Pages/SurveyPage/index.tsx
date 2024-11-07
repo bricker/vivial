@@ -90,10 +90,6 @@ const budgetOptions = [
 
 const laNeighborhoodOptions = [
   {
-    value: "us_ca_la",
-    label: "All LA Areas",
-  },
-  {
     value: "us_ca_la_1",
     label: "Central LA & Hollywood",
   },

@@ -1,9 +1,10 @@
 from enum import StrEnum
 from typing import Self
+import strawberry
 
 
+@strawberry.enum
 class SearchRegionCode(StrEnum):
-    US_CA_LA = "us_ca_la"
     US_CA_LA1 = "us_ca_la_1"
     US_CA_LA2 = "us_ca_la_2"
     US_CA_LA3 = "us_ca_la_3"

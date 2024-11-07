@@ -7,12 +7,11 @@ from eave.core.graphql.types.activity import Activity, ActivityTicketInfo, Activ
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import (
     Outing,
-    PlanOutingResult,
-    ReplanOutingError,
-    ReplanOutingErrorCode,
-    ReplanOutingInput,
     OutingBudget,
+    PlanOutingInput,
+    PlanOutingResult,
     PlanOutingSuccess,
+    ReplanOutingInput,
     ReplanOutingResult,
     ReplanOutingSuccess,
 )
@@ -23,7 +22,7 @@ from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.outing_activity import OutingActivityOrm
 from eave.core.internal.orm.outing_reservation import OutingReservationOrm
 from eave.core.outing.constants.zoneinfo import LOS_ANGELES_ZONE_INFO
-from eave.core.outing.models.search_region_code import SearchRegionCode
+from eave.core.graphql.types.search_region_code import SearchRegionCode
 from eave.core.outing.models.sources import ActivitySource, RestaurantSource
 from eave.stdlib.core_api.models.enums import ReservationSource
 
@@ -144,12 +143,7 @@ async def create_outing_plan(
 async def plan_outing_mutation(
     *,
     info: strawberry.Info,
-    visitor_id: UUID,
-    group: list[UserInput],
-    start_time: datetime,
-    search_area_ids: list[str],
-    budget: OutingBudget,
-    headcount: int,
+    input: PlanOutingInput,
 ) -> PlanOutingResult:
     # try:
     #     async with database.async_session.begin() as db_session:
