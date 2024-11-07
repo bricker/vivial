@@ -4,7 +4,7 @@ import strawberry
 
 import eave.core.internal.database
 from eave.core.graphql.types.authentication import Account
-from eave.core.graphql.types.user_profile import UserProfile
+from eave.core.graphql.types.user import UserProfile
 from eave.core.internal.orm.account import AccountOrm, test_password_strength_or_exception
 from eave.stdlib.exceptions import InvalidJWSError
 from eave.stdlib.jwt import JWTPurpose, create_jws, validate_jws_or_exception, validate_jws_pair_or_exception
