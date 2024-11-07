@@ -43,12 +43,5 @@ class AnalyticsTracker:
             anonymous_id=anon_id,
         )
 
-    def alias(self, visitor_id: UUID, account_id: UUID) -> None:
-        """Associate a Segment identity with another one.
-        Required for Mixpanel to be able to associate users with their actions prior to account creation.
-        https://segment.com/docs/connections/sources/catalog/libraries/server/python/#alias
-        """
-        segment.analytics.alias(previous_id=str(visitor_id), user_id=str(account_id))
-
 
 ANALYTICS = AnalyticsTracker()
