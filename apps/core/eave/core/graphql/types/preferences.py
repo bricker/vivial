@@ -1,6 +1,14 @@
 import strawberry
 
-from .category import CategoryInput
+from .category import Category, CategoryInput
+
+
+@strawberry.type
+class Preferences:
+    open_to_bars: bool
+    requires_wheelchair_accessibility: bool
+    restaurant_categories: list[Category]
+    activity_categories: list[Category]
 
 
 @strawberry.input

@@ -22,12 +22,12 @@ from eave.core.internal import database
 from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.outing_activity import OutingActivityOrm
 from eave.core.internal.orm.outing_reservation import OutingReservationOrm
+from eave.core.outing.constants.zoneinfo import LOS_ANGELES_ZONE_INFO
 from eave.core.outing.models.search_region_code import SearchRegionCode
 from eave.core.outing.models.sources import ActivitySource, RestaurantSource
-from eave.core.outing.constants.zoneinfo import LOS_ANGELES_ZONE_INFO
 from eave.stdlib.core_api.models.enums import ReservationSource
 
-from ..inputs.user import UserInput
+from ..types.user import UserInput
 
 # TODO: Remove once we're fetching from the appropriate sources.
 MOCK_OUTING = Outing(
