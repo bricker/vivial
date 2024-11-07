@@ -14,7 +14,7 @@ import { theme } from "./theme";
 
 const App = () => {
   const fireAnalyticsPageView = async (_: string) => {
-    await pageView();
+    await pageView({});
   };
 
   return (

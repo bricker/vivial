@@ -1,5 +1,5 @@
 import { AnalyticsBrowser } from "@segment/analytics-next";
-import { isDevMode, myWindow } from "../types";
+import { myWindow } from "../types";
 
 const analytics = AnalyticsBrowser.load({ writeKey: myWindow.app.segmentWriteKey! });
 
@@ -14,8 +14,8 @@ export enum EventName {
  * @param eventName generic action name. (specifics of action target can be set in `extraProperties`)
  * @param extraProperties https://segment.com/docs/connections/spec/track/#properties
  */
-export async function track(eventName: EventName, extraProperties?: object) {
-  if (!isDevMode) {
+export async function track({ eventName, extraProperties }: { eventName: EventName; extraProperties?: object }) {
+  if (myWindow.app.analyticsEnabled) {
     await analytics.track(eventName, extraProperties);
   }
 }
@@ -28,8 +28,16 @@ export async function track(eventName: EventName, extraProperties?: object) {
  * @param name name of specific page e.g. "Checkout"
  * @param extraProperties https://segment.com/docs/connections/spec/page/#properties
  */
-export async function pageView(category?: string, name?: string, extraProperties?: object) {
-  if (!isDevMode) {
+export async function pageView({
+  category,
+  name,
+  extraProperties,
+}: {
+  category?: string;
+  name?: string;
+  extraProperties?: object;
+}) {
+  if (myWindow.app.analyticsEnabled) {
     await analytics.page(category, name, extraProperties);
   }
 }
@@ -41,7 +49,7 @@ export async function pageView(category?: string, name?: string, extraProperties
  * @param userId ID for a user (UUIDv4 from database recommended)
  * @param extraProperties https://segment.com/docs/connections/spec/identify/#custom-traits
  */
-export async function identify(userId: string, extraProperties?: object) {
+export async function identify({ userId, extraProperties }: { userId: string; extraProperties?: object }) {
   await analytics.identify(userId, extraProperties);
 }
 
