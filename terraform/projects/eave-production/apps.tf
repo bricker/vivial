@@ -43,4 +43,5 @@ module "dashboard_app" {
   LOG_LEVEL       = "DEBUG"
   release_version = "latest"
   iap_enabled     = false
+  SEGMENT_WEBSITE_WRITE_KEY = "GcB5ShHbFcZZKIGTlvanJerSyKp9yJNv"
 }
