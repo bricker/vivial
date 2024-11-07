@@ -10,12 +10,11 @@ from starlette.templating import Jinja2Templates
 import eave.stdlib.logging
 import eave.stdlib.requests_util
 import eave.stdlib.time
+from eave.dashboard.config import DASHBOARD_APP_CONFIG
 from eave.stdlib.auth_cookies import delete_auth_cookies
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.operations.status import status_payload
 from eave.stdlib.headers import MIME_TYPE_JSON
-
-from eave.dashboard.config import DASHBOARD_APP_CONFIG
 
 eave.stdlib.time.set_utc()
 
