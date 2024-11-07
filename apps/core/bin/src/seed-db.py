@@ -21,7 +21,7 @@ from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 load_standard_dotenv_files()
 
-from eave.stdlib.core_api.models.enums import ActivitySource, ReservationSource
+from eave.stdlib.core_api.models.enums import ReservationSource
 
 from eave.core.internal.orm.account_booking import AccountBookingOrm
 from eave.core.internal.orm.booking import BookingOrm
@@ -31,7 +31,8 @@ from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.outing_activity import OutingActivityOrm
 from eave.core.internal.orm.outing_reservation import OutingReservationOrm
 from eave.core.internal.orm.reserver_details import ReserverDetailsOrm
-from eave.core.outing.models.search_region_code import SearchRegionCode
+from eave.core.graphql.types.search_region_code import SearchRegionCode
+from eave.core.outing.models.sources import ActivitySource
 
 # isort: on
 
@@ -88,7 +89,7 @@ async def seed_database(db: AsyncEngine) -> None:
             visitor_id=visitor_id,
             account_id=account.id,
             start_time=dummy_date,
-            search_area_ids=[SearchRegionCode.US_CA_LA],
+            search_area_ids=[SearchRegionCode.US_CA_LA1],
             budget=2,
             headcount=2,
         )
@@ -102,7 +103,7 @@ async def seed_database(db: AsyncEngine) -> None:
             session=session,
             outing_id=outing.id,
             activity_id=str(uuid.uuid4()),
-            activity_source=ActivitySource.SELF,
+            activity_source=ActivitySource.INTERNAL,
             activity_start_time=dummy_date,
             num_attendees=2,
         )

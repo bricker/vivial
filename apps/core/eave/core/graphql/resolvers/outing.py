@@ -9,23 +9,23 @@ from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import (
     Outing,
     OutingBudget,
+    PlanOutingInput,
+    PlanOutingResult,
     PlanOutingSuccess,
+    ReplanOutingInput,
     ReplanOutingResult,
     ReplanOutingSuccess,
-    SubmitSurveyResult,
 )
 from eave.core.graphql.types.photos import Photos
 from eave.core.graphql.types.restaurant import Restaurant
+from eave.core.graphql.types.search_region_code import SearchRegionCode
 from eave.core.internal import database
 from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.outing_activity import OutingActivityOrm
 from eave.core.internal.orm.outing_reservation import OutingReservationOrm
-from core.outing.models.search_region_code import SearchRegionCode
-from eave.core.outing.models.sources import ActivitySource, RestaurantSource
 from eave.core.outing.constants.zoneinfo import LOS_ANGELES_ZONE_INFO
+from eave.core.outing.models.sources import ActivitySource, RestaurantSource
 from eave.stdlib.core_api.models.enums import ReservationSource
-
-from ..inputs.user import UserInput
 
 # TODO: Remove once we're fetching from the appropriate sources.
 MOCK_OUTING = Outing(
@@ -48,8 +48,7 @@ MOCK_OUTING = Outing(
             address_2=None,
             city="West Hollywood",
             state="CA",
-            zip_code=90069,
-            country_code=1,
+            zip_code="90069",
         ),
         photos=Photos(
             cover_photo_uri="https://s3-media0.fl.yelpcdn.com/bphoto/NQFmn6sxr2RC-czWIBi8aw/o.jpg",
@@ -80,7 +79,7 @@ MOCK_OUTING = Outing(
         venue=ActivityVenue(
             name="The Comedy Store, Main Room",
             location=Location(
-                internal_area_id=InternalAreaId.US_CA_LA2,
+                internal_area_id=SearchRegionCode.US_CA_LA2,
                 directions_uri="https://g.co/kgs/h1SY9De",
                 address_1="8433 Sunset Blvd",
                 address_2=None,
@@ -153,13 +152,8 @@ async def create_outing_plan(
 async def plan_outing_mutation(
     *,
     info: strawberry.Info,
-    visitor_id: UUID,
-    group: list[UserInput],
-    start_time: datetime,
-    search_area_ids: list[str],
-    budget: int,
-    headcount: int,
-) -> SubmitSurveyResult:
+    input: PlanOutingInput,
+) -> PlanOutingResult:
     # try:
     #     async with database.async_session.begin() as db_session:
     #         search_areas: list[SearchRegionCode] = []
@@ -192,13 +186,7 @@ async def plan_outing_mutation(
 async def replan_outing_mutation(
     *,
     info: strawberry.Info,
-    visitor_id: UUID,
-    outing_id: UUID,
-    group: list[UserInput],
-    start_time: datetime,
-    search_area_ids: list[str],
-    budget: int,
-    headcount: int,
+    input: ReplanOutingInput,
 ) -> ReplanOutingResult:
     # try:
     #     async with database.async_session.begin() as db_session:

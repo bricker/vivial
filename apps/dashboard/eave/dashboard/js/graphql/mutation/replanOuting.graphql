@@ -1,5 +1,5 @@
-mutation replanOuting($visitorId: UUID!, $outingId: UUID!) {
-  replanOuting(visitorId: $visitorId, outingId: $outingId) {
+mutation replanOuting($input: ReplanOutingInput!) {
+  replanOuting(input: $input) {
     __typename
     ... on ReplanOutingSuccess {
       outing {

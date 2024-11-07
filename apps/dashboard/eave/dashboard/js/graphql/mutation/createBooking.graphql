@@ -1,5 +1,5 @@
-mutation createBooking($accountId: UUID!, $outingId: UUID!, $reserverDetailsId: UUID!) {
-  createBooking(accountId: $accountId, outingId: $outingId, reserverDetailsId: $reserverDetailsId) {
+mutation createBooking($input: CreateBookingInput!) {
+  createBooking(input: $input) {
     __typename
     ... on CreateBookingSuccess {
       booking {
