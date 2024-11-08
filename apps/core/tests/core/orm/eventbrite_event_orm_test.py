@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from eave.core.internal.orm.eventbrite_event import EventbriteEventOrm
-from eave.core.outing.models.geo_area import SearchRegion
+from eave.core.lib.geo import Distance, GeoArea, GeoPoint
 
 from ..base import BaseTestCase
 
@@ -26,9 +26,10 @@ class TestEventbriteEventOrm(BaseTestCase):
 
         async with self.db_session.begin() as session:
             obj = (
-                await EventbriteEventOrm.query(
-                    session,
-                    params=EventbriteEventOrm.QueryParams(eventbrite_event_id=self.getstr("eventbrite_event_id")),
+                await session.scalars(
+                    EventbriteEventOrm.select(
+                        eventbrite_event_id=self.getstr("eventbrite_event_id"),
+                    )
                 )
             ).one()
 
@@ -57,44 +58,40 @@ class TestEventbriteEventOrm(BaseTestCase):
 
         async with self.db_session.begin() as session:
             results = (
-                await EventbriteEventOrm.query(
-                    session,
-                    params=EventbriteEventOrm.QueryParams(
+                await session.scalars(
+                    EventbriteEventOrm.select(
                         cost_range_contains=self.getint("min_cost") - 1,  # out of range
-                    ),
+                    )
                 )
             ).all()
 
             assert len(results) == 0, "query expected to fail, but found a result"
 
             results = (
-                await EventbriteEventOrm.query(
-                    session,
-                    params=EventbriteEventOrm.QueryParams(
+                await session.scalars(
+                    EventbriteEventOrm.select(
                         cost_range_contains=self.getint("max_cost") + 1,  # out of range
-                    ),
+                    )
                 )
             ).all()
 
             assert len(results) == 0, "query expected to fail, but found a result"
 
             results = (
-                await EventbriteEventOrm.query(
-                    session,
-                    params=EventbriteEventOrm.QueryParams(
+                await session.scalars(
+                    EventbriteEventOrm.select(
                         cost_range_contains=self.getint("min_cost"),  # lower bound of range
-                    ),
+                    )
                 )
             ).all()
 
             assert len(results) == 1, "query failed, but a result was expected"
 
             results = (
-                await EventbriteEventOrm.query(
-                    session,
-                    params=EventbriteEventOrm.QueryParams(
+                await session.scalars(
+                    EventbriteEventOrm.select(
                         cost_range_contains=self.getint("max_cost"),  # upper bound of range
-                    ),
+                    )
                 )
             ).all()
 
@@ -119,68 +116,62 @@ class TestEventbriteEventOrm(BaseTestCase):
 
         async with self.db_session.begin() as session:
             results = (
-                await EventbriteEventOrm.query(
-                    session,
-                    params=EventbriteEventOrm.QueryParams(
+                await session.scalars(
+                    EventbriteEventOrm.select(
                         time_range_contains=self.getdatetime("start_time") - timedelta(minutes=1),  # out of range
-                    ),
+                    )
                 )
             ).all()
 
             assert len(results) == 0, "query expected to fail, but found a result"
 
             results = (
-                await EventbriteEventOrm.query(
-                    session,
-                    params=EventbriteEventOrm.QueryParams(
+                await session.scalars(
+                    EventbriteEventOrm.select(
                         time_range_contains=self.getdatetime("end_time") + timedelta(minutes=1),  # out of range
-                    ),
+                    )
                 )
             ).all()
 
             assert len(results) == 0, "query expected to fail, but found a result"
 
             results = (
-                await EventbriteEventOrm.query(
-                    session,
-                    params=EventbriteEventOrm.QueryParams(
+                await session.scalars(
+                    EventbriteEventOrm.select(
                         time_range_contains=self.getdatetime("start_time"),  # lower bound
-                    ),
+                    )
                 )
             ).all()
 
             assert len(results) == 1, "query failed, but expected 1 result"
 
             results = (
-                await EventbriteEventOrm.query(
-                    session,
-                    params=EventbriteEventOrm.QueryParams(
+                await session.scalars(
+                    EventbriteEventOrm.select(
                         time_range_contains=self.getdatetime("start_time")
                         + timedelta(minutes=1),  # just inside of the lower bound
-                    ),
+                    )
                 )
             ).all()
 
             assert len(results) == 1, "query failed, but expected 1 result"
 
             results = (
-                await EventbriteEventOrm.query(
-                    session,
-                    params=EventbriteEventOrm.QueryParams(
+                await session.scalars(
+                    EventbriteEventOrm.select(
                         time_range_contains=self.getdatetime("end_time"),  # upper bound EXCLUSIVE
-                    ),
+                    )
                 )
             ).all()
 
             assert len(results) == 0, "query expected to fail, but found a result"
 
             results = (
-                await EventbriteEventOrm.query(
-                    session,
-                    params=EventbriteEventOrm.QueryParams(
+                await session.scalars(
+                    EventbriteEventOrm.select(
                         time_range_contains=self.getdatetime("end_time")
                         - timedelta(minutes=1),  # just inside of the upper bound
-                    ),
+                    )
                 )
             ).all()
 
@@ -204,13 +195,14 @@ class TestEventbriteEventOrm(BaseTestCase):
             session.add(obj)
 
         async with self.db_session.begin() as session:
-            search_area = SearchRegion(lat=self.getlatitude("lat"), lon=self.getlongitude("lon"), rad_miles=0.1)
+            search_area = GeoArea(
+                center=GeoPoint(lat=self.getlatitude("lat"), lon=self.getlongitude("lon")), rad=Distance(miles=0.1)
+            )
             results = (
-                await EventbriteEventOrm.query(
-                    session,
-                    params=EventbriteEventOrm.QueryParams(
-                        within_area=search_area,
-                    ),
+                await session.scalars(
+                    EventbriteEventOrm.select(
+                        within_areas=[search_area],
+                    )
                 )
             ).all()
 
@@ -218,15 +210,15 @@ class TestEventbriteEventOrm(BaseTestCase):
 
             # Move the search area to the antipode
             antipodesign = 1 if self.getlongitude("lon") <= 0 else -1
-            search_area = SearchRegion(
-                lat=-self.getlatitude("lat"), lon=self.getlongitude("lon") + (180 * antipodesign), rad_miles=0.1
+            search_area = GeoArea(
+                center=GeoPoint(lat=-self.getlatitude("lat"), lon=self.getlongitude("lon") + (180 * antipodesign)),
+                rad=Distance(miles=0.1),
             )
             results = (
-                await EventbriteEventOrm.query(
-                    session,
-                    params=EventbriteEventOrm.QueryParams(
-                        within_area=search_area,
-                    ),
+                await session.scalars(
+                    EventbriteEventOrm.select(
+                        within_areas=[search_area],
+                    )
                 )
             ).all()
 
@@ -251,9 +243,10 @@ class TestEventbriteEventOrm(BaseTestCase):
 
         async with self.db_session.begin() as session:
             qobj = (
-                await EventbriteEventOrm.query(
-                    session,
-                    params=EventbriteEventOrm.QueryParams(eventbrite_event_id=self.getstr("eventbrite_event_id")),
+                await session.scalars(
+                    EventbriteEventOrm.select(
+                        eventbrite_event_id=self.getstr("eventbrite_event_id"),
+                    )
                 )
             ).one()
 
@@ -271,9 +264,10 @@ class TestEventbriteEventOrm(BaseTestCase):
 
         async with self.db_session.begin() as session:
             qobj = (
-                await EventbriteEventOrm.query(
-                    session,
-                    params=EventbriteEventOrm.QueryParams(eventbrite_event_id=self.getstr("eventbrite_event_id")),
+                await session.scalars(
+                    EventbriteEventOrm.select(
+                        eventbrite_event_id=self.getstr("eventbrite_event_id"),
+                    )
                 )
             ).one()
 

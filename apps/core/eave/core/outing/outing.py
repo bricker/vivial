@@ -158,12 +158,10 @@ class Outing:
 
         # CASE 1: Recommend an Eventbrite event.
         query = EventbriteEventOrm.select(
-            params=EventbriteEventOrm.QueryParams(
-                time_range_contains=activity_start_time,
-                cost_range_contains=ACTIVITY_BUDGET_MAP_CENTS[self.constraints.budget],
-                within_areas=[ALL_AREAS[search_area_id] for search_area_id in self.constraints.search_area_ids],
-                subcategory_ids=[cat.id for cat in self.preferences.activity_categories],
-            ),
+            time_range_contains=activity_start_time,
+            cost_range_contains=ACTIVITY_BUDGET_MAP_CENTS[self.constraints.budget],
+            within_areas=[ALL_AREAS[search_area_id].area for search_area_id in self.constraints.search_area_ids],
+            subcategory_ids=[cat.id for cat in self.preferences.activity_categories],
         ).order_by(func.random())
 
         async with eave.core.internal.database.async_session.begin() as db_session:

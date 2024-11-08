@@ -155,7 +155,7 @@ async def get_eventbrite_events() -> None:
                         end_time = None
 
                     query = EventbriteEventOrm.select(
-                        params=EventbriteEventOrm.QueryParams(eventbrite_event_id=eventbrite_event_id),
+                        eventbrite_event_id=eventbrite_event_id,
                     ).limit(1)
 
                     target = (await db_session.scalars(query)).one_or_none()

@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Self
 from uuid import UUID
@@ -10,8 +9,7 @@ from sqlalchemy import PrimaryKeyConstraint, Select, func, or_, select
 from sqlalchemy.dialects.postgresql import INT4RANGE, TSTZRANGE, Range
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.core.lib.geo import GeoPoint, SpatialReferenceSystemId
-from eave.core.outing.models.geo_area import SearchRegion
+from eave.core.lib.geo import GeoArea, GeoPoint, SpatialReferenceSystemId
 from eave.stdlib.typing import NOT_GIVEN, NotGiven
 
 from .base import Base
@@ -64,38 +62,35 @@ class EventbriteEventOrm(Base):
         self.format_id = format_id
         return self
 
-    @dataclass
-    class QueryParams:
-        eventbrite_event_id: str | NotGiven = NOT_GIVEN
-        cost_range_contains: int | NotGiven = NOT_GIVEN
-        time_range_contains: datetime | NotGiven = NOT_GIVEN
-        within_areas: list[SearchRegion] | NotGiven = NOT_GIVEN
-        subcategory_ids: list[UUID] | NotGiven = NOT_GIVEN
-
     @classmethod
-    def select(cls, params: QueryParams) -> Select[tuple[Self]]:
+    def select(
+        cls,
+        eventbrite_event_id: str | NotGiven = NOT_GIVEN,
+        cost_range_contains: int | NotGiven = NOT_GIVEN,
+        time_range_contains: datetime | NotGiven = NOT_GIVEN,
+        within_areas: list[GeoArea] | NotGiven = NOT_GIVEN,
+        subcategory_ids: list[UUID] | NotGiven = NOT_GIVEN,
+    ) -> Select[tuple[Self]]:
         lookup = select(cls)
 
-        if not isinstance(params.eventbrite_event_id, NotGiven):
-            lookup = lookup.where(cls.eventbrite_event_id == params.eventbrite_event_id)
+        if not isinstance(eventbrite_event_id, NotGiven):
+            lookup = lookup.where(cls.eventbrite_event_id == eventbrite_event_id)
 
-        if not isinstance(params.subcategory_ids, NotGiven):
-            lookup = lookup.where(
-                or_(*[cls.subcategory_id == subcategory_id for subcategory_id in params.subcategory_ids])
-            )
+        if not isinstance(subcategory_ids, NotGiven):
+            lookup = lookup.where(or_(*[cls.subcategory_id == subcategory_id for subcategory_id in subcategory_ids]))
 
-        if not isinstance(params.cost_range_contains, NotGiven):
-            lookup = lookup.where(cls.cost_cents_range.contains(params.cost_range_contains))
+        if not isinstance(cost_range_contains, NotGiven):
+            lookup = lookup.where(cls.cost_cents_range.contains(cost_range_contains))
 
-        if not isinstance(params.time_range_contains, NotGiven):
-            lookup = lookup.where(cls.time_range.contains(params.time_range_contains))
+        if not isinstance(time_range_contains, NotGiven):
+            lookup = lookup.where(cls.time_range.contains(time_range_contains))
 
-        if not isinstance(params.within_areas, NotGiven):
+        if not isinstance(within_areas, NotGiven):
             lookup = lookup.where(
                 or_(
                     *[
                         ST_DWithin(cls.coordinates, area.center.geoalchemy_shape(), area.rad.meters)
-                        for area in params.within_areas
+                        for area in within_areas
                     ]
                 )
             )
