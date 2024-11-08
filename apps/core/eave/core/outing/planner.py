@@ -27,7 +27,7 @@ from .models.user import User, UserPreferences
 
 # TODO: Convert internal restaurant category mappings to Google Places category mappings (pending Bryan).
 # TODO: Convert internal event category mappings to Eventbrite category mappings (pending Bryan).
-class Outing:
+class OutingPlanner:
     """
     Use this class to plan an outing for a group of users based on their outing
     constraints and personal preferences.

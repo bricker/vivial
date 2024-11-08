@@ -1,12 +1,12 @@
 import asyncio
 from datetime import datetime
 
+from eave.core.graphql.types.search_region import SearchRegionCode
+from eave.core.outing.constants.categories import ACTIVITY_SUBCATEGORIES
+from eave.core.outing.planner import OutingPlanner
 from models.category import Category
 from models.outing import OutingConstraints
 from models.user import User, UserPreferences
-
-from eave.core.graphql.types.search_region_code import SearchRegionCode
-from eave.core.outing import Outing
 
 
 # TODO: Write thorough automated tests once all relevant tables / endpoints are ready (pending Bryan).
@@ -17,12 +17,6 @@ async def main() -> None:
         budget=2,
         headcount=2,
     )
-    test_category_1 = Category(id="103", subcategory_id="3008")
-    test_category_2 = Category(id="103", subcategory_id="3012")
-    test_category_3 = Category(id="105", subcategory_id="5001")
-    test_category_4 = Category(id="103", subcategory_id="3008")
-    test_category_5 = Category(id="103", subcategory_id="3013")
-    test_category_6 = Category(id="104", subcategory_id="4007")
     test_user_1 = User(
         account_id=None,
         visitor_id=None,
@@ -35,7 +29,7 @@ async def main() -> None:
                     Category(id="american_restaurant"),
                     Category(id="brazilian_restaurant"),
                 ],
-                activity_categories=[test_category_1, test_category_2, test_category_3],
+                activity_categories=ACTIVITY_SUBCATEGORIES[0:3],
             )
         ),
     )
@@ -51,12 +45,12 @@ async def main() -> None:
                     Category(id="fast_food_restaurant"),
                     Category(id="mexican_restaurant"),
                 ],
-                activity_categories=[test_category_4, test_category_5, test_category_6],
+                activity_categories=ACTIVITY_SUBCATEGORIES[3:6],
             )
         ),
     )
 
-    test_outing = Outing([test_user_1, test_user_2], test_outing_constraints)
+    test_outing = OutingPlanner([test_user_1, test_user_2], test_outing_constraints)
     test_outing_plan = await test_outing.plan()
     test_restaurant = test_outing_plan.restaurant and test_outing_plan.restaurant.place
     test_activity = test_outing_plan.activity and test_outing_plan.activity.place
