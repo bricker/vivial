@@ -65,6 +65,7 @@ class EventbriteEventOrm(Base):
     @classmethod
     def select(
         cls,
+        *,
         eventbrite_event_id: str | NotGiven = NOT_GIVEN,
         cost_range_contains: int | NotGiven = NOT_GIVEN,
         time_range_contains: datetime | NotGiven = NOT_GIVEN,
