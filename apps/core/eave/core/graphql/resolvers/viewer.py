@@ -1,12 +1,7 @@
-from uuid import uuid4
 
-from eave.core.graphql.types.authentication import Account
-from eave.core.graphql.types.user import UserProfile
+from eave.core.graphql.resolvers.account import MOCK_ACCOUNT
+from eave.core.graphql.types.account import Account
 
 
 async def viewer_query() -> Account:
-    return Account(
-        id=uuid4(),
-        email="example@vivialapp.com",
-        user_profile=UserProfile(name="example"),
-    )
+    return MOCK_ACCOUNT

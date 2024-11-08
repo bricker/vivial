@@ -13,6 +13,12 @@ from .restaurant import Restaurant
 
 
 @strawberry.enum
+class OutingState(enum.StrEnum):
+    PAST = "PAST"
+    FUTURE = "FUTURE"
+
+
+@strawberry.enum
 class OutingBudget(enum.IntEnum):
     ONE = 1
     TWO = 2
