@@ -14,11 +14,8 @@ UNDER NO CIRCUMSTANCES SHOULD THIS BE EVER RUN AGAINST PROD
 
 import sys
 
-from eave.core.outing.models.sources import ActivitySource, RestaurantSource
-
 sys.path.append(".")
 
-from eave.core.graphql.types.search_region import SearchRegionCode
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 load_standard_dotenv_files()
@@ -39,6 +36,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engin
 
 import eave.core.internal.database
 import eave.core.internal.orm.base
+from eave.core.graphql.types.search_region import SearchRegionCode
 from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.account_booking import AccountBookingOrm
 from eave.core.internal.orm.booking import BookingOrm
@@ -49,6 +47,7 @@ from eave.core.internal.orm.outing_activity import OutingActivityOrm
 from eave.core.internal.orm.outing_reservation import OutingReservationOrm
 from eave.core.internal.orm.reserver_details import ReserverDetailsOrm
 from eave.core.internal.orm.survey import SurveyOrm
+from eave.core.outing.models.sources import ActivitySource, RestaurantSource
 from eave.stdlib.logging import eaveLogger
 
 _EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")

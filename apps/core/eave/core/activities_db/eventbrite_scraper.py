@@ -130,12 +130,12 @@ async def get_eventbrite_events() -> None:
                         )
                         continue
 
-                    if (minimum_ticket_price := ticket_availability.get("minimum_ticket_price")) is not None:
+                    if minimum_ticket_price := ticket_availability.get("minimum_ticket_price"):
                         min_cost_cents = minimum_ticket_price["value"]
                     else:
                         min_cost_cents = None
 
-                    if (maximum_ticket_price := ticket_availability.get("maximum_ticket_price")) is not None:
+                    if maximum_ticket_price := ticket_availability.get("maximum_ticket_price"):
                         max_cost_cents = maximum_ticket_price["value"]
                     else:
                         max_cost_cents = None
