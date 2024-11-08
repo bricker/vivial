@@ -1,6 +1,6 @@
 import strawberry
 
-from eave.core.outing.models.search_region_code import SearchRegionCode
+from .search_region_code import SearchRegionCode
 
 
 @strawberry.type

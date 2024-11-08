@@ -1,8 +1,7 @@
 import strawberry
 
-from eave.core.outing.models.search_region_code import SearchRegionCode
-
 from ..types.geo_area import GeoArea
+from ..types.search_region_code import SearchRegionCode
 
 MOCK_GEO_AREAS = [
     GeoArea(search_region_code=SearchRegionCode.US_CA_LA1, label="Central LA/Hollywood"),
