@@ -1,5 +1,6 @@
 import random
 from datetime import timedelta
+from uuid import UUID
 
 from eave.stdlib.logging import LOGGER
 from google.maps import places_v1
@@ -13,11 +14,13 @@ from eave.core.outing.constants.activities import ACTIVITY_BUDGET_MAP_CENTS
 from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.eventbrite.models.event import EventStatus
 
-from .constants.areas import ALL_AREAS, LOS_ANGELES_AREA_MAP
+from eave.core.outing.constants.categories import get_vivial_subcategory_by_id
+
+from .constants.areas import ALL_AREAS
 from .constants.restaurants import BREAKFAST_RESTAURANT_CATEGORIES, BRUNCH_RESTAURANT_CATEGORIES, RESTAURANT_FIELD_MASK
 from .helpers.place import get_places_nearby, place_is_accessible, place_is_in_budget, place_will_be_open
 from .helpers.time import is_early_evening, is_early_morning, is_late_evening, is_late_morning
-from .models.category import Category
+from .models.category import ActivitySubcategory, Category
 from .models.geo_area import GeoArea
 from .models.outing import OutingComponent, OutingConstraints, OutingPlan
 from .models.sources import ActivitySource, RestaurantSource
@@ -51,12 +54,12 @@ class Outing:
     ) -> None:
         self.places = places_v1.PlacesClient()
         self.eventbrite = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
-        self.preferences = self.__combine_preferences(group)
+        self.preferences = self._combine_preferences(group)
         self.constraints = constraints
         self.activity = activity
         self.restaurant = restaurant
 
-    def __combine_restaurant_categories(self, group: list[User]) -> list[Category]:
+    def _combine_restaurant_categories(self, group: list[User]) -> list[Category]:
         """
         Given a group of users, combine their restaurant category preferences
         into one list of preferences.
@@ -86,7 +89,7 @@ class Outing:
         random.shuffle(difference)
         return intersection + difference
 
-    def __combine_activity_categories(self, group: list[User]) -> list[Category]:
+    def _combine_activity_categories(self, group: list[User]) -> list[ActivitySubcategory]:
         """
         Given a group of users, combine their activity category preferences
         into one list of preferences.
@@ -94,58 +97,52 @@ class Outing:
         The preferences that the users have in common will always be at the
         front of the list.
         """
-        category_map = {}
-        intersection = []
-        difference = []
+        category_map: dict[UUID,int] = {}
+        intersection: list[ActivitySubcategory] = []
+        difference: list[ActivitySubcategory] = []
 
-        # Create a map of category / subcategory IDs with occurance counts.
+        # Create a map of category / subcategory IDs with occurence counts.
         for user in group:
             for category in user.preferences.activity_categories:
-                if category.id not in category_map:
-                    category_map[category.id] = {}
-                if category.subcategory_id not in category_map[category.id]:
-                    category_map[category.id][category.subcategory_id] = 0
-                category_map[category.id][category.subcategory_id] += 1
+                category_map.setdefault(category.id, 0)
+                category_map[category.id] += 1
 
-        # Use the map of category / subcategory ID occurance counts to find the common categories.
-        for category_id in category_map:
-            for subcategory_id in category_map[category_id]:
-                if category_map[category_id][subcategory_id] == len(group):
-                    intersection.append(Category(category_id, subcategory_id))
-                else:
-                    difference.append(Category(category_id, subcategory_id))
+        # Use the map of category / subcategory ID occurence counts to find the common categories.
+        for category_id, num_matches in category_map.items():
+            category = get_vivial_subcategory_by_id(category_id)
+            if num_matches == len(group):
+                intersection.append(category)
+            else:
+                difference.append(category)
 
         random.shuffle(intersection)
         random.shuffle(difference)
         return intersection + difference
 
-    def __combine_wheelchair_needs(self, group: list[User]) -> bool:
+    def _combine_wheelchair_needs(self, group: list[User]) -> bool:
         """
         Given a group of users, return True if any of the users requires
         wheelchair accessibility.
         """
         return any(user.preferences.requires_wheelchair_accessibility for user in group)
 
-    def __combine_bar_openness(self, group: list[User]) -> bool:
+    def _combine_bar_openness(self, group: list[User]) -> bool:
         """
         Given a group of users, return False if any of the users is not open to
         going to a bar.
         """
-        for user in group:
-            if not user.preferences.open_to_bars:
-                return False
-        return True
+        return all(user.preferences.open_to_bars for user in group)
 
-    def __combine_preferences(self, group: list[User]) -> UserPreferences:
+    def _combine_preferences(self, group: list[User]) -> UserPreferences:
         """
         Given a group of users, combine their outing preferences. The logic
         throughout this class gives priority to common preferences.
         """
         return UserPreferences(
-            restaurant_categories=self.__combine_restaurant_categories(group),
-            activity_categories=self.__combine_activity_categories(group),
-            requires_wheelchair_accessibility=self.__combine_wheelchair_needs(group),
-            open_to_bars=self.__combine_bar_openness(group),
+            restaurant_categories=self._combine_restaurant_categories(group),
+            activity_categories=self._combine_activity_categories(group),
+            requires_wheelchair_accessibility=self._combine_wheelchair_needs(group),
+            open_to_bars=self._combine_bar_openness(group),
         )
 
     async def plan_activity(self) -> OutingComponent | None:
@@ -179,21 +176,27 @@ class Outing:
                     event_details = await self.eventbrite.get_event_by_id(event_id=event.eventbrite_event_id)
 
                     if not (ticket_availability := event_details.get("ticket_availability")):
+                        LOGGER.warning("Missing ticket_availability; excluding event.", {"eventbrite_event_id":event.eventbrite_event_id})
                         continue
 
                     if not ticket_availability.get("has_available_tickets"):
+                        LOGGER.warning("has_available_tickets=False; excluding event.", {"eventbrite_event_id":event.eventbrite_event_id})
                         continue
 
                     if event_details.get("status") != EventStatus.LIVE:
+                        LOGGER.warning("status != live; excluding event.", {"eventbrite_event_id":event.eventbrite_event_id})
                         continue
 
                     if not (venue := event_details.get("venue")):
+                        LOGGER.warning("Missing venue; excluding event.", {"eventbrite_event_id":event.eventbrite_event_id})
                         continue
 
                     if (lat := venue.get("latitude")) is None:
+                        LOGGER.warning("Missing latitude; excluding event.", {"eventbrite_event_id":event.eventbrite_event_id})
                         continue
 
                     if (lon := venue.get("longitude")) is None:
+                        LOGGER.warning("Missing longitude; excluding event.", {"eventbrite_event_id":event.eventbrite_event_id})
                         continue
 
                     description = await self.eventbrite.get_event_description(event_id=event.eventbrite_event_id)
@@ -236,11 +239,11 @@ class Outing:
             place_type = "bar"
 
         for search_area_id in self.constraints.search_area_ids:
-            area = LOS_ANGELES_AREA_MAP[search_area_id]
+            area = ALL_AREAS[search_area_id]
             places_nearby = get_places_nearby(
                 client=self.places,
-                latitude=area.lat,
-                longitude=area.lon,
+                latitude=area.center.lat,
+                longitude=area.center.lon,
                 radius_meters=area.rad.meters,
                 included_primary_types=[place_type],
                 field_mask=RESTAURANT_FIELD_MASK,
@@ -290,7 +293,7 @@ class Outing:
 
         # TODO: Sort areas by distance to the activity location.
         for search_area_id in self.constraints.search_area_ids:
-            search_areas.append(LOS_ANGELES_AREA_MAP[search_area_id])
+            search_areas.append(ALL_AREAS[search_area_id])
 
         # Find a restaurant that meets the outing constraints.
         for area in search_areas:

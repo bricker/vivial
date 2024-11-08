@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 import eave.core.internal.database
 from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.orm.eventbrite_event import EventbriteEventOrm
-from eave.core.outing.constants.categories import get_vivial_subcategory_from_eventbrite_subcategory_id
+from eave.core.outing.constants.categories import get_vivial_subcategory_by_eventbrite_subcategory_id
 from eave.core.outing.constants.formats import get_vivial_format_from_eventbrite_format_id
 from eave.stdlib.eventbrite.client import EventbriteClient, ListEventsQuery, OrderBy
 from eave.stdlib.eventbrite.models.event import EventStatus
@@ -117,7 +117,7 @@ async def get_eventbrite_events() -> None:
                         continue
 
                     if not (
-                        vivial_subcategory := get_vivial_subcategory_from_eventbrite_subcategory_id(eb_subcategory_id)
+                        vivial_subcategory := get_vivial_subcategory_by_eventbrite_subcategory_id(eb_subcategory_id)
                     ):
                         LOGGER.warning(
                             f"{pfx} No mapped vivial category; skipping", {"eventbrite_event_id": eventbrite_event_id}
