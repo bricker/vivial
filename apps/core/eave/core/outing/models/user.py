@@ -13,6 +13,6 @@ class UserPreferences:
 
 @dataclass
 class User:
-    id: str | None
+    account_id: str | None
     visitor_id: str | None
     preferences: UserPreferences

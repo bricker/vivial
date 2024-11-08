@@ -9,6 +9,7 @@ from eave.core.graphql.types.booking import (
     Booking,
     CreateBookingError,
     CreateBookingErrorCode,
+    CreateBookingInput,
     CreateBookingResult,
     CreateBookingSuccess,
 )
@@ -179,16 +180,14 @@ at
 async def create_booking_mutation(
     *,
     info: strawberry.Info,
-    account_id: UUID,  # TODO: need this here? or get auth from elsewhere?
-    outing_id: UUID,
-    reserver_details_id: UUID,
+    input: CreateBookingInput,
 ) -> CreateBookingResult:
     try:
         async with database.async_session.begin() as db_session:
             # TODO: should we 1 or none and return client friendly error if 404? instead of 500 throw
             outing = await OutingOrm.one_or_exception(
                 session=db_session,
-                params=OutingOrm.QueryParams(id=outing_id),
+                params=OutingOrm.QueryParams(id=input.outing_id),
             )
             survey = await SurveyOrm.one_or_exception(
                 session=db_session, params=SurveyOrm.QueryParams(id=outing.survey_id)
@@ -203,12 +202,12 @@ async def create_booking_mutation(
 
             booking = await BookingOrm.create(
                 session=db_session,
-                reserver_details_id=reserver_details_id,
+                reserver_details_id=input.reserver_details_id,
             )
 
             await AccountBookingOrm.create(
                 session=db_session,
-                account_id=account_id,
+                account_id=input.account_id,
                 booking_id=booking.id,
             )
             booking_details = await _create_templates_from_outing(
@@ -220,7 +219,7 @@ async def create_booking_mutation(
         LOGGER.exception(e)
         return CreateBookingError(error_code=CreateBookingErrorCode(e.code))
 
-    await _notify_slack(booking_details, account_id, reserver_details_id)
+    await _notify_slack(booking_details, input.account_id, input.reserver_details_id)
 
     return CreateBookingSuccess(
         booking=Booking(

@@ -14,8 +14,11 @@ UNDER NO CIRCUMSTANCES SHOULD THIS BE EVER RUN AGAINST PROD
 
 import sys
 
+from eave.core.outing.models.sources import ActivitySource, RestaurantSource
+
 sys.path.append(".")
 
+from eave.core.graphql.types.search_region import SearchRegionCode
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 load_standard_dotenv_files()
@@ -46,8 +49,6 @@ from eave.core.internal.orm.outing_activity import OutingActivityOrm
 from eave.core.internal.orm.outing_reservation import OutingReservationOrm
 from eave.core.internal.orm.reserver_details import ReserverDetailsOrm
 from eave.core.internal.orm.survey import SurveyOrm
-from eave.core.outing.models.search_region import SearchRegionCode
-from eave.stdlib.core_api.models.enums import ActivitySource, ReservationSource
 from eave.stdlib.logging import eaveLogger
 
 _EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
@@ -86,7 +87,7 @@ async def seed_database(db: AsyncEngine) -> None:
             visitor_id=visitor_id,
             account_id=account.id,
             start_time=dummy_date,
-            search_area_ids=[SearchRegionCode.US_CA_LA],
+            search_area_ids=[SearchRegionCode.US_CA_LA1],
             budget=2,
             headcount=2,
         )
@@ -100,7 +101,7 @@ async def seed_database(db: AsyncEngine) -> None:
             session=session,
             outing_id=outing.id,
             activity_id=str(uuid.uuid4()),
-            activity_source=ActivitySource.SELF,
+            activity_source=ActivitySource.INTERNAL,
             activity_start_time=dummy_date,
             num_attendees=2,
         )
@@ -108,7 +109,7 @@ async def seed_database(db: AsyncEngine) -> None:
             session=session,
             outing_id=outing.id,
             reservation_id=str(uuid.uuid4()),
-            reservation_source=ReservationSource.SELF,
+            reservation_source=RestaurantSource.GOOGLE_PLACES,
             reservation_start_time=dummy_date,
             num_attendees=2,
         )

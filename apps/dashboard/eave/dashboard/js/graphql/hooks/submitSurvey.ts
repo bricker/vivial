@@ -41,8 +41,10 @@ function submitSurveyExecute({ req, ctx }: { req: SubmitSurveyRequest; ctx: Subm
     body: JSON.stringify({
       query,
       variables: {
-        ...req,
-        startTime: req.startTime.toISOString(),
+        input: {
+          ...req,
+          startTime: req.startTime.toISOString(),
+        },
       },
     }),
   })

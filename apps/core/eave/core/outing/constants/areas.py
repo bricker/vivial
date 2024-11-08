@@ -1,10 +1,9 @@
+from eave.core.graphql.types.search_region import SearchRegion, SearchRegionCode
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
-
-from ..models.search_region import SearchRegion, SearchRegionCode
 
 ALL_AREAS = {
     SearchRegionCode.US_CA_LA1: SearchRegion(
-        name="Central LA & Hollywood",
+        name="Central LA/Hollywood",
         key=SearchRegionCode.US_CA_LA1,
         area=GeoArea(
             center=GeoPoint(lat=34.065730, lon=-118.323769),
@@ -12,7 +11,7 @@ ALL_AREAS = {
         ),
     ),
     SearchRegionCode.US_CA_LA2: SearchRegion(
-        name="Downtown Los Angeles",
+        name="DTLA",
         key=SearchRegionCode.US_CA_LA2,
         area=GeoArea(
             center=GeoPoint(lat=34.046422, lon=-118.245325),
@@ -20,7 +19,7 @@ ALL_AREAS = {
         ),
     ),
     SearchRegionCode.US_CA_LA3: SearchRegion(
-        name="Pasadena, Glendale, & Northeast LA",
+        name="Pasadena/Glendale/Northeast LA",
         key=SearchRegionCode.US_CA_LA3,
         area=GeoArea(
             center=GeoPoint(lat=34.160040, lon=-118.209821),
@@ -44,7 +43,7 @@ ALL_AREAS = {
         ),
     ),
     SearchRegionCode.US_CA_LA6: SearchRegion(
-        name="San Gabriel Valley",
+        name="SGV",
         key=SearchRegionCode.US_CA_LA6,
         area=GeoArea(
             center=GeoPoint(lat=34.116746, lon=-118.016725),

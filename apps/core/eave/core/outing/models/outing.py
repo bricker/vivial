@@ -6,7 +6,7 @@ from google.maps.places_v1.types import Place
 from eave.core.lib.geo import GeoPoint
 from eave.stdlib.eventbrite.models.event import Event
 
-from .search_region import SearchRegionCode
+from ...graphql.types.search_region import SearchRegionCode
 from .sources import ActivitySource, RestaurantSource
 
 

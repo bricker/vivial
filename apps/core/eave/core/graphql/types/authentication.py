@@ -4,7 +4,7 @@ from uuid import UUID
 
 import strawberry
 
-from eave.core.graphql.types.user_profile import UserProfile
+from eave.core.graphql.types.user import UserProfile
 
 
 @strawberry.type

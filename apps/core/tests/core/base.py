@@ -22,13 +22,13 @@ import eave.stdlib.eave_origins
 import eave.stdlib.requests_util
 import eave.stdlib.testing_util
 import eave.stdlib.typing
+from eave.core.graphql.types.search_region import SearchRegionCode
 from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.database import init_database
 from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.base import get_base_metadata
 from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.survey import SurveyOrm
-from eave.core.outing.models.search_region import SearchRegionCode
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.headers import (
     EAVE_ACCOUNT_ID_HEADER,
@@ -234,7 +234,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
                 session=session,
                 visitor_id=self.anyuuid(),
                 start_time=self.anydatetime(offset=2 * 60 * 60 * 24),
-                search_area_ids=[SearchRegionCode.US_CA_LA],
+                search_area_ids=[SearchRegionCode.US_CA_LA1],
                 budget=self.anyint(min=0, max=3),
                 headcount=self.anyint(min=1, max=2),
             )

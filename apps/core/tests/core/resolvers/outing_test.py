@@ -1,8 +1,8 @@
 from http import HTTPStatus
 
+from eave.core.graphql.types.search_region_code import SearchRegionCode
 from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.survey import SurveyOrm
-from eave.core.outing.models.search_region import SearchRegionCode
 
 from ..base import BaseTestCase
 
@@ -10,23 +10,32 @@ day_seconds = 60 * 60 * 24
 
 
 class TestOutingEndpoints(BaseTestCase):
-    async def test_survey_submit(self) -> None:
+    async def test_plan_outing(self) -> None:
+        vis_id = self.anyuuid()
+
         response = await self.httpclient.post(
             "/graphql",
             json={
                 "query": f"""
 mutation {{
-    submitSurvey(visitorId: "{self.anyuuid()}",
+    planOuting(input: {{
+        visitorId: "{vis_id}",
         startTime: "{self.anydatetime(offset=2 * day_seconds).isoformat()}",
-        searchAreaIds: ["us_ca_la"],
-        budget: 1,
-        headcount: 2) {{
-        ... on SubmitSurveySuccess {{
+        searchAreaIds: [US_CA_LA1],
+        budget: ONE,
+        headcount: 2,
+        group: [
+            {{
+                visitorId: "{vis_id}",
+            }},
+        ]
+    }}) {{
+        ... on PlanOutingSuccess {{
             outing {{
                 id
             }}
         }}
-        ... on SubmitSurveyError {{
+        ... on PlanOutingError {{
             errorCode
         }}
     }}
@@ -35,7 +44,7 @@ mutation {{
             },
         )
         assert response.status_code == HTTPStatus.OK
-        assert response.json().get("data").get("submitSurvey").get("outing").get("id") is not None
+        assert response.json().get("data").get("planOuting").get("outing").get("id") is not None
 
     async def test_replan(self) -> None:
         async with self.db_session.begin() as sess:
@@ -43,7 +52,7 @@ mutation {{
                 session=sess,
                 visitor_id=self.anyuuid(),
                 start_time=self.anydatetime(offset=2 * day_seconds),
-                search_area_ids=[SearchRegionCode.US_CA_LA],
+                search_area_ids=[SearchRegionCode.US_CA_LA1],
                 budget=1,
                 headcount=1,
             )
@@ -59,7 +68,9 @@ mutation {{
             json={
                 "query": f"""
 mutation {{
-    replanOuting(outingId: "{outing.id}", visitorId: "{self.anyuuid()}") {{
+    replanOuting(input: {{
+        outingId: "{outing.id}", visitorId: "{self.anyuuid()}"
+    }}) {{
         ... on ReplanOutingSuccess {{
             outing {{
                 id
@@ -80,7 +91,9 @@ mutation {{
             json={
                 "query": f"""
 mutation {{
-    replanOuting(outingId: "{self.anyuuid()}", visitorId: "{self.anyuuid()}") {{
+    replanOuting(input: {{
+        outingId: "{self.anyuuid()}", visitorId: "{self.anyuuid()}"
+    }}) {{
         ... on ReplanOutingSuccess {{
             outing {{
                 id
