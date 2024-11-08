@@ -5,6 +5,7 @@ from google.maps.places_v1 import PlacesClient
 from google.maps.places_v1.types import Place, SearchNearbyRequest
 
 from eave.core.graphql.types.outing import OutingBudget
+from eave.core.lib.geo import GeoArea
 
 from ..constants.restaurants import RESTAURANT_BUDGET_MAP
 from ..constants.zoneinfo import LOS_ANGELES_ZONE_INFO
@@ -12,9 +13,7 @@ from ..constants.zoneinfo import LOS_ANGELES_ZONE_INFO
 
 def get_places_nearby(
     client: PlacesClient,
-    latitude: float | str,
-    longitude: float | str,
-    radius_meters: float,
+    area: GeoArea,
     included_primary_types: list[str],
     field_mask: str,
 ) -> MutableSequence[Place]:
@@ -25,12 +24,12 @@ def get_places_nearby(
     https://developers.google.com/maps/documentation/places/web-service/nearby-search
     """
     location_restriction = SearchNearbyRequest.LocationRestriction()
-    location_restriction.circle.radius = radius_meters
-    location_restriction.circle.center.latitude = latitude
-    location_restriction.circle.center.longitude = longitude
+    location_restriction.circle.radius = area.rad.meters
+    location_restriction.circle.center.latitude = area.center.lat
+    location_restriction.circle.center.longitude = area.center.lon
     request = SearchNearbyRequest(
         location_restriction=location_restriction,
-        included_primary_types=included_primary_types,
+        included_primary_types=included_primary_types[0:50],
     )
     response = client.search_nearby(request=request, metadata=[("x-goog-fieldmask", field_mask)])
     return response.places or []

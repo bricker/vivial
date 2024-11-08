@@ -200,33 +200,20 @@ RESTAURANT_CATEGORIES = [
     ),
 ]
 
-_BREAKFAST_RESTAURANT_CATEGORY_IDS = [
+BREAKFAST_RESTAURANT_CATEGORY_IDS = [
     "coffee_shop",
     "breakfast_restaurant",
     "bakery",
     "cafe",
 ]
 
-BREAKFAST_RESTAURANT_CATEGORIES = [
-    cat
-    for cat in RESTAURANT_CATEGORIES
-    if any(catid in _BREAKFAST_RESTAURANT_CATEGORY_IDS for catid in cat.google_category_ids)
-]
-
-_BRUNCH_RESTAURANT_CATEGORY_IDS = [
+BRUNCH_RESTAURANT_CATEGORY_IDS = [
     "brunch_restaurant",
     "breakfast_restaurant",
     "cafe",
 ]
 
-BRUNCH_RESTAURANT_CATEGORIES = [
-    cat
-    for cat in RESTAURANT_CATEGORIES
-    if any(catid in _BRUNCH_RESTAURANT_CATEGORY_IDS for catid in cat.google_category_ids)
-]
-
 _VIVIAL_REST_CATS_BY_ID: dict[UUID, RestaurantCategory] = {cat.id: cat for cat in RESTAURANT_CATEGORIES}
-
 
 def get_vivial_restaurant_category_by_id(category_id: UUID) -> RestaurantCategory:
     return _VIVIAL_REST_CATS_BY_ID[category_id]

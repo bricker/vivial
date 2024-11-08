@@ -16,8 +16,8 @@ from eave.stdlib.logging import LOGGER
 
 from .constants.areas import ALL_AREAS
 from .constants.restaurants import (
-    BREAKFAST_RESTAURANT_CATEGORIES,
-    BRUNCH_RESTAURANT_CATEGORIES,
+    BREAKFAST_RESTAURANT_CATEGORY_IDS,
+    BRUNCH_RESTAURANT_CATEGORY_IDS,
     RESTAURANT_FIELD_MASK,
     get_vivial_restaurant_category_by_id,
 )
@@ -256,9 +256,7 @@ class OutingPlanner:
             region = ALL_AREAS[search_area_id]
             places_nearby = get_places_nearby(
                 client=self.places,
-                latitude=region.area.center.lat,
-                longitude=region.area.center.lon,
-                radius_meters=region.area.rad.meters,
+                area=region.area,
                 included_primary_types=[place_type],
                 field_mask=RESTAURANT_FIELD_MASK,
             )
@@ -290,16 +288,18 @@ class OutingPlanner:
         """
         arrival_time = self.constraints.start_time
         departure_time = arrival_time + timedelta(minutes=90)
-        restaurant_categories = self.preferences.restaurant_categories
         search_areas = []
 
         # If this is a morning outing, override user restaurant preferences and show them breakfast / brunch spots.
         if is_early_morning(self.constraints.start_time):
-            restaurant_categories = BREAKFAST_RESTAURANT_CATEGORIES.copy()
-            random.shuffle(restaurant_categories)
+            restaurant_category_ids = BREAKFAST_RESTAURANT_CATEGORY_IDS.copy()
+            random.shuffle(restaurant_category_ids)
         elif is_late_morning(self.constraints.start_time):
-            restaurant_categories = BRUNCH_RESTAURANT_CATEGORIES.copy()
-            random.shuffle(restaurant_categories)
+            restaurant_category_ids = BRUNCH_RESTAURANT_CATEGORY_IDS.copy()
+            random.shuffle(restaurant_category_ids)
+        else:
+            # Already randomized in combiner funcs
+            restaurant_category_ids = [gcid for cat in self.preferences.restaurant_categories for gcid in cat.google_category_ids]
 
         # If an activity has been selected, use that as the search area.
         if self.activity and self.activity.location:
@@ -316,32 +316,29 @@ class OutingPlanner:
 
         # Find a restaurant that meets the outing constraints.
         for area in search_areas:
-            for category in restaurant_categories:
-                restaurants_nearby = get_places_nearby(
-                    client=self.places,
-                    latitude=area.center.lat,
-                    longitude=area.center.lon,
-                    radius_meters=area.rad.meters,
-                    included_primary_types=category.google_category_ids,  # FIXME: This will send all of the google category IDs associated with a single Vivial restaurant category. So if a restaurant is "Brunch" and "Vietnamese", then the results could return just Vietnamese restaurants.
-                    field_mask=RESTAURANT_FIELD_MASK,
-                )
-                random.shuffle(restaurants_nearby)
-                for restaurant in restaurants_nearby:
-                    if self.preferences.requires_wheelchair_accessibility and not place_is_accessible(restaurant):
-                        continue
-                    will_be_open = place_will_be_open(restaurant, arrival_time, departure_time)
-                    is_in_budget = place_is_in_budget(restaurant, self.constraints.budget)
-                    if will_be_open and is_in_budget:
-                        if restaurant.location:
-                            lat = restaurant.location.latitude
-                            lon = restaurant.location.longitude
-                            if lat and lon:
-                                self.restaurant = OutingComponent(
-                                    source=RestaurantSource.GOOGLE_PLACES,
-                                    place=restaurant,
-                                    location=GeoPoint(lat=lat, lon=lon),
-                                )
-                                return self.restaurant
+            restaurants_nearby = get_places_nearby(
+                client=self.places,
+                area=area,
+                included_primary_types=restaurant_category_ids,
+                field_mask=RESTAURANT_FIELD_MASK,
+            )
+            random.shuffle(restaurants_nearby)
+            for restaurant in restaurants_nearby:
+                if self.preferences.requires_wheelchair_accessibility and not place_is_accessible(restaurant):
+                    continue
+                will_be_open = place_will_be_open(restaurant, arrival_time, departure_time)
+                is_in_budget = place_is_in_budget(restaurant, self.constraints.budget)
+                if will_be_open and is_in_budget:
+                    if restaurant.location:
+                        lat = restaurant.location.latitude
+                        lon = restaurant.location.longitude
+                        if lat and lon:
+                            self.restaurant = OutingComponent(
+                                source=RestaurantSource.GOOGLE_PLACES,
+                                place=restaurant,
+                                location=GeoPoint(lat=lat, lon=lon),
+                            )
+                            return self.restaurant
 
         # No restaurant was found :(
         self.restaurant = None
