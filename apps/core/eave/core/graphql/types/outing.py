@@ -5,6 +5,9 @@ from uuid import UUID
 
 import strawberry
 
+from eave.core.graphql.types.search_region_code import SearchRegionCode
+from eave.core.graphql.types.user import UserInput
+
 from .activity import Activity
 from .restaurant import Restaurant
 
@@ -38,8 +41,24 @@ class Outing:
     driving_time: str
 
 
+@strawberry.input
+class ReplanOutingInput:
+    visitor_id: UUID
+    outing_id: UUID
+
+
+@strawberry.input
+class PlanOutingInput:
+    visitor_id: UUID
+    group: list[UserInput]
+    start_time: datetime
+    search_area_ids: list[SearchRegionCode]
+    budget: OutingBudget
+    headcount: int
+
+
 @strawberry.enum
-class SubmitSurveyErrorCode(enum.StrEnum):
+class PlanOutingErrorCode(enum.StrEnum):
     START_TIME_TOO_SOON = "START_TIME_TOO_SOON"
     START_TIME_TOO_LATE = "START_TIME_TOO_LATE"
     ONE_SEARCH_REGION_REQUIRED = "ONE_SEARCH_REGION_REQUIRED"
@@ -51,11 +70,11 @@ class PlanOutingSuccess:
 
 
 @strawberry.type
-class SubmitSurveyError:
-    error_code: SubmitSurveyErrorCode
+class PlanOutingError:
+    error_code: PlanOutingErrorCode
 
 
-SubmitSurveyResult = Annotated[PlanOutingSuccess | SubmitSurveyError, strawberry.union("SubmitSurveyResult")]
+PlanOutingResult = Annotated[PlanOutingSuccess | PlanOutingError, strawberry.union("PlanOutingResult")]
 
 
 @strawberry.enum

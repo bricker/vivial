@@ -9,23 +9,23 @@ from eave.core.graphql.types.outing import (
     Outing,
     OutingBudget,
     OutingState,
+    PlanOutingInput,
+    PlanOutingResult,
     PlanOutingSuccess,
+    ReplanOutingInput,
     ReplanOutingResult,
     ReplanOutingSuccess,
-    SubmitSurveyResult,
 )
 from eave.core.graphql.types.photos import Photos
 from eave.core.graphql.types.restaurant import Restaurant
+from eave.core.graphql.types.search_region_code import SearchRegionCode
 from eave.core.internal import database
 from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.outing_activity import OutingActivityOrm
 from eave.core.internal.orm.outing_reservation import OutingReservationOrm
 from eave.core.outing.constants.zoneinfo import LOS_ANGELES_ZONE_INFO
-from eave.core.outing.models.search_region_code import SearchRegionCode
 from eave.core.outing.models.sources import ActivitySource, RestaurantSource
 from eave.stdlib.core_api.models.enums import ReservationSource
-
-from ..types.user import UserInput
 
 # TODO: Remove once we're fetching from the appropriate sources.
 MOCK_OUTING = Outing(
@@ -142,13 +142,8 @@ async def create_outing_plan(
 async def plan_outing_mutation(
     *,
     info: strawberry.Info,
-    visitor_id: UUID,
-    group: list[UserInput],
-    start_time: datetime,
-    search_area_ids: list[str],
-    budget: OutingBudget,
-    headcount: int,
-) -> SubmitSurveyResult:
+    input: PlanOutingInput,
+) -> PlanOutingResult:
     # try:
     #     async with database.async_session.begin() as db_session:
     #         search_areas: list[SearchRegionCode] = []
@@ -180,13 +175,7 @@ async def plan_outing_mutation(
 async def replan_outing_mutation(
     *,
     info: strawberry.Info,
-    visitor_id: UUID,
-    outing_id: UUID,
-    group: list[UserInput],
-    start_time: datetime,
-    search_area_ids: list[str],
-    budget: OutingBudget,
-    headcount: int,
+    input: ReplanOutingInput,
 ) -> ReplanOutingResult:
     # try:
     #     async with database.async_session.begin() as db_session:

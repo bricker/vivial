@@ -4,6 +4,7 @@ import strawberry
 
 from eave.core.graphql.types.reserver_details import (
     ReserverDetails,
+    ReserverDetailsInput,
     SubmitReserverDetailsError,
     SubmitReserverDetailsErrorCode,
     SubmitReserverDetailsResult,
@@ -26,10 +27,7 @@ MOCK_RESERVER_DETAILS = ReserverDetails(
 async def submit_reserver_details_mutation(
     *,
     info: strawberry.Info,
-    account_id: UUID,  # TODO: need this here? or get auth from elsewhere?
-    first_name: str,
-    last_name: str,
-    phone_number: str,
+    input: ReserverDetailsInput,
 ) -> SubmitReserverDetailsResult:
     """
     phone_number parameter must be digits only (with the exception of country code +) to pass validation
@@ -39,10 +37,10 @@ async def submit_reserver_details_mutation(
         async with database.async_session.begin() as db_session:
             reserver_details = await ReserverDetailsOrm.create(
                 session=db_session,
-                account_id=account_id,
-                first_name=first_name,
-                last_name=last_name,
-                phone_number=phone_number,
+                account_id=input.account_id,
+                first_name=input.first_name,
+                last_name=input.last_name,
+                phone_number=input.phone_number,
             )
     except InvalidDataError as e:
         LOGGER.exception(e)

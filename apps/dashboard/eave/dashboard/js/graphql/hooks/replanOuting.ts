@@ -37,7 +37,7 @@ function replanOutingExecute({ req, ctx }: { req: ReplanOutingRequest; ctx: Repl
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       query,
-      variables: req,
+      variables: { input: req },
     }),
   })
     .then((resp) => {
