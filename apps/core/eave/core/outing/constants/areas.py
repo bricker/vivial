@@ -15,8 +15,12 @@ ALL_AREAS = {
         lon=-118.209821,
         rad_miles=6.49,
     ),
-    SearchRegionCode.US_CA_LA4: GeoArea(name="Westside", key=SearchRegionCode.US_CA_LA4, lat=33.965090, lon=-118.557344, rad_miles=10.55),
-    SearchRegionCode.US_CA_LA5: GeoArea(name="South Bay", key=SearchRegionCode.US_CA_LA5, lat=33.856750, lon=-118.354487, rad_miles=9.70),
+    SearchRegionCode.US_CA_LA4: GeoArea(
+        name="Westside", key=SearchRegionCode.US_CA_LA4, lat=33.965090, lon=-118.557344, rad_miles=10.55
+    ),
+    SearchRegionCode.US_CA_LA5: GeoArea(
+        name="South Bay", key=SearchRegionCode.US_CA_LA5, lat=33.856750, lon=-118.354487, rad_miles=9.70
+    ),
     SearchRegionCode.US_CA_LA6: GeoArea(
         name="San Gabriel Valley", key=SearchRegionCode.US_CA_LA6, lat=34.116746, lon=-118.016725, rad_miles=8.46
     ),

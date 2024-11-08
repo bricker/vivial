@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from .category import ActivityCategory, ActivitySubcategory, Category
+from .category import ActivitySubcategory, Category
 
 
 @dataclass

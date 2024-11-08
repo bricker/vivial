@@ -2,7 +2,6 @@ import random
 from datetime import timedelta
 from uuid import UUID
 
-from eave.stdlib.logging import LOGGER
 from google.maps import places_v1
 from sqlalchemy import func
 
@@ -11,10 +10,10 @@ from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.lib.geo import GeoLocation
 from eave.core.outing.constants.activities import ACTIVITY_BUDGET_MAP_CENTS
+from eave.core.outing.constants.categories import get_vivial_subcategory_by_id
 from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.eventbrite.models.event import EventStatus
-
-from eave.core.outing.constants.categories import get_vivial_subcategory_by_id
+from eave.stdlib.logging import LOGGER
 
 from .constants.areas import ALL_AREAS
 from .constants.restaurants import BREAKFAST_RESTAURANT_CATEGORIES, BRUNCH_RESTAURANT_CATEGORIES, RESTAURANT_FIELD_MASK
@@ -97,7 +96,7 @@ class Outing:
         The preferences that the users have in common will always be at the
         front of the list.
         """
-        category_map: dict[UUID,int] = {}
+        category_map: dict[UUID, int] = {}
         intersection: list[ActivitySubcategory] = []
         difference: list[ActivitySubcategory] = []
 
@@ -176,27 +175,41 @@ class Outing:
                     event_details = await self.eventbrite.get_event_by_id(event_id=event.eventbrite_event_id)
 
                     if not (ticket_availability := event_details.get("ticket_availability")):
-                        LOGGER.warning("Missing ticket_availability; excluding event.", {"eventbrite_event_id":event.eventbrite_event_id})
+                        LOGGER.warning(
+                            "Missing ticket_availability; excluding event.",
+                            {"eventbrite_event_id": event.eventbrite_event_id},
+                        )
                         continue
 
                     if not ticket_availability.get("has_available_tickets"):
-                        LOGGER.warning("has_available_tickets=False; excluding event.", {"eventbrite_event_id":event.eventbrite_event_id})
+                        LOGGER.warning(
+                            "has_available_tickets=False; excluding event.",
+                            {"eventbrite_event_id": event.eventbrite_event_id},
+                        )
                         continue
 
                     if event_details.get("status") != EventStatus.LIVE:
-                        LOGGER.warning("status != live; excluding event.", {"eventbrite_event_id":event.eventbrite_event_id})
+                        LOGGER.warning(
+                            "status != live; excluding event.", {"eventbrite_event_id": event.eventbrite_event_id}
+                        )
                         continue
 
                     if not (venue := event_details.get("venue")):
-                        LOGGER.warning("Missing venue; excluding event.", {"eventbrite_event_id":event.eventbrite_event_id})
+                        LOGGER.warning(
+                            "Missing venue; excluding event.", {"eventbrite_event_id": event.eventbrite_event_id}
+                        )
                         continue
 
                     if (lat := venue.get("latitude")) is None:
-                        LOGGER.warning("Missing latitude; excluding event.", {"eventbrite_event_id":event.eventbrite_event_id})
+                        LOGGER.warning(
+                            "Missing latitude; excluding event.", {"eventbrite_event_id": event.eventbrite_event_id}
+                        )
                         continue
 
                     if (lon := venue.get("longitude")) is None:
-                        LOGGER.warning("Missing longitude; excluding event.", {"eventbrite_event_id":event.eventbrite_event_id})
+                        LOGGER.warning(
+                            "Missing longitude; excluding event.", {"eventbrite_event_id": event.eventbrite_event_id}
+                        )
                         continue
 
                     description = await self.eventbrite.get_event_description(event_id=event.eventbrite_event_id)

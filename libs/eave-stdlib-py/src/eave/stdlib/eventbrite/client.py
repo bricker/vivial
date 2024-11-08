@@ -1,9 +1,9 @@
 from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
+from dataclasses import dataclass
 from enum import StrEnum
 from functools import wraps
 from http import HTTPMethod
-from typing import Any, TypedDict
-from dataclasses import dataclass
+from typing import Any
 
 import aiohttp
 
@@ -39,6 +39,7 @@ class GetEventQuery:
             params["expand"] = ",".join(self.expand)
 
         return params
+
 
 @dataclass(kw_only=True)
 class ListEventsQuery:
@@ -77,6 +78,7 @@ class ListEventsQuery:
 
         return params
 
+
 @dataclass(kw_only=True)
 class ListTicketClassesForSaleQuery:
     pos: PointOfSale | NotGiven = NOT_GIVEN
@@ -105,6 +107,7 @@ class ListTicketClassesForSaleQuery:
 
         return params
 
+
 @dataclass(kw_only=True)
 class ListDefaultQuestionsQuery:
     include_all: bool | NotGiven = NOT_GIVEN
@@ -118,6 +121,7 @@ class ListDefaultQuestionsQuery:
 
         return params
 
+
 @dataclass(kw_only=True)
 class ListCustomQuestionsQuery:
     as_owner: bool | NotGiven = NOT_GIVEN
@@ -130,6 +134,7 @@ class ListCustomQuestionsQuery:
             params["as_owner"] = "true" if self.as_owner else "false"
 
         return params
+
 
 def paginated[T, **P](
     data_key: str, data_type: type[T]
@@ -180,7 +185,9 @@ class EventbriteClient:
     async def get_event_by_id(self, *, event_id: str, query: GetEventQuery | None = None) -> Event:
         """https://www.eventbrite.com/platform/api#/reference/event/retrieve/retrieve-an-event"""
 
-        response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}", query=query.compile() if query else None)
+        response = await self.make_request(
+            method=HTTPMethod.GET, path=f"/events/{event_id}", query=query.compile() if query else None
+        )
         j = await response.json()
         return j
 
@@ -247,7 +254,10 @@ class EventbriteClient:
         """https://www.eventbrite.com/platform/api#/reference/questions/list-custom-questions/list-custom-questions-by-event"""
 
         response = await self.make_request(
-            method=HTTPMethod.GET, path=f"/events/{event_id}/questions", query=query.compile() if query else None, continuation=continuation
+            method=HTTPMethod.GET,
+            path=f"/events/{event_id}/questions",
+            query=query.compile() if query else None,
+            continuation=continuation,
         )
         return response
 

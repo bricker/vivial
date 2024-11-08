@@ -2,11 +2,9 @@ from dataclasses import dataclass
 from datetime import datetime
 
 from google.maps.places_v1.types import Place
-from shapely import Point
-
-from eave.stdlib.eventbrite.models.event import Event
 
 from eave.core.lib.geo import GeoLocation
+from eave.stdlib.eventbrite.models.event import Event
 
 from .search_region_code import SearchRegionCode
 from .sources import ActivitySource, RestaurantSource

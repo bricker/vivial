@@ -674,7 +674,7 @@ _EB_SUBCATS_TO_VIVIAL: dict[str, ActivitySubcategory] = {}
 A map of { "eventbrite_subcategory_id" => "vivial_subcategory_id" }
 """
 
-_VIVIAL_SUBCATS_BY_ID: dict[UUID, ActivitySubcategory] = {cat.id:cat for cat in ACTIVITY_SUBCATEGORIES}
+_VIVIAL_SUBCATS_BY_ID: dict[UUID, ActivitySubcategory] = {cat.id: cat for cat in ACTIVITY_SUBCATEGORIES}
 
 """
 A} map of { "eventbrite_subcategory_id" => "vivial_subcategory_id" }
@@ -690,6 +690,7 @@ for cat in ACTIVITY_SUBCATEGORIES:
 
 def get_vivial_subcategory_by_eventbrite_subcategory_id(eventbrite_subcategory_id: str) -> ActivitySubcategory | None:
     return _EB_SUBCATS_TO_VIVIAL.get(eventbrite_subcategory_id)
+
 
 def get_vivial_subcategory_by_id(subcategory_id: UUID) -> ActivitySubcategory:
     return _VIVIAL_SUBCATS_BY_ID[subcategory_id]

@@ -3,14 +3,11 @@ from datetime import datetime
 from typing import Self
 from uuid import UUID
 
-import geoalchemy2
-import shapely
 from geoalchemy2.elements import WKBElement
 from geoalchemy2.functions import ST_DWithin
 from geoalchemy2.types import Geography
-from sqlalchemy import PrimaryKeyConstraint, ScalarResult, Select, func, or_, select
+from sqlalchemy import PrimaryKeyConstraint, Select, func, or_, select
 from sqlalchemy.dialects.postgresql import INT4RANGE, TSTZRANGE, Range
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.lib.geo import GeoLocation, SpatialReferenceSystemId
@@ -97,11 +94,7 @@ class EventbriteEventOrm(Base):
             lookup = lookup.where(
                 or_(
                     *[
-                        ST_DWithin(
-                            cls.coordinates,
-                            area.center.geoalchemy_shape(),
-                            area.rad.meters
-                        )
+                        ST_DWithin(cls.coordinates, area.center.geoalchemy_shape(), area.rad.meters)
                         for area in params.within_areas
                     ]
                 )

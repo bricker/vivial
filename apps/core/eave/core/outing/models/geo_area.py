@@ -1,6 +1,4 @@
-from dataclasses import dataclass
 
-from shapely import Point
 
 from eave.core.lib.geo import Distance, GeoLocation
 
