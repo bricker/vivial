@@ -21,3 +21,8 @@ class UpdateAccountInput:
     plaintext_password: str | None = strawberry.UNSET
     phone_number: str | None = strawberry.UNSET
     preferences: UpdatePreferencesInput | None = strawberry.UNSET
+
+
+@strawberry.type
+class UpdateAccountSuccess:
+    account: Account

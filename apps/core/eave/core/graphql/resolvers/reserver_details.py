@@ -1,4 +1,4 @@
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import strawberry
 
@@ -13,6 +13,14 @@ from eave.core.internal import database
 from eave.core.internal.orm.reserver_details import ReserverDetailsOrm
 from eave.stdlib.exceptions import InvalidDataError
 from eave.stdlib.logging import LOGGER
+
+MOCK_RESERVER_DETAILS = ReserverDetails(
+    id=uuid4(),
+    account_id=uuid4(),
+    first_name="Lana",
+    last_name="Nguyen",
+    phone_number="(555) 555-5555",
+)
 
 
 async def submit_reserver_details_mutation(
@@ -49,3 +57,8 @@ async def submit_reserver_details_mutation(
             phone_number=reserver_details.phone_number,
         )
     )
+
+
+async def reserver_details_query(*, info: strawberry.Info, account_id: UUID) -> list[ReserverDetails]:
+    # TODO: Fetch list of reserver details by account_id.
+    return [MOCK_RESERVER_DETAILS]

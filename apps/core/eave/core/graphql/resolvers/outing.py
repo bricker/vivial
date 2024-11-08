@@ -8,6 +8,7 @@ from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import (
     Outing,
     OutingBudget,
+    OutingState,
     PlanOutingSuccess,
     ReplanOutingResult,
     ReplanOutingSuccess,
@@ -215,3 +216,15 @@ async def replan_outing_mutation(
     #     return ReplanOutingError(error_code=ReplanOutingErrorCode.START_TIME_TOO_SOON)
 
     return ReplanOutingSuccess(outing=MOCK_OUTING)
+
+
+async def outing_query(*, info: strawberry.Info, outing_id: UUID) -> Outing:
+    # TODO: Fetch outing by outing_id.
+    return MOCK_OUTING
+
+
+async def booked_outings_query(*, info: strawberry.Info, account_id: UUID, outing_state: OutingState) -> list[Outing]:
+    # TODO: Fetch list of booked outings by account ID.
+    # PAST outings are outings that have already occured.
+    # FUTURE outings are upcoming outings.
+    return [MOCK_OUTING, MOCK_OUTING]
