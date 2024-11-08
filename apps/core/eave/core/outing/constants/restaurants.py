@@ -41,31 +41,12 @@ RESTAURANT_FIELD_MASK = ",".join(
     ]
 )
 
-
 RESTAURANT_CATEGORIES = [
     RestaurantCategory(
         id=UUID("ccb375f8e428489eac14192d12f0fd5a"),
         name="American",
         is_default=True,
         google_category_ids=["american_restaurant", "hamburger_restaurant"],
-    ),
-    RestaurantCategory(
-        id=UUID("19f88f27577a4d26b057a86222e1c080"),
-        name="Breakfast & Brunch",
-        is_default=True,
-        google_category_ids=["breakfast_restaurant", "brunch_restaurant"],
-    ),
-    RestaurantCategory(
-        id=UUID("9ec628070ac64a58855caf7bfc2e87b1"),
-        name="Bakery",
-        is_default=True,
-        google_category_ids=["bakery"],
-    ),
-    RestaurantCategory(
-        id=UUID("0069ad60d5da4fe3aa472bd644a7e6b5"),
-        name="Bar",
-        is_default=True,
-        google_category_ids=["bar"],
     ),
     RestaurantCategory(
         id=UUID("d05066d4db074ff8aa766ecaf658e5f7"),
@@ -90,12 +71,6 @@ RESTAURANT_CATEGORIES = [
         name="Chinese",
         is_default=True,
         google_category_ids=["chinese_restaurant"],
-    ),
-    RestaurantCategory(
-        id=UUID("5e3ebc3cfcff4bdf8c073c5e01efaa2d"),
-        name="Coffee Shop",
-        is_default=True,
-        google_category_ids=["coffee_shop"],
     ),
     RestaurantCategory(
         id=UUID("3c80c400a9fa42bdbc183a761d23b1a8"),
