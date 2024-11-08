@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from eave.core.graphql.types.search_region_code import SearchRegionCode
+from eave.core.graphql.types.search_region import SearchRegionCode
 from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.survey import SurveyOrm
 

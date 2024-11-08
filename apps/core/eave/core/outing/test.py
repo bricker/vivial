@@ -1,12 +1,13 @@
 import asyncio
 from datetime import datetime
 
-from eave.core.graphql.types.search_region import SearchRegionCode
-from eave.core.outing.constants.categories import ACTIVITY_SUBCATEGORIES
-from eave.core.outing.planner import OutingPlanner
 from models.category import Category
 from models.outing import OutingConstraints
 from models.user import User, UserPreferences
+
+from eave.core.graphql.types.search_region import SearchRegionCode
+from eave.core.outing.constants.categories import ACTIVITY_SUBCATEGORIES
+from eave.core.outing.planner import OutingPlanner
 
 
 # TODO: Write thorough automated tests once all relevant tables / endpoints are ready (pending Bryan).
