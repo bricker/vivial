@@ -1,12 +1,13 @@
 import asyncio
 from datetime import datetime
 
-from models.category import Category
 from models.outing import OutingConstraints
 from models.user import User, UserPreferences
 
+from eave.core.graphql.types.outing import OutingBudget
 from eave.core.graphql.types.search_region import SearchRegionCode
 from eave.core.outing.constants.activities import ACTIVITY_SUBCATEGORIES
+from eave.core.outing.constants.restaurants import RESTAURANT_CATEGORIES
 from eave.core.outing.planner import OutingPlanner
 
 
@@ -15,7 +16,7 @@ async def main() -> None:
     test_outing_constraints = OutingConstraints(
         start_time=datetime.fromisoformat("2024-10-25T19:42:31.946205"),
         search_area_ids=[SearchRegionCode.US_CA_LA2],
-        budget=2,
+        budget=OutingBudget.TWO,
         headcount=2,
     )
     test_user_1 = User(
@@ -25,11 +26,7 @@ async def main() -> None:
             UserPreferences(
                 open_to_bars=True,
                 requires_wheelchair_accessibility=False,
-                restaurant_categories=[
-                    Category(id="sushi_restaurant"),
-                    Category(id="american_restaurant"),
-                    Category(id="brazilian_restaurant"),
-                ],
+                restaurant_categories=RESTAURANT_CATEGORIES[0:3],
                 activity_categories=ACTIVITY_SUBCATEGORIES[0:3],
             )
         ),
@@ -41,11 +38,7 @@ async def main() -> None:
             UserPreferences(
                 open_to_bars=True,
                 requires_wheelchair_accessibility=False,
-                restaurant_categories=[
-                    Category(id="chinese_restaurant"),
-                    Category(id="fast_food_restaurant"),
-                    Category(id="mexican_restaurant"),
-                ],
+                restaurant_categories=RESTAURANT_CATEGORIES[3:6],
                 activity_categories=ACTIVITY_SUBCATEGORIES[3:6],
             )
         ),
