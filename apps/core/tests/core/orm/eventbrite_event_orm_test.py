@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from eave.core.internal.orm.eventbrite_event import EventbriteEventOrm
-from eave.core.outing.models.geo_area import GeoArea
+from eave.core.outing.models.geo_area import SearchRegion
 
 from ..base import BaseTestCase
 
@@ -204,7 +204,7 @@ class TestEventbriteEventOrm(BaseTestCase):
             session.add(obj)
 
         async with self.db_session.begin() as session:
-            search_area = GeoArea(lat=self.getlatitude("lat"), lon=self.getlongitude("lon"), rad_miles=0.1)
+            search_area = SearchRegion(lat=self.getlatitude("lat"), lon=self.getlongitude("lon"), rad_miles=0.1)
             results = (
                 await EventbriteEventOrm.query(
                     session,
@@ -218,7 +218,7 @@ class TestEventbriteEventOrm(BaseTestCase):
 
             # Move the search area to the antipode
             antipodesign = 1 if self.getlongitude("lon") <= 0 else -1
-            search_area = GeoArea(
+            search_area = SearchRegion(
                 lat=-self.getlatitude("lat"), lon=self.getlongitude("lon") + (180 * antipodesign), rad_miles=0.1
             )
             results = (

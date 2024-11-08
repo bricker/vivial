@@ -10,8 +10,8 @@ from sqlalchemy import PrimaryKeyConstraint, Select, func, or_, select
 from sqlalchemy.dialects.postgresql import INT4RANGE, TSTZRANGE, Range
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.core.lib.geo import GeoLocation, SpatialReferenceSystemId
-from eave.core.outing.models.geo_area import GeoArea
+from eave.core.lib.geo import GeoPoint, SpatialReferenceSystemId
+from eave.core.outing.models.geo_area import SearchRegion
 from eave.stdlib.typing import NOT_GIVEN, NotGiven
 
 from .base import Base
@@ -59,7 +59,7 @@ class EventbriteEventOrm(Base):
             max_cost_cents += 1
 
         self.cost_cents_range = Range(lower=min_cost_cents, upper=max_cost_cents, bounds="[)")
-        self.coordinates = GeoLocation(lat=lat, lon=lon).geoalchemy_shape()
+        self.coordinates = GeoPoint(lat=lat, lon=lon).geoalchemy_shape()
         self.subcategory_id = subcategory_id
         self.format_id = format_id
         return self
@@ -69,7 +69,7 @@ class EventbriteEventOrm(Base):
         eventbrite_event_id: str | NotGiven = NOT_GIVEN
         cost_range_contains: int | NotGiven = NOT_GIVEN
         time_range_contains: datetime | NotGiven = NOT_GIVEN
-        within_areas: list[GeoArea] | NotGiven = NOT_GIVEN
+        within_areas: list[SearchRegion] | NotGiven = NOT_GIVEN
         subcategory_ids: list[UUID] | NotGiven = NOT_GIVEN
 
     @classmethod

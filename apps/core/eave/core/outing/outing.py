@@ -8,7 +8,7 @@ from sqlalchemy import func
 import eave.core.internal.database
 from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.orm.eventbrite_event import EventbriteEventOrm
-from eave.core.lib.geo import GeoLocation
+from eave.core.lib.geo import Distance, GeoArea, GeoPoint
 from eave.core.outing.constants.activities import ACTIVITY_BUDGET_MAP_CENTS
 from eave.core.outing.constants.categories import get_vivial_subcategory_by_id
 from eave.stdlib.eventbrite.client import EventbriteClient
@@ -20,7 +20,6 @@ from .constants.restaurants import BREAKFAST_RESTAURANT_CATEGORIES, BRUNCH_RESTA
 from .helpers.place import get_places_nearby, place_is_accessible, place_is_in_budget, place_will_be_open
 from .helpers.time import is_early_evening, is_early_morning, is_late_evening, is_late_morning
 from .models.category import ActivitySubcategory, Category
-from .models.geo_area import GeoArea
 from .models.outing import OutingComponent, OutingConstraints, OutingPlan
 from .models.sources import ActivitySource, RestaurantSource
 from .models.user import User, UserPreferences
@@ -218,7 +217,7 @@ class Outing:
                     self.activity = OutingComponent(
                         source=ActivitySource.EVENTBRITE,
                         event=event_details,
-                        location=GeoLocation(lat=float(lat), lon=float(lon)),
+                        location=GeoPoint(lat=float(lat), lon=float(lon)),
                     )
                     return self.activity
 
@@ -252,12 +251,12 @@ class Outing:
             place_type = "bar"
 
         for search_area_id in self.constraints.search_area_ids:
-            area = ALL_AREAS[search_area_id]
+            region = ALL_AREAS[search_area_id]
             places_nearby = get_places_nearby(
                 client=self.places,
-                latitude=area.center.lat,
-                longitude=area.center.lon,
-                radius_meters=area.rad.meters,
+                latitude=region.area.center.lat,
+                longitude=region.area.center.lon,
+                radius_meters=region.area.rad.meters,
                 included_primary_types=[place_type],
                 field_mask=RESTAURANT_FIELD_MASK,
             )
@@ -272,7 +271,7 @@ class Outing:
                     lon = place.location.longitude
                     if lat and lon:
                         self.activity = OutingComponent(
-                            source=RestaurantSource.GOOGLE_PLACES, place=place, location=GeoLocation(lat=lat, lon=lon)
+                            source=RestaurantSource.GOOGLE_PLACES, place=place, location=GeoPoint(lat=lat, lon=lon)
                         )
                         return self.activity
 
@@ -302,11 +301,16 @@ class Outing:
 
         # If an activity has been selected, use that as the search area.
         if self.activity and self.activity.location:
-            search_areas = [GeoArea(lat=self.activity.location.lat, lon=self.activity.location.lon, rad_miles=5)]
+            search_areas = [
+                GeoArea(
+                    center=GeoPoint(lat=self.activity.location.lat, lon=self.activity.location.lon),
+                    rad=Distance(miles=5),
+                ),
+            ]
 
         # TODO: Sort areas by distance to the activity location.
         for search_area_id in self.constraints.search_area_ids:
-            search_areas.append(ALL_AREAS[search_area_id])
+            search_areas.append(ALL_AREAS[search_area_id].area)
 
         # Find a restaurant that meets the outing constraints.
         for area in search_areas:
@@ -333,7 +337,7 @@ class Outing:
                                 self.restaurant = OutingComponent(
                                     source=RestaurantSource.GOOGLE_PLACES,
                                     place=restaurant,
-                                    location=GeoLocation(lat=lat, lon=lon),
+                                    location=GeoPoint(lat=lat, lon=lon),
                                 )
                                 return self.restaurant
 

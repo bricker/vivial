@@ -28,7 +28,7 @@ from eave.core.internal.orm.account import AccountOrm
 from eave.core.internal.orm.base import get_base_metadata
 from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.survey import SurveyOrm
-from eave.core.outing.models.search_region_code import SearchRegionCode
+from eave.core.outing.models.search_region import SearchRegionCode
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.headers import (
     EAVE_ACCOUNT_ID_HEADER,

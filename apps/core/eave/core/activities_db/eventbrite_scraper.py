@@ -154,12 +154,11 @@ async def get_eventbrite_events() -> None:
                     else:
                         end_time = None
 
-                    target = (
-                        await EventbriteEventOrm.query(
-                            session=db_session,
-                            params=EventbriteEventOrm.QueryParams(eventbrite_event_id=eventbrite_event_id),
-                        )
-                    ).one_or_none()
+                    query = EventbriteEventOrm.select(
+                        params=EventbriteEventOrm.QueryParams(eventbrite_event_id=eventbrite_event_id),
+                    ).limit(1)
+
+                    target = (await db_session.scalars(query)).one_or_none()
                     if not target:
                         LOGGER.debug(
                             f"{pfx} new event - adding to database", {"eventbrite_event_id": eventbrite_event_id}

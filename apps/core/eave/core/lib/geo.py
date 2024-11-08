@@ -21,7 +21,7 @@ class Distance:
 
 
 @dataclass(kw_only=True)
-class GeoLocation:
+class GeoPoint:
     lat: float
     lon: float
 
@@ -31,6 +31,12 @@ class GeoLocation:
 
     def geoalchemy_shape(self) -> WKBElement:
         return geoalchemy2.shape.from_shape(self.shapely_shape(), srid=SpatialReferenceSystemId.LAT_LON, extended=False)
+
+
+@dataclass(kw_only=True)
+class GeoArea:
+    center: GeoPoint
+    rad: Distance
 
 
 def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:

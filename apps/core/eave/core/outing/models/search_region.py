@@ -1,5 +1,8 @@
+from dataclasses import dataclass
 from enum import StrEnum
 from typing import Self
+
+from eave.core.lib.geo import GeoArea
 
 
 class SearchRegionCode(StrEnum):
@@ -17,3 +20,10 @@ class SearchRegionCode(StrEnum):
             return cls.__call__(value=s.lower())
         except ValueError:
             return None
+
+
+@dataclass(kw_only=True)
+class SearchRegion:
+    area: GeoArea
+    name: str
+    key: str

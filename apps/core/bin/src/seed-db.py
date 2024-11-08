@@ -46,7 +46,7 @@ from eave.core.internal.orm.outing_activity import OutingActivityOrm
 from eave.core.internal.orm.outing_reservation import OutingReservationOrm
 from eave.core.internal.orm.reserver_details import ReserverDetailsOrm
 from eave.core.internal.orm.survey import SurveyOrm
-from eave.core.outing.models.search_region_code import SearchRegionCode
+from eave.core.outing.models.search_region import SearchRegionCode
 from eave.stdlib.core_api.models.enums import ActivitySource, ReservationSource
 from eave.stdlib.logging import eaveLogger
 
