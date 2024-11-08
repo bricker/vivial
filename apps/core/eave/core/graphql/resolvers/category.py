@@ -6,13 +6,10 @@ from ..types.category import Category
 
 MOCK_RESTAURANT_CATEGORIES = [
     Category(id=uuid4(), label="American", is_default=True),
-    Category(id=uuid4(), label="Breakfast & Brunch", is_default=True),
-    Category(id=uuid4(), label="Bakery", is_default=True),
     Category(id=uuid4(), label="Barbecue", is_default=True),
     Category(id=uuid4(), label="Brazilian", is_default=True),
     Category(id=uuid4(), label="Cafe", is_default=True),
     Category(id=uuid4(), label="Chinese", is_default=True),
-    Category(id=uuid4(), label="Coffee Shop", is_default=True),
     Category(id=uuid4(), label="Fast Food", is_default=True),
     Category(id=uuid4(), label="French", is_default=True),
     Category(id=uuid4(), label="Greek", is_default=True),
