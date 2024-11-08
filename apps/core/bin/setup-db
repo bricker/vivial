@@ -4,9 +4,6 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-# TODO: This, for all platforms
-# sudo apt install postgresql-16-postgis-3
-
 python-activate-venv
 cd "$(e.parentpath)"
 python ./bin/src/init-db.py "$@"
