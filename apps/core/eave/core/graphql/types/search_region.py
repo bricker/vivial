@@ -2,9 +2,9 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Self
 
-from eave.core.lib.geo import GeoArea
-
 import strawberry
+
+from eave.core.lib.geo import GeoArea
 
 
 @strawberry.enum
