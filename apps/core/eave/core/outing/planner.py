@@ -299,7 +299,9 @@ class OutingPlanner:
             random.shuffle(restaurant_category_ids)
         else:
             # Already randomized in combiner funcs
-            restaurant_category_ids = [gcid for cat in self.preferences.restaurant_categories for gcid in cat.google_category_ids]
+            restaurant_category_ids = [
+                gcid for cat in self.preferences.restaurant_categories for gcid in cat.google_category_ids
+            ]
 
         # If an activity has been selected, use that as the search area.
         if self.activity and self.activity.location:

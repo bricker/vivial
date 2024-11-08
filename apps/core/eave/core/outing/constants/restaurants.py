@@ -215,5 +215,6 @@ BRUNCH_RESTAURANT_CATEGORY_IDS = [
 
 _VIVIAL_REST_CATS_BY_ID: dict[UUID, RestaurantCategory] = {cat.id: cat for cat in RESTAURANT_CATEGORIES}
 
+
 def get_vivial_restaurant_category_by_id(category_id: UUID) -> RestaurantCategory:
     return _VIVIAL_REST_CATS_BY_ID[category_id]

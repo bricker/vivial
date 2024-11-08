@@ -1,4 +1,3 @@
-
 from eave.core.internal.orm.activity import ActivityOrm
 from eave.core.internal.orm.address_types import PostgisStdaddr
 from eave.core.lib.geo import GeoPoint
