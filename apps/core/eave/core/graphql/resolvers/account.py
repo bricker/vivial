@@ -6,13 +6,10 @@ from ..types.account import Account, UpdateAccountInput, UpdateAccountSuccess
 from ..types.category import Category
 from ..types.preferences import Preferences
 
-MOCK_PW = "Nina!92034829@@@"
-
 MOCK_ACCOUNT = Account(
     first_name="Lana",
     last_name="Nguyen",
     email="lana@vivialapp.com",
-    plaintext_password=MOCK_PW,
     phone_number="(555) 555-5555",
     preferences=Preferences(
         open_to_bars=True,

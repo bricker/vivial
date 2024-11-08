@@ -8,7 +8,6 @@ class Account:
     first_name: str | None
     last_name: str | None
     email: str
-    plaintext_password: str
     phone_number: str | None
     preferences: Preferences | None
 

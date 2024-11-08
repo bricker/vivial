@@ -5,6 +5,7 @@ from eave.core.graphql.resolvers.category import activity_categories_query, rest
 from eave.core.graphql.resolvers.geo_area import geo_areas_query
 from eave.core.graphql.resolvers.outing import booked_outings_query, outing_query
 from eave.core.graphql.resolvers.reserver_details import reserver_details_query
+from eave.core.graphql.resolvers.viewer import viewer_query
 from eave.core.graphql.types.account import Account
 from eave.core.graphql.types.category import Category
 from eave.core.graphql.types.geo_area import GeoArea
@@ -21,3 +22,4 @@ class Query:
     outing: Outing = strawberry.field(resolver=outing_query)
     reserver_details: list[ReserverDetails] = strawberry.field(resolver=reserver_details_query)
     restaurant_categories: list[Category] = strawberry.field(resolver=restaurant_categories_query)
+    viewer: Account = strawberry.field(resolver=viewer_query)
