@@ -3,6 +3,7 @@ from datetime import datetime
 
 from google.maps.places_v1.types import Place
 
+from eave.core.graphql.types.outing import OutingBudget
 from eave.core.lib.geo import GeoPoint
 from eave.stdlib.eventbrite.models.event import Event
 
@@ -39,5 +40,5 @@ class OutingPlan:
 class OutingConstraints:
     start_time: datetime
     search_area_ids: list[SearchRegionCode]
-    budget: int
+    budget: OutingBudget
     headcount: int

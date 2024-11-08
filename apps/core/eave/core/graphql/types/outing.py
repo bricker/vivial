@@ -14,6 +14,7 @@ from .restaurant import Restaurant
 
 @strawberry.enum
 class OutingBudget(enum.IntEnum):
+    ZERO = 0
     ONE = 1
     TWO = 2
     THREE = 3

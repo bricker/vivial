@@ -6,7 +6,7 @@ from models.outing import OutingConstraints
 from models.user import User, UserPreferences
 
 from eave.core.graphql.types.search_region import SearchRegionCode
-from eave.core.outing.constants.categories import ACTIVITY_SUBCATEGORIES
+from eave.core.outing.constants.activities import ACTIVITY_SUBCATEGORIES
 from eave.core.outing.planner import OutingPlanner
 
 

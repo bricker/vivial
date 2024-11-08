@@ -2,15 +2,6 @@ from dataclasses import dataclass
 from uuid import UUID
 
 
-class Category:
-    id: str
-    subcategory_id: str | None
-
-    def __init__(self, id: str, subcategory_id: str | None = None) -> None:
-        self.id = id
-        self.subcategory_id = subcategory_id
-
-
 @dataclass(kw_only=True)
 class ActivityCategory:
     id: UUID
@@ -36,7 +27,7 @@ class ActivityFormat:
 
 @dataclass(kw_only=True)
 class RestaurantCategory:
-    id: str
+    id: UUID
     name: str
     is_default: bool
     google_category_ids: list[str]
