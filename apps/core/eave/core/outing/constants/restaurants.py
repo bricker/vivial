@@ -14,8 +14,10 @@ _RESTAURANT_BUDGET_MAP = {
     OutingBudget.FOUR: PriceLevel.PRICE_LEVEL_VERY_EXPENSIVE,
 }
 
+
 def get_google_price_level_from_outing_budget(outing_budget: OutingBudget) -> PriceLevel:
     return _RESTAURANT_BUDGET_MAP[outing_budget]
+
 
 # You must pass a field mask to the Google Places API to specify the list of fields to return in the response.
 # Reference: https://developers.google.com/maps/documentation/places/web-service/nearby-search
@@ -44,7 +46,7 @@ RESTAURANT_FIELD_MASK = ",".join(
     ]
 )
 
-RESTAURANT_CATEGORIES = (
+_RESTAURANT_CATEGORIES = (
     RestaurantCategory(
         id=UUID("ccb375f8e428489eac14192d12f0fd5a"),
         name="American",
@@ -216,7 +218,7 @@ BRUNCH_RESTAURANT_CATEGORY_IDS = (
     "cafe",
 )
 
-_VIVIAL_REST_CATS_BY_ID: dict[UUID, RestaurantCategory] = {cat.id: cat for cat in RESTAURANT_CATEGORIES}
+_VIVIAL_REST_CATS_BY_ID: dict[UUID, RestaurantCategory] = {cat.id: cat for cat in _RESTAURANT_CATEGORIES}
 
 
 def get_vivial_restaurant_category_by_id(category_id: UUID) -> RestaurantCategory:

@@ -1,4 +1,4 @@
-from collections.abc import MutableSequence
+from collections.abc import MutableSequence, Sequence
 from datetime import datetime, timedelta
 
 from google.maps.places_v1 import PlacesClient
@@ -7,14 +7,14 @@ from google.maps.places_v1.types import Place, SearchNearbyRequest
 from eave.core.graphql.types.outing import OutingBudget
 from eave.core.lib.geo import GeoArea
 
-from ..constants.restaurants import RESTAURANT_BUDGET_MAP
+from ..constants.restaurants import get_google_price_level_from_outing_budget
 from ..constants.zoneinfo import LOS_ANGELES_ZONE_INFO
 
 
 def get_places_nearby(
     client: PlacesClient,
     area: GeoArea,
-    included_primary_types: list[str],
+    included_primary_types: Sequence[str],
     field_mask: str,
 ) -> MutableSequence[Place]:
     """
@@ -72,7 +72,7 @@ def place_is_in_budget(place: Place, budget: OutingBudget) -> bool:
 
     https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#PriceLevel
     """
-    return place.price_level == RESTAURANT_BUDGET_MAP[budget]
+    return place.price_level == get_google_price_level_from_outing_budget(budget)
 
 
 def place_is_accessible(place: Place) -> bool:

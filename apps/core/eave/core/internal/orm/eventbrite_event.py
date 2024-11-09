@@ -67,7 +67,7 @@ class EventbriteEventOrm(Base):
         cls,
         *,
         eventbrite_event_id: str | NotGiven = NOT_GIVEN,
-        cost_range_contains: int | NotGiven = NOT_GIVEN,
+        cost_range_contains: int | None | NotGiven = NOT_GIVEN,
         time_range_contains: datetime | NotGiven = NOT_GIVEN,
         within_areas: list[GeoArea] | NotGiven = NOT_GIVEN,
         subcategory_ids: list[UUID] | NotGiven = NOT_GIVEN,
@@ -80,7 +80,7 @@ class EventbriteEventOrm(Base):
         if not isinstance(subcategory_ids, NotGiven):
             lookup = lookup.where(or_(*[cls.subcategory_id == subcategory_id for subcategory_id in subcategory_ids]))
 
-        if not isinstance(cost_range_contains, NotGiven):
+        if not isinstance(cost_range_contains, NotGiven) and cost_range_contains is not None:
             lookup = lookup.where(cls.cost_cents_range.contains(cost_range_contains))
 
         if not isinstance(time_range_contains, NotGiven):

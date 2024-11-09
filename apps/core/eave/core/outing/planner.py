@@ -9,7 +9,7 @@ import eave.core.internal.database
 from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
-from eave.core.outing.constants.activities import ACTIVITY_BUDGET_MAP_CENTS, get_vivial_subcategory_by_id
+from eave.core.outing.constants.activities import get_max_cents_for_budget, get_vivial_subcategory_by_id
 from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.logging import LOGGER
@@ -163,7 +163,7 @@ class OutingPlanner:
         # CASE 1: Recommend an Eventbrite event.
         query = EventbriteEventOrm.select(
             time_range_contains=activity_start_time,
-            cost_range_contains=ACTIVITY_BUDGET_MAP_CENTS[self.constraints.budget],
+            cost_range_contains=get_max_cents_for_budget(self.constraints.budget),
             within_areas=[ALL_AREAS[search_area_id].area for search_area_id in self.constraints.search_area_ids],
             subcategory_ids=[cat.id for cat in self.preferences.activity_categories],
         ).order_by(func.random())

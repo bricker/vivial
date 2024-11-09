@@ -6,8 +6,8 @@ from models.user import User, UserPreferences
 
 from eave.core.graphql.types.outing import OutingBudget
 from eave.core.graphql.types.search_region import SearchRegionCode
-from eave.core.outing.constants.activities import ACTIVITY_SUBCATEGORIES
-from eave.core.outing.constants.restaurants import RESTAURANT_CATEGORIES
+from eave.core.outing.constants.activities import _ACTIVITY_SUBCATEGORIES
+from eave.core.outing.constants.restaurants import _RESTAURANT_CATEGORIES
 from eave.core.outing.planner import OutingPlanner
 
 
@@ -26,8 +26,8 @@ async def main() -> None:
             UserPreferences(
                 open_to_bars=True,
                 requires_wheelchair_accessibility=False,
-                restaurant_categories=RESTAURANT_CATEGORIES[0:3],
-                activity_categories=ACTIVITY_SUBCATEGORIES[0:3],
+                restaurant_categories=list(_RESTAURANT_CATEGORIES[0:3]),
+                activity_categories=list(_ACTIVITY_SUBCATEGORIES[0:3]),
             )
         ),
     )
@@ -38,8 +38,8 @@ async def main() -> None:
             UserPreferences(
                 open_to_bars=True,
                 requires_wheelchair_accessibility=False,
-                restaurant_categories=RESTAURANT_CATEGORIES[3:6],
-                activity_categories=ACTIVITY_SUBCATEGORIES[3:6],
+                restaurant_categories=list(_RESTAURANT_CATEGORIES[3:6]),
+                activity_categories=list(_ACTIVITY_SUBCATEGORIES[3:6]),
             )
         ),
     )

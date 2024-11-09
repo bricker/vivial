@@ -4,7 +4,7 @@ from eave.core.graphql.types.outing import OutingBudget
 from eave.core.outing.models.category import ActivityCategory, ActivitySubcategory
 from eave.stdlib.logging import LOGGER
 
-ACTIVITY_BUDGET_MAP_CENTS = {
+_ACTIVITY_BUDGET_MAP_CENTS: dict[OutingBudget, int | None] = {
     OutingBudget.ZERO: 0,
     OutingBudget.ONE: 10 * 100,
     OutingBudget.TWO: 50 * 100,
@@ -12,7 +12,12 @@ ACTIVITY_BUDGET_MAP_CENTS = {
     OutingBudget.FOUR: None,
 }
 
-ACTIVITY_CATEGORIES = (
+
+def get_max_cents_for_budget(outing_budget: OutingBudget) -> int | None:
+    return _ACTIVITY_BUDGET_MAP_CENTS[outing_budget]
+
+
+_ACTIVITY_CATEGORIES = (
     ActivityCategory(
         id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
         name="Seasonal & Holiday",
@@ -43,7 +48,7 @@ ACTIVITY_CATEGORIES = (
     ),
 )
 
-ACTIVITY_SUBCATEGORIES = (
+_ACTIVITY_SUBCATEGORIES = (
     ActivitySubcategory(
         id=UUID("bb6ceceeec6c4e0fb12f1a188b89a2da"),
         name="St Patricks Day",
@@ -681,7 +686,7 @@ ACTIVITY_SUBCATEGORIES = (
 
 _EB_SUBCATS_TO_VIVIAL: dict[str, ActivitySubcategory] = {}
 
-for cat in ACTIVITY_SUBCATEGORIES:
+for cat in _ACTIVITY_SUBCATEGORIES:
     for ebid in cat.eventbrite_subcategory_ids:
         if ebid in _EB_SUBCATS_TO_VIVIAL:
             LOGGER.warning(f"Duplicate eventbrite_subcategory_id found: {ebid}")
@@ -693,7 +698,7 @@ def get_vivial_subcategory_by_eventbrite_subcategory_id(eventbrite_subcategory_i
     return _EB_SUBCATS_TO_VIVIAL.get(eventbrite_subcategory_id)
 
 
-_VIVIAL_SUBCATS_BY_ID: dict[UUID, ActivitySubcategory] = {cat.id: cat for cat in ACTIVITY_SUBCATEGORIES}
+_VIVIAL_SUBCATS_BY_ID: dict[UUID, ActivitySubcategory] = {cat.id: cat for cat in _ACTIVITY_SUBCATEGORIES}
 
 
 def get_vivial_subcategory_by_id(subcategory_id: UUID) -> ActivitySubcategory:
