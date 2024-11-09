@@ -22,9 +22,8 @@ module "core_api_app" {
   subnetwork_self_link           = module.project_base.subnetwork_self_link
   bastion_accessors              = ["group:developers@eave.fyi"]
 
-  LOG_LEVEL        = "DEBUG"
-  release_version  = "latest"
-  EAVE_CREDENTIALS = var.INTERNAL_EAVE_CREDENTIALS
+  LOG_LEVEL       = "DEBUG"
+  release_version = "latest"
 }
 
 module "dashboard_app" {
@@ -39,8 +38,8 @@ module "dashboard_app" {
   cdn_base_url                      = module.cdn.url
   LOG_LEVEL                         = "DEBUG"
   release_version                   = "latest"
-  EAVE_CREDENTIALS                  = var.INTERNAL_EAVE_CREDENTIALS
   iap_enabled                       = true
   iap_oauth_client_id               = var.IAP_OAUTH_CLIENT_ID
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
+  SEGMENT_WEBSITE_WRITE_KEY         = "dO1quf6odO8UQ5lLiJPHu0SFjy6OImu1"
 }

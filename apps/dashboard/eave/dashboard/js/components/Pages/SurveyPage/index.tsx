@@ -1,6 +1,6 @@
+import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
 import { AppContext } from "$eave-dashboard/js/context/AppContext";
 import { textStyles } from "$eave-dashboard/js/theme";
-import { myWindow } from "$eave-dashboard/js/types";
 import {
   Button,
   FormControl,
@@ -152,14 +152,14 @@ const SurveyPage = () => {
     return newErrors;
   };
 
-  const handleSubmitClick = () => {
+  const handleSubmitClick = async () => {
     const newErrors = validate();
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
       submitSurvey!.execute({
         req: {
-          visitorId: myWindow.app.visitorId!,
+          visitorId: await getVisitorId(),
           startTime: time.toDate(),
           searchAreaIds: locations.map((idx) => laNeighborhoodOptions[idx]!.value),
           budget: budget,

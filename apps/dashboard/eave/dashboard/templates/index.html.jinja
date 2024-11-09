@@ -4,124 +4,12 @@
 <head>
     <!-- window -->
     <script>
-        const VISITOR_ID_COOKIE_NAME = "vivial_visitor_id";
-        const MAX_ALLOWED_COOKIE_AGE_SEC = 60 * 60 * 24 * 400; // 400 days (maximum allowed value in Chrome)
-
-        // Copied UUID code from https://github.com/uuidjs/uuid/blob/main/src/stringify.js
-        // This is done for performance. Calling `rnds[i].toString(16)` is cleaner but has more runtime overhead.
-        const byteToHex = [];
-        for (let i = 0; i < 256; ++i) {
-            byteToHex.push((i + 0x100).toString(16).slice(1));
-        }
-
-        /**
-         * Generates a UUID (Universally Unique Identifier) using the v4 variant.
-         * Prefers crypto.randomUUID when available. Otherwise, builds the UUID manually.
-         *
-         * @returns a randomly generated UUID.
-         */
-        function uuidv4() {
-            // https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID
-            // crypto.randomUUID is only available in secure contexts (eg https).
-            if (crypto.randomUUID !== undefined) {
-                return crypto.randomUUID();
-            } else {
-                // Copied from https://github.com/uuidjs/uuid/blob/main/src/v4.js
-                // This is necessary when running in non-secure contexts.
-                const rnds = new Uint8Array(16); // # of random values to pre-allocate
-                crypto.getRandomValues(rnds); // modifies the array in-place
-                // Per 4.4, set bits for version and `clock_seq_hi_and_reserved`
-                rnds[6] = (rnds[6] & 0x0f) | 0x40;
-                rnds[8] = (rnds[8] & 0x3f) | 0x80;
-
-                return (
-                    byteToHex[rnds[0]] + byteToHex[rnds[1]] + byteToHex[rnds[2]] + byteToHex[rnds[3]] +
-                    "-" +
-                    byteToHex[rnds[4]] + byteToHex[rnds[5]] +
-                    "-" +
-                    byteToHex[rnds[6]] + byteToHex[rnds[7]] +
-                    "-" +
-                    byteToHex[rnds[8]] + byteToHex[rnds[9]] +
-                    "-" +
-                    byteToHex[rnds[10]] + byteToHex[rnds[11]] + byteToHex[rnds[12]] + byteToHex[rnds[13]] + byteToHex[rnds[14]] + byteToHex[rnds[15]]
-                ).toLowerCase();
-            }
-        }
-
-        /**
-        * https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
-        */
-        function setCookie({
-            name,
-            value,
-            maxAgeSeconds,
-            expires,
-            path = "/",
-            domain,
-            isSecure = true,
-            sameSite = "Lax",
-        }) {
-            const cookieAttrs = [[name, encodeURIComponent(value)]];
-
-            if (maxAgeSeconds !== undefined) {
-                cookieAttrs.push(["Max-Age", `${maxAgeSeconds}`]);
-            }
-
-            if (expires !== undefined) {
-                cookieAttrs.push(["Expires", expires.toUTCString()]);
-            }
-
-            cookieAttrs.push(["Path", path]);
-
-            // https://publicsuffix.org/list/public_suffix_list.dat
-            if (!domain) {
-                // FIXME: This _does not work_ for many domains, eg .co.uk domains.
-                // The public suffix list should be used.
-                const url = new URL(window.location.href);
-                const parts = url.hostname.split(".");
-                domain = parts.slice(-2).join(".");
-            }
-
-            cookieAttrs.push(["Domain", domain]);
-            cookieAttrs.push(["SameSite", sameSite]);
-
-            if (sameSite === "None") {
-                // SameSite None cookies must also be Secure, per spec
-                isSecure = true;
-            }
-
-            if (isSecure) {
-                cookieAttrs.push(["Secure", true]);
-            }
-
-            const cookieValue = cookieAttrs
-                .map(([attrName, attrValue]) => (attrValue === true ? `${attrName}` : `${attrName}=${attrValue}`))
-                .join(";");
-            document.cookie = cookieValue;
-        }
-
-        function getVisitorId() {
-            const urlParamifiedCookies = document.cookie.replace(/; */g, "&");
-            const cookies = new URLSearchParams(urlParamifiedCookies);
-            const visIdCookie = cookies.get(VISITOR_ID_COOKIE_NAME);
-            return visIdCookie ? decodeURIComponent(visIdCookie) : null;
-        }
-
-        function setVisitorId(value) {
-            setCookie({
-                name: VISITOR_ID_COOKIE_NAME,
-                value: value,
-                maxAgeSeconds: MAX_ALLOWED_COOKIE_AGE_SEC,
-            });
-        }
-
-        // refresh visitor id cookie
-        setVisitorId(getVisitorId() || uuidv4());
-
         window.app = {
             apiBase: '{{api_base}}',
             assetBase: '{{asset_base}}',
-            visitorId: getVisitorId(),
+            appEnv: '{{app_env}}',
+            segmentWriteKey: '{{segment_write_key}}',
+            analyticsEnabled: '{{analytics_enabled}}',
         };
     </script>
 
