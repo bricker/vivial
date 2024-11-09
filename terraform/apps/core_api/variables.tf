@@ -74,3 +74,8 @@ variable "bastion_accessors" {
   type    = list(string)
   default = []
 }
+
+variable "SEGMENT_CORE_API_WRITE_KEY" {
+  type = string
+  // value can be obtained from target Core API source https://app.segment.com/vivial/sources
+}

@@ -22,8 +22,9 @@ module "core_api_app" {
   subnetwork_self_link           = module.project_base.subnetwork_self_link
   bastion_accessors              = ["group:developers@eave.fyi"]
 
-  LOG_LEVEL       = "DEBUG"
-  release_version = "latest"
+  LOG_LEVEL                  = "DEBUG"
+  release_version            = "latest"
+  SEGMENT_CORE_API_WRITE_KEY = "uUjBMbm9CcTL9XV1Rf6S9xGpLnvtCObZ"
 }
 
 module "dashboard_app" {

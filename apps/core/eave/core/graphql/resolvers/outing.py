@@ -3,6 +3,7 @@ from uuid import UUID, uuid4
 
 import strawberry
 
+from eave.core.analytics import ANALYTICS
 from eave.core.graphql.types.activity import Activity, ActivityTicketInfo, ActivityVenue
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import (
@@ -108,9 +109,11 @@ MOCK_OUTING = Outing(
 
 
 async def create_outing_plan(
+    *,
     visitor_id: UUID,
     survey_id: UUID,
     account_id: UUID | None,
+    reroll: bool,
 ) -> OutingOrm:
     # TODO: actually call the planning function instead
     async with database.async_session.begin() as db_session:
@@ -136,6 +139,15 @@ async def create_outing_plan(
             reservation_start_time=datetime.now(),
             num_attendees=2,
         )
+
+    ANALYTICS.track(
+        event_name="outing plan created",
+        account_id=account_id,
+        visitor_id=visitor_id,
+        extra_properties={
+            "reroll": reroll,
+        },
+    )
     return outing
 
 
@@ -167,6 +179,7 @@ async def plan_outing_mutation(
     #     visitor_id=survey.visitor_id,
     #     survey_id=survey.id,
     #     account_id=survey.account_id,
+    #     reroll=False,
     # )
 
     return PlanOutingSuccess(outing=MOCK_OUTING)
@@ -193,6 +206,7 @@ async def replan_outing_mutation(
     #         visitor_id=visitor_id,
     #         survey_id=original_outing.survey_id,
     #         account_id=original_outing.account_id,  # TODO: this is wrong; look for any auth attached to the request instead
+    #         reroll=True,
     #     )
     # except InvalidDataError as e:
     #     LOGGER.exception(e)
