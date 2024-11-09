@@ -10,6 +10,7 @@ from starlette.templating import Jinja2Templates
 import eave.stdlib.logging
 import eave.stdlib.requests_util
 import eave.stdlib.time
+from eave.dashboard.config import DASHBOARD_APP_CONFIG
 from eave.stdlib.auth_cookies import delete_auth_cookies
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.core_api.operations.status import status_payload
@@ -49,6 +50,7 @@ def web_app_endpoint(request: Request) -> Response:
             "analytics_enabled": SHARED_CONFIG.analytics_enabled,
             "app_env": SHARED_CONFIG.eave_env,
             "app_version": SHARED_CONFIG.app_version,
+            "segment_write_key": DASHBOARD_APP_CONFIG.segment_website_write_key,
         },
     )
 

@@ -26,8 +26,9 @@ module "core_api_app" {
     "user:liam@eave.fyi",
   ]
 
-  LOG_LEVEL       = "DEBUG"
-  release_version = "latest"
+  LOG_LEVEL                  = "DEBUG"
+  release_version            = "latest"
+  SEGMENT_CORE_API_WRITE_KEY = "cVBM36ZvqJV2gagtnOT60fTNn1Q5P5na"
 }
 
 module "dashboard_app" {
@@ -39,8 +40,9 @@ module "dashboard_app" {
   kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
 
-  cdn_base_url    = module.cdn.url
-  LOG_LEVEL       = "DEBUG"
-  release_version = "latest"
-  iap_enabled     = false
+  cdn_base_url              = module.cdn.url
+  LOG_LEVEL                 = "DEBUG"
+  release_version           = "latest"
+  iap_enabled               = false
+  SEGMENT_WEBSITE_WRITE_KEY = "GcB5ShHbFcZZKIGTlvanJerSyKp9yJNv"
 }

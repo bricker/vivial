@@ -3,13 +3,13 @@ from uuid import uuid4
 import strawberry
 
 import eave.core.internal.database
-from eave.core.graphql.types.authentication import Account
-from eave.core.graphql.types.user import UserProfile
+from eave.core.analytics import ANALYTICS
 from eave.core.internal.orm.account import AccountOrm, test_password_strength_or_exception
 from eave.stdlib.exceptions import InvalidJWSError
 from eave.stdlib.jwt import JWTPurpose, create_jws, validate_jws_or_exception, validate_jws_pair_or_exception
 
 from ..types.authentication import AuthenticationErrorCode, AuthTokenPair, LoginError, LoginResult, LoginSuccess
+from .account import MOCK_ACCOUNT
 
 JWT_ISSUER = "core-api"
 JWT_AUDIENCE = "core-api"
@@ -17,6 +17,26 @@ JWT_AUDIENCE = "core-api"
 
 async def register_mutation(*, info: strawberry.Info, email: str, plaintext_password: str) -> None:
     test_password_strength_or_exception(plaintext_password)
+
+    # TODO: the rest of account creation???
+    async with eave.core.internal.database.async_session.begin() as db_session:
+        account = await AccountOrm.create(
+            session=db_session,
+            email=email,
+            plaintext_password=plaintext_password,
+        )
+
+    ANALYTICS.identify(
+        account_id=account.id,
+        # TODO: visitor_id
+        extra_properties={
+            "email": account.email,
+        },
+    )
+    ANALYTICS.track(
+        event_name="signup",
+        account_id=account.id,
+    )
 
 
 async def login_mutation(*, info: strawberry.Info, email: str, plaintext_password: str) -> LoginResult:
@@ -30,11 +50,7 @@ async def login_mutation(*, info: strawberry.Info, email: str, plaintext_passwor
 
         if account.validate_password_or_exception(plaintext_password):
             auth_token_pair = _make_auth_token_pair(account_id=str(account.id))
-            account = Account(
-                id=account.id,
-                email=account.email,
-                user_profile=UserProfile(name="example"),
-            )
+            account = MOCK_ACCOUNT
             return LoginSuccess(account=account, auth_tokens=auth_token_pair)
         else:
             # TODO: Currently this won't be reached because credential failure will throw its own error.

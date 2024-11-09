@@ -49,5 +49,9 @@ class _AppConfig(ConfigBase):
     def eventbrite_api_key(self) -> str:
         return get_required_env("EVENTBRITE_API_KEY")
 
+    @cached_property
+    def segment_write_key(self) -> str:
+        return get_required_env("SEGMENT_CORE_API_WRITE_KEY")
+
 
 CORE_API_APP_CONFIG = _AppConfig()

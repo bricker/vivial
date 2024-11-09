@@ -1,17 +1,9 @@
 import enum
 from typing import Annotated
-from uuid import UUID
 
 import strawberry
 
-from eave.core.graphql.types.user import UserProfile
-
-
-@strawberry.type
-class Account:
-    id: UUID = strawberry.field()
-    email: str = strawberry.field()
-    user_profile: UserProfile
+from .account import Account
 
 
 @strawberry.type

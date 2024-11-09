@@ -65,3 +65,8 @@ variable "iap_enabled" {
   type    = bool
   default = false
 }
+
+variable "SEGMENT_WEBSITE_WRITE_KEY" {
+  type = string
+  // value can be obtained from target website source https://app.segment.com/vivial/sources
+}
