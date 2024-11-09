@@ -21,9 +21,9 @@ from eave.core.graphql.types.photos import Photos
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.graphql.types.search_region import SearchRegionCode
 from eave.core.internal import database
-from eave.core.internal.orm.outing import OutingOrm
-from eave.core.internal.orm.outing_activity import OutingActivityOrm
-from eave.core.internal.orm.outing_reservation import OutingReservationOrm
+from eave.core.orm.outing import OutingOrm
+from eave.core.orm.outing_activity import OutingActivityOrm
+from eave.core.orm.outing_reservation import OutingReservationOrm
 from eave.core.outing.constants.zoneinfo import LOS_ANGELES_ZONE_INFO
 from eave.core.outing.models.sources import ActivitySource, RestaurantSource
 

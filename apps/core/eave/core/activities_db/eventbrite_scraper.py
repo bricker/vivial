@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 
 import eave.core.internal.database
 from eave.core.internal.config import CORE_API_APP_CONFIG
-from eave.core.internal.orm.eventbrite_event import EventbriteEventOrm
+from eave.core.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.outing.constants.activities import get_vivial_subcategory_by_eventbrite_subcategory_id
 from eave.core.outing.constants.formats import get_vivial_format_from_eventbrite_format_id
 from eave.stdlib.eventbrite.client import EventbriteClient, ListEventsQuery, OrderBy

@@ -11,7 +11,7 @@ from eave.core.graphql.types.reserver_details import (
     SubmitReserverDetailsSuccess,
 )
 from eave.core.internal import database
-from eave.core.internal.orm.reserver_details import ReserverDetailsOrm
+from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.stdlib.exceptions import InvalidDataError
 from eave.stdlib.logging import LOGGER
 

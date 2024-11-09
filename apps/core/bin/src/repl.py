@@ -16,13 +16,13 @@ import sqlalchemy  # noqa
 import uuid  # noqa
 
 import eave.core.internal.database
-import eave.core.internal.orm as orm  # noqa
-import eave.core.internal.orm.base
+import eave.core.orm as orm  # noqa
+import eave.core.orm.base
 from eave.core.internal.config import CORE_API_APP_CONFIG  # noqa
 from eave.stdlib.config import SHARED_CONFIG  # noqa
 from eave.stdlib.logging import eaveLogger  # noqa
 
-eave.core.internal.orm.base._load_all()  # noqa: SLF001
+eave.core.orm.base._load_all()  # noqa: SLF001
 
 db_session = eave.core.internal.database.async_session()
 

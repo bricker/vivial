@@ -7,8 +7,8 @@ from sqlalchemy import func
 
 import eave.core.internal.database
 from eave.core.internal.config import CORE_API_APP_CONFIG
-from eave.core.internal.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
+from eave.core.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.outing.constants.activities import get_max_cents_for_budget, get_vivial_subcategory_by_id
 from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.eventbrite.models.event import EventStatus

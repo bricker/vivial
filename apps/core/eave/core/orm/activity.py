@@ -7,8 +7,8 @@ from geoalchemy2.types import Geography
 from sqlalchemy import PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.core.internal.orm.address_types import PostgisStdaddr, PostgisStdaddrColumnType
 from eave.core.lib.geo import GeoPoint, SpatialReferenceSystemId
+from eave.core.orm.address_types import PostgisStdaddr, PostgisStdaddrColumnType
 
 from .base import Base
 from .util import PG_UUID_EXPR

@@ -16,8 +16,8 @@ import asyncio
 import logging
 
 import eave.core.internal.database
-import eave.core.internal.orm
-import eave.core.internal.orm.base
+import eave.core.orm
+import eave.core.orm.base
 from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.database import init_database
 from eave.stdlib.config import SHARED_CONFIG

@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-import eave.core.internal.orm.address_types
+import eave.core.orm.address_types
 
 # revision identifiers, used by Alembic.
 revision = "933d4868e5d6"
@@ -37,7 +37,7 @@ def upgrade() -> None:
         sa.Column("subcategory_id", sa.Uuid(), nullable=False),
         sa.Column("duration_minutes", sa.Integer(), nullable=False),
         sa.Column("availability", sa.String(), nullable=False),
-        sa.Column("address", eave.core.internal.orm.address_types.PostgisStdaddrColumnType(), nullable=False),
+        sa.Column("address", eave.core.orm.address_types.PostgisStdaddrColumnType(), nullable=False),
         sa.Column("is_bookable", sa.Boolean(), nullable=False),
         sa.Column("booking_url", sa.String(), nullable=True),
         sa.Column("created", sa.DateTime(), server_default=sa.text("CURRENT_TIMESTAMP"), nullable=False),
