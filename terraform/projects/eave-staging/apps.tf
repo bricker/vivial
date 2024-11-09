@@ -42,4 +42,5 @@ module "dashboard_app" {
   iap_enabled                       = true
   iap_oauth_client_id               = var.IAP_OAUTH_CLIENT_ID
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
+  SEGMENT_WEBSITE_WRITE_KEY         = "dO1quf6odO8UQ5lLiJPHu0SFjy6OImu1"
 }

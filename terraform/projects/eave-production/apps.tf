@@ -40,8 +40,9 @@ module "dashboard_app" {
   kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
 
-  cdn_base_url    = module.cdn.url
-  LOG_LEVEL       = "DEBUG"
-  release_version = "latest"
-  iap_enabled     = false
+  cdn_base_url              = module.cdn.url
+  LOG_LEVEL                 = "DEBUG"
+  release_version           = "latest"
+  iap_enabled               = false
+  SEGMENT_WEBSITE_WRITE_KEY = "GcB5ShHbFcZZKIGTlvanJerSyKp9yJNv"
 }
