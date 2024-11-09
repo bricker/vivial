@@ -292,10 +292,10 @@ class OutingPlanner:
 
         # If this is a morning outing, override user restaurant preferences and show them breakfast / brunch spots.
         if is_early_morning(self.constraints.start_time):
-            restaurant_category_ids = BREAKFAST_RESTAURANT_CATEGORY_IDS.copy()
+            restaurant_category_ids = list(BREAKFAST_RESTAURANT_CATEGORY_IDS)
             random.shuffle(restaurant_category_ids)
         elif is_late_morning(self.constraints.start_time):
-            restaurant_category_ids = BRUNCH_RESTAURANT_CATEGORY_IDS.copy()
+            restaurant_category_ids = list(BRUNCH_RESTAURANT_CATEGORY_IDS)
             random.shuffle(restaurant_category_ids)
         else:
             # Already randomized in combiner funcs

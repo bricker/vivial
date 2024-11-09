@@ -12,7 +12,7 @@ ACTIVITY_BUDGET_MAP_CENTS = {
     OutingBudget.FOUR: None,
 }
 
-ACTIVITY_CATEGORIES = [
+ACTIVITY_CATEGORIES = (
     ActivityCategory(
         id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
         name="Seasonal & Holiday",
@@ -41,8 +41,9 @@ ACTIVITY_CATEGORIES = [
         id=UUID("c0f686d1a4da425ab5c060e2b62344fc"),
         name="Fitness & Outdoors",
     ),
-]
-ACTIVITY_SUBCATEGORIES = [
+)
+
+ACTIVITY_SUBCATEGORIES = (
     ActivitySubcategory(
         id=UUID("bb6ceceeec6c4e0fb12f1a188b89a2da"),
         name="St Patricks Day",
@@ -675,7 +676,7 @@ ACTIVITY_SUBCATEGORIES = [
         category_id=UUID("c0f686d1a4da425ab5c060e2b62344fc"),
         eventbrite_subcategory_ids=[],
     ),
-]
+)
 
 
 _EB_SUBCATS_TO_VIVIAL: dict[str, ActivitySubcategory] = {}

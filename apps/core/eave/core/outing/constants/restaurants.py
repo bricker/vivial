@@ -6,13 +6,16 @@ from eave.core.graphql.types.outing import OutingBudget
 
 from ..models.category import RestaurantCategory
 
-RESTAURANT_BUDGET_MAP = {
+_RESTAURANT_BUDGET_MAP = {
     OutingBudget.ZERO: PriceLevel.PRICE_LEVEL_FREE,
     OutingBudget.ONE: PriceLevel.PRICE_LEVEL_INEXPENSIVE,
     OutingBudget.TWO: PriceLevel.PRICE_LEVEL_MODERATE,
     OutingBudget.THREE: PriceLevel.PRICE_LEVEL_EXPENSIVE,
     OutingBudget.FOUR: PriceLevel.PRICE_LEVEL_VERY_EXPENSIVE,
 }
+
+def get_google_price_level_from_outing_budget(outing_budget: OutingBudget) -> PriceLevel:
+    return _RESTAURANT_BUDGET_MAP[outing_budget]
 
 # You must pass a field mask to the Google Places API to specify the list of fields to return in the response.
 # Reference: https://developers.google.com/maps/documentation/places/web-service/nearby-search
@@ -41,7 +44,7 @@ RESTAURANT_FIELD_MASK = ",".join(
     ]
 )
 
-RESTAURANT_CATEGORIES = [
+RESTAURANT_CATEGORIES = (
     RestaurantCategory(
         id=UUID("ccb375f8e428489eac14192d12f0fd5a"),
         name="American",
@@ -198,20 +201,20 @@ RESTAURANT_CATEGORIES = [
         is_default=True,
         google_category_ids=["vietnamese_restaurant"],
     ),
-]
+)
 
-BREAKFAST_RESTAURANT_CATEGORY_IDS = [
+BREAKFAST_RESTAURANT_CATEGORY_IDS = (
     "coffee_shop",
     "breakfast_restaurant",
     "bakery",
     "cafe",
-]
+)
 
-BRUNCH_RESTAURANT_CATEGORY_IDS = [
+BRUNCH_RESTAURANT_CATEGORY_IDS = (
     "brunch_restaurant",
     "breakfast_restaurant",
     "cafe",
-]
+)
 
 _VIVIAL_REST_CATS_BY_ID: dict[UUID, RestaurantCategory] = {cat.id: cat for cat in RESTAURANT_CATEGORIES}
 

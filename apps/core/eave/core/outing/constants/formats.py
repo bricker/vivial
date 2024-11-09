@@ -3,7 +3,7 @@ from uuid import UUID
 from eave.core.outing.models.category import ActivityFormat
 from eave.stdlib.logging import LOGGER
 
-ACTIVITY_FORMATS = [
+ACTIVITY_FORMATS = (
     ActivityFormat(
         id=UUID("095ce8e5e25e434c9e0c3fa395e29a01"),
         eventbrite_format_id="5",
@@ -59,7 +59,7 @@ ACTIVITY_FORMATS = [
         eventbrite_format_id="100",
         name="Other",
     ),
-]
+)
 
 _EB_FORMATS_TO_VIVIAL: dict[str, ActivityFormat] = {}
 """
