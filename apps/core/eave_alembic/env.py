@@ -10,7 +10,7 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import Connection
 
-import eave.core.internal.database as eave_db
+import eave.core.database as eave_db
 import eave.core.orm
 import eave.core.orm.base
 import eave.stdlib.time

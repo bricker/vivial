@@ -5,8 +5,8 @@ from uuid import UUID
 from google.maps import places_v1
 from sqlalchemy import func
 
-import eave.core.internal.database
-from eave.core.internal.config import CORE_API_APP_CONFIG
+import eave.core.database
+from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.outing.constants.activities import get_max_cents_for_budget, get_vivial_subcategory_by_id
@@ -168,7 +168,7 @@ class OutingPlanner:
             subcategory_ids=[cat.id for cat in self.preferences.activity_categories],
         ).order_by(func.random())
 
-        async with eave.core.internal.database.async_session.begin() as db_session:
+        async with eave.core.database.async_session.begin() as db_session:
             results = await db_session.scalars(query)
 
             for event in results:

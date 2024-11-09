@@ -2,6 +2,7 @@ from uuid import UUID, uuid4
 
 import strawberry
 
+from eave.core import database
 from eave.core.graphql.types.reserver_details import (
     ReserverDetails,
     ReserverDetailsInput,
@@ -10,7 +11,6 @@ from eave.core.graphql.types.reserver_details import (
     SubmitReserverDetailsResult,
     SubmitReserverDetailsSuccess,
 )
-from eave.core.internal import database
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.stdlib.exceptions import InvalidDataError
 from eave.stdlib.logging import LOGGER

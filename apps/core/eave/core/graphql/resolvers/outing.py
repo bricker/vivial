@@ -3,6 +3,7 @@ from uuid import UUID, uuid4
 
 import strawberry
 
+from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.types.activity import Activity, ActivityTicketInfo, ActivityVenue
 from eave.core.graphql.types.location import Location
@@ -20,7 +21,6 @@ from eave.core.graphql.types.outing import (
 from eave.core.graphql.types.photos import Photos
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.graphql.types.search_region import SearchRegionCode
-from eave.core.internal import database
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.outing_activity import OutingActivityOrm
 from eave.core.orm.outing_reservation import OutingReservationOrm

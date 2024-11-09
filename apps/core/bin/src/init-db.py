@@ -15,11 +15,11 @@ load_standard_dotenv_files()
 import asyncio
 import logging
 
-import eave.core.internal.database
+import eave.core.database
 import eave.core.orm
 import eave.core.orm.base
-from eave.core.internal.config import CORE_API_APP_CONFIG
-from eave.core.internal.database import init_database
+from eave.core.config import CORE_API_APP_CONFIG
+from eave.core.database import init_database
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import eaveLogger
 
@@ -28,7 +28,7 @@ async def main(db_name: str) -> None:
     eaveLogger.fprint(logging.INFO, f"> GOOGLE_CLOUD_PROJECT: {SHARED_CONFIG.google_cloud_project}")
     eaveLogger.fprint(logging.INFO, f"> EAVE_DB_NAME: {db_name}")
 
-    eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {eave.core.internal.database.async_engine.url}")
+    eaveLogger.fprint(logging.INFO, f"> Postgres connection URI: {eave.core.database.async_engine.url}")
 
     eaveLogger.fprint(
         logging.WARNING,

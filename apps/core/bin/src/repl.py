@@ -15,16 +15,16 @@ import importlib  # noqa
 import sqlalchemy  # noqa
 import uuid  # noqa
 
-import eave.core.internal.database
+import eave.core.database
 import eave.core.orm as orm  # noqa
 import eave.core.orm.base
-from eave.core.internal.config import CORE_API_APP_CONFIG  # noqa
+from eave.core.config import CORE_API_APP_CONFIG  # noqa
 from eave.stdlib.config import SHARED_CONFIG  # noqa
 from eave.stdlib.logging import eaveLogger  # noqa
 
 eave.core.orm.base._load_all()  # noqa: SLF001
 
-db_session = eave.core.internal.database.async_session()
+db_session = eave.core.database.async_session()
 
 print("Ready to go.")
 

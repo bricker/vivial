@@ -26,7 +26,7 @@ from eave.stdlib.middleware.origin import OriginASGIMiddleware
 from eave.stdlib.middleware.read_body import ReadBodyASGIMiddleware
 from eave.stdlib.middleware.request_integrity import RequestIntegrityASGIMiddleware
 
-from .internal.database import async_engine
+from .database import async_engine
 from .public.requests import (
     noop,
     status,

@@ -34,7 +34,7 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 
-import eave.core.internal.database
+import eave.core.database
 import eave.core.orm.base
 from eave.core.graphql.types.search_region import SearchRegionCode
 from eave.core.orm.account import AccountOrm
@@ -182,7 +182,7 @@ async def main() -> None:
     )
     args, _ = parser.parse_known_args()
 
-    postgres_uri = eave.core.internal.database.async_engine.url._replace(database=args.database)
+    postgres_uri = eave.core.database.async_engine.url._replace(database=args.database)
     seed_db = create_async_engine(
         postgres_uri,
         isolation_level="AUTOCOMMIT",

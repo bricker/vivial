@@ -16,15 +16,15 @@ from sqlalchemy import literal_column, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import eave.core.app
-import eave.core.internal.database
+import eave.core.database
 import eave.core.orm
 import eave.stdlib.eave_origins
 import eave.stdlib.requests_util
 import eave.stdlib.testing_util
 import eave.stdlib.typing
+from eave.core.config import CORE_API_APP_CONFIG
+from eave.core.database import init_database
 from eave.core.graphql.types.search_region import SearchRegionCode
-from eave.core.internal.config import CORE_API_APP_CONFIG
-from eave.core.internal.database import init_database
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.base import get_base_metadata
 from eave.core.orm.outing import OutingOrm
@@ -59,7 +59,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         # Attempt to prevent running destructive database operations against non-test database
         assert os.environ["EAVE_ENV"] == "test", "Tests must be run with EAVE_ENV=test"
         assert (
-            eave.core.internal.database.async_engine.url.database == "eave-test"
+            eave.core.database.async_engine.url.database == "eave-test"
         ), 'Tests perform destructive database operations, and can only be run against the test database (hardcoded to be "eave-test")'
 
         if not _DB_SETUP:
@@ -71,8 +71,8 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
 
         await super().asyncSetUp()
 
-        engine = eave.core.internal.database.async_engine.execution_options(isolation_level="READ COMMITTED")
-        self.db_session = eave.core.internal.database.async_sessionmaker(engine, expire_on_commit=False)
+        engine = eave.core.database.async_engine.execution_options(isolation_level="READ COMMITTED")
+        self.db_session = eave.core.database.async_sessionmaker(engine, expire_on_commit=False)
         # self.db_session = eave.core.internal.database.async_session
 
         # transport = httpx.ASGITransport(
@@ -96,7 +96,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         await conn.execute(text(f"TRUNCATE {tnames} CASCADE").execution_options(autocommit=True))
         await conn.commit()
         await conn.close()
-        await eave.core.internal.database.async_engine.dispose()
+        await eave.core.database.async_engine.dispose()
         await self.httpclient.aclose()
 
     async def save(self, session: AsyncSession, /, obj: J) -> J:
