@@ -1,6 +1,6 @@
 import strawberry
 
-from eave.core.graphql.types.search_region_code import SearchRegionCode
+from eave.core.graphql.types.search_region import SearchRegionCode
 
 
 @strawberry.type

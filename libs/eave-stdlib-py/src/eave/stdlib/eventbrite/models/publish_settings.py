@@ -1,10 +1,10 @@
-from typing import TypedDict
+from typing import Required, TypedDict
 
 
 class PublishSettings(TypedDict, total=False):
     """Event publish settings."""
 
-    resource_uri: str | None
+    resource_uri: Required[str]
     """not documented"""
 
     published_date: str | None

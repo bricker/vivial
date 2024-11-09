@@ -1,13 +1,13 @@
-from typing import TypedDict
+from typing import Required, TypedDict
 
 
 class Category(TypedDict, total=False):
     """https://www.eventbrite.com/platform/api#/reference/categories"""
 
-    id: str | None
+    id: Required[str]
     """Category ID"""
 
-    resource_uri: str | None
+    resource_uri: Required[str]
 
     name: str | None
     """Category name"""
@@ -28,10 +28,10 @@ class Category(TypedDict, total=False):
 class Subcategory(TypedDict, total=False):
     """https://www.eventbrite.com/platform/api#/reference/categories"""
 
-    id: str | None
+    id: Required[str]
     """Subcategory ID"""
 
-    resource_uri: str | None
+    resource_uri: Required[str]
 
     name: str | None
     """Subcategory name"""

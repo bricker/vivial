@@ -12,11 +12,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.graphql.types.outing import PlanOutingErrorCode
-from eave.core.graphql.types.search_region_code import SearchRegionCode
+from eave.core.graphql.types.search_region import SearchRegionCode
 from eave.stdlib.exceptions import InvalidDataError, StartTimeTooLateError, StartTimeTooSoonError
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR, validate_time_within_bounds_or_exception
+from .util import PG_UUID_EXPR, validate_time_within_bounds_or_exception
 
 
 class SurveyOrm(Base):
@@ -31,7 +31,7 @@ class SurveyOrm(Base):
         ),
     )
 
-    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     visitor_id: Mapped[UUID] = mapped_column()
     account_id: Mapped[UUID | None] = mapped_column()
     start_time: Mapped[datetime] = mapped_column()

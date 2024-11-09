@@ -1,26 +1,26 @@
 from typing import TypedDict
 
-from .shared import Price
+from .shared import CurrencyCost
 
 
-class ExternalTicketing(TypedDict, total=False):
-    external_url: str | None
+class ExternalTicketing(TypedDict, total=True):
+    external_url: str
     """The URL clients can follow to purchase tickets."""
 
-    ticketing_provider_name: str | None
+    ticketing_provider_name: str
     """The name of the ticketing provider."""
 
-    is_free: bool | None
+    is_free: bool
     """Whether this is a free event. Mutually exclusive with ticket price range."""
 
-    minimum_ticket_price: Price | None
+    minimum_ticket_price: CurrencyCost
     """The lowest price at which tickets are being sold."""
 
-    maximum_ticket_price: Price | None
+    maximum_ticket_price: CurrencyCost
     """The highest price at which tickets are being sold."""
 
-    sales_start: str | None
+    sales_start: str
     """When sales start."""
 
-    sales_end: str | None
+    sales_end: str
     """When sales end."""

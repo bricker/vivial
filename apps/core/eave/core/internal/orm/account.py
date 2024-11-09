@@ -17,7 +17,7 @@ from eave.stdlib.exceptions import InvalidDataError
 from eave.stdlib.util import b64encode
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR
+from .util import PG_UUID_EXPR
 
 
 class WeakPasswordError(Exception):
@@ -61,7 +61,7 @@ class AccountOrm(Base):
     __tablename__ = "accounts"
     __table_args__ = (PrimaryKeyConstraint("id"),)
 
-    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     email: Mapped[str] = mapped_column(unique=True)
     password_key_salt: Mapped[str] = mapped_column()
     """hex encoded byte string"""

@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# isort: off
+
 import os
 import sys
 
@@ -9,13 +11,17 @@ from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 load_standard_dotenv_files()
 
+# isort: on
+
+# ruff: noqa: E402
+
 from subprocess import Popen
 import click
 
 @click.command()
 @click.argument("cmd", type=click.UNPROCESSED, nargs=-1, required=True)
 def run(cmd: list[str]) -> None:
-    p = Popen(cmd, env=os.environ, shell=False)
+    p = Popen(cmd, env=os.environ, shell=False)  # noqa: S603
     p.communicate()
 
 if __name__ == "__main__":

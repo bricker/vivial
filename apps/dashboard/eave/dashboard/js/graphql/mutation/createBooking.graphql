@@ -1,4 +1,4 @@
-mutation createBooking($input: CreateBookingInput!) {
+mutation CreateBooking($input: CreateBookingInput!) {
   createBooking(input: $input) {
     __typename
     ... on CreateBookingSuccess {

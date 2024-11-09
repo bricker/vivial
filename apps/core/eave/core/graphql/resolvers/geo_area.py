@@ -1,7 +1,7 @@
 import strawberry
 
 from ..types.geo_area import GeoArea
-from ..types.search_region_code import SearchRegionCode
+from ..types.search_region import SearchRegionCode
 
 MOCK_GEO_AREAS = [
     GeoArea(search_region_code=SearchRegionCode.US_CA_LA1, label="Central LA/Hollywood"),

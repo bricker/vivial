@@ -12,7 +12,6 @@ UNDER NO CIRCUMSTANCES SHOULD THIS BE EVER RUN AGAINST PROD
 
 # isort: off
 
-import datetime
 import sys
 
 sys.path.append(".")
@@ -21,25 +20,13 @@ from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 load_standard_dotenv_files()
 
-from eave.stdlib.core_api.models.enums import ReservationSource
-
-from eave.core.internal.orm.account_booking import AccountBookingOrm
-from eave.core.internal.orm.booking import BookingOrm
-from eave.core.internal.orm.booking_activities_template import BookingActivityTemplateOrm
-from eave.core.internal.orm.booking_reservations_template import BookingReservationTemplateOrm
-from eave.core.internal.orm.outing import OutingOrm
-from eave.core.internal.orm.outing_activity import OutingActivityOrm
-from eave.core.internal.orm.outing_reservation import OutingReservationOrm
-from eave.core.internal.orm.reserver_details import ReserverDetailsOrm
-from eave.core.graphql.types.search_region_code import SearchRegionCode
-from eave.core.outing.models.sources import ActivitySource
-
 # isort: on
 
 # ruff: noqa: E402
 
 import argparse
 import asyncio
+import datetime
 import logging
 import os
 import time
@@ -49,8 +36,18 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engin
 
 import eave.core.internal.database
 import eave.core.internal.orm.base
+from eave.core.graphql.types.search_region import SearchRegionCode
 from eave.core.internal.orm.account import AccountOrm
+from eave.core.internal.orm.account_booking import AccountBookingOrm
+from eave.core.internal.orm.booking import BookingOrm
+from eave.core.internal.orm.booking_activities_template import BookingActivityTemplateOrm
+from eave.core.internal.orm.booking_reservations_template import BookingReservationTemplateOrm
+from eave.core.internal.orm.outing import OutingOrm
+from eave.core.internal.orm.outing_activity import OutingActivityOrm
+from eave.core.internal.orm.outing_reservation import OutingReservationOrm
+from eave.core.internal.orm.reserver_details import ReserverDetailsOrm
 from eave.core.internal.orm.survey import SurveyOrm
+from eave.core.outing.models.sources import ActivitySource, RestaurantSource
 from eave.stdlib.logging import eaveLogger
 
 _EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
@@ -111,7 +108,7 @@ async def seed_database(db: AsyncEngine) -> None:
             session=session,
             outing_id=outing.id,
             reservation_id=str(uuid.uuid4()),
-            reservation_source=ReservationSource.SELF,
+            reservation_source=RestaurantSource.GOOGLE_PLACES,
             reservation_start_time=dummy_date,
             num_attendees=2,
         )

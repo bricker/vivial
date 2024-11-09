@@ -79,12 +79,6 @@ if SHARED_CONFIG.eave_env in [EaveEnvironment.development, EaveEnvironment.test]
             await connection.execute(sqlalchemy.text(f'CREATE DATABASE "{db_name}"'))
             await connection.execute(sqlalchemy.text(f'ALTER DATABASE "{db_name}" SET timezone TO "UTC"'))
 
-            # try:
-            #     await connection.execute(sqlalchemy.text("""CREATE ROLE "eave-agent" PASSWORD 'dev'"""))
-            # except Exception as e:
-            #     # FIXME: asyncpg.exceptions.DuplicateObjectError is the correct error to catch here, but masked by sqlalchemy
-            #     print("eave-agent user already exists.", e)
-
         await postgres_engine.dispose()
 
         # create schema in the target db
@@ -101,11 +95,15 @@ if SHARED_CONFIG.eave_env in [EaveEnvironment.development, EaveEnvironment.test]
         )
 
         async with target_engine.begin() as connection:
+            try:
+                await connection.execute(sqlalchemy.text("CREATE EXTENSION postgis"))
+            except Exception as e:
+                print("postgis already installed or failed to install.", e)
+
+            try:
+                await connection.execute(sqlalchemy.text("CREATE EXTENSION address_standardizer"))
+            except Exception as e:
+                print("address_standardizer already installed or failed to install.", e)
+
             # create tables in empty db
             await connection.run_sync(get_base_metadata().create_all)
-
-            # install pg_trgm extension (used for some fuzzy match operations)
-            # try:
-            #     await connection.execute(sqlalchemy.text("CREATE EXTENSION pg_trgm"))
-            # except Exception as e:
-            #     print("pg_trgm already installed.", e)

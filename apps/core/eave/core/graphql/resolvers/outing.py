@@ -19,14 +19,13 @@ from eave.core.graphql.types.outing import (
 )
 from eave.core.graphql.types.photos import Photos
 from eave.core.graphql.types.restaurant import Restaurant
-from eave.core.graphql.types.search_region_code import SearchRegionCode
+from eave.core.graphql.types.search_region import SearchRegionCode
 from eave.core.internal import database
 from eave.core.internal.orm.outing import OutingOrm
 from eave.core.internal.orm.outing_activity import OutingActivityOrm
 from eave.core.internal.orm.outing_reservation import OutingReservationOrm
 from eave.core.outing.constants.zoneinfo import LOS_ANGELES_ZONE_INFO
 from eave.core.outing.models.sources import ActivitySource, RestaurantSource
-from eave.stdlib.core_api.models.enums import ReservationSource
 
 # TODO: Remove once we're fetching from the appropriate sources.
 MOCK_OUTING = Outing(
@@ -135,7 +134,7 @@ async def create_outing_plan(
             session=db_session,
             outing_id=outing.id,
             reservation_id=str(uuid4()),
-            reservation_source=ReservationSource.GOOGLE_PLACES,
+            reservation_source=RestaurantSource.GOOGLE_PLACES,
             reservation_start_time=datetime.now(),
             num_attendees=2,
         )

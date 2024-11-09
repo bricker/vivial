@@ -4,7 +4,9 @@ from sqlalchemy import text
 
 from eave.stdlib.exceptions import StartTimeTooLateError, StartTimeTooSoonError
 
-UUID_DEFAULT_EXPR = text("(gen_random_uuid())")
+PG_UUID_EXPR = text("(gen_random_uuid())")
+
+PG_EMPTY_ARRAY_EXPR = text("'{}'")
 
 
 def validate_time_within_bounds_or_exception(start_time: datetime) -> None:

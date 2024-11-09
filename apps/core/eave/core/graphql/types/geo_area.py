@@ -1,6 +1,6 @@
 import strawberry
 
-from .search_region_code import SearchRegionCode
+from .search_region import SearchRegionCode
 
 
 @strawberry.type

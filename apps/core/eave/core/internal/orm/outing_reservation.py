@@ -8,7 +8,7 @@ from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func,
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.stdlib.core_api.models.enums import ReservationSource
+from eave.core.outing.models.sources import RestaurantSource
 
 from .base import Base
 
@@ -44,7 +44,7 @@ class OutingReservationOrm(Base):
         session: AsyncSession,
         outing_id: UUID,
         reservation_id: str,
-        reservation_source: ReservationSource,
+        reservation_source: RestaurantSource,
         reservation_start_time: datetime,
         num_attendees: int,
     ) -> Self:

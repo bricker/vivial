@@ -1,7 +1,10 @@
+from dataclasses import dataclass
 from enum import StrEnum
 from typing import Self
 
 import strawberry
+
+from eave.core.lib.geo import GeoArea
 
 
 @strawberry.enum
@@ -19,3 +22,10 @@ class SearchRegionCode(StrEnum):
             return cls.__call__(value=s.lower())
         except ValueError:
             return None
+
+
+@dataclass(kw_only=True)
+class SearchRegion:
+    area: GeoArea
+    name: str
+    key: str

@@ -5,7 +5,6 @@ const schema = process.env["GRAPHQL_SCHEMA"] || "http://api.eave.run:8080/graphq
 
 const config: IGraphQLConfig = {
   schema,
-  documents: ["./eave/dashboard/js/graphql/**/*.graphql"],
 };
 
 export default config;

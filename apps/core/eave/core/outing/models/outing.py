@@ -3,10 +3,11 @@ from datetime import datetime
 
 from google.maps.places_v1.types import Place
 
+from eave.core.graphql.types.outing import OutingBudget
+from eave.core.lib.geo import GeoPoint
 from eave.stdlib.eventbrite.models.event import Event
 
-from ...graphql.types.search_region_code import SearchRegionCode
-from .geo_area import GeoLocation
+from ...graphql.types.search_region import SearchRegionCode
 from .sources import ActivitySource, RestaurantSource
 
 
@@ -14,12 +15,12 @@ class OutingComponent:
     source: ActivitySource | RestaurantSource
     event: Event | None
     place: Place | None
-    location: GeoLocation
+    location: GeoPoint
 
     def __init__(
         self,
         source: ActivitySource | RestaurantSource,
-        location: GeoLocation,
+        location: GeoPoint,
         event: Event | None = None,
         place: Place | None = None,
     ) -> None:
@@ -39,5 +40,5 @@ class OutingPlan:
 class OutingConstraints:
     start_time: datetime
     search_area_ids: list[SearchRegionCode]
-    budget: int
+    budget: OutingBudget
     headcount: int

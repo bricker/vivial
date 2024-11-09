@@ -1,19 +1,20 @@
-from collections.abc import MutableSequence
+from collections.abc import MutableSequence, Sequence
 from datetime import datetime, timedelta
 
 from google.maps.places_v1 import PlacesClient
 from google.maps.places_v1.types import Place, SearchNearbyRequest
 
-from ..constants.restaurants import RESTAURANT_BUDGET_MAP
+from eave.core.graphql.types.outing import OutingBudget
+from eave.core.lib.geo import GeoArea
+
+from ..constants.restaurants import get_google_price_level_from_outing_budget
 from ..constants.zoneinfo import LOS_ANGELES_ZONE_INFO
 
 
 def get_places_nearby(
     client: PlacesClient,
-    latitude: float | str,
-    longitude: float | str,
-    radius_meters: float,
-    included_primary_types: list[str],
+    area: GeoArea,
+    included_primary_types: Sequence[str],
     field_mask: str,
 ) -> MutableSequence[Place]:
     """
@@ -23,12 +24,12 @@ def get_places_nearby(
     https://developers.google.com/maps/documentation/places/web-service/nearby-search
     """
     location_restriction = SearchNearbyRequest.LocationRestriction()
-    location_restriction.circle.radius = radius_meters
-    location_restriction.circle.center.latitude = latitude
-    location_restriction.circle.center.longitude = longitude
+    location_restriction.circle.radius = area.rad.meters
+    location_restriction.circle.center.latitude = area.center.lat
+    location_restriction.circle.center.longitude = area.center.lon
     request = SearchNearbyRequest(
         location_restriction=location_restriction,
-        included_primary_types=included_primary_types,
+        included_primary_types=included_primary_types[0:50],
     )
     response = client.search_nearby(request=request, metadata=[("x-goog-fieldmask", field_mask)])
     return response.places or []
@@ -64,14 +65,14 @@ def place_will_be_open(place: Place, utc_arrival_time: datetime, utc_departure_t
     return False
 
 
-def place_is_in_budget(place: Place, budget: int) -> bool:
+def place_is_in_budget(place: Place, budget: OutingBudget) -> bool:
     """
     Given a place from the Google Places API, determine whether or not that
     place is within the user's budget for the date.
 
     https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#PriceLevel
     """
-    return place.price_level == RESTAURANT_BUDGET_MAP[budget]
+    return place.price_level == get_google_price_level_from_outing_budget(budget)
 
 
 def place_is_accessible(place: Place) -> bool:
@@ -90,4 +91,4 @@ def place_is_accessible(place: Place) -> bool:
     can_pee = accessibility_options.wheelchair_accessible_restroom
     can_sit = accessibility_options.wheelchair_accessible_seating
 
-    return bool(can_enter and can_park and can_pee and can_sit)
+    return can_enter and can_park and can_pee and can_sit

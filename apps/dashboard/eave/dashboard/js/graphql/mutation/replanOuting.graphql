@@ -1,4 +1,4 @@
-mutation replanOuting($input: ReplanOutingInput!) {
+mutation ReplanOuting($input: ReplanOutingInput!) {
   replanOuting(input: $input) {
     __typename
     ... on ReplanOutingSuccess {

@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
-from .util import UUID_DEFAULT_EXPR
+from .util import PG_UUID_EXPR
 
 
 class BookingActivityTemplateOrm(Base):
@@ -33,7 +33,7 @@ class BookingActivityTemplateOrm(Base):
         ),
     )
 
-    id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     booking_id: Mapped[UUID] = mapped_column()
     activity_name: Mapped[str] = mapped_column()
     activity_start_time: Mapped[datetime] = mapped_column()

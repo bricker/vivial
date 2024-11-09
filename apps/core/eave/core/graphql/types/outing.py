@@ -5,7 +5,7 @@ from uuid import UUID
 
 import strawberry
 
-from eave.core.graphql.types.search_region_code import SearchRegionCode
+from eave.core.graphql.types.search_region import SearchRegionCode
 from eave.core.graphql.types.user import UserInput
 
 from .activity import Activity
@@ -20,6 +20,7 @@ class OutingState(enum.StrEnum):
 
 @strawberry.enum
 class OutingBudget(enum.IntEnum):
+    ZERO = 0
     ONE = 1
     TWO = 2
     THREE = 3

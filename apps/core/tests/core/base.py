@@ -22,7 +22,7 @@ import eave.stdlib.eave_origins
 import eave.stdlib.requests_util
 import eave.stdlib.testing_util
 import eave.stdlib.typing
-from eave.core.graphql.types.search_region_code import SearchRegionCode
+from eave.core.graphql.types.search_region import SearchRegionCode
 from eave.core.internal.config import CORE_API_APP_CONFIG
 from eave.core.internal.database import init_database
 from eave.core.internal.orm.account import AccountOrm

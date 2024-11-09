@@ -1,14 +1,14 @@
 from dataclasses import dataclass
 
-from .category import Category
+from .category import ActivitySubcategory, RestaurantCategory
 
 
 @dataclass
 class UserPreferences:
     open_to_bars: bool
     requires_wheelchair_accessibility: bool
-    restaurant_categories: list[Category]
-    activity_categories: list[Category]
+    restaurant_categories: list[RestaurantCategory]
+    activity_categories: list[ActivitySubcategory]
 
 
 @dataclass
