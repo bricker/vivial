@@ -6,10 +6,11 @@ Create Date: 2024-11-09 23:23:07.885465
 
 """
 
-from alembic import op
-import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 import geoalchemy2
+import sqlalchemy as sa
+from alembic import op
+from sqlalchemy.dialects import postgresql
+
 import eave.core.internal.orm.address_types
 
 # revision identifiers, used by Alembic.
