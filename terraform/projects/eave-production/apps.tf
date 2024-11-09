@@ -26,8 +26,8 @@ module "core_api_app" {
     "user:liam@eave.fyi",
   ]
 
-  LOG_LEVEL       = "DEBUG"
-  release_version = "latest"
+  LOG_LEVEL                  = "DEBUG"
+  release_version            = "latest"
   SEGMENT_CORE_API_WRITE_KEY = "cVBM36ZvqJV2gagtnOT60fTNn1Q5P5na"
 }
 

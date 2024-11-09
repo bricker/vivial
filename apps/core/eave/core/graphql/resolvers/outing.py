@@ -108,10 +108,11 @@ MOCK_OUTING = Outing(
 
 
 async def create_outing_plan(
+    *,
     visitor_id: UUID,
     survey_id: UUID,
     account_id: UUID | None,
-    reroll: bool,  # noqa: FBT001
+    reroll: bool,
 ) -> OutingOrm:
     # TODO: actually call the planning function instead
     async with database.async_session.begin() as db_session:

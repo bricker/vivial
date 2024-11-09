@@ -224,7 +224,7 @@ async def create_booking_mutation(
 
     ANALYTICS.track(
         event_name="booking created",
-        account_id=account_id,
+        account_id=input.account_id,  # TODO: probably should come from info, not input
         extra_properties={
             "booking_constraints": {
                 "headcount": survey.headcount,
