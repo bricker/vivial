@@ -1,25 +1,18 @@
-import json
 import os
-import urllib.parse
-import uuid
 from typing import Any, Protocol, TypeVar
 from uuid import UUID
 
-import aiohttp
-import pydantic
 import sqlalchemy
 import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
 from google.cloud.bigquery import SchemaField
-from httpx import AsyncClient, Response
+from httpx import AsyncClient
 from sqlalchemy import literal_column, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import eave.core.app
 import eave.core.database
 import eave.core.orm
-import eave.stdlib.eave_origins
-import eave.stdlib.requests_util
 import eave.stdlib.testing_util
 import eave.stdlib.typing
 from eave.core.config import CORE_API_APP_CONFIG
@@ -30,11 +23,6 @@ from eave.core.orm.base import get_base_metadata
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.headers import (
-    EAVE_ACCOUNT_ID_HEADER,
-    EAVE_ORIGIN_HEADER,
-    EAVE_REQUEST_ID_HEADER,
-)
 
 
 class AnyStandardOrm(Protocol):
@@ -118,88 +106,6 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         if count is None:
             count = 0
         return count
-
-    async def make_request(
-        self,
-        *,
-        path: str,
-        payload: pydantic.BaseModel | eave.stdlib.typing.JsonObject | str | bytes | None = None,
-        method: str = "POST",
-        headers: dict[str, str | None] | None = None,
-        cookies: dict[str, str] | None = None,
-        origin: eave.stdlib.eave_origins.EaveApp | None = None,
-        account_id: uuid.UUID | None = None,
-        access_token: str | None = None,
-        request_id: uuid.UUID | None = None,
-        **kwargs: Any,
-    ) -> Response:
-        if headers is None:
-            headers = {}
-
-        if account_id:
-            assert EAVE_ACCOUNT_ID_HEADER not in headers
-            headers[EAVE_ACCOUNT_ID_HEADER] = str(account_id)
-        else:
-            v = headers.get(EAVE_ACCOUNT_ID_HEADER)
-            account_id = uuid.UUID(v) if v else None
-
-        if origin:
-            assert EAVE_ORIGIN_HEADER not in headers
-            headers[EAVE_ORIGIN_HEADER] = origin.value
-        else:
-            if EAVE_ORIGIN_HEADER not in headers:
-                origin = eave.stdlib.eave_origins.EaveApp.eave_dashboard
-                headers[EAVE_ORIGIN_HEADER] = origin
-
-        if request_id:
-            assert EAVE_REQUEST_ID_HEADER not in headers
-            headers[EAVE_REQUEST_ID_HEADER] = str(request_id)
-        elif EAVE_REQUEST_ID_HEADER in headers:
-            request_id = uuid.UUID(headers[EAVE_REQUEST_ID_HEADER])
-        else:
-            request_id = uuid.uuid4()
-            headers[EAVE_REQUEST_ID_HEADER] = str(request_id)
-
-        request_args: dict[str, Any] = {}
-
-        if not payload:
-            encoded_payload = ""
-            query_payload = {}
-        elif isinstance(payload, pydantic.BaseModel):
-            encoded_payload = payload.json()
-            query_payload = payload.dict()
-        elif isinstance(payload, str):
-            # Assumed to be a json-encoded string
-            encoded_payload = payload
-            query_payload = json.loads(encoded_payload)
-        elif isinstance(payload, (bytes, bytearray, memoryview)):
-            encoded_payload = payload
-            query_payload = {}
-        else:
-            encoded_payload = json.dumps(payload)
-            query_payload = payload
-
-        if method == "GET":
-            data = urllib.parse.urlencode(query=query_payload)
-            request_args["params"] = data
-        else:
-            request_args["content"] = encoded_payload
-
-        if access_token and aiohttp.hdrs.AUTHORIZATION not in headers:
-            headers[aiohttp.hdrs.AUTHORIZATION] = f"Bearer {access_token}"
-
-        clean_headers = {k: v for (k, v) in headers.items() if v is not None}
-
-        response = await self.httpclient.request(
-            method,
-            path,
-            headers=clean_headers,
-            cookies=cookies,
-            **request_args,
-            **kwargs,
-        )
-
-        return response
 
     async def make_account(
         self,

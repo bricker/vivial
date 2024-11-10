@@ -2,14 +2,9 @@ import os
 from functools import cached_property
 
 from eave.stdlib.config import ConfigBase, get_required_env
-from eave.stdlib.eave_origins import EaveApp
 
 
 class _AppConfig(ConfigBase):
-    @property
-    def eave_origin(self) -> EaveApp:
-        return EaveApp.eave_api
-
     @cached_property
     def db_host(self) -> str | None:
         key = "EAVE_DB_HOST"

@@ -35,7 +35,6 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
             if len(flow.request.path_components) == 0 or flow.request.path_components[0] not in [
                 "status",
                 "healthz",
-                "public",
                 "graphql",
                 "favicon.ico",
             ]:
