@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import eave.stdlib.slack
 from eave.core import database
-from eave.core.lib.analytics import ANALYTICS
 from eave.core.graphql.types.booking import (
     Booking,
     CreateBookingError,
@@ -15,6 +14,7 @@ from eave.core.graphql.types.booking import (
     CreateBookingResult,
     CreateBookingSuccess,
 )
+from eave.core.lib.analytics import ANALYTICS
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.account_booking import AccountBookingOrm
 from eave.core.orm.booking import BookingOrm
