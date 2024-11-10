@@ -3,7 +3,7 @@ from uuid import uuid4
 import strawberry
 
 import eave.core.database
-from eave.core.analytics import ANALYTICS
+from eave.core.lib.analytics import ANALYTICS
 from eave.core.orm.account import AccountOrm, test_password_strength_or_exception
 from eave.stdlib.exceptions import InvalidJWSError
 from eave.stdlib.jwt import JWTPurpose, create_jws, validate_jws_or_exception, validate_jws_pair_or_exception

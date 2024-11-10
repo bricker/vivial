@@ -4,7 +4,7 @@ from uuid import UUID, uuid4
 import strawberry
 
 from eave.core import database
-from eave.core.analytics import ANALYTICS
+from eave.core.lib.analytics import ANALYTICS
 from eave.core.graphql.types.activity import Activity, ActivityTicketInfo, ActivityVenue
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import (
