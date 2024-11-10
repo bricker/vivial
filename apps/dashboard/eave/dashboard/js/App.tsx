@@ -1,44 +1,38 @@
+import { CssBaseline, ThemeProvider } from "@mui/material";
 import React from "react";
 import { CookiesProvider, withCookies } from "react-cookie";
 import { Helmet } from "react-helmet";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-
-import { CssBaseline, ThemeProvider } from "@mui/material";
 import "../static/css/app.css";
+import { pageView } from "./analytics/segment";
 import AuthenticationPage from "./components/Pages/AuthenticationPage";
-import { Dashboard, TabRevealer } from "./components/Pages/Dashboard";
-import Onboarding from "./components/Pages/Onboarding";
-import Waitlist from "./components/Pages/Waitlist";
+import OutingPage from "./components/Pages/OutingPage";
+import SurveyPage from "./components/Pages/SurveyPage";
+import RouteChangeTracker from "./components/RouteChangeTracker";
 import AppContextProvider from "./context/Provider";
 import { theme } from "./theme";
 
 const App = () => {
+  const fireAnalyticsPageView = async (_: string) => {
+    await pageView({});
+  };
+
   return (
     <CookiesProvider>
       <AppContextProvider>
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <Helmet>
-            <title>Eave - for your information.</title>
+            <title>Vivial</title>
           </Helmet>
           <BrowserRouter>
+            <RouteChangeTracker onRouteChange={fireAnalyticsPageView} />
             <Routes>
+              <Route path="/" element={<SurveyPage />} />
               <Route path="/signup" element={<AuthenticationPage type="signup" />} />
-
               <Route path="/login" element={<AuthenticationPage type="login" />} />
-
-              <Route element={<Dashboard />}>
-                <Route path="/setup" element={<TabRevealer name="setupTab" pathname="/setup" />} />
-                <Route path="/insights" element={<TabRevealer name="insightsTab" pathname="/insights" />} />
-                <Route path="/glossary" element={<TabRevealer name="glossaryTab" pathname="/glossary" />} />
-                <Route path="/settings" element={<TabRevealer name="settingsTab" pathname="/settings" />} />
-                <Route path="/team" element={<TabRevealer name="teamTab" pathname="/team" />} />
-              </Route>
-
-              <Route path="/onboarding" element={<Onboarding />} />
-              <Route path="/waitlist" element={<Waitlist />} />
-
-              <Route path="*" element={<Navigate to="/onboarding" />} />
+              <Route path="/outing/:outingId" element={<OutingPage />} />
+              <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </BrowserRouter>
         </ThemeProvider>

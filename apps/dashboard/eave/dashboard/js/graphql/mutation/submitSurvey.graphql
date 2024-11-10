@@ -1,0 +1,13 @@
+mutation SubmitSurvey($input: SurveyInput!) {
+  submitSurvey(input: $input) {
+    __typename
+    ... on SubmitSurveySuccess {
+      outing {
+        id
+      }
+    }
+    ... on SubmitSurveyError {
+      errorCode
+    }
+  }
+}

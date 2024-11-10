@@ -1,29 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <!-- window -->
-        <script>
-        window.eavedash = {
+
+<head>
+    <!-- window -->
+    <script>
+        window.app = {
             apiBase: '{{api_base}}',
             assetBase: '{{asset_base}}',
+            appEnv: '{{app_env}}',
+            segmentWriteKey: '{{segment_write_key}}',
+            analyticsEnabled: '{{analytics_enabled}}',
         };
-        </script>
+    </script>
 
-        <!-- Google Fonts (DM Sans, Pattaya) -->
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Pattaya&family=DM+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-        <!-- End Google Fonts -->
+    <!-- Google Fonts (DM Sans, Pattaya) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pattaya&family=DM+Sans:wght@400;600;700&display=swap"
+        rel="stylesheet">
+    <!-- End Google Fonts -->
 
-        <meta charset="utf-8" />
-        <link rel="icon" type="image/x-icon" href="{{asset_base}}/images/eave-logo-favicon.png">
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="description" content="Eave: The next generation of product intelligence." />
-        <title>{{ page_title|default("Eave - for your information.") }}</title>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/x-icon" href="{{asset_base}}/images/eave-logo-favicon.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Vivial: plans without planning." />
+    <title>{{ page_title|default("Vivial") }}</title>
 
-        <script defer src="{{asset_base}}/dist/main.js"></script>
-    </head>
-    <body>
-        <div id="root"></div>
-    </body>
+    <script defer src="{{asset_base}}/dist/main.js"></script>
+</head>
+
+<body>
+    <div id="root"></div>
+</body>
+
 </html>

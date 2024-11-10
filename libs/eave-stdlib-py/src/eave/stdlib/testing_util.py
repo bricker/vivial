@@ -88,7 +88,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         if name is None:
             name = uuid.uuid4().hex
 
-        assert name not in self.testdata, f"test value {name} is already in use. Use getdatetime() to retrieve it."
+        assert name not in self.testdata, f"test value {name} is already in use."
 
         oneyear = 60 * 60 * 24 * 365
         if not offset:
@@ -115,7 +115,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self,
         name: str,
     ) -> datetime:
-        assert name in self.testdata, f"test value {name} has not been set. Use anydatetime() to set it."
+        assert name in self.testdata, f"test value {name} has not been set."
         return self.testdata[name]
 
     _increment = -1  # so that the first increment returns 0
@@ -128,7 +128,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         if name is None:
             name = uuid.uuid4().hex
 
-        assert name not in self.testdata, f"test value {name} is already in use. Use geturl() to retrieve it."
+        assert name not in self.testdata, f"test value {name} is already in use."
 
         data = f"https://{name}.{uuid.uuid4().hex}.com/{uuid.uuid4().hex}"
         self.testdata[name] = data
@@ -141,7 +141,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         if name is None:
             name = uuid.uuid4().hex
 
-        assert name not in self.testdata, f"test value {name} is already in use. Use getpath() to retrieve it."
+        assert name not in self.testdata, f"test value {name} is already in use."
 
         data = f"/{name}/{uuid.uuid4().hex}"
         self.testdata[name] = data
@@ -154,7 +154,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         if name is None:
             name = uuid.uuid4().hex
 
-        assert name not in self.testdata, f"test value {name} is already in use. Use getstr() to retrieve it."
+        assert name not in self.testdata, f"test value {name} is already in use."
 
         if staticvalue is None:
             data = uuid.uuid4().hex
@@ -166,14 +166,14 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return self.getstr(name)
 
     def getstr(self, name: str) -> str:
-        assert name in self.testdata, f"test value {name} has not been set. Use anystr(), anyhex(), etc to set it."
+        assert name in self.testdata, f"test value {name} has not been set."
         return self.testdata[name]
 
     def anyjson(self, name: str | None = None, *, length: int = 3) -> str:
         if name is None:
             name = uuid.uuid4().hex
 
-        assert name not in self.testdata, f"test value {name} is already in use. Use getjson() to retrieve it."
+        assert name not in self.testdata, f"test value {name} is already in use."
 
         data = json.dumps({f"{name}:{uuid.uuid4().hex}": f"{name}:{uuid.uuid4().hex}" for _ in range(length)})
         self.testdata[name] = data
@@ -188,7 +188,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         if name is None:
             name = uuid.uuid4().hex
 
-        assert name not in self.testdata, f"test value {name} is already in use. Use getdict() to retrieve it."
+        assert name not in self.testdata, f"test value {name} is already in use."
 
         randlen = random.randint(minlength, b=maxlength)
         if deterministic_keys:
@@ -200,14 +200,14 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return self.getdict(name)
 
     def getdict(self, name: str) -> dict[str, Any]:
-        assert name in self.testdata, f"test value {name} has not been set. Use anydict() to set it."
+        assert name in self.testdata, f"test value {name} has not been set."
         return self.testdata[name]
 
     def anylist(self, name: str | None = None, *, minlength: int = 0, maxlength: int = 3) -> list[Any]:
         if name is None:
             name = uuid.uuid4().hex
 
-        assert name not in self.testdata, f"test value {name} is already in use. Use getlist() to retrieve it."
+        assert name not in self.testdata, f"test value {name} is already in use."
 
         randlen = random.randint(minlength, maxlength)
         data = [uuid.uuid4().hex for _ in range(randlen)]
@@ -215,28 +215,28 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return self.getlist(name)
 
     def getlist(self, name: str) -> list[Any]:
-        assert name in self.testdata, f"test value {name} has not been set. Use anylist() to set it."
+        assert name in self.testdata, f"test value {name} has not been set."
         return self.testdata[name]
 
     def anyuuid(self, name: str | None = None) -> uuid.UUID:
         if name is None:
             name = uuid.uuid4().hex
 
-        assert name not in self.testdata, f"test value {name} is already in use. Use getuuid() to retrieve it."
+        assert name not in self.testdata, f"test value {name} is already in use."
 
         data = uuid.uuid4()
         self.testdata[name] = data
         return self.getuuid(name)
 
     def getuuid(self, name: str) -> uuid.UUID:
-        assert name in self.testdata, f"test value {name} has not been set. Use anyuuid() to set it."
+        assert name in self.testdata, f"test value {name} has not been set."
         return self.testdata[name]
 
     def anyhex(self, name: str | None = None) -> str:
         if name is None:
             name = uuid.uuid4().hex
 
-        assert name not in self.testdata, f"test value {name} is already in use. Use gethex() to retrieve it."
+        assert name not in self.testdata, f"test value {name} is already in use."
 
         data = uuid.uuid4().hex
         self.testdata[name] = data
@@ -249,7 +249,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         if name is None:
             name = uuid.uuid4().hex
 
-        assert name not in self.testdata, f"test value {name} is already in use. Use getalpha() to retrieve it."
+        assert name not in self.testdata, f"test value {name} is already in use."
 
         alphas = "abcdefghijklmnopqrstuvwxyz"
         data = "".join(random.sample(alphas, k=length))
@@ -259,53 +259,81 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getalpha(self, name: str) -> str:
         return self.getstr(name)
 
+    def anylatitude(self, name: str | None = None) -> float:
+        if name is None:
+            name = uuid.uuid4().hex
+
+        assert name not in self.testdata, f"test value {name} is already in use."
+
+        # Get an int between (-90*10^5,90*10^5), and divide by 10^5 to get a value with 5 decimals of precision
+        data = random.randint(-90 * (10**5), 90 * (10**5)) / 10**5
+        self.testdata[name] = data
+        return self.getlatitude(name=name)
+
+    def getlatitude(self, name: str) -> float:
+        return self.getfloat(name)
+
+    def anylongitude(self, name: str | None = None) -> float:
+        if name is None:
+            name = uuid.uuid4().hex
+
+        assert name not in self.testdata, f"test value {name} is already in use."
+
+        # Get an int between (-180*10^5,180*10^5), and divide by 10^5 to get a value with 5 decimals of precision
+        data = random.randint(-180 * (10**5), 180 * (10**5)) / 10**5
+        self.testdata[name] = data
+        return self.getlatitude(name=name)
+
+    def getlongitude(self, name: str) -> float:
+        return self.getfloat(name)
+
     def anyint(self, name: str | None = None, *, min: int = 0, max: int = 9999) -> int:
         if name is None:
             name = uuid.uuid4().hex
 
-        assert name not in self.testdata, f"test value {name} is already in use. Use getint() to retrieve it."
+        assert name not in self.testdata, f"test value {name} is already in use."
 
         data = random.randint(min, max)
         self.testdata[name] = data
         return self.getint(name)
 
     def getint(self, name: str) -> int:
-        assert name in self.testdata, f"test value {name} has not been set. Use anyint() to set it."
+        assert name in self.testdata, f"test value {name} has not been set."
         return self.testdata[name]
 
     def anyfloat(self, name: str | None = None, *, mag: int = 0, decimals: int | None = None) -> float:
         if name is None:
             name = uuid.uuid4().hex
 
-        assert name not in self.testdata, f"test value {name} is already in use. Use getfloat() to retrieve it."
+        assert name not in self.testdata, f"test value {name} is already in use."
 
         data = round(random.random() * (10**mag), decimals)
         self.testdata[name] = data
         return self.getfloat(name)
 
     def getfloat(self, name: str) -> float:
-        assert name in self.testdata, f"test value {name} has not been set. Use anyfloat() to set it."
+        assert name in self.testdata, f"test value {name} has not been set."
         return self.testdata[name]
 
     def anybytes(self, name: str | None = None, encoding: str = "utf-8") -> bytes:
         if name is None:
             name = uuid.uuid4().hex
 
-        assert name not in self.testdata, f"test value {name} is already in use. Use getbytes() to retrieve it."
+        assert name not in self.testdata, f"test value {name} is already in use."
 
         data = uuid.uuid4().bytes
         self.testdata[name] = data
         return self.getbytes(name)
 
     def getbytes(self, name: str) -> bytes:
-        assert name in self.testdata, f"test value {name} has not been set. Use anybytes() to set it."
+        assert name in self.testdata, f"test value {name} has not been set."
         return self.testdata[name]
 
     def anytime(self, name: str | None = None) -> float:
         if name is None:
             name = uuid.uuid4().hex
 
-        assert name not in self.testdata, f"test value {name} is already in use. Use gettime() to retrieve it."
+        assert name not in self.testdata, f"test value {name} is already in use."
 
         offset = random.randint(0, 999999)
         data = floor(
@@ -321,21 +349,21 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         if name is None:
             name = uuid.uuid4().hex
 
-        assert name not in self.testdata, f"test value {name} is already in use. Use getbool() to retrieve it."
+        assert name not in self.testdata, f"test value {name} is already in use."
 
         data = random.random() > 0.5
         self.testdata[name] = data
         return self.getbool(name)
 
     def getbool(self, name: str) -> bool:
-        assert name in self.testdata, f"test value {name} has not been set. Use anybool() to set it."
+        assert name in self.testdata, f"test value {name} has not been set."
         return self.testdata[name]
 
     def anysha256(self, name: str | None = None) -> bytes:
         if name is None:
             name = uuid.uuid4().hex
 
-        assert name not in self.testdata, f"test value {name} is already in use. Use getsha256() to retrieve it."
+        assert name not in self.testdata, f"test value {name} is already in use."
 
         data = hashlib.sha256(uuid.uuid4().bytes).digest()
         self.testdata[name] = data
@@ -343,6 +371,19 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
     def getsha256(self, name: str) -> bytes:
         return self.getbytes(name)
+
+    def anyemail(self, name: str | None = None) -> str:
+        if name is None:
+            name = uuid.uuid4().hex
+
+        assert name not in self.testdata, f"test value {name} is already in use."
+        data = f"{name}+{uuid.uuid4().hex}@gmail.com"
+        self.testdata[name] = data
+        return data
+
+    def getemail(self, name: str) -> str:
+        assert name in self.testdata, f"test value {name} has not been set."
+        return self.testdata[name]
 
     def b64encode(self, value: str, urlsafe: bool = False) -> str:
         b = value.encode()
@@ -449,7 +490,11 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         )
 
     def mock_slack_client(self) -> None:
-        self.patch(name="slack client", patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient"))
+        self.patch(
+            name="slack client",
+            patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient.chat_postMessage"),
+            return_value={},
+        )
 
     def logged_event(self, *args: Any, **kwargs: Any) -> bool:
         mock = self.get_mock("analytics")
@@ -473,7 +518,9 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         # No calls matched the given args
         return False
 
-    def patch(self, patch: unittest.mock._patch, name: str | None = None) -> unittest.mock.Mock:
+    def patch(
+        self, patch: unittest.mock._patch, name: str | None = None, return_value: Any | None = None
+    ) -> unittest.mock.Mock:
         m = patch.start()
         m._testMethodName = self._testMethodName  # noqa: SLF001
 
@@ -482,6 +529,9 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
                 name = f"{patch.target.__name__}.{patch.attribute}"
             else:
                 name = f"{patch.target}.{patch.attribute}"
+
+        if return_value is not None:
+            m.return_value = return_value
 
         self._active_patches[name] = patch
         self.active_mocks[name] = m

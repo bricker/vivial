@@ -2,14 +2,15 @@ from uuid import uuid4
 
 import strawberry
 
-import eave.core.internal.database
-from eave.core.graphql.types.authentication import Account
-from eave.core.graphql.types.user_profile import UserProfile
-from eave.core.internal.orm.account import AccountOrm, test_password_strength_or_exception
+import eave.core.database
+from eave.core.graphql.types.account import Account
+from eave.core.lib.analytics import ANALYTICS
+from eave.core.orm.account import AccountOrm, test_password_strength_or_exception
 from eave.stdlib.exceptions import InvalidJWSError
 from eave.stdlib.jwt import JWTPurpose, create_jws, validate_jws_or_exception, validate_jws_pair_or_exception
 
 from ..types.authentication import AuthenticationErrorCode, AuthTokenPair, LoginError, LoginResult, LoginSuccess
+from .account import MOCK_ACCOUNT
 
 JWT_ISSUER = "core-api"
 JWT_AUDIENCE = "core-api"
@@ -18,14 +19,27 @@ JWT_AUDIENCE = "core-api"
 async def register_mutation(*, info: strawberry.Info, email: str, plaintext_password: str) -> LoginResult:
     test_password_strength_or_exception(plaintext_password)
 
-    async with eave.core.internal.database.async_session.begin() as db_session:
+    async with eave.core.database.async_session.begin() as db_session:
         account_orm = await AccountOrm.create(
             session=db_session,
             email=email,
             plaintext_password=plaintext_password,
         )
 
+    ANALYTICS.identify(
+        account_id=account_orm.id,
+        # TODO: visitor_id
+        extra_properties={
+            "email": account_orm.email,
+        },
+    )
+    ANALYTICS.track(
+        event_name="signup",
+        account_id=account_orm.id,
+    )
+
     auth_token_pair = _make_auth_token_pair(account_id=str(account_orm.id))
+
     account = Account(
         id=account_orm.id,
         email=account_orm.email,
@@ -34,8 +48,9 @@ async def register_mutation(*, info: strawberry.Info, email: str, plaintext_pass
 
     return LoginSuccess(account=account, auth_tokens=auth_token_pair)
 
+
 async def login_mutation(*, info: strawberry.Info, email: str, plaintext_password: str) -> LoginResult:
-    async with eave.core.internal.database.async_session.begin() as db_session:
+    async with eave.core.database.async_session.begin() as db_session:
         account_orm = await AccountOrm.one_or_exception(
             session=db_session,
             params=AccountOrm.QueryParams(

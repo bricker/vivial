@@ -1,0 +1,13 @@
+mutation SubmitReserverDetails($input: ReserverDetailsInput!) {
+  submitReserverDetails(input: $input) {
+    __typename
+    ... on SubmitReserverDetailsSuccess {
+      reserverDetails {
+        id
+      }
+    }
+    ... on SubmitReserverDetailsError {
+      errorCode
+    }
+  }
+}

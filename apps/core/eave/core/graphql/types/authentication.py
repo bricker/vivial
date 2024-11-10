@@ -1,17 +1,9 @@
 import enum
 from typing import Annotated
-from uuid import UUID
 
 import strawberry
 
-from eave.core.graphql.types.user_profile import UserProfile
-
-
-@strawberry.type
-class Account:
-    id: UUID = strawberry.field()
-    email: str = strawberry.field()
-    user_profile: UserProfile
+from .account import Account
 
 
 @strawberry.type
@@ -23,6 +15,7 @@ class AuthTokenPair:
 @strawberry.enum
 class AuthenticationErrorCode(enum.StrEnum):
     INVALID_CREDENTIALS = "INVALID_CREDENTIALS"
+    INVALID_EMAIL = "INVALID_EMAIL"
 
 
 @strawberry.type

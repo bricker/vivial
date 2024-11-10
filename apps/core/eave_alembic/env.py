@@ -10,9 +10,9 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import Connection
 
-import eave.core.internal.database as eave_db
-import eave.core.internal.orm
-import eave.core.internal.orm.base
+import eave.core.database as eave_db
+import eave.core.orm
+import eave.core.orm.base
 import eave.stdlib.time
 
 eave.stdlib.time.set_utc()
@@ -29,7 +29,7 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 
-target_metadata = eave.core.internal.orm.base.get_base_metadata()
+target_metadata = eave.core.orm.base.get_base_metadata()
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
