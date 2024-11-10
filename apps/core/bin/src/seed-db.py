@@ -34,19 +34,19 @@ import uuid
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engine
 
-import eave.core.internal.database
-import eave.core.internal.orm.base
+import eave.core.database
+import eave.core.orm.base
 from eave.core.graphql.types.search_region import SearchRegionCode
-from eave.core.internal.orm.account import AccountOrm
-from eave.core.internal.orm.account_booking import AccountBookingOrm
-from eave.core.internal.orm.booking import BookingOrm
-from eave.core.internal.orm.booking_activities_template import BookingActivityTemplateOrm
-from eave.core.internal.orm.booking_reservations_template import BookingReservationTemplateOrm
-from eave.core.internal.orm.outing import OutingOrm
-from eave.core.internal.orm.outing_activity import OutingActivityOrm
-from eave.core.internal.orm.outing_reservation import OutingReservationOrm
-from eave.core.internal.orm.reserver_details import ReserverDetailsOrm
-from eave.core.internal.orm.survey import SurveyOrm
+from eave.core.orm.account import AccountOrm
+from eave.core.orm.account_booking import AccountBookingOrm
+from eave.core.orm.booking import BookingOrm
+from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
+from eave.core.orm.booking_reservations_template import BookingReservationTemplateOrm
+from eave.core.orm.outing import OutingOrm
+from eave.core.orm.outing_activity import OutingActivityOrm
+from eave.core.orm.outing_reservation import OutingReservationOrm
+from eave.core.orm.reserver_details import ReserverDetailsOrm
+from eave.core.orm.survey import SurveyOrm
 from eave.core.outing.models.sources import ActivitySource, RestaurantSource
 from eave.stdlib.logging import eaveLogger
 
@@ -182,7 +182,7 @@ async def main() -> None:
     )
     args, _ = parser.parse_known_args()
 
-    postgres_uri = eave.core.internal.database.async_engine.url._replace(database=args.database)
+    postgres_uri = eave.core.database.async_engine.url._replace(database=args.database)
     seed_db = create_async_engine(
         postgres_uri,
         isolation_level="AUTOCOMMIT",

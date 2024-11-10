@@ -2,9 +2,9 @@ import asyncio
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-import eave.core.internal.database
-from eave.core.internal.config import CORE_API_APP_CONFIG
-from eave.core.internal.orm.eventbrite_event import EventbriteEventOrm
+import eave.core.database
+from eave.core.config import CORE_API_APP_CONFIG
+from eave.core.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.outing.constants.activities import get_vivial_subcategory_by_eventbrite_subcategory_id
 from eave.core.outing.constants.formats import get_vivial_format_from_eventbrite_format_id
 from eave.stdlib.eventbrite.client import EventbriteClient, ListEventsQuery, OrderBy
@@ -44,7 +44,7 @@ async def get_eventbrite_events() -> None:
             pagenum += 1
             LOGGER.debug(f"organizer {organizer_id}; pagenum {pagenum}")
 
-            async with eave.core.internal.database.async_session.begin() as db_session:
+            async with eave.core.database.async_session.begin() as db_session:
                 evnum = 0
                 for event in batch:
                     evnum += 1

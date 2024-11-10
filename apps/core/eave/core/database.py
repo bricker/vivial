@@ -5,7 +5,7 @@ import sqlalchemy.orm
 import sqlalchemy.util
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from eave.core.internal.orm.base import get_base_metadata
+from eave.core.orm.base import get_base_metadata
 from eave.stdlib.config import SHARED_CONFIG, EaveEnvironment
 
 from .config import CORE_API_APP_CONFIG

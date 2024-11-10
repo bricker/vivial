@@ -1,7 +1,7 @@
 from datetime import timedelta
 
-from eave.core.internal.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
+from eave.core.orm.eventbrite_event import EventbriteEventOrm
 
 from ..base import BaseTestCase
 

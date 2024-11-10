@@ -125,36 +125,12 @@ class LogContext(JsonObject):
         self["eave_authed_account_id"] = value
 
     @property
-    def eave_origin(self) -> str | None:
-        return str(v) if (v := self.get("eave_origin")) else None
-
-    @eave_origin.setter
-    def eave_origin(self, value: str) -> None:
-        self["eave_origin"] = value
-
-    @property
     def eave_request_id(self) -> str:
         return str(self["eave_request_id"])
 
     @eave_request_id.setter
     def eave_request_id(self, value: str) -> None:
         self["eave_request_id"] = value
-
-    @property
-    def feature_name(self) -> str | None:
-        return str(v) if (v := self.get("feature_name")) else None
-
-    @feature_name.setter
-    def feature_name(self, value: str | None) -> None:
-        self["feature_name"] = value
-
-    @property
-    def eave_client_id(self) -> str | None:
-        return str(v) if (v := self.get("eave_client_id")) else None
-
-    @eave_client_id.setter
-    def eave_client_id(self, value: str | None) -> None:
-        self["eave_client_id"] = value
 
 
 _root_logger = logging.getLogger()

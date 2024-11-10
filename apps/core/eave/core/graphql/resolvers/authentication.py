@@ -2,9 +2,9 @@ from uuid import uuid4
 
 import strawberry
 
-import eave.core.internal.database
-from eave.core.analytics import ANALYTICS
-from eave.core.internal.orm.account import AccountOrm, test_password_strength_or_exception
+import eave.core.database
+from eave.core.lib.analytics import ANALYTICS
+from eave.core.orm.account import AccountOrm, test_password_strength_or_exception
 from eave.stdlib.exceptions import InvalidJWSError
 from eave.stdlib.jwt import JWTPurpose, create_jws, validate_jws_or_exception, validate_jws_pair_or_exception
 
@@ -19,7 +19,7 @@ async def register_mutation(*, info: strawberry.Info, email: str, plaintext_pass
     test_password_strength_or_exception(plaintext_password)
 
     # TODO: the rest of account creation???
-    async with eave.core.internal.database.async_session.begin() as db_session:
+    async with eave.core.database.async_session.begin() as db_session:
         account = await AccountOrm.create(
             session=db_session,
             email=email,
@@ -40,7 +40,7 @@ async def register_mutation(*, info: strawberry.Info, email: str, plaintext_pass
 
 
 async def login_mutation(*, info: strawberry.Info, email: str, plaintext_password: str) -> LoginResult:
-    async with eave.core.internal.database.async_session.begin() as db_session:
+    async with eave.core.database.async_session.begin() as db_session:
         account = await AccountOrm.one_or_exception(
             session=db_session,
             params=AccountOrm.QueryParams(

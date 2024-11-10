@@ -1,6 +1,6 @@
-from eave.core.internal.orm.activity import ActivityOrm
-from eave.core.internal.orm.address_types import PostgisStdaddr
 from eave.core.lib.geo import GeoPoint
+from eave.core.orm.activity import ActivityOrm
+from eave.core.orm.address_types import PostgisStdaddr
 
 from ..base import BaseTestCase
 
