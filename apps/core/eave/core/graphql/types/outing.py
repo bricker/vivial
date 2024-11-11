@@ -1,30 +1,55 @@
 import enum
 from datetime import datetime
-from typing import Annotated
 from uuid import UUID
 
 import strawberry
-
-from eave.core.graphql.types.search_region import SearchRegionCode
-from eave.core.graphql.types.user import UserInput
+from google.maps.places_v1 import PriceLevel
 
 from .activity import Activity
 from .restaurant import Restaurant
 
 
 @strawberry.enum
-class OutingState(enum.StrEnum):
-    PAST = "PAST"
-    FUTURE = "FUTURE"
+class OutingState(enum.Enum):
+    PAST = enum.auto()
+    FUTURE = enum.auto()
 
 
 @strawberry.enum
-class OutingBudget(enum.IntEnum):
-    ZERO = 0
-    ONE = 1
-    TWO = 2
-    THREE = 3
-    FOUR = 4
+class OutingBudget(enum.Enum):
+    ZERO = enum.auto()
+    ONE = enum.auto()
+    TWO = enum.auto()
+    THREE = enum.auto()
+    FOUR = enum.auto()
+
+    @property
+    def upper_limit_cents(self) -> int | None:
+        match self:
+            case OutingBudget.ZERO:
+                return 0
+            case OutingBudget.ONE:
+                return 10 * 100
+            case OutingBudget.TWO:
+                return 50 * 100
+            case OutingBudget.THREE:
+                return 150 * 100
+            case OutingBudget.FOUR:
+                return None
+
+    @property
+    def google_places_price_level(self) -> PriceLevel:
+        match self:
+            case OutingBudget.ZERO:
+                return PriceLevel.PRICE_LEVEL_FREE
+            case OutingBudget.ONE:
+                return PriceLevel.PRICE_LEVEL_INEXPENSIVE
+            case OutingBudget.TWO:
+                return PriceLevel.PRICE_LEVEL_MODERATE
+            case OutingBudget.THREE:
+                return PriceLevel.PRICE_LEVEL_EXPENSIVE
+            case OutingBudget.FOUR:
+                return PriceLevel.PRICE_LEVEL_VERY_EXPENSIVE
 
 
 @strawberry.type
@@ -40,58 +65,3 @@ class Outing:
     restaurant: Restaurant | None
     restaurant_arrival_time: datetime | None
     driving_time: str
-
-
-@strawberry.input
-class ReplanOutingInput:
-    visitor_id: UUID
-    outing_id: UUID
-
-
-@strawberry.input
-class PlanOutingInput:
-    visitor_id: UUID
-    group: list[UserInput]
-    start_time: datetime
-    search_area_ids: list[SearchRegionCode]
-    budget: OutingBudget
-    headcount: int
-
-
-@strawberry.enum
-class PlanOutingErrorCode(enum.StrEnum):
-    START_TIME_TOO_SOON = "START_TIME_TOO_SOON"
-    START_TIME_TOO_LATE = "START_TIME_TOO_LATE"
-    ONE_SEARCH_REGION_REQUIRED = "ONE_SEARCH_REGION_REQUIRED"
-
-
-@strawberry.type
-class PlanOutingSuccess:
-    outing: Outing
-
-
-@strawberry.type
-class PlanOutingError:
-    error_code: PlanOutingErrorCode
-
-
-PlanOutingResult = Annotated[PlanOutingSuccess | PlanOutingError, strawberry.union("PlanOutingResult")]
-
-
-@strawberry.enum
-class ReplanOutingErrorCode(enum.StrEnum):
-    START_TIME_TOO_SOON = "START_TIME_TOO_SOON"
-    START_TIME_TOO_LATE = "START_TIME_TOO_LATE"
-
-
-@strawberry.type
-class ReplanOutingSuccess:
-    outing: Outing
-
-
-@strawberry.type
-class ReplanOutingError:
-    error_code: ReplanOutingErrorCode
-
-
-ReplanOutingResult = Annotated[ReplanOutingSuccess | ReplanOutingError, strawberry.union("ReplanOutingResult")]

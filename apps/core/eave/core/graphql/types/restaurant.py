@@ -1,9 +1,17 @@
+import enum
+from uuid import UUID
+
 import strawberry
 
-from eave.core.outing.models.sources import RestaurantSource
+from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 
 from .location import Location
 from .photos import Photos
+
+
+@strawberry.enum
+class RestaurantSource(enum.Enum):
+    GOOGLE_PLACES = enum.auto()
 
 
 @strawberry.type
@@ -19,3 +27,16 @@ class Restaurant:
     description: str
     parking_tips: str | None
     customer_favorites: str | None
+
+
+@strawberry.type
+class RestaurantCategory:
+    id: UUID
+    name: str
+
+    @classmethod
+    def from_orm(cls, orm: RestaurantCategoryOrm) -> "RestaurantCategory":
+        return RestaurantCategory(
+            id=orm.id,
+            name=orm.name,
+        )

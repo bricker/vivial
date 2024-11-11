@@ -1,31 +1,18 @@
-from dataclasses import dataclass
-from enum import StrEnum
-from typing import Self
+from uuid import UUID
 
 import strawberry
 
-from eave.core.lib.geo import GeoArea
+from eave.core.orm.search_region import SearchRegionOrm
 
 
-@strawberry.enum
-class SearchRegionCode(StrEnum):
-    US_CA_LA1 = "US_CA_LA1"
-    US_CA_LA2 = "US_CA_LA2"
-    US_CA_LA3 = "US_CA_LA3"
-    US_CA_LA4 = "US_CA_LA4"
-    US_CA_LA5 = "US_CA_LA5"
-    US_CA_LA6 = "US_CA_LA6"
+@strawberry.type
+class SearchRegion:
+    id: UUID
+    name: str
 
     @classmethod
-    def from_str(cls, s: str) -> Self | None:
-        try:
-            return cls.__call__(value=s.lower())
-        except ValueError:
-            return None
-
-
-@dataclass(kw_only=True)
-class SearchRegion:
-    area: GeoArea
-    name: str
-    key: str
+    def from_orm(cls, orm: SearchRegionOrm) -> "SearchRegion":
+        return SearchRegion(
+            id=orm.id,
+            name=orm.name,
+        )

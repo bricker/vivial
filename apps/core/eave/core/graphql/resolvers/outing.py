@@ -3,29 +3,16 @@ from uuid import UUID, uuid4
 
 import strawberry
 
-from eave.core import database
-from eave.core.graphql.types.activity import Activity, ActivityTicketInfo, ActivityVenue
+from eave.core.graphql.context import GraphQLContext
+from eave.core.graphql.types.activity import Activity, ActivitySource, ActivityTicketInfo, ActivityVenue
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import (
     Outing,
     OutingBudget,
-    OutingState,
-    PlanOutingInput,
-    PlanOutingResult,
-    PlanOutingSuccess,
-    ReplanOutingInput,
-    ReplanOutingResult,
-    ReplanOutingSuccess,
 )
 from eave.core.graphql.types.photos import Photos
-from eave.core.graphql.types.restaurant import Restaurant
-from eave.core.graphql.types.search_region import SearchRegionCode
-from eave.core.lib.analytics import ANALYTICS
-from eave.core.orm.outing import OutingOrm
-from eave.core.orm.outing_activity import OutingActivityOrm
-from eave.core.orm.outing_reservation import OutingReservationOrm
-from eave.core.outing.constants.zoneinfo import LOS_ANGELES_ZONE_INFO
-from eave.core.outing.models.sources import ActivitySource, RestaurantSource
+from eave.core.graphql.types.restaurant import Restaurant, RestaurantSource
+from eave.core.zoneinfo import LOS_ANGELES_ZONE_INFO
 
 # TODO: Remove once we're fetching from the appropriate sources.
 MOCK_OUTING = Outing(
@@ -42,7 +29,7 @@ MOCK_OUTING = Outing(
         source=RestaurantSource.GOOGLE_PLACES,
         name="Zarape Cocina & Cantina",
         location=Location(
-            internal_area_id=SearchRegionCode.US_CA_LA1,
+            search_region_id=UUID("354c2020-6227-46c1-be04-6f5965ba452d"),
             directions_uri="https://g.co/kgs/o6Z9PpR",
             address_1="8351 Santa Monica Blvd",
             address_2=None,
@@ -79,7 +66,7 @@ MOCK_OUTING = Outing(
         venue=ActivityVenue(
             name="The Comedy Store, Main Room",
             location=Location(
-                internal_area_id=SearchRegionCode.US_CA_LA2,
+                search_region_id=UUID("354c2020-6227-46c1-be04-6f5965ba452d"),
                 directions_uri="https://g.co/kgs/h1SY9De",
                 address_1="8433 Sunset Blvd",
                 address_2=None,
@@ -107,126 +94,6 @@ MOCK_OUTING = Outing(
 )
 
 
-async def create_outing_plan(
-    *,
-    visitor_id: UUID,
-    survey_id: UUID,
-    account_id: UUID | None,
-    reroll: bool,
-) -> OutingOrm:
-    # TODO: actually call the planning function instead
-    async with database.async_session.begin() as db_session:
-        outing = await OutingOrm.create(
-            session=db_session,
-            visitor_id=visitor_id,
-            survey_id=survey_id,
-            account_id=account_id,
-        )
-        _outing_activity = await OutingActivityOrm.create(
-            session=db_session,
-            outing_id=outing.id,
-            activity_id=str(uuid4()),
-            activity_source=ActivitySource.EVENTBRITE,
-            activity_start_time=datetime.now(),
-            num_attendees=2,
-        )
-        _outing_reservation = await OutingReservationOrm.create(
-            session=db_session,
-            outing_id=outing.id,
-            reservation_id=str(uuid4()),
-            reservation_source=RestaurantSource.GOOGLE_PLACES,
-            reservation_start_time=datetime.now(),
-            num_attendees=2,
-        )
-
-    ANALYTICS.track(
-        event_name="outing plan created",
-        account_id=account_id,
-        visitor_id=visitor_id,
-        extra_properties={
-            "reroll": reroll,
-        },
-    )
-    return outing
-
-
-async def plan_outing_mutation(
-    *,
-    info: strawberry.Info,
-    input: PlanOutingInput,
-) -> PlanOutingResult:
-    # try:
-    #     async with database.async_session.begin() as db_session:
-    #         search_areas: list[SearchRegionCode] = []
-    #         for area_id in search_area_ids:
-    #             if region := SearchRegionCode.from_str(area_id):
-    #                 search_areas.append(region)
-    #         survey = await SurveyOrm.create(
-    #             session=db_session,
-    #             visitor_id=visitor_id,
-    #             start_time=start_time,
-    #             search_area_ids=search_areas,
-    #             budget=budget,
-    #             headcount=headcount,
-    #             account_id=None,  # TODO: look for auth attached to request
-    #         )
-    # except InvalidDataError as e:
-    #     LOGGER.exception(e)
-    #     return SubmitSurveyError(error_code=SubmitSurveyErrorCode(e.code))
-
-    # outing = await create_outing_plan(
-    #     visitor_id=survey.visitor_id,
-    #     survey_id=survey.id,
-    #     account_id=survey.account_id,
-    #     reroll=False,
-    # )
-
-    return PlanOutingSuccess(outing=MOCK_OUTING)
-
-
-async def replan_outing_mutation(
-    *,
-    info: strawberry.Info,
-    input: ReplanOutingInput,
-) -> ReplanOutingResult:
-    # try:
-    #     async with database.async_session.begin() as db_session:
-    #         original_outing = await OutingOrm.one_or_exception(
-    #             session=db_session,
-    #             params=OutingOrm.QueryParams(id=outing_id),
-    #         )
-    #         survey = await SurveyOrm.one_or_exception(
-    #             session=db_session, params=SurveyOrm.QueryParams(id=original_outing.survey_id)
-    #         )
-
-    #         validate_time_within_bounds_or_exception(survey.start_time)
-
-    #     outing = await create_outing_plan(
-    #         visitor_id=visitor_id,
-    #         survey_id=original_outing.survey_id,
-    #         account_id=original_outing.account_id,  # TODO: this is wrong; look for any auth attached to the request instead
-    #         reroll=True,
-    #     )
-    # except InvalidDataError as e:
-    #     LOGGER.exception(e)
-    #     return ReplanOutingError(error_code=ReplanOutingErrorCode(e.code))
-    # except StartTimeTooLateError as e:
-    #     LOGGER.exception(e)
-    #     return ReplanOutingError(error_code=ReplanOutingErrorCode.START_TIME_TOO_LATE)
-    # except StartTimeTooSoonError as e:
-    #     LOGGER.exception(e)
-    #     return ReplanOutingError(error_code=ReplanOutingErrorCode.START_TIME_TOO_SOON)
-
-    return ReplanOutingSuccess(outing=MOCK_OUTING)
-
-
-async def outing_query(*, info: strawberry.Info, outing_id: UUID) -> Outing:
+async def get_outing_query(*, info: strawberry.Info[GraphQLContext], outing_id: UUID) -> Outing:
     # TODO: Fetch outing by outing_id.
     return MOCK_OUTING
-
-
-async def booked_outings_query(*, info: strawberry.Info, account_id: UUID, outing_state: OutingState) -> list[Outing]:
-    # TODO: Fetch list of booked outings by account ID.
-    # PAST outings are outings that have already occured.
-    # FUTURE outings are upcoming outings.
-    return [MOCK_OUTING, MOCK_OUTING]

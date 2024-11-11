@@ -10,7 +10,7 @@ from sqlalchemy.dialects.postgresql import INT4RANGE, TSTZRANGE, Range
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.lib.geo import GeoArea, GeoPoint, SpatialReferenceSystemId
-from eave.stdlib.typing import NOT_GIVEN, NotGiven
+from eave.stdlib.typing import NOT_SET, NotSet
 
 from .base import Base
 from .util import PG_UUID_EXPR
@@ -32,6 +32,11 @@ class EventbriteEventOrm(Base):
     format_id: Mapped[UUID] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+
+    @classmethod
+    def build(cls, *, eventbrite_event_id: str) -> Self:
+        obj = cls(eventbrite_event_id=eventbrite_event_id)
+        return obj
 
     def update(
         self,
@@ -66,27 +71,27 @@ class EventbriteEventOrm(Base):
     def select(
         cls,
         *,
-        eventbrite_event_id: str | NotGiven = NOT_GIVEN,
-        cost_range_contains: int | None | NotGiven = NOT_GIVEN,
-        time_range_contains: datetime | NotGiven = NOT_GIVEN,
-        within_areas: list[GeoArea] | NotGiven = NOT_GIVEN,
-        subcategory_ids: list[UUID] | NotGiven = NOT_GIVEN,
+        eventbrite_event_id: str | NotSet = NOT_SET,
+        cost_range_contains: int | None | NotSet = NOT_SET,
+        time_range_contains: datetime | NotSet = NOT_SET,
+        within_areas: list[GeoArea] | NotSet = NOT_SET,
+        subcategory_ids: list[UUID] | NotSet = NOT_SET,
     ) -> Select[tuple[Self]]:
         lookup = select(cls)
 
-        if not isinstance(eventbrite_event_id, NotGiven):
+        if not isinstance(eventbrite_event_id, NotSet):
             lookup = lookup.where(cls.eventbrite_event_id == eventbrite_event_id)
 
-        if not isinstance(subcategory_ids, NotGiven):
+        if not isinstance(subcategory_ids, NotSet):
             lookup = lookup.where(or_(*[cls.subcategory_id == subcategory_id for subcategory_id in subcategory_ids]))
 
-        if not isinstance(cost_range_contains, NotGiven) and cost_range_contains is not None:
+        if not isinstance(cost_range_contains, NotSet) and cost_range_contains is not None:
             lookup = lookup.where(cls.cost_cents_range.contains(cost_range_contains))
 
-        if not isinstance(time_range_contains, NotGiven):
+        if not isinstance(time_range_contains, NotSet):
             lookup = lookup.where(cls.time_range.contains(time_range_contains))
 
-        if not isinstance(within_areas, NotGiven):
+        if not isinstance(within_areas, NotSet):
             lookup = lookup.where(
                 or_(
                     *[
@@ -96,5 +101,4 @@ class EventbriteEventOrm(Base):
                 )
             )
 
-        assert lookup.whereclause is not None, "Invalid parameters"
         return lookup

@@ -1,53 +1,74 @@
-from eave.core.graphql.types.search_region import SearchRegion, SearchRegionCode
+from dataclasses import dataclass
+from types import MappingProxyType
+from uuid import UUID
+
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
 
-ALL_AREAS = {
-    SearchRegionCode.US_CA_LA1: SearchRegion(
+
+@dataclass(kw_only=True, frozen=True)
+class SearchRegionOrm:
+    id: UUID
+    name: str
+    area: GeoArea
+
+    @classmethod
+    def all(cls) -> list["SearchRegionOrm"]:
+        return list(_SEARCH_REGIONS_TABLE)
+
+    @classmethod
+    def one_or_exception(cls, *, search_region_id: UUID) -> "SearchRegionOrm":
+        return _SEARCH_REGIONS_PK[search_region_id]
+
+
+_SEARCH_REGIONS_TABLE = (
+    SearchRegionOrm(
+        id=UUID("354c2020-6227-46c1-be04-6f5965ba452d"),
         name="Central LA/Hollywood",
-        key=SearchRegionCode.US_CA_LA1,
         area=GeoArea(
             center=GeoPoint(lat=34.065730, lon=-118.323769),
             rad=Distance(miles=5.78),
         ),
     ),
-    SearchRegionCode.US_CA_LA2: SearchRegion(
+    SearchRegionOrm(
+        id=UUID("94d05616-887a-440e-a2c5-c06ece510877"),
         name="DTLA",
-        key=SearchRegionCode.US_CA_LA2,
         area=GeoArea(
             center=GeoPoint(lat=34.046422, lon=-118.245325),
             rad=Distance(miles=1.69),
         ),
     ),
-    SearchRegionCode.US_CA_LA3: SearchRegion(
+    SearchRegionOrm(
+        id=UUID("5b8c5453-2404-4510-87c9-2e9aba6cdce7"),
         name="Pasadena/Glendale/Northeast LA",
-        key=SearchRegionCode.US_CA_LA3,
         area=GeoArea(
             center=GeoPoint(lat=34.160040, lon=-118.209821),
             rad=Distance(miles=6.49),
         ),
     ),
-    SearchRegionCode.US_CA_LA4: SearchRegion(
+    SearchRegionOrm(
+        id=UUID("ebdcdb09-ac97-4b63-a7e1-c3c09f49eae4"),
         name="Westside",
-        key=SearchRegionCode.US_CA_LA4,
         area=GeoArea(
             center=GeoPoint(lat=33.965090, lon=-118.557344),
             rad=Distance(miles=10.55),
         ),
     ),
-    SearchRegionCode.US_CA_LA5: SearchRegion(
+    SearchRegionOrm(
+        id=UUID("1941f517-d7fc-4805-ad63-24214130dbc7"),
         name="South Bay",
-        key=SearchRegionCode.US_CA_LA5,
         area=GeoArea(
             center=GeoPoint(lat=33.856750, lon=-118.354487),
             rad=Distance(miles=9.70),
         ),
     ),
-    SearchRegionCode.US_CA_LA6: SearchRegion(
+    SearchRegionOrm(
+        id=UUID("e3b49a70-0df0-4d80-a7c6-1ad1a684cdc2"),
         name="SGV",
-        key=SearchRegionCode.US_CA_LA6,
         area=GeoArea(
             center=GeoPoint(lat=34.116746, lon=-118.016725),
             rad=Distance(miles=8.46),
         ),
     ),
-}
+)
+
+_SEARCH_REGIONS_PK = MappingProxyType({region.id: region for region in _SEARCH_REGIONS_TABLE})
