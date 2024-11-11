@@ -19,8 +19,6 @@ import dayjs from "dayjs";
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
-import ErrorBox from "../../ErrorBox";
-import OutingLoader from "../../OutingLoader";
 
 const useStyles = makeStyles()((theme) => ({
   main: {
@@ -183,7 +181,7 @@ const SurveyPage = () => {
   }, [navigate, networkState]);
 
   if (networkState.loading || networkState.data) {
-    return <OutingLoader />;
+    return <div>Loading...</div>;
   }
 
   return (
@@ -205,7 +203,7 @@ const SurveyPage = () => {
               value={time}
               onChange={(newValue: any) => setTime(newValue || tomorrow)}
             />
-            {errors["time"] && <ErrorBox>{errors["time"]}</ErrorBox>}
+            {errors["time"] && <div>{errors["time"]}</div>}
           </LocalizationProvider>
 
           <FormLabel id="locations-selector-label">What areas of Los Angeles can the date be in?</FormLabel>
@@ -223,7 +221,7 @@ const SurveyPage = () => {
               );
             })}
           </ToggleButtonGroup>
-          {errors["locations"] && <ErrorBox>{errors["locations"]}</ErrorBox>}
+          {errors["locations"] && <div>{errors["locations"]}</div>}
 
           <FormLabel id="budget-selector">What is your budget?</FormLabel>
           <Slider

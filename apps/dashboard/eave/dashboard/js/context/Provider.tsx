@@ -5,6 +5,7 @@ import { replanOuting } from "../graphql/hooks/replanOuting";
 import { submitReserverDetails } from "../graphql/hooks/submitReserverDetails";
 import { submitSurvey } from "../graphql/hooks/submitSurvey";
 
+// TODO: Delete file (potentially).
 const AppContextProvider = ({ children }: { children: React.ReactNode }) => {
   const ctx: AppContextProps = {
     ...submitSurvey(),
