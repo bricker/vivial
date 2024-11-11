@@ -16,7 +16,7 @@ class Base(DeclarativeBase):
         return self
 
     @classmethod
-    async def get_one(cls, session: AsyncSession, id: UUID) -> Self:
+    async def find_by_id(cls, session: AsyncSession, id: UUID) -> Self:
         return await session.get_one(cls, id)
 
     @classmethod

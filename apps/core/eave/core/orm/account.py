@@ -71,8 +71,9 @@ class AccountOrm(Base):
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
-    async def build(
+    async def create(
         cls,
+        session: AsyncSession,
         *,
         email: str,
         plaintext_password: str,
@@ -86,8 +87,12 @@ class AccountOrm(Base):
             password_key=password_key,
         )
 
-        return obj
+        return await obj.save(session)
 
+    @classmethod
+    async def find_by_email(cls, session: AsyncSession, email: str) -> Self:
+        query = select(cls).where(cls.email == email).limit(1)
+        return (await session.scalars(query)).one()
 
     async def validate_or_exception(self) -> None:
         email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
