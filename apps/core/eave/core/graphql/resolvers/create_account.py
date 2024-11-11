@@ -1,6 +1,5 @@
 import enum
 from typing import Annotated
-from uuid import uuid4
 
 import strawberry
 
@@ -11,13 +10,14 @@ from eave.core.graphql.types.account import Account
 from eave.core.graphql.types.auth_token_pair import AuthTokenPair
 from eave.core.lib.analytics import ANALYTICS
 from eave.core.orm.account import AccountOrm
-from eave.stdlib.exceptions import InvalidJWSError, ValidationError
-from eave.stdlib.jwt import JWTPurpose, create_jws, validate_jws_or_exception, validate_jws_pair_or_exception
+from eave.stdlib.exceptions import ValidationError
+
 
 @strawberry.input
 class CreateAccountInput:
     email: str
     plaintext_password: str
+
 
 @strawberry.enum
 class CreateAccountErrorCode(enum.Enum):
@@ -38,7 +38,10 @@ class CreateAccountError:
 
 CreateAccountResult = Annotated[CreateAccountSuccess | CreateAccountError, strawberry.union("CreateAccountResult")]
 
-async def create_account_mutation(*, info: strawberry.Info[GraphQLContext], input: CreateAccountInput) -> CreateAccountResult:
+
+async def create_account_mutation(
+    *, info: strawberry.Info[GraphQLContext], input: CreateAccountInput
+) -> CreateAccountResult:
     async with eave.core.database.async_session.begin() as db_session:
         existing_account_orm = await db_session.scalar(AccountOrm.select(email=input.email).limit(1))
         if existing_account_orm:

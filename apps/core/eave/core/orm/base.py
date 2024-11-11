@@ -1,5 +1,6 @@
-from typing import Literal, Self
+from typing import Self
 from uuid import UUID
+
 from sqlalchemy import MetaData, Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase
@@ -15,10 +16,10 @@ class Base(DeclarativeBase):
     async def get_one(cls, session: AsyncSession, id: UUID) -> Self:
         return await session.get_one(cls, id)
 
-
     @classmethod
     def select(cls) -> Select[tuple[Self]]:
         return select(cls)
+
 
 def _load_all() -> None:
     """

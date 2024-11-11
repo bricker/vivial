@@ -1,14 +1,13 @@
 from uuid import UUID
+
 import strawberry
 
-from eave.core.graphql.resolvers.outing import get_outing_query
 from eave.core.graphql.resolvers.booked_outings import list_booked_outings_query
+from eave.core.graphql.resolvers.outing import get_outing_query
 from eave.core.graphql.resolvers.reserver_details import list_reserver_details_query
 from eave.core.graphql.types.outing import Outing
 from eave.core.graphql.types.reserver_details import ReserverDetails
 from eave.core.orm.account import AccountOrm
-
-from .preferences import Preferences, UpdatePreferencesInput
 
 
 @strawberry.type

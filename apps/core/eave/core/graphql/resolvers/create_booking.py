@@ -2,8 +2,6 @@ import enum
 from typing import Annotated
 from uuid import UUID
 
-from eave.stdlib.util import unwrap
-from sqlalchemy import select
 import strawberry
 from attr import dataclass
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,8 +25,9 @@ from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.orm.util import validate_time_within_bounds_or_exception
 from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.exceptions import ValidationError, StartTimeTooLateError, StartTimeTooSoonError
+from eave.stdlib.exceptions import StartTimeTooLateError, StartTimeTooSoonError, ValidationError
 from eave.stdlib.logging import LOGGER
+from eave.stdlib.util import unwrap
 
 
 @dataclass
@@ -64,7 +63,9 @@ async def _create_templates_from_outing(
             ).save(db_session)
         )
 
-    reservations = await db_session.scalars(OutingReservationOrm.select().where(OutingReservationOrm.outing_id == outing.id))
+    reservations = await db_session.scalars(
+        OutingReservationOrm.select().where(OutingReservationOrm.outing_id == outing.id)
+    )
     reservation_details = []
     for reservation in reservations:
         # TODO: fetch dteails from remote
@@ -164,6 +165,7 @@ at
     except Exception as e:
         LOGGER.exception(e)
 
+
 @strawberry.input
 class CreateBookingInput:
     outing_id: UUID
@@ -187,6 +189,7 @@ class CreateBookingError:
 
 
 CreateBookingResult = Annotated[CreateBookingSuccess | CreateBookingError, strawberry.union("CreateBookingResult")]
+
 
 async def create_booking_mutation(
     *,

@@ -1,5 +1,3 @@
-import enum
-from typing import Annotated, Self
 from uuid import UUID
 
 import strawberry

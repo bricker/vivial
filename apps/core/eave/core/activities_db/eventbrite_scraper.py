@@ -117,7 +117,9 @@ async def get_eventbrite_events() -> None:
                         continue
 
                     if not (
-                        vivial_subcategory := ActivitySubcategoryOrm.get_by_eventbrite_id(eventbrite_subcategory_id=eb_subcategory_id)
+                        vivial_subcategory := ActivitySubcategoryOrm.get_by_eventbrite_id(
+                            eventbrite_subcategory_id=eb_subcategory_id
+                        )
                     ):
                         LOGGER.warning(
                             f"{pfx} No mapped vivial category; skipping", {"eventbrite_event_id": eventbrite_event_id}

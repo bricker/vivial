@@ -1,5 +1,4 @@
 import enum
-from typing import Self
 from uuid import UUID
 
 import strawberry
@@ -9,9 +8,11 @@ from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 from .location import Location
 from .photos import Photos
 
+
 @strawberry.enum
 class RestaurantSource(enum.Enum):
     GOOGLE_PLACES = enum.auto()
+
 
 @strawberry.type
 class Restaurant:

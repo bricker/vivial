@@ -1,19 +1,14 @@
 import enum
 from typing import Annotated
-from uuid import uuid4
 
 import strawberry
 
-from eave.core.config import JWT_AUDIENCE, JWT_ISSUER
 import eave.core.database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.refresh_tokens import make_auth_token_pair
 from eave.core.graphql.types.account import Account
 from eave.core.graphql.types.auth_token_pair import AuthTokenPair
-from eave.core.lib.analytics import ANALYTICS
-from eave.core.orm.account import AccountOrm, InvalidPasswordError, test_password_strength_or_exception
-from eave.stdlib.exceptions import InvalidJWSError
-from eave.stdlib.jwt import JWTPurpose, create_jws, validate_jws_or_exception, validate_jws_pair_or_exception
+from eave.core.orm.account import AccountOrm
 
 
 @strawberry.input
@@ -21,10 +16,12 @@ class LoginInput:
     email: str
     plaintext_password: str
 
+
 @strawberry.enum
 class LoginErrorCode(enum.Enum):
     INVALID_CREDENTIALS = enum.auto()
     UNKNOWN_ERROR = enum.auto()
+
 
 @strawberry.type
 class LoginSuccess:
@@ -35,6 +32,7 @@ class LoginSuccess:
 @strawberry.type
 class LoginError:
     error_code: LoginErrorCode
+
 
 LoginResult = Annotated[LoginSuccess | LoginError, strawberry.union("LoginResult")]
 

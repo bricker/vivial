@@ -5,13 +5,8 @@ from uuid import UUID, uuid4
 import strawberry
 
 from eave.core.config import JWT_AUDIENCE, JWT_ISSUER
-import eave.core.database
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.types.account import Account
 from eave.core.graphql.types.auth_token_pair import AuthTokenPair
-from eave.core.lib.analytics import ANALYTICS
-from eave.core.orm.account import AccountOrm, test_password_strength_or_exception
-from eave.stdlib.exceptions import InvalidJWSError
 from eave.stdlib.jwt import JWTPurpose, create_jws, validate_jws_or_exception, validate_jws_pair_or_exception
 
 
@@ -19,6 +14,7 @@ from eave.stdlib.jwt import JWTPurpose, create_jws, validate_jws_or_exception, v
 class RefreshTokensInput:
     access_token: str
     refresh_token: str
+
 
 @strawberry.enum
 class RefreshTokensErrorCode(enum.Enum):
@@ -37,7 +33,10 @@ class RefreshTokensError:
 
 RefreshTokensResult = Annotated[RefreshTokensSuccess | RefreshTokensError, strawberry.union("RefreshTokensResult")]
 
-async def refresh_tokens_mutation(*, info: strawberry.Info[GraphQLContext], input: RefreshTokensInput) -> RefreshTokensResult:
+
+async def refresh_tokens_mutation(
+    *, info: strawberry.Info[GraphQLContext], input: RefreshTokensInput
+) -> RefreshTokensResult:
     access_jws = validate_jws_or_exception(
         encoded_jws=input.access_token,
         expected_issuer=JWT_ISSUER,

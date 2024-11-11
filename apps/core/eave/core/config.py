@@ -6,6 +6,7 @@ from eave.stdlib.config import ConfigBase, get_required_env
 JWT_ISSUER = "core-api"
 JWT_AUDIENCE = "core-api"
 
+
 class _AppConfig(ConfigBase):
     @cached_property
     def db_host(self) -> str | None:

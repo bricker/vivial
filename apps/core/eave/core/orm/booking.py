@@ -1,12 +1,8 @@
-import uuid
-from collections.abc import Sequence
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Self
 from uuid import UUID
 
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base

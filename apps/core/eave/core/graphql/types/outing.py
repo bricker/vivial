@@ -1,12 +1,9 @@
 import enum
 from datetime import datetime
-from typing import Annotated
 from uuid import UUID
 
-from google.maps.places_v1 import PriceLevel
 import strawberry
-
-from eave.core.graphql.types.user import UserInput
+from google.maps.places_v1 import PriceLevel
 
 from .activity import Activity
 from .restaurant import Restaurant
@@ -53,6 +50,7 @@ class OutingBudget(enum.Enum):
                 return PriceLevel.PRICE_LEVEL_EXPENSIVE
             case OutingBudget.FOUR:
                 return PriceLevel.PRICE_LEVEL_VERY_EXPENSIVE
+
 
 @strawberry.type
 class Outing:

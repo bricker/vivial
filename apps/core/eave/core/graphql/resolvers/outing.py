@@ -3,21 +3,15 @@ from uuid import UUID, uuid4
 
 import strawberry
 
-from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.activity import Activity, ActivitySource, ActivityTicketInfo, ActivityVenue
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import (
     Outing,
     OutingBudget,
-    OutingState,
 )
 from eave.core.graphql.types.photos import Photos
 from eave.core.graphql.types.restaurant import Restaurant, RestaurantSource
-from eave.core.lib.analytics import ANALYTICS
-from eave.core.orm.outing import OutingOrm
-from eave.core.orm.outing_activity import OutingActivityOrm
-from eave.core.orm.outing_reservation import OutingReservationOrm
 from eave.core.zoneinfo import LOS_ANGELES_ZONE_INFO
 
 # TODO: Remove once we're fetching from the appropriate sources.

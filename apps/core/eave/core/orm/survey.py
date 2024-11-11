@@ -1,17 +1,13 @@
-import uuid
-from collections.abc import Sequence
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Self
 from uuid import UUID
 
 import sqlalchemy
 import sqlalchemy.dialects.postgresql
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, validates
 
-from eave.stdlib.exceptions import ValidationError, StartTimeTooLateError, StartTimeTooSoonError
+from eave.stdlib.exceptions import StartTimeTooLateError, StartTimeTooSoonError, ValidationError
 
 from .base import Base
 from .util import PG_UUID_EXPR, validate_time_within_bounds_or_exception

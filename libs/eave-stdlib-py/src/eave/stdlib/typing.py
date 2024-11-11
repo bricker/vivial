@@ -54,11 +54,13 @@ class Result[T, E: Exception]:
     def __bool__(self) -> bool:
         return self.ok
 
+
 class Success[T, E: Exception](Result[T, E]):
     ok = True
 
     def __init__(self, value: T) -> None:
         self.value = value
+
 
 class Failure[T, E: Exception](Result[T, E]):
     ok = False

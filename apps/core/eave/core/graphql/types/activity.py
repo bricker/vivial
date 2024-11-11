@@ -15,6 +15,7 @@ class ActivitySource(enum.Enum):
     INTERNAL = enum.auto()
     EVENTBRITE = enum.auto()
 
+
 @strawberry.type
 class ActivityTicketInfo:
     type: str | None
@@ -57,6 +58,7 @@ class ActivitySubcategory:
             name=orm.name,
             is_default=orm.is_default,
         )
+
 
 @strawberry.type
 class ActivityCategory:

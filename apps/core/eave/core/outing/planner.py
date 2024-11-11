@@ -64,6 +64,7 @@ _BRUNCH_RESTAURANT_CATEGORY_IDS = (
     "cafe",
 )
 
+
 class OutingPlanner:
     """
     Use this class to plan an outing for a group of users based on their outing
@@ -193,26 +194,27 @@ class OutingPlanner:
         activity_end_time = activity_start_time + timedelta(minutes=90)
         random.shuffle(self.constraints.search_area_ids)
 
-        within_areas=[
+        within_areas = [
             SearchRegionOrm.one_or_exception(search_region_id=search_area_id).area
             for search_area_id in self.constraints.search_area_ids
         ]
 
         # CASE 1: Recommend an Eventbrite event.
-        query = EventbriteEventOrm.select().where(
-            EventbriteEventOrm.time_range.contains(activity_start_time)
-        ).where(
-            EventbriteEventOrm.cost_cents_range.contains(self.constraints.budget.upper_limit_cents)
-        ).where(
-            or_(
-                *[
-                    ST_DWithin(EventbriteEventOrm.coordinates, area.center.geoalchemy_shape(), area.rad.meters)
-                    for area in within_areas
-                ]
+        query = (
+            EventbriteEventOrm.select()
+            .where(EventbriteEventOrm.time_range.contains(activity_start_time))
+            .where(EventbriteEventOrm.cost_cents_range.contains(self.constraints.budget.upper_limit_cents))
+            .where(
+                or_(
+                    *[
+                        ST_DWithin(EventbriteEventOrm.coordinates, area.center.geoalchemy_shape(), area.rad.meters)
+                        for area in within_areas
+                    ]
+                )
             )
-        ).where(
-            or_(*[EventbriteEventOrm.subcategory_id == cat.id for cat in self.preferences.activity_categories])
-        ).order_by(func.random())
+            .where(or_(*[EventbriteEventOrm.subcategory_id == cat.id for cat in self.preferences.activity_categories]))
+            .order_by(func.random())
+        )
 
         async with eave.core.database.async_session.begin() as db_session:
             results = await db_session.scalars(query)

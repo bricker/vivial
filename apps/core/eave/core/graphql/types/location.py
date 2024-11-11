@@ -1,6 +1,6 @@
 from uuid import UUID
-import strawberry
 
+import strawberry
 
 
 @strawberry.type

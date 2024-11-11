@@ -1,8 +1,6 @@
 import enum
 from typing import Annotated
-from uuid import UUID, uuid4
 
-from eave.stdlib.util import unwrap
 import strawberry
 
 from eave.core import database
@@ -13,6 +11,8 @@ from eave.core.graphql.types.reserver_details import (
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.stdlib.exceptions import ValidationError
 from eave.stdlib.logging import LOGGER
+from eave.stdlib.util import unwrap
+
 
 @strawberry.input
 class ReserverDetailsInput:
@@ -39,6 +39,7 @@ class SubmitReserverDetailsError:
 SubmitReserverDetailsResult = Annotated[
     SubmitReserverDetailsSuccess | SubmitReserverDetailsError, strawberry.union("SubmitReserverDetailsResult")
 ]
+
 
 async def submit_reserver_details_mutation(
     *,
