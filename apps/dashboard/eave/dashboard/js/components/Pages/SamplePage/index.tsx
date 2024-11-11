@@ -1,5 +1,11 @@
 import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
-import { AppContext } from "$eave-dashboard/js/context/AppContext";
+import { createContext } from "react";
+
+import { CreateBookingCtx } from "../../../graphql/hooks/createBooking";
+import { ReplanOutingCtx } from "../../../graphql/hooks/replanOuting";
+import { SubmitReserverDetailsCtx } from "../../../graphql/hooks/submitReserverDetails";
+import { SubmitSurveyCtx } from "../../../graphql/hooks/submitSurvey";
+
 import { textStyles } from "$eave-dashboard/js/theme";
 import {
   Button,
@@ -19,8 +25,6 @@ import dayjs from "dayjs";
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { makeStyles } from "tss-react/mui";
-import ErrorBox from "../../ErrorBox";
-import OutingLoader from "../../OutingLoader";
 
 const useStyles = makeStyles()((theme) => ({
   main: {
@@ -115,6 +119,10 @@ const laNeighborhoodOptions = [
   },
 ];
 
+export type AppContextProps = SubmitSurveyCtx & SubmitReserverDetailsCtx & CreateBookingCtx & ReplanOutingCtx;
+
+export const AppContext = createContext<AppContextProps>({});
+
 const SurveyPage = () => {
   const { classes } = useStyles();
   const { classes: text } = textStyles();
@@ -183,7 +191,7 @@ const SurveyPage = () => {
   }, [navigate, networkState]);
 
   if (networkState.loading || networkState.data) {
-    return <OutingLoader />;
+    return <div>Loading...</div>;
   }
 
   return (
@@ -205,7 +213,7 @@ const SurveyPage = () => {
               value={time}
               onChange={(newValue: any) => setTime(newValue || tomorrow)}
             />
-            {errors["time"] && <ErrorBox>{errors["time"]}</ErrorBox>}
+            {errors["time"] && <div>{errors["time"]}</div>}
           </LocalizationProvider>
 
           <FormLabel id="locations-selector-label">What areas of Los Angeles can the date be in?</FormLabel>
@@ -223,7 +231,7 @@ const SurveyPage = () => {
               );
             })}
           </ToggleButtonGroup>
-          {errors["locations"] && <ErrorBox>{errors["locations"]}</ErrorBox>}
+          {errors["locations"] && <div>{errors["locations"]}</div>}
 
           <FormLabel id="budget-selector">What is your budget?</FormLabel>
           <Slider
