@@ -1,11 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 
-import todosReducer from "./sample/sampleSlice";
+import sampleReducer from "./sample/sampleSlice";
 
-// TODO: Delete todos sample.
+// TODO: Delete sample reducer.
 const store = configureStore({
   reducer: {
-    sample: todosReducer,
+    sample: sampleReducer,
   },
 });
 
