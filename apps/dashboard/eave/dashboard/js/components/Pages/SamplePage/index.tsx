@@ -1,4 +1,3 @@
-import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
 import { createContext } from "react";
 
 import { CreateBookingCtx } from "../../../graphql/hooks/createBooking";
@@ -6,7 +5,6 @@ import { ReplanOutingCtx } from "../../../graphql/hooks/replanOuting";
 import { SubmitReserverDetailsCtx } from "../../../graphql/hooks/submitReserverDetails";
 import { SubmitSurveyCtx } from "../../../graphql/hooks/submitSurvey";
 
-import { textStyles } from "$eave-dashboard/js/theme";
 import {
   Button,
   FormControl,
@@ -20,7 +18,6 @@ import {
 } from "@mui/material";
 import { DateTimePicker, LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import classNames from "classnames";
 import dayjs from "dayjs";
 import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -125,7 +122,6 @@ export const AppContext = createContext<AppContextProps>({});
 
 const SurveyPage = () => {
   const { classes } = useStyles();
-  const { classes: text } = textStyles();
   const navigate = useNavigate();
   const { submitSurvey } = useContext(AppContext);
   const [networkState, setNetworkState] = submitSurvey!.networkState;
@@ -137,45 +133,44 @@ const SurveyPage = () => {
   const [locations, setLocations] = useState(() => [0]);
   const [budget, setBudget] = useState(2);
   const [attendees, setAttendees] = useState(2);
-  const [errors, setErrors] = useState<any>({});
+  const [errors, _] = useState<any>({});
 
-  const validate = () => {
-    const newErrors: any = {};
-    const today = dayjs();
-    // refetch tommorow in case tab has been sitting open a super long time
-    const currTomorrow = today.add(1, "day");
-    const nextMonth = today.add(1, "month");
+  // const validate = () => {
+  //   const newErrors: any = {};
+  //   const today = dayjs();
+  //   // refetch tommorow in case tab has been sitting open a super long time
+  //   const currTomorrow = today.add(1, "day");
+  //   const nextMonth = today.add(1, "month");
 
-    if (time < currTomorrow) {
-      newErrors["time"] = "Must be 24 hours or more from now";
-    }
-    if (time > nextMonth) {
-      newErrors["time"] = "Must be less than one month from now";
-    }
+  //   if (time < currTomorrow) {
+  //     newErrors["time"] = "Must be 24 hours or more from now";
+  //   }
+  //   if (time > nextMonth) {
+  //     newErrors["time"] = "Must be less than one month from now";
+  //   }
 
-    if (locations.length < 1) {
-      newErrors["locations"] = "At least one location must be selected";
-    }
+  //   if (locations.length < 1) {
+  //     newErrors["locations"] = "At least one location must be selected";
+  //   }
 
-    return newErrors;
-  };
+  //   return newErrors;
+  // };
 
   const handleSubmitClick = async () => {
-    const newErrors = validate();
-    setErrors(newErrors);
-
-    if (Object.keys(newErrors).length === 0) {
-      submitSurvey!.execute({
-        req: {
-          visitorId: await getVisitorId(),
-          startTime: time.toDate(),
-          searchAreaIds: locations.map((idx) => laNeighborhoodOptions[idx]!.value),
-          budget: budget,
-          headcount: attendees,
-        },
-        ctx: submitSurvey!,
-      });
-    }
+    // const newErrors = validate();
+    // setErrors(newErrors);
+    // if (Object.keys(newErrors).length === 0) {
+    //   submitSurvey!.execute({
+    //     req: {
+    //       visitorId: await getVisitorId(),
+    //       startTime: time.toDate(),
+    //       searchAreaIds: locations.map((idx) => laNeighborhoodOptions[idx]!.value),
+    //       budget: budget,
+    //       headcount: attendees,
+    //     },
+    //     ctx: submitSurvey!,
+    //   });
+    // }
   };
 
   // go to outing display page once data is loaded
@@ -199,9 +194,9 @@ const SurveyPage = () => {
       <div className={classes.contentContainer}>
         <div>
           <div className={classes.titleContainer}>
-            <h1 className={classNames(text.headerII, text.bold)}>Let's Plan your Date!</h1>
+            <h1>Let's Plan your Date!</h1>
           </div>
-          <h2 className={classNames(text.body, text.gray)}>Tell us about the kind of date you want.</h2>
+          <h2>Tell us about the kind of date you want.</h2>
         </div>
 
         {/* Questions */}
@@ -259,11 +254,7 @@ const SurveyPage = () => {
           </FormControl>
         </FormControl>
 
-        {networkState.error && (
-          <div className={classNames(text.subHeader, text.error)}>
-            ERROR: Form could not be submitted. Please try again later.
-          </div>
-        )}
+        {networkState.error && <div>ERROR: Form could not be submitted. Please try again later.</div>}
         <div className={classes.submitContainer}>
           <Button variant="contained" onClick={handleSubmitClick}>
             Show me my Date
