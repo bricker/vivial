@@ -65,7 +65,7 @@ class SurveyOrm(Base):
     @validates("search_area_ids")
     def validate_search_area_ids(self, key: str, value: list[UUID]) -> list[UUID]:
         if not len(value) > 0:
-            raise ValidationError(code=PlanOutingErrorCode.ONE_SEARCH_REGION_REQUIRED)
+            raise ValidationError("search_area_ids")
         return value
 
     @validates("start_time")
@@ -73,7 +73,7 @@ class SurveyOrm(Base):
         try:
             validate_time_within_bounds_or_exception(value)
         except StartTimeTooSoonError:
-            raise ValidationError(code=PlanOutingErrorCode.START_TIME_TOO_SOON)
+            raise ValidationError("start_time")
         except StartTimeTooLateError:
-            raise ValidationError(code=PlanOutingErrorCode.START_TIME_TOO_LATE)
+            raise ValidationError("start_time")
         return value

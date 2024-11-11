@@ -54,5 +54,5 @@ class ReserverDetailsOrm(Base):
     def validate_phone_number(self, key: str, value: str) -> str:
         phone_number_pattern = r"^\+?1?\d{10}$"  # TODO: something better
         if re.match(phone_number_pattern, value) is None:
-            raise ValidationError(code=SubmitReserverDetailsErrorCode.INVALID_PHONE_NUMBER)
+            raise ValidationError("phone_number")
         return value
