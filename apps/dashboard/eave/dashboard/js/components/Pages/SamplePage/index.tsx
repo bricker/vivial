@@ -1,5 +1,11 @@
 import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
-import { AppContext } from "$eave-dashboard/js/context/AppContext";
+import { createContext } from "react";
+
+import { CreateBookingCtx } from "../../../graphql/hooks/createBooking";
+import { ReplanOutingCtx } from "../../../graphql/hooks/replanOuting";
+import { SubmitReserverDetailsCtx } from "../../../graphql/hooks/submitReserverDetails";
+import { SubmitSurveyCtx } from "../../../graphql/hooks/submitSurvey";
+
 import { textStyles } from "$eave-dashboard/js/theme";
 import {
   Button,
@@ -112,6 +118,10 @@ const laNeighborhoodOptions = [
     label: "San Gabriel Valley",
   },
 ];
+
+export type AppContextProps = SubmitSurveyCtx & SubmitReserverDetailsCtx & CreateBookingCtx & ReplanOutingCtx;
+
+export const AppContext = createContext<AppContextProps>({});
 
 const SurveyPage = () => {
   const { classes } = useStyles();

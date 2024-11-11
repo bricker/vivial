@@ -26,11 +26,13 @@ const todosSlice = createSlice({
       },
     },
     todoDeleted: todosAdapter.removeOne,
+    // eslint-disable-next-line no-unused-vars
     allTodosCompleted(state, action) {
       Object.values(state.entities).forEach((todo) => {
         todo.completed = true;
       });
     },
+    // eslint-disable-next-line no-unused-vars
     completedTodosCleared(state, action) {
       const completedIds = Object.values(state.entities)
         .filter((todo) => todo.completed)
@@ -40,6 +42,7 @@ const todosSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // eslint-disable-next-line no-unused-vars
       .addCase(fetchTodos.pending, (state, action) => {
         state.status = "loading";
       })
