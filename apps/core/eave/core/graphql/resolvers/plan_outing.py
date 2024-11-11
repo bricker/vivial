@@ -1,0 +1,131 @@
+from datetime import datetime
+from typing import Annotated
+from uuid import UUID, uuid4
+
+import strawberry
+
+from eave.core import database
+from eave.core.graphql.context import GraphQLContext
+from eave.core.graphql.resolvers.outing import MOCK_OUTING
+from eave.core.graphql.types.activity import Activity, ActivityTicketInfo, ActivityVenue
+from eave.core.graphql.types.location import Location
+from eave.core.graphql.types.outing import (
+    Outing,
+    OutingBudget,
+    OutingState,
+)
+from eave.core.graphql.types.photos import Photos
+from eave.core.graphql.types.restaurant import Restaurant
+from eave.core.lib.analytics import ANALYTICS
+from eave.core.orm.outing import OutingOrm
+from eave.core.orm.outing_activity import OutingActivityOrm
+from eave.core.orm.outing_reservation import OutingReservationOrm
+from eave.core.zoneinfo import LOS_ANGELES_ZONE_INFO
+from eave.core.outing.models.sources import ActivitySource, RestaurantSource
+
+
+@strawberry.input
+class PlanOutingInput:
+    visitor_id: UUID
+    group: list[UserInput]
+    start_time: datetime
+    search_area_ids: list[UUID]
+    budget: OutingBudget
+    headcount: int
+
+
+@strawberry.enum
+class PlanOutingErrorCode(enum.StrEnum):
+    START_TIME_TOO_SOON = "START_TIME_TOO_SOON"
+    START_TIME_TOO_LATE = "START_TIME_TOO_LATE"
+    ONE_SEARCH_REGION_REQUIRED = "ONE_SEARCH_REGION_REQUIRED"
+
+
+@strawberry.type
+class PlanOutingSuccess:
+    outing: Outing
+
+
+@strawberry.type
+class PlanOutingError:
+    error_code: PlanOutingErrorCode
+
+
+PlanOutingResult = Annotated[PlanOutingSuccess | PlanOutingError, strawberry.union("PlanOutingResult")]
+
+
+async def create_outing_plan(
+    *,
+    visitor_id: UUID,
+    survey_id: UUID,
+    account_id: UUID | None,
+    reroll: bool,
+) -> OutingOrm:
+    # TODO: actually call the planning function instead
+    async with database.async_session.begin() as db_session:
+        outing = await OutingOrm.create(
+            session=db_session,
+            visitor_id=visitor_id,
+            survey_id=survey_id,
+            account_id=account_id,
+        )
+        _outing_activity = await OutingActivityOrm.create(
+            session=db_session,
+            outing_id=outing.id,
+            activity_id=str(uuid4()),
+            activity_source=ActivitySource.EVENTBRITE,
+            activity_start_time=datetime.now(),
+            num_attendees=2,
+        )
+        _outing_reservation = await OutingReservationOrm.create(
+            session=db_session,
+            outing_id=outing.id,
+            reservation_id=str(uuid4()),
+            reservation_source=RestaurantSource.GOOGLE_PLACES,
+            reservation_start_time=datetime.now(),
+            num_attendees=2,
+        )
+
+    ANALYTICS.track(
+        event_name="outing plan created",
+        account_id=account_id,
+        visitor_id=visitor_id,
+        extra_properties={
+            "reroll": reroll,
+        },
+    )
+    return outing
+
+
+async def plan_outing_mutation(
+    *,
+    info: strawberry.Info[GraphQLContext],
+    input: PlanOutingInput,
+) -> PlanOutingResult:
+    # try:
+    #     async with database.async_session.begin() as db_session:
+    #         search_areas: list[SearchRegionCode] = []
+    #         for area_id in search_area_ids:
+    #             if region := SearchRegionCode.from_str(area_id):
+    #                 search_areas.append(region)
+    #         survey = await SurveyOrm.create(
+    #             session=db_session,
+    #             visitor_id=visitor_id,
+    #             start_time=start_time,
+    #             search_area_ids=search_areas,
+    #             budget=budget,
+    #             headcount=headcount,
+    #             account_id=None,  # TODO: look for auth attached to request
+    #         )
+    # except InvalidDataError as e:
+    #     LOGGER.exception(e)
+    #     return SubmitSurveyError(error_code=SubmitSurveyErrorCode(e.code))
+
+    # outing = await create_outing_plan(
+    #     visitor_id=survey.visitor_id,
+    #     survey_id=survey.id,
+    #     account_id=survey.account_id,
+    #     reroll=False,
+    # )
+
+    return PlanOutingSuccess(outing=MOCK_OUTING)

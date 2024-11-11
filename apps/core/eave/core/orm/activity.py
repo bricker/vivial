@@ -59,9 +59,3 @@ class ActivityOrm(Base):
             is_bookable=is_bookable,
             booking_url=booking_url,
         )
-
-    @classmethod
-    def select(cls, *, id: UUID) -> Select[tuple[Self]]:
-        query = select(cls)
-        query = query.where(cls.id == id)
-        return query

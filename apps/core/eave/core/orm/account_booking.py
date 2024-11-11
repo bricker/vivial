@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Self
 from uuid import UUID
 
+from eave.stdlib.typing import NOT_GIVEN, NotGiven
 from sqlalchemy import ForeignKeyConstraint, Index, PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -45,9 +46,9 @@ class AccountBookingOrm(Base):
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
-    async def create(
+    def build(
         cls,
-        session: AsyncSession,
+        *,
         account_id: UUID,
         booking_id: UUID,
     ) -> Self:
@@ -56,42 +57,4 @@ class AccountBookingOrm(Base):
             booking_id=booking_id,
         )
 
-        session.add(obj)
-        await session.flush()
         return obj
-
-    @dataclass
-    class QueryParams:
-        account_id: UUID | None = None
-        booking_id: UUID | None = None
-
-    @classmethod
-    def _build_query(cls, params: QueryParams) -> Select[tuple[Self]]:
-        lookup = select(cls)
-
-        if params.account_id is not None:
-            lookup = lookup.where(cls.account_id == params.account_id)
-
-        if params.booking_id is not None:
-            lookup = lookup.where(cls.booking_id == params.booking_id)
-
-        assert lookup.whereclause is not None, "Invalid parameters"
-        return lookup
-
-    @classmethod
-    async def query(cls, session: AsyncSession, params: QueryParams) -> Sequence[Self]:
-        lookup = cls._build_query(params=params)
-        result = (await session.scalars(lookup)).all()
-        return result
-
-    @classmethod
-    async def one_or_exception(cls, session: AsyncSession, params: QueryParams) -> Self:
-        lookup = cls._build_query(params=params)
-        result = (await session.scalars(lookup)).one()
-        return result
-
-    @classmethod
-    async def one_or_none(cls, session: AsyncSession, params: QueryParams) -> Self | None:
-        lookup = cls._build_query(params=params)
-        result = await session.scalar(lookup)
-        return result

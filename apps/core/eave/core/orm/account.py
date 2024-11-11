@@ -8,11 +8,11 @@ from datetime import datetime
 from typing import Literal, Self
 from uuid import UUID
 
+from eave.stdlib.typing import NOT_GIVEN, NotGiven
 from sqlalchemy import PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.core.graphql.types.authentication import AuthenticationErrorCode
 from eave.stdlib.exceptions import InvalidDataError
 from eave.stdlib.util import b64encode
 
@@ -71,9 +71,9 @@ class AccountOrm(Base):
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
-    async def create(
+    async def build(
         cls,
-        session: AsyncSession,
+        *,
         email: str,
         plaintext_password: str,
     ) -> Self:
@@ -86,43 +86,10 @@ class AccountOrm(Base):
             password_key=password_key,
         )
 
-        obj.validate_or_exception()
-
-        session.add(obj)
-        await session.flush()
         return obj
 
-    @dataclass
-    class QueryParams:
-        id: uuid.UUID | None = None
-        email: str | None = None
 
-    @classmethod
-    def _build_query(cls, params: QueryParams) -> Select[tuple[Self]]:
-        lookup = select(cls)
-
-        if params.id is not None:
-            lookup = lookup.where(cls.id == params.id)
-
-        if params.email is not None:
-            lookup = lookup.where(cls.email == params.email)
-
-        assert lookup.whereclause is not None, "Invalid parameters"
-        return lookup
-
-    @classmethod
-    async def one_or_exception(cls, session: AsyncSession, params: QueryParams) -> Self:
-        lookup = cls._build_query(params=params)
-        result = (await session.scalars(lookup)).one()
-        return result
-
-    @classmethod
-    async def one_or_none(cls, session: AsyncSession, params: QueryParams) -> Self | None:
-        lookup = cls._build_query(params=params)
-        result = await session.scalar(lookup)
-        return result
-
-    def validate_or_exception(self) -> None:
+    async def validate_or_exception(self) -> None:
         email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
         if re.match(email_pattern, self.email) is None:
             raise InvalidDataError(code=AuthenticationErrorCode.INVALID_EMAIL)

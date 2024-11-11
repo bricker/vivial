@@ -43,7 +43,7 @@ class TestActivityOrm(BaseTestCase):
             obj = (
                 await session.scalars(
                     ActivityOrm.select(
-                        id=activity.id,
+                        activity_id=activity.id,
                     )
                 )
             ).one()
