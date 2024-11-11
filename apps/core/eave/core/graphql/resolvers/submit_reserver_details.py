@@ -11,7 +11,7 @@ from eave.core.graphql.types.reserver_details import (
     ReserverDetails,
 )
 from eave.core.orm.reserver_details import ReserverDetailsOrm
-from eave.stdlib.exceptions import InvalidDataError
+from eave.stdlib.exceptions import ValidationError
 from eave.stdlib.logging import LOGGER
 
 @strawberry.input
@@ -59,7 +59,7 @@ async def submit_reserver_details_mutation(
                 last_name=input.last_name,
                 phone_number=input.phone_number,
             )
-    except InvalidDataError as e:
+    except ValidationError as e:
         LOGGER.exception(e)
         return SubmitReserverDetailsError(error_code=SubmitReserverDetailsErrorCode(e.code))
 

@@ -4,9 +4,9 @@ from zoneinfo import ZoneInfo
 
 import eave.core.database
 from eave.core.config import CORE_API_APP_CONFIG
+from eave.core.orm.activity_format import ActivityFormatOrm
+from eave.core.orm.activity_subcategory import ActivitySubcategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
-from eave.core.outing.constants.activities import get_vivial_subcategory_by_eventbrite_subcategory_id
-from eave.core.outing.constants.formats import get_vivial_format_from_eventbrite_format_id
 from eave.stdlib.eventbrite.client import EventbriteClient, ListEventsQuery, OrderBy
 from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.eventbrite.models.expansions import Expansion
@@ -117,14 +117,14 @@ async def get_eventbrite_events() -> None:
                         continue
 
                     if not (
-                        vivial_subcategory := get_vivial_subcategory_by_eventbrite_subcategory_id(eb_subcategory_id)
+                        vivial_subcategory := ActivitySubcategoryOrm.get_by_eventbrite_id(eventbrite_subcategory_id=eb_subcategory_id)
                     ):
                         LOGGER.warning(
                             f"{pfx} No mapped vivial category; skipping", {"eventbrite_event_id": eventbrite_event_id}
                         )
                         continue
 
-                    if not (vivial_format := get_vivial_format_from_eventbrite_format_id(eb_format_id)):
+                    if not (vivial_format := ActivityFormatOrm.get_by_eventbrite_id(eventbrite_format_id=eb_format_id)):
                         LOGGER.warning(
                             f"{pfx} No mapped vivial format; skipping", {"eventbrite_event_id": eventbrite_event_id}
                         )
@@ -163,7 +163,7 @@ async def get_eventbrite_events() -> None:
                         LOGGER.debug(
                             f"{pfx} new event - adding to database", {"eventbrite_event_id": eventbrite_event_id}
                         )
-                        target = EventbriteEventOrm(eventbrite_event_id=eventbrite_event_id)
+                        target = EventbriteEventOrm.build(eventbrite_event_id=eventbrite_event_id)
                         db_session.add(target)
                     else:
                         LOGGER.debug(

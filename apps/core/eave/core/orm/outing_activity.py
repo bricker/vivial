@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Self, Tuple
 from uuid import UUID
 
-from eave.stdlib.typing import NOT_GIVEN, NotGiven
+from eave.stdlib.typing import NOT_SET, NotSet
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
@@ -39,7 +39,7 @@ class OutingActivityOrm(Base):
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
-    async def build(
+    def build(
         cls,
         *,
         outing_id: UUID,

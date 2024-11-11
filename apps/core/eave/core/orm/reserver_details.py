@@ -6,12 +6,12 @@ from datetime import datetime
 from typing import Self
 from uuid import UUID
 
-from eave.stdlib.typing import NOT_GIVEN, NotGiven
+from eave.stdlib.typing import NOT_SET, NotSet
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, validates
 
-from eave.stdlib.exceptions import InvalidDataError
+from eave.stdlib.exceptions import ValidationError
 
 from .base import Base
 from .util import PG_UUID_EXPR
@@ -38,7 +38,7 @@ class ReserverDetailsOrm(Base):
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
-    async def build(
+    def build(
         cls,
         *,
         account_id: UUID,
@@ -53,11 +53,11 @@ class ReserverDetailsOrm(Base):
             phone_number=phone_number,
         )
 
-        obj.validate_or_exception()
-
         return obj
 
-    def validate_or_exception(self) -> None:
+    @validates("phone_number")
+    def validate_phone_number(self, key: str, value: str) -> str:
         phone_number_pattern = r"^\+?1?\d{10}$"  # TODO: something better
-        if re.match(phone_number_pattern, self.phone_number) is None:
-            raise InvalidDataError(code=SubmitReserverDetailsErrorCode.INVALID_PHONE_NUMBER)
+        if re.match(phone_number_pattern, value) is None:
+            raise ValidationError(code=SubmitReserverDetailsErrorCode.INVALID_PHONE_NUMBER)
+        return value

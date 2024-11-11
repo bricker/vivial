@@ -11,7 +11,7 @@ from eave.core.graphql.types.reserver_details import (
     ReserverDetails,
 )
 from eave.core.orm.reserver_details import ReserverDetailsOrm
-from eave.stdlib.exceptions import InvalidDataError
+from eave.stdlib.exceptions import ValidationError
 from eave.stdlib.logging import LOGGER
 
 async def list_reserver_details_query(*, info: strawberry.Info[GraphQLContext]) -> list[ReserverDetails]:

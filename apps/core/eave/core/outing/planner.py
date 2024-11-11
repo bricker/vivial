@@ -2,17 +2,19 @@ import random
 from datetime import timedelta
 from uuid import UUID
 
+from geoalchemy2.functions import ST_DWithin
 from google.maps import places_v1
-from sqlalchemy import func
+from sqlalchemy import func, or_
 
 import eave.core.database
 from eave.core.config import CORE_API_APP_CONFIG
+from eave.core.graphql.types.activity import ActivitySource
+from eave.core.graphql.types.restaurant import RestaurantSource
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
 from eave.core.orm.activity_subcategory import ActivitySubcategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
-from eave.core.outing.constants.activities import get_max_cents_for_budget
 from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.logging import LOGGER
@@ -20,7 +22,6 @@ from eave.stdlib.logging import LOGGER
 from .helpers.place import get_places_nearby, place_is_accessible, place_is_in_budget, place_will_be_open
 from .helpers.time import is_early_evening, is_early_morning, is_late_evening, is_late_morning
 from .models.outing import OutingComponent, OutingConstraints, OutingPlan
-from .models.sources import ActivitySource, RestaurantSource
 from .models.user import User, UserPreferences
 
 # You must pass a field mask to the Google Places API to specify the list of fields to return in the response.
@@ -192,15 +193,25 @@ class OutingPlanner:
         activity_end_time = activity_start_time + timedelta(minutes=90)
         random.shuffle(self.constraints.search_area_ids)
 
+        within_areas=[
+            SearchRegionOrm.one_or_exception(search_region_id=search_area_id).area
+            for search_area_id in self.constraints.search_area_ids
+        ]
+
         # CASE 1: Recommend an Eventbrite event.
-        query = EventbriteEventOrm.select(
-            time_range_contains=activity_start_time,
-            cost_range_contains=get_max_cents_for_budget(self.constraints.budget),
-            within_areas=[
-                SearchRegionOrm.one_or_exception(search_region_id=search_area_id).area
-                for search_area_id in self.constraints.search_area_ids
-            ],
-            subcategory_ids=[cat.id for cat in self.preferences.activity_categories],
+        query = EventbriteEventOrm.select().where(
+            EventbriteEventOrm.time_range.contains(activity_start_time)
+        ).where(
+            EventbriteEventOrm.cost_cents_range.contains(self.constraints.budget.upper_limit_cents)
+        ).where(
+            or_(
+                *[
+                    ST_DWithin(EventbriteEventOrm.coordinates, area.center.geoalchemy_shape(), area.rad.meters)
+                    for area in within_areas
+                ]
+            )
+        ).where(
+            or_(*[EventbriteEventOrm.subcategory_id == cat.id for cat in self.preferences.activity_categories])
         ).order_by(func.random())
 
         async with eave.core.database.async_session.begin() as db_session:

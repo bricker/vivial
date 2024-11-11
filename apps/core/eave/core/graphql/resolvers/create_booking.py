@@ -27,7 +27,7 @@ from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.orm.util import validate_time_within_bounds_or_exception
 from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.exceptions import InvalidDataError, StartTimeTooLateError, StartTimeTooSoonError
+from eave.stdlib.exceptions import ValidationError, StartTimeTooLateError, StartTimeTooSoonError
 from eave.stdlib.logging import LOGGER
 
 
@@ -42,17 +42,13 @@ async def _create_templates_from_outing(
     booking_id: UUID,
     outing: OutingOrm,
 ) -> BookingDetails:
-    activities = await OutingActivityOrm.query(
-        session=db_session,
-        params=OutingActivityOrm.QueryParams(outing_id=outing.id),
-    )
+    activities = await db_session.scalars(OutingActivityOrm.select().where(OutingActivityOrm.outing_id == outing.id))
     activity_details = []
     for activity in activities:
         # TODO: fetch activity details from remote src
 
         activity_details.append(
-            await BookingActivityTemplateOrm.create(
-                session=db_session,
+            await BookingActivityTemplateOrm.build(
                 booking_id=booking_id,
                 activity_name="Biking in McDonalds parking lot",
                 activity_start_time=activity.activity_start_time,
@@ -65,19 +61,16 @@ async def _create_templates_from_outing(
                 activity_location_country="USA",
                 activity_location_latitude=0,
                 activity_location_longitude=0,
-            )
+            ).save(db_session)
         )
 
-    reservations = await OutingReservationOrm.query(
-        session=db_session,
-        params=OutingReservationOrm.QueryParams(outing_id=outing.id),
-    )
+    reservations = await db_session.scalars(OutingReservationOrm.select().where(OutingReservationOrm.outing_id == outing.id))
     reservation_details = []
     for reservation in reservations:
         # TODO: fetch dteails from remote
 
         reservation_details.append(
-            BookingReservationTemplateOrm.build(
+            await BookingReservationTemplateOrm.build(
                 booking_id=booking_id,
                 reservation_name="Red lobster dumpster",
                 reservation_start_time=reservation.reservation_start_time,
@@ -90,7 +83,7 @@ async def _create_templates_from_outing(
                 reservation_location_country="USA",
                 reservation_location_latitude=0,
                 reservation_location_longitude=1,
-            )
+            ).save(db_session)
         )
 
     return BookingDetails(
@@ -213,9 +206,9 @@ async def create_booking_mutation(
             try:
                 validate_time_within_bounds_or_exception(survey.start_time)
             except StartTimeTooSoonError:
-                raise InvalidDataError(code=CreateBookingErrorCode.START_TIME_TOO_SOON)
+                raise ValidationError(code=CreateBookingErrorCode.START_TIME_TOO_SOON)
             except StartTimeTooLateError:
-                raise InvalidDataError(code=CreateBookingErrorCode.START_TIME_TOO_LATE)
+                raise ValidationError(code=CreateBookingErrorCode.START_TIME_TOO_LATE)
 
             booking = await BookingOrm.build(
                 reserver_details_id=input.reserver_details_id,
@@ -231,7 +224,7 @@ async def create_booking_mutation(
                 booking_id=booking.id,
                 outing=outing,
             )
-    except InvalidDataError as e:
+    except ValidationError as e:
         LOGGER.exception(e)
         return CreateBookingError(error_code=CreateBookingErrorCode(e.code))
 

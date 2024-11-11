@@ -1,4 +1,5 @@
 from datetime import datetime
+import enum
 from typing import Annotated
 from uuid import UUID, uuid4
 
@@ -7,7 +8,7 @@ import strawberry
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.outing import MOCK_OUTING
-from eave.core.graphql.types.activity import Activity, ActivityTicketInfo, ActivityVenue
+from eave.core.graphql.types.activity import Activity, ActivitySource, ActivityTicketInfo, ActivityVenue
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import (
     Outing,
@@ -15,13 +16,12 @@ from eave.core.graphql.types.outing import (
     OutingState,
 )
 from eave.core.graphql.types.photos import Photos
-from eave.core.graphql.types.restaurant import Restaurant
+from eave.core.graphql.types.restaurant import Restaurant, RestaurantSource
 from eave.core.lib.analytics import ANALYTICS
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.outing_activity import OutingActivityOrm
 from eave.core.orm.outing_reservation import OutingReservationOrm
 from eave.core.zoneinfo import LOS_ANGELES_ZONE_INFO
-from eave.core.outing.models.sources import ActivitySource, RestaurantSource
 
 
 @strawberry.input
@@ -35,10 +35,10 @@ class PlanOutingInput:
 
 
 @strawberry.enum
-class PlanOutingErrorCode(enum.StrEnum):
-    START_TIME_TOO_SOON = "START_TIME_TOO_SOON"
-    START_TIME_TOO_LATE = "START_TIME_TOO_LATE"
-    ONE_SEARCH_REGION_REQUIRED = "ONE_SEARCH_REGION_REQUIRED"
+class PlanOutingErrorCode(enum.Enum):
+    START_TIME_TOO_SOON = enum.auto()
+    START_TIME_TOO_LATE = enum.auto()
+    ONE_SEARCH_REGION_REQUIRED = enum.auto()
 
 
 @strawberry.type
@@ -63,28 +63,25 @@ async def create_outing_plan(
 ) -> OutingOrm:
     # TODO: actually call the planning function instead
     async with database.async_session.begin() as db_session:
-        outing = await OutingOrm.create(
-            session=db_session,
+        outing = await OutingOrm.build(
             visitor_id=visitor_id,
             survey_id=survey_id,
             account_id=account_id,
-        )
-        _outing_activity = await OutingActivityOrm.create(
-            session=db_session,
+        ).save(db_session)
+        _outing_activity = await OutingActivityOrm.build(
             outing_id=outing.id,
             activity_id=str(uuid4()),
             activity_source=ActivitySource.EVENTBRITE,
             activity_start_time=datetime.now(),
             num_attendees=2,
-        )
-        _outing_reservation = await OutingReservationOrm.create(
-            session=db_session,
+        ).save(db_session)
+        _outing_reservation = await OutingReservationOrm.build(
             outing_id=outing.id,
             reservation_id=str(uuid4()),
             reservation_source=RestaurantSource.GOOGLE_PLACES,
             reservation_start_time=datetime.now(),
             num_attendees=2,
-        )
+        ).save(db_session)
 
     ANALYTICS.track(
         event_name="outing plan created",

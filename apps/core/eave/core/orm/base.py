@@ -6,18 +6,15 @@ from sqlalchemy.orm import DeclarativeBase
 
 
 class Base(DeclarativeBase):
-    async def validate_or_exception(self) -> None:
-        pass
-
     async def save(self, session: AsyncSession) -> Self:
-        await self.validate_or_exception()
         session.add(self)
         await session.flush()
         return self
 
     @classmethod
-    async def find_by_id(cls, session: AsyncSession, id: UUID) -> Self:
+    async def get_one(cls, session: AsyncSession, id: UUID) -> Self:
         return await session.get_one(cls, id)
+
 
     @classmethod
     def select(cls) -> Select[tuple[Self]]:

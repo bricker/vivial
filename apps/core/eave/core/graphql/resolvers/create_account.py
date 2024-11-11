@@ -10,8 +10,8 @@ from eave.core.graphql.resolvers.refresh_tokens import make_auth_token_pair
 from eave.core.graphql.types.account import Account
 from eave.core.graphql.types.auth_token_pair import AuthTokenPair
 from eave.core.lib.analytics import ANALYTICS
-from eave.core.orm.account import AccountOrm, test_password_strength_or_exception
-from eave.stdlib.exceptions import InvalidJWSError
+from eave.core.orm.account import AccountOrm
+from eave.stdlib.exceptions import InvalidJWSError, ValidationError
 from eave.stdlib.jwt import JWTPurpose, create_jws, validate_jws_or_exception, validate_jws_pair_or_exception
 
 @strawberry.input
@@ -21,8 +21,7 @@ class CreateAccountInput:
 
 @strawberry.enum
 class CreateAccountErrorCode(enum.Enum):
-    INVALID_EMAIL = enum.auto()
-    WEAK_PASSWORD = enum.auto()
+    VALIDATION_ERROR = enum.auto()
     ACCOUNT_EXISTS = enum.auto()
 
 
@@ -40,14 +39,20 @@ class CreateAccountError:
 CreateAccountResult = Annotated[CreateAccountSuccess | CreateAccountError, strawberry.union("CreateAccountResult")]
 
 async def create_account_mutation(*, info: strawberry.Info[GraphQLContext], input: CreateAccountInput) -> CreateAccountResult:
-    test_password_strength_or_exception(input.plaintext_password)
-
     async with eave.core.database.async_session.begin() as db_session:
-        account_orm = await AccountOrm.build(
-            session=db_session,
-            email=input.email,
-            plaintext_password=input.plaintext_password,
-        ).save(db_session)
+        existing_account_orm = await db_session.scalar(AccountOrm.select(email=input.email).limit(1))
+        if existing_account_orm:
+            return CreateAccountError(error_code=CreateAccountErrorCode.ACCOUNT_EXISTS)
+
+        try:
+            account_orm = AccountOrm.build(
+                email=input.email,
+                plaintext_password=input.plaintext_password,
+            )
+        except ValidationError:
+            return CreateAccountError(error_code=CreateAccountErrorCode.VALIDATION_ERROR)
+
+        await account_orm.save(db_session)
 
     ANALYTICS.identify(
         account_id=account_orm.id,

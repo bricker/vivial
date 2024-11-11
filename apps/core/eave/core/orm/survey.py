@@ -9,9 +9,9 @@ import sqlalchemy
 import sqlalchemy.dialects.postgresql
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, validates
 
-from eave.stdlib.exceptions import InvalidDataError, StartTimeTooLateError, StartTimeTooSoonError
+from eave.stdlib.exceptions import ValidationError, StartTimeTooLateError, StartTimeTooSoonError
 
 from .base import Base
 from .util import PG_UUID_EXPR, validate_time_within_bounds_or_exception
@@ -45,7 +45,7 @@ class SurveyOrm(Base):
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
-    async def build(
+    def build(
         cls,
         *,
         visitor_id: UUID,
@@ -64,16 +64,20 @@ class SurveyOrm(Base):
             headcount=headcount,
         )
 
-        obj.validate_or_exception()
-
         return obj
 
-    def validate_or_exception(self) -> None:
-        if not len(self.search_area_ids) > 0:
-            raise InvalidDataError(code=PlanOutingErrorCode.ONE_SEARCH_REGION_REQUIRED)
+    @validates("search_area_ids")
+    def validate_search_area_ids(self, key: str, value: list[UUID]) -> list[UUID]:
+        if not len(value) > 0:
+            raise ValidationError(code=PlanOutingErrorCode.ONE_SEARCH_REGION_REQUIRED)
+        return value
+
+    @validates("start_time")
+    def validate_start_time(self, key: str, value: datetime) -> datetime:
         try:
-            validate_time_within_bounds_or_exception(self.start_time)
+            validate_time_within_bounds_or_exception(value)
         except StartTimeTooSoonError:
-            raise InvalidDataError(code=PlanOutingErrorCode.START_TIME_TOO_SOON)
+            raise ValidationError(code=PlanOutingErrorCode.START_TIME_TOO_SOON)
         except StartTimeTooLateError:
-            raise InvalidDataError(code=PlanOutingErrorCode.START_TIME_TOO_LATE)
+            raise ValidationError(code=PlanOutingErrorCode.START_TIME_TOO_LATE)
+        return value

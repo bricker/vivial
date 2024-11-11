@@ -15,7 +15,7 @@ HTTPFrameworkRequest = StarletteRequest
 HTTPFrameworkResponse = StarletteResponse
 
 
-class NotGiven:
+class NotSet:
     """
     A sentinel singleton class used to distinguish omitted keyword arguments
     from those passed in with the value None (which may have different behavior).
@@ -40,7 +40,28 @@ class NotGiven:
 
     @override
     def __repr__(self) -> str:
-        return "NOT_GIVEN"
+        return "NOT_SET"
 
 
-NOT_GIVEN = NotGiven()
+NOT_SET = NotSet()
+
+
+class Result[T, E: Exception]:
+    ok: bool
+    value: T
+    exception: E
+
+    def __bool__(self) -> bool:
+        return self.ok
+
+class Success[T, E: Exception](Result[T, E]):
+    ok = True
+
+    def __init__(self, value: T) -> None:
+        self.value = value
+
+class Failure[T, E: Exception](Result[T, E]):
+    ok = False
+
+    def __init__(self, exception: E) -> None:
+        self.exception = exception

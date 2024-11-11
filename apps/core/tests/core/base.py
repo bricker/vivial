@@ -17,10 +17,10 @@ import eave.stdlib.testing_util
 import eave.stdlib.typing
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.database import init_database
-from eave.core.graphql.types.search_region import SearchRegionCode
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.base import get_base_metadata
 from eave.core.orm.outing import OutingOrm
+from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.stdlib.config import SHARED_CONFIG
 
@@ -111,16 +111,15 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         self,
         session: AsyncSession,
     ) -> AccountOrm:
-        account = await AccountOrm.create(
-            session=session,
+        account = await AccountOrm.build(
             email=self.anyemail(),
             plaintext_password=self.anystr(),
-        )
+        ).save(session)
 
         return account
 
     async def get_eave_account(self, session: AsyncSession, /, id: UUID) -> AccountOrm | None:
-        acct = await AccountOrm.one_or_none(session=session, params=AccountOrm.QueryParams(id=id))
+        acct = await AccountOrm.get_one(session, id)
         return acct
 
     async def make_outing(
@@ -136,22 +135,20 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
 
         surv_id = survey_id
         if surv_id is None:
-            survey = await SurveyOrm.create(
-                session=session,
+            survey = await SurveyOrm.build(
                 visitor_id=self.anyuuid(),
                 start_time=self.anydatetime(offset=2 * 60 * 60 * 24),
-                search_area_ids=[SearchRegionCode.US_CA_LA1],
+                search_area_ids=[SearchRegionOrm.all()[0].id],
                 budget=self.anyint(min=0, max=3),
                 headcount=self.anyint(min=1, max=2),
-            )
+            ).save(session)
             surv_id = survey.id
 
-        outing = await OutingOrm.create(
-            session=session,
+        outing = await OutingOrm.build(
             visitor_id=self.anyuuid(),
             account_id=act_id,
             survey_id=surv_id,
-        )
+        ).save(session)
 
         return outing
 

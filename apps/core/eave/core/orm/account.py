@@ -5,23 +5,19 @@ import re
 import uuid
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Literal, Self
+from typing import Literal, Self, overload
 from uuid import UUID
 
-from eave.stdlib.typing import NOT_GIVEN, NotGiven
+from eave.stdlib.typing import NOT_SET, Failure, NotSet, Result, Success
 from sqlalchemy import PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, validates
 
-from eave.stdlib.exceptions import InvalidDataError
+from eave.stdlib.exceptions import ValidationError
 from eave.stdlib.util import b64encode
 
 from .base import Base
 from .util import PG_UUID_EXPR
-
-
-class WeakPasswordError(Exception):
-    pass
 
 
 class InvalidPasswordError(Exception):
@@ -30,7 +26,8 @@ class InvalidPasswordError(Exception):
 
 def test_password_strength_or_exception(plaintext_password: str) -> Literal[True]:
     if (
-        len(plaintext_password) >= 8
+        plaintext_password
+        and len(plaintext_password) >= 8
         and len(plaintext_password) < 256  # This is just to keep memory usage reasonable while hashing
         and re.search("[0-9]", plaintext_password)
         and re.search("[a-zA-Z]", plaintext_password)
@@ -38,12 +35,12 @@ def test_password_strength_or_exception(plaintext_password: str) -> Literal[True
     ):
         return True
     else:
-        raise WeakPasswordError()
+        raise ValidationError("password")
 
 
 def derive_password_key(plaintext_password: str, salt: bytes) -> str:
     if not plaintext_password:
-        raise ValueError("Invalid password")
+        raise ValueError("invalid password")
 
     # I'm just using the recommended parameter values from the RFC here: https://datatracker.ietf.org/doc/html/rfc7914.html#section-2
     hashed = hashlib.scrypt(
@@ -71,42 +68,50 @@ class AccountOrm(Base):
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
-    async def create(
+    def build(
         cls,
-        session: AsyncSession,
         *,
         email: str,
         plaintext_password: str,
     ) -> Self:
-        salt = os.urandom(16)
-        password_key = derive_password_key(plaintext_password=plaintext_password, salt=salt)
-
         obj = cls(
             email=email,
-            password_key_salt=salt.hex(),
-            password_key=password_key,
         )
 
-        return await obj.save(session)
+        obj.set_password(plaintext_password)
+        return obj
 
     @classmethod
-    async def find_by_email(cls, session: AsyncSession, email: str) -> Self:
-        query = select(cls).where(cls.email == email).limit(1)
-        return (await session.scalars(query)).one()
+    def select(cls, *, email: str | NotSet = NOT_SET) -> Select[tuple[Self]]:
+        query = select(cls)
 
-    async def validate_or_exception(self) -> None:
+        if email is not NOT_SET:
+            query = query.where(cls.email == email)
+
+        return query
+
+    @validates("email")
+    def validate_email(self, key: str, value: str) -> str:
         email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-        if re.match(email_pattern, self.email) is None:
-            raise InvalidDataError(code=AuthenticationErrorCode.INVALID_EMAIL)
+        if re.match(email_pattern, value) is None:
+            raise ValidationError("email")
+        return value
 
-    def validate_password_or_exception(self, plaintext_password: str) -> bool:
+    def verify_password_or_exception(self, plaintext_password: str) -> Literal[True]:
         expected_password_key = derive_password_key(
             plaintext_password=plaintext_password, salt=bytes.fromhex(self.password_key_salt)
         )
 
         # This isn't using hmac but this comparison function is resistant to timing attacks.
         matched = hmac.compare_digest(expected_password_key, self.password_key)
-        if not matched:
-            raise InvalidPasswordError()
-        else:
+        if matched:
             return True
+        else:
+            raise InvalidPasswordError()
+
+    def set_password(self, plaintext_password: str) -> None:
+        if test_password_strength_or_exception(plaintext_password):
+            salt = os.urandom(16)
+            password_key = derive_password_key(plaintext_password=plaintext_password, salt=salt)
+            self.password_key_salt = salt.hex()
+            self.password_key = password_key
