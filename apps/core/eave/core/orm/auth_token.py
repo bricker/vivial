@@ -1,6 +1,6 @@
 # from dataclasses import dataclass
 # from datetime import datetime
-# from typing import Self, Sequence
+# from typing import Self
 # from uuid import UUID, uuid4
 
 # from sqlalchemy import ForeignKeyConstraint, Index, PrimaryKeyConstraint, ScalarResult, Select, func, select
@@ -8,7 +8,7 @@
 # from sqlalchemy.orm import Mapped, mapped_column
 
 # from .base import Base
-# from .util import UUID_DEFAULT_EXPR
+# from .util import PG_UUID_EXPR
 
 
 # class AuthTokenOrm(Base):
@@ -27,9 +27,11 @@
 #         ),
 #     )
 
-#     id: Mapped[UUID] = mapped_column(server_default=UUID_DEFAULT_EXPR)
+#     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
 #     account_id: Mapped[UUID] = mapped_column()
-#     jti: Mapped[UUID] = mapped_column(unique=True) # This is separate from the `id` so that we can update it for new token pairs.
+#     jti: Mapped[UUID] = mapped_column(
+#         unique=True
+#     )  # This is separate from the `id` so that we can update it for new token pairs.
 #     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
 #     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 

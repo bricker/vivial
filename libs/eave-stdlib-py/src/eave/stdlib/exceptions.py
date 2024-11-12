@@ -12,9 +12,8 @@ the response body.
 
 
 @dataclass
-class InvalidDataError(Exception):
-    code: str
-    """Client facing error code"""
+class ValidationError(Exception):
+    field: str
 
 
 class StartTimeTooSoonError(Exception):

@@ -1,17 +1,12 @@
 import re
-import uuid
-from collections.abc import Sequence
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Self
 from uuid import UUID
 
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func, select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
+from sqlalchemy.orm import Mapped, mapped_column, validates
 
-from eave.core.graphql.types.reserver_details import SubmitReserverDetailsErrorCode
-from eave.stdlib.exceptions import InvalidDataError
+from eave.stdlib.exceptions import ValidationError
 
 from .base import Base
 from .util import PG_UUID_EXPR
@@ -38,9 +33,9 @@ class ReserverDetailsOrm(Base):
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
-    async def create(
+    def build(
         cls,
-        session: AsyncSession,
+        *,
         account_id: UUID,
         first_name: str,
         last_name: str,
@@ -53,49 +48,11 @@ class ReserverDetailsOrm(Base):
             phone_number=phone_number,
         )
 
-        obj.validate_or_exception()
-
-        session.add(obj)
-        await session.flush()
         return obj
 
-    def validate_or_exception(self) -> None:
+    @validates("phone_number")
+    def validate_phone_number(self, key: str, value: str) -> str:
         phone_number_pattern = r"^\+?1?\d{10}$"  # TODO: something better
-        if re.match(phone_number_pattern, self.phone_number) is None:
-            raise InvalidDataError(code=SubmitReserverDetailsErrorCode.INVALID_PHONE_NUMBER)
-
-    @dataclass
-    class QueryParams:
-        account_id: uuid.UUID | None = None
-        id: uuid.UUID | None = None
-
-    @classmethod
-    def _build_query(cls, params: QueryParams) -> Select[tuple[Self]]:
-        lookup = select(cls).limit(1)
-
-        if params.account_id is not None:
-            lookup = lookup.where(cls.account_id == params.account_id)
-
-        if params.id is not None:
-            lookup = lookup.where(cls.id == params.id)
-
-        assert lookup.whereclause is not None, "Invalid parameters"
-        return lookup
-
-    @classmethod
-    async def query(cls, session: AsyncSession, params: QueryParams) -> Sequence[Self]:
-        lookup = cls._build_query(params=params)
-        result = (await session.scalars(lookup)).all()
-        return result
-
-    @classmethod
-    async def one_or_exception(cls, session: AsyncSession, params: QueryParams) -> Self:
-        lookup = cls._build_query(params=params)
-        result = (await session.scalars(lookup)).one()
-        return result
-
-    @classmethod
-    async def one_or_none(cls, session: AsyncSession, params: QueryParams) -> Self | None:
-        lookup = cls._build_query(params=params)
-        result = await session.scalar(lookup)
-        return result
+        if re.match(phone_number_pattern, value) is None:
+            raise ValidationError("phone_number")
+        return value

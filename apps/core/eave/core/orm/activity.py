@@ -4,7 +4,7 @@ from uuid import UUID
 
 from geoalchemy2 import WKBElement
 from geoalchemy2.types import Geography
-from sqlalchemy import PrimaryKeyConstraint, Select, func, select
+from sqlalchemy import PrimaryKeyConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.lib.geo import GeoPoint, SpatialReferenceSystemId
@@ -59,9 +59,3 @@ class ActivityOrm(Base):
             is_bookable=is_bookable,
             booking_url=booking_url,
         )
-
-    @classmethod
-    def select(cls, *, id: UUID) -> Select[tuple[Self]]:
-        query = select(cls)
-        query = query.where(cls.id == id)
-        return query

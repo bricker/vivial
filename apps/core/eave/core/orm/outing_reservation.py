@@ -1,11 +1,8 @@
-from collections.abc import Sequence
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Self
 from uuid import UUID
 
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func, select
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.outing.models.sources import RestaurantSource
@@ -39,9 +36,9 @@ class OutingReservationOrm(Base):
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
-    async def create(
+    def build(
         cls,
-        session: AsyncSession,
+        *,
         outing_id: UUID,
         reservation_id: str,
         reservation_source: RestaurantSource,
@@ -56,42 +53,4 @@ class OutingReservationOrm(Base):
             num_attendees=num_attendees,
         )
 
-        session.add(obj)
-        await session.flush()
         return obj
-
-    @dataclass
-    class QueryParams:
-        outing_id: UUID | None = None
-        reservation_id: str | None = None
-
-    @classmethod
-    def _build_query(cls, params: QueryParams) -> Select[tuple[Self]]:
-        lookup = select(cls)
-
-        if params.outing_id is not None:
-            lookup = lookup.where(cls.outing_id == params.outing_id)
-
-        if params.reservation_id is not None:
-            lookup = lookup.where(cls.reservation_id == params.reservation_id)
-
-        assert lookup.whereclause is not None, "Invalid parameters"
-        return lookup
-
-    @classmethod
-    async def query(cls, session: AsyncSession, params: QueryParams) -> Sequence[Self]:
-        lookup = cls._build_query(params=params)
-        result = (await session.scalars(lookup)).all()
-        return result
-
-    @classmethod
-    async def one_or_exception(cls, session: AsyncSession, params: QueryParams) -> Self:
-        lookup = cls._build_query(params=params)
-        result = (await session.scalars(lookup)).one()
-        return result
-
-    @classmethod
-    async def one_or_none(cls, session: AsyncSession, params: QueryParams) -> Self | None:
-        lookup = cls._build_query(params=params)
-        result = await session.scalar(lookup)
-        return result

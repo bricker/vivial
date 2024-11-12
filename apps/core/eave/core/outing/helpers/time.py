@@ -1,16 +1,16 @@
+import enum
 from datetime import datetime
-from enum import StrEnum
 
-from ..constants.zoneinfo import LOS_ANGELES_ZONE_INFO
+from ...zoneinfo import LOS_ANGELES_ZONE_INFO
 
 
-class TimeCategory(StrEnum):
-    EARLY_MORNING = "EARLY_MORNING"
-    LATE_MORNING = "LATE_MORNING"
-    EARLY_AFTERNOON = "EARLY_AFTERNOON"
-    LATE_AFTERNOON = "LATE_AFTERNOON"
-    EARLY_EVENING = "EARLY_EVENING"
-    LATE_EVENING = "LATE_EVENING"
+class TimeCategory(enum.Enum):
+    EARLY_MORNING = enum.auto()
+    LATE_MORNING = enum.auto()
+    EARLY_AFTERNOON = enum.auto()
+    LATE_AFTERNOON = enum.auto()
+    EARLY_EVENING = enum.auto()
+    LATE_EVENING = enum.auto()
 
 
 def get_time_category(utc_timestamp: datetime) -> TimeCategory:

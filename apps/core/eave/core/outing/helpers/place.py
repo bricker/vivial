@@ -7,8 +7,7 @@ from google.maps.places_v1.types import Place, SearchNearbyRequest
 from eave.core.graphql.types.outing import OutingBudget
 from eave.core.lib.geo import GeoArea
 
-from ..constants.restaurants import get_google_price_level_from_outing_budget
-from ..constants.zoneinfo import LOS_ANGELES_ZONE_INFO
+from ...zoneinfo import LOS_ANGELES_ZONE_INFO
 
 
 def get_places_nearby(
@@ -72,7 +71,7 @@ def place_is_in_budget(place: Place, budget: OutingBudget) -> bool:
 
     https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#PriceLevel
     """
-    return place.price_level == get_google_price_level_from_outing_budget(budget)
+    return place.price_level == budget.google_places_price_level
 
 
 def place_is_accessible(place: Place) -> bool:

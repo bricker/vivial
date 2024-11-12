@@ -1,19 +1,13 @@
-import uuid
-from collections.abc import Sequence
-from dataclasses import dataclass
 from datetime import datetime
 from typing import Self
 from uuid import UUID
 
 import sqlalchemy
 import sqlalchemy.dialects.postgresql
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func, select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
+from sqlalchemy.orm import Mapped, mapped_column, validates
 
-from eave.core.graphql.types.outing import PlanOutingErrorCode
-from eave.core.graphql.types.search_region import SearchRegionCode
-from eave.stdlib.exceptions import InvalidDataError, StartTimeTooLateError, StartTimeTooSoonError
+from eave.stdlib.exceptions import StartTimeTooLateError, StartTimeTooSoonError, ValidationError
 
 from .base import Base
 from .util import PG_UUID_EXPR, validate_time_within_bounds_or_exception
@@ -35,9 +29,9 @@ class SurveyOrm(Base):
     visitor_id: Mapped[UUID] = mapped_column()
     account_id: Mapped[UUID | None] = mapped_column()
     start_time: Mapped[datetime] = mapped_column()
-    search_area_ids: Mapped[list[str]] = mapped_column(
+    search_area_ids: Mapped[list[UUID]] = mapped_column(
         type_=sqlalchemy.dialects.postgresql.ARRAY(
-            item_type=sqlalchemy.types.String,
+            item_type=sqlalchemy.types.Uuid,
             dimensions=1,
         ),
     )
@@ -47,12 +41,12 @@ class SurveyOrm(Base):
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
-    async def create(
+    def build(
         cls,
-        session: AsyncSession,
+        *,
         visitor_id: UUID,
         start_time: datetime,
-        search_area_ids: list[SearchRegionCode],
+        search_area_ids: list[UUID],
         budget: int,
         headcount: int,
         account_id: UUID | None = None,
@@ -66,50 +60,20 @@ class SurveyOrm(Base):
             headcount=headcount,
         )
 
-        obj.validate_or_exception()
-
-        session.add(obj)
-        await session.flush()
         return obj
 
-    @dataclass
-    class QueryParams:
-        id: uuid.UUID | None = None
+    @validates("search_area_ids")
+    def validate_search_area_ids(self, key: str, value: list[UUID]) -> list[UUID]:
+        if not len(value) > 0:
+            raise ValidationError("search_area_ids")
+        return value
 
-    @classmethod
-    def _build_query(cls, params: QueryParams) -> Select[tuple[Self]]:
-        lookup = select(cls).limit(1)
-
-        if params.id is not None:
-            lookup = lookup.where(cls.id == params.id)
-
-        assert lookup.whereclause is not None, "Invalid parameters"
-        return lookup
-
-    @classmethod
-    async def query(cls, session: AsyncSession, params: QueryParams) -> Sequence[Self]:
-        lookup = cls._build_query(params=params)
-        result = (await session.scalars(lookup)).all()
-        return result
-
-    @classmethod
-    async def one_or_exception(cls, session: AsyncSession, params: QueryParams) -> Self:
-        lookup = cls._build_query(params=params)
-        result = (await session.scalars(lookup)).one()
-        return result
-
-    @classmethod
-    async def one_or_none(cls, session: AsyncSession, params: QueryParams) -> Self | None:
-        lookup = cls._build_query(params=params)
-        result = await session.scalar(lookup)
-        return result
-
-    def validate_or_exception(self) -> None:
-        if not len(self.search_area_ids) > 0:
-            raise InvalidDataError(code=PlanOutingErrorCode.ONE_SEARCH_REGION_REQUIRED)
+    @validates("start_time")
+    def validate_start_time(self, key: str, value: datetime) -> datetime:
         try:
-            validate_time_within_bounds_or_exception(self.start_time)
+            validate_time_within_bounds_or_exception(value)
         except StartTimeTooSoonError:
-            raise InvalidDataError(code=PlanOutingErrorCode.START_TIME_TOO_SOON)
+            raise ValidationError("start_time")
         except StartTimeTooLateError:
-            raise InvalidDataError(code=PlanOutingErrorCode.START_TIME_TOO_LATE)
+            raise ValidationError("start_time")
+        return value

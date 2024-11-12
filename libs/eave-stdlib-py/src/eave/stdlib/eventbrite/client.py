@@ -9,7 +9,7 @@ import aiohttp
 
 from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.eventbrite.models.pagination import Pagination
-from eave.stdlib.typing import NOT_GIVEN, NotGiven
+from eave.stdlib.typing import NOT_SET, NotSet
 
 from .models.category import Category, Subcategory
 from .models.event import Event, EventStatus
@@ -29,13 +29,13 @@ class OrderBy(StrEnum):
 
 @dataclass(kw_only=True)
 class GetEventQuery:
-    expand: list[Expansion] | NotGiven = NOT_GIVEN
+    expand: list[Expansion] | NotSet = NOT_SET
     """included expansions"""
 
     def compile(self) -> Mapping[str, Any]:
         params: dict[str, Any] = {}
 
-        if not isinstance(self.expand, NotGiven):
+        if not isinstance(self.expand, NotSet):
             params["expand"] = ",".join(self.expand)
 
         return params
@@ -43,37 +43,37 @@ class GetEventQuery:
 
 @dataclass(kw_only=True)
 class ListEventsQuery:
-    expand: list[Expansion] | NotGiven = NOT_GIVEN
+    expand: list[Expansion] | NotSet = NOT_SET
     """included expansions"""
 
-    status: EventStatus | NotGiven = NOT_GIVEN
+    status: EventStatus | NotSet = NOT_SET
     """Filter Events by status. Specify multiple status values as a comma delimited string"""
 
-    order_by: OrderBy | NotGiven = NOT_GIVEN
+    order_by: OrderBy | NotSet = NOT_SET
     """Sort order of list of Events"""
 
-    start_date: str | NotGiven = NOT_GIVEN
+    start_date: str | NotSet = NOT_SET
     """Filter Events by a specified date range."""
 
-    only_public: bool | NotGiven = NOT_GIVEN
+    only_public: bool | NotSet = NOT_SET
     """True = Filter public Events"""
 
     def compile(self) -> Mapping[str, Any]:
         params: dict[str, Any] = {}
 
-        if not isinstance(self.expand, NotGiven):
+        if not isinstance(self.expand, NotSet):
             params["expand"] = ",".join(self.expand)
 
-        if not isinstance(self.status, NotGiven):
+        if not isinstance(self.status, NotSet):
             params["status"] = self.status.value
 
-        if not isinstance(self.order_by, NotGiven):
+        if not isinstance(self.order_by, NotSet):
             params["order_by"] = self.order_by.value
 
-        if not isinstance(self.start_date, NotGiven):
+        if not isinstance(self.start_date, NotSet):
             params["start_date"] = self.start_date
 
-        if not isinstance(self.only_public, NotGiven):
+        if not isinstance(self.only_public, NotSet):
             params["only_public"] = "true" if self.only_public else "false"
 
         return params
@@ -81,28 +81,28 @@ class ListEventsQuery:
 
 @dataclass(kw_only=True)
 class ListTicketClassesForSaleQuery:
-    pos: PointOfSale | NotGiven = NOT_GIVEN
+    pos: PointOfSale | NotSet = NOT_SET
     """Only return ticket classes valid for the given point of sale. If unspecified, online is the default value."""
 
-    code: str | NotGiven = NOT_GIVEN
+    code: str | NotSet = NOT_SET
     """
     Only return ticket classes associated with this promo code.
     A promo code may apply discount, unlock hidden tickets, or change availability/remaining quantity of the tickets.
     """
 
-    hold_id: str | NotGiven = NOT_GIVEN
+    hold_id: str | NotSet = NOT_SET
     """Only return ticket classes associated with this composite hold id. Requesting user must have event permissions to sell from holds."""
 
     def compile(self) -> Mapping[str, Any]:
         params: dict[str, Any] = {}
 
-        if not isinstance(self.pos, NotGiven):
+        if not isinstance(self.pos, NotSet):
             params["pos"] = self.pos.value
 
-        if not isinstance(self.code, NotGiven):
+        if not isinstance(self.code, NotSet):
             params["code"] = self.code
 
-        if not isinstance(self.hold_id, NotGiven):
+        if not isinstance(self.hold_id, NotSet):
             params["hold_id"] = self.hold_id
 
         return params
@@ -110,13 +110,13 @@ class ListTicketClassesForSaleQuery:
 
 @dataclass(kw_only=True)
 class ListDefaultQuestionsQuery:
-    include_all: bool | NotGiven = NOT_GIVEN
+    include_all: bool | NotSet = NOT_SET
     """Return the whole list of canned included or not"""
 
     def compile(self) -> Mapping[str, Any]:
         params: dict[str, Any] = {}
 
-        if not isinstance(self.include_all, NotGiven):
+        if not isinstance(self.include_all, NotSet):
             params["include_all"] = "true" if self.include_all else "false"
 
         return params
@@ -124,13 +124,13 @@ class ListDefaultQuestionsQuery:
 
 @dataclass(kw_only=True)
 class ListCustomQuestionsQuery:
-    as_owner: bool | NotGiven = NOT_GIVEN
+    as_owner: bool | NotSet = NOT_SET
     """Return private Events and fields."""
 
     def compile(self) -> Mapping[str, Any]:
         params: dict[str, Any] = {}
 
-        if not isinstance(self.as_owner, NotGiven):
+        if not isinstance(self.as_owner, NotSet):
             params["as_owner"] = "true" if self.as_owner else "false"
 
         return params

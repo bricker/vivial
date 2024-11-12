@@ -14,8 +14,12 @@ UNDER NO CIRCUMSTANCES SHOULD THIS BE EVER RUN AGAINST PROD
 
 import sys
 
+from eave.core.graphql.types.restaurant import RestaurantSource
+
 sys.path.append(".")
 
+from eave.core.graphql.types.activity import ActivitySource
+from eave.core.orm.search_region import SearchRegionOrm
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 load_standard_dotenv_files()
@@ -36,7 +40,6 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engin
 
 import eave.core.database
 import eave.core.orm.base
-from eave.core.graphql.types.search_region import SearchRegionCode
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.account_booking import AccountBookingOrm
 from eave.core.orm.booking import BookingOrm
@@ -47,7 +50,6 @@ from eave.core.orm.outing_activity import OutingActivityOrm
 from eave.core.orm.outing_reservation import OutingReservationOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.survey import SurveyOrm
-from eave.core.outing.models.sources import ActivitySource, RestaurantSource
 from eave.stdlib.logging import eaveLogger
 
 _EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
@@ -76,60 +78,51 @@ async def seed_database(db: AsyncEngine) -> None:
 
         visitor_id = uuid.uuid4()
         dummy_date = datetime.datetime.now() + datetime.timedelta(days=2)
-        account = await AccountOrm.create(
-            session=session,
+        account = await AccountOrm.build(
             email=f"john{row}@gmail.com",
             plaintext_password="pasword1!",  # noqa: S106
-        )
-        survey = await SurveyOrm.create(
-            session=session,
+        ).save(session)
+        survey = await SurveyOrm.build(
             visitor_id=visitor_id,
             account_id=account.id,
             start_time=dummy_date,
-            search_area_ids=[SearchRegionCode.US_CA_LA1],
+            search_area_ids=[SearchRegionOrm.all()[0].id],
             budget=2,
             headcount=2,
-        )
-        outing = await OutingOrm.create(
-            session=session,
+        ).save(session)
+        outing = await OutingOrm.build(
             visitor_id=visitor_id,
             survey_id=survey.id,
             account_id=account.id,
-        )
-        outing_activity = await OutingActivityOrm.create(
-            session=session,
+        ).save(session)
+        outing_activity = await OutingActivityOrm.build(
             outing_id=outing.id,
             activity_id=str(uuid.uuid4()),
             activity_source=ActivitySource.INTERNAL,
             activity_start_time=dummy_date,
             num_attendees=2,
-        )
-        outing_reservation = await OutingReservationOrm.create(
-            session=session,
+        ).save(session)
+        outing_reservation = await OutingReservationOrm.build(
             outing_id=outing.id,
             reservation_id=str(uuid.uuid4()),
             reservation_source=RestaurantSource.GOOGLE_PLACES,
             reservation_start_time=dummy_date,
             num_attendees=2,
-        )
-        reserver_details = await ReserverDetailsOrm.create(
-            session=session,
+        ).save(session)
+        reserver_details = await ReserverDetailsOrm.build(
             account_id=account.id,
             first_name="Jeff",
             last_name="Goldbloom",
             phone_number="+12698675309",
-        )
-        booking = await BookingOrm.create(
-            session=session,
+        ).save(session)
+        booking = await BookingOrm.build(
             reserver_details_id=reserver_details.id,
-        )
-        _account_booking = await AccountBookingOrm.create(
-            session=session,
+        ).save(session)
+        _account_booking = await AccountBookingOrm.build(
             account_id=account.id,
             booking_id=booking.id,
-        )
-        _booking_activity_template = await BookingActivityTemplateOrm.create(
-            session=session,
+        ).save(session)
+        _booking_activity_template = await BookingActivityTemplateOrm.build(
             booking_id=booking.id,
             activity_name="Biking in McDonalds parking lot",
             activity_start_time=outing_activity.activity_start_time,
@@ -142,9 +135,8 @@ async def seed_database(db: AsyncEngine) -> None:
             activity_location_country="USA",
             activity_location_latitude=0,
             activity_location_longitude=0,
-        )
-        _booking_reservation_template = await BookingReservationTemplateOrm.create(
-            session=session,
+        ).save(session)
+        _booking_reservation_template = await BookingReservationTemplateOrm.build(
             booking_id=booking.id,
             reservation_name="Red lobster dumpster",
             reservation_start_time=outing_reservation.reservation_start_time,
@@ -157,7 +149,7 @@ async def seed_database(db: AsyncEngine) -> None:
             reservation_location_country="USA",
             reservation_location_latitude=0,
             reservation_location_longitude=1,
-        )
+        ).save(session)
 
         end = time.perf_counter()
         elapsed = end - start

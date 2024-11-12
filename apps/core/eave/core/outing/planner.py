@@ -2,35 +2,69 @@ import random
 from datetime import timedelta
 from uuid import UUID
 
+from geoalchemy2.functions import ST_DWithin
 from google.maps import places_v1
-from sqlalchemy import func
+from sqlalchemy import func, or_
 
 import eave.core.database
 from eave.core.config import CORE_API_APP_CONFIG
+from eave.core.graphql.types.activity import ActivitySource
+from eave.core.graphql.types.restaurant import RestaurantSource
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
+from eave.core.orm.activity_subcategory import ActivitySubcategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
-from eave.core.outing.constants.activities import get_max_cents_for_budget, get_vivial_subcategory_by_id
+from eave.core.orm.restaurant_category import RestaurantCategoryOrm
+from eave.core.orm.search_region import SearchRegionOrm
 from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.logging import LOGGER
 
-from .constants.areas import ALL_AREAS
-from .constants.restaurants import (
-    BREAKFAST_RESTAURANT_CATEGORY_IDS,
-    BRUNCH_RESTAURANT_CATEGORY_IDS,
-    RESTAURANT_FIELD_MASK,
-    get_vivial_restaurant_category_by_id,
-)
 from .helpers.place import get_places_nearby, place_is_accessible, place_is_in_budget, place_will_be_open
 from .helpers.time import is_early_evening, is_early_morning, is_late_evening, is_late_morning
-from .models.category import ActivitySubcategory, RestaurantCategory
 from .models.outing import OutingComponent, OutingConstraints, OutingPlan
-from .models.sources import ActivitySource, RestaurantSource
 from .models.user import User, UserPreferences
 
+# You must pass a field mask to the Google Places API to specify the list of fields to return in the response.
+# Reference: https://developers.google.com/maps/documentation/places/web-service/nearby-search
+_RESTAURANT_FIELD_MASK = ",".join(
+    [
+        "places.id",
+        "places.displayName",
+        "places.accessibilityOptions",
+        "places.addressComponents",
+        "places.formattedAddress",
+        "places.businessStatus",
+        "places.googleMapsUri",
+        "places.location",
+        "places.photos",
+        "places.primaryType",
+        "places.primaryTypeDisplayName",
+        "places.types",
+        "places.nationalPhoneNumber",
+        "places.priceLevel",
+        "places.rating",
+        "places.regularOpeningHours",
+        "places.currentOpeningHours",
+        "places.userRatingCount",
+        "places.websiteUri",
+        "places.reservable",
+    ]
+)
 
-# TODO: Convert internal restaurant category mappings to Google Places category mappings (pending Bryan).
-# TODO: Convert internal event category mappings to Eventbrite category mappings (pending Bryan).
+_BREAKFAST_RESTAURANT_CATEGORY_IDS = (
+    "coffee_shop",
+    "breakfast_restaurant",
+    "bakery",
+    "cafe",
+)
+
+_BRUNCH_RESTAURANT_CATEGORY_IDS = (
+    "brunch_restaurant",
+    "breakfast_restaurant",
+    "cafe",
+)
+
+
 class OutingPlanner:
     """
     Use this class to plan an outing for a group of users based on their outing
@@ -61,7 +95,7 @@ class OutingPlanner:
         self.activity = activity
         self.restaurant = restaurant
 
-    def _combine_restaurant_categories(self, group: list[User]) -> list[RestaurantCategory]:
+    def _combine_restaurant_categories(self, group: list[User]) -> list[RestaurantCategoryOrm]:
         """
         Given a group of users, combine their restaurant category preferences
         into one list of preferences.
@@ -70,8 +104,8 @@ class OutingPlanner:
         front of the list.
         """
         category_map: dict[UUID, int] = {}
-        intersection: list[RestaurantCategory] = []
-        difference: list[RestaurantCategory] = []
+        intersection: list[RestaurantCategoryOrm] = []
+        difference: list[RestaurantCategoryOrm] = []
 
         # Create a map of category IDs with occurance counts.
         for user in group:
@@ -81,7 +115,7 @@ class OutingPlanner:
 
         # Use the map of category ID occurance counts to find the common categories.
         for category_id, num_matches in category_map.items():
-            category = get_vivial_restaurant_category_by_id(category_id)
+            category = RestaurantCategoryOrm.one_or_exception(restaurant_category_id=category_id)
             if num_matches == len(group):
                 intersection.append(category)
             else:
@@ -91,7 +125,7 @@ class OutingPlanner:
         random.shuffle(difference)
         return intersection + difference
 
-    def _combine_activity_categories(self, group: list[User]) -> list[ActivitySubcategory]:
+    def _combine_activity_categories(self, group: list[User]) -> list[ActivitySubcategoryOrm]:
         """
         Given a group of users, combine their activity category preferences
         into one list of preferences.
@@ -100,8 +134,8 @@ class OutingPlanner:
         front of the list.
         """
         category_map: dict[UUID, int] = {}
-        intersection: list[ActivitySubcategory] = []
-        difference: list[ActivitySubcategory] = []
+        intersection: list[ActivitySubcategoryOrm] = []
+        difference: list[ActivitySubcategoryOrm] = []
 
         # Create a map of category / subcategory IDs with occurence counts.
         for user in group:
@@ -111,7 +145,7 @@ class OutingPlanner:
 
         # Use the map of category / subcategory ID occurence counts to find the common categories.
         for category_id, num_matches in category_map.items():
-            category = get_vivial_subcategory_by_id(category_id)
+            category = ActivitySubcategoryOrm.one_or_exception(activity_subcategory_id=category_id)
             if num_matches == len(group):
                 intersection.append(category)
             else:
@@ -160,13 +194,27 @@ class OutingPlanner:
         activity_end_time = activity_start_time + timedelta(minutes=90)
         random.shuffle(self.constraints.search_area_ids)
 
+        within_areas = [
+            SearchRegionOrm.one_or_exception(search_region_id=search_area_id).area
+            for search_area_id in self.constraints.search_area_ids
+        ]
+
         # CASE 1: Recommend an Eventbrite event.
-        query = EventbriteEventOrm.select(
-            time_range_contains=activity_start_time,
-            cost_range_contains=get_max_cents_for_budget(self.constraints.budget),
-            within_areas=[ALL_AREAS[search_area_id].area for search_area_id in self.constraints.search_area_ids],
-            subcategory_ids=[cat.id for cat in self.preferences.activity_categories],
-        ).order_by(func.random())
+        query = (
+            EventbriteEventOrm.select()
+            .where(EventbriteEventOrm.time_range.contains(activity_start_time))
+            .where(EventbriteEventOrm.cost_cents_range.contains(self.constraints.budget.upper_limit_cents))
+            .where(
+                or_(
+                    *[
+                        ST_DWithin(EventbriteEventOrm.coordinates, area.center.geoalchemy_shape(), area.rad.meters)
+                        for area in within_areas
+                    ]
+                )
+            )
+            .where(or_(*[EventbriteEventOrm.subcategory_id == cat.id for cat in self.preferences.activity_categories]))
+            .order_by(func.random())
+        )
 
         async with eave.core.database.async_session.begin() as db_session:
             results = await db_session.scalars(query)
@@ -253,12 +301,12 @@ class OutingPlanner:
             place_type = "bar"
 
         for search_area_id in self.constraints.search_area_ids:
-            region = ALL_AREAS[search_area_id]
+            region = SearchRegionOrm.one_or_exception(search_region_id=search_area_id)
             places_nearby = get_places_nearby(
                 client=self.places,
                 area=region.area,
                 included_primary_types=[place_type],
-                field_mask=RESTAURANT_FIELD_MASK,
+                field_mask=_RESTAURANT_FIELD_MASK,
             )
             random.shuffle(places_nearby)
             for place in places_nearby:
@@ -292,10 +340,10 @@ class OutingPlanner:
 
         # If this is a morning outing, override user restaurant preferences and show them breakfast / brunch spots.
         if is_early_morning(self.constraints.start_time):
-            restaurant_category_ids = list(BREAKFAST_RESTAURANT_CATEGORY_IDS)
+            restaurant_category_ids = list(_BREAKFAST_RESTAURANT_CATEGORY_IDS)
             random.shuffle(restaurant_category_ids)
         elif is_late_morning(self.constraints.start_time):
-            restaurant_category_ids = list(BRUNCH_RESTAURANT_CATEGORY_IDS)
+            restaurant_category_ids = list(_BRUNCH_RESTAURANT_CATEGORY_IDS)
             random.shuffle(restaurant_category_ids)
         else:
             # Already randomized in combiner funcs
@@ -314,7 +362,7 @@ class OutingPlanner:
 
         # TODO: Sort areas by distance to the activity location.
         for search_area_id in self.constraints.search_area_ids:
-            search_areas.append(ALL_AREAS[search_area_id].area)
+            search_areas.append(SearchRegionOrm.one_or_exception(search_region_id=search_area_id).area)
 
         # Find a restaurant that meets the outing constraints.
         for area in search_areas:
@@ -322,7 +370,7 @@ class OutingPlanner:
                 client=self.places,
                 area=area,
                 included_primary_types=restaurant_category_ids,
-                field_mask=RESTAURANT_FIELD_MASK,
+                field_mask=_RESTAURANT_FIELD_MASK,
             )
             random.shuffle(restaurants_nearby)
             for restaurant in restaurants_nearby:
