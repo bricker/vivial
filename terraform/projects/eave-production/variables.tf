@@ -26,3 +26,13 @@ variable "GCP_MONITORING_SLACK_AUTH_TOKEN" {
   type      = string
   sensitive = true
 }
+
+variable "GOOGLE_PLACES_API_KEY" {
+  type      = string
+  sensitive = true
+}
+
+variable "EVENTBRITE_API_KEY" {
+  type      = string
+  sensitive = true
+}

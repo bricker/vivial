@@ -20,3 +20,13 @@ variable "IAP_OAUTH_CLIENT_SECRET" {
   type      = string
   sensitive = true
 }
+
+variable "GOOGLE_PLACES_API_KEY" {
+  type      = string
+  sensitive = true
+}
+
+variable "EVENTBRITE_API_KEY" {
+  type      = string
+  sensitive = true
+}
