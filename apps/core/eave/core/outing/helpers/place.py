@@ -1,8 +1,8 @@
 from collections.abc import MutableSequence, Sequence
 from datetime import datetime, timedelta
 
-from google.maps.places_v1 import PlacesClient
-from google.maps.places_v1.types import Place, SearchNearbyRequest
+from google.maps.places_v1 import PlacesAsyncClient
+from google.maps.places_v1.types import Place, SearchNearbyRequest, GetPlaceRequest
 
 from eave.core.graphql.types.outing import OutingBudget
 from eave.core.lib.geo import GeoArea
@@ -10,8 +10,15 @@ from eave.core.lib.geo import GeoArea
 from ...zoneinfo import LOS_ANGELES_ZONE_INFO
 
 
-def get_places_nearby(
-    client: PlacesClient,
+async def get_place(
+    client: PlacesAsyncClient,
+    id: str,
+) -> Place:
+    return await client.get_place(request=GetPlaceRequest(name=f"places/{id}"))
+
+
+async def get_places_nearby(
+    client: PlacesAsyncClient,
     area: GeoArea,
     included_primary_types: Sequence[str],
     field_mask: str,
@@ -30,7 +37,7 @@ def get_places_nearby(
         location_restriction=location_restriction,
         included_primary_types=included_primary_types[0:50],
     )
-    response = client.search_nearby(request=request, metadata=[("x-goog-fieldmask", field_mask)])
+    response = await client.search_nearby(request=request, metadata=[("x-goog-fieldmask", field_mask)])
     return response.places or []
 
 

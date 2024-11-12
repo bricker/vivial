@@ -2,14 +2,15 @@ import random
 from datetime import timedelta
 from uuid import UUID
 
+from eave.core.orm.survey import SurveyOrm
 from geoalchemy2.functions import ST_DWithin
 from google.maps import places_v1
 from sqlalchemy import func, or_
 
 import eave.core.database
 from eave.core.config import CORE_API_APP_CONFIG
-from eave.core.graphql.types.activity import EventSource
-from eave.core.graphql.types.restaurant import EventSource
+from eave.core.graphql.types.activity import ActivityCategory, ActivitySubcategory, EventSource
+from eave.core.graphql.types.restaurant import EventSource, RestaurantCategory
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
 from eave.core.orm.activity_subcategory import ActivitySubcategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
@@ -74,21 +75,21 @@ class OutingPlanner:
     restaurant, then go to an event or engage in a cute activity.
     """
 
-    places: places_v1.PlacesClient
+    places: places_v1.PlacesAsyncClient
     eventbrite: EventbriteClient
     preferences: UserPreferences
-    constraints: OutingConstraints
+    constraints: SurveyOrm
     activity: OutingComponent | None
     restaurant: OutingComponent | None
 
     def __init__(
         self,
         group: list[User],
-        constraints: OutingConstraints,
+        constraints: SurveyOrm,
         activity: OutingComponent | None = None,
         restaurant: OutingComponent | None = None,
     ) -> None:
-        self.places = places_v1.PlacesClient()
+        self.places = places_v1.PlacesAsyncClient()  # TODO: pass api key
         self.eventbrite = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
         self.preferences = self._combine_preferences(group)
         self.constraints = constraints
@@ -109,9 +110,10 @@ class OutingPlanner:
 
         # Create a map of category IDs with occurance counts.
         for user in group:
-            for category in user.preferences.restaurant_categories:
-                category_map.setdefault(category.id, 0)
-                category_map[category.id] += 1
+            if user.preferences:
+                for category in user.preferences.restaurant_categories:
+                    category_map.setdefault(category.id, 0)
+                    category_map[category.id] += 1
 
         # Use the map of category ID occurance counts to find the common categories.
         for category_id, num_matches in category_map.items():
@@ -139,9 +141,10 @@ class OutingPlanner:
 
         # Create a map of category / subcategory IDs with occurence counts.
         for user in group:
-            for category in user.preferences.activity_categories:
-                category_map.setdefault(category.id, 0)
-                category_map[category.id] += 1
+            if user.preferences:
+                for category in user.preferences.activity_categories:
+                    category_map.setdefault(category.id, 0)
+                    category_map[category.id] += 1
 
         # Use the map of category / subcategory ID occurence counts to find the common categories.
         for category_id, num_matches in category_map.items():
@@ -160,14 +163,14 @@ class OutingPlanner:
         Given a group of users, return True if any of the users requires
         wheelchair accessibility.
         """
-        return any(user.preferences.requires_wheelchair_accessibility for user in group)
+        return any(user.preferences.requires_wheelchair_accessibility for user in group if user.preferences)
 
     def _combine_bar_openness(self, group: list[User]) -> bool:
         """
         Given a group of users, return False if any of the users is not open to
         going to a bar.
         """
-        return all(user.preferences.open_to_bars for user in group)
+        return all(user.preferences.open_to_bars for user in group if user.preferences)
 
     def _combine_preferences(self, group: list[User]) -> UserPreferences:
         """
@@ -175,8 +178,10 @@ class OutingPlanner:
         throughout this class gives priority to common preferences.
         """
         return UserPreferences(
-            restaurant_categories=self._combine_restaurant_categories(group),
-            activity_categories=self._combine_activity_categories(group),
+            restaurant_categories=[
+                RestaurantCategory.from_orm(orm) for orm in self._combine_restaurant_categories(group)
+            ],
+            activity_categories=[ActivitySubcategory.from_orm(orm) for orm in self._combine_activity_categories(group)],
             requires_wheelchair_accessibility=self._combine_wheelchair_needs(group),
             open_to_bars=self._combine_bar_openness(group),
         )
@@ -268,6 +273,7 @@ class OutingPlanner:
                         source=EventSource.EVENTBRITE,
                         event=event_details,
                         location=GeoPoint(lat=float(lat), lon=float(lon)),
+                        start_time=activity_start_time,
                     )
                     return self.activity
 
@@ -302,7 +308,7 @@ class OutingPlanner:
 
         for search_area_id in self.constraints.search_area_ids:
             region = SearchRegionOrm.one_or_exception(search_region_id=search_area_id)
-            places_nearby = get_places_nearby(
+            places_nearby = await get_places_nearby(
                 client=self.places,
                 area=region.area,
                 included_primary_types=[place_type],
@@ -319,7 +325,10 @@ class OutingPlanner:
                     lon = place.location.longitude
                     if lat and lon:
                         self.activity = OutingComponent(
-                            source=EventSource.GOOGLE_PLACES, place=place, location=GeoPoint(lat=lat, lon=lon)
+                            source=EventSource.GOOGLE_PLACES,
+                            place=place,
+                            location=GeoPoint(lat=lat, lon=lon),
+                            start_time=activity_start_time,
                         )
                         return self.activity
 
@@ -366,7 +375,7 @@ class OutingPlanner:
 
         # Find a restaurant that meets the outing constraints.
         for area in search_areas:
-            restaurants_nearby = get_places_nearby(
+            restaurants_nearby = await get_places_nearby(
                 client=self.places,
                 area=area,
                 included_primary_types=restaurant_category_ids,
@@ -387,6 +396,7 @@ class OutingPlanner:
                                 source=EventSource.GOOGLE_PLACES,
                                 place=restaurant,
                                 location=GeoPoint(lat=lat, lon=lon),
+                                start_time=arrival_time,
                             )
                             return self.restaurant
 

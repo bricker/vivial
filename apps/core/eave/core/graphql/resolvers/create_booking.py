@@ -4,14 +4,17 @@ from uuid import UUID
 
 import strawberry
 from attr import dataclass
+from google.maps.places_v1.services.places import PlacesAsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import eave.stdlib.slack
 from eave.core import database
+from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.booking import (
     Booking,
 )
+from eave.core.graphql.types.event_source import EventSource
 from eave.core.lib.analytics import ANALYTICS
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.account_booking import AccountBookingOrm
@@ -25,7 +28,9 @@ from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.orm.util import validate_time_within_bounds_or_exception
 from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.exceptions import StartTimeTooLateError, StartTimeTooSoonError, ValidationError
+from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery
+from eave.stdlib.eventbrite.models.expansions import Expansion
+from eave.stdlib.exceptions import StartTimeTooLateError, StartTimeTooSoonError
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.util import unwrap
 
@@ -36,30 +41,158 @@ class BookingDetails:
     reservations: list[BookingReservationTemplateOrm]
 
 
+@dataclass
+class EventDetails:
+    name: str
+    latitude: float
+    longitude: float
+    address1: str
+    address2: str | None
+    city: str
+    region: str
+    country: str
+    postal_code: str
+    uri: str
+
+
+async def _get_event_details(
+    places_client: PlacesAsyncClient, activities_client: EventbriteClient, event_source: EventSource, remote_id: str
+) -> EventDetails:
+    name = address1 = address2 = city = region = postal_code = country = lat = lon = booking_uri = None
+    match event_source:
+        case EventSource.INTERNAL:
+            # TODO: fetch from internal db
+            details = None
+        case EventSource.GOOGLE_PLACES:
+            details = await get_place(
+                client=places_client,
+                id=remote_id,
+                # field_mask=",".join(["displayName.text", "addressComponents", "location", "websiteUri"]),
+            )
+
+            name = details.display_name.text
+            booking_uri = details.websiteUri
+            country = next(
+                (component.shortText for component in details.addressComponents if "country" in component.types),
+                None,
+            )
+            region = next(
+                (
+                    component.shortText
+                    for component in details.addressComponents
+                    if "administrative_area_level_1" in component.types
+                ),
+                None,
+            )
+            city = next(
+                (component.longText for component in details.addressComponents if "locality" in component.types),
+                None,
+            )
+            postal_code = next(
+                (component.longText for component in details.addressComponents if "postal_code" in component.types),
+                None,
+            )
+            address1 = next(
+                (component.longText for component in details.addressComponents if "street_address" in component.types),
+                None,
+            ) or " ".join(  # fallback to constructing address from more granular components
+                [
+                    next(
+                        (
+                            component.longText
+                            for component in details.addressComponents
+                            if "street_number" in component.types
+                        ),
+                        "",
+                    ),
+                    next(
+                        (component.longText for component in details.addressComponents if "route" in component.types),
+                        "",
+                    ),
+                ]
+            )
+            address2 = next(
+                (component.longText for component in details.addressComponents if "subpremise" in component.types),
+                None,
+            )
+            lat = details.location.latitude
+            lon = details.location.longitude
+        case EventSource.EVENTBRITE:
+            details = await activities_client.get_event_by_id(
+                event_id=remote_id,
+                query=GetEventQuery(expand=[Expansion.VENUE]),
+            )
+            name = details.get("name").get("text")
+            booking_uri = details.get("url")
+            address1 = details.get("venue").get("address").get("address_1")
+            address2 = details.get("venue").get("address").get("address_2")
+            city = details.get("venue").get("address").get("city")
+            region = details.get("venue").get("address").get("region")
+            postal_code = details.get("venue").get("address").get("postal_code")
+            country = details.get("venue").get("address").get("country")
+            lat = details.get("venue").get("latitude")
+            lon = details.get("venue").get("longitude")
+
+    assert name is not None
+    assert lat is not None
+    assert lon is not None
+    assert address1 is not None
+    assert city is not None
+    assert region is not None
+    assert postal_code is not None
+    assert country is not None
+    assert booking_uri is not None
+
+    return EventDetails(
+        name=name,
+        latitude=float(lat),
+        longitude=float(lon),
+        address1=address1,
+        address2=address2,
+        city=city,
+        region=region,
+        postal_code=postal_code,
+        country=country,
+        uri=booking_uri,
+    )
+
+
 async def _create_templates_from_outing(
     db_session: AsyncSession,
     booking_id: UUID,
     outing: OutingOrm,
 ) -> BookingDetails:
+    places_client = PlacesAsyncClient()  # TODO: pass creds
+    activities_client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
+
     activities = await db_session.scalars(OutingActivityOrm.select().where(OutingActivityOrm.outing_id == outing.id))
     activity_details = []
     for activity in activities:
-        # TODO: fetch activity details from remote src
+        src = EventSource.from_str(
+            activity.activity_source
+        )  # TODO: storing str in db, but gql type is auto, so cant convert as is (or even store properly?)
+        assert src is not None
+        details = await _get_event_details(
+            places_client=places_client,
+            activities_client=activities_client,
+            event_source=src,
+            remote_id=activity.activity_id,
+        )
 
         activity_details.append(
             await BookingActivityTemplateOrm.build(
                 booking_id=booking_id,
-                activity_name="Biking in McDonalds parking lot",
+                activity_name=details.name,
                 activity_start_time=activity.activity_start_time,
                 num_attendees=activity.num_attendees,
-                external_booking_link="https://micndontlds.com",
-                activity_location_address1="101 Mcdonald St",
-                activity_location_address2="Unit 666",
-                activity_location_city="LA",
-                activity_location_region="CA",
-                activity_location_country="USA",
-                activity_location_latitude=0,
-                activity_location_longitude=0,
+                external_booking_link=details.uri,
+                activity_location_address1=details.address1,
+                activity_location_address2=details.address2,
+                activity_location_city=details.city,
+                activity_location_region=details.region,
+                activity_location_country=details.country,
+                activity_location_latitude=details.latitude,
+                activity_location_longitude=details.longitude,
             ).save(db_session)
         )
 
@@ -68,22 +201,29 @@ async def _create_templates_from_outing(
     )
     reservation_details = []
     for reservation in reservations:
-        # TODO: fetch dteails from remote
+        src = EventSource.from_str(reservation.reservation_source)
+        assert src is not None
+        details = await _get_event_details(
+            places_client=places_client,
+            activities_client=activities_client,
+            event_source=src,
+            remote_id=reservation.reservation_id,
+        )
 
         reservation_details.append(
             await BookingReservationTemplateOrm.build(
                 booking_id=booking_id,
-                reservation_name="Red lobster dumpster",
+                reservation_name=details.name,
                 reservation_start_time=reservation.reservation_start_time,
                 num_attendees=reservation.num_attendees,
-                external_booking_link="https://redlobster.yum",
-                reservation_location_address1="3269 Abandoned Alley Way",
-                reservation_location_address2="",
-                reservation_location_city="LA",
-                reservation_location_region="CA",
-                reservation_location_country="USA",
-                reservation_location_latitude=0,
-                reservation_location_longitude=1,
+                external_booking_link=details.uri,
+                reservation_location_address1=details.address1,
+                reservation_location_address2=details.address2,
+                reservation_location_city=details.city,
+                reservation_location_region=details.region,
+                reservation_location_country=details.country,
+                reservation_location_latitude=details.latitude,
+                reservation_location_longitude=details.longitude,
             ).save(db_session)
         )
 
@@ -137,7 +277,7 @@ at
 {reservation.reservation_name}
 {reservation.reservation_location_address1}
 {reservation.reservation_location_address2}
-{reservation.reservation_location_city}, {reservation.reservation_location_region}
+{reservation.reservation_location_city}, {reservation.reservation_location_region} {reservation.reservation_location_postal_code}
 {reservation.reservation_location_country}
 ```
 """
@@ -153,7 +293,7 @@ at
 {activity.activity_name}
 {activity.activity_location_address1}
 {activity.activity_location_address2}
-{activity.activity_location_city}, {activity.activity_location_region}
+{activity.activity_location_city}, {activity.activity_location_region} {activity.activity_location_postal_code}
 {activity.activity_location_country}
 ```
 """
@@ -198,38 +338,32 @@ async def create_booking_mutation(
 ) -> CreateBookingResult:
     account_id = unwrap(info.context.authenticated_account_id)
 
-    try:
-        async with database.async_session.begin() as db_session:
-            # TODO: should we 1 or none and return client friendly error if 404? instead of 500 throw
-            # outing = await db_session.scalars(select(OutingOrm).where(OutingOrm.id == input.outing_id))
-            outing = await OutingOrm.get_one(db_session, input.outing_id)
-            survey = await SurveyOrm.get_one(db_session, outing.survey_id)
+    async with database.async_session.begin() as db_session:
+        outing = await OutingOrm.get_one(db_session, input.outing_id)
+        survey = await SurveyOrm.get_one(db_session, outing.survey_id)
 
-            # validate outing time still valid to book
-            try:
-                validate_time_within_bounds_or_exception(survey.start_time)
-            except StartTimeTooSoonError:
-                raise ValidationError(code=CreateBookingErrorCode.START_TIME_TOO_SOON)
-            except StartTimeTooLateError:
-                raise ValidationError(code=CreateBookingErrorCode.START_TIME_TOO_LATE)
+        # validate outing time still valid to book
+        try:
+            validate_time_within_bounds_or_exception(survey.start_time)
+        except StartTimeTooSoonError:
+            return CreateBookingError(error_code=CreateBookingErrorCode.START_TIME_TOO_SOON)
+        except StartTimeTooLateError:
+            return CreateBookingError(error_code=CreateBookingErrorCode.START_TIME_TOO_LATE)
 
-            booking = await BookingOrm.build(
-                reserver_details_id=input.reserver_details_id,
-            ).save(db_session)
+        booking = await BookingOrm.build(
+            reserver_details_id=input.reserver_details_id,
+        ).save(db_session)
 
-            await AccountBookingOrm.build(
-                account_id=account_id,
-                booking_id=booking.id,
-            ).save(db_session)
+        await AccountBookingOrm.build(
+            account_id=account_id,
+            booking_id=booking.id,
+        ).save(db_session)
 
-            booking_details = await _create_templates_from_outing(
-                db_session=db_session,
-                booking_id=booking.id,
-                outing=outing,
-            )
-    except ValidationError as e:
-        LOGGER.exception(e)
-        return CreateBookingError(error_code=CreateBookingErrorCode(e.code))
+        booking_details = await _create_templates_from_outing(
+            db_session=db_session,
+            booking_id=booking.id,
+            outing=outing,
+        )
 
     await _notify_slack(booking_details, account_id, input.reserver_details_id)
 

@@ -1,9 +1,9 @@
 from http import HTTPStatus
 
-from eave.core.graphql.types.booking import CreateBookingErrorCode
-from eave.core.graphql.types.search_region import SearchRegionCode
+from eave.core.graphql.resolvers.create_booking import CreateBookingErrorCode
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
+from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
 
 from ..base import BaseTestCase
@@ -14,13 +14,12 @@ class TestBookingEndpoints(BaseTestCase):
         async with self.db_session.begin() as session:
             account = await self.make_account(session=session)
             outing = await self.make_outing(session=session, account_id=account.id)
-            reserver_details = await ReserverDetailsOrm.create(
-                session=session,
+            reserver_details = await ReserverDetailsOrm.build(
                 account_id=account.id,
                 first_name=self.anystr(),
                 last_name=self.anystr(),
                 phone_number="1234567890",
-            )
+            ).save(session=session)
 
         response = await self.httpclient.post(
             "/graphql",
@@ -55,25 +54,23 @@ mutation {{
                 visitor_id=self.anyuuid(),
                 # survey time is expired
                 start_time=self.anydatetime(past=True).replace(tzinfo=None),
-                search_area_ids=[SearchRegionCode.US_CA_LA1],
+                search_area_ids=[SearchRegionOrm.all()[0].id],
                 budget=self.anyint(min=0, max=3),
                 headcount=self.anyint(min=1, max=2),
             )
             session.add(survey)
             await session.flush()
-            outing = await OutingOrm.create(
-                session=session,
+            outing = await OutingOrm.build(
                 visitor_id=self.anyuuid(),
                 account_id=account.id,
                 survey_id=survey.id,
-            )
-            reserver_details = await ReserverDetailsOrm.create(
-                session=session,
+            ).save(session=session)
+            reserver_details = await ReserverDetailsOrm.build(
                 account_id=account.id,
                 first_name=self.anystr(),
                 last_name=self.anystr(),
                 phone_number="1234567890",
-            )
+            ).save(session=session)
 
         response = await self.httpclient.post(
             "/graphql",

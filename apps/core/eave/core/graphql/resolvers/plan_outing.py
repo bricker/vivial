@@ -1,23 +1,26 @@
 import enum
 from datetime import datetime
 from typing import Annotated
-from uuid import UUID, uuid4
+from uuid import UUID
 
 import strawberry
 
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.outing import MOCK_OUTING
-from eave.core.graphql.types.activity import EventSource
 from eave.core.graphql.types.outing import (
     Outing,
     OutingBudget,
 )
-from eave.core.graphql.types.event_source import EventSource
+from eave.core.graphql.types.user import UserInput
 from eave.core.lib.analytics import ANALYTICS
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.outing_activity import OutingActivityOrm
 from eave.core.orm.outing_reservation import OutingReservationOrm
+from eave.core.orm.survey import SurveyOrm
+from eave.core.outing.planner import OutingPlanner
+from eave.stdlib.exceptions import ValidationError
+from eave.stdlib.logging import LOGGER
 
 
 @strawberry.input
@@ -50,75 +53,48 @@ class PlanOutingError:
 PlanOutingResult = Annotated[PlanOutingSuccess | PlanOutingError, strawberry.union("PlanOutingResult")]
 
 
-async def create_outing_plan(
-    *,
-    visitor_id: UUID,
-    survey_id: UUID,
-    account_id: UUID | None,
-    reroll: bool,
-) -> OutingOrm:
-    # TODO: actually call the planning function instead
-    async with database.async_session.begin() as db_session:
-        outing = await OutingOrm.build(
-            visitor_id=visitor_id,
-            survey_id=survey_id,
-            account_id=account_id,
-        ).save(db_session)
-        _outing_activity = await OutingActivityOrm.build(
-            outing_id=outing.id,
-            activity_id=str(uuid4()),
-            activity_source=EventSource.EVENTBRITE,
-            activity_start_time=datetime.now(),
-            num_attendees=2,
-        ).save(db_session)
-        _outing_reservation = await OutingReservationOrm.build(
-            outing_id=outing.id,
-            reservation_id=str(uuid4()),
-            reservation_source=EventSource.GOOGLE_PLACES,
-            reservation_start_time=datetime.now(),
-            num_attendees=2,
-        ).save(db_session)
-
-    ANALYTICS.track(
-        event_name="outing plan created",
-        account_id=account_id,
-        visitor_id=visitor_id,
-        extra_properties={
-            "reroll": reroll,
-        },
-    )
-    return outing
-
-
 async def plan_outing_mutation(
     *,
     info: strawberry.Info[GraphQLContext],
     input: PlanOutingInput,
 ) -> PlanOutingResult:
-    # try:
-    #     async with database.async_session.begin() as db_session:
-    #         search_areas: list[SearchRegionCode] = []
-    #         for area_id in search_area_ids:
-    #             if region := SearchRegionCode.from_str(area_id):
-    #                 search_areas.append(region)
-    #         survey = await SurveyOrm.create(
-    #             session=db_session,
-    #             visitor_id=visitor_id,
-    #             start_time=start_time,
-    #             search_area_ids=search_areas,
-    #             budget=budget,
-    #             headcount=headcount,
-    #             account_id=None,  # TODO: look for auth attached to request
-    #         )
-    # except InvalidDataError as e:
-    #     LOGGER.exception(e)
-    #     return SubmitSurveyError(error_code=SubmitSurveyErrorCode(e.code))
-
-    # outing = await create_outing_plan(
-    #     visitor_id=survey.visitor_id,
-    #     survey_id=survey.id,
-    #     account_id=survey.account_id,
-    #     reroll=False,
-    # )
-
     return PlanOutingSuccess(outing=MOCK_OUTING)
+
+    try:
+        async with database.async_session.begin() as db_session:
+            survey = SurveyOrm.build(
+                visitor_id=input.visitor_id,
+                start_time=input.start_time,
+                search_area_ids=input.search_area_ids,
+                budget=input.budget,
+                headcount=input.headcount,
+                account_id=None,  # TODO: look for auth attached to request
+            )
+            await survey.save(session=db_session)
+    except ValidationError as e:
+        LOGGER.exception(e)
+        # TODO: we can't differentiate validation errors well/at all w/ current validation logic
+        return PlanOutingError(error_code=PlanOutingErrorCode.ONE_SEARCH_REGION_REQUIRED)
+
+    outing = await create_outing_plan(
+        visitor_id=survey.visitor_id,
+        survey=survey,
+        account_id=survey.account_id,
+        reroll=False,
+    )
+    return PlanOutingSuccess(
+        outing=Outing(
+            id=outing.id,
+            visitor_id=outing.visitor_id,
+            account_id=outing.account_id,
+            survey_id=outing.survey_id,
+            budget=survey.budget,
+            headcount=survey.headcount,
+            # TODO: remaining fields not available in curr ctx
+            activity=None,
+            activity_start_time=None,
+            restaurant=None,
+            restaurant_arrival_time=None,
+            driving_time="",
+        )
+    )

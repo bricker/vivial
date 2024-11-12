@@ -72,8 +72,6 @@ class SurveyOrm(Base):
     def validate_start_time(self, key: str, value: datetime) -> datetime:
         try:
             validate_time_within_bounds_or_exception(value)
-        except StartTimeTooSoonError:
-            raise ValidationError("start_time")
-        except StartTimeTooLateError:
+        except (StartTimeTooSoonError, StartTimeTooLateError):
             raise ValidationError("start_time")
         return value

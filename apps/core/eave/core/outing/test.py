@@ -1,21 +1,23 @@
 import asyncio
 from datetime import datetime
 
-from models.outing import OutingConstraints
+from eave.core.graphql.types.activity import ActivityCategory, ActivitySubcategory
+from eave.core.graphql.types.restaurant import RestaurantCategory
+from eave.core.orm.activity_subcategory import _ACTIVITY_SUBCATEGORIES_PK, _ACTIVITY_SUBCATEGORIES_TABLE
+from eave.core.orm.restaurant_category import _RESTAURANT_CATEGORIES_PK, _RESTAURANT_CATEGORIES_TABLE
+from eave.core.orm.search_region import SearchRegionOrm
+from eave.core.orm.survey import SurveyOrm
 from models.user import User, UserPreferences
 
 from eave.core.graphql.types.outing import OutingBudget
-from eave.core.graphql.types.search_region import SearchRegionCode
-from eave.core.outing.constants.activities import ACTIVITY_SUBCATEGORIES
-from eave.core.outing.constants.restaurants import RESTAURANT_CATEGORIES
 from eave.core.outing.planner import OutingPlanner
 
 
 # TODO: Write thorough automated tests once all relevant tables / endpoints are ready (pending Bryan).
 async def main() -> None:
-    test_outing_constraints = OutingConstraints(
+    test_outing_constraints = SurveyOrm(
         start_time=datetime.fromisoformat("2024-10-25T19:42:31.946205"),
-        search_area_ids=[SearchRegionCode.US_CA_LA2],
+        search_area_ids=[SearchRegionOrm.all()[0].id],
         budget=OutingBudget.TWO,
         headcount=2,
     )
@@ -26,8 +28,8 @@ async def main() -> None:
             UserPreferences(
                 open_to_bars=True,
                 requires_wheelchair_accessibility=False,
-                restaurant_categories=list(RESTAURANT_CATEGORIES[0:3]),
-                activity_categories=list(ACTIVITY_SUBCATEGORIES[0:3]),
+                restaurant_categories=[RestaurantCategory.from_orm(cat) for cat in _RESTAURANT_CATEGORIES_TABLE[0:3]],
+                activity_categories=[ActivitySubcategory.from_orm(cat) for cat in _ACTIVITY_SUBCATEGORIES_TABLE[0:3]],
             )
         ),
     )
@@ -38,8 +40,8 @@ async def main() -> None:
             UserPreferences(
                 open_to_bars=True,
                 requires_wheelchair_accessibility=False,
-                restaurant_categories=list(RESTAURANT_CATEGORIES[3:6]),
-                activity_categories=list(ACTIVITY_SUBCATEGORIES[3:6]),
+                restaurant_categories=[RestaurantCategory.from_orm(cat) for cat in _RESTAURANT_CATEGORIES_TABLE[3:6]],
+                activity_categories=[ActivitySubcategory.from_orm(cat) for cat in _ACTIVITY_SUBCATEGORIES_TABLE[3:6]],
             )
         ),
     )

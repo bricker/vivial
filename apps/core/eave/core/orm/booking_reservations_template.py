@@ -36,13 +36,14 @@ class BookingReservationTemplateOrm(Base):
     reservation_start_time: Mapped[datetime] = mapped_column()
     num_attendees: Mapped[int] = mapped_column()
     external_booking_link: Mapped[str | None] = mapped_column()
-    """HTTP link to site for manual booking (possibly affialate), if available"""
+    """HTTP link to site for manual booking (possibly affiliate), if available"""
     reservation_location_address1: Mapped[str] = mapped_column()
-    reservation_location_address2: Mapped[str] = mapped_column()
+    reservation_location_address2: Mapped[str | None] = mapped_column()
     reservation_location_city: Mapped[str] = mapped_column()
     reservation_location_region: Mapped[str] = mapped_column()
     """Name of region. e.g. state, province, territory, prefecture"""
     reservation_location_country: Mapped[str] = mapped_column()
+    reservation_location_postal_code: Mapped[str] = mapped_column()
     reservation_location_latitude: Mapped[float] = mapped_column()
     reservation_location_longitude: Mapped[float] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
@@ -58,9 +59,10 @@ class BookingReservationTemplateOrm(Base):
         num_attendees: int,
         external_booking_link: str | None,
         reservation_location_address1: str,
-        reservation_location_address2: str,
+        reservation_location_address2: str | None,
         reservation_location_city: str,
         reservation_location_region: str,
+        reservation_location_postal_code: str,
         reservation_location_country: str,
         reservation_location_latitude: float,
         reservation_location_longitude: float,
@@ -75,6 +77,7 @@ class BookingReservationTemplateOrm(Base):
             reservation_location_address2=reservation_location_address2,
             reservation_location_city=reservation_location_city,
             reservation_location_region=reservation_location_region,
+            reservation_location_postal_code=reservation_location_postal_code,
             reservation_location_country=reservation_location_country,
             reservation_location_latitude=reservation_location_latitude,
             reservation_location_longitude=reservation_location_longitude,

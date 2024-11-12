@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
-from .category import ActivitySubcategory, RestaurantCategory
+from eave.core.graphql.types.activity import ActivitySubcategory
+from eave.core.graphql.types.restaurant import RestaurantCategory
 
 
 @dataclass
@@ -15,4 +16,4 @@ class UserPreferences:
 class User:
     account_id: str | None
     visitor_id: str | None
-    preferences: UserPreferences
+    preferences: UserPreferences | None

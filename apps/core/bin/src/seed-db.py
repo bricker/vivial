@@ -36,6 +36,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, create_async_engin
 
 import eave.core.database
 import eave.core.orm.base
+from eave.core.graphql.types.event_source import EventSource
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.account_booking import AccountBookingOrm
 from eave.core.orm.booking import BookingOrm
@@ -45,10 +46,9 @@ from eave.core.orm.outing import OutingOrm
 from eave.core.orm.outing_activity import OutingActivityOrm
 from eave.core.orm.outing_reservation import OutingReservationOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
+from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.stdlib.logging import eaveLogger
-from eave.core.graphql.types.event_source import EventSource
-from eave.core.orm.search_region import SearchRegionOrm
 
 _EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
 _GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT")
@@ -130,6 +130,7 @@ async def seed_database(db: AsyncEngine) -> None:
             activity_location_address2="Unit 666",
             activity_location_city="LA",
             activity_location_region="CA",
+            activity_location_postal_code="98115",
             activity_location_country="USA",
             activity_location_latitude=0,
             activity_location_longitude=0,
@@ -144,6 +145,7 @@ async def seed_database(db: AsyncEngine) -> None:
             reservation_location_address2="",
             reservation_location_city="LA",
             reservation_location_region="CA",
+            reservation_location_postal_code="98115",
             reservation_location_country="USA",
             reservation_location_latitude=0,
             reservation_location_longitude=1,
