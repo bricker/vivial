@@ -2,27 +2,28 @@ import random
 from datetime import timedelta
 from uuid import UUID
 
-from eave.core.orm.survey import SurveyOrm
 from geoalchemy2.functions import ST_DWithin
 from google.maps import places_v1
 from sqlalchemy import func, or_
 
 import eave.core.database
 from eave.core.config import CORE_API_APP_CONFIG
-from eave.core.graphql.types.activity import ActivityCategory, ActivitySubcategory, EventSource
-from eave.core.graphql.types.restaurant import EventSource, RestaurantCategory
+from eave.core.graphql.types.activity import ActivitySubcategory
+from eave.core.graphql.types.event_source import EventSource
+from eave.core.graphql.types.restaurant import RestaurantCategory
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
 from eave.core.orm.activity_subcategory import ActivitySubcategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
+from eave.core.orm.survey import SurveyOrm
 from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.logging import LOGGER
 
 from .helpers.place import get_places_nearby, place_is_accessible, place_is_in_budget, place_will_be_open
 from .helpers.time import is_early_evening, is_early_morning, is_late_evening, is_late_morning
-from .models.outing import OutingComponent, OutingConstraints, OutingPlan
+from .models.outing import OutingComponent, OutingPlan
 from .models.user import User, UserPreferences
 
 # You must pass a field mask to the Google Places API to specify the list of fields to return in the response.
@@ -356,9 +357,7 @@ class OutingPlanner:
             random.shuffle(restaurant_category_ids)
         else:
             # Already randomized in combiner funcs
-            restaurant_category_ids = [
-                gcid for cat in self.preferences.restaurant_categories for gcid in cat.google_category_ids
-            ]
+            restaurant_category_ids = [cat.name for cat in self.preferences.restaurant_categories]
 
         # If an activity has been selected, use that as the search area.
         if self.activity and self.activity.location:

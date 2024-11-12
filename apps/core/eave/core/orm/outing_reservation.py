@@ -5,7 +5,7 @@ from uuid import UUID
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.core.outing.models.sources import EventSource
+from eave.core.graphql.types.event_source import EventSource
 
 from .base import Base
 

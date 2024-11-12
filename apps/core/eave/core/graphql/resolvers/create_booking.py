@@ -27,6 +27,7 @@ from eave.core.orm.outing_reservation import OutingReservationOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.orm.util import validate_time_within_bounds_or_exception
+from eave.core.outing.helpers.place import get_place
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery
 from eave.stdlib.eventbrite.models.expansions import Expansion
@@ -122,16 +123,18 @@ async def _get_event_details(
                 event_id=remote_id,
                 query=GetEventQuery(expand=[Expansion.VENUE]),
             )
-            name = details.get("name").get("text")
+            name = details.get("name", {}).get("text")
             booking_uri = details.get("url")
-            address1 = details.get("venue").get("address").get("address_1")
-            address2 = details.get("venue").get("address").get("address_2")
-            city = details.get("venue").get("address").get("city")
-            region = details.get("venue").get("address").get("region")
-            postal_code = details.get("venue").get("address").get("postal_code")
-            country = details.get("venue").get("address").get("country")
-            lat = details.get("venue").get("latitude")
-            lon = details.get("venue").get("longitude")
+            if venue := details.get("venue"):
+                lat = venue.get("latitude")
+                lon = venue.get("longitude")
+                if address := venue.get("address"):
+                    address1 = address.get("address_1")
+                    address2 = address.get("address_2")
+                    city = address.get("city")
+                    region = address.get("region")
+                    postal_code = address.get("postal_code")
+                    country = address.get("country")
 
     assert name is not None
     assert lat is not None
@@ -191,6 +194,7 @@ async def _create_templates_from_outing(
                 activity_location_city=details.city,
                 activity_location_region=details.region,
                 activity_location_country=details.country,
+                activity_location_postal_code=details.postal_code,
                 activity_location_latitude=details.latitude,
                 activity_location_longitude=details.longitude,
             ).save(db_session)
@@ -222,6 +226,7 @@ async def _create_templates_from_outing(
                 reservation_location_city=details.city,
                 reservation_location_region=details.region,
                 reservation_location_country=details.country,
+                reservation_location_postal_code=details.postal_code,
                 reservation_location_latitude=details.latitude,
                 reservation_location_longitude=details.longitude,
             ).save(db_session)

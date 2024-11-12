@@ -2,7 +2,7 @@ from collections.abc import MutableSequence, Sequence
 from datetime import datetime, timedelta
 
 from google.maps.places_v1 import PlacesAsyncClient
-from google.maps.places_v1.types import Place, SearchNearbyRequest, GetPlaceRequest
+from google.maps.places_v1.types import GetPlaceRequest, Place, SearchNearbyRequest
 
 from eave.core.graphql.types.outing import OutingBudget
 from eave.core.lib.geo import GeoArea

@@ -1,15 +1,15 @@
 import asyncio
 from datetime import datetime
 
-from eave.core.graphql.types.activity import ActivityCategory, ActivitySubcategory
-from eave.core.graphql.types.restaurant import RestaurantCategory
-from eave.core.orm.activity_subcategory import _ACTIVITY_SUBCATEGORIES_PK, _ACTIVITY_SUBCATEGORIES_TABLE
-from eave.core.orm.restaurant_category import _RESTAURANT_CATEGORIES_PK, _RESTAURANT_CATEGORIES_TABLE
-from eave.core.orm.search_region import SearchRegionOrm
-from eave.core.orm.survey import SurveyOrm
 from models.user import User, UserPreferences
 
+from eave.core.graphql.types.activity import ActivitySubcategory
 from eave.core.graphql.types.outing import OutingBudget
+from eave.core.graphql.types.restaurant import RestaurantCategory
+from eave.core.orm.activity_subcategory import _ACTIVITY_SUBCATEGORIES_TABLE
+from eave.core.orm.restaurant_category import _RESTAURANT_CATEGORIES_TABLE
+from eave.core.orm.search_region import SearchRegionOrm
+from eave.core.orm.survey import SurveyOrm
 from eave.core.outing.planner import OutingPlanner
 
 

@@ -42,8 +42,8 @@ class TestActivityOrm(BaseTestCase):
         async with self.db_session.begin() as session:
             obj = (
                 await session.scalars(
-                    ActivityOrm.select(
-                        activity_id=activity.id,
+                    ActivityOrm.select().where(
+                        ActivityOrm.id == activity.id,
                     )
                 )
             ).one()

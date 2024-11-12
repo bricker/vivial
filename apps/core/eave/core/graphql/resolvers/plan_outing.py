@@ -7,18 +7,13 @@ import strawberry
 
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.resolvers.outing import MOCK_OUTING
+from eave.core.graphql.resolvers.outing import MOCK_OUTING, create_outing_plan
 from eave.core.graphql.types.outing import (
     Outing,
     OutingBudget,
 )
 from eave.core.graphql.types.user import UserInput
-from eave.core.lib.analytics import ANALYTICS
-from eave.core.orm.outing import OutingOrm
-from eave.core.orm.outing_activity import OutingActivityOrm
-from eave.core.orm.outing_reservation import OutingReservationOrm
 from eave.core.orm.survey import SurveyOrm
-from eave.core.outing.planner import OutingPlanner
 from eave.stdlib.exceptions import ValidationError
 from eave.stdlib.logging import LOGGER
 

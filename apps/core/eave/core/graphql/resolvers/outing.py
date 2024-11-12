@@ -5,14 +5,15 @@ import strawberry
 
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.types.activity import Activity, ActivityTicketInfo, ActivityVenue, EventSource
+from eave.core.graphql.types.activity import Activity, ActivityTicketInfo, ActivityVenue
+from eave.core.graphql.types.event_source import EventSource
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import (
     Outing,
     OutingBudget,
 )
 from eave.core.graphql.types.photos import Photos
-from eave.core.graphql.types.restaurant import EventSource, Restaurant
+from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.lib.analytics import ANALYTICS
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.outing_activity import OutingActivityOrm

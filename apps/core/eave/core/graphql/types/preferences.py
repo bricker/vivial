@@ -1,6 +1,6 @@
 import strawberry
 
-from .category import Category, CategoryInput
+from eave.core.graphql.types.category import Category, CategoryInput
 
 
 @strawberry.type

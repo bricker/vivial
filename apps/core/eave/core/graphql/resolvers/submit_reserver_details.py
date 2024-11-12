@@ -53,16 +53,15 @@ async def submit_reserver_details_mutation(
     account_id = unwrap(info.context.authenticated_account_id)
     try:
         async with database.async_session.begin() as db_session:
-            reserver_details = await ReserverDetailsOrm.create(
-                session=db_session,
+            reserver_details = await ReserverDetailsOrm.build(
                 account_id=account_id,
                 first_name=input.first_name,
                 last_name=input.last_name,
                 phone_number=input.phone_number,
-            )
+            ).save(session=db_session)
     except ValidationError as e:
         LOGGER.exception(e)
-        return SubmitReserverDetailsError(error_code=SubmitReserverDetailsErrorCode(e.code))
+        return SubmitReserverDetailsError(error_code=SubmitReserverDetailsErrorCode.INVALID_PHONE_NUMBER)
 
     return SubmitReserverDetailsSuccess(
         reserver_details=ReserverDetails(

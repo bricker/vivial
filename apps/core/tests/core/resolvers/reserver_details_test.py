@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from eave.core.graphql.types.reserver_details import SubmitReserverDetailsErrorCode
+from eave.core.graphql.resolvers.submit_reserver_details import SubmitReserverDetailsErrorCode
 
 from ..base import BaseTestCase
 

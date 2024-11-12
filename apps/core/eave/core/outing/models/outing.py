@@ -1,11 +1,9 @@
 from dataclasses import dataclass
 from datetime import datetime
-from uuid import UUID
 
 from google.maps.places_v1.types import Place
 
 from eave.core.graphql.types.event_source import EventSource
-from eave.core.graphql.types.outing import OutingBudget
 from eave.core.lib.geo import GeoPoint
 from eave.stdlib.eventbrite.models.event import Event
 
