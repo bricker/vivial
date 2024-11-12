@@ -13,7 +13,7 @@ from eave.core.graphql.types.outing import (
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.orm.util import validate_time_within_bounds_or_exception
-from eave.stdlib.exceptions import StartTimeTooLateError, StartTimeTooSoonError, ValidationError
+from eave.stdlib.exceptions import StartTimeTooLateError, StartTimeTooSoonError
 from eave.stdlib.logging import LOGGER
 
 
@@ -49,34 +49,31 @@ async def replan_outing_mutation(
 ) -> ReplanOutingResult:
     return ReplanOutingSuccess(outing=MOCK_OUTING)
 
-    try:
-        async with database.async_session.begin() as db_session:
-            original_outing = await OutingOrm.get_one(
-                session=db_session,
-                id=input.outing_id,
-            )
-            survey = await SurveyOrm.get_one(
-                session=db_session,
-                id=original_outing.survey_id,
-            )
-
-            validate_time_within_bounds_or_exception(survey.start_time)
-
-        outing = await create_outing_plan(
-            visitor_id=input.visitor_id,
-            survey=survey,
-            account_id=original_outing.account_id,  # TODO: this is wrong; look for any auth attached to the request instead
-            reroll=True,
+    async with database.async_session.begin() as db_session:
+        original_outing = await OutingOrm.get_one(
+            session=db_session,
+            id=input.outing_id,
         )
-    except ValidationError as e:
-        LOGGER.exception(e)
-        return ReplanOutingError(error_code=ReplanOutingErrorCode(e.code))
-    except StartTimeTooLateError as e:
-        LOGGER.exception(e)
-        return ReplanOutingError(error_code=ReplanOutingErrorCode.START_TIME_TOO_LATE)
-    except StartTimeTooSoonError as e:
-        LOGGER.exception(e)
-        return ReplanOutingError(error_code=ReplanOutingErrorCode.START_TIME_TOO_SOON)
+        survey = await SurveyOrm.get_one(
+            session=db_session,
+            id=original_outing.survey_id,
+        )
+
+        try:
+            validate_time_within_bounds_or_exception(survey.start_time)
+        except StartTimeTooLateError as e:
+            LOGGER.exception(e)
+            return ReplanOutingError(error_code=ReplanOutingErrorCode.START_TIME_TOO_LATE)
+        except StartTimeTooSoonError as e:
+            LOGGER.exception(e)
+            return ReplanOutingError(error_code=ReplanOutingErrorCode.START_TIME_TOO_SOON)
+
+    outing = await create_outing_plan(
+        visitor_id=input.visitor_id,
+        survey=survey,
+        account_id=info.context.authenticated_account_id,
+        reroll=True,
+    )
 
     return ReplanOutingSuccess(
         outing=Outing(

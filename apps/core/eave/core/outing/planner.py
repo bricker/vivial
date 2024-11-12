@@ -21,7 +21,7 @@ from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.logging import LOGGER
 
-from .helpers.place import get_places_nearby, place_is_accessible, place_is_in_budget, place_will_be_open
+from .helpers.place import build_client, get_places_nearby, place_is_accessible, place_is_in_budget, place_will_be_open
 from .helpers.time import is_early_evening, is_early_morning, is_late_evening, is_late_morning
 from .models.outing import OutingComponent, OutingPlan
 from .models.user import User, UserPreferences
@@ -90,7 +90,7 @@ class OutingPlanner:
         activity: OutingComponent | None = None,
         restaurant: OutingComponent | None = None,
     ) -> None:
-        self.places = places_v1.PlacesAsyncClient()  # TODO: pass api key
+        self.places = build_client(CORE_API_APP_CONFIG.google_places_api_key)
         self.eventbrite = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
         self.preferences = self._combine_preferences(group)
         self.constraints = constraints

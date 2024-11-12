@@ -1,6 +1,8 @@
+import json
 from collections.abc import MutableSequence, Sequence
 from datetime import datetime, timedelta
 
+from google.auth import load_credentials_from_dict
 from google.maps.places_v1 import PlacesAsyncClient
 from google.maps.places_v1.types import GetPlaceRequest, Place, SearchNearbyRequest
 
@@ -8,6 +10,11 @@ from eave.core.graphql.types.outing import OutingBudget
 from eave.core.lib.geo import GeoArea
 
 from ...zoneinfo import LOS_ANGELES_ZONE_INFO
+
+
+def build_client(json_creds: str) -> PlacesAsyncClient:
+    creds, _ = load_credentials_from_dict(json.loads(json_creds))
+    return PlacesAsyncClient(credentials=creds)
 
 
 async def get_place(

@@ -95,15 +95,8 @@ if SHARED_CONFIG.eave_env in [EaveEnvironment.development, EaveEnvironment.test]
         )
 
         async with target_engine.begin() as connection:
-            try:
-                await connection.execute(sqlalchemy.text("CREATE EXTENSION postgis"))
-            except Exception as e:
-                print("postgis already installed or failed to install.", e)
-
-            try:
-                await connection.execute(sqlalchemy.text("CREATE EXTENSION address_standardizer"))
-            except Exception as e:
-                print("address_standardizer already installed or failed to install.", e)
+            await connection.execute(sqlalchemy.text("CREATE EXTENSION IF NOT EXISTS postgis"))
+            await connection.execute(sqlalchemy.text("CREATE EXTENSION IF NOT EXISTS address_standardizer"))
 
             # create tables in empty db
             await connection.run_sync(get_base_metadata().create_all)

@@ -27,7 +27,7 @@ from eave.core.orm.outing_reservation import OutingReservationOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.orm.util import validate_time_within_bounds_or_exception
-from eave.core.outing.helpers.place import get_place
+from eave.core.outing.helpers.place import build_client, get_place
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery
 from eave.stdlib.eventbrite.models.expansions import Expansion
@@ -165,7 +165,7 @@ async def _create_templates_from_outing(
     booking_id: UUID,
     outing: OutingOrm,
 ) -> BookingDetails:
-    places_client = PlacesAsyncClient()  # TODO: pass creds
+    places_client = build_client(CORE_API_APP_CONFIG.google_places_api_key)
     activities_client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
 
     activities = await db_session.scalars(OutingActivityOrm.select().where(OutingActivityOrm.outing_id == outing.id))

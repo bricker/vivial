@@ -63,7 +63,7 @@ async def plan_outing_mutation(
                 search_area_ids=input.search_area_ids,
                 budget=input.budget,
                 headcount=input.headcount,
-                account_id=None,  # TODO: look for auth attached to request
+                account_id=info.context.authenticated_account_id,
             )
             await survey.save(session=db_session)
     except ValidationError as e:
