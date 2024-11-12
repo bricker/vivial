@@ -2,7 +2,7 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 
 import Box, { BoxProps } from "@mui/material/Box";
-import { styled } from "@mui/material/styles";
+import { styled } from "@mui/material";
 
 import GlobalFooter from "../GlobalFooter";
 import GlobalHeader from "../GlobalHeader";
