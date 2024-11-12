@@ -27,7 +27,7 @@ class OutingActivityOrm(Base):
     activity_id: Mapped[str] = mapped_column()
     """ID of activity in remote table"""
     activity_source: Mapped[str] = mapped_column()
-    """ActivitySource enum value"""
+    """EventSource enum value"""
     activity_start_time: Mapped[datetime] = mapped_column()
     num_attendees: Mapped[int] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
@@ -39,7 +39,7 @@ class OutingActivityOrm(Base):
         *,
         outing_id: UUID,
         activity_id: str,
-        activity_source: ActivitySource,
+        activity_source: EventSource,
         activity_start_time: datetime,
         num_attendees: int,
     ) -> Self:

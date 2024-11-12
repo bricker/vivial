@@ -4,22 +4,22 @@ from uuid import UUID
 
 from google.maps.places_v1.types import Place
 
-from eave.core.graphql.types.activity import ActivitySource
+from eave.core.graphql.types.activity import EventSource
 from eave.core.graphql.types.outing import OutingBudget
-from eave.core.graphql.types.restaurant import RestaurantSource
+from eave.core.graphql.types.restaurant import EventSource
 from eave.core.lib.geo import GeoPoint
 from eave.stdlib.eventbrite.models.event import Event
 
 
 class OutingComponent:
-    source: ActivitySource | RestaurantSource
+    source: EventSource | EventSource
     event: Event | None
     place: Place | None
     location: GeoPoint
 
     def __init__(
         self,
-        source: ActivitySource | RestaurantSource,
+        source: EventSource | EventSource,
         location: GeoPoint,
         event: Event | None = None,
         place: Place | None = None,

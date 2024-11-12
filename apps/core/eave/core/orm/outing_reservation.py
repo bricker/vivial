@@ -5,7 +5,7 @@ from uuid import UUID
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.core.outing.models.sources import RestaurantSource
+from eave.core.outing.models.sources import EventSource
 
 from .base import Base
 
@@ -29,7 +29,7 @@ class OutingReservationOrm(Base):
     reservation_id: Mapped[str] = mapped_column()
     """ID of reservation in remote table"""
     reservation_source: Mapped[str] = mapped_column()
-    """ReservationSource enum value"""
+    """EventSource enum value"""
     reservation_start_time: Mapped[datetime] = mapped_column()
     num_attendees: Mapped[int] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
@@ -41,7 +41,7 @@ class OutingReservationOrm(Base):
         *,
         outing_id: UUID,
         reservation_id: str,
-        reservation_source: RestaurantSource,
+        reservation_source: EventSource,
         reservation_start_time: datetime,
         num_attendees: int,
     ) -> Self:

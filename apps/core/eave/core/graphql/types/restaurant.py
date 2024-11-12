@@ -3,20 +3,16 @@ from uuid import UUID
 
 import strawberry
 
+from eave.core.graphql.types.event_source import EventSource
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 
 from .location import Location
 from .photos import Photos
 
 
-@strawberry.enum
-class RestaurantSource(enum.Enum):
-    GOOGLE_PLACES = enum.auto()
-
-
 @strawberry.type
 class Restaurant:
-    source: RestaurantSource
+    source: EventSource
     location: Location
     photos: Photos
     name: str

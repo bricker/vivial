@@ -14,12 +14,8 @@ UNDER NO CIRCUMSTANCES SHOULD THIS BE EVER RUN AGAINST PROD
 
 import sys
 
-from eave.core.graphql.types.restaurant import RestaurantSource
-
 sys.path.append(".")
 
-from eave.core.graphql.types.activity import ActivitySource
-from eave.core.orm.search_region import SearchRegionOrm
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 load_standard_dotenv_files()
@@ -51,6 +47,8 @@ from eave.core.orm.outing_reservation import OutingReservationOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.stdlib.logging import eaveLogger
+from eave.core.graphql.types.event_source import EventSource
+from eave.core.orm.search_region import SearchRegionOrm
 
 _EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
 _GOOGLE_CLOUD_PROJECT = os.getenv("GOOGLE_CLOUD_PROJECT")
@@ -98,14 +96,14 @@ async def seed_database(db: AsyncEngine) -> None:
         outing_activity = await OutingActivityOrm.build(
             outing_id=outing.id,
             activity_id=str(uuid.uuid4()),
-            activity_source=ActivitySource.INTERNAL,
+            activity_source=EventSource.INTERNAL,
             activity_start_time=dummy_date,
             num_attendees=2,
         ).save(session)
         outing_reservation = await OutingReservationOrm.build(
             outing_id=outing.id,
             reservation_id=str(uuid.uuid4()),
-            reservation_source=RestaurantSource.GOOGLE_PLACES,
+            reservation_source=EventSource.GOOGLE_PLACES,
             reservation_start_time=dummy_date,
             num_attendees=2,
         ).save(session)

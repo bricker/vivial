@@ -3,17 +3,12 @@ from uuid import UUID
 
 import strawberry
 
+from eave.core.graphql.types.event_source import EventSource
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_subcategory import ActivitySubcategoryOrm
 
 from .location import Location
 from .photos import Photos
-
-
-@strawberry.enum
-class ActivitySource(enum.Enum):
-    INTERNAL = enum.auto()
-    EVENTBRITE = enum.auto()
 
 
 @strawberry.type
@@ -33,7 +28,7 @@ class ActivityVenue:
 
 @strawberry.type
 class Activity:
-    source: ActivitySource
+    source: EventSource
     ticket_info: ActivityTicketInfo
     venue: ActivityVenue
     photos: Photos

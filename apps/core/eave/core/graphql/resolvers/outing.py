@@ -4,14 +4,14 @@ from uuid import UUID, uuid4
 import strawberry
 
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.types.activity import Activity, ActivitySource, ActivityTicketInfo, ActivityVenue
+from eave.core.graphql.types.activity import Activity, EventSource, ActivityTicketInfo, ActivityVenue
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import (
     Outing,
     OutingBudget,
 )
 from eave.core.graphql.types.photos import Photos
-from eave.core.graphql.types.restaurant import Restaurant, RestaurantSource
+from eave.core.graphql.types.restaurant import Restaurant, EventSource
 from eave.core.zoneinfo import LOS_ANGELES_ZONE_INFO
 
 # TODO: Remove once we're fetching from the appropriate sources.
@@ -26,7 +26,7 @@ MOCK_OUTING = Outing(
     restaurant_arrival_time=(datetime(2024, 10, 15, hour=6, tzinfo=LOS_ANGELES_ZONE_INFO)),
     activity_start_time=(datetime(2024, 10, 15, hour=8, tzinfo=LOS_ANGELES_ZONE_INFO)),
     restaurant=Restaurant(
-        source=RestaurantSource.GOOGLE_PLACES,
+        source=EventSource.GOOGLE_PLACES,
         name="Zarape Cocina & Cantina",
         location=Location(
             search_region_id=UUID("354c2020-6227-46c1-be04-6f5965ba452d"),
@@ -55,7 +55,7 @@ MOCK_OUTING = Outing(
         customer_favorites="Chicken Fajitas, Strawberry Margarita",
     ),
     activity=Activity(
-        source=ActivitySource.EVENTBRITE,
+        source=EventSource.EVENTBRITE,
         ticket_info=ActivityTicketInfo(
             type="General Admission",
             notes="Tickets will be delivered electronically to you via email. No assigned seating.",

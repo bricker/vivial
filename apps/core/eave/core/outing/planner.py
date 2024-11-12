@@ -8,8 +8,8 @@ from sqlalchemy import func, or_
 
 import eave.core.database
 from eave.core.config import CORE_API_APP_CONFIG
-from eave.core.graphql.types.activity import ActivitySource
-from eave.core.graphql.types.restaurant import RestaurantSource
+from eave.core.graphql.types.activity import EventSource
+from eave.core.graphql.types.restaurant import EventSource
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
 from eave.core.orm.activity_subcategory import ActivitySubcategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
@@ -265,7 +265,7 @@ class OutingPlanner:
                     event_details["description"] = description
 
                     self.activity = OutingComponent(
-                        source=ActivitySource.EVENTBRITE,
+                        source=EventSource.EVENTBRITE,
                         event=event_details,
                         location=GeoPoint(lat=float(lat), lon=float(lon)),
                     )
@@ -319,7 +319,7 @@ class OutingPlanner:
                     lon = place.location.longitude
                     if lat and lon:
                         self.activity = OutingComponent(
-                            source=RestaurantSource.GOOGLE_PLACES, place=place, location=GeoPoint(lat=lat, lon=lon)
+                            source=EventSource.GOOGLE_PLACES, place=place, location=GeoPoint(lat=lat, lon=lon)
                         )
                         return self.activity
 
@@ -384,7 +384,7 @@ class OutingPlanner:
                         lon = restaurant.location.longitude
                         if lat and lon:
                             self.restaurant = OutingComponent(
-                                source=RestaurantSource.GOOGLE_PLACES,
+                                source=EventSource.GOOGLE_PLACES,
                                 place=restaurant,
                                 location=GeoPoint(lat=lat, lon=lon),
                             )

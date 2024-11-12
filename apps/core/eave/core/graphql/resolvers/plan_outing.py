@@ -8,12 +8,12 @@ import strawberry
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.outing import MOCK_OUTING
-from eave.core.graphql.types.activity import ActivitySource
+from eave.core.graphql.types.activity import EventSource
 from eave.core.graphql.types.outing import (
     Outing,
     OutingBudget,
 )
-from eave.core.graphql.types.restaurant import RestaurantSource
+from eave.core.graphql.types.event_source import EventSource
 from eave.core.lib.analytics import ANALYTICS
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.outing_activity import OutingActivityOrm
@@ -67,14 +67,14 @@ async def create_outing_plan(
         _outing_activity = await OutingActivityOrm.build(
             outing_id=outing.id,
             activity_id=str(uuid4()),
-            activity_source=ActivitySource.EVENTBRITE,
+            activity_source=EventSource.EVENTBRITE,
             activity_start_time=datetime.now(),
             num_attendees=2,
         ).save(db_session)
         _outing_reservation = await OutingReservationOrm.build(
             outing_id=outing.id,
             reservation_id=str(uuid4()),
-            reservation_source=RestaurantSource.GOOGLE_PLACES,
+            reservation_source=EventSource.GOOGLE_PLACES,
             reservation_start_time=datetime.now(),
             num_attendees=2,
         ).save(db_session)
