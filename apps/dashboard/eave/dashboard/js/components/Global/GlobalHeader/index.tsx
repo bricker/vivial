@@ -12,12 +12,11 @@ const Header = styled("header")(({ theme }) => ({
 }));
 
 const GlobalHeader = () => {
-  return(
+  return (
     <Header>
       <VivialLogo />
     </Header>
   );
-
 };
 
 export default GlobalHeader;

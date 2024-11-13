@@ -1,9 +1,9 @@
-import React from "react";
 import { styled } from "@mui/material";
+import React from "react";
 
 import { colors } from "../../../theme/colors";
 
-const Container = styled("div")(() => ( {
+const Container = styled("div")(() => ({
   display: "inline-block",
   textAlign: "center",
   fontFamily: "Quicksand",
@@ -18,11 +18,7 @@ const Container = styled("div")(() => ( {
 }));
 
 const VivialText = () => {
-  return (
-    <Container>
-      vivial
-    </Container>
-  )
-}
+  return <Container>vivial</Container>;
+};
 
 export default VivialText;
