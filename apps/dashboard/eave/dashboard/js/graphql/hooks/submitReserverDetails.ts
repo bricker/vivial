@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NetworkState } from "../../types";
+import { NetworkState } from "../../types/network";
 import { GRAPHQL_API_BASE } from "../../util/http-util";
 import query from "../mutation/submitReserverDetails.graphql";
 

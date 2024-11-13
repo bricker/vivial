@@ -9,9 +9,9 @@ import { pageView } from "./analytics/segment";
 import store from "./store";
 import { theme } from "./theme";
 
+import RouteChangeTracker from "./components/Util/RouteChangeTracker";
 import GlobalLayout from "./components/Global/GlobalLayout";
 import DateSurveyPage from "./components/Pages/DateSurveyPage";
-import RouteChangeTracker from "./components/RouteChangeTracker";
 
 const App = () => {
   const fireAnalyticsPageView = async (_: string) => {
