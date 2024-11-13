@@ -20,4 +20,7 @@ export const colors = {
   errorRed: "#FF3B3B",
   passingGreen: "#54FF68",
   almostBlackBG: "#1E1E1E",
+  grey: {
+    500: "#8C8C8C"
+  },
 };

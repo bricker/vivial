@@ -7,8 +7,8 @@ import Button from "@mui/material/Button";
 import { rem } from "$eave-dashboard/js/util/rem";
 
 const CustumButton = styled(Button)(({ theme }) => ({
-  color: theme.palette.grey["500"],
-  border: `1px solid ${theme.palette.grey["500"]}`,
+  color: theme.palette.grey[500],
+  border: `1px solid ${theme.palette.grey[500]}`,
   fontSize: rem("15px"),
   lineHeight: rem("18px"),
   fontWeight: 700,

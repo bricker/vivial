@@ -17,7 +17,7 @@ export const theme = createTheme({
       default: colors.pureBlack,
     },
     grey: {
-      500: "#8C8C8C",
+      500: colors.grey[500],
     },
   },
   typography: {
