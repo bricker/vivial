@@ -1,5 +1,5 @@
 import { AnalyticsBrowser } from "@segment/analytics-next";
-import { myWindow } from "../types";
+import { myWindow } from "../types/window";
 
 const analytics = AnalyticsBrowser.load({ writeKey: myWindow.app.segmentWriteKey! });
 
