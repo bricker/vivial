@@ -13,5 +13,10 @@ variable "secrets" {
       data      = string
       accessors = list(string)
     })
+
+    SENDGRID_API_KEY = object({
+      data      = string
+      accessors = list(string)
+    })
   })
 }
