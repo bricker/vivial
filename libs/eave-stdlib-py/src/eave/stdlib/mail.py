@@ -1,7 +1,8 @@
+from sendgrid import SendGridAPIClient
+from sendgrid.helpers.mail import Content, Email, Mail, To
+
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Email, To, Content
 
 
 class SendgridMailer:
