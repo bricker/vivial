@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NetworkState } from "../../types/network";
-import { GRAPHQL_API_BASE } from "../../util/http-util";
+import { GRAPHQL_API_BASE } from "../../util/http";
 import query from "../mutation/replanOuting.graphql";
 
 type ReplanOutingRequest = {

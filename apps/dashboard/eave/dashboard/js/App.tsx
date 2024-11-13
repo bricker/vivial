@@ -11,6 +11,7 @@ import { theme } from "./theme";
 
 import GlobalLayout from "./components/Global/GlobalLayout";
 import DateSurveyPage from "./components/Pages/DateSurveyPage";
+import LogInPage from "./components/Pages/LogInPage";
 import RouteChangeTracker from "./components/Util/RouteChangeTracker";
 
 const App = () => {
@@ -31,6 +32,7 @@ const App = () => {
             <Routes>
               <Route path="/" element={<GlobalLayout />}>
                 <Route index element={<DateSurveyPage />} />
+                <Route path="/login" element={<LogInPage />} />
                 <Route path="*" element={<Navigate to="/" />} />
               </Route>
             </Routes>

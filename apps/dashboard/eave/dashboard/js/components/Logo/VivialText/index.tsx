@@ -2,19 +2,20 @@ import { styled } from "@mui/material";
 import React from "react";
 
 import { colors } from "../../../theme/colors";
+import { fontFamilies } from "../../../theme/fonts";
 
 const Container = styled("div")(() => ({
   display: "inline-block",
   textAlign: "center",
-  fontFamily: "Quicksand",
+  fontFamily: fontFamilies.quicksand,
   fontSize: "25.594px",
   fontStyle: "normal",
   fontWeight: 600,
   lineHeight: "normal",
   background: `linear-gradient(180deg, ${colors.vivialYellow} 21.67%, #F4AB70 127.33%)`,
   backgroundClip: "text",
-  "-webkit-background-clip": "text",
-  "-webkit-text-fill-color": "transparent",
+  WebkitBackgroundClip: "text",
+  WebkitTextFillColor: "transparent",
 }));
 
 const VivialText = () => {
