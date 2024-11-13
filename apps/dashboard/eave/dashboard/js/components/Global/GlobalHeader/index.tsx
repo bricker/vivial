@@ -1,5 +1,4 @@
 import { styled } from "@mui/material";
-import Button from "@mui/material/Button";
 import React from "react";
 
 import LogInButton from "../../Buttons/LogInButton";

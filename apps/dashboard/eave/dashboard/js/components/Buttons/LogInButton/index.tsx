@@ -19,14 +19,10 @@ const CustumButton = styled(Button)(({ theme }) => ({
 const LogInButton = () => {
   const navigate = useNavigate();
   const handleClick = useCallback(() => {
-    navigate("/login")
+    navigate("/login");
   }, []);
 
-  return(
-    <CustumButton onClick={handleClick}>
-      Log in
-    </CustumButton>
-  )
-}
+  return <CustumButton onClick={handleClick}>Log in</CustumButton>;
+};
 
-export default LogInButton
+export default LogInButton;

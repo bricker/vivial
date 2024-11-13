@@ -20,7 +20,7 @@ const TextContainer = styled("div")(() => ({
 const VivialLogo = () => {
   const navigate = useNavigate();
   const handleClick = useCallback(() => {
-    navigate("/")
+    navigate("/");
   }, []);
 
   return (

@@ -25,6 +25,6 @@ export const theme = createTheme({
     button: {
       textTransform: "none",
       letterSpacing: "normal",
-    }
-  }
+    },
+  },
 });
