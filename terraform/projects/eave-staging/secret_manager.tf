@@ -24,14 +24,20 @@ module "app_secrets" {
       data = var.GOOGLE_PLACES_API_KEY
       accessors = [
         data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
-      ]
+      ],
     },
     EVENTBRITE_API_KEY = {
       data = var.EVENTBRITE_API_KEY
       accessors = [
         data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
-      ]
-    }
+      ],
+    },
+    SENDGRID_API_KEY = {
+      data = var.SENDGRID_API_KEY
+      accessors = [
+        data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
+      ],
+    },
   }
 
   secret_accessor_role_name = module.project_base.secret_accessor_role_name

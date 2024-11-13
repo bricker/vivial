@@ -36,3 +36,8 @@ variable "EVENTBRITE_API_KEY" {
   type      = string
   sensitive = true
 }
+
+variable "SENDGRID_API_KEY" {
+  type      = string
+  sensitive = true
+}
