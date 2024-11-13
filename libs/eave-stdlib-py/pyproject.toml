@@ -29,4 +29,6 @@ dependencies = [
   "aiohttp",
   "crc32c",
   "inflect",
+  "sendgrid",
+  "segment-analytics-python",
 ]

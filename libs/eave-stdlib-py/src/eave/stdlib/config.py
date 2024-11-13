@@ -246,6 +246,10 @@ class _EaveConfig(ConfigBase):
         value = os.getenv("EAVE_SLACK_SIGNUPS_CHANNEL_ID")
         return value
 
+    @cached_property
+    def send_grid_api_key(self) -> str:
+        return get_secret("SENDGRID_API_KEY")
+
 
 def get_secret(name: str) -> str:
     # Allow overrides from the environment
