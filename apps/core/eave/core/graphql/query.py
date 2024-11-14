@@ -9,6 +9,7 @@ from eave.core.graphql.types.account import Account
 from eave.core.graphql.types.activity import ActivityCategory
 from eave.core.graphql.types.restaurant import RestaurantCategory
 from eave.core.graphql.types.search_region import SearchRegion
+from eave.core.graphql.types.viewer import Viewer
 
 
 @strawberry.type
@@ -16,4 +17,4 @@ class Query:
     search_regions: list[SearchRegion] = strawberry.field(resolver=list_search_regions_query)
     activity_categories: list[ActivityCategory] = strawberry.field(resolver=list_activity_categories_query)
     restaurant_categories: list[RestaurantCategory] = strawberry.field(resolver=list_restaurant_categories_query)
-    viewer: Account = strawberry.field(resolver=viewer_query, extensions=[AuthenticationExtension()])
+    viewer: Viewer = strawberry.field(resolver=viewer_query, extensions=[AuthenticationExtension()])

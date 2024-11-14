@@ -17,7 +17,6 @@ from eave.core.graphql.resolvers.mutations.update_preferences import update_pref
 class Mutation:
     create_account = strawberry.mutation(resolver=create_account_mutation)
     login = strawberry.mutation(resolver=login_mutation)
-    refresh_tokens = strawberry.mutation(resolver=refresh_tokens_mutation, extensions=[AuthenticationExtension()])
     logout = strawberry.mutation(resolver=logout_mutation)
     plan_outing = strawberry.mutation(
         resolver=plan_outing_mutation, extensions=[AuthenticationExtension(allow_anonymous=True)]
@@ -25,11 +24,12 @@ class Mutation:
     replan_outing = strawberry.mutation(
         resolver=replan_outing_mutation, extensions=[AuthenticationExtension(allow_anonymous=True)]
     )
-    submit_reserver_details = strawberry.mutation(
-        resolver=submit_reserver_details_mutation, extensions=[AuthenticationExtension()]
-    )
-    create_booking = strawberry.mutation(resolver=create_booking_mutation, extensions=[AuthenticationExtension()])
-    update_account = strawberry.mutation(resolver=update_account_mutation, extensions=[AuthenticationExtension()])
-    update_preferences = strawberry.mutation(
-        resolver=update_preferences_mutation, extensions=[AuthenticationExtension()]
-    )
+    # refresh_tokens = strawberry.mutation(resolver=refresh_tokens_mutation, extensions=[AuthenticationExtension()])
+    # submit_reserver_details = strawberry.mutation(
+    #     resolver=submit_reserver_details_mutation, extensions=[AuthenticationExtension()]
+    # )
+    # create_booking = strawberry.mutation(resolver=create_booking_mutation, extensions=[AuthenticationExtension()])
+    # update_account = strawberry.mutation(resolver=update_account_mutation, extensions=[AuthenticationExtension()])
+    # update_preferences = strawberry.mutation(
+    #     resolver=update_preferences_mutation, extensions=[AuthenticationExtension()]
+    # )
