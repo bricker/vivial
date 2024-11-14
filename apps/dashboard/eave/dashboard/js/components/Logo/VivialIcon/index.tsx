@@ -1,10 +1,11 @@
 import React from "react";
-
 import { colors } from "../../../theme/colors";
+import { IconProps } from "../../Icons/types";
 
-const VivialIcon = ({ width = 38, height = 39 }: { width?: number; height?: number }) => {
+const VivialIcon = ({ width = 38, height = 39, color = colors.vivialYellow }: IconProps) => {
+  const viewBox = `0 0 ${width} ${height}`;
   return (
-    <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox="0 0 38 39" fill="none">
+    <svg xmlns="http://www.w3.org/2000/svg" width={width} height={height} viewBox={viewBox} fill="none">
       <path
         fillRule="evenodd"
         clipRule="evenodd"
@@ -20,7 +21,7 @@ const VivialIcon = ({ width = 38, height = 39 }: { width?: number; height?: numb
           y2="49.3929"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stopColor={colors.vivialYellow} />
+          <stop stopColor={color} />
           <stop offset="1" stopColor="#F4AB70" />
         </linearGradient>
       </defs>

@@ -12,6 +12,10 @@ export const theme = createTheme({
     primary: {
       main: colors.vivialYellow,
     },
+    text: {
+      primary: colors.whiteText,
+      secondary: colors.midGreySecondaryField,
+    },
     background: {
       paper: colors.almostBlackBG,
       default: colors.pureBlack,
