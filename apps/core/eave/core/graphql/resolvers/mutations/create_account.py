@@ -33,7 +33,7 @@ class CreateAccountFailureReason(enum.Enum):
     VALIDATION_ERRORS = enum.auto()
 
 
-@strawberry.interface
+@strawberry.type
 class CreateAccountFailure:
     failure_reason: CreateAccountFailureReason
     validation_errors: list[ValidationError] | None = None
