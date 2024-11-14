@@ -13,24 +13,17 @@ from eave.core.graphql.resolvers.mutations.update_preferences import update_pref
 from eave.core.graphql.types.outing import Outing
 from eave.core.graphql.types.reserver_details import ReserverDetails
 
+
 @strawberry.type
 class Viewer:
     booked_outings: list[Outing] = strawberry.field(resolver=list_booked_outings_query)
     outing: Outing = strawberry.field(resolver=get_outing_query)
     reserver_details: list[ReserverDetails] = strawberry.field(resolver=list_reserver_details_query)
 
-    submit_reserver_details = strawberry.mutation(
-        resolver=submit_reserver_details_mutation
-    )
+    submit_reserver_details = strawberry.mutation(resolver=submit_reserver_details_mutation)
     create_booking = strawberry.mutation(resolver=create_booking_mutation)
     update_account = strawberry.mutation(resolver=update_account_mutation)
-    update_preferences = strawberry.mutation(
-        resolver=update_preferences_mutation
-    )
+    update_preferences = strawberry.mutation(resolver=update_preferences_mutation)
     refresh_tokens = strawberry.mutation(resolver=refresh_tokens_mutation)
-    plan_outing = strawberry.mutation(
-        resolver=plan_outing_mutation
-    )
-    replan_outing = strawberry.mutation(
-        resolver=replan_outing_mutation
-    )
+    plan_outing = strawberry.mutation(resolver=plan_outing_mutation)
+    replan_outing = strawberry.mutation(resolver=replan_outing_mutation)

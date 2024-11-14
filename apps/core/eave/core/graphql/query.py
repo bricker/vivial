@@ -5,7 +5,6 @@ from eave.core.graphql.resolvers.fields.activity_categories import list_activity
 from eave.core.graphql.resolvers.fields.restaurant_categories import list_restaurant_categories_query
 from eave.core.graphql.resolvers.fields.search_regions import list_search_regions_query
 from eave.core.graphql.resolvers.fields.viewer import viewer_query
-from eave.core.graphql.types.account import Account
 from eave.core.graphql.types.activity import ActivityCategory
 from eave.core.graphql.types.restaurant import RestaurantCategory
 from eave.core.graphql.types.search_region import SearchRegion
