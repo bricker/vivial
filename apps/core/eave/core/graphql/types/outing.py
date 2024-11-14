@@ -3,53 +3,17 @@ from datetime import datetime
 from uuid import UUID
 
 import strawberry
-from google.maps.places_v1 import PriceLevel
+
+from eave.core.shared.enums import OutingBudget
 
 from .activity import Activity
 from .restaurant import Restaurant
 
 
 @strawberry.enum
-class OutingState(enum.Enum):
+class OutingState(enum.StrEnum):
     PAST = enum.auto()
     FUTURE = enum.auto()
-
-
-@strawberry.enum
-class OutingBudget(enum.Enum):
-    ZERO = enum.auto()
-    ONE = enum.auto()
-    TWO = enum.auto()
-    THREE = enum.auto()
-    FOUR = enum.auto()
-
-    @property
-    def upper_limit_cents(self) -> int | None:
-        match self:
-            case OutingBudget.ZERO:
-                return 0
-            case OutingBudget.ONE:
-                return 10 * 100
-            case OutingBudget.TWO:
-                return 50 * 100
-            case OutingBudget.THREE:
-                return 150 * 100
-            case OutingBudget.FOUR:
-                return None
-
-    @property
-    def google_places_price_level(self) -> PriceLevel:
-        match self:
-            case OutingBudget.ZERO:
-                return PriceLevel.PRICE_LEVEL_FREE
-            case OutingBudget.ONE:
-                return PriceLevel.PRICE_LEVEL_INEXPENSIVE
-            case OutingBudget.TWO:
-                return PriceLevel.PRICE_LEVEL_MODERATE
-            case OutingBudget.THREE:
-                return PriceLevel.PRICE_LEVEL_EXPENSIVE
-            case OutingBudget.FOUR:
-                return PriceLevel.PRICE_LEVEL_VERY_EXPENSIVE
 
 
 @strawberry.type
@@ -65,3 +29,12 @@ class Outing:
     restaurant: Restaurant | None
     restaurant_arrival_time: datetime | None
     driving_time: str
+
+
+@strawberry.type
+class ProposedOuting:
+    activity: Activity | None
+    activity_start_time: datetime | None
+    restaurant: Restaurant | None
+    restaurant_arrival_time: datetime | None
+    driving_time: str | None

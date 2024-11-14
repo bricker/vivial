@@ -34,8 +34,8 @@ class EventbriteEventOrm(Base):
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
-    def build(cls, *, eventbrite_event_id: str) -> Self:
-        obj = cls(eventbrite_event_id=eventbrite_event_id)
+    def build(cls, *, eventbrite_event_id: str) -> "EventbriteEventOrm":
+        obj = EventbriteEventOrm(eventbrite_event_id=eventbrite_event_id)
         return obj
 
     def update(

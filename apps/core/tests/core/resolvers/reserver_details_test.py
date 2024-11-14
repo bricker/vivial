@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from eave.core.graphql.types.reserver_details import SubmitReserverDetailsErrorCode
+from eave.core.graphql.resolvers.mutations.submit_reserver_details import SubmitReserverDetailsFailureReason
 
 from ..base import BaseTestCase
 
@@ -77,5 +77,5 @@ mutation {{
         assert response.json().get("data").get("submitReserverDetails").get("reserverDetails") is None
         assert (
             response.json().get("data").get("submitReserverDetails").get("errorCode")
-            == SubmitReserverDetailsErrorCode.INVALID_PHONE_NUMBER
+            == SubmitReserverDetailsFailureReason.VALIDATION_ERRORS
         )

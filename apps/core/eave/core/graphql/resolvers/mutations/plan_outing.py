@@ -6,15 +6,16 @@ from uuid import UUID, uuid4
 import strawberry
 
 from eave.core import database
+from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.resolvers.outing import MOCK_OUTING
+from eave.core.graphql.resolvers.fields.outing import MOCK_OUTING
 from eave.core.graphql.types.activity import ActivitySource
 from eave.core.graphql.types.outing import (
     Outing,
     OutingBudget,
 )
+from eave.core.graphql.types.preferences import PreferencesInput
 from eave.core.graphql.types.restaurant import RestaurantSource
-from eave.core.lib.analytics import ANALYTICS
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.outing_activity import OutingActivityOrm
 from eave.core.orm.outing_reservation import OutingReservationOrm
@@ -23,18 +24,11 @@ from eave.core.orm.outing_reservation import OutingReservationOrm
 @strawberry.input
 class PlanOutingInput:
     visitor_id: UUID
-    group: list[UserInput]
+    group_preferences: list[PreferencesInput]
     start_time: datetime
     search_area_ids: list[UUID]
     budget: OutingBudget
     headcount: int
-
-
-@strawberry.enum
-class PlanOutingErrorCode(enum.Enum):
-    START_TIME_TOO_SOON = enum.auto()
-    START_TIME_TOO_LATE = enum.auto()
-    ONE_SEARCH_REGION_REQUIRED = enum.auto()
 
 
 @strawberry.type
@@ -42,12 +36,18 @@ class PlanOutingSuccess:
     outing: Outing
 
 
+@strawberry.enum
+class PlanOutingFailureReason(enum.Enum):
+    START_TIME_TOO_SOON = enum.auto()
+    START_TIME_TOO_LATE = enum.auto()
+
+
 @strawberry.type
-class PlanOutingError:
-    error_code: PlanOutingErrorCode
+class PlanOutingFailure:
+    failure_reason: PlanOutingFailureReason
 
 
-PlanOutingResult = Annotated[PlanOutingSuccess | PlanOutingError, strawberry.union("PlanOutingResult")]
+PlanOutingResult = Annotated[PlanOutingSuccess | PlanOutingFailure, strawberry.union("PlanOutingResult")]
 
 
 async def create_outing_plan(

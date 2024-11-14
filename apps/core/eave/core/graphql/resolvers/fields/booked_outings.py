@@ -1,7 +1,7 @@
 import strawberry
 
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.resolvers.outing import MOCK_OUTING
+from eave.core.graphql.resolvers.fields.outing import MOCK_OUTING
 from eave.core.graphql.types.outing import (
     Outing,
     OutingState,

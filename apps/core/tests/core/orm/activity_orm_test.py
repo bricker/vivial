@@ -40,13 +40,7 @@ class TestActivityOrm(BaseTestCase):
             session.add(activity)
 
         async with self.db_session.begin() as session:
-            obj = (
-                await session.scalars(
-                    ActivityOrm.select(
-                        activity_id=activity.id,
-                    )
-                )
-            ).one()
+            obj = await ActivityOrm.get_one(session, activity.id)
 
             assert obj.title == self.getstr("title")
             assert obj.description == self.getstr("description")

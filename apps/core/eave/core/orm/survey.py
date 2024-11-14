@@ -1,16 +1,16 @@
 from datetime import datetime
-from typing import Self
 from uuid import UUID
 
 import sqlalchemy
 import sqlalchemy.dialects.postgresql
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
-from sqlalchemy.orm import Mapped, mapped_column, validates
+from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.stdlib.exceptions import StartTimeTooLateError, StartTimeTooSoonError, ValidationError
+from eave.core.shared.enums import OutingBudget
+from eave.core.shared.errors import ValidationError
 
 from .base import Base
-from .util import PG_UUID_EXPR, validate_time_within_bounds_or_exception
+from .util import PG_UUID_EXPR
 
 
 class SurveyOrm(Base):
@@ -35,7 +35,7 @@ class SurveyOrm(Base):
             dimensions=1,
         ),
     )
-    budget: Mapped[int] = mapped_column()
+    budget: Mapped[str] = mapped_column()
     headcount: Mapped[int] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
@@ -47,11 +47,11 @@ class SurveyOrm(Base):
         visitor_id: UUID,
         start_time: datetime,
         search_area_ids: list[UUID],
-        budget: int,
+        budget: OutingBudget,
         headcount: int,
         account_id: UUID | None = None,
-    ) -> Self:
-        obj = cls(
+    ) -> "SurveyOrm":
+        obj = SurveyOrm(
             visitor_id=visitor_id,
             account_id=account_id,
             start_time=start_time.replace(tzinfo=None),
@@ -62,18 +62,10 @@ class SurveyOrm(Base):
 
         return obj
 
-    @validates("search_area_ids")
-    def validate_search_area_ids(self, key: str, value: list[UUID]) -> list[UUID]:
-        if not len(value) > 0:
-            raise ValidationError("search_area_ids")
-        return value
+    def validate(self) -> list[ValidationError]:
+        errors: list[ValidationError] = []
 
-    @validates("start_time")
-    def validate_start_time(self, key: str, value: datetime) -> datetime:
-        try:
-            validate_time_within_bounds_or_exception(value)
-        except StartTimeTooSoonError:
-            raise ValidationError("start_time")
-        except StartTimeTooLateError:
-            raise ValidationError("start_time")
-        return value
+        if len(self.search_area_ids) == 0:
+            errors.append(ValidationError(field="search_area_ids"))
+
+        return errors

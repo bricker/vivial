@@ -7,9 +7,9 @@ from typing import Literal, Self
 from uuid import UUID
 
 from sqlalchemy import PrimaryKeyConstraint, Select, func, select
-from sqlalchemy.orm import Mapped, mapped_column, validates
+from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.stdlib.exceptions import ValidationError
+from eave.core.shared.errors import ValidationError
 from eave.stdlib.typing import NOT_SET, NotSet
 from eave.stdlib.util import b64encode
 
@@ -18,6 +18,10 @@ from .util import PG_UUID_EXPR
 
 
 class InvalidPasswordError(Exception):
+    pass
+
+
+class WeakPasswordError(Exception):
     pass
 
 
@@ -32,7 +36,7 @@ def test_password_strength_or_exception(plaintext_password: str) -> Literal[True
     ):
         return True
     else:
-        raise ValidationError("password")
+        raise WeakPasswordError()
 
 
 def derive_password_key(plaintext_password: str, salt: bytes) -> str:
@@ -70,8 +74,8 @@ class AccountOrm(Base):
         *,
         email: str,
         plaintext_password: str,
-    ) -> Self:
-        obj = cls(
+    ) -> "AccountOrm":
+        obj = AccountOrm(
             email=email,
         )
 
@@ -87,12 +91,14 @@ class AccountOrm(Base):
 
         return query
 
-    @validates("email")
-    def validate_email(self, key: str, value: str) -> str:
+    def validate(self) -> list[ValidationError]:
+        errors: list[ValidationError] = []
+
         email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-        if re.match(email_pattern, value) is None:
-            raise ValidationError("email")
-        return value
+        if re.match(email_pattern, self.email) is None:
+            errors.append(ValidationError(field="email"))
+
+        return errors
 
     def verify_password_or_exception(self, plaintext_password: str) -> Literal[True]:
         expected_password_key = derive_password_key(

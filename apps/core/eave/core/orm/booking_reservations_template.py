@@ -1,9 +1,12 @@
 from datetime import datetime
-from typing import Self
 from uuid import UUID
 
+from geoalchemy2 import Geography, WKBElement
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
+
+from eave.core.lib.geo import GeoPoint, SpatialReferenceSystemId
+from eave.core.orm.address_types import PostgisStdaddr, PostgisStdaddrColumnType
 
 from .base import Base
 from .util import PG_UUID_EXPR
@@ -37,14 +40,10 @@ class BookingReservationTemplateOrm(Base):
     num_attendees: Mapped[int] = mapped_column()
     external_booking_link: Mapped[str | None] = mapped_column()
     """HTTP link to site for manual booking (possibly affialate), if available"""
-    reservation_location_address1: Mapped[str] = mapped_column()
-    reservation_location_address2: Mapped[str] = mapped_column()
-    reservation_location_city: Mapped[str] = mapped_column()
-    reservation_location_region: Mapped[str] = mapped_column()
-    """Name of region. e.g. state, province, territory, prefecture"""
-    reservation_location_country: Mapped[str] = mapped_column()
-    reservation_location_latitude: Mapped[float] = mapped_column()
-    reservation_location_longitude: Mapped[float] = mapped_column()
+    address: Mapped[PostgisStdaddr] = mapped_column(type_=PostgisStdaddrColumnType())
+    coordinates: Mapped[WKBElement] = mapped_column(
+        type_=Geography(geometry_type="POINT", srid=SpatialReferenceSystemId.LAT_LON)
+    )
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -57,27 +56,18 @@ class BookingReservationTemplateOrm(Base):
         reservation_start_time: datetime,
         num_attendees: int,
         external_booking_link: str | None,
-        reservation_location_address1: str,
-        reservation_location_address2: str,
-        reservation_location_city: str,
-        reservation_location_region: str,
-        reservation_location_country: str,
-        reservation_location_latitude: float,
-        reservation_location_longitude: float,
-    ) -> Self:
-        obj = cls(
+        address: PostgisStdaddr,
+        lat: float,
+        lon: float,
+    ) -> "BookingReservationTemplateOrm":
+        obj = BookingReservationTemplateOrm(
             booking_id=booking_id,
             reservation_name=reservation_name,
             reservation_start_time=reservation_start_time,
             num_attendees=num_attendees,
             external_booking_link=external_booking_link,
-            reservation_location_address1=reservation_location_address1,
-            reservation_location_address2=reservation_location_address2,
-            reservation_location_city=reservation_location_city,
-            reservation_location_region=reservation_location_region,
-            reservation_location_country=reservation_location_country,
-            reservation_location_latitude=reservation_location_latitude,
-            reservation_location_longitude=reservation_location_longitude,
+            address=address,
+            coordinates=GeoPoint(lat=lat, lon=lon).geoalchemy_shape(),
         )
 
         return obj

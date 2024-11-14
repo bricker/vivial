@@ -16,22 +16,22 @@ class RefreshTokensInput:
     refresh_token: str
 
 
-@strawberry.enum
-class RefreshTokensErrorCode(enum.Enum):
-    INVALID_TOKENS = enum.auto()
-
-
 @strawberry.type
 class RefreshTokensSuccess:
     auth_tokens: AuthTokenPair
 
 
+@strawberry.enum
+class RefreshTokensFailureReason(enum.Enum):
+    INVALID_TOKENS = enum.auto()
+
+
 @strawberry.type
-class RefreshTokensError:
-    error_code: RefreshTokensErrorCode
+class RefreshTokensFailure:
+    failure_reason: RefreshTokensFailureReason
 
 
-RefreshTokensResult = Annotated[RefreshTokensSuccess | RefreshTokensError, strawberry.union("RefreshTokensResult")]
+RefreshTokensResult = Annotated[RefreshTokensSuccess | RefreshTokensFailure, strawberry.union("RefreshTokensResult")]
 
 
 async def refresh_tokens_mutation(
@@ -54,7 +54,7 @@ async def refresh_tokens_mutation(
         new_auth_token_pair = make_auth_token_pair(account_id=UUID(refresh_jws.payload.sub))
         return RefreshTokensSuccess(auth_tokens=new_auth_token_pair)
     else:
-        return RefreshTokensError(error_code=RefreshTokensErrorCode.INVALID_TOKENS)
+        return RefreshTokensFailure(failure_reason=RefreshTokensFailureReason.INVALID_TOKENS)
 
 
 def make_auth_token_pair(*, account_id: UUID) -> AuthTokenPair:

@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Self
 from uuid import UUID
 
 from geoalchemy2 import WKBElement
@@ -47,8 +46,8 @@ class ActivityOrm(Base):
         address: PostgisStdaddr,
         is_bookable: bool,
         booking_url: str | None,
-    ) -> Self:
-        return cls(
+    ) -> "ActivityOrm":
+        return ActivityOrm(
             title=title,
             description=description,
             coordinates=GeoPoint(lat=lat, lon=lon).geoalchemy_shape(),

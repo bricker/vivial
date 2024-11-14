@@ -4,13 +4,14 @@ from typing import Annotated
 import strawberry
 
 import eave.core.database
+from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.resolvers.refresh_tokens import make_auth_token_pair
+from eave.core.graphql.resolvers.mutations.refresh_tokens import make_auth_token_pair
 from eave.core.graphql.types.account import Account
 from eave.core.graphql.types.auth_token_pair import AuthTokenPair
-from eave.core.lib.analytics import ANALYTICS
-from eave.core.orm.account import AccountOrm
-from eave.stdlib.exceptions import ValidationError
+from eave.core.orm.account import AccountOrm, WeakPasswordError
+from eave.core.orm.base import InvalidRecordError
+from eave.core.shared.errors import ValidationError
 
 
 @strawberry.input
@@ -19,24 +20,26 @@ class CreateAccountInput:
     plaintext_password: str
 
 
-@strawberry.enum
-class CreateAccountErrorCode(enum.Enum):
-    VALIDATION_ERROR = enum.auto()
-    ACCOUNT_EXISTS = enum.auto()
-
-
 @strawberry.type
 class CreateAccountSuccess:
     account: Account
     auth_tokens: AuthTokenPair
 
 
+@strawberry.enum
+class CreateAccountFailureReason(enum.Enum):
+    ACCOUNT_EXISTS = enum.auto()
+    WEAK_PASSWORD = enum.auto()
+    VALIDATION_ERRORS = enum.auto()
+
+
 @strawberry.type
-class CreateAccountError:
-    error_code: CreateAccountErrorCode
+class CreateAccountFailure:
+    failure_reason: CreateAccountFailureReason
+    validation_errors: list[ValidationError] | None = None
 
 
-CreateAccountResult = Annotated[CreateAccountSuccess | CreateAccountError, strawberry.union("CreateAccountResult")]
+CreateAccountResult = Annotated[CreateAccountSuccess | CreateAccountFailure, strawberry.union("CreateAccountResult")]
 
 
 async def create_account_mutation(
@@ -45,17 +48,20 @@ async def create_account_mutation(
     async with eave.core.database.async_session.begin() as db_session:
         existing_account_orm = await db_session.scalar(AccountOrm.select(email=input.email).limit(1))
         if existing_account_orm:
-            return CreateAccountError(error_code=CreateAccountErrorCode.ACCOUNT_EXISTS)
+            return CreateAccountFailure(failure_reason=CreateAccountFailureReason.ACCOUNT_EXISTS)
 
         try:
-            account_orm = AccountOrm.build(
+            account_orm = await AccountOrm.build(
                 email=input.email,
                 plaintext_password=input.plaintext_password,
-            )
-        except ValidationError:
-            return CreateAccountError(error_code=CreateAccountErrorCode.VALIDATION_ERROR)
+            ).save(db_session)
 
-        await account_orm.save(db_session)
+        except InvalidRecordError as e:
+            return CreateAccountFailure(
+                failure_reason=CreateAccountFailureReason.VALIDATION_ERRORS, validation_errors=e.validation_errors
+            )
+        except WeakPasswordError:
+            return CreateAccountFailure(failure_reason=CreateAccountFailureReason.WEAK_PASSWORD)
 
     ANALYTICS.identify(
         account_id=account_orm.id,

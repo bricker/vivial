@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+(
+	cd "$(e.parentpath)"
+	mkdir -p .tmp
+	"${EAVE_HOME}"/develop/shared/bin/run-with-dotenv -- strawberry export-schema eave.core.app:schema --output .tmp/schema.graphql
+)

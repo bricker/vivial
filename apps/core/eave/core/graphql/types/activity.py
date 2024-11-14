@@ -1,19 +1,13 @@
-import enum
 from uuid import UUID
 
 import strawberry
 
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_subcategory import ActivitySubcategoryOrm
+from eave.core.shared.enums import ActivitySource
 
 from .location import Location
 from .photos import Photos
-
-
-@strawberry.enum
-class ActivitySource(enum.Enum):
-    INTERNAL = enum.auto()
-    EVENTBRITE = enum.auto()
 
 
 @strawberry.type
@@ -34,11 +28,11 @@ class ActivityVenue:
 @strawberry.type
 class Activity:
     source: ActivitySource
-    ticket_info: ActivityTicketInfo
-    venue: ActivityVenue
-    photos: Photos
     name: str
     description: str
+    venue: ActivityVenue
+    photos: Photos | None
+    ticket_info: ActivityTicketInfo | None
     website_uri: str | None
     door_tips: str | None
     insider_tips: str | None

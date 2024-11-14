@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Self
 from uuid import UUID
 
 from sqlalchemy import ForeignKeyConstraint, Index, PrimaryKeyConstraint, func
@@ -47,8 +46,8 @@ class AccountBookingOrm(Base):
         *,
         account_id: UUID,
         booking_id: UUID,
-    ) -> Self:
-        obj = cls(
+    ) -> "AccountBookingOrm":
+        obj = AccountBookingOrm(
             account_id=account_id,
             booking_id=booking_id,
         )

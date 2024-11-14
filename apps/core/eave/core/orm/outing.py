@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Self
 from uuid import UUID
 
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
@@ -41,8 +40,8 @@ class OutingOrm(Base):
         visitor_id: UUID,
         survey_id: UUID,
         account_id: UUID | None = None,
-    ) -> Self:
-        obj = cls(
+    ) -> "OutingOrm":
+        obj = OutingOrm(
             visitor_id=visitor_id,
             account_id=account_id,
             survey_id=survey_id,

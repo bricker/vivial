@@ -1,28 +1,6 @@
-from dataclasses import dataclass
 from http import HTTPStatus
 
 import starlette.exceptions
-
-"""
-Exceptions for internal GraphQL error handling. These
-do not set any HTTP status codes because handled non-500 errors
-get the 200 OK status in GraphQL, and have to be parsed from
-the response body.
-"""
-
-
-@dataclass
-class ValidationError(Exception):
-    field: str
-
-
-class StartTimeTooSoonError(Exception):
-    pass
-
-
-class StartTimeTooLateError(Exception):
-    pass
-
 
 """
 Convenience classes for raising an error with a specific error code.
