@@ -1,7 +1,11 @@
 import React from "react";
 
 const DateSurveyPage = () => {
-  return <div>Date Survey Page</div>;
+  return (
+    <div>
+      <h1>DATE SURVEY PAGE</h1>
+    </div>
+  );
 };
 
 export default DateSurveyPage;

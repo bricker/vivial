@@ -1,4 +1,4 @@
-import { myWindow } from "$eave-dashboard/js/types";
+import { myWindow } from "$eave-dashboard/js/types/window";
 
 export function imageUrl(filename: string): string {
   return `${myWindow.app.assetBase}/images/${filename}`;

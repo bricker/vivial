@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { NetworkState } from "../../types";
-import { GRAPHQL_API_BASE } from "../../util/http-util";
+import { NetworkState } from "../../types/network";
+import { GRAPHQL_API_BASE } from "../../util/http";
 import query from "../mutation/submitSurvey.graphql";
 
 type SubmitSurveyRequest = {

@@ -22,4 +22,6 @@ dependencies = [
   "multidict",
   "aiohttp",
   "crc32c",
+  "sendgrid",
+  "segment-analytics-python",
 ]
