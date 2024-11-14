@@ -1,4 +1,5 @@
 import enum
+from textwrap import dedent
 from typing import Annotated
 from uuid import UUID
 
@@ -15,6 +16,7 @@ from eave.core.graphql.types.booking import (
 )
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.account_booking import AccountBookingOrm
+from eave.core.orm.address_types import PostgisStdaddr
 from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
@@ -25,6 +27,7 @@ from eave.core.orm.outing_reservation import OutingReservationOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.orm.util import StartTimeTooLateError, StartTimeTooSoonError, validate_time_within_bounds_or_exception
+from eave.core.shared.errors import ValidationError
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.util import unwrap
@@ -53,13 +56,17 @@ async def _create_templates_from_outing(
                 activity_start_time=activity.activity_start_time,
                 num_attendees=activity.num_attendees,
                 external_booking_link="https://micndontlds.com",
-                activity_location_address1="101 Mcdonald St",
-                activity_location_address2="Unit 666",
-                activity_location_city="LA",
-                activity_location_region="CA",
-                activity_location_country="USA",
-                activity_location_latitude=0,
-                activity_location_longitude=0,
+                address=PostgisStdaddr(
+                    house_num="101",
+                    name="Mcdonald",
+                    suftype="St",
+                    unit="666",
+                    city="LA",
+                    state="CA",
+                    country="USA",
+                ),
+                lat=0,
+                lon=0,
             ).save(db_session)
         )
 
@@ -77,13 +84,16 @@ async def _create_templates_from_outing(
                 reservation_start_time=reservation.reservation_start_time,
                 num_attendees=reservation.num_attendees,
                 external_booking_link="https://redlobster.yum",
-                reservation_location_address1="3269 Abandoned Alley Way",
-                reservation_location_address2="",
-                reservation_location_city="LA",
-                reservation_location_region="CA",
-                reservation_location_country="USA",
-                reservation_location_latitude=0,
-                reservation_location_longitude=1,
+                address=PostgisStdaddr(
+                    house_num="3269",
+                    name="Abandoned Alley",
+                    suftype="Way",
+                    city="LA",
+                    state="CA",
+                    country="USA",
+                ),
+                lat=0,
+                lon=1,
             ).save(db_session)
         )
 
@@ -119,48 +129,40 @@ async def _notify_slack(
             await slack_client.chat_postMessage(
                 channel=channel_id,
                 thread_ts=slack_response.get("ts"),
-                text=(
-                    f""""
-Account ID: `{account.id}`
-Account email: `{account.email}`
+                text=dedent(f"""
+                    Account ID: `{account.id}`
+                    Account email: `{account.email}`
 
-Reserver first name: `{reserver.first_name}`
-Reserver last name: `{reserver.last_name}`
-Reserver phone number: `{reserver.phone_number}`
+                    Reserver first name: `{reserver.first_name}`
+                    Reserver last name: `{reserver.last_name}`
+                    Reserver phone number: `{reserver.phone_number}`
 
-{"\n".join([
-f"""*Reservation:*
-for {reservation.num_attendees} attendees
-on (ISO time): {reservation.reservation_start_time.isoformat()}
-at
-```
-{reservation.reservation_name}
-{reservation.reservation_location_address1}
-{reservation.reservation_location_address2}
-{reservation.reservation_location_city}, {reservation.reservation_location_region}
-{reservation.reservation_location_country}
-```
-"""
-    for reservation in booking_details.reservations
-])}
+                    {"\n".join([
+                    f"""*Reservation:*
+                    for {reservation.num_attendees} attendees
+                    on (ISO time): {reservation.reservation_start_time.isoformat()}
+                    at
+                    ```
+                    {reservation.reservation_name}
+                    {reservation.address}
+                    ```
+                    """
+                        for reservation in booking_details.reservations
+                    ])}
 
-{"\n".join([
-f"""*Activity:*
-for {activity.num_attendees} attendees
-on (ISO time): {activity.activity_start_time.isoformat()}
-at
-```
-{activity.activity_name}
-{activity.activity_location_address1}
-{activity.activity_location_address2}
-{activity.activity_location_city}, {activity.activity_location_region}
-{activity.activity_location_country}
-```
-"""
-    for activity in booking_details.activities
-])}
-"""
-                ),
+                    {"\n".join([
+                    f"""*Activity:*
+                    for {activity.num_attendees} attendees
+                    on (ISO time): {activity.activity_start_time.isoformat()}
+                    at
+                    ```
+                    {activity.activity_name}
+                    {activity.address}
+                    ```
+                    """
+                        for activity in booking_details.activities
+                    ])}
+                    """),
             )
     except Exception as e:
         LOGGER.exception(e)

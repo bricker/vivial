@@ -11,7 +11,6 @@ from eave.core.graphql.types.restaurant import RestaurantCategory
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 from eave.core.shared.errors import ValidationError
-from eave.stdlib.util import unwrap
 
 
 @strawberry.input
@@ -53,5 +52,5 @@ MOCK_PREFERENCES = Preferences(
 async def update_preferences_mutation(
     *, info: strawberry.Info[GraphQLContext], input: UpdatePreferencesInput
 ) -> UpdatePreferencesResult:
-    account_id = unwrap(info.context.authenticated_account_id)
+    # account_id = unwrap(info.context.authenticated_account_id)
     return UpdatePreferencesSuccess(preferences=MOCK_PREFERENCES)

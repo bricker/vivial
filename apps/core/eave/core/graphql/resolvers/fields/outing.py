@@ -29,13 +29,10 @@ MOCK_OUTING = Outing(
         source=RestaurantSource.GOOGLE_PLACES,
         name="Zarape Cocina & Cantina",
         location=Location(
-            search_region_id=UUID("354c2020-6227-46c1-be04-6f5965ba452d"),
             directions_uri="https://g.co/kgs/o6Z9PpR",
-            address_1="8351 Santa Monica Blvd",
-            address_2=None,
-            city="West Hollywood",
-            state="CA",
-            zip_code="90069",
+            latitude=0,
+            longitude=0,
+            formatted_address="8351 Santa Monica Blvd, West Hollywood, CA, 90069",
         ),
         photos=Photos(
             cover_photo_uri="https://s3-media0.fl.yelpcdn.com/bphoto/NQFmn6sxr2RC-czWIBi8aw/o.jpg",
@@ -66,13 +63,10 @@ MOCK_OUTING = Outing(
         venue=ActivityVenue(
             name="The Comedy Store, Main Room",
             location=Location(
-                search_region_id=UUID("354c2020-6227-46c1-be04-6f5965ba452d"),
                 directions_uri="https://g.co/kgs/h1SY9De",
-                address_1="8433 Sunset Blvd",
-                address_2=None,
-                city="Hollywood",
-                state="CA",
-                zip_code="90069",
+                latitude=0,
+                longitude=0,
+                formatted_address="8433 Sunset Blvd, Hollywood, CA, 90069",
             ),
         ),
         photos=Photos(

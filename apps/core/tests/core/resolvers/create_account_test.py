@@ -7,8 +7,6 @@ day_seconds = 60 * 60 * 24
 
 class TestCreateAccountMutation(BaseTestCase):
     async def test_create_account(self) -> None:
-        vis_id = self.anyuuid()
-
         response = await self.httpclient.post(
             "/graphql",
             json={

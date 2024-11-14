@@ -3,6 +3,7 @@ from http import HTTPStatus
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
+from eave.core.shared.enums import OutingBudget
 
 from ..base import BaseTestCase
 
@@ -52,7 +53,7 @@ mutation {{
                 visitor_id=self.anyuuid(),
                 start_time=self.anydatetime(offset=2 * day_seconds),
                 search_area_ids=[SearchRegionOrm.all()[0].id],
-                budget=1,
+                budget=OutingBudget.INEXPENSIVE,
                 headcount=1,
             ).save(sess)
             outing = await OutingOrm.build(

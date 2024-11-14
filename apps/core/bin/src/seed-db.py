@@ -15,6 +15,8 @@ UNDER NO CIRCUMSTANCES SHOULD THIS BE EVER RUN AGAINST PROD
 import sys
 
 from eave.core.graphql.types.restaurant import RestaurantSource
+from eave.core.orm.address_types import PostgisStdaddr
+from eave.core.shared.enums import OutingBudget
 
 sys.path.append(".")
 
@@ -87,7 +89,7 @@ async def seed_database(db: AsyncEngine) -> None:
             account_id=account.id,
             start_time=dummy_date,
             search_area_ids=[SearchRegionOrm.all()[0].id],
-            budget=2,
+            budget=OutingBudget.EXPENSIVE,
             headcount=2,
         ).save(session)
         outing = await OutingOrm.build(
@@ -128,13 +130,17 @@ async def seed_database(db: AsyncEngine) -> None:
             activity_start_time=outing_activity.activity_start_time,
             num_attendees=outing_activity.num_attendees,
             external_booking_link="https://micndontlds.com",
-            activity_location_address1="101 Mcdonald St",
-            activity_location_address2="Unit 666",
-            activity_location_city="LA",
-            activity_location_region="CA",
-            activity_location_country="USA",
-            activity_location_latitude=0,
-            activity_location_longitude=0,
+            address=PostgisStdaddr(
+                house_num="101",
+                name="Mcdonald",
+                suftype="St",
+                unit="666",
+                city="LA",
+                state="CA",
+                country="USA",
+            ),
+            lat=0,
+            lon=0,
         ).save(session)
         _booking_reservation_template = await BookingReservationTemplateOrm.build(
             booking_id=booking.id,
@@ -142,13 +148,16 @@ async def seed_database(db: AsyncEngine) -> None:
             reservation_start_time=outing_reservation.reservation_start_time,
             num_attendees=outing_reservation.num_attendees,
             external_booking_link="https://redlobster.yum",
-            reservation_location_address1="3269 Abandoned Alley Way",
-            reservation_location_address2="",
-            reservation_location_city="LA",
-            reservation_location_region="CA",
-            reservation_location_country="USA",
-            reservation_location_latitude=0,
-            reservation_location_longitude=1,
+            address=PostgisStdaddr(
+                house_num="3269",
+                name="Abandoned Alley",
+                suftype="Way",
+                city="LA",
+                state="CA",
+                country="USA",
+            ),
+            lat=0,
+            lon=1,
         ).save(session)
 
         end = time.perf_counter()

@@ -10,52 +10,52 @@ class PostgisStdaddr(NamedTuple):
 
     # WARNING: The order of these fields must not change.
 
-    building: str | None
+    building: str | None = None
     """is text (token number 0): Refers to building number or name. Unparsed building identifiers and types. Generally blank for most addresses."""
 
-    house_num: str | None
+    house_num: str | None = None
     """is a text (token number 1): This is the street number on a street. Example 75 in 75 State Street."""
 
-    predir: str | None
+    predir: str | None = None
     """is text (token number 2): STREET NAME PRE-DIRECTIONAL such as North, South, East, West etc."""
 
-    qual: str | None
+    qual: str | None = None
     """is text (token number 3): STREET NAME PRE-MODIFIER Example OLD in 3715 OLD HIGHWAY 99."""
 
-    pretype: str | None
+    pretype: str | None = None
     """is text (token number 4): STREET PREFIX TYPE"""
 
-    name: str | None
+    name: str | None = None
     """is text (token number 5): STREET NAME"""
 
-    suftype: str | None
+    suftype: str | None = None
     """is text (token number 6): STREET POST TYPE e.g. St, Ave, Cir. A street type following the root street name. Example STREET in 75 State Street."""
 
-    sufdir: str | None
+    sufdir: str | None = None
     """is text (token number 7): STREET POST-DIRECTIONAL A directional modifier that follows the street name.. Example WEST in 3715 TENTH AVENUE WEST."""
 
-    ruralroute: str | None
+    ruralroute: str | None = None
     """is text (token number 8): RURAL ROUTE . Example 7 in RR 7."""
 
-    extra: str | None
+    extra: str | None = None
     """is text: Extra information like Floor number."""
 
-    city: str | None
+    city: str | None = None
     """is text (token number 10): Example Boston."""
 
-    state: str | None
+    state: str | None = None
     """is text (token number 11): Example MASSACHUSETTS"""
 
-    country: str | None
+    country: str | None = None
     """is text (token number 12): Example USA"""
 
-    postcode: str | None
+    postcode: str | None = None
     """is text POSTAL CODE (ZIP CODE) (token number 13): Example 02109"""
 
-    box: str | None
+    box: str | None = None
     """is text POSTAL BOX NUMBER (token number 14 and 15): Example 02109"""
 
-    unit: str | None
+    unit: str | None = None
     """is text Apartment number or Suite Number (token number 17): Example 3B in APT 3B."""
 
 

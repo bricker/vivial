@@ -7,7 +7,6 @@ import strawberry
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.account import Account
 from eave.core.shared.errors import ValidationError
-from eave.stdlib.util import unwrap
 
 MOCK_ACCOUNT = Account(
     id=uuid4(),
@@ -43,5 +42,5 @@ UpdateAccountResult = Annotated[UpdateAccountSuccess | UpdateAccountFailure, str
 async def update_account_mutation(
     *, info: strawberry.Info[GraphQLContext], input: UpdateAccountInput
 ) -> UpdateAccountResult:
-    account_id = unwrap(info.context.authenticated_account_id)
+    # account_id = unwrap(info.context.authenticated_account_id)
     return UpdateAccountSuccess(account=MOCK_ACCOUNT)

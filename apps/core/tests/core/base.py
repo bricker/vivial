@@ -22,6 +22,7 @@ from eave.core.orm.base import get_base_metadata
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
+from eave.core.shared.enums import OutingBudget
 from eave.stdlib.config import SHARED_CONFIG
 
 
@@ -148,7 +149,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
                 visitor_id=self.anyuuid(),
                 start_time=self.anydatetime(offset=2 * 60 * 60 * 24),
                 search_area_ids=[SearchRegionOrm.all()[0].id],
-                budget=self.anyint(min=0, max=3),
+                budget=OutingBudget.INEXPENSIVE,
                 headcount=self.anyint(min=1, max=2),
             ).save(session)
             surv_id = survey.id
