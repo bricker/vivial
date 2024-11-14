@@ -28,7 +28,8 @@ module "core_api_app" {
 
   LOG_LEVEL                  = "DEBUG"
   release_version            = "latest"
-  SEGMENT_CORE_API_WRITE_KEY = "cVBM36ZvqJV2gagtnOT60fTNn1Q5P5na"
+  SEGMENT_CORE_API_WRITE_KEY = local.SEGMENT_CORE_API_WRITE_KEY
+  JWS_SIGNING_KEY_PATH = module.project_base.kms_key_ring_id
 }
 
 module "dashboard_app" {
@@ -44,5 +45,5 @@ module "dashboard_app" {
   LOG_LEVEL                 = "DEBUG"
   release_version           = "latest"
   iap_enabled               = false
-  SEGMENT_WEBSITE_WRITE_KEY = "GcB5ShHbFcZZKIGTlvanJerSyKp9yJNv"
+  SEGMENT_WEBSITE_WRITE_KEY = local.SEGMENT_WEBSITE_WRITE_KEY
 }

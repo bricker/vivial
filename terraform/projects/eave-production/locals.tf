@@ -21,4 +21,14 @@ locals {
       display_name = "Liam's Home Network"
     },
   }
+
+  managed_projects = toset([
+    "eave-production",
+    "eave-staging",
+    "eave-develop",
+  ])
+
+  # These are not considered sensitive values
+  SEGMENT_WEBSITE_WRITE_KEY = "GcB5ShHbFcZZKIGTlvanJerSyKp9yJNv"
+  SEGMENT_CORE_API_WRITE_KEY = "cVBM36ZvqJV2gagtnOT60fTNn1Q5P5na"
 }

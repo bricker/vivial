@@ -13,7 +13,7 @@ terraform {
   }
 
   backend "gcs" {
-    bucket = "terraform.eave-staging.eave.fyi" # This bucket is managed in the eave-production TF project
+    bucket = "terraform.eave-develop.eave.fyi" # project ID hardcoded because changing it would break TF state
     prefix = "state"
   }
 }
@@ -30,18 +30,4 @@ provider "google" {
   # - https://github.com/hashicorp/terraform-provider-google/issues/17998
   billing_project       = local.project_id
   user_project_override = true
-}
-
-provider "kubernetes" {
-  host                   = "https://${module.gke_primary.cluster.endpoint}"
-  token                  = data.google_client_config.default.access_token
-  cluster_ca_certificate = base64decode(module.gke_primary.cluster.master_auth[0].cluster_ca_certificate)
-
-  # config_path = "~/.kube/config"
-  # config_context = "eave-staging"
-
-  ignore_annotations = [
-    "^autopilot\\.gke\\.io\\/.*",
-    "^cloud\\.google\\.com\\/.*",
-  ]
 }

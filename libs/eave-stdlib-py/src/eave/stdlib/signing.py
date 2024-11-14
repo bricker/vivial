@@ -50,9 +50,10 @@ def mac_sign_b64(*, data: str | bytes) -> str:
 
 def mac_verify_or_exception(
     *,
-    kid: str,
     message: str | bytes,
     mac_b64: str | bytes,
+    kms_key_path: str,
+    kms_key_version: str,
 ) -> Literal[True]:
     """
     Verifies the signature matches the message.
@@ -63,9 +64,8 @@ def mac_verify_or_exception(
     kms_client = kms.KeyManagementServiceClient()
 
     # Verify the MAC sig with the same key version that was used to create it.
-    key_version_path_dict = kms_client.parse_crypto_key_version_path(SHARED_CONFIG.jws_signing_key_version_path)
-    key_version_path_dict["crypto_key_version"] = kid
-    key_version_path = kms_client.crypto_key_version_path(**key_version_path_dict)
+    key_path_dict = kms_client.parse_crypto_key_path(kms_key_path)
+    key_version_path = kms_client.crypto_key_version_path(**key_path_dict, crypto_key_version=kms_key_version)
 
     message_bytes = eave_util.ensure_bytes(message)
     data_crc32c = checksum.generate_checksum(message_bytes)

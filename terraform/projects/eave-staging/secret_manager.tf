@@ -1,6 +1,11 @@
-moved {
-  from = module.secret_manager_secrets
-  to   = module.app_secrets.module.secret_manager_secrets
+import {
+  id = "SENDGRID_API_KEY"
+  to = module.app_secrets.module.secret_manager_secrets["SENDGRID_API_KEY"].google_secret_manager_secret.default
+}
+
+import {
+  id = "projects/eave-staging/secrets/SENDGRID_API_KEY/versions/1"
+  to = module.app_secrets.module.secret_manager_secrets["SENDGRID_API_KEY"].google_secret_manager_secret_version.default
 }
 
 module "app_secrets" {
@@ -23,6 +28,18 @@ module "app_secrets" {
     },
     SENDGRID_API_KEY = {
       data = var.SENDGRID_API_KEY
+      accessors = [
+        data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
+      ],
+    },
+    GOOGLE_PLACES_API_KEY = {
+      data = var.GOOGLE_PLACES_API_KEY
+      accessors = [
+        data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
+      ],
+    },
+    EVENTBRITE_API_KEY = {
+      data = var.EVENTBRITE_API_KEY
       accessors = [
         data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
       ],

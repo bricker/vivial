@@ -50,3 +50,6 @@ output "service_account_user_role_name" {
   value = module.service_account_user_role.name
 }
 
+output "kms_key_ring_id" {
+  value = google_kms_key_ring.primary.id
+}
