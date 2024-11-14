@@ -1,7 +1,5 @@
-from datetime import datetime
 import enum
-
-from eave.core.zoneinfo import LOS_ANGELES_ZONE_INFO
+from datetime import datetime
 
 
 class TimeCategory(enum.Enum):

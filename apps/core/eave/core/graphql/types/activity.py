@@ -1,9 +1,7 @@
-import enum
 from uuid import UUID
 
 import strawberry
 
-from eave.core.lib.geo import GeoPoint
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_subcategory import ActivitySubcategoryOrm
 from eave.core.shared.enums import ActivitySource

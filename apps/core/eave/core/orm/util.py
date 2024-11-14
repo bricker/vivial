@@ -14,6 +14,7 @@ class StartTimeTooSoonError(Exception):
 class StartTimeTooLateError(Exception):
     pass
 
+
 def validate_time_within_bounds_or_exception(start_time: datetime) -> None:
     """Ensure an event start time is within the bounds of when
     we can safely book events for a user."""

@@ -10,23 +10,28 @@ from eave.core.graphql.types.outing import (
     Outing,
 )
 
+
 @strawberry.input
 class ReplanOutingInput:
     visitor_id: UUID
     outing_id: UUID
 
+
 @strawberry.type
 class ReplanOutingSuccess:
     outing: Outing
+
 
 @strawberry.enum
 class ReplanOutingFailureReason(enum.Enum):
     START_TIME_TOO_SOON = enum.auto()
     START_TIME_TOO_LATE = enum.auto()
 
+
 @strawberry.type
 class ReplanOutingFailure:
     failure_reason: ReplanOutingFailureReason
+
 
 ReplanOutingResult = Annotated[ReplanOutingSuccess | ReplanOutingFailure, strawberry.union("ReplanOutingResult")]
 

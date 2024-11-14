@@ -8,11 +8,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 import eave.stdlib.slack
 from eave.core import database
+from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.booking import (
     Booking,
 )
-from eave.core.analytics import ANALYTICS
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.account_booking import AccountBookingOrm
 from eave.core.orm.base import InvalidRecordError
@@ -183,10 +183,12 @@ class CreateBookingFailureReason(enum.Enum):
     START_TIME_TOO_LATE = enum.auto()
     VALIDATION_ERRORS = enum.auto()
 
+
 @strawberry.type
 class CreateBookingFailure:
     failure_reason: CreateBookingFailureReason
     validation_errors: list[ValidationError] | None = None
+
 
 CreateBookingResult = Annotated[CreateBookingSuccess | CreateBookingFailure, strawberry.union("CreateBookingResult")]
 
@@ -228,7 +230,9 @@ async def create_booking_mutation(
             )
     except InvalidRecordError as e:
         LOGGER.exception(e)
-        return CreateBookingFailure(failure_reason=CreateBookingFailureReason.VALIDATION_ERRORS, validation_errors=e.validation_errors)
+        return CreateBookingFailure(
+            failure_reason=CreateBookingFailureReason.VALIDATION_ERRORS, validation_errors=e.validation_errors
+        )
 
     await _notify_slack(booking_details, account_id, input.reserver_details_id)
 

@@ -25,6 +25,7 @@ class RefreshTokensSuccess:
 class RefreshTokensFailureReason(enum.Enum):
     INVALID_TOKENS = enum.auto()
 
+
 @strawberry.type
 class RefreshTokensFailure:
     failure_reason: RefreshTokensFailureReason

@@ -7,12 +7,11 @@ from typing import Literal, Self
 from uuid import UUID
 
 from sqlalchemy import PrimaryKeyConstraint, Select, func, select
-from sqlalchemy.orm import Mapped, mapped_column, validates
-
-from eave.stdlib.typing import NOT_SET, NotSet
-from eave.stdlib.util import b64encode
+from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.shared.errors import ValidationError
+from eave.stdlib.typing import NOT_SET, NotSet
+from eave.stdlib.util import b64encode
 
 from .base import Base
 from .util import PG_UUID_EXPR
@@ -20,6 +19,7 @@ from .util import PG_UUID_EXPR
 
 class InvalidPasswordError(Exception):
     pass
+
 
 class WeakPasswordError(Exception):
     pass

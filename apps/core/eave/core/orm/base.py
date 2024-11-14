@@ -1,4 +1,3 @@
-from abc import abstractmethod, ABC
 from typing import Self
 from uuid import UUID
 
@@ -8,12 +7,14 @@ from sqlalchemy.orm import DeclarativeBase
 
 from eave.core.shared.errors import ValidationError
 
+
 class InvalidRecordError(Exception):
     validation_errors: list[ValidationError]
 
     def __init__(self, validation_errors: list[ValidationError]) -> None:
         self.validation_errors = validation_errors
         super().__init__()
+
 
 class Base(DeclarativeBase):
     async def save(self, session: AsyncSession) -> Self:
@@ -35,6 +36,7 @@ class Base(DeclarativeBase):
 
     def validate(self) -> list[ValidationError]:
         return []
+
 
 def _load_all() -> None:
     """

@@ -10,10 +10,8 @@ from eave.core.graphql.types.reserver_details import (
 )
 from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.reserver_details import ReserverDetailsOrm
-from eave.stdlib.logging import LOGGER
-from eave.stdlib.util import unwrap
-
 from eave.core.shared.errors import ValidationError
+from eave.stdlib.util import unwrap
 
 
 @strawberry.input
@@ -27,14 +25,17 @@ class ReserverDetailsInput:
 class SubmitReserverDetailsSuccess:
     reserver_details: ReserverDetails
 
+
 @strawberry.enum
 class SubmitReserverDetailsFailureReason(enum.Enum):
     VALIDATION_ERRORS = enum.auto()
+
 
 @strawberry.type
 class SubmitReserverDetailsFailure:
     failure_reason: SubmitReserverDetailsFailureReason
     validation_errors: list[ValidationError] | None = None
+
 
 SubmitReserverDetailsResult = Annotated[
     SubmitReserverDetailsSuccess | SubmitReserverDetailsFailure, strawberry.union("SubmitReserverDetailsResult")
@@ -62,9 +63,9 @@ async def submit_reserver_details_mutation(
         async with database.async_session.begin() as db_session:
             await reserver_details.save(db_session)
 
-        return SubmitReserverDetailsSuccess(
-            reserver_details=ReserverDetails.from_orm(reserver_details)
-        )
+        return SubmitReserverDetailsSuccess(reserver_details=ReserverDetails.from_orm(reserver_details))
 
     except InvalidRecordError as e:
-        return SubmitReserverDetailsFailure(failure_reason=SubmitReserverDetailsFailureReason.VALIDATION_ERRORS, validation_errors=e.validation_errors)
+        return SubmitReserverDetailsFailure(
+            failure_reason=SubmitReserverDetailsFailureReason.VALIDATION_ERRORS, validation_errors=e.validation_errors
+        )

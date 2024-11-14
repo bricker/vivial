@@ -22,13 +22,16 @@ class LoginSuccess:
     account: Account
     auth_tokens: AuthTokenPair
 
+
 @strawberry.enum
 class LoginFailureReason(enum.Enum):
     INVALID_CREDENTIALS = enum.auto()
 
+
 @strawberry.type
 class LoginFailure:
     failure_reason: LoginFailureReason
+
 
 LoginResult = Annotated[LoginSuccess | LoginFailure, strawberry.union("LoginResult")]
 

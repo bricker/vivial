@@ -6,6 +6,7 @@ from uuid import UUID, uuid4
 import strawberry
 
 from eave.core import database
+from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.fields.outing import MOCK_OUTING
 from eave.core.graphql.types.activity import ActivitySource
@@ -15,7 +16,6 @@ from eave.core.graphql.types.outing import (
 )
 from eave.core.graphql.types.preferences import PreferencesInput
 from eave.core.graphql.types.restaurant import RestaurantSource
-from eave.core.analytics import ANALYTICS
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.outing_activity import OutingActivityOrm
 from eave.core.orm.outing_reservation import OutingReservationOrm
@@ -30,6 +30,7 @@ class PlanOutingInput:
     budget: OutingBudget
     headcount: int
 
+
 @strawberry.type
 class PlanOutingSuccess:
     outing: Outing
@@ -39,6 +40,7 @@ class PlanOutingSuccess:
 class PlanOutingFailureReason(enum.Enum):
     START_TIME_TOO_SOON = enum.auto()
     START_TIME_TOO_LATE = enum.auto()
+
 
 @strawberry.type
 class PlanOutingFailure:

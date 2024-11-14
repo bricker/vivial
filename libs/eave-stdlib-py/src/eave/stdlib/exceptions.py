@@ -1,9 +1,6 @@
-from dataclasses import dataclass
 from http import HTTPStatus
 
 import starlette.exceptions
-
-
 
 """
 Convenience classes for raising an error with a specific error code.

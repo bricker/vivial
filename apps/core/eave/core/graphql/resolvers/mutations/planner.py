@@ -1,8 +1,7 @@
-from dataclasses import dataclass
-import enum
 import random
+from collections.abc import MutableSequence, Sequence
+from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import MutableSequence, Sequence
 from uuid import UUID
 
 from geoalchemy2.functions import ST_DWithin
@@ -14,7 +13,7 @@ from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.resolvers.mutations.plan_outing import PlanOutingInput
 from eave.core.graphql.types.activity import Activity, ActivitySource, ActivityVenue
 from eave.core.graphql.types.location import Location
-from eave.core.graphql.types.outing import Outing, ProposedOuting
+from eave.core.graphql.types.outing import ProposedOuting
 from eave.core.graphql.types.preferences import Preferences
 from eave.core.graphql.types.restaurant import Restaurant, RestaurantSource
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
@@ -23,12 +22,11 @@ from eave.core.orm.activity_subcategory import ActivitySubcategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
+from eave.core.shared.enums import OutingBudget
+from eave.core.zoneinfo import LOS_ANGELES_ZONE_INFO
 from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.logging import LOGGER
-
-from eave.core.shared.enums import OutingBudget
-from eave.core.zoneinfo import LOS_ANGELES_ZONE_INFO
 
 # You must pass a field mask to the Google Places API to specify the list of fields to return in the response.
 # Reference: https://developers.google.com/maps/documentation/places/web-service/nearby-search
@@ -70,12 +68,14 @@ _BRUNCH_RESTAURANT_CATEGORY_IDS = (
     "cafe",
 )
 
+
 @dataclass(kw_only=True)
 class GroupPreferences:
     open_to_bars: bool
     requires_wheelchair_accessibility: bool
     restaurant_categories: list[RestaurantCategoryOrm]
     activity_categories: list[ActivitySubcategoryOrm]
+
 
 def _combine_restaurant_categories(group: list[Preferences]) -> list[RestaurantCategoryOrm]:
     """
@@ -107,6 +107,7 @@ def _combine_restaurant_categories(group: list[Preferences]) -> list[RestaurantC
     random.shuffle(difference)
     return intersection + difference
 
+
 def _combine_activity_categories(group: list[Preferences]) -> list[ActivitySubcategoryOrm]:
     """
     Given a group of users, combine their activity category preferences
@@ -137,6 +138,7 @@ def _combine_activity_categories(group: list[Preferences]) -> list[ActivitySubca
     random.shuffle(difference)
     return intersection + difference
 
+
 def _combine_wheelchair_needs(group: list[Preferences]) -> bool:
     """
     Given a group of users, return True if any of the users requires
@@ -144,12 +146,14 @@ def _combine_wheelchair_needs(group: list[Preferences]) -> bool:
     """
     return any(preferences.requires_wheelchair_accessibility for preferences in group)
 
+
 def _combine_bar_openness(group: list[Preferences]) -> bool:
     """
     Given a group of users, return False if any of the users is not open to
     going to a bar.
     """
     return all(preferences.open_to_bars for preferences in group)
+
 
 def _combine_preferences(group: list[Preferences]) -> GroupPreferences:
     """
@@ -162,6 +166,7 @@ def _combine_preferences(group: list[Preferences]) -> GroupPreferences:
         requires_wheelchair_accessibility=_combine_wheelchair_needs(group),
         open_to_bars=_combine_bar_openness(group),
     )
+
 
 class OutingPlanner:
     """
@@ -194,7 +199,6 @@ class OutingPlanner:
         self.restaurant = restaurant
         self.group_preferences = _combine_preferences(group)
 
-
     async def plan_activity(self) -> Activity | None:
         """
         Plan an activity for the outing, taking into consideration the outing
@@ -226,7 +230,11 @@ class OutingPlanner:
                     ]
                 )
             )
-            .where(or_(*[EventbriteEventOrm.subcategory_id == cat.id for cat in self.group_preferences.activity_categories]))
+            .where(
+                or_(
+                    *[EventbriteEventOrm.subcategory_id == cat.id for cat in self.group_preferences.activity_categories]
+                )
+            )
             .order_by(func.random())
         )
 
@@ -272,25 +280,29 @@ class OutingPlanner:
 
                     if (venue_address := venue.get("address")) is None:
                         LOGGER.warning(
-                            "Missing venue address; excluding event.", {"eventbrite_event_id": event.eventbrite_event_id}
+                            "Missing venue address; excluding event.",
+                            {"eventbrite_event_id": event.eventbrite_event_id},
                         )
                         continue
 
                     if (venue_formatted_address := venue_address.get("localized_address_display")) is None:
                         LOGGER.warning(
-                            "Missing venue localized_address_display; excluding event.", {"eventbrite_event_id": event.eventbrite_event_id}
+                            "Missing venue localized_address_display; excluding event.",
+                            {"eventbrite_event_id": event.eventbrite_event_id},
                         )
                         continue
 
                     if (venue_lat := venue.get("latitude")) is None:
                         LOGGER.warning(
-                            "Missing venue latitude; excluding event.", {"eventbrite_event_id": event.eventbrite_event_id}
+                            "Missing venue latitude; excluding event.",
+                            {"eventbrite_event_id": event.eventbrite_event_id},
                         )
                         continue
 
                     if (venue_lon := venue.get("longitude")) is None:
                         LOGGER.warning(
-                            "Missing venue longitude; excluding event.", {"eventbrite_event_id": event.eventbrite_event_id}
+                            "Missing venue longitude; excluding event.",
+                            {"eventbrite_event_id": event.eventbrite_event_id},
                         )
                         continue
 
@@ -306,7 +318,7 @@ class OutingPlanner:
                         venue=ActivityVenue(
                             name=venue["name"],
                             location=Location(
-                                directions_uri="https://www.google.com/", # FIXME
+                                directions_uri="https://www.google.com/",  # FIXME
                                 latitude=float(venue_lat),
                                 longitude=float(venue_lon),
                                 formatted_address=venue_formatted_address,
@@ -422,7 +434,9 @@ class OutingPlanner:
         if self.activity:
             search_areas = [
                 GeoArea(
-                    center=GeoPoint(lat=self.activity.venue.location.latitude, lon=self.activity.venue.location.longitude),
+                    center=GeoPoint(
+                        lat=self.activity.venue.location.latitude, lon=self.activity.venue.location.longitude
+                    ),
                     rad=Distance(miles=5),
                 ),
             ]

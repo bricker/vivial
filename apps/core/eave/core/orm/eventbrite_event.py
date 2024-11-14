@@ -8,7 +8,6 @@ from geoalchemy2.types import Geography
 from sqlalchemy import PrimaryKeyConstraint, Select, func, or_, select
 from sqlalchemy.dialects.postgresql import INT4RANGE, TSTZRANGE, Range
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlmodel import SQLModel
 
 from eave.core.lib.geo import GeoArea, GeoPoint, SpatialReferenceSystemId
 from eave.stdlib.typing import NOT_SET, NotSet

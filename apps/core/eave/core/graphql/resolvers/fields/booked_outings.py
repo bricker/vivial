@@ -1,4 +1,3 @@
-
 import strawberry
 
 from eave.core.graphql.context import GraphQLContext

@@ -3,7 +3,6 @@ from datetime import datetime
 from uuid import UUID
 
 import strawberry
-from google.maps.places_v1 import PriceLevel
 
 from eave.core.shared.enums import OutingBudget
 
@@ -30,6 +29,7 @@ class Outing:
     restaurant: Restaurant | None
     restaurant_arrival_time: datetime | None
     driving_time: str
+
 
 @strawberry.type
 class ProposedOuting:

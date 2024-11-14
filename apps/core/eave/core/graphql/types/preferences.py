@@ -1,4 +1,5 @@
 from uuid import UUID
+
 import strawberry
 
 from eave.core.graphql.types.activity import ActivityCategory

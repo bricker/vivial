@@ -1,6 +1,8 @@
 import enum
-from google.maps.places_v1 import PriceLevel
+
 import strawberry
+from google.maps.places_v1 import PriceLevel
+
 
 @strawberry.enum
 class ActivitySource(enum.StrEnum):
@@ -8,9 +10,11 @@ class ActivitySource(enum.StrEnum):
     EVENTBRITE = enum.auto()
     GOOGLE_PLACES = enum.auto()
 
+
 @strawberry.enum
 class RestaurantSource(enum.StrEnum):
     GOOGLE_PLACES = enum.auto()
+
 
 @strawberry.enum
 class OutingBudget(enum.StrEnum):

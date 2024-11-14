@@ -1,6 +1,4 @@
-import os
 from http import HTTPStatus
-from textwrap import dedent
 
 from ..base import BaseTestCase
 
