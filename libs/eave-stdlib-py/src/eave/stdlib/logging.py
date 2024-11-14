@@ -74,11 +74,14 @@ class CustomFormatter(logging.Formatter):
 
 
 class CustomFilter(logging.Filter):
-    _whitelist_records = ("eave",)
+    _whitelist_records = ("eave", "strawberry.execution")
 
     def filter(self, record: LogRecord) -> bool:
         log = super().filter(record)
-        return log and record.name in self._whitelist_records
+        if SHARED_CONFIG.log_level >= logging.DEBUG:
+            return True
+        else:
+            return log and record.name in self._whitelist_records
 
 
 _SCOPE_KEY = "eave_state"

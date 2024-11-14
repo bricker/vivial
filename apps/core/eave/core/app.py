@@ -29,7 +29,7 @@ schema = Schema(
     ),
 )
 
-graphql_app = GraphQL(schema)
+graphql_app = GraphQL(schema=schema)
 
 
 async def graceful_shutdown() -> None:

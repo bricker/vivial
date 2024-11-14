@@ -200,7 +200,7 @@ async def create_booking_mutation(
     info: strawberry.Info[GraphQLContext],
     input: CreateBookingInput,
 ) -> CreateBookingResult:
-    account_id = unwrap(info.context.authenticated_account_id)
+    account_id = unwrap(info.context.get("authenticated_account_id"))
 
     try:
         async with database.async_session.begin() as db_session:
