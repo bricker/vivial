@@ -316,6 +316,7 @@ class OutingPlanner:
                     event_details["description"] = description
 
                     self.activity = Activity(
+                        id=str(event.id),
                         source=ActivitySource.EVENTBRITE,
                         name=event_name["text"],
                         description=event_details["description"]["text"],
@@ -385,6 +386,7 @@ class OutingPlanner:
                     venue_lon = place.location.longitude
                     if venue_lat and venue_lon:
                         self.activity = Activity(
+                            id=place.id,
                             source=ActivitySource.GOOGLE_PLACES,
                             name=place.display_name,
                             description=place.editorial_summary,
@@ -472,6 +474,7 @@ class OutingPlanner:
                         lon = restaurant.location.longitude
                         if lat and lon:
                             self.restaurant = Restaurant(
+                                id=restaurant.id,
                                 source=RestaurantSource.GOOGLE_PLACES,
                                 location=Location(
                                     latitude=lat,

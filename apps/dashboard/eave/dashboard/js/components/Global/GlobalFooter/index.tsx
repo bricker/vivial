@@ -10,7 +10,7 @@ import TikTokIcon from "../../Icons/TikTokIcon";
 
 import { rem } from "$eave-dashboard/js/util/rem";
 
-const Footer = styled("footer")(({ theme }) => ({
+const Footer = styled("footer")(() => ({
   display: "flex",
   flexDirection: "column",
   justifyContent: "center",
