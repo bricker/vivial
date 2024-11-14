@@ -4,21 +4,17 @@ from uuid import UUID
 import strawberry
 
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
+from eave.core.shared.enums import RestaurantSource
 
 from .location import Location
 from .photos import Photos
-
-
-@strawberry.enum
-class RestaurantSource(enum.Enum):
-    GOOGLE_PLACES = enum.auto()
 
 
 @strawberry.type
 class Restaurant:
     source: RestaurantSource
     location: Location
-    photos: Photos
+    photos: Photos | None
     name: str
     reservable: bool
     rating: float

@@ -47,8 +47,8 @@ class ActivityOrm(Base):
         address: PostgisStdaddr,
         is_bookable: bool,
         booking_url: str | None,
-    ) -> Self:
-        return cls(
+    ) -> "ActivityOrm":
+        return ActivityOrm(
             title=title,
             description=description,
             coordinates=GeoPoint(lat=lat, lon=lon).geoalchemy_shape(),

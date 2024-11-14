@@ -5,7 +5,7 @@ from uuid import UUID
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.core.outing.models.sources import RestaurantSource
+from eave.core.graphql.types.restaurant import RestaurantSource
 
 from .base import Base
 
@@ -44,8 +44,8 @@ class OutingReservationOrm(Base):
         reservation_source: RestaurantSource,
         reservation_start_time: datetime,
         num_attendees: int,
-    ) -> Self:
-        obj = cls(
+    ) -> "OutingReservationOrm":
+        obj = OutingReservationOrm(
             outing_id=outing_id,
             reservation_id=reservation_id,
             reservation_source=reservation_source,

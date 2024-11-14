@@ -6,7 +6,7 @@ from uuid import UUID
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, validates
 
-from eave.stdlib.exceptions import ValidationError
+from eave.core.shared.errors import ValidationError
 
 from .base import Base
 from .util import PG_UUID_EXPR
@@ -40,8 +40,8 @@ class ReserverDetailsOrm(Base):
         first_name: str,
         last_name: str,
         phone_number: str,
-    ) -> Self:
-        obj = cls(
+    ) -> "ReserverDetailsOrm":
+        obj = ReserverDetailsOrm(
             account_id=account_id,
             first_name=first_name,
             last_name=last_name,
@@ -50,9 +50,11 @@ class ReserverDetailsOrm(Base):
 
         return obj
 
-    @validates("phone_number")
-    def validate_phone_number(self, key: str, value: str) -> str:
+    def validate(self) -> list[ValidationError]:
+        errors: list[ValidationError] = []
+
         phone_number_pattern = r"^\+?1?\d{10}$"  # TODO: something better
-        if re.match(phone_number_pattern, value) is None:
-            raise ValidationError("phone_number")
-        return value
+        if re.match(phone_number_pattern, self.phone_number) is None:
+            errors.append(ValidationError(field="phone_number"))
+
+        return errors

@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
-from eave.core.graphql.types.search_region import SearchRegionCode
 from eave.core.orm.outing import OutingOrm
+from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
 
 from ..base import BaseTestCase
@@ -48,20 +48,18 @@ mutation {{
 
     async def test_replan(self) -> None:
         async with self.db_session.begin() as sess:
-            survey = await SurveyOrm.create(
-                session=sess,
+            survey = await SurveyOrm.build(
                 visitor_id=self.anyuuid(),
                 start_time=self.anydatetime(offset=2 * day_seconds),
-                search_area_ids=[SearchRegionCode.US_CA_LA1],
+                search_area_ids=[SearchRegionOrm.all()[0].id],
                 budget=1,
                 headcount=1,
-            )
-            outing = await OutingOrm.create(
-                session=sess,
+            ).save(sess)
+            outing = await OutingOrm.build(
                 visitor_id=survey.visitor_id,
                 survey_id=survey.id,
                 account_id=survey.account_id,
-            )
+            ).save(sess)
 
         response = await self.httpclient.post(
             "/graphql",

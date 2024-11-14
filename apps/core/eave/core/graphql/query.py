@@ -1,7 +1,7 @@
 import strawberry
 
 from eave.core.graphql.extensions.authentication_extension import AuthenticationExtension
-from eave.core.graphql.resolvers.activity_categories import list_activity_categories_query
+from eave.core.graphql.resolvers.fields.activity_categories import list_activity_categories_query
 from eave.core.graphql.resolvers.restaurant_categories import list_restaurant_categories_query
 from eave.core.graphql.resolvers.search_regions import list_search_regions_query
 from eave.core.graphql.resolvers.viewer import viewer_query

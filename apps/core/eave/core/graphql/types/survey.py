@@ -3,14 +3,16 @@ from uuid import UUID
 
 import strawberry
 
+from eave.core.shared.enums import OutingBudget
+
 
 @strawberry.type
 class Survey:
     id: UUID
     visitor_id: UUID
     start_time: datetime
-    search_area_ids: list[str]
-    budget: int
+    search_area_ids: list[UUID]
+    budget: OutingBudget
     headcount: int
 
 
@@ -18,6 +20,6 @@ class Survey:
 class SurveyInput:
     visitor_id: UUID
     start_time: datetime
-    search_area_ids: list[str]
-    budget: int
+    search_area_ids: list[UUID]
+    budget: OutingBudget
     headcount: int

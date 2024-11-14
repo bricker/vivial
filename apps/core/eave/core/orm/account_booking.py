@@ -47,8 +47,8 @@ class AccountBookingOrm(Base):
         *,
         account_id: UUID,
         booking_id: UUID,
-    ) -> Self:
-        obj = cls(
+    ) -> "AccountBookingOrm":
+        obj = AccountBookingOrm(
             account_id=account_id,
             booking_id=booking_id,
         )

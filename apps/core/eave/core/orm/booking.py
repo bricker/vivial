@@ -31,8 +31,8 @@ class BookingOrm(Base):
         cls,
         *,
         reserver_details_id: UUID,
-    ) -> Self:
-        obj = cls(
+    ) -> "BookingOrm":
+        obj = BookingOrm(
             reserver_details_id=reserver_details_id,
         )
 

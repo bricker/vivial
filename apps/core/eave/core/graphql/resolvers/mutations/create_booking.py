@@ -12,9 +12,10 @@ from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.booking import (
     Booking,
 )
-from eave.core.lib.analytics import ANALYTICS
+from eave.core.analytics import ANALYTICS
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.account_booking import AccountBookingOrm
+from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
 from eave.core.orm.booking_reservations_template import BookingReservationTemplateOrm
@@ -23,9 +24,8 @@ from eave.core.orm.outing_activity import OutingActivityOrm
 from eave.core.orm.outing_reservation import OutingReservationOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.survey import SurveyOrm
-from eave.core.orm.util import validate_time_within_bounds_or_exception
+from eave.core.orm.util import StartTimeTooLateError, StartTimeTooSoonError, validate_time_within_bounds_or_exception
 from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.exceptions import StartTimeTooLateError, StartTimeTooSoonError, ValidationError
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.util import unwrap
 
@@ -172,23 +172,23 @@ class CreateBookingInput:
     reserver_details_id: UUID
 
 
-@strawberry.enum
-class CreateBookingErrorCode(enum.Enum):
-    START_TIME_TOO_SOON = enum.auto()
-    START_TIME_TOO_LATE = enum.auto()
-
-
 @strawberry.type
 class CreateBookingSuccess:
     booking: Booking
 
 
+@strawberry.enum
+class CreateBookingFailureReason(enum.Enum):
+    START_TIME_TOO_SOON = enum.auto()
+    START_TIME_TOO_LATE = enum.auto()
+    VALIDATION_ERRORS = enum.auto()
+
 @strawberry.type
-class CreateBookingError:
-    error_code: CreateBookingErrorCode
+class CreateBookingFailure:
+    failure_reason: CreateBookingFailureReason
+    validation_errors: list[ValidationError] | None = None
 
-
-CreateBookingResult = Annotated[CreateBookingSuccess | CreateBookingError, strawberry.union("CreateBookingResult")]
+CreateBookingResult = Annotated[CreateBookingSuccess | CreateBookingFailure, strawberry.union("CreateBookingResult")]
 
 
 async def create_booking_mutation(
@@ -201,7 +201,6 @@ async def create_booking_mutation(
     try:
         async with database.async_session.begin() as db_session:
             # TODO: should we 1 or none and return client friendly error if 404? instead of 500 throw
-            # outing = await db_session.scalars(select(OutingOrm).where(OutingOrm.id == input.outing_id))
             outing = await OutingOrm.get_one(db_session, input.outing_id)
             survey = await SurveyOrm.get_one(db_session, outing.survey_id)
 
@@ -209,9 +208,9 @@ async def create_booking_mutation(
             try:
                 validate_time_within_bounds_or_exception(survey.start_time)
             except StartTimeTooSoonError:
-                raise ValidationError(code=CreateBookingErrorCode.START_TIME_TOO_SOON)
+                return CreateBookingFailure(failure_reason=CreateBookingFailureReason.START_TIME_TOO_SOON)
             except StartTimeTooLateError:
-                raise ValidationError(code=CreateBookingErrorCode.START_TIME_TOO_LATE)
+                return CreateBookingFailure(failure_reason=CreateBookingFailureReason.START_TIME_TOO_LATE)
 
             booking = await BookingOrm.build(
                 reserver_details_id=input.reserver_details_id,
@@ -227,9 +226,9 @@ async def create_booking_mutation(
                 booking_id=booking.id,
                 outing=outing,
             )
-    except ValidationError as e:
+    except InvalidRecordError as e:
         LOGGER.exception(e)
-        return CreateBookingError(error_code=CreateBookingErrorCode(e.code))
+        return CreateBookingFailure(failure_reason=CreateBookingFailureReason.VALIDATION_ERRORS, validation_errors=e.validation_errors)
 
     await _notify_slack(booking_details, account_id, input.reserver_details_id)
 
@@ -246,8 +245,5 @@ async def create_booking_mutation(
     )
 
     return CreateBookingSuccess(
-        booking=Booking(
-            id=booking.id,
-            reserver_details_id=booking.reserver_details_id,
-        )
+        booking=Booking.from_orm(booking),
     )

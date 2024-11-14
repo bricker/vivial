@@ -5,11 +5,13 @@ from uuid import UUID
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
+from eave.core.shared.enums import ActivitySource
+
 from .base import Base
 
 
 class OutingActivityOrm(Base):
-    """Pivot table between `outings` and `activities` tables. (`activities` is a remote dataset)"""
+    """Pivot table between `outings` and `activities` tables."""
 
     __tablename__ = "outing_activities"
     __table_args__ = (
@@ -20,7 +22,6 @@ class OutingActivityOrm(Base):
             ondelete="CASCADE",
             name="outing_id_activity_pivot_fk",
         ),
-        # no fk for activity_id bcus it's a remote db
     )
 
     outing_id: Mapped[UUID] = mapped_column()
@@ -42,8 +43,8 @@ class OutingActivityOrm(Base):
         activity_source: ActivitySource,
         activity_start_time: datetime,
         num_attendees: int,
-    ) -> Self:
-        obj = cls(
+    ) -> "OutingActivityOrm":
+        obj = OutingActivityOrm(
             outing_id=outing_id,
             activity_id=activity_id,
             activity_start_time=activity_start_time,

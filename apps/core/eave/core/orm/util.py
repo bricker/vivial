@@ -2,12 +2,17 @@ from datetime import datetime, timedelta
 
 from sqlalchemy import text
 
-from eave.stdlib.exceptions import StartTimeTooLateError, StartTimeTooSoonError
-
 PG_UUID_EXPR = text("(gen_random_uuid())")
 
 PG_EMPTY_ARRAY_EXPR = text("'{}'")
 
+
+class StartTimeTooSoonError(Exception):
+    pass
+
+
+class StartTimeTooLateError(Exception):
+    pass
 
 def validate_time_within_bounds_or_exception(start_time: datetime) -> None:
     """Ensure an event start time is within the bounds of when

@@ -1,3 +1,4 @@
+from abc import abstractmethod, ABC
 from typing import Self
 from uuid import UUID
 
@@ -5,9 +6,21 @@ from sqlalchemy import MetaData, Select, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase
 
+from eave.core.shared.errors import ValidationError
+
+class InvalidRecordError(Exception):
+    validation_errors: list[ValidationError]
+
+    def __init__(self, validation_errors: list[ValidationError]) -> None:
+        self.validation_errors = validation_errors
+        super().__init__()
 
 class Base(DeclarativeBase):
     async def save(self, session: AsyncSession) -> Self:
+        validation_errors = self.validate()
+        if len(validation_errors) > 0:
+            raise InvalidRecordError(validation_errors)
+
         session.add(self)
         await session.flush()
         return self
@@ -20,6 +33,8 @@ class Base(DeclarativeBase):
     def select(cls) -> Select[tuple[Self]]:
         return select(cls)
 
+    def validate(self) -> list[ValidationError]:
+        return []
 
 def _load_all() -> None:
     """

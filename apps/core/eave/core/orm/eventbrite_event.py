@@ -8,6 +8,7 @@ from geoalchemy2.types import Geography
 from sqlalchemy import PrimaryKeyConstraint, Select, func, or_, select
 from sqlalchemy.dialects.postgresql import INT4RANGE, TSTZRANGE, Range
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlmodel import SQLModel
 
 from eave.core.lib.geo import GeoArea, GeoPoint, SpatialReferenceSystemId
 from eave.stdlib.typing import NOT_SET, NotSet
@@ -34,8 +35,8 @@ class EventbriteEventOrm(Base):
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
-    def build(cls, *, eventbrite_event_id: str) -> Self:
-        obj = cls(eventbrite_event_id=eventbrite_event_id)
+    def build(cls, *, eventbrite_event_id: str) -> "EventbriteEventOrm":
+        obj = EventbriteEventOrm(eventbrite_event_id=eventbrite_event_id)
         return obj
 
     def update(

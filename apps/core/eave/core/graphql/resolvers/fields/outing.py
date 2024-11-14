@@ -20,7 +20,7 @@ MOCK_OUTING = Outing(
     visitor_id=uuid4(),
     account_id=uuid4(),
     survey_id=uuid4(),
-    budget=OutingBudget.THREE,
+    budget=OutingBudget.EXPENSIVE,
     headcount=2,
     driving_time="25 min",
     restaurant_arrival_time=(datetime(2024, 10, 15, hour=6, tzinfo=LOS_ANGELES_ZONE_INFO)),

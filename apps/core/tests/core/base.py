@@ -73,6 +73,8 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             # transport=transport,
         )
 
+        self._gql_cache = {}
+
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
 
@@ -86,6 +88,13 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         await conn.close()
         await eave.core.database.async_engine.dispose()
         await self.httpclient.aclose()
+
+    def load_graphql_query(self, name: str) -> str:
+        if name not in self._gql_cache:
+            with open(f"resolvers/graphql/{name}.graphql") as f:
+                self._gql_cache[name] = f.read()
+
+        return self._gql_cache[name]
 
     async def save(self, session: AsyncSession, /, obj: J) -> J:
         session.add(obj)

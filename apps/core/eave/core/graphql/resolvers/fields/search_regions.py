@@ -1,8 +1,7 @@
 import strawberry
 
 from eave.core.orm.search_region import SearchRegionOrm
-
-from ..types.search_region import SearchRegion
+from eave.core.graphql.types.search_region import SearchRegion
 
 
 async def list_search_regions_query(*, info: strawberry.Info) -> list[SearchRegion]:
