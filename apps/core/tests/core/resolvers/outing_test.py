@@ -1,4 +1,7 @@
+import unittest.mock
 from http import HTTPStatus
+
+from google.maps.places_v1.types import Place
 
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.search_region import SearchRegionOrm
@@ -10,7 +13,34 @@ from ..base import BaseTestCase
 day_seconds = 60 * 60 * 24
 
 
+class MockPlacesResponse:
+    places: list[Place]
+
+    def __init__(self, places: list[Place]):
+        self.places = places
+
+
 class TestOutingEndpoints(BaseTestCase):
+    async def asyncSetUp(self) -> None:
+        await super().asyncSetUp()
+        self.patch(
+            name="eventbrite get_event_by_id",
+            patch=unittest.mock.patch("eave.stdlib.eventbrite.client.EventbriteClient.get_event_by_id"),
+            return_value={},
+        )
+        self.patch(
+            name="eventbrite get_event_description",
+            patch=unittest.mock.patch("eave.stdlib.eventbrite.client.EventbriteClient.get_event_description"),
+            return_value="description",
+        )
+        self.patch(
+            name="google places searchNearby",
+            patch=unittest.mock.patch(
+                "google.maps.places_v1.services.places.async_client.PlacesAsyncClient.search_nearby"
+            ),
+            return_value=MockPlacesResponse([]),
+        )
+
     async def test_plan_outing(self) -> None:
         vis_id = self.anyuuid()
 
@@ -22,8 +52,8 @@ mutation {{
     planOuting(input: {{
         visitorId: "{vis_id}",
         startTime: "{self.anydatetime(offset=2 * day_seconds).isoformat()}",
-        searchAreaIds: [US_CA_LA1],
-        budget: ONE,
+        searchAreaIds: ["{self.anyuuid()}"],
+        budget: INEXPENSIVE,
         headcount: 2,
         group: [
             {{

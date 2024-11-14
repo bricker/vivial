@@ -1,3 +1,4 @@
+import json
 import random
 from collections.abc import MutableSequence, Sequence
 from dataclasses import dataclass
@@ -5,17 +6,19 @@ from datetime import datetime, timedelta
 from uuid import UUID
 
 from geoalchemy2.functions import ST_DWithin
-from google.maps import places_v1
+from google.auth import load_credentials_from_dict
+from google.maps.places_v1 import PlacesAsyncClient
+from google.maps.places_v1.types import GetPlaceRequest, Place, SearchNearbyRequest
 from sqlalchemy import func, or_
 
 import eave.core.database
 from eave.core.config import CORE_API_APP_CONFIG
-from eave.core.graphql.resolvers.mutations.plan_outing import PlanOutingInput
 from eave.core.graphql.types.activity import Activity, ActivitySource, ActivityVenue
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import ProposedOuting
 from eave.core.graphql.types.preferences import Preferences
 from eave.core.graphql.types.restaurant import Restaurant, RestaurantSource
+from eave.core.graphql.types.survey import Survey
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
 from eave.core.lib.time_category import is_early_evening, is_early_morning, is_late_evening, is_late_morning
 from eave.core.orm.activity_subcategory import ActivitySubcategoryOrm
@@ -177,22 +180,24 @@ class OutingPlanner:
     restaurant, then go to an event or engage in a cute activity.
     """
 
-    places: places_v1.PlacesClient
+    places: PlacesAsyncClient
     eventbrite: EventbriteClient
-    constraints: PlanOutingInput
+    constraints: Survey
     activity: Activity | None
     restaurant: Restaurant | None
+    activity_start_time: datetime | None
+    restaurant_arrival_time: datetime | None
 
     group_preferences: GroupPreferences
 
     def __init__(
         self,
         group: list[Preferences],
-        constraints: PlanOutingInput,
+        constraints: Survey,
         activity: Activity | None = None,
         restaurant: Restaurant | None = None,
     ) -> None:
-        self.places = places_v1.PlacesClient()
+        self.places = build_client(json_creds=CORE_API_APP_CONFIG.google_places_api_key)
         self.eventbrite = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
         self.constraints = constraints
         self.activity = activity
@@ -209,6 +214,7 @@ class OutingPlanner:
         the activity.
         """
         activity_start_time = self.constraints.start_time + timedelta(minutes=120)
+        self.activity_start_time = activity_start_time
         activity_end_time = activity_start_time + timedelta(minutes=90)
         random.shuffle(self.constraints.search_area_ids)
 
@@ -362,7 +368,7 @@ class OutingPlanner:
 
         for search_area_id in self.constraints.search_area_ids:
             region = SearchRegionOrm.one_or_exception(search_region_id=search_area_id)
-            places_nearby = get_places_nearby(
+            places_nearby = await get_places_nearby(
                 client=self.places,
                 area=region.area,
                 included_primary_types=[place_type],
@@ -413,6 +419,7 @@ class OutingPlanner:
         For now, the meal always happens before the activity.
         """
         arrival_time = self.constraints.start_time
+        self.restaurant_arrival_time = arrival_time
         departure_time = arrival_time + timedelta(minutes=90)
         search_areas = []
 
@@ -447,7 +454,7 @@ class OutingPlanner:
 
         # Find a restaurant that meets the outing constraints.
         for area in search_areas:
-            restaurants_nearby = get_places_nearby(
+            restaurants_nearby = await get_places_nearby(
                 client=self.places,
                 area=area,
                 included_primary_types=restaurant_category_ids,
@@ -497,38 +504,50 @@ class OutingPlanner:
         await self.plan_restaurant()
         return ProposedOuting(
             activity=self.activity,
-            activity_start_time=None,
+            activity_start_time=self.activity_start_time,
             restaurant=self.restaurant,
-            restaurant_arrival_time=None,
+            restaurant_arrival_time=self.restaurant_arrival_time,
             driving_time=None,
         )
 
 
-def get_places_nearby(
-    client: places_v1.PlacesClient,
+def build_client(json_creds: str) -> PlacesAsyncClient:
+    creds, _ = load_credentials_from_dict(json.loads(json_creds))
+    return PlacesAsyncClient(credentials=creds)
+
+
+async def get_place(
+    client: PlacesAsyncClient,
+    id: str,
+) -> Place:
+    return await client.get_place(request=GetPlaceRequest(name=f"places/{id}"))
+
+
+async def get_places_nearby(
+    client: PlacesAsyncClient,
     area: GeoArea,
     included_primary_types: Sequence[str],
     field_mask: str,
-) -> MutableSequence[places_v1.Place]:
+) -> MutableSequence[Place]:
     """
     Given a Google Places API client, use it to search for places nearby the
     given latitude and longitude that meet the given constraints.
 
     https://developers.google.com/maps/documentation/places/web-service/nearby-search
     """
-    location_restriction = places_v1.SearchNearbyRequest.LocationRestriction()
+    location_restriction = SearchNearbyRequest.LocationRestriction()
     location_restriction.circle.radius = area.rad.meters
     location_restriction.circle.center.latitude = area.center.lat
     location_restriction.circle.center.longitude = area.center.lon
-    request = places_v1.SearchNearbyRequest(
+    request = SearchNearbyRequest(
         location_restriction=location_restriction,
         included_primary_types=included_primary_types[0:50],
     )
-    response = client.search_nearby(request=request, metadata=[("x-goog-fieldmask", field_mask)])
+    response = await client.search_nearby(request=request, metadata=[("x-goog-fieldmask", field_mask)])
     return response.places or []
 
 
-def place_will_be_open(place: places_v1.Place, utc_arrival_time: datetime, utc_departure_time: datetime) -> bool:
+def place_will_be_open(place: Place, utc_arrival_time: datetime, utc_departure_time: datetime) -> bool:
     """
     Given a place from the Google Places API, determine whether or not that
     place will be open during the given time period.
@@ -558,7 +577,7 @@ def place_will_be_open(place: places_v1.Place, utc_arrival_time: datetime, utc_d
     return False
 
 
-def place_is_in_budget(place: places_v1.Place, budget: OutingBudget) -> bool:
+def place_is_in_budget(place: Place, budget: OutingBudget) -> bool:
     """
     Given a place from the Google Places API, determine whether or not that
     place is within the user's budget for the date.
@@ -568,7 +587,7 @@ def place_is_in_budget(place: places_v1.Place, budget: OutingBudget) -> bool:
     return place.price_level == budget.google_places_price_level
 
 
-def place_is_accessible(place: places_v1.Place) -> bool:
+def place_is_accessible(place: Place) -> bool:
     """
     Given a place from the Google Places API, determine whether or not that
     place is accessible for people in wheelchairs.

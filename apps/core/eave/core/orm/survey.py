@@ -62,6 +62,12 @@ class SurveyOrm(Base):
 
         return obj
 
+    @property
+    def outing_budget(self) -> OutingBudget:
+        budget = OutingBudget.from_str(self.budget)
+        assert budget is not None, "SurveyOrm unexpectedly contained invalid budget value"
+        return budget
+
     def validate(self) -> list[ValidationError]:
         errors: list[ValidationError] = []
 

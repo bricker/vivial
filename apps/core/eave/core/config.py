@@ -41,6 +41,7 @@ class _AppConfig(ConfigBase):
 
     @cached_property
     def google_places_api_key(self) -> str:
+        """Service account JSON credentials"""
         return get_required_env("GOOGLE_PLACES_API_KEY")
 
     @cached_property

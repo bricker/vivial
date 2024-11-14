@@ -10,10 +10,24 @@ class ActivitySource(enum.StrEnum):
     EVENTBRITE = enum.auto()
     GOOGLE_PLACES = enum.auto()
 
+    @classmethod
+    def from_str(cls, s: str) -> "ActivitySource | None":
+        try:
+            return cls[s]
+        except KeyError:
+            return None
+
 
 @strawberry.enum
 class RestaurantSource(enum.StrEnum):
     GOOGLE_PLACES = enum.auto()
+
+    @classmethod
+    def from_str(cls, s: str) -> "RestaurantSource | None":
+        try:
+            return cls[s]
+        except KeyError:
+            return None
 
 
 @strawberry.enum
@@ -23,6 +37,13 @@ class OutingBudget(enum.StrEnum):
     MODERATE = enum.auto()
     EXPENSIVE = enum.auto()
     VERY_EXPENSIVE = enum.auto()
+
+    @classmethod
+    def from_str(cls, s: str) -> "OutingBudget | None":
+        try:
+            return cls[s]
+        except KeyError:
+            return None
 
     @property
     def upper_limit_cents(self) -> int | None:

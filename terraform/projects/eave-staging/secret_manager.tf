@@ -18,7 +18,18 @@ module "app_secrets" {
       data = var.OPENAI_API_KEY
       accessors = [
         data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
-        data.google_service_account.app_service_accounts[module.dashboard_app.service_account_id].member,
+      ],
+    },
+    GOOGLE_PLACES_API_KEY = {
+      data = var.GOOGLE_PLACES_API_KEY
+      accessors = [
+        data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
+      ],
+    },
+    EVENTBRITE_API_KEY = {
+      data = var.EVENTBRITE_API_KEY
+      accessors = [
+        data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
       ],
     },
     SENDGRID_API_KEY = {
