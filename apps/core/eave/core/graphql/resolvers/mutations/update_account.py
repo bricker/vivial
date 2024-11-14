@@ -42,5 +42,5 @@ UpdateAccountResult = Annotated[UpdateAccountSuccess | UpdateAccountFailure, str
 async def update_account_mutation(
     *, info: strawberry.Info[GraphQLContext], input: UpdateAccountInput
 ) -> UpdateAccountResult:
-    # account_id = unwrap(info.context.authenticated_account_id)
+    # account_id = unwrap(info.context.get("authenticated_account_id"))
     return UpdateAccountSuccess(account=MOCK_ACCOUNT)

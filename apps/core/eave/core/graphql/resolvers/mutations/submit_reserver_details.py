@@ -51,7 +51,7 @@ async def submit_reserver_details_mutation(
     phone_number parameter must be digits only (with the exception of country code +) to pass validation
     e.g. "+11234567890" or "1234567890"
     """
-    account_id = unwrap(info.context.authenticated_account_id)
+    account_id = unwrap(info.context.get("authenticated_account_id"))
     reserver_details = ReserverDetailsOrm.build(
         account_id=account_id,
         first_name=input.first_name,

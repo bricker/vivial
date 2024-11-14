@@ -18,7 +18,7 @@ class AuthenticationExtension(FieldExtension):
     async def resolve_async(
         self, next_: Callable[..., Awaitable[Any]], source: Any, info: strawberry.Info[GraphQLContext], **kwargs
     ) -> Any:
-        encoded_jws = info.context.request.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME)
+        encoded_jws = info.context["request"].cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME)
         if encoded_jws:
             jws = validate_jws_or_exception(
                 encoded_jws=encoded_jws,
@@ -27,7 +27,7 @@ class AuthenticationExtension(FieldExtension):
                 expected_purpose=JWTPurpose.ACCESS,
             )
 
-            info.context.authenticated_account_id = UUID(jws.payload.sub)
+            info.context["authenticated_account_id"] = UUID(jws.payload.sub)
         else:
             if not self.allow_anonymous:
                 raise Exception("missing access token")

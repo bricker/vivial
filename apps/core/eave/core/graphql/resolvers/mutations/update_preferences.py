@@ -52,5 +52,5 @@ MOCK_PREFERENCES = Preferences(
 async def update_preferences_mutation(
     *, info: strawberry.Info[GraphQLContext], input: UpdatePreferencesInput
 ) -> UpdatePreferencesResult:
-    # account_id = unwrap(info.context.authenticated_account_id)
+    # account_id = unwrap(info.context.get("authenticated_account_id"))
     return UpdatePreferencesSuccess(preferences=MOCK_PREFERENCES)

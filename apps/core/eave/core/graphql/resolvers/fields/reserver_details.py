@@ -12,7 +12,7 @@ from eave.stdlib.util import unwrap
 
 async def list_reserver_details_query(*, info: strawberry.Info[GraphQLContext]) -> list[ReserverDetails]:
     query = select(ReserverDetailsOrm).where(
-        ReserverDetailsOrm.account_id == unwrap(info.context.authenticated_account_id)
+        ReserverDetailsOrm.account_id == unwrap(info.context.get("authenticated_account_id"))
     )
 
     async with database.async_session.begin() as db_session:
