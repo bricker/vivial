@@ -12,11 +12,6 @@ resource "google_project" "managed" {
   auto_create_network = false
 }
 
-moved {
-  from = google_project_service.cloudresourcemanager["eave-production"]
-  to = module.gcp_services["eave-production"].google_project_service.services["cloudresourcemanager.googleapis.com"]
-}
-
 module "gcp_services" {
   source = "../../modules/gcp_services"
   for_each = local.managed_projects
