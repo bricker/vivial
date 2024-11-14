@@ -37,6 +37,9 @@ const LegalButton = styled(Button)(({ theme }) => ({
   fontSize: rem("12px"),
   lineHeight: rem("15px"),
   padding: "0 12px",
+  "&:focus": {
+    textDecoration: "underline",
+  }
 }));
 
 const SocialContainer = styled("div")(() => ({
