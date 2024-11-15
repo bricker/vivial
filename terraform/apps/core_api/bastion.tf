@@ -1,8 +1,3 @@
-moved {
-  from = module.cloudsql_bastion
-  to   = module.bastion
-}
-
 module "bastion" {
   source                         = "../../modules/cloudsql_bastion_vm"
   name                           = "${local.app_name}-bastion"

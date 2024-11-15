@@ -32,5 +32,13 @@ module "monitoring" {
       path            = "/"
       contains_string = "Eave" // :shrug: probably not great
     },
+    {
+      service         = "cdn"
+      name            = "Eave CDN uptime check"
+      severity        = "CRITICAL"
+      host            = "cdn.${local.root_domain}"
+      path            = "/status.json"
+      contains_string = "OK"
+    },
   ]
 }

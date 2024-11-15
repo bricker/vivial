@@ -10,8 +10,3 @@ module "cloudsql_eave_core" {
     data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
   ]
 }
-
-moved {
-  from = module.cloudsql_iam
-  to   = module.cloudsql_eave_core.module.cloudsql_iam
-}
