@@ -50,3 +50,10 @@ output "service_account_user_role_name" {
   value = module.service_account_user_role.name
 }
 
+output "kms_key_ring_id" {
+  value = google_kms_key_ring.primary.id
+}
+
+output "kms_jws_signing_key_default_version_id" {
+  value = google_kms_crypto_key_version.jws_signing_key_versions[local.jws_signing_key_version_count - 1].id
+}

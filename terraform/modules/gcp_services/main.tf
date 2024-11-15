@@ -8,9 +8,10 @@ resource "google_project_service" "services" {
     "certificatemanager.googleapis.com",   # Certificate Manager API
     "cloudasset.googleapis.com",           # Cloud Asset API, required for compliance
     "cloudaicompanion.googleapis.com",     # Gemini
+    "cloudbilling.googleapis.com",         # Cloud Billing
     "cloudbuild.googleapis.com",           # Cloud Build API
     "cloudkms.googleapis.com",             # Cloud Key Management Service (KMS) API
-    "cloudresourcemanager.googleapis.com", # Cloud Resource Manager API, used by Thoropass
+    "cloudresourcemanager.googleapis.com", # Cloud Resource Manager API, required by Terraform and Thoropass
     "compute.googleapis.com",              # Compute Engine API
     "container.googleapis.com",            # Kubernetes Engine API
     "containersecurity.googleapis.com",    # Container Security API
@@ -40,6 +41,7 @@ resource "google_project_service" "services" {
     "storage-api.googleapis.com",       # Google Cloud Storage JSON API
   ])
 
+  project = var.project_id
   service = each.value
 
   disable_dependent_services = false

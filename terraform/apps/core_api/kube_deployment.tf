@@ -1,22 +1,17 @@
-moved {
-  from = kubernetes_deployment.app
-  to   = kubernetes_deployment.app["core-api"]
-}
-
 resource "kubernetes_deployment" "app" {
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes = [
+      spec[0].template[0].metadata[0].annotations["kubectl.kubernetes.io/restartedAt"],
+    ]
+  }
+
   for_each = {
     (local.app_name) = {
       app_name           = local.app_name,
       deploy_name        = local.app_name,
       analytics_disabled = false,
     }
-  }
-
-  lifecycle {
-    prevent_destroy = true
-    ignore_changes = [
-      spec[0].template[0].metadata[0].annotations["kubectl.kubernetes.io/restartedAt"],
-    ]
   }
 
   wait_for_rollout = false

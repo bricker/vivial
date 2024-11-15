@@ -1,8 +1,3 @@
-moved {
-  from = module.secret_manager_secrets
-  to   = module.app_secrets.module.secret_manager_secrets
-}
-
 module "app_secrets" {
   source = "../../modules/app_secrets"
 
@@ -20,6 +15,12 @@ module "app_secrets" {
         data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
       ],
     },
+    SENDGRID_API_KEY = {
+      data = var.SENDGRID_API_KEY
+      accessors = [
+        data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
+      ],
+    },
     GOOGLE_PLACES_API_KEY = {
       data = var.GOOGLE_PLACES_API_KEY
       accessors = [
@@ -28,12 +29,6 @@ module "app_secrets" {
     },
     EVENTBRITE_API_KEY = {
       data = var.EVENTBRITE_API_KEY
-      accessors = [
-        data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
-      ],
-    },
-    SENDGRID_API_KEY = {
-      data = var.SENDGRID_API_KEY
       accessors = [
         data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
       ],
