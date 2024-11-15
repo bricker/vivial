@@ -13,7 +13,7 @@ from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.resolvers.mutations.helpers.planner import build_places_client, get_place
+from eave.core.graphql.resolvers.mutations.helpers.planner import get_place
 from eave.core.graphql.types.booking import (
     Booking,
 )
@@ -171,7 +171,7 @@ async def _create_templates_from_outing(
     booking_id: UUID,
     outing: OutingOrm,
 ) -> BookingDetails:
-    places_client = build_places_client(CORE_API_APP_CONFIG.google_places_api_key)
+    places_client = PlacesAsyncClient()
     activities_client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
 
     activities = await db_session.scalars(OutingActivityOrm.select().where(OutingActivityOrm.outing_id == outing.id))
