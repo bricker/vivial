@@ -1,8 +1,8 @@
 locals {
-  project_id      = "eave-staging"
-  project_number  = "264481035543"
-  default_region  = "us-central1"
-  default_zone    = "us-central1-a"
+  project_id     = "eave-staging"
+  project_number = "264481035543"
+  default_region = "us-central1"
+  default_zone   = "us-central1-a"
 
   environment = "STG"
   root_domain = "eave.dev"
@@ -22,5 +22,5 @@ locals {
 
   # These are not considered sensitive values
   SEGMENT_CORE_API_WRITE_KEY = "uUjBMbm9CcTL9XV1Rf6S9xGpLnvtCObZ"
-  SEGMENT_WEBSITE_WRITE_KEY         = "dO1quf6odO8UQ5lLiJPHu0SFjy6OImu1"
+  SEGMENT_WEBSITE_WRITE_KEY  = "dO1quf6odO8UQ5lLiJPHu0SFjy6OImu1"
 }

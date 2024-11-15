@@ -140,7 +140,9 @@ def create_jws(
         signature="",
     )
 
-    signature_b64 = signing.mac_sign_b64(data=jws.message, kms_key_version_path=SHARED_CONFIG.jws_signing_key_version_path)
+    signature_b64 = signing.mac_sign_b64(
+        data=jws.message, kms_key_version_path=SHARED_CONFIG.jws_signing_key_version_path
+    )
     jws.signature = signature_b64
     return str(jws)
 
@@ -168,7 +170,9 @@ def validate_jws_or_exception(
     jws = JWS.from_str(jwt_encoded=encoded_jws)
 
     # Verify the MAC sig with the same key version that was used to create it.
-    kms_key_version_path = signing.replace_key_version(kms_key_version_path=SHARED_CONFIG.jws_signing_key_version_path, kms_key_version_name=jws.header.kid)
+    kms_key_version_path = signing.replace_key_version(
+        kms_key_version_path=SHARED_CONFIG.jws_signing_key_version_path, kms_key_version_name=jws.header.kid
+    )
 
     signing.mac_verify_or_exception(
         message=jws.message,

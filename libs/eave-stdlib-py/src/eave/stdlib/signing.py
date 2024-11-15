@@ -11,11 +11,12 @@ _CRYPTO_KEY_VERSION_CACHE: dict[str, kms.CryptoKeyVersion] = {}
 
 
 def replace_key_version(*, kms_key_version_path: str, kms_key_version_name: str) -> str:
-   # Verify the MAC sig with the same key version that was used to create it.
+    # Verify the MAC sig with the same key version that was used to create it.
     key_version_path_dict = kms.KeyManagementServiceClient.parse_crypto_key_version_path(kms_key_version_path)
     key_version_path_dict["crypto_key_version"] = kms_key_version_name
     new_key_version_path = kms.KeyManagementServiceClient.crypto_key_version_path(**key_version_path_dict)
     return new_key_version_path
+
 
 def get_key_version(kms_key_version_path: str) -> kms.CryptoKeyVersion:
     kms_client = kms.KeyManagementServiceClient()
@@ -27,6 +28,7 @@ def get_key_version(kms_key_version_path: str) -> kms.CryptoKeyVersion:
         _CRYPTO_KEY_VERSION_CACHE[kms_key_version_path] = key_version
 
     return key_version
+
 
 def mac_sign_b64(*, data: str | bytes, kms_key_version_path: str) -> str:
     """

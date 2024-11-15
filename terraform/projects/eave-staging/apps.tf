@@ -22,9 +22,9 @@ module "core_api_app" {
   subnetwork_self_link           = module.project_base.subnetwork_self_link
   bastion_accessors              = ["group:developers@eave.fyi"]
 
-  LOG_LEVEL                  = "DEBUG"
-  release_version            = "latest"
-  SEGMENT_CORE_API_WRITE_KEY = local.SEGMENT_CORE_API_WRITE_KEY
+  LOG_LEVEL                    = "DEBUG"
+  release_version              = "latest"
+  SEGMENT_CORE_API_WRITE_KEY   = local.SEGMENT_CORE_API_WRITE_KEY
   JWS_SIGNING_KEY_VERSION_PATH = module.project_base.kms_jws_signing_key_default_version_id
 }
 

@@ -13,7 +13,7 @@ resource "google_project" "managed" {
 }
 
 module "gcp_services" {
-  source = "../../modules/gcp_services"
+  source   = "../../modules/gcp_services"
   for_each = local.managed_projects
 
   project_id = each.value
@@ -26,7 +26,7 @@ resource "google_storage_bucket" "terraform" {
 
   for_each = local.managed_projects
 
-  project = each.value
+  project                     = each.value
   name                        = "terraform.${each.value}.eave.fyi" # This is hard-coded to eave.fyi because the project id is in the name so it's already unique.
   force_destroy               = false
   location                    = "us-central1" # This is hardcoded because it's just for developers

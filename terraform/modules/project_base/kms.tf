@@ -4,13 +4,13 @@ resource "google_kms_key_ring" "primary" {
 }
 
 resource "google_kms_crypto_key" "jws_signing_key" {
-  name            = "jws-signing-key"
-  key_ring        = google_kms_key_ring.primary.id
-  purpose = "MAC"
+  name     = "jws-signing-key"
+  key_ring = google_kms_key_ring.primary.id
+  purpose  = "MAC"
 
   version_template {
     protection_level = "SOFTWARE"
-    algorithm = "HMAC_SHA256"
+    algorithm        = "HMAC_SHA256"
   }
 
   lifecycle {
@@ -23,7 +23,7 @@ locals {
 }
 
 resource "google_kms_crypto_key_version" "jws_signing_key_versions" {
-  count = local.jws_signing_key_version_count
+  count      = local.jws_signing_key_version_count
   crypto_key = google_kms_crypto_key.jws_signing_key.id
 }
 

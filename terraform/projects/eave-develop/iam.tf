@@ -17,5 +17,5 @@
 resource "google_project_iam_member" "project_developer_editors" {
   project = data.google_project.default.id
   role    = "roles/editor"
-  member = "group:developers@eave.fyi"
+  member  = "group:developers@eave.fyi"
 }
