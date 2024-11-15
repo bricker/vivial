@@ -276,39 +276,38 @@ async def _notify_slack(
                 channel=channel_id,
                 thread_ts=slack_response.get("ts"),
                 text=dedent(f"""
-Account ID: `{account.id}`
-Account email: `{account.email}`
+                    Account ID: `{account.id}`
+                    Account email: `{account.email}`
 
-Reserver first name: `{reserver.first_name}`
-Reserver last name: `{reserver.last_name}`
-Reserver phone number: `{reserver.phone_number}`
+                    Reserver first name: `{reserver.first_name}`
+                    Reserver last name: `{reserver.last_name}`
+                    Reserver phone number: `{reserver.phone_number}`
 
-{"\n".join([
-f"""*Reservation:*
-for {reservation.num_attendees} attendees
-on (ISO time): {reservation.reservation_start_time.isoformat()}
-at
-```
-{reservation.reservation_name}
-{reservation.address}
-```
-"""
-    for reservation in booking_details.reservations
-])}
+                    {"\n".join([
+                    f"""*Reservation:*
+                    for {reservation.num_attendees} attendees
+                    on (ISO time): {reservation.reservation_start_time.isoformat()}
+                    at
+                    ```
+                    {reservation.reservation_name}
+                    {reservation.address}
+                    ```
+                    """
+                        for reservation in booking_details.reservations
+                    ])}
 
-{"\n".join([
-f"""*Activity:*
-for {activity.num_attendees} attendees
-on (ISO time): {activity.activity_start_time.isoformat()}
-at
-```
-{activity.activity_name}
-{activity.address}
-```
-"""
-    for activity in booking_details.activities
-])}
-"""),
+                    {"\n".join([
+                    f"""*Activity:*
+                    for {activity.num_attendees} attendees
+                    on (ISO time): {activity.activity_start_time.isoformat()}
+                    at
+                    ```
+                    {activity.activity_name}
+                    {activity.address}
+                    ```
+                    """
+                        for activity in booking_details.activities
+                    ])}"""),
             )
     except Exception as e:
         LOGGER.exception(e)

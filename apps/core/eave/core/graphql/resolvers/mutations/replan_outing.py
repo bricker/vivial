@@ -68,7 +68,7 @@ async def replan_outing_mutation(
     outing = await create_outing_plan(
         visitor_id=input.visitor_id,
         survey=survey,
-        account_id=info.context.authenticated_account_id,
+        account_id=info.context.get("authenticated_account_id"),
         reroll=True,
     )
 

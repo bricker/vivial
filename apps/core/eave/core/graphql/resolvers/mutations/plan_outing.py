@@ -61,7 +61,7 @@ async def plan_outing_mutation(
             search_area_ids=input.search_area_ids,
             budget=input.budget,
             headcount=input.headcount,
-            account_id=info.context.authenticated_account_id,
+            account_id=info.context.get("authenticated_account_id"),
         ).save(session=db_session)
 
         try:

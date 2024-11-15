@@ -1,5 +1,8 @@
 from http import HTTPStatus
 
+from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME
+
+from eave.core.graphql.resolvers.mutations.refresh_tokens import make_auth_token_pair
 from eave.core.graphql.resolvers.mutations.submit_reserver_details import SubmitReserverDetailsFailureReason
 
 from ..base import BaseTestCase
@@ -11,24 +14,30 @@ class TestReserverDetailsEndpoints(BaseTestCase):
             account = await self.make_account(session=session)
         phone_num = "+12345678900"
 
+        tokens = make_auth_token_pair(account_id=account.id)
         response = await self.httpclient.post(
             "/graphql",
+            cookies={
+                EAVE_ACCESS_TOKEN_COOKIE_NAME: tokens.access_token
+            },
             json={
                 "query": f"""
 mutation {{
-    submitReserverDetails(input: {{
-        accountId: "{account.id}", firstName: "{self.anystr("first")}", lastName: "{self.anystr("last")}", phoneNumber: "{phone_num}"
-    }}) {{
-        ... on SubmitReserverDetailsSuccess {{
-            reserverDetails {{
-                id
-                firstName
-                lastName
-                phoneNumber
+    viewer {{
+        submitReserverDetails(input: {{
+            firstName: "{self.anystr("first")}", lastName: "{self.anystr("last")}", phoneNumber: "{phone_num}"
+        }}) {{
+            ... on SubmitReserverDetailsSuccess {{
+                reserverDetails {{
+                    id
+                    firstName
+                    lastName
+                    phoneNumber
+                }}
             }}
-        }}
-        ... on SubmitReserverDetailsError {{
-            errorCode
+            ... on SubmitReserverDetailsFailure {{
+                failureReason
+            }}
         }}
     }}
 }}
