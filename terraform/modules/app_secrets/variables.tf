@@ -14,16 +14,6 @@ variable "secrets" {
       accessors = list(string)
     })
 
-    GOOGLE_PLACES_API_KEY = object({
-      data      = string
-      accessors = list(string)
-    })
-
-    EVENTBRITE_API_KEY = object({
-      data      = string
-      accessors = list(string)
-    })
-
     SENDGRID_API_KEY = object({
       data      = string
       accessors = list(string)
