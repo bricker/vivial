@@ -80,6 +80,6 @@ variable "SEGMENT_CORE_API_WRITE_KEY" {
   // value can be obtained from target Core API source https://app.segment.com/vivial/sources
 }
 
-variable "JWS_SIGNING_KEY_PATH" {
+variable "JWS_SIGNING_KEY_VERSION_PATH" {
   type = string
 }

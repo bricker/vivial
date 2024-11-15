@@ -165,10 +165,10 @@ class _EaveConfig(ConfigBase):
         return self.eave_hostname_public
 
     @property
-    def jws_signing_key_path(self) -> str:
+    def jws_signing_key_version_path(self) -> str:
         return os.getenv(
-            "JWS_SIGNING_KEY_PATH",
-            f"projects/{self.google_cloud_project}/locations/global/keyRings/primary/cryptoKeys/jws-signing-key",
+            "JWS_SIGNING_KEY_VERSION_PATH",
+            f"projects/{self.google_cloud_project}/locations/global/keyRings/primary/cryptoKeys/jws-signing-key/cryptoKeyVersions/1",
         )
 
     @cached_property
