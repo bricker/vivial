@@ -1,6 +1,6 @@
 resource "kubernetes_deployment" "app" {
   lifecycle {
-    # prevent_destroy = true
+    prevent_destroy = true
     ignore_changes = [
       spec[0].template[0].metadata[0].annotations["kubectl.kubernetes.io/restartedAt"],
     ]
