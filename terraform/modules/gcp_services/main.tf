@@ -11,7 +11,7 @@ resource "google_project_service" "services" {
     "cloudbilling.googleapis.com",         # Cloud Billing
     "cloudbuild.googleapis.com",           # Cloud Build API
     "cloudkms.googleapis.com",             # Cloud Key Management Service (KMS) API
-    "cloudresourcemanager.googleapis.com", # # Cloud Resource Manager API, required by Terraform and Thoropass
+    "cloudresourcemanager.googleapis.com", # Cloud Resource Manager API, required by Terraform and Thoropass
     "compute.googleapis.com",              # Compute Engine API
     "container.googleapis.com",            # Kubernetes Engine API
     "containersecurity.googleapis.com",    # Container Security API
