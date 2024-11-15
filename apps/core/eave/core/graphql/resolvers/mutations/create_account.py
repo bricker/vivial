@@ -1,6 +1,7 @@
 import enum
 from typing import Annotated
 
+from eave.stdlib.mail import MAILER
 import strawberry
 
 import eave.core.database
@@ -77,6 +78,8 @@ async def create_account_mutation(
     )
 
     auth_token_pair = make_auth_token_pair(account_id=account_orm.id)
+
+    MAILER.send_welcome_email(to_emails=[account_orm.email])
 
     account = Account.from_orm(account_orm)
     return CreateAccountSuccess(account=account, auth_tokens=auth_token_pair)
