@@ -7,6 +7,7 @@ from uuid import UUID
 
 from geoalchemy2.functions import ST_DWithin
 from google.auth import load_credentials_from_dict
+from google.api_core.client_options import ClientOptions
 from google.maps.places_v1 import PlacesAsyncClient
 from google.maps.places_v1.types import GetPlaceRequest, Place, SearchNearbyRequest
 from sqlalchemy import func, or_
@@ -21,6 +22,7 @@ from eave.core.graphql.types.restaurant import Restaurant, RestaurantSource
 from eave.core.graphql.types.survey import Survey
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
 from eave.core.lib.time_category import is_early_evening, is_early_morning, is_late_evening, is_late_morning
+from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_subcategory import ActivitySubcategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
@@ -196,13 +198,17 @@ class OutingPlanner:
         constraints: Survey,
         activity: Activity | None = None,
         restaurant: Restaurant | None = None,
+        activity_start_time: datetime | None = None,
+        restaurant_arrival_time: datetime | None = None,
     ) -> None:
-        self.places = build_client(json_creds=CORE_API_APP_CONFIG.google_places_api_key)
+        self.places = build_places_client(api_key=CORE_API_APP_CONFIG.google_places_api_key)
         self.eventbrite = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
         self.constraints = constraints
         self.activity = activity
         self.restaurant = restaurant
         self.group_preferences = _combine_preferences(group)
+        self.activity_start_time = activity_start_time
+        self.restaurant_arrival_time = restaurant_arrival_time
 
     async def plan_activity(self) -> Activity | None:
         """
@@ -514,9 +520,8 @@ class OutingPlanner:
         )
 
 
-def build_client(json_creds: str) -> PlacesAsyncClient:
-    creds, _ = load_credentials_from_dict(json.loads(json_creds))
-    return PlacesAsyncClient(credentials=creds)
+def build_places_client(api_key: str) -> PlacesAsyncClient:
+    return PlacesAsyncClient(client_options=ClientOptions(api_key=api_key))
 
 
 async def get_place(
