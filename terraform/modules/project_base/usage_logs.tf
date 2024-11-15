@@ -5,7 +5,7 @@ resource "google_storage_bucket" "usage_logs" {
     prevent_destroy = true
   }
 
-  name                        = "logs.${google_project.main.project_id}.eave.fyi"
+  name                        = "logs.${data.google_project.default.project_id}.eave.fyi"
   force_destroy               = false
   location                    = "us-central1"
   storage_class               = "ARCHIVE"

@@ -25,3 +25,13 @@ variable "SENDGRID_API_KEY" {
   type      = string
   sensitive = true
 }
+
+variable "GOOGLE_PLACES_API_KEY" {
+  type      = string
+  sensitive = true
+}
+
+variable "EVENTBRITE_API_KEY" {
+  type      = string
+  sensitive = true
+}

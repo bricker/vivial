@@ -1,15 +1,5 @@
 # `metadata_item` is used instead of authoritative `metadata` because GCP automatically creates and manages some metadata items (eg GKE).
 
-moved {
-  from = google_compute_project_metadata_item.enable_oslogin
-  to   = google_compute_project_metadata_item.metadata_items["enable-oslogin"]
-}
-
-moved {
-  from = google_compute_project_metadata_item.enable_oslogin_2fa
-  to   = google_compute_project_metadata_item.metadata_items["enable-oslogin-2fa"]
-}
-
 resource "google_compute_project_metadata_item" "metadata_items" {
   for_each = {
     # Mandatory for SOC-2 compliance
