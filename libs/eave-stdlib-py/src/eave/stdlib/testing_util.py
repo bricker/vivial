@@ -14,6 +14,7 @@ from typing import Any, Literal, TypeVar
 
 import google.cloud.dlp_v2
 from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
+from google.maps.places_v1.types import Place
 
 import eave.stdlib.exceptions
 import eave.stdlib.util
@@ -24,6 +25,13 @@ from eave.stdlib.typing import JsonObject
 
 T = TypeVar("T")
 M = TypeVar("M", bound=unittest.mock.Mock)
+
+
+class MockPlacesResponse:
+    places: list[Place]
+
+    def __init__(self, places: list[Place]) -> None:
+        self.places = places
 
 
 class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
@@ -50,6 +58,8 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         SHARED_CONFIG.reset_cached_properties()
         self.mock_google_services()
         self.mock_slack_client()
+        self.mock_google_places()
+        self.mock_eventbrite()
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
@@ -494,6 +504,27 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             name="slack client",
             patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient.chat_postMessage"),
             return_value={},
+        )
+
+    def mock_eventbrite(self) -> None:
+        self.patch(
+            name="eventbrite get_event_by_id",
+            patch=unittest.mock.patch("eave.stdlib.eventbrite.client.EventbriteClient.get_event_by_id"),
+            return_value={},
+        )
+        self.patch(
+            name="eventbrite get_event_description",
+            patch=unittest.mock.patch("eave.stdlib.eventbrite.client.EventbriteClient.get_event_description"),
+            return_value="description",
+        )
+
+    def mock_google_places(self) -> None:
+        self.patch(
+            name="google places searchNearby",
+            patch=unittest.mock.patch(
+                "google.maps.places_v1.services.places.async_client.PlacesAsyncClient.search_nearby"
+            ),
+            return_value=MockPlacesResponse([]),
         )
 
     def logged_event(self, *args: Any, **kwargs: Any) -> bool:

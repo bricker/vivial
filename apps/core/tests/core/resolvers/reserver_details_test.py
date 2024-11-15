@@ -1,9 +1,8 @@
 from http import HTTPStatus
 
-from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME
-
 from eave.core.graphql.resolvers.mutations.refresh_tokens import make_auth_token_pair
 from eave.core.graphql.resolvers.mutations.submit_reserver_details import SubmitReserverDetailsFailureReason
+from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME
 
 from ..base import BaseTestCase
 
@@ -17,9 +16,7 @@ class TestReserverDetailsEndpoints(BaseTestCase):
         tokens = make_auth_token_pair(account_id=account.id)
         response = await self.httpclient.post(
             "/graphql",
-            cookies={
-                EAVE_ACCESS_TOKEN_COOKIE_NAME: tokens.access_token
-            },
+            cookies={EAVE_ACCESS_TOKEN_COOKIE_NAME: tokens.access_token},
             json={
                 "query": f"""
 mutation {{

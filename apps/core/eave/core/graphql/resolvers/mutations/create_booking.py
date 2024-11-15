@@ -177,8 +177,7 @@ async def _create_templates_from_outing(
     activities = await db_session.scalars(OutingActivityOrm.select().where(OutingActivityOrm.outing_id == outing.id))
     activity_details = []
     for activity in activities:
-        src = ActivitySource.from_str(activity.activity_source)
-        assert src is not None
+        src = ActivitySource[activity.activity_source]
         details = await _get_event_details(
             places_client=places_client,
             activities_client=activities_client,
@@ -213,8 +212,7 @@ async def _create_templates_from_outing(
     )
     reservation_details = []
     for reservation in reservations:
-        src = RestaurantSource.from_str(reservation.reservation_source)
-        assert src is not None
+        src = RestaurantSource[reservation.reservation_source]
         details = await _get_event_details(
             places_client=places_client,
             activities_client=activities_client,

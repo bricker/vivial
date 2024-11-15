@@ -1,7 +1,4 @@
-import unittest.mock
 from http import HTTPStatus
-
-from google.maps.places_v1.types import Place
 
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.search_region import SearchRegionOrm
