@@ -1,7 +1,6 @@
 import enum
 from typing import Annotated
 
-from eave.stdlib.mail import MAILER
 import strawberry
 
 import eave.core.database
@@ -13,6 +12,7 @@ from eave.core.graphql.types.auth_token_pair import AuthTokenPair
 from eave.core.orm.account import AccountOrm, WeakPasswordError
 from eave.core.orm.base import InvalidRecordError
 from eave.core.shared.errors import ValidationError
+from eave.stdlib.mail import MAILER
 
 
 @strawberry.input
