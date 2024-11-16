@@ -78,7 +78,7 @@ const GlobalFooter = () => {
         <SocialLink href="https://www.tiktok.com/@vivial.app" target="_blank">
           <TikTokIcon />
         </SocialLink>
-        <SocialLink href="https://www.instagram.com/vivial.app/" target="_blank">
+        <SocialLink href="https://www.instagram.com/vivial.app" target="_blank">
           <InstagramIcon />
         </SocialLink>
       </SocialContainer>
