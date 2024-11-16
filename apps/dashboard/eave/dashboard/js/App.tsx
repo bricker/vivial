@@ -11,8 +11,10 @@ import { theme } from "./theme";
 
 import GlobalLayout from "./components/Global/GlobalLayout";
 import DateSurveyPage from "./components/Pages/DateSurveyPage";
+import ForgotPasswordPage from "./components/Pages/ForgotPasswordPage";
 import LogInPage from "./components/Pages/LogInPage";
 import PrivacyPage from "./components/Pages/PrivacyPage";
+import SignUpPage from "./components/Pages/SignUpPage";
 import TermsPage from "./components/Pages/TermsPage";
 import RouteChangeTracker from "./components/Util/RouteChangeTracker";
 
@@ -35,6 +37,8 @@ const App = () => {
               <Route path="/" element={<GlobalLayout />}>
                 <Route index element={<DateSurveyPage />} />
                 <Route path="/login" element={<LogInPage />} />
+                <Route path="/login/password" element={<ForgotPasswordPage />} />
+                <Route path="/signup" element={<SignUpPage />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="*" element={<Navigate to="/" />} />
