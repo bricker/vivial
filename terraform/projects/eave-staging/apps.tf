@@ -22,9 +22,10 @@ module "core_api_app" {
   subnetwork_self_link           = module.project_base.subnetwork_self_link
   bastion_accessors              = ["group:developers@eave.fyi"]
 
-  LOG_LEVEL                  = "DEBUG"
-  release_version            = "latest"
-  SEGMENT_CORE_API_WRITE_KEY = "uUjBMbm9CcTL9XV1Rf6S9xGpLnvtCObZ"
+  LOG_LEVEL                    = "DEBUG"
+  release_version              = "latest"
+  SEGMENT_CORE_API_WRITE_KEY   = local.SEGMENT_CORE_API_WRITE_KEY
+  JWS_SIGNING_KEY_VERSION_PATH = module.project_base.kms_jws_signing_key_default_version_id
 }
 
 module "dashboard_app" {
@@ -42,5 +43,5 @@ module "dashboard_app" {
   iap_enabled                       = true
   iap_oauth_client_id               = var.IAP_OAUTH_CLIENT_ID
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
-  SEGMENT_WEBSITE_WRITE_KEY         = "dO1quf6odO8UQ5lLiJPHu0SFjy6OImu1"
+  SEGMENT_WEBSITE_WRITE_KEY         = local.SEGMENT_WEBSITE_WRITE_KEY
 }

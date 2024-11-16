@@ -1,9 +1,3 @@
-moved {
-  from = module.kubernetes_service
-  to   = module.kubernetes_service["core-api"]
-}
-
-
 module "kubernetes_service" {
   for_each = toset([local.app_name])
 
