@@ -55,6 +55,13 @@ export const theme = createTheme({
       lineHeight: rem("45px"),
       fontWeight: 600,
     },
+    h3: {
+      fontFamily: fontFamilies.quicksand,
+      color: colors.vivialYellow,
+      fontSize: rem("28px"),
+      lineHeight: rem("35px"),
+      fontWeight: 600,
+    },
     subtitle1: {
       fontSize: rem("14px"),
       lineHeight: rem("20.5px"),
