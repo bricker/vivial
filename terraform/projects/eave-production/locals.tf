@@ -7,7 +7,11 @@ locals {
   default_zone    = "us-central1-a"
 
   environment = "PROD"
-  root_domain = "eave.fyi"
+  dns_domain = "vivialapp.com"
+  resource_domain = "eave.fyi" # This is used for Storage buckets and stuff, because our public domain changed but we couldn't delete all of our resources.
+
+  www_public_domain_prefix = "www-preview"
+  api_public_domain_prefix = "api"
 
   eave_slack_signups_channel_id = "C04HH2N08LD" # #sign-ups in eave slack
 

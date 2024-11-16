@@ -5,7 +5,8 @@ locals {
   default_zone   = "us-central1-a"
 
   environment = "STG"
-  root_domain = "eave.dev"
+  dns_domain = "eave.dev"
+  resource_domain = "eave.dev"
 
   eave_slack_signups_channel_id = "C04GDPU3B5Z" # #bot-testing in eave slack
 

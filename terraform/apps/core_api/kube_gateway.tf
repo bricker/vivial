@@ -6,9 +6,9 @@ module "app_gateway" {
     app = local.app_name
   }
   namespace            = var.kube_namespace_name
-  certificate_map_name = var.certificate_map_name
+  google_certificate_manager_certificate_map = var.google_certificate_manager_certificate_map
   global_address_names = [for addr in google_compute_global_address.a_addrs : addr.name]
-  ssl_policy_name      = var.ssl_policy_name
+  google_compute_ssl_policy      = var.google_compute_ssl_policy
 }
 
 

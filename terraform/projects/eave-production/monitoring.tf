@@ -3,21 +3,11 @@ module "monitoring" {
   slack_auth_token = var.GCP_MONITORING_SLACK_AUTH_TOKEN
   uptime_checks = [
     {
-      service  = "dashboard"
-      name     = "Eave Dashboard uptime check"
-      severity = "CRITICAL"
-      host     = "dashboard.${local.root_domain}"
-      path     = "/status"
-      matches_json_path = {
-        content   = "OK"
-        json_path = "$.status"
-      }
-    },
-    {
       service  = "core-api"
-      name     = "Eave Core API uptime check"
+      name     = "Core API uptime check"
+      enabled = false
       severity = "CRITICAL"
-      host     = "api.${local.root_domain}"
+      host     = "api.${local.dns_domain}" # domain prefix is hardcoded on purpose
       path     = "/status"
       matches_json_path = {
         content   = "OK"
@@ -25,18 +15,20 @@ module "monitoring" {
       }
     },
     {
-      service         = "marketing"
-      name            = "Eave Marketing Website uptime check"
+      service         = "www"
+      name            = "Website uptime check"
+      enabled = true
       severity        = "CRITICAL"
-      host            = "www.${local.root_domain}"
+      host            = "www.${local.dns_domain}" # domain prefix is hardcoded on purpose
       path            = "/"
       contains_string = "Eave" // :shrug: probably not great
     },
     {
       service         = "cdn"
-      name            = "Eave CDN uptime check"
+      name            = "CDN uptime check"
+      enabled = false
       severity        = "CRITICAL"
-      host            = "cdn.${local.root_domain}"
+      host            = "cdn.${local.dns_domain}" # domain prefix is hardcoded on purpose
       path            = "/status.json"
       contains_string = "OK"
     },

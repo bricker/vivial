@@ -6,16 +6,20 @@ variable "namespace" {
   type = string
 }
 
-variable "certificate_map_name" {
-  type = string
+variable "google_certificate_manager_certificate_map" {
+  type = object({
+    name = string
+  })
 }
 
 variable "global_address_names" {
   type = set(string)
 }
 
-variable "ssl_policy_name" {
-  type = string
+variable "google_compute_ssl_policy" {
+  type = object({
+    name = string
+  })
 }
 
 variable "labels" {

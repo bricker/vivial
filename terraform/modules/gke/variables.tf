@@ -12,16 +12,16 @@ variable "authorized_networks" {
   default = {}
 }
 
-variable "root_domain" {
-  type = string
+variable "google_compute_network" {
+  type = object({
+    name = string
+  })
 }
 
-variable "network_name" {
-  type = string
-}
-
-variable "subnetwork_self_link" {
-  type     = string
+variable "google_compute_subnetwork" {
+  type     = object({
+    name = string
+  })
   nullable = true
 }
 

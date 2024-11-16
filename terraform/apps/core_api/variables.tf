@@ -1,3 +1,8 @@
+variable "public_domain_prefix" {
+  type=string
+  default = "api"
+}
+
 variable "environment" {
   description = "Allowed values: DEV, STG, PROD"
   type        = string
@@ -9,8 +14,43 @@ variable "environment" {
   }
 }
 
-variable "dns_zone_name" {
-  type = string
+variable "google_dns_managed_zone" {
+  type = object({
+    name = string
+    dns_name = string
+  })
+}
+
+variable "google_compute_network" {
+  type = object({
+    name = string
+  })
+}
+
+variable "google_compute_subnetwork" {
+  type = object({
+    name = string
+  })
+}
+
+variable "google_compute_ssl_policy" {
+  type = object({
+    name = string
+  })
+}
+
+variable "google_certificate_manager_certificate_map" {
+  type = object({
+    id = string
+    name = string
+  })
+}
+
+variable "google_sql_database_instance" {
+  type = object({
+    name = string
+    connection_name = string
+  })
 }
 
 variable "docker_repository_ref" {
@@ -20,23 +60,11 @@ variable "docker_repository_ref" {
   })
 }
 
-variable "ssl_policy_name" {
-  type = string
-}
-
-variable "certificate_map_name" {
-  type = string
-}
-
 variable "kube_namespace_name" {
   type = string
 }
 
 variable "shared_config_map_name" {
-  type = string
-}
-
-variable "cloudsql_instance_name" {
   type = string
 }
 
@@ -58,12 +86,6 @@ variable "impersonators" {
   default = []
 }
 
-variable "network_name" {
-  type = string
-}
-variable "subnetwork_self_link" {
-  type = string
-}
 variable "compute_oslogin_role_name" {
   type = string
 }

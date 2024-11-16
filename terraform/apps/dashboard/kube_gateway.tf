@@ -6,9 +6,9 @@ module "app_gateway" {
     app = local.app_name
   }
   namespace            = var.kube_namespace_name
-  certificate_map_name = var.certificate_map_name
+  google_certificate_manager_certificate_map = var.google_certificate_manager_certificate_map
+  google_compute_ssl_policy      = var.google_compute_ssl_policy
   global_address_names = [for addr in google_compute_global_address.a_addrs : addr.name]
-  ssl_policy_name      = var.ssl_policy_name
 }
 
 module "gateway_backend_policy" {
@@ -50,7 +50,7 @@ resource "kubernetes_manifest" "app_httproute" {
       ]
 
       hostnames = [
-        local.domain
+        local.domain,
       ]
 
       rules = [

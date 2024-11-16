@@ -2,8 +2,10 @@ variable "instance_name" {
   type = string
 }
 
-variable "network_name" {
-  type = string
+variable "google_compute_network" {
+  type = object({
+    id = string
+  })
 }
 
 variable "global_address_name" {
