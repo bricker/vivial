@@ -2,6 +2,8 @@
 
 [https://www.vivialapp.com/](https://www.vivialapp.com)
 
+**Note**: The name "Dashboard" is legacy. You may see this app called something else like "www" or "web app"; they all refer to the same thing.
+
 ## Local Development (optimized for VS Code)
 
 1. Run the HTTP proxy from the root directory:

@@ -1,5 +1,5 @@
 import type { IGraphQLConfig } from "graphql-config";
-import sharedGraphqlConfig from "../../../develop/shared/graphql.config.js";sharedGraphqlConfig
+import sharedGraphqlConfig from "../../../develop/shared/graphql.config.js";
 
 const config: IGraphQLConfig = {
   ...sharedGraphqlConfig,
