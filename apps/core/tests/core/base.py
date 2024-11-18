@@ -1,4 +1,5 @@
 import os
+import unittest.mock
 from typing import Any, Protocol, TypeVar
 from uuid import UUID
 
@@ -6,6 +7,7 @@ import sqlalchemy
 import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
 from google.cloud.bigquery import SchemaField
+from google.maps.places_v1.types import Place
 from httpx import AsyncClient
 from sqlalchemy import literal_column, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -38,6 +40,13 @@ J = TypeVar("J", bound=AnyStandardOrm)
 _DB_SETUP: bool = False
 
 
+class MockPlacesResponse:
+    places: list[Place]
+
+    def __init__(self, places: list[Place]) -> None:
+        self.places = places
+
+
 class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
     def __init__(self, methodName: str = "runTest") -> None:
         super().__init__(methodName)
@@ -59,6 +68,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         CORE_API_APP_CONFIG.reset_cached_properties()
 
         await super().asyncSetUp()
+        self.mock_google_places()
 
         engine = eave.core.database.async_engine.execution_options(isolation_level="READ COMMITTED")
         self.db_session = eave.core.database.async_sessionmaker(engine, expire_on_commit=False)
@@ -161,6 +171,15 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         ).save(session)
 
         return outing
+
+    def mock_google_places(self) -> None:
+        self.patch(
+            name="google places searchNearby",
+            patch=unittest.mock.patch(
+                "google.maps.places_v1.services.places.async_client.PlacesAsyncClient.search_nearby"
+            ),
+            return_value=MockPlacesResponse([]),
+        )
 
 
 def assert_schemas_match(a: tuple[SchemaField, ...], b: tuple[SchemaField, ...]) -> None:
