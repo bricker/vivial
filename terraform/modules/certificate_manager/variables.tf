@@ -1,5 +1,7 @@
-variable "certificate_map_name" {
-  type = string
+variable "google_certificate_manager_certificate_map" {
+  type = object({
+    name = string
+  })
 }
 
 variable "cert_name" {

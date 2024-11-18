@@ -7,8 +7,8 @@ resource "google_container_cluster" "default" {
 
   name             = var.cluster_name
   location         = var.location
-  network          = data.google_compute_network.given.self_link
-  subnetwork       = var.subnetwork_self_link
+  network          = var.google_compute_network.name
+  subnetwork       = var.google_compute_subnetwork.name
   enable_autopilot = true
 
   # Set `deletion_protection` to `true` will ensure that one cannot

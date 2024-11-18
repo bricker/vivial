@@ -14,7 +14,7 @@ resource "google_certificate_manager_certificate_map_entry" "default" {
     prevent_destroy = true
   }
 
-  map          = data.google_certificate_manager_certificate_map.given.name
+  map          = var.google_certificate_manager_certificate_map.name
   name         = var.entry_name
   certificates = [google_certificate_manager_certificate.default.id]
   hostname     = var.hostname

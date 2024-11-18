@@ -6,7 +6,7 @@ resource "google_storage_bucket" "default" {
     prevent_destroy = true
   }
 
-  name                        = "${var.name}.${var.root_domain}"
+  name                        = "${var.name}.${var.resource_domain}"
   default_event_based_hold    = false
   enable_object_retention     = false
   force_destroy               = false

@@ -6,16 +6,23 @@ variable "target_service_account_id" {
   type = string
 }
 
-variable "cloudsql_instance_name" {
-  type = string
+variable "google_sql_database_instance" {
+  type = object({
+    name            = string
+    connection_name = string
+  })
 }
 
-variable "network_name" {
-  type = string
+variable "google_compute_network" {
+  type = object({
+    name = string
+  })
 }
 
-variable "subnetwork_self_link" {
-  type = string
+variable "google_compute_subnetwork" {
+  type = object({
+    name = string
+  })
 }
 
 variable "compute_oslogin_role_name" {
