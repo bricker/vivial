@@ -1,13 +1,13 @@
-mutation SubmitSurvey($input: SurveyInput!) {
-  submitSurvey(input: $input) {
+mutation PlanOuting($input: PlanOutingInput!) {
+  planOuting(input: $input) {
     __typename
-    ... on SubmitSurveySuccess {
+    ... on PlanOutingSuccess {
       outing {
         id
       }
     }
-    ... on SubmitSurveyError {
-      errorCode
+    ... on PlanOutingFailure {
+      failureReason
     }
   }
 }

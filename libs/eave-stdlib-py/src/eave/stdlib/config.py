@@ -130,7 +130,7 @@ class _EaveConfig(ConfigBase):
 
     @property
     def eave_base_url_public(self) -> str:
-        return os.getenv("EAVE_BASE_URL_PUBLIC") or "https://eave.fyi"
+        return os.getenv("EAVE_BASE_URL_PUBLIC") or "https://vivialapp.com"
 
     @property
     def eave_base_url_internal(self) -> str:
@@ -138,7 +138,7 @@ class _EaveConfig(ConfigBase):
 
     @property
     def eave_hostname_public(self) -> str:
-        return urlparse(self.eave_base_url_public).hostname or "eave.fyi"
+        return urlparse(self.eave_base_url_public).hostname or "vivialapp.com"
 
     @property
     def eave_netloc_public(self) -> str:
@@ -157,7 +157,7 @@ class _EaveConfig(ConfigBase):
     @property
     def eave_dashboard_base_url_public(self) -> str:
         return os.getenv("EAVE_DASHBOARD_BASE_URL_PUBLIC") or _prefix_hostname(
-            url=self.eave_base_url_public, prefix="dashboard."
+            url=self.eave_base_url_public, prefix="www."
         )
 
     @property

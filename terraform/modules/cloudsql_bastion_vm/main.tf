@@ -46,7 +46,7 @@ resource "google_compute_instance" "bastion" {
         --impersonate-service-account ${data.google_service_account.target_service_account.email} \
         --address 0.0.0.0 \
         --port 5432 \
-        ${data.google_sql_database_instance.given.connection_name}
+        ${var.google_sql_database_instance.connection_name}
     EOT
   }
 
@@ -64,8 +64,8 @@ resource "google_compute_instance" "bastion" {
     nic_type    = "GVNIC" # Required for confidential compute
     queue_count = 0
     stack_type  = "IPV4_ONLY"
-    network     = data.google_compute_network.given.self_link
-    subnetwork  = var.subnetwork_self_link
+    network     = var.google_compute_network.name
+    subnetwork  = var.google_compute_subnetwork.name
   }
 
   scheduling {

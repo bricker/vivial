@@ -12,6 +12,7 @@ variable "uptime_checks" {
   type = list(object({
     service         = string
     name            = string
+    enabled         = bool
     severity        = string
     host            = string
     path            = string

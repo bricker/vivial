@@ -1,3 +1,3 @@
-output "dns_zone_name" {
-  value = google_dns_managed_zone.default.name
+output "google_dns_managed_zone" {
+  value = google_dns_managed_zone.default
 }
