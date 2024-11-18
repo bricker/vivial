@@ -241,9 +241,6 @@ def erasetype(data: JsonObject, key: str, default: JsonValue | None = None) -> A
         return None
 
 
-T = TypeVar("T")
-
-
 def suppress(e: type[Exception], func: Callable[[], T]) -> T | None:
     """
     Proxy to contextlib.suppress(), but with the ability to do it on a single line

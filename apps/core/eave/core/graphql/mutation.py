@@ -21,12 +21,3 @@ class Mutation:
         resolver=replan_outing_mutation, extensions=[AuthenticationExtension(allow_anonymous=True)]
     )
     viewer = strawberry.mutation(resolver=viewer_query, extensions=[AuthenticationExtension()])
-    # refresh_tokens = strawberry.mutation(resolver=refresh_tokens_mutation, extensions=[AuthenticationExtension()])
-    # submit_reserver_details = strawberry.mutation(
-    #     resolver=submit_reserver_details_mutation, extensions=[AuthenticationExtension()]
-    # )
-    # create_booking = strawberry.mutation(resolver=create_booking_mutation, extensions=[AuthenticationExtension()])
-    # update_account = strawberry.mutation(resolver=update_account_mutation, extensions=[AuthenticationExtension()])
-    # update_preferences = strawberry.mutation(
-    #     resolver=update_preferences_mutation, extensions=[AuthenticationExtension()]
-    # )

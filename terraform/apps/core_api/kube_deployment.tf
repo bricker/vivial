@@ -231,7 +231,7 @@ resource "kubernetes_deployment" "app" {
             "--port=${local.cloudsql_proxy_port.number}",
             "--structured-logs",
             # - "--unix-socket /cloudsql"
-            data.google_sql_database_instance.given.connection_name,
+            var.google_sql_database_instance.connection_name,
           ]
 
           startup_probe {

@@ -6,8 +6,8 @@ mutation ReplanOuting($input: ReplanOutingInput!) {
         id
       }
     }
-    ... on ReplanOutingError {
-      errorCode
+    ... on ReplanOutingFailure {
+      failureReason
     }
   }
 }

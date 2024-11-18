@@ -5,7 +5,7 @@ resource "google_compute_firewall" "allow_iap_ingress_to_bastion_vm" {
   description   = "Allow ingress from IAP tunnel to specific ports of ${google_compute_instance.bastion.name}"
   disabled      = false
   direction     = "INGRESS"
-  network       = var.network_name
+  network       = var.google_compute_network.name
   priority      = 65534
   source_ranges = ["35.235.240.0/20"] // this is the GCP IAP tunnel cidr block
 

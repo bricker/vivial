@@ -22,8 +22,8 @@ mutation {{
     planOuting(input: {{
         visitorId: "{vis_id}",
         startTime: "{self.anydatetime(offset=2 * day_seconds).isoformat()}",
-        searchAreaIds: [US_CA_LA1],
-        budget: ONE,
+        searchAreaIds: ["{self.anyuuid()}"],
+        budget: INEXPENSIVE,
         headcount: 2,
         group: [
             {{
