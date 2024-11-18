@@ -17,6 +17,7 @@ import PrivacyPage from "./components/Pages/PrivacyPage";
 import SignUpPage from "./components/Pages/SignUpPage";
 import TermsPage from "./components/Pages/TermsPage";
 import RouteChangeTracker from "./components/Util/RouteChangeTracker";
+import ScrollToTop from "./components/Util/ScrollToTop";
 
 const App = () => {
   const fireAnalyticsPageView = async (_: string) => {
@@ -32,6 +33,7 @@ const App = () => {
             <title>Vivial - One Click Date Picked</title>
           </Helmet>
           <BrowserRouter>
+            <ScrollToTop />
             <RouteChangeTracker onRouteChange={fireAnalyticsPageView} />
             <Routes>
               <Route path="/" element={<GlobalLayout />}>
