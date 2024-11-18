@@ -50,7 +50,7 @@ resource "kubernetes_manifest" "app_httproute" {
       ]
 
       hostnames = [
-        local.domain,
+        local.domain
       ]
 
       rules = [
