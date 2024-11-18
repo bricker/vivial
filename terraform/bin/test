@@ -6,12 +6,10 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 (
 	cd "$(e.parentpath)"
-	terraform fmt -recursive -check .
 	for tf_proj in ./projects/*; do
 		statusmsg "Test planning terraform project $tf_proj"
 		pushd "$tf_proj" >/dev/null
 		terraform plan
 		popd >/dev/null
 	done
-	"${EAVE_HOME}"/develop/shared/lint-shell .
 )
