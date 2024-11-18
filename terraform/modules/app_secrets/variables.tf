@@ -7,14 +7,14 @@ variable "secrets" {
     SLACK_SYSTEM_BOT_TOKEN = object({
       data      = string
       accessors = list(string)
-    }),
+    })
     SENDGRID_API_KEY = object({
       data      = string
       accessors = list(string)
-    }),
+    })
     EVENTBRITE_API_KEY = object({
       data      = string
       accessors = list(string)
-    }),
+    })
   })
 }
