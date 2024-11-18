@@ -55,7 +55,7 @@ resource "google_monitoring_uptime_check_config" "uptime_checks" {
 
 resource "google_monitoring_alert_policy" "uptime_alert_policies" {
   lifecycle {
-    replace_triggered_by = [ google_monitoring_uptime_check_config.uptime_checks ]
+    replace_triggered_by = [google_monitoring_uptime_check_config.uptime_checks]
   }
 
   for_each = local.uptime_checks_map

@@ -7,7 +7,7 @@
 # Making changes in this file won't have any effect on the vivialapp.com DNS.
 
 module "dns_zone_base_domain" {
-  source      = "../../modules/dns_zone"
+  source     = "../../modules/dns_zone"
   dns_domain = local.dns_domain
-  records = []
+  records    = []
 }

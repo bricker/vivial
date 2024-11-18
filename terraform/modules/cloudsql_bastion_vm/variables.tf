@@ -8,7 +8,7 @@ variable "target_service_account_id" {
 
 variable "google_sql_database_instance" {
   type = object({
-    name = string
+    name            = string
     connection_name = string
   })
 }

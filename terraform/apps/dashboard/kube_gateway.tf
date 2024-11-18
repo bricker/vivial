@@ -5,10 +5,10 @@ module "app_gateway" {
   labels = {
     app = local.app_name
   }
-  namespace            = var.kube_namespace_name
+  namespace                                  = var.kube_namespace_name
   google_certificate_manager_certificate_map = var.google_certificate_manager_certificate_map
-  google_compute_ssl_policy      = var.google_compute_ssl_policy
-  global_address_names = [for addr in google_compute_global_address.a_addrs : addr.name]
+  google_compute_ssl_policy                  = var.google_compute_ssl_policy
+  global_address_names                       = [for addr in google_compute_global_address.a_addrs : addr.name]
 }
 
 module "gateway_backend_policy" {

@@ -1,23 +1,23 @@
 module "shared_kubernetes_resources" {
   source                        = "../../modules/kube_shared_resources"
   iap_oauth_client_secret       = var.IAP_OAUTH_CLIENT_SECRET
-  dns_domain                   = local.dns_domain
-  www_public_domain_prefix = local.www_public_domain_prefix
-  api_public_domain_prefix = local.api_public_domain_prefix
+  dns_domain                    = local.dns_domain
+  www_public_domain_prefix      = local.www_public_domain_prefix
+  api_public_domain_prefix      = local.api_public_domain_prefix
   eave_slack_signups_channel_id = local.eave_slack_signups_channel_id
 }
 
 module "core_api_app" {
-  source                 = "../../apps/core_api"
+  source = "../../apps/core_api"
 
   public_domain_prefix = local.api_public_domain_prefix
 
-  google_sql_database_instance = module.cloudsql_eave_core.google_sql_database_instance
-  google_dns_managed_zone          = module.dns_zone_base_domain.google_dns_managed_zone
-  google_compute_ssl_policy        = module.project_base.google_compute_ssl_policy
-  google_certificate_manager_certificate_map   = module.project_base.google_certificate_manager_certificate_map
-  google_compute_network                   = module.project_base.google_compute_network
-  google_compute_subnetwork = module.project_base.google_compute_subnetwork
+  google_sql_database_instance               = module.cloudsql_eave_core.google_sql_database_instance
+  google_dns_managed_zone                    = module.dns_zone_base_domain.google_dns_managed_zone
+  google_compute_ssl_policy                  = module.project_base.google_compute_ssl_policy
+  google_certificate_manager_certificate_map = module.project_base.google_certificate_manager_certificate_map
+  google_compute_network                     = module.project_base.google_compute_network
+  google_compute_subnetwork                  = module.project_base.google_compute_subnetwork
 
   docker_repository_ref  = module.project_base.docker_repository_ref
   kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
@@ -39,16 +39,16 @@ module "core_api_app" {
 }
 
 module "dashboard_app" {
-  source                 = "../../apps/dashboard"
+  source = "../../apps/dashboard"
 
   public_domain_prefix = local.www_public_domain_prefix
 
-  google_dns_managed_zone          = module.dns_zone_base_domain.google_dns_managed_zone
-  google_compute_ssl_policy        = module.project_base.google_compute_ssl_policy
-  google_certificate_manager_certificate_map   = module.project_base.google_certificate_manager_certificate_map
-  docker_repository_ref  = module.project_base.docker_repository_ref
-  kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
-  shared_config_map_name = module.shared_kubernetes_resources.shared_config_map_name
+  google_dns_managed_zone                    = module.dns_zone_base_domain.google_dns_managed_zone
+  google_compute_ssl_policy                  = module.project_base.google_compute_ssl_policy
+  google_certificate_manager_certificate_map = module.project_base.google_certificate_manager_certificate_map
+  docker_repository_ref                      = module.project_base.docker_repository_ref
+  kube_namespace_name                        = module.shared_kubernetes_resources.eave_namespace_name
+  shared_config_map_name                     = module.shared_kubernetes_resources.shared_config_map_name
 
   cdn_base_url              = module.cdn.url
   LOG_LEVEL                 = "DEBUG"

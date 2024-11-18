@@ -1,5 +1,5 @@
 module "dns_zone_base_domain" {
-  source      = "../../modules/dns_zone"
+  source     = "../../modules/dns_zone"
   dns_domain = local.dns_domain
 
   records = [
@@ -30,7 +30,7 @@ module "dns_zone_base_domain" {
 }
 
 module "dns_zone_run" {
-  source      = "../../modules/dns_zone"
+  source     = "../../modules/dns_zone"
   dns_domain = "eave.run"
 
   records = [

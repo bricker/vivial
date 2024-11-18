@@ -1,5 +1,5 @@
 variable "public_domain_prefix" {
-  type=string
+  type    = string
   default = "api"
 }
 
@@ -16,7 +16,7 @@ variable "environment" {
 
 variable "google_dns_managed_zone" {
   type = object({
-    name = string
+    name     = string
     dns_name = string
   })
 }
@@ -41,14 +41,14 @@ variable "google_compute_ssl_policy" {
 
 variable "google_certificate_manager_certificate_map" {
   type = object({
-    id = string
+    id   = string
     name = string
   })
 }
 
 variable "google_sql_database_instance" {
   type = object({
-    name = string
+    name            = string
     connection_name = string
   })
 }

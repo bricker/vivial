@@ -12,11 +12,11 @@ variable "eave_slack_signups_channel_id" {
 }
 
 variable "www_public_domain_prefix" {
-  type = string
+  type    = string
   default = "www"
 }
 
 variable "api_public_domain_prefix" {
-  type = string
+  type    = string
   default = "api"
 }

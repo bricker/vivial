@@ -19,7 +19,7 @@ variable "google_compute_network" {
 }
 
 variable "google_compute_subnetwork" {
-  type     = object({
+  type = object({
     name = string
   })
   nullable = true

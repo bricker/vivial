@@ -19,9 +19,9 @@ resource "google_dns_record_set" "default" {
 }
 
 module "cdn_certificate" {
-  source               = "../../modules/certificate_manager"
+  source                                     = "../../modules/certificate_manager"
   google_certificate_manager_certificate_map = var.google_certificate_manager_certificate_map
-  cert_name            = var.name
-  entry_name           = var.name
-  hostname             = local.domain
+  cert_name                                  = var.name
+  entry_name                                 = var.name
+  hostname                                   = local.domain
 }
