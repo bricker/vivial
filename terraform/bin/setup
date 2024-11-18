@@ -1,7 +1,15 @@
 #!/usr/bin/env bash
 
-# set -eu
+set -eu
 
-# source "${EAVE_HOME}"/develop/functions.bash
+source "${EAVE_HOME}"/develop/functions.bash
 
-# Nothing to do.
+(
+	cd "$(e.parentpath)"
+	for tf_proj in ./projects/*; do
+		statusmsg "Initializing terraform project $tf_proj"
+		pushd "$tf_proj" >/dev/null
+		terraform init
+		popd >/dev/null
+	done
+)
