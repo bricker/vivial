@@ -13,7 +13,7 @@ resource "kubernetes_manifest" "gateway" {
       labels    = var.labels
 
       annotations = {
-        "networking.gke.io/certmap" : data.google_certificate_manager_certificate_map.given.name
+        "networking.gke.io/certmap" : var.google_certificate_manager_certificate_map.name
       }
     }
 
@@ -72,7 +72,7 @@ resource "kubernetes_manifest" "gateway_policy" {
 
     spec = {
       default = {
-        sslPolicy = data.google_compute_ssl_policy.given.name
+        sslPolicy = var.google_compute_ssl_policy.name
       }
 
       targetRef = {
