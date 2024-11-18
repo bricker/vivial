@@ -7,9 +7,9 @@ source "${EAVE_HOME}"/develop/functions.bash
 (
 	cd "$(e.parentpath)"
 	for tf_proj in ./projects/*; do
-		statusmsg "Initializing terraform project $tf_proj"
+		statusmsg "Test planning terraform project $tf_proj"
 		pushd "$tf_proj" >/dev/null
-		terraform init
+		terraform plan
 		popd >/dev/null
 	done
 )

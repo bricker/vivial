@@ -27,6 +27,7 @@ class ActivityVenue:
 
 @strawberry.type
 class Activity:
+    id: str
     source: ActivitySource
     name: str
     description: str

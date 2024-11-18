@@ -26,6 +26,7 @@ MOCK_OUTING = Outing(
     restaurant_arrival_time=(datetime(2024, 10, 15, hour=6, tzinfo=LOS_ANGELES_ZONE_INFO)),
     activity_start_time=(datetime(2024, 10, 15, hour=8, tzinfo=LOS_ANGELES_ZONE_INFO)),
     restaurant=Restaurant(
+        id=f"{uuid4()}",
         source=RestaurantSource.GOOGLE_PLACES,
         name="Zarape Cocina & Cantina",
         location=Location(
@@ -52,6 +53,7 @@ MOCK_OUTING = Outing(
         customer_favorites="Chicken Fajitas, Strawberry Margarita",
     ),
     activity=Activity(
+        id=f"{uuid4()}",
         source=ActivitySource.EVENTBRITE,
         ticket_info=ActivityTicketInfo(
             type="General Admission",
