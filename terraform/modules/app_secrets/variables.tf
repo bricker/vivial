@@ -9,11 +9,6 @@ variable "secrets" {
       accessors = list(string)
     })
 
-    OPENAI_API_KEY = object({
-      data      = string
-      accessors = list(string)
-    })
-
     GOOGLE_PLACES_API_KEY = object({
       data      = string
       accessors = list(string)

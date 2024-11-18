@@ -2,11 +2,6 @@
 # If any of these aren't set, terraform apply won't run.
 # Additionally, a map with `sensitive=true` can't be used for iteration.
 
-variable "OPENAI_API_KEY" {
-  type      = string
-  sensitive = true
-}
-
 variable "SLACK_SYSTEM_BOT_TOKEN" {
   type      = string
   sensitive = true
