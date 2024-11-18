@@ -26,9 +26,7 @@ class SendgridMailer:
         except Exception as e:
             LOGGER.exception(e)
 
-    def _send_templated_email(
-        self, template_id: str, subject: str, to_emails: list[str], dynamic_data: dict[str, str]
-    ) -> None:
+    def send_templated_email(self, template_id: str, to_emails: list[str], dynamic_data: dict[str, str]) -> None:
         """
         Send an email that is defined by a dynamic template in the sendgrid dashboard.
         Template IDs and the expected dynamic data for the target template
@@ -38,7 +36,6 @@ class SendgridMailer:
         message = Mail(
             from_email=self.from_email,
             to_emails=[To(email=email) for email in to_emails],
-            subject=subject,
         )
         message.template_id = template_id
         message.dynamic_template_data = dynamic_data
@@ -46,14 +43,6 @@ class SendgridMailer:
             self.client.send(message=message)
         except Exception as e:
             LOGGER.exception(e)
-
-    def send_welcome_email(self, to_emails: list[str]) -> None:
-        self._send_templated_email(
-            to_emails=to_emails,
-            subject="Welcome to Vivial!",
-            template_id="d-638ba190b929408aa71a92771a85d817",
-            dynamic_data={},
-        )
 
 
 MAILER = SendgridMailer(api_key=SHARED_CONFIG.send_grid_api_key)
