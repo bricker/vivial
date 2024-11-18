@@ -12,6 +12,7 @@ from eave.core.graphql.types.auth_token_pair import AuthTokenPair
 from eave.core.orm.account import AccountOrm, WeakPasswordError
 from eave.core.orm.base import InvalidRecordError
 from eave.core.shared.errors import ValidationError
+from eave.stdlib.mail import MAILER
 
 
 @strawberry.input
@@ -77,6 +78,8 @@ async def create_account_mutation(
     )
 
     auth_token_pair = make_auth_token_pair(account_id=account_orm.id)
+
+    MAILER.send_welcome_email(to_emails=[account_orm.email])
 
     account = Account.from_orm(account_orm)
     return CreateAccountSuccess(account=account, auth_tokens=auth_token_pair)
