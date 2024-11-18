@@ -36,8 +36,16 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		logtarget=$(e.pwd)
 
 		local verboseflag=""
+		local pipquietflag="-qq"
 		if verbose; then
 			verboseflag="--verbose"
+			pipquietflag=""
+		fi
+
+		if test -z "${SKIP_PYRIGHT_UPDATE:-}"; then
+			# pyright is updated frequently, like multiple times per week,
+			# so we add this here so that we automatically use the latest version.
+			pip install $verboseflag $pipquietflag -U pyright
 		fi
 
 		statusmsg -i "Linting $logtarget (py)..."
