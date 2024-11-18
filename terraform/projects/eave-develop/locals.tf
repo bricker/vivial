@@ -5,5 +5,6 @@ locals {
   default_zone   = "us-central1-a"
 
   environment = "DEV"
+  dns_domain  = "eave.run"
   root_domain = "eave.run"
 }

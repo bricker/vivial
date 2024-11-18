@@ -5,6 +5,5 @@ module "gke_primary" {
   authorized_networks   = local.authorized_networks
   network_name          = module.project_base.network_name
   subnetwork_self_link  = module.project_base.subnetwork_self_link
-  root_domain           = local.root_domain
   docker_repository_ref = module.project_base.docker_repository_ref
 }

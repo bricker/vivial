@@ -1,6 +1,6 @@
 module "dns_zone_base_domain" {
-  source      = "../../modules/dns_zone"
-  root_domain = local.root_domain
+  source     = "../../modules/dns_zone"
+  dns_domain = local.dns_domain
 
   records = [
     {
@@ -29,97 +29,9 @@ module "dns_zone_base_domain" {
   ]
 }
 
-module "dns_zone_pink" {
-  source      = "../../modules/dns_zone"
-  root_domain = "eave.pink"
-  records = [
-    {
-      type = "TXT"
-      datas = [
-        "\"v=spf1 include:mailgun.org ~all\"", # Squarespace Email Forwarding
-      ]
-    },
-
-    # Squarespace Email Forwarding
-    {
-      type      = "TXT"
-      subdomain = "smtp._domainkey"
-      datas     = ["\"k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC+0qX3T1/M8rQqjTdgO8YttFlTBxy11zwOcG1+u85J4CqvbzYvFlwd2C7yKIUrIMbsrZ2LEtfDxoFJxCAKVq30Dp7ggxMarIy4tT87JAWUo5TkjRR2SKiE0KJs30MnHWd+Ua/iRvTVXnA3z/w1EC3AM0r8t8gd0uMcRw6ND5UsLwIDAQAB\""]
-    },
-
-    # Squarespace Email Forwarding
-    {
-      type = "MX"
-      datas = [
-        "10 mxa.mailgun.org.",
-        "10 mxb.mailgun.org.",
-      ]
-    },
-  ]
-}
-
-module "dns_zone_red" {
-  source      = "../../modules/dns_zone"
-  root_domain = "eave.red"
-  records = [
-    {
-      type = "TXT"
-      datas = [
-        "\"v=spf1 include:mailgun.org ~all\"", # Squarespace Email Forwarding
-      ]
-    },
-
-    # Squarespace Email Forwarding
-    {
-      type      = "TXT"
-      subdomain = "mailo._domainkey"
-      datas     = ["\"k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCbz2AWr9je3pA+L+aCRfVhu4jJoQstZpP/2AB42gmHd3TjjrpK4J2xHmTfEA+FyBlbhMxegVvlWErCVf9JSb9sjKYca/HAjKqGbCuJ2weFzuB55q+8kv5S3P0mvbg09wiY7UsrPD3Tt+vqWm5P25PXY5cBakNQ6Uabfmykq6kFYwIDAQAB\""]
-    },
-
-    # Squarespace Email Forwarding
-    {
-      type = "MX"
-      datas = [
-        "10 mxa.mailgun.org.",
-        "10 mxb.mailgun.org.",
-      ]
-    },
-
-  ]
-}
-
-module "dns_zone_blue" {
-  source      = "../../modules/dns_zone"
-  root_domain = "eave.blue"
-  records = [
-    {
-      type = "TXT"
-      datas = [
-        "\"v=spf1 include:mailgun.org ~all\"", # Squarespace Email Forwarding
-      ]
-    },
-
-    # Squarespace Email Forwarding
-    {
-      type      = "TXT"
-      subdomain = "k1._domainkey"
-      datas     = ["\"k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDB+NSDNt0f2J3r8blL9UpxVBfPqROtbTIrNO2ZEdph6J9MxzBB1B2bG05zAhAtJ03OvZo8UANkBWf2heCjSR2tVhEeaphHOdFzx07gHmf1qdxDpJvm+vcRVP9xSOEViVs0anEFLX7sTMyuQ4PBXVqPglrKXaLCfqSk4e90mPGQ2QIDAQAB\""]
-    },
-
-    # Squarespace Email Forwarding
-    {
-      type = "MX"
-      datas = [
-        "10 mxa.mailgun.org.",
-        "10 mxb.mailgun.org.",
-      ]
-    },
-  ]
-}
-
 module "dns_zone_run" {
-  source      = "../../modules/dns_zone"
-  root_domain = "eave.run"
+  source     = "../../modules/dns_zone"
+  dns_domain = "eave.run"
 
   records = [
     {
