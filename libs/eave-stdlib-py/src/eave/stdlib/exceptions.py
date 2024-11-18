@@ -179,10 +179,6 @@ class UnexpectedMissingValueError(Exception):
     pass
 
 
-class OpenAIDataError(Exception):
-    pass
-
-
 class SecretRetrievalError(Exception):
     pass
 

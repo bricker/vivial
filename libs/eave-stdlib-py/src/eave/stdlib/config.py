@@ -232,11 +232,6 @@ class _EaveConfig(ConfigBase):
                 return None
 
     @cached_property
-    def eave_openai_api_key(self) -> str:
-        value = get_secret("OPENAI_API_KEY")
-        return value
-
-    @cached_property
     def eave_slack_system_bot_token(self) -> str:
         value = get_secret("SLACK_SYSTEM_BOT_TOKEN")
         return value
