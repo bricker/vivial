@@ -40,10 +40,6 @@ class _AppConfig(ConfigBase):
         return os.getenv(key, "eave")
 
     @cached_property
-    def google_places_api_key(self) -> str:
-        return get_required_env("GOOGLE_PLACES_API_KEY")
-
-    @cached_property
     def eventbrite_api_key(self) -> str:
         return get_required_env("EVENTBRITE_API_KEY")
 
