@@ -1,13 +1,18 @@
 mutation CreateBooking($input: CreateBookingInput!) {
-  createBooking(input: $input) {
-    __typename
-    ... on CreateBookingSuccess {
-      booking {
-        id
+  viewer {
+    createBooking(input: $input) {
+      __typename
+      ... on CreateBookingSuccess {
+        booking {
+          id
+        }
       }
-    }
-    ... on CreateBookingError {
-      errorCode
+      ... on CreateBookingFailure {
+        failureReason
+        validationErrors {
+          field
+        }
+      }
     }
   }
 }

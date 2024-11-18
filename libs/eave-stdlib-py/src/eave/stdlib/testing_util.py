@@ -50,6 +50,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         SHARED_CONFIG.reset_cached_properties()
         self.mock_google_services()
         self.mock_slack_client()
+        self.mock_eventbrite()
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
@@ -494,6 +495,18 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             name="slack client",
             patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient.chat_postMessage"),
             return_value={},
+        )
+
+    def mock_eventbrite(self) -> None:
+        self.patch(
+            name="eventbrite get_event_by_id",
+            patch=unittest.mock.patch("eave.stdlib.eventbrite.client.EventbriteClient.get_event_by_id"),
+            return_value={},
+        )
+        self.patch(
+            name="eventbrite get_event_description",
+            patch=unittest.mock.patch("eave.stdlib.eventbrite.client.EventbriteClient.get_event_description"),
+            return_value="description",
         )
 
     def logged_event(self, *args: Any, **kwargs: Any) -> bool:

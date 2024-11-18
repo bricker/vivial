@@ -62,6 +62,10 @@ class SurveyOrm(Base):
 
         return obj
 
+    @property
+    def outing_budget(self) -> OutingBudget:
+        return OutingBudget[self.budget]
+
     def validate(self) -> list[ValidationError]:
         errors: list[ValidationError] = []
 

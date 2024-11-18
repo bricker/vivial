@@ -39,7 +39,7 @@ class BookingReservationTemplateOrm(Base):
     reservation_start_time: Mapped[datetime] = mapped_column()
     num_attendees: Mapped[int] = mapped_column()
     external_booking_link: Mapped[str | None] = mapped_column()
-    """HTTP link to site for manual booking (possibly affialate), if available"""
+    """HTTP link to site for manual booking (possibly affiliate), if available"""
     address: Mapped[PostgisStdaddr] = mapped_column(type_=PostgisStdaddrColumnType())
     coordinates: Mapped[WKBElement] = mapped_column(
         type_=Geography(geometry_type="POINT", srid=SpatialReferenceSystemId.LAT_LON)
