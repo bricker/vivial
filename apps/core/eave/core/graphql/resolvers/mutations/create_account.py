@@ -6,7 +6,7 @@ import strawberry
 import eave.core.database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.resolvers.mutations.refresh_tokens import make_auth_token_pair
+from eave.core.graphql.resolvers.mutations.viewer.refresh_tokens import make_auth_token_pair
 from eave.core.graphql.types.account import Account
 from eave.core.graphql.types.auth_token_pair import AuthTokenPair
 from eave.core.mail import send_welcome_email

@@ -17,10 +17,7 @@ const SignUp = styled("p")(() => ({
 }));
 
 const LogInPage = () => {
-  const handleSubmit = useCallback((email: string, password: string) => {
-    console.log("email:", email);
-    console.log("password:", password);
-  }, []);
+  const handleSubmit = useCallback((email: string, password: string) => {}, []);
 
   return (
     <Container>

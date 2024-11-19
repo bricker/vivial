@@ -1,6 +1,7 @@
 import aiohttp.hdrs
 import starlette.applications
 import starlette.endpoints
+import stripe
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Route
@@ -10,16 +11,22 @@ from strawberry.schema.config import StrawberryConfig
 
 import eave.core.endpoints
 import eave.stdlib.time
+from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.mutation import Mutation
 from eave.core.graphql.query import Query
 from eave.stdlib import cache
 from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.logging import eaveLogger
+from eave.stdlib.logging import LOGGER
 
 from .database import async_engine
 
 eave.stdlib.time.set_utc()
 
+try:
+    stripe.api_key = CORE_API_APP_CONFIG.stripe_secret_key
+except Exception as e:
+    LOGGER.exception(e)
+    LOGGER.warning("Stripe API key not set! Stripe functionality will not work.")
 
 schema = Schema(
     query=Query,
@@ -39,7 +46,7 @@ async def graceful_shutdown() -> None:
         if client := cache.initialized_client():
             await client.close()
     except Exception as e:
-        eaveLogger.exception(e)
+        LOGGER.exception(e)
 
 
 app = starlette.applications.Starlette(

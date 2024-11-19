@@ -18,6 +18,11 @@ class AuthenticationExtension(FieldExtension):
     async def resolve_async(
         self, next_: Callable[..., Awaitable[Any]], source: Any, info: strawberry.Info[GraphQLContext], **kwargs
     ) -> Any:
+        # TEMPORARY
+        info.context["authenticated_account_id"] = UUID("02d9f943-a9dc-4b27-9ecd-51be50db44b0")
+        result = await next_(source, info, **kwargs)
+        return result
+
         encoded_jws = info.context["request"].cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME)
         if encoded_jws:
             jws = validate_jws_or_exception(

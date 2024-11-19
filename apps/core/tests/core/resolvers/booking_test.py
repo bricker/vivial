@@ -1,6 +1,6 @@
 from http import HTTPStatus
 
-from eave.core.graphql.resolvers.mutations.create_booking import CreateBookingFailureReason
+from eave.core.graphql.resolvers.mutations.viewer.create_booking import CreateBookingFailureReason
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.search_region import SearchRegionOrm

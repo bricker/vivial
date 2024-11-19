@@ -46,7 +46,7 @@ function replanOutingExecute({ req, ctx }: { req: ReplanOutingRequest; ctx: Repl
     .then((data) => {
       // handle gql error
       if (data.__typename === "ReplanOutingError" || data.data === null) {
-        throw new Error(data.data?.replanOuting?.errorCode || "INTERNAL_SERVER_ERROR");
+        throw new Error(data.data?.replanOuting?.failureReason || "INTERNAL_SERVER_ERROR");
       }
 
       setNetworkState((prev) => ({
