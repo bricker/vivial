@@ -7,8 +7,8 @@ import React, { useCallback, useState } from "react";
 
 import Button from "../../Buttons/Button";
 import Input from "../../Inputs/Input";
-import Error from "../../Inputs/InputError";
-import Requirement from "../../Inputs/InputRequirement";
+import InputError from "../../Inputs/InputError";
+import InputReq from "../../Inputs/InputRequirement";
 import SensitiveInput from "../../Inputs/SensitiveInput";
 import Link from "../../Links/Link";
 
@@ -51,7 +51,7 @@ const Legal = styled("p")(({ theme }) => ({
   lineHeight: rem("18px"),
 }));
 
-const ErrorContainer = styled("div")(() => ({
+const InputErrorContainer = styled("div")(() => ({
   fontSize: rem("12px"),
   lineHeight: rem("16px"),
   display: "flex",
@@ -60,7 +60,7 @@ const ErrorContainer = styled("div")(() => ({
   padding: "0 40px 0 56px",
 }));
 
-const RequirementsContainer = styled("div")(() => ({
+const InputReqsContainer = styled("div")(() => ({
   fontSize: rem("12px"),
   lineHeight: rem("16px"),
   marginTop: 10,
@@ -155,16 +155,16 @@ const AuthForm = ({
         <SensitiveInput placeholder="Password" onChange={handlePasswordChange} />
       </FormContent>
       {errorMessage && (
-        <ErrorContainer>
-          <Error>{errorMessage}</Error>
-        </ErrorContainer>
+        <InputErrorContainer>
+          <InputError>{errorMessage}</InputError>
+        </InputErrorContainer>
       )}
       {showPasswordInfo && (
-        <RequirementsContainer>
-          <Requirement met={passwordInfo.hasEightChars}>8 characters</Requirement>
-          <Requirement met={passwordInfo.hasLetter && passwordInfo.hasDigit}>1 letter and 1 digit</Requirement>
-          <Requirement met={passwordInfo.hasSpecialChar}>1 special character</Requirement>
-        </RequirementsContainer>
+        <InputReqsContainer>
+          <InputReq met={passwordInfo.hasEightChars}>8 characters</InputReq>
+          <InputReq met={passwordInfo.hasLetter && passwordInfo.hasDigit}>1 letter and 1 digit</InputReq>
+          <InputReq met={passwordInfo.hasSpecialChar}>1 special character</InputReq>
+        </InputReqsContainer>
       )}
       <FormContent>
         <AuthButton onClick={handleSubmit} disabled={!submitEnabled} fullWidth>
