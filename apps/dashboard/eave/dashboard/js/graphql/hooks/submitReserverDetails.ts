@@ -57,7 +57,7 @@ function submitReserverDetailsExecute({
     .then((data) => {
       // handle gql error
       if (data.__typename === "SubmitReserverDetailsError" || data.data === null) {
-        throw new Error(data?.data?.submitReserverDetails?.errorCode || "INTERNAL_SERVER_ERROR");
+        throw new Error(data?.data?.submitReserverDetails?.failureReason || "INTERNAL_SERVER_ERROR");
       }
 
       setNetworkState((prev) => ({

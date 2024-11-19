@@ -36,6 +36,7 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
                 "status",
                 "healthz",
                 "graphql",
+                "public",
                 "favicon.ico",
             ]:
                 # The first path component is not whitelisted as a public endpoint.

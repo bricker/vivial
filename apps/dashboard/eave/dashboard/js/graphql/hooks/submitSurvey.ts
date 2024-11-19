@@ -54,7 +54,7 @@ function submitSurveyExecute({ req, ctx }: { req: SubmitSurveyRequest; ctx: Subm
     .then((data) => {
       // handle gql error
       if (data.__typename === "SubmitSurveyError" || data.data === null) {
-        throw new Error(data?.data?.submitSurvey?.errorCode || "INTERNAL_SERVER_ERROR");
+        throw new Error(data?.data?.submitSurvey?.failureReason || "INTERNAL_SERVER_ERROR");
       }
 
       setNetworkState((prev) => ({

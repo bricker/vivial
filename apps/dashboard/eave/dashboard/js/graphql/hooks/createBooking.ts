@@ -47,7 +47,7 @@ function createBookingExecute({ req, ctx }: { req: CreateBookingRequest; ctx: Cr
     .then((data) => {
       // handle gql error
       if (data.__typename === "CreateBookingError" || data.data === null) {
-        throw new Error(data?.data?.createBooking?.errorCode || "INTERNAL_SERVER_ERROR");
+        throw new Error(data?.data?.createBooking?.failureReason || "INTERNAL_SERVER_ERROR");
       }
 
       setNetworkState((prev) => ({

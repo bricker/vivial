@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
-from eave.core.graphql.resolvers.mutations.refresh_tokens import make_auth_token_pair
-from eave.core.graphql.resolvers.mutations.submit_reserver_details import SubmitReserverDetailsFailureReason
+from eave.core.graphql.resolvers.mutations.viewer.refresh_tokens import make_auth_token_pair
+from eave.core.graphql.resolvers.mutations.viewer.submit_reserver_details import SubmitReserverDetailsFailureReason
 from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME
 
 from ..base import BaseTestCase

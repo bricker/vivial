@@ -20,8 +20,7 @@ const SignUp = styled("p")(() => ({
 
 const LogInPage = () => {
   const handleSubmit = useCallback((email: string, password: string) => {
-    console.log("email:", email);
-    console.log("password:", password);
+    const _ = { email, password }; // temp to silence lint warnings
   }, []);
 
   return (

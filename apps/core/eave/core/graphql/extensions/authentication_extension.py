@@ -8,6 +8,7 @@ from strawberry.extensions import FieldExtension
 from eave.core.config import JWT_AUDIENCE, JWT_ISSUER
 from eave.core.graphql.context import GraphQLContext
 from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME
+from eave.stdlib.exceptions import UnauthorizedError
 from eave.stdlib.jwt import JWTPurpose, validate_jws_or_exception
 
 
@@ -30,7 +31,7 @@ class AuthenticationExtension(FieldExtension):
             info.context["authenticated_account_id"] = UUID(jws.payload.sub)
         else:
             if not self.allow_anonymous:
-                raise Exception("missing access token")
+                raise UnauthorizedError()
 
         result = await next_(source, info, **kwargs)
         return result

@@ -12,7 +12,7 @@ import eave.stdlib.time
 from eave.dashboard.config import DASHBOARD_APP_CONFIG
 from eave.stdlib.auth_cookies import delete_auth_cookies
 from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.headers import MIME_TYPE_JSON
+from eave.stdlib.headers import MIME_TYPE_BINARY, MIME_TYPE_JSON
 from eave.stdlib.status import status_payload
 
 eave.stdlib.time.set_utc()
@@ -26,6 +26,14 @@ def status_endpoint(request: Request) -> Response:
 
 def health_endpoint(request: Request) -> Response:
     return Response(content="1", status_code=HTTPStatus.OK)
+
+
+def apple_domain_verification_file(request: Request) -> Response:
+    return Response(
+        content=DASHBOARD_APP_CONFIG.apple_domain_verification_code,
+        status_code=HTTPStatus.OK,
+        media_type=MIME_TYPE_BINARY,
+    )
 
 
 async def logout_endpoint(request: Request) -> Response:
@@ -50,6 +58,7 @@ def web_app_endpoint(request: Request) -> Response:
             "app_env": SHARED_CONFIG.eave_env,
             "app_version": SHARED_CONFIG.app_version,
             "segment_write_key": DASHBOARD_APP_CONFIG.segment_website_write_key,
+            "stripe_publishable_key": DASHBOARD_APP_CONFIG.stripe_publishable_key,
         },
     )
 
@@ -65,6 +74,11 @@ app = Starlette(
             endpoint=status_endpoint,
         ),
         Route(path="/healthz", methods=["GET"], endpoint=health_endpoint),
+        Route(
+            path="/.well-known/apple-developer-merchantid-domain-association",
+            methods=["GET"],
+            endpoint=apple_domain_verification_file,
+        ),
         Route(path="/logout", methods=["GET"], endpoint=logout_endpoint),
         Route(path="/{rest:path}", methods=["GET"], endpoint=web_app_endpoint),
     ],
