@@ -73,7 +73,7 @@ app = starlette.applications.Starlette(
             methods=[aiohttp.hdrs.METH_GET],
         ),
         Route(
-            path="/favicon.ico", # TODO: This path should be served from a static source
+            path="/favicon.ico",  # TODO: This path should be served from a static source
             endpoint=NoopEndpoint,
             methods=[aiohttp.hdrs.METH_GET],
         ),

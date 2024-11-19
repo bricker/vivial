@@ -2,13 +2,13 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 from uuid import UUID
 
-from eave.stdlib.exceptions import UnauthorizedError
 import strawberry
 from strawberry.extensions import FieldExtension
 
 from eave.core.config import JWT_AUDIENCE, JWT_ISSUER
 from eave.core.graphql.context import GraphQLContext
 from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME
+from eave.stdlib.exceptions import UnauthorizedError
 from eave.stdlib.jwt import JWTPurpose, validate_jws_or_exception
 
 

@@ -1,5 +1,5 @@
-from functools import cached_property
 import os
+from functools import cached_property
 
 from eave.stdlib.config import ConfigBase, get_required_env
 

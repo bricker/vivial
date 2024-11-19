@@ -1,11 +1,11 @@
+import http
+
 from asgiref.typing import HTTPScope
-from eave.stdlib.http_endpoint import HTTPEndpoint
-from eave.stdlib.logging import LogContext
 from starlette.requests import Request
 from starlette.responses import Response
 
-
-import http
+from eave.stdlib.http_endpoint import HTTPEndpoint
+from eave.stdlib.logging import LogContext
 
 
 class HealthEndpoint(HTTPEndpoint):

@@ -1,13 +1,13 @@
+import http
+
 from asgiref.typing import HTTPScope
+from starlette.requests import Request
+from starlette.responses import Response
+
 from eave.stdlib.headers import MIME_TYPE_JSON
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.logging import LogContext
 from eave.stdlib.status import status_payload
-from starlette.requests import Request
-from starlette.responses import Response
-
-
-import http
 
 
 class StatusEndpoint(HTTPEndpoint):

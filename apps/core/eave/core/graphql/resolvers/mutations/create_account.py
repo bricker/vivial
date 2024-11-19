@@ -1,7 +1,6 @@
 import enum
 from typing import Annotated
 
-from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME, set_http_cookie
 import strawberry
 
 import eave.core.database
@@ -14,6 +13,7 @@ from eave.core.mail import send_welcome_email
 from eave.core.orm.account import AccountOrm, WeakPasswordError
 from eave.core.orm.base import InvalidRecordError
 from eave.core.shared.errors import ValidationError
+from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME, set_http_cookie
 
 
 @strawberry.input
@@ -79,7 +79,9 @@ async def create_account_mutation(
     )
 
     auth_token_pair = make_auth_token_pair(account_id=account_orm.id)
-    set_http_cookie(response=info.context["response"], key=EAVE_ACCESS_TOKEN_COOKIE_NAME, value=auth_token_pair.access_token)
+    set_http_cookie(
+        response=info.context["response"], key=EAVE_ACCESS_TOKEN_COOKIE_NAME, value=auth_token_pair.access_token
+    )
 
     send_welcome_email(to_emails=[account_orm.email])
 
