@@ -7,7 +7,7 @@ import Typography from "@mui/material/Typography";
 import BackButton from "../../Buttons/BackButton";
 import ExternalLink from "../../Links/ExternalLink";
 
-const Container = styled("div")(() => ({
+const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
 }));
 
@@ -29,7 +29,7 @@ const ForgotPasswordPage = () => {
     navigate("/login");
   }, []);
   return (
-    <Container>
+    <PageContainer>
       <BackButton onClick={handleBack} />
       <CopyContainer>
         <Typography variant="h3">Forgot password?</Typography>
@@ -38,7 +38,7 @@ const ForgotPasswordPage = () => {
           we’ll help you reset your password.
         </Subtitle>
       </CopyContainer>
-    </Container>
+    </PageContainer>
   );
 };
 

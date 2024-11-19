@@ -5,6 +5,7 @@
     "eave/dashboard/js/**/*.tsx",
     "eave/dashboard/js/**/*.js",
     "eave/dashboard/js/**/*.jsx",
+    "eave/dashboard/static/images/*",
     "graphql.config.ts"
   ],
   "compilerOptions": {

@@ -5,8 +5,10 @@ import React, { useCallback } from "react";
 import AuthForm from "../../Forms/AuthForm";
 import Link from "../../Links/Link";
 
-const Container = styled("div")(() => ({
+const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
+  margin: "0 auto",
+  maxWidth: 450,
 }));
 
 const SignUp = styled("p")(() => ({
@@ -23,12 +25,12 @@ const LogInPage = () => {
   }, []);
 
   return (
-    <Container>
+    <PageContainer>
       <AuthForm title="Log in" cta="Log in" onSubmit={handleSubmit} showForgotPassword />
       <SignUp>
         Don’t have an account? <Link to="/signup">Sign up</Link>
       </SignUp>
-    </Container>
+    </PageContainer>
   );
 };
 

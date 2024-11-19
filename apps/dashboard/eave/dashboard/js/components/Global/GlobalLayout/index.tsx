@@ -7,7 +7,7 @@ import Box, { BoxProps } from "@mui/material/Box";
 import GlobalFooter from "../GlobalFooter";
 import GlobalHeader from "../GlobalHeader";
 
-const Container = styled(Box)<BoxProps>(() => ({
+const LayoutContainer = styled(Box)<BoxProps>(() => ({
   display: "flex",
   flexDirection: "column",
   justifyContent: "space-between",
@@ -20,13 +20,13 @@ const MainContent = styled("main")(() => ({
 
 const GlobalLayout = () => {
   return (
-    <Container>
+    <LayoutContainer>
       <GlobalHeader />
       <MainContent>
         <Outlet />
       </MainContent>
       <GlobalFooter />
-    </Container>
+    </LayoutContainer>
   );
 };
 
