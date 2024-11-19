@@ -19,7 +19,9 @@ const SignUp = styled("p")(() => ({
 }));
 
 const LogInPage = () => {
-  const handleSubmit = useCallback((email: string, password: string) => {}, []);
+  const handleSubmit = useCallback((email: string, password: string) => {
+    const _ = { email, password }; // temp to silence lint warnings
+  }, []);
 
   return (
     <PageContainer>

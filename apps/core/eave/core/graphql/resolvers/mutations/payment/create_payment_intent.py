@@ -41,7 +41,7 @@ async def create_payment_intent_mutation(
     *, info: strawberry.Info[GraphQLContext], input: CreatePaymentIntentInput
 ) -> CreatePaymentIntentResult:
     account_id = unwrap(info.context.get("authenticated_account_id"))
-
+    print(account_id)
     # async with database.async_session.begin() as db_session:
     #     booking = await BookingOrm.get_one(db_session, id=input.booking_id)
 

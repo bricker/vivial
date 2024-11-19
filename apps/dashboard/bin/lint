@@ -8,7 +8,7 @@ source "${EAVE_HOME}"/develop/functions.bash
 	python-activate-venv
 	cd "${EAVE_HOME}/apps/core"
 	mkdir -p .tmp
-	"${EAVE_HOME}"/develop/shared/bin/run-with-dotenv strawberry export-schema eave.core.app:schema >.tmp/schema.graphql
+	"${EAVE_HOME}"/develop/shared/bin/run-with-dotenv -- strawberry export-schema --output .tmp/schema.graphql eave.core.app:schema
 )
 
 (
