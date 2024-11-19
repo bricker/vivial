@@ -13,6 +13,12 @@ export const theme = createTheme({
     primary: {
       main: colors.vivialYellow,
     },
+    error: {
+      main: colors.errorRed,
+    },
+    success: {
+      main: colors.passingGreen,
+    },
     accent: {
       1: colors.lightOrangeAccent,
       2: colors.lightPurpleAccent,

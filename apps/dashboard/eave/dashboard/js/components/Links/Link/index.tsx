@@ -6,14 +6,22 @@ const CustomLink = styled(BaseLink)(({ theme }) => ({
   color: theme.palette.primary.main,
   fontSize: "inherit",
   lineHeight: "inherit",
-  textDecoration: "none",
   "&:hover": {
     textDecoration: "underline",
   },
 }));
 
-const Link = (props: LinkProps) => {
-  return <CustomLink {...props} />;
+interface CustomLinkProps extends LinkProps {
+  underline?: boolean;
+}
+
+const Link = (props: CustomLinkProps) => {
+  const textDecoration = props.underline ? "underline" : "none";
+  return (
+    <CustomLink to={props.to} sx={{ textDecoration }}>
+      {props.children}
+    </CustomLink>
+  );
 };
 
 export default Link;
