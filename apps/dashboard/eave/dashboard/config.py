@@ -1,4 +1,5 @@
 from functools import cached_property
+import os
 
 from eave.stdlib.config import ConfigBase, get_required_env
 
@@ -13,7 +14,7 @@ class _AppConfig(ConfigBase):
         return get_required_env("STRIPE_PUBLISHABLE_KEY")
 
     def apple_domain_verification_code(self) -> str:
-        return get_required_env("EAVE_WWW_APPLE_DOMAIN_VERIFICATION_CODE")
+        return os.getenv("EAVE_WWW_APPLE_DOMAIN_VERIFICATION_CODE", "")
 
 
 DASHBOARD_APP_CONFIG = _AppConfig()
