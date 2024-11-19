@@ -9,9 +9,12 @@ from strawberry import Schema
 from strawberry.asgi import GraphQL
 from strawberry.schema.config import StrawberryConfig
 
-import eave.core.endpoints
 import eave.stdlib.time
 from eave.core.config import CORE_API_APP_CONFIG
+from eave.core.endpoints.health import HealthEndpoint
+from eave.core.endpoints.noop import NoopEndpoint
+from eave.core.endpoints.status import StatusEndpoint
+from eave.core.endpoints.stripe_callback import StripeCallbackEndpoint
 from eave.core.graphql.mutation import Mutation
 from eave.core.graphql.query import Query
 from eave.stdlib import cache
@@ -53,7 +56,7 @@ app = starlette.applications.Starlette(
     routes=[
         Route(
             path="/status",
-            endpoint=eave.core.endpoints.StatusEndpoint,
+            endpoint=StatusEndpoint,
             methods=[
                 aiohttp.hdrs.METH_GET,
                 aiohttp.hdrs.METH_POST,
@@ -66,13 +69,20 @@ app = starlette.applications.Starlette(
         ),
         Route(
             path="/healthz",
-            endpoint=eave.core.endpoints.HealthEndpoint,
+            endpoint=HealthEndpoint,
             methods=[aiohttp.hdrs.METH_GET],
         ),
         Route(
-            path="/favicon.ico",
-            endpoint=eave.core.endpoints.NoopEndpoint,
+            path="/favicon.ico", # TODO: This path should be served from a static source
+            endpoint=NoopEndpoint,
             methods=[aiohttp.hdrs.METH_GET],
+        ),
+        Route(
+            path="/public/stripe/callback",
+            methods=[
+                aiohttp.hdrs.METH_GET,
+            ],
+            endpoint=StripeCallbackEndpoint,
         ),
         Route(
             path="/graphql",

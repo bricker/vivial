@@ -378,12 +378,6 @@ async def create_booking_mutation(
             failure_reason=CreateBookingFailureReason.VALIDATION_ERRORS, validation_errors=e.validation_errors
         )
 
-    # payment_intent = await stripe.PaymentIntent.create_async(
-    #     currency="usd",
-    #     amount=100,
-    #     confirm=True,
-    # )
-
     await _notify_slack(booking_details, account_id, input.reserver_details_id)
 
     ANALYTICS.track(

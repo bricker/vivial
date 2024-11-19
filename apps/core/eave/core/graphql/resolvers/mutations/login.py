@@ -1,6 +1,7 @@
 import enum
 from typing import Annotated
 
+from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME, set_http_cookie
 import strawberry
 
 import eave.core.database
@@ -45,10 +46,13 @@ async def login_mutation(*, info: strawberry.Info[GraphQLContext], input: LoginI
         try:
             account_orm.verify_password_or_exception(input.plaintext_password)
             auth_token_pair = make_auth_token_pair(account_id=account_orm.id)
+            set_http_cookie(response=info.context["response"], key=EAVE_ACCESS_TOKEN_COOKIE_NAME, value=auth_token_pair.access_token)
+
             account = Account(
                 id=account_orm.id,
                 email=account_orm.email,
             )
+
             return LoginSuccess(account=account, auth_tokens=auth_token_pair)
         except InvalidPasswordError:
             return LoginFailure(failure_reason=LoginFailureReason.INVALID_CREDENTIALS)
