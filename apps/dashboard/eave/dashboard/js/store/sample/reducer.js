@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { fetchTodos, saveNewTodo } from "./sampleThunks.js";
+import { fetchTodos, saveNewTodo } from "./thunks.js";
 
-import { todosAdapter } from "./sampleAdapter.js";
+import { todosAdapter } from "./adapter.js";
 
 const todosSlice = createSlice({
   name: "todos",

@@ -1,11 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
+import authReducer from "./auth/slice"
 
-import sampleReducer from "./sample/sampleSlice";
-
-// TODO: Delete sample reducer.
 const store = configureStore({
   reducer: {
-    sample: sampleReducer,
+    auth: authReducer,
   },
 });
 

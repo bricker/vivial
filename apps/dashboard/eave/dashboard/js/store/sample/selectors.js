@@ -1,5 +1,5 @@
 import { createSelector } from "@reduxjs/toolkit";
-import { todosAdapter } from "./sampleAdapter";
+import { todosAdapter } from "./adapter";
 
 export const { selectAll: selectTodos, selectById: selectTodoById } = todosAdapter.getSelectors((state) => state.todos);
 
