@@ -13,5 +13,6 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 	python ./bin/src/start-dev-server.py &
 	bash ./bin/src/start-dev-webpack.bash &
+	bash ./bin/src/start-dev-graphql-codegen.bash &
 	wait
 )

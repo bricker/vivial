@@ -29,7 +29,6 @@ class CreatePaymentIntentFailureReason(enum.Enum):
 @strawberry.type
 class CreatePaymentIntentFailure:
     failure_reason: CreatePaymentIntentFailureReason
-    validation_errors: list[ValidationError] | None = None
 
 
 CreatePaymentIntentResult = Annotated[

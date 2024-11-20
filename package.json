@@ -27,6 +27,7 @@
     "eslint-plugin-react": "^7",
     "eslint-plugin-react-hooks": "^4",
     "eslint-plugin-yaml": "0.5.x",
+    "graphql": "^16.9.0",
     "mocha": "10.x",
     "nodemon": "2.x",
     "prettier": "3.x",

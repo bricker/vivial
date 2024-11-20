@@ -9,13 +9,10 @@
     "graphql.config.ts"
   ],
   "compilerOptions": {
-    "jsx": "react",
     // "typeRoots": ["./node_modules/@types", "../../node_modules/@types"],
-    "esModuleInterop": true,
-    "allowJs": true,
     "lib": ["ES2021", "DOM"],
     "paths": {
       "$eave-dashboard/*": ["./eave/dashboard/*"]
-    }
+    },
   }
 }

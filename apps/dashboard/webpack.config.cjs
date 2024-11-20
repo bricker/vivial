@@ -9,16 +9,16 @@ module.exports = {
   },
   module: {
     rules: [
-      {
-        test: /\.jsx?$/,
-        exclude: /node_modules/,
-        use: {
-          loader: "babel-loader",
-          options: {
-            presets: ["@babel/preset-env", "@babel/preset-react"],
-          },
-        },
-      },
+      // {
+      //   test: /\.jsx?$/,
+      //   exclude: /node_modules/,
+      //   use: {
+      //     loader: "babel-loader",
+      //     options: {
+      //       presets: ["@babel/preset-env", "@babel/preset-react"],
+      //     },
+      //   },
+      // },
       {
         test: /\.tsx?$/,
         exclude: /node_modules/,
@@ -35,19 +35,19 @@ module.exports = {
         loader: "file-loader",
       },
       {
-        test: /\.(graphql|gql)$/,
+        test: /\.graphql$/,
         exclude: /node_modules/,
         loader: "raw-loader",
       },
     ],
   },
 
-  resolve: {
-    extensions: [".ts", ".tsx", ".js", ".jsx"],
-    alias: {
-      "$eave-dashboard": path.resolve(__dirname, "eave/dashboard"),
-    },
-  },
+  // resolve: {
+  //   extensions: [".ts", ".tsx", ".js", ".jsx"],
+  //   alias: {
+  //     "$eave-dashboard": path.resolve(__dirname, "eave/dashboard"),
+  //   },
+  // },
 
   // This configuration is only used by the dev server, which we currently don't use in development.
   devServer: {

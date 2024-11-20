@@ -1,91 +1,59 @@
 import { useState } from "react";
 import { NetworkState } from "../../types/network";
-import { GRAPHQL_API_BASE } from "../../util/http";
-import query from "../mutation/submitReserverDetails.graphql";
+import { SubmitReserverDetailsDocument, type SubmitReserverDetailsMutation, type SubmitReserverDetailsMutationVariables } from "../generated/graphql";
+import { executeOperation, type GraphQLOperation } from "../graphql-fetch";
 
-type SubmitReserverDetailsRequest = {
-  accountId: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
-};
+type SubmitReserverDetailsNetworkState = NetworkState<SubmitReserverDetailsMutation>;
 
-type SubmitReserverDetailsResponse = {
-  reserverDetailsId: string;
-};
+export type SubmitReserverDetailsOperation = GraphQLOperation<SubmitReserverDetailsNetworkState, SubmitReserverDetailsMutationVariables>;
 
-type SubmitReserverDetailsNetworkState = NetworkState & {
-  data?: SubmitReserverDetailsResponse;
-};
-
-type SubmitReserverDetailsEncapsulation = {
-  execute: ({ req, ctx }: { req: SubmitReserverDetailsRequest; ctx: SubmitReserverDetailsEncapsulation }) => void;
-  networkState: [
-    SubmitReserverDetailsNetworkState,
-    React.Dispatch<React.SetStateAction<SubmitReserverDetailsNetworkState>>,
-  ];
-};
-
-export type SubmitReserverDetailsCtx = { submitReserverDetails?: SubmitReserverDetailsEncapsulation };
-
-function submitReserverDetailsExecute({
-  req,
-  ctx,
-}: {
-  req: SubmitReserverDetailsRequest;
-  ctx: SubmitReserverDetailsEncapsulation;
-}): void {
-  const [, setNetworkState] = ctx.networkState;
-
-  setNetworkState({
-    loading: true,
-    error: undefined,
-    data: undefined,
-  });
-
-  fetch(GRAPHQL_API_BASE, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query,
-      variables: { input: req },
-    }),
-  })
-    .then((resp) => {
-      return resp.json();
-    })
-    .then((data) => {
-      // handle gql error
-      if (data.__typename === "SubmitReserverDetailsError" || data.data === null) {
-        throw new Error(data?.data?.submitReserverDetails?.failureReason || "INTERNAL_SERVER_ERROR");
-      }
-
-      setNetworkState((prev) => ({
-        ...prev,
-        data: { reserverDetailsId: data.data.submitReserverDetails.reserverDetails.id },
-      }));
-    })
-    .catch((error) => {
-      setNetworkState((prev) => ({
-        ...prev,
-        error,
-      }));
-    })
-    .finally(() => {
-      setNetworkState((prev) => ({
-        ...prev,
-        loading: false,
-      }));
-    });
-}
-
-export function submitReserverDetails(): SubmitReserverDetailsCtx {
+export function makeSubmitReserverDetailsOperation(): SubmitReserverDetailsOperation {
   return {
-    submitReserverDetails: {
-      execute: submitReserverDetailsExecute,
-      networkState: useState<SubmitReserverDetailsNetworkState>({
-        loading: false,
-      }),
+    execute: async function (variables: SubmitReserverDetailsMutationVariables) {
+      const [, setNetworkState] = this.networkState;
+      setNetworkState({
+        loading: true,
+        error: undefined,
+        data: undefined,
+      });
+
+      try {
+        const data = await executeOperation({ query: SubmitReserverDetailsDocument, variables });
+        const result = data.viewer.submitReserverDetails;
+
+        switch (result.__typename) {
+          case "SubmitReserverDetailsSuccess": {
+            setNetworkState((prev) => ({
+              ...prev,
+              data,
+            }));
+
+            break;
+          }
+          case "SubmitReserverDetailsFailure": {
+            // failure
+            throw Error(result.failureReason);
+            break;
+          }
+
+          default: {
+            throw Error("unexpected result type");
+          }
+        }
+      } catch (error: any) {
+        setNetworkState((prev) => ({
+          ...prev,
+          error,
+        }));
+      } finally {
+        setNetworkState((prev) => ({
+          ...prev,
+          loading: false,
+        }));
+      }
     },
+    networkState: useState<SubmitReserverDetailsNetworkState>({
+      loading: false,
+    }),
   };
 }

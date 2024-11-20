@@ -1,42 +1,15 @@
 import { useState } from "react";
 import { NetworkState } from "../../types/network";
-import { GRAPHQL_API_BASE } from "../../util/http";
-import query from "../mutation/createPaymentIntent.graphql";
+import { CreatePaymentIntentDocument, type CreatePaymentIntentMutation, type CreatePaymentIntentMutationVariables } from "../generated/graphql";
+import { executeOperation, type GraphQLOperation } from "../graphql-fetch";
 
-type CreatePaymentIntentRequest = {
-  placeholder: string;
-};
+type CreatePaymentIntentNetworkState = NetworkState<CreatePaymentIntentMutation>;
 
-type CreatePaymentIntentResponse = {
-  data?: {
-    viewer: {
-      payment: {
-        createPaymentIntent: {
-          __typename: string;
-          paymentIntent?: {
-            clientSecret?: string;
-          };
-          failureReason?: string;
-        };
-      };
-    };
-  };
-  errors?: any[];
-};
+export type CreatePaymentIntentOperation = GraphQLOperation<CreatePaymentIntentNetworkState, CreatePaymentIntentMutationVariables>;
 
-type CreatePaymentIntentNetworkState = NetworkState & CreatePaymentIntentResponse;
-
-export type CreatePaymentIntentCtx = {
-  execute: ({ req }: { req: CreatePaymentIntentRequest }) => void;
-  networkState: [
-    CreatePaymentIntentNetworkState,
-    React.Dispatch<React.SetStateAction<CreatePaymentIntentNetworkState>>,
-  ];
-};
-
-export function createCreatePaymentIntentCtx(): CreatePaymentIntentCtx {
+export function makeCreatePaymentIntentOperation(): CreatePaymentIntentOperation {
   return {
-    execute: function ({ req }: { req: CreatePaymentIntentRequest }) {
+    execute: async function (variables: CreatePaymentIntentMutationVariables) {
       const [, setNetworkState] = this.networkState;
       setNetworkState({
         loading: true,
@@ -44,44 +17,40 @@ export function createCreatePaymentIntentCtx(): CreatePaymentIntentCtx {
         data: undefined,
       });
 
-      fetch(GRAPHQL_API_BASE, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query,
-          variables: { input: req },
-        }),
-      })
-        .then((resp) => {
-          return resp.json();
-        })
-        .then((resp: CreatePaymentIntentResponse) => {
-          console.log(resp);
-          const failureReason = resp.data?.viewer.payment.createPaymentIntent.failureReason;
-          if (resp.errors) {
-            console.error(resp.errors);
-            throw new Error("GraphQL errors");
-          } else if (failureReason) {
-            throw new Error(failureReason);
-          } else {
+      try {
+        const data = await executeOperation({ query: CreatePaymentIntentDocument, variables });
+        const result = data.viewer.createPaymentIntent;
+
+        switch (result.__typename) {
+          case "CreatePaymentIntentSuccess": {
             setNetworkState((prev) => ({
               ...prev,
-              data: resp.data,
+              data,
             }));
+
+            break;
           }
-        })
-        .catch((error) => {
-          setNetworkState((prev) => ({
-            ...prev,
-            error,
-          }));
-        })
-        .finally(() => {
-          setNetworkState((prev) => ({
-            ...prev,
-            loading: false,
-          }));
-        });
+          case "CreatePaymentIntentFailure": {
+            // failure
+            throw Error(result.failureReason);
+            break;
+          }
+
+          default: {
+            throw Error("unexpected result type");
+          }
+        }
+      } catch (error: any) {
+        setNetworkState((prev) => ({
+          ...prev,
+          error,
+        }));
+      } finally {
+        setNetworkState((prev) => ({
+          ...prev,
+          loading: false,
+        }));
+      }
     },
     networkState: useState<CreatePaymentIntentNetworkState>({
       loading: false,

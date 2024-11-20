@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { NetworkState } from "../../types/network";
-import { ReplanOutingDocument, type ReplanOutingMutation, type ReplanOutingMutationVariables } from "../generated/graphql";
+import { PlanOutingDocument, type PlanOutingMutation, type PlanOutingMutationVariables } from "../generated/graphql";
 import { executeOperation, type GraphQLOperation } from "../graphql-fetch";
 
-type ReplanOutingNetworkState = NetworkState<ReplanOutingMutation>;
+type PlanOutingNetworkState = NetworkState<PlanOutingMutation>;
 
-export type ReplanOutingOperation = GraphQLOperation<ReplanOutingNetworkState, ReplanOutingMutationVariables>;
+export type PlanOutingOperation = GraphQLOperation<PlanOutingNetworkState, PlanOutingMutationVariables>;
 
-export function makeReplanOutingOperation(): ReplanOutingOperation {
+export function makePlanOutingOperation(): PlanOutingOperation {
   return {
-    execute: async function (variables: ReplanOutingMutationVariables) {
+    execute: async function (variables: PlanOutingMutationVariables) {
       const [, setNetworkState] = this.networkState;
       setNetworkState({
         loading: true,
@@ -18,11 +18,11 @@ export function makeReplanOutingOperation(): ReplanOutingOperation {
       });
 
       try {
-        const data = await executeOperation({ query: ReplanOutingDocument, variables });
-        const result = data.replanOuting;
+        const data = await executeOperation({ query: PlanOutingDocument, variables });
+        const result = data.planOuting;
 
         switch (result.__typename) {
-          case "ReplanOutingSuccess": {
+          case "PlanOutingSuccess": {
             setNetworkState((prev) => ({
               ...prev,
               data,
@@ -30,7 +30,7 @@ export function makeReplanOutingOperation(): ReplanOutingOperation {
 
             break;
           }
-          case "ReplanOutingFailure": {
+          case "PlanOutingFailure": {
             // failure
             throw Error(result.failureReason);
             break;
@@ -52,7 +52,7 @@ export function makeReplanOutingOperation(): ReplanOutingOperation {
         }));
       }
     },
-    networkState: useState<ReplanOutingNetworkState>({
+    networkState: useState<PlanOutingNetworkState>({
       loading: false,
     }),
   };

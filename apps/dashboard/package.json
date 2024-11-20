@@ -23,6 +23,8 @@
     "@babel/core": "^7.20.7",
     "@babel/preset-env": "^7.20.2",
     "@babel/preset-react": "^7.18.6",
+    "@graphql-codegen/cli": "^5.0.3",
+    "@parcel/watcher": "^2.5.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/react-helmet": "^6.1.11",
@@ -39,6 +41,7 @@
     "webpack-dev-server": "^4.11.1"
   },
   "eslintConfig": {
+    "ignorePatterns": "eave/dashboard/js/graphql/generated",
     "parserOptions": {
       "project": "./tsconfig.json"
     }
