@@ -17,9 +17,8 @@ const ValuePropsImg = styled("img")(() => ({
 }));
 
 const SignUpPage = () => {
-  const handleSubmit = useCallback((email: string, password: string) => {
-    console.log("email:", email);
-    console.log("password:", password);
+  const handleSubmit = useCallback(({ email, password }: { email: string; password: string }) => {
+    console.debug(email, password);
   }, []);
 
   return (

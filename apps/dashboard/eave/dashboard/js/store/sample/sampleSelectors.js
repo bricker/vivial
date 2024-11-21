@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { createSelector } from "@reduxjs/toolkit";
 import { todosAdapter } from "./sampleAdapter";
 

@@ -1,11 +1,18 @@
 import { useState } from "react";
 import { NetworkState } from "../../types/network";
-import { CreatePaymentIntentDocument, type CreatePaymentIntentMutation, type CreatePaymentIntentMutationVariables } from "../generated/graphql";
+import {
+  CreatePaymentIntentDocument,
+  type CreatePaymentIntentMutation,
+  type CreatePaymentIntentMutationVariables,
+} from "../generated/graphql";
 import { executeOperation, type GraphQLOperation } from "../graphql-fetch";
 
 type CreatePaymentIntentNetworkState = NetworkState<CreatePaymentIntentMutation>;
 
-export type CreatePaymentIntentOperation = GraphQLOperation<CreatePaymentIntentNetworkState, CreatePaymentIntentMutationVariables>;
+export type CreatePaymentIntentOperation = GraphQLOperation<
+  CreatePaymentIntentNetworkState,
+  CreatePaymentIntentMutationVariables
+>;
 
 export function makeCreatePaymentIntentOperation(): CreatePaymentIntentOperation {
   return {
@@ -33,7 +40,6 @@ export function makeCreatePaymentIntentOperation(): CreatePaymentIntentOperation
           case "CreatePaymentIntentFailure": {
             // failure
             throw Error(result.failureReason);
-            break;
           }
 
           default: {

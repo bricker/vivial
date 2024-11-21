@@ -1,8 +1,0 @@
-// graphql-codegen generates some code that violates our standard ts rules, so we ignore those violations in these files.
-{
-  "extends": "../../../../../tsconfig.json",
-  "compilerOptions": {
-    "noImplicitOverride": false,
-    "noPropertyAccessFromIndexSignature": false,
-  }
-}

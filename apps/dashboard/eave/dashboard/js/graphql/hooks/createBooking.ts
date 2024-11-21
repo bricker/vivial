@@ -1,6 +1,10 @@
 import { useState } from "react";
-import { NetworkState, GraphQLExecutionError } from "../../types/network";
-import { CreateBookingDocument, CreateBookingSuccess, type CreateBookingFailureReason, type CreateBookingMutation, type CreateBookingMutationVariables, type ValidationError} from "../generated/graphql";
+import { NetworkState } from "../../types/network";
+import {
+  CreateBookingDocument,
+  type CreateBookingMutation,
+  type CreateBookingMutationVariables,
+} from "../generated/graphql";
 import { executeOperation, type GraphQLOperation } from "../graphql-fetch.js";
 
 type CreateBookingNetworkState = NetworkState<CreateBookingMutation>;
@@ -33,7 +37,6 @@ export function makeCreateBookingOperation(): CreateBookingOperation {
           case "CreateBookingFailure": {
             // failure
             throw Error(result.failureReason);
-            break;
           }
 
           default: {

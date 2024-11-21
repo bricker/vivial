@@ -1,3 +1,4 @@
+import type { AddPluginConfig } from "@graphql-codegen/add";
 import type { CodegenConfig } from "@graphql-codegen/cli";
 import type { ClientPresetConfig } from "@graphql-codegen/client-preset";
 const schema = process.env["GRAPHQL_SCHEMA"] || "http://api.eave.run:8080/graphql";
@@ -9,7 +10,13 @@ const config: CodegenConfig = {
   generates: {
     "./eave/dashboard/js/graphql/generated/": {
       preset: "client",
-      config: <ClientPresetConfig>{
+      presetConfig: <ClientPresetConfig>{
+        fragmentMasking: false,
+      },
+      config: {
+        // See here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#config-api
+        // The options here are forwarded to other plugins and the exact properties aren't available in a type,
+        // so use the documentation to know which options are available.
         documentMode: "string",
         defaultScalarType: "string",
         strictScalars: true,
@@ -60,6 +67,14 @@ const config: CodegenConfig = {
           },
         },
       },
+      plugins: [
+        {
+          add: <AddPluginConfig>{
+            placement: "prepend",
+            content: "// @ts-nocheck",
+          },
+        },
+      ],
     },
   },
 };

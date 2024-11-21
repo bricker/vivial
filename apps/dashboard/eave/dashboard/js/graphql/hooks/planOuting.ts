@@ -33,7 +33,6 @@ export function makePlanOutingOperation(): PlanOutingOperation {
           case "PlanOutingFailure": {
             // failure
             throw Error(result.failureReason);
-            break;
           }
 
           default: {

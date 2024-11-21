@@ -1,11 +1,18 @@
 import { useState } from "react";
 import { NetworkState } from "../../types/network";
-import { SubmitReserverDetailsDocument, type SubmitReserverDetailsMutation, type SubmitReserverDetailsMutationVariables } from "../generated/graphql";
+import {
+  SubmitReserverDetailsDocument,
+  type SubmitReserverDetailsMutation,
+  type SubmitReserverDetailsMutationVariables,
+} from "../generated/graphql";
 import { executeOperation, type GraphQLOperation } from "../graphql-fetch";
 
 type SubmitReserverDetailsNetworkState = NetworkState<SubmitReserverDetailsMutation>;
 
-export type SubmitReserverDetailsOperation = GraphQLOperation<SubmitReserverDetailsNetworkState, SubmitReserverDetailsMutationVariables>;
+export type SubmitReserverDetailsOperation = GraphQLOperation<
+  SubmitReserverDetailsNetworkState,
+  SubmitReserverDetailsMutationVariables
+>;
 
 export function makeSubmitReserverDetailsOperation(): SubmitReserverDetailsOperation {
   return {
@@ -33,7 +40,6 @@ export function makeSubmitReserverDetailsOperation(): SubmitReserverDetailsOpera
           case "SubmitReserverDetailsFailure": {
             // failure
             throw Error(result.failureReason);
-            break;
           }
 
           default: {

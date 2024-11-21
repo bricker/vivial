@@ -1,18 +1,19 @@
-import { GraphQLExecutionError, type NetworkState } from "../types/network.js";
-import { GRAPHQL_API_BASE } from "../util/http.js";
-import type { TypedDocumentString } from "./generated/graphql.js";
+import { GraphQLExecutionError } from "../types/network";
+import { GRAPHQL_API_BASE } from "../util/http";
+import type { TypedDocumentString } from "./generated/graphql";
 
 export type GraphQLOperation<TNetworkState, TVariables> = {
   execute: (variables: TVariables) => Promise<void>;
-  networkState: [
-    TNetworkState,
-    React.Dispatch<React.SetStateAction<TNetworkState>>,
-  ],
-}
+  networkState: [TNetworkState, React.Dispatch<React.SetStateAction<TNetworkState>>];
+};
 
-export async function executeOperation<TResult, TVariables>(
-  { query, variables }: { query: TypedDocumentString<TResult, TVariables>; variables: TVariables }
-): Promise<TResult> {
+export async function executeOperation<TResult, TVariables>({
+  query,
+  variables,
+}: {
+  query: TypedDocumentString<TResult, TVariables>;
+  variables: TVariables;
+}): Promise<TResult> {
   const response = await fetch(GRAPHQL_API_BASE, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

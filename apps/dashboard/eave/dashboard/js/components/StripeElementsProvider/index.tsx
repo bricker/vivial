@@ -15,7 +15,7 @@ const StripeElementsProvider = ({ children }: { children: React.ReactElement }) 
   useEffect(() => {
     console.debug("calling createPaymentIntent");
 
-    createPaymentIntentOperation.execute({
+    void createPaymentIntentOperation.execute({
       input: {
         placeholder: "placeholder",
       },
@@ -26,7 +26,11 @@ const StripeElementsProvider = ({ children }: { children: React.ReactElement }) 
     return <div>Loading...</div>;
   }
 
-  if (networkState.error || !networkState.data || networkState.data.viewer.createPaymentIntent.__typename !== "CreatePaymentIntentSuccess") {
+  if (
+    networkState.error ||
+    !networkState.data ||
+    networkState.data.viewer.createPaymentIntent.__typename !== "CreatePaymentIntentSuccess"
+  ) {
     return <div>**DEVELOPMENT**: Error (createPaymentIntent mutation graphql errors)</div>;
   }
 

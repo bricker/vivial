@@ -153,4 +153,5 @@
   ],
   "ruff.organizeImports": true,
   "typescript.preferences.preferTypeOnlyAutoImports": true,
+  "typescript.tsdk": "./node_modules/typescript/lib",
 }

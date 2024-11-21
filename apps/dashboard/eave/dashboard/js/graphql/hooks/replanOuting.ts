@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { NetworkState } from "../../types/network";
-import { ReplanOutingDocument, type ReplanOutingMutation, type ReplanOutingMutationVariables } from "../generated/graphql";
+import {
+  ReplanOutingDocument,
+  type ReplanOutingMutation,
+  type ReplanOutingMutationVariables,
+} from "../generated/graphql";
 import { executeOperation, type GraphQLOperation } from "../graphql-fetch";
 
 type ReplanOutingNetworkState = NetworkState<ReplanOutingMutation>;
@@ -33,7 +37,6 @@ export function makeReplanOutingOperation(): ReplanOutingOperation {
           case "ReplanOutingFailure": {
             // failure
             throw Error(result.failureReason);
-            break;
           }
 
           default: {
