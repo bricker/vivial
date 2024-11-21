@@ -1,7 +1,7 @@
 import enum
 from textwrap import dedent
 from typing import Annotated
-from uuid import UUID, uuid4
+from uuid import UUID
 
 import strawberry
 from attr import dataclass

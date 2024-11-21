@@ -1,6 +1,6 @@
 from collections.abc import Awaitable, Callable
 from typing import Any
-from uuid import UUID, uuid4
+from uuid import UUID
 
 import strawberry
 from strawberry.extensions import FieldExtension

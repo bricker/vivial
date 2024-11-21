@@ -6,7 +6,6 @@ import stripe
 
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.payment_intent import PaymentIntent
-from eave.core.shared.errors import ValidationError
 from eave.stdlib.util import unwrap
 
 
