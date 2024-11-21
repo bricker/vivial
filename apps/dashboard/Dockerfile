@@ -48,7 +48,7 @@ WORKDIR ${EAVE_HOME}/apps/dashboard
 
 # Build the client bundle.
 RUN npm ci
-RUN npx webpack build --mode=production
+RUN npx webpack build --mode=production --no-devtool
 
 
 
