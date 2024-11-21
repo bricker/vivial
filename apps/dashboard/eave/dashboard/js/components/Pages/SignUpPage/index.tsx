@@ -1,5 +1,11 @@
 import { styled } from "@mui/material";
 import React, { useCallback } from "react";
+import { useAppDispatch } from "$eave-dashboard/js/store/hooks";
+
+
+
+
+import { authenticateUser } from '$eave-dashboard/js/store/auth/thunks';
 
 import accountValuePropsSrc from "../../../../static/images/vivial-account-value-props.png";
 import AuthForm from "../../Forms/AuthForm";
@@ -17,16 +23,11 @@ const ValuePropsImg = styled("img")(() => ({
 }));
 
 const SignUpPage = () => {
-  const handleSubmit = useCallback((email: string, password: string) => {
+  const dispatch = useAppDispatch();
 
+  const handleSubmit = useCallback(async (email: string, password: string) => {
 
-
-    console.log("email:", email);
-    console.log("password:", password);
-
-
-
-
+    await dispatch(authenticateUser({ email, password }));
 
   }, []);
 

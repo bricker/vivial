@@ -1,6 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit'
 import { authenticateUser } from './thunks';
-export const AUTH = "auth";
 
 // TODO: status enum
 
@@ -17,7 +16,7 @@ const initialState: AuthState = {
 }
 
 export const authSlice = createSlice({
-  name: AUTH,
+  name: "auth",
   initialState,
   reducers: {
     // loggedIn: (state, action) => {
