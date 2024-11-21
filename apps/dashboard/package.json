@@ -42,7 +42,6 @@
     "webpack-dev-server": "^4.11.1"
   },
   "eslintConfig": {
-    "ignorePatterns": "eave/dashboard/js/graphql/generated",
     "parserOptions": {
       "project": "./tsconfig.json"
     }
