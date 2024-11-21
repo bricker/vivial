@@ -37,21 +37,18 @@
       "console": "integratedTerminal"
     },
     {
-      "name": "Debug AVA test file",
-      "envFile": "${workspaceFolder}/.env",
+      "name": "Dashboard (GraphQL Codegen)",
+      "consoleTitle": "Dashboard (GraphQL Codegen)",
+      "cwd": "${workspaceFolder}/apps/dashboard",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/node_modules/ava/entrypoints/cli.mjs",
+      "program": "./node_modules/.bin/graphql-codegen",
       "args": [
-        "--config=${workspaceFolder}/develop/javascript/es-config/ava/ava.config.mjs",
-        "--serial",
-        "${file}"
+        "--config codegen.ts",
+        "--overwrite",
+        "--watch",
       ],
-      "outputCapture": "std",
-      "console": "integratedTerminal",
-      "skipFiles": [
-        "<node_internals>/**/*.js"
-      ]
+      "console": "integratedTerminal"
     },
   ],
   "compounds": [
@@ -59,7 +56,8 @@
       "name": "Dashboard",
       "configurations": [
         "Dashboard (Server)",
-        "Dashboard (Webpack)"
+        "Dashboard (Webpack)",
+        "Dashboard (GraphQL Codegen)",
       ],
       "stopAll": true
     },
@@ -69,6 +67,7 @@
         "Core API",
         "Dashboard (Server)",
         "Dashboard (Webpack)",
+        "Dashboard (GraphQL Codegen)",
       ],
       "stopAll": true
     },

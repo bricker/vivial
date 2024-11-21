@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { createSlice } from "@reduxjs/toolkit";
 import { fetchTodos, saveNewTodo } from "./sampleThunks.js";
 

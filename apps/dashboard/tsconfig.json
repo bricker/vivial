@@ -1,18 +1,7 @@
 {
-  "extends": "../../develop/javascript/es-config/ts/tsconfig-base.json",
-  "include": [
-    "eave/dashboard/js/**/*.ts",
-    "eave/dashboard/js/**/*.tsx",
-    "eave/dashboard/js/**/*.js",
-    "eave/dashboard/js/**/*.jsx",
-    "eave/dashboard/static/images/*",
-    "graphql.config.ts"
-  ],
+  "extends": "../../tsconfig.json",
+  "exclude": ["**/dist", "**/.*"],
   "compilerOptions": {
-    "jsx": "react",
-    // "typeRoots": ["./node_modules/@types", "../../node_modules/@types"],
-    "esModuleInterop": true,
-    "allowJs": true,
     "lib": ["ES2021", "DOM"],
     "paths": {
       "$eave-dashboard/*": ["./eave/dashboard/*"]

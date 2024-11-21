@@ -1,3 +1,6 @@
 {
-  "extends": "./develop/javascript/es-config/ts/tsconfig-base.json"
+  "extends": "./develop/javascript/es-config/ts/tsconfig-base.json",
+  "compilerOptions": {
+    "outDir": ".tmp", // This is necessary to silence some tsconfig warnings.
+  }
 }

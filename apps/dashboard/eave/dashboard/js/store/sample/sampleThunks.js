@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
 const client = {

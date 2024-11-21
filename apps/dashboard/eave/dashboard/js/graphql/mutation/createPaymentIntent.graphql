@@ -1,16 +1,14 @@
 mutation CreatePaymentIntent($input: CreatePaymentIntentInput!) {
   viewer {
-    payment {
-      createPaymentIntent(input: $input) {
-        __typename
-        ... on CreatePaymentIntentSuccess {
-          paymentIntent {
-            clientSecret
-          }
+    createPaymentIntent(input: $input) {
+      __typename
+      ... on CreatePaymentIntentSuccess {
+        paymentIntent {
+          clientSecret
         }
-        ... on CreatePaymentIntentFailure {
-          failureReason
-        }
+      }
+      ... on CreatePaymentIntentFailure {
+        failureReason
       }
     }
   }
