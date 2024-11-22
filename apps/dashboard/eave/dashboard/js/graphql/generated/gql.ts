@@ -20,6 +20,7 @@ const documents = {
     "mutation PlanOuting($input: PlanOutingInput!) {\n  planOuting(input: $input) {\n    __typename\n    ... on PlanOutingSuccess {\n      outing {\n        id\n      }\n    }\n    ... on PlanOutingFailure {\n      failureReason\n    }\n  }\n}": types.PlanOutingDocument,
     "mutation ReplanOuting($input: ReplanOutingInput!) {\n  replanOuting(input: $input) {\n    __typename\n    ... on ReplanOutingSuccess {\n      outing {\n        id\n      }\n    }\n    ... on ReplanOutingFailure {\n      failureReason\n    }\n  }\n}": types.ReplanOutingDocument,
     "mutation SubmitReserverDetails($input: ReserverDetailsInput!) {\n  viewer {\n    submitReserverDetails(input: $input) {\n      __typename\n      ... on SubmitReserverDetailsSuccess {\n        reserverDetails {\n          id\n        }\n      }\n      ... on SubmitReserverDetailsFailure {\n        failureReason\n        validationErrors {\n          field\n        }\n      }\n    }\n  }\n}": types.SubmitReserverDetailsDocument,
+    "query SearchRegions {\n  searchRegions {\n    id\n    name\n  }\n}": types.SearchRegionsDocument,
 };
 
 /**
@@ -42,6 +43,10 @@ export function graphql(source: "mutation ReplanOuting($input: ReplanOutingInput
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation SubmitReserverDetails($input: ReserverDetailsInput!) {\n  viewer {\n    submitReserverDetails(input: $input) {\n      __typename\n      ... on SubmitReserverDetailsSuccess {\n        reserverDetails {\n          id\n        }\n      }\n      ... on SubmitReserverDetailsFailure {\n        failureReason\n        validationErrors {\n          field\n        }\n      }\n    }\n  }\n}"): typeof import('./graphql').SubmitReserverDetailsDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query SearchRegions {\n  searchRegions {\n    id\n    name\n  }\n}"): typeof import('./graphql').SearchRegionsDocument;
 
 
 export function graphql(source: string) {

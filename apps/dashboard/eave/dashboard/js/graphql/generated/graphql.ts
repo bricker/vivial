@@ -570,6 +570,11 @@ export type SubmitReserverDetailsMutationVariables = Exact<{
 
 export type SubmitReserverDetailsMutation = { __typename: 'Mutation', viewer: { __typename: 'ViewerMutations', submitReserverDetails: { __typename: 'SubmitReserverDetailsFailure', failureReason: SubmitReserverDetailsFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'SubmitReserverDetailsSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string } } } };
 
+export type SearchRegionsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type SearchRegionsQuery = { __typename: 'Query', searchRegions: Array<{ __typename: 'SearchRegion', id: string, name: string }> };
+
 export class TypedDocumentString<TResult, TVariables>
   extends String
   implements DocumentTypeDecoration<TResult, TVariables>
@@ -672,3 +677,11 @@ export const SubmitReserverDetailsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<SubmitReserverDetailsMutation, SubmitReserverDetailsMutationVariables>;
+export const SearchRegionsDocument = new TypedDocumentString(`
+    query SearchRegions {
+  searchRegions {
+    id
+    name
+  }
+}
+    `) as unknown as TypedDocumentString<SearchRegionsQuery, SearchRegionsQueryVariables>;
