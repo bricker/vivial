@@ -1,22 +1,15 @@
 import { useState } from "react";
 import { NetworkState } from "../../types/network";
-import {
-  SubmitReserverDetailsDocument,
-  type SubmitReserverDetailsMutation,
-  type SubmitReserverDetailsMutationVariables,
-} from "../generated/graphql";
+import { PlanOutingDocument, type PlanOutingMutation, type PlanOutingMutationVariables } from "../generated/graphql";
 import { executeOperation, type GraphQLOperation } from "../graphql-fetch";
 
-type SubmitReserverDetailsNetworkState = NetworkState<SubmitReserverDetailsMutation>;
+type PlanOutingNetworkState = NetworkState<PlanOutingMutation>;
 
-export type SubmitReserverDetailsOperation = GraphQLOperation<
-  SubmitReserverDetailsNetworkState,
-  SubmitReserverDetailsMutationVariables
->;
+export type PlanOutingOperation = GraphQLOperation<PlanOutingNetworkState, PlanOutingMutationVariables>;
 
-export function makeSubmitReserverDetailsOperation(): SubmitReserverDetailsOperation {
+export function makePlanOutingOperation(): PlanOutingOperation {
   return {
-    execute: async function (variables: SubmitReserverDetailsMutationVariables) {
+    execute: async function (variables: PlanOutingMutationVariables) {
       const [, setNetworkState] = this.networkState;
       setNetworkState({
         loading: true,
@@ -25,11 +18,11 @@ export function makeSubmitReserverDetailsOperation(): SubmitReserverDetailsOpera
       });
 
       try {
-        const data = await executeOperation({ query: SubmitReserverDetailsDocument, variables });
-        const result = data.viewer.submitReserverDetails;
+        const data = await executeOperation({ query: PlanOutingDocument, variables });
+        const result = data.planOuting;
 
         switch (result.__typename) {
-          case "SubmitReserverDetailsSuccess": {
+          case "PlanOutingSuccess": {
             setNetworkState((prev) => ({
               ...prev,
               data,
@@ -37,7 +30,7 @@ export function makeSubmitReserverDetailsOperation(): SubmitReserverDetailsOpera
 
             break;
           }
-          case "SubmitReserverDetailsFailure": {
+          case "PlanOutingFailure": {
             // failure
             throw Error(result.failureReason);
           }
@@ -58,7 +51,7 @@ export function makeSubmitReserverDetailsOperation(): SubmitReserverDetailsOpera
         }));
       }
     },
-    networkState: useState<SubmitReserverDetailsNetworkState>({
+    networkState: useState<PlanOutingNetworkState>({
       loading: false,
     }),
   };

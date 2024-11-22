@@ -72,7 +72,7 @@ const InputReqsContainer = styled("div")(() => ({
 interface AuthFormProps {
   title: string;
   cta: string;
-  onSubmit: (email: string, password: string) => void;
+  onSubmit: (args: { email: string; password: string }) => void;
   subtitle?: string;
   error?: string;
   validateEmail?: boolean;
@@ -111,7 +111,7 @@ const AuthForm = ({
       setSubmitEnabled(false);
       return;
     }
-    onSubmit(email, password);
+    onSubmit({ email, password });
   }, [email, password]);
 
   const checkInputs = ({ currentEmail, currentPassword }: { currentEmail: string; currentPassword: string }) => {
