@@ -25,7 +25,6 @@ export async function executeOperation<TResult, TVariables>({
 
   const { data, errors } = await response.json();
 
-  throw new GraphQLExecutionError({ operationName: typeof query, errors });
   if (errors && errors.length > 0) {
     // The GraphQL spec says that if errors is present, is must have at least 1 error.
     // So the length check here is just for safety.

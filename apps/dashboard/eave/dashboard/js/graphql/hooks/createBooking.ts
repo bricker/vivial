@@ -31,7 +31,6 @@ export function makeCreateBookingOperation(): CreateBookingOperation {
               ...prev,
               data,
             }));
-
             break;
           }
           case "CreateBookingFailure": {
