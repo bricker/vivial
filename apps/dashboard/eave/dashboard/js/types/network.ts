@@ -6,9 +6,9 @@ export type NetworkState<TDataType> = {
 };
 
 export class GraphQLExecutionError extends Error {
-  errors: unknown; // We use `unknown` here because GraphQL errors don't have a specified schema.
+  errors?: unknown[]; // We use `unknown` here because GraphQL errors don't have a specified schema.
 
-  constructor({ operationName, errors }: { operationName?: string; errors: unknown }) {
+  constructor({ operationName, errors }: { operationName?: string; errors?: unknown[] }) {
     super(`A GraphQL execution error occurred during ${operationName}`);
     this.errors = errors;
   }

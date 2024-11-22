@@ -3,7 +3,6 @@ from uuid import UUID, uuid4
 
 import strawberry
 
-from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.activity import Activity, ActivityTicketInfo, ActivityVenue
 from eave.core.graphql.types.location import Location
@@ -12,7 +11,6 @@ from eave.core.graphql.types.outing import (
 )
 from eave.core.graphql.types.photos import Photos
 from eave.core.graphql.types.restaurant import Restaurant
-from eave.core.orm.outing import OutingOrm
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 from eave.core.zoneinfo import LOS_ANGELES_ZONE_INFO
 
@@ -92,7 +90,9 @@ MOCK_OUTING = Outing(
 
 
 async def get_outing_query(*, info: strawberry.Info[GraphQLContext], outing_id: UUID) -> Outing:
-    async with database.async_session.begin() as db_session:
-        outing_orm = await OutingOrm.get_one(session=db_session, id=outing_id)
+    return MOCK_OUTING
 
-    return Outing.from_orm(outing_orm)
+    # async with database.async_session.begin() as db_session:
+    #     outing_orm = await OutingOrm.get_one(session=db_session, id=outing_id)
+
+    # return Outing.from_orm(outing_orm)

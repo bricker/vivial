@@ -1,5 +1,6 @@
 import { AnalyticsBrowser } from "@segment/analytics-next";
 import { myWindow } from "../types/window";
+import { delay } from "../util/delay";
 
 const analytics = AnalyticsBrowser.load({ writeKey: myWindow.app.segmentWriteKey! });
 
@@ -62,22 +63,20 @@ export async function identify({ userId, extraProperties }: { userId: string; ex
  * https://segment.com/docs/connections/sources/catalog/libraries/website/javascript/identity/#retrieve-the-anonymous-id
  */
 export async function getVisitorId(): Promise<string> {
-  const anonId = (await analytics.user()).anonymousId();
-  if (anonId) {
-    return anonId;
+  let intervalCounter = 5;
+
+  while (intervalCounter >= 0) {
+    const user = await analytics.user();
+    const anonId = user.anonymousId();
+    if (anonId) {
+      return anonId;
+    }
+
+    if (intervalCounter > 0) {
+      intervalCounter--;
+      await delay({ ms: 100 });
+    }
   }
-  return new Promise((resolve, reject) => {
-    let intervalCounter = 5;
-    const interval = setInterval(async () => {
-      const id = (await analytics.user()).anonymousId();
-      if (id) {
-        clearInterval(interval);
-        resolve(id);
-      } else {
-        if (intervalCounter-- === 0) {
-          reject();
-        }
-      }
-    }, 100); // Check every 100ms
-  });
+
+  throw new Error("failed to get visitor ID");
 }

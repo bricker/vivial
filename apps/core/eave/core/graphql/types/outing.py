@@ -4,7 +4,6 @@ from uuid import UUID
 
 import strawberry
 
-from eave.core.orm.outing import OutingOrm
 from eave.core.shared.enums import OutingBudget
 
 from .activity import Activity
@@ -30,14 +29,15 @@ class Outing:
     restaurant_arrival_time: datetime | None
     driving_time: str
 
-    @classmethod
-    def from_orm(cls, orm: OutingOrm) -> "Outing":
-        return Outing(
-            id=orm.id,
-            survey_id=orm.survey_id,
-            budget=orm.budget,
-            headcount=orm.headcount,
-        )
+    # @classmethod
+    # def from_orm(cls, orm: OutingOrm) -> "Outing":
+    #     return Outing(
+    #         id=orm.id,
+    #         survey_id=orm.survey_id,
+    #         budget=orm.budget,
+    #         headcount=orm.headcount,
+    #         visitor_id=orm.visitor_id,
+    #     )
 
 
 @strawberry.type
