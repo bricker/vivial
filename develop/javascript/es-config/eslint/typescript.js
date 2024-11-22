@@ -2,9 +2,13 @@ const config = {
   overrides: [
     {
       files: ["*.ts", "*.tsx"],
-      extends: ["plugin:@typescript-eslint/recommended"],
+      extends: ["plugin:@typescript-eslint/recommended-type-checked"],
       plugins: ["@typescript-eslint"],
       parser: "@typescript-eslint/parser",
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: process.env["EAVE_HOME"],
+      },
       rules: {
         "@typescript-eslint/no-floating-promises": "warn", // A genuine source of bugs
         "@typescript-eslint/no-non-null-assertion": "off", // Useful language feature
@@ -13,6 +17,13 @@ const config = {
         "@typescript-eslint/no-explicit-any": "off", // useful language feature
         "@typescript-eslint/no-empty-interface": "off", // useful for readability
         "@typescript-eslint/no-empty-function": "off", // useful for readability
+        "@typescript-eslint/switch-exhaustiveness-check": [
+          "warn",
+          {
+            allowDefaultCaseForExhaustiveSwitch: true,
+
+          },
+        ],
         "@typescript-eslint/no-unused-vars": [
           "warn",
           {
