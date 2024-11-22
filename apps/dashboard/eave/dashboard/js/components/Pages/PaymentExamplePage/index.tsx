@@ -1,7 +1,7 @@
 // https://docs.stripe.com/sdks/stripejs-react
 
 import { myWindow } from "$eave-dashboard/js/types/window";
-import { floatingPromise } from "$eave-dashboard/js/util/delay";
+import { floatingPromise } from "$eave-dashboard/js/util/promise";
 import { Button } from "@mui/material";
 import { PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import React, { useCallback } from "react";
