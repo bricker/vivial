@@ -102,9 +102,6 @@ app = starlette.applications.Starlette(
             allow_methods=[
                 aiohttp.hdrs.METH_GET,
                 aiohttp.hdrs.METH_POST,
-                aiohttp.hdrs.METH_PUT,
-                aiohttp.hdrs.METH_PATCH,
-                aiohttp.hdrs.METH_DELETE,
                 aiohttp.hdrs.METH_HEAD,
                 aiohttp.hdrs.METH_OPTIONS,
             ],

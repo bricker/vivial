@@ -26,7 +26,7 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
     # tld = flow.request.host.split(".")[-1]
     port = None
 
-    if re.match(r"^(dashboard|www)\.", flow.request.host):
+    if re.match(r"^(www)\.", flow.request.host):
         port = 5000
 
     elif re.match(r"^(core-)?api\.", flow.request.host):
