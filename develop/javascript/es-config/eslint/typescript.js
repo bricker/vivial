@@ -20,8 +20,10 @@ const config = {
         "@typescript-eslint/switch-exhaustiveness-check": [
           "warn",
           {
+            // https://typescript-eslint.io/rules/switch-exhaustiveness-check
             allowDefaultCaseForExhaustiveSwitch: true,
-
+            considerDefaultExhaustiveForUnions: true,
+            requireDefaultForNonUnion: true,
           },
         ],
         "@typescript-eslint/no-unused-vars": [
