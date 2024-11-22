@@ -9,14 +9,14 @@ from eave.core.graphql.types.activity import Activity, ActivityTicketInfo, Activ
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import (
     Outing,
-    Restaurant,
 )
 from eave.core.graphql.types.photos import Photos
+from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.orm.outing import OutingOrm
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 from eave.core.zoneinfo import LOS_ANGELES_ZONE_INFO
 
-# # TODO: Remove once we're fetching from the appropriate sources.
+# TODO: Remove once we're fetching from the appropriate sources.
 MOCK_OUTING = Outing(
     id=uuid4(),
     visitor_id=uuid4(),
