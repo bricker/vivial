@@ -1,18 +1,12 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { authenticateUser } from './thunks';
 
-// TODO: status enum
 
 interface AuthState {
   isLoggedIn: boolean | null;
-  status: 'idle' | 'pending' | 'succeeded' | 'failed';
-  error: string | null
 }
 
 const initialState: AuthState = {
-  status: 'idle',
   isLoggedIn: null,
-  error: null,
 }
 
 export const authSlice = createSlice({
