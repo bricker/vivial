@@ -4,21 +4,20 @@ from uuid import UUID, uuid4
 import strawberry
 
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.types.activity import Activity, ActivitySource, ActivityTicketInfo, ActivityVenue
+from eave.core.graphql.types.activity import Activity, ActivityTicketInfo, ActivityVenue
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import (
     Outing,
-    OutingBudget,
 )
 from eave.core.graphql.types.photos import Photos
-from eave.core.graphql.types.restaurant import Restaurant, RestaurantSource
+from eave.core.graphql.types.restaurant import Restaurant
+from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 from eave.core.zoneinfo import LOS_ANGELES_ZONE_INFO
 
 # TODO: Remove once we're fetching from the appropriate sources.
 MOCK_OUTING = Outing(
     id=uuid4(),
     visitor_id=uuid4(),
-    account_id=uuid4(),
     survey_id=uuid4(),
     budget=OutingBudget.EXPENSIVE,
     headcount=2,
@@ -91,5 +90,9 @@ MOCK_OUTING = Outing(
 
 
 async def get_outing_query(*, info: strawberry.Info[GraphQLContext], outing_id: UUID) -> Outing:
-    # TODO: Fetch outing by outing_id.
     return MOCK_OUTING
+
+    # async with database.async_session.begin() as db_session:
+    #     outing_orm = await OutingOrm.get_one(session=db_session, id=outing_id)
+
+    # return Outing.from_orm(outing_orm)

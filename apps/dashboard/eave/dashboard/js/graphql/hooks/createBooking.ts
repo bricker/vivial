@@ -43,7 +43,7 @@ export function makeCreateBookingOperation(): CreateBookingOperation {
             throw Error("unexpected result type");
           }
         }
-      } catch (error: any) {
+      } catch (error) {
         setNetworkState((prev) => ({
           ...prev,
           error,
