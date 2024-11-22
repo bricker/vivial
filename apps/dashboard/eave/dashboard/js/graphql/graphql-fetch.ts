@@ -28,7 +28,8 @@ export async function executeOperation<TResult, TVariables>({
   if (errors && errors.length > 0) {
     // The GraphQL spec says that if errors is present, is must have at least 1 error.
     // So the length check here is just for safety.
-    throw new GraphQLExecutionError({ operationName: typeof query, errors });
+    const operationMetadata = getGraphqlOperationMetadata(query.toString());
+    throw new GraphQLExecutionError({ operationName: operationMetadata?.operationName, errors });
   }
 
   if (!data) {
@@ -36,4 +37,30 @@ export async function executeOperation<TResult, TVariables>({
   }
 
   return data as TResult;
+}
+
+type GraphQLOperationType = "mutation" | "query" | "subscription";
+
+type GraphqlOperationMetadata = {
+  operationType?: GraphQLOperationType;
+  operationName?: string;
+};
+
+export function getGraphqlOperationMetadata(graphqlDocument: string): GraphqlOperationMetadata | undefined {
+  const m = graphqlDocument.match(/(mutation|query)\s+([a-zA-Z0-9_]+)/);
+  if (!m) {
+    return undefined;
+  }
+
+  let operationType: GraphQLOperationType | undefined;
+  if (m[1] === "mutation" || m[1] === "query" || m[1] === "subscription") {
+    operationType = m[1];
+  }
+
+  const operationName = m[2];
+
+  return {
+    operationType,
+    operationName,
+  };
 }

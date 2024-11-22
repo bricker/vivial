@@ -222,7 +222,6 @@ export type MutationReplanOutingArgs = {
 
 export type Outing = {
   __typename: 'Outing';
-  accountId?: Maybe<Scalars['UUID']['output']>;
   activity?: Maybe<Activity>;
   activityStartTime?: Maybe<Scalars['DateTime']['output']>;
   budget: OutingBudget;
@@ -271,7 +270,7 @@ export enum PlanOutingFailureReason {
 
 export type PlanOutingInput = {
   budget: OutingBudget;
-  groupPreferences: Array<PreferencesInput>;
+  groupPreferences?: InputMaybe<Array<PreferencesInput>>;
   headcount: Scalars['Int']['input'];
   searchAreaIds: Array<Scalars['UUID']['input']>;
   startTime: Scalars['DateTime']['input'];
