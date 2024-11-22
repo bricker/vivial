@@ -1,15 +1,17 @@
-import { configureStore } from "@reduxjs/toolkit";
-import authReducer from "./auth/slice"
+import { configureStore, createListenerMiddleware } from "@reduxjs/toolkit";
+import { coreApiSlice } from "./slices/coreApiSlice";
+import { authSlice } from "./slices/authSlice"
 
+const listenerMiddleware = createListenerMiddleware()
 const store = configureStore({
   reducer: {
-    auth: authReducer,
+    coreApi: coreApiSlice.reducer,
+    auth: authSlice.reducer,
   },
+  middleware: getDefaultMiddleware =>
+    getDefaultMiddleware()
+      .prepend(listenerMiddleware.middleware)
+      .concat(coreApiSlice.middleware)
 });
-
-// Infer the `RootState` and `AppDispatch` types from the store itself
-export type RootState = ReturnType<typeof store.getState>
-// Inferred type: {posts: PostsState, comments: CommentsState, users: UsersState}
-export type AppDispatch = typeof store.dispatch
 
 export default store;
