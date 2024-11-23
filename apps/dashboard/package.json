@@ -2,7 +2,8 @@
   "type": "module",
   "scripts": {},
   "dependencies": {
-    "@mui/material": "^5.15.15",
+    "@mui/lab": "^6.0.0-beta.16",
+    "@mui/material": "^6.1.8",
     "@mui/x-date-pickers": "^7.19.0",
     "@reduxjs/toolkit": "^2.3.0",
     "@segment/analytics-next": "^1.76.0",

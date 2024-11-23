@@ -5,7 +5,7 @@ import {
   type CreateBookingMutation,
   type CreateBookingMutationVariables,
 } from "../generated/graphql";
-import { executeOperation, type GraphQLOperation } from "../graphql-fetch.js";
+import { executeOperation, type GraphQLOperation } from "../graphql-fetch";
 
 type CreateBookingNetworkState = NetworkState<CreateBookingMutation>;
 

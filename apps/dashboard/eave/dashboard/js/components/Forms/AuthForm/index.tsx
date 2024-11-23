@@ -12,6 +12,11 @@ import InputReq from "../../Inputs/InputRequirement";
 import SensitiveInput from "../../Inputs/SensitiveInput";
 import Link from "../../Links/Link";
 
+
+import LoadingButton from "../../Buttons/LoadingButton";
+
+
+
 const FormContainer = styled("div")(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   borderRadius: 15,
@@ -34,7 +39,7 @@ const EmailInput = styled(Input)(() => ({
   marginBottom: 16,
 }));
 
-const AuthButton = styled(Button)(() => ({
+const AuthButton = styled(LoadingButton)(() => ({
   margin: "24px 0",
 }));
 
@@ -75,6 +80,7 @@ interface AuthFormProps {
   onSubmit: (args: { email: string; password: string }) => void;
   subtitle?: string;
   error?: string;
+  isLoading?: boolean;
   validateEmail?: boolean;
   validatePassword?: boolean;
   showForgotPassword?: boolean;
@@ -87,6 +93,7 @@ const AuthForm = ({
   onSubmit,
   subtitle = "",
   error = "",
+  isLoading = false,
   validateEmail = false,
   validatePassword = false,
   showForgotPassword = false,
@@ -95,7 +102,7 @@ const AuthForm = ({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState(error);
-  const [submitEnabled, setSubmitEnabled] = useState(false);
+  const [isDisabled, setIsDisabled] = useState(true);
   const [showPasswordInfo, setShowPasswordInfo] = useState(false);
   const [passwordInfo, setPasswordInfo] = useState({
     hasEightChars: false,
@@ -108,7 +115,7 @@ const AuthForm = ({
     if (validateEmail && !EmailValidator.validate(email)) {
       setErrorMessage("Invalid email address");
       setShowPasswordInfo(false);
-      setSubmitEnabled(false);
+      setIsDisabled(true);
       return;
     }
     onSubmit({ email, password });
@@ -121,14 +128,14 @@ const AuthForm = ({
       setPasswordInfo(newPasswordInfo);
       setShowPasswordInfo(true);
       if (currentEmail && passwordIsValid(newPasswordInfo)) {
-        setSubmitEnabled(true);
+        setIsDisabled(false);
       } else {
-        setSubmitEnabled(false);
+        setIsDisabled(true);
       }
     } else if (currentEmail && currentPassword) {
-      setSubmitEnabled(true);
+      setIsDisabled(false);
     } else {
-      setSubmitEnabled(false);
+      setIsDisabled(true);
     }
   };
 
@@ -167,7 +174,12 @@ const AuthForm = ({
         </InputReqsContainer>
       )}
       <FormContent>
-        <AuthButton onClick={handleSubmit} disabled={!submitEnabled} fullWidth>
+        <AuthButton
+          onClick={handleSubmit}
+          loading={isLoading}
+          disabled={isDisabled}
+          fullWidth
+        >
           {cta}
         </AuthButton>
         {showForgotPassword && (

@@ -7,6 +7,7 @@ export type NetworkState<TDataType> = {
 
 interface GraphQLExecutionError extends Error {}
 
+
 interface GraphQLExecutionErrorConstructor extends ErrorConstructor {
   new (errors: any[]): GraphQLExecutionError;
   (errors: any[]): GraphQLExecutionError;

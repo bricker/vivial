@@ -535,6 +535,13 @@ export type ViewerQueriesOutingArgs = {
   outingId: Scalars['UUID']['input'];
 };
 
+export type CreateAccountMutationVariables = Exact<{
+  input: CreateAccountInput;
+}>;
+
+
+export type CreateAccountMutation = { __typename: 'Mutation', createAccount: { __typename: 'CreateAccountFailure', failureReason: CreateAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'CreateAccountSuccess', account: { __typename: 'Account', id: string, email: string }, authTokens: { __typename: 'AuthTokenPair', accessToken: string, refreshToken: string } } };
+
 export type CreateBookingMutationVariables = Exact<{
   input: CreateBookingInput;
 }>;
@@ -590,6 +597,29 @@ export class TypedDocumentString<TResult, TVariables>
   }
 }
 
+export const CreateAccountDocument = new TypedDocumentString(`
+    mutation CreateAccount($input: CreateAccountInput!) {
+  createAccount(input: $input) {
+    __typename
+    ... on CreateAccountSuccess {
+      account {
+        id
+        email
+      }
+      authTokens {
+        accessToken
+        refreshToken
+      }
+    }
+    ... on CreateAccountFailure {
+      failureReason
+      validationErrors {
+        field
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<CreateAccountMutation, CreateAccountMutationVariables>;
 export const CreateBookingDocument = new TypedDocumentString(`
     mutation CreateBooking($input: CreateBookingInput!) {
   viewer {

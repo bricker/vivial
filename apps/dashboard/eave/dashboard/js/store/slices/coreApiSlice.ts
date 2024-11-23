@@ -1,39 +1,52 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import { GRAPHQL_API_BASE } from '$eave-dashboard/js/util/http';
+import { CORE_API_BASE } from '$eave-dashboard/js/util/http';
 
-import { SearchRegionsDocument } from "$eave-dashboard/js/graphql/generated"
+import {
+  CreateAccountDocument,
+  type CreateAccountResult,
+  type CreateAccountInput,
 
-type SearchRegion = {
-  id: string;
-  name: string;
+  SearchRegionsDocument,
+  type SearchRegionsQuery,
+} from "$eave-dashboard/js/graphql/generated/graphql"
+
+const gqlParams = {
+  url: "/graphql",
+  method: "POST",
 }
-
-type SearchRegionQueryResponse = {
-  data: {
-    searchRegions: SearchRegion[];
-  }
-}
-
 export const coreApiSlice = createApi({
   reducerPath: 'coreApi',
-  baseQuery: fetchBaseQuery({ baseUrl: GRAPHQL_API_BASE }),
-  endpoints: (builder) => ({
-    getSearchRegions: builder.query<SearchRegionQueryResponse, void>({
-      query: () => ({
-        document: SearchRegionsDocument,
-        variables: {},
-      }),
-      // query: () => "/posts"
-    }),
+  baseQuery: fetchBaseQuery({
+    baseUrl: CORE_API_BASE,
   }),
 
-  // endpoints: builder => ({
-    // getSearchRegions: builder.query<SearchRegionQueryResponse, void>({
-    //   query: () => ({
-    //     document: SearchRegionsDocument,
-    //     // variables: {},
-    // })
-  // })
+  endpoints: builder => ({
+    /**
+     * Core API Queries
+     */
+    getSearchRegions: builder.query<SearchRegionsQuery, void>({
+      query: () => ({ ...gqlParams, body: { query: SearchRegionsDocument }
+      })
+    }),
+    /**
+     * Core API Mutations
+     */
+    creteAccount: builder.mutation<CreateAccountResult, CreateAccountInput>({
+      query: (input) => ({
+        ...gqlParams,
+        body: {
+          query: CreateAccountDocument,
+          variables: { input },
+        },
+      })
+    }),
+  }),
 });
 
-export const { useGetSearchRegionsQuery } = coreApiSlice
+export const {
+  // Core API Query Hooks
+  useGetSearchRegionsQuery,
+
+  // Core API Mutation Hooks
+  useCreteAccountMutation,
+} = coreApiSlice
