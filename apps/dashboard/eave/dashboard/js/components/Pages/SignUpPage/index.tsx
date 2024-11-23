@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 import { CreateAccountFailureReason } from "$eave-dashboard/js/graphql/generated/graphql";
 import { loggedIn } from "$eave-dashboard/js/store/slices/authSlice";
-import { useCreteAccountMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { useCreateAccountMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 
 import AuthForm from "../../Forms/AuthForm";
@@ -23,7 +23,7 @@ const ValuePropsImg = styled("img")(() => ({
 }));
 
 const SignUpPage = () => {
-  const [createAccount, { isLoading }] = useCreteAccountMutation();
+  const [createAccount, { isLoading }] = useCreateAccountMutation();
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();

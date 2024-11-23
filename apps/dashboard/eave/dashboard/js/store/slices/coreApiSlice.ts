@@ -29,7 +29,7 @@ export const coreApiSlice = createApi({
     /**
      * Core API Mutations
      */
-    creteAccount: builder.mutation<{ data: CreateAccountMutation }, CreateAccountInput>({
+    createAccount: builder.mutation<{ data: CreateAccountMutation }, CreateAccountInput>({
       query: (input) => ({
         ...gqlParams,
         body: {
@@ -46,5 +46,5 @@ export const {
   useGetSearchRegionsQuery,
 
   // Core API Mutation Hooks
-  useCreteAccountMutation,
+  useCreateAccountMutation,
 } = coreApiSlice;
