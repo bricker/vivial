@@ -2,16 +2,13 @@
 export type NetworkState<TDataType> = {
   loading: boolean;
   data?: TDataType;
-  error?: Error;
+  error?: unknown; // We use `unknown` here because pretty much anything can be thrown, so assuming it's an `Error` type is dangerous.
 };
 
-interface GraphQLExecutionError extends Error {}
-
-
-interface GraphQLExecutionErrorConstructor extends ErrorConstructor {
-  new (errors: any[]): GraphQLExecutionError;
-  (errors: any[]): GraphQLExecutionError;
-  readonly prototype: GraphQLExecutionError;
+export class GraphQLExecutionError extends Error {
+  errors?: unknown[]; // We use `unknown` here because GraphQL errors don't have a specified schema.
+  constructor({ operationName, errors }: { operationName?: string; errors?: unknown[] }) {
+    super(`A GraphQL execution error occurred during ${operationName}`);
+    this.errors = errors;
+  }
 }
-
-export declare const GraphQLExecutionError: GraphQLExecutionErrorConstructor;

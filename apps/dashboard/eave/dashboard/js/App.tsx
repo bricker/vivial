@@ -23,11 +23,11 @@ import RouteChangeTracker from "./components/Util/RouteChangeTracker";
 import ScrollToTop from "./components/Util/ScrollToTop";
 import { AppContextProvider } from "./context";
 
-const App = () => {
-  const fireAnalyticsPageView = async (_: string) => {
-    await pageView({});
-  };
+const fireAnalyticsPageView = (_: string) => {
+  void pageView({});
+};
 
+const App = () => {
   return (
     <StoreProvider store={store}>
 

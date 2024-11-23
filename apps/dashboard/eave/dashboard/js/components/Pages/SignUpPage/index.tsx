@@ -2,7 +2,7 @@ import { styled } from "@mui/material";
 import React, { useCallback, useState, useEffect } from "react";
 import { useCreteAccountMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 
-import accountValuePropsSrc from "../../../../static/images/vivial-account-value-props.png";
+import { imageUrl } from "$eave-dashboard/js/util/asset";
 import AuthForm from "../../Forms/AuthForm";
 
 const PageContainer = styled("div")(() => ({
@@ -39,7 +39,7 @@ const SignUpPage = () => {
         validatePassword
         showLegal
       />
-      <ValuePropsImg src={accountValuePropsSrc} />
+      <ValuePropsImg src={imageUrl("vivial-account-value-props.png")} />
     </PageContainer>
   );
 };
