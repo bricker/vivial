@@ -20,4 +20,5 @@ export function logUserOut(): void {
   window.location.assign("/logout");
 }
 
-export const GRAPHQL_API_BASE = `${myWindow.app.apiBase}/graphql`;
+export const CORE_API_BASE = myWindow.app.apiBase;
+export const GRAPHQL_API_BASE = `${CORE_API_BASE}/graphql`;

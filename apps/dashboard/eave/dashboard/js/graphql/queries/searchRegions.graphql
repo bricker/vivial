@@ -1,0 +1,6 @@
+query SearchRegions {
+  searchRegions {
+    id
+    name
+  }
+}

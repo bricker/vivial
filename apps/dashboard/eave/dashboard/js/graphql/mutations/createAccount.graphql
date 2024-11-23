@@ -1,0 +1,21 @@
+mutation CreateAccount($input: CreateAccountInput!) {
+  createAccount(input: $input) {
+    __typename
+    ... on CreateAccountSuccess {
+      account {
+        id
+        email
+      }
+      authTokens {
+        accessToken
+        refreshToken
+      }
+    }
+    ... on CreateAccountFailure {
+      failureReason
+      validationErrors {
+        field
+      }
+    }
+  }
+}

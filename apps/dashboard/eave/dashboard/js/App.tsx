@@ -30,6 +30,7 @@ const fireAnalyticsPageView = (_: string) => {
 const App = () => {
   return (
     <StoreProvider store={store}>
+      {/* TODO: Remove AppContextProvider in favor of Redux. */}
       <AppContextProvider>
         <CookiesProvider>
           <ThemeProvider theme={theme}>
@@ -50,6 +51,7 @@ const App = () => {
                   <Route path="/privacy" element={<PrivacyPage />} />
                   <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
 
+                  {/* TODO: Remove /payment-example Route. */}
                   <Route
                     path="/payment-example"
                     element={

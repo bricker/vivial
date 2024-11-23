@@ -15,13 +15,19 @@ import * as types from './graphql';
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 const documents = {
+    "mutation CreateAccount($input: CreateAccountInput!) {\n  createAccount(input: $input) {\n    __typename\n    ... on CreateAccountSuccess {\n      account {\n        id\n        email\n      }\n      authTokens {\n        accessToken\n        refreshToken\n      }\n    }\n    ... on CreateAccountFailure {\n      failureReason\n      validationErrors {\n        field\n      }\n    }\n  }\n}": types.CreateAccountDocument,
     "mutation CreateBooking($input: CreateBookingInput!) {\n  viewer {\n    createBooking(input: $input) {\n      __typename\n      ... on CreateBookingSuccess {\n        booking {\n          id\n        }\n      }\n      ... on CreateBookingFailure {\n        failureReason\n        validationErrors {\n          field\n        }\n      }\n    }\n  }\n}": types.CreateBookingDocument,
     "mutation CreatePaymentIntent($input: CreatePaymentIntentInput!) {\n  viewer {\n    createPaymentIntent(input: $input) {\n      __typename\n      ... on CreatePaymentIntentSuccess {\n        paymentIntent {\n          clientSecret\n        }\n      }\n      ... on CreatePaymentIntentFailure {\n        failureReason\n      }\n    }\n  }\n}": types.CreatePaymentIntentDocument,
     "mutation PlanOuting($input: PlanOutingInput!) {\n  planOuting(input: $input) {\n    __typename\n    ... on PlanOutingSuccess {\n      outing {\n        id\n      }\n    }\n    ... on PlanOutingFailure {\n      failureReason\n    }\n  }\n}": types.PlanOutingDocument,
     "mutation ReplanOuting($input: ReplanOutingInput!) {\n  replanOuting(input: $input) {\n    __typename\n    ... on ReplanOutingSuccess {\n      outing {\n        id\n      }\n    }\n    ... on ReplanOutingFailure {\n      failureReason\n    }\n  }\n}": types.ReplanOutingDocument,
     "mutation SubmitReserverDetails($input: ReserverDetailsInput!) {\n  viewer {\n    submitReserverDetails(input: $input) {\n      __typename\n      ... on SubmitReserverDetailsSuccess {\n        reserverDetails {\n          id\n        }\n      }\n      ... on SubmitReserverDetailsFailure {\n        failureReason\n        validationErrors {\n          field\n        }\n      }\n    }\n  }\n}": types.SubmitReserverDetailsDocument,
+    "query SearchRegions {\n  searchRegions {\n    id\n    name\n  }\n}": types.SearchRegionsDocument,
 };
 
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "mutation CreateAccount($input: CreateAccountInput!) {\n  createAccount(input: $input) {\n    __typename\n    ... on CreateAccountSuccess {\n      account {\n        id\n        email\n      }\n      authTokens {\n        accessToken\n        refreshToken\n      }\n    }\n    ... on CreateAccountFailure {\n      failureReason\n      validationErrors {\n        field\n      }\n    }\n  }\n}"): typeof import('./graphql').CreateAccountDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -42,6 +48,10 @@ export function graphql(source: "mutation ReplanOuting($input: ReplanOutingInput
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation SubmitReserverDetails($input: ReserverDetailsInput!) {\n  viewer {\n    submitReserverDetails(input: $input) {\n      __typename\n      ... on SubmitReserverDetailsSuccess {\n        reserverDetails {\n          id\n        }\n      }\n      ... on SubmitReserverDetailsFailure {\n        failureReason\n        validationErrors {\n          field\n        }\n      }\n    }\n  }\n}"): typeof import('./graphql').SubmitReserverDetailsDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query SearchRegions {\n  searchRegions {\n    id\n    name\n  }\n}"): typeof import('./graphql').SearchRegionsDocument;
 
 
 export function graphql(source: string) {

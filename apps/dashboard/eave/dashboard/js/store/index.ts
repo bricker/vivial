@@ -1,12 +1,15 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { configureStore, createListenerMiddleware } from "@reduxjs/toolkit";
+import { authSlice } from "./slices/authSlice";
+import { coreApiSlice } from "./slices/coreApiSlice";
 
-import sampleReducer from "./sample/sampleSlice";
-
-// TODO: Delete sample reducer.
+const listenerMiddleware = createListenerMiddleware();
 const store = configureStore({
   reducer: {
-    sample: sampleReducer,
+    coreApi: coreApiSlice.reducer,
+    auth: authSlice.reducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware().prepend(listenerMiddleware.middleware).concat(coreApiSlice.middleware),
 });
 
 export default store;

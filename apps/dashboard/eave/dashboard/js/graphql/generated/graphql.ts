@@ -534,6 +534,13 @@ export type ViewerQueriesOutingArgs = {
   outingId: Scalars['UUID']['input'];
 };
 
+export type CreateAccountMutationVariables = Exact<{
+  input: CreateAccountInput;
+}>;
+
+
+export type CreateAccountMutation = { __typename: 'Mutation', createAccount: { __typename: 'CreateAccountFailure', failureReason: CreateAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'CreateAccountSuccess', account: { __typename: 'Account', id: string, email: string }, authTokens: { __typename: 'AuthTokenPair', accessToken: string, refreshToken: string } } };
+
 export type CreateBookingMutationVariables = Exact<{
   input: CreateBookingInput;
 }>;
@@ -569,6 +576,11 @@ export type SubmitReserverDetailsMutationVariables = Exact<{
 
 export type SubmitReserverDetailsMutation = { __typename: 'Mutation', viewer: { __typename: 'ViewerMutations', submitReserverDetails: { __typename: 'SubmitReserverDetailsFailure', failureReason: SubmitReserverDetailsFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'SubmitReserverDetailsSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string } } } };
 
+export type SearchRegionsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type SearchRegionsQuery = { __typename: 'Query', searchRegions: Array<{ __typename: 'SearchRegion', id: string, name: string }> };
+
 export class TypedDocumentString<TResult, TVariables>
   extends String
   implements DocumentTypeDecoration<TResult, TVariables>
@@ -584,6 +596,29 @@ export class TypedDocumentString<TResult, TVariables>
   }
 }
 
+export const CreateAccountDocument = new TypedDocumentString(`
+    mutation CreateAccount($input: CreateAccountInput!) {
+  createAccount(input: $input) {
+    __typename
+    ... on CreateAccountSuccess {
+      account {
+        id
+        email
+      }
+      authTokens {
+        accessToken
+        refreshToken
+      }
+    }
+    ... on CreateAccountFailure {
+      failureReason
+      validationErrors {
+        field
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<CreateAccountMutation, CreateAccountMutationVariables>;
 export const CreateBookingDocument = new TypedDocumentString(`
     mutation CreateBooking($input: CreateBookingInput!) {
   viewer {
@@ -671,3 +706,11 @@ export const SubmitReserverDetailsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<SubmitReserverDetailsMutation, SubmitReserverDetailsMutationVariables>;
+export const SearchRegionsDocument = new TypedDocumentString(`
+    query SearchRegions {
+  searchRegions {
+    id
+    name
+  }
+}
+    `) as unknown as TypedDocumentString<SearchRegionsQuery, SearchRegionsQueryVariables>;

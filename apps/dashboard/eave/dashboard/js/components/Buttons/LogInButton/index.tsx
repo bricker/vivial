@@ -4,7 +4,7 @@ import Button from "@mui/material/Button";
 import React, { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
-const CustumButton = styled(Button)(({ theme }) => ({
+const CustomButton = styled(Button)(({ theme }) => ({
   color: theme.palette.grey[500],
   border: `1px solid ${theme.palette.grey[500]}`,
   fontSize: rem("15px"),
@@ -20,7 +20,7 @@ const LogInButton = () => {
     navigate("/login");
   }, []);
 
-  return <CustumButton onClick={handleClick}>Log in</CustumButton>;
+  return <CustomButton onClick={handleClick}>Log in</CustomButton>;
 };
 
 export default LogInButton;

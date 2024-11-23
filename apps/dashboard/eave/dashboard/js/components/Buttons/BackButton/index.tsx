@@ -3,7 +3,7 @@ import Button, { ButtonProps } from "@mui/material/Button";
 import React from "react";
 import BackIcon from "../../Icons/BackIcon";
 
-const CustumButton = styled(Button)(({ theme }) => ({
+const CustomButton = styled(Button)(({ theme }) => ({
   color: theme.palette.text.primary,
   fontFamily: theme.typography.fontFamily,
   fontWeight: 700,
@@ -12,9 +12,9 @@ const CustumButton = styled(Button)(({ theme }) => ({
 
 const BackButton = (props: ButtonProps) => {
   return (
-    <CustumButton onClick={props.onClick}>
+    <CustomButton onClick={props.onClick}>
       <BackIcon /> Back
-    </CustumButton>
+    </CustomButton>
   );
 };
 

@@ -32,7 +32,7 @@ const config = {
                * This allows passing an async function to non-async JSX function props, eg `onClick`.
                * That could cause a bug, but it's so common that hacking around it every time would be a bad developer experience.
                */
-              // attributes: false,
+              attributes: false,
               /**
                * The rest are here for reference. They all default to `true`.
                */

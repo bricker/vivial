@@ -1,7 +1,13 @@
 import { styled } from "@mui/material";
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
+import { CreateAccountFailureReason } from "$eave-dashboard/js/graphql/generated/graphql";
+import { loggedIn } from "$eave-dashboard/js/store/slices/authSlice";
+import { useCreateAccountMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
+
 import AuthForm from "../../Forms/AuthForm";
 
 const PageContainer = styled("div")(() => ({
@@ -17,8 +23,36 @@ const ValuePropsImg = styled("img")(() => ({
 }));
 
 const SignUpPage = () => {
-  const handleSubmit = useCallback(({ email, password }: { email: string; password: string }) => {
-    console.debug(email, password);
+  const [createAccount, { isLoading }] = useCreateAccountMutation();
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const handleSubmit = useCallback(async ({ email, password }: { email: string; password: string }) => {
+    const resp = await createAccount({ email, plaintextPassword: password });
+    const typename = resp.data?.data.createAccount.__typename;
+    switch (typename) {
+      case "CreateAccountSuccess": {
+        const accountId = resp.data?.data.createAccount.account.id;
+        if (accountId) {
+          dispatch(loggedIn({ accountId }));
+          navigate("/");
+        }
+        break;
+      }
+      case "CreateAccountFailure": {
+        const failureReason = resp.data?.data.createAccount.failureReason;
+        if (failureReason === CreateAccountFailureReason.AccountExists) {
+          setError("This account already exists");
+        } else {
+          setError("Unable to create account. Reach out to friends@vivialapp.com");
+        }
+        break;
+      }
+      default: {
+        setError("Unable to create account. Try again later.")
+      }
+    }
   }, []);
 
   return (
@@ -27,6 +61,8 @@ const SignUpPage = () => {
         title="Create a free account to book"
         cta="Create Free Account"
         onSubmit={handleSubmit}
+        isLoading={isLoading}
+        error={error}
         validateEmail
         validatePassword
         showLegal
