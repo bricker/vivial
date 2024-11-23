@@ -5,17 +5,13 @@ import Typography from "@mui/material/Typography";
 import * as EmailValidator from "email-validator";
 import React, { useCallback, useState } from "react";
 
-import Button from "../../Buttons/Button";
 import Input from "../../Inputs/Input";
 import InputError from "../../Inputs/InputError";
 import InputReq from "../../Inputs/InputRequirement";
 import SensitiveInput from "../../Inputs/SensitiveInput";
 import Link from "../../Links/Link";
 
-
 import LoadingButton from "../../Buttons/LoadingButton";
-
-
 
 const FormContainer = styled("div")(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -174,12 +170,7 @@ const AuthForm = ({
         </InputReqsContainer>
       )}
       <FormContent>
-        <AuthButton
-          onClick={handleSubmit}
-          loading={isLoading}
-          disabled={isDisabled}
-          fullWidth
-        >
+        <AuthButton onClick={handleSubmit} loading={isLoading} disabled={isDisabled} fullWidth>
           {cta}
         </AuthButton>
         {showForgotPassword && (

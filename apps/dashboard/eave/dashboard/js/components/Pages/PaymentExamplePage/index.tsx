@@ -1,7 +1,6 @@
 // https://docs.stripe.com/sdks/stripejs-react
 
 import { myWindow } from "$eave-dashboard/js/types/window";
-import { floatingPromise } from "$eave-dashboard/js/util/promise";
 import { Button } from "@mui/material";
 import { PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import React, { useCallback } from "react";
@@ -11,7 +10,7 @@ const PaymentExamplePage = () => {
   const stripeElements = useElements();
 
   const handleSubmitClick = useCallback(
-    floatingPromise(async () => {
+    async () => {
       if (!stripeClient || !stripeElements) {
         console.warn("stripe not loaded");
         return;
@@ -28,7 +27,7 @@ const PaymentExamplePage = () => {
       if (response.error) {
         console.error(response.error);
       }
-    }),
+    },
     [stripeClient, stripeElements],
   );
 

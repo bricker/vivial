@@ -1,7 +1,7 @@
 import { rem } from "$eave-dashboard/js/util/rem";
+import BaseLoadingButton from "@mui/lab/LoadingButton";
 import { styled } from "@mui/material";
 import { ButtonProps } from "@mui/material/Button";
-import BaseLoadingButton from '@mui/lab/LoadingButton';
 import CircularProgress from "@mui/material/CircularProgress";
 import React from "react";
 
@@ -19,7 +19,7 @@ const CustomLoadingButton = styled(BaseLoadingButton)(({ theme }) => ({
     backgroundColor: theme.palette.text.disabled,
   },
   "&.MuiLoadingButton-loading": {
-    color: theme.palette.text.disabled,
+    color: theme.palette.primary.main,
     backgroundColor: theme.palette.primary.main,
   },
   ".MuiLoadingButton-loadingIndicator": {

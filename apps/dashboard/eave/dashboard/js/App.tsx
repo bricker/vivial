@@ -30,7 +30,6 @@ const fireAnalyticsPageView = (_: string) => {
 const App = () => {
   return (
     <StoreProvider store={store}>
-
       {/* TODO: Remove AppContextProvider in favor of Redux. */}
       <AppContextProvider>
         <CookiesProvider>

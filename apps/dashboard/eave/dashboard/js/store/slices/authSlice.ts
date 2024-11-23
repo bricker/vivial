@@ -1,32 +1,28 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice } from "@reduxjs/toolkit";
 
 interface AuthState {
   isLoggedIn: boolean | null;
-  accessToken: string | null;
-  refreshToken: string | null;
+  accountId: string | null;
 }
 
 const initialState: AuthState = {
   isLoggedIn: null,
-  accessToken: null,
-  refreshToken: null,
-}
+  accountId: null,
+};
 
 export const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    logIn: (state, { payload }) => {
+    loggedIn: (state, action: { payload: { accountId: string; }}) => {
       state.isLoggedIn = true;
-      state.accessToken = payload.accessToken;
-      state.refreshToken = payload.refreshToken;
+      state.accountId = action.payload.accountId;
     },
-    logOut: (state) => {
+    loggedOut: (state) => {
       state.isLoggedIn = false;
-      state.accessToken = null;
-      state.refreshToken = null;
+      state.accountId = null;
     },
   },
-})
+});
 
-export const { logIn, logOut } = authSlice.actions
+export const { loggedIn, loggedOut } = authSlice.actions;
