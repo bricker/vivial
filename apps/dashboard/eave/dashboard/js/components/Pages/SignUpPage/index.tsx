@@ -43,9 +43,9 @@ const SignUpPage = () => {
       case "CreateAccountFailure": {
         const failureReason = resp.data?.data.createAccount.failureReason;
         if (failureReason === CreateAccountFailureReason.AccountExists) {
-          setError("This account already exists");
+          setError("This account already exists.");
         } else {
-          setError("Unable to create account. Reach out to friends@vivialapp.com");
+          setError("Unable to create account. Reach out to friends@vivialapp.com.");
         }
         break;
       }
@@ -62,7 +62,7 @@ const SignUpPage = () => {
         cta="Create Free Account"
         onSubmit={handleSubmit}
         isLoading={isLoading}
-        error={error}
+        externalError={error}
         validateEmail
         validatePassword
         showLegal

@@ -3,9 +3,12 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import {
   CreateAccountDocument,
+  LoginDocument,
   SearchRegionsDocument,
   type CreateAccountInput,
   type CreateAccountMutation,
+  type LoginInput,
+  type LoginMutation,
   type SearchRegionsQuery,
 } from "$eave-dashboard/js/graphql/generated/graphql";
 
@@ -38,6 +41,15 @@ export const coreApiSlice = createApi({
         },
       }),
     }),
+    login: builder.mutation<{ data: LoginMutation }, LoginInput>({
+      query: (input) => ({
+        ...gqlParams,
+        body: {
+          query: LoginDocument,
+          variables: { input },
+        },
+      }),
+    }),
   }),
 });
 
@@ -47,4 +59,5 @@ export const {
 
   // Core API Mutation Hooks
   useCreateAccountMutation,
+  useLoginMutation,
 } = coreApiSlice;
