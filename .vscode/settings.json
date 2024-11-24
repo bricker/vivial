@@ -96,7 +96,6 @@
     "*test.py"
   ],
   "git.openRepositoryInParentFolders": "always",
-  "python.analysis.autoImportCompletions": true,
   "python.testing.pytestArgs": [
     "--config-file=${workspaceFolder}/develop/python/configs/pytest.pyproject.toml",
     ".",

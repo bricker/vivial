@@ -15,7 +15,7 @@ from typing import Any, Literal, TypeVar
 import google.cloud.dlp_v2
 from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
 
-import eave.stdlib.exceptions
+import eave.stdlib.http_exceptions
 import eave.stdlib.util
 from eave.stdlib.checksum import generate_checksum
 from eave.stdlib.config import SHARED_CONFIG

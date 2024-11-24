@@ -37,7 +37,7 @@ class BookingReservationTemplateOrm(Base):
     booking_id: Mapped[UUID] = mapped_column()
     reservation_name: Mapped[str] = mapped_column()
     reservation_start_time: Mapped[datetime] = mapped_column()
-    num_attendees: Mapped[int] = mapped_column()
+    headcount: Mapped[int] = mapped_column(name="num_attendees")
     external_booking_link: Mapped[str | None] = mapped_column()
     """HTTP link to site for manual booking (possibly affiliate), if available"""
     address: Mapped[PostgisStdaddr] = mapped_column(type_=PostgisStdaddrColumnType())
@@ -54,7 +54,7 @@ class BookingReservationTemplateOrm(Base):
         booking_id: UUID,
         reservation_name: str,
         reservation_start_time: datetime,
-        num_attendees: int,
+        headcount: int,
         external_booking_link: str | None,
         address: PostgisStdaddr,
         lat: float,
@@ -64,7 +64,7 @@ class BookingReservationTemplateOrm(Base):
             booking_id=booking_id,
             reservation_name=reservation_name,
             reservation_start_time=reservation_start_time,
-            num_attendees=num_attendees,
+            headcount=headcount,
             external_booking_link=external_booking_link,
             address=address,
             coordinates=GeoPoint(lat=lat, lon=lon).geoalchemy_shape(),

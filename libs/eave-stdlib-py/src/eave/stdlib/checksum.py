@@ -1,8 +1,8 @@
 from crc32c import crc32c
 from google.protobuf.wrappers_pb2 import Int64Value
 
-from . import exceptions
-
+class InvalidChecksumError(Exception):
+    pass
 
 def generate_checksum(data: bytes) -> int:
     """
@@ -23,4 +23,4 @@ def validate_checksum_or_exception(data: bytes, checksum: int | Int64Value) -> N
     """
     expected_checksum = generate_checksum(data=data)
     if checksum != expected_checksum:
-        raise exceptions.InvalidChecksumError()
+        raise InvalidChecksumError()

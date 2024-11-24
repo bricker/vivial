@@ -1,7 +1,8 @@
+from dataclasses import dataclass
 from typing import Any, Literal, NamedTuple
 
 from sqlalchemy import Dialect
-from sqlalchemy.sql.type_api import _ResultProcessorType
+from sqlalchemy.sql.type_api import _ResultProcessorType, _BindProcessorType
 from sqlalchemy.types import UserDefinedType
 
 
@@ -58,7 +59,6 @@ class PostgisStdaddr(NamedTuple):
     unit: str | None = None
     """is text Apartment number or Suite Number (token number 17): Example 3B in APT 3B."""
 
-
 class PostgisStdaddrColumnType(UserDefinedType):
     cache_ok = True
 
@@ -69,5 +69,71 @@ class PostgisStdaddrColumnType(UserDefinedType):
         def process(value: Any) -> PostgisStdaddr | None:
             # For asyncpg, `value` is a asyncpg.Record. Basically it's a tuple.
             return PostgisStdaddr(*value)
+
+        return process
+
+class ParsedAddress(NamedTuple):
+    """https://postgis.net/docs/manual-3.0/parse_address.html"""
+
+    # WARNING: The order of these fields must not change.
+
+    num: str | None
+    street: str | None
+    street2: str | None
+    address1: str | None
+    city: str | None
+    state: str | None
+    zip: str | None
+    zipplus: str | None
+    country: str | None
+
+class PostgisParsedAddressColumnType(UserDefinedType):
+    cache_ok = True
+
+    def get_col_spec(self) -> Literal["JSON"]:
+        return "JSON"
+
+    def bind_processor(
+        self, dialect: Dialect
+    ) -> _BindProcessorType[ParsedAddress] | None:
+        def process(value: ParsedAddress | None) -> ParsedAddress:
+            return value
+
+        return process
+
+    def result_processor(self, dialect: Dialect, coltype: object) -> _ResultProcessorType[ParsedAddress] | None:
+        def process(value: Any) -> ParsedAddress | None:
+            # For asyncpg, `value` is a asyncpg.Record. Basically it's a tuple.
+            return ParsedAddress(**value)
+
+        return process
+
+@dataclass
+class Address:
+    address1: str
+    address2: str | None
+    city: str
+    state: str
+    zip: str
+    country: str
+
+class AddressColumnType(UserDefinedType):
+    cache_ok = True
+
+    def get_col_spec(self) -> Literal["JSON"]:
+        return "JSON"
+
+    def bind_processor(
+        self, dialect: Dialect
+    ) -> _BindProcessorType[Address] | None:
+        def process(value: Address | None) -> dict[str, Any]:
+            return value.__dict__
+
+        return process
+
+    def result_processor(self, dialect: Dialect, coltype: object) -> _ResultProcessorType[Address] | None:
+        def process(value: Any) -> Address | None:
+            # For asyncpg, `value` is a asyncpg.Record. Basically it's a tuple.
+            return Address(**value)
 
         return process

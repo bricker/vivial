@@ -52,24 +52,22 @@ async def plan_outing_mutation(
     info: strawberry.Info[GraphQLContext],
     input: PlanOutingInput,
 ) -> PlanOutingResult:
-    return PlanOutingSuccess(outing=MOCK_OUTING)
+    try:
+        validate_time_within_bounds_or_exception(input.start_time)
+    except StartTimeTooLateError:
+        return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_LATE)
+    except StartTimeTooSoonError:
+        return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_SOON)
 
     async with database.async_session.begin() as db_session:
         survey = await SurveyOrm.build(
+            account_id=info.context.get("authenticated_account_id"),
             visitor_id=input.visitor_id,
             start_time=input.start_time,
             search_area_ids=input.search_area_ids,
             budget=input.budget,
             headcount=input.headcount,
-            account_id=info.context.get("authenticated_account_id"),
         ).save(session=db_session)
-
-        try:
-            validate_time_within_bounds_or_exception(input.start_time)
-        except StartTimeTooLateError:
-            return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_LATE)
-        except StartTimeTooSoonError:
-            return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_SOON)
 
     outing = await create_outing_plan(
         visitor_id=survey.visitor_id,
@@ -80,10 +78,6 @@ async def plan_outing_mutation(
     return PlanOutingSuccess(
         outing=Outing(
             id=outing.id,
-            visitor_id=outing.visitor_id,
-            account_id=outing.account_id,
-            survey_id=outing.survey_id,
-            budget=survey.outing_budget,
             headcount=survey.headcount,
             # TODO: remaining fields not available in curr ctx
             activity=None,

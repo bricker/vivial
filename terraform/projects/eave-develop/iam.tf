@@ -19,3 +19,15 @@ resource "google_project_iam_member" "project_developer_editors" {
   role    = "roles/editor"
   member  = "group:developers@eave.fyi"
 }
+
+resource "google_project_iam_member" "project_developer_kms" {
+  project = data.google_project.default.id
+  role    = "roles/cloudkms.signerVerifier"
+  member  = "group:developers@eave.fyi"
+}
+
+# resource "google_project_iam_member" "leilenah_kms" {
+#   project = data.google_project.default.id
+#   role    = "roles/cloudkms.admin"
+#   member  = "user:leilenah@eave.fyi"
+# }

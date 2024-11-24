@@ -101,14 +101,14 @@ async def seed_database(db: AsyncEngine) -> None:
             activity_id=str(uuid.uuid4()),
             activity_source=ActivitySource.INTERNAL,
             activity_start_time=dummy_date,
-            num_attendees=2,
+            headcount=2,
         ).save(session)
         outing_reservation = await OutingReservationOrm.build(
             outing_id=outing.id,
             reservation_id=str(uuid.uuid4()),
             reservation_source=RestaurantSource.GOOGLE_PLACES,
             reservation_start_time=dummy_date,
-            num_attendees=2,
+            headcount=2,
         ).save(session)
         reserver_details = await ReserverDetailsOrm.build(
             account_id=account.id,
@@ -127,7 +127,7 @@ async def seed_database(db: AsyncEngine) -> None:
             booking_id=booking.id,
             activity_name="Biking in McDonalds parking lot",
             activity_start_time=outing_activity.activity_start_time,
-            num_attendees=outing_activity.num_attendees,
+            headcount=outing_activity.headcount,
             external_booking_link="https://micndontlds.com",
             address=PostgisStdaddr(
                 house_num="101",
@@ -145,7 +145,7 @@ async def seed_database(db: AsyncEngine) -> None:
             booking_id=booking.id,
             reservation_name="Red lobster dumpster",
             reservation_start_time=outing_reservation.reservation_start_time,
-            num_attendees=outing_reservation.num_attendees,
+            headcount=outing_reservation.headcount,
             external_booking_link="https://redlobster.yum",
             address=PostgisStdaddr(
                 house_num="3269",

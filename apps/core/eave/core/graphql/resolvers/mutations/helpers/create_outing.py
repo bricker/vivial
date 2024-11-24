@@ -4,6 +4,7 @@ from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
 from eave.core.graphql.types.survey import Survey
+from eave.core.orm.account import AccountOrm
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.outing_activity import OutingActivityOrm
 from eave.core.orm.outing_reservation import OutingReservationOrm
@@ -17,12 +18,9 @@ async def create_outing_plan(
     account_id: UUID | None,
     reroll: bool,
 ) -> OutingOrm:
-    # TODO: fetch user preferences
-    # async with database.async_session.begin() as db_session:
-    #     account = await AccountOrm.one_or_exception(
-    #         session=db_session,
-    #         params=AccountOrm.QueryParams(id=account_id),
-    #     )
+    async with database.async_session.begin() as db_session:
+        if account_id is not None:
+            account = await AccountOrm.get_one(session=db_session, id=account_id)
 
     planner = OutingPlanner(
         group=[],  # TODO: pass user preferences
@@ -43,7 +41,7 @@ async def create_outing_plan(
                 activity_id=plan.activity.id,
                 activity_source=plan.activity.source,
                 activity_start_time=plan.activity_start_time,
-                num_attendees=survey.headcount,
+                headcount=survey.headcount,
             ).save(session=db_session)
 
         if plan.restaurant and plan.restaurant_arrival_time:
@@ -52,7 +50,7 @@ async def create_outing_plan(
                 reservation_id=plan.restaurant.id,
                 reservation_source=plan.restaurant.source,
                 reservation_start_time=plan.restaurant_arrival_time,
-                num_attendees=survey.headcount,
+                headcount=survey.headcount,
             ).save(session=db_session)
 
     ANALYTICS.track(

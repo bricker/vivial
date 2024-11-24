@@ -3,17 +3,16 @@ from typing import Annotated
 
 import strawberry
 
+from eave.core.auth_cookies import set_new_auth_cookies
 import eave.core.database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.resolvers.mutations.viewer.refresh_tokens import make_auth_token_pair
 from eave.core.graphql.types.account import Account
-from eave.core.graphql.types.auth_token_pair import AuthTokenPair
 from eave.core.mail import send_welcome_email
 from eave.core.orm.account import AccountOrm, WeakPasswordError
 from eave.core.orm.base import InvalidRecordError
 from eave.core.shared.errors import ValidationError
-from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME, set_http_cookie
+from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME, EAVE_REFRESH_TOKEN_COOKIE_NAME, set_http_cookie
 
 
 @strawberry.input
@@ -25,7 +24,6 @@ class CreateAccountInput:
 @strawberry.type
 class CreateAccountSuccess:
     account: Account
-    auth_tokens: AuthTokenPair
 
 
 @strawberry.enum
@@ -78,12 +76,9 @@ async def create_account_mutation(
         account_id=account_orm.id,
     )
 
-    auth_token_pair = make_auth_token_pair(account_id=account_orm.id)
-    set_http_cookie(
-        response=info.context["response"], key=EAVE_ACCESS_TOKEN_COOKIE_NAME, value=auth_token_pair.access_token
-    )
+    set_new_auth_cookies(response=info.context["response"], account_id=account_orm.id)
 
     send_welcome_email(to_emails=[account_orm.email])
 
     account = Account.from_orm(account_orm)
-    return CreateAccountSuccess(account=account, auth_tokens=auth_token_pair)
+    return CreateAccountSuccess(account=account)

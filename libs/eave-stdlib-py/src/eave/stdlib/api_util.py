@@ -2,13 +2,11 @@ import http
 import re
 
 import aiohttp
-import pydantic
 from asgiref.typing import HTTPScope
 from starlette.responses import Response
 
 from eave.stdlib import util
-from eave.stdlib.exceptions import MissingRequiredHeaderError
-from eave.stdlib.headers import MIME_TYPE_JSON
+from eave.stdlib.http_exceptions import BadRequestError
 
 
 def get_header_value(scope: HTTPScope, name: str) -> str | None:
@@ -20,6 +18,8 @@ def get_header_value(scope: HTTPScope, name: str) -> str | None:
     """
     return next((v.decode() for [n, v] in scope["headers"] if n.decode().lower() == name.lower()), None)
 
+class MissingRequiredHeaderError(BadRequestError):
+    pass
 
 def get_header_value_or_exception(scope: HTTPScope, name: str) -> str:
     """
@@ -69,11 +69,6 @@ def get_bearer_token(scope: HTTPScope) -> str | None:
         return None
 
     return auth_header_match.group(1)
-
-
-def json_response(model: pydantic.BaseModel, status_code: int = http.HTTPStatus.OK) -> Response:
-    response = Response(status_code=status_code, content=model.json(), media_type=MIME_TYPE_JSON)
-    return response
 
 
 def set_redirect(response: Response, location: str) -> Response:

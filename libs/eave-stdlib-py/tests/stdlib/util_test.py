@@ -1,5 +1,5 @@
 import eave.stdlib.util
-from eave.stdlib.exceptions import UnexpectedMissingValueError
+from eave.stdlib.http_exceptions import UnexpectedMissingValueError
 
 from .base import StdlibBaseTestCase
 
@@ -92,7 +92,7 @@ class StdlibUtilTest(StdlibBaseTestCase):
         assert mut.xnor(True, True) is True
 
     async def test_unwrap(self):
-        with self.assertRaises(UnexpectedMissingValueError):
+        with self.assertRaises(mut.UnwrapError):
             mut.unwrap(None)
 
         v = self.anystr()

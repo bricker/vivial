@@ -10,7 +10,6 @@ from typing import Any, Literal, ParamSpec, TypeVar
 
 import inflect
 
-from eave.stdlib.exceptions import UnexpectedMissingValueError
 from eave.stdlib.typing import JsonObject, JsonValue
 
 T = TypeVar("T")
@@ -177,17 +176,20 @@ def xnor(a: object, b: object) -> bool:
     return not xor(a, b)
 
 
+class UnwrapError(ValueError):
+    pass
+
 def unwrap(value: T | None, default: T | None = None) -> T:
     """
     Unwraps an Optional object to its wrapped type.
     You should use this method when you expect the wrapped type not to be None.
     If the object is not None, returns the unwrapped object.
-    If the object is None and no default given, raises UnexpectedMissingValueError
+    If the object is None and no default given, raises UnwrapError
     If the object is None and a default is given, logs a warning and returns the default.
     This is meant to be used when you know the object isn't None. It's a short-hand for the following verbose pattern:
 
         if (foo := result.get("foo")) is None:
-            raise UnexpectedMissingValueError()
+            raise UnwrapError()
 
         do_something(foo)
 
@@ -217,7 +219,7 @@ def unwrap(value: T | None, default: T | None = None) -> T:
     """
     if value is None:
         if default is None:
-            raise UnexpectedMissingValueError("force-unwrapped a None value")
+            raise UnwrapError()
         else:
             return default
     else:
