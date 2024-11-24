@@ -14,7 +14,7 @@ export const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    loggedIn: (state, action: { payload: { accountId: string; }}) => {
+    loggedIn: (state, action: { payload: { accountId: string } }) => {
       state.isLoggedIn = true;
       state.accountId = action.payload.accountId;
     },
