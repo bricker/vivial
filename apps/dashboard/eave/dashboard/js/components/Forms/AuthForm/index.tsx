@@ -74,7 +74,7 @@ interface AuthFormProps {
   cta: string;
   onSubmit: (args: { email: string; password: string }) => void;
   subtitle?: string;
-  error?: string;
+  externalError?: string;
   isLoading?: boolean;
   validateEmail?: boolean;
   validatePassword?: boolean;
@@ -87,7 +87,7 @@ const AuthForm = ({
   cta,
   onSubmit,
   subtitle = "",
-  error = "",
+  externalError = "",
   isLoading = false,
   validateEmail = false,
   validatePassword = false,
@@ -96,7 +96,6 @@ const AuthForm = ({
 }: AuthFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState(error);
   const [isDisabled, setIsDisabled] = useState(true);
   const [showPasswordInfo, setShowPasswordInfo] = useState(false);
   const [passwordInfo, setPasswordInfo] = useState({
@@ -105,10 +104,12 @@ const AuthForm = ({
     hasLetter: false,
     hasDigit: false,
   });
+  const [internalError, setInternalError] = useState("");
+  const error = externalError || internalError;
 
   const handleSubmit = useCallback(() => {
     if (validateEmail && !EmailValidator.validate(email)) {
-      setErrorMessage("Invalid email address");
+      setInternalError("Invalid email address.");
       setShowPasswordInfo(false);
       setIsDisabled(true);
       return;
@@ -117,7 +118,7 @@ const AuthForm = ({
   }, [email, password]);
 
   const checkInputs = ({ currentEmail, currentPassword }: { currentEmail: string; currentPassword: string }) => {
-    setErrorMessage("");
+    setInternalError("");
     if (validatePassword && currentPassword) {
       const newPasswordInfo = getPasswordInfo(currentPassword);
       setPasswordInfo(newPasswordInfo);
@@ -156,9 +157,9 @@ const AuthForm = ({
         <EmailInput placeholder="Email" onChange={handleEmailChange} />
         <SensitiveInput placeholder="Password" onChange={handlePasswordChange} />
       </FormContent>
-      {errorMessage && (
+      {error && (
         <InputErrorContainer>
-          <InputError>{errorMessage}</InputError>
+          <InputError>{error}</InputError>
         </InputErrorContainer>
       )}
       {showPasswordInfo && (

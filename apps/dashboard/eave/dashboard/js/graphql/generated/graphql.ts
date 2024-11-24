@@ -555,6 +555,13 @@ export type CreatePaymentIntentMutationVariables = Exact<{
 
 export type CreatePaymentIntentMutation = { __typename: 'Mutation', viewer: { __typename: 'ViewerMutations', createPaymentIntent: { __typename: 'CreatePaymentIntentFailure', failureReason: CreatePaymentIntentFailureReason } | { __typename: 'CreatePaymentIntentSuccess', paymentIntent: { __typename: 'PaymentIntent', clientSecret: string } } } };
 
+export type LoginMutationVariables = Exact<{
+  input: LoginInput;
+}>;
+
+
+export type LoginMutation = { __typename: 'Mutation', login: { __typename: 'LoginFailure', failureReason: LoginFailureReason } | { __typename: 'LoginSuccess', account: { __typename: 'Account', id: string, email: string }, authTokens: { __typename: 'AuthTokenPair', accessToken: string, refreshToken: string } } };
+
 export type PlanOutingMutationVariables = Exact<{
   input: PlanOutingInput;
 }>;
@@ -656,6 +663,26 @@ export const CreatePaymentIntentDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<CreatePaymentIntentMutation, CreatePaymentIntentMutationVariables>;
+export const LoginDocument = new TypedDocumentString(`
+    mutation Login($input: LoginInput!) {
+  login(input: $input) {
+    __typename
+    ... on LoginSuccess {
+      account {
+        id
+        email
+      }
+      authTokens {
+        accessToken
+        refreshToken
+      }
+    }
+    ... on LoginFailure {
+      failureReason
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<LoginMutation, LoginMutationVariables>;
 export const PlanOutingDocument = new TypedDocumentString(`
     mutation PlanOuting($input: PlanOutingInput!) {
   planOuting(input: $input) {
