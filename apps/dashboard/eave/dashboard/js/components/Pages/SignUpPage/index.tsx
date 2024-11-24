@@ -50,7 +50,7 @@ const SignUpPage = () => {
         break;
       }
       default: {
-        setError("Unable to create account. Try again later.")
+        setError("Unable to create account. Try again later.");
       }
     }
   }, []);
