@@ -2,7 +2,7 @@ from http import HTTPStatus
 
 from starlette.applications import Starlette
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.responses import RedirectResponse, Response
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 from starlette.templating import Jinja2Templates
@@ -33,6 +33,13 @@ def apple_domain_verification_file(request: Request) -> Response:
         status_code=HTTPStatus.OK,
         media_type=MIME_TYPE_BINARY,
     )
+
+
+async def logout_endpoint(request: Request) -> Response:
+    response = RedirectResponse(
+        url=SHARED_CONFIG.eave_api_base_url_public + "/public/logout", status_code=HTTPStatus.PERMANENT_REDIRECT,
+    )
+    return response
 
 
 templates = Jinja2Templates(directory="eave/dashboard/templates")
@@ -70,6 +77,7 @@ app = Starlette(
             methods=["GET"],
             endpoint=apple_domain_verification_file,
         ),
+        Route(path="/logout", methods=["GET"], endpoint=logout_endpoint),
         Route(path="/{rest:path}", methods=["GET"], endpoint=web_app_endpoint),
     ],
 )

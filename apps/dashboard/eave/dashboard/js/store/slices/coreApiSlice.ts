@@ -1,5 +1,5 @@
 import { CORE_API_BASE } from "$eave-dashboard/js/util/http";
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi, fetchBaseQuery, type FetchArgs } from "@reduxjs/toolkit/query/react";
 
 import {
   CreateAccountDocument,
@@ -12,9 +12,10 @@ import {
   type SearchRegionsQuery,
 } from "$eave-dashboard/js/graphql/generated/graphql";
 
-const gqlParams = {
+const gqlParams: FetchArgs = {
   url: "/graphql",
   method: "POST",
+  credentials: "include", // This is required so that the cookies are sent to the subdomain (api.)
 };
 export const coreApiSlice = createApi({
   reducerPath: "coreApi",

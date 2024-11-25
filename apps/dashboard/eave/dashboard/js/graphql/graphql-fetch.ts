@@ -29,6 +29,7 @@ export async function executeOperation<TResult, TVariables>({
   const response = await fetch(GRAPHQL_API_BASE, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "include", // This is required so that the cookies are sent to the subdomain (api.)
     body: JSON.stringify({
       query,
       variables,

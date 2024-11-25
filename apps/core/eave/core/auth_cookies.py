@@ -44,7 +44,7 @@ def set_new_auth_cookies(*, response: Response, account_id: UUID) -> None:
         value=access_token,
         max_age_seconds=ONE_YEAR_IN_SECONDS,
         domain=SHARED_CONFIG.eave_api_hostname_public,
-        samesite="strict",
+        samesite="lax",
         httponly=True,
         secure=True,
     )
@@ -54,7 +54,7 @@ def set_new_auth_cookies(*, response: Response, account_id: UUID) -> None:
         key=REFRESH_TOKEN_COOKIE_NAME,
         value=refresh_token,
         max_age_seconds=ONE_YEAR_IN_SECONDS,
-        samesite="strict",
+        samesite="lax",
         domain=SHARED_CONFIG.eave_api_hostname_public,
         path="/public/refresh_tokens",
         httponly=True,

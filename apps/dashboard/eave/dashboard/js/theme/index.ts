@@ -3,56 +3,6 @@ import { colors } from "./colors";
 import { fontFamilies } from "./fonts";
 import { rem } from "./helpers/rem";
 
-// export interface EaveHeaderStyle {
-//   height: number;
-//   marginBottom: number;
-//   md: {
-//     height: number;
-//     marginBottom: number;
-//   };
-// }
-
-// export interface EaveFooterStyle {
-//   height: number;
-// }
-
-// declare module "@mui/material/styles" {
-//   interface BreakpointOverrides {
-//     xs: true;
-//     sm: true;
-//     md: true;
-//     lg: true;
-//     xl: true;
-//     thin: true;
-//   }
-
-//   interface TypeBackground {
-//     main: string;
-//     light: string;
-//     contrastText: string;
-//   }
-
-//   interface Palette {
-//     tertiary: PaletteColor;
-//     disabled: PaletteColor;
-//   }
-
-//   interface PaletteOptions {
-//     tertiary?: PaletteColorOptions;
-//     disabled?: PaletteColorOptions;
-//   }
-
-//   interface Theme {
-//     header: EaveHeaderStyle;
-//     footer: EaveFooterStyle;
-//   }
-
-//   interface ThemeOptions {
-//     header?: Partial<EaveHeaderStyle>;
-//     footer?: Partial<EaveFooterStyle>;
-//   }
-// }
-
 /**
  * MaterialUI Custom Theme Overrides.
  * Default Theme: https://mui.com/material-ui/customization/default-theme/
