@@ -1,6 +1,4 @@
-from http import HTTPStatus
 
-from eave.core.graphql.resolvers.mutations.viewer.create_booking import CreateBookingFailureReason
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.search_region import SearchRegionOrm
@@ -21,12 +19,15 @@ class TestBookingEndpoints(BaseTestCase):
                 phone_number="1234567890",
             ).save(session)
 
-        response = await self.make_graphql_request("createBooking", {
-            "input": {
-                "outingId": str(outing.id),
-                "reserverDetailsId": str(reserver_details.id),
+        response = await self.make_graphql_request(
+            "createBooking",
+            {
+                "input": {
+                    "outingId": str(outing.id),
+                    "reserverDetailsId": str(reserver_details.id),
+                },
             },
-        })
+        )
 
         result = self.parse_graphql_response(response)
         assert result.data
@@ -61,12 +62,15 @@ class TestBookingEndpoints(BaseTestCase):
                 phone_number="1234567890",
             ).save(session)
 
-        response = await self.make_graphql_request("createBooking", {
-            "input": {
-                "outingId": str(outing.id),
-                "reserverDetailsId": str(reserver_details.id),
+        response = await self.make_graphql_request(
+            "createBooking",
+            {
+                "input": {
+                    "outingId": str(outing.id),
+                    "reserverDetailsId": str(reserver_details.id),
+                },
             },
-        })
+        )
 
         result = self.parse_graphql_response(response)
         assert result.data

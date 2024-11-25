@@ -1,7 +1,4 @@
-from http import HTTPStatus
 
-from eave.core.graphql.resolvers.mutations.viewer.submit_reserver_details import SubmitReserverDetailsFailureReason
-from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME
 
 from ..base import BaseTestCase
 
@@ -13,13 +10,16 @@ class TestReserverDetailsEndpoints(BaseTestCase):
 
         phone_num = "+12345678900"
 
-        response = await self.make_graphql_request("createBooking", {
-            "input": {
-                "firstName": self.anystr("first"),
-                "lastName": self.anystr("last"),
-                "phoneNumber": phone_num,
+        response = await self.make_graphql_request(
+            "createBooking",
+            {
+                "input": {
+                    "firstName": self.anystr("first"),
+                    "lastName": self.anystr("last"),
+                    "phoneNumber": phone_num,
+                },
             },
-        })
+        )
 
         result = self.parse_graphql_response(response)
         assert result.data
@@ -38,13 +38,16 @@ class TestReserverDetailsEndpoints(BaseTestCase):
         # invalid phone number
         phone_num = "1-800-BEANS-FOR-BREAKFAST"
 
-        response = await self.make_graphql_request("createBooking", {
-            "input": {
-                "firstName": self.anystr("first"),
-                "lastName": self.anystr("last"),
-                "phoneNumber": phone_num,
+        response = await self.make_graphql_request(
+            "createBooking",
+            {
+                "input": {
+                    "firstName": self.anystr("first"),
+                    "lastName": self.anystr("last"),
+                    "phoneNumber": phone_num,
+                },
             },
-        })
+        )
 
         result = self.parse_graphql_response(response)
         assert result.data
