@@ -97,8 +97,8 @@
   ],
   "git.openRepositoryInParentFolders": "always",
   "python.testing.pytestArgs": [
-    "--config-file=${workspaceFolder}/develop/python/configs/pytest.pyproject.toml",
-    ".",
+    "-c=${workspaceFolder}/develop/python/configs/pytest.pyproject.toml",
+    "--cov-config=${workspaceFolder}/develop/python/configs/coverage.toml"
   ],
   "python.analysis.exclude": [
     "**/node_modules",

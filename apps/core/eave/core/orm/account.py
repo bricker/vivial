@@ -94,7 +94,8 @@ class AccountOrm(Base):
     def validate(self) -> list[ValidationError]:
         errors: list[ValidationError] = []
 
-        email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        # This is deliberately simple, for basic data integrity - the client has a much more robust email validator.
+        email_pattern = r"^.+?@.+?\..+$"
         if re.match(email_pattern, self.email) is None:
             errors.append(ValidationError(field="email"))
 

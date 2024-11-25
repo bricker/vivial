@@ -1,5 +1,4 @@
 import eave.stdlib.util
-from eave.stdlib.http_exceptions import UnexpectedMissingValueError
 
 from .base import StdlibBaseTestCase
 

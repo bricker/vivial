@@ -30,7 +30,7 @@ def set_http_cookie(
         max_age=max_age_seconds,
         expires=expires,
         path=path,
-        domain=domain if domain is not None else SHARED_CONFIG.eave_cookie_domain,
+        domain=domain if domain is not None else SHARED_CONFIG.eave_hostname_public,
         secure=secure,
         httponly=httponly,
         samesite=samesite,
@@ -50,7 +50,7 @@ def delete_http_cookie(
     response.delete_cookie(
         key=key,
         path=path,
-        domain=domain if domain is not None else SHARED_CONFIG.eave_cookie_domain,
+        domain=domain if domain is not None else SHARED_CONFIG.eave_hostname_public,
         secure=secure,
         httponly=httponly,
         samesite=samesite,

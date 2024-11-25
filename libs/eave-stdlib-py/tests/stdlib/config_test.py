@@ -31,9 +31,10 @@ class ConfigTest(StdlibBaseTestCase):
         assert SHARED_CONFIG.eave_base_url_internal == "http://eave.svc.cluster.local"
 
     async def test_eave_api_base_url_public_with_env(self):
-        url = self.anyurl()
+        url = "https://coreapi.finny.com"
         self.patch_env({"EAVE_API_BASE_URL_PUBLIC": url})
         assert SHARED_CONFIG.eave_api_base_url_public == url
+        assert SHARED_CONFIG.eave_api_hostname_public == "coreapi.finny.com"
 
     async def test_eave_api_base_url_public_fallback(self):
         self.patch_env(
@@ -43,6 +44,7 @@ class ConfigTest(StdlibBaseTestCase):
             }
         )
         assert SHARED_CONFIG.eave_api_base_url_public == "https://api.finny.com:8080"
+        assert SHARED_CONFIG.eave_api_hostname_public == "api.finny.com"
 
     async def test_eave_api_base_url_public_fallback_noport(self):
         self.patch_env(
@@ -107,14 +109,6 @@ class ConfigTest(StdlibBaseTestCase):
             }
         )
         assert SHARED_CONFIG.eave_dashboard_base_url_public == "https://www.vivialapp.com"
-
-    async def test_eave_cookie_domain_with_env(self):
-        self.patch_env({"EAVE_BASE_URL_PUBLIC": "https://finny.com"})
-        assert SHARED_CONFIG.eave_cookie_domain == "finny.com"
-
-    async def test_eave_cookie_domain_default(self):
-        self.patch_env({"EAVE_BASE_URL_PUBLIC": None})
-        assert SHARED_CONFIG.eave_cookie_domain == "vivialapp.com"
 
     async def test_is_production(self):
         self.patch_env({"EAVE_ENV": "production"})

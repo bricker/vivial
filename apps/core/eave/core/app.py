@@ -11,6 +11,7 @@ from strawberry.asgi import GraphQL
 
 
 import eave.stdlib.time
+from eave.core.endpoints.logout import LogoutEndpoint
 from eave.core.endpoints.refresh_tokens import RefreshTokensEndpoint
 from eave.core.starlette_exception_handlers import starlette_exception_handlers
 from eave.core.config import CORE_API_APP_CONFIG
@@ -29,9 +30,12 @@ eave.stdlib.time.set_utc()
 try:
     stripe.api_key = CORE_API_APP_CONFIG.stripe_secret_key
 except Exception as e:
-    LOGGER.exception(e)
-    LOGGER.warning("Stripe API key not set! Stripe functionality will not work.")
-
+    if SHARED_CONFIG.is_local:
+        LOGGER.exception(e)
+        LOGGER.warning("Stripe API key not set! Stripe functionality will not work.")
+    else:
+        # This makes sure that the pod won't start in Kubernetes.
+        raise
 
 graphql_app = GraphQL(
     schema=schema,
@@ -88,6 +92,13 @@ app = starlette.applications.Starlette(
                 aiohttp.hdrs.METH_POST,
             ],
             endpoint=graphql_app,
+        ),
+        Route(
+            path="/public/logout",
+            endpoint=LogoutEndpoint,
+            methods=[
+                aiohttp.hdrs.METH_GET,
+            ],
         ),
         Route(
             path="/public/refresh_tokens",

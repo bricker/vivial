@@ -1,0 +1,110 @@
+from typing import Any, Literal
+from uuid import UUID
+import strawberry
+from http import HTTPStatus
+from httpx import Response
+from starlette.responses import Response as StarletteResponse
+
+from eave.core.app import schema
+from eave.core.graphql.resolvers.mutations.login import LoginInput, login_mutation
+from eave.core.orm.account import AccountOrm
+from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME, EAVE_REFRESH_TOKEN_COOKIE_NAME
+
+from ..base import BaseTestCase
+
+class TestLoginMutation(BaseTestCase):
+    async def _make_request(self, email: str, plaintext_password: str) -> Response:
+        response = await self.make_graphql_request("login", {
+                "input": {
+                    "email": email,
+                    "plaintextPassword": plaintext_password,
+                },
+            },
+        )
+
+        return response
+
+    async def test_login_with_valid_credentials(self) -> None:
+        async with self.db_session.begin() as session:
+            account_orm = await AccountOrm.build(
+                email=self.anyemail("email"),
+                plaintext_password=self.anystr("plaintext_password"),
+            ).save(session)
+
+        response = await self._make_request(email=self.getemail("email"), plaintext_password=self.getstr("plaintext_password"))
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["login"]
+
+        assert data["__typename"] == "LoginSuccess"
+        assert data["account"]["id"] == str(account_orm.id)
+        assert data["account"]["email"] == account_orm.email
+
+        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) is not None
+        assert response.cookies.get(EAVE_REFRESH_TOKEN_COOKIE_NAME) is not None
+        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) != response.cookies.get(EAVE_REFRESH_TOKEN_COOKIE_NAME)
+
+    async def test_login_with_incorrect_password(self) -> None:
+        async with self.db_session.begin() as session:
+            await AccountOrm.build(
+                email=self.anyemail("email"),
+                plaintext_password=self.anystr("plaintext_password"),
+            ).save(session)
+
+        response = await self._make_request(email=self.getemail("email"), plaintext_password=self.anystr("incorrect password"))
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["login"]
+
+        assert data["__typename"] == "LoginFailure"
+        assert "account" not in data
+        assert data["failureReason"] == "INVALID_CREDENTIALS"
+
+        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) is None
+        assert response.cookies.get(EAVE_REFRESH_TOKEN_COOKIE_NAME) is None
+
+    async def test_login_with_non_existent_account(self) -> None:
+        async with self.db_session.begin() as session:
+            await AccountOrm.build(
+                email=self.anyemail("email"),
+                plaintext_password=self.anystr("plaintext_password"),
+            ).save(session)
+
+        response = await self._make_request(email=self.anyemail("some other email"), plaintext_password=self.getstr("plaintext_password"))
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["login"]
+
+        assert data["__typename"] == "LoginFailure"
+        assert "account" not in data
+        assert data["failureReason"] == "INVALID_CREDENTIALS"
+
+        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) is None
+        assert response.cookies.get(EAVE_REFRESH_TOKEN_COOKIE_NAME) is None
+
+    async def test_login_with_empty_password(self) -> None:
+        async with self.db_session.begin() as session:
+            await AccountOrm.build(
+                email=self.anyemail("email"),
+                plaintext_password=self.anystr("plaintext_password"),
+            ).save(session)
+
+        response = await self._make_request(email=self.anyemail("some other email"), plaintext_password="")
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["login"]
+
+        assert data["__typename"] == "LoginFailure"
+        assert "account" not in data
+        assert data["failureReason"] == "INVALID_CREDENTIALS"
+
+        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) is None
+        assert response.cookies.get(EAVE_REFRESH_TOKEN_COOKIE_NAME) is None
