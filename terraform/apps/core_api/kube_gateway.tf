@@ -66,12 +66,6 @@ resource "kubernetes_manifest" "app_httproute" {
             {
               path = {
                 type  = "PathPrefix"
-                value = "/oauth"
-              }
-            },
-            {
-              path = {
-                type  = "PathPrefix"
                 value = "/graphql"
               }
             },

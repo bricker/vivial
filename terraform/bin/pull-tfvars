@@ -12,7 +12,7 @@ function main() (
 
 	if test -f ".auto.tfvars"; then
 		local backup
-		backup="/tmp/.auto.tfvars.$(date +%s)"
+		backup="/tmp/${project}.auto.tfvars.$(date +%s)"
 		mv .auto.tfvars "$backup"
 		echo "Backup moved to $backup"
 	fi

@@ -6,9 +6,9 @@ interface PasswordInfo {
 }
 
 export function getPasswordInfo(password: string): PasswordInfo {
-  const specialCharRegExp = /[ `!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~]/g;
+  const specialCharRegExp = /[^a-zA-Z0-9]/g;
   const letterRegExp = /[a-zA-Z]/g;
-  const digitRegExp = /\d+/g;
+  const digitRegExp = /[0-9]/g;
   return {
     hasEightChars: password.length >= 8,
     hasSpecialChar: specialCharRegExp.test(password),

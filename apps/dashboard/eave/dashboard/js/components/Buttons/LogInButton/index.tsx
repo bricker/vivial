@@ -1,10 +1,9 @@
-import { rem } from "$eave-dashboard/js/util/rem";
+import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 import Button from "@mui/material/Button";
-import React, { useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
 
-const CustumButton = styled(Button)(({ theme }) => ({
+const CustomButton = styled(Button)(({ theme }) => ({
   color: theme.palette.grey[500],
   border: `1px solid ${theme.palette.grey[500]}`,
   fontSize: rem("15px"),
@@ -14,13 +13,8 @@ const CustumButton = styled(Button)(({ theme }) => ({
   borderRadius: "50px",
 }));
 
-const LogInButton = () => {
-  const navigate = useNavigate();
-  const handleClick = useCallback(() => {
-    navigate("/login");
-  }, []);
-
-  return <CustumButton onClick={handleClick}>Log in</CustumButton>;
+const LogInButton = ({ onClick }: { onClick: () => void }) => {
+  return <CustomButton onClick={onClick}>Log in</CustomButton>;
 };
 
 export default LogInButton;

@@ -15,13 +15,3 @@ class StatusEndpoint(HTTPEndpoint):
         status_code = http.HTTPStatus.OK
         content = status_payload().json()
         return Response(status_code=status_code, content=content, media_type=MIME_TYPE_JSON)
-
-
-class HealthEndpoint(HTTPEndpoint):
-    async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
-        return Response(status_code=http.HTTPStatus.OK, content="1")
-
-
-class NoopEndpoint(HTTPEndpoint):
-    async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
-        return Response()

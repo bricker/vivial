@@ -1,7 +1,7 @@
 import { createTheme } from "@mui/material";
-import { rem } from "../util/rem";
 import { colors } from "./colors";
 import { fontFamilies } from "./fonts";
+import { rem } from "./helpers/rem";
 
 /**
  * MaterialUI Custom Theme Overrides.

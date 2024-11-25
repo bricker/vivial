@@ -6,6 +6,7 @@ export type GlobalWindow = Window &
       assetBase?: string;
       segmentWriteKey?: string;
       analyticsEnabled?: boolean;
+      stripePublishableKey?: string;
     };
   };
 

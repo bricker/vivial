@@ -130,7 +130,7 @@
   "json.schemas": [
 
   ],
-  "typescript.preferences.importModuleSpecifierEnding": "js",
+  "typescript.preferences.importModuleSpecifierEnding": "auto",
   "typescript.validate.enable": true,
   "ruff.importStrategy": "fromEnvironment",
   "ruff.interpreter": [
@@ -152,4 +152,6 @@
     "--config=${workspaceFolder}/develop/python/configs/ruff.toml"
   ],
   "ruff.organizeImports": true,
+  "typescript.preferences.preferTypeOnlyAutoImports": true,
+  "typescript.tsdk": "./node_modules/typescript/lib",
 }

@@ -10,45 +10,72 @@ import store from "./store";
 import { theme } from "./theme";
 
 import GlobalLayout from "./components/Global/GlobalLayout";
+import AccountPage from "./components/Pages/AccountPage";
+import BookingConfirmationPage from "./components/Pages/BookingConfirmationPage/index";
 import DateSurveyPage from "./components/Pages/DateSurveyPage";
 import ForgotPasswordPage from "./components/Pages/ForgotPasswordPage";
+import HelpPage from "./components/Pages/HelpPage";
 import LogInPage from "./components/Pages/LogInPage";
+import PaymentExamplePage from "./components/Pages/PaymentExamplePage/index";
+import PlansPage from "./components/Pages/PlansPage";
 import PrivacyPage from "./components/Pages/PrivacyPage";
 import SignUpPage from "./components/Pages/SignUpPage";
 import TermsPage from "./components/Pages/TermsPage";
+import StripeElementsProvider from "./components/StripeElementsProvider";
 import RouteChangeTracker from "./components/Util/RouteChangeTracker";
 import ScrollToTop from "./components/Util/ScrollToTop";
 
-const App = () => {
-  const fireAnalyticsPageView = async (_: string) => {
-    await pageView({});
-  };
+// TODO: Remove AppContextProvider in favor of Redux.
+import { AppContextProvider } from "./context";
 
+const fireAnalyticsPageView = (_: string) => {
+  void pageView({});
+};
+
+const App = () => {
   return (
     <StoreProvider store={store}>
-      <CookiesProvider>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <Helmet>
-            <title>Vivial - One Click Date Picked</title>
-          </Helmet>
-          <BrowserRouter>
-            <ScrollToTop />
-            <RouteChangeTracker onRouteChange={fireAnalyticsPageView} />
-            <Routes>
-              <Route path="/" element={<GlobalLayout />}>
-                <Route index element={<DateSurveyPage />} />
-                <Route path="/login" element={<LogInPage />} />
-                <Route path="/login/password" element={<ForgotPasswordPage />} />
-                <Route path="/signup" element={<SignUpPage />} />
-                <Route path="/terms" element={<TermsPage />} />
-                <Route path="/privacy" element={<PrivacyPage />} />
-                <Route path="*" element={<Navigate to="/" />} />
-              </Route>
-            </Routes>
-          </BrowserRouter>
-        </ThemeProvider>
-      </CookiesProvider>
+      {/* TODO: Remove AppContextProvider in favor of Redux. */}
+      <AppContextProvider>
+        <CookiesProvider>
+          <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <Helmet>
+              <title>Vivial - One Click Date Picked</title>
+            </Helmet>
+            <BrowserRouter>
+              <ScrollToTop />
+              <RouteChangeTracker onRouteChange={fireAnalyticsPageView} />
+              <Routes>
+                <Route path="/" element={<GlobalLayout />}>
+                  <Route index element={<DateSurveyPage />} />
+                  <Route path="/login" element={<LogInPage />} />
+                  <Route path="/login/password" element={<ForgotPasswordPage />} />
+                  <Route path="/signup" element={<SignUpPage />} />
+                  <Route path="/account" element={<AccountPage />} />
+                  <Route path="/plans" element={<PlansPage />} />
+                  <Route path="/help" element={<HelpPage />} />
+                  <Route path="/terms" element={<TermsPage />} />
+                  <Route path="/privacy" element={<PrivacyPage />} />
+                  <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
+
+                  {/* TODO: Remove /payment-example Route. */}
+                  <Route
+                    path="/payment-example"
+                    element={
+                      <StripeElementsProvider>
+                        <PaymentExamplePage />
+                      </StripeElementsProvider>
+                    }
+                  />
+
+                  <Route path="*" element={<Navigate to="/" />} />
+                </Route>
+              </Routes>
+            </BrowserRouter>
+          </ThemeProvider>
+        </CookiesProvider>
+      </AppContextProvider>
     </StoreProvider>
   );
 };

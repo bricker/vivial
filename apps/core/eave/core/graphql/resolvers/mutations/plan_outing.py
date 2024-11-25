@@ -21,7 +21,7 @@ from eave.core.orm.util import StartTimeTooLateError, StartTimeTooSoonError, val
 @strawberry.input
 class PlanOutingInput:
     visitor_id: UUID
-    group_preferences: list[PreferencesInput]
+    group_preferences: list[PreferencesInput] | None
     start_time: datetime
     search_area_ids: list[UUID]
     budget: OutingBudget

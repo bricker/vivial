@@ -1,0 +1,18 @@
+mutation Login($input: LoginInput!) {
+  login(input: $input) {
+    __typename
+    ... on LoginSuccess {
+      account {
+        id
+        email
+      }
+      authTokens {
+        accessToken
+        refreshToken
+      }
+    }
+    ... on LoginFailure {
+      failureReason
+    }
+  }
+}

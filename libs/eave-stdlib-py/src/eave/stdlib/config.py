@@ -42,13 +42,13 @@ class ConfigBase:
 class _EaveConfig(ConfigBase):
     @property
     def log_level(self) -> int:
-        level = os.getenv("LOG_LEVEL") or "INFO"
+        level = os.getenv("LOG_LEVEL") or "INFO"  # Use "or" to cover empty string
         mapping = logging.getLevelNamesMapping()
         return mapping.get(level.upper(), logging.INFO)
 
     @property
     def eave_env(self) -> EaveEnvironment:
-        strenv = os.getenv("EAVE_ENV") or "production"
+        strenv = os.getenv("EAVE_ENV") or "production"  # Use "or" to cover empty string
         match strenv:
             case "test":
                 return EaveEnvironment.test
@@ -104,15 +104,15 @@ class _EaveConfig(ConfigBase):
 
     @property
     def app_service(self) -> str:
-        return os.getenv("GAE_SERVICE") or "unknown"
+        return os.getenv("GAE_SERVICE") or "unknown"  # Use "or" to cover empty string
 
     @property
     def app_version(self) -> str:
-        return os.getenv("GAE_VERSION") or "unknown"
+        return os.getenv("GAE_VERSION") or "unknown"  # Use "or" to cover empty string
 
     @property
     def release_date(self) -> str:
-        return os.getenv("GAE_RELEASE_DATE") or "unknown"
+        return os.getenv("GAE_RELEASE_DATE") or "unknown"  # Use "or" to cover empty string
 
     @property
     def release_timestamp(self) -> float | None:
@@ -130,11 +130,11 @@ class _EaveConfig(ConfigBase):
 
     @property
     def eave_base_url_public(self) -> str:
-        return os.getenv("EAVE_BASE_URL_PUBLIC") or "https://vivialapp.com"
+        return os.getenv("EAVE_BASE_URL_PUBLIC") or "https://vivialapp.com"  # Use "or" to cover empty string
 
     @property
     def eave_base_url_internal(self) -> str:
-        return os.getenv("EAVE_BASE_URL_INTERNAL") or "http://eave.svc.cluster.local"
+        return os.getenv("EAVE_BASE_URL_INTERNAL") or "http://eave.svc.cluster.local"  # Use "or" to cover empty string
 
     @property
     def eave_hostname_public(self) -> str:
@@ -146,19 +146,21 @@ class _EaveConfig(ConfigBase):
 
     @property
     def eave_api_base_url_public(self) -> str:
-        return os.getenv("EAVE_API_BASE_URL_PUBLIC") or _prefix_hostname(url=self.eave_base_url_public, prefix="api.")
+        return os.getenv("EAVE_API_BASE_URL_PUBLIC") or _prefix_hostname(
+            url=self.eave_base_url_public, prefix="api."
+        )  # Use "or" to cover empty string
 
     @property
     def eave_api_base_url_internal(self) -> str:
         return os.getenv("EAVE_API_BASE_URL_INTERNAL") or _prefix_hostname(
             url=self.eave_base_url_internal, prefix="core-api."
-        )
+        )  # Use "or" to cover empty string
 
     @property
     def eave_dashboard_base_url_public(self) -> str:
         return os.getenv("EAVE_DASHBOARD_BASE_URL_PUBLIC") or _prefix_hostname(
             url=self.eave_base_url_public, prefix="www."
-        )
+        )  # Use "or" to cover empty string
 
     @property
     def eave_cookie_domain(self) -> str:
@@ -248,7 +250,7 @@ class _EaveConfig(ConfigBase):
 
 def get_secret(name: str) -> str:
     # Allow overrides from the environment
-    if (envval := os.environ.get(name)) and envval != "(not set)":
+    if (envval := os.environ.get(name)) and envval != "(missing)":
         return envval
 
     secrets_client = google.cloud.secretmanager.SecretManagerServiceClient()
@@ -265,11 +267,11 @@ def get_secret(name: str) -> str:
     return data.decode("UTF-8")
 
 
-def get_required_env(name: str) -> str:
-    if name not in os.environ:
-        raise KeyError(f"{name} is a required environment variable, but is not set.")
+def get_required_env(key: str) -> str:
+    if key not in os.environ:
+        raise KeyError(f"{key} is a required environment variable, but is not set.")
 
-    return os.environ[name]
+    return os.environ[key]
 
 
 def _prefix_hostname(url: str, prefix: str) -> str:

@@ -1,5 +1,9 @@
 const config = {
-  extends: ["eslint:recommended", "prettier"],
+  extends: [
+    "eslint:recommended",
+    // "eslint:stylistic",
+    "prettier",
+  ],
   plugins: [],
   ignorePatterns: [
     "node_modules",
