@@ -44,6 +44,7 @@ def set_new_auth_cookies(*, response: Response, account_id: UUID) -> None:
         value=access_token,
         max_age_seconds=ONE_YEAR_IN_SECONDS,
         domain=SHARED_CONFIG.eave_api_hostname_public,
+        path="/",
         samesite="lax",
         httponly=True,
         secure=True,
@@ -54,9 +55,9 @@ def set_new_auth_cookies(*, response: Response, account_id: UUID) -> None:
         key=REFRESH_TOKEN_COOKIE_NAME,
         value=refresh_token,
         max_age_seconds=ONE_YEAR_IN_SECONDS,
-        samesite="lax",
         domain=SHARED_CONFIG.eave_api_hostname_public,
         path="/public/refresh_tokens",
+        samesite="lax",
         httponly=True,
         secure=True,
     )
@@ -66,9 +67,11 @@ def delete_auth_cookies(*, response: Response) -> None:
     delete_http_cookie(
         response=response,
         key=ACCESS_TOKEN_COOKIE_NAME,
+        domain=SHARED_CONFIG.eave_api_base_url_public,
+        path="/",
+        samesite="lax",
         httponly=True,
         secure=True,
-        samesite="strict",
     )
 
     delete_http_cookie(
@@ -76,7 +79,7 @@ def delete_auth_cookies(*, response: Response) -> None:
         key=REFRESH_TOKEN_COOKIE_NAME,
         domain=SHARED_CONFIG.eave_api_base_url_public,
         path="/public/refresh_tokens",
+        samesite="lax",
         httponly=True,
         secure=True,
-        samesite="strict",
     )
