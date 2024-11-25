@@ -5,7 +5,6 @@ import { useNavigate } from "react-router-dom";
 
 import Typography from "@mui/material/Typography";
 import BackButton from "../../Buttons/BackButton";
-import ExternalLink from "../../Links/ExternalLink";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
@@ -14,32 +13,38 @@ const PageContainer = styled("div")(() => ({
 const CopyContainer = styled("div")(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   borderRadius: 15,
-  padding: "32px 40px",
+  padding: "32px 24px",
 }));
 
-const Subtitle = styled(Typography)(() => ({
+const Title = styled(Typography)(() => ({
+  fontWeight: 700,
+  marginBottom: 16,
+}));
+
+const Body = styled(Typography)(() => ({
   fontSize: rem("18px"),
   lineHeight: rem("22px"),
-  marginTop: 16,
 }));
 
-const ForgotPasswordPage = () => {
+interface LegalPageProps {
+  title: string;
+  children: React.ReactNode;
+}
+
+const LegalPage = ({ title, children }: LegalPageProps) => {
   const navigate = useNavigate();
   const handleBack = useCallback(() => {
-    navigate("/login");
+    navigate("/");
   }, []);
   return (
     <PageContainer>
       <BackButton onClick={handleBack} />
       <CopyContainer>
-        <Typography variant="h3">Forgot password?</Typography>
-        <Subtitle>
-          Reach out to us at <ExternalLink to="mailto:friends@vivialapp.com">friends@vivialapp.com</ExternalLink> and
-          we’ll help you reset your password.
-        </Subtitle>
+        <Title variant="h2">{title}</Title>
+        <Body>{children}</Body>
       </CopyContainer>
     </PageContainer>
   );
 };
 
-export default ForgotPasswordPage;
+export default LegalPage;

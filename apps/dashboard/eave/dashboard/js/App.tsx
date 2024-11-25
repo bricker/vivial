@@ -10,17 +10,22 @@ import store from "./store";
 import { theme } from "./theme";
 
 import GlobalLayout from "./components/Global/GlobalLayout";
+import AccountPage from "./components/Pages/AccountPage";
 import BookingConfirmationPage from "./components/Pages/BookingConfirmationPage/index";
 import DateSurveyPage from "./components/Pages/DateSurveyPage";
 import ForgotPasswordPage from "./components/Pages/ForgotPasswordPage";
+import HelpPage from "./components/Pages/HelpPage";
 import LogInPage from "./components/Pages/LogInPage";
 import PaymentExamplePage from "./components/Pages/PaymentExamplePage/index";
+import PlansPage from "./components/Pages/PlansPage";
 import PrivacyPage from "./components/Pages/PrivacyPage";
 import SignUpPage from "./components/Pages/SignUpPage";
 import TermsPage from "./components/Pages/TermsPage";
 import StripeElementsProvider from "./components/StripeElementsProvider";
 import RouteChangeTracker from "./components/Util/RouteChangeTracker";
 import ScrollToTop from "./components/Util/ScrollToTop";
+
+// TODO: Remove AppContextProvider in favor of Redux.
 import { AppContextProvider } from "./context";
 
 const fireAnalyticsPageView = (_: string) => {
@@ -30,6 +35,7 @@ const fireAnalyticsPageView = (_: string) => {
 const App = () => {
   return (
     <StoreProvider store={store}>
+      {/* TODO: Remove AppContextProvider in favor of Redux. */}
       <AppContextProvider>
         <CookiesProvider>
           <ThemeProvider theme={theme}>
@@ -46,10 +52,14 @@ const App = () => {
                   <Route path="/login" element={<LogInPage />} />
                   <Route path="/login/password" element={<ForgotPasswordPage />} />
                   <Route path="/signup" element={<SignUpPage />} />
+                  <Route path="/account" element={<AccountPage />} />
+                  <Route path="/plans" element={<PlansPage />} />
+                  <Route path="/help" element={<HelpPage />} />
                   <Route path="/terms" element={<TermsPage />} />
                   <Route path="/privacy" element={<PrivacyPage />} />
                   <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
 
+                  {/* TODO: Remove /payment-example Route. */}
                   <Route
                     path="/payment-example"
                     element={

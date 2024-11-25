@@ -276,7 +276,7 @@ export type Outing = {
   __typename: 'Outing';
   activity?: Maybe<Activity>;
   activityStartTime?: Maybe<Scalars['DateTime']['output']>;
-  drivingTime: Scalars['String']['output'];
+  drivingTime?: Maybe<Scalars['String']['output']>;
   headcount: Scalars['Int']['output'];
   id: Scalars['UUID']['output'];
   restaurant?: Maybe<Restaurant>;
@@ -507,6 +507,13 @@ export type ViewerMutations = AuthenticatedViewerMutations | UnauthenticatedView
 
 export type ViewerQueries = AuthenticatedViewerQueries | UnauthenticatedViewer;
 
+export type CreateAccountMutationVariables = Exact<{
+  input: CreateAccountInput;
+}>;
+
+
+export type CreateAccountMutation = { __typename: 'Mutation', createAccount: { __typename: 'CreateAccountFailure', failureReason: CreateAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'CreateAccountSuccess', account: { __typename: 'Account', id: string, email: string } } };
+
 export type CreateBookingMutationVariables = Exact<{
   input: CreateBookingInput;
 }>;
@@ -520,6 +527,13 @@ export type CreatePaymentIntentMutationVariables = Exact<{
 
 
 export type CreatePaymentIntentMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', createPaymentIntent: { __typename: 'CreatePaymentIntentFailure', failureReason: CreatePaymentIntentFailureReason } | { __typename: 'CreatePaymentIntentSuccess', paymentIntent: { __typename: 'PaymentIntent', clientSecret: string } } } | { __typename: 'UnauthenticatedViewer', reason: ViewerAuthenticationAction } };
+
+export type LoginMutationVariables = Exact<{
+  input: LoginInput;
+}>;
+
+
+export type LoginMutation = { __typename: 'Mutation', login: { __typename: 'LoginFailure', failureReason: LoginFailureReason } | { __typename: 'LoginSuccess', account: { __typename: 'Account', id: string, email: string } } };
 
 export type PlanOutingMutationVariables = Exact<{
   input: PlanOutingInput;
@@ -542,6 +556,11 @@ export type SubmitReserverDetailsMutationVariables = Exact<{
 
 export type SubmitReserverDetailsMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', submitReserverDetails: { __typename: 'SubmitReserverDetailsFailure', failureReason: SubmitReserverDetailsFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'SubmitReserverDetailsSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string } } } | { __typename: 'UnauthenticatedViewer', reason: ViewerAuthenticationAction } };
 
+export type SearchRegionsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type SearchRegionsQuery = { __typename: 'Query', searchRegions: Array<{ __typename: 'SearchRegion', id: string, name: string }> };
+
 export class TypedDocumentString<TResult, TVariables>
   extends String
   implements DocumentTypeDecoration<TResult, TVariables>
@@ -557,6 +576,26 @@ export class TypedDocumentString<TResult, TVariables>
   }
 }
 
+export const CreateAccountDocument = new TypedDocumentString(`
+    mutation CreateAccount($input: CreateAccountInput!) {
+  createAccount(input: $input) {
+    ... on CreateAccountSuccess {
+      __typename
+      account {
+        id
+        email
+      }
+    }
+    ... on CreateAccountFailure {
+      __typename
+      failureReason
+      validationErrors {
+        field
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<CreateAccountMutation, CreateAccountMutationVariables>;
 export const CreateBookingDocument = new TypedDocumentString(`
     mutation CreateBooking($input: CreateBookingInput!) {
   viewer {
@@ -611,6 +650,23 @@ export const CreatePaymentIntentDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<CreatePaymentIntentMutation, CreatePaymentIntentMutationVariables>;
+export const LoginDocument = new TypedDocumentString(`
+    mutation Login($input: LoginInput!) {
+  login(input: $input) {
+    ... on LoginSuccess {
+      __typename
+      account {
+        id
+        email
+      }
+    }
+    ... on LoginFailure {
+      __typename
+      failureReason
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<LoginMutation, LoginMutationVariables>;
 export const PlanOutingDocument = new TypedDocumentString(`
     mutation PlanOuting($input: PlanOutingInput!) {
   planOuting(input: $input) {
@@ -670,3 +726,11 @@ export const SubmitReserverDetailsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<SubmitReserverDetailsMutation, SubmitReserverDetailsMutationVariables>;
+export const SearchRegionsDocument = new TypedDocumentString(`
+    query SearchRegions {
+  searchRegions {
+    id
+    name
+  }
+}
+    `) as unknown as TypedDocumentString<SearchRegionsQuery, SearchRegionsQueryVariables>;

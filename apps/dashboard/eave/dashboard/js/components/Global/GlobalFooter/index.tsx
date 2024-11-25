@@ -8,7 +8,7 @@ import EmailIcon from "../../Icons/EmailIcon/";
 import InstagramIcon from "../../Icons/InstagramIcon";
 import TikTokIcon from "../../Icons/TikTokIcon";
 
-import { rem } from "$eave-dashboard/js/util/rem";
+import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 
 const Footer = styled("footer")(() => ({
   display: "flex",
