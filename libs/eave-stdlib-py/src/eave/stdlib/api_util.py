@@ -18,8 +18,10 @@ def get_header_value(scope: HTTPScope, name: str) -> str | None:
     """
     return next((v.decode() for [n, v] in scope["headers"] if n.decode().lower() == name.lower()), None)
 
+
 class MissingRequiredHeaderError(BadRequestError):
     pass
+
 
 def get_header_value_or_exception(scope: HTTPScope, name: str) -> str:
     """

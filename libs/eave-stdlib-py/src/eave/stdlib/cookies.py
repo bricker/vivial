@@ -2,14 +2,14 @@ from datetime import datetime
 from typing import Literal
 
 from .config import SHARED_CONFIG
-from .time import ONE_YEAR_IN_SECONDS
-from .typing import HTTPFrameworkRequest, HTTPFrameworkResponse
+from .typing import HTTPFrameworkResponse
 
 EAVE_COOKIE_PREFIX = "eavedash."
 EAVE_AUTH_COOKIE_PREFIX = f"{EAVE_COOKIE_PREFIX}auth."
 
 EAVE_ACCESS_TOKEN_COOKIE_NAME = f"{EAVE_AUTH_COOKIE_PREFIX}access_token"
 EAVE_REFRESH_TOKEN_COOKIE_NAME = f"{EAVE_AUTH_COOKIE_PREFIX}refresh_token"
+
 
 def set_http_cookie(
     *,

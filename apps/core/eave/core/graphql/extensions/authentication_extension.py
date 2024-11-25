@@ -1,31 +1,33 @@
-from collections.abc import Awaitable, Callable
 import enum
-from http import HTTPStatus
-from typing import Any, Literal
+from collections.abc import Awaitable, Callable
+from typing import Any
 from uuid import UUID
 
 import strawberry
 from strawberry.extensions import FieldExtension
-from strawberry.http.exceptions import HTTPException
-from starlette.responses import JSONResponse
 
 from eave.core.auth_cookies import delete_auth_cookies
 from eave.core.config import JWT_AUDIENCE, JWT_ISSUER
 from eave.core.graphql.context import GraphQLContext
 from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME
-from eave.stdlib.http_exceptions import UnauthorizedError
-from eave.stdlib.jwt import JWTPurpose, validate_jws_or_exception, AccessTokenExpiredError, InvalidJWSError, InvalidJWTError, InvalidTokenError
-from eave.stdlib.logging import LOGGER
-from eave.stdlib.cookies import delete_http_cookie
+from eave.stdlib.jwt import (
+    AccessTokenExpiredError,
+    InvalidTokenError,
+    JWTPurpose,
+    validate_jws_or_exception,
+)
+
 
 @strawberry.enum
 class ViewerAuthenticationAction(enum.Enum):
     REFRESH_ACCESS_TOKEN = enum.auto()
     FORCE_LOGOUT = enum.auto()
 
+
 @strawberry.type
 class UnauthenticatedViewer:
     reason: ViewerAuthenticationAction
+
 
 class AuthenticationExtension(FieldExtension):
     def __init__(self, *, allow_anonymous: bool = False) -> None:

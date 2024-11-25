@@ -1,4 +1,5 @@
 from typing import Annotated
+
 import strawberry
 
 from eave.core.graphql.extensions.authentication_extension import AuthenticationExtension, UnauthenticatedViewer
@@ -21,5 +22,7 @@ class Mutation:
     )
 
     @strawberry.mutation(extensions=[AuthenticationExtension()])
-    def viewer(self) -> Annotated[AuthenticatedViewerMutations | UnauthenticatedViewer, strawberry.union("ViewerMutations")]:
+    def viewer(
+        self,
+    ) -> Annotated[AuthenticatedViewerMutations | UnauthenticatedViewer, strawberry.union("ViewerMutations")]:
         return AuthenticatedViewerMutations()

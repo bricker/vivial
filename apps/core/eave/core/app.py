@@ -1,5 +1,3 @@
-from typing import Any
-from collections.abc import Generator
 import aiohttp.hdrs
 import starlette.applications
 import starlette.endpoints
@@ -9,22 +7,23 @@ from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Route
 from strawberry.asgi import GraphQL
 
-
 import eave.stdlib.time
-from eave.core.endpoints.logout import LogoutEndpoint
-from eave.core.endpoints.refresh_tokens import RefreshTokensEndpoint
-from eave.core.starlette_exception_handlers import starlette_exception_handlers
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.endpoints.health import HealthEndpoint
+from eave.core.endpoints.logout import LogoutEndpoint
 from eave.core.endpoints.noop import NoopEndpoint
+from eave.core.endpoints.refresh_tokens import RefreshTokensEndpoint
 from eave.core.endpoints.status import StatusEndpoint
+from eave.core.starlette_exception_handlers import starlette_exception_handlers
+
 # from eave.core.endpoints.stripe_callback import StripeCallbackEndpoint
-from eave.stdlib import cache, http_exceptions
+from eave.stdlib import cache
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
 
 from .database import async_engine
 from .graphql.schema import schema
+
 eave.stdlib.time.set_utc()
 
 try:
@@ -40,7 +39,7 @@ except Exception as e:
 graphql_app = GraphQL(
     schema=schema,
     allow_queries_via_get=False,
-    graphql_ide="graphiql" if SHARED_CONFIG.is_development else None, # Disable graphiql in production
+    graphql_ide="graphiql" if SHARED_CONFIG.is_development else None,  # Disable graphiql in production
 )
 
 

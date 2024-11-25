@@ -18,28 +18,28 @@ class BadRequestError(HTTPError):
 
 
 class UnauthorizedError(HTTPError):
-    status_code=HTTPStatus.UNAUTHORIZED
+    status_code = HTTPStatus.UNAUTHORIZED
 
 
 class ForbiddenError(HTTPError):
-    status_code=HTTPStatus.FORBIDDEN
+    status_code = HTTPStatus.FORBIDDEN
 
 
 class NotFoundError(HTTPError):
-    status_code=HTTPStatus.NOT_FOUND
+    status_code = HTTPStatus.NOT_FOUND
 
 
 class LengthRequiredError(HTTPError):
-    status_code=HTTPStatus.LENGTH_REQUIRED
+    status_code = HTTPStatus.LENGTH_REQUIRED
 
 
 class RequestEntityTooLargeError(HTTPError):
-    status_code=HTTPStatus.REQUEST_ENTITY_TOO_LARGE
+    status_code = HTTPStatus.REQUEST_ENTITY_TOO_LARGE
 
 
 class UnprocessableEntityError(HTTPError):
-    status_code=HTTPStatus.UNPROCESSABLE_ENTITY
+    status_code = HTTPStatus.UNPROCESSABLE_ENTITY
 
 
 class InternalServerError(HTTPError):
-    status_code=HTTPStatus.INTERNAL_SERVER_ERROR
+    status_code = HTTPStatus.INTERNAL_SERVER_ERROR

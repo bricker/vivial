@@ -13,7 +13,6 @@ from math import floor
 from typing import Any, Literal, TypeVar
 
 import google.cloud.dlp_v2
-import sendgrid
 from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
 
 import eave.stdlib.http_exceptions
@@ -542,7 +541,11 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return False
 
     def patch(
-        self, patch: unittest.mock._patch, name: str | None = None, return_value: Any | None = None, side_effect: Any | None = None
+        self,
+        patch: unittest.mock._patch,
+        name: str | None = None,
+        return_value: Any | None = None,
+        side_effect: Any | None = None,
     ) -> unittest.mock.Mock:
         m = patch.start()
         m._testMethodName = self._testMethodName  # noqa: SLF001

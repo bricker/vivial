@@ -7,7 +7,6 @@ import strawberry
 
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.resolvers.fields.outing import MOCK_OUTING
 from eave.core.graphql.resolvers.mutations.helpers.create_outing import create_outing_plan
 from eave.core.graphql.types.outing import (
     Outing,

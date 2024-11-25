@@ -1,17 +1,20 @@
-from typing import TYPE_CHECKING, Any
-from strawberry import Schema, Info
-from strawberry.schema.config import StrawberryConfig
-from strawberry.extensions import MaskErrors, QueryDepthLimiter, MaxAliasesLimiter, MaxTokensLimiter, AddValidationRules, SchemaExtension
-from graphql.validation import NoSchemaIntrospectionCustomRule
-from graphql.error import GraphQLError
 from graphql import ASTValidationRule
+from graphql.error import GraphQLError
+from graphql.validation import NoSchemaIntrospectionCustomRule
+from strawberry import Schema
+from strawberry.extensions import (
+    AddValidationRules,
+    MaskErrors,
+    MaxAliasesLimiter,
+    MaxTokensLimiter,
+    QueryDepthLimiter,
+)
+from strawberry.schema.config import StrawberryConfig
 
 from eave.stdlib.config import SHARED_CONFIG
 
-from eave.core.graphql.context import GraphQLContext
-
-from .query import Query
 from .mutation import Mutation
+from .query import Query
 
 _validation_rules: list[type[ASTValidationRule]] = []
 

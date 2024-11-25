@@ -1,4 +1,5 @@
 from typing import Annotated
+
 import strawberry
 
 from eave.core.graphql.extensions.authentication_extension import AuthenticationExtension, UnauthenticatedViewer
@@ -18,5 +19,7 @@ class Query:
     restaurant_categories: list[RestaurantCategory] = strawberry.field(resolver=list_restaurant_categories_query)
 
     @strawberry.field(extensions=[AuthenticationExtension()])
-    def viewer(self) -> Annotated[AuthenticatedViewerQueries | UnauthenticatedViewer, strawberry.union("ViewerQueries")]:
+    def viewer(
+        self,
+    ) -> Annotated[AuthenticatedViewerQueries | UnauthenticatedViewer, strawberry.union("ViewerQueries")]:
         return AuthenticatedViewerQueries()

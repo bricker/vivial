@@ -13,7 +13,7 @@ from eave.core.graphql.types.outing import (
 from eave.core.graphql.types.photos import Photos
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.orm.outing import OutingOrm
-from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
+from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.core.zoneinfo import LOS_ANGELES_ZONE_INFO
 
 # TODO: Remove once we're fetching from the appropriate sources.

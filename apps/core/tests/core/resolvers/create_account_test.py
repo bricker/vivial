@@ -1,23 +1,23 @@
-from typing import Any, Literal
 from uuid import UUID
-import strawberry
-from http import HTTPStatus
-from httpx import Response
-from starlette.responses import Response as StarletteResponse
 
-from eave.core.app import schema
-from eave.core.graphql.resolvers.mutations.create_account import CreateAccountInput, create_account_mutation
+from httpx import Response
+
 from eave.core.orm.account import AccountOrm
 from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME, EAVE_REFRESH_TOKEN_COOKIE_NAME
 
 from ..base import BaseTestCase
 
+
 class TestCreateAccountMutation(BaseTestCase):
     async def _make_request(self, email: str | None = None, plaintext_password: str | None = None) -> Response:
-        response = await self.make_graphql_request("createAccount", {
+        response = await self.make_graphql_request(
+            "createAccount",
+            {
                 "input": {
                     "email": email if email is not None else self.anyemail("email"),
-                    "plaintextPassword": plaintext_password if plaintext_password is not None else str(self.anyuuid("password")),
+                    "plaintextPassword": plaintext_password
+                    if plaintext_password is not None
+                    else str(self.anyuuid("password")),
                 },
             },
         )
@@ -45,7 +45,9 @@ class TestCreateAccountMutation(BaseTestCase):
 
         assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) is not None
         assert response.cookies.get(EAVE_REFRESH_TOKEN_COOKIE_NAME) is not None
-        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) != response.cookies.get(EAVE_REFRESH_TOKEN_COOKIE_NAME)
+        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) != response.cookies.get(
+            EAVE_REFRESH_TOKEN_COOKIE_NAME
+        )
 
         assert self.get_mock("SendGridAPIClient.send").call_count == 1
 

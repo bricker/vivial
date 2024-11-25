@@ -1,8 +1,10 @@
 from crc32c import crc32c
 from google.protobuf.wrappers_pb2 import Int64Value
 
+
 class InvalidChecksumError(Exception):
     pass
+
 
 def generate_checksum(data: bytes) -> int:
     """

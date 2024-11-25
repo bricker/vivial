@@ -1,17 +1,17 @@
 import base64
-from typing import Literal, Never
+from typing import Literal
 
 from google.cloud import kms
 
 from . import checksum
-from . import http_exceptions as eave_exceptions
 from . import util as eave_util
-from .result import Result, ResultSuccess, ResultFailure
 
 _CRYPTO_KEY_VERSION_CACHE: dict[str, kms.CryptoKeyVersion] = {}
 
+
 class InvalidSignatureError(Exception):
     pass
+
 
 def replace_key_version(*, kms_key_version_path: str, kms_key_version_name: str) -> str:
     # Verify the MAC sig with the same key version that was used to create it.

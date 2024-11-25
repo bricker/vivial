@@ -1,20 +1,16 @@
-from typing import Any, Literal
-from uuid import UUID
-import strawberry
-from http import HTTPStatus
 from httpx import Response
-from starlette.responses import Response as StarletteResponse
 
-from eave.core.app import schema
-from eave.core.graphql.resolvers.mutations.login import LoginInput, login_mutation
 from eave.core.orm.account import AccountOrm
 from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME, EAVE_REFRESH_TOKEN_COOKIE_NAME
 
 from ..base import BaseTestCase
 
+
 class TestLoginMutation(BaseTestCase):
     async def _make_request(self, email: str, plaintext_password: str) -> Response:
-        response = await self.make_graphql_request("login", {
+        response = await self.make_graphql_request(
+            "login",
+            {
                 "input": {
                     "email": email,
                     "plaintextPassword": plaintext_password,
@@ -31,7 +27,9 @@ class TestLoginMutation(BaseTestCase):
                 plaintext_password=self.anystr("plaintext_password"),
             ).save(session)
 
-        response = await self._make_request(email=self.getemail("email"), plaintext_password=self.getstr("plaintext_password"))
+        response = await self._make_request(
+            email=self.getemail("email"), plaintext_password=self.getstr("plaintext_password")
+        )
         result = self.parse_graphql_response(response)
         assert result.data
         assert not result.errors
@@ -44,7 +42,9 @@ class TestLoginMutation(BaseTestCase):
 
         assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) is not None
         assert response.cookies.get(EAVE_REFRESH_TOKEN_COOKIE_NAME) is not None
-        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) != response.cookies.get(EAVE_REFRESH_TOKEN_COOKIE_NAME)
+        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) != response.cookies.get(
+            EAVE_REFRESH_TOKEN_COOKIE_NAME
+        )
 
     async def test_login_with_incorrect_password(self) -> None:
         async with self.db_session.begin() as session:
@@ -53,7 +53,9 @@ class TestLoginMutation(BaseTestCase):
                 plaintext_password=self.anystr("plaintext_password"),
             ).save(session)
 
-        response = await self._make_request(email=self.getemail("email"), plaintext_password=self.anystr("incorrect password"))
+        response = await self._make_request(
+            email=self.getemail("email"), plaintext_password=self.anystr("incorrect password")
+        )
         result = self.parse_graphql_response(response)
         assert result.data
         assert not result.errors
@@ -74,7 +76,9 @@ class TestLoginMutation(BaseTestCase):
                 plaintext_password=self.anystr("plaintext_password"),
             ).save(session)
 
-        response = await self._make_request(email=self.anyemail("some other email"), plaintext_password=self.getstr("plaintext_password"))
+        response = await self._make_request(
+            email=self.anyemail("some other email"), plaintext_password=self.getstr("plaintext_password")
+        )
         result = self.parse_graphql_response(response)
         assert result.data
         assert not result.errors

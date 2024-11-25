@@ -1,18 +1,17 @@
-from strawberry.types import ExecutionResult
-from http import HTTPStatus
 import os
 import unittest.mock
+from http import HTTPStatus
 from typing import Any, Protocol, TypeVar
 from uuid import UUID
 
 import sqlalchemy
 import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
-from google.cloud.bigquery import SchemaField
 from google.maps.places_v1.types import Place
-from httpx import AsyncClient, ASGITransport, Response
+from httpx import ASGITransport, AsyncClient, Response
 from sqlalchemy import literal_column, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
+from strawberry.types import ExecutionResult
 
 import eave.core.app
 import eave.core.database
@@ -22,7 +21,7 @@ import eave.stdlib.typing
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.database import init_database
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.base import Base, get_base_metadata
+from eave.core.orm.base import get_base_metadata
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm

@@ -1,16 +1,5 @@
-from uuid import UUID
 
-from asgiref.typing import HTTPScope
-from starlette.requests import Request
-from starlette.responses import RedirectResponse, Response
 
-from eave.core.config import JWT_AUDIENCE, JWT_ISSUER
-from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME
-from eave.stdlib.http_exceptions import UnauthorizedError
-from eave.stdlib.http_endpoint import HTTPEndpoint
-from eave.stdlib.jwt import JWTPurpose, validate_jws_or_exception
-from eave.stdlib.logging import LogContext
 
 
 # class StripeCallbackEndpoint(HTTPEndpoint):

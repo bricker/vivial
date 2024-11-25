@@ -1,10 +1,18 @@
-from uuid import uuid4, UUID
+from uuid import UUID, uuid4
+
 from starlette.responses import Response
-from eave.stdlib.cookies import set_http_cookie, delete_http_cookie, EAVE_ACCESS_TOKEN_COOKIE_NAME, EAVE_REFRESH_TOKEN_COOKIE_NAME
-from eave.stdlib.jwt import create_jws, JWTPurpose
-from eave.stdlib.config import SHARED_CONFIG
+
 from eave.core.config import JWT_AUDIENCE, JWT_ISSUER
-from eave.stdlib.time import ONE_YEAR_IN_SECONDS, ONE_YEAR_IN_MINUTES
+from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.cookies import (
+    EAVE_ACCESS_TOKEN_COOKIE_NAME,
+    EAVE_REFRESH_TOKEN_COOKIE_NAME,
+    delete_http_cookie,
+    set_http_cookie,
+)
+from eave.stdlib.jwt import JWTPurpose, create_jws
+from eave.stdlib.time import ONE_YEAR_IN_MINUTES, ONE_YEAR_IN_SECONDS
+
 
 def set_new_auth_cookies(*, response: Response, account_id: UUID) -> None:
     jwt_id = str(uuid4())
@@ -49,6 +57,7 @@ def set_new_auth_cookies(*, response: Response, account_id: UUID) -> None:
         httponly=True,
         secure=True,
     )
+
 
 def delete_auth_cookies(*, response: Response) -> None:
     delete_http_cookie(

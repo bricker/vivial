@@ -3,12 +3,11 @@ from typing import Annotated
 
 import strawberry
 
-from eave.core.auth_cookies import set_new_auth_cookies
 import eave.core.database
+from eave.core.auth_cookies import set_new_auth_cookies
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.account import Account
 from eave.core.orm.account import AccountOrm, InvalidPasswordError
-from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME, set_http_cookie
 
 
 @strawberry.input

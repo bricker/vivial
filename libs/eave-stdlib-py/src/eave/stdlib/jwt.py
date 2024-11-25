@@ -7,7 +7,7 @@ from typing import Literal, Self
 
 from eave.stdlib.config import SHARED_CONFIG
 
-from . import http_exceptions, signing
+from . import signing
 from . import util as eave_util
 
 ALLOWED_CLOCK_DRIFT_SECONDS = 60
@@ -100,6 +100,7 @@ class JWTPurpose(enum.StrEnum):
 
 class InvalidTokenError(Exception):
     pass
+
 
 class InvalidJWSError(InvalidTokenError):
     pass

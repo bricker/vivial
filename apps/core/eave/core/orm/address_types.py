@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from typing import Any, Literal, NamedTuple
 
 from sqlalchemy import Dialect
-from sqlalchemy.sql.type_api import _ResultProcessorType, _BindProcessorType
+from sqlalchemy.sql.type_api import _BindProcessorType, _ResultProcessorType
 from sqlalchemy.types import UserDefinedType
 
 
@@ -59,6 +59,7 @@ class PostgisStdaddr(NamedTuple):
     unit: str | None = None
     """is text Apartment number or Suite Number (token number 17): Example 3B in APT 3B."""
 
+
 class PostgisStdaddrColumnType(UserDefinedType):
     cache_ok = True
 
@@ -71,6 +72,7 @@ class PostgisStdaddrColumnType(UserDefinedType):
             return PostgisStdaddr(*value)
 
         return process
+
 
 class ParsedAddress(NamedTuple):
     """https://postgis.net/docs/manual-3.0/parse_address.html"""
@@ -87,15 +89,14 @@ class ParsedAddress(NamedTuple):
     zipplus: str | None
     country: str | None
 
+
 class PostgisParsedAddressColumnType(UserDefinedType):
     cache_ok = True
 
     def get_col_spec(self) -> Literal["JSON"]:
         return "JSON"
 
-    def bind_processor(
-        self, dialect: Dialect
-    ) -> _BindProcessorType[ParsedAddress] | None:
+    def bind_processor(self, dialect: Dialect) -> _BindProcessorType[ParsedAddress] | None:
         def process(value: ParsedAddress | None) -> ParsedAddress:
             return value
 
@@ -108,6 +109,7 @@ class PostgisParsedAddressColumnType(UserDefinedType):
 
         return process
 
+
 @dataclass
 class Address:
     address1: str
@@ -117,15 +119,14 @@ class Address:
     zip: str
     country: str
 
+
 class AddressColumnType(UserDefinedType):
     cache_ok = True
 
     def get_col_spec(self) -> Literal["JSON"]:
         return "JSON"
 
-    def bind_processor(
-        self, dialect: Dialect
-    ) -> _BindProcessorType[Address] | None:
+    def bind_processor(self, dialect: Dialect) -> _BindProcessorType[Address] | None:
         def process(value: Address | None) -> dict[str, Any]:
             return value.__dict__
 

@@ -179,6 +179,7 @@ def xnor(a: object, b: object) -> bool:
 class UnwrapError(ValueError):
     pass
 
+
 def unwrap(value: T | None, default: T | None = None) -> T:
     """
     Unwraps an Optional object to its wrapped type.
