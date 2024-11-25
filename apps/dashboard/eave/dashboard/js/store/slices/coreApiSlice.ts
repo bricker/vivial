@@ -5,10 +5,10 @@ import {
   CreateAccountDocument,
   LoginDocument,
   SearchRegionsDocument,
-  type CreateAccountInput,
   type CreateAccountMutation,
-  type LoginInput,
+  type CreateAccountMutationVariables,
   type LoginMutation,
+  type LoginMutationVariables,
   type SearchRegionsQuery,
 } from "$eave-dashboard/js/graphql/generated/graphql";
 
@@ -38,21 +38,21 @@ export const coreApiSlice = createApi({
     /**
      * Core API - GraphQL Mutations
      */
-    createAccount: builder.mutation<{ data: CreateAccountMutation }, CreateAccountInput>({
-      query: (input) => ({
+    createAccount: builder.mutation<{ data: CreateAccountMutation }, CreateAccountMutationVariables>({
+      query: (variables) => ({
         ...gqlParams,
         body: {
           query: CreateAccountDocument,
-          variables: { input },
+          variables,
         },
       }),
     }),
-    login: builder.mutation<{ data: LoginMutation }, LoginInput>({
-      query: (input) => ({
+    login: builder.mutation<{ data: LoginMutation }, LoginMutationVariables>({
+      query: (variables) => ({
         ...gqlParams,
         body: {
           query: LoginDocument,
-          variables: { input },
+          variables,
         },
       }),
     }),
