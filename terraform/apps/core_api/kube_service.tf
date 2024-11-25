@@ -1,5 +1,5 @@
 moved {
-  from = module.kubernetes_service[local.app_name]
+  from = module.kubernetes_service["core-api"]
   to   = module.kubernetes_service
 }
 

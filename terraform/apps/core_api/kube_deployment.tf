@@ -1,5 +1,5 @@
 moved {
-  from = kubernetes_deployment.app[local.app_name]
+  from = kubernetes_deployment.app["core-api"]
   to   = kubernetes_deployment.app
 }
 
