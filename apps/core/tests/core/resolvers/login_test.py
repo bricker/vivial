@@ -1,8 +1,7 @@
 from httpx import Response
 
-from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME
+from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME
 from eave.core.orm.account import AccountOrm
-from eave.core.auth_cookies import REFRESH_TOKEN_COOKIE_NAME
 
 from ..base import BaseTestCase
 
@@ -43,9 +42,7 @@ class TestLoginMutation(BaseTestCase):
 
         assert response.cookies.get(ACCESS_TOKEN_COOKIE_NAME) is not None
         assert response.cookies.get(REFRESH_TOKEN_COOKIE_NAME) is not None
-        assert response.cookies.get(ACCESS_TOKEN_COOKIE_NAME) != response.cookies.get(
-            REFRESH_TOKEN_COOKIE_NAME
-        )
+        assert response.cookies.get(ACCESS_TOKEN_COOKIE_NAME) != response.cookies.get(REFRESH_TOKEN_COOKIE_NAME)
 
     async def test_login_with_incorrect_password(self) -> None:
         async with self.db_session.begin() as session:

@@ -1,11 +1,11 @@
 from datetime import datetime
 from typing import Literal
 
-
 from .config import SHARED_CONFIG
 from .typing import HTTPFrameworkResponse
 
 VIVIAL_COOKIE_PREFIX = "vivial."
+
 
 def set_http_cookie(
     *,

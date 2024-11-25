@@ -7,10 +7,14 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 from eave.core import database
-from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME, delete_auth_cookies, set_new_auth_cookies
+from eave.core.auth_cookies import (
+    ACCESS_TOKEN_COOKIE_NAME,
+    REFRESH_TOKEN_COOKIE_NAME,
+    delete_auth_cookies,
+    set_new_auth_cookies,
+)
 from eave.core.config import JWT_AUDIENCE, JWT_ISSUER
 from eave.core.orm.account import AccountOrm
-from eave.core.auth_cookies import REFRESH_TOKEN_COOKIE_NAME
 from eave.stdlib.headers import MIME_TYPE_TEXT
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.jwt import InvalidTokenError, JWTPurpose, validate_jws_or_exception, validate_jws_pair_or_exception

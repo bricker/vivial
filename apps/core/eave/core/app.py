@@ -15,7 +15,6 @@ from eave.core.endpoints.noop import NoopEndpoint
 from eave.core.endpoints.refresh_tokens import RefreshTokensEndpoint
 from eave.core.endpoints.status import StatusEndpoint
 from eave.core.starlette_exception_handlers import starlette_exception_handlers
-
 from eave.stdlib import cache
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER

@@ -37,7 +37,8 @@ def apple_domain_verification_file(request: Request) -> Response:
 
 async def logout_endpoint(request: Request) -> Response:
     response = RedirectResponse(
-        url=SHARED_CONFIG.eave_api_base_url_public + "/public/logout", status_code=HTTPStatus.PERMANENT_REDIRECT,
+        url=SHARED_CONFIG.eave_api_base_url_public + "/public/logout",
+        status_code=HTTPStatus.PERMANENT_REDIRECT,
     )
     return response
 
