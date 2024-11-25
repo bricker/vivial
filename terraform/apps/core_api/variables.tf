@@ -97,6 +97,23 @@ variable "bastion_accessors" {
   default = []
 }
 
+variable "iap_oauth_client_id" {
+  type     = string
+  nullable = true
+  default  = null
+}
+
+variable "iap_oauth_client_kube_secret_name" {
+  type     = string
+  nullable = true
+  default  = null
+}
+
+variable "iap_enabled" {
+  type    = bool
+  default = false
+}
+
 variable "SEGMENT_CORE_API_WRITE_KEY" {
   type = string
   // value can be obtained from target Core API source https://app.segment.com/vivial/sources

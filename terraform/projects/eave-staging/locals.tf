@@ -8,6 +8,9 @@ locals {
   dns_domain      = "eave.dev"
   resource_domain = "eave.dev"
 
+  www_public_domain_prefix = "www"
+  api_public_domain_prefix = "api"
+
   eave_slack_signups_channel_id = "C04GDPU3B5Z" # #bot-testing in eave slack
 
   authorized_networks = {

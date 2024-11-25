@@ -22,7 +22,7 @@ module "app_secrets" {
       ],
     },
     STRIPE_SECRET_KEY = {
-      data = var.EVENTBRITE_API_KEY
+      data = var.STRIPE_SECRET_KEY
       accessors = [
         data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
       ],
