@@ -1,7 +1,7 @@
 module "app_gateway" {
   depends_on   = [google_compute_global_address.a_addrs]
   source       = "../../modules/app_gateway"
-  service_name = module.kubernetes_service[local.app_name].name
+  service_name = module.kubernetes_service.name
   labels = {
     app = local.app_name
   }
@@ -11,6 +11,19 @@ module "app_gateway" {
   google_compute_ssl_policy                  = var.google_compute_ssl_policy
 }
 
+module "gateway_backend_policy" {
+  source = "../../modules/gateway_backend_policy"
+
+  name      = local.app_name
+  namespace = var.kube_namespace_name
+  labels = {
+    app = local.app_name
+  }
+  service_name                      = module.kubernetes_service.name
+  iap_oauth_client_kube_secret_name = var.iap_oauth_client_kube_secret_name
+  iap_oauth_client_id               = var.iap_oauth_client_id
+  iap_enabled                       = var.iap_enabled
+}
 
 resource "kubernetes_manifest" "app_httproute" {
   lifecycle {
@@ -79,8 +92,8 @@ resource "kubernetes_manifest" "app_httproute" {
 
           backendRefs = [
             {
-              name = module.kubernetes_service[local.app_name].name
-              port = module.kubernetes_service[local.app_name].port.number
+              name = module.kubernetes_service.name
+              port = module.kubernetes_service.port.number
             }
           ]
 

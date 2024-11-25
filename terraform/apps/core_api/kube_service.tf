@@ -1,6 +1,9 @@
-module "kubernetes_service" {
-  for_each = toset([local.app_name])
+moved {
+  from = module.kubernetes_service["core-api"]
+  to   = module.kubernetes_service
+}
 
+module "kubernetes_service" {
   source       = "../../modules/kube_service"
   namespace    = var.kube_namespace_name
   service_name = each.value
