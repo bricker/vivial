@@ -249,6 +249,7 @@ def suppress(e: type[Exception], func: Callable[[], T]) -> T | None:
     with contextlib.suppress(e):
         return func()
 
+
 def tableize(string: str) -> str:
     return re.sub(r"\W+", "_", string).lower().strip("_")
 
