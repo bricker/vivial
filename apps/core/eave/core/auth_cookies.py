@@ -5,13 +5,16 @@ from starlette.responses import Response
 from eave.core.config import JWT_AUDIENCE, JWT_ISSUER
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.cookies import (
-    EAVE_ACCESS_TOKEN_COOKIE_NAME,
-    EAVE_REFRESH_TOKEN_COOKIE_NAME,
+    VIVIAL_COOKIE_PREFIX,
     delete_http_cookie,
     set_http_cookie,
 )
 from eave.stdlib.jwt import JWTPurpose, create_jws
 from eave.stdlib.time import ONE_YEAR_IN_MINUTES, ONE_YEAR_IN_SECONDS
+
+AUTH_COOKIE_PREFIX = f"{VIVIAL_COOKIE_PREFIX}auth."
+ACCESS_TOKEN_COOKIE_NAME = f"{AUTH_COOKIE_PREFIX}access_token"
+REFRESH_TOKEN_COOKIE_NAME = f"{AUTH_COOKIE_PREFIX}refresh_token"
 
 
 def set_new_auth_cookies(*, response: Response, account_id: UUID) -> None:
@@ -37,7 +40,7 @@ def set_new_auth_cookies(*, response: Response, account_id: UUID) -> None:
 
     set_http_cookie(
         response=response,
-        key=EAVE_ACCESS_TOKEN_COOKIE_NAME,
+        key=ACCESS_TOKEN_COOKIE_NAME,
         value=access_token,
         max_age_seconds=ONE_YEAR_IN_SECONDS,
         domain=SHARED_CONFIG.eave_api_hostname_public,
@@ -48,7 +51,7 @@ def set_new_auth_cookies(*, response: Response, account_id: UUID) -> None:
 
     set_http_cookie(
         response=response,
-        key=EAVE_REFRESH_TOKEN_COOKIE_NAME,
+        key=REFRESH_TOKEN_COOKIE_NAME,
         value=refresh_token,
         max_age_seconds=ONE_YEAR_IN_SECONDS,
         samesite="strict",
@@ -62,7 +65,7 @@ def set_new_auth_cookies(*, response: Response, account_id: UUID) -> None:
 def delete_auth_cookies(*, response: Response) -> None:
     delete_http_cookie(
         response=response,
-        key=EAVE_ACCESS_TOKEN_COOKIE_NAME,
+        key=ACCESS_TOKEN_COOKIE_NAME,
         httponly=True,
         secure=True,
         samesite="strict",
@@ -70,7 +73,7 @@ def delete_auth_cookies(*, response: Response) -> None:
 
     delete_http_cookie(
         response=response,
-        key=EAVE_REFRESH_TOKEN_COOKIE_NAME,
+        key=REFRESH_TOKEN_COOKIE_NAME,
         domain=SHARED_CONFIG.eave_api_base_url_public,
         path="/public/refresh_tokens",
         httponly=True,

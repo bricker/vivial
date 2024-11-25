@@ -2,8 +2,9 @@ from uuid import UUID
 
 from httpx import Response
 
+from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME
 from eave.core.orm.account import AccountOrm
-from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME, EAVE_REFRESH_TOKEN_COOKIE_NAME
+from eave.core.auth_cookies import REFRESH_TOKEN_COOKIE_NAME
 
 from ..base import BaseTestCase
 
@@ -43,10 +44,10 @@ class TestCreateAccountMutation(BaseTestCase):
             assert account_orm.id == UUID(data["account"]["id"])
             assert account_orm.email == data["account"]["email"]
 
-        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) is not None
-        assert response.cookies.get(EAVE_REFRESH_TOKEN_COOKIE_NAME) is not None
-        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) != response.cookies.get(
-            EAVE_REFRESH_TOKEN_COOKIE_NAME
+        assert response.cookies.get(ACCESS_TOKEN_COOKIE_NAME) is not None
+        assert response.cookies.get(REFRESH_TOKEN_COOKIE_NAME) is not None
+        assert response.cookies.get(ACCESS_TOKEN_COOKIE_NAME) != response.cookies.get(
+            REFRESH_TOKEN_COOKIE_NAME
         )
 
         assert self.get_mock("SendGridAPIClient.send").call_count == 1
@@ -67,8 +68,8 @@ class TestCreateAccountMutation(BaseTestCase):
             count = await self.count(session, AccountOrm)
             assert count == 0
 
-        assert EAVE_ACCESS_TOKEN_COOKIE_NAME not in response.cookies
-        assert EAVE_REFRESH_TOKEN_COOKIE_NAME not in response.cookies
+        assert ACCESS_TOKEN_COOKIE_NAME not in response.cookies
+        assert REFRESH_TOKEN_COOKIE_NAME not in response.cookies
         assert self.get_mock("SendGridAPIClient.send").call_count == 0
 
     async def test_create_account_with_invalid_email(self) -> None:
@@ -90,8 +91,8 @@ class TestCreateAccountMutation(BaseTestCase):
             count = await self.count(session, AccountOrm)
             assert count == 0
 
-        assert EAVE_ACCESS_TOKEN_COOKIE_NAME not in response.cookies
-        assert EAVE_REFRESH_TOKEN_COOKIE_NAME not in response.cookies
+        assert ACCESS_TOKEN_COOKIE_NAME not in response.cookies
+        assert REFRESH_TOKEN_COOKIE_NAME not in response.cookies
         assert self.get_mock("SendGridAPIClient.send").call_count == 0
 
     async def test_create_account_with_existing_account(self) -> None:
@@ -115,6 +116,6 @@ class TestCreateAccountMutation(BaseTestCase):
             count = await self.count(session, AccountOrm)
             assert count == 1
 
-        assert EAVE_ACCESS_TOKEN_COOKIE_NAME not in response.cookies
-        assert EAVE_REFRESH_TOKEN_COOKIE_NAME not in response.cookies
+        assert ACCESS_TOKEN_COOKIE_NAME not in response.cookies
+        assert REFRESH_TOKEN_COOKIE_NAME not in response.cookies
         assert self.get_mock("SendGridAPIClient.send").call_count == 0

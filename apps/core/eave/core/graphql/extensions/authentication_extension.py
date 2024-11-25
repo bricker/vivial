@@ -9,7 +9,7 @@ from strawberry.extensions import FieldExtension
 from eave.core.auth_cookies import delete_auth_cookies
 from eave.core.config import JWT_AUDIENCE, JWT_ISSUER
 from eave.core.graphql.context import GraphQLContext
-from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME
+from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME
 from eave.stdlib.jwt import (
     AccessTokenExpiredError,
     InvalidTokenError,
@@ -36,7 +36,7 @@ class AuthenticationExtension(FieldExtension):
     async def resolve_async(
         self, next_: Callable[..., Awaitable[Any]], source: Any, info: strawberry.Info[GraphQLContext], **kwargs
     ) -> Any:
-        encoded_jws = info.context["request"].cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME)
+        encoded_jws = info.context["request"].cookies.get(ACCESS_TOKEN_COOKIE_NAME)
         try:
             if encoded_jws:
                 jws = validate_jws_or_exception(

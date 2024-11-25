@@ -1,7 +1,8 @@
 from httpx import Response
 
+from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME
 from eave.core.orm.account import AccountOrm
-from eave.stdlib.cookies import EAVE_ACCESS_TOKEN_COOKIE_NAME, EAVE_REFRESH_TOKEN_COOKIE_NAME
+from eave.core.auth_cookies import REFRESH_TOKEN_COOKIE_NAME
 
 from ..base import BaseTestCase
 
@@ -40,10 +41,10 @@ class TestLoginMutation(BaseTestCase):
         assert data["account"]["id"] == str(account_orm.id)
         assert data["account"]["email"] == account_orm.email
 
-        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) is not None
-        assert response.cookies.get(EAVE_REFRESH_TOKEN_COOKIE_NAME) is not None
-        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) != response.cookies.get(
-            EAVE_REFRESH_TOKEN_COOKIE_NAME
+        assert response.cookies.get(ACCESS_TOKEN_COOKIE_NAME) is not None
+        assert response.cookies.get(REFRESH_TOKEN_COOKIE_NAME) is not None
+        assert response.cookies.get(ACCESS_TOKEN_COOKIE_NAME) != response.cookies.get(
+            REFRESH_TOKEN_COOKIE_NAME
         )
 
     async def test_login_with_incorrect_password(self) -> None:
@@ -66,8 +67,8 @@ class TestLoginMutation(BaseTestCase):
         assert "account" not in data
         assert data["failureReason"] == "INVALID_CREDENTIALS"
 
-        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) is None
-        assert response.cookies.get(EAVE_REFRESH_TOKEN_COOKIE_NAME) is None
+        assert response.cookies.get(ACCESS_TOKEN_COOKIE_NAME) is None
+        assert response.cookies.get(REFRESH_TOKEN_COOKIE_NAME) is None
 
     async def test_login_with_non_existent_account(self) -> None:
         async with self.db_session.begin() as session:
@@ -89,8 +90,8 @@ class TestLoginMutation(BaseTestCase):
         assert "account" not in data
         assert data["failureReason"] == "INVALID_CREDENTIALS"
 
-        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) is None
-        assert response.cookies.get(EAVE_REFRESH_TOKEN_COOKIE_NAME) is None
+        assert response.cookies.get(ACCESS_TOKEN_COOKIE_NAME) is None
+        assert response.cookies.get(REFRESH_TOKEN_COOKIE_NAME) is None
 
     async def test_login_with_empty_password(self) -> None:
         async with self.db_session.begin() as session:
@@ -110,5 +111,5 @@ class TestLoginMutation(BaseTestCase):
         assert "account" not in data
         assert data["failureReason"] == "INVALID_CREDENTIALS"
 
-        assert response.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME) is None
-        assert response.cookies.get(EAVE_REFRESH_TOKEN_COOKIE_NAME) is None
+        assert response.cookies.get(ACCESS_TOKEN_COOKIE_NAME) is None
+        assert response.cookies.get(REFRESH_TOKEN_COOKIE_NAME) is None
