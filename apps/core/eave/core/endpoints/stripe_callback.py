@@ -1,7 +1,3 @@
-
-
-
-
 # class StripeCallbackEndpoint(HTTPEndpoint):
 #     async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
 #         encoded_jws = request.cookies.get(EAVE_ACCESS_TOKEN_COOKIE_NAME)

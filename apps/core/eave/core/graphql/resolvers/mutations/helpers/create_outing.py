@@ -4,7 +4,6 @@ from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
 from eave.core.graphql.types.survey import Survey
-from eave.core.orm.account import AccountOrm
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.outing_activity import OutingActivityOrm
 from eave.core.orm.outing_reservation import OutingReservationOrm
@@ -20,7 +19,8 @@ async def create_outing_plan(
 ) -> OutingOrm:
     async with database.async_session.begin() as db_session:
         if account_id is not None:
-            account = await AccountOrm.get_one(session=db_session, id=account_id)
+            pass
+            # account = await AccountOrm.get_one(session=db_session, id=account_id)
 
     planner = OutingPlanner(
         group=[],  # TODO: pass user preferences
