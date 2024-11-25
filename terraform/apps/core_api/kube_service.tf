@@ -1,6 +1,6 @@
 moved {
   from = module.kubernetes_service[local.app_name]
-  to = module.kubernetes_service
+  to   = module.kubernetes_service
 }
 
 module "kubernetes_service" {

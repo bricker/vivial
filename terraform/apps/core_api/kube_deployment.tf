@@ -1,6 +1,6 @@
 moved {
   from = kubernetes_deployment.app[local.app_name]
-  to = kubernetes_deployment.app
+  to   = kubernetes_deployment.app
 }
 
 resource "kubernetes_deployment" "app" {
