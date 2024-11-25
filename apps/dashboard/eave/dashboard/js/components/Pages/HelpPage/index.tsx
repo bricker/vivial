@@ -23,23 +23,23 @@ const Subtitle = styled(Typography)(() => ({
   marginTop: 16,
 }));
 
-const ForgotPasswordPage = () => {
+const HelpPage = () => {
   const navigate = useNavigate();
   const handleBack = useCallback(() => {
-    navigate("/login");
+    navigate("/");
   }, []);
   return (
     <PageContainer>
       <BackButton onClick={handleBack} />
       <CopyContainer>
-        <Typography variant="h3">Forgot password?</Typography>
+        <Typography variant="h3">Help</Typography>
         <Subtitle>
-          Reach out to us at <ExternalLink to="mailto:friends@vivialapp.com">friends@vivialapp.com</ExternalLink> and
-          we’ll help you reset your password.
+          Have a question or need help with a booking? Reach out to us at{" "}
+          <ExternalLink to="mailto:friends@vivialapp.com">friends@vivialapp.com</ExternalLink>.
         </Subtitle>
       </CopyContainer>
     </PageContainer>
   );
 };
 
-export default ForgotPasswordPage;
+export default HelpPage;
