@@ -9,7 +9,7 @@ class TestReserverDetailsEndpoints(BaseTestCase):
         phone_num = "+12345678900"
 
         response = await self.make_graphql_request(
-            "createBooking",
+            "submitReserverDetails",
             {
                 "input": {
                     "firstName": self.anystr("first"),
@@ -37,7 +37,7 @@ class TestReserverDetailsEndpoints(BaseTestCase):
         phone_num = "1-800-BEANS-FOR-BREAKFAST"
 
         response = await self.make_graphql_request(
-            "createBooking",
+            "submitReserverDetails",
             {
                 "input": {
                     "firstName": self.anystr("first"),
