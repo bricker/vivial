@@ -97,7 +97,7 @@ class PostgisParsedAddressColumnType(UserDefinedType):
         return "JSON"
 
     def bind_processor(self, dialect: Dialect) -> _BindProcessorType[ParsedAddress] | None:
-        def process(value: ParsedAddress | None) -> ParsedAddress:
+        def process(value: ParsedAddress | None) -> ParsedAddress | None:
             return value
 
         return process

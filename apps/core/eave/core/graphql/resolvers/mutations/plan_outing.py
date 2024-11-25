@@ -10,11 +10,11 @@ from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.helpers.create_outing import create_outing_plan
 from eave.core.graphql.types.outing import (
     Outing,
-    OutingBudget,
 )
 from eave.core.graphql.types.preferences import PreferencesInput
 from eave.core.orm.survey import SurveyOrm
 from eave.core.orm.util import StartTimeTooLateError, StartTimeTooSoonError, validate_time_within_bounds_or_exception
+from eave.core.shared.enums import OutingBudget
 
 
 @strawberry.input

@@ -4,13 +4,13 @@ from datetime import datetime
 
 from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
 from eave.core.graphql.types.activity import ActivityCategory
-from eave.core.graphql.types.outing import OutingBudget
 from eave.core.graphql.types.preferences import Preferences
 from eave.core.graphql.types.restaurant import RestaurantCategory
 from eave.core.graphql.types.survey import Survey
 from eave.core.orm.activity_category import _ACTIVITY_CATEGORIES_TABLE
 from eave.core.orm.restaurant_category import _RESTAURANT_CATEGORIES_TABLE
 from eave.core.orm.search_region import SearchRegionOrm
+from eave.core.shared.enums import OutingBudget
 
 
 # TODO: Write thorough automated tests once all relevant tables / endpoints are ready (pending Bryan).
