@@ -24,4 +24,5 @@ dependencies = [
   "crc32c",
   "sendgrid",
   "segment-analytics-python",
+  "inflect",
 ]
