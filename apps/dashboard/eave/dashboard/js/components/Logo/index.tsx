@@ -6,6 +6,7 @@ import Button from "@mui/material/Button";
 
 import VivialIcon from "./VivialIcon";
 import VivialText from "./VivialText";
+import { AppRoute } from "$eave-dashboard/js/routes";
 
 const LogoButton = styled(Button)(() => ({
   display: "flex",
@@ -20,7 +21,7 @@ const TextContainer = styled("div")(() => ({
 const VivialLogo = () => {
   const navigate = useNavigate();
   const handleClick = useCallback(() => {
-    navigate("/");
+    navigate(AppRoute.root);
   }, []);
 
   return (

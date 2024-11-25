@@ -9,6 +9,7 @@ import { useLoginMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 
 import AuthForm from "../../Forms/AuthForm";
 import Link from "../../Links/Link";
+import { AppRoute } from "$eave-dashboard/js/routes";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
@@ -37,7 +38,7 @@ const LogInPage = () => {
         const accountId = resp.data?.data.login.account.id;
         if (accountId) {
           dispatch(loggedIn({ accountId }));
-          navigate("/");
+          navigate(AppRoute.root);
         }
         break;
       }
@@ -62,7 +63,7 @@ const LogInPage = () => {
         showForgotPassword
       />
       <SignUp>
-        Don’t have an account? <Link to="/signup">Sign up</Link>
+        Don't have an account? <Link to={AppRoute.signup}>Sign up</Link>
       </SignUp>
     </PageContainer>
   );

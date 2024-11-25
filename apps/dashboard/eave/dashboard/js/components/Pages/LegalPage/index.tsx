@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 import Typography from "@mui/material/Typography";
 import BackButton from "../../Buttons/BackButton";
+import { AppRoute } from "$eave-dashboard/js/routes";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
@@ -34,7 +35,7 @@ interface LegalPageProps {
 const LegalPage = ({ title, children }: LegalPageProps) => {
   const navigate = useNavigate();
   const handleBack = useCallback(() => {
-    navigate("/");
+    navigate(AppRoute.root);
   }, []);
   return (
     <PageContainer>

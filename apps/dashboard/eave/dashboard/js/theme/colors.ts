@@ -22,5 +22,6 @@ export const colors = {
   almostBlackBG: "#1E1E1E",
   grey: {
     500: "#8C8C8C",
+    800: "#434343",
   },
 };

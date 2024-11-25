@@ -11,6 +11,7 @@ import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import Button from "@mui/material/Button";
 
+import { AppRoute } from "$eave-dashboard/js/routes";
 import LogInButton from "../../Buttons/LogInButton";
 import MenuButton from "../../Buttons/MenuButton";
 import VivialLogo from "../../Logo";
@@ -105,29 +106,45 @@ const GlobalHeader = () => {
   );
 
   const handleLogin = useCallback(() => {
-    navigate("/login");
+    navigate(AppRoute.login);
   }, []);
 
   const handleLogout = useCallback(async () => {
     await logout();
     dispatch(loggedOut());
-    navigate("/login");
+    navigate(AppRoute.login);
   }, []);
+
+  const menuNavButtons: Array<{ route: string; text: string }> = [
+    {
+      route: AppRoute.root,
+      text: "Pick a date",
+    },
+    {
+      route: AppRoute.plans,
+      text: "My plans",
+    },
+    {
+      route: AppRoute.account,
+      text: "Account",
+    },
+    {
+      route: AppRoute.help,
+      text: "Help",
+    },
+  ];
 
   const menuItems = (
     <>
-      <MenuItem data-active={pathname === "/"} onClick={() => handleNavigate("/")} disableRipple>
-        Pick a date
-      </MenuItem>
-      <MenuItem data-active={pathname === "/plans"} onClick={() => handleNavigate("/plans")} disableRipple>
-        My plans
-      </MenuItem>
-      <MenuItem data-active={pathname === "/account"} onClick={() => handleNavigate("/account")} disableRipple>
-        Account
-      </MenuItem>
-      <MenuItem data-active={pathname === "/help"} onClick={() => handleNavigate("/help")} disableRipple>
-        Help
-      </MenuItem>
+      {menuNavButtons.map((navButton) => {
+        <MenuItem
+          data-active={pathname === navButton.route}
+          onClick={() => handleNavigate(navButton.route)}
+          disableRipple
+        >
+          {navButton.text}
+        </MenuItem>;
+      })}
       <MenuItem onClick={handleLogout} disableRipple>
         Log out
       </MenuItem>

@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import Typography from "@mui/material/Typography";
 import BackButton from "../../Buttons/BackButton";
 import ExternalLink from "../../Links/ExternalLink";
+import { AppRoute } from "$eave-dashboard/js/routes";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
@@ -26,7 +27,7 @@ const Subtitle = styled(Typography)(() => ({
 const ForgotPasswordPage = () => {
   const navigate = useNavigate();
   const handleBack = useCallback(() => {
-    navigate("/login");
+    navigate(AppRoute.login);
   }, []);
   return (
     <PageContainer>
@@ -35,7 +36,7 @@ const ForgotPasswordPage = () => {
         <Typography variant="h3">Forgot password?</Typography>
         <Subtitle>
           Reach out to us at <ExternalLink to="mailto:friends@vivialapp.com">friends@vivialapp.com</ExternalLink> and
-          we’ll help you reset your password.
+          we'll help you reset your password.
         </Subtitle>
       </CopyContainer>
     </PageContainer>
