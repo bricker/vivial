@@ -1,15 +1,19 @@
 mutation CreateBooking($input: CreateBookingInput!) {
   viewer {
     ...on AuthenticatedViewerMutations {
-      createBooking(input: $input) {
+      __typename
 
+      createBooking(input: $input) {
         ... on CreateBookingSuccess {
+          __typename
+
           booking {
             id
           }
         }
 
         ... on CreateBookingFailure {
+        __typename
           failureReason
 
           validationErrors {
@@ -20,6 +24,7 @@ mutation CreateBooking($input: CreateBookingInput!) {
     }
 
     ...on UnauthenticatedViewer {
+      __typename
       reason
     }
   }

@@ -1,18 +1,33 @@
 mutation SubmitReserverDetails($input: ReserverDetailsInput!) {
   viewer {
-    submitReserverDetails(input: $input) {
+    ...on AuthenticatedViewerMutations {
       __typename
-      ... on SubmitReserverDetailsSuccess {
-        reserverDetails {
-          id
+
+      submitReserverDetails(input: $input) {
+        __typename
+
+        ... on SubmitReserverDetailsSuccess {
+          __typename
+
+          reserverDetails {
+            id
+          }
+        }
+
+        ... on SubmitReserverDetailsFailure {
+          __typename
+          failureReason
+
+          validationErrors {
+            field
+          }
         }
       }
-      ... on SubmitReserverDetailsFailure {
-        failureReason
-        validationErrors {
-          field
-        }
-      }
+    }
+
+    ...on UnauthenticatedViewer {
+      __typename
+      reason
     }
   }
 }
