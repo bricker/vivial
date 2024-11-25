@@ -6,7 +6,7 @@ from asgiref.typing import HTTPScope
 from starlette.responses import Response
 
 from eave.stdlib import util
-from eave.stdlib.exceptions import MissingRequiredHeaderError
+from eave.stdlib.http_exceptions import BadRequestError
 
 
 def get_header_value(scope: HTTPScope, name: str) -> str | None:
@@ -17,6 +17,10 @@ def get_header_value(scope: HTTPScope, name: str) -> str | None:
     https://asgi.readthedocs.io/en/latest/specs/www.html#http-connection-scope
     """
     return next((v.decode() for [n, v] in scope["headers"] if n.decode().lower() == name.lower()), None)
+
+
+class MissingRequiredHeaderError(BadRequestError):
+    pass
 
 
 def get_header_value_or_exception(scope: HTTPScope, name: str) -> str:

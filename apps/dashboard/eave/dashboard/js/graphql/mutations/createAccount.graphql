@@ -1,18 +1,17 @@
 mutation CreateAccount($input: CreateAccountInput!) {
   createAccount(input: $input) {
-    __typename
     ... on CreateAccountSuccess {
+      __typename
+
       account {
         id
         email
       }
-      authTokens {
-        accessToken
-        refreshToken
-      }
     }
     ... on CreateAccountFailure {
+      __typename
       failureReason
+
       validationErrors {
         field
       }

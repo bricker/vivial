@@ -1,6 +1,3 @@
-from http import HTTPStatus
-
-from eave.core.graphql.resolvers.mutations.viewer.create_booking import CreateBookingFailureReason
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.search_region import SearchRegionOrm
@@ -21,29 +18,21 @@ class TestBookingEndpoints(BaseTestCase):
                 phone_number="1234567890",
             ).save(session)
 
-        response = await self.httpclient.post(
-            "/graphql",
-            json={
-                "query": f"""
-mutation {{
-    createBooking(input: {{
-        accountId: "{account.id}", outingId: "{outing.id}", reserverDetailsId: "{reserver_details.id}"
-    }}) {{
-        ... on CreateBookingSuccess {{
-            booking {{
-                id
-            }}
-        }}
-        ... on CreateBookingError {{
-            errorCode
-        }}
-    }}
-}}
-"""
+        response = await self.make_graphql_request(
+            "createBooking",
+            {
+                "input": {
+                    "outingId": str(outing.id),
+                    "reserverDetailsId": str(reserver_details.id),
+                },
             },
         )
-        assert response.status_code == HTTPStatus.OK
-        details = response.json().get("data").get("createBooking").get("booking")
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        details = result.data["viewer"]["createBooking"]["booking"]
         assert details.get("id") is not None
 
     async def test_create_booking_from_expired_outing_fails(self) -> None:
@@ -72,30 +61,20 @@ mutation {{
                 phone_number="1234567890",
             ).save(session)
 
-        response = await self.httpclient.post(
-            "/graphql",
-            json={
-                "query": f"""
-mutation {{
-    createBooking(input: {{
-        accountId: "{account.id}", outingId: "{outing.id}", reserverDetailsId: "{reserver_details.id}"
-    }}) {{
-        ... on CreateBookingSuccess {{
-            booking {{
-                id
-            }}
-        }}
-        ... on CreateBookingError {{
-            errorCode
-        }}
-    }}
-}}
-"""
+        response = await self.make_graphql_request(
+            "createBooking",
+            {
+                "input": {
+                    "outingId": str(outing.id),
+                    "reserverDetailsId": str(reserver_details.id),
+                },
             },
         )
-        assert response.status_code == HTTPStatus.OK
-        assert response.json().get("data").get("createBooking").get("booking") is None
-        assert (
-            response.json().get("data").get("createBooking").get("errorCode")
-            == CreateBookingFailureReason.START_TIME_TOO_SOON
-        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["viewer"]["createBooking"]
+        assert "booking" not in data
+        assert data["failureReason"] == "START_TIME_TOO_SOON"

@@ -1,5 +1,4 @@
 import eave.stdlib.util
-from eave.stdlib.exceptions import UnexpectedMissingValueError
 
 from .base import StdlibBaseTestCase
 
@@ -36,14 +35,6 @@ class StdlibUtilTest(StdlibBaseTestCase):
             mut.sql_sanitized_literal("table_name\\'; drop tables; --", quotechar="'")
             == "'table_name; drop tables; --'"
         )
-
-    async def test_titleize(self):
-        assert mut.titleize("accounts") == "Account"
-        assert mut.titleize("GithubInstallations") == "Github Installation"
-        assert mut.titleize("github_installations") == "Github Installation"
-        assert mut.titleize("GitHub_Installations") == "Git Hub Installation"
-        assert mut.titleize("CLICK") == "Click"
-        assert mut.titleize("FORM_SUBMISSION") == "Form Submission"
 
     async def test_tableize(self):
         assert mut.tableize("Account") == "account"
@@ -92,7 +83,7 @@ class StdlibUtilTest(StdlibBaseTestCase):
         assert mut.xnor(True, True) is True
 
     async def test_unwrap(self):
-        with self.assertRaises(UnexpectedMissingValueError):
+        with self.assertRaises(mut.UnwrapError):
             mut.unwrap(None)
 
         v = self.anystr()

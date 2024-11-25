@@ -6,7 +6,7 @@ from ..base import BaseTestCase
 
 
 class TestActivityOrm(BaseTestCase):
-    async def test_new_record(self) -> None:
+    async def test_new_activity_record(self) -> None:
         async with self.db_session.begin() as session:
             activity = ActivityOrm.build(
                 title=self.anystr("title"),

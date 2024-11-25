@@ -10,7 +10,6 @@ from starlette.templating import Jinja2Templates
 import eave.stdlib.logging
 import eave.stdlib.time
 from eave.dashboard.config import DASHBOARD_APP_CONFIG
-from eave.stdlib.auth_cookies import delete_auth_cookies
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.headers import MIME_TYPE_BINARY, MIME_TYPE_JSON
 from eave.stdlib.status import status_payload
@@ -38,9 +37,9 @@ def apple_domain_verification_file(request: Request) -> Response:
 
 async def logout_endpoint(request: Request) -> Response:
     response = RedirectResponse(
-        url=SHARED_CONFIG.eave_dashboard_base_url_public + "/login", status_code=HTTPStatus.FOUND
+        url=SHARED_CONFIG.eave_api_base_url_public + "/public/logout",
+        status_code=HTTPStatus.PERMANENT_REDIRECT,
     )
-    delete_auth_cookies(request=request, response=response)
     return response
 
 

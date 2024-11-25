@@ -1,3 +1,4 @@
+import logging
 from uuid import UUID
 
 import segment.analytics
@@ -10,9 +11,9 @@ from eave.stdlib.typing import JsonObject
 class AnalyticsTracker:
     def __init__(self, write_key: str) -> None:
         segment.analytics.write_key = write_key
+        segment.analytics.debug = SHARED_CONFIG.log_level == logging.DEBUG
 
         if not SHARED_CONFIG.analytics_enabled:
-            segment.analytics.debug = True
             segment.analytics.on_error = lambda error, _: LOGGER.exception("Segment analytics error:", error)
             # dont deliver analytics events to segment in dev mode
             segment.analytics.send = False

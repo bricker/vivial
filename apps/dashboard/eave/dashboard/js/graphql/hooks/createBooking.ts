@@ -23,6 +23,10 @@ export function makeCreateBookingOperation(): CreateBookingOperation {
 
       try {
         const data = await executeOperation({ query: CreateBookingDocument, variables });
+        if (data.viewer.__typename !== "AuthenticatedViewerMutations") {
+          throw Error("unauthenticated");
+        }
+
         const result = data.viewer.createBooking;
 
         switch (result.__typename) {

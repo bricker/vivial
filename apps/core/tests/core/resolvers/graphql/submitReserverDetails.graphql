@@ -1,16 +1,17 @@
-mutation SubmitReserverDetails($input: ReserverDetailsInput!) {
+mutation SubmitReserverDetails($input: SubmitReserverDetailsInput!) {
   viewer {
-    ... on AuthenticatedViewerMutations {
+    ...on AuthenticatedViewerMutations {
       __typename
 
       submitReserverDetails(input: $input) {
-        __typename
-
         ... on SubmitReserverDetailsSuccess {
           __typename
 
           reserverDetails {
             id
+            firstName
+            lastName
+            phoneNumber
           }
         }
 

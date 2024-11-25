@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+(
+	python-activate-venv
+	cd "$(e.parentpath)"
+
+	# https://strawberry.rocks/docs/codegen/query-codegen
+	# This feature is in development and not great out of the box.
+	# I am leaving it here for reference.
+	"${EAVE_HOME}"/bin/run-with-dotenv -- strawberry codegen --schema eave.core.graphql.schema --output-dir ./output --plugins python tests/core/resolvers/graphql/*.graphql
+)

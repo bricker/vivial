@@ -4,10 +4,13 @@ from typing import Literal
 from google.cloud import kms
 
 from . import checksum
-from . import exceptions as eave_exceptions
 from . import util as eave_util
 
 _CRYPTO_KEY_VERSION_CACHE: dict[str, kms.CryptoKeyVersion] = {}
+
+
+class InvalidSignatureError(Exception):
+    pass
 
 
 def replace_key_version(*, kms_key_version_path: str, kms_key_version_name: str) -> str:
@@ -43,15 +46,15 @@ def mac_sign_b64(*, data: str | bytes, kms_key_version_path: str) -> str:
     sign_response = kms_client.mac_sign(request=sign_request)
 
     if sign_response.verified_data_crc32c is False:
-        raise eave_exceptions.InvalidChecksumError("data crc32c failed verification on server")
+        raise checksum.InvalidChecksumError("data crc32c failed verification on server")
     if sign_response.name != sign_request.name:
-        raise eave_exceptions.InvalidChecksumError("unexpected key name")
+        raise checksum.InvalidChecksumError("unexpected key name")
 
     checksum.validate_checksum_or_exception(data=sign_response.mac, checksum=sign_response.mac_crc32c)
     return eave_util.b64encode(sign_response.mac)
 
 
-def mac_verify_or_exception(
+def mac_verify(
     *,
     message: str | bytes,
     mac_b64: str | bytes,
@@ -76,14 +79,14 @@ def mac_verify_or_exception(
     verify_response = kms_client.mac_verify(request=verify_request)
 
     if verify_response.verified_data_crc32c is False:
-        raise eave_exceptions.InvalidChecksumError("data crc32c failed verification on server")
+        raise checksum.InvalidChecksumError("data crc32c failed verification on server")
     if verify_response.verified_mac_crc32c is False:
-        raise eave_exceptions.InvalidChecksumError("mac crc32c failed verification on server")
+        raise checksum.InvalidChecksumError("mac crc32c failed verification on server")
     if verify_response.name != verify_request.name:
-        raise eave_exceptions.InvalidChecksumError("unexpected key name")
+        raise checksum.InvalidChecksumError("unexpected key name")
     if verify_response.success is False:
-        raise eave_exceptions.InvalidChecksumError("mac verification failed")
+        raise InvalidSignatureError("mac verification failed")
     if verify_response.verified_success_integrity != verify_response.success:
-        raise eave_exceptions.InvalidChecksumError("mac verification integrity failed")
+        raise checksum.InvalidChecksumError("mac verification integrity failed")
 
     return True

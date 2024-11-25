@@ -29,7 +29,7 @@ const SignUpPage = () => {
   const dispatch = useDispatch();
 
   const handleSubmit = useCallback(async ({ email, password }: { email: string; password: string }) => {
-    const resp = await createAccount({ email, plaintextPassword: password });
+    const resp = await createAccount({ input: { email, plaintextPassword: password } });
     const typename = resp.data?.data.createAccount.__typename;
     switch (typename) {
       case "CreateAccountSuccess": {

@@ -99,6 +99,10 @@ class _EaveConfig(ConfigBase):
         return os.getenv("EAVE_ANALYTICS_DISABLED") != "1"
 
     @property
+    def mailer_enabled(self) -> bool:
+        return os.getenv("EAVE_MAILER_DISABLED") != "1"
+
+    @property
     def google_cloud_project(self) -> str:
         return get_required_env("GOOGLE_CLOUD_PROJECT")
 
@@ -151,6 +155,10 @@ class _EaveConfig(ConfigBase):
         )  # Use "or" to cover empty string
 
     @property
+    def eave_api_hostname_public(self) -> str:
+        return urlparse(self.eave_api_base_url_public).hostname or "api.vivialapp.com"
+
+    @property
     def eave_api_base_url_internal(self) -> str:
         return os.getenv("EAVE_API_BASE_URL_INTERNAL") or _prefix_hostname(
             url=self.eave_base_url_internal, prefix="core-api."
@@ -161,10 +169,6 @@ class _EaveConfig(ConfigBase):
         return os.getenv("EAVE_DASHBOARD_BASE_URL_PUBLIC") or _prefix_hostname(
             url=self.eave_base_url_public, prefix="www."
         )  # Use "or" to cover empty string
-
-    @property
-    def eave_cookie_domain(self) -> str:
-        return self.eave_hostname_public
 
     @property
     def jws_signing_key_version_path(self) -> str:

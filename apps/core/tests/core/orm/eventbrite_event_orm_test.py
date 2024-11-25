@@ -7,7 +7,7 @@ from ..base import BaseTestCase
 
 
 class TestEventbriteEventOrm(BaseTestCase):
-    async def test_new_record(self) -> None:
+    async def test_new_event_record(self) -> None:
         async with self.db_session.begin() as session:
             obj = EventbriteEventOrm(eventbrite_event_id=self.anystr("eventbrite_event_id"))
             obj.update(

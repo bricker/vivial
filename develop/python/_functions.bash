@@ -96,7 +96,7 @@ if test -z "${_PYTHON_FUNCTIONS_LOADED:-}"; then
 		fi
 
 		cd "$target" || exit 1
-		# e.run-with-dotenv python -m coverage run --rcfile=$configfile -m pytest -c=$configfile $target
+		# "${EAVE_HOME}"/bin/run-with-dotenv -- python -m coverage run --rcfile=$configfile -m pytest -c=$configfile $target
 		# python -m coverage lcov --rcfile=$configfile
 		python -m pytest \
 			--cov \

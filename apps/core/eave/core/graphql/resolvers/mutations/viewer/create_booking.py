@@ -190,7 +190,7 @@ async def _create_templates_from_outing(
                 booking_id=booking_id,
                 activity_name=details.name,
                 activity_start_time=activity.activity_start_time,
-                num_attendees=activity.num_attendees,
+                headcount=activity.headcount,
                 external_booking_link=details.uri,
                 address=PostgisStdaddr(
                     house_num="101",
@@ -225,7 +225,7 @@ async def _create_templates_from_outing(
                 booking_id=booking_id,
                 reservation_name=details.name,
                 reservation_start_time=reservation.reservation_start_time,
-                num_attendees=reservation.num_attendees,
+                headcount=reservation.headcount,
                 external_booking_link=details.uri,
                 address=PostgisStdaddr(
                     house_num="3269",
@@ -283,7 +283,7 @@ async def _notify_slack(
 
                     {"\n".join([
                     f"""*Reservation:*
-                    for {reservation.num_attendees} attendees
+                    for {reservation.headcount} attendees
                     on (ISO time): {reservation.reservation_start_time.isoformat()}
                     at
                     ```
@@ -296,7 +296,7 @@ async def _notify_slack(
 
                     {"\n".join([
                     f"""*Activity:*
-                    for {activity.num_attendees} attendees
+                    for {activity.headcount} attendees
                     on (ISO time): {activity.activity_start_time.isoformat()}
                     at
                     ```

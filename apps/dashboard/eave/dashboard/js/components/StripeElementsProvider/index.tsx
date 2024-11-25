@@ -26,12 +26,20 @@ const StripeElementsProvider = ({ children }: { children: React.ReactElement }) 
     return <div>Loading...</div>;
   }
 
-  if (
-    networkState.error ||
-    !networkState.data ||
-    networkState.data.viewer.createPaymentIntent.__typename !== "CreatePaymentIntentSuccess"
-  ) {
+  if (networkState.error || !networkState.data) {
     return <div>**DEVELOPMENT**: Error (createPaymentIntent mutation graphql errors)</div>;
+  }
+
+  if (networkState.data.viewer.__typename !== "AuthenticatedViewerMutations") {
+    return <div>**DEVELOPMENT**: Error (Unauthenticated - TODO refresh token)</div>;
+  }
+
+  if (networkState.data.viewer.createPaymentIntent.__typename !== "CreatePaymentIntentSuccess") {
+    return (
+      <div>
+        **DEVELOPMENT**: Error (mutation failure - {networkState.data.viewer.createPaymentIntent.failureReason})
+      </div>
+    );
   }
 
   const clientSecret = networkState.data.viewer.createPaymentIntent.paymentIntent.clientSecret;
