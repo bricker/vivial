@@ -36,14 +36,6 @@ class StdlibUtilTest(StdlibBaseTestCase):
             == "'table_name; drop tables; --'"
         )
 
-    async def test_titleize(self):
-        assert mut.titleize("accounts") == "Account"
-        assert mut.titleize("GithubInstallations") == "Github Installation"
-        assert mut.titleize("github_installations") == "Github Installation"
-        assert mut.titleize("GitHub_Installations") == "Git Hub Installation"
-        assert mut.titleize("CLICK") == "Click"
-        assert mut.titleize("FORM_SUBMISSION") == "Form Submission"
-
     async def test_tableize(self):
         assert mut.tableize("Account") == "account"
         assert mut.tableize("Github Installations") == "github_installations"

@@ -8,8 +8,6 @@ from collections.abc import Awaitable, Callable
 from functools import wraps
 from typing import Any, Literal, ParamSpec, TypeVar
 
-import inflect
-
 from eave.stdlib.typing import JsonObject, JsonValue
 
 T = TypeVar("T")
@@ -250,21 +248,6 @@ def suppress(e: type[Exception], func: Callable[[], T]) -> T | None:
     """
     with contextlib.suppress(e):
         return func()
-
-
-def titleize(string: str) -> str:
-    e = inflect.engine()
-    words = re.findall("([A-Z][a-z0-9]+|[A-Z0-9]+|[a-z0-9]+)", string)
-    words = [w.title() for w in words]
-    title = " ".join(words)
-
-    if not isinstance(title, inflect.Word):
-        # inflect.Word requires that the string is length >= 1. If `title` happens to be empty, a runtime typechecker will raise an error.
-        return title
-
-    singular_title = e.singular_noun(title)
-    return singular_title or title
-
 
 def tableize(string: str) -> str:
     return re.sub(r"\W+", "_", string).lower().strip("_")
