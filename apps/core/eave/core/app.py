@@ -16,7 +16,6 @@ from eave.core.endpoints.refresh_tokens import RefreshTokensEndpoint
 from eave.core.endpoints.status import StatusEndpoint
 from eave.core.starlette_exception_handlers import starlette_exception_handlers
 
-# from eave.core.endpoints.stripe_callback import StripeCallbackEndpoint
 from eave.stdlib import cache
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
@@ -78,13 +77,6 @@ app = starlette.applications.Starlette(
             endpoint=NoopEndpoint,
             methods=[aiohttp.hdrs.METH_GET],
         ),
-        # Route(
-        #     path="/public/stripe/callback",
-        #     methods=[
-        #         aiohttp.hdrs.METH_GET,
-        #     ],
-        #     endpoint=StripeCallbackEndpoint,
-        # ),
         Route(
             path="/graphql",
             methods=[
