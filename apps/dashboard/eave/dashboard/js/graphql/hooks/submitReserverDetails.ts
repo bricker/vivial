@@ -26,6 +26,10 @@ export function makeSubmitReserverDetailsOperation(): SubmitReserverDetailsOpera
 
       try {
         const data = await executeOperation({ query: SubmitReserverDetailsDocument, variables });
+        if (data.viewer.__typename !== "AuthenticatedViewerMutations") {
+          throw Error("unauthenticated");
+        }
+
         const result = data.viewer.submitReserverDetails;
 
         switch (result.__typename) {
