@@ -24,13 +24,19 @@ export const coreApiSlice = createApi({
 
   endpoints: (builder) => ({
     /**
-     * Core API Queries
+     * Core API - REST Endpoints
+     */
+    logout: builder.mutation<void, void>({
+      query: () => "/public/logout",
+    }),
+    /**
+     * Core API - GraphQL Queries
      */
     getSearchRegions: builder.query<SearchRegionsQuery, void>({
       query: () => ({ ...gqlParams, body: { query: SearchRegionsDocument } }),
     }),
     /**
-     * Core API Mutations
+     * Core API - GraphQL Mutations
      */
     createAccount: builder.mutation<{ data: CreateAccountMutation }, CreateAccountInput>({
       query: (input) => ({
@@ -54,10 +60,13 @@ export const coreApiSlice = createApi({
 });
 
 export const {
-  // Core API Query Hooks
+  // Core API REST Hooks
+  useLogoutMutation,
+
+  // Core API GraphQL Query Hooks
   useGetSearchRegionsQuery,
 
-  // Core API Mutation Hooks
+  // Core API GraphQL Mutation Hooks
   useCreateAccountMutation,
   useLoginMutation,
 } = coreApiSlice;

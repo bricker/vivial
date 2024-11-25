@@ -1,5 +1,5 @@
+import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { getPasswordInfo, passwordIsValid } from "$eave-dashboard/js/util/password";
-import { rem } from "$eave-dashboard/js/util/rem";
 import { styled } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import * as EmailValidator from "email-validator";

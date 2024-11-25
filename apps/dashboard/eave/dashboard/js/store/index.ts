@@ -12,4 +12,5 @@ const store = configureStore({
     getDefaultMiddleware().prepend(listenerMiddleware.middleware).concat(coreApiSlice.middleware),
 });
 
+export type RootState = ReturnType<typeof store.getState>;
 export default store;

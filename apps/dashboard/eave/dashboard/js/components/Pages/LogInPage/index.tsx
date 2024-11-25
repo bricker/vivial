@@ -1,4 +1,4 @@
-import { rem } from "$eave-dashboard/js/util/rem";
+import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 import React, { useCallback, useState } from "react";
 import { useDispatch } from "react-redux";
