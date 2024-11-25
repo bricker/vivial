@@ -1,3 +1,8 @@
+moved {
+  from = kubernetes_deployment.app[local.app_name]
+  to = kubernetes_deployment.app
+}
+
 resource "kubernetes_deployment" "app" {
   lifecycle {
     prevent_destroy = true
@@ -6,22 +11,14 @@ resource "kubernetes_deployment" "app" {
     ]
   }
 
-  for_each = {
-    (local.app_name) = {
-      app_name           = local.app_name,
-      deploy_name        = local.app_name,
-      analytics_disabled = false,
-    }
-  }
-
   wait_for_rollout = false
 
   metadata {
-    name      = each.value.deploy_name
+    name      = local.app_name
     namespace = var.kube_namespace_name
     labels = {
       app_group = local.app_name
-      app       = each.value.app_name
+      app       = local.app_name
     }
   }
 
@@ -29,7 +26,7 @@ resource "kubernetes_deployment" "app" {
     selector {
       match_labels = {
         app_group = local.app_name
-        app       = each.value.app_name
+        app       = local.app_name
       }
     }
 
@@ -43,10 +40,10 @@ resource "kubernetes_deployment" "app" {
 
     template {
       metadata {
-        name = each.value.app_name
+        name = local.app_name
         labels = {
           app_group = local.app_name
-          app       = each.value.app_name
+          app       = local.app_name
         }
       }
       spec {
@@ -127,10 +124,6 @@ resource "kubernetes_deployment" "app" {
           env {
             name  = "GUNICORN_CMD_ARGS"
             value = "--bind=0.0.0.0:${local.app_port.number} --workers=3 --timeout=90"
-          }
-          env {
-            name  = "EAVE_ANALYTICS_DISABLED"
-            value = each.value.analytics_disabled ? "1" : "0"
           }
 
           # Necessary to prevent perpetual diff
