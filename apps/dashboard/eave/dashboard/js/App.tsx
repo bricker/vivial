@@ -51,7 +51,7 @@ const App = () => {
                 <Route path={AppRoute.root} element={<GlobalLayout />}>
                   <Route index element={<DateSurveyPage />} />
                   <Route path={AppRoute.login} element={<LogInPage />} />
-                  <Route path={AppRoute.passwordReset} element={<ForgotPasswordPage />} />
+                  <Route path={AppRoute.forgotPassword} element={<ForgotPasswordPage />} />
                   <Route path={AppRoute.signup} element={<SignUpPage />} />
                   <Route path={AppRoute.account} element={<AccountPage />} />
                   <Route path={AppRoute.plans} element={<PlansPage />} />

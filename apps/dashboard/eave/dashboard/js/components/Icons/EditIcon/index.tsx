@@ -1,6 +1,6 @@
 import { colors } from "$eave-dashboard/js/theme/colors";
 import React from "react";
-import { IconProps } from "./types";
+import { IconProps } from "../types";
 
 const EditIcon = ({ width = 26, height = 26, color = colors.whiteText }: IconProps) => {
   return (

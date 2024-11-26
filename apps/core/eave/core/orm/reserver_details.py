@@ -1,8 +1,9 @@
 import re
 from datetime import datetime
+from typing import Self, Sequence
 from uuid import UUID
-
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, ScalarResult, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.shared.errors import ValidationError
@@ -57,3 +58,8 @@ class ReserverDetailsOrm(Base):
             errors.append(ValidationError(field="phone_number"))
 
         return errors
+
+    @classmethod
+    async def get_by_account(cls, session: AsyncSession, account_id: UUID, id: UUID) -> Self:
+        lookup = cls.select().where(cls.account_id == account_id).where(cls.id == id)
+        return (await session.scalars(lookup)).one()

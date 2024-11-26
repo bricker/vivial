@@ -1,0 +1,24 @@
+mutation UpdateReserverDetailsAccount($input: UpdateReserverDetailsAccountInput!) {
+  viewer {
+    updateReserverDetailsAccount(input: $input) {
+      __typename
+      ... on UpdateReserverDetailsAccountSuccess {
+        reserverDetails {
+          id
+          firstName
+          lastName
+          phoneNumber
+        }
+        account {
+          email
+        }
+      }
+      ... on UpdateReserverDetailsAccountFailure {
+        failureReason
+        validationErrors {
+          field
+        }
+      }
+    }
+  }
+}

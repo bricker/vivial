@@ -359,12 +359,6 @@ export type ReserverDetails = {
   phoneNumber: Scalars['String']['output'];
 };
 
-export type ReserverDetailsInput = {
-  firstName: Scalars['String']['input'];
-  lastName: Scalars['String']['input'];
-  phoneNumber: Scalars['String']['input'];
-};
-
 export type Restaurant = {
   __typename: 'Restaurant';
   customerFavorites?: Maybe<Scalars['String']['output']>;
@@ -406,6 +400,12 @@ export type SubmitReserverDetailsFailure = {
 export enum SubmitReserverDetailsFailureReason {
   ValidationErrors = 'VALIDATION_ERRORS'
 }
+
+export type SubmitReserverDetailsInput = {
+  firstName: Scalars['String']['input'];
+  lastName: Scalars['String']['input'];
+  phoneNumber: Scalars['String']['input'];
+};
 
 export type SubmitReserverDetailsResult = SubmitReserverDetailsFailure | SubmitReserverDetailsSuccess;
 
@@ -460,6 +460,32 @@ export type UpdatePreferencesSuccess = {
   preferences: Preferences;
 };
 
+export type UpdateReserverDetailsAccountFailure = {
+  __typename: 'UpdateReserverDetailsAccountFailure';
+  failureReason: UpdateReserverDetailsAccountFailureReason;
+  validationErrors?: Maybe<Array<ValidationError>>;
+};
+
+export enum UpdateReserverDetailsAccountFailureReason {
+  ValidationErrors = 'VALIDATION_ERRORS'
+}
+
+export type UpdateReserverDetailsAccountInput = {
+  email: Scalars['String']['input'];
+  firstName: Scalars['String']['input'];
+  id: Scalars['UUID']['input'];
+  lastName: Scalars['String']['input'];
+  phoneNumber: Scalars['String']['input'];
+};
+
+export type UpdateReserverDetailsAccountResult = UpdateReserverDetailsAccountFailure | UpdateReserverDetailsAccountSuccess;
+
+export type UpdateReserverDetailsAccountSuccess = {
+  __typename: 'UpdateReserverDetailsAccountSuccess';
+  account: Account;
+  reserverDetails: ReserverDetails;
+};
+
 export type ValidationError = {
   __typename: 'ValidationError';
   field: Scalars['String']['output'];
@@ -475,6 +501,7 @@ export type ViewerMutations = {
   submitReserverDetails: SubmitReserverDetailsResult;
   updateAccount: UpdateAccountResult;
   updatePreferences: UpdatePreferencesResult;
+  updateReserverDetailsAccount: UpdateReserverDetailsAccountResult;
 };
 
 
@@ -504,7 +531,7 @@ export type ViewerMutationsReplanOutingArgs = {
 
 
 export type ViewerMutationsSubmitReserverDetailsArgs = {
-  input: ReserverDetailsInput;
+  input: SubmitReserverDetailsInput;
 };
 
 
@@ -515,6 +542,11 @@ export type ViewerMutationsUpdateAccountArgs = {
 
 export type ViewerMutationsUpdatePreferencesArgs = {
   input: UpdatePreferencesInput;
+};
+
+
+export type ViewerMutationsUpdateReserverDetailsAccountArgs = {
+  input: UpdateReserverDetailsAccountInput;
 };
 
 export type ViewerQueries = {
@@ -577,11 +609,18 @@ export type ReplanOutingMutationVariables = Exact<{
 export type ReplanOutingMutation = { __typename: 'Mutation', replanOuting: { __typename: 'ReplanOutingFailure', failureReason: ReplanOutingFailureReason } | { __typename: 'ReplanOutingSuccess', outing: { __typename: 'Outing', id: string } } };
 
 export type SubmitReserverDetailsMutationVariables = Exact<{
-  input: ReserverDetailsInput;
+  input: SubmitReserverDetailsInput;
 }>;
 
 
 export type SubmitReserverDetailsMutation = { __typename: 'Mutation', viewer: { __typename: 'ViewerMutations', submitReserverDetails: { __typename: 'SubmitReserverDetailsFailure', failureReason: SubmitReserverDetailsFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'SubmitReserverDetailsSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string } } } };
+
+export type UpdateReserverDetailsAccountMutationVariables = Exact<{
+  input: UpdateReserverDetailsAccountInput;
+}>;
+
+
+export type UpdateReserverDetailsAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'ViewerMutations', updateReserverDetailsAccount: { __typename: 'UpdateReserverDetailsAccountFailure', failureReason: UpdateReserverDetailsAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateReserverDetailsAccountSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }, account: { __typename: 'Account', email: string } } } };
 
 export type SearchRegionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -714,7 +753,7 @@ export const ReplanOutingDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<ReplanOutingMutation, ReplanOutingMutationVariables>;
 export const SubmitReserverDetailsDocument = new TypedDocumentString(`
-    mutation SubmitReserverDetails($input: ReserverDetailsInput!) {
+    mutation SubmitReserverDetails($input: SubmitReserverDetailsInput!) {
   viewer {
     submitReserverDetails(input: $input) {
       __typename
@@ -733,6 +772,32 @@ export const SubmitReserverDetailsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<SubmitReserverDetailsMutation, SubmitReserverDetailsMutationVariables>;
+export const UpdateReserverDetailsAccountDocument = new TypedDocumentString(`
+    mutation UpdateReserverDetailsAccount($input: UpdateReserverDetailsAccountInput!) {
+  viewer {
+    updateReserverDetailsAccount(input: $input) {
+      __typename
+      ... on UpdateReserverDetailsAccountSuccess {
+        reserverDetails {
+          id
+          firstName
+          lastName
+          phoneNumber
+        }
+        account {
+          email
+        }
+      }
+      ... on UpdateReserverDetailsAccountFailure {
+        failureReason
+        validationErrors {
+          field
+        }
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<UpdateReserverDetailsAccountMutation, UpdateReserverDetailsAccountMutationVariables>;
 export const SearchRegionsDocument = new TypedDocumentString(`
     query SearchRegions {
   searchRegions {

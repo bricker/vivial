@@ -176,7 +176,7 @@ const AuthForm = ({
         </AuthButton>
         {showForgotPassword && (
           <ForgotPassword>
-            <Link to={AppRoute.passwordReset}>Forgot password?</Link>
+            <Link to={AppRoute.forgotPassword}>Forgot password?</Link>
           </ForgotPassword>
         )}
         {showLegal && (

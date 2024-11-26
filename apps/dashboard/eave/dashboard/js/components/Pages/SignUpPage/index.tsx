@@ -34,11 +34,8 @@ const SignUpPage = () => {
     const typename = resp.data?.data.createAccount.__typename;
     switch (typename) {
       case "CreateAccountSuccess": {
-        const accountId = resp.data?.data.createAccount.account.id;
-        if (accountId) {
-          dispatch(loggedIn({ accountId }));
-          navigate(AppRoute.root);
-        }
+        dispatch(loggedIn({ account: resp.data!.data.createAccount.account }));
+        navigate(AppRoute.root);
         break;
       }
       case "CreateAccountFailure": {

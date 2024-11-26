@@ -1,7 +1,7 @@
 export const AppRoute = {
   root: "/",
   login: "/login",
-  passwordReset: "/login/password",
+  forgotPassword: "/login/password",
   signup: "/signup",
   account: "/account",
   plans: "/plans",
@@ -11,4 +11,5 @@ export const AppRoute = {
   bookingConfirmation: "/booking-confirmation",
   payment: "/payment-example",
   accountPreferences: "/account/preferences",
+  passwordReset: "/account/password",
 };

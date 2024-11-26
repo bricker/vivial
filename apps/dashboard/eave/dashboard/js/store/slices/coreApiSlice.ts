@@ -5,6 +5,9 @@ import {
   CreateAccountDocument,
   LoginDocument,
   SearchRegionsDocument,
+  UpdateReserverDetailsAccountDocument,
+  UpdateReserverDetailsAccountInput,
+  UpdateReserverDetailsAccountMutation,
   type CreateAccountInput,
   type CreateAccountMutation,
   type LoginInput,
@@ -56,6 +59,18 @@ export const coreApiSlice = createApi({
         },
       }),
     }),
+    updateReserverDetailsAccount: builder.mutation<
+      { data: UpdateReserverDetailsAccountMutation },
+      UpdateReserverDetailsAccountInput
+    >({
+      query: (input) => ({
+        ...gqlParams,
+        body: {
+          query: UpdateReserverDetailsAccountDocument,
+          variables: { input },
+        },
+      }),
+    }),
   }),
 });
 
@@ -69,4 +84,5 @@ export const {
   // Core API GraphQL Mutation Hooks
   useCreateAccountMutation,
   useLoginMutation,
+  useUpdateReserverDetailsAccountMutation,
 } = coreApiSlice;

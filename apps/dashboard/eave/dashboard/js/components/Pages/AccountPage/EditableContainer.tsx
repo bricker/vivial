@@ -1,7 +1,13 @@
+import { UpdateReserverDetailsAccountFailureReason } from "$eave-dashboard/js/graphql/generated/graphql";
+import { RootState } from "$eave-dashboard/js/store";
+import { updateEmail } from "$eave-dashboard/js/store/slices/authSlice";
+import { useUpdateReserverDetailsAccountMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { storeReserverDetails } from "$eave-dashboard/js/store/slices/reserverDetailsSlice";
 import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { Button, Typography, styled } from "@mui/material";
 import React, { useCallback, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import AccountBookingInfoEditForm from "../../Forms/AccountBookingInfoEditForm";
 import EditIcon from "../../Icons/EditIcon";
 
@@ -47,7 +53,6 @@ const ShiftedButton = styled(Button)(() => ({
 }));
 
 const InfoContainer = styled("div")(() => ({
-  // margin: "24px 0",
   marginTop: 24,
 }));
 
@@ -72,22 +77,70 @@ const InfoDisplay = ({ name, email, phoneNumber }: { name: string; email: string
 
 const EditableContainer = () => {
   const [isEditting, setIsEditting] = useState(false);
+  const [error, setError] = useState<string | undefined>(undefined);
+
+  const [updateReserverDetailsAccount, { isLoading }] = useUpdateReserverDetailsAccountMutation();
+  const reserverDetails = useSelector((state: RootState) => state.reserverDetails?.reserverDetails);
+  const reserverEmail = useSelector((state: RootState) => state.auth.account!.email);
+  const dispatch = useDispatch();
 
   // TODO: set from store
-  const firstName = "Lana";
-  const lastName = "Nguyen";
-  const email = "lana@eave.fyi";
-  const phoneNumber = "123 456-7890";
+  const firstName = reserverDetails?.firstName;
+  const lastName = reserverDetails?.lastName;
+  const email = reserverEmail;
+  const phoneNumber = reserverDetails?.phoneNumber;
 
-  // TODO: get account info from store
+  // TODO: get account info from store + reserver details
   const handleCancel = () => setIsEditting(false);
-  const handleSubmit = useCallback(() => {
-    // TODO: call account info update query
-    // TODO: store updated account info
+  const handleSubmit = useCallback(
+    async ({
+      firstName,
+      lastName,
+      phoneNumber,
+      email,
+    }: {
+      firstName: string;
+      lastName: string;
+      phoneNumber: string;
+      email: string;
+    }) => {
+      setError(undefined);
 
-    // TODO: on success
-    handleCancel();
-  }, []);
+      try {
+        const resp = await updateReserverDetailsAccount({
+          id: "uuid",
+          firstName,
+          lastName,
+          phoneNumber,
+          email,
+        });
+        const data = resp.data?.data.viewer.updateReserverDetailsAccount;
+        switch (data?.__typename) {
+          case "UpdateReserverDetailsAccountSuccess":
+            dispatch(storeReserverDetails({ details: data!.reserverDetails }));
+            dispatch(updateEmail({ email: data!.account.email }));
+            // exit edit mode
+            handleCancel();
+            break;
+          case "UpdateReserverDetailsAccountFailure":
+            switch (data!.failureReason) {
+              case UpdateReserverDetailsAccountFailureReason.ValidationErrors:
+                const invalidFields = data!.validationErrors?.map((e) => e.field).join(", ");
+                setError(`The following fields are invalid: ${invalidFields}`);
+            }
+            break;
+          default:
+            // 500 error
+            setError("Unable to update your booking info. Please try again later.");
+            break;
+        }
+      } catch {
+        // network error
+        setError("Unable to update your booking info. Please try again later.");
+      }
+    },
+    [],
+  );
 
   return (
     <FormContainer>
@@ -103,16 +156,17 @@ const EditableContainer = () => {
       <InfoContainer>
         {isEditting ? (
           <AccountBookingInfoEditForm
-            initFirstName={firstName}
-            initLastName={lastName}
+            initFirstName={firstName || ""}
+            initLastName={lastName || ""}
             initEmail={email}
-            initPhoneNumber={phoneNumber}
+            initPhoneNumber={phoneNumber || ""}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
-            isLoading={false}
+            isLoading={isLoading}
+            externalError={error}
           />
         ) : (
-          <InfoDisplay name={`${firstName} ${lastName}`} email={email} phoneNumber={phoneNumber} />
+          <InfoDisplay name={`${firstName} ${lastName}`} email={email} phoneNumber={phoneNumber || "(none)"} />
         )}
       </InfoContainer>
     </FormContainer>

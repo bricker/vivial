@@ -1,7 +1,7 @@
 import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
-import { styled } from "@mui/material";
-import React, { useState } from "react";
+import { CircularProgress, styled } from "@mui/material";
+import React, { useCallback, useState } from "react";
 import PrimaryButton from "../../Buttons/PrimaryButton";
 import SecondaryButton from "../../Buttons/SecondaryButton";
 import Input from "../../Inputs/Input";
@@ -67,7 +67,17 @@ const AccountBookingInfoEditForm = ({
   initLastName: string;
   initEmail: string;
   initPhoneNumber: string;
-  onSubmit: () => void;
+  onSubmit: ({
+    firstName,
+    lastName,
+    phoneNumber,
+    email,
+  }: {
+    firstName: string;
+    lastName: string;
+    phoneNumber: string;
+    email: string;
+  }) => void;
   onCancel: () => void;
   externalError?: string;
   isLoading: boolean;
@@ -114,6 +124,9 @@ const AccountBookingInfoEditForm = ({
     setPhoneNumber(newPhone);
     checkInputs({ first: firstName, last: lastName, email, phone: newPhone });
   };
+  const handleSubmit = useCallback(() => {
+    onSubmit({ firstName, lastName, phoneNumber, email });
+  }, [firstName, lastName, email, phoneNumber]);
 
   return (
     <>
@@ -134,7 +147,9 @@ const AccountBookingInfoEditForm = ({
 
       <SpreadButtonsContainer>
         <PaddedSecondaryButton onClick={onCancel}>Cancel</PaddedSecondaryButton>
-        <PaddedPrimaryButton onClick={onSubmit}>Save</PaddedPrimaryButton>
+        <PaddedPrimaryButton onClick={handleSubmit}> {/** TODO: disable while loading */}
+          {isLoading ? <CircularProgress color="inherit" size={rem("30px")} /> : "Save"}
+        </PaddedPrimaryButton>
       </SpreadButtonsContainer>
     </>
   );
