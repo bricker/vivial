@@ -10,4 +10,5 @@ export const AppRoute = {
   privacy: "/privacy",
   bookingConfirmation: "/booking-confirmation",
   payment: "/payment-example",
+  accountPreferences: "/account/preferences",
 };

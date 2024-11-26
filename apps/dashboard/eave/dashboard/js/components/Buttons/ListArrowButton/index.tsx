@@ -6,11 +6,14 @@ const CustomButton = styled(Button)(({ theme }) => ({
   borderBottom: `1px solid ${theme.palette.grey[800]}`,
 }));
 
-const ContentContainer = styled("div")(() => ({
+const ContentContainer = styled("div")(({ theme }) => ({
+  width: "100%",
   display: "flex",
   flexDirection: "row",
   justifyContent: "space-between",
+  alignItems: "center",
   padding: "16px",
+  color: theme.palette.text.primary,
 }));
 
 const ListArrowButton = (props: ButtonProps) => {
