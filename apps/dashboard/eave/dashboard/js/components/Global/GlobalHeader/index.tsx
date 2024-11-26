@@ -1,6 +1,5 @@
 import { type RootState } from "$eave-dashboard/js/store";
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
-import { useLogoutMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { Breakpoint, isDesktop, useBreakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
 import { styled } from "@mui/material";
 import React, { useCallback, useState } from "react";
@@ -73,7 +72,6 @@ const DesktopMenu = styled("div")(() => ({
 }));
 
 const GlobalHeader = () => {
-  const [logout, _] = useLogoutMutation();
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const [mobileMenuIsOpen, setMobileMenuIsOpen] = useState(false);
   const breakpoint = useBreakpoint();
@@ -108,10 +106,9 @@ const GlobalHeader = () => {
     navigate("/login");
   }, []);
 
-  const handleLogout = useCallback(async () => {
-    await logout();
+  const handleLogout = useCallback(() => {
     dispatch(loggedOut());
-    navigate("/login");
+    navigate("/logout");
   }, []);
 
   const menuItems = (
