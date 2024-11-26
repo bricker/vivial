@@ -1,3 +1,4 @@
+import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 import React, { useState } from "react";
@@ -6,23 +7,31 @@ import SecondaryButton from "../../Buttons/SecondaryButton";
 import Input from "../../Inputs/Input";
 import InputError from "../../Inputs/InputError";
 
-const FormContent = styled("div")(() => ({
-  padding: "0 40px",
-}));
-
 const SpreadButtonsContainer = styled("div")(() => ({
   display: "flex",
   flexDirection: "row",
   justifyContent: "space-between",
 }));
 
-const EmailInput = styled(Input)(() => ({
-  marginBottom: 16,
+const FieldsContainer = styled("div")(() => ({
+  display: "flex",
+  flexDirection: "column",
+  gap: 8,
+  marginBottom: 24,
 }));
 
 const NameInputContainer = styled("div")(() => ({
   display: "flex",
   flexDirection: "row",
+  gap: 8,
+}));
+
+const BoldInput = styled(Input)(() => ({
+  padding: "5px 16px",
+  fontFamily: fontFamilies.inter,
+  fontWeight: 600,
+  fontSize: rem("16px"),
+  lineHeight: rem("30px"),
 }));
 
 const InputErrorContainer = styled("div")(() => ({
@@ -30,8 +39,18 @@ const InputErrorContainer = styled("div")(() => ({
   lineHeight: rem("16px"),
   display: "flex",
   alignItems: "center",
-  marginTop: 10,
-  padding: "0 40px 0 56px",
+  justifyContent: "center",
+  marginBottom: 24,
+}));
+
+const PaddedPrimaryButton = styled(PrimaryButton)(() => ({
+  padding: "10px 14px",
+  minWidth: rem("76px"),
+}));
+
+const PaddedSecondaryButton = styled(SecondaryButton)(() => ({
+  padding: "10px 14px",
+  minWidth: rem("76px"),
 }));
 
 const AccountBookingInfoEditForm = ({
@@ -97,13 +116,15 @@ const AccountBookingInfoEditForm = ({
   };
 
   return (
-    <FormContent>
-      <NameInputContainer>
-        <Input placeholder="First name" value={firstName} onChange={handleFirstNameChange} />
-        <Input placeholder="Last name" value={lastName} onChange={handleLastNameChange} />
-      </NameInputContainer>
-      <EmailInput placeholder="Email" value={email} onChange={handleEmailChange} />
-      <Input placeholder="Phone #" value={phoneNumber} onChange={handlePhoneNumberChange} />
+    <>
+      <FieldsContainer>
+        <NameInputContainer>
+          <BoldInput placeholder="First name" value={firstName} onChange={handleFirstNameChange} />
+          <BoldInput placeholder="Last name" value={lastName} onChange={handleLastNameChange} />
+        </NameInputContainer>
+        <BoldInput placeholder="Email" value={email} onChange={handleEmailChange} />
+        <BoldInput placeholder="Phone #" value={phoneNumber} onChange={handlePhoneNumberChange} />
+      </FieldsContainer>
 
       {error && (
         <InputErrorContainer>
@@ -112,10 +133,10 @@ const AccountBookingInfoEditForm = ({
       )}
 
       <SpreadButtonsContainer>
-        <SecondaryButton onClick={onCancel}>Cancel</SecondaryButton>
-        <PrimaryButton onClick={onSubmit}>Submit</PrimaryButton>
+        <PaddedSecondaryButton onClick={onCancel}>Cancel</PaddedSecondaryButton>
+        <PaddedPrimaryButton onClick={onSubmit}>Save</PaddedPrimaryButton>
       </SpreadButtonsContainer>
-    </FormContent>
+    </>
   );
 };
 

@@ -8,17 +8,13 @@ import EditIcon from "../../Icons/EditIcon";
 const FormContainer = styled("div")(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   borderRadius: 15,
-  padding: "32px 0",
+  padding: "24px 40px",
 }));
 
 const TitleContainer = styled("div")(() => ({
   display: "flex",
   flexDirection: "row",
-  justifyContent: "flex-start",
-}));
-
-const FlexEndButton = styled(Button)(() => ({
-  justifySelf: "flex-end",
+  justifyContent: "space-between",
 }));
 
 const LabeledInfoContainer = styled("div")(() => ({
@@ -33,6 +29,7 @@ const LabelText = styled("p")(({ theme }) => ({
   lineHeight: rem("30px"),
   fontFamily: fontFamilies.inter,
   fontWeight: 400,
+  margin: 0,
 }));
 
 const ValueText = styled("p")(({ theme }) => ({
@@ -41,6 +38,17 @@ const ValueText = styled("p")(({ theme }) => ({
   lineHeight: rem("30px"),
   fontFamily: fontFamilies.inter,
   fontWeight: 400,
+  margin: 0,
+}));
+
+const ShiftedButton = styled(Button)(() => ({
+  position: "relative",
+  right: -16,
+}));
+
+const InfoContainer = styled("div")(() => ({
+  // margin: "24px 0",
+  marginTop: 24,
 }));
 
 const InfoDisplay = ({ name, email, phoneNumber }: { name: string; email: string; phoneNumber: string }) => {
@@ -86,24 +94,27 @@ const EditableContainer = () => {
       <TitleContainer>
         <Typography variant="h2">Booking info</Typography>
         {!isEditting && (
-          <FlexEndButton onClick={() => setIsEditting(true)}>
+          <ShiftedButton onClick={() => setIsEditting(true)}>
             <EditIcon />
-          </FlexEndButton>
+          </ShiftedButton>
         )}
       </TitleContainer>
-      {isEditting ? (
-        <AccountBookingInfoEditForm
-          initFirstName={firstName}
-          initLastName={lastName}
-          initEmail={email}
-          initPhoneNumber={phoneNumber}
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-          isLoading={false}
-        />
-      ) : (
-        <InfoDisplay name={`${firstName} ${lastName}`} email={email} phoneNumber={phoneNumber} />
-      )}
+
+      <InfoContainer>
+        {isEditting ? (
+          <AccountBookingInfoEditForm
+            initFirstName={firstName}
+            initLastName={lastName}
+            initEmail={email}
+            initPhoneNumber={phoneNumber}
+            onSubmit={handleSubmit}
+            onCancel={handleCancel}
+            isLoading={false}
+          />
+        ) : (
+          <InfoDisplay name={`${firstName} ${lastName}`} email={email} phoneNumber={phoneNumber} />
+        )}
+      </InfoContainer>
     </FormContainer>
   );
 };

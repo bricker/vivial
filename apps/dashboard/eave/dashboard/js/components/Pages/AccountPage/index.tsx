@@ -14,7 +14,7 @@ const PageContainer = styled("div")(() => ({
 const ButtonList = styled("div")(() => ({
   display: "flex",
   flexDirection: "column",
-  // gap?
+  padding: "0 24px",
 }));
 
 const AccountPage = () => {
