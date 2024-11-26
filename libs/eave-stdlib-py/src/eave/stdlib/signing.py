@@ -74,9 +74,15 @@ def mac_verify(
     mac_crc32c = checksum.generate_checksum(mac_bytes)
 
     verify_request = kms.MacVerifyRequest(
-        name=kms_key_version_path, data=message_bytes, data_crc32c=data_crc32c, mac_crc32c=mac_crc32c
+        name=kms_key_version_path,
+        data=message_bytes,
+        mac=mac_bytes,
+        data_crc32c=data_crc32c,
+        mac_crc32c=mac_crc32c,
     )
-    verify_response = kms_client.mac_verify(request=verify_request)
+    verify_response = kms_client.mac_verify(
+        request=verify_request,
+    )
 
     if verify_response.verified_data_crc32c is False:
         raise checksum.InvalidChecksumError("data crc32c failed verification on server")

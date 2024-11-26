@@ -17,6 +17,7 @@ const gqlParams: FetchArgs = {
   method: "POST",
   credentials: "include", // This is required so that the cookies are sent to the subdomain (api.)
 };
+
 export const coreApiSlice = createApi({
   reducerPath: "coreApi",
   baseQuery: fetchBaseQuery({
@@ -24,12 +25,6 @@ export const coreApiSlice = createApi({
   }),
 
   endpoints: (builder) => ({
-    /**
-     * Core API - REST Endpoints
-     */
-    logout: builder.mutation<void, void>({
-      query: () => "/public/logout",
-    }),
     /**
      * Core API - GraphQL Queries
      */
@@ -61,9 +56,6 @@ export const coreApiSlice = createApi({
 });
 
 export const {
-  // Core API REST Hooks
-  useLogoutMutation,
-
   // Core API GraphQL Query Hooks
   useGetSearchRegionsQuery,
 
