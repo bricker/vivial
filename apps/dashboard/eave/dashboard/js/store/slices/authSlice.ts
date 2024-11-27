@@ -5,7 +5,7 @@ interface Account {
   email: string;
 }
 
-interface AuthState {
+export interface AuthState {
   isLoggedIn: boolean | null;
   account: Account | null;
 }
