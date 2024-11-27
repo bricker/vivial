@@ -106,11 +106,12 @@ const EditableContainer = () => {
 
   const { data, isLoading: listDetailsIsLoading } = useListReserverDetailsQuery();
   let reserverDetails = localReserverDetails;
-  // NOTE: extracting and showing only the first one since we currently only
-  // allow 1 reserverDetails row to be created
   switch (data?.data.viewer.__typename) {
     case "AuthenticatedViewerQueries":
+      // always prefer in-memory data (if available) over cached network resp
       if (!reserverDetails) {
+        // NOTE: extracting and showing only the first one since we currently only
+        // allow 1 reserverDetails row to be created
         reserverDetails = data?.data.viewer?.reserverDetails[0] || null;
       }
       break;
@@ -141,27 +142,28 @@ const EditableContainer = () => {
 
       try {
         const resp = await updateReserverDetailsAccount({
-          id: reserverDetails?.id || "this will fail",
+          id: reserverDetails?.id || "reserverDetails should never be null here",
           firstName,
           lastName,
           phoneNumber,
           email,
         });
         switch (resp.data?.data.viewer.__typename) {
-          case "AuthenticatedViewerMutations":
-            const data = resp.data?.data.viewer.updateReserverDetailsAccount;
-            switch (data?.__typename) {
+          case "AuthenticatedViewerMutations": {
+            const updatedData = resp.data?.data.viewer.updateReserverDetailsAccount;
+            switch (updatedData?.__typename) {
               case "UpdateReserverDetailsAccountSuccess":
-                dispatch(storeReserverDetails({ details: data!.reserverDetails }));
-                dispatch(updateEmail({ email: data!.account.email }));
+                dispatch(storeReserverDetails({ details: updatedData.reserverDetails }));
+                dispatch(updateEmail({ email: updatedData.account.email }));
                 // exit edit mode
                 handleCancel();
                 break;
               case "UpdateReserverDetailsAccountFailure":
-                switch (data!.failureReason) {
-                  case UpdateReserverDetailsAccountFailureReason.ValidationErrors:
-                    const invalidFields = data!.validationErrors?.map((e) => e.field).join(", ");
+                switch (updatedData.failureReason) {
+                  case UpdateReserverDetailsAccountFailureReason.ValidationErrors: {
+                    const invalidFields = updatedData.validationErrors?.map((e) => e.field).join(", ");
                     setError(`The following fields are invalid: ${invalidFields}`);
+                  }
                 }
                 break;
               default:
@@ -170,6 +172,7 @@ const EditableContainer = () => {
                 break;
             }
             break;
+          }
           case "UnauthenticatedViewer":
             goToLogin();
             break;

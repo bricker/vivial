@@ -1,9 +1,8 @@
 import re
 from datetime import datetime
-from typing import Self, Sequence
 from uuid import UUID
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, ScalarResult, func
+
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.shared.errors import ValidationError

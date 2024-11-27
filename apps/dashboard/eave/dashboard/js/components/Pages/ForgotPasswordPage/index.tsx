@@ -3,10 +3,10 @@ import { styled } from "@mui/material";
 import React, { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { AppRoute } from "$eave-dashboard/js/routes";
 import Typography from "@mui/material/Typography";
 import BackButton from "../../Buttons/BackButton";
 import ExternalLink from "../../Links/ExternalLink";
-import { AppRoute } from "$eave-dashboard/js/routes";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",

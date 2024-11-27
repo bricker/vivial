@@ -10,7 +10,6 @@ import {
   UpdateReserverDetailsAccountDocument,
   UpdateReserverDetailsAccountInput,
   UpdateReserverDetailsAccountMutation,
-  type CreateAccountInput,
   type CreateAccountMutation,
   type CreateAccountMutationVariables,
   type LoginMutation,

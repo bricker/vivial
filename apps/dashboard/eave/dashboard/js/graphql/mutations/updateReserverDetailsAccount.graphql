@@ -12,6 +12,7 @@ mutation UpdateReserverDetailsAccount($input: UpdateReserverDetailsAccountInput!
             phoneNumber
           }
           account {
+            id
             email
           }
         }
