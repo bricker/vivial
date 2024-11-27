@@ -1,4 +1,5 @@
 import { UpdateReserverDetailsAccountFailureReason } from "$eave-dashboard/js/graphql/generated/graphql";
+import { AppRoute } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { updateEmail } from "$eave-dashboard/js/store/slices/authSlice";
 import {
@@ -7,10 +8,12 @@ import {
 } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { storeReserverDetails } from "$eave-dashboard/js/store/slices/reserverDetailsSlice";
 import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
+import { Breakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { Button, CircularProgress, Typography, styled } from "@mui/material";
 import React, { useCallback, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import AccountBookingInfoEditForm from "../../Forms/AccountBookingInfoEditForm";
 import EditIcon from "../../Icons/EditIcon";
 
@@ -18,6 +21,9 @@ const FormContainer = styled("div")(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   borderRadius: 15,
   padding: "24px 40px",
+  [theme.breakpoints.down(Breakpoint.Medium)]: {
+    padding: 24,
+  },
 }));
 
 const TitleContainer = styled("div")(() => ({
@@ -76,7 +82,7 @@ const InfoDisplay = ({ name, email, phoneNumber }: { name: string; email: string
   return (
     <>
       {displayContent.map((text) => (
-        <LabeledInfoContainer>
+        <LabeledInfoContainer key={text.label}>
           <LabelText>{text.label}</LabelText>
           <ValueText>{text.value}</ValueText>
         </LabeledInfoContainer>
@@ -90,16 +96,29 @@ const EditableContainer = () => {
   const [error, setError] = useState<string | undefined>(undefined);
 
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [updateReserverDetailsAccount, { isLoading: updateDetailsIsLoading }] =
     useUpdateReserverDetailsAccountMutation();
 
+  const goToLogin = useCallback(() => navigate(AppRoute.login), [navigate]);
+  const reserverEmail = useSelector((state: RootState) => state.auth.account?.email);
+  const localReserverDetails = useSelector((state: RootState) => state.reserverDetails.reserverDetails);
+
   const { data, isLoading: listDetailsIsLoading } = useListReserverDetailsQuery();
-  console.log(data);
+  let reserverDetails = localReserverDetails;
   // NOTE: extracting and showing only the first one since we currently only
   // allow 1 reserverDetails row to be created
-  const reserverDetails = data?.viewer?.reserverDetails[0];
+  switch (data?.data.viewer.__typename) {
+    case "AuthenticatedViewerQueries":
+      if (!reserverDetails) {
+        reserverDetails = data?.data.viewer?.reserverDetails[0] || null;
+      }
+      break;
+    case "UnauthenticatedViewer":
+      goToLogin();
+      break;
+  }
 
-  const reserverEmail = useSelector((state: RootState) => state.auth.account!.email);
   const firstName = reserverDetails?.firstName;
   const lastName = reserverDetails?.lastName;
   const email = reserverEmail;
@@ -128,24 +147,31 @@ const EditableContainer = () => {
           phoneNumber,
           email,
         });
-        const data = resp.data?.data.viewer.updateReserverDetailsAccount;
-        switch (data?.__typename) {
-          case "UpdateReserverDetailsAccountSuccess":
-            dispatch(storeReserverDetails({ details: data!.reserverDetails }));
-            dispatch(updateEmail({ email: data!.account.email }));
-            // exit edit mode
-            handleCancel();
-            break;
-          case "UpdateReserverDetailsAccountFailure":
-            switch (data!.failureReason) {
-              case UpdateReserverDetailsAccountFailureReason.ValidationErrors:
-                const invalidFields = data!.validationErrors?.map((e) => e.field).join(", ");
-                setError(`The following fields are invalid: ${invalidFields}`);
+        switch (resp.data?.data.viewer.__typename) {
+          case "AuthenticatedViewerMutations":
+            const data = resp.data?.data.viewer.updateReserverDetailsAccount;
+            switch (data?.__typename) {
+              case "UpdateReserverDetailsAccountSuccess":
+                dispatch(storeReserverDetails({ details: data!.reserverDetails }));
+                dispatch(updateEmail({ email: data!.account.email }));
+                // exit edit mode
+                handleCancel();
+                break;
+              case "UpdateReserverDetailsAccountFailure":
+                switch (data!.failureReason) {
+                  case UpdateReserverDetailsAccountFailureReason.ValidationErrors:
+                    const invalidFields = data!.validationErrors?.map((e) => e.field).join(", ");
+                    setError(`The following fields are invalid: ${invalidFields}`);
+                }
+                break;
+              default:
+                // 500 error
+                setError("Unable to update your booking info. Please try again later.");
+                break;
             }
             break;
-          default:
-            // 500 error
-            setError("Unable to update your booking info. Please try again later.");
+          case "UnauthenticatedViewer":
+            goToLogin();
             break;
         }
       } catch {
@@ -174,7 +200,7 @@ const EditableContainer = () => {
             <AccountBookingInfoEditForm
               initFirstName={firstName || ""}
               initLastName={lastName || ""}
-              initEmail={email}
+              initEmail={email || ""}
               initPhoneNumber={phoneNumber || ""}
               onSubmit={handleSubmit}
               onCancel={handleCancel}
@@ -184,7 +210,7 @@ const EditableContainer = () => {
           ) : (
             <InfoDisplay
               name={[firstName, lastName].filter((x) => x).join(" ") || "(none)"}
-              email={email}
+              email={email || "(none)"}
               phoneNumber={phoneNumber || "(none)"}
             />
           )}

@@ -85,6 +85,7 @@ export type AuthenticatedViewerMutations = {
   submitReserverDetails: SubmitReserverDetailsResult;
   updateAccount: UpdateAccountResult;
   updatePreferences: UpdatePreferencesResult;
+  updateReserverDetailsAccount: UpdateReserverDetailsAccountResult;
 };
 
 
@@ -109,7 +110,7 @@ export type AuthenticatedViewerMutationsReplanOutingArgs = {
 
 
 export type AuthenticatedViewerMutationsSubmitReserverDetailsArgs = {
-  input: ReserverDetailsInput;
+  input: SubmitReserverDetailsInput;
 };
 
 
@@ -120,6 +121,11 @@ export type AuthenticatedViewerMutationsUpdateAccountArgs = {
 
 export type AuthenticatedViewerMutationsUpdatePreferencesArgs = {
   input: UpdatePreferencesInput;
+};
+
+
+export type AuthenticatedViewerMutationsUpdateReserverDetailsAccountArgs = {
+  input: UpdateReserverDetailsAccountInput;
 };
 
 export type AuthenticatedViewerQueries = {
@@ -524,81 +530,14 @@ export type ValidationError = {
   field: Scalars['String']['output'];
 };
 
-export type ViewerMutations = {
-  __typename: 'ViewerMutations';
-  createBooking: CreateBookingResult;
-  createPaymentIntent: CreatePaymentIntentResult;
-  planOuting: PlanOutingResult;
-  refreshTokens: RefreshTokensResult;
-  replanOuting: ReplanOutingResult;
-  submitReserverDetails: SubmitReserverDetailsResult;
-  updateAccount: UpdateAccountResult;
-  updatePreferences: UpdatePreferencesResult;
-  updateReserverDetailsAccount: UpdateReserverDetailsAccountResult;
-};
+export enum ViewerAuthenticationAction {
+  ForceLogout = 'FORCE_LOGOUT',
+  RefreshAccessToken = 'REFRESH_ACCESS_TOKEN'
+}
 
 export type ViewerMutations = AuthenticatedViewerMutations | UnauthenticatedViewer;
 
-export type ViewerMutationsCreateBookingArgs = {
-  input: CreateBookingInput;
-};
-
-
-export type ViewerMutationsCreatePaymentIntentArgs = {
-  input: CreatePaymentIntentInput;
-};
-
-
-export type ViewerMutationsPlanOutingArgs = {
-  input: PlanOutingInput;
-};
-
-
-export type ViewerMutationsRefreshTokensArgs = {
-  input: RefreshTokensInput;
-};
-
-
-export type ViewerMutationsReplanOutingArgs = {
-  input: ReplanOutingInput;
-};
-
-
-export type ViewerMutationsSubmitReserverDetailsArgs = {
-  input: SubmitReserverDetailsInput;
-};
-
-
-export type ViewerMutationsUpdateAccountArgs = {
-  input: UpdateAccountInput;
-};
-
-
-export type ViewerMutationsUpdatePreferencesArgs = {
-  input: UpdatePreferencesInput;
-};
-
-
-export type ViewerMutationsUpdateReserverDetailsAccountArgs = {
-  input: UpdateReserverDetailsAccountInput;
-};
-
-export type ViewerQueries = {
-  __typename: 'ViewerQueries';
-  bookedOutings: Array<Outing>;
-  outing: Outing;
-  reserverDetails: Array<ReserverDetails>;
-};
-
-
-export type ViewerQueriesBookedOutingsArgs = {
-  outingState: OutingState;
-};
-
-
-export type ViewerQueriesOutingArgs = {
-  outingId: Scalars['UUID']['input'];
-};
+export type ViewerQueries = AuthenticatedViewerQueries | UnauthenticatedViewer;
 
 export type CreateAccountMutationVariables = Exact<{
   input: CreateAccountInput;
@@ -654,12 +593,12 @@ export type UpdateReserverDetailsAccountMutationVariables = Exact<{
 }>;
 
 
-export type UpdateReserverDetailsAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'ViewerMutations', updateReserverDetailsAccount: { __typename: 'UpdateReserverDetailsAccountFailure', failureReason: UpdateReserverDetailsAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateReserverDetailsAccountSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }, account: { __typename: 'Account', email: string } } } };
+export type UpdateReserverDetailsAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateReserverDetailsAccount: { __typename: 'UpdateReserverDetailsAccountFailure', failureReason: UpdateReserverDetailsAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateReserverDetailsAccountSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }, account: { __typename: 'Account', email: string } } } | { __typename: 'UnauthenticatedViewer', reason: ViewerAuthenticationAction } };
 
 export type ListReserverDetailsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ListReserverDetailsQuery = { __typename: 'Query', viewer: { __typename: 'ViewerQueries', reserverDetails: Array<{ __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }> } };
+export type ListReserverDetailsQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', reserverDetails: Array<{ __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }> } | { __typename: 'UnauthenticatedViewer', reason: ViewerAuthenticationAction } };
 
 export type SearchRegionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -834,25 +773,32 @@ export const SubmitReserverDetailsDocument = new TypedDocumentString(`
 export const UpdateReserverDetailsAccountDocument = new TypedDocumentString(`
     mutation UpdateReserverDetailsAccount($input: UpdateReserverDetailsAccountInput!) {
   viewer {
-    updateReserverDetailsAccount(input: $input) {
+    ... on AuthenticatedViewerMutations {
       __typename
-      ... on UpdateReserverDetailsAccountSuccess {
-        reserverDetails {
-          id
-          firstName
-          lastName
-          phoneNumber
+      updateReserverDetailsAccount(input: $input) {
+        __typename
+        ... on UpdateReserverDetailsAccountSuccess {
+          reserverDetails {
+            id
+            firstName
+            lastName
+            phoneNumber
+          }
+          account {
+            email
+          }
         }
-        account {
-          email
+        ... on UpdateReserverDetailsAccountFailure {
+          failureReason
+          validationErrors {
+            field
+          }
         }
       }
-      ... on UpdateReserverDetailsAccountFailure {
-        failureReason
-        validationErrors {
-          field
-        }
-      }
+    }
+    ... on UnauthenticatedViewer {
+      __typename
+      reason
     }
   }
 }
@@ -860,11 +806,18 @@ export const UpdateReserverDetailsAccountDocument = new TypedDocumentString(`
 export const ListReserverDetailsDocument = new TypedDocumentString(`
     query ListReserverDetails {
   viewer {
-    reserverDetails {
-      id
-      firstName
-      lastName
-      phoneNumber
+    ... on AuthenticatedViewerQueries {
+      __typename
+      reserverDetails {
+        id
+        firstName
+        lastName
+        phoneNumber
+      }
+    }
+    ... on UnauthenticatedViewer {
+      __typename
+      reason
     }
   }
 }

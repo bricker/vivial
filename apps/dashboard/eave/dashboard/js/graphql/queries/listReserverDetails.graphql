@@ -1,10 +1,17 @@
 query ListReserverDetails {
   viewer {
-    reserverDetails {
-      id
-      firstName
-      lastName
-      phoneNumber
+    ... on AuthenticatedViewerQueries {
+      __typename
+      reserverDetails {
+        id
+        firstName
+        lastName
+        phoneNumber
+      }
+    }
+    ... on UnauthenticatedViewer {
+      __typename
+      reason
     }
   }
 }
