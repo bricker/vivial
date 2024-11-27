@@ -8,8 +8,8 @@ import {
 import { storeReserverDetails } from "$eave-dashboard/js/store/slices/reserverDetailsSlice";
 import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
-import { Button, Typography, styled } from "@mui/material";
-import React, { useCallback, useEffect, useState } from "react";
+import { Button, CircularProgress, Typography, styled } from "@mui/material";
+import React, { useCallback, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import AccountBookingInfoEditForm from "../../Forms/AccountBookingInfoEditForm";
 import EditIcon from "../../Icons/EditIcon";
@@ -59,6 +59,17 @@ const InfoContainer = styled("div")(() => ({
   marginTop: 24,
 }));
 
+const StateContainer = styled("div")(() => ({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 32,
+}));
+
+const LoadingState = styled(CircularProgress)(({ theme }) => ({
+  // color: theme.palette.secondary
+}));
+
 const InfoDisplay = ({ name, email, phoneNumber }: { name: string; email: string; phoneNumber: string }) => {
   const displayContent: Array<{ label: string; value: string }> = [
     { label: "Name", value: name },
@@ -82,34 +93,16 @@ const EditableContainer = () => {
   const [isEditting, setIsEditting] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
 
+  const dispatch = useDispatch();
   const [updateReserverDetailsAccount, { isLoading: updateDetailsIsLoading }] =
     useUpdateReserverDetailsAccountMutation();
 
-  /**
-   * Notes for Liam:
-   *
-   * Calling useListReserverDetailsQuery() actually sends the query to Core API,
-   * so you don't need that dispatch() that you had in the useEffect.
-   *
-   * If you add a console.log(data) directly below this line, you'll see that the
-   * reserver data you need will be availble in that object.
-   *
-   * As a reference, see the useGetPostsQuery() sample here:
-   * https://redux.js.org/tutorials/essentials/part-7-rtk-query-basics
-   *
-   * You should give that whole page a read-through actually, as RTK Query
-   * is unfortunately somewhat unintuitive 👀
-   */
-  const { data, isLoading } = useListReserverDetailsQuery();
+  const { data, isLoading: listDetailsIsLoading } = useListReserverDetailsQuery();
   console.log(data);
+  // NOTE: extracting and showing only the first one since we currently only
+  // allow 1 reserverDetails row to be created
+  const reserverDetails = data?.viewer?.reserverDetails[0];
 
-  /**
-   * Notes for Liam:
-   *
-   * You don't need useSelector() here - the reserver data will be in the data
-   * object above.
-   */
-  const reserverDetails = useSelector((state: RootState) => state.reserverDetails?.reserverDetails);
   const reserverEmail = useSelector((state: RootState) => state.auth.account!.email);
   const firstName = reserverDetails?.firstName;
   const lastName = reserverDetails?.lastName;
@@ -164,40 +157,53 @@ const EditableContainer = () => {
         setError("Unable to update your booking info. Please try again later.");
       }
     },
-    [],
+    [data],
   );
 
   return (
     <FormContainer>
       <TitleContainer>
         <Typography variant="h2">Booking info</Typography>
-        {!isEditting && (
+        {!isEditting && reserverDetails && (
           <ShiftedButton onClick={() => setIsEditting(true)}>
             <EditIcon />
           </ShiftedButton>
         )}
       </TitleContainer>
 
-      <InfoContainer>
-        {isEditting ? (
-          <AccountBookingInfoEditForm
-            initFirstName={firstName || ""}
-            initLastName={lastName || ""}
-            initEmail={email}
-            initPhoneNumber={phoneNumber || ""}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            isLoading={updateDetailsIsLoading}
-            externalError={error}
-          />
-        ) : (
-          <InfoDisplay
-            name={[firstName, lastName].filter((x) => x).join(" ") || "(none)"}
-            email={email}
-            phoneNumber={phoneNumber || "(none)"}
-          />
-        )}
-      </InfoContainer>
+      {reserverDetails ? (
+        // we have details to display; show them
+        <InfoContainer>
+          {isEditting ? (
+            <AccountBookingInfoEditForm
+              initFirstName={firstName || ""}
+              initLastName={lastName || ""}
+              initEmail={email}
+              initPhoneNumber={phoneNumber || ""}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              isLoading={updateDetailsIsLoading}
+              externalError={error}
+            />
+          ) : (
+            <InfoDisplay
+              name={[firstName, lastName].filter((x) => x).join(" ") || "(none)"}
+              email={email}
+              phoneNumber={phoneNumber || "(none)"}
+            />
+          )}
+        </InfoContainer>
+      ) : (
+        <StateContainer>
+          {listDetailsIsLoading ? (
+            // loading state
+            <CircularProgress color="secondary" />
+          ) : (
+            // error state
+            "Oops! We encountered a problem, please try again later."
+          )}
+        </StateContainer>
+      )}
     </FormContainer>
   );
 };

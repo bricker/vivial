@@ -138,6 +138,7 @@ const GlobalHeader = () => {
     <>
       {menuNavButtons.map((navButton) => (
         <MenuItem
+          key={navButton.text}
           data-active={pathname === navButton.route}
           onClick={() => handleNavigate(navButton.route)}
           disableRipple
