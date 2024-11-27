@@ -118,12 +118,9 @@ const EditableContainer = () => {
     case "UnauthenticatedViewer":
       goToLogin();
       break;
+    default:
+      break;
   }
-
-  const firstName = reserverDetails?.firstName;
-  const lastName = reserverDetails?.lastName;
-  const email = reserverEmail;
-  const phoneNumber = reserverDetails?.phoneNumber;
 
   const handleCancel = () => setIsEditting(false);
   const handleSubmit = useCallback(
@@ -163,7 +160,10 @@ const EditableContainer = () => {
                   case UpdateReserverDetailsAccountFailureReason.ValidationErrors: {
                     const invalidFields = updatedData.validationErrors?.map((e) => e.field).join(", ");
                     setError(`The following fields are invalid: ${invalidFields}`);
+                    break;
                   }
+                  default:
+                    break;
                 }
                 break;
               default:
@@ -175,6 +175,8 @@ const EditableContainer = () => {
           }
           case "UnauthenticatedViewer":
             goToLogin();
+            break;
+          default:
             break;
         }
       } catch {
@@ -201,10 +203,10 @@ const EditableContainer = () => {
         <InfoContainer>
           {isEditting ? (
             <AccountBookingInfoEditForm
-              initFirstName={firstName || ""}
-              initLastName={lastName || ""}
-              initEmail={email || ""}
-              initPhoneNumber={phoneNumber || ""}
+              initFirstName={reserverDetails?.firstName || ""}
+              initLastName={reserverDetails?.lastName || ""}
+              initEmail={reserverEmail || ""}
+              initPhoneNumber={reserverDetails?.phoneNumber || ""}
               onSubmit={handleSubmit}
               onCancel={handleCancel}
               isLoading={updateDetailsIsLoading}
@@ -212,9 +214,9 @@ const EditableContainer = () => {
             />
           ) : (
             <InfoDisplay
-              name={[firstName, lastName].filter((x) => x).join(" ") || "(none)"}
-              email={email || "(none)"}
-              phoneNumber={phoneNumber || "(none)"}
+              name={[reserverDetails?.firstName, reserverDetails?.lastName].filter((x) => x).join(" ") || "(none)"}
+              email={reserverEmail || "(none)"}
+              phoneNumber={reserverDetails?.phoneNumber || "(none)"}
             />
           )}
         </InfoContainer>

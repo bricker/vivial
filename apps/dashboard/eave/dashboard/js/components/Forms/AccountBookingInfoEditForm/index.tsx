@@ -92,12 +92,22 @@ const AccountBookingInfoEditForm = ({
   // only prevent submit on internalError since that can be fixed w/o another submit
   const submitButtonDisabled = !!(isLoading || internalError);
 
-  function checkInputs({ first, last, email, phone }: { first: string; last: string; email: string; phone: string }) {
+  function checkInputs({
+    first,
+    last,
+    emailAddr,
+    phone,
+  }: {
+    first: string;
+    last: string;
+    emailAddr: string;
+    phone: string;
+  }) {
     if (first.length === 0) {
       setInternalError("First name required");
     } else if (last.length === 0) {
       setInternalError("Last name required");
-    } else if (email.length === 0) {
+    } else if (emailAddr.length === 0) {
       setInternalError("Email required");
     } else if (phone.length === 0) {
       setInternalError("Phone number required");
@@ -107,26 +117,38 @@ const AccountBookingInfoEditForm = ({
     }
   }
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newEmail = e.target.value;
-    setEmail(newEmail);
-    checkInputs({ first: firstName, last: lastName, email: newEmail, phone: phoneNumber });
-  };
-  const handleFirstNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newFirst = e.target.value;
-    setFirstName(newFirst);
-    checkInputs({ first: newFirst, last: lastName, email, phone: phoneNumber });
-  };
-  const handleLastNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newLast = e.target.value;
-    setLastName(newLast);
-    checkInputs({ first: firstName, last: newLast, email, phone: phoneNumber });
-  };
-  const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newPhone = e.target.value;
-    setPhoneNumber(newPhone);
-    checkInputs({ first: firstName, last: lastName, email, phone: newPhone });
-  };
+  const handleEmailChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newEmail = e.target.value;
+      setEmail(newEmail);
+      checkInputs({ first: firstName, last: lastName, emailAddr: newEmail, phone: phoneNumber });
+    },
+    [firstName, lastName, email, phoneNumber],
+  );
+  const handleFirstNameChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newFirst = e.target.value;
+      setFirstName(newFirst);
+      checkInputs({ first: newFirst, last: lastName, emailAddr: email, phone: phoneNumber });
+    },
+    [firstName, lastName, email, phoneNumber],
+  );
+  const handleLastNameChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newLast = e.target.value;
+      setLastName(newLast);
+      checkInputs({ first: firstName, last: newLast, emailAddr: email, phone: phoneNumber });
+    },
+    [firstName, lastName, email, phoneNumber],
+  );
+  const handlePhoneNumberChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const newPhone = e.target.value;
+      setPhoneNumber(newPhone);
+      checkInputs({ first: firstName, last: lastName, emailAddr: email, phone: newPhone });
+    },
+    [firstName, lastName, email, phoneNumber],
+  );
   const handleSubmit = useCallback(() => {
     onSubmit({ firstName, lastName, phoneNumber, email });
   }, [firstName, lastName, email, phoneNumber]);
