@@ -1,0 +1,238 @@
+import { UpdateReserverDetailsAccountFailureReason } from "$eave-dashboard/js/graphql/generated/graphql";
+import { AppRoute } from "$eave-dashboard/js/routes";
+import { RootState } from "$eave-dashboard/js/store";
+import { updateEmail } from "$eave-dashboard/js/store/slices/authSlice";
+import {
+  useListReserverDetailsQuery,
+  useUpdateReserverDetailsAccountMutation,
+} from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { storeReserverDetails } from "$eave-dashboard/js/store/slices/reserverDetailsSlice";
+import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
+import { Breakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
+import { rem } from "$eave-dashboard/js/theme/helpers/rem";
+import { Button, CircularProgress, Typography, styled } from "@mui/material";
+import React, { useCallback, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import AccountBookingInfoEditForm from "../../Forms/AccountBookingInfoEditForm";
+import EditIcon from "../../Icons/EditIcon";
+
+const FormContainer = styled("div")(({ theme }) => ({
+  backgroundColor: theme.palette.background.paper,
+  borderRadius: 15,
+  padding: "24px 40px",
+  [theme.breakpoints.down(Breakpoint.Medium)]: {
+    padding: 24,
+  },
+}));
+
+const TitleContainer = styled("div")(() => ({
+  display: "flex",
+  flexDirection: "row",
+  justifyContent: "space-between",
+}));
+
+const LabeledInfoContainer = styled("div")(() => ({
+  display: "flex",
+  flexDirection: "row",
+  justifyContent: "space-between",
+}));
+
+const LabelText = styled("p")(({ theme }) => ({
+  color: theme.palette.text.secondary,
+  fontSize: rem("16px"),
+  lineHeight: rem("30px"),
+  fontFamily: fontFamilies.inter,
+  fontWeight: 400,
+  margin: 0,
+}));
+
+const ValueText = styled("p")(({ theme }) => ({
+  color: theme.palette.text.primary,
+  fontSize: rem("16px"),
+  lineHeight: rem("30px"),
+  fontFamily: fontFamilies.inter,
+  fontWeight: 400,
+  margin: 0,
+}));
+
+const ShiftedButton = styled(Button)(() => ({
+  position: "relative",
+  right: -16,
+}));
+
+const InfoContainer = styled("div")(() => ({
+  marginTop: 24,
+}));
+
+const StateContainer = styled("div")(() => ({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 32,
+}));
+
+const InfoDisplay = ({ name, email, phoneNumber }: { name: string; email: string; phoneNumber: string }) => {
+  const displayContent: Array<{ label: string; value: string }> = [
+    { label: "Name", value: name },
+    { label: "Email", value: email },
+    { label: "Phone #", value: phoneNumber },
+  ];
+
+  return (
+    <>
+      {displayContent.map((text) => (
+        <LabeledInfoContainer key={text.label}>
+          <LabelText>{text.label}</LabelText>
+          <ValueText>{text.value}</ValueText>
+        </LabeledInfoContainer>
+      ))}
+    </>
+  );
+};
+
+const EditableContainer = () => {
+  const [isEditting, setIsEditting] = useState(false);
+  const [error, setError] = useState<string | undefined>(undefined);
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [updateReserverDetailsAccount, { isLoading: updateDetailsIsLoading }] =
+    useUpdateReserverDetailsAccountMutation();
+
+  const goToLogin = useCallback(() => navigate(AppRoute.login), [navigate]);
+  const reserverEmail = useSelector((state: RootState) => state.auth.account?.email);
+  const localReserverDetails = useSelector((state: RootState) => state.reserverDetails.reserverDetails);
+
+  const { data, isLoading: listDetailsIsLoading } = useListReserverDetailsQuery();
+  let reserverDetails = localReserverDetails;
+  switch (data?.data.viewer.__typename) {
+    case "AuthenticatedViewerQueries":
+      // always prefer in-memory data (if available) over cached network resp
+      if (!reserverDetails) {
+        // NOTE: extracting and showing only the first one since we currently only
+        // allow 1 reserverDetails row to be created
+        reserverDetails = data?.data.viewer?.reserverDetails[0] || null;
+      }
+      break;
+    case "UnauthenticatedViewer":
+      goToLogin();
+      break;
+    default:
+      break;
+  }
+
+  const handleCancel = () => setIsEditting(false);
+  const handleSubmit = useCallback(
+    async ({
+      firstName,
+      lastName,
+      phoneNumber,
+      email,
+    }: {
+      firstName: string;
+      lastName: string;
+      phoneNumber: string;
+      email: string;
+    }) => {
+      setError(undefined);
+
+      try {
+        const resp = await updateReserverDetailsAccount({
+          id: reserverDetails?.id || "reserverDetails should never be null here",
+          firstName,
+          lastName,
+          phoneNumber,
+          email,
+        });
+        switch (resp.data?.data.viewer.__typename) {
+          case "AuthenticatedViewerMutations": {
+            const updatedData = resp.data?.data.viewer.updateReserverDetailsAccount;
+            switch (updatedData?.__typename) {
+              case "UpdateReserverDetailsAccountSuccess":
+                dispatch(storeReserverDetails({ details: updatedData.reserverDetails }));
+                dispatch(updateEmail({ email: updatedData.account.email }));
+                // exit edit mode
+                handleCancel();
+                break;
+              case "UpdateReserverDetailsAccountFailure":
+                switch (updatedData.failureReason) {
+                  case UpdateReserverDetailsAccountFailureReason.ValidationErrors: {
+                    const invalidFields = updatedData.validationErrors?.map((e) => e.field).join(", ");
+                    setError(`The following fields are invalid: ${invalidFields}`);
+                    break;
+                  }
+                  default:
+                    break;
+                }
+                break;
+              default:
+                // 500 error
+                setError("Unable to update your booking info. Please try again later.");
+                break;
+            }
+            break;
+          }
+          case "UnauthenticatedViewer":
+            goToLogin();
+            break;
+          default:
+            break;
+        }
+      } catch {
+        // network error
+        setError("Unable to update your booking info. Please try again later.");
+      }
+    },
+    [data],
+  );
+
+  return (
+    <FormContainer>
+      <TitleContainer>
+        <Typography variant="h2">Booking info</Typography>
+        {!isEditting && reserverDetails && (
+          <ShiftedButton onClick={() => setIsEditting(true)}>
+            <EditIcon />
+          </ShiftedButton>
+        )}
+      </TitleContainer>
+
+      {reserverDetails ? (
+        // we have details to display; show them
+        <InfoContainer>
+          {isEditting ? (
+            <AccountBookingInfoEditForm
+              initFirstName={reserverDetails?.firstName || ""}
+              initLastName={reserverDetails?.lastName || ""}
+              initEmail={reserverEmail || ""}
+              initPhoneNumber={reserverDetails?.phoneNumber || ""}
+              onSubmit={handleSubmit}
+              onCancel={handleCancel}
+              isLoading={updateDetailsIsLoading}
+              externalError={error}
+            />
+          ) : (
+            <InfoDisplay
+              name={[reserverDetails?.firstName, reserverDetails?.lastName].filter((x) => x).join(" ") || "(none)"}
+              email={reserverEmail || "(none)"}
+              phoneNumber={reserverDetails?.phoneNumber || "(none)"}
+            />
+          )}
+        </InfoContainer>
+      ) : (
+        <StateContainer>
+          {listDetailsIsLoading ? (
+            // loading state
+            <CircularProgress color="secondary" />
+          ) : (
+            // error state
+            "Oops! We encountered a problem, please try again later."
+          )}
+        </StateContainer>
+      )}
+    </FormContainer>
+  );
+};
+
+export default EditableContainer;

@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { loggedIn } from "$eave-dashboard/js/store/slices/authSlice";
 import { useLoginMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 
+import { AppRoute } from "$eave-dashboard/js/routes";
 import AuthForm from "../../Forms/AuthForm";
 import Link from "../../Links/Link";
 
@@ -34,11 +35,8 @@ const LogInPage = () => {
     const typename = resp.data?.data.login.__typename;
     switch (typename) {
       case "LoginSuccess": {
-        const accountId = resp.data?.data.login.account.id;
-        if (accountId) {
-          dispatch(loggedIn({ accountId }));
-          navigate("/");
-        }
+        dispatch(loggedIn({ account: resp.data!.data.login.account }));
+        navigate(AppRoute.root);
         break;
       }
       case "LoginFailure": {
@@ -62,7 +60,7 @@ const LogInPage = () => {
         showForgotPassword
       />
       <SignUp>
-        Don’t have an account? <Link to="/signup">Sign up</Link>
+        Don't have an account? <Link to={AppRoute.signup}>Sign up</Link>
       </SignUp>
     </PageContainer>
   );

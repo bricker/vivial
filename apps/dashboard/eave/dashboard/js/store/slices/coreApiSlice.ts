@@ -3,8 +3,13 @@ import { createApi, fetchBaseQuery, type FetchArgs } from "@reduxjs/toolkit/quer
 
 import {
   CreateAccountDocument,
+  ListReserverDetailsDocument,
+  ListReserverDetailsQuery,
   LoginDocument,
   SearchRegionsDocument,
+  UpdateReserverDetailsAccountDocument,
+  UpdateReserverDetailsAccountInput,
+  UpdateReserverDetailsAccountMutation,
   type CreateAccountMutation,
   type CreateAccountMutationVariables,
   type LoginMutation,
@@ -31,6 +36,9 @@ export const coreApiSlice = createApi({
     getSearchRegions: builder.query<SearchRegionsQuery, void>({
       query: () => ({ ...gqlParams, body: { query: SearchRegionsDocument } }),
     }),
+    listReserverDetails: builder.query<{ data: ListReserverDetailsQuery }, void>({
+      query: () => ({ ...gqlParams, body: { query: ListReserverDetailsDocument } }),
+    }),
     /**
      * Core API - GraphQL Mutations
      */
@@ -52,14 +60,28 @@ export const coreApiSlice = createApi({
         },
       }),
     }),
+    updateReserverDetailsAccount: builder.mutation<
+      { data: UpdateReserverDetailsAccountMutation },
+      UpdateReserverDetailsAccountInput
+    >({
+      query: (input) => ({
+        ...gqlParams,
+        body: {
+          query: UpdateReserverDetailsAccountDocument,
+          variables: { input },
+        },
+      }),
+    }),
   }),
 });
 
 export const {
   // Core API GraphQL Query Hooks
   useGetSearchRegionsQuery,
+  useListReserverDetailsQuery,
 
   // Core API GraphQL Mutation Hooks
   useCreateAccountMutation,
   useLoginMutation,
+  useUpdateReserverDetailsAccountMutation,
 } = coreApiSlice;

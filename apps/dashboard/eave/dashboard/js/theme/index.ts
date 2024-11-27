@@ -42,6 +42,7 @@ export const theme = createTheme({
     },
     grey: {
       500: colors.grey[500],
+      800: colors.grey[800],
     },
   },
   typography: {

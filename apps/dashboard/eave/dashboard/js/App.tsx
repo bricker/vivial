@@ -27,6 +27,7 @@ import ScrollToTop from "./components/Util/ScrollToTop";
 
 // TODO: Remove AppContextProvider in favor of Redux.
 import { AppContextProvider } from "./context";
+import { AppRoute } from "./routes";
 
 const fireAnalyticsPageView = (_: string) => {
   void pageView({});
@@ -47,21 +48,21 @@ const App = () => {
               <ScrollToTop />
               <RouteChangeTracker onRouteChange={fireAnalyticsPageView} />
               <Routes>
-                <Route path="/" element={<GlobalLayout />}>
+                <Route path={AppRoute.root} element={<GlobalLayout />}>
                   <Route index element={<DateSurveyPage />} />
-                  <Route path="/login" element={<LogInPage />} />
-                  <Route path="/login/password" element={<ForgotPasswordPage />} />
-                  <Route path="/signup" element={<SignUpPage />} />
-                  <Route path="/account" element={<AccountPage />} />
-                  <Route path="/plans" element={<PlansPage />} />
-                  <Route path="/help" element={<HelpPage />} />
-                  <Route path="/terms" element={<TermsPage />} />
-                  <Route path="/privacy" element={<PrivacyPage />} />
-                  <Route path="/booking-confirmation" element={<BookingConfirmationPage />} />
+                  <Route path={AppRoute.login} element={<LogInPage />} />
+                  <Route path={AppRoute.forgotPassword} element={<ForgotPasswordPage />} />
+                  <Route path={AppRoute.signup} element={<SignUpPage />} />
+                  <Route path={AppRoute.account} element={<AccountPage />} />
+                  <Route path={AppRoute.plans} element={<PlansPage />} />
+                  <Route path={AppRoute.help} element={<HelpPage />} />
+                  <Route path={AppRoute.terms} element={<TermsPage />} />
+                  <Route path={AppRoute.privacy} element={<PrivacyPage />} />
+                  <Route path={AppRoute.bookingConfirmation} element={<BookingConfirmationPage />} />
 
                   {/* TODO: Remove /payment-example Route. */}
                   <Route
-                    path="/payment-example"
+                    path={AppRoute.payment}
                     element={
                       <StripeElementsProvider>
                         <PaymentExamplePage />
@@ -69,7 +70,7 @@ const App = () => {
                     }
                   />
 
-                  <Route path="*" element={<Navigate to="/" />} />
+                  <Route path="*" element={<Navigate to={AppRoute.root} />} />
                 </Route>
               </Routes>
             </BrowserRouter>

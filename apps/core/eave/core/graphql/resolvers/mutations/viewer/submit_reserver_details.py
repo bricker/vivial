@@ -15,7 +15,7 @@ from eave.stdlib.util import unwrap
 
 
 @strawberry.input
-class ReserverDetailsInput:
+class SubmitReserverDetailsInput:
     first_name: str
     last_name: str
     phone_number: str
@@ -45,7 +45,7 @@ SubmitReserverDetailsResult = Annotated[
 async def submit_reserver_details_mutation(
     *,
     info: strawberry.Info[GraphQLContext],
-    input: ReserverDetailsInput,
+    input: SubmitReserverDetailsInput,
 ) -> SubmitReserverDetailsResult:
     """
     phone_number parameter must be digits only (with the exception of country code +) to pass validation

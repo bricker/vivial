@@ -8,6 +8,7 @@ import EmailIcon from "../../Icons/EmailIcon/";
 import InstagramIcon from "../../Icons/InstagramIcon";
 import TikTokIcon from "../../Icons/TikTokIcon";
 
+import { AppRoute } from "$eave-dashboard/js/routes";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 
 const Footer = styled("footer")(() => ({
@@ -63,10 +64,10 @@ const GlobalFooter = () => {
   const year = new Date().getFullYear();
   const navigate = useNavigate();
   const handleTermsClick = useCallback(() => {
-    navigate("/terms");
+    navigate(AppRoute.terms);
   }, []);
   const handlePrivacyClick = useCallback(() => {
-    navigate("/privacy");
+    navigate(AppRoute.privacy);
   }, []);
 
   return (

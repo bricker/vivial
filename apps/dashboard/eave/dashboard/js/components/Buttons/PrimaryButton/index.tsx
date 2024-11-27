@@ -17,8 +17,8 @@ const CustomButton = styled(BaseButton)(({ theme }) => ({
   },
 }));
 
-const Button = (props: ButtonProps) => {
+const PrimaryButton = (props: ButtonProps) => {
   return <CustomButton {...props} />;
 };
 
-export default Button;
+export default PrimaryButton;

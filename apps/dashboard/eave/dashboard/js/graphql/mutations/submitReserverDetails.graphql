@@ -1,4 +1,4 @@
-mutation SubmitReserverDetails($input: ReserverDetailsInput!) {
+mutation SubmitReserverDetails($input: SubmitReserverDetailsInput!) {
   viewer {
     ... on AuthenticatedViewerMutations {
       __typename
