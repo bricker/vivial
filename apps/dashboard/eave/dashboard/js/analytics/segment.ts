@@ -2,7 +2,10 @@ import { AnalyticsBrowser } from "@segment/analytics-next";
 import { myWindow } from "../types/window";
 import { delay } from "../util/delay";
 
-const analytics = AnalyticsBrowser.load({ writeKey: myWindow.app.segmentWriteKey! });
+const analytics = AnalyticsBrowser.load(
+  { writeKey: myWindow.app.segmentWriteKey! },
+  { disable: !myWindow.app.analyticsEnabled },
+);
 
 export enum EventName {
   CLICK = "click",
@@ -18,6 +21,8 @@ export enum EventName {
 export async function track({ eventName, extraProperties }: { eventName: EventName; extraProperties?: object }) {
   if (myWindow.app.analyticsEnabled) {
     await analytics.track(eventName, extraProperties);
+  } else {
+    console.debug("track", eventName, extraProperties);
   }
 }
 
@@ -40,6 +45,8 @@ export async function pageView({
 }) {
   if (myWindow.app.analyticsEnabled) {
     await analytics.page(category, name, extraProperties);
+  } else {
+    console.log("pageView", `category: ${category}`, `name: ${name}`, extraProperties);
   }
 }
 
@@ -51,7 +58,11 @@ export async function pageView({
  * @param extraProperties https://segment.com/docs/connections/spec/identify/#custom-traits
  */
 export async function identify({ userId, extraProperties }: { userId: string; extraProperties?: object }) {
-  await analytics.identify(userId, extraProperties);
+  if (myWindow.app.analyticsEnabled) {
+    await analytics.identify(userId, extraProperties);
+  } else {
+    console.debug("identify", userId, extraProperties);
+  }
 }
 
 /**
