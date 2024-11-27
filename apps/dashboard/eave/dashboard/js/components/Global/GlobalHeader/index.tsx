@@ -136,15 +136,15 @@ const GlobalHeader = () => {
 
   const menuItems = (
     <>
-      {menuNavButtons.map((navButton) => {
+      {menuNavButtons.map((navButton) => (
         <MenuItem
           data-active={pathname === navButton.route}
           onClick={() => handleNavigate(navButton.route)}
           disableRipple
         >
           {navButton.text}
-        </MenuItem>;
-      })}
+        </MenuItem>
+      ))}
       <MenuItem onClick={handleLogout} disableRipple>
         Log out
       </MenuItem>

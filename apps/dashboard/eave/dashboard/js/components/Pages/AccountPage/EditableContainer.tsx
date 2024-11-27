@@ -84,13 +84,11 @@ const EditableContainer = () => {
   const reserverEmail = useSelector((state: RootState) => state.auth.account!.email);
   const dispatch = useDispatch();
 
-  // TODO: set from store
   const firstName = reserverDetails?.firstName;
   const lastName = reserverDetails?.lastName;
   const email = reserverEmail;
   const phoneNumber = reserverDetails?.phoneNumber;
 
-  // TODO: get account info from store + reserver details
   const handleCancel = () => setIsEditting(false);
   const handleSubmit = useCallback(
     async ({
@@ -108,7 +106,7 @@ const EditableContainer = () => {
 
       try {
         const resp = await updateReserverDetailsAccount({
-          id: "uuid",
+          id: reserverDetails?.id || "this will fail",
           firstName,
           lastName,
           phoneNumber,
@@ -166,7 +164,11 @@ const EditableContainer = () => {
             externalError={error}
           />
         ) : (
-          <InfoDisplay name={`${firstName} ${lastName}`} email={email} phoneNumber={phoneNumber || "(none)"} />
+          <InfoDisplay
+            name={[firstName, lastName].filter((x) => x).join(" ") || "(none)"}
+            email={email}
+            phoneNumber={phoneNumber || "(none)"}
+          />
         )}
       </InfoContainer>
     </FormContainer>

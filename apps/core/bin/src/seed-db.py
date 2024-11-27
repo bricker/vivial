@@ -64,25 +64,33 @@ assert _GOOGLE_CLOUD_PROJECT != "eave-production"
 assert _GCLOUD_PROJECT != "eave-production"
 
 
-async def seed_database(db: AsyncEngine) -> None:
+async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
     session = AsyncSession(db)
 
-    num_rows = 100
+    num_rows = 100 if account_id is None else 1
 
     # setup progress bar
     curr_progress = f"[0/{num_rows}] :: Seconds remaining: ???"
     sys.stdout.write(curr_progress)
     sys.stdout.flush()
 
+    account = None
+    if account_id:
+        account = await AccountOrm.get_one(session, account_id)
+
     for row in range(num_rows):
         start = time.perf_counter()
 
         visitor_id = uuid.uuid4()
         dummy_date = datetime.datetime.now() + datetime.timedelta(days=2)
-        account = await AccountOrm.build(
-            email=f"john{row}@gmail.com",
-            plaintext_password="pasword1!",  # noqa: S106
-        ).save(session)
+
+        if not account_id:
+            account = await AccountOrm.build(
+                email=f"john{row}@gmail.com",
+                plaintext_password="pasword1!",  # noqa: S106
+            ).save(session)
+        assert account is not None
+
         survey = await SurveyOrm.build(
             visitor_id=visitor_id,
             account_id=account.id,
@@ -178,7 +186,20 @@ async def seed_database(db: AsyncEngine) -> None:
 async def main() -> None:
     parser = argparse.ArgumentParser(description="Database seeder")
     parser.add_argument(
-        "-d", "--database", help="Name of the database to seed", type=str, required=False, default=_EAVE_DB_NAME
+        "-d",
+        "--database",
+        help="Name of the database to seed",
+        type=str,
+        required=False,
+        default=_EAVE_DB_NAME,
+    )
+    parser.add_argument(
+        "-a",
+        "--account",
+        help="Account ID to seed relations for",
+        type=uuid.UUID,
+        required=False,
+        default=None,
     )
     args, _ = parser.parse_known_args()
 
@@ -201,17 +222,17 @@ async def main() -> None:
         logging.WARNING, f"\nThis script will insert junk seed data into the {seed_db.url.database} database."
     )
 
-    answer = input(
-        eaveLogger.f(
-            logging.WARNING, f"Proceed to insert junk seed data into the {seed_db.url.database} database? (Y/n) "
-        )
-    )
+    warn_msg = f"Proceed to insert junk seed data into the {seed_db.url.database} database?"
+    if args.account:
+        warn_msg = f"Seeding for account {args.account}. {warn_msg}"
+
+    answer = input(eaveLogger.f(logging.WARNING, f"{warn_msg} (Y/n) "))
     if answer != "Y":
         eaveLogger.fprint(logging.CRITICAL, "Aborting.")
         return
 
     eaveLogger.fprint(logging.INFO, f"Starting to seed your db {seed_db.url.database}...")
-    await seed_database(db=seed_db)
+    await seed_database(db=seed_db, account_id=args.account)
     eaveLogger.fprint(logging.INFO, "\nYour database has been seeded!")
 
 

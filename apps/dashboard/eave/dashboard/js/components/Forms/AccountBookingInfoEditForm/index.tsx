@@ -1,8 +1,8 @@
 import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
-import { CircularProgress, styled } from "@mui/material";
+import { styled } from "@mui/material";
 import React, { useCallback, useState } from "react";
-import PrimaryButton from "../../Buttons/PrimaryButton";
+import LoadingButton from "../../Buttons/LoadingButton";
 import SecondaryButton from "../../Buttons/SecondaryButton";
 import Input from "../../Inputs/Input";
 import InputError from "../../Inputs/InputError";
@@ -41,9 +41,10 @@ const InputErrorContainer = styled("div")(() => ({
   alignItems: "center",
   justifyContent: "center",
   marginBottom: 24,
+  padding: "0 16px",
 }));
 
-const PaddedPrimaryButton = styled(PrimaryButton)(() => ({
+const PaddedPrimaryButton = styled(LoadingButton)(() => ({
   padding: "10px 14px",
   minWidth: rem("76px"),
 }));
@@ -88,6 +89,8 @@ const AccountBookingInfoEditForm = ({
   const [phoneNumber, setPhoneNumber] = useState(initPhoneNumber);
   const [internalError, setInternalError] = useState<string | undefined>(undefined);
   const error = internalError || externalError;
+  // only prevent submit on internalError since that can be fixed w/o another submit
+  const submitButtonDisabled = !!(isLoading || internalError);
 
   function checkInputs({ first, last, email, phone }: { first: string; last: string; email: string; phone: string }) {
     if (first.length === 0) {
@@ -147,8 +150,8 @@ const AccountBookingInfoEditForm = ({
 
       <SpreadButtonsContainer>
         <PaddedSecondaryButton onClick={onCancel}>Cancel</PaddedSecondaryButton>
-        <PaddedPrimaryButton onClick={handleSubmit}> {/** TODO: disable while loading */}
-          {isLoading ? <CircularProgress color="inherit" size={rem("30px")} /> : "Save"}
+        <PaddedPrimaryButton onClick={handleSubmit} loading={isLoading} disabled={submitButtonDisabled}>
+          Save
         </PaddedPrimaryButton>
       </SpreadButtonsContainer>
     </>
