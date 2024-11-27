@@ -1,12 +1,15 @@
 import { UpdateReserverDetailsAccountFailureReason } from "$eave-dashboard/js/graphql/generated/graphql";
 import { RootState } from "$eave-dashboard/js/store";
 import { updateEmail } from "$eave-dashboard/js/store/slices/authSlice";
-import { useUpdateReserverDetailsAccountMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import {
+  useListReserverDetailsQuery,
+  useUpdateReserverDetailsAccountMutation,
+} from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { storeReserverDetails } from "$eave-dashboard/js/store/slices/reserverDetailsSlice";
 import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { Button, Typography, styled } from "@mui/material";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import AccountBookingInfoEditForm from "../../Forms/AccountBookingInfoEditForm";
 import EditIcon from "../../Icons/EditIcon";
@@ -79,7 +82,9 @@ const EditableContainer = () => {
   const [isEditting, setIsEditting] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
 
-  const [updateReserverDetailsAccount, { isLoading }] = useUpdateReserverDetailsAccountMutation();
+  const [updateReserverDetailsAccount, { isLoading: updateDetailsIsLoading }] =
+    useUpdateReserverDetailsAccountMutation();
+  const [listReserverDetails, { isLoading: listDetailsIsLoading }] = useListReserverDetailsQuery();
   const reserverDetails = useSelector((state: RootState) => state.reserverDetails?.reserverDetails);
   const reserverEmail = useSelector((state: RootState) => state.auth.account!.email);
   const dispatch = useDispatch();
@@ -88,6 +93,10 @@ const EditableContainer = () => {
   const lastName = reserverDetails?.lastName;
   const email = reserverEmail;
   const phoneNumber = reserverDetails?.phoneNumber;
+
+  useEffect(() => {
+    const resp = await listReserverDetails();
+  }, [])
 
   const handleCancel = () => setIsEditting(false);
   const handleSubmit = useCallback(
@@ -160,7 +169,7 @@ const EditableContainer = () => {
             initPhoneNumber={phoneNumber || ""}
             onSubmit={handleSubmit}
             onCancel={handleCancel}
-            isLoading={isLoading}
+            isLoading={updateDetailsIsLoading}
             externalError={error}
           />
         ) : (

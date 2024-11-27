@@ -622,6 +622,11 @@ export type UpdateReserverDetailsAccountMutationVariables = Exact<{
 
 export type UpdateReserverDetailsAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'ViewerMutations', updateReserverDetailsAccount: { __typename: 'UpdateReserverDetailsAccountFailure', failureReason: UpdateReserverDetailsAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateReserverDetailsAccountSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }, account: { __typename: 'Account', email: string } } } };
 
+export type ListReserverDetailsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ListReserverDetailsQuery = { __typename: 'Query', viewer: { __typename: 'ViewerQueries', reserverDetails: Array<{ __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }> } };
+
 export type SearchRegionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -798,6 +803,18 @@ export const UpdateReserverDetailsAccountDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<UpdateReserverDetailsAccountMutation, UpdateReserverDetailsAccountMutationVariables>;
+export const ListReserverDetailsDocument = new TypedDocumentString(`
+    query ListReserverDetails {
+  viewer {
+    reserverDetails {
+      id
+      firstName
+      lastName
+      phoneNumber
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<ListReserverDetailsQuery, ListReserverDetailsQueryVariables>;
 export const SearchRegionsDocument = new TypedDocumentString(`
     query SearchRegions {
   searchRegions {

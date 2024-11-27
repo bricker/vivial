@@ -1,0 +1,10 @@
+query ListReserverDetails {
+  viewer {
+    reserverDetails {
+      id
+      firstName
+      lastName
+      phoneNumber
+    }
+  }
+}

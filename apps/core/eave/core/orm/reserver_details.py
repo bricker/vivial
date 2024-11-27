@@ -58,8 +58,3 @@ class ReserverDetailsOrm(Base):
             errors.append(ValidationError(field="phone_number"))
 
         return errors
-
-    @classmethod
-    async def get_by_account(cls, session: AsyncSession, account_id: UUID, id: UUID) -> Self:
-        lookup = cls.select().where(cls.account_id == account_id).where(cls.id == id)
-        return (await session.scalars(lookup)).one()

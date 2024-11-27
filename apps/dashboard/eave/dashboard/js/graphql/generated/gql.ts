@@ -23,6 +23,7 @@ const documents = {
     "mutation ReplanOuting($input: ReplanOutingInput!) {\n  replanOuting(input: $input) {\n    __typename\n    ... on ReplanOutingSuccess {\n      outing {\n        id\n      }\n    }\n    ... on ReplanOutingFailure {\n      failureReason\n    }\n  }\n}": types.ReplanOutingDocument,
     "mutation SubmitReserverDetails($input: SubmitReserverDetailsInput!) {\n  viewer {\n    submitReserverDetails(input: $input) {\n      __typename\n      ... on SubmitReserverDetailsSuccess {\n        reserverDetails {\n          id\n        }\n      }\n      ... on SubmitReserverDetailsFailure {\n        failureReason\n        validationErrors {\n          field\n        }\n      }\n    }\n  }\n}": types.SubmitReserverDetailsDocument,
     "mutation UpdateReserverDetailsAccount($input: UpdateReserverDetailsAccountInput!) {\n  viewer {\n    updateReserverDetailsAccount(input: $input) {\n      __typename\n      ... on UpdateReserverDetailsAccountSuccess {\n        reserverDetails {\n          id\n          firstName\n          lastName\n          phoneNumber\n        }\n        account {\n          email\n        }\n      }\n      ... on UpdateReserverDetailsAccountFailure {\n        failureReason\n        validationErrors {\n          field\n        }\n      }\n    }\n  }\n}": types.UpdateReserverDetailsAccountDocument,
+    "query ListReserverDetails {\n  viewer {\n    reserverDetails {\n      id\n      firstName\n      lastName\n      phoneNumber\n    }\n  }\n}": types.ListReserverDetailsDocument,
     "query SearchRegions {\n  searchRegions {\n    id\n    name\n  }\n}": types.SearchRegionsDocument,
 };
 
@@ -58,6 +59,10 @@ export function graphql(source: "mutation SubmitReserverDetails($input: SubmitRe
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "mutation UpdateReserverDetailsAccount($input: UpdateReserverDetailsAccountInput!) {\n  viewer {\n    updateReserverDetailsAccount(input: $input) {\n      __typename\n      ... on UpdateReserverDetailsAccountSuccess {\n        reserverDetails {\n          id\n          firstName\n          lastName\n          phoneNumber\n        }\n        account {\n          email\n        }\n      }\n      ... on UpdateReserverDetailsAccountFailure {\n        failureReason\n        validationErrors {\n          field\n        }\n      }\n    }\n  }\n}"): typeof import('./graphql').UpdateReserverDetailsAccountDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query ListReserverDetails {\n  viewer {\n    reserverDetails {\n      id\n      firstName\n      lastName\n      phoneNumber\n    }\n  }\n}"): typeof import('./graphql').ListReserverDetailsDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
