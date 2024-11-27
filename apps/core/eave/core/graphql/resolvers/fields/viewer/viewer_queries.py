@@ -8,7 +8,7 @@ from eave.core.graphql.types.reserver_details import ReserverDetails
 
 
 @strawberry.type
-class ViewerQueries:
+class AuthenticatedViewerQueries:
     booked_outings: list[Outing] = strawberry.field(resolver=list_booked_outings_query)
     outing: Outing = strawberry.field(resolver=get_outing_query)
     reserver_details: list[ReserverDetails] = strawberry.field(resolver=list_reserver_details_query)

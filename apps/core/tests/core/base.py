@@ -1,16 +1,17 @@
 import os
 import unittest.mock
+from http import HTTPStatus
 from typing import Any, Protocol, TypeVar
 from uuid import UUID
 
 import sqlalchemy
 import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
-from google.cloud.bigquery import SchemaField
 from google.maps.places_v1.types import Place
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient, Response
 from sqlalchemy import literal_column, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
+from strawberry.types import ExecutionResult
 
 import eave.core.app
 import eave.core.database
@@ -25,6 +26,7 @@ from eave.core.orm.outing import OutingOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
+from eave.dev_tooling.constants import EAVE_HOME
 from eave.stdlib.config import SHARED_CONFIG
 
 
@@ -74,14 +76,13 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         self.db_session = eave.core.database.async_sessionmaker(engine, expire_on_commit=False)
         # self.db_session = eave.core.internal.database.async_session
 
-        # transport = httpx.ASGITransport(
-        #     app=eave.core.app.app,  # type:ignore
-        #     raise_app_exceptions=True,
-        # )
+        transport = ASGITransport(
+            app=eave.core.app.app,  # type:ignore
+            raise_app_exceptions=True,
+        )
         self.httpclient = AsyncClient(
-            app=eave.core.app.app,
             base_url=SHARED_CONFIG.eave_api_base_url_public,
-            # transport=transport,
+            transport=transport,
         )
 
         self._gql_cache = {}
@@ -102,7 +103,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
 
     def load_graphql_query(self, name: str) -> str:
         if name not in self._gql_cache:
-            with open(f"resolvers/graphql/{name}.graphql") as f:
+            with open(f"{EAVE_HOME}/apps/core/tests/core/resolvers/graphql/{name}.graphql") as f:
                 self._gql_cache[name] = f.read()
 
         return self._gql_cache[name]
@@ -119,7 +120,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
     async def delete(self, session: AsyncSession, /, obj: AnyStandardOrm) -> None:
         await session.delete(obj)
 
-    async def count(self, session: AsyncSession, /, cls: Any) -> int:
+    async def count(self, session: AsyncSession, /, cls: type[AnyStandardOrm]) -> int:
         query = select(safunc.count(cls.id))
         count: int | None = await session.scalar(query)
 
@@ -127,13 +128,35 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             count = 0
         return count
 
+    def parse_graphql_response(self, response: Response) -> ExecutionResult:
+        j = response.json()
+
+        result = ExecutionResult(
+            data=j.get("data"),
+            errors=j.get("errors"),
+        )
+
+        return result
+
+    async def make_graphql_request(self, query_name: str, variables: dict[str, Any]) -> Response:
+        response = await self.httpclient.post(
+            "/graphql",
+            json={
+                "query": self.load_graphql_query(query_name),
+                "variables": variables,
+            },
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        return response
+
     async def make_account(
         self,
         session: AsyncSession,
     ) -> AccountOrm:
         account = await AccountOrm.build(
-            email=self.anyemail(),
-            plaintext_password=self.anystr(),
+            email=self.anyemail("make_account.email"),
+            plaintext_password=self.anystr("make_account.plaintext_password"),
         ).save(session)
 
         return account
@@ -180,22 +203,3 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             ),
             return_value=MockPlacesResponse([]),
         )
-
-
-def assert_schemas_match(a: tuple[SchemaField, ...], b: tuple[SchemaField, ...]) -> None:
-    assert len(a) == len(b), "Field lengths do not match."
-
-    sorteda = sorted(a, key=lambda f: f.name)
-    sortedb = sorted(b, key=lambda f: f.name)
-
-    for idx, fielda in enumerate(sorteda):
-        fieldb = sortedb[idx]
-        assert fieldb.name == fielda.name, f"{fieldb.name} does not match expected {fielda.name}"
-        assert (
-            fieldb.field_type == fielda.field_type
-        ), f"{fieldb.field_type} does not match expected {fielda.field_type}"
-        assert fieldb.mode == fielda.mode, f"{fieldb.mode} does not match expected {fielda.mode}"
-        assert (
-            fieldb.default_value_expression == fielda.default_value_expression
-        ), f"{fieldb.default_value_expression} does not match expected {fielda.default_value_expression}"
-        assert_schemas_match(fielda.fields, fieldb.fields)

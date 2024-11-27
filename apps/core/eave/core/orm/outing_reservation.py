@@ -30,7 +30,7 @@ class OutingReservationOrm(Base):
     reservation_source: Mapped[str] = mapped_column()
     """ReservationSource enum value"""
     reservation_start_time: Mapped[datetime] = mapped_column()
-    num_attendees: Mapped[int] = mapped_column()
+    headcount: Mapped[int] = mapped_column(name="num_attendees")
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -42,14 +42,14 @@ class OutingReservationOrm(Base):
         reservation_id: str,
         reservation_source: RestaurantSource,
         reservation_start_time: datetime,
-        num_attendees: int,
+        headcount: int,
     ) -> "OutingReservationOrm":
         obj = OutingReservationOrm(
             outing_id=outing_id,
             reservation_id=reservation_id,
             reservation_source=reservation_source,
             reservation_start_time=reservation_start_time,
-            num_attendees=num_attendees,
+            headcount=headcount,
         )
 
         return obj

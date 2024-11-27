@@ -96,10 +96,9 @@
     "*test.py"
   ],
   "git.openRepositoryInParentFolders": "always",
-  "python.analysis.autoImportCompletions": true,
   "python.testing.pytestArgs": [
-    "--config-file=${workspaceFolder}/develop/python/configs/pytest.pyproject.toml",
-    ".",
+    "-c=${workspaceFolder}/develop/python/configs/pytest.pyproject.toml",
+    "--cov-config=${workspaceFolder}/develop/python/configs/coverage.toml"
   ],
   "python.analysis.exclude": [
     "**/node_modules",

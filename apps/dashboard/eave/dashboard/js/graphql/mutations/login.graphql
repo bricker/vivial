@@ -1,17 +1,16 @@
 mutation Login($input: LoginInput!) {
   login(input: $input) {
-    __typename
     ... on LoginSuccess {
+      __typename
+
       account {
         id
         email
       }
-      authTokens {
-        accessToken
-        refreshToken
-      }
     }
+
     ... on LoginFailure {
+      __typename
       failureReason
     }
   }

@@ -1,10 +1,10 @@
 module "cdn" {
-  source                 = "../../modules/cdn"
-  resource_domain        = local.resource_domain
-  dns_domain             = local.dns_domain
-  name                   = "cdn"
-  dns_zone_name          = module.dns_zone_base_domain.dns_zone_name
-  certificate_map_name   = module.project_base.certificate_map_name
-  ssl_policy_name        = module.project_base.ssl_policy_name
-  usage_logs_bucket_name = module.project_base.usage_logs_bucket_name
+  source = "../../modules/cdn"
+
+  resource_domain                            = local.resource_domain
+  name                                       = "cdn"
+  google_dns_managed_zone                    = module.dns_zone_base_domain.google_dns_managed_zone
+  google_certificate_manager_certificate_map = module.project_base.google_certificate_manager_certificate_map
+  google_compute_ssl_policy                  = module.project_base.google_compute_ssl_policy
+  usage_logs_bucket_name                     = module.project_base.usage_logs_bucket_name
 }

@@ -1,13 +1,19 @@
-[tool.coverage.report]
-include_namespace_packages = true
+# [tool.coverage.report]
+# This is disabled because it breaks the VSCode integration
+# include_namespace_packages = true
 
 [tool.coverage.run]
-data_file = "$EAVE_HOME/.coverage/data"
+# Note: The default data_file (.coverage) must be used because VSCode uses it.
 branch = true
+dynamic_context = "test_function"
+concurrency = ["greenlet"]
+omit = [
+  "*/tests/*",
+]
 
 [tool.coverage.xml]
-output = "$EAVE_HOME/.coverage/coverage.xml"
+output = ".coverage-reports/coverage.xml"
 
 [tool.coverage.html]
-directory = "$EAVE_HOME/.coverage/coverage_html"
+directory = ".coverage-reports/coverage_html"
 show_contexts = true

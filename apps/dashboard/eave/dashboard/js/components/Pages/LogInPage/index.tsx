@@ -31,7 +31,7 @@ const LogInPage = () => {
   const dispatch = useDispatch();
 
   const handleSubmit = useCallback(async ({ email, password }: { email: string; password: string }) => {
-    const resp = await login({ email, plaintextPassword: password });
+    const resp = await login({ input: { email, plaintextPassword: password } });
     const typename = resp.data?.data.login.__typename;
     switch (typename) {
       case "LoginSuccess": {

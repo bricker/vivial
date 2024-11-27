@@ -7,7 +7,7 @@ from typing import Literal, Self
 
 from eave.stdlib.config import SHARED_CONFIG
 
-from . import exceptions, signing
+from . import signing
 from . import util as eave_util
 
 ALLOWED_CLOCK_DRIFT_SECONDS = 60
@@ -98,6 +98,26 @@ class JWTPurpose(enum.StrEnum):
     REFRESH = "REFRESH"
 
 
+class InvalidTokenError(Exception):
+    pass
+
+
+class InvalidJWSError(InvalidTokenError):
+    pass
+
+
+class InvalidJWTError(InvalidTokenError):
+    pass
+
+
+class InvalidJWTClaimsError(InvalidJWTError):
+    pass
+
+
+class AccessTokenExpiredError(InvalidJWTClaimsError):
+    pass
+
+
 def create_jws(
     *,
     purpose: str,
@@ -153,6 +173,7 @@ def validate_jws_or_exception(
     expected_issuer: str,
     expected_audience: str,
     expected_purpose: JWTPurpose,
+    expired_ok: bool = False,
 ) -> JWS:
     """
     Validate the JWT according to https://datatracker.ietf.org/doc/html/rfc7519#section-7.2
@@ -174,25 +195,29 @@ def validate_jws_or_exception(
         kms_key_version_path=SHARED_CONFIG.jws_signing_key_version_path, kms_key_version_name=jws.header.kid
     )
 
-    signing.mac_verify_or_exception(
-        message=jws.message,
-        mac_b64=jws.signature,
-        kms_key_version_path=kms_key_version_path,
-    )
+    try:
+        signing.mac_verify(
+            message=jws.message,
+            mac_b64=jws.signature,
+            kms_key_version_path=kms_key_version_path,
+        )
+    except signing.InvalidSignatureError as e:
+        raise InvalidJWSError() from e
 
     expires_at = float(jws.payload.exp)
     not_before = float(jws.payload.nbf)
 
     if jws.payload.iss != expected_issuer:
-        raise exceptions.InvalidJWTError("iss")
+        raise InvalidJWTClaimsError("iss")
     if jws.payload.aud != expected_audience:
-        raise exceptions.InvalidJWTError("aud")
-    if now < not_before - ALLOWED_CLOCK_DRIFT_SECONDS:
-        raise exceptions.InvalidJWTError("nbf")
-    if now > expires_at + ALLOWED_CLOCK_DRIFT_SECONDS:
-        raise exceptions.InvalidJWTError("exp")
+        raise InvalidJWTClaimsError("aud")
     if jws.payload.pur != expected_purpose:
-        raise exceptions.InvalidJWTError("pur")
+        raise InvalidJWTClaimsError("pur")
+    if now < not_before - ALLOWED_CLOCK_DRIFT_SECONDS:
+        raise InvalidJWTClaimsError("nbf")
+    if now > expires_at + ALLOWED_CLOCK_DRIFT_SECONDS:
+        if not expired_ok:
+            raise AccessTokenExpiredError()
 
     return jws
 
@@ -211,20 +236,20 @@ def validate_jws_pair_or_exception(
     """
 
     if access_token.signature == refresh_token.signature:
-        raise exceptions.InvalidJWSError("matching tokens or signatures")
+        raise InvalidJWSError("matching tokens or signatures")
 
     if not access_token.payload.pur == JWTPurpose.ACCESS:
-        raise exceptions.InvalidJWSError("invalid purpose")
+        raise InvalidJWSError("invalid purpose")
     if not refresh_token.payload.pur == JWTPurpose.REFRESH:
-        raise exceptions.InvalidJWSError("invalid purpose")
+        raise InvalidJWSError("invalid purpose")
 
     if not access_token.payload.iss == refresh_token.payload.iss:
-        raise exceptions.InvalidJWSError("iss")
+        raise InvalidJWSError("iss")
     if not access_token.payload.aud == refresh_token.payload.aud:
-        raise exceptions.InvalidJWSError("aud")
+        raise InvalidJWSError("aud")
     if not access_token.payload.sub == refresh_token.payload.sub:
-        raise exceptions.InvalidJWSError("sub")
+        raise InvalidJWSError("sub")
     if not access_token.payload.jti == refresh_token.payload.jti:
-        raise exceptions.InvalidJWSError("jti")
+        raise InvalidJWSError("jti")
 
     return True

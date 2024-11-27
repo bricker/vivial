@@ -13,8 +13,6 @@ module "app_iam_role" {
   description = "Project permissions needed by the Core API App"
   base_roles = [
     "roles/logging.logWriter",
-    "roles/bigquery.dataOwner",
-    "roles/dlp.user",
   ]
 }
 

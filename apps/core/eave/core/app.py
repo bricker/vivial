@@ -5,41 +5,40 @@ import stripe
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.routing import Route
-from strawberry import Schema
 from strawberry.asgi import GraphQL
-from strawberry.schema.config import StrawberryConfig
 
 import eave.stdlib.time
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.endpoints.health import HealthEndpoint
+from eave.core.endpoints.logout import LogoutEndpoint
 from eave.core.endpoints.noop import NoopEndpoint
+from eave.core.endpoints.refresh_tokens import RefreshTokensEndpoint
 from eave.core.endpoints.status import StatusEndpoint
-from eave.core.endpoints.stripe_callback import StripeCallbackEndpoint
-from eave.core.graphql.mutation import Mutation
-from eave.core.graphql.query import Query
+from eave.core.starlette_exception_handlers import starlette_exception_handlers
 from eave.stdlib import cache
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
 
 from .database import async_engine
+from .graphql.schema import schema
 
 eave.stdlib.time.set_utc()
 
 try:
     stripe.api_key = CORE_API_APP_CONFIG.stripe_secret_key
 except Exception as e:
-    LOGGER.exception(e)
-    LOGGER.warning("Stripe API key not set! Stripe functionality will not work.")
+    if SHARED_CONFIG.is_local:
+        LOGGER.exception(e)
+        LOGGER.warning("Stripe API key not set! Stripe functionality will not work.")
+    else:
+        # This makes sure that the pod won't start in Kubernetes.
+        raise
 
-schema = Schema(
-    query=Query,
-    mutation=Mutation,
-    config=StrawberryConfig(
-        auto_camel_case=True,
-    ),
+graphql_app = GraphQL(
+    schema=schema,
+    allow_queries_via_get=False,
+    graphql_ide="graphiql" if SHARED_CONFIG.is_development else None,  # Disable graphiql in production
 )
-
-graphql_app = GraphQL(schema=schema)
 
 
 async def graceful_shutdown() -> None:
@@ -78,20 +77,28 @@ app = starlette.applications.Starlette(
             methods=[aiohttp.hdrs.METH_GET],
         ),
         Route(
-            path="/public/stripe/callback",
-            methods=[
-                aiohttp.hdrs.METH_GET,
-            ],
-            endpoint=StripeCallbackEndpoint,
-        ),
-        Route(
             path="/graphql",
             methods=[
                 aiohttp.hdrs.METH_POST,
             ],
             endpoint=graphql_app,
         ),
+        Route(
+            path="/public/logout",
+            endpoint=LogoutEndpoint,
+            methods=[
+                aiohttp.hdrs.METH_GET,
+            ],
+        ),
+        Route(
+            path="/public/refresh_tokens",
+            endpoint=RefreshTokensEndpoint,
+            methods=[
+                aiohttp.hdrs.METH_POST,
+            ],
+        ),
     ],
+    exception_handlers=starlette_exception_handlers,
     middleware=[
         # CORS is needed only for dashboard to API communications.
         Middleware(

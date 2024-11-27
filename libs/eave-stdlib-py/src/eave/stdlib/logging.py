@@ -78,7 +78,7 @@ class CustomFilter(logging.Filter):
 
     def filter(self, record: LogRecord) -> bool:
         log = super().filter(record)
-        if SHARED_CONFIG.log_level >= logging.DEBUG:
+        if SHARED_CONFIG.log_level == logging.DEBUG:
             return True
         else:
             return log and record.name in self._whitelist_records

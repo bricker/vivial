@@ -1,5 +1,21 @@
-mutation ($input: CreateAccountInput!) {
+mutation CreateAccount($input: CreateAccountInput!) {
   createAccount(input: $input) {
-    __typename
+    ...on CreateAccountSuccess {
+      __typename
+
+      account {
+        id
+        email
+      }
+    }
+
+    ...on CreateAccountFailure {
+      __typename
+      failureReason
+
+      validationErrors {
+        field
+      }
+    }
   }
 }

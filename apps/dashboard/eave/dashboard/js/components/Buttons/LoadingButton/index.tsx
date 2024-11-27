@@ -1,6 +1,6 @@
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import BaseLoadingButton from "@mui/lab/LoadingButton";
-import { styled } from "@mui/material";
+import { styled, type Theme } from "@mui/material";
 import { ButtonProps } from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import React from "react";
@@ -9,7 +9,7 @@ interface LoadingButtonProps extends ButtonProps {
   loading: boolean;
 }
 
-const CustomLoadingButton = styled(BaseLoadingButton)(({ theme }) => ({
+const CustomLoadingButton = styled(BaseLoadingButton)(({ theme }: { theme: Theme }) => ({
   color: theme.palette.common.black,
   backgroundColor: theme.palette.primary.main,
   height: rem("52px"),

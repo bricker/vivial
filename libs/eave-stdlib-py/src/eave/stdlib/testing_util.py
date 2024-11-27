@@ -14,7 +14,7 @@ from typing import Any, Literal, TypeVar
 
 from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
 
-import eave.stdlib.exceptions
+import eave.stdlib.http_exceptions
 import eave.stdlib.util
 from eave.stdlib.checksum import generate_checksum
 from eave.stdlib.config import SHARED_CONFIG
@@ -50,6 +50,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self.mock_google_services()
         self.mock_slack_client()
         self.mock_eventbrite()
+        self.mock_sendgrid_client()
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
@@ -490,6 +491,14 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             return_value="description",
         )
 
+    def mock_sendgrid_client(self) -> None:
+        self.patch(
+            name="SendGridAPIClient.send",
+            patch=unittest.mock.patch(
+                "sendgrid.SendGridAPIClient.send",
+            ),
+        )
+
     def logged_event(self, *args: Any, **kwargs: Any) -> bool:
         mock = self.get_mock("analytics")
         if not mock.called:
@@ -513,7 +522,11 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return False
 
     def patch(
-        self, patch: unittest.mock._patch, name: str | None = None, return_value: Any | None = None
+        self,
+        patch: unittest.mock._patch,
+        name: str | None = None,
+        return_value: Any | None = None,
+        side_effect: Any | None = None,
     ) -> unittest.mock.Mock:
         m = patch.start()
         m._testMethodName = self._testMethodName  # noqa: SLF001
@@ -526,6 +539,9 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         if return_value is not None:
             m.return_value = return_value
+
+        if side_effect is not None:
+            m.side_effect = side_effect
 
         self._active_patches[name] = patch
         self.active_mocks[name] = m

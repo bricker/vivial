@@ -26,6 +26,10 @@ export function makeCreatePaymentIntentOperation(): CreatePaymentIntentOperation
 
       try {
         const data = await executeOperation({ query: CreatePaymentIntentDocument, variables });
+        if (data.viewer.__typename !== "AuthenticatedViewerMutations") {
+          throw Error("unauthenticated");
+        }
+
         const result = data.viewer.createPaymentIntent;
 
         switch (result.__typename) {
