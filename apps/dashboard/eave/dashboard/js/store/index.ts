@@ -1,18 +1,32 @@
-import { configureStore, createListenerMiddleware } from "@reduxjs/toolkit";
+import { debounce } from "@mui/material";
+import { StateFromReducersMapObject, configureStore, createListenerMiddleware } from "@reduxjs/toolkit";
+import { loadState, saveState } from "./localStorage";
 import { authSlice } from "./slices/authSlice";
 import { coreApiSlice } from "./slices/coreApiSlice";
 import { reserverDetailsSlice } from "./slices/reserverDetailsSlice";
 
 const listenerMiddleware = createListenerMiddleware();
+const reducer = {
+  coreApi: coreApiSlice.reducer,
+  auth: authSlice.reducer,
+  reserverDetails: reserverDetailsSlice.reducer,
+};
+const preloadedState = loadState();
 const store = configureStore({
-  reducer: {
-    coreApi: coreApiSlice.reducer,
-    auth: authSlice.reducer,
-    reserverDetails: reserverDetailsSlice.reducer,
-  },
+  reducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().prepend(listenerMiddleware.middleware).concat(coreApiSlice.middleware),
+  preloadedState,
 });
 
-export type RootState = ReturnType<typeof store.getState>;
+// save state on every change, at most once per second
+store.subscribe(
+  debounce(() => {
+    saveState({
+      auth: store.getState().auth,
+    });
+  }, 1000),
+);
+
+export type RootState = StateFromReducersMapObject<typeof reducer>;
 export default store;
