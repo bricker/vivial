@@ -66,10 +66,6 @@ const StateContainer = styled("div")(() => ({
   padding: 32,
 }));
 
-const LoadingState = styled(CircularProgress)(({ theme }) => ({
-  // color: theme.palette.secondary
-}));
-
 const InfoDisplay = ({ name, email, phoneNumber }: { name: string; email: string; phoneNumber: string }) => {
   const displayContent: Array<{ label: string; value: string }> = [
     { label: "Name", value: name },
