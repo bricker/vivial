@@ -84,19 +84,37 @@ const EditableContainer = () => {
 
   const [updateReserverDetailsAccount, { isLoading: updateDetailsIsLoading }] =
     useUpdateReserverDetailsAccountMutation();
-  const [listReserverDetails, { isLoading: listDetailsIsLoading }] = useListReserverDetailsQuery();
+
+  /**
+   * Notes for Liam:
+   *
+   * Calling useListReserverDetailsQuery() actually sends the query to Core API,
+   * so you don't need that dispatch() that you had in the useEffect.
+   *
+   * If you add a console.log(data) directly below this line, you'll see that the
+   * reserver data you need will be availble in that object.
+   *
+   * As a reference, see the useGetPostsQuery() sample here:
+   * https://redux.js.org/tutorials/essentials/part-7-rtk-query-basics
+   *
+   * You should give that whole page a read-through actually, as RTK Query
+   * is unfortunately somewhat unintuitive 👀
+   */
+  const { data, isLoading } = useListReserverDetailsQuery();
+  console.log(data);
+
+  /**
+   * Notes for Liam:
+   *
+   * You don't need useSelector() here - the reserver data will be in the data
+   * object above.
+   */
   const reserverDetails = useSelector((state: RootState) => state.reserverDetails?.reserverDetails);
   const reserverEmail = useSelector((state: RootState) => state.auth.account!.email);
-  const dispatch = useDispatch();
-
   const firstName = reserverDetails?.firstName;
   const lastName = reserverDetails?.lastName;
   const email = reserverEmail;
   const phoneNumber = reserverDetails?.phoneNumber;
-
-  useEffect(() => {
-    const resp = await listReserverDetails();
-  }, [])
 
   const handleCancel = () => setIsEditting(false);
   const handleSubmit = useCallback(
