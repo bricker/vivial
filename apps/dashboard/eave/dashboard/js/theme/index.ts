@@ -41,8 +41,11 @@ export const theme = createTheme({
       default: colors.pureBlack,
     },
     grey: {
+      300: colors.grey[300],
+      400: colors.grey[400],
       500: colors.grey[500],
       800: colors.grey[800],
+      900: colors.grey[900],
     },
   },
   typography: {
@@ -71,7 +74,7 @@ export const theme = createTheme({
     },
     subtitle1: {
       fontSize: rem("14px"),
-      lineHeight: rem("20.5px"),
+      lineHeight: rem("20.513px"),
       fontWeight: 400,
     },
     subtitle2: {

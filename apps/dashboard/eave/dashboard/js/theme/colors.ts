@@ -21,7 +21,10 @@ export const colors = {
   passingGreen: "#54FF68",
   almostBlackBG: "#1E1E1E",
   grey: {
+    300: "#C3C1BC",
+    400: "#B3B3B3",
     500: "#8C8C8C",
     800: "#434343",
+    900: "#332C2D",
   },
 };
