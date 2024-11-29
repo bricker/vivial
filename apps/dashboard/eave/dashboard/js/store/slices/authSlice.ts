@@ -1,3 +1,4 @@
+import { getVisitorId, identify } from "$eave-dashboard/js/analytics/segment";
 import { createSlice } from "@reduxjs/toolkit";
 
 interface Account {
@@ -22,6 +23,14 @@ export const authSlice = createSlice({
     loggedIn: (state, action: { payload: { account: Account } }) => {
       state.isLoggedIn = true;
       state.account = action.payload.account;
+      getVisitorId()
+        .then((visitorId) => {
+          identify({
+            userId: action.payload.account.id,
+            extraProperties: { email: action.payload.account.email, visitorId },
+          });
+        })
+        .catch(/* ignore */);
     },
     loggedOut: (state) => {
       state.isLoggedIn = false;
@@ -29,10 +38,7 @@ export const authSlice = createSlice({
     },
     updateEmail: (state, action: { payload: { email: string } }) => {
       if (state.account) {
-        state.account = {
-          ...state.account,
-          email: action.payload.email,
-        };
+        state.account.email = action.payload.email;
       }
     },
   },

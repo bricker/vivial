@@ -29,9 +29,7 @@ import ScrollToTop from "./components/Util/ScrollToTop";
 import { AppContextProvider } from "./context";
 import { AppRoute } from "./routes";
 
-const fireAnalyticsPageView = (_: string) => {
-  void pageView({});
-};
+const fireAnalyticsPageView = (path: string) => pageView({ name: path });
 
 const App = () => {
   return (
