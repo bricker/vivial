@@ -593,7 +593,7 @@ export type UpdateReserverDetailsAccountMutationVariables = Exact<{
 }>;
 
 
-export type UpdateReserverDetailsAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateReserverDetailsAccount: { __typename: 'UpdateReserverDetailsAccountFailure', failureReason: UpdateReserverDetailsAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateReserverDetailsAccountSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }, account: { __typename: 'Account', email: string } } } | { __typename: 'UnauthenticatedViewer', reason: ViewerAuthenticationAction } };
+export type UpdateReserverDetailsAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateReserverDetailsAccount: { __typename: 'UpdateReserverDetailsAccountFailure', failureReason: UpdateReserverDetailsAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateReserverDetailsAccountSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }, account: { __typename: 'Account', id: string, email: string } } } | { __typename: 'UnauthenticatedViewer', reason: ViewerAuthenticationAction } };
 
 export type ListReserverDetailsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -785,6 +785,7 @@ export const UpdateReserverDetailsAccountDocument = new TypedDocumentString(`
             phoneNumber
           }
           account {
+            id
             email
           }
         }
