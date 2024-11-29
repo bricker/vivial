@@ -84,6 +84,7 @@ const DateSurveyPage = () => {
 
   const handleSubmit = useCallback(async () => {
     const visitorId = await getVisitorId();
+    // TODO: call planOuting mutation and dispatch response to store.
   }, []);
 
   useEffect(() => {
