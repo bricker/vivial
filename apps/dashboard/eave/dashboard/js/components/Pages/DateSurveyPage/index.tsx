@@ -137,7 +137,7 @@ const DateSurveyPage = () => {
             <SurveyButton
               onClick={() => setCalendarOpen(true)}
               highlightColor={colors.lightPurpleAccent}
-              highlighted={true}
+              highlighted
             >
               🕑 {startTimeLabel}
             </SurveyButton>
@@ -149,7 +149,7 @@ const DateSurveyPage = () => {
             <SurveyButton
               onClick={() => setAreasOpen(true)}
               highlightColor={colors.lightOrangeAccent}
-              highlighted={true}
+              highlighted
             >
               📍 {serachAreaLabel}
             </SurveyButton>
