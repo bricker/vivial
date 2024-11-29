@@ -1,5 +1,5 @@
-import React from "react";
 import { styled } from "@mui/material";
+import React from "react";
 
 const PaperContainer = styled("div")(({ theme }) => ({
   borderRadius: "14.984px",
@@ -9,7 +9,7 @@ const PaperContainer = styled("div")(({ theme }) => ({
 }));
 
 const Paper = (props: React.HTMLAttributes<HTMLDivElement>) => {
-  return <PaperContainer {...props } />;
-}
+  return <PaperContainer {...props} />;
+};
 
 export default Paper;

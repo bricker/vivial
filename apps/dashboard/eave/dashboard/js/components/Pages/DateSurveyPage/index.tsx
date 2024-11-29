@@ -1,8 +1,14 @@
-import React, { useCallback } from "react";
-import { rem } from "$eave-dashboard/js/theme/helpers/rem";
-import { colors } from "$eave-dashboard/js/theme/colors";
-import { styled } from "@mui/material";
+import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
+import { useGetSearchRegionsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import React, { useCallback, useEffect, useState } from "react";
 
+import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
+import { colors } from "$eave-dashboard/js/theme/colors";
+import { rem } from "$eave-dashboard/js/theme/helpers/rem";
+import { styled } from "@mui/material";
+import { getInitialStartTime } from "./helpers";
+
+import BaseSkeleton from "@mui/material/Skeleton";
 import Typography from "@mui/material/Typography";
 import HighlightButton from "../../Buttons/HighlightButton";
 import LoadingButton from "../../Buttons/LoadingButton";
@@ -10,6 +16,14 @@ import Paper from "../../Paper";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
+}));
+
+const Skeleton = styled(BaseSkeleton)(() => ({
+  marginBottom: 16,
+  borderRadius: "14.984px",
+  "&:last-of-type": {
+    marginBottom: 0,
+  },
 }));
 
 const Title = styled(Typography)(({ theme }) => ({
@@ -51,23 +65,47 @@ const SurveyButton = styled(HighlightButton)(() => ({
 }));
 
 const SubmitButton = styled(LoadingButton)(() => ({
-  marginTop: 8
+  marginTop: 8,
 }));
 
 const DateSurveyPage = () => {
-  const handleSubmit = useCallback(() => {
+  const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery();
+  const searchRegions = searchRegionsData?.data?.searchRegions;
 
+  const [budget, setBudget] = useState(OutingBudget.Expensive);
+  const [groupPreferences, setGroupPreferences] = useState([]);
+  const [headcount, setHeadcount] = useState(2);
+  const [searchAreaIds, setSearchAreaIds] = useState([""]);
+  const [serachAreaLabel, setSearchAreaLabel] = useState("Anywhere in LA");
+  const [startTime, setStartTime] = useState(getInitialStartTime());
+  const [startTimeLabel, getStartTimeLabel] = useState("Tomorrow @ 6pm");
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [areasOpen, setAreasOpen] = useState(false);
+
+  const handleSubmit = useCallback(async () => {
+    const visitorId = await getVisitorId();
   }, []);
+
+  useEffect(() => {
+    if (searchRegions) {
+      setSearchAreaIds(searchRegions.map((region) => region.id));
+    }
+  }, [searchRegions]);
+
+  if (searchRegionsAreLoading) {
+    return (
+      <PageContainer>
+        <Skeleton variant="rectangular" width="100%" height={218} />
+        <Skeleton variant="rectangular" width="100%" height={332} />
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer>
       <Paper>
-        <Title variant="h1">
-          One Click Date Picked
-        </Title>
-        <City>
-          🌴 Los Angeles, California
-        </City>
+        <Title variant="h1">One Click Date Picked</Title>
+        <City>🌴 Los Angeles, California</City>
         <Typography variant="subtitle1">
           Your free date planner. We cover all the details, and you only pay for experiences you book.
         </Typography>
@@ -76,10 +114,18 @@ const DateSurveyPage = () => {
         <SurveyRow>
           <SurveyRowTitle>Who:</SurveyRowTitle>
           <SurveyRowButtons>
-            <SurveyButton highlightColor={colors.lightPinkAccent} highlighted={true}>
+            <SurveyButton
+              onClick={() => setHeadcount(2)}
+              highlighted={headcount === 2}
+              highlightColor={colors.lightPinkAccent}
+            >
               👥 For 2
             </SurveyButton>
-            <SurveyButton highlightColor={colors.lightPinkAccent} highlighted={false}>
+            <SurveyButton
+              onClick={() => setHeadcount(1)}
+              highlighted={headcount === 1}
+              highlightColor={colors.lightPinkAccent}
+            >
               👤 Solo
             </SurveyButton>
           </SurveyRowButtons>
@@ -87,32 +133,56 @@ const DateSurveyPage = () => {
         <SurveyRow>
           <SurveyRowTitle>When:</SurveyRowTitle>
           <SurveyRowButtons>
-            <SurveyButton highlightColor={colors.lightPurpleAccent} highlighted={true}>
-              🕑 Tomorrow @ 6pm
+            <SurveyButton
+              onClick={() => setCalendarOpen(true)}
+              highlightColor={colors.lightPurpleAccent}
+              highlighted={true}
+            >
+              🕑 {startTimeLabel}
             </SurveyButton>
           </SurveyRowButtons>
         </SurveyRow>
         <SurveyRow>
           <SurveyRowTitle>Where:</SurveyRowTitle>
           <SurveyRowButtons>
-            <SurveyButton highlightColor={colors.lightOrangeAccent} highlighted={true}>
-              📍 Anywhere in LA
+            <SurveyButton
+              onClick={() => setAreasOpen(true)}
+              highlightColor={colors.lightOrangeAccent}
+              highlighted={true}
+            >
+              📍 {serachAreaLabel}
             </SurveyButton>
           </SurveyRowButtons>
         </SurveyRow>
         <SurveyRow>
           <SurveyRowTitle>Price:</SurveyRowTitle>
           <SurveyRowButtons>
-            <SurveyButton highlightColor={colors.mediumPurpleAccent} highlighted={false}>
+            <SurveyButton
+              onClick={() => setBudget(OutingBudget.Inexpensive)}
+              highlighted={budget === OutingBudget.Inexpensive}
+              highlightColor={colors.mediumPurpleAccent}
+            >
               $
             </SurveyButton>
-            <SurveyButton highlightColor={colors.mediumPurpleAccent} highlighted={false}>
+            <SurveyButton
+              onClick={() => setBudget(OutingBudget.Moderate)}
+              highlighted={budget === OutingBudget.Moderate}
+              highlightColor={colors.mediumPurpleAccent}
+            >
               $$
             </SurveyButton>
-            <SurveyButton highlightColor={colors.mediumPurpleAccent} highlighted={true}>
+            <SurveyButton
+              onClick={() => setBudget(OutingBudget.Expensive)}
+              highlighted={budget === OutingBudget.Expensive}
+              highlightColor={colors.mediumPurpleAccent}
+            >
               $$$
             </SurveyButton>
-            <SurveyButton highlightColor={colors.mediumPurpleAccent} highlighted={false}>
+            <SurveyButton
+              onClick={() => setBudget(OutingBudget.VeryExpensive)}
+              highlighted={budget === OutingBudget.VeryExpensive}
+              highlightColor={colors.mediumPurpleAccent}
+            >
               $$$$
             </SurveyButton>
           </SurveyRowButtons>

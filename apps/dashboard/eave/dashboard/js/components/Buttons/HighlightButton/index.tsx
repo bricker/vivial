@@ -1,7 +1,7 @@
-import React from "react";
 import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { styled } from "@mui/material";
 import BaseButton, { ButtonProps } from "@mui/material/Button";
+import React from "react";
 
 interface HighlightButtonProps extends ButtonProps {
   highlighted: boolean;
@@ -9,7 +9,7 @@ interface HighlightButtonProps extends ButtonProps {
 }
 
 const Button = styled(BaseButton, {
-  shouldForwardProp: (prop: string) => !['highlighted', 'highlightColor'].includes(prop),
+  shouldForwardProp: (prop: string) => !["highlighted", "highlightColor"].includes(prop),
 })<HighlightButtonProps>(({ highlighted, highlightColor, theme }) => ({
   fontFamily: fontFamilies.inter,
   backgroundColor: theme.palette.grey[900],
@@ -20,16 +20,15 @@ const Button = styled(BaseButton, {
   padding: "0 16px",
   height: 40,
   borderRadius: "111.889px",
-  ...(highlighted &&
-    {
-      border: `1.039px solid ${highlightColor}`,
-      color: highlightColor,
-      fontWeight: 500,
-    }),
+  ...(highlighted && {
+    border: `1.039px solid ${highlightColor}`,
+    color: highlightColor,
+    fontWeight: 500,
+  }),
 }));
 
 const HighlightButton = (props: HighlightButtonProps) => {
-  return <Button {...props} />
-}
+  return <Button {...props} />;
+};
 
 export default HighlightButton;

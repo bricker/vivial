@@ -33,7 +33,7 @@ export const coreApiSlice = createApi({
     /**
      * Core API - GraphQL Queries
      */
-    getSearchRegions: builder.query<SearchRegionsQuery, void>({
+    getSearchRegions: builder.query<{ data: SearchRegionsQuery }, void>({
       query: () => ({ ...gqlParams, body: { query: SearchRegionsDocument } }),
     }),
     listReserverDetails: builder.query<{ data: ListReserverDetailsQuery }, void>({
