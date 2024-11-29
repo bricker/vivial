@@ -1,9 +1,7 @@
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
-import React, { useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
 
-import { AppRoute } from "$eave-dashboard/js/routes";
 import Typography from "@mui/material/Typography";
 import BackButton from "../../Buttons/BackButton";
 
@@ -33,13 +31,9 @@ interface LegalPageProps {
 }
 
 const LegalPage = ({ title, children }: LegalPageProps) => {
-  const navigate = useNavigate();
-  const handleBack = useCallback(() => {
-    navigate(AppRoute.root);
-  }, []);
   return (
     <PageContainer>
-      <BackButton onClick={handleBack} />
+      <BackButton />
       <CopyContainer>
         <Title variant="h2">{title}</Title>
         <Body>{children}</Body>

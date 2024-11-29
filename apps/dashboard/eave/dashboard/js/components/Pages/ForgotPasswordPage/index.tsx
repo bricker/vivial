@@ -1,9 +1,7 @@
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
-import React, { useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
 
-import { AppRoute } from "$eave-dashboard/js/routes";
 import Typography from "@mui/material/Typography";
 import BackButton from "../../Buttons/BackButton";
 import ExternalLink from "../../Links/ExternalLink";
@@ -25,13 +23,9 @@ const Subtitle = styled(Typography)(() => ({
 }));
 
 const ForgotPasswordPage = () => {
-  const navigate = useNavigate();
-  const handleBack = useCallback(() => {
-    navigate(AppRoute.login);
-  }, []);
   return (
     <PageContainer>
-      <BackButton onClick={handleBack} />
+      <BackButton />
       <CopyContainer>
         <Typography variant="h3">Forgot password?</Typography>
         <Subtitle>
