@@ -2,11 +2,11 @@ import { CssBaseline, ThemeProvider } from "@mui/material";
 import React from "react";
 import { CookiesProvider, withCookies } from "react-cookie";
 import { Helmet } from "react-helmet";
-import { Provider as StoreProvider } from "react-redux";
+import { Provider as StoreProvider, useSelector } from "react-redux";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import { pageView } from "./analytics/segment";
-import store from "./store";
+import store, { RootState } from "./store";
 import { theme } from "./theme";
 
 import GlobalLayout from "./components/Global/GlobalLayout";
@@ -26,52 +26,22 @@ import RouteChangeTracker from "./components/Util/RouteChangeTracker";
 import ScrollToTop from "./components/Util/ScrollToTop";
 
 // TODO: Remove AppContextProvider in favor of Redux.
+import AccountPreferencesPage from "./components/Pages/AccountPreferencesPage";
+import PasswordResetPage from "./components/Pages/PasswordResetPage";
+import { PrivateRoutes } from "./components/Util/PrivateRoutes";
 import { AppContextProvider } from "./context";
 import { AppRoute } from "./routes";
 
 const fireAnalyticsPageView = (path: string) => pageView({ name: path });
 
-const App = () => {
+const ProviderWrappers = () => {
   return (
     <StoreProvider store={store}>
       {/* TODO: Remove AppContextProvider in favor of Redux. */}
       <AppContextProvider>
         <CookiesProvider>
           <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <Helmet>
-              <title>Vivial - One Click Date Picked</title>
-            </Helmet>
-            <BrowserRouter>
-              <ScrollToTop />
-              <RouteChangeTracker onRouteChange={fireAnalyticsPageView} />
-              <Routes>
-                <Route path={AppRoute.root} element={<GlobalLayout />}>
-                  <Route index element={<DateSurveyPage />} />
-                  <Route path={AppRoute.login} element={<LogInPage />} />
-                  <Route path={AppRoute.forgotPassword} element={<ForgotPasswordPage />} />
-                  <Route path={AppRoute.signup} element={<SignUpPage />} />
-                  <Route path={AppRoute.account} element={<AccountPage />} />
-                  <Route path={AppRoute.plans} element={<PlansPage />} />
-                  <Route path={AppRoute.help} element={<HelpPage />} />
-                  <Route path={AppRoute.terms} element={<TermsPage />} />
-                  <Route path={AppRoute.privacy} element={<PrivacyPage />} />
-                  <Route path={AppRoute.bookingConfirmation} element={<BookingConfirmationPage />} />
-
-                  {/* TODO: Remove /payment-example Route. */}
-                  <Route
-                    path={AppRoute.payment}
-                    element={
-                      <StripeElementsProvider>
-                        <PaymentExamplePage />
-                      </StripeElementsProvider>
-                    }
-                  />
-
-                  <Route path="*" element={<Navigate to={AppRoute.root} />} />
-                </Route>
-              </Routes>
-            </BrowserRouter>
+            <App />
           </ThemeProvider>
         </CookiesProvider>
       </AppContextProvider>
@@ -79,4 +49,57 @@ const App = () => {
   );
 };
 
-export default withCookies(App);
+const App = () => {
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
+  return (
+    <>
+      <CssBaseline />
+      <Helmet>
+        <title>Vivial - One Click Date Picked</title>
+      </Helmet>
+      <BrowserRouter>
+        <ScrollToTop />
+        <RouteChangeTracker onRouteChange={fireAnalyticsPageView} />
+        <Routes>
+          <Route path={AppRoute.root} element={<GlobalLayout />}>
+            {/* always public routes */}
+            <Route index element={<DateSurveyPage />} />
+            <Route path={AppRoute.terms} element={<TermsPage />} />
+            <Route path={AppRoute.privacy} element={<PrivacyPage />} />
+
+            {/* un-authed only routes */}
+            <Route element={<PrivateRoutes hasPermissions={!isLoggedIn} redirectPath={AppRoute.root} />}>
+              <Route path={AppRoute.login} element={<LogInPage />} />
+              <Route path={AppRoute.signup} element={<SignUpPage />} />
+              <Route path={AppRoute.forgotPassword} element={<ForgotPasswordPage />} />
+            </Route>
+
+            {/* auth only routes */}
+            <Route element={<PrivateRoutes hasPermissions={!!isLoggedIn} redirectPath={AppRoute.login} />}>
+              <Route path={AppRoute.account} element={<AccountPage />} />
+              <Route path={AppRoute.plans} element={<PlansPage />} />
+              <Route path={AppRoute.help} element={<HelpPage />} />
+              <Route path={AppRoute.bookingConfirmation} element={<BookingConfirmationPage />} />
+              <Route path={AppRoute.passwordReset} element={<PasswordResetPage />} />
+              <Route path={AppRoute.accountPreferences} element={<AccountPreferencesPage />} />
+            </Route>
+
+            {/* TODO: Remove /payment-example Route. */}
+            <Route
+              path={AppRoute.payment}
+              element={
+                <StripeElementsProvider>
+                  <PaymentExamplePage />
+                </StripeElementsProvider>
+              }
+            />
+
+            <Route path="*" element={<Navigate to={AppRoute.root} />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </>
+  );
+};
+
+export default withCookies(ProviderWrappers);
