@@ -25,12 +25,14 @@ export const authSlice = createSlice({
       state.account = action.payload.account;
       getVisitorId()
         .then((visitorId) => {
-          identify({
+          return identify({
             userId: action.payload.account.id,
             extraProperties: { email: action.payload.account.email, visitorId },
           });
         })
-        .catch(/* ignore */);
+        .catch(() => {
+          /* noop ignore analytics errors */
+        });
     },
     loggedOut: (state) => {
       state.isLoggedIn = false;
