@@ -572,7 +572,7 @@ export type PlanOutingMutationVariables = Exact<{
 }>;
 
 
-export type PlanOutingMutation = { __typename: 'Mutation', planOuting: { __typename: 'PlanOutingFailure', failureReason: PlanOutingFailureReason } | { __typename: 'PlanOutingSuccess', outing: { __typename: 'Outing', id: string } } };
+export type PlanOutingMutation = { __typename: 'Mutation', planOuting: { __typename: 'PlanOutingFailure', failureReason: PlanOutingFailureReason } | { __typename: 'PlanOutingSuccess', outing: { __typename: 'Outing', id: string, headcount: number, activityStartTime?: string | null, restaurantArrivalTime?: string | null, drivingTime?: string | null, activity?: { __typename: 'Activity', id: string, source: ActivitySource, name: string, description: string, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri: string, latitude: number, longitude: number, formattedAddress: string } }, photos?: { __typename: 'Photos', coverPhotoUri: string, supplementalPhotoUris?: Array<string> | null } | null, ticketInfo?: { __typename: 'ActivityTicketInfo', type?: string | null, notes?: string | null, cost?: number | null, fee?: number | null, tax?: number | null } | null } | null, restaurant?: { __typename: 'Restaurant', id: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri: string, latitude: number, longitude: number, formattedAddress: string }, photos?: { __typename: 'Photos', coverPhotoUri: string, supplementalPhotoUris?: Array<string> | null } | null } | null } } };
 
 export type ReplanOutingMutationVariables = Exact<{
   input: ReplanOutingInput;
@@ -714,10 +714,65 @@ export const LoginDocument = new TypedDocumentString(`
 export const PlanOutingDocument = new TypedDocumentString(`
     mutation PlanOuting($input: PlanOutingInput!) {
   planOuting(input: $input) {
-    __typename
     ... on PlanOutingSuccess {
       outing {
         id
+        headcount
+        activityStartTime
+        restaurantArrivalTime
+        drivingTime
+        activity {
+          id
+          source
+          name
+          description
+          websiteUri
+          doorTips
+          insiderTips
+          parkingTips
+          venue {
+            name
+            location {
+              directionsUri
+              latitude
+              longitude
+              formattedAddress
+            }
+          }
+          photos {
+            coverPhotoUri
+            supplementalPhotoUris
+          }
+          ticketInfo {
+            type
+            notes
+            cost
+            fee
+            tax
+          }
+        }
+        restaurant {
+          id
+          source
+          name
+          reservable
+          rating
+          primaryTypeName
+          websiteUri
+          description
+          parkingTips
+          customerFavorites
+          location {
+            directionsUri
+            latitude
+            longitude
+            formattedAddress
+          }
+          photos {
+            coverPhotoUri
+            supplementalPhotoUris
+          }
+        }
       }
     }
     ... on PlanOutingFailure {
