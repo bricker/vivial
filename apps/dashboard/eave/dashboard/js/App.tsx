@@ -11,43 +11,26 @@ import { theme } from "./theme";
 
 import GlobalLayout from "./components/Global/GlobalLayout";
 import AccountPage from "./components/Pages/AccountPage";
+import AccountPreferencesPage from "./components/Pages/AccountPreferencesPage";
 import BookingConfirmationPage from "./components/Pages/BookingConfirmationPage/index";
 import DateSurveyPage from "./components/Pages/DateSurveyPage";
 import ForgotPasswordPage from "./components/Pages/ForgotPasswordPage";
 import HelpPage from "./components/Pages/HelpPage";
 import LogInPage from "./components/Pages/LogInPage";
+import PasswordResetPage from "./components/Pages/PasswordResetPage";
 import PaymentExamplePage from "./components/Pages/PaymentExamplePage/index";
 import PlansPage from "./components/Pages/PlansPage";
 import PrivacyPage from "./components/Pages/PrivacyPage";
 import SignUpPage from "./components/Pages/SignUpPage";
 import TermsPage from "./components/Pages/TermsPage";
 import StripeElementsProvider from "./components/StripeElementsProvider";
+import { PrivateRoutes } from "./components/Util/PrivateRoutes";
 import RouteChangeTracker from "./components/Util/RouteChangeTracker";
 import ScrollToTop from "./components/Util/ScrollToTop";
-
-// TODO: Remove AppContextProvider in favor of Redux.
-import AccountPreferencesPage from "./components/Pages/AccountPreferencesPage";
-import PasswordResetPage from "./components/Pages/PasswordResetPage";
-import { PrivateRoutes } from "./components/Util/PrivateRoutes";
 import { AppContextProvider } from "./context";
 import { AppRoute } from "./routes";
 
 const fireAnalyticsPageView = (path: string) => pageView({ name: path });
-
-const ProviderWrappers = () => {
-  return (
-    <StoreProvider store={store}>
-      {/* TODO: Remove AppContextProvider in favor of Redux. */}
-      <AppContextProvider>
-        <CookiesProvider>
-          <ThemeProvider theme={theme}>
-            <App />
-          </ThemeProvider>
-        </CookiesProvider>
-      </AppContextProvider>
-    </StoreProvider>
-  );
-};
 
 const App = () => {
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
@@ -102,4 +85,19 @@ const App = () => {
   );
 };
 
-export default withCookies(ProviderWrappers);
+const ProviderWrappedApp = () => {
+  return (
+    <StoreProvider store={store}>
+      {/* TODO: Remove AppContextProvider in favor of Redux. */}
+      <AppContextProvider>
+        <CookiesProvider>
+          <ThemeProvider theme={theme}>
+            <App />
+          </ThemeProvider>
+        </CookiesProvider>
+      </AppContextProvider>
+    </StoreProvider>
+  );
+};
+
+export default withCookies(ProviderWrappedApp);
