@@ -3,16 +3,15 @@ import { useGetSearchRegionsQuery } from "$eave-dashboard/js/store/slices/coreAp
 import React, { useCallback, useEffect, useState } from "react";
 
 import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
-import { colors } from "$eave-dashboard/js/theme/colors";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 import { getInitialStartTime } from "./helpers";
 
 import BaseSkeleton from "@mui/material/Skeleton";
 import Typography from "@mui/material/Typography";
-import HighlightButton from "../../Buttons/HighlightButton";
-import LoadingButton from "../../Buttons/LoadingButton";
+import Modal from "../../Modal";
 import Paper from "../../Paper";
+import DateSelections from "../../Selections/DateSelections";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
@@ -26,7 +25,7 @@ const Skeleton = styled(BaseSkeleton)(() => ({
   },
 }));
 
-const Title = styled(Typography)(({ theme }) => ({
+const Title = styled(Typography)(() => ({
   maxWidth: 250,
   marginBottom: 4,
 }));
@@ -38,34 +37,8 @@ const City = styled(Typography)(({ theme }) => ({
   marginBottom: 8,
 }));
 
-const Survey = styled(Paper)(({ theme }) => ({
+const DateSurvey = styled(Paper)(() => ({
   marginTop: 16,
-}));
-
-const SurveyRow = styled("div")(() => ({
-  display: "flex",
-  alignItems: "center",
-  marginBottom: 16,
-}));
-
-const SurveyRowTitle = styled("div")(({ theme }) => ({
-  color: theme.palette.grey[400],
-  fontSize: rem("16px"),
-  lineHeight: rem("19px"),
-  fontWeight: 500,
-  minWidth: 60,
-}));
-
-const SurveyRowButtons = styled("div")(() => ({
-  display: "flex",
-}));
-
-const SurveyButton = styled(HighlightButton)(() => ({
-  marginRight: 8,
-}));
-
-const SubmitButton = styled(LoadingButton)(() => ({
-  marginTop: 8,
 }));
 
 const DateSurveyPage = () => {
@@ -73,19 +46,35 @@ const DateSurveyPage = () => {
   const searchRegions = searchRegionsData?.data?.searchRegions;
 
   const [budget, setBudget] = useState(OutingBudget.Expensive);
-  const [groupPreferences, setGroupPreferences] = useState([]);
+  // const [groupPreferences, setGroupPreferences] = useState([]);
   const [headcount, setHeadcount] = useState(2);
   const [searchAreaIds, setSearchAreaIds] = useState([""]);
   const [serachAreaLabel, setSearchAreaLabel] = useState("Anywhere in LA");
   const [startTime, setStartTime] = useState(getInitialStartTime());
-  const [startTimeLabel, getStartTimeLabel] = useState("Tomorrow @ 6pm");
-  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [startTimeLabel, setStartTimeLabel] = useState("Tomorrow @ 6pm");
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [areasOpen, setAreasOpen] = useState(false);
 
   const handleSubmit = useCallback(async () => {
     const visitorId = await getVisitorId();
     // TODO: call planOuting mutation and dispatch response to store.
   }, []);
+
+  const handleHeadcountClick = useCallback((value: number) => {
+    setHeadcount(value);
+  }, []);
+
+  const handleBudgetClick = useCallback((value: OutingBudget) => {
+    setBudget(value);
+  }, []);
+
+  const toggleDatePickerOpen = useCallback(() => {
+    setDatePickerOpen(!datePickerOpen);
+  }, [datePickerOpen]);
+
+  const toggleAreasOpen = useCallback(() => {
+    setAreasOpen(!areasOpen);
+  }, [areasOpen]);
 
   useEffect(() => {
     if (searchRegions) {
@@ -111,87 +100,26 @@ const DateSurveyPage = () => {
           Your free date planner. We cover all the details, and you only pay for experiences you book.
         </Typography>
       </Paper>
-      <Survey>
-        <SurveyRow>
-          <SurveyRowTitle>Who:</SurveyRowTitle>
-          <SurveyRowButtons>
-            <SurveyButton
-              onClick={() => setHeadcount(2)}
-              highlighted={headcount === 2}
-              highlightColor={colors.lightPinkAccent}
-            >
-              👥 For 2
-            </SurveyButton>
-            <SurveyButton
-              onClick={() => setHeadcount(1)}
-              highlighted={headcount === 1}
-              highlightColor={colors.lightPinkAccent}
-            >
-              👤 Solo
-            </SurveyButton>
-          </SurveyRowButtons>
-        </SurveyRow>
-        <SurveyRow>
-          <SurveyRowTitle>When:</SurveyRowTitle>
-          <SurveyRowButtons>
-            <SurveyButton
-              onClick={() => setCalendarOpen(true)}
-              highlightColor={colors.lightPurpleAccent}
-              highlighted
-            >
-              🕑 {startTimeLabel}
-            </SurveyButton>
-          </SurveyRowButtons>
-        </SurveyRow>
-        <SurveyRow>
-          <SurveyRowTitle>Where:</SurveyRowTitle>
-          <SurveyRowButtons>
-            <SurveyButton
-              onClick={() => setAreasOpen(true)}
-              highlightColor={colors.lightOrangeAccent}
-              highlighted
-            >
-              📍 {serachAreaLabel}
-            </SurveyButton>
-          </SurveyRowButtons>
-        </SurveyRow>
-        <SurveyRow>
-          <SurveyRowTitle>Price:</SurveyRowTitle>
-          <SurveyRowButtons>
-            <SurveyButton
-              onClick={() => setBudget(OutingBudget.Inexpensive)}
-              highlighted={budget === OutingBudget.Inexpensive}
-              highlightColor={colors.mediumPurpleAccent}
-            >
-              $
-            </SurveyButton>
-            <SurveyButton
-              onClick={() => setBudget(OutingBudget.Moderate)}
-              highlighted={budget === OutingBudget.Moderate}
-              highlightColor={colors.mediumPurpleAccent}
-            >
-              $$
-            </SurveyButton>
-            <SurveyButton
-              onClick={() => setBudget(OutingBudget.Expensive)}
-              highlighted={budget === OutingBudget.Expensive}
-              highlightColor={colors.mediumPurpleAccent}
-            >
-              $$$
-            </SurveyButton>
-            <SurveyButton
-              onClick={() => setBudget(OutingBudget.VeryExpensive)}
-              highlighted={budget === OutingBudget.VeryExpensive}
-              highlightColor={colors.mediumPurpleAccent}
-            >
-              $$$$
-            </SurveyButton>
-          </SurveyRowButtons>
-        </SurveyRow>
-        <SubmitButton onClick={handleSubmit} loading={false} fullWidth>
-          🎲 Pick my date
-        </SubmitButton>
-      </Survey>
+      <DateSurvey>
+        <DateSelections
+          cta="🎲 Pick my date"
+          headcount={headcount}
+          startTime={startTimeLabel}
+          searchArea={serachAreaLabel}
+          budget={budget}
+          onSubmit={handleSubmit}
+          onHeadcountClick={handleHeadcountClick}
+          onStartTimeClick={toggleDatePickerOpen}
+          onSearchAreaClick={toggleAreasOpen}
+          onBudgetClick={handleBudgetClick}
+        />
+      </DateSurvey>
+      <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
+        SEARCH AREAS
+      </Modal>
+      <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={datePickerOpen}>
+        DATE PICKER
+      </Modal>
     </PageContainer>
   );
 };

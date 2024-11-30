@@ -16,6 +16,7 @@ const Footer = styled("footer")(() => ({
   flexDirection: "column",
   justifyContent: "center",
   flex: "0 0 140px",
+  zIndex: 0,
 }));
 
 const FootNote = styled("p")(({ theme }) => ({
