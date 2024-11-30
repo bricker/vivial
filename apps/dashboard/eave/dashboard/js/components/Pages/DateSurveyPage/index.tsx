@@ -46,7 +46,7 @@ const DateSurveyPage = () => {
   const searchRegions = searchRegionsData?.data?.searchRegions;
 
   const [budget, setBudget] = useState(OutingBudget.Expensive);
-  // const [groupPreferences, setGroupPreferences] = useState([]);
+  const [groupPreferences, setGroupPreferences] = useState([]);
   const [headcount, setHeadcount] = useState(2);
   const [searchAreaIds, setSearchAreaIds] = useState([""]);
   const [serachAreaLabel, setSearchAreaLabel] = useState("Anywhere in LA");
