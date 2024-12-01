@@ -714,6 +714,7 @@ export const LoginDocument = new TypedDocumentString(`
 export const PlanOutingDocument = new TypedDocumentString(`
     mutation PlanOuting($input: PlanOutingInput!) {
   planOuting(input: $input) {
+    __typename
     ... on PlanOutingSuccess {
       outing {
         id

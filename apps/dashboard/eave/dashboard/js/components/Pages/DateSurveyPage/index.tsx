@@ -11,6 +11,7 @@ import BaseSkeleton from "@mui/material/Skeleton";
 import Typography from "@mui/material/Typography";
 import Modal from "../../Modal";
 import Paper from "../../Paper";
+import DateAreaSelections from "../../Selections/DateAreaSelections";
 import DateSelections from "../../Selections/DateSelections";
 
 const PageContainer = styled("div")(() => ({
@@ -60,12 +61,18 @@ const DateSurveyPage = () => {
     // TODO: call planOuting mutation and dispatch response to store.
   }, []);
 
-  const handleHeadcountClick = useCallback((value: number) => {
+  const handleSelectHeadcount = useCallback((value: number) => {
     setHeadcount(value);
   }, []);
 
-  const handleBudgetClick = useCallback((value: OutingBudget) => {
+  const handleSelectBudget = useCallback((value: OutingBudget) => {
     setBudget(value);
+  }, []);
+
+  const handleSelectSearchAreas = useCallback((searchAreaIds: string[]) => {
+    console.log(searchAreaIds);
+
+    setSearchAreaIds(searchAreaIds);
   }, []);
 
   const toggleDatePickerOpen = useCallback(() => {
@@ -108,14 +115,14 @@ const DateSurveyPage = () => {
           searchArea={serachAreaLabel}
           budget={budget}
           onSubmit={handleSubmit}
-          onHeadcountClick={handleHeadcountClick}
-          onStartTimeClick={toggleDatePickerOpen}
-          onSearchAreaClick={toggleAreasOpen}
-          onBudgetClick={handleBudgetClick}
+          onSelectHeadcount={handleSelectHeadcount}
+          onSelectBudget={handleSelectBudget}
+          onSelectStartTime={toggleDatePickerOpen}
+          onSelectSearchArea={toggleAreasOpen}
         />
       </DateSurvey>
       <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
-        SEARCH AREAS
+        <DateAreaSelections cta="Save" regions={searchRegions} onSubmit={handleSelectSearchAreas} />
       </Modal>
       <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={datePickerOpen}>
         DATE PICKER
