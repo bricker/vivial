@@ -43,10 +43,10 @@ interface DateSelectionsProps {
   searchArea: string;
   budget: OutingBudget;
   onSubmit: () => void;
-  onHeadcountClick: (value: number) => void;
-  onBudgetClick: (value: OutingBudget) => void;
-  onStartTimeClick: () => void;
-  onSearchAreaClick: () => void;
+  onSelectHeadcount: (value: number) => void;
+  onSelectBudget: (value: OutingBudget) => void;
+  onSelectStartTime: () => void;
+  onSelectSearchArea: () => void;
 }
 
 const DateSelections = ({
@@ -56,10 +56,10 @@ const DateSelections = ({
   searchArea,
   budget,
   onSubmit,
-  onHeadcountClick,
-  onStartTimeClick,
-  onSearchAreaClick,
-  onBudgetClick,
+  onSelectHeadcount,
+  onSelectBudget,
+  onSelectStartTime,
+  onSelectSearchArea,
 }: DateSelectionsProps) => {
   return (
     <>
@@ -67,14 +67,14 @@ const DateSelections = ({
         <RowTitle>Who:</RowTitle>
         <RowButtons>
           <SelectButton
-            onClick={() => onHeadcountClick(2)}
+            onClick={() => onSelectHeadcount(2)}
             highlighted={headcount === 2}
             highlightColor={colors.lightPinkAccent}
           >
             👥 For 2
           </SelectButton>
           <SelectButton
-            onClick={() => onHeadcountClick(1)}
+            onClick={() => onSelectHeadcount(1)}
             highlighted={headcount === 1}
             highlightColor={colors.lightPinkAccent}
           >
@@ -85,7 +85,7 @@ const DateSelections = ({
       <Row>
         <RowTitle>When:</RowTitle>
         <RowButtons>
-          <SelectButton onClick={onStartTimeClick} highlightColor={colors.lightPurpleAccent} highlighted>
+          <SelectButton onClick={onSelectStartTime} highlightColor={colors.lightPurpleAccent} highlighted>
             🕑 {startTime}
           </SelectButton>
         </RowButtons>
@@ -93,7 +93,7 @@ const DateSelections = ({
       <Row>
         <RowTitle>Where:</RowTitle>
         <RowButtons>
-          <SelectButton onClick={onSearchAreaClick} highlightColor={colors.lightOrangeAccent} highlighted>
+          <SelectButton onClick={onSelectSearchArea} highlightColor={colors.lightOrangeAccent} highlighted>
             📍 {searchArea}
           </SelectButton>
         </RowButtons>
@@ -102,28 +102,28 @@ const DateSelections = ({
         <RowTitle>Price:</RowTitle>
         <RowButtons>
           <SelectButton
-            onClick={() => onBudgetClick(OutingBudget.Inexpensive)}
+            onClick={() => onSelectBudget(OutingBudget.Inexpensive)}
             highlighted={budget === OutingBudget.Inexpensive}
             highlightColor={colors.mediumPurpleAccent}
           >
             $
           </SelectButton>
           <SelectButton
-            onClick={() => onBudgetClick(OutingBudget.Moderate)}
+            onClick={() => onSelectBudget(OutingBudget.Moderate)}
             highlighted={budget === OutingBudget.Moderate}
             highlightColor={colors.mediumPurpleAccent}
           >
             $$
           </SelectButton>
           <SelectButton
-            onClick={() => onBudgetClick(OutingBudget.Expensive)}
+            onClick={() => onSelectBudget(OutingBudget.Expensive)}
             highlighted={budget === OutingBudget.Expensive}
             highlightColor={colors.mediumPurpleAccent}
           >
             $$$
           </SelectButton>
           <SelectButton
-            onClick={() => onBudgetClick(OutingBudget.VeryExpensive)}
+            onClick={() => onSelectBudget(OutingBudget.VeryExpensive)}
             highlighted={budget === OutingBudget.VeryExpensive}
             highlightColor={colors.mediumPurpleAccent}
           >

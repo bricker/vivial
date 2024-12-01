@@ -6,11 +6,11 @@ interface BackIconProps {
   large?: boolean;
 }
 
-const BackIcon = ({ color = colors.whiteText, large }: BackIconProps) => {
+const BackIcon = ({ color = colors.pureWhite, large }: BackIconProps) => {
   if (large) {
     return (
       <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
-        <path d="M20 24L12 16L20 8" stroke="white" strokeWidth="2.22249" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M20 24L12 16L20 8" stroke={color} strokeWidth="2.22249" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     );
   }
