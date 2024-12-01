@@ -85,6 +85,7 @@ export type AuthenticatedViewerMutations = {
   submitReserverDetails: SubmitReserverDetailsResult;
   updateAccount: UpdateAccountResult;
   updatePreferences: UpdatePreferencesResult;
+  updateReserverDetailsAccount: UpdateReserverDetailsAccountResult;
 };
 
 
@@ -109,7 +110,7 @@ export type AuthenticatedViewerMutationsReplanOutingArgs = {
 
 
 export type AuthenticatedViewerMutationsSubmitReserverDetailsArgs = {
-  input: ReserverDetailsInput;
+  input: SubmitReserverDetailsInput;
 };
 
 
@@ -120,6 +121,11 @@ export type AuthenticatedViewerMutationsUpdateAccountArgs = {
 
 export type AuthenticatedViewerMutationsUpdatePreferencesArgs = {
   input: UpdatePreferencesInput;
+};
+
+
+export type AuthenticatedViewerMutationsUpdateReserverDetailsAccountArgs = {
+  input: UpdateReserverDetailsAccountInput;
 };
 
 export type AuthenticatedViewerQueries = {
@@ -387,12 +393,6 @@ export type ReserverDetails = {
   phoneNumber: Scalars['String']['output'];
 };
 
-export type ReserverDetailsInput = {
-  firstName: Scalars['String']['input'];
-  lastName: Scalars['String']['input'];
-  phoneNumber: Scalars['String']['input'];
-};
-
 export type Restaurant = {
   __typename: 'Restaurant';
   customerFavorites?: Maybe<Scalars['String']['output']>;
@@ -434,6 +434,12 @@ export type SubmitReserverDetailsFailure = {
 export enum SubmitReserverDetailsFailureReason {
   ValidationErrors = 'VALIDATION_ERRORS'
 }
+
+export type SubmitReserverDetailsInput = {
+  firstName: Scalars['String']['input'];
+  lastName: Scalars['String']['input'];
+  phoneNumber: Scalars['String']['input'];
+};
 
 export type SubmitReserverDetailsResult = SubmitReserverDetailsFailure | SubmitReserverDetailsSuccess;
 
@@ -493,6 +499,32 @@ export type UpdatePreferencesSuccess = {
   preferences: Preferences;
 };
 
+export type UpdateReserverDetailsAccountFailure = {
+  __typename: 'UpdateReserverDetailsAccountFailure';
+  failureReason: UpdateReserverDetailsAccountFailureReason;
+  validationErrors?: Maybe<Array<ValidationError>>;
+};
+
+export enum UpdateReserverDetailsAccountFailureReason {
+  ValidationErrors = 'VALIDATION_ERRORS'
+}
+
+export type UpdateReserverDetailsAccountInput = {
+  email: Scalars['String']['input'];
+  firstName: Scalars['String']['input'];
+  id: Scalars['UUID']['input'];
+  lastName: Scalars['String']['input'];
+  phoneNumber: Scalars['String']['input'];
+};
+
+export type UpdateReserverDetailsAccountResult = UpdateReserverDetailsAccountFailure | UpdateReserverDetailsAccountSuccess;
+
+export type UpdateReserverDetailsAccountSuccess = {
+  __typename: 'UpdateReserverDetailsAccountSuccess';
+  account: Account;
+  reserverDetails: ReserverDetails;
+};
+
 export type ValidationError = {
   __typename: 'ValidationError';
   field: Scalars['String']['output'];
@@ -540,7 +572,7 @@ export type PlanOutingMutationVariables = Exact<{
 }>;
 
 
-export type PlanOutingMutation = { __typename: 'Mutation', planOuting: { __typename: 'PlanOutingFailure', failureReason: PlanOutingFailureReason } | { __typename: 'PlanOutingSuccess', outing: { __typename: 'Outing', id: string } } };
+export type PlanOutingMutation = { __typename: 'Mutation', planOuting: { __typename: 'PlanOutingFailure', failureReason: PlanOutingFailureReason } | { __typename: 'PlanOutingSuccess', outing: { __typename: 'Outing', id: string, headcount: number, activityStartTime?: string | null, restaurantArrivalTime?: string | null, drivingTime?: string | null, activity?: { __typename: 'Activity', id: string, source: ActivitySource, name: string, description: string, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri: string, latitude: number, longitude: number, formattedAddress: string } }, photos?: { __typename: 'Photos', coverPhotoUri: string, supplementalPhotoUris?: Array<string> | null } | null, ticketInfo?: { __typename: 'ActivityTicketInfo', type?: string | null, notes?: string | null, cost?: number | null, fee?: number | null, tax?: number | null } | null } | null, restaurant?: { __typename: 'Restaurant', id: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri: string, latitude: number, longitude: number, formattedAddress: string }, photos?: { __typename: 'Photos', coverPhotoUri: string, supplementalPhotoUris?: Array<string> | null } | null } | null } } };
 
 export type ReplanOutingMutationVariables = Exact<{
   input: ReplanOutingInput;
@@ -550,11 +582,23 @@ export type ReplanOutingMutationVariables = Exact<{
 export type ReplanOutingMutation = { __typename: 'Mutation', replanOuting: { __typename: 'ReplanOutingFailure', failureReason: ReplanOutingFailureReason } | { __typename: 'ReplanOutingSuccess', outing: { __typename: 'Outing', id: string } } };
 
 export type SubmitReserverDetailsMutationVariables = Exact<{
-  input: ReserverDetailsInput;
+  input: SubmitReserverDetailsInput;
 }>;
 
 
 export type SubmitReserverDetailsMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', submitReserverDetails: { __typename: 'SubmitReserverDetailsFailure', failureReason: SubmitReserverDetailsFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'SubmitReserverDetailsSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string } } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
+
+export type UpdateReserverDetailsAccountMutationVariables = Exact<{
+  input: UpdateReserverDetailsAccountInput;
+}>;
+
+
+export type UpdateReserverDetailsAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateReserverDetailsAccount: { __typename: 'UpdateReserverDetailsAccountFailure', failureReason: UpdateReserverDetailsAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateReserverDetailsAccountSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }, account: { __typename: 'Account', id: string, email: string } } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
+
+export type ListReserverDetailsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ListReserverDetailsQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', reserverDetails: Array<{ __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }> } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
 
 export type SearchRegionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -674,6 +718,62 @@ export const PlanOutingDocument = new TypedDocumentString(`
     ... on PlanOutingSuccess {
       outing {
         id
+        headcount
+        activityStartTime
+        restaurantArrivalTime
+        drivingTime
+        activity {
+          id
+          source
+          name
+          description
+          websiteUri
+          doorTips
+          insiderTips
+          parkingTips
+          venue {
+            name
+            location {
+              directionsUri
+              latitude
+              longitude
+              formattedAddress
+            }
+          }
+          photos {
+            coverPhotoUri
+            supplementalPhotoUris
+          }
+          ticketInfo {
+            type
+            notes
+            cost
+            fee
+            tax
+          }
+        }
+        restaurant {
+          id
+          source
+          name
+          reservable
+          rating
+          primaryTypeName
+          websiteUri
+          description
+          parkingTips
+          customerFavorites
+          location {
+            directionsUri
+            latitude
+            longitude
+            formattedAddress
+          }
+          photos {
+            coverPhotoUri
+            supplementalPhotoUris
+          }
+        }
       }
     }
     ... on PlanOutingFailure {
@@ -698,7 +798,7 @@ export const ReplanOutingDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<ReplanOutingMutation, ReplanOutingMutationVariables>;
 export const SubmitReserverDetailsDocument = new TypedDocumentString(`
-    mutation SubmitReserverDetails($input: ReserverDetailsInput!) {
+    mutation SubmitReserverDetails($input: SubmitReserverDetailsInput!) {
   viewer {
     ... on AuthenticatedViewerMutations {
       __typename
@@ -726,6 +826,59 @@ export const SubmitReserverDetailsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<SubmitReserverDetailsMutation, SubmitReserverDetailsMutationVariables>;
+export const UpdateReserverDetailsAccountDocument = new TypedDocumentString(`
+    mutation UpdateReserverDetailsAccount($input: UpdateReserverDetailsAccountInput!) {
+  viewer {
+    ... on AuthenticatedViewerMutations {
+      __typename
+      updateReserverDetailsAccount(input: $input) {
+        __typename
+        ... on UpdateReserverDetailsAccountSuccess {
+          reserverDetails {
+            id
+            firstName
+            lastName
+            phoneNumber
+          }
+          account {
+            id
+            email
+          }
+        }
+        ... on UpdateReserverDetailsAccountFailure {
+          failureReason
+          validationErrors {
+            field
+          }
+        }
+      }
+    }
+    ... on UnauthenticatedViewer {
+      __typename
+      authAction
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<UpdateReserverDetailsAccountMutation, UpdateReserverDetailsAccountMutationVariables>;
+export const ListReserverDetailsDocument = new TypedDocumentString(`
+    query ListReserverDetails {
+  viewer {
+    ... on AuthenticatedViewerQueries {
+      __typename
+      reserverDetails {
+        id
+        firstName
+        lastName
+        phoneNumber
+      }
+    }
+    ... on UnauthenticatedViewer {
+      __typename
+      authAction
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<ListReserverDetailsQuery, ListReserverDetailsQueryVariables>;
 export const SearchRegionsDocument = new TypedDocumentString(`
     query SearchRegions {
   searchRegions {

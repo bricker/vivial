@@ -1,7 +1,6 @@
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
-import React, { useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
 
 import Typography from "@mui/material/Typography";
 import BackButton from "../../Buttons/BackButton";
@@ -24,13 +23,9 @@ const Subtitle = styled(Typography)(() => ({
 }));
 
 const HelpPage = () => {
-  const navigate = useNavigate();
-  const handleBack = useCallback(() => {
-    navigate("/");
-  }, []);
   return (
     <PageContainer>
-      <BackButton onClick={handleBack} />
+      <BackButton />
       <CopyContainer>
         <Typography variant="h3">Help</Typography>
         <Subtitle>

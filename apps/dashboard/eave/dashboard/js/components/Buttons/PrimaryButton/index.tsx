@@ -3,9 +3,15 @@ import { styled } from "@mui/material";
 import BaseButton, { ButtonProps } from "@mui/material/Button";
 import React from "react";
 
-const CustomButton = styled(BaseButton)(({ theme }) => ({
+interface PrimaryButtonProps extends ButtonProps {
+  bg?: string;
+}
+
+const CustomButton = styled(BaseButton, {
+  shouldForwardProp: (prop) => prop !== "bg",
+})<PrimaryButtonProps>(({ bg, theme }) => ({
   color: theme.palette.common.black,
-  backgroundColor: theme.palette.primary.main,
+  backgroundColor: bg || theme.palette.primary.main,
   height: rem("52px"),
   borderRadius: 100,
   "&.Mui-disabled": {
@@ -13,12 +19,12 @@ const CustomButton = styled(BaseButton)(({ theme }) => ({
     backgroundColor: theme.palette.text.disabled,
   },
   "&:hover, &:focus": {
-    backgroundColor: theme.palette.primary.main,
+    backgroundColor: bg || theme.palette.primary.main,
   },
 }));
 
-const Button = (props: ButtonProps) => {
+const PrimaryButton = (props: PrimaryButtonProps) => {
   return <CustomButton {...props} />;
 };
 
-export default Button;
+export default PrimaryButton;

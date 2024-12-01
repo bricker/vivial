@@ -5,6 +5,7 @@ import Typography from "@mui/material/Typography";
 import * as EmailValidator from "email-validator";
 import React, { useCallback, useState } from "react";
 
+import { AppRoute } from "$eave-dashboard/js/routes";
 import LoadingButton from "../../Buttons/LoadingButton";
 import Input from "../../Inputs/Input";
 import InputError from "../../Inputs/InputError";
@@ -175,17 +176,17 @@ const AuthForm = ({
         </AuthButton>
         {showForgotPassword && (
           <ForgotPassword>
-            <Link to="/login/password">Forgot password?</Link>
+            <Link to={AppRoute.forgotPassword}>Forgot password?</Link>
           </ForgotPassword>
         )}
         {showLegal && (
           <Legal>
             By clicking “{cta}” above, you are agreeing to Vivial’s{" "}
-            <Link to="/terms" underline>
+            <Link to={AppRoute.terms} underline>
               TOS
             </Link>{" "}
             and{" "}
-            <Link to="/privacy" underline>
+            <Link to={AppRoute.privacy} underline>
               Privacy Policy
             </Link>
             .

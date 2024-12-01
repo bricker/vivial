@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { styled } from "@mui/material";
 import Button from "@mui/material/Button";
 
+import { AppRoute } from "$eave-dashboard/js/routes";
 import VivialIcon from "./VivialIcon";
 import VivialText from "./VivialText";
 
@@ -20,7 +21,7 @@ const TextContainer = styled("div")(() => ({
 const VivialLogo = () => {
   const navigate = useNavigate();
   const handleClick = useCallback(() => {
-    navigate("/");
+    navigate(AppRoute.root);
   }, []);
 
   return (

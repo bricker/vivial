@@ -2,10 +2,10 @@ import "@mui/material";
 
 declare module "@mui/material/styles" {
   interface PaletteOptions {
-    field?: {
+    field: {
       background: string;
     };
-    accent?: {
+    accent: {
       1: string;
       2: string;
       3: string;
@@ -19,7 +19,7 @@ declare module "@mui/material/styles" {
     field: {
       background: string;
     };
-    accent?: {
+    accent: {
       1: string;
       2: string;
       3: string;

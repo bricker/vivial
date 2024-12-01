@@ -7,16 +7,22 @@ import {
 import {
   CreateAccountDocument,
   CreatePaymentIntentDocument,
+  ListReserverDetailsDocument,
   LoginDocument,
   SearchRegionsDocument,
+  UpdateReserverDetailsAccountDocument,
+  UpdateReserverDetailsAccountMutation,
   type CreateAccountMutation,
   type CreateAccountMutationVariables,
   type CreatePaymentIntentMutation,
   type CreatePaymentIntentMutationVariables,
+  type ListReserverDetailsQuery,
+  type ListReserverDetailsQueryVariables,
   type LoginMutation,
   type LoginMutationVariables,
   type SearchRegionsQuery,
   type SearchRegionsQueryVariables,
+  type UpdateReserverDetailsAccountMutationVariables,
 } from "$eave-dashboard/js/graphql/generated/graphql";
 
 import type {
@@ -37,6 +43,12 @@ export const coreApiSlice = createApi({
       },
     }),
 
+    listReserverDetails: builder.query<ListReserverDetailsQuery, ListReserverDetailsQueryVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: ListReserverDetailsDocument, variables });
+        return { data };
+      },
+    }),
     /**
      * Core API - GraphQL Mutations
      */
@@ -60,15 +72,24 @@ export const coreApiSlice = createApi({
         return { data };
       },
     }),
+
+    updateReserverDetailsAccount: builder.mutation<UpdateReserverDetailsAccountMutation, UpdateReserverDetailsAccountMutationVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: UpdateReserverDetailsAccountDocument, variables });
+        return { data };
+      },
+    }),
   }),
 });
 
 export const {
   // Core API GraphQL Query Hooks
   useGetSearchRegionsQuery,
+  useListReserverDetailsQuery,
 
   // Core API GraphQL Mutation Hooks
   useCreateAccountMutation,
   useLoginMutation,
   useCreatePaymentIntentMutation,
+  useUpdateReserverDetailsAccountMutation,
 } = coreApiSlice;
