@@ -11,7 +11,7 @@ const StripeElementsProvider = ({ children }: { children: React.ReactElement }) 
 
   useEffect(() => {
     void createPaymentIntent({});
-  });
+  }, []);
 
   if (isLoading) {
     return <div>**DEVELOPMENT**: Loading</div>;
