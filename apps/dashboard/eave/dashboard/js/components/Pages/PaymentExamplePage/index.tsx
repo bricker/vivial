@@ -1,7 +1,6 @@
 // https://docs.stripe.com/sdks/stripejs-react
 
 import { AppRoute } from "$eave-dashboard/js/routes";
-import { myWindow } from "$eave-dashboard/js/types/window";
 import { Button } from "@mui/material";
 import { PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import React, { useCallback } from "react";
