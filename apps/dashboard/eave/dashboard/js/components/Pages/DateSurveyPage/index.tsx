@@ -70,8 +70,6 @@ const DateSurveyPage = () => {
   }, []);
 
   const handleSelectSearchAreas = useCallback((searchAreaIds: string[]) => {
-    console.log(searchAreaIds);
-
     setSearchAreaIds(searchAreaIds);
   }, []);
 

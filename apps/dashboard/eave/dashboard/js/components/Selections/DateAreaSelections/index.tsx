@@ -3,9 +3,9 @@ import { colors } from "$eave-dashboard/js/theme/colors";
 import { styled } from "@mui/material";
 import React, { useCallback, useState } from "react";
 
-import MaterialButton, { ButtonProps } from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
-import PrimaryButton from "../../Buttons/PrimaryButton";
+import MaterialButton, { ButtonProps } from "@mui/material/Button";
+import SubmitButton from "../../Buttons/PrimaryButton";
 
 interface DateAreaSelectionsProps {
   cta: string;
@@ -91,9 +91,9 @@ const DateAreaSelections = ({ cta, regions, onSubmit }: DateAreaSelectionsProps)
           </Row>
         ))}
       </Rows>
-      <PrimaryButton onClick={handleSubmit} bg={colors.lightOrangeAccent} fullWidth>
+      <SubmitButton onClick={handleSubmit} bg={colors.lightOrangeAccent} fullWidth>
         {cta}
-      </PrimaryButton>
+      </SubmitButton>
     </>
   );
 };
