@@ -43,8 +43,8 @@ const DateSurvey = styled(Paper)(() => ({
 }));
 
 const DateSurveyPage = () => {
-  const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery();
-  const searchRegions = searchRegionsData?.data?.searchRegions;
+  const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery({});
+  const searchRegions = searchRegionsData?.searchRegions;
 
   const [budget, setBudget] = useState(OutingBudget.Expensive);
   const [groupPreferences, setGroupPreferences] = useState([]);

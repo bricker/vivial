@@ -11,7 +11,6 @@ import {
   LoginDocument,
   SearchRegionsDocument,
   UpdateReserverDetailsAccountDocument,
-  UpdateReserverDetailsAccountMutation,
   type CreateAccountMutation,
   type CreateAccountMutationVariables,
   type CreatePaymentIntentMutation,
@@ -22,6 +21,7 @@ import {
   type LoginMutationVariables,
   type SearchRegionsQuery,
   type SearchRegionsQueryVariables,
+  type UpdateReserverDetailsAccountMutation,
   type UpdateReserverDetailsAccountMutationVariables,
 } from "$eave-dashboard/js/graphql/generated/graphql";
 

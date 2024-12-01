@@ -104,22 +104,25 @@ const EditableContainer = () => {
   const reserverEmail = useSelector((state: RootState) => state.auth.account?.email);
   const localReserverDetails = useSelector((state: RootState) => state.reserverDetails.reserverDetails);
 
-  const { data, isLoading: listDetailsIsLoading } = useListReserverDetailsQuery();
+  const { data, isLoading: listDetailsIsLoading } = useListReserverDetailsQuery({});
   let reserverDetails = localReserverDetails;
-  switch (data?.data.viewer.__typename) {
-    case "AuthenticatedViewerQueries":
+  switch (data?.viewer.__typename) {
+    case "AuthenticatedViewerQueries": {
       // always prefer in-memory data (if available) over cached network resp
       if (!reserverDetails) {
         // NOTE: extracting and showing only the first one since we currently only
         // allow 1 reserverDetails row to be created
-        reserverDetails = data?.data.viewer?.reserverDetails[0] || null;
+        reserverDetails = data?.viewer?.reserverDetails[0] || null;
       }
       break;
-    case "UnauthenticatedViewer":
+    }
+    case "UnauthenticatedViewer": {
       goToLogin();
       break;
-    default:
+    }
+    default: {
       break;
+    }
   }
 
   const handleCancel = () => setIsEditting(false);
@@ -139,15 +142,17 @@ const EditableContainer = () => {
 
       try {
         const resp = await updateReserverDetailsAccount({
-          id: reserverDetails?.id || "reserverDetails should never be null here",
-          firstName,
-          lastName,
-          phoneNumber,
-          email,
+          input: {
+            id: reserverDetails?.id || "reserverDetails should never be null here",
+            firstName,
+            lastName,
+            phoneNumber,
+            email,
+          },
         });
-        switch (resp.data?.data.viewer.__typename) {
+        switch (resp.data?.viewer.__typename) {
           case "AuthenticatedViewerMutations": {
-            const updatedData = resp.data?.data.viewer.updateReserverDetailsAccount;
+            const updatedData = resp.data?.viewer.updateReserverDetailsAccount;
             switch (updatedData?.__typename) {
               case "UpdateReserverDetailsAccountSuccess":
                 dispatch(storeReserverDetails({ details: updatedData.reserverDetails }));
