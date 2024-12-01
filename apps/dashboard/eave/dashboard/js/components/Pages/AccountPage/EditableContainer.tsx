@@ -92,7 +92,7 @@ const InfoDisplay = ({ name, email, phoneNumber }: { name: string; email: string
 };
 
 const EditableContainer = () => {
-  const [isEditting, setIsEditting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
 
   const dispatch = useDispatch();
@@ -104,7 +104,7 @@ const EditableContainer = () => {
   const reserverEmail = useSelector((state: RootState) => state.auth.account?.email);
   const localReserverDetails = useSelector((state: RootState) => state.reserverDetails.reserverDetails);
 
-  const { data, isLoading: listDetailsIsLoading } = useListReserverDetailsQuery({});
+  const { data, isLoading: listDetailsIsLoading, isError: listDetailsIsError } = useListReserverDetailsQuery({});
   let reserverDetails = localReserverDetails;
   switch (data?.viewer.__typename) {
     case "AuthenticatedViewerQueries": {
@@ -125,7 +125,7 @@ const EditableContainer = () => {
     }
   }
 
-  const handleCancel = () => setIsEditting(false);
+  const handleCancel = () => setIsEditing(false);
   const handleSubmit = useCallback(
     async ({
       firstName,
@@ -196,8 +196,8 @@ const EditableContainer = () => {
     <FormContainer>
       <TitleContainer>
         <Typography variant="h2">Booking info</Typography>
-        {!isEditting && reserverDetails && (
-          <ShiftedButton onClick={() => setIsEditting(true)}>
+        {!isEditing && reserverDetails && (
+          <ShiftedButton onClick={() => setIsEditing(true)}>
             <EditIcon />
           </ShiftedButton>
         )}
@@ -206,7 +206,7 @@ const EditableContainer = () => {
       {reserverDetails ? (
         // we have details to display; show them
         <InfoContainer>
-          {isEditting ? (
+          {isEditing ? (
             <AccountBookingInfoEditForm
               initFirstName={reserverDetails?.firstName || ""}
               initLastName={reserverDetails?.lastName || ""}
@@ -230,9 +230,11 @@ const EditableContainer = () => {
           {listDetailsIsLoading ? (
             // loading state
             <CircularProgress color="secondary" />
-          ) : (
+          ) : listDetailsIsError ? (
             // error state
             "Oops! We encountered a problem, please try again later."
+          ) : (
+            "There is no booking info to display."
           )}
         </StateContainer>
       )}
