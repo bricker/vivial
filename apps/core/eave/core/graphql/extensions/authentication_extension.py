@@ -16,7 +16,6 @@ from eave.stdlib.jwt import (
     validate_jws_or_exception,
 )
 
-
 @strawberry.enum
 class ViewerAuthenticationAction(enum.Enum):
     REFRESH_ACCESS_TOKEN = enum.auto()
@@ -25,8 +24,7 @@ class ViewerAuthenticationAction(enum.Enum):
 
 @strawberry.type
 class UnauthenticatedViewer:
-    reason: ViewerAuthenticationAction
-
+    auth_action: ViewerAuthenticationAction
 
 class AuthenticationExtension(FieldExtension):
     def __init__(self, *, allow_anonymous: bool = False) -> None:
@@ -54,8 +52,8 @@ class AuthenticationExtension(FieldExtension):
                     raise InvalidTokenError("missing access token")
 
         except AccessTokenExpiredError:
-            return UnauthenticatedViewer(reason=ViewerAuthenticationAction.REFRESH_ACCESS_TOKEN)
+            return UnauthenticatedViewer(auth_action=ViewerAuthenticationAction.REFRESH_ACCESS_TOKEN)
 
         except InvalidTokenError:
             delete_auth_cookies(response=info.context["response"])
-            return UnauthenticatedViewer(reason=ViewerAuthenticationAction.FORCE_LOGOUT)
+            return UnauthenticatedViewer(auth_action=ViewerAuthenticationAction.FORCE_LOGOUT)

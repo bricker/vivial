@@ -27,7 +27,7 @@ mutation SubmitReserverDetails($input: ReserverDetailsInput!) {
 
     ... on UnauthenticatedViewer {
       __typename
-      reason
+      authAction
     }
   }
 }

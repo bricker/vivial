@@ -23,7 +23,7 @@ mutation CreatePaymentIntent($input: CreatePaymentIntentInput!) {
 
     ... on UnauthenticatedViewer {
       __typename
-      reason
+      authAction
     }
   }
 }
