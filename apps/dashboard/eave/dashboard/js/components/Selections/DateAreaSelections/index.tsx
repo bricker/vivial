@@ -3,8 +3,8 @@ import { colors } from "$eave-dashboard/js/theme/colors";
 import { styled } from "@mui/material";
 import React, { useCallback, useState } from "react";
 
-import Typography from "@mui/material/Typography";
 import MaterialButton, { ButtonProps } from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
 import SubmitButton from "../../Buttons/PrimaryButton";
 
 interface DateAreaSelectionsProps {

@@ -94,11 +94,6 @@ export type AuthenticatedViewerMutationsCreateBookingArgs = {
 };
 
 
-export type AuthenticatedViewerMutationsCreatePaymentIntentArgs = {
-  input: CreatePaymentIntentInput;
-};
-
-
 export type AuthenticatedViewerMutationsPlanOutingArgs = {
   input: PlanOutingInput;
 };
@@ -208,10 +203,6 @@ export enum CreatePaymentIntentFailureReason {
   PaymentIntentFailed = 'PAYMENT_INTENT_FAILED',
   Unknown = 'UNKNOWN'
 }
-
-export type CreatePaymentIntentInput = {
-  placeholder: Scalars['String']['input'];
-};
 
 export type CreatePaymentIntentResult = CreatePaymentIntentFailure | CreatePaymentIntentSuccess;
 
@@ -450,7 +441,7 @@ export type SubmitReserverDetailsSuccess = {
 
 export type UnauthenticatedViewer = {
   __typename: 'UnauthenticatedViewer';
-  reason: ViewerAuthenticationAction;
+  authAction: ViewerAuthenticationAction;
 };
 
 export type UpdateAccountFailure = {
@@ -551,14 +542,12 @@ export type CreateBookingMutationVariables = Exact<{
 }>;
 
 
-export type CreateBookingMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', createBooking: { __typename: 'CreateBookingFailure', failureReason: CreateBookingFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'CreateBookingSuccess', booking: { __typename: 'Booking', id: string } } } | { __typename: 'UnauthenticatedViewer', reason: ViewerAuthenticationAction } };
+export type CreateBookingMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', createBooking: { __typename: 'CreateBookingFailure', failureReason: CreateBookingFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'CreateBookingSuccess', booking: { __typename: 'Booking', id: string } } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
 
-export type CreatePaymentIntentMutationVariables = Exact<{
-  input: CreatePaymentIntentInput;
-}>;
+export type CreatePaymentIntentMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type CreatePaymentIntentMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', createPaymentIntent: { __typename: 'CreatePaymentIntentFailure', failureReason: CreatePaymentIntentFailureReason } | { __typename: 'CreatePaymentIntentSuccess', paymentIntent: { __typename: 'PaymentIntent', clientSecret: string } } } | { __typename: 'UnauthenticatedViewer', reason: ViewerAuthenticationAction } };
+export type CreatePaymentIntentMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', createPaymentIntent: { __typename: 'CreatePaymentIntentFailure', failureReason: CreatePaymentIntentFailureReason } | { __typename: 'CreatePaymentIntentSuccess', paymentIntent: { __typename: 'PaymentIntent', clientSecret: string } } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
 
 export type LoginMutationVariables = Exact<{
   input: LoginInput;
@@ -586,19 +575,19 @@ export type SubmitReserverDetailsMutationVariables = Exact<{
 }>;
 
 
-export type SubmitReserverDetailsMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', submitReserverDetails: { __typename: 'SubmitReserverDetailsFailure', failureReason: SubmitReserverDetailsFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'SubmitReserverDetailsSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string } } } | { __typename: 'UnauthenticatedViewer', reason: ViewerAuthenticationAction } };
+export type SubmitReserverDetailsMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', submitReserverDetails: { __typename: 'SubmitReserverDetailsFailure', failureReason: SubmitReserverDetailsFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'SubmitReserverDetailsSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string } } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
 
 export type UpdateReserverDetailsAccountMutationVariables = Exact<{
   input: UpdateReserverDetailsAccountInput;
 }>;
 
 
-export type UpdateReserverDetailsAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateReserverDetailsAccount: { __typename: 'UpdateReserverDetailsAccountFailure', failureReason: UpdateReserverDetailsAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateReserverDetailsAccountSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }, account: { __typename: 'Account', id: string, email: string } } } | { __typename: 'UnauthenticatedViewer', reason: ViewerAuthenticationAction } };
+export type UpdateReserverDetailsAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateReserverDetailsAccount: { __typename: 'UpdateReserverDetailsAccountFailure', failureReason: UpdateReserverDetailsAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateReserverDetailsAccountSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }, account: { __typename: 'Account', id: string, email: string } } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
 
 export type ListReserverDetailsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ListReserverDetailsQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', reserverDetails: Array<{ __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }> } | { __typename: 'UnauthenticatedViewer', reason: ViewerAuthenticationAction } };
+export type ListReserverDetailsQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', reserverDetails: Array<{ __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }> } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
 
 export type SearchRegionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -663,17 +652,17 @@ export const CreateBookingDocument = new TypedDocumentString(`
     }
     ... on UnauthenticatedViewer {
       __typename
-      reason
+      authAction
     }
   }
 }
     `) as unknown as TypedDocumentString<CreateBookingMutation, CreateBookingMutationVariables>;
 export const CreatePaymentIntentDocument = new TypedDocumentString(`
-    mutation CreatePaymentIntent($input: CreatePaymentIntentInput!) {
+    mutation CreatePaymentIntent {
   viewer {
     ... on AuthenticatedViewerMutations {
       __typename
-      createPaymentIntent(input: $input) {
+      createPaymentIntent {
         __typename
         ... on CreatePaymentIntentSuccess {
           __typename
@@ -689,7 +678,7 @@ export const CreatePaymentIntentDocument = new TypedDocumentString(`
     }
     ... on UnauthenticatedViewer {
       __typename
-      reason
+      authAction
     }
   }
 }
@@ -821,7 +810,7 @@ export const SubmitReserverDetailsDocument = new TypedDocumentString(`
     }
     ... on UnauthenticatedViewer {
       __typename
-      reason
+      authAction
     }
   }
 }
@@ -855,7 +844,7 @@ export const UpdateReserverDetailsAccountDocument = new TypedDocumentString(`
     }
     ... on UnauthenticatedViewer {
       __typename
-      reason
+      authAction
     }
   }
 }
@@ -874,7 +863,7 @@ export const ListReserverDetailsDocument = new TypedDocumentString(`
     }
     ... on UnauthenticatedViewer {
       __typename
-      reason
+      authAction
     }
   }
 }
