@@ -94,11 +94,6 @@ export type AuthenticatedViewerMutationsCreateBookingArgs = {
 };
 
 
-export type AuthenticatedViewerMutationsCreatePaymentIntentArgs = {
-  input: CreatePaymentIntentInput;
-};
-
-
 export type AuthenticatedViewerMutationsPlanOutingArgs = {
   input: PlanOutingInput;
 };
@@ -208,10 +203,6 @@ export enum CreatePaymentIntentFailureReason {
   PaymentIntentFailed = 'PAYMENT_INTENT_FAILED',
   Unknown = 'UNKNOWN'
 }
-
-export type CreatePaymentIntentInput = {
-  placeholder: Scalars['String']['input'];
-};
 
 export type CreatePaymentIntentResult = CreatePaymentIntentFailure | CreatePaymentIntentSuccess;
 
@@ -553,9 +544,7 @@ export type CreateBookingMutationVariables = Exact<{
 
 export type CreateBookingMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', createBooking: { __typename: 'CreateBookingFailure', failureReason: CreateBookingFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'CreateBookingSuccess', booking: { __typename: 'Booking', id: string } } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
 
-export type CreatePaymentIntentMutationVariables = Exact<{
-  input: CreatePaymentIntentInput;
-}>;
+export type CreatePaymentIntentMutationVariables = Exact<{ [key: string]: never; }>;
 
 
 export type CreatePaymentIntentMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', createPaymentIntent: { __typename: 'CreatePaymentIntentFailure', failureReason: CreatePaymentIntentFailureReason } | { __typename: 'CreatePaymentIntentSuccess', paymentIntent: { __typename: 'PaymentIntent', clientSecret: string } } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
@@ -669,11 +658,11 @@ export const CreateBookingDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<CreateBookingMutation, CreateBookingMutationVariables>;
 export const CreatePaymentIntentDocument = new TypedDocumentString(`
-    mutation CreatePaymentIntent($input: CreatePaymentIntentInput!) {
+    mutation CreatePaymentIntent {
   viewer {
     ... on AuthenticatedViewerMutations {
       __typename
-      createPaymentIntent(input: $input) {
+      createPaymentIntent {
         __typename
         ... on CreatePaymentIntentSuccess {
           __typename

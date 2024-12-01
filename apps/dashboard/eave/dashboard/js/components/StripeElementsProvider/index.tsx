@@ -10,7 +10,7 @@ const StripeElementsProvider = ({ children }: { children: React.ReactElement }) 
   const [createPaymentIntent, { isLoading, data }] = useCreatePaymentIntentMutation();
 
   useEffect(() => {
-    void createPaymentIntent({ input: { placeholder: "okedoke" } });
+    void createPaymentIntent();
   });
 
   if (isLoading) {
