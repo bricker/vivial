@@ -109,7 +109,7 @@ const GlobalHeader = () => {
 
   const handleLogout = useCallback(() => {
     dispatch(loggedOut());
-    navigate(AppRoute.logout);
+    window.location.assign(AppRoute.logout);
   }, []);
 
   const menuNavButtons: Array<{ route: string; text: string }> = [

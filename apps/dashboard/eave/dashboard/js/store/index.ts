@@ -20,13 +20,11 @@ const store = configureStore({
 });
 
 // save state on every change, at most once per second
-store.subscribe(
-  debounce(() => {
-    saveState({
-      auth: store.getState().auth,
-    });
-  }, 1000),
-);
+store.subscribe(() => {
+  saveState({
+    auth: store.getState().auth,
+  });
+});
 
 export type RootState = StateFromReducersMapObject<typeof reducer>;
 export default store;

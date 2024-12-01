@@ -1,4 +1,5 @@
 import { getVisitorId, identify } from "$eave-dashboard/js/analytics/segment";
+import { AppRoute } from "$eave-dashboard/js/routes";
 import { createSlice } from "@reduxjs/toolkit";
 
 interface Account {
