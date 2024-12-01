@@ -49,9 +49,9 @@ const DateSurveyPage = () => {
   // const [groupPreferences, setGroupPreferences] = useState([]);
   const [headcount, setHeadcount] = useState(2);
   const [, setSearchAreaIds] = useState([""]);
-  const [serachAreaLabel,] = useState("Anywhere in LA");
+  const [serachAreaLabel] = useState("Anywhere in LA");
   // const [startTime, setStartTime] = useState(getInitialStartTime());
-  const [startTimeLabel,] = useState("Tomorrow @ 6pm");
+  const [startTimeLabel] = useState("Tomorrow @ 6pm");
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [areasOpen, setAreasOpen] = useState(false);
 
