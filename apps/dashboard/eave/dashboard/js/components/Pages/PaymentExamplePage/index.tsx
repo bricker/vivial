@@ -1,5 +1,6 @@
 // https://docs.stripe.com/sdks/stripejs-react
 
+import { AppRoute } from "$eave-dashboard/js/routes";
 import { myWindow } from "$eave-dashboard/js/types/window";
 import { Button } from "@mui/material";
 import { PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
@@ -19,7 +20,7 @@ const PaymentExamplePage = () => {
       elements: stripeElements,
       clientSecret: "", // This property is required but already provided by stripeElements
       confirmParams: {
-        return_url: `${myWindow.app.apiBase}/public/stripe/callback`,
+        return_url: `${window.location.origin}${AppRoute.bookingConfirmation}`,
       },
     });
 
