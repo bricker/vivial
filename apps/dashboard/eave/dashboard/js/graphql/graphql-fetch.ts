@@ -1,6 +1,11 @@
 import { GraphQLExecutionError } from "../types/network";
 import { CORE_API_BASE, GRAPHQL_API_BASE } from "../util/http";
-import { ViewerAuthenticationAction, type TypedDocumentString, type ViewerMutations, type ViewerQueries } from "./generated/graphql";
+import {
+  ViewerAuthenticationAction,
+  type TypedDocumentString,
+  type ViewerMutations,
+  type ViewerQueries,
+} from "./generated/graphql";
 
 export type GraphQLOperation<TNetworkState, TVariables> = {
   execute: (variables: TVariables) => Promise<void>;
@@ -36,7 +41,6 @@ async function refreshTokens() {
     throw Error(`Refresh tokens failed (${response.status})`);
   }
 }
-
 
 export async function executeOperation<TResult, TVariables>({
   query,

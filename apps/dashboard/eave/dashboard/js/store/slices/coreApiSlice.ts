@@ -1,8 +1,5 @@
 import { CORE_API_BASE } from "$eave-dashboard/js/util/http";
-import {
-  createApi,
-  fetchBaseQuery,
-} from "@reduxjs/toolkit/query/react";
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import {
   CreateAccountDocument,
@@ -25,9 +22,8 @@ import {
   type UpdateReserverDetailsAccountMutationVariables,
 } from "$eave-dashboard/js/graphql/generated/graphql";
 
-import type {
-} from '@reduxjs/toolkit/query'
 import { executeOperation } from "$eave-dashboard/js/graphql/graphql-fetch";
+import type {} from "@reduxjs/toolkit/query";
 
 export const coreApiSlice = createApi({
   reducerPath: "coreApi",
@@ -73,7 +69,10 @@ export const coreApiSlice = createApi({
       },
     }),
 
-    updateReserverDetailsAccount: builder.mutation<UpdateReserverDetailsAccountMutation, UpdateReserverDetailsAccountMutationVariables>({
+    updateReserverDetailsAccount: builder.mutation<
+      UpdateReserverDetailsAccountMutation,
+      UpdateReserverDetailsAccountMutationVariables
+    >({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: UpdateReserverDetailsAccountDocument, variables });
         return { data };

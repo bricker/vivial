@@ -1,9 +1,8 @@
-import { AppContext } from "$eave-dashboard/js/context";
 import { useCreatePaymentIntentMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { myWindow } from "$eave-dashboard/js/types/window";
 import { Elements } from "@stripe/react-stripe-js";
 import { Appearance, CssFontSource, CustomFontSource, loadStripe } from "@stripe/stripe-js";
-import React, { useContext, useEffect } from "react";
+import React, { useEffect } from "react";
 
 const stripePromise = loadStripe(myWindow.app.stripePublishableKey!);
 
@@ -11,7 +10,7 @@ const StripeElementsProvider = ({ children }: { children: React.ReactElement }) 
   const [createPaymentIntent, { isLoading, data }] = useCreatePaymentIntentMutation();
 
   useEffect(() => {
-    void createPaymentIntent({input: {placeholder: "okedoke"}});
+    void createPaymentIntent({ input: { placeholder: "okedoke" } });
   });
 
   if (isLoading) {
@@ -32,23 +31,19 @@ const StripeElementsProvider = ({ children }: { children: React.ReactElement }) 
     default: {
       return <div>**DEVELOPMENT**: Error (graphql unexpected response type)</div>;
     }
-  };
+  }
 
   switch (data.viewer.createPaymentIntent.__typename) {
     case "CreatePaymentIntentSuccess": {
       break;
     }
     case "CreatePaymentIntentFailure": {
-      return (
-        <div>
-          **DEVELOPMENT**: Error (mutation failure - {data.viewer.createPaymentIntent.failureReason})
-        </div>
-      );
+      return <div>**DEVELOPMENT**: Error (mutation failure - {data.viewer.createPaymentIntent.failureReason})</div>;
     }
     default: {
       return <div>**DEVELOPMENT**: Error (graphql unexpected response type)</div>;
     }
-  };
+  }
 
   const clientSecret = data.viewer.createPaymentIntent.paymentIntent.clientSecret;
 

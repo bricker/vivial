@@ -16,6 +16,7 @@ from eave.stdlib.jwt import (
     validate_jws_or_exception,
 )
 
+
 @strawberry.enum
 class ViewerAuthenticationAction(enum.Enum):
     REFRESH_ACCESS_TOKEN = enum.auto()
@@ -25,6 +26,7 @@ class ViewerAuthenticationAction(enum.Enum):
 @strawberry.type
 class UnauthenticatedViewer:
     auth_action: ViewerAuthenticationAction
+
 
 class AuthenticationExtension(FieldExtension):
     def __init__(self, *, allow_anonymous: bool = False) -> None:
