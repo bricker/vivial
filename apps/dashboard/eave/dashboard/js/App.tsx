@@ -1,6 +1,8 @@
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import React from "react";
 import { CookiesProvider, withCookies } from "react-cookie";
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { Helmet } from "react-helmet";
 import { Provider as StoreProvider, useSelector } from "react-redux";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
@@ -92,7 +94,9 @@ const ProviderWrappedApp = () => {
       <AppContextProvider>
         <CookiesProvider>
           <ThemeProvider theme={theme}>
-            <App />
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              <App />
+            </LocalizationProvider>
           </ThemeProvider>
         </CookiesProvider>
       </AppContextProvider>

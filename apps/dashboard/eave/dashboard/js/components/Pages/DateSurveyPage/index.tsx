@@ -12,6 +12,7 @@ import Typography from "@mui/material/Typography";
 import Modal from "../../Modal";
 import Paper from "../../Paper";
 import DateAreaSelections from "../../Selections/DateAreaSelections";
+import DateTimeSelections from "../../Selections/DateTimeSelections";
 import DateSelections from "../../Selections/DateSelections";
 
 const PageContainer = styled("div")(() => ({
@@ -73,6 +74,10 @@ const DateSurveyPage = () => {
     setSearchAreaIds(searchAreaIds);
   }, []);
 
+  const handleSelectStartTime = useCallback((startTime: Date) => {
+    setStartTime(startTime);
+  }, []);
+
   const toggleDatePickerOpen = useCallback(() => {
     setDatePickerOpen(!datePickerOpen);
   }, [datePickerOpen]);
@@ -120,10 +125,10 @@ const DateSurveyPage = () => {
         />
       </DateSurvey>
       <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
-        <DateAreaSelections cta="Save" regions={searchRegions} onSubmit={handleSelectSearchAreas} />
+        <DateAreaSelections cta="Save" onSubmit={handleSelectSearchAreas} regions={searchRegions} />
       </Modal>
-      <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={datePickerOpen}>
-        DATE PICKER
+      <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={true}>
+        <DateTimeSelections cta="Save" onSubmit={handleSelectStartTime} startTime={startTime} />
       </Modal>
     </PageContainer>
   );
