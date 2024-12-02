@@ -350,10 +350,10 @@ if test -z "${_SHARED_FUNCTIONS_LOADED:-}"; then
 			exit 0
 		fi
 
-		statusmsg -wpn "Proceed? [y/n]"
+		statusmsg -wpn "Proceed? [Y/n]"
 		statusmsg -no " "
 		read -r proceed
-		test "$proceed" = "y"
+		test "$proceed" = "Y"
 	)
 
 	function e.force() {
