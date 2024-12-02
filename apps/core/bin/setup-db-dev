@@ -6,5 +6,6 @@ source "${EAVE_HOME}"/develop/functions.bash
 
 (
 	cd "$(e.parentpath)"
-	bin/cli db run-migrations "$@"
+	bin/cli db init-dev "$@"
+	python ./bin/src/seed-db.py "$@"
 )

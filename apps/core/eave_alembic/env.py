@@ -1,3 +1,5 @@
+from collections.abc import MutableMapping
+from typing import Literal
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 load_standard_dotenv_files()
@@ -36,6 +38,23 @@ target_metadata = eave.core.orm.base.get_base_metadata()
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
+def _include_name(
+    name: str | None,
+    type_: Literal["schema","table","column","index","unique_constraint","foreign_key_constraint"],
+    parent_names: MutableMapping[
+        Literal[
+            "schema_name",
+            "table_name",
+            "schema_qualified_table_name",
+        ],
+        str | None,
+    ],
+) -> bool:
+    if type_ == "table":
+        # 'spatial_ref_sys' table is created by postgis, and not managed by SQLAlchemy
+        return name not in ["spatial_ref_sys"]
+    else:
+        return True
 
 async def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
@@ -54,6 +73,7 @@ async def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_name=_include_name,
     )
 
     with context.begin_transaction():
@@ -61,7 +81,11 @@ async def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    context.configure(connection=connection, target_metadata=target_metadata)
+    context.configure(
+        connection=connection,
+        target_metadata=target_metadata,
+        include_name=_include_name,
+    )
 
     with context.begin_transaction():
         context.run_migrations()
