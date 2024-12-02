@@ -8,7 +8,12 @@ const CustomButton = styled(Button)(({ theme }) => ({
   color: theme.palette.text.primary,
   fontFamily: theme.typography.fontFamily,
   fontWeight: 700,
-  padding: "0 0 24px",
+  paddingTop: 12,
+  paddingBottom: 12,
+  paddingLeft: 0,
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
 }));
 
 const BackButton = () => {

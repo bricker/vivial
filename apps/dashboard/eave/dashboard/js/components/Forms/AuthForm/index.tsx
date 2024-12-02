@@ -3,17 +3,17 @@ import { getPasswordInfo, passwordIsValid } from "$eave-dashboard/js/util/passwo
 import { styled } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import * as EmailValidator from "email-validator";
-import React, { useCallback, useState } from "react";
+import React, { FormEvent, useCallback, useState } from "react";
 
 import { AppRoute } from "$eave-dashboard/js/routes";
 import LoadingButton from "../../Buttons/LoadingButton";
 import Input from "../../Inputs/Input";
 import InputError from "../../Inputs/InputError";
-import InputReq from "../../Inputs/InputRequirement";
 import SensitiveInput from "../../Inputs/SensitiveInput";
 import Link from "../../Links/Link";
+import PasswordRequirements from "../../PasswordRequirements";
 
-const FormContainer = styled("div")(({ theme }) => ({
+const FormContainer = styled("form")(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   borderRadius: 15,
   padding: "32px 0",
@@ -61,13 +61,10 @@ const InputErrorContainer = styled("div")(() => ({
   padding: "0 40px 0 56px",
 }));
 
-const InputReqsContainer = styled("div")(() => ({
-  fontSize: rem("12px"),
-  lineHeight: rem("16px"),
+const ReqsContainer = styled("div")(() => ({
+  paddingLeft: 20,
+  paddingRight: 20,
   marginTop: 10,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
 }));
 
 interface AuthFormProps {
@@ -108,15 +105,19 @@ const AuthForm = ({
   const [internalError, setInternalError] = useState("");
   const error = externalError || internalError;
 
-  const handleSubmit = useCallback(() => {
-    if (validateEmail && !EmailValidator.validate(email)) {
-      setInternalError("Invalid email address.");
-      setShowPasswordInfo(false);
-      setIsDisabled(true);
-      return;
-    }
-    onSubmit({ email, password });
-  }, [email, password]);
+  const handleSubmit = useCallback(
+    (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      if (validateEmail && !EmailValidator.validate(email)) {
+        setInternalError("Invalid email address.");
+        setShowPasswordInfo(false);
+        setIsDisabled(true);
+        return;
+      }
+      onSubmit({ email, password });
+    },
+    [email, password],
+  );
 
   const checkInputs = ({ currentEmail, currentPassword }: { currentEmail: string; currentPassword: string }) => {
     setInternalError("");
@@ -149,7 +150,7 @@ const AuthForm = ({
   };
 
   return (
-    <FormContainer>
+    <FormContainer onSubmit={handleSubmit}>
       <FormContent>
         <TitleContainer>
           <Typography variant="h2">{title}</Typography>
@@ -164,14 +165,12 @@ const AuthForm = ({
         </InputErrorContainer>
       )}
       {showPasswordInfo && (
-        <InputReqsContainer>
-          <InputReq met={passwordInfo.hasEightChars}>8 characters</InputReq>
-          <InputReq met={passwordInfo.hasLetter && passwordInfo.hasDigit}>1 letter and 1 digit</InputReq>
-          <InputReq met={passwordInfo.hasSpecialChar}>1 special character</InputReq>
-        </InputReqsContainer>
+        <ReqsContainer>
+          <PasswordRequirements passwordInfo={passwordInfo} />
+        </ReqsContainer>
       )}
       <FormContent>
-        <AuthButton onClick={handleSubmit} loading={isLoading} disabled={isDisabled} fullWidth>
+        <AuthButton type="submit" loading={isLoading} disabled={isDisabled} fullWidth>
           {cta}
         </AuthButton>
         {showForgotPassword && (
