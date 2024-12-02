@@ -7,7 +7,6 @@ const config = {
   plugins: [],
   ignorePatterns: [
     "node_modules",
-    "*.doccarchive",
     "!.github",
     "dist",
     "generated",
