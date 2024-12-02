@@ -74,8 +74,8 @@ const PasswordResetForm = () => {
   }, [newPassword, retypedPassword]);
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
       setExternalError(undefined);
       try {
         const resp = await updateAccount({ input: { plaintextPassword: newPassword } });

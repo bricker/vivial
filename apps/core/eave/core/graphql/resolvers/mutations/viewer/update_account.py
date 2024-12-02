@@ -2,7 +2,6 @@ import enum
 from typing import Annotated
 from uuid import uuid4
 
-from eave.stdlib.util import unwrap
 import strawberry
 
 from eave.core import database
@@ -11,6 +10,7 @@ from eave.core.graphql.types.account import Account
 from eave.core.orm.account import AccountOrm, WeakPasswordError
 from eave.core.orm.base import InvalidRecordError
 from eave.core.shared.errors import ValidationError
+from eave.stdlib.util import unwrap
 
 MOCK_ACCOUNT = Account(
     id=uuid4(),
