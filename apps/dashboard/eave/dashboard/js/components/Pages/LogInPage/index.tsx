@@ -32,10 +32,10 @@ const LogInPage = () => {
 
   const handleSubmit = useCallback(async ({ email, password }: { email: string; password: string }) => {
     const resp = await login({ input: { email, plaintextPassword: password } });
-    const typename = resp.data?.data.login.__typename;
+    const typename = resp.data?.login.__typename;
     switch (typename) {
       case "LoginSuccess": {
-        dispatch(loggedIn({ account: resp.data!.data.login.account }));
+        dispatch(loggedIn({ account: resp.data!.login.account }));
         navigate(AppRoute.root);
         break;
       }

@@ -5,7 +5,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
-import { getInitialStartTime } from "./helpers";
 
 import BaseSkeleton from "@mui/material/Skeleton";
 import Typography from "@mui/material/Typography";
@@ -44,23 +43,23 @@ const DateSurvey = styled(Paper)(() => ({
 }));
 
 const DateSurveyPage = () => {
-  const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery();
-  const searchRegions = searchRegionsData?.data?.searchRegions;
+  const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery({});
+  const searchRegions = searchRegionsData?.searchRegions;
 
   // TODO: Update startTimeLabel, setSearchAreaLabel
 
   const [budget, setBudget] = useState(OutingBudget.Expensive);
   // const [groupPreferences, setGroupPreferences] = useState([]);
   const [headcount, setHeadcount] = useState(2);
-  const [searchAreaIds, setSearchAreaIds] = useState([""]);
-  const [serachAreaLabel, setSearchAreaLabel] = useState("Anywhere in LA");
-  const [startTime, setStartTime] = useState(getInitialStartTime());
-  const [startTimeLabel, setStartTimeLabel] = useState("Tomorrow @ 6pm");
+  const [, setSearchAreaIds] = useState([""]);
+  const [serachAreaLabel] = useState("Anywhere in LA");
+  // const [startTime, setStartTime] = useState(getInitialStartTime());
+  const [startTimeLabel] = useState("Tomorrow @ 6pm");
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [areasOpen, setAreasOpen] = useState(false);
 
   const handleSubmit = useCallback(async () => {
-    const visitorId = await getVisitorId();
+    const _visitorId = await getVisitorId();
     // TODO: call planOuting mutation and dispatch response to store.
   }, []);
 

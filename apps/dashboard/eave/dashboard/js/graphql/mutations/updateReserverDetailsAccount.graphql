@@ -26,7 +26,7 @@ mutation UpdateReserverDetailsAccount($input: UpdateReserverDetailsAccountInput!
     }
     ... on UnauthenticatedViewer {
       __typename
-      reason
+      authAction
     }
   }
 }

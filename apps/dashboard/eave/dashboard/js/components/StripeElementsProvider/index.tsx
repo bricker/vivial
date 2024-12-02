@@ -1,48 +1,51 @@
-import { AppContext } from "$eave-dashboard/js/context";
+import { useCreatePaymentIntentMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { myWindow } from "$eave-dashboard/js/types/window";
 import { Elements } from "@stripe/react-stripe-js";
 import { Appearance, CssFontSource, CustomFontSource, loadStripe } from "@stripe/stripe-js";
-import React, { useContext, useEffect } from "react";
+import React, { useEffect } from "react";
 
 const stripePromise = loadStripe(myWindow.app.stripePublishableKey!);
 
 const StripeElementsProvider = ({ children }: { children: React.ReactElement }) => {
-  console.debug("StripeElementsProvider mounted");
-
-  const { createPaymentIntentOperation } = useContext(AppContext)!;
-  const [networkState] = createPaymentIntentOperation.networkState;
+  const [createPaymentIntent, { isLoading, data }] = useCreatePaymentIntentMutation();
 
   useEffect(() => {
-    console.debug("calling createPaymentIntent");
-
-    void createPaymentIntentOperation.execute({
-      input: {
-        placeholder: "placeholder",
-      },
-    });
+    void createPaymentIntent({});
   }, []);
 
-  if (networkState.loading) {
-    return <div>Loading...</div>;
+  if (isLoading) {
+    return <div>**DEVELOPMENT**: Loading</div>;
   }
 
-  if (networkState.error || !networkState.data) {
-    return <div>**DEVELOPMENT**: Error (createPaymentIntent mutation graphql errors)</div>;
+  if (!data) {
+    return <div>**DEVELOPMENT**: Error (graphql response no data)</div>;
   }
 
-  if (networkState.data.viewer.__typename !== "AuthenticatedViewerMutations") {
-    return <div>**DEVELOPMENT**: Error (Unauthenticated - TODO refresh token)</div>;
+  switch (data.viewer.__typename) {
+    case "AuthenticatedViewerMutations": {
+      break;
+    }
+    case "UnauthenticatedViewer": {
+      return <div>**DEVELOPMENT**: Error (unauthenticated user)</div>;
+    }
+    default: {
+      return <div>**DEVELOPMENT**: Error (graphql unexpected response type)</div>;
+    }
   }
 
-  if (networkState.data.viewer.createPaymentIntent.__typename !== "CreatePaymentIntentSuccess") {
-    return (
-      <div>
-        **DEVELOPMENT**: Error (mutation failure - {networkState.data.viewer.createPaymentIntent.failureReason})
-      </div>
-    );
+  switch (data.viewer.createPaymentIntent.__typename) {
+    case "CreatePaymentIntentSuccess": {
+      break;
+    }
+    case "CreatePaymentIntentFailure": {
+      return <div>**DEVELOPMENT**: Error (mutation failure - {data.viewer.createPaymentIntent.failureReason})</div>;
+    }
+    default: {
+      return <div>**DEVELOPMENT**: Error (graphql unexpected response type)</div>;
+    }
   }
 
-  const clientSecret = networkState.data.viewer.createPaymentIntent.paymentIntent.clientSecret;
+  const clientSecret = data.viewer.createPaymentIntent.paymentIntent.clientSecret;
 
   if (!clientSecret) {
     return <div>**DEVELOPMENT** Error (Payment Intent clientSecret missing)</div>;
