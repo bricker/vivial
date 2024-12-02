@@ -9,6 +9,9 @@ const CustomButton = styled(Button)(({ theme }) => ({
   fontFamily: theme.typography.fontFamily,
   fontWeight: 700,
   padding: "0 0 24px",
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
 }));
 
 const BackButton = () => {

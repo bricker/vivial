@@ -46,7 +46,7 @@ export async function pageView({
   if (myWindow.app.analyticsEnabled) {
     await analytics.page(category, name, extraProperties);
   } else {
-    console.log("pageView", `category: ${category}`, `name: ${name}`, extraProperties);
+    console.debug("pageView", `category: ${category}`, `name: ${name}`, extraProperties);
   }
 }
 

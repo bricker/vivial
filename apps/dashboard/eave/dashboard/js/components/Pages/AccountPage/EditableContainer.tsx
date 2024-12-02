@@ -16,11 +16,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import AccountBookingInfoEditForm from "../../Forms/AccountBookingInfoEditForm";
 import EditIcon from "../../Icons/EditIcon";
+import Paper from "../../Paper";
 
-const FormContainer = styled("div")(({ theme }) => ({
-  backgroundColor: theme.palette.background.paper,
-  borderRadius: 15,
-  padding: "24px 40px",
+const FormContainer = styled(Paper)(({ theme }) => ({
   [theme.breakpoints.down(Breakpoint.Medium)]: {
     padding: 24,
   },
