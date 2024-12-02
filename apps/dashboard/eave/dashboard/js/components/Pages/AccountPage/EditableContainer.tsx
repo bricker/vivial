@@ -98,7 +98,6 @@ const EditableContainer = () => {
   const [updateReserverDetailsAccount, { isLoading: updateDetailsIsLoading }] =
     useUpdateReserverDetailsAccountMutation();
 
-  const goToLogin = useCallback(() => navigate(AppRoute.login), [navigate]);
   const reserverEmail = useSelector((state: RootState) => state.auth.account?.email);
   const localReserverDetails = useSelector((state: RootState) => state.reserverDetails.reserverDetails);
 
@@ -115,7 +114,7 @@ const EditableContainer = () => {
       break;
     }
     case "UnauthenticatedViewer": {
-      goToLogin();
+      navigate(AppRoute.login);
       break;
     }
     default: {
@@ -166,6 +165,7 @@ const EditableContainer = () => {
                     break;
                   }
                   default:
+                    console.error("Unexpected case for UpdateReserverDetailsAccountFailure");
                     break;
                 }
                 break;
@@ -177,7 +177,7 @@ const EditableContainer = () => {
             break;
           }
           case "UnauthenticatedViewer":
-            goToLogin();
+            navigate(AppRoute.login);
             break;
           default:
             break;

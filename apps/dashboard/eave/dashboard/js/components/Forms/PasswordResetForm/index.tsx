@@ -1,3 +1,6 @@
+import { UpdateAccountFailureReason } from "$eave-dashboard/js/graphql/generated/graphql";
+import { AppRoute } from "$eave-dashboard/js/routes";
+import { useUpdateAccountMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { getPasswordInfo, passwordIsValid } from "$eave-dashboard/js/util/password";
 import { Typography, styled } from "@mui/material";
@@ -48,13 +51,14 @@ const PaddedSecondaryButton = styled(SecondaryButton)(() => ({
 
 const PasswordResetForm = () => {
   const navigate = useNavigate();
-  const isLoading = false; // TODO: swap for networkign
+  const [updateAccount, { isLoading }] = useUpdateAccountMutation();
   const [newPassword, setNewPassword] = useState("");
   const [retypedPassword, setRetypedPassword] = useState("");
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [internalError, setInternalError] = useState<string | undefined>(undefined);
-  const error = internalError; //|| externalError;
-  const isDisabled = !isPasswordValid || !!error;
+  const [externalError, setExternalError] = useState<string | undefined>(undefined);
+  const error = internalError || externalError;
+  const isDisabled = !isPasswordValid || !!internalError;
 
   useEffect(() => {
     setInternalError(undefined);
@@ -69,11 +73,52 @@ const PasswordResetForm = () => {
     }
   }, [newPassword, retypedPassword]);
 
-  const handleSubmit = useCallback((e: React.FormEvent<HTMLFormElement>) => {
-    // todo send pw reset
-    e.preventDefault();
-    return false;
-  }, []);
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setExternalError(undefined);
+      try {
+        const resp = await updateAccount({ input: { plaintextPassword: newPassword } });
+        switch (resp.data?.viewer.__typename) {
+          case "AuthenticatedViewerMutations": {
+            const respData = resp.data.viewer.updateAccount;
+            switch (respData.__typename) {
+              case "UpdateAccountSuccess":
+                navigate(AppRoute.account);
+                break;
+              case "UpdateAccountFailure":
+                switch (respData.failureReason) {
+                  case UpdateAccountFailureReason.ValidationErrors: {
+                    const invalidFields = respData.validationErrors?.map((e) => e.field).join(", ");
+                    setExternalError(`The following fields are invalid: ${invalidFields}`);
+                    break;
+                  }
+                  default:
+                    console.error("Unexpected case for UpdateAccountFailure");
+                    break;
+                }
+                break;
+              default:
+                // 500 error
+                setExternalError("Unable to change your password. Please try again later.");
+                break;
+            }
+            break;
+          }
+          case "UnauthenticatedViewer":
+            navigate(AppRoute.login);
+            break;
+          default:
+            // loading/not-requested
+            break;
+        }
+      } catch {
+        // handle network error
+        setExternalError("Unable to change your password. Please try again later.");
+      }
+    },
+    [newPassword],
+  );
 
   return (
     <FormContainer onSubmit={handleSubmit}>
