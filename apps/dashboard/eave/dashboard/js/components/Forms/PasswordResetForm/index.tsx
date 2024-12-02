@@ -7,7 +7,7 @@ import LoadingButton from "../../Buttons/LoadingButton";
 import SecondaryButton from "../../Buttons/SecondaryButton";
 import InputError from "../../Inputs/InputError";
 import SensitiveInput from "../../Inputs/SensitiveInput";
-import PasswordValidation from "../../PasswordValidation";
+import PasswordRequirements from "../../PasswordRequirements";
 
 const FormContainer = styled("form")(() => ({
   display: "flex",
@@ -82,7 +82,7 @@ const PasswordResetForm = () => {
         <Subtitle variant="subtitle2">Input your new password below:</Subtitle>
       </TitleContainer>
 
-      <PasswordValidation passwordInfo={getPasswordInfo(newPassword)} verticalLayout />
+      <PasswordRequirements passwordInfo={getPasswordInfo(newPassword)} verticalLayout />
 
       <SensitiveInput placeholder="New password" onChange={(e) => setNewPassword(e.target.value)} />
       <SensitiveInput placeholder="Retype new password" onChange={(e) => setRetypedPassword(e.target.value)} />

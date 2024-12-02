@@ -7,26 +7,22 @@ import InputRequirement from "../Inputs/InputRequirement";
 const HorizontalInputReqsContainer = styled("div")(() => ({
   fontSize: rem("12px"),
   lineHeight: rem("16px"),
-  marginTop: 10,
   display: "flex",
   flexDirection: "row",
   gap: 8,
-  // alignItems: "center",
-  // justifyContent: "center",
 }));
 
 const VerticalInputReqsContainer = styled(HorizontalInputReqsContainer)(() => ({
   flexDirection: "column",
 }));
 
-const PasswordValidation = ({
+const PasswordRequirements = ({
   passwordInfo,
   verticalLayout = false,
 }: {
   passwordInfo: PasswordInfo;
   verticalLayout?: boolean;
 }) => {
-  // TODO: vertical/horz layout
   const Container = verticalLayout ? VerticalInputReqsContainer : HorizontalInputReqsContainer;
   return (
     <Container>
@@ -37,4 +33,4 @@ const PasswordValidation = ({
   );
 };
 
-export default PasswordValidation;
+export default PasswordRequirements;
