@@ -1,9 +1,9 @@
-import React from "react";
-import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { colors } from "$eave-dashboard/js/theme/colors";
+import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import Tooltip from "@mui/material/Tooltip";
+import React from "react";
 import TooltipIcon from "../../Icons/TooltipIcon";
 
 interface TooltipButtonProps {
@@ -36,16 +36,12 @@ const arrowStyles = {
 
 const TooltipButton = ({ info, iconColor }: TooltipButtonProps) => {
   return (
-    <Tooltip
-      slotProps={{ tooltip: { sx: tooltipStyles }, arrow: { sx: arrowStyles }}}
-      title={info}
-      arrow
-    >
+    <Tooltip slotProps={{ tooltip: { sx: tooltipStyles }, arrow: { sx: arrowStyles } }} title={info} arrow>
       <Button>
         <TooltipIcon color={iconColor} />
       </Button>
     </Tooltip>
   );
-}
+};
 
 export default TooltipButton;

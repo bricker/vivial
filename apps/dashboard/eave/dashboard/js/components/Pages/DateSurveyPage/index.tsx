@@ -12,8 +12,8 @@ import Typography from "@mui/material/Typography";
 import Modal from "../../Modal";
 import Paper from "../../Paper";
 import DateAreaSelections from "../../Selections/DateAreaSelections";
-import DateTimeSelections from "../../Selections/DateTimeSelections";
 import DateSelections from "../../Selections/DateSelections";
+import DateTimeSelections from "../../Selections/DateTimeSelections";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
@@ -47,8 +47,10 @@ const DateSurveyPage = () => {
   const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery();
   const searchRegions = searchRegionsData?.data?.searchRegions;
 
+  // TODO: Update startTimeLabel, setSearchAreaLabel
+
   const [budget, setBudget] = useState(OutingBudget.Expensive);
-  const [groupPreferences, setGroupPreferences] = useState([]);
+  // const [groupPreferences, setGroupPreferences] = useState([]);
   const [headcount, setHeadcount] = useState(2);
   const [searchAreaIds, setSearchAreaIds] = useState([""]);
   const [serachAreaLabel, setSearchAreaLabel] = useState("Anywhere in LA");
@@ -72,10 +74,12 @@ const DateSurveyPage = () => {
 
   const handleSelectSearchAreas = useCallback((searchAreaIds: string[]) => {
     setSearchAreaIds(searchAreaIds);
+    setAreasOpen(false);
   }, []);
 
   const handleSelectStartTime = useCallback((startTime: Date) => {
     setStartTime(startTime);
+    setDatePickerOpen(false);
   }, []);
 
   const toggleDatePickerOpen = useCallback(() => {
@@ -127,8 +131,8 @@ const DateSurveyPage = () => {
       <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
         <DateAreaSelections cta="Save" onSubmit={handleSelectSearchAreas} regions={searchRegions} />
       </Modal>
-      <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={true}>
-        <DateTimeSelections cta="Save" onSubmit={handleSelectStartTime} startTime={startTime} />
+      <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={datePickerOpen}>
+        <DateTimeSelections cta="Save" onSubmit={handleSelectStartTime} startDateTime={startTime} />
       </Modal>
     </PageContainer>
   );

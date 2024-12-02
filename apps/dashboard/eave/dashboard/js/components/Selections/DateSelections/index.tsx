@@ -61,6 +61,7 @@ const DateSelections = ({
   onSelectStartTime,
   onSelectSearchArea,
 }: DateSelectionsProps) => {
+  // TODO: startTimeLabel, setSearchAreaLabel
   return (
     <>
       <Row>
