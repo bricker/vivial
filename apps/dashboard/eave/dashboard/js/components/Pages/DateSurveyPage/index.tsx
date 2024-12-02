@@ -13,6 +13,7 @@ import Paper from "../../Paper";
 import DateAreaSelections from "../../Selections/DateAreaSelections";
 import DateSelections from "../../Selections/DateSelections";
 import DateTimeSelections from "../../Selections/DateTimeSelections";
+import { getInitialStartTime } from "./helpers";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
@@ -53,7 +54,7 @@ const DateSurveyPage = () => {
   const [headcount, setHeadcount] = useState(2);
   const [, setSearchAreaIds] = useState([""]);
   const [serachAreaLabel] = useState("Anywhere in LA");
-  // const [startTime, setStartTime] = useState(getInitialStartTime());
+  const [startTime, setStartTime] = useState(getInitialStartTime());
   const [startTimeLabel] = useState("Tomorrow @ 6pm");
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [areasOpen, setAreasOpen] = useState(false);
@@ -71,13 +72,13 @@ const DateSurveyPage = () => {
     setBudget(value);
   }, []);
 
-  const handleSelectSearchAreas = useCallback((searchAreaIds: string[]) => {
-    setSearchAreaIds(searchAreaIds);
+  const handleSelectSearchAreas = useCallback((value: string[]) => {
+    setSearchAreaIds(value);
     setAreasOpen(false);
   }, []);
 
-  const handleSelectStartTime = useCallback((startTime: Date) => {
-    setStartTime(startTime);
+  const handleSelectStartTime = useCallback((value: Date) => {
+    setStartTime(value);
     setDatePickerOpen(false);
   }, []);
 
