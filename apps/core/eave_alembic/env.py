@@ -1,5 +1,6 @@
 from collections.abc import MutableMapping
 from typing import Literal
+
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
 
 load_standard_dotenv_files()
@@ -38,9 +39,10 @@ target_metadata = eave.core.orm.base.get_base_metadata()
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
+
 def _include_name(
     name: str | None,
-    type_: Literal["schema","table","column","index","unique_constraint","foreign_key_constraint"],
+    type_: Literal["schema", "table", "column", "index", "unique_constraint", "foreign_key_constraint"],
     parent_names: MutableMapping[
         Literal[
             "schema_name",
@@ -55,6 +57,7 @@ def _include_name(
         return name not in ["spatial_ref_sys"]
     else:
         return True
+
 
 async def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.

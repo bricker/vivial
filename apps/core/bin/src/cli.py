@@ -1,10 +1,7 @@
 # isort: off
 
-from collections.abc import Awaitable, Callable, Coroutine
-from functools import wraps
 import os
 import sys
-from typing import Any
 
 sys.path.append(".")
 
@@ -18,31 +15,34 @@ load_standard_dotenv_files()
 
 import asyncio
 import logging
-import click
 
 import alembic
 import alembic.command
 import alembic.config
 import alembic.migration
 import alembic.script
+import click
 
 import eave.core.database
 import eave.core.orm
 import eave.core.orm.base
 from eave.core.config import CORE_API_APP_CONFIG
-from eave.core.database import init_database, create_database_tables
+from eave.core.database import create_database_tables, init_database
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import eaveLogger
 
 _alembic_config = alembic.config.Config("alembic.ini")
 
+
 @click.group()
 def cli() -> None:
     pass
 
+
 @cli.group()
 def db() -> None:
     pass
+
 
 @db.command()
 def run_migrations() -> None:

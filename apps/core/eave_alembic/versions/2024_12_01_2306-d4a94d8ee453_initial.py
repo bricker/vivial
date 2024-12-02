@@ -6,12 +6,12 @@ Create Date: 2024-12-01 23:06:48.197494
 
 """
 
-from alembic import op
+import geoalchemy2
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 import eave.core.orm.address_types
-import geoalchemy2
 
 # revision identifiers, used by Alembic.
 revision = "d4a94d8ee453"
