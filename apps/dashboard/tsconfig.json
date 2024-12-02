@@ -1,7 +1,8 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "../../develop/javascript/es-config/ts/tsconfig-base.json",
   "exclude": ["**/dist", "**/.*"],
   "compilerOptions": {
+    "outDir": ".tmp", // This is necessary to silence some tsconfig warnings.
     "lib": ["ES2021", "DOM"],
     "paths": {
       "$eave-dashboard/*": ["./eave/dashboard/*"]
