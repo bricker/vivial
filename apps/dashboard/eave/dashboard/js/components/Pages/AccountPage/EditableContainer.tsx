@@ -90,7 +90,7 @@ const InfoDisplay = ({ name, email, phoneNumber }: { name: string; email: string
 };
 
 const EditableContainer = () => {
-  const [isEditting, setIsEditting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
 
   const dispatch = useDispatch();
@@ -102,25 +102,28 @@ const EditableContainer = () => {
   const reserverEmail = useSelector((state: RootState) => state.auth.account?.email);
   const localReserverDetails = useSelector((state: RootState) => state.reserverDetails.reserverDetails);
 
-  const { data, isLoading: listDetailsIsLoading } = useListReserverDetailsQuery();
+  const { data, isLoading: listDetailsIsLoading, isError: listDetailsIsError } = useListReserverDetailsQuery({});
   let reserverDetails = localReserverDetails;
-  switch (data?.data.viewer.__typename) {
-    case "AuthenticatedViewerQueries":
+  switch (data?.viewer.__typename) {
+    case "AuthenticatedViewerQueries": {
       // always prefer in-memory data (if available) over cached network resp
       if (!reserverDetails) {
         // NOTE: extracting and showing only the first one since we currently only
         // allow 1 reserverDetails row to be created
-        reserverDetails = data?.data.viewer?.reserverDetails[0] || null;
+        reserverDetails = data?.viewer?.reserverDetails[0] || null;
       }
       break;
-    case "UnauthenticatedViewer":
+    }
+    case "UnauthenticatedViewer": {
       goToLogin();
       break;
-    default:
+    }
+    default: {
       break;
+    }
   }
 
-  const handleCancel = () => setIsEditting(false);
+  const handleCancel = () => setIsEditing(false);
   const handleSubmit = useCallback(
     async ({
       firstName,
@@ -137,15 +140,17 @@ const EditableContainer = () => {
 
       try {
         const resp = await updateReserverDetailsAccount({
-          id: reserverDetails?.id || "reserverDetails should never be null here",
-          firstName,
-          lastName,
-          phoneNumber,
-          email,
+          input: {
+            id: reserverDetails?.id || "reserverDetails should never be null here",
+            firstName,
+            lastName,
+            phoneNumber,
+            email,
+          },
         });
-        switch (resp.data?.data.viewer.__typename) {
+        switch (resp.data?.viewer.__typename) {
           case "AuthenticatedViewerMutations": {
-            const updatedData = resp.data?.data.viewer.updateReserverDetailsAccount;
+            const updatedData = resp.data?.viewer.updateReserverDetailsAccount;
             switch (updatedData?.__typename) {
               case "UpdateReserverDetailsAccountSuccess":
                 dispatch(storeReserverDetails({ details: updatedData.reserverDetails }));
@@ -189,8 +194,8 @@ const EditableContainer = () => {
     <FormContainer>
       <TitleContainer>
         <Typography variant="h2">Booking info</Typography>
-        {!isEditting && reserverDetails && (
-          <ShiftedButton onClick={() => setIsEditting(true)}>
+        {!isEditing && reserverDetails && (
+          <ShiftedButton onClick={() => setIsEditing(true)}>
             <EditIcon />
           </ShiftedButton>
         )}
@@ -199,7 +204,7 @@ const EditableContainer = () => {
       {reserverDetails ? (
         // we have details to display; show them
         <InfoContainer>
-          {isEditting ? (
+          {isEditing ? (
             <AccountBookingInfoEditForm
               initFirstName={reserverDetails?.firstName || ""}
               initLastName={reserverDetails?.lastName || ""}
@@ -223,9 +228,11 @@ const EditableContainer = () => {
           {listDetailsIsLoading ? (
             // loading state
             <CircularProgress color="secondary" />
-          ) : (
+          ) : listDetailsIsError ? (
             // error state
             "Oops! We encountered a problem, please try again later."
+          ) : (
+            "There is no booking info to display."
           )}
         </StateContainer>
       )}

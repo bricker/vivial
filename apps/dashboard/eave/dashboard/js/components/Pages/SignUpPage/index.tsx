@@ -31,15 +31,15 @@ const SignUpPage = () => {
 
   const handleSubmit = useCallback(async ({ email, password }: { email: string; password: string }) => {
     const resp = await createAccount({ input: { email, plaintextPassword: password } });
-    const typename = resp.data?.data.createAccount.__typename;
+    const typename = resp.data?.createAccount.__typename;
     switch (typename) {
       case "CreateAccountSuccess": {
-        dispatch(loggedIn({ account: resp.data!.data.createAccount.account }));
+        dispatch(loggedIn({ account: resp.data!.createAccount.account }));
         navigate(AppRoute.root);
         break;
       }
       case "CreateAccountFailure": {
-        const failureReason = resp.data?.data.createAccount.failureReason;
+        const failureReason = resp.data?.createAccount.failureReason;
         if (failureReason === CreateAccountFailureReason.AccountExists) {
           setError("This account already exists.");
         } else {

@@ -43,6 +43,6 @@ EAVE_DB_NAME="eave-development"
 
 ### Eave Database initialization
 
-Run `bin/setup-db` and follow the instructions. This will create the database, tables, and more.
+Run `bin/setup-db-dev` and follow the instructions. This will create the database, tables, and more.
 
-To setup the test database, run `EAVE_ENV=test bin/setup-db`
+To setup the test database, run `EAVE_ENV=test bin/setup-db-dev`

@@ -67,7 +67,7 @@ def delete_auth_cookies(*, response: Response) -> None:
     delete_http_cookie(
         response=response,
         key=ACCESS_TOKEN_COOKIE_NAME,
-        domain=SHARED_CONFIG.eave_api_base_url_public,
+        domain=SHARED_CONFIG.eave_api_hostname_public,
         path="/",
         samesite="lax",
         httponly=True,
@@ -77,7 +77,7 @@ def delete_auth_cookies(*, response: Response) -> None:
     delete_http_cookie(
         response=response,
         key=REFRESH_TOKEN_COOKIE_NAME,
-        domain=SHARED_CONFIG.eave_api_base_url_public,
+        domain=SHARED_CONFIG.eave_api_hostname_public,
         path="/public/refresh_tokens",
         samesite="lax",
         httponly=True,

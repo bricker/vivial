@@ -98,5 +98,22 @@ if SHARED_CONFIG.eave_env in [EaveEnvironment.development, EaveEnvironment.test]
             await connection.execute(sqlalchemy.text("CREATE EXTENSION IF NOT EXISTS postgis"))
             await connection.execute(sqlalchemy.text("CREATE EXTENSION IF NOT EXISTS address_standardizer"))
 
+        await create_database_tables(db_name)
+
+    async def create_database_tables(db_name: str = CORE_API_APP_CONFIG.db_name) -> None:
+        # create schema in the target db
+        target_db_uri = async_engine.url._replace(database=db_name)
+        target_engine = create_async_engine(
+            target_db_uri,
+            isolation_level="AUTOCOMMIT",
+            echo=False,
+            connect_args={
+                "server_settings": {
+                    "timezone": "UTC",
+                },
+            },
+        )
+
+        async with target_engine.begin() as connection:
             # create tables in empty db
             await connection.run_sync(get_base_metadata().create_all)

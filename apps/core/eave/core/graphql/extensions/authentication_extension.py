@@ -25,7 +25,7 @@ class ViewerAuthenticationAction(enum.Enum):
 
 @strawberry.type
 class UnauthenticatedViewer:
-    reason: ViewerAuthenticationAction
+    auth_action: ViewerAuthenticationAction
 
 
 class AuthenticationExtension(FieldExtension):
@@ -54,8 +54,8 @@ class AuthenticationExtension(FieldExtension):
                     raise InvalidTokenError("missing access token")
 
         except AccessTokenExpiredError:
-            return UnauthenticatedViewer(reason=ViewerAuthenticationAction.REFRESH_ACCESS_TOKEN)
+            return UnauthenticatedViewer(auth_action=ViewerAuthenticationAction.REFRESH_ACCESS_TOKEN)
 
         except InvalidTokenError:
             delete_auth_cookies(response=info.context["response"])
-            return UnauthenticatedViewer(reason=ViewerAuthenticationAction.FORCE_LOGOUT)
+            return UnauthenticatedViewer(auth_action=ViewerAuthenticationAction.FORCE_LOGOUT)

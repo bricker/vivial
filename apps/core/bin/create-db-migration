@@ -4,5 +4,7 @@ set -eu
 
 source "${EAVE_HOME}"/develop/functions.bash
 
-python-activate-venv
-python "$EAVE_HOME/apps/core/bin/src/create-db-migration.py" "$@"
+(
+	cd "$(e.parentpath)"
+	bin/cli db create-revision "$@"
+)

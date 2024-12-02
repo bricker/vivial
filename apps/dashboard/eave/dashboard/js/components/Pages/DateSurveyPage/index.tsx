@@ -5,13 +5,15 @@ import React, { useCallback, useEffect, useState } from "react";
 import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
-import { getInitialStartTime } from "./helpers";
 
 import BaseSkeleton from "@mui/material/Skeleton";
 import Typography from "@mui/material/Typography";
 import Modal from "../../Modal";
 import Paper from "../../Paper";
+import DateAreaSelections from "../../Selections/DateAreaSelections";
 import DateSelections from "../../Selections/DateSelections";
+import DateTimeSelections from "../../Selections/DateTimeSelections";
+import { getInitialStartTime } from "./helpers";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
@@ -42,30 +44,42 @@ const DateSurvey = styled(Paper)(() => ({
 }));
 
 const DateSurveyPage = () => {
-  const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery();
-  const searchRegions = searchRegionsData?.data?.searchRegions;
+  const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery({});
+  const searchRegions = searchRegionsData?.searchRegions;
+
+  // TODO: Update startTimeLabel, setSearchAreaLabel
 
   const [budget, setBudget] = useState(OutingBudget.Expensive);
-  const [groupPreferences, setGroupPreferences] = useState([]);
+  // const [groupPreferences, setGroupPreferences] = useState([]);
   const [headcount, setHeadcount] = useState(2);
-  const [searchAreaIds, setSearchAreaIds] = useState([""]);
-  const [serachAreaLabel, setSearchAreaLabel] = useState("Anywhere in LA");
+  const [, setSearchAreaIds] = useState([""]);
+  const [serachAreaLabel] = useState("Anywhere in LA");
   const [startTime, setStartTime] = useState(getInitialStartTime());
-  const [startTimeLabel, setStartTimeLabel] = useState("Tomorrow @ 6pm");
+  const [startTimeLabel] = useState("Tomorrow @ 6pm");
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [areasOpen, setAreasOpen] = useState(false);
 
   const handleSubmit = useCallback(async () => {
-    const visitorId = await getVisitorId();
+    const _visitorId = await getVisitorId();
     // TODO: call planOuting mutation and dispatch response to store.
   }, []);
 
-  const handleHeadcountClick = useCallback((value: number) => {
+  const handleSelectHeadcount = useCallback((value: number) => {
     setHeadcount(value);
   }, []);
 
-  const handleBudgetClick = useCallback((value: OutingBudget) => {
+  const handleSelectBudget = useCallback((value: OutingBudget) => {
     setBudget(value);
+  }, []);
+
+  const handleSelectSearchAreas = useCallback((value: string[]) => {
+    setSearchAreaIds(value);
+    setAreasOpen(false);
+  }, []);
+
+  const handleSelectStartTime = useCallback((value: Date) => {
+    setStartTime(value);
+    setDatePickerOpen(false);
   }, []);
 
   const toggleDatePickerOpen = useCallback(() => {
@@ -108,17 +122,17 @@ const DateSurveyPage = () => {
           searchArea={serachAreaLabel}
           budget={budget}
           onSubmit={handleSubmit}
-          onHeadcountClick={handleHeadcountClick}
-          onStartTimeClick={toggleDatePickerOpen}
-          onSearchAreaClick={toggleAreasOpen}
-          onBudgetClick={handleBudgetClick}
+          onSelectHeadcount={handleSelectHeadcount}
+          onSelectBudget={handleSelectBudget}
+          onSelectStartTime={toggleDatePickerOpen}
+          onSelectSearchArea={toggleAreasOpen}
         />
       </DateSurvey>
       <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
-        SEARCH AREAS
+        <DateAreaSelections cta="Save" onSubmit={handleSelectSearchAreas} regions={searchRegions} />
       </Modal>
       <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={datePickerOpen}>
-        DATE PICKER
+        <DateTimeSelections cta="Save" onSubmit={handleSelectStartTime} startDateTime={startTime} />
       </Modal>
     </PageContainer>
   );

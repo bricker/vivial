@@ -9,11 +9,6 @@ from eave.core.graphql.types.payment_intent import PaymentIntent
 from eave.stdlib.util import unwrap
 
 
-@strawberry.input
-class CreatePaymentIntentInput:
-    placeholder: str
-
-
 @strawberry.type
 class CreatePaymentIntentSuccess:
     payment_intent: PaymentIntent
@@ -36,7 +31,8 @@ CreatePaymentIntentResult = Annotated[
 
 
 async def create_payment_intent_mutation(
-    *, info: strawberry.Info[GraphQLContext], input: CreatePaymentIntentInput
+    *,
+    info: strawberry.Info[GraphQLContext],
 ) -> CreatePaymentIntentResult:
     account_id = unwrap(info.context.get("authenticated_account_id"))
     print(account_id)
