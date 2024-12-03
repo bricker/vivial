@@ -6,7 +6,7 @@ from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.lib.geo import GeoPoint, SpatialReferenceSystemId
-from eave.core.orm.address_types import PostgisStdaddr, PostgisStdaddrColumnType
+from eave.core.orm.address_types import Address, AddressColumnType
 
 from .base import Base
 from .util import PG_UUID_EXPR
@@ -40,7 +40,7 @@ class BookingActivityTemplateOrm(Base):
     headcount: Mapped[int] = mapped_column(name="num_attendees")
     external_booking_link: Mapped[str | None] = mapped_column()
     """HTTP link to site for manual booking (possibly affiliate), if available"""
-    address: Mapped[PostgisStdaddr] = mapped_column(type_=PostgisStdaddrColumnType())
+    address: Mapped[Address] = mapped_column(type_=AddressColumnType())
     coordinates: Mapped[WKBElement] = mapped_column(
         type_=Geography(geometry_type="POINT", srid=SpatialReferenceSystemId.LAT_LON)
     )
@@ -56,7 +56,7 @@ class BookingActivityTemplateOrm(Base):
         activity_start_time: datetime,
         headcount: int,
         external_booking_link: str | None,
-        address: PostgisStdaddr,
+        address: Address,
         lat: float,
         lon: float,
     ) -> "BookingActivityTemplateOrm":

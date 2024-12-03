@@ -246,6 +246,33 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def gethex(self, name: str) -> str:
         return self.getstr(name)
 
+    def anydigits(self, name: str | None = None, *, length: int = 5) -> str:
+        if name is None:
+            name = uuid.uuid4().hex
+
+        assert name not in self.testdata, f"test value {name} is already in use."
+
+        digits = "123456789" # 0 is not included because this was made for zip codes and zip codes don't start with 0.
+        data = "".join(random.sample(digits, k=length))
+        self.testdata[name] = data
+        return self.getdigits(name)
+
+    def getdigits(self, name: str) -> str:
+        return self.getstr(name)
+
+    def anyusstate(self, name: str | None = None) -> str:
+        if name is None:
+            name = uuid.uuid4().hex
+
+        assert name not in self.testdata, f"test value {name} is already in use."
+
+        state = random.choice(["CA", "NY", "MA", "CO", "AZ", "NV"])
+        self.testdata[name] = state
+        return self.getusstate(name)
+
+    def getusstate(self, name: str) -> str:
+        return self.getstr(name)
+
     def anyalpha(self, name: str | None = None, *, length: int = 10) -> str:
         if name is None:
             name = uuid.uuid4().hex
