@@ -1,5 +1,6 @@
 mutation CreateBooking($input: CreateBookingInput!) {
   viewer {
+    __typename
     ... on AuthenticatedViewerMutations {
       __typename
 

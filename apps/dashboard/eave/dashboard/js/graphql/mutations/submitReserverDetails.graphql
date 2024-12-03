@@ -1,5 +1,6 @@
 mutation SubmitReserverDetails($input: SubmitReserverDetailsInput!) {
   viewer {
+    __typename
     ... on AuthenticatedViewerMutations {
       __typename
 

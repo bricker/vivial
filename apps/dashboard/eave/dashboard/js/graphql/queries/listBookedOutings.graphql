@@ -1,0 +1,70 @@
+query ListBookedOutings($input: ListBookedOutingsInput) {
+  viewer {
+    __typename
+    ... on AuthenticatedViewerQueries {
+      __typename
+      bookedOutings(input: $input) {
+        id
+        headcount
+        activityStartTime
+        restaurantArrivalTime
+        drivingTime
+        activity {
+          id
+          source
+          name
+          description
+          websiteUri
+          doorTips
+          insiderTips
+          parkingTips
+          venue {
+            name
+            location {
+              directionsUri
+              latitude
+              longitude
+              formattedAddress
+            }
+          }
+          photos {
+            coverPhotoUri
+            supplementalPhotoUris
+          }
+          ticketInfo {
+            type
+            notes
+            cost
+            fee
+            tax
+          }
+        }
+        restaurant {
+          id
+          source
+          name
+          reservable
+          rating
+          primaryTypeName
+          websiteUri
+          description
+          parkingTips
+          customerFavorites
+          location {
+            directionsUri
+            latitude
+            longitude
+            formattedAddress
+          }
+          photos {
+            coverPhotoUri
+            supplementalPhotoUris
+          }
+        }
+      }
+    }
+    ... on UnauthenticatedViewer {
+      authAction
+    }
+  }
+}
