@@ -1,3 +1,5 @@
+import contextlib
+from collections.abc import AsyncGenerator
 from http import HTTPStatus
 
 from starlette.applications import Starlette
@@ -64,6 +66,20 @@ def web_app_endpoint(request: Request) -> Response:
     return response
 
 
+@contextlib.asynccontextmanager
+async def _app_lifespan(app: Starlette) -> AsyncGenerator[None, None]:
+    if not SHARED_CONFIG.is_local:
+        # Preload config in production environments.
+        # The idea here is that in development, secrets and required envs
+        # should be lazily evaluated, but in production environments
+        # we want to attempt to load them before the application starts up,
+        # so that it will fail to start if anything required is unavailable.
+        SHARED_CONFIG.preload()
+        DASHBOARD_APP_CONFIG.preload()
+
+    yield
+
+
 app = Starlette(
     routes=[
         Mount("/static", StaticFiles(directory="eave/dashboard/static")),
@@ -81,4 +97,5 @@ app = Starlette(
         Route(path="/logout", methods=["GET"], endpoint=logout_endpoint),
         Route(path="/{rest:path}", methods=["GET"], endpoint=web_app_endpoint),
     ],
+    lifespan=_app_lifespan,
 )

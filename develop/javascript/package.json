@@ -1,1 +1,7 @@
-{}
+{
+  "name": "@eave-fyi/develop",
+  "type": "module",
+  "dependencies": {
+    "graphql-config": "5.x"
+  }
+}

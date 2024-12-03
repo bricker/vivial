@@ -58,3 +58,11 @@ resource "google_compute_global_forwarding_rule" "default" {
   target                = google_compute_target_https_proxy.default.id
   ip_address            = google_compute_global_address.default.id
 }
+
+module "cdn_certificate" {
+  source                                     = "../../modules/certificate_manager"
+  google_certificate_manager_certificate_map = var.google_certificate_manager_certificate_map
+  cert_name                                  = var.name
+  entry_name                                 = var.name
+  hostname                                   = local.domain
+}

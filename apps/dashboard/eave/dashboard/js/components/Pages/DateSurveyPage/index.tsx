@@ -47,15 +47,11 @@ const DateSurveyPage = () => {
   const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery({});
   const searchRegions = searchRegionsData?.searchRegions;
 
-  // TODO: Update startTimeLabel, setSearchAreaLabel
-
   const [budget, setBudget] = useState(OutingBudget.Expensive);
-  // const [groupPreferences, setGroupPreferences] = useState([]);
   const [headcount, setHeadcount] = useState(2);
-  const [, setSearchAreaIds] = useState([""]);
-  const [serachAreaLabel] = useState("Anywhere in LA");
+  const [searchAreaIds, setSearchAreaIds] = useState<string[]>([]);
   const [startTime, setStartTime] = useState(getInitialStartTime());
-  const [startTimeLabel] = useState("Tomorrow @ 6pm");
+  // const [groupPreferences, setGroupPreferences] = useState([]);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [areasOpen, setAreasOpen] = useState(false);
 
@@ -118,9 +114,9 @@ const DateSurveyPage = () => {
         <DateSelections
           cta="🎲 Pick my date"
           headcount={headcount}
-          startTime={startTimeLabel}
-          searchArea={serachAreaLabel}
           budget={budget}
+          startTime={startTime}
+          searchAreaIds={searchAreaIds}
           onSubmit={handleSubmit}
           onSelectHeadcount={handleSelectHeadcount}
           onSelectBudget={handleSelectBudget}
