@@ -83,3 +83,7 @@ variable "SEGMENT_WEBSITE_WRITE_KEY" {
   type = string
   // value can be obtained from target website source https://app.segment.com/vivial/sources
 }
+
+variable "STRIPE_PUBLISHABLE_KEY" {
+  type = string
+}

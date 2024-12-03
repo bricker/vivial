@@ -18,6 +18,17 @@ module "secret_accessor_role" {
   ]
 }
 
+# module "cloudkms_mac_user_role" {
+#   source      = "../../modules/custom_role"
+#   role_id     = "eave.cloudkmsMacUser"
+#   title       = "CloudKMS Signer/Verifier/Viewer"
+#   description = "Permissions needed to use to sign, use to verify, and view a key"
+#   base_roles = [
+#     "roles/cloudkms.signerVerifier",
+#     "roles/cloudkms.viewer",
+#   ]
+# }
+
 module "cloudsql_user_role" {
   source      = "../../modules/custom_role"
   role_id     = "eave.cloudsqlUser"
