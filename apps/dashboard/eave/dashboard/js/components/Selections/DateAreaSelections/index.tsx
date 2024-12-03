@@ -3,7 +3,7 @@ import { colors } from "$eave-dashboard/js/theme/colors";
 import { styled } from "@mui/material";
 import React, { useCallback, useState } from "react";
 
-import MaterialButton from "@mui/material/Button";
+import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import SubmitButton from "../../Buttons/PrimaryButton";
 
@@ -23,13 +23,13 @@ const Row = styled("div")(() => ({
   },
 }));
 
-interface SelectIndicatorProps extends React.HTMLAttributes<HTMLDivElement> {
+interface SelectedIndicatorProps extends React.HTMLAttributes<HTMLDivElement> {
   selected: boolean;
 }
 
 const SelectedIndicator = styled("div", {
   shouldForwardProp: (prop) => prop !== "selected",
-})<SelectIndicatorProps>(({ selected, theme }) => ({
+})<SelectedIndicatorProps>(({ selected, theme }) => ({
   marginRight: 12,
   height: 24,
   width: 24,
@@ -41,7 +41,7 @@ const SelectedIndicator = styled("div", {
   }),
 }));
 
-const SelectButton = styled(MaterialButton)(({ theme }) => ({
+const SelectButton = styled(Button)(({ theme }) => ({
   color: theme.palette.text.primary,
   "&:hover": {
     backgroundColor: "transparent",

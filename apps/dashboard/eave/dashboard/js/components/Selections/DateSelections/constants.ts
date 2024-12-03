@@ -1,7 +1,7 @@
 export const LOCALE = "en-US";
 
 export const MONTH_DAY_LABELS: (string | null)[] = [
-  null, // dates 1-indexed
+  null, // dates are 1-indexed
   "1st",
   "2nd",
   "3rd",
