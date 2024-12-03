@@ -1,5 +1,6 @@
 mutation UpdateReserverDetailsAccount($input: UpdateReserverDetailsAccountInput!) {
   viewer {
+    __typename
     ... on AuthenticatedViewerMutations {
       __typename
       updateReserverDetailsAccount(input: $input) {
