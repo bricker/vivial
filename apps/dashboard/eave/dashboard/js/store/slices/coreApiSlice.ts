@@ -4,6 +4,9 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import {
   CreateAccountDocument,
   CreatePaymentIntentDocument,
+  ListBookedOutingsDocument,
+  ListBookedOutingsQuery,
+  ListBookedOutingsQueryVariables,
   ListReserverDetailsDocument,
   LoginDocument,
   SearchRegionsDocument,
@@ -45,6 +48,13 @@ export const coreApiSlice = createApi({
     listReserverDetails: builder.query<ListReserverDetailsQuery, ListReserverDetailsQueryVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: ListReserverDetailsDocument, variables });
+        return { data };
+      },
+    }),
+
+    listBookedOutings: builder.query<ListBookedOutingsQuery, ListBookedOutingsQueryVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: ListBookedOutingsDocument, variables });
         return { data };
       },
     }),
@@ -95,6 +105,7 @@ export const {
   // Core API GraphQL Query Hooks
   useGetSearchRegionsQuery,
   useListReserverDetailsQuery,
+  useListBookedOutingsQuery,
 
   // Core API GraphQL Mutation Hooks
   useCreateAccountMutation,

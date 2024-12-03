@@ -28,7 +28,7 @@ class Outing:
 
     @classmethod
     def from_orm(cls, orm: OutingOrm) -> "Outing":
-        # FIXME:
+        # FIXME: delete this garbo
         return Outing(
             id=orm.id,
             headcount=2,

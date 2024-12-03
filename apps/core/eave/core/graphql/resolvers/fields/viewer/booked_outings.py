@@ -7,9 +7,12 @@ from eave.core.graphql.types.outing import (
     OutingState,
 )
 
+@strawberry.input
+class ListBookedOutingsInput:
+    outing_state: OutingState
 
 async def list_booked_outings_query(
-    *, info: strawberry.Info[GraphQLContext], outing_state: OutingState
+    *, info: strawberry.Info[GraphQLContext], input: ListBookedOutingsInput | None = None,
 ) -> list[Outing]:
     # TODO: Fetch list of booked outings by account ID.
     # PAST outings are outings that have already occured.
