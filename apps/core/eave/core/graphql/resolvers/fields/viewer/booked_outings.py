@@ -6,6 +6,8 @@ from eave.core.graphql.types.outing import (
     Outing,
     OutingState,
 )
+import copy
+import datetime
 
 @strawberry.input
 class ListBookedOutingsInput:
@@ -17,4 +19,7 @@ async def list_booked_outings_query(
     # TODO: Fetch list of booked outings by account ID.
     # PAST outings are outings that have already occured.
     # FUTURE outings are upcoming outings.
-    return [MOCK_OUTING, MOCK_OUTING]
+    fut = copy.deepcopy(MOCK_OUTING)
+    fut.activity_start_time = datetime.datetime.now() + datetime.timedelta(hours=1)
+    fut.restaurant_arrival_time = datetime.datetime.now() + datetime.timedelta(hours=1)
+    return [MOCK_OUTING, fut]
