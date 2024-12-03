@@ -1,4 +1,5 @@
 import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
+import { useGetSearchRegionsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
@@ -6,6 +7,8 @@ import React from "react";
 
 import HighlightButton from "../../Buttons/HighlightButton";
 import LoadingButton from "../../Buttons/LoadingButton";
+
+import { getSearchAreaLabel, getStartTimeLabel } from "./helpers";
 
 const Row = styled("div")(() => ({
   display: "flex",
@@ -39,9 +42,9 @@ const SubmitButton = styled(LoadingButton)(() => ({
 interface DateSelectionsProps {
   cta: string;
   headcount: number;
-  startTime: string;
-  searchArea: string;
   budget: OutingBudget;
+  startTime: Date;
+  searchAreaIds: string[];
   onSubmit: () => void;
   onSelectHeadcount: (value: number) => void;
   onSelectBudget: (value: OutingBudget) => void;
@@ -52,16 +55,19 @@ interface DateSelectionsProps {
 const DateSelections = ({
   cta,
   headcount,
-  startTime,
-  searchArea,
   budget,
+  startTime,
+  searchAreaIds,
   onSubmit,
   onSelectHeadcount,
   onSelectBudget,
   onSelectStartTime,
   onSelectSearchArea,
 }: DateSelectionsProps) => {
-  // TODO: startTimeLabel, setSearchAreaLabel
+  const { data } = useGetSearchRegionsQuery({});
+  const searchRegions = data?.searchRegions || [];
+  const searchAreaLabel = getSearchAreaLabel(searchAreaIds, searchRegions);
+  const startTimeLabel = getStartTimeLabel(startTime);
   return (
     <>
       <Row>
@@ -87,7 +93,7 @@ const DateSelections = ({
         <RowTitle>When:</RowTitle>
         <RowButtons>
           <SelectButton onClick={onSelectStartTime} highlightColor={colors.lightPurpleAccent} highlighted>
-            🕑 {startTime}
+            🕑 {startTimeLabel}
           </SelectButton>
         </RowButtons>
       </Row>
@@ -95,7 +101,7 @@ const DateSelections = ({
         <RowTitle>Where:</RowTitle>
         <RowButtons>
           <SelectButton onClick={onSelectSearchArea} highlightColor={colors.lightOrangeAccent} highlighted>
-            📍 {searchArea}
+            📍 {searchAreaLabel}
           </SelectButton>
         </RowButtons>
       </Row>

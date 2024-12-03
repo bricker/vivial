@@ -1,3 +1,6 @@
+import contextlib
+from collections.abc import AsyncGenerator
+
 import aiohttp.hdrs
 import starlette.applications
 import starlette.endpoints
@@ -41,7 +44,19 @@ graphql_app = GraphQL(
 )
 
 
-async def graceful_shutdown() -> None:
+@contextlib.asynccontextmanager
+async def _app_lifespan(app: starlette.applications.Starlette) -> AsyncGenerator[None, None]:
+    if not SHARED_CONFIG.is_local:
+        # Preload config in production environments.
+        # The idea here is that in development, secrets and required envs
+        # should be lazily evaluated, but in production environments
+        # we want to attempt to load them before the application starts up,
+        # so that it will fail to start if anything required is unavailable.
+        SHARED_CONFIG.preload()
+        CORE_API_APP_CONFIG.preload()
+
+    yield
+
     await async_engine.dispose()
 
     try:
@@ -115,5 +130,5 @@ app = starlette.applications.Starlette(
             allow_credentials=True,
         ),
     ],
-    on_shutdown=[graceful_shutdown],
+    lifespan=_app_lifespan,
 )

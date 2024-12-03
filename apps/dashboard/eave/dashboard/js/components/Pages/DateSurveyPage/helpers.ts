@@ -4,7 +4,7 @@
  *
  * Otherwise, this function returns 6:00 PM two days from the currrent day.
  */
-export function getInitialStartTime() {
+export function getInitialStartTime(): Date {
   const now = new Date();
   const startTime = new Date(now);
   const sixPM = 18;

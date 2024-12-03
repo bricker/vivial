@@ -13,6 +13,7 @@ module "app_secrets" {
       data = var.SENDGRID_API_KEY
       accessors = [
         data.google_service_account.app_service_accounts[module.core_api_app.service_account_id].member,
+        data.google_service_account.app_service_accounts[module.dashboard_app.service_account_id].member,
       ],
     },
     EVENTBRITE_API_KEY = {

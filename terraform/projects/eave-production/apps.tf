@@ -18,6 +18,7 @@ module "core_api_app" {
   google_certificate_manager_certificate_map = module.project_base.google_certificate_manager_certificate_map
   google_compute_network                     = module.project_base.google_compute_network
   google_compute_subnetwork                  = module.project_base.google_compute_subnetwork
+  google_kms_crypto_key_jws_signing_key      = module.project_base.google_kms_crypto_key_jws_signing_key
 
   docker_repository_ref  = module.project_base.docker_repository_ref
   kube_namespace_name    = module.shared_kubernetes_resources.eave_namespace_name
@@ -26,6 +27,7 @@ module "core_api_app" {
   impersonator_role_name         = module.project_base.impersonator_role_name
   compute_oslogin_role_name      = module.project_base.compute_oslogin_role_name
   service_account_user_role_name = module.project_base.service_account_user_role_name
+
   bastion_accessors = [
     # TODO: Make this a group, like `devops@eave.fyi` or something
     "user:bryan@eave.fyi",
@@ -54,8 +56,9 @@ module "dashboard_app" {
   LOG_LEVEL                 = "DEBUG"
   release_version           = "latest"
   SEGMENT_WEBSITE_WRITE_KEY = local.SEGMENT_WEBSITE_WRITE_KEY
+  STRIPE_PUBLISHABLE_KEY    = local.STRIPE_PUBLISHABLE_KEY
 
-  iap_enabled                       = true
+  iap_enabled                       = true # This is temporary during prelaunch
   iap_oauth_client_id               = var.IAP_OAUTH_CLIENT_ID
   iap_oauth_client_kube_secret_name = module.shared_kubernetes_resources.iap_oauth_client_kube_secret_name
 }

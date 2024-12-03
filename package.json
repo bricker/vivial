@@ -22,11 +22,13 @@
     "eslint-plugin-react-hooks": "^4",
     "eslint-plugin-yaml": "0.5.x",
     "graphql": "^16.9.0",
+    "graphql-config": "5.x",
     "nodemon": "2.x",
     "prettier": "3.x",
     "prettier-plugin-organize-imports": "3.x",
     "tsx": "3.x",
-    "typescript": "5.x"
+    "typescript": "5.x",
+    "@eave-fyi/develop": "file:./develop/javascript"
   },
   "prettier": "./develop/javascript/es-config/prettier",
   "eslintConfig": {

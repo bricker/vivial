@@ -53,6 +53,12 @@ variable "google_sql_database_instance" {
   })
 }
 
+variable "google_kms_crypto_key_jws_signing_key" {
+  type = object({
+    id = string
+  })
+}
+
 variable "docker_repository_ref" {
   type = object({
     location      = string
@@ -89,9 +95,11 @@ variable "impersonators" {
 variable "compute_oslogin_role_name" {
   type = string
 }
+
 variable "service_account_user_role_name" {
   type = string
 }
+
 variable "bastion_accessors" {
   type    = list(string)
   default = []
