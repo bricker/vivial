@@ -7,6 +7,9 @@ import {
   ListReserverDetailsDocument,
   LoginDocument,
   SearchRegionsDocument,
+  UpdateAccountDocument,
+  UpdateAccountMutation,
+  UpdateAccountMutationVariables,
   UpdateReserverDetailsAccountDocument,
   type CreateAccountMutation,
   type CreateAccountMutationVariables,
@@ -55,6 +58,13 @@ export const coreApiSlice = createApi({
       },
     }),
 
+    updateAccount: builder.mutation<UpdateAccountMutation, UpdateAccountMutationVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: UpdateAccountDocument, variables });
+        return { data };
+      },
+    }),
+
     login: builder.mutation<LoginMutation, LoginMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: LoginDocument, variables });
@@ -91,4 +101,5 @@ export const {
   useLoginMutation,
   useCreatePaymentIntentMutation,
   useUpdateReserverDetailsAccountMutation,
+  useUpdateAccountMutation,
 } = coreApiSlice;

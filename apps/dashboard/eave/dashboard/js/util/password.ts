@@ -1,4 +1,4 @@
-interface PasswordInfo {
+export interface PasswordInfo {
   hasEightChars: boolean;
   hasSpecialChar: boolean;
   hasLetter: boolean;
