@@ -24,7 +24,7 @@ const PlansContainer = styled("div")(() => ({
   gap: 32,
 }));
 
-const LoadingArea = styled("div")(() => ({
+const CenteredArea = styled("div")(() => ({
   display: "flex",
   width: "100%",
   height: rem("128px"),
@@ -44,7 +44,7 @@ const CenteredText = styled(Typography)(() => ({
 
 const ErrorMessage = styled(Typography)(({ theme }) => ({
   color: theme.palette.error.main,
-  marginLeft: 4,
+  textAlign: "center",
   fontSize: "inherit",
   lineHeight: "inherit",
 }));
@@ -114,9 +114,7 @@ const OutingDetails = ({ outing }: { outing: Outing }) => {
     <DetailsPaper>
       <OutingContainer>
         <OutingDetailsContainer>
-          <DetailsTitle variant="subtitle2">
-            {formattedDay}
-          </DetailsTitle>
+          <DetailsTitle variant="subtitle2">{formattedDay}</DetailsTitle>
           {outing.restaurantArrivalTime && outing.restaurant && (
             <Typography variant="subtitle1">
               {new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).format(
@@ -181,7 +179,13 @@ const PlansPage = () => {
     <PageContainer>
       <PlansContainer>
         {isError ? (
-          <div>TODO: better error ui</div>
+          <CenteredArea>
+            <ErrorMessage variant="subtitle2">
+              We were unable to load your plan history.
+              <br />
+              Please try again later.
+            </ErrorMessage>
+          </CenteredArea>
         ) : (
           <>
             <OutingGroupContainer>
@@ -191,9 +195,9 @@ const PlansPage = () => {
                   return <OutingDetails key={outing.id} outing={outing} />;
                 })
               ) : isLoading ? (
-                <LoadingArea>
+                <CenteredArea>
                   <CircularProgress color="secondary" />
-                </LoadingArea>
+                </CenteredArea>
               ) : (
                 <NewDateCta />
               )}
