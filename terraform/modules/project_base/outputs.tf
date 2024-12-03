@@ -49,10 +49,6 @@ output "service_account_user_role_name" {
   value = module.service_account_user_role.name
 }
 
-# output "cloudkms_mac_user_role" {
-#   value = module.cloudkms_mac_user_role.google_project_iam_custom_role
-# }
-
 output "kms_key_ring_id" {
   value = google_kms_key_ring.primary.id
 }

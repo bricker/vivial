@@ -24,12 +24,12 @@ module "monitoring" {
       contains_string = "Eave" // :shrug: probably not great
     },
     {
-      service         = "cdn"
-      name            = "CDN uptime check"
-      enabled         = true
-      severity        = "CRITICAL"
-      host            = "cdn.${local.dns_domain}" # domain prefix is hardcoded on purpose
-      path            = "/status"
+      service  = "cdn"
+      name     = "CDN uptime check"
+      enabled  = true
+      severity = "CRITICAL"
+      host     = "cdn.${local.dns_domain}" # domain prefix is hardcoded on purpose
+      path     = "/status"
       matches_json_path = {
         content   = "OK"
         json_path = "$.status"

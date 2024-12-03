@@ -5,16 +5,7 @@ const config = {
     "prettier",
   ],
   plugins: [],
-  ignorePatterns: [
-    "node_modules",
-    "!.github",
-    "dist",
-    "generated",
-    ".venv",
-    "__pycache__",
-    "vendor",
-    ".*",
-  ],
+  ignorePatterns: ["node_modules", "!.github", "dist", "generated", ".venv", "__pycache__", "vendor", ".*"],
   env: {
     browser: true,
     es2022: true,

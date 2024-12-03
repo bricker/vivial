@@ -55,7 +55,7 @@ variable "google_sql_database_instance" {
 
 variable "google_kms_crypto_key_jws_signing_key" {
   type = object({
-    id            = string
+    id = string
   })
 }
 
@@ -99,12 +99,6 @@ variable "compute_oslogin_role_name" {
 variable "service_account_user_role_name" {
   type = string
 }
-
-# variable "cloudkms_mac_user_role" {
-#   type = object({
-#     id = string
-#   })
-# }
 
 variable "bastion_accessors" {
   type    = list(string)
