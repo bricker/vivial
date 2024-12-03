@@ -14,7 +14,7 @@ function getDayOfMonth(date: Date): string {
   return MONTH_DAY_LABELS[date.getDate()] || "";
 }
 
-function getShortMonth(date: Date): string {
+function getMonth(date: Date): string {
   return date.toLocaleDateString(LOCALE, { month: "short" });
 }
 
@@ -26,13 +26,11 @@ function isTomorrow(startTime: Date): boolean {
 }
 
 export function getStartTimeLabel(startTime: Date): string {
-  const month = getShortMonth(startTime);
-  const dayOfMonth = getDayOfMonth(startTime);
   const timeOfDay = getTimeOfDay(startTime);
   if (isTomorrow(startTime)) {
     return `Tomorrow @ ${timeOfDay}`;
   }
-  return `${month} ${dayOfMonth} @ ${timeOfDay}`;
+  return `${getMonth(startTime)} ${getDayOfMonth(startTime)} @ ${timeOfDay}`;
 }
 
 export function getSearchAreaLabel(searchAreaIds: string[], searchRegions: SearchRegion[]): string {
@@ -43,11 +41,9 @@ export function getSearchAreaLabel(searchAreaIds: string[], searchRegions: Searc
   let label = "";
   searchRegions.forEach((region) => (regionMap[region.id] = region.name));
   searchAreaIds.forEach((id, i) => {
-    const last_i = searchAreaIds.length - 1;
-    if (i === last_i) {
-      label += regionMap[id];
-    } else {
-      label += `${regionMap[id]}, `;
+    label += regionMap[id];
+    if (i !== searchAreaIds.length - 1) {
+      label += ", ";
     }
   });
   return label;
