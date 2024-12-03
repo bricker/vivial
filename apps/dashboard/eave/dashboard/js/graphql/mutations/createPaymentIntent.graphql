@@ -1,5 +1,6 @@
 mutation CreatePaymentIntent {
   viewer {
+    __typename
     ... on AuthenticatedViewerMutations {
       __typename
 
