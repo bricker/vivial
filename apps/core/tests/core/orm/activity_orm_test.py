@@ -24,7 +24,7 @@ class TestActivityOrm(BaseTestCase):
                     city=self.anystr("address.city"),
                     country=self.anystr("address.country"),
                     state=self.anyusstate("address.state"),
-                    zip=self.anydigits("address.zip"),
+                    zip=self.anydigits("address.zip", length=5),
                 ),
             )
             session.add(activity)
