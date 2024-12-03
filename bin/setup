@@ -270,7 +270,7 @@ function setupapps() (
 		python-activate-venv
 		node-activate-venv
 
-		for ss in {apps,libs,develop,terraform}/**/bin/setup; do
+		for ss in {apps,libs,develop}/**/bin/setup; do
 			if e.norecurse "$ss"; then
 				continue
 			fi

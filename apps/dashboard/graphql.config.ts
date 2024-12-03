@@ -1,5 +1,5 @@
+import sharedGraphqlConfig from "@eave-fyi/develop/graphql.config";
 import type { IGraphQLConfig } from "graphql-config";
-import sharedGraphqlConfig from "../../develop/shared/graphql.config";
 
 const config: IGraphQLConfig = {
   ...sharedGraphqlConfig,
