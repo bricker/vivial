@@ -1,6 +1,6 @@
-from dataclasses import dataclass
 import dataclasses
 import json
+from dataclasses import dataclass
 from typing import Any, Literal
 
 from sqlalchemy import Dialect

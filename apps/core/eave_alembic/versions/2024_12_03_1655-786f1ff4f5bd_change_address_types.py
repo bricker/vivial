@@ -6,11 +6,10 @@ Create Date: 2024-12-03 16:55:15.544494
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 from eave.core.orm.address_types import AddressColumnType
-
 
 # revision identifiers, used by Alembic.
 revision = "786f1ff4f5bd"

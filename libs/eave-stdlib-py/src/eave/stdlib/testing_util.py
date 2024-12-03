@@ -252,7 +252,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         assert name not in self.testdata, f"test value {name} is already in use."
 
-        digits = "123456789" # 0 is not included because this was made for zip codes and zip codes don't start with 0.
+        digits = "123456789"  # 0 is not included because this was made for zip codes and zip codes don't start with 0.
         data = "".join(random.sample(digits, k=length))
         self.testdata[name] = data
         return self.getdigits(name)
