@@ -25,14 +25,12 @@ async def main() -> None:
     )
     test_preferences1 = OutingPreferences(
         open_to_bars=True,
-        requires_wheelchair_accessibility=False,
         restaurant_categories=[RestaurantCategory.from_orm(cat) for cat in _RESTAURANT_CATEGORIES_TABLE[0:3]],
         activity_categories=[ActivityCategoryGroup.from_orm(cat) for cat in _ACTIVITY_CATEGORY_GROUPS_TABLE[0:3]],
     )
 
     test_preferences2 = OutingPreferences(
         open_to_bars=True,
-        requires_wheelchair_accessibility=False,
         restaurant_categories=[RestaurantCategory.from_orm(cat) for cat in _RESTAURANT_CATEGORIES_TABLE[3:6]],
         activity_categories=[ActivityCategoryGroup.from_orm(cat) for cat in _ACTIVITY_CATEGORY_GROUPS_TABLE[3:6]],
     )
