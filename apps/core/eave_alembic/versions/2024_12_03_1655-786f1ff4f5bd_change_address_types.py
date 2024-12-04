@@ -13,7 +13,7 @@ from eave.core.orm.address_types import AddressColumnType
 
 # revision identifiers, used by Alembic.
 revision = "786f1ff4f5bd"
-down_revision = "d4a94d8ee453"
+down_revision = None
 branch_labels = None
 depends_on = None
 

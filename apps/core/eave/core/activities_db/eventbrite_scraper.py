@@ -180,8 +180,8 @@ async def get_eventbrite_events() -> None:
                         max_cost_cents=max_cost_cents,
                         lat=float(lat),
                         lon=float(lon),
-                        vivial_category_id=vivial_category.id,
-                        vivial_format_id=vivial_format.id,
+                        vivial_activity_category_id=vivial_category.id,
+                        vivial_activity_format_id=vivial_format.id,
                     )
 
 

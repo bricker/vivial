@@ -9,6 +9,7 @@ import strawberry
 
 from sqlalchemy import PrimaryKeyConstraint, Select, func, select, ForeignKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
+import sqlalchemy.dialects.postgresql
 
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.typing import NOT_SET
@@ -31,8 +32,14 @@ class OutingPreferencesOrm(Base):
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     account_id: Mapped[UUID] = mapped_column(unique=True)
     open_to_bars: Mapped[bool | None] = mapped_column()
-    activity_category_ids: Mapped[list[UUID] | None] = mapped_column()
-    restaurant_category_ids: Mapped[list[UUID] | None] = mapped_column()
+    activity_category_ids: Mapped[list[UUID] | None] = mapped_column(type_=sqlalchemy.dialects.postgresql.ARRAY(
+        item_type=sqlalchemy.types.Uuid,
+        dimensions=1,
+    ))
+    restaurant_category_ids: Mapped[list[UUID] | None] = mapped_column(type_=sqlalchemy.dialects.postgresql.ARRAY(
+        item_type=sqlalchemy.types.Uuid,
+        dimensions=1,
+    ))
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 

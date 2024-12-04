@@ -28,8 +28,8 @@ class EventbriteEventOrm(Base):
     coordinates: Mapped[WKBElement] = mapped_column(
         type_=Geography(geometry_type="POINT", srid=SpatialReferenceSystemId.LAT_LON)
     )
-    vivial_category_id: Mapped[UUID] = mapped_column()
-    vivial_format_id: Mapped[UUID] = mapped_column()
+    vivial_activity_category_id: Mapped[UUID] = mapped_column()
+    vivial_activity_format_id: Mapped[UUID] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -48,8 +48,8 @@ class EventbriteEventOrm(Base):
         max_cost_cents: int | None,
         lat: float,
         lon: float,
-        vivial_category_id: UUID,
-        vivial_format_id: UUID,
+        vivial_activity_category_id: UUID,
+        vivial_activity_format_id: UUID,
     ) -> Self:
         self.title = title
         self.time_range = Range(lower=start_time, upper=end_time, bounds="[)")
@@ -63,8 +63,8 @@ class EventbriteEventOrm(Base):
 
         self.cost_cents_range = Range(lower=min_cost_cents, upper=max_cost_cents, bounds="[)")
         self.coordinates = GeoPoint(lat=lat, lon=lon).geoalchemy_shape()
-        self.vivial_category_id = vivial_category_id
-        self.vivial_format_id = vivial_format_id
+        self.vivial_activity_category_id = vivial_activity_category_id
+        self.vivial_activity_format_id = vivial_activity_format_id
         return self
 
     @classmethod
@@ -75,15 +75,15 @@ class EventbriteEventOrm(Base):
         cost_range_contains: int | None = NOT_SET,
         time_range_contains: datetime = NOT_SET,
         within_areas: list[GeoArea] = NOT_SET,
-        vivial_category_ids: list[UUID] = NOT_SET,
+        vivial_activity_category_ids: list[UUID] = NOT_SET,
     ) -> Select[tuple[Self]]:
         lookup = select(cls)
 
         if eventbrite_event_id is not NOT_SET:
             lookup = lookup.where(cls.eventbrite_event_id == eventbrite_event_id)
 
-        if vivial_category_ids is not NOT_SET:
-            lookup = lookup.where(or_(*[cls.vivial_category_id == vivial_category_id for vivial_category_id in vivial_category_ids]))
+        if vivial_activity_category_ids is not NOT_SET:
+            lookup = lookup.where(or_(*[cls.vivial_activity_category_id == vivial_activity_category_id for vivial_activity_category_id in vivial_activity_category_ids]))
 
         if cost_range_contains is not NOT_SET and cost_range_contains is not None:
             lookup = lookup.where(cls.cost_cents_range.contains(cost_range_contains))
