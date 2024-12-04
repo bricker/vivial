@@ -1,0 +1,11 @@
+mutation ReplanOuting ($outingId: UUID!, $visitorId: UUID!) {
+    replanOuting(input: {
+        outingId: $outingId, visitorId: $visitorId,
+    }) {
+        ... on ReplanOutingSuccess {
+            outing {
+                id
+            }
+        }
+    }
+}
