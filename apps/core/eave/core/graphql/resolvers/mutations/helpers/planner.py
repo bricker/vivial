@@ -73,7 +73,6 @@ _BRUNCH_RESTAURANT_CATEGORY_IDS = (
 @dataclass(kw_only=True)
 class GroupPreferences:
     open_to_bars: bool
-    requires_wheelchair_accessibility: bool
     restaurant_categories: list[RestaurantCategoryOrm]
     activity_categories: list[ActivityCategoryOrm]
 
@@ -92,9 +91,10 @@ def _combine_restaurant_categories(group: list[OutingPreferences]) -> list[Resta
 
     # Create a map of category IDs with occurance counts.
     for preferences in group:
-        for category in preferences.restaurant_categories:
-            category_map.setdefault(category.id, 0)
-            category_map[category.id] += 1
+        if preferences.restaurant_categories:
+            for category in preferences.restaurant_categories:
+                category_map.setdefault(category.id, 0)
+                category_map[category.id] += 1
 
     # Use the map of category ID occurance counts to find the common categories.
     for category_id, num_matches in category_map.items():
@@ -123,9 +123,10 @@ def _combine_activity_categories(group: list[OutingPreferences]) -> list[Activit
 
     # Create a map of category / subcategory IDs with occurence counts.
     for preferences in group:
-        for category in preferences.activity_categories:
-            category_map.setdefault(category.id, 0)
-            category_map[category.id] += 1
+        if preferences.activity_categories:
+            for category in preferences.activity_categories:
+                category_map.setdefault(category.id, 0)
+                category_map[category.id] += 1
 
     # Use the map of category / subcategory ID occurence counts to find the common categories.
     for category_id, num_matches in category_map.items():
@@ -138,14 +139,6 @@ def _combine_activity_categories(group: list[OutingPreferences]) -> list[Activit
     random.shuffle(intersection)
     random.shuffle(difference)
     return intersection + difference
-
-
-def _combine_wheelchair_needs(group: list[OutingPreferences]) -> bool:
-    """
-    Given a group of users, return True if any of the users requires
-    wheelchair accessibility.
-    """
-    return any(preferences.requires_wheelchair_accessibility for preferences in group)
 
 
 def _combine_bar_openness(group: list[OutingPreferences]) -> bool:
@@ -164,7 +157,6 @@ def _combine_preferences(group: list[OutingPreferences]) -> GroupPreferences:
     return GroupPreferences(
         restaurant_categories=_combine_restaurant_categories(group),
         activity_categories=_combine_activity_categories(group),
-        requires_wheelchair_accessibility=_combine_wheelchair_needs(group),
         open_to_bars=_combine_bar_openness(group),
     )
 
@@ -382,8 +374,6 @@ class OutingPlanner:
             )
             random.shuffle(places_nearby)
             for place in places_nearby:
-                if self.group_preferences.requires_wheelchair_accessibility and not place_is_accessible(place):
-                    continue
                 will_be_open = place_will_be_open(place, activity_start_time, activity_end_time)
                 is_in_budget = place_is_in_budget(place, self.constraints.budget)
                 if will_be_open and is_in_budget and place.location:
@@ -469,8 +459,6 @@ class OutingPlanner:
             )
             random.shuffle(restaurants_nearby)
             for restaurant in restaurants_nearby:
-                if self.group_preferences.requires_wheelchair_accessibility and not place_is_accessible(restaurant):
-                    continue
                 will_be_open = place_will_be_open(restaurant, arrival_time, departure_time)
                 is_in_budget = place_is_in_budget(restaurant, self.constraints.budget)
                 if will_be_open and is_in_budget:
