@@ -2,6 +2,7 @@ import { CORE_API_BASE } from "$eave-dashboard/js/util/http";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import {
+  ActivityCategoriesDocument,
   CreateAccountDocument,
   CreatePaymentIntentDocument,
   ListBookedOutingsDocument,
@@ -9,11 +10,14 @@ import {
   ListBookedOutingsQueryVariables,
   ListReserverDetailsDocument,
   LoginDocument,
+  RestaurantCategoriesDocument,
   SearchRegionsDocument,
   UpdateAccountDocument,
   UpdateAccountMutation,
   UpdateAccountMutationVariables,
   UpdateReserverDetailsAccountDocument,
+  type ActivityCategoriesQuery,
+  type ActivityCategoriesQueryVariables,
   type CreateAccountMutation,
   type CreateAccountMutationVariables,
   type CreatePaymentIntentMutation,
@@ -22,6 +26,8 @@ import {
   type ListReserverDetailsQueryVariables,
   type LoginMutation,
   type LoginMutationVariables,
+  type RestaurantCategoriesQuery,
+  type RestaurantCategoriesQueryVariables,
   type SearchRegionsQuery,
   type SearchRegionsQueryVariables,
   type UpdateReserverDetailsAccountMutation,
@@ -38,6 +44,20 @@ export const coreApiSlice = createApi({
     /**
      * Core API - GraphQL Queries
      */
+    getActivityCategories: builder.query<ActivityCategoriesQuery, ActivityCategoriesQueryVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: ActivityCategoriesDocument, variables });
+        return { data };
+      },
+    }),
+
+    getRestaurantCategories: builder.query<RestaurantCategoriesQuery, RestaurantCategoriesQueryVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: RestaurantCategoriesDocument, variables });
+        return { data };
+      },
+    }),
+
     getSearchRegions: builder.query<SearchRegionsQuery, SearchRegionsQueryVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: SearchRegionsDocument, variables });
@@ -104,6 +124,8 @@ export const coreApiSlice = createApi({
 export const {
   // Core API GraphQL Query Hooks
   useGetSearchRegionsQuery,
+  useGetActivityCategoriesQuery,
+  useGetRestaurantCategoriesQuery,
   useListReserverDetailsQuery,
   useListBookedOutingsQuery,
 

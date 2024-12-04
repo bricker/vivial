@@ -133,7 +133,7 @@ const DateSurveyPage = () => {
   }
 
   if (isLoggedIn) {
-    if (userPreferencesOpen) {
+    // if (userPreferencesOpen) {
       return (
         <PreferencesView
           title="Get personalized recommendations"
@@ -142,20 +142,22 @@ const DateSurveyPage = () => {
           onSubmitOpenToBars={handleSubmitUserOpenToBars}
           onSubmitRestaurants={handleSubmitUserRestaurantPreferences}
           onSubmitActivities={handleSubmitUserActivityPreferences}
+          onSkip={() => setUserPreferencesOpen(false)}
         />
       );
-    }
-    if (partnerPreferencesOpen) {
-      return (
-        <PreferencesView
-          title="Add partner preferences"
-          subtitle="We’ll use your saved preferences and your partner preferences to make recommendations."
-          onSubmitOpenToBars={handleSelectPartnerOpenToBars}
-          onSubmitRestaurants={handleSelectPartnerRestaurantPreferences}
-          onSubmitActivities={handleSelectPartnerActivityPreferences}
-        />
-      );
-    }
+    // }
+    // if (partnerPreferencesOpen) {
+    //   return (
+    //     <PreferencesView
+    //       title="Add partner preferences"
+    //       subtitle="We’ll use your saved preferences and your partner preferences to make recommendations."
+    //       onSubmitOpenToBars={handleSelectPartnerOpenToBars}
+    //       onSubmitRestaurants={handleSelectPartnerRestaurantPreferences}
+    //       onSubmitActivities={handleSelectPartnerActivityPreferences}
+    //       onSkip={() => setPartnerPreferencesOpen(false)}
+    //     />
+    //   );
+    // }
   }
 
   return (

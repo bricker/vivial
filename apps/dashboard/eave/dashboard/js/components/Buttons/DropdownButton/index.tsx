@@ -5,10 +5,15 @@ import ChevronUpIcon from "../../Icons/ChevronUpIcon";
 
 interface DropdownButtonProps extends IconButtonProps {
   open: boolean;
+  large?: boolean;
 }
 
-const DropdownButton = ({ open, ...props }: DropdownButtonProps) => {
-  return <IconButton {...props}>{open ? <ChevronUpIcon /> : <ChevronDownIcon />}</IconButton>;
+const DropdownButton = ({ open, large, ...props }: DropdownButtonProps) => {
+  return (
+    <IconButton {...props}>
+      {open ? <ChevronUpIcon large /> : <ChevronDownIcon large />}
+    </IconButton>
+  );
 };
 
 export default DropdownButton;

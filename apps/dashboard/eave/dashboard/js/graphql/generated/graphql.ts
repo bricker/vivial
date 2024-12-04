@@ -595,6 +595,11 @@ export type UpdateReserverDetailsAccountMutationVariables = Exact<{
 
 export type UpdateReserverDetailsAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateReserverDetailsAccount: { __typename: 'UpdateReserverDetailsAccountFailure', failureReason: UpdateReserverDetailsAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateReserverDetailsAccountSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }, account: { __typename: 'Account', id: string, email: string } } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
 
+export type ActivityCategoriesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ActivityCategoriesQuery = { __typename: 'Query', activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, subcategories: Array<{ __typename: 'ActivitySubcategory', id: string, name: string, isDefault: boolean }> }> };
+
 export type ListBookedOutingsQueryVariables = Exact<{
   input?: InputMaybe<ListBookedOutingsInput>;
 }>;
@@ -606,6 +611,11 @@ export type ListReserverDetailsQueryVariables = Exact<{ [key: string]: never; }>
 
 
 export type ListReserverDetailsQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', reserverDetails: Array<{ __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }> } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
+
+export type RestaurantCategoriesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type RestaurantCategoriesQuery = { __typename: 'Query', restaurantCategories: Array<{ __typename: 'RestaurantCategory', id: string, name: string }> };
 
 export type SearchRegionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -900,6 +910,19 @@ export const UpdateReserverDetailsAccountDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<UpdateReserverDetailsAccountMutation, UpdateReserverDetailsAccountMutationVariables>;
+export const ActivityCategoriesDocument = new TypedDocumentString(`
+    query ActivityCategories {
+  activityCategories {
+    id
+    name
+    subcategories {
+      id
+      name
+      isDefault
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<ActivityCategoriesQuery, ActivityCategoriesQueryVariables>;
 export const ListBookedOutingsDocument = new TypedDocumentString(`
     query ListBookedOutings($input: ListBookedOutingsInput) {
   viewer {
@@ -992,6 +1015,14 @@ export const ListReserverDetailsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<ListReserverDetailsQuery, ListReserverDetailsQueryVariables>;
+export const RestaurantCategoriesDocument = new TypedDocumentString(`
+    query RestaurantCategories {
+  restaurantCategories {
+    id
+    name
+  }
+}
+    `) as unknown as TypedDocumentString<RestaurantCategoriesQuery, RestaurantCategoriesQueryVariables>;
 export const SearchRegionsDocument = new TypedDocumentString(`
     query SearchRegions {
   searchRegions {

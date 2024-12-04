@@ -1,0 +1,11 @@
+query ActivityCategories {
+  activityCategories {
+    id
+    name
+    subcategories {
+      id
+      name
+      isDefault
+    }
+  }
+}

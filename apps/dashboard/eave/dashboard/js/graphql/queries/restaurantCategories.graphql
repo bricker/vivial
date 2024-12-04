@@ -1,0 +1,6 @@
+query RestaurantCategories {
+  restaurantCategories {
+    id
+    name
+  }
+}
