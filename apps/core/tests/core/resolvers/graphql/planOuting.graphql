@@ -1,0 +1,24 @@
+mutation PlanOuting(
+    $visitorId: UUID!,
+    $startTime: Date!,
+    $searchAreaIds: [UUID!]!,
+    $budget: OutingBudget!,
+    $headcount: Int!,
+) {
+    planOuting(input: {
+        visitorId: $visitorId,
+        startTime: $startTime,,
+        searchAreaIds: $searchAreaIds,
+        budget: $budget,
+        headcount: $headcount,
+    }) {
+        ... on PlanOutingSuccess {{
+            outing {
+                id
+            }
+        }}
+        ... on PlanOutingError {
+            failureReason
+        }
+    }
+}
