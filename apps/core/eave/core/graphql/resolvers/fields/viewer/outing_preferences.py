@@ -1,4 +1,3 @@
-
 import strawberry
 
 from eave.core import database

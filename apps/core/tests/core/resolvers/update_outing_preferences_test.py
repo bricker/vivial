@@ -1,4 +1,3 @@
-
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.outing_preferences import OutingPreferencesOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
