@@ -1,30 +1,33 @@
-import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
+import {
+  OutingBudget,
+  type ActivityCategory,
+  type RestaurantCategory,
+  type PreferencesInput,
+} from "$eave-dashboard/js/graphql/generated/graphql";
+
 import { useGetSearchRegionsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import React, { useCallback, useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "$eave-dashboard/js/store";
 
-import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
+import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
+import { getInitialStartTime, getGroupPreferences } from "./helpers";
 
-import BaseSkeleton from "@mui/material/Skeleton";
 import Typography from "@mui/material/Typography";
 import Modal from "../../Modal";
 import Paper from "../../Paper";
 import DateAreaSelections from "../../Selections/DateAreaSelections";
 import DateSelections from "../../Selections/DateSelections";
 import DateTimeSelections from "../../Selections/DateTimeSelections";
-import { getInitialStartTime } from "./helpers";
+import EditPreferencesOption from "./Options/EditPreferencesOption";
+import PreferencesView from "./Views/PreferencesView";
+import LoadingView from "./Views/LoadingView";
+
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
-}));
-
-const Skeleton = styled(BaseSkeleton)(() => ({
-  marginBottom: 16,
-  borderRadius: "14.984px",
-  "&:last-of-type": {
-    marginBottom: 0,
-  },
 }));
 
 const Title = styled(Typography)(() => ({
@@ -44,6 +47,9 @@ const DateSurvey = styled(Paper)(() => ({
 }));
 
 const DateSurveyPage = () => {
+  // const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
+  const isLoggedIn = true;
+
   const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery({});
   const searchRegions = searchRegionsData?.searchRegions;
 
@@ -51,13 +57,43 @@ const DateSurveyPage = () => {
   const [headcount, setHeadcount] = useState(2);
   const [searchAreaIds, setSearchAreaIds] = useState<string[]>([]);
   const [startTime, setStartTime] = useState(getInitialStartTime());
-  // const [groupPreferences, setGroupPreferences] = useState([]);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [areasOpen, setAreasOpen] = useState(false);
 
+  // TODO: fetch existing preferences from backend (pending backend implementation);
+  const [userPreferences, setUserPreferences] = useState<PreferencesInput|null>(null);
+  const [userPreferencesOpen, setUserPreferencesOpen] = useState(false);
+  const [partnerPreferences, setPartnerPreferences] = useState<PreferencesInput|null>(null);
+  const [partnerPreferencesOpen, setPartnerPreferencesOpen] = useState(false);
+
   const handleSubmit = useCallback(async () => {
     const _visitorId = await getVisitorId();
-    // TODO: call planOuting mutation and dispatch response to store.
+    const _groupPreferences = getGroupPreferences(userPreferences, partnerPreferences);
+    // TODO: call planOuting mutation.
+  }, []);
+
+  const handleSubmitUserOpenToBars = useCallback((open: boolean) => {
+    // TODO: call preferences mutation (pending backend implementation).
+  }, []);
+
+  const handleSubmitUserRestaurantPreferences = useCallback((categories: RestaurantCategory[]) => {
+    // TODO: call preferences mutation (pending backend implementation).
+  }, []);
+
+  const handleSubmitUserActivityPreferences = useCallback((categories: ActivityCategory[]) => {
+    // TODO: call preferences mutation (pending backend implementation).
+  }, []);
+
+  const handleSelectPartnerOpenToBars = useCallback((open: boolean) => {
+    // TODO
+  }, []);
+
+  const handleSelectPartnerRestaurantPreferences = useCallback((categories: RestaurantCategory[]) => {
+    // TODO
+  }, []);
+
+  const handleSelectPartnerActivityPreferences = useCallback((categories: ActivityCategory[]) => {
+    // TODO
   }, []);
 
   const handleSelectHeadcount = useCallback((value: number) => {
@@ -93,12 +129,33 @@ const DateSurveyPage = () => {
   }, [searchRegions]);
 
   if (searchRegionsAreLoading) {
-    return (
-      <PageContainer>
-        <Skeleton variant="rectangular" width="100%" height={218} />
-        <Skeleton variant="rectangular" width="100%" height={332} />
-      </PageContainer>
-    );
+    return <LoadingView />;
+  }
+
+  if (isLoggedIn) {
+    if (userPreferencesOpen) {
+      return (
+        <PreferencesView
+          title="Get personalized recommendations"
+          subtitle="Your saved preferences are used to make more personalized recommendations."
+          userPreferences={userPreferences}
+          onSubmitOpenToBars={handleSubmitUserOpenToBars}
+          onSubmitRestaurants={handleSubmitUserRestaurantPreferences}
+          onSubmitActivities={handleSubmitUserActivityPreferences}
+        />
+      );
+    }
+    if (partnerPreferencesOpen) {
+      return (
+        <PreferencesView
+          title="Add partner preferences"
+          subtitle="We’ll use your saved preferences and your partner preferences to make recommendations."
+          onSubmitOpenToBars={handleSelectPartnerOpenToBars}
+          onSubmitRestaurants={handleSelectPartnerRestaurantPreferences}
+          onSubmitActivities={handleSelectPartnerActivityPreferences}
+        />
+      );
+    }
   }
 
   return (
@@ -109,6 +166,20 @@ const DateSurveyPage = () => {
         <Typography variant="subtitle1">
           Your free date planner. We cover all the details, and you only pay for experiences you book.
         </Typography>
+        {isLoggedIn && (
+          <>
+            <EditPreferencesOption
+              label="Your preferences"
+              editable={!userPreferences}
+              onClickEdit={() => setUserPreferencesOpen(true)}
+            />
+            <EditPreferencesOption
+              label="Add partner preferences (optional)"
+              editable={!partnerPreferences}
+              onClickEdit={() => setPartnerPreferencesOpen(true)}
+            />
+          </>
+        )}
       </Paper>
       <DateSurvey>
         <DateSelections
