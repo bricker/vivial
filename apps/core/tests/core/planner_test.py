@@ -4,7 +4,7 @@ from datetime import datetime
 
 from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
 from eave.core.graphql.types.activity import ActivityCategoryGroup
-from eave.core.graphql.types.preferences import Preferences
+from eave.core.graphql.types.outing_preferences import OutingPreferences
 from eave.core.graphql.types.restaurant import RestaurantCategory
 from eave.core.graphql.types.survey import Survey
 from eave.core.orm.activity_category_group import _ACTIVITY_CATEGORY_GROUPS_TABLE
@@ -23,14 +23,14 @@ async def main() -> None:
         budget=OutingBudget.INEXPENSIVE,
         headcount=2,
     )
-    test_preferences1 = Preferences(
+    test_preferences1 = OutingPreferences(
         open_to_bars=True,
         requires_wheelchair_accessibility=False,
         restaurant_categories=[RestaurantCategory.from_orm(cat) for cat in _RESTAURANT_CATEGORIES_TABLE[0:3]],
         activity_categories=[ActivityCategoryGroup.from_orm(cat) for cat in _ACTIVITY_CATEGORY_GROUPS_TABLE[0:3]],
     )
 
-    test_preferences2 = Preferences(
+    test_preferences2 = OutingPreferences(
         open_to_bars=True,
         requires_wheelchair_accessibility=False,
         restaurant_categories=[RestaurantCategory.from_orm(cat) for cat in _RESTAURANT_CATEGORIES_TABLE[3:6]],

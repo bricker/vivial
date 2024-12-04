@@ -15,7 +15,7 @@ from eave.core.graphql.types.search_region import SearchRegion
 @strawberry.type
 class Query:
     search_regions: list[SearchRegion] = strawberry.field(resolver=list_search_regions_query)
-    activity_categories: list[ActivityCategoryGroup] = strawberry.field(resolver=list_activity_category_groups_query)
+    activity_category_groups: list[ActivityCategoryGroup] = strawberry.field(resolver=list_activity_category_groups_query)
     restaurant_categories: list[RestaurantCategory] = strawberry.field(resolver=list_restaurant_categories_query)
 
     @strawberry.field(extensions=[AuthenticationExtension()])

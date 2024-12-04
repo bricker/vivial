@@ -14,7 +14,7 @@ from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.types.activity import Activity, ActivitySource, ActivityVenue
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import ProposedOuting
-from eave.core.graphql.types.preferences import Preferences
+from eave.core.graphql.types.outing_preferences import OutingPreferences
 from eave.core.graphql.types.restaurant import Restaurant, RestaurantSource
 from eave.core.graphql.types.survey import Survey
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
@@ -78,7 +78,7 @@ class GroupPreferences:
     activity_categories: list[ActivityCategoryOrm]
 
 
-def _combine_restaurant_categories(group: list[Preferences]) -> list[RestaurantCategoryOrm]:
+def _combine_restaurant_categories(group: list[OutingPreferences]) -> list[RestaurantCategoryOrm]:
     """
     Given a group of users, combine their restaurant category preferences
     into one list of preferences.
@@ -109,7 +109,7 @@ def _combine_restaurant_categories(group: list[Preferences]) -> list[RestaurantC
     return intersection + difference
 
 
-def _combine_activity_categories(group: list[Preferences]) -> list[ActivityCategoryOrm]:
+def _combine_activity_categories(group: list[OutingPreferences]) -> list[ActivityCategoryOrm]:
     """
     Given a group of users, combine their activity category preferences
     into one list of preferences.
@@ -140,7 +140,7 @@ def _combine_activity_categories(group: list[Preferences]) -> list[ActivityCateg
     return intersection + difference
 
 
-def _combine_wheelchair_needs(group: list[Preferences]) -> bool:
+def _combine_wheelchair_needs(group: list[OutingPreferences]) -> bool:
     """
     Given a group of users, return True if any of the users requires
     wheelchair accessibility.
@@ -148,7 +148,7 @@ def _combine_wheelchair_needs(group: list[Preferences]) -> bool:
     return any(preferences.requires_wheelchair_accessibility for preferences in group)
 
 
-def _combine_bar_openness(group: list[Preferences]) -> bool:
+def _combine_bar_openness(group: list[OutingPreferences]) -> bool:
     """
     Given a group of users, return False if any of the users is not open to
     going to a bar.
@@ -156,7 +156,7 @@ def _combine_bar_openness(group: list[Preferences]) -> bool:
     return all(preferences.open_to_bars for preferences in group)
 
 
-def _combine_preferences(group: list[Preferences]) -> GroupPreferences:
+def _combine_preferences(group: list[OutingPreferences]) -> GroupPreferences:
     """
     Given a group of users, combine their outing preferences. The logic
     throughout this class gives priority to common preferences.
@@ -190,7 +190,7 @@ class OutingPlanner:
 
     def __init__(
         self,
-        group: list[Preferences],
+        group: list[OutingPreferences],
         constraints: Survey,
         activity: Activity | None = None,
         restaurant: Restaurant | None = None,
