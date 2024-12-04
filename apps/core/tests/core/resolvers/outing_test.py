@@ -14,36 +14,19 @@ class TestOutingEndpoints(BaseTestCase):
     async def test_plan_outing(self) -> None:
         vis_id = self.anyuuid()
 
-        response = await self.httpclient.post(
-            "/graphql",
-            json={
-                "query": f"""
-mutation {{
-    planOuting(input: {{
-        visitorId: "{vis_id}",
-        startTime: "{self.anydatetime(offset=2 * day_seconds).isoformat()}",
-        searchAreaIds: ["{self.anyuuid()}"],
-        budget: INEXPENSIVE,
-        headcount: 2,
-        group: [
-            {{
-                visitorId: "{vis_id}",
-            }},
-        ]
-    }}) {{
-        ... on PlanOutingSuccess {{
-            outing {{
-                id
-            }}
-        }}
-        ... on PlanOutingError {{
-            errorCode
-        }}
-    }}
-}}
-"""
+        response = await self.make_graphql_request(
+            "planOuting",
+            {
+                "input": {
+                    "visitorId": f"{vis_id}",
+                    "startTime": f"{self.anydatetime(offset=2 * day_seconds).isoformat()}",
+                    "searchAreaIds": [f"{self.anyuuid()}"],
+                    "budget": "INEXPENSIVE",
+                    "headcount": 2,
+                },
             },
         )
+
         assert response.status_code == HTTPStatus.OK
         assert response.json().get("data").get("planOuting").get("outing").get("id") is not None
 
@@ -62,47 +45,31 @@ mutation {{
                 account_id=survey.account_id,
             ).save(sess)
 
-        response = await self.httpclient.post(
-            "/graphql",
-            json={
-                "query": f"""
-mutation {{
-    replanOuting(input: {{
-        outingId: "{outing.id}", visitorId: "{self.anyuuid()}"
-    }}) {{
-        ... on ReplanOutingSuccess {{
-            outing {{
-                id
-            }}
-        }}
-    }}
-}}
-"""
+        response = await self.make_graphql_request(
+            "replanOuting",
+            {
+                "input": {
+                    "outingId": f"{outing.id}",
+                    "visitorId": f"{self.anyuuid()}",
+                },
             },
         )
+
         assert response.status_code == HTTPStatus.OK
         assert response.json().get("data").get("replanOuting").get("outing").get("id") is not None
 
     async def test_replan_bad_outing_id(self) -> None:
         # try to replan an outing that doesn't exist
-        response = await self.httpclient.post(
-            "/graphql",
-            json={
-                "query": f"""
-mutation {{
-    replanOuting(input: {{
-        outingId: "{self.anyuuid()}", visitorId: "{self.anyuuid()}"
-    }}) {{
-        ... on ReplanOutingSuccess {{
-            outing {{
-                id
-            }}
-        }}
-    }}
-}}
-"""
+        response = await self.make_graphql_request(
+            "replanOuting",
+            {
+                "input": {
+                    "outingId": f"{self.anyuuid()}",
+                    "visitorId": f"{self.anyuuid()}",
+                },
             },
         )
+
         # bcus gql eats error codes
         assert response.status_code == HTTPStatus.OK
 

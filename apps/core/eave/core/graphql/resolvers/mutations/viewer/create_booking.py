@@ -19,7 +19,7 @@ from eave.core.graphql.types.booking import (
 )
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.account_booking import AccountBookingOrm
-from eave.core.orm.address_types import PostgisStdaddr
+from eave.core.orm.address_types import Address
 from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
@@ -192,14 +192,12 @@ async def _create_templates_from_outing(
                 activity_start_time=activity.activity_start_time,
                 headcount=activity.headcount,
                 external_booking_link=details.uri,
-                address=PostgisStdaddr(
-                    house_num="101",
-                    name="Mcdonald",  # TODO: how can we extract this info from the 3rd party APIs? eventbrite doesnt get this granular
-                    suftype="St",
-                    unit="666",
+                address=Address(
+                    address1=details.address1,
+                    address2=details.address2,
                     city=details.city,
                     state=details.region,
-                    postcode=details.postal_code,
+                    zip=details.postal_code,
                     country=details.country,
                 ),
                 lat=details.latitude,
@@ -227,13 +225,12 @@ async def _create_templates_from_outing(
                 reservation_start_time=reservation.reservation_start_time,
                 headcount=reservation.headcount,
                 external_booking_link=details.uri,
-                address=PostgisStdaddr(
-                    house_num="3269",
-                    name="Abandoned Alley",
-                    suftype="Way",  # TODO:
+                address=Address(
+                    address1=details.address1,
+                    address2=details.address2,
                     city=details.city,
                     state=details.region,
-                    postcode=details.postal_code,
+                    zip=details.postal_code,
                     country=details.country,
                 ),
                 lat=details.latitude,

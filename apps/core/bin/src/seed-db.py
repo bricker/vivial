@@ -40,7 +40,7 @@ from eave.core.graphql.types.activity import ActivitySource
 from eave.core.graphql.types.restaurant import RestaurantSource
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.account_booking import AccountBookingOrm
-from eave.core.orm.address_types import PostgisStdaddr
+from eave.core.orm.address_types import Address
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
 from eave.core.orm.booking_reservations_template import BookingReservationTemplateOrm
@@ -137,14 +137,13 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             activity_start_time=outing_activity.activity_start_time,
             headcount=outing_activity.headcount,
             external_booking_link="https://micndontlds.com",
-            address=PostgisStdaddr(
-                house_num="101",
-                name="Mcdonald",
-                suftype="St",
-                unit="666",
+            address=Address(
+                address1="101 Mcdonald St",
+                address2="Unit 666",
                 city="LA",
                 state="CA",
                 country="USA",
+                zip="12345",
             ),
             lat=0,
             lon=0,
@@ -155,13 +154,13 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             reservation_start_time=outing_reservation.reservation_start_time,
             headcount=outing_reservation.headcount,
             external_booking_link="https://redlobster.yum",
-            address=PostgisStdaddr(
-                house_num="3269",
-                name="Abandoned Alley",
-                suftype="Way",
+            address=Address(
+                address1="3269 Abandoned Alley Way",
+                address2=None,
                 city="LA",
                 state="CA",
                 country="USA",
+                zip="12345",
             ),
             lat=0,
             lon=1,

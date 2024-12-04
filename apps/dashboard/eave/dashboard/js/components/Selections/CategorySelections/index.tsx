@@ -37,26 +37,27 @@ const Row = styled(Paper)(() => ({
 }));
 
 const RestaurantCategorySelections = (props: RestaurantCategorySelectionsProps) => {
-  const [selectedCategoryIds, setSelectedCategoryIds] = useState(
-    getSelectedCategoryIds(allCategories, selectedCategories)
-  );
-  const selectedCategoryMap = getCategoryMap(selectedCategories);
-  return (
-    <Row>
-      {collapsable && (
-        <DropdownButton open={collapsed} />
-      )}
-      <Typography>{categoryGroupName}</Typography>
-      <PillButton onClick={() => {}} selected={false} accentColor={accentColor} outlined>
-        All
-      </PillButton>
-      {allCategories.map((category) => (
-        <PillButton onClick={() => {}} key={category.name} selected={category.id in selectedCategoryMap}  accentColor={accentColor}>
-          {category.name}
-        </PillButton>
-      ))}
-    </Row>
-  );
+  return null;
+  // const [selectedCategoryIds, setSelectedCategoryIds] = useState(
+  //   getSelectedCategoryIds(allCategories, selectedCategories)
+  // );
+  // const selectedCategoryMap = getCategoryMap(selectedCategories);
+  // return (
+  //   <Row>
+  //     {collapsable && (
+  //       <DropdownButton open={collapsed} />
+  //     )}
+  //     <Typography>{categoryGroupName}</Typography>
+  //     <PillButton onClick={() => {}} selected={false} accentColor={accentColor} outlined>
+  //       All
+  //     </PillButton>
+  //     {allCategories.map((category) => (
+  //       <PillButton onClick={() => {}} key={category.name} selected={category.id in selectedCategoryMap}  accentColor={accentColor}>
+  //         {category.name}
+  //       </PillButton>
+  //     ))}
+  //   </Row>
+  // );
 }
 
 const ActivityCategorySelections = () => {

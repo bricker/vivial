@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
 
+export enum MediaQuery {
+  ExtraSmall = "@media (min-width: 0px)",
+  Small = "@media (min-width: 600px)",
+  Medium = "@media (min-width: 900px)",
+  Large = "@media (min-width: 1200px)",
+  ExtraLarge = "@media (min-width: 1536px)",
+}
+
 export enum Breakpoint {
   Unset = "",
   ExtraSmall = "xs",

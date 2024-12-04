@@ -7,7 +7,7 @@ from sqlalchemy import PrimaryKeyConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.lib.geo import GeoPoint, SpatialReferenceSystemId
-from eave.core.orm.address_types import PostgisStdaddr, PostgisStdaddrColumnType
+from eave.core.orm.address_types import Address, AddressColumnType
 
 from .base import Base
 from .util import PG_UUID_EXPR
@@ -26,7 +26,7 @@ class ActivityOrm(Base):
     subcategory_id: Mapped[UUID] = mapped_column()
     duration_minutes: Mapped[int] = mapped_column()
     availability: Mapped[str] = mapped_column()
-    address: Mapped[PostgisStdaddr] = mapped_column(type_=PostgisStdaddrColumnType())
+    address: Mapped[Address] = mapped_column(type_=AddressColumnType())
     is_bookable: Mapped[bool] = mapped_column()
     booking_url: Mapped[str | None] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
@@ -43,7 +43,7 @@ class ActivityOrm(Base):
         subcategory_id: UUID,
         duration_minutes: int,
         availability: str,
-        address: PostgisStdaddr,
+        address: Address,
         is_bookable: bool,
         booking_url: str | None,
     ) -> "ActivityOrm":
