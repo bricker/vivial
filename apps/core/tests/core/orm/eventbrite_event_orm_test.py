@@ -12,8 +12,8 @@ class TestEventbriteEventOrm(BaseTestCase):
             obj = EventbriteEventOrm(eventbrite_event_id=self.anystr("eventbrite_event_id"))
             obj.update(
                 title=self.anystr(),
-                subcategory_id=self.anyuuid(),
-                format_id=self.anyuuid(),
+                vivial_activity_category_id=self.anyuuid(),
+                vivial_activity_format_id=self.anyuuid(),
                 start_time=self.anydatetime("start_time", past=True),
                 end_time=self.anydatetime("end_time", future=True),
                 min_cost_cents=self.anyint("min_cost", min=0, max=999),
@@ -44,8 +44,8 @@ class TestEventbriteEventOrm(BaseTestCase):
             obj = EventbriteEventOrm(eventbrite_event_id=self.anystr("eventbrite_event_id"))
             obj.update(
                 title=self.anystr(),
-                subcategory_id=self.anyuuid(),
-                format_id=self.anyuuid(),
+                vivial_activity_category_id=self.anyuuid(),
+                vivial_activity_format_id=self.anyuuid(),
                 start_time=self.anydatetime("start_time", past=True),
                 end_time=self.anydatetime("end_time", future=True),
                 min_cost_cents=self.anyint("min_cost", min=0, max=999),
@@ -102,8 +102,8 @@ class TestEventbriteEventOrm(BaseTestCase):
             obj = EventbriteEventOrm(eventbrite_event_id=self.anystr("eventbrite_event_id"))
             obj.update(
                 title=self.anystr(),
-                subcategory_id=self.anyuuid(),
-                format_id=self.anyuuid(),
+                vivial_activity_category_id=self.anyuuid(),
+                vivial_activity_format_id=self.anyuuid(),
                 start_time=self.anydatetime("start_time", offset=-60 * 60 * 24),
                 end_time=self.anydatetime("end_time", offset=60 * 60 * 24),
                 min_cost_cents=self.anyint("min_cost", min=0, max=999),
@@ -182,8 +182,8 @@ class TestEventbriteEventOrm(BaseTestCase):
             obj = EventbriteEventOrm(eventbrite_event_id=self.anystr("eventbrite_event_id"))
             obj.update(
                 title=self.anystr(),
-                subcategory_id=self.anyuuid(),
-                format_id=self.anyuuid(),
+                vivial_activity_category_id=self.anyuuid(),
+                vivial_activity_format_id=self.anyuuid(),
                 start_time=self.anydatetime(),
                 end_time=self.anydatetime(),
                 min_cost_cents=self.anyint(),
@@ -229,8 +229,8 @@ class TestEventbriteEventOrm(BaseTestCase):
             obj = EventbriteEventOrm(eventbrite_event_id=self.anystr("eventbrite_event_id"))
             obj.update(
                 title=self.anystr(),
-                subcategory_id=self.anyuuid(),
-                format_id=self.anyuuid(),
+                vivial_activity_category_id=self.anyuuid(),
+                vivial_activity_format_id=self.anyuuid(),
                 start_time=self.anydatetime("start_time", past=True),
                 end_time=self.anydatetime("end_time", future=True),
                 min_cost_cents=self.anyint("min_cost", min=0, max=999),
@@ -252,8 +252,8 @@ class TestEventbriteEventOrm(BaseTestCase):
 
             qobj.update(
                 title=self.anystr("new title"),
-                subcategory_id=self.anyuuid("new subcategory_id"),
-                format_id=self.anyuuid("new format_id"),
+                vivial_activity_category_id=self.anyuuid("new vivial_activity_category_id"),
+                vivial_activity_format_id=self.anyuuid("new vivial_activity_format_id"),
                 start_time=self.anydatetime("new start_time", past=True),
                 end_time=self.anydatetime("new end_time", future=True),
                 min_cost_cents=self.anyint("new min_cost", min=0, max=999),
@@ -273,8 +273,8 @@ class TestEventbriteEventOrm(BaseTestCase):
 
             assert qobj.eventbrite_event_id == self.getstr("eventbrite_event_id")
             assert qobj.title == self.getdatetime("new title")
-            assert qobj.subcategory_id == self.getdatetime("new subcategory_id")
-            assert qobj.format_id == self.getdatetime("new format_id")
+            assert qobj.vivial_activity_category_id == self.getdatetime("new vivial_activity_category_id")
+            assert qobj.vivial_activity_format_id == self.getdatetime("new vivial_activity_format_id")
             assert qobj.time_range.upper == self.getdatetime("new end_time")
             assert qobj.cost_cents_range.lower == self.getint("new min_cost")
             assert qobj.cost_cents_range.upper == self.getint("new max_cost") + 1

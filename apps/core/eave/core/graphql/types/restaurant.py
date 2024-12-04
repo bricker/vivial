@@ -29,10 +29,12 @@ class Restaurant:
 class RestaurantCategory:
     id: UUID
     name: str
+    is_default: bool
 
     @classmethod
     def from_orm(cls, orm: RestaurantCategoryOrm) -> "RestaurantCategory":
         return RestaurantCategory(
             id=orm.id,
             name=orm.name,
+            is_default=orm.is_default,
         )

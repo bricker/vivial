@@ -10,7 +10,7 @@ from sqlalchemy.dialects.postgresql import INT4RANGE, TSTZRANGE, Range
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.lib.geo import GeoArea, GeoPoint, SpatialReferenceSystemId
-from eave.stdlib.typing import NOT_SET, NotSet
+from eave.stdlib.typing import NOT_SET
 
 from .base import Base
 from .util import PG_UUID_EXPR
@@ -28,8 +28,8 @@ class EventbriteEventOrm(Base):
     coordinates: Mapped[WKBElement] = mapped_column(
         type_=Geography(geometry_type="POINT", srid=SpatialReferenceSystemId.LAT_LON)
     )
-    subcategory_id: Mapped[UUID] = mapped_column()
-    format_id: Mapped[UUID] = mapped_column()
+    vivial_activity_category_id: Mapped[UUID] = mapped_column()
+    vivial_activity_format_id: Mapped[UUID] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -48,8 +48,8 @@ class EventbriteEventOrm(Base):
         max_cost_cents: int | None,
         lat: float,
         lon: float,
-        subcategory_id: UUID,
-        format_id: UUID,
+        vivial_activity_category_id: UUID,
+        vivial_activity_format_id: UUID,
     ) -> Self:
         self.title = title
         self.time_range = Range(lower=start_time, upper=end_time, bounds="[)")
@@ -63,35 +63,42 @@ class EventbriteEventOrm(Base):
 
         self.cost_cents_range = Range(lower=min_cost_cents, upper=max_cost_cents, bounds="[)")
         self.coordinates = GeoPoint(lat=lat, lon=lon).geoalchemy_shape()
-        self.subcategory_id = subcategory_id
-        self.format_id = format_id
+        self.vivial_activity_category_id = vivial_activity_category_id
+        self.vivial_activity_format_id = vivial_activity_format_id
         return self
 
     @classmethod
     def select(
         cls,
         *,
-        eventbrite_event_id: str | NotSet = NOT_SET,
-        cost_range_contains: int | None | NotSet = NOT_SET,
-        time_range_contains: datetime | NotSet = NOT_SET,
-        within_areas: list[GeoArea] | NotSet = NOT_SET,
-        subcategory_ids: list[UUID] | NotSet = NOT_SET,
+        eventbrite_event_id: str = NOT_SET,
+        cost_range_contains: int | None = NOT_SET,
+        time_range_contains: datetime = NOT_SET,
+        within_areas: list[GeoArea] = NOT_SET,
+        vivial_activity_category_ids: list[UUID] = NOT_SET,
     ) -> Select[tuple[Self]]:
         lookup = select(cls)
 
-        if not isinstance(eventbrite_event_id, NotSet):
+        if eventbrite_event_id is not NOT_SET:
             lookup = lookup.where(cls.eventbrite_event_id == eventbrite_event_id)
 
-        if not isinstance(subcategory_ids, NotSet):
-            lookup = lookup.where(or_(*[cls.subcategory_id == subcategory_id for subcategory_id in subcategory_ids]))
+        if vivial_activity_category_ids is not NOT_SET:
+            lookup = lookup.where(
+                or_(
+                    *[
+                        cls.vivial_activity_category_id == vivial_activity_category_id
+                        for vivial_activity_category_id in vivial_activity_category_ids
+                    ]
+                )
+            )
 
-        if not isinstance(cost_range_contains, NotSet) and cost_range_contains is not None:
+        if cost_range_contains is not NOT_SET and cost_range_contains is not None:
             lookup = lookup.where(cls.cost_cents_range.contains(cost_range_contains))
 
-        if not isinstance(time_range_contains, NotSet):
+        if time_range_contains is not NOT_SET:
             lookup = lookup.where(cls.time_range.contains(time_range_contains))
 
-        if not isinstance(within_areas, NotSet):
+        if within_areas is not NOT_SET:
             lookup = lookup.where(
                 or_(
                     *[

@@ -14,12 +14,12 @@ from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.types.activity import Activity, ActivitySource, ActivityVenue
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import ProposedOuting
-from eave.core.graphql.types.preferences import Preferences
+from eave.core.graphql.types.outing_preferences import OutingPreferences
 from eave.core.graphql.types.restaurant import Restaurant, RestaurantSource
 from eave.core.graphql.types.survey import Survey
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
 from eave.core.lib.time_category import is_early_evening, is_early_morning, is_late_evening, is_late_morning
-from eave.core.orm.activity_subcategory import ActivitySubcategoryOrm
+from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
@@ -73,12 +73,11 @@ _BRUNCH_RESTAURANT_CATEGORY_IDS = (
 @dataclass(kw_only=True)
 class GroupPreferences:
     open_to_bars: bool
-    requires_wheelchair_accessibility: bool
     restaurant_categories: list[RestaurantCategoryOrm]
-    activity_categories: list[ActivitySubcategoryOrm]
+    activity_categories: list[ActivityCategoryOrm]
 
 
-def _combine_restaurant_categories(group: list[Preferences]) -> list[RestaurantCategoryOrm]:
+def _combine_restaurant_categories(group: list[OutingPreferences]) -> list[RestaurantCategoryOrm]:
     """
     Given a group of users, combine their restaurant category preferences
     into one list of preferences.
@@ -92,9 +91,10 @@ def _combine_restaurant_categories(group: list[Preferences]) -> list[RestaurantC
 
     # Create a map of category IDs with occurance counts.
     for preferences in group:
-        for category in preferences.restaurant_categories:
-            category_map.setdefault(category.id, 0)
-            category_map[category.id] += 1
+        if preferences.restaurant_categories:
+            for category in preferences.restaurant_categories:
+                category_map.setdefault(category.id, 0)
+                category_map[category.id] += 1
 
     # Use the map of category ID occurance counts to find the common categories.
     for category_id, num_matches in category_map.items():
@@ -109,7 +109,7 @@ def _combine_restaurant_categories(group: list[Preferences]) -> list[RestaurantC
     return intersection + difference
 
 
-def _combine_activity_categories(group: list[Preferences]) -> list[ActivitySubcategoryOrm]:
+def _combine_activity_categories(group: list[OutingPreferences]) -> list[ActivityCategoryOrm]:
     """
     Given a group of users, combine their activity category preferences
     into one list of preferences.
@@ -118,18 +118,19 @@ def _combine_activity_categories(group: list[Preferences]) -> list[ActivitySubca
     front of the list.
     """
     category_map: dict[UUID, int] = {}
-    intersection: list[ActivitySubcategoryOrm] = []
-    difference: list[ActivitySubcategoryOrm] = []
+    intersection: list[ActivityCategoryOrm] = []
+    difference: list[ActivityCategoryOrm] = []
 
     # Create a map of category / subcategory IDs with occurence counts.
     for preferences in group:
-        for category in preferences.activity_categories:
-            category_map.setdefault(category.id, 0)
-            category_map[category.id] += 1
+        if preferences.activity_categories:
+            for category in preferences.activity_categories:
+                category_map.setdefault(category.id, 0)
+                category_map[category.id] += 1
 
     # Use the map of category / subcategory ID occurence counts to find the common categories.
     for category_id, num_matches in category_map.items():
-        category = ActivitySubcategoryOrm.one_or_exception(activity_subcategory_id=category_id)
+        category = ActivityCategoryOrm.one_or_exception(activity_category_id=category_id)
         if num_matches == len(group):
             intersection.append(category)
         else:
@@ -140,15 +141,7 @@ def _combine_activity_categories(group: list[Preferences]) -> list[ActivitySubca
     return intersection + difference
 
 
-def _combine_wheelchair_needs(group: list[Preferences]) -> bool:
-    """
-    Given a group of users, return True if any of the users requires
-    wheelchair accessibility.
-    """
-    return any(preferences.requires_wheelchair_accessibility for preferences in group)
-
-
-def _combine_bar_openness(group: list[Preferences]) -> bool:
+def _combine_bar_openness(group: list[OutingPreferences]) -> bool:
     """
     Given a group of users, return False if any of the users is not open to
     going to a bar.
@@ -156,7 +149,7 @@ def _combine_bar_openness(group: list[Preferences]) -> bool:
     return all(preferences.open_to_bars for preferences in group)
 
 
-def _combine_preferences(group: list[Preferences]) -> GroupPreferences:
+def _combine_preferences(group: list[OutingPreferences]) -> GroupPreferences:
     """
     Given a group of users, combine their outing preferences. The logic
     throughout this class gives priority to common preferences.
@@ -164,7 +157,6 @@ def _combine_preferences(group: list[Preferences]) -> GroupPreferences:
     return GroupPreferences(
         restaurant_categories=_combine_restaurant_categories(group),
         activity_categories=_combine_activity_categories(group),
-        requires_wheelchair_accessibility=_combine_wheelchair_needs(group),
         open_to_bars=_combine_bar_openness(group),
     )
 
@@ -190,7 +182,7 @@ class OutingPlanner:
 
     def __init__(
         self,
-        group: list[Preferences],
+        group: list[OutingPreferences],
         constraints: Survey,
         activity: Activity | None = None,
         restaurant: Restaurant | None = None,
@@ -240,7 +232,10 @@ class OutingPlanner:
             )
             .where(
                 or_(
-                    *[EventbriteEventOrm.subcategory_id == cat.id for cat in self.group_preferences.activity_categories]
+                    *[
+                        EventbriteEventOrm.vivial_activity_category_id == cat.id
+                        for cat in self.group_preferences.activity_categories
+                    ]
                 )
             )
             .order_by(func.random())
@@ -379,8 +374,6 @@ class OutingPlanner:
             )
             random.shuffle(places_nearby)
             for place in places_nearby:
-                if self.group_preferences.requires_wheelchair_accessibility and not place_is_accessible(place):
-                    continue
                 will_be_open = place_will_be_open(place, activity_start_time, activity_end_time)
                 is_in_budget = place_is_in_budget(place, self.constraints.budget)
                 if will_be_open and is_in_budget and place.location:
@@ -466,8 +459,6 @@ class OutingPlanner:
             )
             random.shuffle(restaurants_nearby)
             for restaurant in restaurants_nearby:
-                if self.group_preferences.requires_wheelchair_accessibility and not place_is_accessible(restaurant):
-                    continue
                 will_be_open = place_will_be_open(restaurant, arrival_time, departure_time)
                 is_in_budget = place_is_in_budget(restaurant, self.constraints.budget)
                 if will_be_open and is_in_budget:

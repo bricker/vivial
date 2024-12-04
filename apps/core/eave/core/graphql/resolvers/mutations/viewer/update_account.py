@@ -20,8 +20,8 @@ MOCK_ACCOUNT = Account(
 
 @strawberry.input
 class UpdateAccountInput:
-    email: str | None = strawberry.UNSET
-    plaintext_password: str | None = strawberry.UNSET
+    email: str = strawberry.UNSET
+    plaintext_password: str = strawberry.UNSET
 
 
 @strawberry.type
@@ -53,9 +53,9 @@ async def update_account_mutation(
                 session=db_session,
                 id=account_id,
             )
-            if input.email:
+            if input.email is not strawberry.UNSET:
                 account.email = input.email
-            if input.plaintext_password:
+            if input.plaintext_password is not strawberry.UNSET:
                 account.set_password(input.plaintext_password)
             await account.save(db_session)
 
