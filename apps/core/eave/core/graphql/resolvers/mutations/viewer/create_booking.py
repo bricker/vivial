@@ -40,7 +40,7 @@ from eave.stdlib.util import unwrap
 
 
 @dataclass
-class BookingDetails:
+class BookingTemplates:
     activities: list[BookingActivityTemplateOrm]
     reservations: list[BookingReservationTemplateOrm]
 
@@ -170,7 +170,7 @@ async def _create_templates_from_outing(
     db_session: AsyncSession,
     booking_id: UUID,
     outing: OutingOrm,
-) -> BookingDetails:
+) -> BookingTemplates:
     places_client = PlacesAsyncClient()
     activities_client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
 
@@ -241,14 +241,14 @@ async def _create_templates_from_outing(
             ).save(db_session)
         )
 
-    return BookingDetails(
+    return BookingTemplates(
         activities=activity_details,
         reservations=reservation_details,
     )
 
 
 async def _notify_slack(
-    booking_details: BookingDetails,
+    booking_details: BookingTemplates,
     account_id: UUID,
     reserver_details_id: UUID,
 ) -> None:
@@ -360,6 +360,7 @@ async def create_booking_mutation(
 
             booking = await BookingOrm.build(
                 reserver_details_id=input.reserver_details_id,
+                account_id=account_id,
             ).save(db_session)
 
             await AccountBookingOrm.build(
