@@ -1,0 +1,19 @@
+query OutingPreferences {
+  viewer {
+    ...on AuthenticatedViewerQueries {
+      outingPreferences {
+        openToBars
+        restaurantCategories {
+          id
+          name
+          isDefault
+        }
+        activityCategories {
+          id
+          name
+          isDefault
+        }
+      }
+    }
+  }
+}

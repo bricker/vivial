@@ -12,11 +12,11 @@ mutation PlanOuting(
         budget: $budget,
         headcount: $headcount,
     }) {
-        ... on PlanOutingSuccess {{
+        ... on PlanOutingSuccess {
             outing {
                 id
             }
-        }}
+        }
         ... on PlanOutingError {
             failureReason
         }

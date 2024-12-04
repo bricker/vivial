@@ -1,0 +1,23 @@
+mutation UpdateOutingPreferences($input: UpdateOutingPreferencesInput!) {
+  viewer {
+    ...on AuthenticatedViewerMutations {
+      updateOutingPreferences(input: $input) {
+        ...on UpdateOutingPreferencesSuccess {
+          outingPreferences {
+            openToBars
+            restaurantCategories {
+              id
+              name
+              isDefault
+            }
+            activityCategories {
+              id
+              name
+              isDefault
+            }
+          }
+        }
+      }
+    }
+  }
+}

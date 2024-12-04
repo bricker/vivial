@@ -1,0 +1,11 @@
+query ListActivityCategoryGroups {
+  activityCategoryGroups {
+    id
+    name
+    activityCategories {
+      id
+      name
+      isDefault
+    }
+  }
+}
