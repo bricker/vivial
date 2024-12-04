@@ -5,10 +5,10 @@ from uuid import UUID
 import strawberry
 
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.types.activity import ActivityCategory
+from eave.core.graphql.types.activity import ActivityCategoryGroup
 from eave.core.graphql.types.preferences import Preferences
 from eave.core.graphql.types.restaurant import RestaurantCategory
-from eave.core.orm.activity_category import ActivityCategoryOrm
+from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 from eave.core.shared.errors import ValidationError
 
@@ -44,7 +44,7 @@ UpdatePreferencesResult = Annotated[
 MOCK_PREFERENCES = Preferences(
     open_to_bars=True,
     requires_wheelchair_accessibility=True,
-    activity_categories=[ActivityCategory.from_orm(ActivityCategoryOrm.all()[0])],
+    activity_categories=[ActivityCategoryGroup.from_orm(ActivityCategoryGroupOrm.all()[0])],
     restaurant_categories=[RestaurantCategory.from_orm(RestaurantCategoryOrm.all()[0])],
 )
 

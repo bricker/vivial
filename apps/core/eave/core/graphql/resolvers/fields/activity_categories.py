@@ -1,10 +1,10 @@
 import strawberry
 
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.types.activity import ActivityCategory
-from eave.core.orm.activity_category import ActivityCategoryOrm
+from eave.core.graphql.types.activity import ActivityCategoryGroup
+from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 
 
-async def list_activity_categories_query(*, info: strawberry.Info[GraphQLContext]) -> list[ActivityCategory]:
-    all_activity_categories = ActivityCategoryOrm.all()
-    return [ActivityCategory.from_orm(orm) for orm in all_activity_categories]
+async def list_activity_category_groups_query(*, info: strawberry.Info[GraphQLContext]) -> list[ActivityCategoryGroup]:
+    all_activity_category_groups = ActivityCategoryGroupOrm.all()
+    return [ActivityCategoryGroup.from_orm(orm) for orm in all_activity_category_groups]

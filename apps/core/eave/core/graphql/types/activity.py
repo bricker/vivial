@@ -2,8 +2,8 @@ from uuid import UUID
 
 import strawberry
 
+from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.orm.activity_category import ActivityCategoryOrm
-from eave.core.orm.activity_subcategory import ActivitySubcategoryOrm
 from eave.core.shared.enums import ActivitySource
 
 from .location import Location
@@ -41,14 +41,14 @@ class Activity:
 
 
 @strawberry.type
-class ActivitySubcategory:
+class ActivityCategory:
     id: UUID
     name: str
     is_default: bool
 
     @classmethod
-    def from_orm(cls, orm: ActivitySubcategoryOrm) -> "ActivitySubcategory":
-        return ActivitySubcategory(
+    def from_orm(cls, orm: ActivityCategoryOrm) -> "ActivityCategory":
+        return ActivityCategory(
             id=orm.id,
             name=orm.name,
             is_default=orm.is_default,
@@ -56,15 +56,15 @@ class ActivitySubcategory:
 
 
 @strawberry.type
-class ActivityCategory:
+class ActivityCategoryGroup:
     id: UUID
     name: str
-    subcategories: list[ActivitySubcategory]
+    categories: list[ActivityCategory]
 
     @classmethod
-    def from_orm(cls, orm: ActivityCategoryOrm) -> "ActivityCategory":
-        return ActivityCategory(
+    def from_orm(cls, orm: ActivityCategoryGroupOrm) -> "ActivityCategoryGroup":
+        return ActivityCategoryGroup(
             id=orm.id,
             name=orm.name,
-            subcategories=[ActivitySubcategory.from_orm(orm) for orm in orm.subcategories],
+            categories=[ActivityCategory.from_orm(orm) for orm in orm.categories],
         )

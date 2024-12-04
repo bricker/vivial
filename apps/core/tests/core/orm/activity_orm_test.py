@@ -15,7 +15,7 @@ class TestActivityOrm(BaseTestCase):
                 lon=self.anylongitude("lon"),
                 is_bookable=self.anybool("is_bookable"),
                 booking_url=self.anyurl("booking_url"),
-                subcategory_id=self.anyuuid("subcategory_id"),
+                category_id=self.anyuuid("category_id"),
                 duration_minutes=self.anyint("duration_minutes"),
                 availability=self.anystr("availability"),
                 address=Address(
@@ -36,7 +36,7 @@ class TestActivityOrm(BaseTestCase):
             assert obj.description == self.getstr("description")
             assert obj.is_bookable == self.getbool("is_bookable")
             assert obj.booking_url == self.geturl("booking_url")
-            assert obj.subcategory_id == self.getuuid("subcategory_id")
+            assert obj.category_id == self.getuuid("category_id")
             assert obj.duration_minutes == self.getint("duration_minutes")
             assert obj.availability == self.getstr("availability")
             assert (

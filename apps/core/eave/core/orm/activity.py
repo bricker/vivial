@@ -23,7 +23,7 @@ class ActivityOrm(Base):
     coordinates: Mapped[WKBElement] = mapped_column(
         type_=Geography(geometry_type="POINT", srid=SpatialReferenceSystemId.LAT_LON)
     )
-    subcategory_id: Mapped[UUID] = mapped_column()
+    category_id: Mapped[UUID] = mapped_column()
     duration_minutes: Mapped[int] = mapped_column()
     availability: Mapped[str] = mapped_column()
     address: Mapped[Address] = mapped_column(type_=AddressColumnType())
@@ -40,7 +40,7 @@ class ActivityOrm(Base):
         description: str,
         lat: float,
         lon: float,
-        subcategory_id: UUID,
+        category_id: UUID,
         duration_minutes: int,
         availability: str,
         address: Address,
@@ -51,7 +51,7 @@ class ActivityOrm(Base):
             title=title,
             description=description,
             coordinates=GeoPoint(lat=lat, lon=lon).geoalchemy_shape(),
-            subcategory_id=subcategory_id,
+            category_id=category_id,
             duration_minutes=duration_minutes,
             availability=availability,
             address=address,

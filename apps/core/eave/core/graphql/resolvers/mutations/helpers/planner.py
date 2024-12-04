@@ -19,7 +19,7 @@ from eave.core.graphql.types.restaurant import Restaurant, RestaurantSource
 from eave.core.graphql.types.survey import Survey
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
 from eave.core.lib.time_category import is_early_evening, is_early_morning, is_late_evening, is_late_morning
-from eave.core.orm.activity_subcategory import ActivitySubcategoryOrm
+from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
@@ -75,7 +75,7 @@ class GroupPreferences:
     open_to_bars: bool
     requires_wheelchair_accessibility: bool
     restaurant_categories: list[RestaurantCategoryOrm]
-    activity_categories: list[ActivitySubcategoryOrm]
+    activity_categories: list[ActivityCategoryOrm]
 
 
 def _combine_restaurant_categories(group: list[Preferences]) -> list[RestaurantCategoryOrm]:
@@ -109,7 +109,7 @@ def _combine_restaurant_categories(group: list[Preferences]) -> list[RestaurantC
     return intersection + difference
 
 
-def _combine_activity_categories(group: list[Preferences]) -> list[ActivitySubcategoryOrm]:
+def _combine_activity_categories(group: list[Preferences]) -> list[ActivityCategoryOrm]:
     """
     Given a group of users, combine their activity category preferences
     into one list of preferences.
@@ -118,8 +118,8 @@ def _combine_activity_categories(group: list[Preferences]) -> list[ActivitySubca
     front of the list.
     """
     category_map: dict[UUID, int] = {}
-    intersection: list[ActivitySubcategoryOrm] = []
-    difference: list[ActivitySubcategoryOrm] = []
+    intersection: list[ActivityCategoryOrm] = []
+    difference: list[ActivityCategoryOrm] = []
 
     # Create a map of category / subcategory IDs with occurence counts.
     for preferences in group:
@@ -129,7 +129,7 @@ def _combine_activity_categories(group: list[Preferences]) -> list[ActivitySubca
 
     # Use the map of category / subcategory ID occurence counts to find the common categories.
     for category_id, num_matches in category_map.items():
-        category = ActivitySubcategoryOrm.one_or_exception(activity_subcategory_id=category_id)
+        category = ActivityCategoryOrm.one_or_exception(activity_category_id=category_id)
         if num_matches == len(group):
             intersection.append(category)
         else:
@@ -240,7 +240,7 @@ class OutingPlanner:
             )
             .where(
                 or_(
-                    *[EventbriteEventOrm.subcategory_id == cat.id for cat in self.group_preferences.activity_categories]
+                    *[EventbriteEventOrm.vivial_category_id == cat.id for cat in self.group_preferences.activity_categories]
                 )
             )
             .order_by(func.random())

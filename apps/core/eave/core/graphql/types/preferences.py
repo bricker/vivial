@@ -2,7 +2,7 @@ from uuid import UUID
 
 import strawberry
 
-from eave.core.graphql.types.activity import ActivityCategory
+from eave.core.graphql.types.activity import ActivityCategoryGroup
 from eave.core.graphql.types.restaurant import RestaurantCategory
 
 
@@ -11,7 +11,7 @@ class Preferences:
     open_to_bars: bool
     requires_wheelchair_accessibility: bool
     restaurant_categories: list[RestaurantCategory]
-    activity_categories: list[ActivityCategory]
+    activity_categories: list[ActivityCategoryGroup]
 
 
 @strawberry.input
