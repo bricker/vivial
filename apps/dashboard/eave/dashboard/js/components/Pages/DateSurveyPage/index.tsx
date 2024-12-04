@@ -178,13 +178,13 @@ const DateSurveyPage = () => {
             onSelectSearchArea={toggleAreasOpen}
           />
         </DateSurveyContainer>
-        <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
-          <DateAreaSelections cta="Save" onSubmit={handleSelectSearchAreas} regions={searchRegions} />
-        </Modal>
-        <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={datePickerOpen}>
-          <DateTimeSelections cta="Save" onSubmit={handleSelectStartTime} startDateTime={startTime} />
-        </Modal>
       </PageContentContainer>
+      <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
+        <DateAreaSelections cta="Save" onSubmit={handleSelectSearchAreas} regions={searchRegions} />
+      </Modal>
+      <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={datePickerOpen}>
+        <DateTimeSelections cta="Save" onSubmit={handleSelectStartTime} startDateTime={startTime} />
+      </Modal>
     </PageContainer>
   );
 };
