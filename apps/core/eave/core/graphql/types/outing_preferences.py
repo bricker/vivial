@@ -1,9 +1,7 @@
-from typing import Sequence
-from uuid import UUID
 
 import strawberry
 
-from eave.core.graphql.types.activity import ActivityCategory, ActivityCategoryGroup
+from eave.core.graphql.types.activity import ActivityCategory
 from eave.core.graphql.types.restaurant import RestaurantCategory
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.outing_preferences import OutingPreferencesOrm
@@ -22,7 +20,9 @@ class OutingPreferences:
         if orm.restaurant_category_ids is not None:
             restaurant_categories = []
             for restaurant_category_id in orm.restaurant_category_ids:
-                if restaurant_category_orm := RestaurantCategoryOrm.one_or_none(restaurant_category_id=restaurant_category_id):
+                if restaurant_category_orm := RestaurantCategoryOrm.one_or_none(
+                    restaurant_category_id=restaurant_category_id
+                ):
                     restaurant_categories.append(RestaurantCategory.from_orm(restaurant_category_orm))
 
         activity_categories: list[ActivityCategory] | None = None
@@ -33,7 +33,7 @@ class OutingPreferences:
                     activity_categories.append(ActivityCategory.from_orm(activity_category_orm))
 
         if orm.open_to_bars is None:
-            open_to_bars = True # Default value
+            open_to_bars = True  # Default value
         else:
             open_to_bars = orm.open_to_bars
 

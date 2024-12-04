@@ -12,8 +12,15 @@ from datetime import UTC, datetime, timedelta, timezone
 from math import floor
 from typing import Any, Literal, TypeVar
 
+from google.cloud.kms import (
+    CryptoKeyVersion,
+    GetCryptoKeyVersionRequest,
+    MacSignRequest,
+    MacSignResponse,
+    MacVerifyRequest,
+    MacVerifyResponse,
+)
 from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
-from google.cloud.kms import MacSignResponse, MacSignRequest, MacVerifyRequest, MacVerifyResponse, GetCryptoKeyVersionRequest, CryptoKeyVersion
 
 import eave.stdlib.http_exceptions
 import eave.stdlib.util

@@ -1,17 +1,12 @@
-import hashlib
-import hmac
-import os
-import re
 from datetime import datetime
-from typing import Literal, Self
+from typing import Self
 from uuid import UUID
-import strawberry
 
-from sqlalchemy import PrimaryKeyConstraint, Select, func, select, ForeignKeyConstraint
-from sqlalchemy.orm import Mapped, mapped_column
 import sqlalchemy.dialects.postgresql
+import strawberry
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, func, select
+from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.core.shared.errors import ValidationError
 from eave.stdlib.typing import NOT_SET
 
 from .base import Base
@@ -32,14 +27,18 @@ class OutingPreferencesOrm(Base):
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     account_id: Mapped[UUID] = mapped_column(unique=True)
     open_to_bars: Mapped[bool | None] = mapped_column()
-    activity_category_ids: Mapped[list[UUID] | None] = mapped_column(type_=sqlalchemy.dialects.postgresql.ARRAY(
-        item_type=sqlalchemy.types.Uuid,
-        dimensions=1,
-    ))
-    restaurant_category_ids: Mapped[list[UUID] | None] = mapped_column(type_=sqlalchemy.dialects.postgresql.ARRAY(
-        item_type=sqlalchemy.types.Uuid,
-        dimensions=1,
-    ))
+    activity_category_ids: Mapped[list[UUID] | None] = mapped_column(
+        type_=sqlalchemy.dialects.postgresql.ARRAY(
+            item_type=sqlalchemy.types.Uuid,
+            dimensions=1,
+        )
+    )
+    restaurant_category_ids: Mapped[list[UUID] | None] = mapped_column(
+        type_=sqlalchemy.dialects.postgresql.ARRAY(
+            item_type=sqlalchemy.types.Uuid,
+            dimensions=1,
+        )
+    )
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -60,7 +59,13 @@ class OutingPreferencesOrm(Base):
         )
         return obj
 
-    def update(self, *, open_to_bars: bool = strawberry.UNSET, restaurant_category_ids: list[UUID] = strawberry.UNSET, activity_category_ids: list[UUID] = strawberry.UNSET) -> Self:
+    def update(
+        self,
+        *,
+        open_to_bars: bool = strawberry.UNSET,
+        restaurant_category_ids: list[UUID] = strawberry.UNSET,
+        activity_category_ids: list[UUID] = strawberry.UNSET,
+    ) -> Self:
         if open_to_bars is not strawberry.UNSET:
             self.open_to_bars = open_to_bars
 

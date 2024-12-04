@@ -1,7 +1,4 @@
-from httpx import Response
 
-from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME
-from eave.core.orm.account import AccountOrm
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.outing_preferences import OutingPreferencesOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
@@ -58,7 +55,7 @@ class TestGetOutingPreferences(BaseTestCase):
 
         data = result.data["viewer"]["outingPreferences"]
 
-        assert data["openToBars"] is True # Default
+        assert data["openToBars"] is True  # Default
         assert data["restaurantCategories"] is None
         assert data["activityCategories"] is None
 

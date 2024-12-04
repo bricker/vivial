@@ -83,7 +83,14 @@ class EventbriteEventOrm(Base):
             lookup = lookup.where(cls.eventbrite_event_id == eventbrite_event_id)
 
         if vivial_activity_category_ids is not NOT_SET:
-            lookup = lookup.where(or_(*[cls.vivial_activity_category_id == vivial_activity_category_id for vivial_activity_category_id in vivial_activity_category_ids]))
+            lookup = lookup.where(
+                or_(
+                    *[
+                        cls.vivial_activity_category_id == vivial_activity_category_id
+                        for vivial_activity_category_id in vivial_activity_category_ids
+                    ]
+                )
+            )
 
         if cost_range_contains is not NOT_SET and cost_range_contains is not None:
             lookup = lookup.where(cls.cost_cents_range.contains(cost_range_contains))

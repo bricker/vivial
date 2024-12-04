@@ -1,7 +1,4 @@
-from httpx import Response
 
-from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME
-from eave.core.orm.account import AccountOrm
 
 from ..base import BaseTestCase
 

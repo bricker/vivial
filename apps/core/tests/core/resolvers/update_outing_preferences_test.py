@@ -1,7 +1,4 @@
-from httpx import Response
 
-from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME
-from eave.core.orm.account import AccountOrm
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.outing_preferences import OutingPreferencesOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
@@ -55,8 +52,14 @@ class TestUpdateOutingPreferences(BaseTestCase):
         async with self.db_session.begin() as db_session:
             outing_preferences_orm = await OutingPreferencesOrm.get_one(db_session, outing_preferences_orm.id)
             assert outing_preferences_orm.open_to_bars != self.getbool("open_to_bars")
-            assert outing_preferences_orm.activity_category_ids == [first_activity_category.id, second_activity_category.id]
-            assert outing_preferences_orm.restaurant_category_ids == [first_restaurant_category.id, second_restaurant_category.id]
+            assert outing_preferences_orm.activity_category_ids == [
+                first_activity_category.id,
+                second_activity_category.id,
+            ]
+            assert outing_preferences_orm.restaurant_category_ids == [
+                first_restaurant_category.id,
+                second_restaurant_category.id,
+            ]
 
     async def test_update_outing_preferences_without_existing_preferences(self) -> None:
         first_restaurant_category = RestaurantCategoryOrm.all()[0]
@@ -64,7 +67,9 @@ class TestUpdateOutingPreferences(BaseTestCase):
 
         async with self.db_session.begin() as db_session:
             account = await self.make_account(db_session)
-            outing_preferences_orm = (await db_session.scalars(OutingPreferencesOrm.select(account_id=account.id))).one_or_none()
+            outing_preferences_orm = (
+                await db_session.scalars(OutingPreferencesOrm.select(account_id=account.id))
+            ).one_or_none()
             assert outing_preferences_orm is None
 
         response = await self.make_graphql_request(
@@ -93,7 +98,9 @@ class TestUpdateOutingPreferences(BaseTestCase):
         assert data["activityCategories"][0]["id"] == str(first_activity_category.id)
 
         async with self.db_session.begin() as db_session:
-            outing_preferences_orm = (await db_session.scalars(OutingPreferencesOrm.select(account_id=account.id))).one()
+            outing_preferences_orm = (
+                await db_session.scalars(OutingPreferencesOrm.select(account_id=account.id))
+            ).one()
             assert outing_preferences_orm.open_to_bars == self.getbool("open_to_bars")
             assert outing_preferences_orm.activity_category_ids == [first_activity_category.id]
             assert outing_preferences_orm.restaurant_category_ids == [first_restaurant_category.id]

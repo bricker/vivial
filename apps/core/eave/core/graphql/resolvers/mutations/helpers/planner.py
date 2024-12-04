@@ -240,7 +240,10 @@ class OutingPlanner:
             )
             .where(
                 or_(
-                    *[EventbriteEventOrm.vivial_activity_category_id == cat.id for cat in self.group_preferences.activity_categories]
+                    *[
+                        EventbriteEventOrm.vivial_activity_category_id == cat.id
+                        for cat in self.group_preferences.activity_categories
+                    ]
                 )
             )
             .order_by(func.random())

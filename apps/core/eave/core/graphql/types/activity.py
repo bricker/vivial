@@ -2,8 +2,8 @@ from uuid import UUID
 
 import strawberry
 
-from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.orm.activity_category import ActivityCategoryOrm
+from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.shared.enums import ActivitySource
 
 from .location import Location

@@ -4,8 +4,8 @@ from zoneinfo import ZoneInfo
 
 import eave.core.database
 from eave.core.config import CORE_API_APP_CONFIG
-from eave.core.orm.activity_format import ActivityFormatOrm
 from eave.core.orm.activity_category import ActivityCategoryOrm
+from eave.core.orm.activity_format import ActivityFormatOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
 from eave.stdlib.eventbrite.client import EventbriteClient, ListEventsQuery, OrderBy
 from eave.stdlib.eventbrite.models.event import EventStatus

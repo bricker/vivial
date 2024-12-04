@@ -6,16 +6,11 @@ import strawberry
 
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.types.activity import ActivityCategory, ActivityCategoryGroup
 from eave.core.graphql.types.outing_preferences import OutingPreferences
-from eave.core.graphql.types.restaurant import RestaurantCategory
-from eave.core.orm.activity_category import ActivityCategoryOrm
-from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.orm.outing_preferences import OutingPreferencesOrm
-from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 from eave.core.shared.errors import ValidationError
-
 from eave.stdlib.util import unwrap
+
 
 @strawberry.input
 class UpdateOutingPreferencesInput:
@@ -51,9 +46,9 @@ async def update_outing_preferences_mutation(
     account_id = unwrap(info.context.get("authenticated_account_id"))
 
     async with database.async_session.begin() as db_session:
-        outing_preferences = (await db_session.scalars(
-            OutingPreferencesOrm.select(account_id=account_id)
-        )).one_or_none()
+        outing_preferences = (
+            await db_session.scalars(OutingPreferencesOrm.select(account_id=account_id))
+        ).one_or_none()
 
         if not outing_preferences:
             outing_preferences = OutingPreferencesOrm.build(
@@ -69,6 +64,4 @@ async def update_outing_preferences_mutation(
             restaurant_category_ids=input.restaurant_category_ids,
         ).save(db_session)
 
-    return UpdateOutingPreferencesSuccess(
-        outing_preferences=OutingPreferences.from_orm(outing_preferences)
-    )
+    return UpdateOutingPreferencesSuccess(outing_preferences=OutingPreferences.from_orm(outing_preferences))
