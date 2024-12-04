@@ -10,7 +10,7 @@ from sqlalchemy.dialects.postgresql import INT4RANGE, TSTZRANGE, Range
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.lib.geo import GeoArea, GeoPoint, SpatialReferenceSystemId
-from eave.stdlib.typing import NOT_SET, NotSet
+from eave.stdlib.typing import NOT_SET
 
 from .base import Base
 from .util import PG_UUID_EXPR
@@ -71,27 +71,27 @@ class EventbriteEventOrm(Base):
     def select(
         cls,
         *,
-        eventbrite_event_id: str | NotSet = NOT_SET,
-        cost_range_contains: int | None | NotSet = NOT_SET,
-        time_range_contains: datetime | NotSet = NOT_SET,
-        within_areas: list[GeoArea] | NotSet = NOT_SET,
-        vivial_category_ids: list[UUID] | NotSet = NOT_SET,
+        eventbrite_event_id: str = NOT_SET,
+        cost_range_contains: int | None = NOT_SET,
+        time_range_contains: datetime = NOT_SET,
+        within_areas: list[GeoArea] = NOT_SET,
+        vivial_category_ids: list[UUID] = NOT_SET,
     ) -> Select[tuple[Self]]:
         lookup = select(cls)
 
-        if not isinstance(eventbrite_event_id, NotSet):
+        if eventbrite_event_id is not NOT_SET:
             lookup = lookup.where(cls.eventbrite_event_id == eventbrite_event_id)
 
-        if not isinstance(vivial_category_ids, NotSet):
+        if vivial_category_ids is not NOT_SET:
             lookup = lookup.where(or_(*[cls.vivial_category_id == vivial_category_id for vivial_category_id in vivial_category_ids]))
 
-        if not isinstance(cost_range_contains, NotSet) and cost_range_contains is not None:
+        if cost_range_contains is not NOT_SET and cost_range_contains is not None:
             lookup = lookup.where(cls.cost_cents_range.contains(cost_range_contains))
 
-        if not isinstance(time_range_contains, NotSet):
+        if time_range_contains is not NOT_SET:
             lookup = lookup.where(cls.time_range.contains(time_range_contains))
 
-        if not isinstance(within_areas, NotSet):
+        if within_areas is not NOT_SET:
             lookup = lookup.where(
                 or_(
                     *[

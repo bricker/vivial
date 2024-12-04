@@ -3,7 +3,7 @@ from typing import Annotated
 import strawberry
 
 from eave.core.graphql.extensions.authentication_extension import AuthenticationExtension, UnauthenticatedViewer
-from eave.core.graphql.resolvers.fields.activity_categories import list_activity_category_groups_query
+from eave.core.graphql.resolvers.fields.activity_category_groups import list_activity_category_groups_query
 from eave.core.graphql.resolvers.fields.restaurant_categories import list_restaurant_categories_query
 from eave.core.graphql.resolvers.fields.search_regions import list_search_regions_query
 from eave.core.graphql.resolvers.fields.viewer.viewer_queries import AuthenticatedViewerQueries

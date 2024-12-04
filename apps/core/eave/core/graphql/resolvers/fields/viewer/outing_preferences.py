@@ -15,7 +15,7 @@ from eave.core.graphql.types.outing_preferences import OutingPreferences
 from eave.core.graphql.types.restaurant import RestaurantCategory
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.orm.activity_category import ActivityCategoryOrm
-from eave.core.orm.outing_category_preference import OutingCategoryPreferenceOrm
+from eave.core.orm.outing_preferences import OutingPreferencesOrm
 
 from eave.stdlib.util import unwrap
 
@@ -29,7 +29,14 @@ async def list_outing_preferences_query(
 
     async with database.async_session.begin() as db_session:
         category_preferences = (await db_session.scalars(
-            OutingCategoryPreferenceOrm.select(account_id=account_id)
-        )).all()
+            OutingPreferencesOrm.select(account_id=account_id)
+        )).one_or_none()
 
-    return OutingPreferences.from_orms(category_preferences)
+        if not category_preferences:
+            return OutingPreferences(
+                open_to_bars=True, # the default value
+                activity_categories=None, # Indicates to the client to use the defaults.
+                restaurant_categories=None,
+            )
+        else:
+            return OutingPreferences.from_orm(category_preferences)

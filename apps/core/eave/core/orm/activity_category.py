@@ -9,7 +9,7 @@ class ActivityCategoryOrm:
     name: str
     is_default: bool
     is_manually_curated: bool
-    category_group_id: UUID
+    activity_category_group_id: UUID
     eventbrite_subcategory_ids: list[str]
 
     @classmethod
@@ -21,12 +21,16 @@ class ActivityCategoryOrm:
         return _ACTIVITY_CATEGORIES_PK[activity_category_id]
 
     @classmethod
+    def one_or_none(cls, *, activity_category_id: UUID) -> "ActivityCategoryOrm | None":
+        return _ACTIVITY_CATEGORIES_PK.get(activity_category_id)
+
+    @classmethod
     def get_by_eventbrite_id(cls, *, eventbrite_subcategory_id: str) -> "ActivityCategoryOrm | None":
         return _ACTIVITY_CATEGORIES_EBID_IDX.get(eventbrite_subcategory_id)
 
     @classmethod
-    def get_by_category_group_id(cls, *, category_group_id: UUID) -> list["ActivityCategoryOrm"]:
-        return _ACTIVITY_CATEGORIES_CATEGORY_GROUP_ID_IDX.get(category_group_id, [])
+    def get_by_activity_category_group_id(cls, *, activity_category_group_id: UUID) -> list["ActivityCategoryOrm"]:
+        return _ACTIVITY_CATEGORIES_CATEGORY_GROUP_ID_IDX.get(activity_category_group_id, [])
 
 
 _ACTIVITY_CATEGORIES_TABLE = (
@@ -35,7 +39,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="St Patricks Day",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
+        activity_category_group_id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
         eventbrite_subcategory_ids=["16001"],
     ),
     ActivityCategoryOrm(
@@ -43,7 +47,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Easter",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
+        activity_category_group_id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
         eventbrite_subcategory_ids=["16002"],
     ),
     ActivityCategoryOrm(
@@ -51,7 +55,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Independence Day",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
+        activity_category_group_id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
         eventbrite_subcategory_ids=["16003"],
     ),
     ActivityCategoryOrm(
@@ -59,7 +63,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Halloween/Haunt",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
+        activity_category_group_id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
         eventbrite_subcategory_ids=["16004"],
     ),
     ActivityCategoryOrm(
@@ -67,7 +71,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Thanksgiving",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
+        activity_category_group_id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
         eventbrite_subcategory_ids=["16005"],
     ),
     ActivityCategoryOrm(
@@ -75,7 +79,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Christmas",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
+        activity_category_group_id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
         eventbrite_subcategory_ids=["16006"],
     ),
     ActivityCategoryOrm(
@@ -83,7 +87,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Channukah",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
+        activity_category_group_id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
         eventbrite_subcategory_ids=["16007"],
     ),
     ActivityCategoryOrm(
@@ -91,7 +95,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Fall events",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
+        activity_category_group_id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
         eventbrite_subcategory_ids=["16008"],
     ),
     ActivityCategoryOrm(
@@ -99,7 +103,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="New Years Eve",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
+        activity_category_group_id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
         eventbrite_subcategory_ids=["16009"],
     ),
     ActivityCategoryOrm(
@@ -107,7 +111,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Other",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
+        activity_category_group_id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
         eventbrite_subcategory_ids=["16999"],
     ),
     ActivityCategoryOrm(
@@ -115,7 +119,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Beer",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("f3a21e9638d2401ebc290fee6fe44384"),
+        activity_category_group_id=UUID("f3a21e9638d2401ebc290fee6fe44384"),
         eventbrite_subcategory_ids=["10001"],
     ),
     ActivityCategoryOrm(
@@ -123,7 +127,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Wine",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("f3a21e9638d2401ebc290fee6fe44384"),
+        activity_category_group_id=UUID("f3a21e9638d2401ebc290fee6fe44384"),
         eventbrite_subcategory_ids=["10002"],
     ),
     ActivityCategoryOrm(
@@ -131,7 +135,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Food",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("f3a21e9638d2401ebc290fee6fe44384"),
+        activity_category_group_id=UUID("f3a21e9638d2401ebc290fee6fe44384"),
         eventbrite_subcategory_ids=["10003"],
     ),
     ActivityCategoryOrm(
@@ -139,7 +143,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Spirits",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("f3a21e9638d2401ebc290fee6fe44384"),
+        activity_category_group_id=UUID("f3a21e9638d2401ebc290fee6fe44384"),
         eventbrite_subcategory_ids=["10004"],
     ),
     ActivityCategoryOrm(
@@ -147,7 +151,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Other",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("f3a21e9638d2401ebc290fee6fe44384"),
+        activity_category_group_id=UUID("f3a21e9638d2401ebc290fee6fe44384"),
         eventbrite_subcategory_ids=["10999"],
     ),
     ActivityCategoryOrm(
@@ -155,7 +159,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="TV",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("64064c758d894eac9613f23cb6da6fd1"),
+        activity_category_group_id=UUID("64064c758d894eac9613f23cb6da6fd1"),
         eventbrite_subcategory_ids=["4001"],
     ),
     ActivityCategoryOrm(
@@ -163,7 +167,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Film",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("64064c758d894eac9613f23cb6da6fd1"),
+        activity_category_group_id=UUID("64064c758d894eac9613f23cb6da6fd1"),
         eventbrite_subcategory_ids=["4002"],
     ),
     ActivityCategoryOrm(
@@ -171,7 +175,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Anime",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("64064c758d894eac9613f23cb6da6fd1"),
+        activity_category_group_id=UUID("64064c758d894eac9613f23cb6da6fd1"),
         eventbrite_subcategory_ids=["4003"],
     ),
     ActivityCategoryOrm(
@@ -179,7 +183,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Gaming",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("64064c758d894eac9613f23cb6da6fd1"),
+        activity_category_group_id=UUID("64064c758d894eac9613f23cb6da6fd1"),
         eventbrite_subcategory_ids=["4004"],
     ),
     ActivityCategoryOrm(
@@ -187,7 +191,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Comics",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("64064c758d894eac9613f23cb6da6fd1"),
+        activity_category_group_id=UUID("64064c758d894eac9613f23cb6da6fd1"),
         eventbrite_subcategory_ids=["4005"],
     ),
     ActivityCategoryOrm(
@@ -195,7 +199,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Adult",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("64064c758d894eac9613f23cb6da6fd1"),
+        activity_category_group_id=UUID("64064c758d894eac9613f23cb6da6fd1"),
         eventbrite_subcategory_ids=["4006"],
     ),
     ActivityCategoryOrm(
@@ -203,7 +207,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Comedy",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("64064c758d894eac9613f23cb6da6fd1"),
+        activity_category_group_id=UUID("64064c758d894eac9613f23cb6da6fd1"),
         eventbrite_subcategory_ids=["4007", "5010"],
     ),
     ActivityCategoryOrm(
@@ -211,7 +215,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Boats & Cruises",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("64064c758d894eac9613f23cb6da6fd1"),
+        activity_category_group_id=UUID("64064c758d894eac9613f23cb6da6fd1"),
         eventbrite_subcategory_ids=["18003"],
     ),
     ActivityCategoryOrm(
@@ -219,7 +223,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Other",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("64064c758d894eac9613f23cb6da6fd1"),
+        activity_category_group_id=UUID("64064c758d894eac9613f23cb6da6fd1"),
         eventbrite_subcategory_ids=["4999"],
     ),
     ActivityCategoryOrm(
@@ -227,7 +231,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Alternative / Indie",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
+        activity_category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         eventbrite_subcategory_ids=["3001", "3009"],
     ),
     ActivityCategoryOrm(
@@ -235,7 +239,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Blues & Jazz",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
+        activity_category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         eventbrite_subcategory_ids=["3002", "3022", "3027"],
     ),
     ActivityCategoryOrm(
@@ -243,7 +247,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Classical",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
+        activity_category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         eventbrite_subcategory_ids=["3003"],
     ),
     ActivityCategoryOrm(
@@ -251,7 +255,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Country",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
+        activity_category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         eventbrite_subcategory_ids=["3004"],
     ),
     ActivityCategoryOrm(
@@ -259,7 +263,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="EDM / Electronic",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
+        activity_category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         eventbrite_subcategory_ids=["3006", "3024", "3025"],
     ),
     ActivityCategoryOrm(
@@ -267,7 +271,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Americana",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
+        activity_category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         eventbrite_subcategory_ids=["3007", "3019", "3020", "3021"],
     ),
     ActivityCategoryOrm(
@@ -275,7 +279,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Hip Hop / Rap",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
+        activity_category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         eventbrite_subcategory_ids=["3008"],
     ),
     ActivityCategoryOrm(
@@ -283,7 +287,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Latin",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
+        activity_category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         eventbrite_subcategory_ids=["3010"],
     ),
     ActivityCategoryOrm(
@@ -291,7 +295,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Metal",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
+        activity_category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         eventbrite_subcategory_ids=["3011"],
     ),
     ActivityCategoryOrm(
@@ -299,7 +303,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Opera",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
+        activity_category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         eventbrite_subcategory_ids=["3012"],
     ),
     ActivityCategoryOrm(
@@ -307,7 +311,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Pop",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
+        activity_category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         eventbrite_subcategory_ids=["3013"],
     ),
     ActivityCategoryOrm(
@@ -315,7 +319,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="R&B",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
+        activity_category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         eventbrite_subcategory_ids=["3014"],
     ),
     ActivityCategoryOrm(
@@ -323,7 +327,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Reggae",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
+        activity_category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         eventbrite_subcategory_ids=["3015"],
     ),
     ActivityCategoryOrm(
@@ -331,7 +335,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Rock",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
+        activity_category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         eventbrite_subcategory_ids=["3017"],
     ),
     ActivityCategoryOrm(
@@ -339,7 +343,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Top 40",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
+        activity_category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         eventbrite_subcategory_ids=["3018"],
     ),
     ActivityCategoryOrm(
@@ -347,7 +351,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="DJ/Dance",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
+        activity_category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         eventbrite_subcategory_ids=["3023"],
     ),
     ActivityCategoryOrm(
@@ -355,7 +359,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Experimental",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
+        activity_category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         eventbrite_subcategory_ids=["3026", "3028"],
     ),
     ActivityCategoryOrm(
@@ -363,7 +367,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Punk/Hardcore",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
+        activity_category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         eventbrite_subcategory_ids=["3029"],
     ),
     ActivityCategoryOrm(
@@ -371,7 +375,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Singer/Songwriter",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
+        activity_category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         eventbrite_subcategory_ids=["3030"],
     ),
     ActivityCategoryOrm(
@@ -379,7 +383,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="World",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
+        activity_category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         eventbrite_subcategory_ids=["3031", "3005"],
     ),
     ActivityCategoryOrm(
@@ -387,7 +391,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Other",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
+        activity_category_group_id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         eventbrite_subcategory_ids=["3999"],
     ),
     ActivityCategoryOrm(
@@ -395,7 +399,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Theatre",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
+        activity_category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
         eventbrite_subcategory_ids=["5001"],
     ),
     ActivityCategoryOrm(
@@ -403,7 +407,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Musical",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
+        activity_category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
         eventbrite_subcategory_ids=["5002"],
     ),
     ActivityCategoryOrm(
@@ -411,7 +415,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Ballet",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
+        activity_category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
         eventbrite_subcategory_ids=["5003"],
     ),
     ActivityCategoryOrm(
@@ -419,7 +423,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Dance",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
+        activity_category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
         eventbrite_subcategory_ids=["5004"],
     ),
     ActivityCategoryOrm(
@@ -427,7 +431,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Opera",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
+        activity_category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
         eventbrite_subcategory_ids=["5005"],
     ),
     ActivityCategoryOrm(
@@ -435,7 +439,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Orchestra",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
+        activity_category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
         eventbrite_subcategory_ids=["5006"],
     ),
     ActivityCategoryOrm(
@@ -443,7 +447,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Craft",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
+        activity_category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
         eventbrite_subcategory_ids=["5007"],
     ),
     ActivityCategoryOrm(
@@ -451,7 +455,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Fine Art",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
+        activity_category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
         eventbrite_subcategory_ids=["5008"],
     ),
     ActivityCategoryOrm(
@@ -459,7 +463,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Literary Arts",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
+        activity_category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
         eventbrite_subcategory_ids=["5009"],
     ),
     ActivityCategoryOrm(
@@ -467,7 +471,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Sculpture",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
+        activity_category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
         eventbrite_subcategory_ids=["5011"],
     ),
     ActivityCategoryOrm(
@@ -475,7 +479,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Painting",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
+        activity_category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
         eventbrite_subcategory_ids=["5012"],
     ),
     ActivityCategoryOrm(
@@ -483,7 +487,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Design",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
+        activity_category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
         eventbrite_subcategory_ids=["5013"],
     ),
     ActivityCategoryOrm(
@@ -491,7 +495,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Jewelry",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
+        activity_category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
         eventbrite_subcategory_ids=["5014"],
     ),
     ActivityCategoryOrm(
@@ -499,7 +503,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Other",
         is_default=True,
         is_manually_curated=False,
-        category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
+        activity_category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
         eventbrite_subcategory_ids=["5999"],
     ),
     ActivityCategoryOrm(
@@ -507,7 +511,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Museums",
         is_default=True,
         is_manually_curated=True,
-        category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
+        activity_category_group_id=UUID("988e0bf142564462985a2657602aad1b"),
         eventbrite_subcategory_ids=[],
     ),
     ActivityCategoryOrm(
@@ -515,7 +519,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Auto",
         is_default=False,
         is_manually_curated=False,
-        category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
+        activity_category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
         eventbrite_subcategory_ids=["18001"],
     ),
     ActivityCategoryOrm(
@@ -523,7 +527,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Motorcycle/ATV",
         is_default=False,
         is_manually_curated=False,
-        category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
+        activity_category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
         eventbrite_subcategory_ids=["18002"],
     ),
     ActivityCategoryOrm(
@@ -531,7 +535,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Air",
         is_default=False,
         is_manually_curated=False,
-        category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
+        activity_category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
         eventbrite_subcategory_ids=["18004"],
     ),
     ActivityCategoryOrm(
@@ -539,7 +543,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Anime/Comics",
         is_default=False,
         is_manually_curated=False,
-        category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
+        activity_category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
         eventbrite_subcategory_ids=["19001"],
     ),
     ActivityCategoryOrm(
@@ -547,7 +551,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Gaming",
         is_default=False,
         is_manually_curated=False,
-        category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
+        activity_category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
         eventbrite_subcategory_ids=["19002"],
     ),
     ActivityCategoryOrm(
@@ -555,7 +559,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="DIY",
         is_default=False,
         is_manually_curated=False,
-        category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
+        activity_category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
         eventbrite_subcategory_ids=["19003"],
     ),
     ActivityCategoryOrm(
@@ -563,7 +567,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Photography",
         is_default=False,
         is_manually_curated=False,
-        category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
+        activity_category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
         eventbrite_subcategory_ids=["19004"],
     ),
     ActivityCategoryOrm(
@@ -571,7 +575,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Knitting",
         is_default=False,
         is_manually_curated=False,
-        category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
+        activity_category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
         eventbrite_subcategory_ids=["19005"],
     ),
     ActivityCategoryOrm(
@@ -579,7 +583,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Books",
         is_default=False,
         is_manually_curated=True,
-        category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
+        activity_category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
         eventbrite_subcategory_ids=["19006"],
     ),
     ActivityCategoryOrm(
@@ -587,7 +591,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Adult",
         is_default=False,
         is_manually_curated=False,
-        category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
+        activity_category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
         eventbrite_subcategory_ids=["19007"],
     ),
     ActivityCategoryOrm(
@@ -595,7 +599,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Drawing & Painting",
         is_default=False,
         is_manually_curated=False,
-        category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
+        activity_category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
         eventbrite_subcategory_ids=["19008"],
     ),
     ActivityCategoryOrm(
@@ -603,7 +607,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Pets & Animals",
         is_default=False,
         is_manually_curated=True,
-        category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
+        activity_category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
         eventbrite_subcategory_ids=["17002"],
     ),
     ActivityCategoryOrm(
@@ -611,7 +615,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Home & Garden",
         is_default=False,
         is_manually_curated=False,
-        category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
+        activity_category_group_id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
         eventbrite_subcategory_ids=["17003"],
     ),
     ActivityCategoryOrm(
@@ -619,7 +623,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Hiking",
         is_default=True,
         is_manually_curated=True,
-        category_group_id=UUID("c0f686d1a4da425ab5c060e2b62344fc"),
+        activity_category_group_id=UUID("c0f686d1a4da425ab5c060e2b62344fc"),
         eventbrite_subcategory_ids=["9001"],
     ),
     ActivityCategoryOrm(
@@ -627,7 +631,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Kayaking",
         is_default=False,
         is_manually_curated=True,
-        category_group_id=UUID("c0f686d1a4da425ab5c060e2b62344fc"),
+        activity_category_group_id=UUID("c0f686d1a4da425ab5c060e2b62344fc"),
         eventbrite_subcategory_ids=["9003"],
     ),
     ActivityCategoryOrm(
@@ -635,7 +639,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Climbing",
         is_default=False,
         is_manually_curated=True,
-        category_group_id=UUID("c0f686d1a4da425ab5c060e2b62344fc"),
+        activity_category_group_id=UUID("c0f686d1a4da425ab5c060e2b62344fc"),
         eventbrite_subcategory_ids=["9005"],
     ),
     ActivityCategoryOrm(
@@ -643,7 +647,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Walking",
         is_default=True,
         is_manually_curated=True,
-        category_group_id=UUID("c0f686d1a4da425ab5c060e2b62344fc"),
+        activity_category_group_id=UUID("c0f686d1a4da425ab5c060e2b62344fc"),
         eventbrite_subcategory_ids=[],
     ),
     ActivityCategoryOrm(
@@ -651,7 +655,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Biking",
         is_default=False,
         is_manually_curated=True,
-        category_group_id=UUID("c0f686d1a4da425ab5c060e2b62344fc"),
+        activity_category_group_id=UUID("c0f686d1a4da425ab5c060e2b62344fc"),
         eventbrite_subcategory_ids=[],
     ),
     ActivityCategoryOrm(
@@ -659,7 +663,7 @@ _ACTIVITY_CATEGORIES_TABLE = (
         name="Botanical Gardens",
         is_default=True,
         is_manually_curated=True,
-        category_group_id=UUID("c0f686d1a4da425ab5c060e2b62344fc"),
+        activity_category_group_id=UUID("c0f686d1a4da425ab5c060e2b62344fc"),
         eventbrite_subcategory_ids=[],
     ),
 )
@@ -674,8 +678,8 @@ _ACTIVITY_CATEGORIES_EBID_IDX = MappingProxyType(
 def _make_category_group_id_idx() -> MappingProxyType[UUID, list[ActivityCategoryOrm]]:
     idx: dict[UUID, list[ActivityCategoryOrm]] = {}
     for cat in _ACTIVITY_CATEGORIES_TABLE:
-        idx.setdefault(cat.category_group_id, [])
-        idx[cat.category_group_id].append(cat)
+        idx.setdefault(cat.activity_category_group_id, [])
+        idx[cat.activity_category_group_id].append(cat)
     return MappingProxyType(idx)
 
 

@@ -11,7 +11,7 @@ from eave.core.graphql.types.outing_preferences import OutingPreferences
 from eave.core.graphql.types.restaurant import RestaurantCategory
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
-from eave.core.orm.outing_category_preference import OutingCategoryPreferenceOrm
+from eave.core.orm.outing_preferences import OutingPreferencesOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 from eave.core.shared.errors import ValidationError
 
@@ -19,8 +19,9 @@ from eave.stdlib.util import unwrap
 
 @strawberry.input
 class UpdateOutingPreferencesInput:
-    restaurant_category_ids: list[UUID] | None = strawberry.UNSET
-    activity_category_ids: list[UUID] | None = strawberry.UNSET
+    open_to_bars: bool = strawberry.UNSET
+    restaurant_category_ids: list[UUID] = strawberry.UNSET
+    activity_category_ids: list[UUID] = strawberry.UNSET
 
 
 @strawberry.type
@@ -50,10 +51,24 @@ async def update_outing_preferences_mutation(
     account_id = unwrap(info.context.get("authenticated_account_id"))
 
     async with database.async_session.begin() as db_session:
-        category_preferences = await db_session.scalars(
-            OutingCategoryPreferenceOrm.select(account_id=account_id)
-        )
+        outing_preferences = (await db_session.scalars(
+            OutingPreferencesOrm.select(account_id=account_id)
+        )).one_or_none()
+
+        if not outing_preferences:
+            outing_preferences = OutingPreferencesOrm.build(
+                account_id=account_id,
+                open_to_bars=None,
+                activity_category_ids=None,
+                restaurant_category_ids=None,
+            )
+
+        await outing_preferences.update(
+            open_to_bars=input.open_to_bars,
+            activity_category_ids=input.activity_category_ids,
+            restaurant_category_ids=input.restaurant_category_ids,
+        ).save(db_session)
 
     return UpdateOutingPreferencesSuccess(
-        outing_preferences=OutingPreferences.from_orms(category_preferences)
+        outing_preferences=OutingPreferences.from_orm(outing_preferences)
     )

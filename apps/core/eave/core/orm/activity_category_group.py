@@ -19,8 +19,8 @@ class ActivityCategoryGroupOrm:
         return _ACTIVITY_CATEGORY_GROUPS_PK[activity_category_id]
 
     @property
-    def categories(self) -> list[ActivityCategoryOrm]:
-        return ActivityCategoryOrm.get_by_category_group_id(category_group_id=self.id)
+    def activity_categories(self) -> list[ActivityCategoryOrm]:
+        return ActivityCategoryOrm.get_by_activity_category_group_id(activity_category_group_id=self.id)
 
 
 _ACTIVITY_CATEGORY_GROUPS_TABLE = (

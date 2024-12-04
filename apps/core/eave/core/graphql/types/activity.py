@@ -59,12 +59,12 @@ class ActivityCategory:
 class ActivityCategoryGroup:
     id: UUID
     name: str
-    categories: list[ActivityCategory]
+    activity_categories: list[ActivityCategory]
 
     @classmethod
     def from_orm(cls, orm: ActivityCategoryGroupOrm) -> "ActivityCategoryGroup":
         return ActivityCategoryGroup(
             id=orm.id,
             name=orm.name,
-            categories=[ActivityCategory.from_orm(orm) for orm in orm.categories],
+            activity_categories=[ActivityCategory.from_orm(orm) for orm in orm.activity_categories],
         )

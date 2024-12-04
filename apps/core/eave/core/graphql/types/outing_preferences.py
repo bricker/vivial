@@ -6,18 +6,30 @@ import strawberry
 from eave.core.graphql.types.activity import ActivityCategory, ActivityCategoryGroup
 from eave.core.graphql.types.restaurant import RestaurantCategory
 from eave.core.orm.activity_category import ActivityCategoryOrm
-from eave.core.orm.outing_category_preference import OutingCategoryPreferenceOrm
+from eave.core.orm.outing_preferences import OutingPreferencesOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 
 
 @strawberry.type
 class OutingPreferences:
-    restaurant_categories: list[RestaurantCategory]
-    activity_categories: list[ActivityCategory]
+    open_to_bars: bool | None
+    restaurant_categories: list[RestaurantCategory] | None
+    activity_categories: list[ActivityCategory] | None
 
     @classmethod
-    def from_orms(cls, orms: Sequence[OutingCategoryPreferenceOrm]) -> "OutingPreferences":
+    def from_orm(cls, orm: OutingPreferencesOrm) -> "OutingPreferences":
+        restaurant_categories: list[RestaurantCategory] = []
+        for restaurant_category_id in orm.restaurant_category_ids:
+            if restaurant_category_orm := RestaurantCategoryOrm.one_or_none(restaurant_category_id=restaurant_category_id):
+                restaurant_categories.append(RestaurantCategory.from_orm(restaurant_category_orm))
+
+        activity_categories: list[ActivityCategory] = []
+        for activity_category_id in orm.activity_category_ids:
+            if activity_category_orm := ActivityCategoryOrm.one_or_none(activity_category_id=activity_category_id):
+                activity_categories.append(ActivityCategory.from_orm(activity_category_orm))
+
         return OutingPreferences(
-            restaurant_categories=[RestaurantCategory.from_orm(RestaurantCategoryOrm.one_or_exception(restaurant_category_id=category_preference.category_id)) for category_preference in orms if category_preference.category_type == "restaurant"],
-            activity_categories=[ActivityCategory.from_orm(ActivityCategoryOrm.one_or_exception(activity_category_id=category_preference.category_id)) for category_preference in orms if category_preference.category_type == "activity"],
+            open_to_bars=orm.open_to_bars,
+            restaurant_categories=restaurant_categories,
+            activity_categories=activity_categories,
         )
