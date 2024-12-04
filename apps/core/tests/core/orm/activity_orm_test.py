@@ -1,6 +1,6 @@
 from eave.core.lib.geo import GeoPoint
 from eave.core.orm.activity import ActivityOrm
-from eave.core.orm.address_types import PostgisStdaddr
+from eave.core.orm.address_types import Address
 
 from ..base import BaseTestCase
 
@@ -18,23 +18,13 @@ class TestActivityOrm(BaseTestCase):
                 subcategory_id=self.anyuuid("subcategory_id"),
                 duration_minutes=self.anyint("duration_minutes"),
                 availability=self.anystr("availability"),
-                address=PostgisStdaddr(
-                    building=self.anystr("addr.building"),
-                    house_num=self.anystr("addr.house_num"),
-                    predir=self.anystr("addr.predir"),
-                    qual=self.anystr("addr.qual"),
-                    pretype=self.anystr("addr.pretype"),
-                    name=self.anystr("addr.name"),
-                    suftype=self.anystr("addr.suftype"),
-                    sufdir=self.anystr("addr.sufdir"),
-                    ruralroute=self.anystr("addr.ruralroute"),
-                    extra=self.anystr("addr.extra"),
-                    city=self.anystr("addr.city"),
-                    state=self.anystr("addr.state"),
-                    country=self.anystr("addr.country"),
-                    postcode=self.anystr("addr.postcode"),
-                    box=self.anystr("addr.box"),
-                    unit=self.anystr("addr.unit"),
+                address=Address(
+                    address1=self.anystr("address.address1"),
+                    address2=self.anystr("address.address2"),
+                    city=self.anystr("address.city"),
+                    country=self.anystr("address.country"),
+                    state=self.anyusstate("address.state"),
+                    zip=self.anydigits("address.zip", length=5),
                 ),
             )
             session.add(activity)
@@ -54,19 +44,9 @@ class TestActivityOrm(BaseTestCase):
                 == GeoPoint(lat=self.getlatitude("lat"), lon=self.getlongitude("lon")).geoalchemy_shape()
             )
 
-            assert obj.address.building == self.getstr("addr.building")
-            assert obj.address.house_num == self.getstr("addr.house_num")
-            assert obj.address.predir == self.getstr("addr.predir")
-            assert obj.address.qual == self.getstr("addr.qual")
-            assert obj.address.pretype == self.getstr("addr.pretype")
-            assert obj.address.name == self.getstr("addr.name")
-            assert obj.address.suftype == self.getstr("addr.suftype")
-            assert obj.address.sufdir == self.getstr("addr.sufdir")
-            assert obj.address.ruralroute == self.getstr("addr.ruralroute")
-            assert obj.address.extra == self.getstr("addr.extra")
-            assert obj.address.city == self.getstr("addr.city")
-            assert obj.address.state == self.getstr("addr.state")
-            assert obj.address.country == self.getstr("addr.country")
-            assert obj.address.postcode == self.getstr("addr.postcode")
-            assert obj.address.box == self.getstr("addr.box")
-            assert obj.address.unit == self.getstr("addr.unit")
+            assert obj.address.address1 == self.getstr("address.address1")
+            assert obj.address.address2 == self.getstr("address.address2")
+            assert obj.address.city == self.getstr("address.city")
+            assert obj.address.country == self.getstr("address.country")
+            assert obj.address.state == self.getusstate("address.state")
+            assert obj.address.zip == self.getdigits("address.zip")
