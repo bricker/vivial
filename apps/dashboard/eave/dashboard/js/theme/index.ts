@@ -83,6 +83,13 @@ export const theme = createTheme({
       fontFamily: fontFamilies.quicksand,
       fontWeight: 500,
     },
+    h5: {
+      color: colors.pureWhite,
+      fontSize: rem("16px"),
+      lineHeight: rem("20px"),
+      fontFamily: fontFamilies.quicksand,
+      fontWeight: 700,
+    },
     subtitle1: {
       fontSize: rem("14px"),
       lineHeight: rem("20.513px"),

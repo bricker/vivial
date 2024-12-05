@@ -25,24 +25,20 @@ class ActivityCategoryGroupOrm:
 
 _ACTIVITY_CATEGORY_GROUPS_TABLE = (
     ActivityCategoryGroupOrm(
-        id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
-        name="Seasonal & Holiday",
-    ),
-    ActivityCategoryGroupOrm(
-        id=UUID("f3a21e9638d2401ebc290fee6fe44384"),
-        name="Food & Drink",
-    ),
-    ActivityCategoryGroupOrm(
-        id=UUID("64064c758d894eac9613f23cb6da6fd1"),
-        name="Film, Media & Entertainment",
-    ),
-    ActivityCategoryGroupOrm(
         id=UUID("68917f14a9354a4382829b43d99c9ba8"),
         name="Music",
     ),
     ActivityCategoryGroupOrm(
         id=UUID("988e0bf142564462985a2657602aad1b"),
-        name="Arts & Theater",
+        name="Arts & theater",
+    ),
+    ActivityCategoryGroupOrm(
+        id=UUID("64064c758d894eac9613f23cb6da6fd1"),
+        name="Film, media & entertainment",
+    ),
+    ActivityCategoryGroupOrm(
+        id=UUID("f3a21e9638d2401ebc290fee6fe44384"),
+        name="Food & drink activities",
     ),
     ActivityCategoryGroupOrm(
         id=UUID("12e3ee96b00641c58e2a6ba3567816d3"),
@@ -50,7 +46,11 @@ _ACTIVITY_CATEGORY_GROUPS_TABLE = (
     ),
     ActivityCategoryGroupOrm(
         id=UUID("c0f686d1a4da425ab5c060e2b62344fc"),
-        name="Fitness & Outdoors",
+        name="Fitness & outdoors",
+    ),
+    ActivityCategoryGroupOrm(
+        id=UUID("c44d71bc95bd4a5bb66a7a97c68250ec"),
+        name="Seasonal & holiday",
     ),
 )
 
