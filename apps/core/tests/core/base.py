@@ -18,7 +18,8 @@ import eave.core.database
 import eave.core.orm
 import eave.stdlib.testing_util
 import eave.stdlib.typing
-from eave.core.config import CORE_API_APP_CONFIG
+from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME
+from eave.core.config import CORE_API_APP_CONFIG, JWT_AUDIENCE, JWT_ISSUER
 from eave.core.database import init_database
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.base import get_base_metadata
@@ -28,6 +29,8 @@ from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
 from eave.dev_tooling.constants import EAVE_HOME
 from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.jwt import JWTPurpose, create_jws
+from eave.stdlib.time import ONE_YEAR_IN_MINUTES
 
 
 class AnyStandardOrm(Protocol):
@@ -138,13 +141,30 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
 
         return result
 
-    async def make_graphql_request(self, query_name: str, variables: dict[str, Any]) -> Response:
+    async def make_graphql_request(
+        self, query_name: str, variables: dict[str, Any], account_id: UUID | None = None
+    ) -> Response:
+        cookies: dict[str, str] = {}
+
+        if account_id:
+            jws = create_jws(
+                purpose=JWTPurpose.ACCESS,
+                issuer=JWT_ISSUER,
+                audience=JWT_AUDIENCE,
+                subject=str(account_id),
+                jwt_id=self.anystr(),
+                max_age_minutes=ONE_YEAR_IN_MINUTES,
+            )
+
+            cookies[ACCESS_TOKEN_COOKIE_NAME] = jws
+
         response = await self.httpclient.post(
             "/graphql",
             json={
                 "query": self.load_graphql_query(query_name),
                 "variables": variables,
             },
+            cookies=cookies,
         )
 
         assert response.status_code == HTTPStatus.OK

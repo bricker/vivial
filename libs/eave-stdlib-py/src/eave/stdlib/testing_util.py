@@ -12,6 +12,14 @@ from datetime import UTC, datetime, timedelta, timezone
 from math import floor
 from typing import Any, Literal, TypeVar
 
+from google.cloud.kms import (
+    CryptoKeyVersion,
+    GetCryptoKeyVersionRequest,
+    MacSignRequest,
+    MacSignResponse,
+    MacVerifyRequest,
+    MacVerifyResponse,
+)
 from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
 
 import eave.stdlib.http_exceptions
@@ -496,6 +504,51 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             unittest.mock.patch(
                 "google.cloud.secretmanager.SecretManagerServiceClient.access_secret_version",
                 side_effect=_access_secret_version,
+            )
+        )
+
+        def _mac_sign(request: MacSignRequest) -> MacSignResponse:
+            mac = self.anybytes()
+            return MacSignResponse(
+                verified_data_crc32c=True,
+                name=request.name,
+                mac=mac,
+                mac_crc32c=generate_checksum(mac),
+            )
+
+        self.patch(
+            unittest.mock.patch(
+                "google.cloud.kms.KeyManagementServiceClient.mac_sign",
+                side_effect=_mac_sign,
+            )
+        )
+
+        def _mac_verify(request: MacVerifyRequest) -> MacVerifyResponse:
+            return MacVerifyResponse(
+                verified_data_crc32c=True,
+                verified_mac_crc32c=True,
+                name=request.name,
+                success=True,
+                verified_success_integrity=True,
+            )
+
+        self.patch(
+            unittest.mock.patch(
+                "google.cloud.kms.KeyManagementServiceClient.mac_verify",
+                side_effect=_mac_verify,
+            )
+        )
+
+        def _get_crypto_key_version(request: GetCryptoKeyVersionRequest) -> CryptoKeyVersion:
+            return CryptoKeyVersion(
+                name=request.name,
+                algorithm=CryptoKeyVersion.CryptoKeyVersionAlgorithm.HMAC_SHA256,
+            )
+
+        self.patch(
+            unittest.mock.patch(
+                "google.cloud.kms.KeyManagementServiceClient.get_crypto_key_version",
+                side_effect=_get_crypto_key_version,
             )
         )
 

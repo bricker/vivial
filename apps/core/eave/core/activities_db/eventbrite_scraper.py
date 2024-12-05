@@ -4,8 +4,8 @@ from zoneinfo import ZoneInfo
 
 import eave.core.database
 from eave.core.config import CORE_API_APP_CONFIG
+from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_format import ActivityFormatOrm
-from eave.core.orm.activity_subcategory import ActivitySubcategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
 from eave.stdlib.eventbrite.client import EventbriteClient, ListEventsQuery, OrderBy
 from eave.stdlib.eventbrite.models.event import EventStatus
@@ -117,7 +117,7 @@ async def get_eventbrite_events() -> None:
                         continue
 
                     if not (
-                        vivial_subcategory := ActivitySubcategoryOrm.get_by_eventbrite_id(
+                        vivial_category := ActivityCategoryOrm.get_by_eventbrite_id(
                             eventbrite_subcategory_id=eb_subcategory_id
                         )
                     ):
@@ -180,8 +180,8 @@ async def get_eventbrite_events() -> None:
                         max_cost_cents=max_cost_cents,
                         lat=float(lat),
                         lon=float(lon),
-                        subcategory_id=vivial_subcategory.id,
-                        format_id=vivial_format.id,
+                        vivial_activity_category_id=vivial_category.id,
+                        vivial_activity_format_id=vivial_format.id,
                     )
 
 

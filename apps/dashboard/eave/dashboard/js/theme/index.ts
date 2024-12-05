@@ -1,6 +1,7 @@
 import { createTheme } from "@mui/material";
 import { colors } from "./colors";
 import { fontFamilies } from "./fonts";
+import { MediaQuery } from "./helpers/breakpoint";
 import { rem } from "./helpers/rem";
 
 /**
@@ -57,6 +58,10 @@ export const theme = createTheme({
       fontSize: rem("40px"),
       lineHeight: rem("50px"),
       fontWeight: 600,
+      [MediaQuery.Medium]: {
+        fontSize: rem("59.475px"),
+        lineHeight: rem("74px"),
+      },
     },
     h2: {
       fontFamily: fontFamilies.quicksand,
@@ -82,6 +87,10 @@ export const theme = createTheme({
       fontSize: rem("14px"),
       lineHeight: rem("20.513px"),
       fontWeight: 400,
+      [MediaQuery.Medium]: {
+        fontSize: rem("18.586px"),
+        lineHeight: rem("22px"),
+      },
     },
     subtitle2: {
       fontSize: rem("16px"),

@@ -1,4 +1,4 @@
-from typing import Literal, Union, override
+from typing import Any, Literal, Union, override
 
 from starlette.requests import Request as _StarletteRequest
 from starlette.responses import Response as _StarletteResponse
@@ -43,4 +43,4 @@ class NotSet:
         return "NOT_SET"
 
 
-NOT_SET = NotSet()
+NOT_SET: Any = NotSet()

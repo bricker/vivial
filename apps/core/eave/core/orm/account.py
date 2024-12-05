@@ -10,7 +10,7 @@ from sqlalchemy import PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.shared.errors import ValidationError
-from eave.stdlib.typing import NOT_SET, NotSet
+from eave.stdlib.typing import NOT_SET
 from eave.stdlib.util import b64encode
 
 from .base import Base
@@ -83,7 +83,7 @@ class AccountOrm(Base):
         return obj
 
     @classmethod
-    def select(cls, *, email: str | NotSet = NOT_SET) -> Select[tuple[Self]]:
+    def select(cls, *, email: str = NOT_SET) -> Select[tuple[Self]]:
         query = select(cls)
 
         if email is not NOT_SET:

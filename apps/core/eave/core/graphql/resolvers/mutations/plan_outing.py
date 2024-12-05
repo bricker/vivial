@@ -11,16 +11,22 @@ from eave.core.graphql.resolvers.mutations.helpers.create_outing import create_o
 from eave.core.graphql.types.outing import (
     Outing,
 )
-from eave.core.graphql.types.preferences import PreferencesInput
 from eave.core.orm.survey import SurveyOrm
 from eave.core.orm.util import StartTimeTooLateError, StartTimeTooSoonError, validate_time_within_bounds_or_exception
 from eave.core.shared.enums import OutingBudget
 
 
 @strawberry.input
+class OutingPreferencesInput:
+    open_to_bars: bool
+    restaurant_category_ids: list[UUID]
+    activity_category_ids: list[UUID]
+
+
+@strawberry.input
 class PlanOutingInput:
     visitor_id: UUID
-    group_preferences: list[PreferencesInput] | None
+    group_preferences: list[OutingPreferencesInput] | None
     start_time: datetime
     search_area_ids: list[UUID]
     budget: OutingBudget
