@@ -1,7 +1,6 @@
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from eave.stdlib.eventbrite.client import EventbriteClient
 import strawberry
 from google.maps.places_v1 import PlacesAsyncClient
 
@@ -16,12 +15,11 @@ from eave.core.graphql.types.outing import (
 from eave.core.graphql.types.photos import Photos
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.lib.event_helpers import get_activity, get_restuarant
-from eave.core.orm.outing import OutingOrm
 from eave.core.orm.outing_activity import OutingActivityOrm
 from eave.core.orm.outing_reservation import OutingReservationOrm
-from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.core.zoneinfo import LOS_ANGELES_ZONE_INFO
+from eave.stdlib.eventbrite.client import EventbriteClient
 
 # TODO: Remove once we're fetching from the appropriate sources.
 MOCK_OUTING = Outing(

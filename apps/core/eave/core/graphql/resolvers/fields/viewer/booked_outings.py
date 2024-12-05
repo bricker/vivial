@@ -1,20 +1,13 @@
-import copy
-import datetime
 from uuid import UUID
-from eave.stdlib.eventbrite.client import EventbriteClient
-from eave.stdlib.util import unwrap
+
 import strawberry
 from google.maps.places_v1 import PlacesAsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from eave.core import database
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.resolvers.fields.outing import MOCK_OUTING
-from eave.core.graphql.types.activity import Activity, ActivityTicketInfo, ActivityVenue
 from eave.core.graphql.types.booking import BookingDetails
-from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import (
-    Outing,
     OutingState,
 )
 from eave.core.lib.event_helpers import get_activity, get_restuarant
@@ -22,6 +15,8 @@ from eave.core.orm.booking import BookingOrm
 from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
 from eave.core.orm.booking_reservations_template import BookingReservationTemplateOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
+from eave.stdlib.eventbrite.client import EventbriteClient
+from eave.stdlib.util import unwrap
 
 
 @strawberry.input
@@ -101,7 +96,7 @@ async def list_booked_outings_query(
     if input:
         match input.outing_state:
             case OutingState.PAST:
-                pass # TODO: filter? are these inputs even necessary? ask leilenah
+                pass  # TODO: filter? are these inputs even necessary? ask leilenah
             case OutingState.FUTURE:
                 pass
             case _:

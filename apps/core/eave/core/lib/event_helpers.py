@@ -1,9 +1,8 @@
+import uuid
 from collections.abc import Sequence
 from textwrap import dedent
-import uuid
-from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery
-from eave.stdlib.eventbrite.models.expansions import Expansion
-from google.maps.places_v1 import PlacesAsyncClient, Photo
+
+from google.maps.places_v1 import Photo, PlacesAsyncClient
 
 from eave.core import database
 from eave.core.graphql.resolvers.mutations.helpers.planner import get_place
@@ -13,6 +12,8 @@ from eave.core.graphql.types.photos import Photos
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.orm.activity import ActivityOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
+from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery
+from eave.stdlib.eventbrite.models.expansions import Expansion
 
 
 async def _get_google_photo_uris(

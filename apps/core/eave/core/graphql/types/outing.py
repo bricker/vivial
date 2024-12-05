@@ -4,8 +4,6 @@ from uuid import UUID
 
 import strawberry
 
-from eave.core.orm.outing import OutingOrm
-
 from .activity import Activity
 from .restaurant import Restaurant
 
