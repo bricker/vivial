@@ -41,6 +41,7 @@ class BookingActivityTemplateOrm(Base):
     """ActivitySource enum value"""
     activity_name: Mapped[str] = mapped_column()
     activity_start_time: Mapped[datetime] = mapped_column()
+    activity_photo_uri: Mapped[str | None] = mapped_column()
     headcount: Mapped[int] = mapped_column(name="num_attendees")
     external_booking_link: Mapped[str | None] = mapped_column()
     """HTTP link to site for manual booking (possibly affiliate), if available"""
@@ -60,6 +61,7 @@ class BookingActivityTemplateOrm(Base):
         source_id: str,
         activity_name: str,
         activity_start_time: datetime,
+        activity_photo_uri: str | None,
         headcount: int,
         external_booking_link: str | None,
         address: Address,
@@ -72,6 +74,7 @@ class BookingActivityTemplateOrm(Base):
             source_id=source_id,
             activity_name=activity_name,
             activity_start_time=activity_start_time,
+            activity_photo_uri=activity_photo_uri,
             headcount=headcount,
             external_booking_link=external_booking_link,
             address=address,

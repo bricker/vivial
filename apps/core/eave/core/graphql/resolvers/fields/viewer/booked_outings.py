@@ -86,6 +86,11 @@ async def list_bookings_query(
             # response type only accepts one of each
             activity = await db_session.scalar(activities_query)
             reservation = await db_session.scalar(reservations_query)
+            photo_uri = None
+            if reservation and reservation.reservation_photo_uri:
+                photo_uri = reservation.reservation_photo_uri
+            if activity and activity.activity_photo_uri:
+                photo_uri = activity.activity_photo_uri
 
             booking_details.append(
                 BookingDetailPeek(
@@ -93,7 +98,8 @@ async def list_bookings_query(
                     activity_start_time=activity.activity_start_time if activity else None,
                     activity_name=activity.activity_name if activity else None,
                     restaurant_name=reservation.reservation_name if reservation else None,
-                    restaurant_start_time=reservation.reservation_start_time if reservation else None,
+                    restaurant_arrival_time=reservation.reservation_start_time if reservation else None,
+                    photo_uri=photo_uri,
                 )
             )
 

@@ -16,7 +16,7 @@ from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery
 from eave.stdlib.eventbrite.models.expansions import Expansion
 
 
-async def _get_google_photo_uris(
+async def get_google_photo_uris(
     places_client: PlacesAsyncClient,
     photos: Sequence[Photo],
 ) -> list[str]:
@@ -76,7 +76,7 @@ async def get_activity(
                 # field_mask=",".join(["displayName.text", "addressComponents", "location", "websiteUri"]),
             )
 
-            photo_uris = await _get_google_photo_uris(
+            photo_uris = await get_google_photo_uris(
                 places_client=places_client,
                 photos=details.photos,
             )
@@ -167,7 +167,7 @@ async def get_restuarant(
                 # field_mask=",".join(["displayName.text", "addressComponents", "location", "websiteUri"]),
             )
 
-            photo_uris = await _get_google_photo_uris(
+            photo_uris = await get_google_photo_uris(
                 places_client=places_client,
                 photos=details.photos,
             )

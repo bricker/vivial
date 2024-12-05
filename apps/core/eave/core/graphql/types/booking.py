@@ -26,8 +26,9 @@ class BookingDetailPeek:
     id: UUID
     activity_start_time: datetime | None
     activity_name: str | None
-    restaurant_start_time: datetime | None
+    restaurant_arrival_time: datetime | None
     restaurant_name: str | None
+    photo_uri: str | None
 
 
 @strawberry.type

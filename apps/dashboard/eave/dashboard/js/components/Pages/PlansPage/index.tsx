@@ -1,4 +1,4 @@
-import { Outing } from "$eave-dashboard/js/graphql/generated/graphql";
+import { BookingDetailPeek } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute } from "$eave-dashboard/js/routes";
 import { useListBookedOutingsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
@@ -12,7 +12,7 @@ const PageContainer = styled("div")(() => ({
   padding: 16,
 }));
 
-const OutingGroupContainer = styled("div")(() => ({
+const BookingGroupContainer = styled("div")(() => ({
   display: "flex",
   flexDirection: "column",
   gap: 16,
@@ -71,7 +71,7 @@ const DetailsImage = styled("img")(() => ({
   maxWidth: "50%",
 }));
 
-const OutingContainer = styled("div")(() => ({
+const BookingContainer = styled("div")(() => ({
   display: "flex",
   flexDirection: "row",
   gap: 18,
@@ -80,7 +80,7 @@ const OutingContainer = styled("div")(() => ({
   justifyContent: "space-around",
 }));
 
-const OutingDetailsContainer = styled("div")(() => ({
+const BookingDetailsContainer = styled("div")(() => ({
   display: "flex",
   flexDirection: "column",
   gap: 8,
@@ -98,10 +98,10 @@ const NewDateCta = () => {
   );
 };
 
-const OutingDetails = ({ outing }: { outing: Outing }) => {
-  const imgUri = outing.activity?.photos?.coverPhotoUri || outing.restaurant?.photos?.coverPhotoUri;
-  // TODO: convert outing times to local time
-  const dateDayString = outing.activityStartTime || outing.restaurantArrivalTime;
+const BookingDetails = ({ booking }: { booking: BookingDetailPeek }) => {
+  const imgUri = booking.photoUri;
+  // TODO: convert booking times to local time
+  const dateDayString = booking.activityStartTime || booking.restaurantArrivalTime;
   if (!dateDayString) {
     // cant show much detail if there's no activity or restaurant
     return <></>;
@@ -112,30 +112,30 @@ const OutingDetails = ({ outing }: { outing: Outing }) => {
   );
   return (
     <DetailsPaper>
-      <OutingContainer>
-        <OutingDetailsContainer>
+      <BookingContainer>
+        <BookingDetailsContainer>
           <DetailsTitle variant="subtitle2">{formattedDay}</DetailsTitle>
-          {outing.restaurantArrivalTime && outing.restaurant && (
+          {booking.restaurantArrivalTime && booking.restaurantName && (
             <Typography variant="subtitle1">
               {new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).format(
-                new Date(outing.restaurantArrivalTime),
+                new Date(booking.restaurantArrivalTime),
               )}
               <br />
-              {outing.restaurant.name}
+              {booking.restaurantName}
             </Typography>
           )}
-          {outing.activityStartTime && outing.activity && (
+          {booking.activityStartTime && booking.activityName && (
             <Typography variant="subtitle1">
               {new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).format(
-                new Date(outing.activityStartTime),
+                new Date(booking.activityStartTime),
               )}
               <br />
-              {outing.activity.name}
+              {booking.activityName}
             </Typography>
           )}
-        </OutingDetailsContainer>
+        </BookingDetailsContainer>
         {imgUri && <DetailsImage alt="" src={imgUri} />}
-      </OutingContainer>
+      </BookingContainer>
     </DetailsPaper>
   );
 };
@@ -143,28 +143,28 @@ const OutingDetails = ({ outing }: { outing: Outing }) => {
 const PlansPage = () => {
   const { data, isLoading, isError } = useListBookedOutingsQuery({});
   const navigate = useNavigate();
-  const [upcomingOutings, setUpcomingOutings] = useState<Outing[]>(() => []);
-  const [pastOutings, setPastOutings] = useState<Outing[]>(() => []);
+  const [upcomingBookings, setUpcomingBookings] = useState<BookingDetailPeek[]>(() => []);
+  const [pastBookings, setPastBookings] = useState<BookingDetailPeek[]>(() => []);
 
   useEffect(() => {
     switch (data?.viewer.__typename) {
       case "AuthenticatedViewerQueries": {
         const now = new Date();
-        const outings = data.viewer.bookedOutings;
+        const bookings = data.viewer.bookedOutings;
         const past = [];
         const upcoming = [];
-        for (const outing of outings) {
+        for (const booking of bookings) {
           if (
-            (outing.activityStartTime && new Date(outing.activityStartTime) > now) ||
-            (outing.restaurantArrivalTime && new Date(outing.restaurantArrivalTime) > now)
+            (booking.activityStartTime && new Date(booking.activityStartTime) > now) ||
+            (booking.restaurantArrivalTime && new Date(booking.restaurantArrivalTime) > now)
           ) {
-            upcoming.push(outing);
+            upcoming.push(booking);
           } else {
-            past.push(outing);
+            past.push(booking);
           }
         }
-        setUpcomingOutings(upcoming);
-        setPastOutings(past);
+        setUpcomingBookings(upcoming);
+        setPastBookings(past);
         break;
       }
       case "UnauthenticatedViewer":
@@ -188,11 +188,11 @@ const PlansPage = () => {
           </CenteredArea>
         ) : (
           <>
-            <OutingGroupContainer>
+            <BookingGroupContainer>
               <Title variant="h4">Upcoming plans</Title>
-              {upcomingOutings.length > 0 ? (
-                upcomingOutings.map((outing) => {
-                  return <OutingDetails key={outing.id} outing={outing} />;
+              {upcomingBookings.length > 0 ? (
+                upcomingBookings.map((booking) => {
+                  return <BookingDetails key={booking.id} booking={booking} />;
                 })
               ) : isLoading ? (
                 <CenteredArea>
@@ -201,15 +201,15 @@ const PlansPage = () => {
               ) : (
                 <NewDateCta />
               )}
-            </OutingGroupContainer>
+            </BookingGroupContainer>
 
-            {pastOutings.length > 0 && (
-              <OutingGroupContainer>
+            {pastBookings.length > 0 && (
+              <BookingGroupContainer>
                 <Title variant="h4">Past plans</Title>
-                {pastOutings.map((outing) => {
-                  return <OutingDetails key={outing.id} outing={outing} />;
+                {pastBookings.map((booking) => {
+                  return <BookingDetails key={booking.id} booking={booking} />;
                 })}
-              </OutingGroupContainer>
+              </BookingGroupContainer>
             )}
           </>
         )}

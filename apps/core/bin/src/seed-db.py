@@ -138,6 +138,7 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             source=ActivitySource.EVENTBRITE,
             activity_name="Biking in McDonalds parking lot",
             activity_start_time=outing_activity.activity_start_time,
+            activity_photo_uri="https://s3-media0.fl.yelpcdn.com/bphoto/NQFmn6sxr2RC-czWIBi8aw/o.jpg",
             headcount=outing_activity.headcount,
             external_booking_link="https://micndontlds.com",
             address=Address(
@@ -157,6 +158,7 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             source=RestaurantSource.GOOGLE_PLACES,
             reservation_name="Red lobster dumpster",
             reservation_start_time=outing_reservation.reservation_start_time,
+            reservation_photo_uri="https://s3-media0.fl.yelpcdn.com/bphoto/NQFmn6sxr2RC-czWIBi8aw/o.jpg",
             headcount=outing_reservation.headcount,
             external_booking_link="https://redlobster.yum",
             address=Address(

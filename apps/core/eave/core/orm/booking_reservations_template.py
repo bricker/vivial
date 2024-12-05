@@ -41,6 +41,7 @@ class BookingReservationTemplateOrm(Base):
     """RestaurantSource enum value"""
     reservation_name: Mapped[str] = mapped_column()
     reservation_start_time: Mapped[datetime] = mapped_column()
+    reservation_photo_uri: Mapped[str | None] = mapped_column()
     headcount: Mapped[int] = mapped_column(name="num_attendees")
     external_booking_link: Mapped[str | None] = mapped_column()
     """HTTP link to site for manual booking (possibly affiliate), if available"""
@@ -60,6 +61,7 @@ class BookingReservationTemplateOrm(Base):
         source_id: str,
         reservation_name: str,
         reservation_start_time: datetime,
+        reservation_photo_uri: str | None,
         headcount: int,
         external_booking_link: str | None,
         address: Address,
@@ -72,6 +74,7 @@ class BookingReservationTemplateOrm(Base):
             source_id=source_id,
             reservation_name=reservation_name,
             reservation_start_time=reservation_start_time,
+            reservation_photo_uri=reservation_photo_uri,
             headcount=headcount,
             external_booking_link=external_booking_link,
             address=address,
