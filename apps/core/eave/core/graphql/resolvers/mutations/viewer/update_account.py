@@ -1,6 +1,5 @@
 import enum
 from typing import Annotated
-from uuid import uuid4
 
 import strawberry
 

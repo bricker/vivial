@@ -14,7 +14,6 @@ from eave.stdlib.util import unwrap
 
 @strawberry.input
 class UpdateOutingPreferencesInput:
-    open_to_bars: bool = strawberry.UNSET
     restaurant_category_ids: list[UUID] = strawberry.UNSET
     activity_category_ids: list[UUID] = strawberry.UNSET
 
@@ -53,13 +52,11 @@ async def update_outing_preferences_mutation(
         if not outing_preferences:
             outing_preferences = OutingPreferencesOrm.build(
                 account_id=account_id,
-                open_to_bars=None,
                 activity_category_ids=None,
                 restaurant_category_ids=None,
             )
 
         await outing_preferences.update(
-            open_to_bars=input.open_to_bars,
             activity_category_ids=input.activity_category_ids,
             restaurant_category_ids=input.restaurant_category_ids,
         ).save(db_session)

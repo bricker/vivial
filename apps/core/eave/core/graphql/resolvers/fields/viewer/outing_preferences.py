@@ -20,7 +20,6 @@ async def list_outing_preferences_query(
 
         if not category_preferences:
             return OutingPreferences(
-                open_to_bars=True,  # the default value
                 activity_categories=None,  # Indicates to the client to use the defaults.
                 restaurant_categories=None,
             )

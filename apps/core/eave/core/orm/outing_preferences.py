@@ -26,7 +26,6 @@ class OutingPreferencesOrm(Base):
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     account_id: Mapped[UUID] = mapped_column(unique=True)
-    open_to_bars: Mapped[bool | None] = mapped_column()
     activity_category_ids: Mapped[list[UUID] | None] = mapped_column(
         type_=sqlalchemy.dialects.postgresql.ARRAY(
             item_type=sqlalchemy.types.Uuid,
@@ -47,13 +46,11 @@ class OutingPreferencesOrm(Base):
         cls,
         *,
         account_id: UUID,
-        open_to_bars: bool | None,
         activity_category_ids: list[UUID] | None,
         restaurant_category_ids: list[UUID] | None,
     ) -> "OutingPreferencesOrm":
         obj = OutingPreferencesOrm(
             account_id=account_id,
-            open_to_bars=open_to_bars,
             activity_category_ids=activity_category_ids,
             restaurant_category_ids=restaurant_category_ids,
         )
@@ -62,13 +59,9 @@ class OutingPreferencesOrm(Base):
     def update(
         self,
         *,
-        open_to_bars: bool = strawberry.UNSET,
         restaurant_category_ids: list[UUID] = strawberry.UNSET,
         activity_category_ids: list[UUID] = strawberry.UNSET,
     ) -> Self:
-        if open_to_bars is not strawberry.UNSET:
-            self.open_to_bars = open_to_bars
-
         if restaurant_category_ids is not strawberry.UNSET:
             self.restaurant_category_ids = restaurant_category_ids
 

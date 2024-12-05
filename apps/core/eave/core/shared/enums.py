@@ -5,6 +5,7 @@ from google.maps.places_v1 import PriceLevel
 
 from eave.stdlib.matched_str_enum import MatchedStrEnum
 
+
 @strawberry.enum
 class ActivitySource(MatchedStrEnum):
     INTERNAL = enum.auto()

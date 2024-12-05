@@ -4,7 +4,6 @@ mutation UpdateOutingPreferences($input: UpdateOutingPreferencesInput!) {
       updateOutingPreferences(input: $input) {
         ...on UpdateOutingPreferencesSuccess {
           outingPreferences {
-            openToBars
             restaurantCategories {
               id
               name

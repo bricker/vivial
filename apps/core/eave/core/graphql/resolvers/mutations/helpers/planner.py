@@ -1,6 +1,6 @@
 import random
+import urllib.parse
 from collections.abc import MutableSequence, Sequence
-from dataclasses import dataclass
 from datetime import datetime, timedelta
 from uuid import UUID
 
@@ -11,18 +11,18 @@ from sqlalchemy import func, or_
 
 import eave.core.database
 from eave.core.config import CORE_API_APP_CONFIG
+from eave.core.graphql.resolvers.mutations.plan_outing import OutingPreferencesInput
 from eave.core.graphql.types.activity import Activity, ActivitySource, ActivityVenue
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import ProposedOuting
-from eave.core.graphql.types.outing_preferences import OutingPreferences
 from eave.core.graphql.types.restaurant import Restaurant, RestaurantSource
-from eave.core.graphql.types.survey import Survey
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
 from eave.core.lib.time_category import is_early_evening, is_early_morning, is_late_evening, is_late_morning
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
-from eave.core.orm.restaurant_category import RestaurantCategoryOrm
+from eave.core.orm.restaurant_category import BAR_GOOGLE_CATEGORY_ID, MAGIC_BAR_RESTAURANT_CATEGORY_ID, RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
+from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
 from eave.core.zoneinfo import LOS_ANGELES_ZONE_INFO
 from eave.stdlib.eventbrite.client import EventbriteClient
@@ -56,28 +56,22 @@ _RESTAURANT_FIELD_MASK = ",".join(
     ]
 )
 
-_BREAKFAST_RESTAURANT_CATEGORY_IDS = (
+_BREAKFAST_GOOGLE_RESTAURANT_CATEGORY_IDS = (
     "coffee_shop",
     "breakfast_restaurant",
     "bakery",
     "cafe",
 )
 
-_BRUNCH_RESTAURANT_CATEGORY_IDS = (
+_BRUNCH_GOOGLE_RESTAURANT_CATEGORY_IDS = (
     "brunch_restaurant",
     "breakfast_restaurant",
     "cafe",
 )
 
+_BAR_GOOGLE_CATEGORY_IDS = ("bar",)
 
-@dataclass(kw_only=True)
-class GroupPreferences:
-    open_to_bars: bool
-    restaurant_categories: list[RestaurantCategoryOrm]
-    activity_categories: list[ActivityCategoryOrm]
-
-
-def _combine_restaurant_categories(group: list[OutingPreferences]) -> list[RestaurantCategoryOrm]:
+def _combine_restaurant_categories(individual_preferences: list[OutingPreferencesInput]) -> list[RestaurantCategoryOrm]:
     """
     Given a group of users, combine their restaurant category preferences
     into one list of preferences.
@@ -89,17 +83,18 @@ def _combine_restaurant_categories(group: list[OutingPreferences]) -> list[Resta
     intersection: list[RestaurantCategoryOrm] = []
     difference: list[RestaurantCategoryOrm] = []
 
-    # Create a map of category IDs with occurance counts.
-    for preferences in group:
-        if preferences.restaurant_categories:
-            for category in preferences.restaurant_categories:
-                category_map.setdefault(category.id, 0)
-                category_map[category.id] += 1
+    # Create a map of category IDs with occurence counts.
+    for preferences in individual_preferences:
+        for category_id in preferences.restaurant_category_ids:
+            # Exclude the special "Bar" category
+            if category_id != MAGIC_BAR_RESTAURANT_CATEGORY_ID:
+                category_map.setdefault(category_id, 0)
+                category_map[category_id] += 1
 
-    # Use the map of category ID occurance counts to find the common categories.
+    # Use the map of category ID occurence counts to find the common categories.
     for category_id, num_matches in category_map.items():
         category = RestaurantCategoryOrm.one_or_exception(restaurant_category_id=category_id)
-        if num_matches == len(group):
+        if num_matches == len(individual_preferences):
             intersection.append(category)
         else:
             difference.append(category)
@@ -109,7 +104,7 @@ def _combine_restaurant_categories(group: list[OutingPreferences]) -> list[Resta
     return intersection + difference
 
 
-def _combine_activity_categories(group: list[OutingPreferences]) -> list[ActivityCategoryOrm]:
+def _combine_activity_categories(individual_preferences: list[OutingPreferencesInput]) -> list[ActivityCategoryOrm]:
     """
     Given a group of users, combine their activity category preferences
     into one list of preferences.
@@ -122,16 +117,15 @@ def _combine_activity_categories(group: list[OutingPreferences]) -> list[Activit
     difference: list[ActivityCategoryOrm] = []
 
     # Create a map of category / subcategory IDs with occurence counts.
-    for preferences in group:
-        if preferences.activity_categories:
-            for category in preferences.activity_categories:
-                category_map.setdefault(category.id, 0)
-                category_map[category.id] += 1
+    for preferences in individual_preferences:
+        for category_id in preferences.activity_category_ids:
+            category_map.setdefault(category_id, 0)
+            category_map[category_id] += 1
 
     # Use the map of category / subcategory ID occurence counts to find the common categories.
     for category_id, num_matches in category_map.items():
         category = ActivityCategoryOrm.one_or_exception(activity_category_id=category_id)
-        if num_matches == len(group):
+        if num_matches == len(individual_preferences):
             intersection.append(category)
         else:
             difference.append(category)
@@ -141,24 +135,12 @@ def _combine_activity_categories(group: list[OutingPreferences]) -> list[Activit
     return intersection + difference
 
 
-def _combine_bar_openness(group: list[OutingPreferences]) -> bool:
+def _combine_bar_openness(individual_preferences: list[OutingPreferencesInput]) -> bool:
     """
     Given a group of users, return False if any of the users is not open to
     going to a bar.
     """
-    return all(preferences.open_to_bars for preferences in group)
-
-
-def _combine_preferences(group: list[OutingPreferences]) -> GroupPreferences:
-    """
-    Given a group of users, combine their outing preferences. The logic
-    throughout this class gives priority to common preferences.
-    """
-    return GroupPreferences(
-        restaurant_categories=_combine_restaurant_categories(group),
-        activity_categories=_combine_activity_categories(group),
-        open_to_bars=_combine_bar_openness(group),
-    )
+    return all(MAGIC_BAR_RESTAURANT_CATEGORY_ID in preferences.restaurant_category_ids for preferences in individual_preferences)
 
 
 class OutingPlanner:
@@ -172,18 +154,20 @@ class OutingPlanner:
 
     places: PlacesAsyncClient
     eventbrite: EventbriteClient
-    constraints: Survey
+    survey: SurveyOrm
     activity: Activity | None
     restaurant: Restaurant | None
     activity_start_time: datetime | None
     restaurant_arrival_time: datetime | None
 
-    group_preferences: GroupPreferences
+    group_restaurant_category_preferences: list[RestaurantCategoryOrm]
+    group_activity_category_preferences: list[ActivityCategoryOrm]
+    group_open_to_bars: bool
 
     def __init__(
         self,
-        group: list[OutingPreferences],
-        constraints: Survey,
+        individual_preferences: list[OutingPreferencesInput],
+        survey: SurveyOrm,
         activity: Activity | None = None,
         restaurant: Restaurant | None = None,
         activity_start_time: datetime | None = None,
@@ -191,12 +175,15 @@ class OutingPlanner:
     ) -> None:
         self.places = PlacesAsyncClient()
         self.eventbrite = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
-        self.constraints = constraints
+        self.survey = survey
         self.activity = activity
         self.restaurant = restaurant
-        self.group_preferences = _combine_preferences(group)
         self.activity_start_time = activity_start_time
         self.restaurant_arrival_time = restaurant_arrival_time
+
+        self.ranked_restaurant_category_preferences = _combine_restaurant_categories(individual_preferences)
+        self.ranked_activity_category_group_preferences = _combine_activity_categories(individual_preferences)
+        self.group_open_to_bars = _combine_bar_openness(individual_preferences)
 
     async def plan_activity(self) -> Activity | None:
         """
@@ -207,21 +194,21 @@ class OutingPlanner:
         first, then we find a restaurant nearby that users can eat at before
         the activity.
         """
-        activity_start_time = self.constraints.start_time + timedelta(minutes=120)
+        activity_start_time = self.survey.start_time + timedelta(minutes=120)
         self.activity_start_time = activity_start_time
         activity_end_time = activity_start_time + timedelta(minutes=90)
-        random.shuffle(self.constraints.search_area_ids)
+        random.shuffle(self.survey.search_area_ids)
 
         within_areas = [
             SearchRegionOrm.one_or_exception(search_region_id=search_area_id).area
-            for search_area_id in self.constraints.search_area_ids
+            for search_area_id in self.survey.search_area_ids
         ]
 
         # CASE 1: Recommend an Eventbrite event.
         query = (
             EventbriteEventOrm.select()
             .where(EventbriteEventOrm.time_range.contains(activity_start_time))
-            .where(EventbriteEventOrm.cost_cents_range.contains(self.constraints.budget.upper_limit_cents))
+            .where(EventbriteEventOrm.cost_cents_range.contains(self.survey.outing_budget.upper_limit_cents))
             .where(
                 or_(
                     *[
@@ -234,7 +221,7 @@ class OutingPlanner:
                 or_(
                     *[
                         EventbriteEventOrm.vivial_activity_category_id == cat.id
-                        for cat in self.group_preferences.activity_categories
+                        for cat in self.ranked_activity_category_group_preferences
                     ]
                 )
             )
@@ -317,12 +304,12 @@ class OutingPlanner:
                         source=ActivitySource.EVENTBRITE,
                         name=event_name["text"],
                         description=event_details["description"]["text"],
-                        photos=None,
-                        ticket_info=None,
+                        photos=None, # TODO
+                        ticket_info=None, # TODO
                         venue=ActivityVenue(
                             name=venue["name"],
                             location=Location(
-                                directions_uri="https://www.google.com/",  # FIXME
+                                directions_uri=google_maps_directions_url(venue_formatted_address),
                                 latitude=float(venue_lat),
                                 longitude=float(venue_lon),
                                 formatted_address=venue_formatted_address,
@@ -361,10 +348,10 @@ class OutingPlanner:
         # CASE 3: Recommend a bar or an ice cream shop as a fallback activity.
         is_evening = is_early_evening(activity_start_time) or is_late_evening(activity_start_time)
         place_type = "ice_cream_shop"
-        if is_evening and self.group_preferences.open_to_bars:
+        if is_evening and self.group_open_to_bars:
             place_type = "bar"
 
-        for search_area_id in self.constraints.search_area_ids:
+        for search_area_id in self.survey.search_area_ids:
             region = SearchRegionOrm.one_or_exception(search_region_id=search_area_id)
             places_nearby = await get_places_nearby(
                 client=self.places,
@@ -375,7 +362,7 @@ class OutingPlanner:
             random.shuffle(places_nearby)
             for place in places_nearby:
                 will_be_open = place_will_be_open(place, activity_start_time, activity_end_time)
-                is_in_budget = place_is_in_budget(place, self.constraints.budget)
+                is_in_budget = place_is_in_budget(place, self.survey.outing_budget)
                 if will_be_open and is_in_budget and place.location:
                     venue_lat = place.location.latitude
                     venue_lon = place.location.longitude
@@ -385,8 +372,8 @@ class OutingPlanner:
                             source=ActivitySource.GOOGLE_PLACES,
                             name=place.display_name,
                             description=place.editorial_summary,
-                            photos=None,
-                            ticket_info=None,
+                            photos=None, # TODO
+                            ticket_info=None, # TODO
                             venue=ActivityVenue(
                                 name=place.display_name,
                                 location=Location(
@@ -415,23 +402,23 @@ class OutingPlanner:
 
         For now, the meal always happens before the activity.
         """
-        arrival_time = self.constraints.start_time
+        arrival_time = self.survey.start_time
         self.restaurant_arrival_time = arrival_time
         departure_time = arrival_time + timedelta(minutes=90)
         search_areas = []
 
-        local_timestamp = self.constraints.start_time.astimezone(LOS_ANGELES_ZONE_INFO)
+        local_timestamp = self.survey.start_time.astimezone(LOS_ANGELES_ZONE_INFO)
         # If this is a morning outing, override user restaurant preferences and show them breakfast / brunch spots.
         if is_early_morning(local_timestamp):
-            restaurant_category_ids = list(_BREAKFAST_RESTAURANT_CATEGORY_IDS)
-            random.shuffle(restaurant_category_ids)
+            google_category_ids = list(_BREAKFAST_GOOGLE_RESTAURANT_CATEGORY_IDS)
+            random.shuffle(google_category_ids)
         elif is_late_morning(local_timestamp):
-            restaurant_category_ids = list(_BRUNCH_RESTAURANT_CATEGORY_IDS)
-            random.shuffle(restaurant_category_ids)
+            google_category_ids = list(_BRUNCH_GOOGLE_RESTAURANT_CATEGORY_IDS)
+            random.shuffle(google_category_ids)
         else:
             # Already randomized in combiner funcs
-            restaurant_category_ids = [
-                gcid for cat in self.group_preferences.restaurant_categories for gcid in cat.google_category_ids
+            google_category_ids = [
+                gcid for cat in self.ranked_restaurant_category_preferences for gcid in cat.google_category_ids
             ]
 
         # If an activity has been selected, use that as the search area.
@@ -446,7 +433,7 @@ class OutingPlanner:
             ]
 
         # TODO: Sort areas by distance to the activity location.
-        for search_area_id in self.constraints.search_area_ids:
+        for search_area_id in self.survey.search_area_ids:
             search_areas.append(SearchRegionOrm.one_or_exception(search_region_id=search_area_id).area)
 
         # Find a restaurant that meets the outing constraints.
@@ -454,13 +441,13 @@ class OutingPlanner:
             restaurants_nearby = await get_places_nearby(
                 client=self.places,
                 area=area,
-                included_primary_types=restaurant_category_ids,
+                included_primary_types=google_category_ids,
                 field_mask=_RESTAURANT_FIELD_MASK,
             )
             random.shuffle(restaurants_nearby)
             for restaurant in restaurants_nearby:
                 will_be_open = place_will_be_open(restaurant, arrival_time, departure_time)
-                is_in_budget = place_is_in_budget(restaurant, self.constraints.budget)
+                is_in_budget = place_is_in_budget(restaurant, self.survey.outing_budget)
                 if will_be_open and is_in_budget:
                     if restaurant.location:
                         lat = restaurant.location.latitude
@@ -475,7 +462,7 @@ class OutingPlanner:
                                     formatted_address=restaurant.formatted_address,
                                     directions_uri=restaurant.google_maps_uri,
                                 ),
-                                photos=None,
+                                photos=None, # TODO
                                 name=restaurant.display_name,
                                 reservable=restaurant.reservable,
                                 rating=restaurant.rating,
@@ -595,3 +582,8 @@ def place_is_accessible(place: Place) -> bool:
     can_sit = accessibility_options.wheelchair_accessible_seating
 
     return can_enter and can_park and can_pee and can_sit
+
+
+def google_maps_directions_url(address: str) -> str:
+    urlsafe_addr = urllib.parse.quote_plus(address)
+    return f"https://www.google.com/maps/place/{urlsafe_addr}"
