@@ -1,10 +1,8 @@
 import {
   OutingBudget,
-  type ActivityCategory,
-  type RestaurantCategory,
   type OutingPreferences,
-  type OutingPreferencesQuery,
 } from "$eave-dashboard/js/graphql/generated/graphql";
+import { type Category } from "$eave-dashboard/js/types/category";
 
 import { useGetOutingPreferencesQuery, useGetSearchRegionsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
@@ -125,24 +123,24 @@ const DateSurveyPage = () => {
     // TODO: call planOuting mutation.
   }, []);
 
-  const handleSubmitRestaurantPreferences = useCallback((categories: RestaurantCategory[]) => {
+  const handleSubmitRestaurantPreferences = useCallback((categories: Category[]) => {
     console.log("selected restaurant categories", categories);
     // TODO: call preferences mutation.
     // TODO: handle openToBars
   }, []);
 
-  const handleSubmitActivityPreferences = useCallback((categories: ActivityCategory[]) => {
+  const handleSubmitActivityPreferences = useCallback((categories: Category[]) => {
     // TODO: call preferences mutation.
   }, []);
 
-  const handlePartnerRestaurantPreferences = useCallback((categories: RestaurantCategory[]) => {
+  const handlePartnerRestaurantPreferences = useCallback((categories: Category[]) => {
     // TODO
     // TODO: handle open to bars
   }, []);
 
-  // const handlePartnerActivityPreferences = useCallback((categories: ActivityCategory[]) => {
-  //   // TODO
-  // }, []);
+  const handlePartnerActivityPreferences = useCallback((categories: Category[]) => {
+    // TODO
+  }, []);
 
   const handleSelectHeadcount = useCallback((value: number) => {
     setHeadcount(value);

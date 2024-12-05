@@ -3,17 +3,14 @@ import { useGetOutingPreferencesQuery } from "$eave-dashboard/js/store/slices/co
 import { styled } from "@mui/material";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { colors } from "$eave-dashboard/js/theme/colors";
-import {
-  type ActivityCategory,
-  type RestaurantCategory,
-  type OutingPreferences,
-} from "$eave-dashboard/js/graphql/generated/graphql"
+import { type OutingPreferences } from "$eave-dashboard/js/graphql/generated/graphql"
+import { type Category } from "$eave-dashboard/js/types/category";
 
 import Button from "@mui/material/Button";
 import LinearProgress from "@mui/material/LinearProgress";
 import Typography from "@mui/material/Typography";
 import Paper from "$eave-dashboard/js/components/Paper";
-import { RestaurantPreferenceSelections } from "$eave-dashboard/js/components/Selections/PreferenceSelections";
+import PreferenceSelections from "$eave-dashboard/js/components/Selections/PreferenceSelections";
 
 const ViewContainer = styled("div")(() => ({
   padding: "24px 16px",
@@ -54,8 +51,8 @@ interface PreferencesViewProps {
   title: string;
   subtitle: string;
   outingPreferences: OutingPreferences|null,
-  onSubmitRestaurants: (categories: RestaurantCategory[]) => void;
-  onSubmitActivities: (categories: ActivityCategory[]) => void;
+  onSubmitRestaurants: (categories: Category[]) => void;
+  onSubmitActivities: (categories: Category[]) => void;
   onSkip: () => void;
 }
 
@@ -84,13 +81,25 @@ const PreferencesView = ({
         <ProgressBar variant="determinate" value={progress} />
         <PreferenceCount>{stepsCompleted}/8 preferences</PreferenceCount>
       </Paper>
-      <RestaurantPreferenceSelections
+      <PreferenceSelections
         categoryGroupName="Food types"
         accentColor={colors.lightOrangeAccent}
         categories={restaurantCategories || []}
         defaultCategories={defaultRestaurantCategories || []}
         onSubmit={onSubmitRestaurants}
       />
+      {activityCategoryGroups?.map(group => {
+        const defaultActivityCategories = outingPreferences?.activityCategories || group?.activityCategories.filter(c => c.isDefault);
+        return (
+          <PreferenceSelections key={group.id}
+            categoryGroupName={group.name}
+            accentColor={colors.lightOrangeAccent}
+            categories={group?.activityCategories || []}
+            defaultCategories={defaultActivityCategories || []}
+            onSubmit={onSubmitActivities}
+          />
+        )
+      })}
     </ViewContainer>
   );
 };

@@ -1,45 +1,41 @@
 import React, { useState, useCallback } from "react";
 import { styled } from "@mui/material";
-import {
-  type ActivityCategory,
-  type RestaurantCategory,
-} from "$eave-dashboard/js/graphql/generated/graphql"
+import { type Category } from "$eave-dashboard/js/types/category";
 
 import Typography from "@mui/material/Typography";
+import PrimaryButton from "../../Buttons/PrimaryButton";
 import DropdownButton from "../../Buttons/DropdownButton";
 import PillButton from "../../Buttons/PillButton";
 import Paper from "../../Paper";
 
 import { getCategoryMap } from "./helpers";
 
-/**
- * SHARED STYLES
- */
 const CategoryRow = styled(Paper)(() => ({
   marginTop: 16,
 }));
 
-/**
- * SHARED INTERFACES
- */
+const SubmitButton = styled(PrimaryButton)(() => ({
+  minWidth: 76,
+}));
+
+const SubmitButtonContainer = styled("div")(() => ({
+  marginTop: 16,
+  display: "flex",
+  justifyContent: "flex-end",
+}));
+
 interface PreferenceSelectionsProps {
   categoryGroupName: string;
   accentColor: string;
   collapsable?: boolean;
   collapsed?: boolean;
   cta?: string;
+  categories: Category[] | [];
+  defaultCategories: Category[] | [];
+  onSubmit: (selectedCategories: Category[]) => void;
 }
 
-interface RestaurantPreferenceSelectionsProps extends PreferenceSelectionsProps {
-  categories: RestaurantCategory[] | [];
-  defaultCategories: RestaurantCategory[] | [];
-  onSubmit: (selectedCategories: RestaurantCategory[]) => void;
-}
-
-/**
- * SHARED COMPONENTS
- */
-const RestaurantPreferenceSelections = ({
+const PreferenceSelections = ({
   categories,
   defaultCategories,
   onSubmit,
@@ -48,7 +44,7 @@ const RestaurantPreferenceSelections = ({
   collapsable = false,
   collapsed = false,
   cta = "Save",
-}: RestaurantPreferenceSelectionsProps) => {
+}: PreferenceSelectionsProps) => {
   const [selectedCategories, setSelectedCategories] = useState(defaultCategories);
   const [selectedCategoryMap, setSelectedCategoryMap] = useState(getCategoryMap(defaultCategories));
 
@@ -56,23 +52,25 @@ const RestaurantPreferenceSelections = ({
     onSubmit(selectedCategories);
   }, [selectedCategories]);
 
-  const handleSelect = useCallback((category: RestaurantCategory) => {
-    if (category.id in selectedCategoryMap) {
-      const newMap = {...selectedCategoryMap}
-      delete newMap[category.id];
-      setSelectedCategoryMap(newMap);
+  const handleSelect = useCallback((category: Category) => {
+    const mapClone = { ...selectedCategoryMap }
+    if (category.id in mapClone) {
+      delete mapClone[category.id];
       setSelectedCategories(selectedCategories.filter(c => c.id !== category.id))
     } else {
-      const newMap = {...selectedCategoryMap}
-      newMap[category.id] = category.name;
-      setSelectedCategoryMap(newMap);
+      mapClone[category.id] = category.name;
       setSelectedCategories([...selectedCategories, category]);
     }
+    setSelectedCategoryMap(mapClone);
   }, [selectedCategories, selectedCategoryMap]);
 
   const toggleSelectAll = useCallback(() => {
-
-  }, []);
+    if (selectedCategories.length === categories.length) {
+      setSelectedCategories([]);
+    } else {
+      setSelectedCategories(categories);
+    }
+  }, [selectedCategories]);
 
   return (
     <CategoryRow>
@@ -80,7 +78,7 @@ const RestaurantPreferenceSelections = ({
         <DropdownButton open={collapsed} />
       )}
       <Typography>{categoryGroupName}</Typography>
-      <PillButton onClick={toggleSelectAll} selected={false} accentColor={accentColor} outlined>
+      <PillButton onClick={toggleSelectAll} selected={selectedCategories.length === categories.length} accentColor={accentColor} outlined>
         All
       </PillButton>
       {categories.map((category) => (
@@ -88,17 +86,13 @@ const RestaurantPreferenceSelections = ({
           {category.name}
         </PillButton>
       ))}
-      <button onClick={handleSubmit}>
-        {cta}
-      </button>
+      <SubmitButtonContainer>
+        <SubmitButton onClick={handleSubmit}>
+          {cta}
+        </SubmitButton>
+      </SubmitButtonContainer>
     </CategoryRow>
   );
 }
 
-const ActivityPreferenceSelections = () => {
-  return (
-    null
-  )
-}
-
-export { RestaurantPreferenceSelections, ActivityPreferenceSelections };
+export default PreferenceSelections;

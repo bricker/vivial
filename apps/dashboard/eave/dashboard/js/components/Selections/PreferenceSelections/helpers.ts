@@ -1,9 +1,6 @@
-import {
-  type ActivityCategory,
-  type RestaurantCategory,
-} from "$eave-dashboard/js/graphql/generated/graphql"
+import { type Category } from "$eave-dashboard/js/types/category";
 
-export function getCategoryMap(categoryList: RestaurantCategory[] | ActivityCategory[]): {[key: string]: string} {
+export function getCategoryMap(categoryList: Category[]): {[key: string]: string} {
   const map: {[key: string]: string} = {}
   categoryList.forEach(category => {
     map[category.id] = category.name;
