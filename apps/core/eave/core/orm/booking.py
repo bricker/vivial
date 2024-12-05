@@ -1,7 +1,7 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
+from sqlalchemy import ForeignKeyConstraint, Index, PrimaryKeyConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
@@ -11,7 +11,7 @@ from .util import PG_UUID_EXPR
 class BookingOrm(Base):
     __tablename__ = "bookings"
     __table_args__ = (
-        PrimaryKeyConstraint("account_id", "id", name="account_id_id_booking_pk"),
+        PrimaryKeyConstraint("id"),
         ForeignKeyConstraint(
             ["reserver_details_id"],
             ["reserver_details.id"],
@@ -23,6 +23,10 @@ class BookingOrm(Base):
             ["accounts.id"],
             ondelete="CASCADE",
             name="accounts_booking_fk",
+        ),
+        Index(
+            "account_id_booking_index",
+            "account_id",
         ),
     )
 
