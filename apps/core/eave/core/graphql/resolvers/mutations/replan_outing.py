@@ -75,10 +75,6 @@ async def replan_outing_mutation(
     return ReplanOutingSuccess(
         outing=Outing(
             id=outing.id,
-            visitor_id=outing.visitor_id,
-            account_id=outing.account_id,
-            survey_id=outing.survey_id,
-            budget=survey.outing_budget,
             headcount=survey.headcount,
             # TODO: remaining fields not available in curr ctx
             activity=None,

@@ -14,12 +14,8 @@ from eave.core.graphql.resolvers.mutations.viewer.viewer_mutations import Authen
 class Mutation:
     create_account = strawberry.mutation(resolver=create_account_mutation)
     login = strawberry.mutation(resolver=login_mutation)
-    plan_outing = strawberry.mutation(
-        resolver=plan_outing_mutation, extensions=[AuthenticationExtension(allow_anonymous=True)]
-    )
-    replan_outing = strawberry.mutation(
-        resolver=replan_outing_mutation, extensions=[AuthenticationExtension(allow_anonymous=True)]
-    )
+    plan_outing = strawberry.mutation(resolver=plan_outing_mutation)
+    replan_outing = strawberry.mutation(resolver=replan_outing_mutation)
 
     @strawberry.mutation(extensions=[AuthenticationExtension()])
     def viewer(
