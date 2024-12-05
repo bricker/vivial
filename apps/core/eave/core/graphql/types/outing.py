@@ -4,11 +4,13 @@ from uuid import UUID
 
 import strawberry
 
-from eave.core.orm.outing import OutingOrm
-
 from .activity import Activity
 from .restaurant import Restaurant
 
+@strawberry.input
+class OutingPreferencesInput:
+    restaurant_category_ids: list[UUID]
+    activity_category_ids: list[UUID]
 
 @strawberry.enum
 class OutingState(enum.StrEnum):

@@ -4,6 +4,7 @@ mutation PlanOuting(
     $searchAreaIds: [UUID!]!,
     $budget: OutingBudget!,
     $headcount: Int!,
+    $groupPreferences: [OutingPreferenceInput!]!,
 ) {
     planOuting(input: {
         visitorId: $visitorId,

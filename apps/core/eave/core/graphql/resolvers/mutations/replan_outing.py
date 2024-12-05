@@ -8,10 +8,9 @@ from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.helpers.create_outing import create_outing
-from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
-from eave.core.graphql.resolvers.mutations.plan_outing import OutingPreferencesInput
 from eave.core.graphql.types.outing import (
     Outing,
+    OutingPreferencesInput,
 )
 from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import StartTimeTooLateError, StartTimeTooSoonError, validate_time_within_bounds_or_exception
 
@@ -69,16 +68,11 @@ async def replan_outing_mutation(
     except StartTimeTooSoonError:
         return ReplanOutingFailure(failure_reason=ReplanOutingFailureReason.START_TIME_TOO_SOON)
 
-    plan = await OutingPlanner(
+    outing = await create_outing(
         individual_preferences=input.group_preferences,
-        survey=survey,
-    ).plan()
-
-    outing_orm = await create_outing(
+        account_id=account_id, # This should not be the original Outing's account ID, because someone else may be rerolling this outing.
         visitor_id=input.visitor_id,
         survey=survey,
-        plan=plan,
-        account_id=account_id, # This should not be the original Outing's account ID, because someone else may be rerolling this outing.
     )
 
     ANALYTICS.track(
@@ -90,14 +84,4 @@ async def replan_outing_mutation(
         },
     )
 
-    return ReplanOutingSuccess(
-        outing=Outing(
-            id=outing_orm.id,
-            headcount=survey.headcount,
-            activity=plan.activity,
-            activity_start_time=plan.activity_start_time,
-            restaurant=plan.restaurant,
-            restaurant_arrival_time=plan.restaurant_arrival_time,
-            driving_time=None,
-        )
-    )
+    return ReplanOutingSuccess(outing=outing)

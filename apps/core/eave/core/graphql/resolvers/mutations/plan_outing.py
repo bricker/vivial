@@ -9,20 +9,14 @@ from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.helpers.create_outing import create_outing
-from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
 from eave.core.graphql.types.outing import (
     Outing,
+    OutingPreferencesInput,
 )
 from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import StartTimeTooLateError, StartTimeTooSoonError, validate_time_within_bounds_or_exception
 
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
-
-
-@strawberry.input
-class OutingPreferencesInput:
-    restaurant_category_ids: list[UUID]
-    activity_category_ids: list[UUID]
 
 
 @strawberry.input
@@ -79,16 +73,11 @@ async def plan_outing_mutation(
             headcount=input.headcount,
         ).save(session=db_session)
 
-    plan = await OutingPlanner(
+    outing = await create_outing(
         individual_preferences=input.group_preferences,
-        survey=survey,
-    ).plan()
-
-    outing_orm = await create_outing(
+        account_id=account_id,
         visitor_id=input.visitor_id,
         survey=survey,
-        account_id=account_id,
-        plan=plan,
     )
 
     ANALYTICS.track(
@@ -100,14 +89,4 @@ async def plan_outing_mutation(
         },
     )
 
-    return PlanOutingSuccess(
-        outing=Outing(
-            id=outing_orm.id,
-            headcount=survey.headcount,
-            activity=plan.activity,
-            activity_start_time=plan.activity_start_time,
-            restaurant=plan.restaurant,
-            restaurant_arrival_time=plan.restaurant_arrival_time,
-            driving_time=None,
-        )
-    )
+    return PlanOutingSuccess(outing=outing)

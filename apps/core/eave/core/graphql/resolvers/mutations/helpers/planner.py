@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import random
 import urllib.parse
 from collections.abc import MutableSequence, Sequence
@@ -11,16 +12,15 @@ from sqlalchemy import func, or_
 
 import eave.core.database
 from eave.core.config import CORE_API_APP_CONFIG
-from eave.core.graphql.resolvers.mutations.plan_outing import OutingPreferencesInput
 from eave.core.graphql.types.activity import Activity, ActivitySource, ActivityVenue
 from eave.core.graphql.types.location import Location
-from eave.core.graphql.types.outing import ProposedOuting
 from eave.core.graphql.types.restaurant import Restaurant, RestaurantSource
+from eave.core.graphql.types.outing import Outing, OutingPreferencesInput
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
 from eave.core.lib.time_category import is_early_evening, is_early_morning, is_late_evening, is_late_morning
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
-from eave.core.orm.restaurant_category import BAR_GOOGLE_CATEGORY_ID, MAGIC_BAR_RESTAURANT_CATEGORY_ID, RestaurantCategoryOrm
+from eave.core.orm.restaurant_category import MAGIC_BAR_RESTAURANT_CATEGORY_ID, RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
@@ -69,7 +69,13 @@ _BRUNCH_GOOGLE_RESTAURANT_CATEGORY_IDS = (
     "cafe",
 )
 
-_BAR_GOOGLE_CATEGORY_IDS = ("bar",)
+@dataclass(kw_only=True)
+class PlannerResult:
+    activity: Activity | None
+    activity_start_time: datetime | None
+    restaurant: Restaurant | None
+    restaurant_arrival_time: datetime | None
+    driving_time: str | None
 
 def _combine_restaurant_categories(individual_preferences: list[OutingPreferencesInput]) -> list[RestaurantCategoryOrm]:
     """
@@ -478,14 +484,14 @@ class OutingPlanner:
         self.restaurant = None
         return self.restaurant
 
-    async def plan(self) -> ProposedOuting:
+    async def plan(self) -> PlannerResult:
         """
         Plan an outing for a group of users, taking into consideration outing
         constraints and group preferences.
         """
         await self.plan_activity()
         await self.plan_restaurant()
-        return ProposedOuting(
+        return PlannerResult(
             activity=self.activity,
             activity_start_time=self.activity_start_time,
             restaurant=self.restaurant,

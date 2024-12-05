@@ -1,10 +1,8 @@
 from uuid import UUID
 
 from eave.core import database
-from eave.core.analytics import ANALYTICS
-from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner, ProposedOuting
-from eave.core.graphql.types.survey import Survey
-from eave.core.orm.account import AccountOrm
+from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
+from eave.core.graphql.types.outing import Outing, OutingPreferencesInput
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.outing_activity import OutingActivityOrm
 from eave.core.orm.outing_reservation import OutingReservationOrm
@@ -13,13 +11,18 @@ from eave.core.orm.survey import SurveyOrm
 
 async def create_outing(
     *,
+    individual_preferences: list[OutingPreferencesInput],
     account_id: UUID | None,
     visitor_id: UUID,
     survey: SurveyOrm,
-    plan: ProposedOuting,
-) -> OutingOrm:
+) -> Outing:
+    plan = await OutingPlanner(
+        individual_preferences=individual_preferences,
+        survey=survey,
+    ).plan()
+
     async with database.async_session.begin() as db_session:
-        outing = await OutingOrm.build(
+        outing_orm = await OutingOrm.build(
             visitor_id=visitor_id,
             survey_id=survey.id,
             account_id=account_id,
@@ -27,7 +30,7 @@ async def create_outing(
 
         if plan.activity and plan.activity_start_time:
             await OutingActivityOrm.build(
-                outing_id=outing.id,
+                outing_id=outing_orm.id,
                 activity_id=plan.activity.id,
                 activity_source=plan.activity.source,
                 activity_start_time=plan.activity_start_time,
@@ -36,11 +39,21 @@ async def create_outing(
 
         if plan.restaurant and plan.restaurant_arrival_time:
             await OutingReservationOrm.build(
-                outing_id=outing.id,
+                outing_id=outing_orm.id,
                 reservation_id=plan.restaurant.id,
                 reservation_source=plan.restaurant.source,
                 reservation_start_time=plan.restaurant_arrival_time,
                 headcount=survey.headcount,
             ).save(session=db_session)
+
+        outing = Outing(
+            id=outing_orm.id,
+            headcount=survey.headcount,
+            activity=plan.activity,
+            activity_start_time=plan.activity_start_time,
+            restaurant=plan.restaurant,
+            restaurant_arrival_time=plan.restaurant_arrival_time,
+            driving_time=None, # TODO
+        )
 
     return outing
