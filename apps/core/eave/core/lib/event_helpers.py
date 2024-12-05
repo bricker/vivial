@@ -1,13 +1,17 @@
 from collections.abc import Sequence
+from textwrap import dedent
+import uuid
 from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery
 from eave.stdlib.eventbrite.models.expansions import Expansion
 from google.maps.places_v1 import PlacesAsyncClient, Photo
 
+from eave.core import database
 from eave.core.graphql.resolvers.mutations.helpers.planner import get_place
 from eave.core.graphql.types.activity import Activity, ActivityTicketInfo, ActivityVenue
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photos
 from eave.core.graphql.types.restaurant import Restaurant
+from eave.core.orm.activity import ActivityOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 
 
@@ -32,9 +36,38 @@ async def get_activity(
 ) -> Activity:
     match event_source:
         case ActivitySource.INTERNAL:
-            # TODO: fetch from internal db
-            details = None
-            return None
+            async with database.async_session.begin() as db_session:
+                details = await ActivityOrm.get_one(
+                    session=db_session,
+                    id=uuid.UUID(event_id),
+                )
+            lat, lon = details.coordinates_to_lat_lon()
+            formatted_address = dedent(f"""
+                {details.address.address1} {details.address.address2}
+                {details.address.city}, {details.address.state} {details.address.zip}
+                """).strip()
+
+            return Activity(
+                id=event_id,
+                source=event_source,
+                name=details.title,
+                description=details.description,
+                venue=ActivityVenue(
+                    name=details.title,
+                    location=Location(
+                        latitude=lat,
+                        longitude=lon,
+                        formatted_address=formatted_address,
+                        directions_uri="",
+                    ),
+                ),
+                photos=None,
+                ticket_info=None,
+                website_uri=details.booking_url,
+                door_tips=None,
+                insider_tips=None,
+                parking_tips=None,
+            )
         case ActivitySource.GOOGLE_PLACES:
             details = await get_place(
                 client=places_client,
@@ -85,14 +118,8 @@ async def get_activity(
             lat = float(venue.get("latitude", "0.0"))
             lon = float(venue.get("longitude", "0.0"))
             ven_name = venue.get("name")
-            if address := venue.get("address"):
-                formatted_address = address.get("localized_address_display")
-                address1 = address.get("address_1")
-                address2 = address.get("address_2")
-                city = address.get("city")
-                region = address.get("region")
-                postal_code = address.get("postal_code")
-                country = address.get("country")
+            address = venue.get("address") or {}
+            formatted_address = address.get("localized_address_display")
 
             return Activity(
                 id=event_id,
@@ -104,7 +131,7 @@ async def get_activity(
                     location=Location(
                         latitude=lat,
                         longitude=lon,
-                        formatted_address=venue.get("address", {}).get("localized_address_display") or "",
+                        formatted_address=formatted_address or "",
                         directions_uri="",
                     ),
                 ),

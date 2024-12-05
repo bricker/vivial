@@ -1,9 +1,12 @@
 from datetime import datetime
 from uuid import UUID, uuid4
 
+from eave.stdlib.eventbrite.client import EventbriteClient
 import strawberry
+from google.maps.places_v1 import PlacesAsyncClient
 
 from eave.core import database
+from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.activity import Activity, ActivityTicketInfo, ActivityVenue
 from eave.core.graphql.types.location import Location
@@ -12,7 +15,11 @@ from eave.core.graphql.types.outing import (
 )
 from eave.core.graphql.types.photos import Photos
 from eave.core.graphql.types.restaurant import Restaurant
+from eave.core.lib.event_helpers import get_activity, get_restuarant
 from eave.core.orm.outing import OutingOrm
+from eave.core.orm.outing_activity import OutingActivityOrm
+from eave.core.orm.outing_reservation import OutingReservationOrm
+from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.core.zoneinfo import LOS_ANGELES_ZONE_INFO
 
@@ -89,7 +96,38 @@ MOCK_OUTING = Outing(
 
 
 async def get_outing_query(*, info: strawberry.Info[GraphQLContext], outing_id: UUID) -> Outing:
-    async with database.async_session.begin() as db_session:
-        outing_orm = await OutingOrm.get_one(session=db_session, id=outing_id)
+    places_client = PlacesAsyncClient()
+    activities_client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
 
-    return Outing.from_orm(outing_orm)
+    async with database.async_session.begin() as db_session:
+        outing_activity = await OutingActivityOrm.get_one_by_outing_id(
+            session=db_session,
+            outing_id=outing_id,
+        )
+        outing_reservation = await OutingReservationOrm.get_one_by_outing_id(
+            session=db_session,
+            outing_id=outing_id,
+        )
+
+    activity = await get_activity(
+        places_client=places_client,
+        activities_client=activities_client,
+        event_id=outing_activity.activity_id,
+        event_source=ActivitySource[outing_activity.activity_source],
+    )
+
+    restaurant = await get_restuarant(
+        places_client=places_client,
+        event_id=outing_reservation.reservation_id,
+        event_source=RestaurantSource[outing_reservation.reservation_source],
+    )
+
+    return Outing(
+        id=outing_id,
+        headcount=max(outing_activity.headcount, outing_reservation.headcount),
+        activity=activity,
+        restaurant=restaurant,
+        driving_time=None,
+        activity_start_time=outing_activity.activity_start_time,
+        restaurant_arrival_time=outing_reservation.reservation_start_time,
+    )
