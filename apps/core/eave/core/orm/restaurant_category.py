@@ -18,6 +18,10 @@ class RestaurantCategoryOrm:
     def one_or_exception(cls, *, restaurant_category_id: UUID) -> "RestaurantCategoryOrm":
         return _RESTAURANT_CATEGORIES_PK[restaurant_category_id]
 
+    @classmethod
+    def one_or_none(cls, *, restaurant_category_id: UUID) -> "RestaurantCategoryOrm | None":
+        return _RESTAURANT_CATEGORIES_PK.get(restaurant_category_id)
+
 
 _RESTAURANT_CATEGORIES_TABLE = (
     RestaurantCategoryOrm(
