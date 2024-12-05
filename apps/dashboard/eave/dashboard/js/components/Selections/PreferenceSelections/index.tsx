@@ -8,7 +8,7 @@ import DropdownButton from "../../Buttons/DropdownButton";
 import PillButton from "../../Buttons/PillButton";
 import Paper from "../../Paper";
 
-import { getCategoryMap } from "./helpers";
+import { getCategoryMap, getAccentColor } from "./helpers";
 
 const CategoryRow = styled(Paper)(() => ({
   marginTop: 16,
@@ -26,27 +26,28 @@ const SubmitButtonContainer = styled("div")(() => ({
 
 interface PreferenceSelectionsProps {
   categoryGroupName: string;
-  accentColor: string;
-  collapsable?: boolean;
-  collapsed?: boolean;
-  cta?: string;
   categories: Category[] | [];
   defaultCategories: Category[] | [];
   onSubmit: (selectedCategories: Category[]) => void;
+  categoryGroupId?: string;
+  collapsable?: boolean;
+  collapsed?: boolean;
+  cta?: string;
 }
 
 const PreferenceSelections = ({
+  categoryGroupName,
+  categoryGroupId,
   categories,
   defaultCategories,
   onSubmit,
-  categoryGroupName,
-  accentColor,
   collapsable = false,
   collapsed = false,
   cta = "Save",
 }: PreferenceSelectionsProps) => {
   const [selectedCategories, setSelectedCategories] = useState(defaultCategories);
   const [selectedCategoryMap, setSelectedCategoryMap] = useState(getCategoryMap(defaultCategories));
+  const accentColor = getAccentColor(categoryGroupId);
 
   const handleSubmit = useCallback(() => {
     onSubmit(selectedCategories);
@@ -67,8 +68,10 @@ const PreferenceSelections = ({
   const toggleSelectAll = useCallback(() => {
     if (selectedCategories.length === categories.length) {
       setSelectedCategories([]);
+      setSelectedCategoryMap({});
     } else {
       setSelectedCategories(categories);
+      setSelectedCategoryMap(getCategoryMap(categories));
     }
   }, [selectedCategories]);
 

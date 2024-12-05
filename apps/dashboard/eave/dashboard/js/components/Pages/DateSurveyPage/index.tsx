@@ -124,7 +124,6 @@ const DateSurveyPage = () => {
   }, []);
 
   const handleSubmitRestaurantPreferences = useCallback((categories: Category[]) => {
-    console.log("selected restaurant categories", categories);
     // TODO: call preferences mutation.
     // TODO: handle openToBars
   }, []);
@@ -186,7 +185,7 @@ const DateSurveyPage = () => {
   }
 
   if (isLoggedIn) {
-    // if (userPreferencesOpen) {
+    // if (outingPreferencesOpen) {
       return (
         <PreferencesView
           title="Get personalized recommendations"
@@ -220,6 +219,20 @@ const DateSurveyPage = () => {
           <Typography variant="subtitle1">
             Your free date planner. We cover all the details, and you only pay for experiences you book.
           </Typography>
+          {isLoggedIn && (
+            <>
+              <EditPreferencesOption
+                label="Your preferences"
+                editable={!outingPreferences}
+                onClickEdit={() => setOutingPreferencesOpen(true)}
+              />
+              <EditPreferencesOption
+                label="Add partner preferences (optional)"
+                editable={!partnerPreferences}
+                onClickEdit={() => setPartnerPreferencesOpen(true)}
+              />
+            </>
+          )}
         </CopyContainer>
         <DateSurveyContainer>
           <DateSelections
