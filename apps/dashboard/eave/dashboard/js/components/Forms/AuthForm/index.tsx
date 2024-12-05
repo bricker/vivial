@@ -62,8 +62,8 @@ const InputErrorContainer = styled("div")(() => ({
 }));
 
 const ReqsContainer = styled("div")(() => ({
-  paddingLeft: 20,
-  paddingRight: 20,
+  paddingLeft: 10,
+  paddingRight: 10,
   marginTop: 10,
 }));
 

@@ -1,21 +1,27 @@
-import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
-import { useGetSearchRegionsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { OutingBudget, type OutingPreferences } from "$eave-dashboard/js/graphql/generated/graphql";
+import { RootState } from "$eave-dashboard/js/store";
+import { type Category } from "$eave-dashboard/js/types/category";
+
+import { useGetOutingPreferencesQuery, useGetSearchRegionsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 import React, { useCallback, useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
 import { Breakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
+import { getGroupPreferences, getInitialStartTime } from "./helpers";
 
-import BaseSkeleton from "@mui/material/Skeleton";
 import Typography from "@mui/material/Typography";
 import Modal from "../../Modal";
 import Paper from "../../Paper";
 import DateAreaSelections from "../../Selections/DateAreaSelections";
 import DateSelections from "../../Selections/DateSelections";
 import DateTimeSelections from "../../Selections/DateTimeSelections";
-import { getInitialStartTime } from "./helpers";
+import EditPreferencesOption from "./Options/EditPreferencesOption";
+import LoadingView from "./Views/LoadingView";
+import PreferencesView from "./Views/PreferencesView";
 
 const PageContainer = styled("div")(({ theme }) => ({
   padding: "24px 16px",
@@ -47,14 +53,6 @@ const CopyContainer = styled(Paper)(({ theme }) => ({
     maxWidth: 426,
     marginRight: 60,
     boxShadow: "none",
-  },
-}));
-
-const Skeleton = styled(BaseSkeleton)(() => ({
-  marginBottom: 16,
-  borderRadius: "14.984px",
-  "&:last-of-type": {
-    marginBottom: 0,
   },
 }));
 
@@ -97,6 +95,8 @@ const DateSurveyContainer = styled(Paper)(({ theme }) => ({
 }));
 
 const DateSurveyPage = () => {
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
+  const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
   const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery({});
   const searchRegions = searchRegionsData?.searchRegions;
 
@@ -104,13 +104,36 @@ const DateSurveyPage = () => {
   const [headcount, setHeadcount] = useState(2);
   const [searchAreaIds, setSearchAreaIds] = useState<string[]>([]);
   const [startTime, setStartTime] = useState(getInitialStartTime());
-  // const [groupPreferences, setGroupPreferences] = useState([]);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [areasOpen, setAreasOpen] = useState(false);
+  const [outingPreferences, setOutingPreferences] = useState<OutingPreferences | null>(null);
+  const [partnerPreferences, _setPartnerPreferences] = useState<OutingPreferences | null>(null);
+  const [outingPreferencesOpen, setOutingPreferencesOpen] = useState(false);
+  const [partnerPreferencesOpen, setPartnerPreferencesOpen] = useState(false);
 
   const handleSubmit = useCallback(async () => {
     const _visitorId = await getVisitorId();
-    // TODO: call planOuting mutation and dispatch response to store.
+    const _groupPreferences = getGroupPreferences(outingPreferences, partnerPreferences);
+    // TODO: return default preferences if no preferences have been selected.
+    // TODO: call planOuting mutation.
+  }, []);
+
+  const handleSubmitRestaurantPreferences = useCallback((_categories: Category[]) => {
+    // TODO: call preferences mutation.
+    // TODO: set outing preferences.
+  }, []);
+
+  const handleSubmitActivityPreferences = useCallback((_categories: Category[]) => {
+    // TODO: call preferences mutation.
+    // TODO: set outing preferences.
+  }, []);
+
+  const handlePartnerRestaurantPreferences = useCallback((_categories: Category[]) => {
+    // TODO: set partner preferences.
+  }, []);
+
+  const handlePartnerActivityPreferences = useCallback((_categories: Category[]) => {
+    // TODO: set partner preferences.
   }, []);
 
   const handleSelectHeadcount = useCallback((value: number) => {
@@ -145,13 +168,42 @@ const DateSurveyPage = () => {
     }
   }, [searchRegions]);
 
+  useEffect(() => {
+    const viewer = outingPreferencesData?.viewer;
+    if (viewer?.__typename === "AuthenticatedViewerQueries") {
+      setOutingPreferences(viewer.outingPreferences);
+    }
+  }, [outingPreferencesData]);
+
   if (searchRegionsAreLoading) {
-    return (
-      <PageContainer>
-        <Skeleton variant="rectangular" width="100%" height={218} />
-        <Skeleton variant="rectangular" width="100%" height={332} />
-      </PageContainer>
-    );
+    return <LoadingView />;
+  }
+
+  if (isLoggedIn) {
+    if (outingPreferencesOpen) {
+      return (
+        <PreferencesView
+          title="Get personalized recommendations"
+          subtitle="Your saved preferences are used to make more personalized recommendations."
+          outingPreferences={outingPreferences}
+          onSubmitRestaurants={handleSubmitRestaurantPreferences}
+          onSubmitActivities={handleSubmitActivityPreferences}
+          onSkip={() => setOutingPreferencesOpen(false)}
+        />
+      );
+    }
+    if (partnerPreferencesOpen) {
+      return (
+        <PreferencesView
+          title="Add partner preferences"
+          subtitle="We’ll use your saved preferences and your partner preferences to make recommendations."
+          outingPreferences={partnerPreferences}
+          onSubmitRestaurants={handlePartnerRestaurantPreferences}
+          onSubmitActivities={handlePartnerActivityPreferences}
+          onSkip={() => setPartnerPreferencesOpen(false)}
+        />
+      );
+    }
   }
 
   return (
@@ -163,6 +215,20 @@ const DateSurveyPage = () => {
           <Typography variant="subtitle1">
             Your free date planner. We cover all the details, and you only pay for experiences you book.
           </Typography>
+          {isLoggedIn && (
+            <>
+              <EditPreferencesOption
+                label="Your preferences"
+                editable={!outingPreferences}
+                onClickEdit={() => setOutingPreferencesOpen(true)}
+              />
+              <EditPreferencesOption
+                label="Add partner preferences (optional)"
+                editable={!partnerPreferences}
+                onClickEdit={() => setPartnerPreferencesOpen(true)}
+              />
+            </>
+          )}
         </CopyContainer>
         <DateSurveyContainer>
           <DateSelections

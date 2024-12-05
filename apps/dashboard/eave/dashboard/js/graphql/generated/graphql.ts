@@ -483,8 +483,8 @@ export enum UpdateAccountFailureReason {
 }
 
 export type UpdateAccountInput = {
-  email?: InputMaybe<Scalars['String']['input']>;
-  plaintextPassword?: InputMaybe<Scalars['String']['input']>;
+  email: Scalars['String']['input'];
+  plaintextPassword: Scalars['String']['input'];
 };
 
 export type UpdateAccountResult = UpdateAccountFailure | UpdateAccountSuccess;
@@ -627,6 +627,11 @@ export type ListReserverDetailsQueryVariables = Exact<{ [key: string]: never; }>
 
 
 export type ListReserverDetailsQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', reserverDetails: Array<{ __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }> } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
+
+export type OutingPreferencesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OutingPreferencesQuery = { __typename: 'Query', activityCategoryGroups: Array<{ __typename: 'ActivityCategoryGroup', id: string, name: string, activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> }>, restaurantCategories: Array<{ __typename: 'RestaurantCategory', id: string, name: string, isDefault: boolean }>, viewer: { __typename: 'AuthenticatedViewerQueries', outingPreferences: { __typename: 'OutingPreferences', openToBars?: boolean | null, restaurantCategories?: Array<{ __typename: 'RestaurantCategory', id: string, name: string, isDefault: boolean }> | null, activityCategories?: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> | null } } | { __typename: 'UnauthenticatedViewer' } };
 
 export type SearchRegionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -962,6 +967,42 @@ export const ListReserverDetailsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<ListReserverDetailsQuery, ListReserverDetailsQueryVariables>;
+export const OutingPreferencesDocument = new TypedDocumentString(`
+    query OutingPreferences {
+  activityCategoryGroups {
+    id
+    name
+    activityCategories {
+      id
+      name
+      isDefault
+    }
+  }
+  restaurantCategories {
+    id
+    name
+    isDefault
+  }
+  viewer {
+    __typename
+    ... on AuthenticatedViewerQueries {
+      outingPreferences {
+        openToBars
+        restaurantCategories {
+          id
+          name
+          isDefault
+        }
+        activityCategories {
+          id
+          name
+          isDefault
+        }
+      }
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<OutingPreferencesQuery, OutingPreferencesQueryVariables>;
 export const SearchRegionsDocument = new TypedDocumentString(`
     query SearchRegions {
   searchRegions {
