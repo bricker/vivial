@@ -44,8 +44,15 @@ export type Activity = {
 export type ActivityCategory = {
   __typename: 'ActivityCategory';
   id: Scalars['UUID']['output'];
+  isDefault: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
-  subcategories: Array<ActivitySubcategory>;
+};
+
+export type ActivityCategoryGroup = {
+  __typename: 'ActivityCategoryGroup';
+  activityCategories: Array<ActivityCategory>;
+  id: Scalars['UUID']['output'];
+  name: Scalars['String']['output'];
 };
 
 export enum ActivitySource {
@@ -53,13 +60,6 @@ export enum ActivitySource {
   GooglePlaces = 'GOOGLE_PLACES',
   Internal = 'INTERNAL'
 }
-
-export type ActivitySubcategory = {
-  __typename: 'ActivitySubcategory';
-  id: Scalars['UUID']['output'];
-  isDefault: Scalars['Boolean']['output'];
-  name: Scalars['String']['output'];
-};
 
 export type ActivityTicketInfo = {
   __typename: 'ActivityTicketInfo';
@@ -84,7 +84,8 @@ export type AuthenticatedViewerMutations = {
   replanOuting: ReplanOutingResult;
   submitReserverDetails: SubmitReserverDetailsResult;
   updateAccount: UpdateAccountResult;
-  updatePreferences: UpdatePreferencesResult;
+  updateOutingPreferences: UpdateOutingPreferencesResult;
+  updatePreferences: UpdateOutingPreferencesResult;
   updateReserverDetailsAccount: UpdateReserverDetailsAccountResult;
 };
 
@@ -114,8 +115,13 @@ export type AuthenticatedViewerMutationsUpdateAccountArgs = {
 };
 
 
+export type AuthenticatedViewerMutationsUpdateOutingPreferencesArgs = {
+  input: UpdateOutingPreferencesInput;
+};
+
+
 export type AuthenticatedViewerMutationsUpdatePreferencesArgs = {
-  input: UpdatePreferencesInput;
+  input: UpdateOutingPreferencesInput;
 };
 
 
@@ -127,6 +133,7 @@ export type AuthenticatedViewerQueries = {
   __typename: 'AuthenticatedViewerQueries';
   bookedOutings: Array<Outing>;
   outing: Outing;
+  outingPreferences: OutingPreferences;
   reserverDetails: Array<ReserverDetails>;
 };
 
@@ -292,6 +299,19 @@ export enum OutingBudget {
   VeryExpensive = 'VERY_EXPENSIVE'
 }
 
+export type OutingPreferences = {
+  __typename: 'OutingPreferences';
+  activityCategories?: Maybe<Array<ActivityCategory>>;
+  openToBars?: Maybe<Scalars['Boolean']['output']>;
+  restaurantCategories?: Maybe<Array<RestaurantCategory>>;
+};
+
+export type OutingPreferencesInput = {
+  activityCategoryIds: Array<Scalars['UUID']['input']>;
+  openToBars: Scalars['Boolean']['input'];
+  restaurantCategoryIds: Array<Scalars['UUID']['input']>;
+};
+
 export enum OutingState {
   Future = 'FUTURE',
   Past = 'PAST'
@@ -320,7 +340,7 @@ export enum PlanOutingFailureReason {
 
 export type PlanOutingInput = {
   budget: OutingBudget;
-  groupPreferences?: InputMaybe<Array<PreferencesInput>>;
+  groupPreferences?: InputMaybe<Array<OutingPreferencesInput>>;
   headcount: Scalars['Int']['input'];
   searchAreaIds: Array<Scalars['UUID']['input']>;
   startTime: Scalars['DateTime']['input'];
@@ -334,24 +354,9 @@ export type PlanOutingSuccess = {
   outing: Outing;
 };
 
-export type Preferences = {
-  __typename: 'Preferences';
-  activityCategories: Array<ActivityCategory>;
-  openToBars: Scalars['Boolean']['output'];
-  requiresWheelchairAccessibility: Scalars['Boolean']['output'];
-  restaurantCategories: Array<RestaurantCategory>;
-};
-
-export type PreferencesInput = {
-  activityCategoryIds: Array<Scalars['UUID']['input']>;
-  openToBars: Scalars['Boolean']['input'];
-  requiresWheelchairAccessibility: Scalars['Boolean']['input'];
-  restaurantCategoryIds: Array<Scalars['UUID']['input']>;
-};
-
 export type Query = {
   __typename: 'Query';
-  activityCategories: Array<ActivityCategory>;
+  activityCategoryGroups: Array<ActivityCategoryGroup>;
   restaurantCategories: Array<RestaurantCategory>;
   searchRegions: Array<SearchRegion>;
   viewer: ViewerQueries;
@@ -407,6 +412,7 @@ export type Restaurant = {
 export type RestaurantCategory = {
   __typename: 'RestaurantCategory';
   id: Scalars['UUID']['output'];
+  isDefault: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
 };
 
@@ -459,8 +465,8 @@ export enum UpdateAccountFailureReason {
 }
 
 export type UpdateAccountInput = {
-  email?: InputMaybe<Scalars['String']['input']>;
-  plaintextPassword?: InputMaybe<Scalars['String']['input']>;
+  email: Scalars['String']['input'];
+  plaintextPassword: Scalars['String']['input'];
 };
 
 export type UpdateAccountResult = UpdateAccountFailure | UpdateAccountSuccess;
@@ -470,28 +476,27 @@ export type UpdateAccountSuccess = {
   account: Account;
 };
 
-export type UpdatePreferencesFailure = {
-  __typename: 'UpdatePreferencesFailure';
-  failureReason: UpdatePreferencesFailureReason;
+export type UpdateOutingPreferencesFailure = {
+  __typename: 'UpdateOutingPreferencesFailure';
+  failureReason: UpdateOutingPreferencesFailureReason;
   validationErrors?: Maybe<Array<ValidationError>>;
 };
 
-export enum UpdatePreferencesFailureReason {
+export enum UpdateOutingPreferencesFailureReason {
   ValidationErrors = 'VALIDATION_ERRORS'
 }
 
-export type UpdatePreferencesInput = {
-  activityCategoryIds?: InputMaybe<Array<Scalars['UUID']['input']>>;
-  openToBars?: InputMaybe<Scalars['Boolean']['input']>;
-  requiresWheelchairAccessibility?: InputMaybe<Scalars['Boolean']['input']>;
-  restaurantCategoryIds?: InputMaybe<Array<Scalars['UUID']['input']>>;
+export type UpdateOutingPreferencesInput = {
+  activityCategoryIds: Array<Scalars['UUID']['input']>;
+  openToBars: Scalars['Boolean']['input'];
+  restaurantCategoryIds: Array<Scalars['UUID']['input']>;
 };
 
-export type UpdatePreferencesResult = UpdatePreferencesFailure | UpdatePreferencesSuccess;
+export type UpdateOutingPreferencesResult = UpdateOutingPreferencesFailure | UpdateOutingPreferencesSuccess;
 
-export type UpdatePreferencesSuccess = {
-  __typename: 'UpdatePreferencesSuccess';
-  preferences: Preferences;
+export type UpdateOutingPreferencesSuccess = {
+  __typename: 'UpdateOutingPreferencesSuccess';
+  outingPreferences: OutingPreferences;
 };
 
 export type UpdateReserverDetailsAccountFailure = {
@@ -595,11 +600,6 @@ export type UpdateReserverDetailsAccountMutationVariables = Exact<{
 
 export type UpdateReserverDetailsAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateReserverDetailsAccount: { __typename: 'UpdateReserverDetailsAccountFailure', failureReason: UpdateReserverDetailsAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateReserverDetailsAccountSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }, account: { __typename: 'Account', id: string, email: string } } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
 
-export type ActivityCategoriesQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type ActivityCategoriesQuery = { __typename: 'Query', activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, subcategories: Array<{ __typename: 'ActivitySubcategory', id: string, name: string, isDefault: boolean }> }> };
-
 export type ListBookedOutingsQueryVariables = Exact<{
   input?: InputMaybe<ListBookedOutingsInput>;
 }>;
@@ -612,10 +612,10 @@ export type ListReserverDetailsQueryVariables = Exact<{ [key: string]: never; }>
 
 export type ListReserverDetailsQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', reserverDetails: Array<{ __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }> } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
 
-export type RestaurantCategoriesQueryVariables = Exact<{ [key: string]: never; }>;
+export type OutingPreferencesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type RestaurantCategoriesQuery = { __typename: 'Query', restaurantCategories: Array<{ __typename: 'RestaurantCategory', id: string, name: string }> };
+export type OutingPreferencesQuery = { __typename: 'Query', activityCategoryGroups: Array<{ __typename: 'ActivityCategoryGroup', id: string, name: string, activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> }>, restaurantCategories: Array<{ __typename: 'RestaurantCategory', id: string, name: string, isDefault: boolean }>, viewer: { __typename: 'AuthenticatedViewerQueries', outingPreferences: { __typename: 'OutingPreferences', openToBars?: boolean | null, restaurantCategories?: Array<{ __typename: 'RestaurantCategory', id: string, name: string, isDefault: boolean }> | null, activityCategories?: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> | null } } | { __typename: 'UnauthenticatedViewer' } };
 
 export type SearchRegionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -910,19 +910,6 @@ export const UpdateReserverDetailsAccountDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<UpdateReserverDetailsAccountMutation, UpdateReserverDetailsAccountMutationVariables>;
-export const ActivityCategoriesDocument = new TypedDocumentString(`
-    query ActivityCategories {
-  activityCategories {
-    id
-    name
-    subcategories {
-      id
-      name
-      isDefault
-    }
-  }
-}
-    `) as unknown as TypedDocumentString<ActivityCategoriesQuery, ActivityCategoriesQueryVariables>;
 export const ListBookedOutingsDocument = new TypedDocumentString(`
     query ListBookedOutings($input: ListBookedOutingsInput) {
   viewer {
@@ -1015,14 +1002,42 @@ export const ListReserverDetailsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<ListReserverDetailsQuery, ListReserverDetailsQueryVariables>;
-export const RestaurantCategoriesDocument = new TypedDocumentString(`
-    query RestaurantCategories {
+export const OutingPreferencesDocument = new TypedDocumentString(`
+    query OutingPreferences {
+  activityCategoryGroups {
+    id
+    name
+    activityCategories {
+      id
+      name
+      isDefault
+    }
+  }
   restaurantCategories {
     id
     name
+    isDefault
+  }
+  viewer {
+    __typename
+    ... on AuthenticatedViewerQueries {
+      outingPreferences {
+        openToBars
+        restaurantCategories {
+          id
+          name
+          isDefault
+        }
+        activityCategories {
+          id
+          name
+          isDefault
+        }
+      }
+    }
   }
 }
-    `) as unknown as TypedDocumentString<RestaurantCategoriesQuery, RestaurantCategoriesQueryVariables>;
+    `) as unknown as TypedDocumentString<OutingPreferencesQuery, OutingPreferencesQueryVariables>;
 export const SearchRegionsDocument = new TypedDocumentString(`
     query SearchRegions {
   searchRegions {

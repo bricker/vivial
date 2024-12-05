@@ -1,4 +1,4 @@
-import { type PreferencesInput } from "$eave-dashboard/js/graphql/generated/graphql"
+import { type OutingPreferences } from "$eave-dashboard/js/graphql/generated/graphql"
 
 /**
  * If it's before 6:00 PM at the time that this function is called,
@@ -19,7 +19,7 @@ export function getInitialStartTime(): Date {
   return startTime;
 }
 
-export function getGroupPreferences(userPreferences: PreferencesInput|null, partnerPreferenecs: PreferencesInput|null): PreferencesInput[] {
+export function getGroupPreferences(userPreferences: OutingPreferences|null, partnerPreferenecs: OutingPreferences|null): OutingPreferences[] {
   if (userPreferences && partnerPreferenecs) {
     return [userPreferences, partnerPreferenecs];
   }

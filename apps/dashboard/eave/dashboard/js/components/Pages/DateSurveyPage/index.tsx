@@ -2,10 +2,11 @@ import {
   OutingBudget,
   type ActivityCategory,
   type RestaurantCategory,
-  type PreferencesInput,
+  type OutingPreferences,
+  type OutingPreferencesQuery,
 } from "$eave-dashboard/js/graphql/generated/graphql";
 
-import { useGetSearchRegionsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { useGetOutingPreferencesQuery, useGetSearchRegionsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 import React, { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
@@ -103,6 +104,7 @@ const DateSurveyPage = () => {
   // const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const isLoggedIn = true;
 
+  const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
   const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery({});
   const searchRegions = searchRegionsData?.searchRegions;
 
@@ -112,42 +114,35 @@ const DateSurveyPage = () => {
   const [startTime, setStartTime] = useState(getInitialStartTime());
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [areasOpen, setAreasOpen] = useState(false);
-
-  // TODO: fetch existing preferences from backend (pending backend implementation);
-  const [userPreferences, setUserPreferences] = useState<PreferencesInput|null>(null);
-  const [userPreferencesOpen, setUserPreferencesOpen] = useState(false);
-  const [partnerPreferences, setPartnerPreferences] = useState<PreferencesInput|null>(null);
+  const [outingPreferences, setOutingPreferences] = useState<OutingPreferences|null>(null);
+  const [partnerPreferences, setPartnerPreferences] = useState<OutingPreferences|null>(null);
+  const [outingPreferencesOpen, setOutingPreferencesOpen] = useState(false);
   const [partnerPreferencesOpen, setPartnerPreferencesOpen] = useState(false);
 
   const handleSubmit = useCallback(async () => {
     const _visitorId = await getVisitorId();
-    const _groupPreferences = getGroupPreferences(userPreferences, partnerPreferences);
+    const _groupPreferences = getGroupPreferences(outingPreferences, partnerPreferences);
     // TODO: call planOuting mutation.
   }, []);
 
-  const handleSubmitUserOpenToBars = useCallback((open: boolean) => {
-    // TODO: call preferences mutation (pending backend implementation).
+  const handleSubmitRestaurantPreferences = useCallback((categories: RestaurantCategory[]) => {
+    console.log("selected restaurant categories", categories);
+    // TODO: call preferences mutation.
+    // TODO: handle openToBars
   }, []);
 
-  const handleSubmitUserRestaurantPreferences = useCallback((categories: RestaurantCategory[]) => {
-    // TODO: call preferences mutation (pending backend implementation).
+  const handleSubmitActivityPreferences = useCallback((categories: ActivityCategory[]) => {
+    // TODO: call preferences mutation.
   }, []);
 
-  const handleSubmitUserActivityPreferences = useCallback((categories: ActivityCategory[]) => {
-    // TODO: call preferences mutation (pending backend implementation).
-  }, []);
-
-  const handleSelectPartnerOpenToBars = useCallback((open: boolean) => {
+  const handlePartnerRestaurantPreferences = useCallback((categories: RestaurantCategory[]) => {
     // TODO
+    // TODO: handle open to bars
   }, []);
 
-  const handleSelectPartnerRestaurantPreferences = useCallback((categories: RestaurantCategory[]) => {
-    // TODO
-  }, []);
-
-  const handleSelectPartnerActivityPreferences = useCallback((categories: ActivityCategory[]) => {
-    // TODO
-  }, []);
+  // const handlePartnerActivityPreferences = useCallback((categories: ActivityCategory[]) => {
+  //   // TODO
+  // }, []);
 
   const handleSelectHeadcount = useCallback((value: number) => {
     setHeadcount(value);
@@ -181,6 +176,13 @@ const DateSurveyPage = () => {
     }
   }, [searchRegions]);
 
+  useEffect(() => {
+    const viewer = outingPreferencesData?.viewer;
+    if (viewer?.__typename === "AuthenticatedViewerQueries") {
+      setOutingPreferences(viewer.outingPreferences);
+    }
+  }, [outingPreferencesData]);
+
   if (searchRegionsAreLoading) {
     return <LoadingView />;
   }
@@ -191,11 +193,10 @@ const DateSurveyPage = () => {
         <PreferencesView
           title="Get personalized recommendations"
           subtitle="Your saved preferences are used to make more personalized recommendations."
-          userPreferences={userPreferences}
-          onSubmitOpenToBars={handleSubmitUserOpenToBars}
-          onSubmitRestaurants={handleSubmitUserRestaurantPreferences}
-          onSubmitActivities={handleSubmitUserActivityPreferences}
-          onSkip={() => setUserPreferencesOpen(false)}
+          outingPreferences={outingPreferences}
+          onSubmitRestaurants={handleSubmitRestaurantPreferences}
+          onSubmitActivities={handleSubmitActivityPreferences}
+          onSkip={() => setOutingPreferencesOpen(false)}
         />
       );
     // }
@@ -204,7 +205,6 @@ const DateSurveyPage = () => {
     //     <PreferencesView
     //       title="Add partner preferences"
     //       subtitle="We’ll use your saved preferences and your partner preferences to make recommendations."
-    //       onSubmitOpenToBars={handleSelectPartnerOpenToBars}
     //       onSubmitRestaurants={handleSelectPartnerRestaurantPreferences}
     //       onSubmitActivities={handleSelectPartnerActivityPreferences}
     //       onSkip={() => setPartnerPreferencesOpen(false)}

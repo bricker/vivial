@@ -1,22 +1,19 @@
 import React, { useState, useCallback } from "react";
-import {
-  useGetActivityCategoriesQuery,
-  useGetRestaurantCategoriesQuery,
-} from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { useGetOutingPreferencesQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { styled } from "@mui/material";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import {
   type ActivityCategory,
   type RestaurantCategory,
-  type PreferencesInput,
+  type OutingPreferences,
 } from "$eave-dashboard/js/graphql/generated/graphql"
 
 import Button from "@mui/material/Button";
 import LinearProgress from "@mui/material/LinearProgress";
 import Typography from "@mui/material/Typography";
 import Paper from "$eave-dashboard/js/components/Paper";
-import { RestaurantCategorySelections, ActivityCategorySelections } from "$eave-dashboard/js/components/Selections/CategorySelections";
+import { RestaurantPreferenceSelections } from "$eave-dashboard/js/components/Selections/PreferenceSelections";
 
 const ViewContainer = styled("div")(() => ({
   padding: "24px 16px",
@@ -56,8 +53,7 @@ const ProgressBar = styled(LinearProgress)(({ theme }) => ({
 interface PreferencesViewProps {
   title: string;
   subtitle: string;
-  userPreferences?: PreferencesInput|null,
-  onSubmitOpenToBars: (open: boolean) => void;
+  outingPreferences: OutingPreferences|null,
   onSubmitRestaurants: (categories: RestaurantCategory[]) => void;
   onSubmitActivities: (categories: ActivityCategory[]) => void;
   onSkip: () => void;
@@ -66,40 +62,18 @@ interface PreferencesViewProps {
 const PreferencesView = ({
   title,
   subtitle,
-  userPreferences,
-  onSubmitOpenToBars,
+  outingPreferences,
   onSubmitRestaurants,
   onSubmitActivities,
   onSkip,
 }: PreferencesViewProps) => {
-  const {
-    data: activityCategoriesData,
-    isLoading: activityCategoriesAreLoading,
-  } = useGetActivityCategoriesQuery({});
-  const {
-    data: restaurantCategoriesData,
-    isLoading: restaurantCategoriesAreLoading,
-  } = useGetRestaurantCategoriesQuery({});
+  const { data } = useGetOutingPreferencesQuery({});
+  const restaurantCategories = data?.restaurantCategories;
+  const activityCategoryGroups = data?.activityCategoryGroups;
+  const defaultRestaurantCategories = outingPreferences?.restaurantCategories || restaurantCategories?.filter(c => c.isDefault);
+
   const [stepsCompleted, setStepsCompleted] = useState(0);
-
-  // TODO: update query once backend is merged.
-  const allActivityCategories = activityCategoriesData?.activityCategories || [];
-  const allRestaurantCategories = restaurantCategoriesData?.restaurantCategories || [];
   const progress = (stepsCompleted / 8) * 100;
-
-  // TODO remove.
-  const TEMPselectedRestaurantCategories = allRestaurantCategories?.filter((x, i) => i % 2 == 0);
-  const TEMPselectedActivityCategories = allActivityCategories?.filter((x, i) => i % 2 == 0);
-
-  // TODO: Loading state. (use basic version of loading view)
-  if (activityCategoriesAreLoading || restaurantCategoriesAreLoading) {
-    return (
-      <ViewContainer>
-
-      </ViewContainer>
-    )
-  }
-
 
   return (
     <ViewContainer>
@@ -110,14 +84,12 @@ const PreferencesView = ({
         <ProgressBar variant="determinate" value={progress} />
         <PreferenceCount>{stepsCompleted}/8 preferences</PreferenceCount>
       </Paper>
-      <RestaurantCategorySelections
-          categoryGroupName="Food types"
-          allCategories={allRestaurantCategories}
-          selectedCategories={TEMPselectedRestaurantCategories}
-          accentColor={colors.lightOrangeAccent}
-          onSubmit={onSubmitRestaurants}
-          // collapsed={false}
-          // collapsable
+      <RestaurantPreferenceSelections
+        categoryGroupName="Food types"
+        accentColor={colors.lightOrangeAccent}
+        categories={restaurantCategories || []}
+        defaultCategories={defaultRestaurantCategories || []}
+        onSubmit={onSubmitRestaurants}
       />
     </ViewContainer>
   );
