@@ -11,6 +11,9 @@ import Paper from "../../Paper";
 import { getAccentColor, getCategoryMap } from "./helpers";
 
 const CategoryRow = styled(Paper)(() => ({
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-between",
   marginTop: 16,
 }));
 
@@ -53,9 +56,9 @@ const PreferenceSelections = ({
   const [selectedCategoryMap, setSelectedCategoryMap] = useState(getCategoryMap(defaultCategories));
   const accentColor = getAccentColor(categoryGroupId);
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = () => {
     onSubmit(selectedCategories);
-  }, [selectedCategories]);
+  };
 
   const handleSelect = useCallback(
     (category: Category) => {
@@ -85,25 +88,27 @@ const PreferenceSelections = ({
   return (
     <CategoryRow>
       {collapsable && <DropdownButton open={collapsed} />}
-      <GroupName variant="h5">{categoryGroupName}</GroupName>
-      <PillButton
-        onClick={toggleSelectAll}
-        selected={selectedCategories.length === categories.length}
-        accentColor={accentColor}
-        outlined
-      >
-        All
-      </PillButton>
-      {categories.map((category) => (
+      <div>
+        <GroupName variant="h5">{categoryGroupName}</GroupName>
         <PillButton
-          onClick={() => handleSelect(category)}
-          key={category.name}
-          selected={category.id in selectedCategoryMap}
+          onClick={toggleSelectAll}
+          selected={selectedCategories.length === categories.length}
           accentColor={accentColor}
+          outlined
         >
-          {category.name}
+          All
         </PillButton>
-      ))}
+        {categories.map((category) => (
+          <PillButton
+            onClick={() => handleSelect(category)}
+            key={category.name}
+            selected={category.id in selectedCategoryMap}
+            accentColor={accentColor}
+          >
+            {category.name}
+          </PillButton>
+        ))}
+      </div>
       <SubmitButtonContainer>
         <SubmitButton onClick={handleSubmit}>{cta}</SubmitButton>
       </SubmitButtonContainer>
