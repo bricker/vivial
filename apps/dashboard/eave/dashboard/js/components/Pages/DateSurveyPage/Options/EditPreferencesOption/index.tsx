@@ -1,6 +1,6 @@
-import React from "react";
 import { styled } from "@mui/material";
 import Typography from "@mui/material/Typography";
+import React from "react";
 import EditButton from "../../../../Buttons/EditButton";
 
 const OptionContainer = styled("div")(({ theme }) => ({
@@ -50,11 +50,9 @@ const EditPreferencesOption = ({ label, editable, onClickEdit }: EditPreferences
         <EditableIndicator editable={editable} />
         <Typography variant="subtitle1">{label}</Typography>
       </FlexContainer>
-      {editable && (
-        <EditButton onClick={onClickEdit} />
-      )}
+      {editable && <EditButton onClick={onClickEdit} />}
     </OptionContainer>
-  )
+  );
 };
 
 export default EditPreferencesOption;

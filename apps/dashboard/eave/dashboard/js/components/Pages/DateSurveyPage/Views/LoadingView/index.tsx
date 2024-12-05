@@ -1,6 +1,6 @@
-import React from "react";
 import { styled } from "@mui/material";
 import BaseSkeleton from "@mui/material/Skeleton";
+import React from "react";
 
 const ViewContainer = styled("div")(() => ({
   padding: "24px 16px",

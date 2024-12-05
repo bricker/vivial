@@ -9,11 +9,7 @@ interface DropdownButtonProps extends IconButtonProps {
 }
 
 const DropdownButton = ({ open, large, ...props }: DropdownButtonProps) => {
-  return (
-    <IconButton {...props}>
-      {open ? <ChevronUpIcon large /> : <ChevronDownIcon large />}
-    </IconButton>
-  );
+  return <IconButton {...props}>{open ? <ChevronUpIcon large={large} /> : <ChevronDownIcon large={large} />}</IconButton>;
 };
 
 export default DropdownButton;

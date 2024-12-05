@@ -2,7 +2,6 @@ import { CORE_API_BASE } from "$eave-dashboard/js/util/http";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import {
-  OutingPreferencesDocument,
   CreateAccountDocument,
   CreatePaymentIntentDocument,
   ListBookedOutingsDocument,
@@ -10,13 +9,12 @@ import {
   ListBookedOutingsQueryVariables,
   ListReserverDetailsDocument,
   LoginDocument,
+  OutingPreferencesDocument,
   SearchRegionsDocument,
   UpdateAccountDocument,
   UpdateAccountMutation,
   UpdateAccountMutationVariables,
   UpdateReserverDetailsAccountDocument,
-  type OutingPreferencesQuery,
-  type OutingPreferencesQueryVariables,
   type CreateAccountMutation,
   type CreateAccountMutationVariables,
   type CreatePaymentIntentMutation,
@@ -25,6 +23,8 @@ import {
   type ListReserverDetailsQueryVariables,
   type LoginMutation,
   type LoginMutationVariables,
+  type OutingPreferencesQuery,
+  type OutingPreferencesQueryVariables,
   type SearchRegionsQuery,
   type SearchRegionsQueryVariables,
   type UpdateReserverDetailsAccountMutation,

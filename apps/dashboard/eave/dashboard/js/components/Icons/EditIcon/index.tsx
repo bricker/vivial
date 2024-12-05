@@ -16,11 +16,12 @@ const EditIcon = ({ width = 26, height = 26, color = colors.whiteText, small }: 
             stroke={color}
             strokeWidth="1.5"
             strokeLinecap="round"
-            strokeLinejoin="round"/>
+            strokeLinejoin="round"
+          />
         </g>
         <defs>
           <clipPath id="clip0_107_1314">
-          <rect width="16" height="16" fill={color} />
+            <rect width="16" height="16" fill={color} />
           </clipPath>
         </defs>
       </svg>

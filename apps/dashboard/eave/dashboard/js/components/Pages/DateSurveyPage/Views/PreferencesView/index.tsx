@@ -1,15 +1,15 @@
-import React, { useState, useCallback } from "react";
+import { type OutingPreferences } from "$eave-dashboard/js/graphql/generated/graphql";
 import { useGetOutingPreferencesQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
-import { styled } from "@mui/material";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
-import { type OutingPreferences } from "$eave-dashboard/js/graphql/generated/graphql"
 import { type Category } from "$eave-dashboard/js/types/category";
+import { styled } from "@mui/material";
+import React, { useState } from "react";
 
+import Paper from "$eave-dashboard/js/components/Paper";
+import PreferenceSelections from "$eave-dashboard/js/components/Selections/PreferenceSelections";
 import Button from "@mui/material/Button";
 import LinearProgress from "@mui/material/LinearProgress";
 import Typography from "@mui/material/Typography";
-import Paper from "$eave-dashboard/js/components/Paper";
-import PreferenceSelections from "$eave-dashboard/js/components/Selections/PreferenceSelections";
 import LoadingView from "../LoadingView";
 
 import { getDefaults } from "./helpers";
@@ -39,7 +39,7 @@ const SkipButton = styled(Button)(({ theme }) => ({
   top: 0,
   "&:hover": {
     backgroundColor: "transparent",
-  }
+  },
 }));
 
 const ProgressBar = styled(LinearProgress)(({ theme }) => ({
@@ -52,7 +52,7 @@ const ProgressBar = styled(LinearProgress)(({ theme }) => ({
 interface PreferencesViewProps {
   title: string;
   subtitle: string;
-  outingPreferences: OutingPreferences|null,
+  outingPreferences: OutingPreferences | null;
   onSubmitRestaurants: (categories: Category[]) => void;
   onSubmitActivities: (categories: Category[]) => void;
   onSkip: () => void;
@@ -67,7 +67,7 @@ const PreferencesView = ({
   onSkip,
 }: PreferencesViewProps) => {
   const { data, isLoading } = useGetOutingPreferencesQuery({});
-  const [stepsCompleted, setStepsCompleted] = useState(0);
+  const [stepsCompleted, _setStepsCompleted] = useState(0);
   const restaurantCategories = data?.restaurantCategories || [];
   const activityCategoryGroups = data?.activityCategoryGroups || [];
   const preferredRestaurants = outingPreferences?.restaurantCategories || [];
@@ -75,7 +75,7 @@ const PreferencesView = ({
   const progress = (stepsCompleted / 8) * 100;
 
   if (isLoading) {
-    return <LoadingView />
+    return <LoadingView />;
   }
 
   return (
@@ -93,13 +93,14 @@ const PreferencesView = ({
         defaultCategories={getDefaults(preferredRestaurants, restaurantCategories)}
         onSubmit={onSubmitRestaurants}
       />
-      {activityCategoryGroups?.map(group => (
-          <PreferenceSelections key={group.id}
-            categoryGroupName={group.name}
-            categoryGroupId={group.id}
-            categories={group?.activityCategories || []}
-            defaultCategories={getDefaults(preferredActivities, group?.activityCategories)}
-            onSubmit={onSubmitActivities}
+      {activityCategoryGroups?.map((group) => (
+        <PreferenceSelections
+          key={group.id}
+          categoryGroupName={group.name}
+          categoryGroupId={group.id}
+          categories={group?.activityCategories || []}
+          defaultCategories={getDefaults(preferredActivities, group?.activityCategories)}
+          onSubmit={onSubmitActivities}
         />
       ))}
     </ViewContainer>

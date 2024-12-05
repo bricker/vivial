@@ -1,20 +1,15 @@
-import {
-  OutingBudget,
-  type OutingPreferences,
-} from "$eave-dashboard/js/graphql/generated/graphql";
+import { OutingBudget, type OutingPreferences } from "$eave-dashboard/js/graphql/generated/graphql";
 import { type Category } from "$eave-dashboard/js/types/category";
 
 import { useGetOutingPreferencesQuery, useGetSearchRegionsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 import React, { useCallback, useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "$eave-dashboard/js/store";
 
+import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
 import { Breakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
-import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
-import { getInitialStartTime, getGroupPreferences } from "./helpers";
+import { getGroupPreferences, getInitialStartTime } from "./helpers";
 
 import Typography from "@mui/material/Typography";
 import Modal from "../../Modal";
@@ -23,9 +18,8 @@ import DateAreaSelections from "../../Selections/DateAreaSelections";
 import DateSelections from "../../Selections/DateSelections";
 import DateTimeSelections from "../../Selections/DateTimeSelections";
 import EditPreferencesOption from "./Options/EditPreferencesOption";
-import PreferencesView from "./Views/PreferencesView";
 import LoadingView from "./Views/LoadingView";
-
+import PreferencesView from "./Views/PreferencesView";
 
 const PageContainer = styled("div")(({ theme }) => ({
   padding: "24px 16px",
@@ -112,8 +106,8 @@ const DateSurveyPage = () => {
   const [startTime, setStartTime] = useState(getInitialStartTime());
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [areasOpen, setAreasOpen] = useState(false);
-  const [outingPreferences, setOutingPreferences] = useState<OutingPreferences|null>(null);
-  const [partnerPreferences, setPartnerPreferences] = useState<OutingPreferences|null>(null);
+  const [outingPreferences, setOutingPreferences] = useState<OutingPreferences | null>(null);
+  const [partnerPreferences, _setPartnerPreferences] = useState<OutingPreferences | null>(null);
   const [outingPreferencesOpen, setOutingPreferencesOpen] = useState(false);
   const [partnerPreferencesOpen, setPartnerPreferencesOpen] = useState(false);
 
@@ -123,21 +117,19 @@ const DateSurveyPage = () => {
     // TODO: call planOuting mutation.
   }, []);
 
-  const handleSubmitRestaurantPreferences = useCallback((categories: Category[]) => {
-    // TODO: call preferences mutation.
-    // TODO: handle openToBars
-  }, []);
-
-  const handleSubmitActivityPreferences = useCallback((categories: Category[]) => {
+  const handleSubmitRestaurantPreferences = useCallback((_categories: Category[]) => {
     // TODO: call preferences mutation.
   }, []);
 
-  const handlePartnerRestaurantPreferences = useCallback((categories: Category[]) => {
+  const handleSubmitActivityPreferences = useCallback((_categories: Category[]) => {
+    // TODO: call preferences mutation.
+  }, []);
+
+  const handlePartnerRestaurantPreferences = useCallback((_categories: Category[]) => {
     // TODO
-    // TODO: handle open to bars
   }, []);
 
-  const handlePartnerActivityPreferences = useCallback((categories: Category[]) => {
+  const handlePartnerActivityPreferences = useCallback((_categories: Category[]) => {
     // TODO
   }, []);
 
@@ -185,29 +177,30 @@ const DateSurveyPage = () => {
   }
 
   if (isLoggedIn) {
-    // if (outingPreferencesOpen) {
+    if (outingPreferencesOpen) {
+    return (
+      <PreferencesView
+        title="Get personalized recommendations"
+        subtitle="Your saved preferences are used to make more personalized recommendations."
+        outingPreferences={outingPreferences}
+        onSubmitRestaurants={handleSubmitRestaurantPreferences}
+        onSubmitActivities={handleSubmitActivityPreferences}
+        onSkip={() => setOutingPreferencesOpen(false)}
+      />
+    );
+    }
+    if (partnerPreferencesOpen) {
       return (
         <PreferencesView
-          title="Get personalized recommendations"
-          subtitle="Your saved preferences are used to make more personalized recommendations."
-          outingPreferences={outingPreferences}
-          onSubmitRestaurants={handleSubmitRestaurantPreferences}
-          onSubmitActivities={handleSubmitActivityPreferences}
-          onSkip={() => setOutingPreferencesOpen(false)}
+          title="Add partner preferences"
+          subtitle="We’ll use your saved preferences and your partner preferences to make recommendations."
+          outingPreferences={partnerPreferences}
+          onSubmitRestaurants={handlePartnerRestaurantPreferences}
+          onSubmitActivities={handlePartnerActivityPreferences}
+          onSkip={() => setPartnerPreferencesOpen(false)}
         />
       );
-    // }
-    // if (partnerPreferencesOpen) {
-    //   return (
-    //     <PreferencesView
-    //       title="Add partner preferences"
-    //       subtitle="We’ll use your saved preferences and your partner preferences to make recommendations."
-    //       onSubmitRestaurants={handleSelectPartnerRestaurantPreferences}
-    //       onSubmitActivities={handleSelectPartnerActivityPreferences}
-    //       onSkip={() => setPartnerPreferencesOpen(false)}
-    //     />
-    //   );
-    // }
+    }
   }
 
   return (

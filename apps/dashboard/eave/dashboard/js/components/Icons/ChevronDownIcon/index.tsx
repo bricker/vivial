@@ -8,9 +8,9 @@ interface ChevronDownIconProps extends IconProps {
 
 const ChevronDownIcon = ({ color = colors.whiteText, large = false }: ChevronDownIconProps) => {
   if (large) {
-    return(
+    return (
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="16" viewBox="0 0 18 16" fill="none">
-        <path d="M17 4L9 12L1 4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M17 4L9 12L1 4" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     );
   }

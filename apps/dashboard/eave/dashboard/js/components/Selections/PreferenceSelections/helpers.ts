@@ -1,10 +1,10 @@
-import { type Category } from "$eave-dashboard/js/types/category";
 import { colors } from "$eave-dashboard/js/theme/colors";
+import { type Category } from "$eave-dashboard/js/types/category";
 import { CATEGORY_ACCENT_COLOR_MAP } from "./constants";
 
-export function getCategoryMap(categoryList: Category[]): {[key: string]: string} {
-  const map: {[key: string]: string} = {}
-  categoryList.forEach(category => {
+export function getCategoryMap(categoryList: Category[]): { [key: string]: string } {
+  const map: { [key: string]: string } = {};
+  categoryList.forEach((category) => {
     map[category.id] = category.name;
   });
   return map;

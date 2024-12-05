@@ -1,4 +1,3 @@
-import { type OutingPreferences } from "$eave-dashboard/js/graphql/generated/graphql";
 import { type Category } from "$eave-dashboard/js/types/category";
 
 export function getDefaults(preferredCategories: Category[], categoryOptions: Category[]): Category[] {
@@ -6,7 +5,7 @@ export function getDefaults(preferredCategories: Category[], categoryOptions: Ca
     return preferredCategories;
   }
   if (categoryOptions?.length) {
-    return categoryOptions.filter(category => category.isDefault)
+    return categoryOptions.filter((category) => category.isDefault);
   }
   return [];
 }

@@ -1,12 +1,12 @@
 import { UpdateAccountFailureReason } from "$eave-dashboard/js/graphql/generated/graphql";
-import { useSelector } from "react-redux";
-import { RootState } from "$eave-dashboard/js/store";
 import { AppRoute } from "$eave-dashboard/js/routes";
+import { RootState } from "$eave-dashboard/js/store";
 import { useUpdateAccountMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { getPasswordInfo, passwordIsValid } from "$eave-dashboard/js/util/password";
 import { Typography, styled } from "@mui/material";
 import React, { useCallback, useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import LoadingButton from "../../Buttons/LoadingButton";
 import SecondaryButton from "../../Buttons/SecondaryButton";

@@ -1,17 +1,21 @@
-import React, { useState, useCallback } from "react";
-import { styled } from "@mui/material";
 import { type Category } from "$eave-dashboard/js/types/category";
+import { styled } from "@mui/material";
+import React, { useCallback, useState } from "react";
 
 import Typography from "@mui/material/Typography";
-import PrimaryButton from "../../Buttons/PrimaryButton";
 import DropdownButton from "../../Buttons/DropdownButton";
 import PillButton from "../../Buttons/PillButton";
+import PrimaryButton from "../../Buttons/PrimaryButton";
 import Paper from "../../Paper";
 
-import { getCategoryMap, getAccentColor } from "./helpers";
+import { getAccentColor, getCategoryMap } from "./helpers";
 
 const CategoryRow = styled(Paper)(() => ({
   marginTop: 16,
+}));
+
+const GroupName = styled(Typography)(() => ({
+  marginBottom: 16,
 }));
 
 const SubmitButton = styled(PrimaryButton)(() => ({
@@ -19,7 +23,7 @@ const SubmitButton = styled(PrimaryButton)(() => ({
 }));
 
 const SubmitButtonContainer = styled("div")(() => ({
-  marginTop: 16,
+  marginTop: 7,
   display: "flex",
   justifyContent: "flex-end",
 }));
@@ -53,17 +57,20 @@ const PreferenceSelections = ({
     onSubmit(selectedCategories);
   }, [selectedCategories]);
 
-  const handleSelect = useCallback((category: Category) => {
-    const mapClone = { ...selectedCategoryMap }
-    if (category.id in mapClone) {
-      delete mapClone[category.id];
-      setSelectedCategories(selectedCategories.filter(c => c.id !== category.id))
-    } else {
-      mapClone[category.id] = category.name;
-      setSelectedCategories([...selectedCategories, category]);
-    }
-    setSelectedCategoryMap(mapClone);
-  }, [selectedCategories, selectedCategoryMap]);
+  const handleSelect = useCallback(
+    (category: Category) => {
+      const mapClone = { ...selectedCategoryMap };
+      if (category.id in mapClone) {
+        delete mapClone[category.id];
+        setSelectedCategories(selectedCategories.filter((c) => c.id !== category.id));
+      } else {
+        mapClone[category.id] = category.name;
+        setSelectedCategories([...selectedCategories, category]);
+      }
+      setSelectedCategoryMap(mapClone);
+    },
+    [selectedCategories, selectedCategoryMap],
+  );
 
   const toggleSelectAll = useCallback(() => {
     if (selectedCategories.length === categories.length) {
@@ -77,25 +84,31 @@ const PreferenceSelections = ({
 
   return (
     <CategoryRow>
-      {collapsable && (
-        <DropdownButton open={collapsed} />
-      )}
-      <Typography>{categoryGroupName}</Typography>
-      <PillButton onClick={toggleSelectAll} selected={selectedCategories.length === categories.length} accentColor={accentColor} outlined>
+      {collapsable && <DropdownButton open={collapsed} />}
+      <GroupName variant="h5">{categoryGroupName}</GroupName>
+      <PillButton
+        onClick={toggleSelectAll}
+        selected={selectedCategories.length === categories.length}
+        accentColor={accentColor}
+        outlined
+      >
         All
       </PillButton>
       {categories.map((category) => (
-        <PillButton onClick={() => handleSelect(category)} key={category.name} selected={category.id in selectedCategoryMap}  accentColor={accentColor}>
+        <PillButton
+          onClick={() => handleSelect(category)}
+          key={category.name}
+          selected={category.id in selectedCategoryMap}
+          accentColor={accentColor}
+        >
           {category.name}
         </PillButton>
       ))}
       <SubmitButtonContainer>
-        <SubmitButton onClick={handleSubmit}>
-          {cta}
-        </SubmitButton>
+        <SubmitButton onClick={handleSubmit}>{cta}</SubmitButton>
       </SubmitButtonContainer>
     </CategoryRow>
   );
-}
+};
 
 export default PreferenceSelections;
