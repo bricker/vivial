@@ -9,12 +9,15 @@ from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.helpers.create_outing import create_outing
+from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import (
+    StartTimeTooLateError,
+    StartTimeTooSoonError,
+    validate_time_within_bounds_or_exception,
+)
 from eave.core.graphql.types.outing import (
     Outing,
     OutingPreferencesInput,
 )
-from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import StartTimeTooLateError, StartTimeTooSoonError, validate_time_within_bounds_or_exception
-
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
 
@@ -28,6 +31,7 @@ class PlanOutingInput:
     budget: OutingBudget
     headcount: int
 
+
 @strawberry.type
 class PlanOutingSuccess:
     outing: Outing
@@ -39,9 +43,11 @@ class PlanOutingFailureReason(enum.Enum):
     START_TIME_TOO_LATE = enum.auto()
     SEARCH_AREA_IDS_EMPTY = enum.auto()
 
+
 @strawberry.type
 class PlanOutingFailure:
     failure_reason: PlanOutingFailureReason
+
 
 PlanOutingResult = Annotated[PlanOutingSuccess | PlanOutingFailure, strawberry.union("PlanOutingResult")]
 

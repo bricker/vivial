@@ -1,6 +1,6 @@
 query OutingPreferences {
   viewer {
-    ...on AuthenticatedViewerQueries {
+    ... on AuthenticatedViewerQueries {
       outingPreferences {
         restaurantCategories {
           id

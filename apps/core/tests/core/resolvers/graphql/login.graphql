@@ -1,6 +1,6 @@
 mutation Login($input: LoginInput!) {
   login(input: $input) {
-    ...on LoginSuccess {
+    ... on LoginSuccess {
       __typename
 
       account {
@@ -9,7 +9,7 @@ mutation Login($input: LoginInput!) {
       }
     }
 
-    ...on LoginFailure {
+    ... on LoginFailure {
       __typename
       failureReason
     }

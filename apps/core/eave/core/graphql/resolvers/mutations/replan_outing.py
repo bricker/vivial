@@ -8,12 +8,15 @@ from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.helpers.create_outing import create_outing
+from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import (
+    StartTimeTooLateError,
+    StartTimeTooSoonError,
+    validate_time_within_bounds_or_exception,
+)
 from eave.core.graphql.types.outing import (
     Outing,
     OutingPreferencesInput,
 )
-from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import StartTimeTooLateError, StartTimeTooSoonError, validate_time_within_bounds_or_exception
-
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.survey import SurveyOrm
 
@@ -23,6 +26,7 @@ class ReplanOutingInput:
     visitor_id: UUID
     outing_id: UUID
     group_preferences: list[OutingPreferencesInput]
+
 
 @strawberry.type
 class ReplanOutingSuccess:
@@ -70,7 +74,7 @@ async def replan_outing_mutation(
 
     outing = await create_outing(
         individual_preferences=input.group_preferences,
-        account_id=account_id, # This should not be the original Outing's account ID, because someone else may be rerolling this outing.
+        account_id=account_id,  # This should not be the original Outing's account ID, because someone else may be rerolling this outing.
         visitor_id=input.visitor_id,
         survey=survey,
     )

@@ -31,7 +31,7 @@ async def create_outing(
         if plan.activity and plan.activity_start_time:
             await OutingActivityOrm.build(
                 outing_id=outing_orm.id,
-                activity_id=plan.activity.id,
+                activity_id=plan.activity.source_id,
                 activity_source=plan.activity.source,
                 activity_start_time=plan.activity_start_time,
                 headcount=survey.headcount,
@@ -40,7 +40,7 @@ async def create_outing(
         if plan.restaurant and plan.restaurant_arrival_time:
             await OutingReservationOrm.build(
                 outing_id=outing_orm.id,
-                reservation_id=plan.restaurant.id,
+                reservation_id=plan.restaurant.source_id,
                 reservation_source=plan.restaurant.source,
                 reservation_start_time=plan.restaurant_arrival_time,
                 headcount=survey.headcount,
@@ -53,7 +53,7 @@ async def create_outing(
             activity_start_time=plan.activity_start_time,
             restaurant=plan.restaurant,
             restaurant_arrival_time=plan.restaurant_arrival_time,
-            driving_time=None, # TODO
+            driving_time=None,  # TODO
         )
 
     return outing

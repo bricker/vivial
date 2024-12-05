@@ -1,5 +1,3 @@
-from datetime import datetime, timedelta
-
 from sqlalchemy import text
 
 PG_UUID_EXPR = text("(gen_random_uuid())")

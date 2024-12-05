@@ -1,0 +1,34 @@
+mutation PlanOuting($input: PlanOutingInput!) {
+  viewer {
+    ... on AuthenticatedViewerMutations {
+      planOuting(input: $input) {
+        ... on PlanOutingSuccess {
+          outing {
+            headcount
+            activity {
+              sourceId
+              source
+              name
+            }
+            activityStartTime
+            restaurant {
+              sourceId
+              source
+              name
+            }
+            restaurantArrivalTime
+            drivingTime
+          }
+        }
+
+        ... on PlanOutingFailure {
+          failureReason
+        }
+      }
+    }
+
+    ... on UnauthenticatedViewer {
+      authAction
+    }
+  }
+}

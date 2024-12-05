@@ -1,6 +1,8 @@
 from http import HTTPStatus
 
+from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.outing import OutingOrm
+from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
@@ -10,12 +12,12 @@ from ..base import BaseTestCase
 day_seconds = 60 * 60 * 24
 
 
-class TestOutingEndpoints(BaseTestCase):
-    async def test_plan_outing(self) -> None:
+class TestPlanOutingEndpoints(BaseTestCase):
+    async def test_plan_outing_unauthenticated(self) -> None:
         vis_id = self.anyuuid()
 
         response = await self.make_graphql_request(
-            "planOuting",
+            "planOutingUnauthenticated",
             {
                 "input": {
                     "visitorId": f"{vis_id}",
@@ -23,14 +25,99 @@ class TestOutingEndpoints(BaseTestCase):
                     "searchAreaIds": [f"{self.anyuuid()}"],
                     "budget": "INEXPENSIVE",
                     "headcount": 2,
+                    "groupPreferences": [
+                        {
+                            "restaurantCategoryIds": [str(RestaurantCategoryOrm.all()[0].id)],
+                            "activityCategoryIds": [str(ActivityCategoryOrm.all()[0].id)],
+                        },
+                    ],
                 },
             },
         )
 
-        assert response.status_code == HTTPStatus.OK
-        assert response.json().get("data").get("planOuting").get("outing").get("id") is not None
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
 
-    async def test_replan(self) -> None:
+        data = result.data["replanOuting"]
+        assert data["outing"]["id"] is not None
+
+    async def test_plan_outing_authenticated(self) -> None:
+        async with self.db_session.begin() as db_session:
+            account = await self.make_account(db_session)
+
+        vis_id = self.anyuuid()
+
+        response = await self.make_graphql_request(
+            "planOutingUnauthenticated",
+            {
+                "input": {
+                    "visitorId": f"{vis_id}",
+                    "startTime": f"{self.anydatetime(offset=2 * day_seconds).isoformat()}",
+                    "searchAreaIds": [f"{self.anyuuid()}"],
+                    "budget": "INEXPENSIVE",
+                    "headcount": 2,
+                    "groupPreferences": [
+                        {
+                            "restaurantCategoryIds": [str(RestaurantCategoryOrm.all()[0].id)],
+                            "activityCategoryIds": [str(ActivityCategoryOrm.all()[0].id)]
+                        }
+                    ]
+                },
+            },
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["viewer"]["planOuting"]
+        assert data["outing"]["id"] is not None
+
+    async def test_replan_authenticated(self) -> None:
+        async with self.db_session.begin() as sess:
+            account = await self.make_account(sess)
+
+            survey = await SurveyOrm.build(
+                visitor_id=self.anyuuid(),
+                start_time=self.anydatetime(offset=2 * day_seconds),
+                search_area_ids=[SearchRegionOrm.all()[0].id],
+                budget=OutingBudget.INEXPENSIVE,
+                headcount=1,
+                account_id=account.id,
+            ).save(sess)
+            outing = await OutingOrm.build(
+                visitor_id=survey.visitor_id,
+                survey_id=survey.id,
+                account_id=survey.account_id,
+            ).save(sess)
+
+        response = await self.make_graphql_request(
+            "replanOutingUnauthenticated",
+            {
+                "input": {
+                    "outingId": f"{outing.id}",
+                    "visitorId": f"{self.anyuuid()}",
+                    "groupPreferences": [
+                        {
+                            "restaurantCategoryIds": [str(RestaurantCategoryOrm.all()[0].id)],
+                            "activityCategoryIds": [str(ActivityCategoryOrm.all()[0].id)]
+                        }
+                    ]
+                },
+            },
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["viewer"]["replanOuting"]
+        assert data["outing"]["id"] is not None
+
+    async def test_replan_unauthenticated(self) -> None:
         async with self.db_session.begin() as sess:
             survey = await SurveyOrm.build(
                 visitor_id=self.anyuuid(),
@@ -46,34 +133,46 @@ class TestOutingEndpoints(BaseTestCase):
             ).save(sess)
 
         response = await self.make_graphql_request(
-            "replanOuting",
+            "replanOutingUnauthenticated",
             {
                 "input": {
                     "outingId": f"{outing.id}",
                     "visitorId": f"{self.anyuuid()}",
+                    "groupPreferences": [
+                        {
+                            "restaurantCategoryIds": [str(RestaurantCategoryOrm.all()[0].id)],
+                            "activityCategoryIds": [str(ActivityCategoryOrm.all()[0].id)]
+                        }
+                    ]
                 },
             },
         )
 
-        assert response.status_code == HTTPStatus.OK
-        assert response.json().get("data").get("replanOuting").get("outing").get("id") is not None
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
 
-    async def test_replan_bad_outing_id(self) -> None:
+        data = result.data["replanOuting"]
+        assert data["outing"]["id"] is not None
+
+    async def test_replan_unauthenticated_bad_outing_id(self) -> None:
         # try to replan an outing that doesn't exist
         response = await self.make_graphql_request(
-            "replanOuting",
+            "replanOutingUnauthenticated",
             {
                 "input": {
                     "outingId": f"{self.anyuuid()}",
                     "visitorId": f"{self.anyuuid()}",
+                    "groupPreferences": [
+                        {
+                            "restaurantCategoryIds": [str(RestaurantCategoryOrm.all()[0].id)],
+                            "activityCategoryIds": [str(ActivityCategoryOrm.all()[0].id)]
+                        }
+                    ]
                 },
             },
         )
 
-        # bcus gql eats error codes
-        assert response.status_code == HTTPStatus.OK
+        result = self.parse_graphql_response(response)
 
-        body = response.json()
-        assert body.get("data") is None
-        assert body.get("errors") is not None and len(body.get("errors")) == 1
-        assert body.get("errors")[0].get("message") == "No row was found when one was required"
+        assert result.data is None

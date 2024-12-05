@@ -1,7 +1,7 @@
-from dataclasses import dataclass
 import random
 import urllib.parse
 from collections.abc import MutableSequence, Sequence
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from uuid import UUID
 
@@ -14,8 +14,8 @@ import eave.core.database
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.types.activity import Activity, ActivitySource, ActivityVenue
 from eave.core.graphql.types.location import Location
+from eave.core.graphql.types.outing import OutingPreferencesInput
 from eave.core.graphql.types.restaurant import Restaurant, RestaurantSource
-from eave.core.graphql.types.outing import Outing, OutingPreferencesInput
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
 from eave.core.lib.time_category import is_early_evening, is_early_morning, is_late_evening, is_late_morning
 from eave.core.orm.activity_category import ActivityCategoryOrm
@@ -69,6 +69,7 @@ _BRUNCH_GOOGLE_RESTAURANT_CATEGORY_IDS = (
     "cafe",
 )
 
+
 @dataclass(kw_only=True)
 class PlannerResult:
     activity: Activity | None
@@ -76,6 +77,7 @@ class PlannerResult:
     restaurant: Restaurant | None
     restaurant_arrival_time: datetime | None
     driving_time: str | None
+
 
 def _combine_restaurant_categories(individual_preferences: list[OutingPreferencesInput]) -> list[RestaurantCategoryOrm]:
     """
@@ -146,7 +148,10 @@ def _combine_bar_openness(individual_preferences: list[OutingPreferencesInput]) 
     Given a group of users, return False if any of the users is not open to
     going to a bar.
     """
-    return all(MAGIC_BAR_RESTAURANT_CATEGORY_ID in preferences.restaurant_category_ids for preferences in individual_preferences)
+    return all(
+        MAGIC_BAR_RESTAURANT_CATEGORY_ID in preferences.restaurant_category_ids
+        for preferences in individual_preferences
+    )
 
 
 class OutingPlanner:
@@ -306,12 +311,12 @@ class OutingPlanner:
                     event_details["description"] = description
 
                     self.activity = Activity(
-                        id=str(event.id),
+                        source_id=str(event.id),
                         source=ActivitySource.EVENTBRITE,
                         name=event_name["text"],
                         description=event_details["description"]["text"],
-                        photos=None, # TODO
-                        ticket_info=None, # TODO
+                        photos=None,  # TODO
+                        ticket_info=None,  # TODO
                         venue=ActivityVenue(
                             name=venue["name"],
                             location=Location(
@@ -374,12 +379,12 @@ class OutingPlanner:
                     venue_lon = place.location.longitude
                     if venue_lat and venue_lon:
                         self.activity = Activity(
-                            id=place.id,
+                            source_id=place.id,
                             source=ActivitySource.GOOGLE_PLACES,
                             name=place.display_name,
                             description=place.editorial_summary,
-                            photos=None, # TODO
-                            ticket_info=None, # TODO
+                            photos=None,  # TODO
+                            ticket_info=None,  # TODO
                             venue=ActivityVenue(
                                 name=place.display_name,
                                 location=Location(
@@ -460,7 +465,7 @@ class OutingPlanner:
                         lon = restaurant.location.longitude
                         if lat and lon:
                             self.restaurant = Restaurant(
-                                id=restaurant.id,
+                                source_id=restaurant.id,
                                 source=RestaurantSource.GOOGLE_PLACES,
                                 location=Location(
                                     latitude=lat,
@@ -468,7 +473,7 @@ class OutingPlanner:
                                     formatted_address=restaurant.formatted_address,
                                     directions_uri=restaurant.google_maps_uri,
                                 ),
-                                photos=None, # TODO
+                                photos=None,  # TODO
                                 name=restaurant.display_name,
                                 reservable=restaurant.reservable,
                                 rating=restaurant.rating,

@@ -24,7 +24,10 @@ class RestaurantCategoryOrm:
 
     @classmethod
     def find_one_by_google_category_id(cls, *, google_category_id: str) -> "RestaurantCategoryOrm | None":
-        return next((orm for orm in _RESTAURANT_CATEGORIES_TABLE if google_category_id in orm.google_category_ids), None)
+        return next(
+            (orm for orm in _RESTAURANT_CATEGORIES_TABLE if google_category_id in orm.google_category_ids), None
+        )
+
 
 # The Category ID for the special "Bar" category
 MAGIC_BAR_RESTAURANT_CATEGORY_ID = UUID("a7251c9d-6af0-423b-a11d-7015ee3f85fc")

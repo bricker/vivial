@@ -95,8 +95,10 @@ app = starlette.applications.Starlette(
             path="/graphql",
             methods=[
                 aiohttp.hdrs.METH_POST,
-                aiohttp.hdrs.METH_GET, # Allows GraphiQL in development
-            ] if SHARED_CONFIG.is_development else [
+                aiohttp.hdrs.METH_GET,  # Allows GraphiQL in development
+            ]
+            if SHARED_CONFIG.is_development
+            else [
                 aiohttp.hdrs.METH_POST,
             ],
             endpoint=graphql_app,

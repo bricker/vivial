@@ -1,8 +1,8 @@
 mutation UpdateOutingPreferences($input: UpdateOutingPreferencesInput!) {
   viewer {
-    ...on AuthenticatedViewerMutations {
+    ... on AuthenticatedViewerMutations {
       updateOutingPreferences(input: $input) {
-        ...on UpdateOutingPreferencesSuccess {
+        ... on UpdateOutingPreferencesSuccess {
           outingPreferences {
             restaurantCategories {
               id

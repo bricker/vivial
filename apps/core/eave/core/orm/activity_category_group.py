@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-import enum
 from types import MappingProxyType
 from uuid import UUID
 
@@ -22,6 +21,7 @@ class ActivityCategoryGroupOrm:
     @property
     def activity_categories(self) -> list[ActivityCategoryOrm]:
         return ActivityCategoryOrm.get_by_activity_category_group_id(activity_category_group_id=self.id)
+
 
 _ACTIVITY_CATEGORY_GROUPS_TABLE = (
     ActivityCategoryGroupOrm(
