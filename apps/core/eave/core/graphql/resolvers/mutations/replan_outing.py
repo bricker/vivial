@@ -58,12 +58,13 @@ async def replan_outing_mutation(
             id=original_outing.survey_id,
         )
 
-        try:
-            validate_time_within_bounds_or_exception(survey.start_time)
-        except StartTimeTooLateError:
-            return ReplanOutingFailure(failure_reason=ReplanOutingFailureReason.START_TIME_TOO_LATE)
-        except StartTimeTooSoonError:
-            return ReplanOutingFailure(failure_reason=ReplanOutingFailureReason.START_TIME_TOO_SOON)
+    # validate that the survey's start time is still within the bounds.
+    try:
+        validate_time_within_bounds_or_exception(survey.start_time)
+    except StartTimeTooLateError:
+        return ReplanOutingFailure(failure_reason=ReplanOutingFailureReason.START_TIME_TOO_LATE)
+    except StartTimeTooSoonError:
+        return ReplanOutingFailure(failure_reason=ReplanOutingFailureReason.START_TIME_TOO_SOON)
 
     outing = await create_outing_plan(
         visitor_id=input.visitor_id,
