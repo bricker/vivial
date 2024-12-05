@@ -1,5 +1,6 @@
-from uuid import UUID
 from datetime import datetime
+from uuid import UUID
+
 import strawberry
 
 from eave.core.graphql.types.outing import Outing
