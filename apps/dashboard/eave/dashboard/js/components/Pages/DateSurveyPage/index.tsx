@@ -188,7 +188,7 @@ const DateSurveyPage = () => {
           outingPreferences={outingPreferences}
           onSubmitRestaurants={handleSubmitRestaurantPreferences}
           onSubmitActivities={handleSubmitActivityPreferences}
-          onSkip={() => setOutingPreferencesOpen(false)}
+          onClose={() => setOutingPreferencesOpen(false)}
         />
       );
     }
@@ -200,7 +200,7 @@ const DateSurveyPage = () => {
           outingPreferences={partnerPreferences}
           onSubmitRestaurants={handlePartnerRestaurantPreferences}
           onSubmitActivities={handlePartnerActivityPreferences}
-          onSkip={() => setPartnerPreferencesOpen(false)}
+          onClose={() => setPartnerPreferencesOpen(false)}
         />
       );
     }
