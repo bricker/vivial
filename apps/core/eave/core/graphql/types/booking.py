@@ -1,5 +1,5 @@
 from uuid import UUID
-
+from datetime import datetime
 import strawberry
 
 from eave.core.graphql.types.outing import Outing
@@ -19,6 +19,15 @@ class Booking:
             account_id=orm.account_id,
             reserver_details_id=orm.reserver_details_id,
         )
+
+
+@strawberry.type
+class BookingDetailPeek:
+    id: UUID
+    activity_start_time: datetime | None
+    activity_name: str | None
+    restaurant_start_time: datetime | None
+    restaurant_name: str | None
 
 
 @strawberry.type

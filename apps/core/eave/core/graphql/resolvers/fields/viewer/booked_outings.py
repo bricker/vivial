@@ -6,10 +6,7 @@ from google.maps.places_v1 import PlacesAsyncClient
 from eave.core import database
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.types.booking import BookingDetails
-from eave.core.graphql.types.outing import (
-    OutingState,
-)
+from eave.core.graphql.types.booking import BookingDetailPeek, BookingDetails
 from eave.core.lib.event_helpers import get_activity, get_restuarant
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
@@ -19,12 +16,7 @@ from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.util import unwrap
 
 
-@strawberry.input
-class ListBookedOutingsInput:
-    outing_state: OutingState
-
-
-async def get_booking_details(
+async def _get_booking_details(
     booking_id: UUID,
 ) -> BookingDetails:
     places_client = PlacesAsyncClient()
@@ -72,34 +64,61 @@ async def get_booking_details(
     return details
 
 
-async def list_booked_outings_query(
+async def list_bookings_query(
     *,
     info: strawberry.Info[GraphQLContext],
-    input: ListBookedOutingsInput | None = None,
-) -> list[BookingDetails]:
-    """Fetch list of booked outings by account ID.
-    PAST outings are outings that have already occured.
-    FUTURE outings are upcoming outings.
-    """
-    query = BookingOrm.select().where(BookingOrm.account_id == unwrap(info.context.get("authenticated_account_id")))
+) -> list[BookingDetailPeek]:
+    account_id = unwrap(info.context.get("authenticated_account_id"))
+    query = BookingOrm.select().where(BookingOrm.account_id == account_id)
     booking_details = []
 
     async with database.async_session.begin() as db_session:
         booking_orms = await db_session.scalars(query)
 
-    for booking in booking_orms:
-        detail = await get_booking_details(
-            booking_id=booking.id,
-        )
-        booking_details.append(detail)
+        for booking in booking_orms:
+            activities_query = BookingActivityTemplateOrm.select().where(
+                BookingActivityTemplateOrm.booking_id == booking.id
+            )
+            reservations_query = BookingReservationTemplateOrm.select().where(
+                BookingReservationTemplateOrm.booking_id == booking.id
+            )
+            # NOTE: only getting 1 (or None) result here instead of full scalars result since
+            # response type only accepts one of each
+            activity = await db_session.scalar(activities_query)
+            reservation = await db_session.scalar(reservations_query)
 
-    if input:
-        match input.outing_state:
-            case OutingState.PAST:
-                pass  # TODO: filter? are these inputs even necessary? ask leilenah
-            case OutingState.FUTURE:
-                pass
-            case _:
-                pass
+            booking_details.append(
+                BookingDetailPeek(
+                    id=booking.id,
+                    activity_start_time=activity.activity_start_time if activity else None,
+                    activity_name=activity.activity_name if activity else None,
+                    restaurant_name=reservation.reservation_name if reservation else None,
+                    restaurant_start_time=reservation.reservation_start_time if reservation else None,
+                )
+            )
 
     return booking_details
+
+
+@strawberry.input
+class GetBookingDetailsQueryInput:
+    booking_id: UUID
+
+
+async def get_booking_details_query(
+    *,
+    info: strawberry.Info[GraphQLContext],
+    input: GetBookingDetailsQueryInput,
+) -> BookingDetails:
+    account_id = unwrap(info.context.get("authenticated_account_id"))
+    query = BookingOrm.select().where(BookingOrm.account_id == account_id).where(BookingOrm.id == input.booking_id)
+
+    # validate the requesting account owns the booking requested
+    async with database.async_session.begin() as db_session:
+        booking_orm = (await db_session.scalars(query)).one()
+
+    detail = await _get_booking_details(
+        booking_id=booking_orm.id,
+    )
+
+    return detail

@@ -8,12 +8,6 @@ from .activity import Activity
 from .restaurant import Restaurant
 
 
-@strawberry.enum
-class OutingState(enum.StrEnum):
-    PAST = enum.auto()
-    FUTURE = enum.auto()
-
-
 @strawberry.type
 class Outing:
     id: UUID
