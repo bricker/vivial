@@ -14,6 +14,7 @@ from eave.core.graphql.types.outing import (
     Outing,
     OutingState,
 )
+from eave.core.lib.event_helpers import get_activity, get_restuarant
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
 from eave.core.orm.booking_reservations_template import BookingReservationTemplateOrm
@@ -29,56 +30,47 @@ async def get_booking_details(
     booking_id: UUID,
 ) -> BookingDetails:
     activities_query = BookingActivityTemplateOrm.select().where(BookingActivityTemplateOrm.booking_id == booking_id)
-    reservations_query = BookingReservationTemplateOrm.select().where(BookingReservationTemplateOrm.booking_id == booking_id)
+    reservations_query = BookingReservationTemplateOrm.select().where(
+        BookingReservationTemplateOrm.booking_id == booking_id
+    )
 
     # NOTE: only getting 1 (or None) result here instead of full scalars result since
     # response type only accepts one of each
     activity = await session.scalar(activities_query)
     reservation = await session.scalar(reservations_query)
 
+    # TODO: we shouldnt hold onto a session after this point bcus we're going to make a butt load of network reqs
+
     details = BookingDetails(
         id=booking_id,
-        headcount=2,
+        headcount=0,
         activity=None,
         activity_start_time=None,
         restaurant=None,
         restaurant_arrival_time=None,
-        driving_time=None,
+        driving_time=None,  # TODO: can we fill this in?
     )
 
-    # @next do i create a completely different return type from Outing since
-    #  we dont need to display this much detail, or do i update the teamplate types to hold more shit?
     if activity:
         details.activity_start_time = activity.activity_start_time
-        details.activity = Activity(
-            id=activity.id,
-            source=None, # TDOO
-            name=activity.activity_name,
-            description=activity.activity_name,
-            venue=ActivityVenue(
-                name="",
-                location=Location(
-                    directions_uri="",
-                    latitude=1,
-                    longitude=1,
-                    formatted_address=""
-                ),
-            ),
-            photos=None,
-            ticket_info=ActivityTicketInfo(
-                type="",
-                notes="",
-                cost=0,
-                fee=0,
-                tax=0,
-            ),
-            website_uri="",
-            door_tips="",
-            insider_tips="",
-            parking_tips="",
+        details.activity = await get_activity(
+            event_id=activity.source_id,
+            event_source=activity.source,
+            # TODO: pass clients
         )
+        details.headcount = max(details.headcount, activity.headcount)
+
+    if reservation:
+        details.restaurant_arrival_time = reservation.reservation_start_time
+        details.restaurant = await get_restuarant(
+            event_id=reservation.source_id,
+            event_source=reservation.source,
+            # TODO: pass client
+        )
+        details.headcount = max(details.headcount, reservation.headcount)
 
     return details
+
 
 async def list_booked_outings_query(
     *,

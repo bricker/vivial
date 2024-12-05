@@ -7,6 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.lib.geo import GeoPoint, SpatialReferenceSystemId
 from eave.core.orm.address_types import Address, AddressColumnType
+from eave.core.shared.enums import ActivitySource
 
 from .base import Base
 from .util import PG_UUID_EXPR
@@ -35,6 +36,9 @@ class BookingActivityTemplateOrm(Base):
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     booking_id: Mapped[UUID] = mapped_column()
+    source_id: Mapped[str] = mapped_column()
+    source: Mapped[str] = mapped_column()
+    """ActivitySource enum value"""
     activity_name: Mapped[str] = mapped_column()
     activity_start_time: Mapped[datetime] = mapped_column()
     headcount: Mapped[int] = mapped_column(name="num_attendees")
@@ -52,6 +56,8 @@ class BookingActivityTemplateOrm(Base):
         cls,
         *,
         booking_id: UUID,
+        source: ActivitySource,
+        source_id: str,
         activity_name: str,
         activity_start_time: datetime,
         headcount: int,
@@ -62,6 +68,8 @@ class BookingActivityTemplateOrm(Base):
     ) -> "BookingActivityTemplateOrm":
         obj = BookingActivityTemplateOrm(
             booking_id=booking_id,
+            source=source,
+            source_id=source_id,
             activity_name=activity_name,
             activity_start_time=activity_start_time,
             headcount=headcount,

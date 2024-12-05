@@ -125,6 +125,7 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             phone_number="+12698675309",
         ).save(session)
         booking = await BookingOrm.build(
+            account_id=account.id,
             reserver_details_id=reserver_details.id,
         ).save(session)
         _account_booking = await AccountBookingOrm.build(
@@ -133,6 +134,8 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
         ).save(session)
         _booking_activity_template = await BookingActivityTemplateOrm.build(
             booking_id=booking.id,
+            source_id=str(uuid.uuid4()),
+            source=ActivitySource.EVENTBRITE,
             activity_name="Biking in McDonalds parking lot",
             activity_start_time=outing_activity.activity_start_time,
             headcount=outing_activity.headcount,
@@ -150,6 +153,8 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
         ).save(session)
         _booking_reservation_template = await BookingReservationTemplateOrm.build(
             booking_id=booking.id,
+            source_id=str(uuid.uuid4()),
+            source=RestaurantSource.GOOGLE_PLACES,
             reservation_name="Red lobster dumpster",
             reservation_start_time=outing_reservation.reservation_start_time,
             headcount=outing_reservation.headcount,

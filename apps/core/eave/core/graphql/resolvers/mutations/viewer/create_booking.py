@@ -63,7 +63,7 @@ async def _get_event_details(
     places_client: PlacesAsyncClient,
     activities_client: EventbriteClient,
     event_source: ActivitySource | RestaurantSource,
-    remote_id: str,
+    event_id: str,
 ) -> EventDetails:
     name = address1 = address2 = city = region = postal_code = country = lat = lon = booking_uri = None
     match event_source:
@@ -73,7 +73,7 @@ async def _get_event_details(
         case ActivitySource.GOOGLE_PLACES | RestaurantSource.GOOGLE_PLACES:
             details = await get_place(
                 client=places_client,
-                id=remote_id,
+                id=event_id,
                 # field_mask=",".join(["displayName.text", "addressComponents", "location", "websiteUri"]),
             )
 
@@ -126,7 +126,7 @@ async def _get_event_details(
             lon = details.location.longitude
         case ActivitySource.EVENTBRITE:
             details = await activities_client.get_event_by_id(
-                event_id=remote_id,
+                event_id=event_id,
                 query=GetEventQuery(expand=[Expansion.VENUE]),
             )
             name = details.get("name", {}).get("text")
@@ -182,12 +182,14 @@ async def _create_templates_from_outing(
             places_client=places_client,
             activities_client=activities_client,
             event_source=src,
-            remote_id=activity.activity_id,
+            event_id=activity.activity_id,
         )
 
         activity_details.append(
             await BookingActivityTemplateOrm.build(
                 booking_id=booking_id,
+                source=src,
+                source_id=activity.activity_id,
                 activity_name=details.name,
                 activity_start_time=activity.activity_start_time,
                 headcount=activity.headcount,
@@ -215,12 +217,14 @@ async def _create_templates_from_outing(
             places_client=places_client,
             activities_client=activities_client,
             event_source=src,
-            remote_id=reservation.reservation_id,
+            event_id=reservation.reservation_id,
         )
 
         reservation_details.append(
             await BookingReservationTemplateOrm.build(
                 booking_id=booking_id,
+                source=src,
+                source_id=reservation.reservation_id,
                 reservation_name=details.name,
                 reservation_start_time=reservation.reservation_start_time,
                 headcount=reservation.headcount,

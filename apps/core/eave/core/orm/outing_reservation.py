@@ -28,7 +28,7 @@ class OutingReservationOrm(Base):
     reservation_id: Mapped[str] = mapped_column()
     """ID of reservation in remote table"""
     reservation_source: Mapped[str] = mapped_column()
-    """ReservationSource enum value"""
+    """RestaurantSource enum value"""
     reservation_start_time: Mapped[datetime] = mapped_column()
     headcount: Mapped[int] = mapped_column(name="num_attendees")
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
