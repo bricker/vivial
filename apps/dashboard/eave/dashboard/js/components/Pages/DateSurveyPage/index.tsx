@@ -1,9 +1,11 @@
 import { OutingBudget, type OutingPreferences } from "$eave-dashboard/js/graphql/generated/graphql";
+import { RootState } from "$eave-dashboard/js/store";
 import { type Category } from "$eave-dashboard/js/types/category";
 
 import { useGetOutingPreferencesQuery, useGetSearchRegionsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 import React, { useCallback, useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
 import { Breakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
@@ -93,9 +95,7 @@ const DateSurveyContainer = styled(Paper)(({ theme }) => ({
 }));
 
 const DateSurveyPage = () => {
-  // const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
-  const isLoggedIn = true;
-
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
   const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery({});
   const searchRegions = searchRegionsData?.searchRegions;
@@ -114,23 +114,26 @@ const DateSurveyPage = () => {
   const handleSubmit = useCallback(async () => {
     const _visitorId = await getVisitorId();
     const _groupPreferences = getGroupPreferences(outingPreferences, partnerPreferences);
+    // TODO: return default preferences if no preferences have been selected.
     // TODO: call planOuting mutation.
   }, []);
 
   const handleSubmitRestaurantPreferences = useCallback((_categories: Category[]) => {
     // TODO: call preferences mutation.
+    // TODO: set outing preferences.
   }, []);
 
   const handleSubmitActivityPreferences = useCallback((_categories: Category[]) => {
     // TODO: call preferences mutation.
+    // TODO: set outing preferences.
   }, []);
 
   const handlePartnerRestaurantPreferences = useCallback((_categories: Category[]) => {
-    // TODO
+    // TODO: set partner preferences.
   }, []);
 
   const handlePartnerActivityPreferences = useCallback((_categories: Category[]) => {
-    // TODO
+    // TODO: set partner preferences.
   }, []);
 
   const handleSelectHeadcount = useCallback((value: number) => {
@@ -178,16 +181,16 @@ const DateSurveyPage = () => {
 
   if (isLoggedIn) {
     if (outingPreferencesOpen) {
-    return (
-      <PreferencesView
-        title="Get personalized recommendations"
-        subtitle="Your saved preferences are used to make more personalized recommendations."
-        outingPreferences={outingPreferences}
-        onSubmitRestaurants={handleSubmitRestaurantPreferences}
-        onSubmitActivities={handleSubmitActivityPreferences}
-        onSkip={() => setOutingPreferencesOpen(false)}
-      />
-    );
+      return (
+        <PreferencesView
+          title="Get personalized recommendations"
+          subtitle="Your saved preferences are used to make more personalized recommendations."
+          outingPreferences={outingPreferences}
+          onSubmitRestaurants={handleSubmitRestaurantPreferences}
+          onSubmitActivities={handleSubmitActivityPreferences}
+          onSkip={() => setOutingPreferencesOpen(false)}
+        />
+      );
     }
     if (partnerPreferencesOpen) {
       return (
