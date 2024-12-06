@@ -10,10 +10,7 @@ const config = {
     {
       files: ["*.graphql", "*.gql"],
       extends: "plugin:@graphql-eslint/operations-recommended",
-      plugins: [
-        "@graphql-eslint",
-        "@eave-fyi/eslint-plugin",
-      ],
+      plugins: ["@graphql-eslint", "@eave-fyi/eslint-plugin"],
       rules: {
         // If the client needs the ID they'll select it.
         // "@graphql-eslint/require-id-when-available": "off",
@@ -25,7 +22,7 @@ const config = {
               // Note that this is only enforced if `UnauthenticatedViewer` inline fragment is selected
               // So it doesn't prevent an operation from leaving that out entirely, which would also be a bug.
               "authAction",
-            ]
+            ],
           },
         ],
         "@eave-fyi/graphql-required-viewer-selections": "error",

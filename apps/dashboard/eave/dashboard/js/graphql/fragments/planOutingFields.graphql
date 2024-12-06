@@ -1,11 +1,11 @@
 fragment PlanOutingFields on PlanOutingResult {
-  ...on PlanOutingSuccess {
+  ... on PlanOutingSuccess {
     outing {
       ...OutingFields
     }
   }
 
-  ...on PlanOutingFailure {
+  ... on PlanOutingFailure {
     failureReason
   }
 }

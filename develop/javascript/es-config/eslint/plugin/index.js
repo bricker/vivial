@@ -3,5 +3,5 @@ const graphqlRequiredViewerSelections = require("./graphql-required-viewer-selec
 module.exports = {
   rules: {
     "graphql-required-viewer-selections": graphqlRequiredViewerSelections,
-  }
+  },
 };

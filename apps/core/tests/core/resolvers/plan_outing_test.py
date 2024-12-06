@@ -1,5 +1,3 @@
-from http import HTTPStatus
-
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
@@ -60,9 +58,9 @@ class TestPlanOutingEndpoints(BaseTestCase):
                     "groupPreferences": [
                         {
                             "restaurantCategoryIds": [str(RestaurantCategoryOrm.all()[0].id)],
-                            "activityCategoryIds": [str(ActivityCategoryOrm.all()[0].id)]
+                            "activityCategoryIds": [str(ActivityCategoryOrm.all()[0].id)],
                         }
-                    ]
+                    ],
                 },
             },
             account_id=account.id,
@@ -102,9 +100,9 @@ class TestPlanOutingEndpoints(BaseTestCase):
                     "groupPreferences": [
                         {
                             "restaurantCategoryIds": [str(RestaurantCategoryOrm.all()[0].id)],
-                            "activityCategoryIds": [str(ActivityCategoryOrm.all()[0].id)]
+                            "activityCategoryIds": [str(ActivityCategoryOrm.all()[0].id)],
                         }
-                    ]
+                    ],
                 },
             },
             account_id=account.id,
@@ -141,9 +139,9 @@ class TestPlanOutingEndpoints(BaseTestCase):
                     "groupPreferences": [
                         {
                             "restaurantCategoryIds": [str(RestaurantCategoryOrm.all()[0].id)],
-                            "activityCategoryIds": [str(ActivityCategoryOrm.all()[0].id)]
+                            "activityCategoryIds": [str(ActivityCategoryOrm.all()[0].id)],
                         }
-                    ]
+                    ],
                 },
             },
         )
@@ -166,9 +164,9 @@ class TestPlanOutingEndpoints(BaseTestCase):
                     "groupPreferences": [
                         {
                             "restaurantCategoryIds": [str(RestaurantCategoryOrm.all()[0].id)],
-                            "activityCategoryIds": [str(ActivityCategoryOrm.all()[0].id)]
+                            "activityCategoryIds": [str(ActivityCategoryOrm.all()[0].id)],
                         }
-                    ]
+                    ],
                 },
             },
         )
