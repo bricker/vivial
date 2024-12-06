@@ -6,8 +6,13 @@
 
 /** @type ESLintConfig */
 const config = {
-  extends: ["plugin:yaml/recommended"],
-  plugins: ["yaml"],
+  overrides: [
+    {
+      files: ["*.yaml", "*.yml"],
+      extends: ["plugin:yaml/recommended"],
+      plugins: ["yaml"],
+    },
+  ],
 };
 
 module.exports = config;

@@ -89,13 +89,6 @@ const config = {
         "no-unused-vars": "off", // Allow ava test context to be unused
       },
     },
-    {
-      // template curly syntax ${{ expr }} is used by github actions workflows
-      files: [".github/workflows/src/**/*.js"],
-      rules: {
-        "no-template-curly-in-string": "off",
-      },
-    },
   ],
 };
 
