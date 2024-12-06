@@ -1,7 +1,8 @@
+import { colors } from "$eave-dashboard/js/theme/colors";
 import { styled } from "@mui/material";
 import React, { useCallback, useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { CreateAccountFailureReason } from "$eave-dashboard/js/graphql/generated/graphql";
 import { loggedIn } from "$eave-dashboard/js/store/slices/authSlice";
@@ -9,12 +10,19 @@ import { useCreateAccountMutation } from "$eave-dashboard/js/store/slices/coreAp
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 
 import { AppRoute } from "$eave-dashboard/js/routes";
+import CloseButton from "../../Buttons/CloseButton";
 import AuthForm from "../../Forms/AuthForm";
+import { SIGN_UP_PAGE_VARIANTS } from "./constants";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
   margin: "0 auto",
   maxWidth: 450,
+}));
+
+const CloseButtonContainer = styled("div")(() => ({
+  textAlign: "end",
+  margin: "-8px 0px 8px",
 }));
 
 const ValuePropsImg = styled("img")(() => ({
@@ -26,8 +34,20 @@ const ValuePropsImg = styled("img")(() => ({
 const SignUpPage = () => {
   const [createAccount, { isLoading }] = useCreateAccountMutation();
   const [error, setError] = useState("");
+  const [searchParams, _] = useSearchParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const variant = searchParams.get("variant");
+
+  let title = "Create a free account to book";
+  let subtitle = "";
+  let allowClose = false;
+
+  if (variant === SIGN_UP_PAGE_VARIANTS["MULTIPLE_REROLLS"]) {
+    title = "🎯 Not quite right?";
+    subtitle = "Create a free Vivial account to unlock personalized recommendations.";
+    allowClose = true;
+  }
 
   const handleSubmit = useCallback(async ({ email, password }: { email: string; password: string }) => {
     const resp = await createAccount({ input: { email, plaintextPassword: password } });
@@ -55,8 +75,14 @@ const SignUpPage = () => {
 
   return (
     <PageContainer>
+      {allowClose && (
+        <CloseButtonContainer>
+          <CloseButton onClick={() => navigate("/")} iconColor={colors.whiteText} />
+        </CloseButtonContainer>
+      )}
       <AuthForm
-        title="Create a free account to book"
+        title={title}
+        subtitle={subtitle}
         cta="Create Free Account"
         onSubmit={handleSubmit}
         isLoading={isLoading}
