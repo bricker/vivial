@@ -1,10 +1,10 @@
 import { BookingDetailPeek } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute } from "$eave-dashboard/js/routes";
+import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 import { useListBookedOutingsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { CircularProgress, Paper as MuiPaper, Typography, styled } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import PrimaryButton from "../../Buttons/PrimaryButton";
 import Paper from "../../Paper";
 
@@ -87,7 +87,7 @@ const BookingDetailsContainer = styled("div")(() => ({
 }));
 
 const NewDateCta = () => {
-  // TODO: wtf does button do
+  // TODO: impl button
   return (
     <CtaContainer>
       <CenteredText variant="subtitle2">😢 No upcoming plans. Let's fix that</CenteredText>
@@ -100,7 +100,6 @@ const NewDateCta = () => {
 
 const BookingDetails = ({ booking }: { booking: BookingDetailPeek }) => {
   const imgUri = booking.photoUri;
-  // TODO: convert booking times to local time
   const dateDayString = booking.activityStartTime || booking.restaurantArrivalTime;
   if (!dateDayString) {
     // cant show much detail if there's no activity or restaurant
@@ -142,7 +141,7 @@ const BookingDetails = ({ booking }: { booking: BookingDetailPeek }) => {
 
 const PlansPage = () => {
   const { data, isLoading, isError } = useListBookedOutingsQuery({});
-  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [upcomingBookings, setUpcomingBookings] = useState<BookingDetailPeek[]>(() => []);
   const [pastBookings, setPastBookings] = useState<BookingDetailPeek[]>(() => []);
 
@@ -168,7 +167,7 @@ const PlansPage = () => {
         break;
       }
       case "UnauthenticatedViewer":
-        navigate(AppRoute.login);
+        dispatch(loggedOut());
         break;
       default:
         break;

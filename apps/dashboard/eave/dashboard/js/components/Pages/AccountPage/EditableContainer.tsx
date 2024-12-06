@@ -1,7 +1,6 @@
 import { UpdateReserverDetailsAccountFailureReason } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
-import { updateEmail } from "$eave-dashboard/js/store/slices/authSlice";
+import { loggedOut, updateEmail } from "$eave-dashboard/js/store/slices/authSlice";
 import {
   useListReserverDetailsQuery,
   useUpdateReserverDetailsAccountMutation,
@@ -12,7 +11,6 @@ import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { Button, CircularProgress, Typography, styled } from "@mui/material";
 import React, { useCallback, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import AccountBookingInfoEditForm from "../../Forms/AccountBookingInfoEditForm";
 import EditIcon from "../../Icons/EditIcon";
 import Paper from "../../Paper";
@@ -87,7 +85,6 @@ const EditableContainer = () => {
   const [error, setError] = useState<string | undefined>(undefined);
 
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const [updateReserverDetailsAccount, { isLoading: updateDetailsIsLoading }] =
     useUpdateReserverDetailsAccountMutation();
 
@@ -107,7 +104,7 @@ const EditableContainer = () => {
       break;
     }
     case "UnauthenticatedViewer": {
-      navigate(AppRoute.login);
+      dispatch(loggedOut());
       break;
     }
     default: {
@@ -170,7 +167,7 @@ const EditableContainer = () => {
             break;
           }
           case "UnauthenticatedViewer":
-            navigate(AppRoute.login);
+            dispatch(loggedOut());
             break;
           default:
             break;
