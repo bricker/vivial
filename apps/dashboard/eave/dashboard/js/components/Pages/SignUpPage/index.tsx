@@ -12,7 +12,7 @@ import { imageUrl } from "$eave-dashboard/js/util/asset";
 import { AppRoute } from "$eave-dashboard/js/routes";
 import CloseButton from "../../Buttons/CloseButton";
 import AuthForm from "../../Forms/AuthForm";
-import { SIGN_UP_PAGE_VARIANTS } from "./constants";
+import { SignUpPageVariant } from "./constants";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
@@ -37,13 +37,13 @@ const SignUpPage = () => {
   const [searchParams, _] = useSearchParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const variant = searchParams.get("variant");
+  const variant = searchParams.get("variant") as SignUpPageVariant;
 
   let title = "Create a free account to book";
   let subtitle = "";
   let allowClose = false;
 
-  if (variant === SIGN_UP_PAGE_VARIANTS["MULTIPLE_REROLLS"]) {
+  if (variant === SignUpPageVariant.MultiReroll) {
     title = "🎯 Not quite right?";
     subtitle = "Create a free Vivial account to unlock personalized recommendations.";
     allowClose = true;

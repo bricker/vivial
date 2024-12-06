@@ -1,8 +1,8 @@
-import { REROLL_COOKIE_ID, RerollCookie } from "$eave-dashboard/js/cookies";
 import { OutingBudget, type OutingPreferences } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { type Category } from "$eave-dashboard/js/types/category";
+import { CookieId, RerollCookie } from "$eave-dashboard/js/types/cookie";
 
 import { useGetOutingPreferencesQuery, useGetSearchRegionsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
@@ -102,7 +102,7 @@ const DateSurveyContainer = styled(Paper)(({ theme }) => ({
 const DateSurveyPage = () => {
   const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
   const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery({});
-  const [cookies, setCookie] = useCookies([REROLL_COOKIE_ID]);
+  const [cookies, setCookie] = useCookies([CookieId.Reroll]);
   const [budget, setBudget] = useState(OutingBudget.Expensive);
   const [headcount, setHeadcount] = useState(2);
   const [searchAreaIds, setSearchAreaIds] = useState<string[]>([]);
@@ -118,12 +118,12 @@ const DateSurveyPage = () => {
 
   const handleSubmit = useCallback(async () => {
     if (!isLoggedIn) {
-      const rerollCookie = cookies[REROLL_COOKIE_ID] as RerollCookie;
+      const rerollCookie = cookies[CookieId.Reroll] as RerollCookie;
       if (rerollCookie) {
         const rerolls = rerollCookie.rerolls + 1;
         const updated = new Date();
         const hoursSinceUpdate = getHoursDiff(updated, new Date(rerollCookie.updated));
-        setCookie(REROLL_COOKIE_ID, { rerolls, updated });
+        setCookie(CookieId.Reroll, { rerolls, updated });
         if (rerolls >= 4 && hoursSinceUpdate < 24) {
           navigate(AppRoute.signupMultiReroll);
         }
@@ -194,8 +194,8 @@ const DateSurveyPage = () => {
   }, [outingPreferencesData]);
 
   useEffect(() => {
-    if (!cookies[REROLL_COOKIE_ID]) {
-      setCookie(REROLL_COOKIE_ID, {
+    if (!cookies[CookieId.Reroll]) {
+      setCookie(CookieId.Reroll, {
         updated: new Date(),
         rerolls: 0,
       });

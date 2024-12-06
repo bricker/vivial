@@ -1,4 +1,4 @@
-import { SIGN_UP_PAGE_VARIANTS } from "./components/Pages/SignUpPage/constants";
+import { SignUpPageVariant } from "./components/Pages/SignUpPage/constants";
 
 export const AppRoute = {
   root: "/",
@@ -6,7 +6,7 @@ export const AppRoute = {
   logout: "/logout",
   forgotPassword: "/login/password",
   signup: "/signup",
-  signupMultiReroll: `/signup?variant=${SIGN_UP_PAGE_VARIANTS["MULTIPLE_REROLLS"]}`,
+  signupMultiReroll: `/signup?variant=${SignUpPageVariant.MultiReroll}`,
   account: "/account",
   plans: "/plans",
   help: "/help",
