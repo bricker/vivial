@@ -16,4 +16,6 @@ export const AppRoute = {
   payment: "/payment-example",
   accountPreferences: "/account/preferences",
   passwordReset: "/account/password",
+  checkoutComplete: "/checkout/complete",
+  checkoutReserve: "/checkout/reserve",
 };
