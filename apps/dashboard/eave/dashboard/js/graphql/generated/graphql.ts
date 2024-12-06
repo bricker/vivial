@@ -150,7 +150,6 @@ export type AuthenticatedViewerQueriesOutingArgs = {
 
 export type Booking = {
   __typename: 'Booking';
-  accountId: Scalars['UUID']['output'];
   id: Scalars['UUID']['output'];
   reserverDetailsId: Scalars['UUID']['output'];
 };
@@ -483,8 +482,8 @@ export enum UpdateAccountFailureReason {
 }
 
 export type UpdateAccountInput = {
-  email: Scalars['String']['input'];
-  plaintextPassword: Scalars['String']['input'];
+  email?: InputMaybe<Scalars['String']['input']>;
+  plaintextPassword?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateAccountResult = UpdateAccountFailure | UpdateAccountSuccess;
