@@ -1,7 +1,9 @@
 from datetime import datetime
+from typing import Self
 from uuid import UUID
 
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.shared.enums import ActivitySource
@@ -52,3 +54,9 @@ class OutingActivityOrm(Base):
         )
 
         return obj
+
+    @classmethod
+    async def get_one_by_outing_id(cls, session: AsyncSession, outing_id: UUID) -> Self:
+        lookup = cls.select().where(cls.outing_id == outing_id)
+        result = (await session.scalars(lookup)).one()
+        return result

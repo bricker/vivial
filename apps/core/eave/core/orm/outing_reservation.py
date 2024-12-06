@@ -1,7 +1,9 @@
 from datetime import datetime
+from typing import Self
 from uuid import UUID
 
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.graphql.types.restaurant import RestaurantSource
@@ -28,7 +30,7 @@ class OutingReservationOrm(Base):
     reservation_id: Mapped[str] = mapped_column()
     """ID of reservation in remote table"""
     reservation_source: Mapped[str] = mapped_column()
-    """ReservationSource enum value"""
+    """RestaurantSource enum value"""
     reservation_start_time: Mapped[datetime] = mapped_column()
     headcount: Mapped[int] = mapped_column(name="num_attendees")
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
@@ -53,3 +55,9 @@ class OutingReservationOrm(Base):
         )
 
         return obj
+
+    @classmethod
+    async def get_one_by_outing_id(cls, session: AsyncSession, outing_id: UUID) -> Self:
+        lookup = cls.select().where(cls.outing_id == outing_id)
+        result = (await session.scalars(lookup)).one()
+        return result

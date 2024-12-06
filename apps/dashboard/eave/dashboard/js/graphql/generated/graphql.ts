@@ -131,15 +131,16 @@ export type AuthenticatedViewerMutationsUpdateReserverDetailsAccountArgs = {
 
 export type AuthenticatedViewerQueries = {
   __typename: 'AuthenticatedViewerQueries';
-  bookedOutings: Array<Outing>;
+  bookedOutingDetails: BookingDetails;
+  bookedOutings: Array<BookingDetailPeek>;
   outing: Outing;
   outingPreferences: OutingPreferences;
   reserverDetails: Array<ReserverDetails>;
 };
 
 
-export type AuthenticatedViewerQueriesBookedOutingsArgs = {
-  input?: InputMaybe<ListBookedOutingsInput>;
+export type AuthenticatedViewerQueriesBookedOutingDetailsArgs = {
+  input: GetBookingDetailsQueryInput;
 };
 
 
@@ -149,8 +150,30 @@ export type AuthenticatedViewerQueriesOutingArgs = {
 
 export type Booking = {
   __typename: 'Booking';
+  accountId: Scalars['UUID']['output'];
   id: Scalars['UUID']['output'];
   reserverDetailsId: Scalars['UUID']['output'];
+};
+
+export type BookingDetailPeek = {
+  __typename: 'BookingDetailPeek';
+  activityName?: Maybe<Scalars['String']['output']>;
+  activityStartTime?: Maybe<Scalars['DateTime']['output']>;
+  id: Scalars['UUID']['output'];
+  photoUri?: Maybe<Scalars['String']['output']>;
+  restaurantArrivalTime?: Maybe<Scalars['DateTime']['output']>;
+  restaurantName?: Maybe<Scalars['String']['output']>;
+};
+
+export type BookingDetails = {
+  __typename: 'BookingDetails';
+  activity?: Maybe<Activity>;
+  activityStartTime?: Maybe<Scalars['DateTime']['output']>;
+  drivingTime?: Maybe<Scalars['String']['output']>;
+  headcount: Scalars['Int']['output'];
+  id: Scalars['UUID']['output'];
+  restaurant?: Maybe<Restaurant>;
+  restaurantArrivalTime?: Maybe<Scalars['DateTime']['output']>;
 };
 
 export type CreateAccountFailure = {
@@ -218,8 +241,8 @@ export type CreatePaymentIntentSuccess = {
   paymentIntent: PaymentIntent;
 };
 
-export type ListBookedOutingsInput = {
-  outingState: OutingState;
+export type GetBookingDetailsQueryInput = {
+  bookingId: Scalars['UUID']['input'];
 };
 
 export type Location = {
@@ -311,11 +334,6 @@ export type OutingPreferencesInput = {
   openToBars: Scalars['Boolean']['input'];
   restaurantCategoryIds: Array<Scalars['UUID']['input']>;
 };
-
-export enum OutingState {
-  Future = 'FUTURE',
-  Past = 'PAST'
-}
 
 export type PaymentIntent = {
   __typename: 'PaymentIntent';
@@ -600,12 +618,10 @@ export type UpdateReserverDetailsAccountMutationVariables = Exact<{
 
 export type UpdateReserverDetailsAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateReserverDetailsAccount: { __typename: 'UpdateReserverDetailsAccountFailure', failureReason: UpdateReserverDetailsAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateReserverDetailsAccountSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }, account: { __typename: 'Account', id: string, email: string } } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
 
-export type ListBookedOutingsQueryVariables = Exact<{
-  input?: InputMaybe<ListBookedOutingsInput>;
-}>;
+export type ListBookedOutingsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ListBookedOutingsQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', bookedOutings: Array<{ __typename: 'Outing', id: string, headcount: number, activityStartTime?: string | null, restaurantArrivalTime?: string | null, drivingTime?: string | null, activity?: { __typename: 'Activity', id: string, source: ActivitySource, name: string, description: string, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri: string, latitude: number, longitude: number, formattedAddress: string } }, photos?: { __typename: 'Photos', coverPhotoUri: string, supplementalPhotoUris?: Array<string> | null } | null, ticketInfo?: { __typename: 'ActivityTicketInfo', type?: string | null, notes?: string | null, cost?: number | null, fee?: number | null, tax?: number | null } | null } | null, restaurant?: { __typename: 'Restaurant', id: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri: string, latitude: number, longitude: number, formattedAddress: string }, photos?: { __typename: 'Photos', coverPhotoUri: string, supplementalPhotoUris?: Array<string> | null } | null } | null }> } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
+export type ListBookedOutingsQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', bookedOutings: Array<{ __typename: 'BookingDetailPeek', id: string, activityStartTime?: string | null, restaurantArrivalTime?: string | null, activityName?: string | null, restaurantName?: string | null, photoUri?: string | null }> } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
 
 export type ListReserverDetailsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -911,69 +927,18 @@ export const UpdateReserverDetailsAccountDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<UpdateReserverDetailsAccountMutation, UpdateReserverDetailsAccountMutationVariables>;
 export const ListBookedOutingsDocument = new TypedDocumentString(`
-    query ListBookedOutings($input: ListBookedOutingsInput) {
+    query ListBookedOutings {
   viewer {
     __typename
     ... on AuthenticatedViewerQueries {
       __typename
-      bookedOutings(input: $input) {
+      bookedOutings {
         id
-        headcount
         activityStartTime
         restaurantArrivalTime
-        drivingTime
-        activity {
-          id
-          source
-          name
-          description
-          websiteUri
-          doorTips
-          insiderTips
-          parkingTips
-          venue {
-            name
-            location {
-              directionsUri
-              latitude
-              longitude
-              formattedAddress
-            }
-          }
-          photos {
-            coverPhotoUri
-            supplementalPhotoUris
-          }
-          ticketInfo {
-            type
-            notes
-            cost
-            fee
-            tax
-          }
-        }
-        restaurant {
-          id
-          source
-          name
-          reservable
-          rating
-          primaryTypeName
-          websiteUri
-          description
-          parkingTips
-          customerFavorites
-          location {
-            directionsUri
-            latitude
-            longitude
-            formattedAddress
-          }
-          photos {
-            coverPhotoUri
-            supplementalPhotoUris
-          }
-        }
+        activityName
+        restaurantName
+        photoUri
       }
     }
     ... on UnauthenticatedViewer {

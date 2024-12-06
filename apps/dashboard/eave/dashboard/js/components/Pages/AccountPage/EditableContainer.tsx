@@ -1,7 +1,7 @@
 import { UpdateReserverDetailsAccountFailureReason } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
-import { updateEmail } from "$eave-dashboard/js/store/slices/authSlice";
+import { loggedOut, updateEmail } from "$eave-dashboard/js/store/slices/authSlice";
 import {
   useListReserverDetailsQuery,
   useUpdateReserverDetailsAccountMutation,
@@ -107,6 +107,7 @@ const EditableContainer = () => {
       break;
     }
     case "UnauthenticatedViewer": {
+      dispatch(loggedOut());
       navigate(AppRoute.login);
       break;
     }
@@ -170,6 +171,7 @@ const EditableContainer = () => {
             break;
           }
           case "UnauthenticatedViewer":
+            dispatch(loggedOut());
             navigate(AppRoute.login);
             break;
           default:
