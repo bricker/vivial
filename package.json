@@ -5,7 +5,7 @@
   },
   "type": "module",
   "devDependencies": {
-    "@graphql-eslint/eslint-plugin": "3.x",
+    "@graphql-eslint/eslint-plugin": "4.x",
     "@types/node": "18.x",
     "@types/on-finished": "2.x",
     "@types/request": "2.x",

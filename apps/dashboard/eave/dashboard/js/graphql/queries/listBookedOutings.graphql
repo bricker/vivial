@@ -10,7 +10,7 @@ query ListBookedOutings($input: ListBookedOutingsInput) {
         restaurantArrivalTime
         drivingTime
         activity {
-          id
+          sourceId
           source
           name
           description
@@ -40,7 +40,7 @@ query ListBookedOutings($input: ListBookedOutingsInput) {
           }
         }
         restaurant {
-          id
+          sourceId
           source
           name
           reservable
