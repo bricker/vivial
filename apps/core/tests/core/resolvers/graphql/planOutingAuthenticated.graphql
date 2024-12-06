@@ -1,4 +1,4 @@
-mutation PlanOuting($input: PlanOutingInput!) {
+mutation PlanOutingAuthenticated($input: PlanOutingInput!) {
   viewer {
     ... on AuthenticatedViewerMutations {
       planOuting(input: $input) {
@@ -27,7 +27,7 @@ mutation PlanOuting($input: PlanOutingInput!) {
       }
     }
 
-    ... on UnauthenticatedViewer {
+    ...on UnauthenticatedViewer {
       authAction
     }
   }

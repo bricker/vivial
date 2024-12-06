@@ -1,4 +1,4 @@
-mutation ReplanOuting($input: ReplanOutingInput!) {
+mutation ReplanOutingUnauthenticated($input: ReplanOutingInput!) {
   replanOuting(input: $input) {
     ... on ReplanOutingSuccess {
       outing {

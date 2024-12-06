@@ -1,3 +1,10 @@
+// @ts-check
+
+/**
+ * @typedef {import("eslint").Linter.LegacyConfig} ESLintConfig
+ */
+
+/** @type ESLintConfig */
 const config = {
   overrides: [
     {

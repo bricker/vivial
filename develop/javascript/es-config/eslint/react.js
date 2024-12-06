@@ -1,3 +1,10 @@
+// @ts-check
+
+/**
+ * @typedef {import("eslint").Linter.LegacyConfig} ESLintConfig
+ */
+
+/** @type ESLintConfig */
 const config = {
   extends: ["plugin:react/recommended"],
   plugins: ["react"],

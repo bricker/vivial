@@ -1,4 +1,4 @@
-mutation ReplanOuting($input: ReplanOutingInput!) {
+mutation ReplanOutingAuthenticated($input: ReplanOutingInput!) {
   viewer {
     ... on AuthenticatedViewerMutations {
       replanOuting(input: $input) {
