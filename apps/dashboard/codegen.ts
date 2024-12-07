@@ -22,7 +22,6 @@ const config: CodegenConfig = {
         defaultScalarType: "string",
         strictScalars: true,
         useTypeImports: true,
-        // nonOptionalTypename: true,
 
         scalars: {
           // These scalars match what the server provided, including the scalars built-in to Strawberry:

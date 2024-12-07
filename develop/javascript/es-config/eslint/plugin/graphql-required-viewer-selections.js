@@ -59,37 +59,6 @@ const rule = {
           });
         }
       },
-
-      // OperationDefinition(node) {
-      //   const viewerNode = node.selectionSet.selections.find((selection) => {
-      //     return selection.kind === Kind.FIELD
-      //       && "name" in selection
-      //       && selection.name?.value === "viewer";
-      //   });
-
-      //   if (!viewerNode) {
-      //     return;
-      //   }
-
-      //   const hasRequiredInlineFragment = viewerNode.selectionSet.selections.some((selection) => {
-      //     return selection.kind === Kind.INLINE_FRAGMENT
-      //       && "typeCondition" in selection
-      //       && selection.typeCondition?.name.value === "UnauthenticatedViewer"
-      //       && selection.selectionSet.selections.some((f) => {
-      //         return f.kind === Kind.FIELD
-      //           && "name" in f
-      //           && f.name.value === "authAction"
-      //           && !("alias" in f && !!f.alias)
-      //       });
-      //   });
-
-      //   if (!hasRequiredInlineFragment) {
-      //     context.report({
-      //       node,
-      //       message: "Viewer queries are required to select `UnauthenticatedViewer.authAction` (unaliased) to support automated auth token refresh.",
-      //     });
-      //   }
-      // }
     };
   },
 };

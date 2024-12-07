@@ -192,8 +192,8 @@ class OutingPlanner:
         self.activity_start_time = activity_start_time
         self.restaurant_arrival_time = restaurant_arrival_time
 
-        self.ranked_restaurant_category_preferences = _combine_restaurant_categories(individual_preferences)
-        self.ranked_activity_category_group_preferences = _combine_activity_categories(individual_preferences)
+        self.group_restaurant_category_preferences = _combine_restaurant_categories(individual_preferences)
+        self.group_activity_category_preferences = _combine_activity_categories(individual_preferences)
         self.group_open_to_bars = _combine_bar_openness(individual_preferences)
 
     async def plan_activity(self) -> Activity | None:
@@ -232,7 +232,7 @@ class OutingPlanner:
                 or_(
                     *[
                         EventbriteEventOrm.vivial_activity_category_id == cat.id
-                        for cat in self.ranked_activity_category_group_preferences
+                        for cat in self.group_activity_category_preferences
                     ]
                 )
             )
@@ -429,7 +429,7 @@ class OutingPlanner:
         else:
             # Already randomized in combiner funcs
             google_category_ids = [
-                gcid for cat in self.ranked_restaurant_category_preferences for gcid in cat.google_category_ids
+                gcid for cat in self.group_restaurant_category_preferences for gcid in cat.google_category_ids
             ]
 
         # If an activity has been selected, use that as the search area.

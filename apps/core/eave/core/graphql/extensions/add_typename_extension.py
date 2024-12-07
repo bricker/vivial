@@ -4,7 +4,7 @@ from graphql import ExecutableDefinitionNode, FieldNode, NameNode, SelectionSetN
 from strawberry.extensions import SchemaExtension
 
 
-class TypenameExtension(SchemaExtension):
+class AddTypenameExtension(SchemaExtension):
     """
     Adds __typename to all selection sets in the document.
     This probably negatively impacts performance. Prefer to do this in the client if possible.
