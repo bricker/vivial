@@ -1,4 +1,5 @@
 import enum
+
 from eave.stdlib.matched_str_enum import MatchedStrEnum
 
 from .base import StdlibBaseTestCase
