@@ -11,14 +11,15 @@ const DateItineraryPage = () => {
   const _outingId = params["outingId"];
 
   const toggleBookingOpen = useCallback(() => {
-    setBookingOpen(!useParams);
-  }, [useParams]);
+    setBookingOpen(!bookingOpen);
+  }, [bookingOpen]);
 
   return (
     <PageContainer>
       <Modal title="Booking Info" onClose={toggleBookingOpen} open={bookingOpen}>
         TODO: Booking modal content goes here (pending Liam).
       </Modal>
+      <button onClick={toggleBookingOpen}>TEMP: Open Booking Modal</button>
     </PageContainer>
   );
 };
