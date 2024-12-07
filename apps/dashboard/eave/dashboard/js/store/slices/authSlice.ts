@@ -38,10 +38,6 @@ export const authSlice = createSlice({
     loggedOut: (state) => {
       state.isLoggedIn = false;
       state.account = null;
-
-      // Use window.location so that the browser is sent through the server to delete the auth cookies.
-      // navigate() does everything client-side.
-      window.location.assign(AppRoute.logout);
     },
     updateEmail: (state, action: { payload: { email: string } }) => {
       if (state.account) {

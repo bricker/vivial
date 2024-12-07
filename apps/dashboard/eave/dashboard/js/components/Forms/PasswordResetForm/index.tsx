@@ -116,6 +116,7 @@ const PasswordResetForm = () => {
           }
           case "UnauthenticatedViewer":
             dispatch(loggedOut());
+            window.location.assign(AppRoute.logout);
             break;
           default:
             // loading/not-requested

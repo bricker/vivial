@@ -1,5 +1,4 @@
 import { BookingDetailPeek } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute } from "$eave-dashboard/js/routes";
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 import { useListBookedOutingsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
@@ -9,6 +8,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import PrimaryButton from "../../Buttons/PrimaryButton";
 import Paper from "../../Paper";
+import { AppRoute } from "$eave-dashboard/js/routes";
 
 const PageContainer = styled("div")(() => ({
   padding: 16,
@@ -171,6 +171,7 @@ const PlansPage = () => {
       }
       case "UnauthenticatedViewer":
         dispatch(loggedOut());
+        window.location.assign(AppRoute.logout);
         break;
       default:
         break;
