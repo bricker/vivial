@@ -1,18 +1,26 @@
 import { AppRoute } from "$eave-dashboard/js/routes";
 import { colors } from "$eave-dashboard/js/theme/colors";
+import { imageUrl } from "$eave-dashboard/js/util/asset";
 import { styled, Typography } from "@mui/material";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import HighlightButton from "../../Buttons/HighlightButton";
 import CalendarCheckIcon from "../../Icons/CalendarCheckIcon";
 import Paper from "../../Paper";
-import VivialLogo from "../../VivialLogo";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
+  width: "100%",
+  display: "flex",
+  flexDirection: "row",
+  justifyContent: "center",
+}));
+
+const ContentContainer = styled("div")(() => ({
   display: "flex",
   flexDirection: "column",
   gap: 32,
+  maxWidth: 450,
 }));
 
 const ButtonsContainer = styled("div")(() => ({
@@ -37,7 +45,7 @@ const BookedContainer = styled(Paper)(() => ({
   gap: 16,
 }));
 
-const Divider = styled("div")(({ theme }) => ({
+const Divider = styled("div")(() => ({
   borderColor: colors.midGreySecondaryField,
   borderStyle: "solid",
   width: "100%",
@@ -53,35 +61,39 @@ const ConfirmationsContainer = styled("div")(() => ({
 const ConfirmationOptionContainer = styled("div")(() => ({
   display: "flex",
   flexDirection: "row",
+  alignItems: "center",
   gap: 13,
   padding: 8,
 }));
 
-const LogoContainer = styled("div")(() => ({
+const LogoContainer = styled("div")<{ padding: number; backgroundColor: string }>(({ padding, backgroundColor }) => ({
   borderRadius: 10,
-  width: "30%",
-  aspectRatio: 0.2941,
+  width: "40%",
+  aspectRatio: 3.4,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  padding: 8,
+  backgroundColor,
+  padding,
+}));
+
+const LogoImage = styled("img")(() => ({
+  height: "100%",
 }));
 
 interface ConfirmationOptionDetail {
-  logo: React.ReactNode;
+  logoUri: string;
+  alt: string;
   bgColor: string;
   text: string;
+  padding: number;
 }
 
 const ConfirmationOption = ({ option }: { option: ConfirmationOptionDetail }) => {
   return (
     <ConfirmationOptionContainer>
-      <LogoContainer
-        sx={{
-          backgroundColor: option.bgColor,
-        }}
-      >
-        {option.logo}
+      <LogoContainer backgroundColor={option.bgColor} padding={option.padding}>
+        <LogoImage alt={option.alt} src={option.logoUri} />
       </LogoContainer>
       <Typography variant="body1">{option.text}</Typography>
     </ConfirmationOptionContainer>
@@ -90,21 +102,25 @@ const ConfirmationOption = ({ option }: { option: ConfirmationOptionDetail }) =>
 
 const confirmationOptions: ConfirmationOptionDetail[] = [
   {
-    logo: <VivialLogo color="black" />,
+    logoUri: imageUrl("vivial-word-logo.png"),
+    alt: "Vivial",
     bgColor: colors.vivialYellow,
     text: "for a itinerary confirmation and receipt (if applicable).",
+    padding: 10,
   },
   {
-    logoUri: "", // TODO:
+    logoUri: imageUrl("opentable-logo.png"),
     alt: "Opentable",
     bgColor: "#DA3644",
     text: "for your reservation confirmation.",
+    padding: 8,
   },
   {
-    logoUri: "", // TODO:
+    logoUri: imageUrl("eventbrite-logo.png"),
     alt: "Eventbrite",
     bgColor: "#F05537",
     text: "for your tickets and event confirmation.",
+    padding: 12,
   },
 ];
 
@@ -121,29 +137,33 @@ const CheckoutCompletePage = () => {
 
   return (
     <PageContainer>
-      <BookedContainer>
-        <TitleContainer>
-          <CalendarCheckIcon />
-          <Typography variant="h3">You're all booked!</Typography>
-        </TitleContainer>
-        <Typography variant="subtitle1">
-          Check your inbox. Depending on your plans, you may see confirmations from the following:
-        </Typography>
-        <Divider />
-        <ConfirmationsContainer>
-          {confirmationOptions.map((option) => (
-            <ConfirmationOption option={option} />
-          ))}
-        </ConfirmationsContainer>
-      </BookedContainer>
-      <ButtonsContainer>
-        <HighlightButton highlightColor={colors.vivialYellow} highlighted onClick={handleNewDateClick}>
-          🎲 New date
-        </HighlightButton>
-        <HighlightButton highlightColor={colors.pureWhite} highlighted onClick={handleViewPlansClick}>
-          View upcoming plans
-        </HighlightButton>
-      </ButtonsContainer>
+      <ContentContainer>
+        <BookedContainer>
+          <TitleContainer>
+            <CalendarCheckIcon />
+            <Typography variant="h3" sx={{ color: "white" }}>
+              You're all booked!
+            </Typography>
+          </TitleContainer>
+          <Typography variant="subtitle1">
+            Check your inbox. Depending on your plans, you may see confirmations from the following:
+          </Typography>
+          <Divider />
+          <ConfirmationsContainer>
+            {confirmationOptions.map((option) => (
+              <ConfirmationOption option={option} />
+            ))}
+          </ConfirmationsContainer>
+        </BookedContainer>
+        <ButtonsContainer>
+          <HighlightButton highlightColor={colors.vivialYellow} highlighted onClick={handleNewDateClick}>
+            🎲 New date
+          </HighlightButton>
+          <HighlightButton highlightColor={colors.pureWhite} highlighted onClick={handleViewPlansClick}>
+            View upcoming plans
+          </HighlightButton>
+        </ButtonsContainer>
+      </ContentContainer>
     </PageContainer>
   );
 };

@@ -15,6 +15,7 @@ import GlobalLayout from "./components/Global/GlobalLayout";
 import AccountPage from "./components/Pages/AccountPage";
 import AccountPreferencesPage from "./components/Pages/AccountPreferencesPage";
 import BookingConfirmationPage from "./components/Pages/BookingConfirmationPage/index";
+import CheckoutCompletePage from "./components/Pages/CheckoutCompletePage";
 import DateSurveyPage from "./components/Pages/DateSurveyPage";
 import ForgotPasswordPage from "./components/Pages/ForgotPasswordPage";
 import HelpPage from "./components/Pages/HelpPage";
@@ -67,6 +68,7 @@ const App = () => {
               <Route path={AppRoute.bookingConfirmation} element={<BookingConfirmationPage />} />
               <Route path={AppRoute.passwordReset} element={<PasswordResetPage />} />
               <Route path={AppRoute.accountPreferences} element={<AccountPreferencesPage />} />
+              <Route path={AppRoute.checkoutComplete} element={<CheckoutCompletePage />} />
             </Route>
 
             {/* TODO: Remove /payment-example Route. */}
