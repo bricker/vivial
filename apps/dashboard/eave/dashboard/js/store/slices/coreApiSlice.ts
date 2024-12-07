@@ -3,6 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import {
   CreateAccountDocument,
+  CreateBookingDocument,
   CreatePaymentIntentDocument,
   ListBookedOutingsDocument,
   ListBookedOutingsQuery,
@@ -10,13 +11,20 @@ import {
   ListReserverDetailsDocument,
   LoginDocument,
   OutingPreferencesDocument,
+  PlanOutingAuthenticatedDocument,
+  PlanOutingUnauthenticatedDocument,
+  ReplanOutingAuthenticatedDocument,
+  ReplanOutingUnauthenticatedDocument,
   SearchRegionsDocument,
+  SubmitReserverDetailsDocument,
   UpdateAccountDocument,
   UpdateAccountMutation,
   UpdateAccountMutationVariables,
   UpdateReserverDetailsAccountDocument,
   type CreateAccountMutation,
   type CreateAccountMutationVariables,
+  type CreateBookingMutation,
+  type CreateBookingMutationVariables,
   type CreatePaymentIntentMutation,
   type CreatePaymentIntentMutationVariables,
   type ListReserverDetailsQuery,
@@ -25,8 +33,18 @@ import {
   type LoginMutationVariables,
   type OutingPreferencesQuery,
   type OutingPreferencesQueryVariables,
+  type PlanOutingAuthenticatedMutation,
+  type PlanOutingAuthenticatedMutationVariables,
+  type PlanOutingUnauthenticatedMutation,
+  type PlanOutingUnauthenticatedMutationVariables,
+  type ReplanOutingAuthenticatedMutation,
+  type ReplanOutingAuthenticatedMutationVariables,
+  type ReplanOutingUnauthenticatedMutation,
+  type ReplanOutingUnauthenticatedMutationVariables,
   type SearchRegionsQuery,
   type SearchRegionsQueryVariables,
+  type SubmitReserverDetailsMutation,
+  type SubmitReserverDetailsMutationVariables,
   type UpdateReserverDetailsAccountMutation,
   type UpdateReserverDetailsAccountMutationVariables,
 } from "$eave-dashboard/js/graphql/generated/graphql";
@@ -68,6 +86,7 @@ export const coreApiSlice = createApi({
         return { data };
       },
     }),
+
     /**
      * Core API - GraphQL Mutations
      */
@@ -99,12 +118,72 @@ export const coreApiSlice = createApi({
       },
     }),
 
+    submitReserverDetails: builder.mutation<
+      SubmitReserverDetailsMutation,
+      SubmitReserverDetailsMutationVariables
+    >({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: SubmitReserverDetailsDocument, variables });
+        return { data };
+      },
+    }),
+
     updateReserverDetailsAccount: builder.mutation<
       UpdateReserverDetailsAccountMutation,
       UpdateReserverDetailsAccountMutationVariables
     >({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: UpdateReserverDetailsAccountDocument, variables });
+        return { data };
+      },
+    }),
+
+    planOutingAuthenticated: builder.mutation<
+      PlanOutingAuthenticatedMutation,
+      PlanOutingAuthenticatedMutationVariables
+    >({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: PlanOutingAuthenticatedDocument, variables });
+        return { data };
+      },
+    }),
+
+    planOutingUnauthenticated: builder.mutation<
+      PlanOutingUnauthenticatedMutation,
+      PlanOutingUnauthenticatedMutationVariables
+    >({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: PlanOutingUnauthenticatedDocument, variables });
+        return { data };
+      },
+    }),
+
+    replanOutingAuthenticated: builder.mutation<
+      ReplanOutingAuthenticatedMutation,
+      ReplanOutingAuthenticatedMutationVariables
+    >({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: ReplanOutingAuthenticatedDocument, variables });
+        return { data };
+      },
+    }),
+
+    replanOutingUnauthenticated: builder.mutation<
+      ReplanOutingUnauthenticatedMutation,
+      ReplanOutingUnauthenticatedMutationVariables
+    >({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: ReplanOutingUnauthenticatedDocument, variables });
+        return { data };
+      },
+    }),
+
+    createBooking: builder.mutation<
+      CreateBookingMutation,
+      CreateBookingMutationVariables
+    >({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: CreateBookingDocument, variables });
         return { data };
       },
     }),
