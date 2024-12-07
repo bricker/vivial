@@ -1,35 +1,28 @@
 from uuid import UUID
 
 from eave.core import database
-from eave.core.analytics import ANALYTICS
 from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
-from eave.core.graphql.types.survey import Survey
+from eave.core.graphql.types.outing import Outing, OutingPreferencesInput
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.outing_activity import OutingActivityOrm
 from eave.core.orm.outing_reservation import OutingReservationOrm
 from eave.core.orm.survey import SurveyOrm
 
 
-async def create_outing_plan(
+async def create_outing(
     *,
+    individual_preferences: list[OutingPreferencesInput],
+    account_id: UUID | None,
     visitor_id: UUID,
     survey: SurveyOrm,
-    account_id: UUID | None,
-    reroll: bool,
-) -> OutingOrm:
-    async with database.async_session.begin() as db_session:
-        if account_id is not None:
-            pass
-            # account = await AccountOrm.get_one(session=db_session, id=account_id)
-
-    planner = OutingPlanner(
-        group=[],  # TODO: pass user preferences
-        constraints=Survey.from_orm(survey),
-    )
-    plan = await planner.plan()
+) -> Outing:
+    plan = await OutingPlanner(
+        individual_preferences=individual_preferences,
+        survey=survey,
+    ).plan()
 
     async with database.async_session.begin() as db_session:
-        outing = await OutingOrm.build(
+        outing_orm = await OutingOrm.build(
             visitor_id=visitor_id,
             survey_id=survey.id,
             account_id=account_id,
@@ -37,8 +30,8 @@ async def create_outing_plan(
 
         if plan.activity and plan.activity_start_time:
             await OutingActivityOrm.build(
-                outing_id=outing.id,
-                activity_id=plan.activity.id,
+                outing_id=outing_orm.id,
+                activity_id=plan.activity.source_id,
                 activity_source=plan.activity.source,
                 activity_start_time=plan.activity_start_time,
                 headcount=survey.headcount,
@@ -46,19 +39,21 @@ async def create_outing_plan(
 
         if plan.restaurant and plan.restaurant_arrival_time:
             await OutingReservationOrm.build(
-                outing_id=outing.id,
-                reservation_id=plan.restaurant.id,
+                outing_id=outing_orm.id,
+                reservation_id=plan.restaurant.source_id,
                 reservation_source=plan.restaurant.source,
                 reservation_start_time=plan.restaurant_arrival_time,
                 headcount=survey.headcount,
             ).save(session=db_session)
 
-    ANALYTICS.track(
-        event_name="outing plan created",
-        account_id=account_id,
-        visitor_id=visitor_id,
-        extra_properties={
-            "reroll": reroll,
-        },
-    )
+        outing = Outing(
+            id=outing_orm.id,
+            headcount=survey.headcount,
+            activity=plan.activity,
+            activity_start_time=plan.activity_start_time,
+            restaurant=plan.restaurant,
+            restaurant_arrival_time=plan.restaurant_arrival_time,
+            driving_time=None,  # TODO
+        )
+
     return outing

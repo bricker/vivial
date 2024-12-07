@@ -1,0 +1,5 @@
+mutation PlanOutingUnauthenticated($input: PlanOutingInput!) {
+  planOuting(input: $input) {
+    ...PlanOutingFields
+  }
+}

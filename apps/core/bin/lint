@@ -7,6 +7,7 @@ source "${EAVE_HOME}"/develop/functions.bash
 (
 	cd "$(e.parentpath)"
 	"${EAVE_HOME}"/develop/python/_lint_base
+	"${EAVE_HOME}"/develop/javascript/_lint_base
 	"${EAVE_HOME}"/develop/shared/lint-shell .
 	"${EAVE_HOME}"/develop/shared/lint-docker .
 )

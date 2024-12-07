@@ -1,6 +1,6 @@
 mutation CreateAccount($input: CreateAccountInput!) {
   createAccount(input: $input) {
-    ...on CreateAccountSuccess {
+    ... on CreateAccountSuccess {
       __typename
 
       account {
@@ -9,7 +9,7 @@ mutation CreateAccount($input: CreateAccountInput!) {
       }
     }
 
-    ...on CreateAccountFailure {
+    ... on CreateAccountFailure {
       __typename
       failureReason
 

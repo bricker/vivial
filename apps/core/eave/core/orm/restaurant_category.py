@@ -23,6 +23,9 @@ class RestaurantCategoryOrm:
         return _RESTAURANT_CATEGORIES_PK.get(restaurant_category_id)
 
 
+# The Category ID for the special "Bar" category
+MAGIC_BAR_RESTAURANT_CATEGORY_ID = UUID("a7251c9d-6af0-423b-a11d-7015ee3f85fc")
+
 _RESTAURANT_CATEGORIES_TABLE = (
     RestaurantCategoryOrm(
         id=UUID("ccb375f8e428489eac14192d12f0fd5a"),
@@ -31,7 +34,7 @@ _RESTAURANT_CATEGORIES_TABLE = (
         google_category_ids=["american_restaurant", "hamburger_restaurant"],
     ),
     RestaurantCategoryOrm(
-        id=UUID("a7251c9d-6af0-423b-a11d-7015ee3f85fc"),
+        id=MAGIC_BAR_RESTAURANT_CATEGORY_ID,
         name="Bar",
         is_default=True,
         google_category_ids=["bar"],

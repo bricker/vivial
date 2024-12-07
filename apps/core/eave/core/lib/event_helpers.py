@@ -49,7 +49,7 @@ async def get_activity(
                 """).strip()
 
             return Activity(
-                id=event_id,
+                source_id=event_id,
                 source=event_source,
                 name=details.title,
                 description=details.description,
@@ -82,7 +82,7 @@ async def get_activity(
             )
 
             return Activity(
-                id=event_id,
+                source_id=event_id,
                 source=event_source,
                 name=details.display_name.text,
                 description="",
@@ -123,7 +123,7 @@ async def get_activity(
             formatted_address = address.get("localized_address_display")
 
             return Activity(
-                id=event_id,
+                source_id=event_id,
                 source=event_source,
                 name=name or "",
                 description=details.get("summary") or "",
@@ -173,7 +173,7 @@ async def get_restuarant(
             )
 
             return Restaurant(
-                id=event_id,
+                source_id=event_id,
                 source=event_source,
                 location=Location(
                     directions_uri=details.google_maps_uri,

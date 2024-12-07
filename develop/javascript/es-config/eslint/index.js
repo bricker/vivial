@@ -1,3 +1,10 @@
+// @ts-check
+
+/**
+ * @typedef {import("eslint").Linter.LegacyConfig} ESLintConfig
+ */
+
+/** @type ESLintConfig */
 const config = {
   extends: [
     "eslint:recommended",
@@ -80,13 +87,6 @@ const config = {
       files: ["*.test.js", "*.test.ts"],
       rules: {
         "no-unused-vars": "off", // Allow ava test context to be unused
-      },
-    },
-    {
-      // template curly syntax ${{ expr }} is used by github actions workflows
-      files: [".github/workflows/src/**/*.js"],
-      rules: {
-        "no-template-curly-in-string": "off",
       },
     },
   ],

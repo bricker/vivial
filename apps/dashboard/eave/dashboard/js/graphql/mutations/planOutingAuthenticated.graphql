@@ -1,0 +1,16 @@
+mutation PlanOutingAuthenticated($input: PlanOutingInput!) {
+  viewer {
+    ... on AuthenticatedViewerMutations {
+      __typename
+
+      planOuting(input: $input) {
+        ...PlanOutingFields
+      }
+    }
+
+    ... on UnauthenticatedViewer {
+      __typename
+      authAction
+    }
+  }
+}

@@ -1,0 +1,16 @@
+mutation ReplanOutingAuthenticated($input: ReplanOutingInput!) {
+  viewer {
+    ... on AuthenticatedViewerMutations {
+      __typename
+
+      replanOuting(input: $input) {
+        ...ReplanOutingFields
+      }
+    }
+
+    ... on UnauthenticatedViewer {
+      __typename
+      authAction
+    }
+  }
+}

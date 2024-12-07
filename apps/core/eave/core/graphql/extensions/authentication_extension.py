@@ -29,30 +29,26 @@ class UnauthenticatedViewer:
 
 
 class AuthenticationExtension(FieldExtension):
-    def __init__(self, *, allow_anonymous: bool = False) -> None:
-        self.allow_anonymous = allow_anonymous
-
     async def resolve_async(
         self, next_: Callable[..., Awaitable[Any]], source: Any, info: strawberry.Info[GraphQLContext], **kwargs
     ) -> Any:
         encoded_jws = info.context["request"].cookies.get(ACCESS_TOKEN_COOKIE_NAME)
         try:
-            if encoded_jws:
-                jws = validate_jws_or_exception(
-                    encoded_jws=encoded_jws,
-                    expected_audience=JWT_AUDIENCE,
-                    expected_issuer=JWT_ISSUER,
-                    expected_purpose=JWTPurpose.ACCESS,
-                    expired_ok=False,
-                )
+            if not encoded_jws:
+                raise InvalidTokenError("missing access token")
 
-                info.context["authenticated_account_id"] = UUID(jws.payload.sub)
-                result = await next_(source, info, **kwargs)
-                return result
-            else:
-                if not self.allow_anonymous:
-                    raise InvalidTokenError("missing access token")
+            jws = validate_jws_or_exception(
+                encoded_jws=encoded_jws,
+                expected_audience=JWT_AUDIENCE,
+                expected_issuer=JWT_ISSUER,
+                expected_purpose=JWTPurpose.ACCESS,
+                expired_ok=False,
+            )
 
+            info.context["authenticated_account_id"] = UUID(jws.payload.sub)
+
+            result = await next_(source, info, **kwargs)
+            return result
         except AccessTokenExpiredError:
             return UnauthenticatedViewer(auth_action=ViewerAuthenticationAction.REFRESH_ACCESS_TOKEN)
 

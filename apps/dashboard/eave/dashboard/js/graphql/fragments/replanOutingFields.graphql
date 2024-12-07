@@ -1,0 +1,11 @@
+fragment ReplanOutingFields on ReplanOutingResult {
+  ... on ReplanOutingSuccess {
+    outing {
+      ...OutingFields
+    }
+  }
+
+  ... on ReplanOutingFailure {
+    failureReason
+  }
+}

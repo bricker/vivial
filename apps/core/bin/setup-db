@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-set -eu
-
-source "${EAVE_HOME}"/develop/functions.bash
-
-statusmsg -i "This script has been renamed to 'setup-db-dev'"

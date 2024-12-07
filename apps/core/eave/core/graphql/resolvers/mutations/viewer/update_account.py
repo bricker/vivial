@@ -1,6 +1,5 @@
 import enum
 from typing import Annotated
-from uuid import uuid4
 
 import strawberry
 
@@ -11,11 +10,6 @@ from eave.core.orm.account import AccountOrm, WeakPasswordError
 from eave.core.orm.base import InvalidRecordError
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.util import unwrap
-
-MOCK_ACCOUNT = Account(
-    id=uuid4(),
-    email="lana@vivialapp.com",
-)
 
 
 @strawberry.input
@@ -31,6 +25,7 @@ class UpdateAccountSuccess:
 
 @strawberry.enum
 class UpdateAccountFailureReason(enum.Enum):
+    WEAK_PASSWORD = enum.auto()
     VALIDATION_ERRORS = enum.auto()
 
 
@@ -63,8 +58,7 @@ async def update_account_mutation(
 
     except WeakPasswordError:
         return UpdateAccountFailure(
-            failure_reason=UpdateAccountFailureReason.VALIDATION_ERRORS,
-            validation_errors=[ValidationError(field="password")],
+            failure_reason=UpdateAccountFailureReason.WEAK_PASSWORD,
         )
     except InvalidRecordError as e:
         return UpdateAccountFailure(

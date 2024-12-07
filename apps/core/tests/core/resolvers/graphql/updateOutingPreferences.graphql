@@ -1,10 +1,11 @@
 mutation UpdateOutingPreferences($input: UpdateOutingPreferencesInput!) {
   viewer {
-    ...on AuthenticatedViewerMutations {
+    ... on AuthenticatedViewerMutations {
+      __typename
+
       updateOutingPreferences(input: $input) {
-        ...on UpdateOutingPreferencesSuccess {
+        ... on UpdateOutingPreferencesSuccess {
           outingPreferences {
-            openToBars
             restaurantCategories {
               id
               name
@@ -18,6 +19,11 @@ mutation UpdateOutingPreferences($input: UpdateOutingPreferencesInput!) {
           }
         }
       }
+    }
+
+    ... on UnauthenticatedViewer {
+      __typename
+      authAction
     }
   }
 }

@@ -30,7 +30,6 @@ import StripeElementsProvider from "./components/StripeElementsProvider";
 import { PrivateRoutes } from "./components/Util/PrivateRoutes";
 import RouteChangeTracker from "./components/Util/RouteChangeTracker";
 import ScrollToTop from "./components/Util/ScrollToTop";
-import { AppContextProvider } from "./context";
 import { AppRoute } from "./routes";
 
 const fireAnalyticsPageView = (path: string) => pageView({ name: path });
@@ -92,16 +91,13 @@ const App = () => {
 const ProviderWrappedApp = () => {
   return (
     <StoreProvider store={store}>
-      {/* TODO: Remove AppContextProvider in favor of Redux. */}
-      <AppContextProvider>
-        <CookiesProvider>
-          <ThemeProvider theme={theme}>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <App />
-            </LocalizationProvider>
-          </ThemeProvider>
-        </CookiesProvider>
-      </AppContextProvider>
+      <CookiesProvider>
+        <ThemeProvider theme={theme}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <App />
+          </LocalizationProvider>
+        </ThemeProvider>
+      </CookiesProvider>
     </StoreProvider>
   );
 };

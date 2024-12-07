@@ -13,6 +13,7 @@ query ListBookedOutings {
       }
     }
     ... on UnauthenticatedViewer {
+      __typename
       authAction
     }
   }

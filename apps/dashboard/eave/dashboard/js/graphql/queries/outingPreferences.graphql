@@ -13,11 +13,13 @@ query OutingPreferences {
     name
     isDefault
   }
+
   viewer {
     __typename
     ... on AuthenticatedViewerQueries {
+      __typename
+
       outingPreferences {
-        openToBars
         restaurantCategories {
           id
           name

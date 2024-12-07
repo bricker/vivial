@@ -14,6 +14,11 @@ from eave.core.analytics import ANALYTICS
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.helpers.planner import get_place
+from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import (
+    StartTimeTooLateError,
+    StartTimeTooSoonError,
+    validate_time_within_bounds_or_exception,
+)
 from eave.core.graphql.types.booking import (
     Booking,
 )
@@ -31,7 +36,6 @@ from eave.core.orm.outing_activity import OutingActivityOrm
 from eave.core.orm.outing_reservation import OutingReservationOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.survey import SurveyOrm
-from eave.core.orm.util import StartTimeTooLateError, StartTimeTooSoonError, validate_time_within_bounds_or_exception
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.config import SHARED_CONFIG
@@ -283,9 +287,6 @@ async def _notify_slack(
         reserver = await db_session.get_one(ReserverDetailsOrm, reserver_details_id)
 
     try:
-        # TODO: This should happen in a pubsub subscriber on the "eave_account_registration" event.
-        # Notify #sign-ups Slack channel.
-
         channel_id = SHARED_CONFIG.eave_slack_signups_channel_id
         slack_client = eave.stdlib.slack.get_authenticated_eave_system_slack_client()
 

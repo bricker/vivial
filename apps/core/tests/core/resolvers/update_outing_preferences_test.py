@@ -16,7 +16,6 @@ class TestUpdateOutingPreferences(BaseTestCase):
             account = await self.make_account(db_session)
             outing_preferences_orm = await OutingPreferencesOrm.build(
                 account_id=account.id,
-                open_to_bars=self.anybool("open_to_bars"),
                 activity_category_ids=[first_activity_category.id],
                 restaurant_category_ids=[first_restaurant_category.id],
             ).save(db_session)
@@ -25,7 +24,6 @@ class TestUpdateOutingPreferences(BaseTestCase):
             "updateOutingPreferences",
             {
                 "input": {
-                    "openToBars": not self.getbool("open_to_bars"),
                     "activityCategoryIds": [str(first_activity_category.id), str(second_activity_category.id)],
                     "restaurantCategoryIds": [str(first_restaurant_category.id), str(second_restaurant_category.id)],
                 }
@@ -39,7 +37,6 @@ class TestUpdateOutingPreferences(BaseTestCase):
 
         data = result.data["viewer"]["updateOutingPreferences"]["outingPreferences"]
 
-        assert data["openToBars"] != self.getbool("open_to_bars")
         assert len(data["restaurantCategories"]) == 2
         assert data["restaurantCategories"][0]["id"] == str(first_restaurant_category.id)
         assert data["restaurantCategories"][1]["id"] == str(second_restaurant_category.id)
@@ -50,7 +47,6 @@ class TestUpdateOutingPreferences(BaseTestCase):
 
         async with self.db_session.begin() as db_session:
             outing_preferences_orm = await OutingPreferencesOrm.get_one(db_session, outing_preferences_orm.id)
-            assert outing_preferences_orm.open_to_bars != self.getbool("open_to_bars")
             assert outing_preferences_orm.activity_category_ids == [
                 first_activity_category.id,
                 second_activity_category.id,
@@ -75,7 +71,6 @@ class TestUpdateOutingPreferences(BaseTestCase):
             "updateOutingPreferences",
             {
                 "input": {
-                    "openToBars": self.anybool("open_to_bars"),
                     "activityCategoryIds": [str(first_activity_category.id)],
                     "restaurantCategoryIds": [str(first_restaurant_category.id)],
                 }
@@ -89,7 +84,6 @@ class TestUpdateOutingPreferences(BaseTestCase):
 
         data = result.data["viewer"]["updateOutingPreferences"]["outingPreferences"]
 
-        assert data["openToBars"] == self.getbool("open_to_bars")
         assert len(data["restaurantCategories"]) == 1
         assert data["restaurantCategories"][0]["id"] == str(first_restaurant_category.id)
 
@@ -100,6 +94,5 @@ class TestUpdateOutingPreferences(BaseTestCase):
             outing_preferences_orm = (
                 await db_session.scalars(OutingPreferencesOrm.select(account_id=account.id))
             ).one()
-            assert outing_preferences_orm.open_to_bars == self.getbool("open_to_bars")
             assert outing_preferences_orm.activity_category_ids == [first_activity_category.id]
             assert outing_preferences_orm.restaurant_category_ids == [first_restaurant_category.id]

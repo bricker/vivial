@@ -69,7 +69,7 @@ class SurveyOrm(Base):
     def validate(self) -> list[ValidationError]:
         errors: list[ValidationError] = []
 
-        if len(self.search_area_ids) == 0:
-            errors.append(ValidationError(field="search_area_ids"))
+        if self.budget not in OutingBudget:
+            errors.append(ValidationError(field="budget"))
 
         return errors

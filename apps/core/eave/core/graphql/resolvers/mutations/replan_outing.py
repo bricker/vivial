@@ -5,21 +5,27 @@ from uuid import UUID
 import strawberry
 
 from eave.core import database
+from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.resolvers.fields.outing import MOCK_OUTING
-from eave.core.graphql.resolvers.mutations.helpers.create_outing import create_outing_plan
+from eave.core.graphql.resolvers.mutations.helpers.create_outing import create_outing
+from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import (
+    StartTimeTooLateError,
+    StartTimeTooSoonError,
+    validate_time_within_bounds_or_exception,
+)
 from eave.core.graphql.types.outing import (
     Outing,
+    OutingPreferencesInput,
 )
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.survey import SurveyOrm
-from eave.core.orm.util import StartTimeTooLateError, StartTimeTooSoonError, validate_time_within_bounds_or_exception
 
 
 @strawberry.input
 class ReplanOutingInput:
     visitor_id: UUID
     outing_id: UUID
+    group_preferences: list[OutingPreferencesInput]
 
 
 @strawberry.type
@@ -46,7 +52,7 @@ async def replan_outing_mutation(
     info: strawberry.Info[GraphQLContext],
     input: ReplanOutingInput,
 ) -> ReplanOutingResult:
-    return ReplanOutingSuccess(outing=MOCK_OUTING)
+    account_id = info.context.get("authenticated_account_id")
 
     async with database.async_session.begin() as db_session:
         original_outing = await OutingOrm.get_one(
@@ -58,33 +64,28 @@ async def replan_outing_mutation(
             id=original_outing.survey_id,
         )
 
-        try:
-            validate_time_within_bounds_or_exception(survey.start_time)
-        except StartTimeTooLateError:
-            return ReplanOutingFailure(failure_reason=ReplanOutingFailureReason.START_TIME_TOO_LATE)
-        except StartTimeTooSoonError:
-            return ReplanOutingFailure(failure_reason=ReplanOutingFailureReason.START_TIME_TOO_SOON)
+    # validate that the survey's start time is still within the bounds.
+    try:
+        validate_time_within_bounds_or_exception(survey.start_time)
+    except StartTimeTooLateError:
+        return ReplanOutingFailure(failure_reason=ReplanOutingFailureReason.START_TIME_TOO_LATE)
+    except StartTimeTooSoonError:
+        return ReplanOutingFailure(failure_reason=ReplanOutingFailureReason.START_TIME_TOO_SOON)
 
-    outing = await create_outing_plan(
+    outing = await create_outing(
+        individual_preferences=input.group_preferences,
+        account_id=account_id,  # This should not be the original Outing's account ID, because someone else may be rerolling this outing.
         visitor_id=input.visitor_id,
         survey=survey,
-        account_id=info.context.get("authenticated_account_id"),
-        reroll=True,
     )
 
-    return ReplanOutingSuccess(
-        outing=Outing(
-            id=outing.id,
-            visitor_id=outing.visitor_id,
-            account_id=outing.account_id,
-            survey_id=outing.survey_id,
-            budget=survey.outing_budget,
-            headcount=survey.headcount,
-            # TODO: remaining fields not available in curr ctx
-            activity=None,
-            activity_start_time=None,
-            restaurant=None,
-            restaurant_arrival_time=None,
-            driving_time="",
-        )
+    ANALYTICS.track(
+        event_name="outing plan created",
+        account_id=account_id,
+        visitor_id=input.visitor_id,
+        extra_properties={
+            "reroll": True,
+        },
     )
+
+    return ReplanOutingSuccess(outing=outing)

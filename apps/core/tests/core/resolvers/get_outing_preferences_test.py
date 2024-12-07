@@ -14,7 +14,6 @@ class TestGetOutingPreferences(BaseTestCase):
             account = await self.make_account(db_session)
             await OutingPreferencesOrm.build(
                 account_id=account.id,
-                open_to_bars=self.anybool("open_to_bars"),
                 activity_category_ids=[first_activity_category.id],
                 restaurant_category_ids=[first_restaurant_category.id],
             ).save(db_session)
@@ -31,7 +30,6 @@ class TestGetOutingPreferences(BaseTestCase):
 
         data = result.data["viewer"]["outingPreferences"]
 
-        assert data["openToBars"] == self.getbool("open_to_bars")
         assert len(data["restaurantCategories"]) == 1
         assert data["restaurantCategories"][0]["id"] == str(first_restaurant_category.id)
 
@@ -54,7 +52,6 @@ class TestGetOutingPreferences(BaseTestCase):
 
         data = result.data["viewer"]["outingPreferences"]
 
-        assert data["openToBars"] is True  # Default
         assert data["restaurantCategories"] is None
         assert data["activityCategories"] is None
 
@@ -64,7 +61,6 @@ class TestGetOutingPreferences(BaseTestCase):
 
             await OutingPreferencesOrm.build(
                 account_id=account.id,
-                open_to_bars=None,
                 activity_category_ids=None,
                 restaurant_category_ids=None,
             ).save(db_session)
@@ -81,6 +77,5 @@ class TestGetOutingPreferences(BaseTestCase):
 
         data = result.data["viewer"]["outingPreferences"]
 
-        assert data["openToBars"] is True
         assert data["restaurantCategories"] is None
         assert data["activityCategories"] is None
