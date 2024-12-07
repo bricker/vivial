@@ -171,7 +171,6 @@ const PlansPage = () => {
       }
       case "UnauthenticatedViewer":
         dispatch(loggedOut());
-        navigate(AppRoute.login);
         break;
       default:
         break;

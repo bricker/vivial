@@ -108,7 +108,6 @@ const EditableContainer = () => {
     }
     case "UnauthenticatedViewer": {
       dispatch(loggedOut());
-      navigate(AppRoute.login);
       break;
     }
     default: {
@@ -172,7 +171,6 @@ const EditableContainer = () => {
           }
           case "UnauthenticatedViewer":
             dispatch(loggedOut());
-            navigate(AppRoute.login);
             break;
           default:
             break;

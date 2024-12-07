@@ -118,10 +118,7 @@ export const coreApiSlice = createApi({
       },
     }),
 
-    submitReserverDetails: builder.mutation<
-      SubmitReserverDetailsMutation,
-      SubmitReserverDetailsMutationVariables
-    >({
+    submitReserverDetails: builder.mutation<SubmitReserverDetailsMutation, SubmitReserverDetailsMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: SubmitReserverDetailsDocument, variables });
         return { data };
@@ -178,10 +175,7 @@ export const coreApiSlice = createApi({
       },
     }),
 
-    createBooking: builder.mutation<
-      CreateBookingMutation,
-      CreateBookingMutationVariables
-    >({
+    createBooking: builder.mutation<CreateBookingMutation, CreateBookingMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: CreateBookingDocument, variables });
         return { data };

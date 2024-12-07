@@ -103,6 +103,7 @@ export async function executeOperation<TResult, TVariables>({
       }
       case ViewerAuthenticationAction.ForceLogout: {
         // Do nothing (return the data as-is); this case is here just for reference.
+        // The caller should handle this case, usually by calling dispatch(loggedOut())
         break;
       }
       default: {
