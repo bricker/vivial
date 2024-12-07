@@ -12,6 +12,7 @@ class OutingPreferencesInput:
     restaurant_category_ids: list[UUID]
     activity_category_ids: list[UUID]
 
+
 @strawberry.type
 class Outing:
     id: UUID
