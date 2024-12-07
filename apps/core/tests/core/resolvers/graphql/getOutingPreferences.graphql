@@ -1,6 +1,8 @@
 query OutingPreferences {
   viewer {
     ... on AuthenticatedViewerQueries {
+      __typename
+
       outingPreferences {
         restaurantCategories {
           id
@@ -13,6 +15,11 @@ query OutingPreferences {
           isDefault
         }
       }
+    }
+
+    ... on UnauthenticatedViewer {
+      __typename
+      authAction
     }
   }
 }

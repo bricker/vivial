@@ -1,6 +1,8 @@
 mutation ReplanOutingAuthenticated($input: ReplanOutingInput!) {
   viewer {
     ... on AuthenticatedViewerMutations {
+      __typename
+
       replanOuting(input: $input) {
         ... on ReplanOutingSuccess {
           outing {

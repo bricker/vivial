@@ -1,6 +1,8 @@
 mutation UpdateOutingPreferences($input: UpdateOutingPreferencesInput!) {
   viewer {
     ... on AuthenticatedViewerMutations {
+      __typename
+
       updateOutingPreferences(input: $input) {
         ... on UpdateOutingPreferencesSuccess {
           outingPreferences {
@@ -17,6 +19,11 @@ mutation UpdateOutingPreferences($input: UpdateOutingPreferencesInput!) {
           }
         }
       }
+    }
+
+    ... on UnauthenticatedViewer {
+      __typename
+      authAction
     }
   }
 }
