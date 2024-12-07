@@ -1,4 +1,5 @@
 import { UpdateReserverDetailsAccountFailureReason } from "$eave-dashboard/js/graphql/generated/graphql";
+import { AppRoute } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { loggedOut, updateEmail } from "$eave-dashboard/js/store/slices/authSlice";
 import {
@@ -11,12 +12,9 @@ import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { Button, CircularProgress, Typography, styled } from "@mui/material";
 import React, { useCallback, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import AccountBookingInfoEditForm from "../../Forms/AccountBookingInfoEditForm";
 import EditIcon from "../../Icons/EditIcon";
 import Paper from "../../Paper";
-import { logUserOut, navigateToLogout } from "$eave-dashboard/js/util/http";
-import { AppRoute } from "$eave-dashboard/js/routes";
 
 const TitleContainer = styled("div")(() => ({
   display: "flex",
@@ -88,7 +86,6 @@ const EditableContainer = () => {
   const [error, setError] = useState<string | undefined>(undefined);
 
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   const [updateReserverDetailsAccount, { isLoading: updateDetailsIsLoading }] =
     useUpdateReserverDetailsAccountMutation();
 
