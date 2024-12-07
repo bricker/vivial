@@ -16,4 +16,5 @@ export const AppRoute = {
   payment: "/payment-example",
   accountPreferences: "/account/preferences",
   passwordReset: "/account/password",
+  itinerary: "/itinerary",
 };
