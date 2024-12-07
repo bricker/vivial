@@ -1,3 +1,5 @@
+import { type OutingPreferences } from "$eave-dashboard/js/graphql/generated/graphql";
+
 /**
  * If it's before 6:00 PM at the time that this function is called,
  * this function returns 6:00 PM the next day.
@@ -15,4 +17,27 @@ export function getInitialStartTime(): Date {
     startTime.setDate(now.getDate() + 2);
   }
   return startTime;
+}
+
+export function getHoursDiff(date1: Date, date2: Date): number {
+  const msDiff = Math.abs(date1.getTime() - date2.getTime());
+  return msDiff / (1000 * 60 * 60);
+}
+
+export function getGroupPreferences(
+  userPreferences: OutingPreferences | null,
+  partnerPreferenecs: OutingPreferences | null,
+): OutingPreferences[] {
+  if (userPreferences && partnerPreferenecs) {
+    return [userPreferences, partnerPreferenecs];
+  }
+  if (userPreferences) {
+    return [userPreferences];
+  }
+  if (partnerPreferenecs) {
+    return [partnerPreferenecs];
+  }
+
+  // TODO: Return defaults
+  return [];
 }

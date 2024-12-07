@@ -1,0 +1,37 @@
+query OutingPreferences {
+  activityCategoryGroups {
+    id
+    name
+    activityCategories {
+      id
+      name
+      isDefault
+    }
+  }
+  restaurantCategories {
+    id
+    name
+    isDefault
+  }
+  viewer {
+    __typename
+    ... on AuthenticatedViewerQueries {
+      outingPreferences {
+        restaurantCategories {
+          id
+          name
+          isDefault
+        }
+        activityCategories {
+          id
+          name
+          isDefault
+        }
+      }
+    }
+    ... on UnauthenticatedViewer {
+      __typename
+      authAction
+    }
+  }
+}

@@ -123,15 +123,16 @@ export type AuthenticatedViewerMutationsUpdateReserverDetailsAccountArgs = {
 };
 
 export type AuthenticatedViewerQueries = {
-  bookedOutings: Array<Outing>;
+  bookedOutingDetails: BookingDetails;
+  bookedOutings: Array<BookingDetailPeek>;
   outing: Outing;
   outingPreferences: OutingPreferences;
   reserverDetails: Array<ReserverDetails>;
 };
 
 
-export type AuthenticatedViewerQueriesBookedOutingsArgs = {
-  input?: InputMaybe<ListBookedOutingsInput>;
+export type AuthenticatedViewerQueriesBookedOutingDetailsArgs = {
+  input: GetBookingDetailsQueryInput;
 };
 
 
@@ -142,6 +143,25 @@ export type AuthenticatedViewerQueriesOutingArgs = {
 export type Booking = {
   id: Scalars['UUID']['output'];
   reserverDetailsId: Scalars['UUID']['output'];
+};
+
+export type BookingDetailPeek = {
+  activityName?: Maybe<Scalars['String']['output']>;
+  activityStartTime?: Maybe<Scalars['DateTime']['output']>;
+  id: Scalars['UUID']['output'];
+  photoUri?: Maybe<Scalars['String']['output']>;
+  restaurantArrivalTime?: Maybe<Scalars['DateTime']['output']>;
+  restaurantName?: Maybe<Scalars['String']['output']>;
+};
+
+export type BookingDetails = {
+  activity?: Maybe<Activity>;
+  activityStartTime?: Maybe<Scalars['DateTime']['output']>;
+  drivingTime?: Maybe<Scalars['String']['output']>;
+  headcount: Scalars['Int']['output'];
+  id: Scalars['UUID']['output'];
+  restaurant?: Maybe<Restaurant>;
+  restaurantArrivalTime?: Maybe<Scalars['DateTime']['output']>;
 };
 
 export type CreateAccountFailure = {
@@ -203,8 +223,8 @@ export type CreatePaymentIntentSuccess = {
   paymentIntent: PaymentIntent;
 };
 
-export type ListBookedOutingsInput = {
-  outingState: OutingState;
+export type GetBookingDetailsQueryInput = {
+  bookingId: Scalars['UUID']['input'];
 };
 
 export type Location = {
@@ -288,11 +308,6 @@ export type OutingPreferencesInput = {
   activityCategoryIds: Array<Scalars['UUID']['input']>;
   restaurantCategoryIds: Array<Scalars['UUID']['input']>;
 };
-
-export enum OutingState {
-  Future = 'FUTURE',
-  Past = 'PAST'
-}
 
 export type PaymentIntent = {
   clientSecret: Scalars['String']['output'];
@@ -430,8 +445,8 @@ export enum UpdateAccountFailureReason {
 }
 
 export type UpdateAccountInput = {
-  email: Scalars['String']['input'];
-  plaintextPassword: Scalars['String']['input'];
+  email?: InputMaybe<Scalars['String']['input']>;
+  plaintextPassword?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateAccountResult = UpdateAccountFailure | UpdateAccountSuccess;
@@ -586,17 +601,20 @@ export type UpdateReserverDetailsAccountMutationVariables = Exact<{
 
 export type UpdateReserverDetailsAccountMutation = { viewer: { __typename: 'AuthenticatedViewerMutations', updateReserverDetailsAccount: { __typename: 'UpdateReserverDetailsAccountFailure', failureReason: UpdateReserverDetailsAccountFailureReason, validationErrors?: Array<{ field: string }> | null } | { __typename: 'UpdateReserverDetailsAccountSuccess', reserverDetails: { id: string, firstName: string, lastName: string, phoneNumber: string }, account: { id: string, email: string } } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
 
-export type ListBookedOutingsQueryVariables = Exact<{
-  input?: InputMaybe<ListBookedOutingsInput>;
-}>;
+export type ListBookedOutingsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ListBookedOutingsQuery = { viewer: { __typename: 'AuthenticatedViewerQueries', bookedOutings: Array<{ id: string, headcount: number, activityStartTime?: string | null, restaurantArrivalTime?: string | null, drivingTime?: string | null, activity?: { sourceId: string, source: ActivitySource, name: string, description: string, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, venue: { name: string, location: { directionsUri?: string | null, latitude: number, longitude: number, formattedAddress: string } }, photos?: { coverPhotoUri: string, supplementalPhotoUris?: Array<string> | null } | null, ticketInfo?: { type?: string | null, notes?: string | null, cost?: number | null, fee?: number | null, tax?: number | null } | null } | null, restaurant?: { sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { directionsUri?: string | null, latitude: number, longitude: number, formattedAddress: string }, photos?: { coverPhotoUri: string, supplementalPhotoUris?: Array<string> | null } | null } | null }> } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
+export type ListBookedOutingsQuery = { viewer: { __typename: 'AuthenticatedViewerQueries', bookedOutings: Array<{ id: string, activityStartTime?: string | null, restaurantArrivalTime?: string | null, activityName?: string | null, restaurantName?: string | null, photoUri?: string | null }> } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
 
 export type ListReserverDetailsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type ListReserverDetailsQuery = { viewer: { __typename: 'AuthenticatedViewerQueries', reserverDetails: Array<{ id: string, firstName: string, lastName: string, phoneNumber: string }> } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
+
+export type OutingPreferencesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OutingPreferencesQuery = { activityCategoryGroups: Array<{ id: string, name: string, activityCategories: Array<{ id: string, name: string, isDefault: boolean }> }>, restaurantCategories: Array<{ id: string, name: string, isDefault: boolean }>, viewer: { __typename: 'AuthenticatedViewerQueries', outingPreferences: { restaurantCategories?: Array<{ id: string, name: string, isDefault: boolean }> | null, activityCategories?: Array<{ id: string, name: string, isDefault: boolean }> | null } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
 
 export type SearchRegionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1322,69 +1340,18 @@ export const UpdateReserverDetailsAccountDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<UpdateReserverDetailsAccountMutation, UpdateReserverDetailsAccountMutationVariables>;
 export const ListBookedOutingsDocument = new TypedDocumentString(`
-    query ListBookedOutings($input: ListBookedOutingsInput) {
+    query ListBookedOutings {
   viewer {
     __typename
     ... on AuthenticatedViewerQueries {
       __typename
-      bookedOutings(input: $input) {
+      bookedOutings {
         id
-        headcount
         activityStartTime
         restaurantArrivalTime
-        drivingTime
-        activity {
-          sourceId
-          source
-          name
-          description
-          websiteUri
-          doorTips
-          insiderTips
-          parkingTips
-          venue {
-            name
-            location {
-              directionsUri
-              latitude
-              longitude
-              formattedAddress
-            }
-          }
-          photos {
-            coverPhotoUri
-            supplementalPhotoUris
-          }
-          ticketInfo {
-            type
-            notes
-            cost
-            fee
-            tax
-          }
-        }
-        restaurant {
-          sourceId
-          source
-          name
-          reservable
-          rating
-          primaryTypeName
-          websiteUri
-          description
-          parkingTips
-          customerFavorites
-          location {
-            directionsUri
-            latitude
-            longitude
-            formattedAddress
-          }
-          photos {
-            coverPhotoUri
-            supplementalPhotoUris
-          }
-        }
+        activityName
+        restaurantName
+        photoUri
       }
     }
     ... on UnauthenticatedViewer {
@@ -1414,6 +1381,45 @@ export const ListReserverDetailsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<ListReserverDetailsQuery, ListReserverDetailsQueryVariables>;
+export const OutingPreferencesDocument = new TypedDocumentString(`
+    query OutingPreferences {
+  activityCategoryGroups {
+    id
+    name
+    activityCategories {
+      id
+      name
+      isDefault
+    }
+  }
+  restaurantCategories {
+    id
+    name
+    isDefault
+  }
+  viewer {
+    __typename
+    ... on AuthenticatedViewerQueries {
+      outingPreferences {
+        restaurantCategories {
+          id
+          name
+          isDefault
+        }
+        activityCategories {
+          id
+          name
+          isDefault
+        }
+      }
+    }
+    ... on UnauthenticatedViewer {
+      __typename
+      authAction
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<OutingPreferencesQuery, OutingPreferencesQueryVariables>;
 export const SearchRegionsDocument = new TypedDocumentString(`
     query SearchRegions {
   searchRegions {

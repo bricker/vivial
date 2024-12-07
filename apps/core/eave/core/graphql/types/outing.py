@@ -1,4 +1,3 @@
-import enum
 from datetime import datetime
 from uuid import UUID
 
@@ -12,13 +11,6 @@ from .restaurant import Restaurant
 class OutingPreferencesInput:
     restaurant_category_ids: list[UUID]
     activity_category_ids: list[UUID]
-
-
-@strawberry.enum
-class OutingState(enum.StrEnum):
-    PAST = enum.auto()
-    FUTURE = enum.auto()
-
 
 @strawberry.type
 class Outing:

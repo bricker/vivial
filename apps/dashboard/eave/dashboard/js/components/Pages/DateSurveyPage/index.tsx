@@ -1,21 +1,32 @@
-import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
-import { useGetSearchRegionsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { OutingBudget, type OutingPreferences } from "$eave-dashboard/js/graphql/generated/graphql";
+import { AppRoute } from "$eave-dashboard/js/routes";
+import { RootState } from "$eave-dashboard/js/store";
+import { type Category } from "$eave-dashboard/js/types/category";
+import { CookieId, RerollCookie } from "$eave-dashboard/js/types/cookie";
+
+import { useGetOutingPreferencesQuery, useGetSearchRegionsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 import React, { useCallback, useEffect, useState } from "react";
+import { useCookies } from "react-cookie";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
 import { Breakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 
-import BaseSkeleton from "@mui/material/Skeleton";
 import Typography from "@mui/material/Typography";
 import Modal from "../../Modal";
 import Paper from "../../Paper";
 import DateAreaSelections from "../../Selections/DateAreaSelections";
 import DateSelections from "../../Selections/DateSelections";
 import DateTimeSelections from "../../Selections/DateTimeSelections";
-import { getInitialStartTime } from "./helpers";
+import EditPreferencesOption from "./Options/EditPreferencesOption";
+import LoadingView from "./Views/LoadingView";
+import PreferencesView from "./Views/PreferencesView";
+
+import { getGroupPreferences, getHoursDiff, getInitialStartTime } from "./helpers";
 
 const PageContainer = styled("div")(({ theme }) => ({
   padding: "24px 16px",
@@ -47,14 +58,6 @@ const CopyContainer = styled(Paper)(({ theme }) => ({
     maxWidth: 426,
     marginRight: 60,
     boxShadow: "none",
-  },
-}));
-
-const Skeleton = styled(BaseSkeleton)(() => ({
-  marginBottom: 16,
-  borderRadius: "14.984px",
-  "&:last-of-type": {
-    marginBottom: 0,
   },
 }));
 
@@ -97,20 +100,58 @@ const DateSurveyContainer = styled(Paper)(({ theme }) => ({
 }));
 
 const DateSurveyPage = () => {
+  const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
   const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery({});
-  const searchRegions = searchRegionsData?.searchRegions;
-
+  const [cookies, setCookie] = useCookies([CookieId.Reroll]);
   const [budget, setBudget] = useState(OutingBudget.Expensive);
   const [headcount, setHeadcount] = useState(2);
   const [searchAreaIds, setSearchAreaIds] = useState<string[]>([]);
   const [startTime, setStartTime] = useState(getInitialStartTime());
-  // const [groupPreferences, setGroupPreferences] = useState([]);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [areasOpen, setAreasOpen] = useState(false);
+  const [outingPreferences, setOutingPreferences] = useState<OutingPreferences | null>(null);
+  const [partnerPreferences, _setPartnerPreferences] = useState<OutingPreferences | null>(null);
+  const [outingPreferencesOpen, setOutingPreferencesOpen] = useState(false);
+  const [partnerPreferencesOpen, setPartnerPreferencesOpen] = useState(false);
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
+  const navigate = useNavigate();
 
   const handleSubmit = useCallback(async () => {
+    if (!isLoggedIn) {
+      const rerollCookie = cookies[CookieId.Reroll] as RerollCookie;
+      if (rerollCookie) {
+        const rerolls = rerollCookie.rerolls + 1;
+        const updated = new Date();
+        const hoursSinceUpdate = getHoursDiff(updated, new Date(rerollCookie.updated));
+        setCookie(CookieId.Reroll, { rerolls, updated });
+        if (rerolls >= 4 && hoursSinceUpdate < 24) {
+          navigate(AppRoute.signupMultiReroll);
+        }
+      }
+    }
+
     const _visitorId = await getVisitorId();
-    // TODO: call planOuting mutation and dispatch response to store.
+    const _groupPreferences = getGroupPreferences(outingPreferences, partnerPreferences);
+    // TODO: return default preferences if no preferences have been selected.
+    // TODO: call planOuting mutation.
+  }, [cookies, isLoggedIn]);
+
+  const handleSubmitRestaurantPreferences = useCallback((_categories: Category[]) => {
+    // TODO: call preferences mutation.
+    // TODO: set outing preferences.
+  }, []);
+
+  const handleSubmitActivityPreferences = useCallback((_categories: Category[]) => {
+    // TODO: call preferences mutation.
+    // TODO: set outing preferences.
+  }, []);
+
+  const handlePartnerRestaurantPreferences = useCallback((_categories: Category[]) => {
+    // TODO: set partner preferences.
+  }, []);
+
+  const handlePartnerActivityPreferences = useCallback((_categories: Category[]) => {
+    // TODO: set partner preferences.
   }, []);
 
   const handleSelectHeadcount = useCallback((value: number) => {
@@ -140,18 +181,56 @@ const DateSurveyPage = () => {
   }, [areasOpen]);
 
   useEffect(() => {
-    if (searchRegions) {
-      setSearchAreaIds(searchRegions.map((region) => region.id));
+    if (searchRegionsData?.searchRegions) {
+      setSearchAreaIds(searchRegionsData.searchRegions.map((region) => region.id));
     }
-  }, [searchRegions]);
+  }, [searchRegionsData]);
+
+  useEffect(() => {
+    const viewer = outingPreferencesData?.viewer;
+    if (viewer?.__typename === "AuthenticatedViewerQueries") {
+      setOutingPreferences(viewer.outingPreferences);
+    }
+  }, [outingPreferencesData]);
+
+  useEffect(() => {
+    if (!cookies[CookieId.Reroll]) {
+      setCookie(CookieId.Reroll, {
+        updated: new Date(),
+        rerolls: 0,
+      });
+    }
+  }, [cookies]);
 
   if (searchRegionsAreLoading) {
-    return (
-      <PageContainer>
-        <Skeleton variant="rectangular" width="100%" height={218} />
-        <Skeleton variant="rectangular" width="100%" height={332} />
-      </PageContainer>
-    );
+    return <LoadingView />;
+  }
+
+  if (isLoggedIn) {
+    if (outingPreferencesOpen) {
+      return (
+        <PreferencesView
+          title="Get personalized recommendations"
+          subtitle="Your saved preferences are used to make more personalized recommendations."
+          outingPreferences={outingPreferences}
+          onSubmitRestaurants={handleSubmitRestaurantPreferences}
+          onSubmitActivities={handleSubmitActivityPreferences}
+          onClose={() => setOutingPreferencesOpen(false)}
+        />
+      );
+    }
+    if (partnerPreferencesOpen) {
+      return (
+        <PreferencesView
+          title="Add partner preferences"
+          subtitle="We’ll use your saved preferences and your partner preferences to make recommendations."
+          outingPreferences={partnerPreferences}
+          onSubmitRestaurants={handlePartnerRestaurantPreferences}
+          onSubmitActivities={handlePartnerActivityPreferences}
+          onClose={() => setPartnerPreferencesOpen(false)}
+        />
+      );
+    }
   }
 
   return (
@@ -163,6 +242,20 @@ const DateSurveyPage = () => {
           <Typography variant="subtitle1">
             Your free date planner. We cover all the details, and you only pay for experiences you book.
           </Typography>
+          {isLoggedIn && (
+            <>
+              <EditPreferencesOption
+                label="Your preferences"
+                editable={!outingPreferences}
+                onClickEdit={() => setOutingPreferencesOpen(true)}
+              />
+              <EditPreferencesOption
+                label="Add partner preferences (optional)"
+                editable={!partnerPreferences}
+                onClickEdit={() => setPartnerPreferencesOpen(true)}
+              />
+            </>
+          )}
         </CopyContainer>
         <DateSurveyContainer>
           <DateSelections
@@ -180,7 +273,7 @@ const DateSurveyPage = () => {
         </DateSurveyContainer>
       </PageContentContainer>
       <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
-        <DateAreaSelections cta="Save" onSubmit={handleSelectSearchAreas} regions={searchRegions} />
+        <DateAreaSelections cta="Save" onSubmit={handleSelectSearchAreas} regions={searchRegionsData?.searchRegions} />
       </Modal>
       <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={datePickerOpen}>
         <DateTimeSelections cta="Save" onSubmit={handleSelectStartTime} startDateTime={startTime} />

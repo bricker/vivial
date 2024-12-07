@@ -40,6 +40,12 @@ _RESTAURANT_CATEGORIES_TABLE = (
         google_category_ids=["american_restaurant", "hamburger_restaurant"],
     ),
     RestaurantCategoryOrm(
+        id=UUID("a7251c9d-6af0-423b-a11d-7015ee3f85fc"),
+        name="Bar",
+        is_default=True,
+        google_category_ids=["bar"],
+    ),
+    RestaurantCategoryOrm(
         id=UUID("d05066d4db074ff8aa766ecaf658e5f7"),
         name="Barbecue",
         is_default=True,

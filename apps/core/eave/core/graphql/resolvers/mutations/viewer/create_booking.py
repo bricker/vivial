@@ -22,8 +22,10 @@ from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import 
 from eave.core.graphql.types.booking import (
     Booking,
 )
+from eave.core.lib.event_helpers import get_google_photo_uris
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.account_booking import AccountBookingOrm
+from eave.core.orm.activity import ActivityOrm
 from eave.core.orm.address_types import Address
 from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.booking import BookingOrm
@@ -44,7 +46,7 @@ from eave.stdlib.util import unwrap
 
 
 @dataclass
-class BookingDetails:
+class BookingTemplates:
     activities: list[BookingActivityTemplateOrm]
     reservations: list[BookingReservationTemplateOrm]
 
@@ -61,25 +63,43 @@ class EventDetails:
     country: str
     postal_code: str
     uri: str
+    photo_uri: str | None
 
 
 async def _get_event_details(
     places_client: PlacesAsyncClient,
     activities_client: EventbriteClient,
     event_source: ActivitySource | RestaurantSource,
-    remote_id: str,
+    event_id: str,
 ) -> EventDetails:
-    name = address1 = address2 = city = region = postal_code = country = lat = lon = booking_uri = None
+    name = address1 = address2 = city = region = postal_code = country = lat = lon = booking_uri = photo_uri = None
     match event_source:
         case ActivitySource.INTERNAL:
-            # TODO: fetch from internal db
-            details = None
+            async with database.async_session.begin() as db_session:
+                details = await ActivityOrm.get_one(
+                    session=db_session,
+                    id=UUID(event_id),
+                )
+            lat, lon = details.coordinates_to_lat_lon()
+            name = details.title
+            address1 = details.address.address1
+            address2 = details.address.address2
+            city = details.address.city
+            region = details.address.state
+            postal_code = details.address.zip
+            booking_uri = details.booking_url
         case ActivitySource.GOOGLE_PLACES | RestaurantSource.GOOGLE_PLACES:
             details = await get_place(
                 client=places_client,
-                id=remote_id,
+                id=event_id,
                 # field_mask=",".join(["displayName.text", "addressComponents", "location", "websiteUri"]),
             )
+
+            photo_uris = await get_google_photo_uris(
+                places_client=places_client,
+                photos=details.photos,
+            )
+            photo_uri = photo_uris[0] if photo_uris else None
 
             name = details.display_name.text
             booking_uri = details.websiteUri
@@ -130,8 +150,8 @@ async def _get_event_details(
             lon = details.location.longitude
         case ActivitySource.EVENTBRITE:
             details = await activities_client.get_event_by_id(
-                event_id=remote_id,
-                query=GetEventQuery(expand=[Expansion.VENUE]),
+                event_id=event_id,
+                query=GetEventQuery(expand=[Expansion.VENUE, Expansion.LOGO]),
             )
             name = details.get("name", {}).get("text")
             booking_uri = details.get("url")
@@ -145,6 +165,8 @@ async def _get_event_details(
                     region = address.get("region")
                     postal_code = address.get("postal_code")
                     country = address.get("country")
+            if logo := details.get("logo"):
+                photo_uri = logo.get("original", {}).get("url")
 
     assert name is not None
     assert lat is not None
@@ -167,6 +189,7 @@ async def _get_event_details(
         postal_code=postal_code,
         country=country,
         uri=booking_uri,
+        photo_uri=photo_uri,
     )
 
 
@@ -174,7 +197,7 @@ async def _create_templates_from_outing(
     db_session: AsyncSession,
     booking_id: UUID,
     outing: OutingOrm,
-) -> BookingDetails:
+) -> BookingTemplates:
     places_client = PlacesAsyncClient()
     activities_client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
 
@@ -186,12 +209,14 @@ async def _create_templates_from_outing(
             places_client=places_client,
             activities_client=activities_client,
             event_source=src,
-            remote_id=activity.activity_id,
+            event_id=activity.activity_id,
         )
 
         activity_details.append(
             await BookingActivityTemplateOrm.build(
                 booking_id=booking_id,
+                source=src,
+                source_id=activity.activity_id,
                 activity_name=details.name,
                 activity_start_time=activity.activity_start_time,
                 headcount=activity.headcount,
@@ -206,6 +231,7 @@ async def _create_templates_from_outing(
                 ),
                 lat=details.latitude,
                 lon=details.longitude,
+                activity_photo_uri=details.photo_uri,
             ).save(db_session)
         )
 
@@ -219,12 +245,14 @@ async def _create_templates_from_outing(
             places_client=places_client,
             activities_client=activities_client,
             event_source=src,
-            remote_id=reservation.reservation_id,
+            event_id=reservation.reservation_id,
         )
 
         reservation_details.append(
             await BookingReservationTemplateOrm.build(
                 booking_id=booking_id,
+                source=src,
+                source_id=reservation.reservation_id,
                 reservation_name=details.name,
                 reservation_start_time=reservation.reservation_start_time,
                 headcount=reservation.headcount,
@@ -239,17 +267,18 @@ async def _create_templates_from_outing(
                 ),
                 lat=details.latitude,
                 lon=details.longitude,
+                reservation_photo_uri=details.photo_uri,
             ).save(db_session)
         )
 
-    return BookingDetails(
+    return BookingTemplates(
         activities=activity_details,
         reservations=reservation_details,
     )
 
 
 async def _notify_slack(
-    booking_details: BookingDetails,
+    booking_details: BookingTemplates,
     account_id: UUID,
     reserver_details_id: UUID,
 ) -> None:
@@ -358,6 +387,7 @@ async def create_booking_mutation(
 
             booking = await BookingOrm.build(
                 reserver_details_id=input.reserver_details_id,
+                account_id=account_id,
             ).save(db_session)
 
             await AccountBookingOrm.build(
