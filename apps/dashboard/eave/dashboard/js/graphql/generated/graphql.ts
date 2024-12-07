@@ -615,7 +615,7 @@ export type ListReserverDetailsQuery = { __typename: 'Query', viewer: { __typena
 export type OutingPreferencesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type OutingPreferencesQuery = { __typename: 'Query', activityCategoryGroups: Array<{ __typename: 'ActivityCategoryGroup', id: string, name: string, activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> }>, restaurantCategories: Array<{ __typename: 'RestaurantCategory', id: string, name: string, isDefault: boolean }>, viewer: { __typename: 'AuthenticatedViewerQueries', outingPreferences: { __typename: 'OutingPreferences', openToBars?: boolean | null, restaurantCategories?: Array<{ __typename: 'RestaurantCategory', id: string, name: string, isDefault: boolean }> | null, activityCategories?: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> | null } } | { __typename: 'UnauthenticatedViewer' } };
+export type OutingPreferencesQuery = { __typename: 'Query', activityCategoryGroups: Array<{ __typename: 'ActivityCategoryGroup', id: string, name: string, activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> }>, restaurantCategories: Array<{ __typename: 'RestaurantCategory', id: string, name: string, isDefault: boolean }>, viewer: { __typename: 'AuthenticatedViewerQueries', outingPreferences: { __typename: 'OutingPreferences', openToBars?: boolean | null, restaurantCategories?: Array<{ __typename: 'RestaurantCategory', id: string, name: string, isDefault: boolean }> | null, activityCategories?: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> | null } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
 
 export type SearchRegionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1034,6 +1034,10 @@ export const OutingPreferencesDocument = new TypedDocumentString(`
           isDefault
         }
       }
+    }
+    ... on UnauthenticatedViewer {
+      __typename
+      authAction
     }
   }
 }
