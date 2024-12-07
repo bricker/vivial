@@ -20,8 +20,9 @@ const config: CodegenConfig = {
         documentMode: "string",
         defaultScalarType: "string",
         strictScalars: true,
-        nonOptionalTypename: true,
         useTypeImports: true,
+        skipTypename: true,
+        nonOptionalTypename: false,
         scalars: {
           // These scalars match what the server provided, including the scalars built-in to Strawberry:
           // https://strawberry.rocks/docs/types/scalars

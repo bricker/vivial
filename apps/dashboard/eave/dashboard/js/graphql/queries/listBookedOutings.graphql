@@ -64,6 +64,7 @@ query ListBookedOutings($input: ListBookedOutingsInput) {
       }
     }
     ... on UnauthenticatedViewer {
+      __typename
       authAction
     }
   }

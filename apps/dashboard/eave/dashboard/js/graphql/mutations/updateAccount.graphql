@@ -19,6 +19,7 @@ mutation UpdateAccount($input: UpdateAccountInput!) {
     }
 
     ... on UnauthenticatedViewer {
+      __typename
       authAction
     }
   }
