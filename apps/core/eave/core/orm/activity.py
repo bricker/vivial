@@ -1,8 +1,11 @@
 from datetime import datetime
+from typing import cast
 from uuid import UUID
 
+import shapely.wkb
 from geoalchemy2 import WKBElement
 from geoalchemy2.types import Geography
+from shapely.geometry import Point
 from sqlalchemy import PrimaryKeyConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -58,3 +61,7 @@ class ActivityOrm(Base):
             is_bookable=is_bookable,
             booking_url=booking_url,
         )
+
+    def coordinates_to_lat_lon(self) -> tuple[float, float]:
+        geometry = cast(Point, shapely.wkb.loads(bytes(self.coordinates.data)))
+        return (geometry.x, geometry.y)
