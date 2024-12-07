@@ -77,7 +77,7 @@ const SignUpPage = () => {
     <PageContainer>
       {allowClose && (
         <CloseButtonContainer>
-          <CloseButton onClick={() => navigate("/")} iconColor={colors.whiteText} />
+          <CloseButton onClick={() => navigate(AppRoute.root)} iconColor={colors.whiteText} />
         </CloseButtonContainer>
       )}
       <AuthForm

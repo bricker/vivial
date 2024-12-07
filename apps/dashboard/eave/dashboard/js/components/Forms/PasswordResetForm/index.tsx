@@ -1,13 +1,14 @@
 import { UpdateAccountFailureReason } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute } from "$eave-dashboard/js/routes";
-import { RootState } from "$eave-dashboard/js/store";
+
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 import { useUpdateAccountMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { getPasswordInfo, passwordIsValid } from "$eave-dashboard/js/util/password";
 import { Typography, styled } from "@mui/material";
 import React, { useCallback, useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import LoadingButton from "../../Buttons/LoadingButton";
 import SecondaryButton from "../../Buttons/SecondaryButton";
@@ -56,7 +57,6 @@ const PasswordResetForm = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [updateAccount, { isLoading }] = useUpdateAccountMutation();
-  const email = useSelector((state: RootState) => state.auth.account?.email) || "";
   const [newPassword, setNewPassword] = useState("");
   const [retypedPassword, setRetypedPassword] = useState("");
   const [isPasswordValid, setIsPasswordValid] = useState(false);
@@ -83,7 +83,7 @@ const PasswordResetForm = () => {
       event.preventDefault();
       setExternalError(undefined);
       try {
-        const resp = await updateAccount({ input: { plaintextPassword: newPassword, email } });
+        const resp = await updateAccount({ input: { plaintextPassword: newPassword } });
         switch (resp.data?.viewer.__typename) {
           case "AuthenticatedViewerMutations": {
             const respData = resp.data.viewer.updateAccount;
