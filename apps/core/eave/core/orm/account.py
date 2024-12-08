@@ -14,7 +14,7 @@ from eave.stdlib.typing import NOT_SET
 from eave.stdlib.util import b64encode
 
 from .base import Base
-from .util import PG_UUID_EXPR
+from .util.constants import PG_UUID_EXPR
 
 
 class InvalidPasswordError(Exception):

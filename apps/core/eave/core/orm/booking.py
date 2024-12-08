@@ -5,7 +5,7 @@ from sqlalchemy import ForeignKeyConstraint, Index, PrimaryKeyConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
-from .util import PG_UUID_EXPR
+from .util.constants import PG_UUID_EXPR
 
 
 class BookingOrm(Base):

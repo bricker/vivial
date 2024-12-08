@@ -43,7 +43,7 @@ async def _get_booking_details(
     )
 
     if activity:
-        details.activity_start_time = activity.activity_start_time
+        details.activity_start_time = activity.start_time_local
         details.activity = await get_activity(
             event_id=activity.source_id,
             event_source=ActivitySource[activity.source],
@@ -53,7 +53,7 @@ async def _get_booking_details(
         details.headcount = max(details.headcount, activity.headcount)
 
     if reservation:
-        details.restaurant_arrival_time = reservation.reservation_start_time
+        details.restaurant_arrival_time = reservation.start_time_local
         details.restaurant = await get_restuarant(
             event_id=reservation.source_id,
             event_source=RestaurantSource[reservation.source],
@@ -87,18 +87,18 @@ async def list_bookings_query(
             activity = await db_session.scalar(activities_query)
             reservation = await db_session.scalar(reservations_query)
             photo_uri = None
-            if reservation and reservation.reservation_photo_uri:
-                photo_uri = reservation.reservation_photo_uri
-            if activity and activity.activity_photo_uri:
-                photo_uri = activity.activity_photo_uri
+            if reservation and reservation.photo_uri:
+                photo_uri = reservation.photo_uri
+            if activity and activity.photo_uri:
+                photo_uri = activity.photo_uri
 
             booking_details.append(
                 BookingDetailPeek(
                     id=booking.id,
-                    activity_start_time=activity.activity_start_time if activity else None,
-                    activity_name=activity.activity_name if activity else None,
-                    restaurant_name=reservation.reservation_name if reservation else None,
-                    restaurant_arrival_time=reservation.reservation_start_time if reservation else None,
+                    activity_start_time=activity.start_time_local if activity else None,
+                    activity_name=activity.name if activity else None,
+                    restaurant_name=reservation.name if reservation else None,
+                    restaurant_arrival_time=reservation.start_time_local if reservation else None,
                     photo_uri=photo_uri,
                 )
             )

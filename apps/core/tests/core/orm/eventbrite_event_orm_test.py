@@ -34,8 +34,8 @@ class TestEventbriteEventOrm(BaseTestCase):
             ).one()
 
             assert obj.eventbrite_event_id == self.getstr("eventbrite_event_id")
-            assert obj.time_range.lower == self.getdatetime("start_time")
-            assert obj.time_range.upper == self.getdatetime("end_time")
+            assert obj.time_range_utc.lower == self.getdatetime("start_time")
+            assert obj.time_range_utc.upper == self.getdatetime("end_time")
             assert obj.cost_cents_range.lower == self.getint("min_cost")
             assert obj.cost_cents_range.upper == self.getint("max_cost") + 1
 
@@ -275,6 +275,6 @@ class TestEventbriteEventOrm(BaseTestCase):
             assert qobj.title == self.getdatetime("new title")
             assert qobj.vivial_activity_category_id == self.getdatetime("new vivial_activity_category_id")
             assert qobj.vivial_activity_format_id == self.getdatetime("new vivial_activity_format_id")
-            assert qobj.time_range.upper == self.getdatetime("new end_time")
+            assert qobj.time_range_utc.upper == self.getdatetime("new end_time")
             assert qobj.cost_cents_range.lower == self.getint("new min_cost")
             assert qobj.cost_cents_range.upper == self.getint("new max_cost") + 1

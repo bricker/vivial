@@ -1,22 +1,24 @@
-from datetime import datetime
+from datetime import UTC, datetime, tzinfo
 from typing import Self
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
+from sqlalchemy.dialects.postgresql import TIMESTAMP
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func, String
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.graphql.types.restaurant import RestaurantSource
+from eave.core.orm.util.user_defined_column_types import ZoneInfoColumnType
 
 from .base import Base
-
 
 class OutingReservationOrm(Base):
     """Pivot table between `outings` and `reservations` tables. (`reservations` is a remote dataset)"""
 
     __tablename__ = "outing_reservations"
     __table_args__ = (
-        PrimaryKeyConstraint("outing_id", "reservation_id", name="outing_reservation_pivot_pk"),
+        PrimaryKeyConstraint("outing_id", "source_id", name="outing_reservation_pivot_pk"),
         ForeignKeyConstraint(
             ["outing_id"],
             ["outings.id"],
@@ -27,12 +29,13 @@ class OutingReservationOrm(Base):
     )
 
     outing_id: Mapped[UUID] = mapped_column()
-    reservation_id: Mapped[str] = mapped_column()
+    source_id: Mapped[str] = mapped_column()
     """ID of reservation in remote table"""
-    reservation_source: Mapped[str] = mapped_column()
+    source: Mapped[str] = mapped_column()
     """RestaurantSource enum value"""
-    reservation_start_time: Mapped[datetime] = mapped_column()
-    headcount: Mapped[int] = mapped_column(name="num_attendees")
+    start_time_utc: Mapped[datetime] = mapped_column(type_=TIMESTAMP(timezone=True))
+    timezone: Mapped[ZoneInfo] = mapped_column(type_=ZoneInfoColumnType())
+    headcount: Mapped[int] = mapped_column()
     created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
     updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
@@ -41,16 +44,18 @@ class OutingReservationOrm(Base):
         cls,
         *,
         outing_id: UUID,
-        reservation_id: str,
-        reservation_source: RestaurantSource,
-        reservation_start_time: datetime,
+        source_id: str,
+        source: RestaurantSource,
+        start_time_utc: datetime,
+        timezone: ZoneInfo,
         headcount: int,
     ) -> "OutingReservationOrm":
         obj = OutingReservationOrm(
             outing_id=outing_id,
-            reservation_id=reservation_id,
-            reservation_source=reservation_source,
-            reservation_start_time=reservation_start_time,
+            source_id=source_id,
+            source=source,
+            start_time_utc=start_time_utc.astimezone(UTC),
+            timezone=timezone,
             headcount=headcount,
         )
 
@@ -61,3 +66,7 @@ class OutingReservationOrm(Base):
         lookup = cls.select().where(cls.outing_id == outing_id)
         result = (await session.scalars(lookup)).one()
         return result
+
+    @property
+    def start_time_local(self) -> datetime:
+        return self.start_time_utc.astimezone(self.timezone)

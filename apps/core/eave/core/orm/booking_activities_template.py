@@ -1,16 +1,18 @@
-from datetime import datetime
+from datetime import UTC, datetime, tzinfo
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from geoalchemy2 import Geography, WKBElement
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func, DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 
 from eave.core.lib.geo import GeoPoint, SpatialReferenceSystemId
-from eave.core.orm.address_types import Address, AddressColumnType
+from eave.core.orm.util.user_defined_column_types import Address, AddressColumnType, ZoneInfoColumnType
 from eave.core.shared.enums import ActivitySource
 
 from .base import Base
-from .util import PG_UUID_EXPR
+from .util.constants import PG_UUID_EXPR
 
 
 class BookingActivityTemplateOrm(Base):
@@ -39,10 +41,11 @@ class BookingActivityTemplateOrm(Base):
     source_id: Mapped[str] = mapped_column()
     source: Mapped[str] = mapped_column()
     """ActivitySource enum value"""
-    activity_name: Mapped[str] = mapped_column()
-    activity_start_time: Mapped[datetime] = mapped_column()
-    activity_photo_uri: Mapped[str | None] = mapped_column()
-    headcount: Mapped[int] = mapped_column(name="num_attendees")
+    name: Mapped[str] = mapped_column()
+    start_time_utc: Mapped[datetime] = mapped_column(type_=TIMESTAMP(timezone=True))
+    timezone: Mapped[ZoneInfo] = mapped_column(type_=ZoneInfoColumnType())
+    photo_uri: Mapped[str | None] = mapped_column()
+    headcount: Mapped[int] = mapped_column()
     external_booking_link: Mapped[str | None] = mapped_column()
     """HTTP link to site for manual booking (possibly affiliate), if available"""
     address: Mapped[Address] = mapped_column(type_=AddressColumnType())
@@ -59,9 +62,10 @@ class BookingActivityTemplateOrm(Base):
         booking_id: UUID,
         source: ActivitySource,
         source_id: str,
-        activity_name: str,
-        activity_start_time: datetime,
-        activity_photo_uri: str | None,
+        name: str,
+        start_time_utc: datetime,
+        timezone: ZoneInfo,
+        photo_uri: str | None,
         headcount: int,
         external_booking_link: str | None,
         address: Address,
@@ -72,9 +76,10 @@ class BookingActivityTemplateOrm(Base):
             booking_id=booking_id,
             source=source,
             source_id=source_id,
-            activity_name=activity_name,
-            activity_start_time=activity_start_time,
-            activity_photo_uri=activity_photo_uri,
+            name=name,
+            start_time_utc=start_time_utc.astimezone(UTC),
+            timezone=timezone,
+            photo_uri=photo_uri,
             headcount=headcount,
             external_booking_link=external_booking_link,
             address=address,
@@ -82,3 +87,7 @@ class BookingActivityTemplateOrm(Base):
         )
 
         return obj
+
+    @property
+    def start_time_local(self) -> datetime:
+        return self.start_time_utc.astimezone(self.timezone)

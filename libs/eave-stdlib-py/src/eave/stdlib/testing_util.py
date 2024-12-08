@@ -8,9 +8,10 @@ import random
 import time
 import unittest.mock
 import uuid
-from datetime import UTC, datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone, tzinfo
 from math import floor
 from typing import Any, Literal, TypeVar
+from zoneinfo import ZoneInfo
 
 from google.cloud.kms import (
     CryptoKeyVersion,
@@ -85,7 +86,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         offset: int | None = None,
         future: Literal[True] | None = None,
         past: Literal[True] | None = None,
-        tz: timezone | None = UTC,
+        tz: tzinfo | None = ZoneInfo("UTC"),
         resolution: Literal["seconds", "microseconds"] = "microseconds",
     ) -> datetime:
         """
@@ -418,6 +419,19 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return data
 
     def getemail(self, name: str) -> str:
+        assert name in self.testdata, f"test value {name} has not been set."
+        return self.testdata[name]
+
+    def anyphonenumber(self, name: str | None = None) -> str:
+        if name is None:
+            name = uuid.uuid4().hex
+
+        assert name not in self.testdata, f"test value {name} is already in use."
+        data = f"({self.anydigits(length=3)})-{self.anydigits(length=3)}-{self.anydigits(length=4)}"
+        self.testdata[name] = data
+        return data
+
+    def getphonenumber(self, name: str) -> str:
         assert name in self.testdata, f"test value {name} has not been set."
         return self.testdata[name]
 

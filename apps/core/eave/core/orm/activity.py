@@ -10,10 +10,10 @@ from sqlalchemy import PrimaryKeyConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.lib.geo import GeoPoint, SpatialReferenceSystemId
-from eave.core.orm.address_types import Address, AddressColumnType
+from eave.core.orm.util.user_defined_column_types import Address, AddressColumnType
 
 from .base import Base
-from .util import PG_UUID_EXPR
+from .util.constants import PG_UUID_EXPR
 
 
 class ActivityOrm(Base):

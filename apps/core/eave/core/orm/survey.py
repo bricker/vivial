@@ -1,16 +1,18 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 import sqlalchemy
-import sqlalchemy.dialects.postgresql
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
+from eave.core.orm.util.user_defined_column_types import ZoneInfoColumnType
 from eave.core.shared.enums import OutingBudget
 from eave.core.shared.errors import ValidationError
 
 from .base import Base
-from .util import PG_UUID_EXPR
+from .util.constants import PG_UUID_EXPR
 
 
 class SurveyOrm(Base):
@@ -28,7 +30,8 @@ class SurveyOrm(Base):
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     visitor_id: Mapped[UUID] = mapped_column()
     account_id: Mapped[UUID | None] = mapped_column()
-    start_time: Mapped[datetime] = mapped_column()
+    start_time_utc: Mapped[datetime] = mapped_column(type_=TIMESTAMP(timezone=True))
+    timezone: Mapped[ZoneInfo] = mapped_column(type_=ZoneInfoColumnType())
     search_area_ids: Mapped[list[UUID]] = mapped_column(
         type_=sqlalchemy.dialects.postgresql.ARRAY(
             item_type=sqlalchemy.types.Uuid,
@@ -45,7 +48,8 @@ class SurveyOrm(Base):
         cls,
         *,
         visitor_id: UUID,
-        start_time: datetime,
+        start_time_utc: datetime,
+        timezone: ZoneInfo,
         search_area_ids: list[UUID],
         budget: OutingBudget,
         headcount: int,
@@ -54,7 +58,8 @@ class SurveyOrm(Base):
         obj = SurveyOrm(
             visitor_id=visitor_id,
             account_id=account_id,
-            start_time=start_time.replace(tzinfo=None),
+            start_time_utc=start_time_utc.astimezone(UTC),
+            timezone=timezone,
             search_area_ids=search_area_ids,
             budget=budget,
             headcount=headcount,

@@ -40,7 +40,7 @@ from eave.core.graphql.types.activity import ActivitySource
 from eave.core.graphql.types.restaurant import RestaurantSource
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.account_booking import AccountBookingOrm
-from eave.core.orm.address_types import Address
+from eave.core.orm.util.user_defined_column_types import Address
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
 from eave.core.orm.booking_reservations_template import BookingReservationTemplateOrm
@@ -94,7 +94,7 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
         survey = await SurveyOrm.build(
             visitor_id=visitor_id,
             account_id=account.id,
-            start_time=dummy_date,
+            start_time_utc=dummy_date,
             search_area_ids=[SearchRegionOrm.all()[0].id],
             budget=OutingBudget.EXPENSIVE,
             headcount=2,
@@ -106,16 +106,16 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
         ).save(session)
         outing_activity = await OutingActivityOrm.build(
             outing_id=outing.id,
-            activity_id=str(uuid.uuid4()),
-            activity_source=ActivitySource.INTERNAL,
-            activity_start_time=dummy_date,
+            source_id=str(uuid.uuid4()),
+            source=ActivitySource.INTERNAL,
+            start_time_utc=dummy_date,
             headcount=2,
         ).save(session)
         outing_reservation = await OutingReservationOrm.build(
             outing_id=outing.id,
-            reservation_id=str(uuid.uuid4()),
-            reservation_source=RestaurantSource.GOOGLE_PLACES,
-            reservation_start_time=dummy_date,
+            source_id=str(uuid.uuid4()),
+            source=RestaurantSource.GOOGLE_PLACES,
+            start_time_utc=dummy_date,
             headcount=2,
         ).save(session)
         reserver_details = await ReserverDetailsOrm.build(
@@ -136,9 +136,9 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             booking_id=booking.id,
             source_id=str(uuid.uuid4()),
             source=ActivitySource.EVENTBRITE,
-            activity_name="Biking in McDonalds parking lot",
-            activity_start_time=outing_activity.activity_start_time,
-            activity_photo_uri="https://s3-media0.fl.yelpcdn.com/bphoto/NQFmn6sxr2RC-czWIBi8aw/o.jpg",
+            name="Biking in McDonalds parking lot",
+            activity_start_time=outing_activity.start_time_utc,
+            photo_uri="https://s3-media0.fl.yelpcdn.com/bphoto/NQFmn6sxr2RC-czWIBi8aw/o.jpg",
             headcount=outing_activity.headcount,
             external_booking_link="https://micndontlds.com",
             address=Address(
@@ -156,9 +156,9 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             booking_id=booking.id,
             source_id=str(uuid.uuid4()),
             source=RestaurantSource.GOOGLE_PLACES,
-            reservation_name="Red lobster dumpster",
-            reservation_start_time=outing_reservation.reservation_start_time,
-            reservation_photo_uri="https://s3-media0.fl.yelpcdn.com/bphoto/NQFmn6sxr2RC-czWIBi8aw/o.jpg",
+            name="Red lobster dumpster",
+            reservation_start_time=outing_reservation.start_time_utc,
+            photo_uri="https://s3-media0.fl.yelpcdn.com/bphoto/NQFmn6sxr2RC-czWIBi8aw/o.jpg",
             headcount=outing_reservation.headcount,
             external_booking_link="https://redlobster.yum",
             address=Address(

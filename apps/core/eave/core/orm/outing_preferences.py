@@ -10,7 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from eave.stdlib.typing import NOT_SET
 
 from .base import Base
-from .util import PG_UUID_EXPR
+from .util.constants import PG_UUID_EXPR
 
 
 class OutingPreferencesOrm(Base):

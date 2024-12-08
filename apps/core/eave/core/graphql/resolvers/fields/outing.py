@@ -110,14 +110,14 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], outing_id: 
     activity = await get_activity(
         places_client=places_client,
         activities_client=activities_client,
-        event_id=outing_activity.activity_id,
-        event_source=ActivitySource[outing_activity.activity_source],
+        event_id=outing_activity.source_id,
+        event_source=ActivitySource[outing_activity.source],
     )
 
     restaurant = await get_restuarant(
         places_client=places_client,
-        event_id=outing_reservation.reservation_id,
-        event_source=RestaurantSource[outing_reservation.reservation_source],
+        event_id=outing_reservation.source_id,
+        event_source=RestaurantSource[outing_reservation.source],
     )
 
     return Outing(
@@ -126,6 +126,6 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], outing_id: 
         activity=activity,
         restaurant=restaurant,
         driving_time=None,
-        activity_start_time=outing_activity.activity_start_time,
-        restaurant_arrival_time=outing_reservation.reservation_start_time,
+        activity_start_time=outing_activity.start_time_utc,
+        restaurant_arrival_time=outing_reservation.start_time_utc,
     )

@@ -205,7 +205,7 @@ class OutingPlanner:
         first, then we find a restaurant nearby that users can eat at before
         the activity.
         """
-        activity_start_time = self.survey.start_time + timedelta(minutes=120)
+        activity_start_time = self.survey.start_time_utc + timedelta(minutes=120)
         self.activity_start_time = activity_start_time
         activity_end_time = activity_start_time + timedelta(minutes=90)
         random.shuffle(self.survey.search_area_ids)
@@ -218,7 +218,7 @@ class OutingPlanner:
         # CASE 1: Recommend an Eventbrite event.
         query = (
             EventbriteEventOrm.select()
-            .where(EventbriteEventOrm.time_range.contains(activity_start_time))
+            .where(EventbriteEventOrm.time_range_utc.contains(activity_start_time))
             .where(EventbriteEventOrm.cost_cents_range.contains(self.survey.outing_budget.upper_limit_cents))
             .where(
                 or_(
@@ -413,12 +413,12 @@ class OutingPlanner:
 
         For now, the meal always happens before the activity.
         """
-        arrival_time = self.survey.start_time
+        arrival_time = self.survey.start_time_utc
         self.restaurant_arrival_time = arrival_time
         departure_time = arrival_time + timedelta(minutes=90)
         search_areas = []
 
-        local_timestamp = self.survey.start_time.astimezone(LOS_ANGELES_ZONE_INFO)
+        local_timestamp = self.survey.start_time_utc.astimezone(LOS_ANGELES_ZONE_INFO)
         # If this is a morning outing, override user restaurant preferences and show them breakfast / brunch spots.
         if is_early_morning(local_timestamp):
             google_category_ids = list(_BREAKFAST_GOOGLE_RESTAURANT_CATEGORY_IDS)

@@ -79,7 +79,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
 
             survey = await SurveyOrm.build(
                 visitor_id=self.anyuuid(),
-                start_time=self.anydatetime(offset=2 * day_seconds),
+                start_time_utc=self.anydatetime(offset=2 * day_seconds),
                 search_area_ids=[SearchRegionOrm.all()[0].id],
                 budget=OutingBudget.INEXPENSIVE,
                 headcount=1,
@@ -119,7 +119,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
         async with self.db_session.begin() as sess:
             survey = await SurveyOrm.build(
                 visitor_id=self.anyuuid(),
-                start_time=self.anydatetime(offset=2 * day_seconds),
+                start_time_utc=self.anydatetime(offset=2 * day_seconds),
                 search_area_ids=[SearchRegionOrm.all()[0].id],
                 budget=OutingBudget.INEXPENSIVE,
                 headcount=1,

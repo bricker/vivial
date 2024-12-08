@@ -26,7 +26,7 @@ from eave.core.lib.event_helpers import get_google_photo_uris
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.account_booking import AccountBookingOrm
 from eave.core.orm.activity import ActivityOrm
-from eave.core.orm.address_types import Address
+from eave.core.orm.util.user_defined_column_types import Address
 from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
@@ -204,21 +204,22 @@ async def _create_templates_from_outing(
     activities = await db_session.scalars(OutingActivityOrm.select().where(OutingActivityOrm.outing_id == outing.id))
     activity_details = []
     for activity in activities:
-        src = ActivitySource[activity.activity_source]
+        src = ActivitySource[activity.source]
         details = await _get_event_details(
             places_client=places_client,
             activities_client=activities_client,
             event_source=src,
-            event_id=activity.activity_id,
+            event_id=activity.source_id,
         )
 
         activity_details.append(
             await BookingActivityTemplateOrm.build(
                 booking_id=booking_id,
                 source=src,
-                source_id=activity.activity_id,
-                activity_name=details.name,
-                activity_start_time=activity.activity_start_time,
+                source_id=activity.source_id,
+                name=details.name,
+                start_time_utc=activity.start_time_utc,
+                timezone=activity.timezone,
                 headcount=activity.headcount,
                 external_booking_link=details.uri,
                 address=Address(
@@ -231,7 +232,7 @@ async def _create_templates_from_outing(
                 ),
                 lat=details.latitude,
                 lon=details.longitude,
-                activity_photo_uri=details.photo_uri,
+                photo_uri=details.photo_uri,
             ).save(db_session)
         )
 
@@ -240,21 +241,22 @@ async def _create_templates_from_outing(
     )
     reservation_details = []
     for reservation in reservations:
-        src = RestaurantSource[reservation.reservation_source]
+        src = RestaurantSource[reservation.source]
         details = await _get_event_details(
             places_client=places_client,
             activities_client=activities_client,
             event_source=src,
-            event_id=reservation.reservation_id,
+            event_id=reservation.source_id,
         )
 
         reservation_details.append(
             await BookingReservationTemplateOrm.build(
                 booking_id=booking_id,
                 source=src,
-                source_id=reservation.reservation_id,
-                reservation_name=details.name,
-                reservation_start_time=reservation.reservation_start_time,
+                source_id=reservation.source_id,
+                name=details.name,
+                start_time_utc=reservation.start_time_utc,
+                timezone=reservation.timezone,
                 headcount=reservation.headcount,
                 external_booking_link=details.uri,
                 address=Address(
@@ -267,7 +269,7 @@ async def _create_templates_from_outing(
                 ),
                 lat=details.latitude,
                 lon=details.longitude,
-                reservation_photo_uri=details.photo_uri,
+                photo_uri=details.photo_uri,
             ).save(db_session)
         )
 
@@ -311,10 +313,10 @@ async def _notify_slack(
                     {"\n".join([
                     f"""*Reservation:*
                     for {reservation.headcount} attendees
-                    on (ISO time): {reservation.reservation_start_time.isoformat()}
+                    on (ISO time): {reservation.start_time_local.isoformat()}
                     at
                     ```
-                    {reservation.reservation_name}
+                    {reservation.name}
                     {reservation.address}
                     ```
                     """
@@ -324,10 +326,10 @@ async def _notify_slack(
                     {"\n".join([
                     f"""*Activity:*
                     for {activity.headcount} attendees
-                    on (ISO time): {activity.activity_start_time.isoformat()}
+                    on (ISO time): {activity.start_time_local.isoformat()}
                     at
                     ```
-                    {activity.activity_name}
+                    {activity.name}
                     {activity.address}
                     ```
                     """
@@ -379,7 +381,7 @@ async def create_booking_mutation(
 
             # validate outing time still valid to book
             try:
-                validate_time_within_bounds_or_exception(survey.start_time)
+                validate_time_within_bounds_or_exception(survey.start_time_utc)
             except StartTimeTooSoonError:
                 return CreateBookingFailure(failure_reason=CreateBookingFailureReason.START_TIME_TOO_SOON)
             except StartTimeTooLateError:

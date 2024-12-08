@@ -73,7 +73,7 @@ async def plan_outing_mutation(
         survey = await SurveyOrm.build(
             account_id=account_id,
             visitor_id=input.visitor_id,
-            start_time=input.start_time,
+            start_time_utc=input.start_time,
             search_area_ids=input.search_area_ids,
             budget=input.budget,
             headcount=input.headcount,

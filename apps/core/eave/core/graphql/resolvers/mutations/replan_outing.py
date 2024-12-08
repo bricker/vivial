@@ -66,7 +66,7 @@ async def replan_outing_mutation(
 
     # validate that the survey's start time is still within the bounds.
     try:
-        validate_time_within_bounds_or_exception(survey.start_time)
+        validate_time_within_bounds_or_exception(survey.start_time_utc)
     except StartTimeTooLateError:
         return ReplanOutingFailure(failure_reason=ReplanOutingFailureReason.START_TIME_TOO_LATE)
     except StartTimeTooSoonError:
