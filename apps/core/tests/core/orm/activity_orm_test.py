@@ -1,6 +1,6 @@
 from eave.core.lib.geo import GeoPoint
 from eave.core.orm.activity import ActivityOrm
-from eave.core.orm.util.user_defined_column_types import Address
+from eave.core.shared.address import Address
 
 from ..base import BaseTestCase
 

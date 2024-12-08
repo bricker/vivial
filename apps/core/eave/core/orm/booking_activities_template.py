@@ -8,14 +8,16 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 
 from eave.core.lib.geo import GeoPoint, SpatialReferenceSystemId
-from eave.core.orm.util.user_defined_column_types import Address, AddressColumnType, ZoneInfoColumnType
+from eave.core.orm.util.mixins import CoordinatesMixin, TimedEventMixin
+from eave.core.orm.util.user_defined_column_types import ActivitySourceColumnType, AddressColumnType, StrEnumColumnType, ZoneInfoColumnType
+from eave.core.shared.address import Address
 from eave.core.shared.enums import ActivitySource
 
 from .base import Base
 from .util.constants import PG_UUID_EXPR
 
 
-class BookingActivityTemplateOrm(Base):
+class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     """Editable template for a booked activity.
     Edits are visible to other accounts part of the same booking, but
     not other bookings created from the same outing. Also does not
@@ -39,21 +41,14 @@ class BookingActivityTemplateOrm(Base):
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     booking_id: Mapped[UUID] = mapped_column()
     source_id: Mapped[str] = mapped_column()
-    source: Mapped[str] = mapped_column()
+    source: Mapped[ActivitySource] = mapped_column(type_=ActivitySourceColumnType())
     """ActivitySource enum value"""
     name: Mapped[str] = mapped_column()
-    start_time_utc: Mapped[datetime] = mapped_column(type_=TIMESTAMP(timezone=True))
-    timezone: Mapped[ZoneInfo] = mapped_column(type_=ZoneInfoColumnType())
     photo_uri: Mapped[str | None] = mapped_column()
     headcount: Mapped[int] = mapped_column()
     external_booking_link: Mapped[str | None] = mapped_column()
     """HTTP link to site for manual booking (possibly affiliate), if available"""
     address: Mapped[Address] = mapped_column(type_=AddressColumnType())
-    coordinates: Mapped[WKBElement] = mapped_column(
-        type_=Geography(geometry_type="POINT", srid=SpatialReferenceSystemId.LAT_LON)
-    )
-    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
     def build(
@@ -87,7 +82,3 @@ class BookingActivityTemplateOrm(Base):
         )
 
         return obj
-
-    @property
-    def start_time_local(self) -> datetime:
-        return self.start_time_utc.astimezone(self.timezone)

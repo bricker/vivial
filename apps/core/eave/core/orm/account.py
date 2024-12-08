@@ -65,8 +65,6 @@ class AccountOrm(Base):
     """hex encoded byte string"""
     password_key: Mapped[str] = mapped_column()
     last_login: Mapped[datetime | None] = mapped_column(server_default=func.current_timestamp(), nullable=True)
-    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
     def build(

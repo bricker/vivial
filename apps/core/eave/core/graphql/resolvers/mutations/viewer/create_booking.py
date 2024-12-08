@@ -26,7 +26,7 @@ from eave.core.lib.event_helpers import get_google_photo_uris
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.account_booking import AccountBookingOrm
 from eave.core.orm.activity import ActivityOrm
-from eave.core.orm.util.user_defined_column_types import Address
+from eave.core.shared.address import Address
 from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm

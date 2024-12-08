@@ -1,9 +1,12 @@
 from typing import Self
 from uuid import UUID
 
-from sqlalchemy import MetaData, Select, select
+from sqlalchemy import MetaData, Select, select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase
+from datetime import datetime
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.shared.errors import ValidationError
 
@@ -17,6 +20,10 @@ class InvalidRecordError(Exception):
 
 
 class Base(DeclarativeBase):
+    # Fields common to all tables
+    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
+    updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+
     async def save(self, session: AsyncSession) -> Self:
         validation_errors = self.validate()
         if len(validation_errors) > 0:

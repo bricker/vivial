@@ -7,7 +7,8 @@ from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.core.orm.util.user_defined_column_types import ZoneInfoColumnType
+from eave.core.orm.util.mixins import TimedEventMixin
+from eave.core.orm.util.user_defined_column_types import OutingBudgetColumnType, ZoneInfoColumnType
 from eave.core.shared.enums import OutingBudget
 from eave.core.shared.errors import ValidationError
 
@@ -15,7 +16,7 @@ from .base import Base
 from .util.constants import PG_UUID_EXPR
 
 
-class SurveyOrm(Base):
+class SurveyOrm(Base, TimedEventMixin):
     __tablename__ = "surveys"
     __table_args__ = (
         PrimaryKeyConstraint("id"),
@@ -30,18 +31,14 @@ class SurveyOrm(Base):
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     visitor_id: Mapped[UUID] = mapped_column()
     account_id: Mapped[UUID | None] = mapped_column()
-    start_time_utc: Mapped[datetime] = mapped_column(type_=TIMESTAMP(timezone=True))
-    timezone: Mapped[ZoneInfo] = mapped_column(type_=ZoneInfoColumnType())
     search_area_ids: Mapped[list[UUID]] = mapped_column(
         type_=sqlalchemy.dialects.postgresql.ARRAY(
             item_type=sqlalchemy.types.Uuid,
             dimensions=1,
         ),
     )
-    budget: Mapped[str] = mapped_column()
+    budget: Mapped[OutingBudget] = mapped_column(type_=OutingBudgetColumnType())
     headcount: Mapped[int] = mapped_column()
-    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
     def build(
@@ -66,15 +63,3 @@ class SurveyOrm(Base):
         )
 
         return obj
-
-    @property
-    def outing_budget(self) -> OutingBudget:
-        return OutingBudget[self.budget]
-
-    def validate(self) -> list[ValidationError]:
-        errors: list[ValidationError] = []
-
-        if self.budget not in OutingBudget:
-            errors.append(ValidationError(field="budget"))
-
-        return errors

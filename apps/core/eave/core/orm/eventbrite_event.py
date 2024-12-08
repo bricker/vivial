@@ -13,13 +13,15 @@ from sqlalchemy.orm import Mapped, mapped_column
 from eave.core.lib.geo import GeoArea, GeoPoint, SpatialReferenceSystemId
 from eave.stdlib.typing import NOT_SET
 
+from eave.core.orm.util.mixins import CoordinatesMixin
+
 from .base import Base
 from .util.constants import PG_UUID_EXPR
 
 _TIMERANGE_BOUNDS = "[)"
 _COST_BOUNDS = "[)"
 
-class EventbriteEventOrm(Base):
+class EventbriteEventOrm(Base, CoordinatesMixin):
     __tablename__ = "eventbrite_events"
     __table_args__ = (PrimaryKeyConstraint("id"),)
 
@@ -29,13 +31,8 @@ class EventbriteEventOrm(Base):
     time_range_utc: Mapped[Range[datetime]] = mapped_column(TSTZRANGE)
     timezone: Mapped[ZoneInfo] = mapped_column(type_=String)
     cost_cents_range: Mapped[Range[int]] = mapped_column(INT4RANGE)
-    coordinates: Mapped[WKBElement] = mapped_column(
-        type_=Geography(geometry_type="POINT", srid=SpatialReferenceSystemId.LAT_LON)
-    )
     vivial_activity_category_id: Mapped[UUID] = mapped_column()
     vivial_activity_format_id: Mapped[UUID] = mapped_column()
-    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
     def build(cls, *, eventbrite_event_id: str) -> "EventbriteEventOrm":

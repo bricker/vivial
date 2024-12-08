@@ -1,8 +1,8 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
 from eave.core.lib.geo import GeoPoint
 from eave.core.orm.activity import ActivityOrm
-from eave.core.orm.util.user_defined_column_types import Address
+from eave.core.shared.address import Address
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
@@ -54,6 +54,7 @@ class TestBookingActivityTemplateOrm(BaseTestCase):
             booking_activity_template = (await session.scalars(BookingActivityTemplateOrm.select().where(BookingActivityTemplateOrm.booking_id == booking.id))).one()
 
             assert booking_activity_template.start_time_utc == self.getdatetime("activity_start_time")
-            assert booking_activity_template.start_time_utc.tzinfo is None
-            assert booking_activity_template.timezone == "America/Los_Angeles"
+            assert booking_activity_template.start_time_utc.tzinfo == UTC
+            assert booking_activity_template.timezone == ZoneInfo("America/Los_Angeles")
+            assert booking_activity_template.source == ActivitySource.EVENTBRITE
 
