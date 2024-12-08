@@ -11,11 +11,11 @@ day_seconds = 60 * 60 * 24
 
 
 class TestPlanOutingEndpoints(BaseTestCase):
-    async def test_plan_outing_unauthenticated(self) -> None:
+    async def test_plan_outing_anonymous(self) -> None:
         vis_id = self.anyuuid()
 
         response = await self.make_graphql_request(
-            "planOutingUnauthenticated",
+            "planOutingAnonymous",
             {
                 "input": {
                     "visitorId": f"{vis_id}",
@@ -47,7 +47,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
         vis_id = self.anyuuid()
 
         response = await self.make_graphql_request(
-            "planOutingUnauthenticated",
+            "planOutingAuthenticated",
             {
                 "input": {
                     "visitorId": f"{vis_id}",
@@ -92,7 +92,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
             ).save(sess)
 
         response = await self.make_graphql_request(
-            "replanOutingUnauthenticated",
+            "replanOutingAnonymous",
             {
                 "input": {
                     "outingId": f"{outing.id}",
@@ -115,7 +115,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
         data = result.data["viewer"]["replanOuting"]
         assert data["outing"]["id"] is not None
 
-    async def test_replan_unauthenticated(self) -> None:
+    async def test_replan_anonymous(self) -> None:
         async with self.db_session.begin() as sess:
             survey = await SurveyOrm.build(
                 visitor_id=self.anyuuid(),
@@ -131,7 +131,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
             ).save(sess)
 
         response = await self.make_graphql_request(
-            "replanOutingUnauthenticated",
+            "replanOutingAnonymous",
             {
                 "input": {
                     "outingId": f"{outing.id}",
@@ -153,10 +153,10 @@ class TestPlanOutingEndpoints(BaseTestCase):
         data = result.data["replanOuting"]
         assert data["outing"]["id"] is not None
 
-    async def test_replan_unauthenticated_bad_outing_id(self) -> None:
+    async def test_replan_anonymous_bad_outing_id(self) -> None:
         # try to replan an outing that doesn't exist
         response = await self.make_graphql_request(
-            "replanOutingUnauthenticated",
+            "replanOutingAnonymous",
             {
                 "input": {
                     "outingId": f"{self.anyuuid()}",

@@ -42,11 +42,18 @@ const rule = {
           }
 
           return (
+            selection.kind === Kind.INLINE_FRAGMENT &&
             "name" in selectionGqlType &&
             selectionGqlType.name === "UnauthenticatedViewer" &&
-            selection.kind === Kind.INLINE_FRAGMENT &&
             selection.selectionSet?.selections.some((s) => {
-              return s.kind === Kind.FIELD && s.name.value === "authAction" && !("alias" in s && !!s.alias); // disallow alias for this field
+              return s.kind === Kind.FIELD &&
+                s.name.value === "authAction" &&
+                !("alias" in s && !!s.alias); // disallow alias for this field
+            }) &&
+            selection.selectionSet?.selections.some((s) => {
+              return s.kind === Kind.FIELD &&
+                s.name.value === "authFailureReason" &&
+                !("alias" in s && !!s.alias); // disallow alias for this field
             })
           );
         });
@@ -55,7 +62,7 @@ const rule = {
           context.report({
             node,
             message:
-              "Field `UnauthenticatedViewer.authAction` (unaliased) is mandatory on Viewer operations, to support automated auth token refresh.",
+              "`UnauthenticatedViewer` with all fields (unaliased) is mandatory on Viewer operations, to support automated auth token refresh.",
           });
         }
       },

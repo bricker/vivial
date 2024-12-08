@@ -277,3 +277,4 @@ class TestUpdateAccountResolver(BaseTestCase):
         # This is an odd case, where the WEAK_PASSWORD is checked before the model is validated, so we should
         # actually only get the WEAK_PASSWORD error back.
         assert data["authAction"] == "FORCE_LOGOUT"
+        assert data["authFailureReason"] == "ACCESS_TOKEN_INVALID"

@@ -11,6 +11,7 @@ mutation ReplanOutingAuthenticated($input: ReplanOutingInput!) {
     ... on UnauthenticatedViewer {
       __typename
       authAction
+      authFailureReason
     }
   }
 }

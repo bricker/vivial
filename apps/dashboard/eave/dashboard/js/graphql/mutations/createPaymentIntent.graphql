@@ -25,6 +25,7 @@ mutation CreatePaymentIntent {
     ... on UnauthenticatedViewer {
       __typename
       authAction
+      authFailureReason
     }
   }
 }

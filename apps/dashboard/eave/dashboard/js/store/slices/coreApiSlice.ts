@@ -12,9 +12,9 @@ import {
   LoginDocument,
   OutingPreferencesDocument,
   PlanOutingAuthenticatedDocument,
-  PlanOutingUnauthenticatedDocument,
+  PlanOutingAnonymousDocument,
   ReplanOutingAuthenticatedDocument,
-  ReplanOutingUnauthenticatedDocument,
+  ReplanOutingAnonymousDocument,
   SearchRegionsDocument,
   SubmitReserverDetailsDocument,
   UpdateAccountDocument,
@@ -35,12 +35,12 @@ import {
   type OutingPreferencesQueryVariables,
   type PlanOutingAuthenticatedMutation,
   type PlanOutingAuthenticatedMutationVariables,
-  type PlanOutingUnauthenticatedMutation,
-  type PlanOutingUnauthenticatedMutationVariables,
+  type PlanOutingAnonymousMutation,
+  type PlanOutingAnonymousMutationVariables,
   type ReplanOutingAuthenticatedMutation,
   type ReplanOutingAuthenticatedMutationVariables,
-  type ReplanOutingUnauthenticatedMutation,
-  type ReplanOutingUnauthenticatedMutationVariables,
+  type ReplanOutingAnonymousMutation,
+  type ReplanOutingAnonymousMutationVariables,
   type SearchRegionsQuery,
   type SearchRegionsQueryVariables,
   type SubmitReserverDetailsMutation,
@@ -145,12 +145,12 @@ export const coreApiSlice = createApi({
       },
     }),
 
-    planOutingUnauthenticated: builder.mutation<
-      PlanOutingUnauthenticatedMutation,
-      PlanOutingUnauthenticatedMutationVariables
+    planOutingAnonymous: builder.mutation<
+      PlanOutingAnonymousMutation,
+      PlanOutingAnonymousMutationVariables
     >({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
-        const data = await executeOperation({ query: PlanOutingUnauthenticatedDocument, variables });
+        const data = await executeOperation({ query: PlanOutingAnonymousDocument, variables });
         return { data };
       },
     }),
@@ -165,12 +165,12 @@ export const coreApiSlice = createApi({
       },
     }),
 
-    replanOutingUnauthenticated: builder.mutation<
-      ReplanOutingUnauthenticatedMutation,
-      ReplanOutingUnauthenticatedMutationVariables
+    replanOutingAnonymous: builder.mutation<
+      ReplanOutingAnonymousMutation,
+      ReplanOutingAnonymousMutationVariables
     >({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
-        const data = await executeOperation({ query: ReplanOutingUnauthenticatedDocument, variables });
+        const data = await executeOperation({ query: ReplanOutingAnonymousDocument, variables });
         return { data };
       },
     }),

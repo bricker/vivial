@@ -89,19 +89,19 @@ export async function executeOperation<TResult, TVariables>({
   const result = data as TResult;
 
   if (isViewerOperation(result) && result.viewer.__typename === "UnauthenticatedViewer") {
-    switch (result.viewer.authAction) {
-      case ViewerAuthenticationAction.RefreshAccessToken: {
+    switch (result.viewer.authFailureReason) {
+      case ViewerAuthenticationAction.AccessTokenExpired: {
         if (allowTokenRefresh) {
           await refreshTokens();
           return executeOperation({ query, variables, allowTokenRefresh: false });
         } else {
-          // In this case, we throw an error because we don't want the UI to see `REFRESH_ACCESS_TOKEN` and think
+          // In this case, we throw an error because we don't want the UI to see `ACCESS_TOKEN_EXPIRED` and think
           // it needs to do something about that. If we already tried refreshing the token and the request failed again,
           // then it should be treated as an error.
           throw Error("Tokens already refreshed.");
         }
       }
-      case ViewerAuthenticationAction.ForceLogout: {
+      case ViewerAuthenticationAction.AccesstokenInvalid: {
         // Do nothing (return the data as-is); this case is here just for reference.
         // The caller should handle this case, usually by calling dispatch(loggedOut())
         break;

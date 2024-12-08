@@ -1,0 +1,5 @@
+fragment UnauthenticatedViewerFields on UnauthenticatedViewer {
+  __typename
+  authAction
+  authFailureReason
+}
