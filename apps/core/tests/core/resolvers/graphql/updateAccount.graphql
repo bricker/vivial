@@ -1,0 +1,26 @@
+mutation UpdateAccount($input: UpdateAccountInput!) {
+  viewer {
+    ...on AuthenticatedViewerMutations {
+      updateAccount(input: $input) {
+        ...on UpdateAccountSuccess {
+          account {
+            id
+            email
+          }
+        }
+
+        ...on UpdateAccountFailure {
+          failureReason
+          validationErrors {
+            field
+          }
+        }
+      }
+    }
+
+    ...on UnauthenticatedViewer {
+      __typename
+      authAction
+    }
+  }
+}
