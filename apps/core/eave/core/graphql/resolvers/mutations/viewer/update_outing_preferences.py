@@ -14,8 +14,8 @@ from eave.stdlib.util import unwrap
 
 @strawberry.input
 class UpdateOutingPreferencesInput:
-    restaurant_category_ids: list[UUID] = strawberry.UNSET
-    activity_category_ids: list[UUID] = strawberry.UNSET
+    restaurant_category_ids: list[UUID] | None = strawberry.UNSET
+    activity_category_ids: list[UUID] | None = strawberry.UNSET
 
 
 @strawberry.type
@@ -56,9 +56,11 @@ async def update_outing_preferences_mutation(
                 restaurant_category_ids=None,
             )
 
-        await outing_preferences.update(
-            activity_category_ids=input.activity_category_ids,
-            restaurant_category_ids=input.restaurant_category_ids,
-        ).save(db_session)
+        if input.activity_category_ids:
+            outing_preferences.activity_category_ids = input.activity_category_ids
+        if input.restaurant_category_ids:
+            outing_preferences.restaurant_category_ids = input.restaurant_category_ids
+
+        await outing_preferences.save(db_session)
 
     return UpdateOutingPreferencesSuccess(outing_preferences=OutingPreferences.from_orm(outing_preferences))

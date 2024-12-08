@@ -56,20 +56,6 @@ class OutingPreferencesOrm(Base):
         )
         return obj
 
-    def update(
-        self,
-        *,
-        restaurant_category_ids: list[UUID] = strawberry.UNSET,
-        activity_category_ids: list[UUID] = strawberry.UNSET,
-    ) -> Self:
-        if restaurant_category_ids is not strawberry.UNSET:
-            self.restaurant_category_ids = restaurant_category_ids
-
-        if activity_category_ids is not strawberry.UNSET:
-            self.activity_category_ids = activity_category_ids
-
-        return self
-
     @classmethod
     def select(cls, *, account_id: UUID = NOT_SET) -> Select[tuple[Self]]:
         query = select(cls)
