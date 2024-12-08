@@ -23,7 +23,7 @@ mutation UpdateOutingPreferences($input: UpdateOutingPreferencesInput!) {
 
     ... on UnauthenticatedViewer {
       __typename
-      authAction
+      authFailureReason
     }
   }
 }

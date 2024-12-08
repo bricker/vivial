@@ -473,6 +473,7 @@ export type SubmitReserverDetailsSuccess = {
 
 export type UnauthenticatedViewer = {
   __typename?: 'UnauthenticatedViewer';
+  /** @deprecated Use authFailureReason */
   authAction: ViewerAuthenticationAction;
   authFailureReason: AuthenticationFailureReason;
 };
@@ -576,8 +577,6 @@ type ReplanOutingFields_ReplanOutingSuccess_Fragment = { __typename: 'ReplanOuti
 
 export type ReplanOutingFieldsFragment = ReplanOutingFields_ReplanOutingFailure_Fragment | ReplanOutingFields_ReplanOutingSuccess_Fragment;
 
-export type UnauthenticatedViewerFieldsFragment = { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction, authFailureReason: AuthenticationFailureReason };
-
 export type CreateAccountMutationVariables = Exact<{
   input: CreateAccountInput;
 }>;
@@ -590,12 +589,12 @@ export type CreateBookingMutationVariables = Exact<{
 }>;
 
 
-export type CreateBookingMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', createBooking: { __typename: 'CreateBookingFailure', failureReason: CreateBookingFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'CreateBookingSuccess', booking: { __typename: 'Booking', id: string } } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction, authFailureReason: AuthenticationFailureReason } };
+export type CreateBookingMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', createBooking: { __typename: 'CreateBookingFailure', failureReason: CreateBookingFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'CreateBookingSuccess', booking: { __typename: 'Booking', id: string } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 
 export type CreatePaymentIntentMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type CreatePaymentIntentMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', createPaymentIntent: { __typename: 'CreatePaymentIntentFailure', failureReason: CreatePaymentIntentFailureReason } | { __typename: 'CreatePaymentIntentSuccess', paymentIntent: { __typename: 'PaymentIntent', clientSecret: string } } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction, authFailureReason: AuthenticationFailureReason } };
+export type CreatePaymentIntentMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', createPaymentIntent: { __typename: 'CreatePaymentIntentFailure', failureReason: CreatePaymentIntentFailureReason } | { __typename: 'CreatePaymentIntentSuccess', paymentIntent: { __typename: 'PaymentIntent', clientSecret: string } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 
 export type LoginMutationVariables = Exact<{
   input: LoginInput;
@@ -616,7 +615,7 @@ export type PlanOutingAuthenticatedMutationVariables = Exact<{
 }>;
 
 
-export type PlanOutingAuthenticatedMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', planOuting: { __typename: 'PlanOutingFailure', failureReason: PlanOutingFailureReason } | { __typename: 'PlanOutingSuccess', outing: { __typename: 'Outing', id: string, headcount: number, activityStartTime?: string | null, restaurantArrivalTime?: string | null, drivingTime?: string | null, activity?: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description: string, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress: string } }, photos?: { __typename: 'Photos', coverPhotoUri: string, supplementalPhotoUris?: Array<string> | null } | null, ticketInfo?: { __typename: 'ActivityTicketInfo', type?: string | null, notes?: string | null, cost?: number | null, fee?: number | null, tax?: number | null } | null } | null, restaurant?: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress: string }, photos?: { __typename: 'Photos', coverPhotoUri: string, supplementalPhotoUris?: Array<string> | null } | null } | null } } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction, authFailureReason: AuthenticationFailureReason } };
+export type PlanOutingAuthenticatedMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', planOuting: { __typename: 'PlanOutingFailure', failureReason: PlanOutingFailureReason } | { __typename: 'PlanOutingSuccess', outing: { __typename: 'Outing', id: string, headcount: number, activityStartTime?: string | null, restaurantArrivalTime?: string | null, drivingTime?: string | null, activity?: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description: string, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress: string } }, photos?: { __typename: 'Photos', coverPhotoUri: string, supplementalPhotoUris?: Array<string> | null } | null, ticketInfo?: { __typename: 'ActivityTicketInfo', type?: string | null, notes?: string | null, cost?: number | null, fee?: number | null, tax?: number | null } | null } | null, restaurant?: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress: string }, photos?: { __typename: 'Photos', coverPhotoUri: string, supplementalPhotoUris?: Array<string> | null } | null } | null } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 
 export type ReplanOutingAnonymousMutationVariables = Exact<{
   input: ReplanOutingInput;
@@ -630,43 +629,43 @@ export type ReplanOutingAuthenticatedMutationVariables = Exact<{
 }>;
 
 
-export type ReplanOutingAuthenticatedMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', replanOuting: { __typename: 'ReplanOutingFailure', failureReason: ReplanOutingFailureReason } | { __typename: 'ReplanOutingSuccess', outing: { __typename: 'Outing', id: string, headcount: number, activityStartTime?: string | null, restaurantArrivalTime?: string | null, drivingTime?: string | null, activity?: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description: string, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress: string } }, photos?: { __typename: 'Photos', coverPhotoUri: string, supplementalPhotoUris?: Array<string> | null } | null, ticketInfo?: { __typename: 'ActivityTicketInfo', type?: string | null, notes?: string | null, cost?: number | null, fee?: number | null, tax?: number | null } | null } | null, restaurant?: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress: string }, photos?: { __typename: 'Photos', coverPhotoUri: string, supplementalPhotoUris?: Array<string> | null } | null } | null } } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction, authFailureReason: AuthenticationFailureReason } };
+export type ReplanOutingAuthenticatedMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', replanOuting: { __typename: 'ReplanOutingFailure', failureReason: ReplanOutingFailureReason } | { __typename: 'ReplanOutingSuccess', outing: { __typename: 'Outing', id: string, headcount: number, activityStartTime?: string | null, restaurantArrivalTime?: string | null, drivingTime?: string | null, activity?: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description: string, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress: string } }, photos?: { __typename: 'Photos', coverPhotoUri: string, supplementalPhotoUris?: Array<string> | null } | null, ticketInfo?: { __typename: 'ActivityTicketInfo', type?: string | null, notes?: string | null, cost?: number | null, fee?: number | null, tax?: number | null } | null } | null, restaurant?: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress: string }, photos?: { __typename: 'Photos', coverPhotoUri: string, supplementalPhotoUris?: Array<string> | null } | null } | null } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 
 export type SubmitReserverDetailsMutationVariables = Exact<{
   input: SubmitReserverDetailsInput;
 }>;
 
 
-export type SubmitReserverDetailsMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', submitReserverDetails: { __typename: 'SubmitReserverDetailsFailure', failureReason: SubmitReserverDetailsFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'SubmitReserverDetailsSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string } } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction, authFailureReason: AuthenticationFailureReason } };
+export type SubmitReserverDetailsMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', submitReserverDetails: { __typename: 'SubmitReserverDetailsFailure', failureReason: SubmitReserverDetailsFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'SubmitReserverDetailsSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 
 export type UpdateAccountMutationVariables = Exact<{
   input: UpdateAccountInput;
 }>;
 
 
-export type UpdateAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateAccount: { __typename: 'UpdateAccountFailure', failureReason: UpdateAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateAccountSuccess', account: { __typename: 'Account', email: string } } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction, authFailureReason: AuthenticationFailureReason } };
+export type UpdateAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateAccount: { __typename: 'UpdateAccountFailure', failureReason: UpdateAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateAccountSuccess', account: { __typename: 'Account', email: string } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 
 export type UpdateReserverDetailsAccountMutationVariables = Exact<{
   input: UpdateReserverDetailsAccountInput;
 }>;
 
 
-export type UpdateReserverDetailsAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateReserverDetailsAccount: { __typename: 'UpdateReserverDetailsAccountFailure', failureReason: UpdateReserverDetailsAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateReserverDetailsAccountSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }, account: { __typename: 'Account', id: string, email: string } } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction, authFailureReason: AuthenticationFailureReason } };
+export type UpdateReserverDetailsAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateReserverDetailsAccount: { __typename: 'UpdateReserverDetailsAccountFailure', failureReason: UpdateReserverDetailsAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateReserverDetailsAccountSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }, account: { __typename: 'Account', id: string, email: string } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 
 export type ListBookedOutingsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ListBookedOutingsQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', bookedOutings: Array<{ __typename: 'BookingDetailPeek', id: string, activityStartTime?: string | null, restaurantArrivalTime?: string | null, activityName?: string | null, restaurantName?: string | null, photoUri?: string | null }> } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
+export type ListBookedOutingsQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', bookedOutings: Array<{ __typename: 'BookingDetailPeek', id: string, activityStartTime?: string | null, restaurantArrivalTime?: string | null, activityName?: string | null, restaurantName?: string | null, photoUri?: string | null }> } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 
 export type ListReserverDetailsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ListReserverDetailsQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', reserverDetails: Array<{ __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }> } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
+export type ListReserverDetailsQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', reserverDetails: Array<{ __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }> } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 
 export type OutingPreferencesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type OutingPreferencesQuery = { __typename: 'Query', activityCategoryGroups: Array<{ __typename: 'ActivityCategoryGroup', id: string, name: string, activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> }>, restaurantCategories: Array<{ __typename: 'RestaurantCategory', id: string, name: string, isDefault: boolean }>, viewer: { __typename: 'AuthenticatedViewerQueries', outingPreferences: { __typename: 'OutingPreferences', restaurantCategories?: Array<{ __typename: 'RestaurantCategory', id: string, name: string, isDefault: boolean }> | null, activityCategories?: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> | null } } | { __typename: 'UnauthenticatedViewer', authAction: ViewerAuthenticationAction } };
+export type OutingPreferencesQuery = { __typename: 'Query', activityCategoryGroups: Array<{ __typename: 'ActivityCategoryGroup', id: string, name: string, activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> }>, restaurantCategories: Array<{ __typename: 'RestaurantCategory', id: string, name: string, isDefault: boolean }>, viewer: { __typename: 'AuthenticatedViewerQueries', outingPreferences: { __typename: 'OutingPreferences', restaurantCategories?: Array<{ __typename: 'RestaurantCategory', id: string, name: string, isDefault: boolean }> | null, activityCategories?: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> | null } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 
 export type SearchRegionsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -923,13 +922,6 @@ export const ReplanOutingFieldsFragmentDoc = new TypedDocumentString(`
     }
   }
 }`, {"fragmentName":"ReplanOutingFields"}) as unknown as TypedDocumentString<ReplanOutingFieldsFragment, unknown>;
-export const UnauthenticatedViewerFieldsFragmentDoc = new TypedDocumentString(`
-    fragment UnauthenticatedViewerFields on UnauthenticatedViewer {
-  __typename
-  authAction
-  authFailureReason
-}
-    `, {"fragmentName":"UnauthenticatedViewerFields"}) as unknown as TypedDocumentString<UnauthenticatedViewerFieldsFragment, unknown>;
 export const CreateAccountDocument = new TypedDocumentString(`
     mutation CreateAccount($input: CreateAccountInput!) {
   __typename
@@ -980,14 +972,13 @@ export const CreateBookingDocument = new TypedDocumentString(`
         }
       }
     }
-    ...UnauthenticatedViewerFields
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
   }
 }
-    fragment UnauthenticatedViewerFields on UnauthenticatedViewer {
-  __typename
-  authAction
-  authFailureReason
-}`) as unknown as TypedDocumentString<CreateBookingMutation, CreateBookingMutationVariables>;
+    `) as unknown as TypedDocumentString<CreateBookingMutation, CreateBookingMutationVariables>;
 export const CreatePaymentIntentDocument = new TypedDocumentString(`
     mutation CreatePaymentIntent {
   __typename
@@ -1010,14 +1001,13 @@ export const CreatePaymentIntentDocument = new TypedDocumentString(`
         }
       }
     }
-    ...UnauthenticatedViewerFields
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
   }
 }
-    fragment UnauthenticatedViewerFields on UnauthenticatedViewer {
-  __typename
-  authAction
-  authFailureReason
-}`) as unknown as TypedDocumentString<CreatePaymentIntentMutation, CreatePaymentIntentMutationVariables>;
+    `) as unknown as TypedDocumentString<CreatePaymentIntentMutation, CreatePaymentIntentMutationVariables>;
 export const LoginDocument = new TypedDocumentString(`
     mutation Login($input: LoginInput!) {
   __typename
@@ -1140,7 +1130,10 @@ export const PlanOutingAuthenticatedDocument = new TypedDocumentString(`
         ...PlanOutingFields
       }
     }
-    ...UnauthenticatedViewerFields
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
   }
 }
     fragment OutingFields on Outing {
@@ -1224,11 +1217,6 @@ fragment PlanOutingFields on PlanOutingResult {
     __typename
     failureReason
   }
-}
-fragment UnauthenticatedViewerFields on UnauthenticatedViewer {
-  __typename
-  authAction
-  authFailureReason
 }`) as unknown as TypedDocumentString<PlanOutingAuthenticatedMutation, PlanOutingAuthenticatedMutationVariables>;
 export const ReplanOutingAnonymousDocument = new TypedDocumentString(`
     mutation ReplanOutingAnonymous($input: ReplanOutingInput!) {
@@ -1332,7 +1320,10 @@ export const ReplanOutingAuthenticatedDocument = new TypedDocumentString(`
         ...ReplanOutingFields
       }
     }
-    ...UnauthenticatedViewerFields
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
   }
 }
     fragment OutingFields on Outing {
@@ -1416,11 +1407,6 @@ fragment ReplanOutingFields on ReplanOutingResult {
     __typename
     failureReason
   }
-}
-fragment UnauthenticatedViewerFields on UnauthenticatedViewer {
-  __typename
-  authAction
-  authFailureReason
 }`) as unknown as TypedDocumentString<ReplanOutingAuthenticatedMutation, ReplanOutingAuthenticatedMutationVariables>;
 export const SubmitReserverDetailsDocument = new TypedDocumentString(`
     mutation SubmitReserverDetails($input: SubmitReserverDetailsInput!) {
@@ -1448,14 +1434,13 @@ export const SubmitReserverDetailsDocument = new TypedDocumentString(`
         }
       }
     }
-    ...UnauthenticatedViewerFields
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
   }
 }
-    fragment UnauthenticatedViewerFields on UnauthenticatedViewer {
-  __typename
-  authAction
-  authFailureReason
-}`) as unknown as TypedDocumentString<SubmitReserverDetailsMutation, SubmitReserverDetailsMutationVariables>;
+    `) as unknown as TypedDocumentString<SubmitReserverDetailsMutation, SubmitReserverDetailsMutationVariables>;
 export const UpdateAccountDocument = new TypedDocumentString(`
     mutation UpdateAccount($input: UpdateAccountInput!) {
   __typename
@@ -1482,14 +1467,13 @@ export const UpdateAccountDocument = new TypedDocumentString(`
         }
       }
     }
-    ...UnauthenticatedViewerFields
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
   }
 }
-    fragment UnauthenticatedViewerFields on UnauthenticatedViewer {
-  __typename
-  authAction
-  authFailureReason
-}`) as unknown as TypedDocumentString<UpdateAccountMutation, UpdateAccountMutationVariables>;
+    `) as unknown as TypedDocumentString<UpdateAccountMutation, UpdateAccountMutationVariables>;
 export const UpdateReserverDetailsAccountDocument = new TypedDocumentString(`
     mutation UpdateReserverDetailsAccount($input: UpdateReserverDetailsAccountInput!) {
   __typename
@@ -1524,14 +1508,13 @@ export const UpdateReserverDetailsAccountDocument = new TypedDocumentString(`
         }
       }
     }
-    ...UnauthenticatedViewerFields
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
   }
 }
-    fragment UnauthenticatedViewerFields on UnauthenticatedViewer {
-  __typename
-  authAction
-  authFailureReason
-}`) as unknown as TypedDocumentString<UpdateReserverDetailsAccountMutation, UpdateReserverDetailsAccountMutationVariables>;
+    `) as unknown as TypedDocumentString<UpdateReserverDetailsAccountMutation, UpdateReserverDetailsAccountMutationVariables>;
 export const ListBookedOutingsDocument = new TypedDocumentString(`
     query ListBookedOutings {
   __typename
@@ -1551,7 +1534,7 @@ export const ListBookedOutingsDocument = new TypedDocumentString(`
     }
     ... on UnauthenticatedViewer {
       __typename
-      authAction
+      authFailureReason
     }
   }
 }
@@ -1573,7 +1556,7 @@ export const ListReserverDetailsDocument = new TypedDocumentString(`
     }
     ... on UnauthenticatedViewer {
       __typename
-      authAction
+      authFailureReason
     }
   }
 }
@@ -1620,7 +1603,7 @@ export const OutingPreferencesDocument = new TypedDocumentString(`
     }
     ... on UnauthenticatedViewer {
       __typename
-      authAction
+      authFailureReason
     }
   }
 }

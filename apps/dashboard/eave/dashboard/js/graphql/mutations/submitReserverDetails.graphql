@@ -28,7 +28,6 @@ mutation SubmitReserverDetails($input: SubmitReserverDetailsInput!) {
 
     ... on UnauthenticatedViewer {
       __typename
-      authAction
       authFailureReason
     }
   }

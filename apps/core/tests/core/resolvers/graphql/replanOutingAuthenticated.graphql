@@ -30,7 +30,7 @@ mutation ReplanOutingAuthenticated($input: ReplanOutingInput!) {
     }
 
     ... on UnauthenticatedViewer {
-      authAction
+      authFailureReason
     }
   }
 }

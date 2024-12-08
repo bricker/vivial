@@ -10,7 +10,6 @@ mutation PlanOutingAuthenticated($input: PlanOutingInput!) {
 
     ... on UnauthenticatedViewer {
       __typename
-      authAction
       authFailureReason
     }
   }

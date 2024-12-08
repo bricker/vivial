@@ -47,11 +47,6 @@ const rule = {
             selectionGqlType.name === "UnauthenticatedViewer" &&
             selection.selectionSet?.selections.some((s) => {
               return s.kind === Kind.FIELD &&
-                s.name.value === "authAction" &&
-                !("alias" in s && !!s.alias); // disallow alias for this field
-            }) &&
-            selection.selectionSet?.selections.some((s) => {
-              return s.kind === Kind.FIELD &&
                 s.name.value === "authFailureReason" &&
                 !("alias" in s && !!s.alias); // disallow alias for this field
             })
@@ -62,7 +57,7 @@ const rule = {
           context.report({
             node,
             message:
-              "`UnauthenticatedViewer` with all fields (unaliased) is mandatory on Viewer operations, to support automated auth token refresh.",
+              "`UnauthenticatedViewer.authFailureReason` (unaliased) is mandatory on Viewer operations, to support automated auth token refresh.",
           });
         }
       },

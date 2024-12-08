@@ -25,7 +25,7 @@ mutation CreateBooking($input: CreateBookingInput!) {
 
     ... on UnauthenticatedViewer {
       __typename
-      authAction
+      authFailureReason
     }
   }
 }
