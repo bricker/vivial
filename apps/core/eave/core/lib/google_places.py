@@ -3,7 +3,14 @@ from collections.abc import MutableSequence, Sequence
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from google.maps.places import GetPlaceRequest, Photo, Place, PlacesAsyncClient, SearchNearbyRequest
+from google.maps.places import (
+    GetPhotoMediaRequest,
+    GetPlaceRequest,
+    Photo,
+    Place,
+    PlacesAsyncClient,
+    SearchNearbyRequest,
+)
 
 from eave.core.graphql.types.activity import Activity, ActivityVenue
 from eave.core.graphql.types.location import Location
@@ -112,7 +119,10 @@ async def get_google_photo_uris(
 
     for photo in photos:
         photo_res = await places_client.get_photo_media(
-            name=photo.name,
+            request=GetPhotoMediaRequest(
+                name=f"{photo.name}/media",
+                max_width_px=1000,  # This value was chosen arbitrarily
+            )
         )
         photo_uris.append(photo_res.photo_uri)
 
