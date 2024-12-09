@@ -1,22 +1,25 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Self
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
+from eave.core.orm.util.mixins import TimedEventMixin
+from eave.core.orm.util.user_defined_column_types import ActivitySourceColumnType
 from eave.core.shared.enums import ActivitySource
 
 from .base import Base
 
 
-class OutingActivityOrm(Base):
+class OutingActivityOrm(Base, TimedEventMixin):
     """Pivot table between `outings` and `activities` tables."""
 
     __tablename__ = "outing_activities"
     __table_args__ = (
-        PrimaryKeyConstraint("outing_id", "activity_id", name="outing_activity_pivot_pk"),
+        PrimaryKeyConstraint("outing_id", "source_id", name="outing_activity_pivot_pk"),
         ForeignKeyConstraint(
             ["outing_id"],
             ["outings.id"],
@@ -26,30 +29,29 @@ class OutingActivityOrm(Base):
     )
 
     outing_id: Mapped[UUID] = mapped_column()
-    activity_id: Mapped[str] = mapped_column()
+    source_id: Mapped[str] = mapped_column()
     """ID of activity in remote table"""
-    activity_source: Mapped[str] = mapped_column()
+    source: Mapped[ActivitySource] = mapped_column(type_=ActivitySourceColumnType())
     """ActivitySource enum value"""
-    activity_start_time: Mapped[datetime] = mapped_column()
-    headcount: Mapped[int] = mapped_column(name="num_attendees")
-    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
+    headcount: Mapped[int] = mapped_column()
 
     @classmethod
     def build(
         cls,
         *,
         outing_id: UUID,
-        activity_id: str,
-        activity_source: ActivitySource,
-        activity_start_time: datetime,
+        source_id: str,
+        source: ActivitySource,
+        start_time_utc: datetime,
+        timezone: ZoneInfo,
         headcount: int,
     ) -> "OutingActivityOrm":
         obj = OutingActivityOrm(
             outing_id=outing_id,
-            activity_id=activity_id,
-            activity_start_time=activity_start_time,
-            activity_source=activity_source,
+            source_id=source_id,
+            source=source,
+            start_time_utc=start_time_utc.astimezone(UTC),
+            timezone=timezone,
             headcount=headcount,
         )
 

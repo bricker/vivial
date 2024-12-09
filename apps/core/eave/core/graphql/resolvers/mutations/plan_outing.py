@@ -20,6 +20,7 @@ from eave.core.graphql.types.outing import (
 )
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
+from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 
 
 @strawberry.input
@@ -63,7 +64,7 @@ async def plan_outing_mutation(
         return PlanOutingFailure(failure_reason=PlanOutingFailureReason.SEARCH_AREA_IDS_EMPTY)
 
     try:
-        validate_time_within_bounds_or_exception(input.start_time)
+        validate_time_within_bounds_or_exception(start_time=input.start_time, timezone=LOS_ANGELES_TIMEZONE)
     except StartTimeTooLateError:
         return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_LATE)
     except StartTimeTooSoonError:
@@ -73,7 +74,8 @@ async def plan_outing_mutation(
         survey = await SurveyOrm.build(
             account_id=account_id,
             visitor_id=input.visitor_id,
-            start_time=input.start_time,
+            start_time_utc=input.start_time,
+            timezone=LOS_ANGELES_TIMEZONE,
             search_area_ids=input.search_area_ids,
             budget=input.budget,
             headcount=input.headcount,

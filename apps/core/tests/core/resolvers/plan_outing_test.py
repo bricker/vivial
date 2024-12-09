@@ -1,3 +1,5 @@
+import random
+
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
@@ -11,16 +13,16 @@ day_seconds = 60 * 60 * 24
 
 
 class TestPlanOutingEndpoints(BaseTestCase):
-    async def test_plan_outing_unauthenticated(self) -> None:
+    async def test_plan_outing_anonymous(self) -> None:
         vis_id = self.anyuuid()
 
         response = await self.make_graphql_request(
-            "planOutingUnauthenticated",
+            "planOutingAnonymous",
             {
                 "input": {
                     "visitorId": f"{vis_id}",
                     "startTime": f"{self.anydatetime(offset=2 * day_seconds).isoformat()}",
-                    "searchAreaIds": [f"{self.anyuuid()}"],
+                    "searchAreaIds": [s.id.hex for s in random.choices(SearchRegionOrm.all(), k=3)],
                     "budget": "INEXPENSIVE",
                     "headcount": 2,
                     "groupPreferences": [
@@ -37,7 +39,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
         assert result.data
         assert not result.errors
 
-        data = result.data["replanOuting"]
+        data = result.data["planOuting"]
         assert data["outing"]["id"] is not None
 
     async def test_plan_outing_authenticated(self) -> None:
@@ -47,12 +49,12 @@ class TestPlanOutingEndpoints(BaseTestCase):
         vis_id = self.anyuuid()
 
         response = await self.make_graphql_request(
-            "planOutingUnauthenticated",
+            "planOutingAuthenticated",
             {
                 "input": {
                     "visitorId": f"{vis_id}",
                     "startTime": f"{self.anydatetime(offset=2 * day_seconds).isoformat()}",
-                    "searchAreaIds": [f"{self.anyuuid()}"],
+                    "searchAreaIds": [s.id.hex for s in random.choices(SearchRegionOrm.all(), k=3)],
                     "budget": "INEXPENSIVE",
                     "headcount": 2,
                     "groupPreferences": [
@@ -79,8 +81,9 @@ class TestPlanOutingEndpoints(BaseTestCase):
 
             survey = await SurveyOrm.build(
                 visitor_id=self.anyuuid(),
-                start_time=self.anydatetime(offset=2 * day_seconds),
-                search_area_ids=[SearchRegionOrm.all()[0].id],
+                start_time_utc=self.anydatetime(offset=2 * day_seconds),
+                timezone=self.anytimezone(),
+                search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
                 budget=OutingBudget.INEXPENSIVE,
                 headcount=1,
                 account_id=account.id,
@@ -92,7 +95,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
             ).save(sess)
 
         response = await self.make_graphql_request(
-            "replanOutingUnauthenticated",
+            "replanOutingAuthenticated",
             {
                 "input": {
                     "outingId": f"{outing.id}",
@@ -115,12 +118,13 @@ class TestPlanOutingEndpoints(BaseTestCase):
         data = result.data["viewer"]["replanOuting"]
         assert data["outing"]["id"] is not None
 
-    async def test_replan_unauthenticated(self) -> None:
+    async def test_replan_anonymous(self) -> None:
         async with self.db_session.begin() as sess:
             survey = await SurveyOrm.build(
                 visitor_id=self.anyuuid(),
-                start_time=self.anydatetime(offset=2 * day_seconds),
-                search_area_ids=[SearchRegionOrm.all()[0].id],
+                start_time_utc=self.anydatetime(offset=2 * day_seconds),
+                timezone=self.anytimezone(),
+                search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
                 budget=OutingBudget.INEXPENSIVE,
                 headcount=1,
             ).save(sess)
@@ -131,7 +135,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
             ).save(sess)
 
         response = await self.make_graphql_request(
-            "replanOutingUnauthenticated",
+            "replanOutingAnonymous",
             {
                 "input": {
                     "outingId": f"{outing.id}",
@@ -153,10 +157,10 @@ class TestPlanOutingEndpoints(BaseTestCase):
         data = result.data["replanOuting"]
         assert data["outing"]["id"] is not None
 
-    async def test_replan_unauthenticated_bad_outing_id(self) -> None:
+    async def test_replan_anonymous_bad_outing_id(self) -> None:
         # try to replan an outing that doesn't exist
         response = await self.make_graphql_request(
-            "replanOutingUnauthenticated",
+            "replanOutingAnonymous",
             {
                 "input": {
                     "outingId": f"{self.anyuuid()}",

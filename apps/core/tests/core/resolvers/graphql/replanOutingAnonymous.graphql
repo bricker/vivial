@@ -1,7 +1,8 @@
-mutation PlanOutingUnauthenticated($input: PlanOutingInput!) {
-  planOuting(input: $input) {
-    ... on PlanOutingSuccess {
+mutation ReplanOutingAnonymous($input: ReplanOutingInput!) {
+  replanOuting(input: $input) {
+    ... on ReplanOutingSuccess {
       outing {
+        id
         headcount
         activity {
           sourceId
@@ -18,7 +19,8 @@ mutation PlanOutingUnauthenticated($input: PlanOutingInput!) {
         drivingTime
       }
     }
-    ... on PlanOutingFailure {
+
+    ... on ReplanOutingFailure {
       failureReason
     }
   }

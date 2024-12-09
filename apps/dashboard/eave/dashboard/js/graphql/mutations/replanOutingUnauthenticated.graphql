@@ -1,5 +1,0 @@
-mutation ReplanOutingUnauthenticated($input: ReplanOutingInput!) {
-  replanOuting(input: $input) {
-    ...ReplanOutingFields
-  }
-}

@@ -21,7 +21,7 @@ const config = {
               // This is necessary for refresh token logic
               // Note that this is only enforced if `UnauthenticatedViewer` inline fragment is selected
               // So it doesn't prevent an operation from leaving that out entirely, which would also be a bug.
-              "authAction",
+              "authFailureReason",
             ],
           },
         ],

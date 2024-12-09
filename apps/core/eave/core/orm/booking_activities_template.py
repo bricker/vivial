@@ -1,19 +1,24 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
-from geoalchemy2 import Geography, WKBElement
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.core.lib.geo import GeoPoint, SpatialReferenceSystemId
-from eave.core.orm.address_types import Address, AddressColumnType
+from eave.core.lib.geo import GeoPoint
+from eave.core.orm.util.mixins import CoordinatesMixin, TimedEventMixin
+from eave.core.orm.util.user_defined_column_types import (
+    ActivitySourceColumnType,
+    AddressColumnType,
+)
+from eave.core.shared.address import Address
 from eave.core.shared.enums import ActivitySource
 
 from .base import Base
-from .util import PG_UUID_EXPR
+from .util.constants import PG_UUID_EXPR
 
 
-class BookingActivityTemplateOrm(Base):
+class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     """Editable template for a booked activity.
     Edits are visible to other accounts part of the same booking, but
     not other bookings created from the same outing. Also does not
@@ -37,20 +42,14 @@ class BookingActivityTemplateOrm(Base):
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     booking_id: Mapped[UUID] = mapped_column()
     source_id: Mapped[str] = mapped_column()
-    source: Mapped[str] = mapped_column()
+    source: Mapped[ActivitySource] = mapped_column(type_=ActivitySourceColumnType())
     """ActivitySource enum value"""
-    activity_name: Mapped[str] = mapped_column()
-    activity_start_time: Mapped[datetime] = mapped_column()
-    activity_photo_uri: Mapped[str | None] = mapped_column()
-    headcount: Mapped[int] = mapped_column(name="num_attendees")
+    name: Mapped[str] = mapped_column()
+    photo_uri: Mapped[str | None] = mapped_column()
+    headcount: Mapped[int] = mapped_column()
     external_booking_link: Mapped[str | None] = mapped_column()
     """HTTP link to site for manual booking (possibly affiliate), if available"""
     address: Mapped[Address] = mapped_column(type_=AddressColumnType())
-    coordinates: Mapped[WKBElement] = mapped_column(
-        type_=Geography(geometry_type="POINT", srid=SpatialReferenceSystemId.LAT_LON)
-    )
-    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
     def build(
@@ -59,9 +58,10 @@ class BookingActivityTemplateOrm(Base):
         booking_id: UUID,
         source: ActivitySource,
         source_id: str,
-        activity_name: str,
-        activity_start_time: datetime,
-        activity_photo_uri: str | None,
+        name: str,
+        start_time_utc: datetime,
+        timezone: ZoneInfo,
+        photo_uri: str | None,
         headcount: int,
         external_booking_link: str | None,
         address: Address,
@@ -72,9 +72,10 @@ class BookingActivityTemplateOrm(Base):
             booking_id=booking_id,
             source=source,
             source_id=source_id,
-            activity_name=activity_name,
-            activity_start_time=activity_start_time,
-            activity_photo_uri=activity_photo_uri,
+            name=name,
+            start_time_utc=start_time_utc.astimezone(UTC),
+            timezone=timezone,
+            photo_uri=photo_uri,
             headcount=headcount,
             external_booking_link=external_booking_link,
             address=address,

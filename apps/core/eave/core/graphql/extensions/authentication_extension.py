@@ -23,9 +23,16 @@ class ViewerAuthenticationAction(enum.Enum):
     FORCE_LOGOUT = enum.auto()
 
 
+@strawberry.enum
+class AuthenticationFailureReason(enum.Enum):
+    ACCESS_TOKEN_EXPIRED = enum.auto()
+    ACCESS_TOKEN_INVALID = enum.auto()
+
+
 @strawberry.type
 class UnauthenticatedViewer:
-    auth_action: ViewerAuthenticationAction
+    auth_action: ViewerAuthenticationAction = strawberry.field(deprecation_reason="Use authFailureReason")
+    auth_failure_reason: AuthenticationFailureReason
 
 
 class AuthenticationExtension(FieldExtension):
@@ -50,8 +57,14 @@ class AuthenticationExtension(FieldExtension):
             result = await next_(source, info, **kwargs)
             return result
         except AccessTokenExpiredError:
-            return UnauthenticatedViewer(auth_action=ViewerAuthenticationAction.REFRESH_ACCESS_TOKEN)
+            return UnauthenticatedViewer(
+                auth_action=ViewerAuthenticationAction.REFRESH_ACCESS_TOKEN,
+                auth_failure_reason=AuthenticationFailureReason.ACCESS_TOKEN_INVALID,
+            )
 
         except InvalidTokenError:
             delete_auth_cookies(response=info.context["response"])
-            return UnauthenticatedViewer(auth_action=ViewerAuthenticationAction.FORCE_LOGOUT)
+            return UnauthenticatedViewer(
+                auth_failure_reason=AuthenticationFailureReason.ACCESS_TOKEN_INVALID,
+                auth_action=ViewerAuthenticationAction.FORCE_LOGOUT,
+            )

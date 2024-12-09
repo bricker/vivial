@@ -31,18 +31,20 @@ async def create_outing(
         if plan.activity and plan.activity_start_time:
             await OutingActivityOrm.build(
                 outing_id=outing_orm.id,
-                activity_id=plan.activity.source_id,
-                activity_source=plan.activity.source,
-                activity_start_time=plan.activity_start_time,
+                source_id=plan.activity.source_id,
+                source=plan.activity.source,
+                start_time_utc=plan.activity_start_time,
+                timezone=survey.timezone,
                 headcount=survey.headcount,
             ).save(session=db_session)
 
         if plan.restaurant and plan.restaurant_arrival_time:
             await OutingReservationOrm.build(
                 outing_id=outing_orm.id,
-                reservation_id=plan.restaurant.source_id,
-                reservation_source=plan.restaurant.source,
-                reservation_start_time=plan.restaurant_arrival_time,
+                source_id=plan.restaurant.source_id,
+                source=plan.restaurant.source,
+                start_time_utc=plan.restaurant_arrival_time,
+                timezone=survey.timezone,
                 headcount=survey.headcount,
             ).save(session=db_session)
 

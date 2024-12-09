@@ -34,7 +34,7 @@ query OutingPreferences {
     }
     ... on UnauthenticatedViewer {
       __typename
-      authAction
+      authFailureReason
     }
   }
 }

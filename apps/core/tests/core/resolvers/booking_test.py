@@ -2,6 +2,7 @@ from eave.core.orm.outing import OutingOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
+from eave.core.shared.enums import OutingBudget
 
 from ..base import BaseTestCase
 
@@ -15,7 +16,7 @@ class TestBookingEndpoints(BaseTestCase):
                 account_id=account.id,
                 first_name=self.anystr(),
                 last_name=self.anystr(),
-                phone_number="1234567890",
+                phone_number=self.anyphonenumber(),
             ).save(session)
 
         response = await self.make_graphql_request(
@@ -26,6 +27,7 @@ class TestBookingEndpoints(BaseTestCase):
                     "reserverDetailsId": str(reserver_details.id),
                 },
             },
+            account_id=account.id,
         )
 
         result = self.parse_graphql_response(response)
@@ -39,12 +41,13 @@ class TestBookingEndpoints(BaseTestCase):
         async with self.db_session.begin() as session:
             account = await self.make_account(session=session)
             # cant use `create` convenience method since that includes validation
-            survey = SurveyOrm(
+            survey = SurveyOrm.build(
                 visitor_id=self.anyuuid(),
                 # survey time is expired
-                start_time=self.anydatetime(past=True).replace(tzinfo=None),
+                start_time_utc=self.anydatetime(past=True),
+                timezone=self.anytimezone(),
                 search_area_ids=[SearchRegionOrm.all()[0].id],
-                budget=self.anyint(min=0, max=3),
+                budget=OutingBudget.INEXPENSIVE,
                 headcount=self.anyint(min=1, max=2),
             )
             session.add(survey)
@@ -58,7 +61,7 @@ class TestBookingEndpoints(BaseTestCase):
                 account_id=account.id,
                 first_name=self.anystr(),
                 last_name=self.anystr(),
-                phone_number="1234567890",
+                phone_number=self.anyphonenumber(),
             ).save(session)
 
         response = await self.make_graphql_request(
@@ -69,6 +72,7 @@ class TestBookingEndpoints(BaseTestCase):
                     "reserverDetailsId": str(reserver_details.id),
                 },
             },
+            account_id=account.id,
         )
 
         result = self.parse_graphql_response(response)

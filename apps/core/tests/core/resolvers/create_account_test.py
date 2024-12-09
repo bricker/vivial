@@ -42,6 +42,7 @@ class TestCreateAccountMutation(BaseTestCase):
             account_orm = await AccountOrm.get_one(session, UUID(data["account"]["id"]))
             assert account_orm.id == UUID(data["account"]["id"])
             assert account_orm.email == data["account"]["email"]
+            assert account_orm.last_login is not None
 
         assert response.cookies.get(ACCESS_TOKEN_COOKIE_NAME) is not None
         assert response.cookies.get(REFRESH_TOKEN_COOKIE_NAME) is not None

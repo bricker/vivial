@@ -21,9 +21,9 @@ class Survey:
         return Survey(
             id=orm.id,
             visitor_id=orm.visitor_id,
-            start_time=orm.start_time,
+            start_time=orm.start_time_local,
             search_area_ids=orm.search_area_ids,
-            budget=orm.outing_budget,
+            budget=orm.budget,
             headcount=orm.headcount,
         )
 

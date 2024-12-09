@@ -1,0 +1,5 @@
+mutation PlanOutingAnonymous($input: PlanOutingInput!) {
+  planOuting(input: $input) {
+    ...PlanOutingFields
+  }
+}

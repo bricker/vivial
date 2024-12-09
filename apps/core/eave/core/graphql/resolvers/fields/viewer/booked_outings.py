@@ -1,26 +1,20 @@
 from uuid import UUID
 
 import strawberry
-from google.maps.places_v1 import PlacesAsyncClient
 
 from eave.core import database
-from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.booking import BookingDetailPeek, BookingDetails
-from eave.core.lib.event_helpers import get_activity, get_restuarant
+from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
 from eave.core.orm.booking_reservations_template import BookingReservationTemplateOrm
-from eave.core.shared.enums import ActivitySource, RestaurantSource
-from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.util import unwrap
 
 
 async def _get_booking_details(
     booking_id: UUID,
 ) -> BookingDetails:
-    places_client = PlacesAsyncClient()
-    activities_client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
     activities_query = BookingActivityTemplateOrm.select().where(BookingActivityTemplateOrm.booking_id == booking_id)
     reservations_query = BookingReservationTemplateOrm.select().where(
         BookingReservationTemplateOrm.booking_id == booking_id
@@ -43,21 +37,18 @@ async def _get_booking_details(
     )
 
     if activity:
-        details.activity_start_time = activity.activity_start_time
+        details.activity_start_time = activity.start_time_local
         details.activity = await get_activity(
-            event_id=activity.source_id,
-            event_source=ActivitySource[activity.source],
-            places_client=places_client,
-            activities_client=activities_client,
+            source_id=activity.source_id,
+            source=activity.source,
         )
         details.headcount = max(details.headcount, activity.headcount)
 
     if reservation:
-        details.restaurant_arrival_time = reservation.reservation_start_time
-        details.restaurant = await get_restuarant(
-            event_id=reservation.source_id,
-            event_source=RestaurantSource[reservation.source],
-            places_client=places_client,
+        details.restaurant_arrival_time = reservation.start_time_local
+        details.restaurant = await get_restaurant(
+            source_id=reservation.source_id,
+            source=reservation.source,
         )
         details.headcount = max(details.headcount, reservation.headcount)
 
@@ -86,19 +77,20 @@ async def list_bookings_query(
             # response type only accepts one of each
             activity = await db_session.scalar(activities_query)
             reservation = await db_session.scalar(reservations_query)
+
             photo_uri = None
-            if reservation and reservation.reservation_photo_uri:
-                photo_uri = reservation.reservation_photo_uri
-            if activity and activity.activity_photo_uri:
-                photo_uri = activity.activity_photo_uri
+            if reservation and reservation.photo_uri:
+                photo_uri = reservation.photo_uri
+            if activity and activity.photo_uri:
+                photo_uri = activity.photo_uri
 
             booking_details.append(
                 BookingDetailPeek(
                     id=booking.id,
-                    activity_start_time=activity.activity_start_time if activity else None,
-                    activity_name=activity.activity_name if activity else None,
-                    restaurant_name=reservation.reservation_name if reservation else None,
-                    restaurant_arrival_time=reservation.reservation_start_time if reservation else None,
+                    activity_start_time=activity.start_time_local if activity else None,
+                    activity_name=activity.name if activity else None,
+                    restaurant_name=reservation.name if reservation else None,
+                    restaurant_arrival_time=reservation.start_time_local if reservation else None,
                     photo_uri=photo_uri,
                 )
             )

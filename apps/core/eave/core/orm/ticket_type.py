@@ -1,11 +1,10 @@
-from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
-from .util import PG_UUID_EXPR
+from .util.constants import PG_UUID_EXPR
 
 
 class TicketTypeOrm(Base):
@@ -26,5 +25,3 @@ class TicketTypeOrm(Base):
     base_cost_cents: Mapped[int] = mapped_column()
     service_fee_cents: Mapped[int] = mapped_column()
     tax_percentage: Mapped[float] = mapped_column()
-    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())

@@ -49,19 +49,6 @@
       ],
       "console": "integratedTerminal"
     },
-    {
-      "name": "GraphQL Playground",
-      "consoleTitle": "GraphQL Playground",
-      "cwd": "${workspaceFolder}/apps/core",
-      "type": "python",
-      "request": "launch",
-      "program": "bin/src/start-graphql-playground.py",
-      "args": [
-        "server",
-        "eave.core.graphql.schema:schema"
-      ],
-      "justMyCode": false,
-    },
   ],
   "compounds": [
     {

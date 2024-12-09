@@ -14,8 +14,8 @@ from eave.stdlib.util import unwrap
 
 @strawberry.input
 class UpdateAccountInput:
-    email: str | None
-    plaintext_password: str | None
+    email: str | None = strawberry.UNSET
+    plaintext_password: str | None = strawberry.UNSET
 
 
 @strawberry.type
@@ -48,9 +48,9 @@ async def update_account_mutation(
                 session=db_session,
                 id=account_id,
             )
-            if input.email is not None:
+            if input.email:
                 account.email = input.email
-            if input.plaintext_password is not None:
+            if input.plaintext_password:
                 account.set_password(input.plaintext_password)
             await account.save(db_session)
 
