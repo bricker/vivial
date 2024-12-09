@@ -201,18 +201,17 @@ async def _create_templates_from_outing(
     activities = await db_session.scalars(OutingActivityOrm.select().where(OutingActivityOrm.outing_id == outing.id))
     activity_details = []
     for activity in activities:
-        src = ActivitySource[activity.source]
         details = await _get_event_details(
             places_client=places_client,
             eventbrite_client=activities_client,
-            source=src,
+            source=activity.source,
             source_id=activity.source_id,
         )
 
         activity_details.append(
             await BookingActivityTemplateOrm.build(
                 booking_id=booking_id,
-                source=src,
+                source=activity.source,
                 source_id=activity.source_id,
                 name=details.name,
                 start_time_utc=activity.start_time_utc,
@@ -238,18 +237,17 @@ async def _create_templates_from_outing(
     )
     reservation_details = []
     for reservation in reservations:
-        src = RestaurantSource[reservation.source]
         details = await _get_event_details(
             places_client=places_client,
             eventbrite_client=activities_client,
-            source=src,
+            source=reservation.source,
             source_id=reservation.source_id,
         )
 
         reservation_details.append(
             await BookingReservationTemplateOrm.build(
                 booking_id=booking_id,
-                source=src,
+                source=reservation.source,
                 source_id=reservation.source_id,
                 name=details.name,
                 start_time_utc=reservation.start_time_utc,

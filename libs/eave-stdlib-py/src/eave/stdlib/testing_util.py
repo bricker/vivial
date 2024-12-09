@@ -96,7 +96,9 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         return self.testdata[name]
 
     def _make_testdata_name(self, name: str | None) -> str:
-        name = self._make_testdata_name(name)
+        if not name:
+            name = uuid.uuid4().hex
+
         return name
 
     def anydatetime(
@@ -181,7 +183,8 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def anytimezone(self, name: str | None = None) -> ZoneInfo:
         name = self._make_testdata_name(name)
 
-        self.testdata[name] = random.choice(_AVAILABLE_TIMEZONES)
+        tzname = random.choice(_AVAILABLE_TIMEZONES)
+        self.testdata[name] = ZoneInfo(tzname)
         return self.gettimezone(name)
 
     def gettimezone(self, name: str) -> ZoneInfo:

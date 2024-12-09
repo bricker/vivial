@@ -117,6 +117,6 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], outing_id: 
         activity=activity,
         restaurant=restaurant,
         driving_time=None,
-        activity_start_time=outing_activity.start_time_utc,
-        restaurant_arrival_time=outing_reservation.start_time_utc,
+        activity_start_time=outing_activity.start_time_local,
+        restaurant_arrival_time=outing_reservation.start_time_local,
     )
