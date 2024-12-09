@@ -4,7 +4,7 @@ from uuid import UUID
 from zoneinfo import ZoneInfo
 
 from geoalchemy2.functions import ST_DWithin
-from sqlalchemy import PrimaryKeyConstraint, Select, String, or_, select
+from sqlalchemy import PrimaryKeyConstraint, Select, or_, select
 from sqlalchemy.dialects.postgresql import INT4RANGE, TSTZRANGE, Range
 from sqlalchemy.orm import Mapped, mapped_column
 

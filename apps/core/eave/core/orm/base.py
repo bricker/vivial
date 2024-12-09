@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Self
+from typing import Self
 from uuid import UUID
 
 from sqlalchemy import MetaData, Select, func, select

@@ -85,9 +85,9 @@ class TestBookedOutingsResolver(BaseTestCase):
         assert data[0]["activityName"] == self.getstr("activity_name")
         assert data[0]["activityStartTime"] == self.getdatetime("activity_start_time").astimezone(
             self.gettimezone("activity_timezone")
-        )
+        ).isoformat()
         assert data[0]["restaurantName"] == self.getstr("reservation_name")
         assert data[0]["restaurantArrivalTime"] == self.getdatetime("reservation_start_time").astimezone(
             self.gettimezone("reservation_timezone")
-        )
+        ).isoformat()
         assert data[0]["photoUri"] == self.geturl("activity_photo_uri")

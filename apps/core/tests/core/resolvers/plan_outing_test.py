@@ -1,4 +1,5 @@
 import random
+
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
