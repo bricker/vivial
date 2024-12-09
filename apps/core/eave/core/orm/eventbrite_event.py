@@ -1,25 +1,23 @@
-from datetime import UTC, datetime, tzinfo
+from datetime import UTC, datetime
 from typing import Self
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from geoalchemy2.elements import WKBElement
 from geoalchemy2.functions import ST_DWithin
-from geoalchemy2.types import Geography
-from sqlalchemy import PrimaryKeyConstraint, Select, func, or_, select, String
-from sqlalchemy.dialects.postgresql import INT4RANGE, TSRANGE, TSTZRANGE, Range
+from sqlalchemy import PrimaryKeyConstraint, Select, String, or_, select
+from sqlalchemy.dialects.postgresql import INT4RANGE, TSTZRANGE, Range
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.core.lib.geo import GeoArea, GeoPoint, SpatialReferenceSystemId
-from eave.stdlib.typing import NOT_SET
-
+from eave.core.lib.geo import GeoArea, GeoPoint
 from eave.core.orm.util.mixins import CoordinatesMixin
+from eave.stdlib.typing import NOT_SET
 
 from .base import Base
 from .util.constants import PG_UUID_EXPR
 
 _TIMERANGE_BOUNDS = "[)"
 _COST_BOUNDS = "[)"
+
 
 class EventbriteEventOrm(Base, CoordinatesMixin):
     __tablename__ = "eventbrite_events"

@@ -1,4 +1,3 @@
-from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.types.activity import Activity, ActivityVenue
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photos
@@ -45,15 +44,11 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         return
 
     if event.get("status") != EventStatus.LIVE:
-        LOGGER.warning(
-            "status != live; excluding event.", {"eventbrite_event_id": event_id}
-        )
+        LOGGER.warning("status != live; excluding event.", {"eventbrite_event_id": event_id})
         return
 
     if not (venue := event.get("venue")):
-        LOGGER.warning(
-            "Missing venue; excluding event.", {"eventbrite_event_id": event_id}
-        )
+        LOGGER.warning("Missing venue; excluding event.", {"eventbrite_event_id": event_id})
         return
 
     if (venue_address := venue.get("address")) is None:

@@ -11,10 +11,10 @@ import {
   ListReserverDetailsDocument,
   LoginDocument,
   OutingPreferencesDocument,
-  PlanOutingAuthenticatedDocument,
   PlanOutingAnonymousDocument,
-  ReplanOutingAuthenticatedDocument,
+  PlanOutingAuthenticatedDocument,
   ReplanOutingAnonymousDocument,
+  ReplanOutingAuthenticatedDocument,
   SearchRegionsDocument,
   SubmitReserverDetailsDocument,
   UpdateAccountDocument,
@@ -33,14 +33,14 @@ import {
   type LoginMutationVariables,
   type OutingPreferencesQuery,
   type OutingPreferencesQueryVariables,
-  type PlanOutingAuthenticatedMutation,
-  type PlanOutingAuthenticatedMutationVariables,
   type PlanOutingAnonymousMutation,
   type PlanOutingAnonymousMutationVariables,
-  type ReplanOutingAuthenticatedMutation,
-  type ReplanOutingAuthenticatedMutationVariables,
+  type PlanOutingAuthenticatedMutation,
+  type PlanOutingAuthenticatedMutationVariables,
   type ReplanOutingAnonymousMutation,
   type ReplanOutingAnonymousMutationVariables,
+  type ReplanOutingAuthenticatedMutation,
+  type ReplanOutingAuthenticatedMutationVariables,
   type SearchRegionsQuery,
   type SearchRegionsQueryVariables,
   type SubmitReserverDetailsMutation,
@@ -145,10 +145,7 @@ export const coreApiSlice = createApi({
       },
     }),
 
-    planOutingAnonymous: builder.mutation<
-      PlanOutingAnonymousMutation,
-      PlanOutingAnonymousMutationVariables
-    >({
+    planOutingAnonymous: builder.mutation<PlanOutingAnonymousMutation, PlanOutingAnonymousMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: PlanOutingAnonymousDocument, variables });
         return { data };
@@ -165,10 +162,7 @@ export const coreApiSlice = createApi({
       },
     }),
 
-    replanOutingAnonymous: builder.mutation<
-      ReplanOutingAnonymousMutation,
-      ReplanOutingAnonymousMutationVariables
-    >({
+    replanOutingAnonymous: builder.mutation<ReplanOutingAnonymousMutation, ReplanOutingAnonymousMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: ReplanOutingAnonymousDocument, variables });
         return { data };

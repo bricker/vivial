@@ -1,15 +1,16 @@
-from datetime import UTC, datetime, tzinfo
+from datetime import UTC, datetime
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from geoalchemy2 import Geography, WKBElement
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func, DateTime, String
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.dialects.postgresql import TIMESTAMP
 
-from eave.core.lib.geo import GeoPoint, SpatialReferenceSystemId
+from eave.core.lib.geo import GeoPoint
 from eave.core.orm.util.mixins import CoordinatesMixin, TimedEventMixin
-from eave.core.orm.util.user_defined_column_types import ActivitySourceColumnType, AddressColumnType, StrEnumColumnType, ZoneInfoColumnType
+from eave.core.orm.util.user_defined_column_types import (
+    ActivitySourceColumnType,
+    AddressColumnType,
+)
 from eave.core.shared.address import Address
 from eave.core.shared.enums import ActivitySource
 

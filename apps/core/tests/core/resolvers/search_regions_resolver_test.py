@@ -1,4 +1,5 @@
 from eave.core.orm.search_region import SearchRegionOrm
+
 from ..base import BaseTestCase
 
 

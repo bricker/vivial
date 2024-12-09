@@ -2,6 +2,7 @@ import enum
 from typing import Annotated
 
 import strawberry
+
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.account import Account

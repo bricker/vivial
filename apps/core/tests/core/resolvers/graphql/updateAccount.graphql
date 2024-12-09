@@ -1,15 +1,15 @@
 mutation UpdateAccount($input: UpdateAccountInput!) {
   viewer {
-    ...on AuthenticatedViewerMutations {
+    ... on AuthenticatedViewerMutations {
       updateAccount(input: $input) {
-        ...on UpdateAccountSuccess {
+        ... on UpdateAccountSuccess {
           account {
             id
             email
           }
         }
 
-        ...on UpdateAccountFailure {
+        ... on UpdateAccountFailure {
           failureReason
           validationErrors {
             field
@@ -18,7 +18,7 @@ mutation UpdateAccount($input: UpdateAccountInput!) {
       }
     }
 
-    ...on UnauthenticatedViewer {
+    ... on UnauthenticatedViewer {
       __typename
       authFailureReason
     }

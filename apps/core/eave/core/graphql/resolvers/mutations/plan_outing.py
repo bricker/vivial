@@ -20,8 +20,8 @@ from eave.core.graphql.types.outing import (
 )
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
-
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
+
 
 @strawberry.input
 class PlanOutingInput:

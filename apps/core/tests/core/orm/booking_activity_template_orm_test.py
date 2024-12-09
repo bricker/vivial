@@ -1,13 +1,10 @@
-from datetime import UTC, datetime
-from zoneinfo import ZoneInfo
-from eave.core.lib.geo import GeoPoint
-from eave.core.orm.activity import ActivityOrm
-from eave.core.shared.address import Address
+from datetime import UTC
+
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
+from eave.core.shared.address import Address
 from eave.core.shared.enums import ActivitySource
-from eave.stdlib.time import TIMEZONE_LOS_ANGELES
 
 from ..base import BaseTestCase
 
@@ -33,9 +30,9 @@ class TestBookingActivityTemplateOrm(BaseTestCase):
                 booking_id=booking.id,
                 name=self.anystr("activity_name"),
                 start_time_utc=self.anydatetime("activity_start_time"),
-                timezone=TIMEZONE_LOS_ANGELES,
+                timezone=self.anytimezone("timezone"),
                 photo_uri=self.anyurl("activity_photo_uri"),
-                headcount=self.anyint(min=1,max=2),
+                headcount=self.anyint(min=1, max=2),
                 lat=self.anylatitude(),
                 lon=self.anylongitude(),
                 external_booking_link=self.anyurl(),
@@ -48,14 +45,20 @@ class TestBookingActivityTemplateOrm(BaseTestCase):
                     country="US",
                     state=self.anyusstate(),
                     zip=self.anydigits(),
-                )
+                ),
             ).save(session)
 
         async with self.db_session.begin() as session:
-            booking_activity_template = (await session.scalars(BookingActivityTemplateOrm.select().where(BookingActivityTemplateOrm.booking_id == booking.id))).one()
+            booking_activity_template = (
+                await session.scalars(
+                    BookingActivityTemplateOrm.select().where(BookingActivityTemplateOrm.booking_id == booking.id)
+                )
+            ).one()
 
             assert booking_activity_template.start_time_utc == self.getdatetime("activity_start_time")
             assert booking_activity_template.start_time_utc.tzinfo == UTC
-            assert booking_activity_template.timezone == TIMEZONE_LOS_ANGELES
+            assert booking_activity_template.timezone == self.gettimezone("timezone")
             assert booking_activity_template.source == ActivitySource.EVENTBRITE
             assert booking_activity_template.start_time_local == self.getdatetime("activity_start_time").astimezone(
+                self.gettimezone("timezone")
+            )

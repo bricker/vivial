@@ -1,20 +1,17 @@
 from datetime import datetime
-from enum import StrEnum
 from typing import cast
 from zoneinfo import ZoneInfo
-from sqlalchemy.dialects.postgresql import TIMESTAMP
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func, String
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.types import UserDefinedType
 
+import shapely.wkb
 from geoalchemy2 import WKBElement
 from geoalchemy2.types import Geography
-import shapely.wkb
 from shapely.geometry import Point
+from sqlalchemy.dialects.postgresql import TIMESTAMP
+from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.core.lib.geo import GeoPoint, SpatialReferenceSystemId
+from eave.core.lib.geo import SpatialReferenceSystemId
 from eave.core.orm.util.user_defined_column_types import ZoneInfoColumnType
+
 
 class TimedEventMixin:
     start_time_utc: Mapped[datetime] = mapped_column(type_=TIMESTAMP(timezone=True))
@@ -23,6 +20,7 @@ class TimedEventMixin:
     @property
     def start_time_local(self) -> datetime:
         return self.start_time_utc.astimezone(self.timezone)
+
 
 class CoordinatesMixin:
     coordinates: Mapped[WKBElement] = mapped_column(

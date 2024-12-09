@@ -1,7 +1,4 @@
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.activity_category import ActivityCategoryOrm
-from eave.core.orm.outing_preferences import OutingPreferencesOrm
-from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 
 from ..base import BaseTestCase
 
@@ -34,7 +31,9 @@ class TestUpdateAccountResolver(BaseTestCase):
         async with self.db_session.begin() as db_session:
             updated_account = await AccountOrm.get_one(db_session, original_account.id)
             assert updated_account.email == self.getemail("email")
-            assert updated_account.email != original_account.email # this is just for comprehension, not really a necessary assertion
+            assert (
+                updated_account.email != original_account.email
+            )  # this is just for comprehension, not really a necessary assertion
             assert updated_account.password_key != original_account.password_key
             assert updated_account.password_key_salt != original_account.password_key_salt
 
@@ -47,9 +46,7 @@ class TestUpdateAccountResolver(BaseTestCase):
 
         response = await self.make_graphql_request(
             "updateAccount",
-            {
-                "input": {}
-            },
+            {"input": {}},
             account_id=original_account.id,
         )
 
@@ -134,11 +131,7 @@ class TestUpdateAccountResolver(BaseTestCase):
 
         response = await self.make_graphql_request(
             "updateAccount",
-            {
-                "input": {
-                    "plaintextPassword": self.anystr("plaintext_password")
-                }
-            },
+            {"input": {"plaintextPassword": self.anystr("plaintext_password")}},
             account_id=original_account.id,
         )
 

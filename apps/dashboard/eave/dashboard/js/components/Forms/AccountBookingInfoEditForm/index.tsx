@@ -109,7 +109,7 @@ const AccountBookingInfoEditForm = ({
       setInternalError("Last name required");
     } else if (emailAddr.length === 0) {
       setInternalError("Email required");
-    } else if(!EmailValidator.validate(emailAddr)) {
+    } else if (!EmailValidator.validate(emailAddr)) {
       setInternalError("Invalid email");
     } else if (phone.length === 0) {
       setInternalError("Phone number required");

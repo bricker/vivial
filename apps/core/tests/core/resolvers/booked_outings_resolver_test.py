@@ -1,13 +1,8 @@
-from zoneinfo import ZoneInfo
-from datetime import datetime
-from eave.core.orm.activity_category import ActivityCategoryOrm
-from eave.core.shared.address import Address
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
 from eave.core.orm.booking_reservations_template import BookingReservationTemplateOrm
-from eave.core.orm.outing_preferences import OutingPreferencesOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
-from eave.core.orm.restaurant_category import RestaurantCategoryOrm
+from eave.core.shared.address import Address
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 
 from ..base import BaseTestCase
@@ -35,7 +30,7 @@ class TestBookedOutingsResolver(BaseTestCase):
                 start_time_utc=self.anydatetime("activity_start_time"),
                 timezone=self.anytimezone("activity_timezone"),
                 photo_uri=self.anyurl("activity_photo_uri"),
-                headcount=self.anyint(min=1,max=2),
+                headcount=self.anyint(min=1, max=2),
                 lat=self.anylatitude(),
                 lon=self.anylongitude(),
                 external_booking_link=self.anyurl(),
@@ -48,7 +43,7 @@ class TestBookedOutingsResolver(BaseTestCase):
                     country="US",
                     state=self.anyusstate(),
                     zip=self.anydigits(),
-                )
+                ),
             ).save(db_session)
 
             await BookingReservationTemplateOrm.build(
@@ -57,7 +52,7 @@ class TestBookedOutingsResolver(BaseTestCase):
                 photo_uri=self.anyurl("reservation_photo_uri"),
                 start_time_utc=self.anydatetime("reservation_start_time"),
                 timezone=self.anytimezone("reservation_timezone"),
-                headcount=self.anyint(min=1,max=2),
+                headcount=self.anyint(min=1, max=2),
                 lat=self.anylatitude(),
                 lon=self.anylongitude(),
                 external_booking_link=self.anyurl(),
@@ -70,7 +65,7 @@ class TestBookedOutingsResolver(BaseTestCase):
                     country="US",
                     state=self.anyusstate(),
                     zip=self.anydigits(),
-                )
+                ),
             ).save(db_session)
 
         response = await self.make_graphql_request(
@@ -83,13 +78,16 @@ class TestBookedOutingsResolver(BaseTestCase):
         assert result.data
         assert not result.errors
 
-
         data = result.data["viewer"]["bookedOutings"]
         assert len(data) == 1
 
         assert data[0]["id"] == str(booking.id)
         assert data[0]["activityName"] == self.getstr("activity_name")
-        assert data[0]["activityStartTime"] == self.getdatetime("activity_start_time").astimezone(self.gettimezone("activity_timezone"))
+        assert data[0]["activityStartTime"] == self.getdatetime("activity_start_time").astimezone(
+            self.gettimezone("activity_timezone")
+        )
         assert data[0]["restaurantName"] == self.getstr("reservation_name")
-        assert data[0]["restaurantArrivalTime"] == self.getdatetime("reservation_start_time").astimezone(self.gettimezone("reservation_timezone"))
+        assert data[0]["restaurantArrivalTime"] == self.getdatetime("reservation_start_time").astimezone(
+            self.gettimezone("reservation_timezone")
+        )
         assert data[0]["photoUri"] == self.geturl("activity_photo_uri")

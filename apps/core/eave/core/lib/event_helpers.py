@@ -4,18 +4,17 @@ from textwrap import dedent
 
 from google.maps.places import PlacesAsyncClient
 
-
 from eave.core import database
 from eave.core.config import CORE_API_APP_CONFIG
-from eave.core.graphql.types.activity import Activity, ActivityTicketInfo, ActivityVenue
+from eave.core.graphql.types.activity import Activity, ActivityVenue
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.lib.eventbrite import get_eventbrite_activity
 from eave.core.lib.google_places import get_google_places_activity, get_google_places_restaurant
 from eave.core.orm.activity import ActivityOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
-from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery
-from eave.stdlib.eventbrite.models.expansions import Expansion
+from eave.stdlib.eventbrite.client import EventbriteClient
+
 
 async def get_internal_activity(*, event_id: str) -> Activity | None:
     async with database.async_session.begin() as db_session:
@@ -43,13 +42,14 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
                 directions_uri="",
             ),
         ),
-        photos=None, # TODO
-        ticket_info=None, # TODO
+        photos=None,  # TODO
+        ticket_info=None,  # TODO
         website_uri=details.booking_url,
         door_tips=None,
         insider_tips=None,
         parking_tips=None,
     )
+
 
 async def get_activity(
     *,
@@ -83,6 +83,7 @@ async def get_restaurant(
         case RestaurantSource.GOOGLE_PLACES:
             restaurant = await get_google_places_restaurant(places_client=places_client, restaurant_id=restaurant_id)
             return restaurant
+
 
 def google_maps_directions_url(address: str) -> str:
     urlsafe_addr = urllib.parse.quote_plus(address)

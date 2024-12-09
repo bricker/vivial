@@ -1,20 +1,15 @@
 from uuid import UUID
 
-from google.maps.places_v1 import PlacesAsyncClient
 import strawberry
 
 from eave.core import database
-from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.booking import BookingDetailPeek, BookingDetails
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
 from eave.core.orm.booking_reservations_template import BookingReservationTemplateOrm
-from eave.core.shared.enums import ActivitySource, RestaurantSource
-from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.util import unwrap
-
 
 
 async def _get_booking_details(

@@ -1,17 +1,15 @@
-from collections.abc import Sequence
+from collections.abc import MutableSequence, Sequence
 from datetime import datetime, timedelta
-from typing import MutableSequence
 from zoneinfo import ZoneInfo
+
+from google.maps.places import GetPlaceRequest, Photo, Place, PlacesAsyncClient, SearchNearbyRequest
+
 from eave.core.graphql.types.activity import Activity, ActivityVenue
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photos
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.lib.geo import GeoArea
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
-
-
-from google.maps.places import GetPlaceRequest, Photo, Place, PlacesAsyncClient, SearchNearbyRequest
-
 
 # You must pass a field mask to the Google Places API to specify the list of fields to return in the response.
 # Reference: https://developers.google.com/maps/documentation/places/web-service/nearby-search
@@ -39,6 +37,7 @@ _RESTAURANT_FIELD_MASK = ",".join(
         "places.reservable",
     ]
 )
+
 
 async def restaurant_from_google_place(places_client: PlacesAsyncClient, *, place: Place) -> Restaurant:
     photos = await photos_from_google_place(places_client, place=place)
@@ -69,10 +68,7 @@ async def activity_from_google_place(places_client: PlacesAsyncClient, *, place:
         description=place.editorial_summary,
         photos=photos,
         ticket_info=None,  # TODO
-        venue=ActivityVenue(
-            name=place.display_name.text,
-            location=location_from_google_place(place)
-        ),
+        venue=ActivityVenue(name=place.display_name.text, location=location_from_google_place(place)),
         website_uri=place.website_uri,
         door_tips=None,
         insider_tips=None,
@@ -80,6 +76,7 @@ async def activity_from_google_place(places_client: PlacesAsyncClient, *, place:
     )
 
     return activity
+
 
 async def photos_from_google_place(places_client: PlacesAsyncClient, *, place: Place) -> Photos:
     photo_uris = await get_google_photo_uris(
@@ -95,6 +92,7 @@ async def photos_from_google_place(places_client: PlacesAsyncClient, *, place: P
         supplemental_photo_uris=supplemental_photo_uris,
     )
 
+
 def location_from_google_place(place: Place) -> Location:
     return Location(
         directions_uri=place.google_maps_uri,
@@ -102,6 +100,7 @@ def location_from_google_place(place: Place) -> Location:
         longitude=place.location.longitude,
         formatted_address=place.formatted_address,
     )
+
 
 async def get_google_photo_uris(
     places_client: PlacesAsyncClient,
@@ -117,6 +116,7 @@ async def get_google_photo_uris(
         photo_uris.append(photo_res.photo_uri)
 
     return photo_uris
+
 
 async def get_google_place(
     places_client: PlacesAsyncClient,
@@ -145,6 +145,7 @@ async def get_google_places_restaurant(places_client: PlacesAsyncClient, *, rest
     restaurant = await restaurant_from_google_place(places_client=places_client, place=place)
     return restaurant
 
+
 async def get_places_nearby(
     places_client: PlacesAsyncClient,
     *,
@@ -165,7 +166,9 @@ async def get_places_nearby(
         location_restriction=location_restriction,
         included_primary_types=included_primary_types[0:50],
     )
-    response = await places_client.search_nearby(request=request, metadata=[("x-goog-fieldmask", _RESTAURANT_FIELD_MASK)])
+    response = await places_client.search_nearby(
+        request=request, metadata=[("x-goog-fieldmask", _RESTAURANT_FIELD_MASK)]
+    )
     return response.places or []
 
 

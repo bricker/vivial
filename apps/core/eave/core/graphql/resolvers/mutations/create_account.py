@@ -14,7 +14,6 @@ from eave.core.orm.base import InvalidRecordError
 from eave.core.shared.errors import ValidationError
 
 
-
 @strawberry.input
 class CreateAccountInput:
     email: str

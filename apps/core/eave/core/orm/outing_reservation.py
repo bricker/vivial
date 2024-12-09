@@ -1,18 +1,20 @@
-from datetime import UTC, datetime, tzinfo
+from datetime import UTC, datetime
 from typing import Self
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from sqlalchemy.dialects.postgresql import TIMESTAMP
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func, String
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.graphql.types.restaurant import RestaurantSource
 from eave.core.orm.util.mixins import TimedEventMixin
-from eave.core.orm.util.user_defined_column_types import RestaurantSourceColumnType, StrEnumColumnType, ZoneInfoColumnType
+from eave.core.orm.util.user_defined_column_types import (
+    RestaurantSourceColumnType,
+)
 
 from .base import Base
+
 
 class OutingReservationOrm(Base, TimedEventMixin):
     """Pivot table between `outings` and `reservations` tables. (`reservations` is a remote dataset)"""

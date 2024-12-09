@@ -22,6 +22,7 @@ class ViewerAuthenticationAction(enum.Enum):
     REFRESH_ACCESS_TOKEN = enum.auto()
     FORCE_LOGOUT = enum.auto()
 
+
 @strawberry.enum
 class AuthenticationFailureReason(enum.Enum):
     ACCESS_TOKEN_EXPIRED = enum.auto()

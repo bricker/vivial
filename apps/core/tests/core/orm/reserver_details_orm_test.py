@@ -1,6 +1,3 @@
-from eave.core.lib.geo import GeoPoint
-from eave.core.orm.activity import ActivityOrm
-from eave.core.shared.address import Address
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 
 from ..base import BaseTestCase

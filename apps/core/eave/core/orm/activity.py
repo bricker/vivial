@@ -1,11 +1,9 @@
-from datetime import datetime
-from typing import cast
 from uuid import UUID
 
-from sqlalchemy import PrimaryKeyConstraint, func
+from sqlalchemy import PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.core.lib.geo import GeoPoint, SpatialReferenceSystemId
+from eave.core.lib.geo import GeoPoint
 from eave.core.orm.util.mixins import CoordinatesMixin
 from eave.core.orm.util.user_defined_column_types import AddressColumnType
 from eave.core.shared.address import Address

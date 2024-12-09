@@ -48,7 +48,9 @@ class TestLoginMutation(BaseTestCase):
 
         async with self.db_session.begin() as session:
             updated_account_orm = await AccountOrm.get_one(session, account_orm.id)
-            assert updated_account_orm.last_login is not None and updated_account_orm.last_login > self.getdatetime("last_login")
+            assert updated_account_orm.last_login is not None and updated_account_orm.last_login > self.getdatetime(
+                "last_login"
+            )
 
     async def test_login_with_incorrect_password(self) -> None:
         async with self.db_session.begin() as session:
@@ -77,7 +79,9 @@ class TestLoginMutation(BaseTestCase):
 
         async with self.db_session.begin() as session:
             updated_account_orm = await AccountOrm.get_one(session, account_orm.id)
-            assert updated_account_orm.last_login is not None and updated_account_orm.last_login == self.getdatetime("last_login")
+            assert updated_account_orm.last_login is not None and updated_account_orm.last_login == self.getdatetime(
+                "last_login"
+            )
 
     async def test_login_with_non_existent_account(self) -> None:
         async with self.db_session.begin() as session:
@@ -106,7 +110,9 @@ class TestLoginMutation(BaseTestCase):
 
         async with self.db_session.begin() as session:
             updated_account_orm = await AccountOrm.get_one(session, account_orm.id)
-            assert updated_account_orm.last_login is not None and updated_account_orm.last_login == self.getdatetime("last_login")
+            assert updated_account_orm.last_login is not None and updated_account_orm.last_login == self.getdatetime(
+                "last_login"
+            )
 
     async def test_login_with_empty_password(self) -> None:
         async with self.db_session.begin() as session:
@@ -134,4 +140,6 @@ class TestLoginMutation(BaseTestCase):
 
         async with self.db_session.begin() as session:
             updated_account_orm = await AccountOrm.get_one(session, account_orm.id)
-            assert updated_account_orm.last_login is not None and updated_account_orm.last_login == self.getdatetime("last_login")
+            assert updated_account_orm.last_login is not None and updated_account_orm.last_login == self.getdatetime(
+                "last_login"
+            )

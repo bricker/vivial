@@ -1,8 +1,7 @@
 import re
-from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.shared.errors import ValidationError
@@ -50,7 +49,9 @@ class ReserverDetailsOrm(Base):
     def validate(self) -> list[ValidationError]:
         errors: list[ValidationError] = []
 
-        phone_number_pattern = r"^(\+?1)?[\s-]?(\(\d{3}\)|\d{3})[\s-]?\d{3}[\s-]?\d{4}$"  # TODO: This only matches US numbers.
+        phone_number_pattern = (
+            r"^(\+?1)?[\s-]?(\(\d{3}\)|\d{3})[\s-]?\d{3}[\s-]?\d{4}$"  # TODO: This only matches US numbers.
+        )
         if not self.phone_number or not re.match(phone_number_pattern, self.phone_number):
             errors.append(ValidationError(field="phone_number"))
 

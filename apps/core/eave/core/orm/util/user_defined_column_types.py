@@ -1,18 +1,18 @@
-from abc import abstractmethod, ABC
 import dataclasses
-from enum import EnumType, StrEnum
 import json
-from typing import Any, Literal, Type
+from abc import ABC, abstractmethod
+from enum import StrEnum
+from typing import Any, Literal
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import Dialect
 from sqlalchemy.sql.type_api import _BindProcessorType, _ResultProcessorType
 from sqlalchemy.types import UserDefinedType
 
-from eave.stdlib.logging import LOGGER
-
 from eave.core.shared.address import Address
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
+from eave.stdlib.logging import LOGGER
+
 
 class AddressColumnType(UserDefinedType):
     cache_ok = True
@@ -48,6 +48,7 @@ class AddressColumnType(UserDefinedType):
 
         return process
 
+
 class ZoneInfoColumnType(UserDefinedType):
     cache_ok = True
 
@@ -80,12 +81,12 @@ class ZoneInfoColumnType(UserDefinedType):
 
         return process
 
+
 class StrEnumColumnType[T: StrEnum](UserDefinedType, ABC):
     cache_ok = True
 
     @abstractmethod
-    def enum_member(self, value: str) -> T:
-        ...
+    def enum_member(self, value: str) -> T: ...
 
     def get_col_spec(self) -> Literal["varchar"]:
         return "varchar"
@@ -118,13 +119,16 @@ class StrEnumColumnType[T: StrEnum](UserDefinedType, ABC):
 
         return process
 
+
 class ActivitySourceColumnType(StrEnumColumnType[ActivitySource]):
     def enum_member(self, value: str) -> ActivitySource:
         return ActivitySource[value]
 
+
 class RestaurantSourceColumnType(StrEnumColumnType[RestaurantSource]):
     def enum_member(self, value: str) -> RestaurantSource:
         return RestaurantSource[value]
+
 
 class OutingBudgetColumnType(StrEnumColumnType[OutingBudget]):
     def enum_member(self, value: str) -> OutingBudget:

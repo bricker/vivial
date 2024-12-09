@@ -1,17 +1,15 @@
-from datetime import UTC, datetime, tzinfo
+from datetime import UTC, datetime
 from typing import Self
 from uuid import UUID
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+from zoneinfo import ZoneInfo
 
-from sqlalchemy.dialects.postgresql import TIMESTAMP
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func, String
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.orm.util.mixins import TimedEventMixin
-from eave.core.orm.util.user_defined_column_types import ActivitySourceColumnType, ZoneInfoColumnType
+from eave.core.orm.util.user_defined_column_types import ActivitySourceColumnType
 from eave.core.shared.enums import ActivitySource
-from eave.core.shared.errors import ValidationError
 
 from .base import Base
 

@@ -8,11 +8,11 @@ import random
 import time
 import unittest.mock
 import uuid
-from datetime import UTC, datetime, timedelta, timezone, tzinfo
+import zoneinfo
+from datetime import datetime, timedelta, tzinfo
 from math import floor
 from typing import Any, Literal, TypeVar
 from zoneinfo import ZoneInfo
-import zoneinfo
 
 from google.cloud.kms import (
     CryptoKeyVersion,
@@ -29,8 +29,8 @@ import eave.stdlib.util
 from eave.stdlib.checksum import generate_checksum
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LogContext
-from eave.stdlib.typing import JsonObject
 from eave.stdlib.time import ONE_YEAR_IN_SECONDS
+from eave.stdlib.typing import JsonObject
 
 T = TypeVar("T")
 M = TypeVar("M", bound=unittest.mock.Mock)
@@ -38,6 +38,7 @@ M = TypeVar("M", bound=unittest.mock.Mock)
 
 # This should only be used in testing - it is inefficient
 _AVAILABLE_TIMEZONES = list(zoneinfo.available_timezones())
+
 
 class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     testdata: dict[str, Any]

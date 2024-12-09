@@ -46,9 +46,7 @@ const rule = {
             "name" in selectionGqlType &&
             selectionGqlType.name === "UnauthenticatedViewer" &&
             selection.selectionSet?.selections.some((s) => {
-              return s.kind === Kind.FIELD &&
-                s.name.value === "authFailureReason" &&
-                !("alias" in s && !!s.alias); // disallow alias for this field
+              return s.kind === Kind.FIELD && s.name.value === "authFailureReason" && !("alias" in s && !!s.alias); // disallow alias for this field
             })
           );
         });

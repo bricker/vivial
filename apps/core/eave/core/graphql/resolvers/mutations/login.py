@@ -1,5 +1,5 @@
-from datetime import UTC, datetime
 import enum
+from datetime import UTC, datetime
 from typing import Annotated
 
 import strawberry

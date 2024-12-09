@@ -1,37 +1,33 @@
 import random
-import urllib.parse
-from collections.abc import MutableSequence, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from uuid import UUID
-from zoneinfo import ZoneInfo
 
-from geoalchemy2.functions import ST_DWithin
 from google.maps.places_v1 import PlacesAsyncClient
-from google.maps.places_v1.types import GetPlaceRequest, Place, SearchNearbyRequest
-from sqlalchemy import func, or_
+from sqlalchemy import func
 
 import eave.core.database
 from eave.core.config import CORE_API_APP_CONFIG
-from eave.core.graphql.types.activity import Activity, ActivitySource, ActivityVenue
-from eave.core.graphql.types.location import Location
+from eave.core.graphql.types.activity import Activity
 from eave.core.graphql.types.outing import OutingPreferencesInput
-from eave.core.graphql.types.photos import Photos
-from eave.core.graphql.types.restaurant import Restaurant, RestaurantSource
-from eave.core.lib.eventbrite import activity_from_eventbrite_event, get_eventbrite_activity
+from eave.core.graphql.types.restaurant import Restaurant
+from eave.core.lib.eventbrite import activity_from_eventbrite_event
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
-from eave.core.lib.google_places import activity_from_google_place, get_google_photo_uris, get_places_nearby, place_is_in_budget, place_will_be_open, restaurant_from_google_place
+from eave.core.lib.google_places import (
+    activity_from_google_place,
+    get_places_nearby,
+    place_is_in_budget,
+    place_will_be_open,
+    restaurant_from_google_place,
+)
 from eave.core.lib.time_category import is_early_evening, is_early_morning, is_late_evening, is_late_morning
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.orm.restaurant_category import MAGIC_BAR_RESTAURANT_CATEGORY_ID, RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
-from eave.core.shared.enums import OutingBudget
 from eave.stdlib.eventbrite.client import EventbriteClient
-from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.logging import LOGGER
-
 
 _BREAKFAST_GOOGLE_RESTAURANT_CATEGORY_IDS = (
     "coffee_shop",
@@ -166,8 +162,12 @@ class OutingPlanner:
         self.survey = survey
         self.activity = activity
         self.restaurant = restaurant
-        self.activity_start_time_local = activity_start_time.astimezone(survey.timezone) if activity_start_time else None
-        self.restaurant_arrival_time_local = restaurant_arrival_time.astimezone(survey.timezone) if restaurant_arrival_time else None
+        self.activity_start_time_local = (
+            activity_start_time.astimezone(survey.timezone) if activity_start_time else None
+        )
+        self.restaurant_arrival_time_local = (
+            restaurant_arrival_time.astimezone(survey.timezone) if restaurant_arrival_time else None
+        )
 
         self.group_restaurant_category_preferences = _combine_restaurant_categories(individual_preferences)
         self.group_activity_category_preferences = _combine_activity_categories(individual_preferences)
@@ -207,7 +207,9 @@ class OutingPlanner:
 
             for event_orm in results:
                 try:
-                    eventbrite_event = await self.eventbrite_client.get_event_by_id(event_id=event_orm.eventbrite_event_id)
+                    eventbrite_event = await self.eventbrite_client.get_event_by_id(
+                        event_id=event_orm.eventbrite_event_id
+                    )
                     self.activity = await activity_from_eventbrite_event(self.eventbrite_client, event=eventbrite_event)
                     return self.activity
                 except Exception as e:
@@ -234,7 +236,9 @@ class OutingPlanner:
         #     return self.activity
 
         # CASE 3: Recommend a bar or an ice cream shop as a fallback activity.
-        is_evening = is_early_evening(self.survey.start_time_utc, self.survey.timezone) or is_late_evening(self.survey.start_time_utc, self.survey.timezone)
+        is_evening = is_early_evening(self.survey.start_time_utc, self.survey.timezone) or is_late_evening(
+            self.survey.start_time_utc, self.survey.timezone
+        )
         place_type = "ice_cream_shop"
         if is_evening and self.group_open_to_bars:
             place_type = "bar"
@@ -251,7 +255,12 @@ class OutingPlanner:
             random.shuffle(places_nearby)
 
             for place in places_nearby:
-                will_be_open = place_will_be_open(place=place, arrival_time=start_time_local, departure_time=end_time_local, timezone=self.survey.timezone)
+                will_be_open = place_will_be_open(
+                    place=place,
+                    arrival_time=start_time_local,
+                    departure_time=end_time_local,
+                    timezone=self.survey.timezone,
+                )
                 is_in_budget = place_is_in_budget(place, self.survey.budget)
 
                 if will_be_open and is_in_budget:
@@ -313,7 +322,12 @@ class OutingPlanner:
             random.shuffle(restaurants_nearby)
 
             for restaurant in restaurants_nearby:
-                will_be_open = place_will_be_open(place=restaurant, arrival_time=arrival_time_local, departure_time=departure_time_local, timezone=self.survey.timezone)
+                will_be_open = place_will_be_open(
+                    place=restaurant,
+                    arrival_time=arrival_time_local,
+                    departure_time=departure_time_local,
+                    timezone=self.survey.timezone,
+                )
                 is_in_budget = place_is_in_budget(restaurant, self.survey.budget)
 
                 if will_be_open and is_in_budget:

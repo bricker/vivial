@@ -3,14 +3,12 @@ from uuid import UUID
 from zoneinfo import ZoneInfo
 
 import sqlalchemy
-from sqlalchemy.dialects.postgresql import TIMESTAMP
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.orm.util.mixins import TimedEventMixin
-from eave.core.orm.util.user_defined_column_types import OutingBudgetColumnType, ZoneInfoColumnType
+from eave.core.orm.util.user_defined_column_types import OutingBudgetColumnType
 from eave.core.shared.enums import OutingBudget
-from eave.core.shared.errors import ValidationError
 
 from .base import Base
 from .util.constants import PG_UUID_EXPR
