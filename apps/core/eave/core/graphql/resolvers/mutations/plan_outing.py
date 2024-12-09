@@ -21,6 +21,7 @@ from eave.core.graphql.types.outing import (
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
 
+from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 
 @strawberry.input
 class PlanOutingInput:
@@ -74,6 +75,7 @@ async def plan_outing_mutation(
             account_id=account_id,
             visitor_id=input.visitor_id,
             start_time_utc=input.start_time,
+            timezone=LOS_ANGELES_TIMEZONE,
             search_area_ids=input.search_area_ids,
             budget=input.budget,
             headcount=input.headcount,

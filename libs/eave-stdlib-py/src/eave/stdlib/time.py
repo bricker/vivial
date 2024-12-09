@@ -1,5 +1,7 @@
+import zoneinfo
 import os
 import time
+from zoneinfo import ZoneInfo
 
 ONE_SECOND_IN_MS = 1000
 ONE_MINUTE_IN_MS = ONE_SECOND_IN_MS * 60
@@ -19,6 +21,7 @@ ONE_DAY_IN_MINUTES = ONE_HOUR_IN_MINUTES * 24
 ONE_WEEK_IN_MINUTES = ONE_DAY_IN_MINUTES * 7
 ONE_YEAR_IN_MINUTES = ONE_DAY_IN_MINUTES * 365
 
+LOS_ANGELES_TIMEZONE = ZoneInfo("America/Los_Angeles")
 
 def set_utc() -> None:
     os.environ["TZ"] = "UTC"

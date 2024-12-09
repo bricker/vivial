@@ -4,6 +4,7 @@ from collections.abc import MutableSequence, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from uuid import UUID
+from zoneinfo import ZoneInfo
 
 from geoalchemy2.functions import ST_DWithin
 from google.maps.places_v1 import PlacesAsyncClient
@@ -24,7 +25,6 @@ from eave.core.orm.restaurant_category import MAGIC_BAR_RESTAURANT_CATEGORY_ID, 
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
-from eave.core.zoneinfo import LOS_ANGELES_ZONE_INFO
 from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.logging import LOGGER
@@ -168,8 +168,8 @@ class OutingPlanner:
     survey: SurveyOrm
     activity: Activity | None
     restaurant: Restaurant | None
-    activity_start_time: datetime | None
-    restaurant_arrival_time: datetime | None
+    activity_start_time_local: datetime | None
+    restaurant_arrival_time_local: datetime | None
 
     group_restaurant_category_preferences: list[RestaurantCategoryOrm]
     group_activity_category_preferences: list[ActivityCategoryOrm]
@@ -189,8 +189,8 @@ class OutingPlanner:
         self.survey = survey
         self.activity = activity
         self.restaurant = restaurant
-        self.activity_start_time = activity_start_time
-        self.restaurant_arrival_time = restaurant_arrival_time
+        self.activity_start_time_local = activity_start_time.astimezone(survey.timezone) if activity_start_time else None
+        self.restaurant_arrival_time_local = restaurant_arrival_time.astimezone(survey.timezone) if restaurant_arrival_time else None
 
         self.group_restaurant_category_preferences = _combine_restaurant_categories(individual_preferences)
         self.group_activity_category_preferences = _combine_activity_categories(individual_preferences)
@@ -205,9 +205,11 @@ class OutingPlanner:
         first, then we find a restaurant nearby that users can eat at before
         the activity.
         """
-        activity_start_time = self.survey.start_time_utc + timedelta(minutes=120)
-        self.activity_start_time = activity_start_time
-        activity_end_time = activity_start_time + timedelta(minutes=90)
+
+        # The time+120 minutes is because the restaurant happens before the activity.
+        start_time_local = self.survey.start_time_local + timedelta(minutes=120)
+        self.activity_start_time_local = start_time_local
+        end_time_local = start_time_local + timedelta(minutes=90)
         random.shuffle(self.survey.search_area_ids)
 
         within_areas = [
@@ -216,28 +218,12 @@ class OutingPlanner:
         ]
 
         # CASE 1: Recommend an Eventbrite event.
-        query = (
-            EventbriteEventOrm.select()
-            .where(EventbriteEventOrm.time_range_utc.contains(activity_start_time))
-            .where(EventbriteEventOrm.cost_cents_range.contains(self.survey.outing_budget.upper_limit_cents))
-            .where(
-                or_(
-                    *[
-                        ST_DWithin(EventbriteEventOrm.coordinates, area.center.geoalchemy_shape(), area.rad.meters)
-                        for area in within_areas
-                    ]
-                )
-            )
-            .where(
-                or_(
-                    *[
-                        EventbriteEventOrm.vivial_activity_category_id == cat.id
-                        for cat in self.group_activity_category_preferences
-                    ]
-                )
-            )
-            .order_by(func.random())
-        )
+        query = EventbriteEventOrm.select(
+            time_range_contains=start_time_local,
+            cost_range_contains=self.survey.budget.upper_limit_cents,
+            within_areas=within_areas,
+            vivial_activity_category_ids=[cat.id for cat in self.group_activity_category_preferences],
+        ).order_by(func.random())
 
         async with eave.core.database.async_session.begin() as db_session:
             results = await db_session.scalars(query)
@@ -357,7 +343,7 @@ class OutingPlanner:
         #     return self.activity
 
         # CASE 3: Recommend a bar or an ice cream shop as a fallback activity.
-        is_evening = is_early_evening(activity_start_time) or is_late_evening(activity_start_time)
+        is_evening = is_early_evening(self.survey.start_time_utc, self.survey.timezone) or is_late_evening(self.survey.start_time_utc, self.survey.timezone)
         place_type = "ice_cream_shop"
         if is_evening and self.group_open_to_bars:
             place_type = "bar"
@@ -372,8 +358,8 @@ class OutingPlanner:
             )
             random.shuffle(places_nearby)
             for place in places_nearby:
-                will_be_open = place_will_be_open(place, activity_start_time, activity_end_time)
-                is_in_budget = place_is_in_budget(place, self.survey.outing_budget)
+                will_be_open = place_will_be_open(place=place, arrival_time=start_time_local, departure_time=end_time_local, timezone=self.survey.timezone)
+                is_in_budget = place_is_in_budget(place, self.survey.budget)
                 if will_be_open and is_in_budget and place.location:
                     venue_lat = place.location.latitude
                     venue_lon = place.location.longitude
@@ -413,17 +399,16 @@ class OutingPlanner:
 
         For now, the meal always happens before the activity.
         """
-        arrival_time = self.survey.start_time_utc
-        self.restaurant_arrival_time = arrival_time
-        departure_time = arrival_time + timedelta(minutes=90)
+        arrival_time_local = self.survey.start_time_local
+        self.restaurant_arrival_time_local = arrival_time_local
+        departure_time_local = arrival_time_local + timedelta(minutes=90)
         search_areas = []
 
-        local_timestamp = self.survey.start_time_utc.astimezone(LOS_ANGELES_ZONE_INFO)
         # If this is a morning outing, override user restaurant preferences and show them breakfast / brunch spots.
-        if is_early_morning(local_timestamp):
+        if is_early_morning(arrival_time_local, self.survey.timezone):
             google_category_ids = list(_BREAKFAST_GOOGLE_RESTAURANT_CATEGORY_IDS)
             random.shuffle(google_category_ids)
-        elif is_late_morning(local_timestamp):
+        elif is_late_morning(arrival_time_local, self.survey.timezone):
             google_category_ids = list(_BRUNCH_GOOGLE_RESTAURANT_CATEGORY_IDS)
             random.shuffle(google_category_ids)
         else:
@@ -457,8 +442,8 @@ class OutingPlanner:
             )
             random.shuffle(restaurants_nearby)
             for restaurant in restaurants_nearby:
-                will_be_open = place_will_be_open(restaurant, arrival_time, departure_time)
-                is_in_budget = place_is_in_budget(restaurant, self.survey.outing_budget)
+                will_be_open = place_will_be_open(place=restaurant, arrival_time=arrival_time_local, departure_time=departure_time_local, timezone=self.survey.timezone)
+                is_in_budget = place_is_in_budget(restaurant, self.survey.budget)
                 if will_be_open and is_in_budget:
                     if restaurant.location:
                         lat = restaurant.location.latitude
@@ -498,9 +483,9 @@ class OutingPlanner:
         await self.plan_restaurant()
         return PlannerResult(
             activity=self.activity,
-            activity_start_time=self.activity_start_time,
+            activity_start_time=self.activity_start_time_local,
             restaurant=self.restaurant,
-            restaurant_arrival_time=self.restaurant_arrival_time,
+            restaurant_arrival_time=self.restaurant_arrival_time_local,
             driving_time=None,
         )
 
@@ -536,32 +521,32 @@ async def get_places_nearby(
     return response.places or []
 
 
-def place_will_be_open(place: Place, utc_arrival_time: datetime, utc_departure_time: datetime) -> bool:
+def place_will_be_open(*, place: Place, arrival_time: datetime, departure_time: datetime, timezone: ZoneInfo) -> bool:
     """
     Given a place from the Google Places API, determine whether or not that
     place will be open during the given time period.
 
     https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#OpeningHours
     """
-    local_arrival_time = utc_arrival_time.astimezone(LOS_ANGELES_ZONE_INFO)
-    local_departure_time = utc_departure_time.astimezone(LOS_ANGELES_ZONE_INFO)
-
     if place.regular_opening_hours is None:
         return False
 
+    arrival_time_local = arrival_time.astimezone(timezone)
+    departure_time_local = departure_time.astimezone(timezone)
+
     for period in place.regular_opening_hours.periods:
-        is_relevant = period.open_ and (period.open_.day == local_arrival_time.weekday())
+        is_relevant = period.open_ and (period.open_.day == arrival_time_local.weekday())
 
         if is_relevant and period.open_.hour is not None and period.open_.minute is not None:
-            open_time = local_arrival_time.replace(hour=period.open_.hour, minute=period.open_.minute)
+            open_time = arrival_time_local.replace(hour=period.open_.hour, minute=period.open_.minute)
 
             if period.close and period.close.hour is not None and period.close.minute is not None:
-                close_time = local_arrival_time.replace(hour=period.close.hour, minute=period.close.minute)
+                close_time = arrival_time_local.replace(hour=period.close.hour, minute=period.close.minute)
 
-                if period.close.day != local_arrival_time.weekday():
+                if period.close.day != arrival_time_local.weekday():
                     close_time = close_time + timedelta(days=1)  # Place closes the next day.
 
-                if open_time <= local_arrival_time and close_time >= local_departure_time:
+                if open_time <= arrival_time_local and close_time >= departure_time_local:
                     return True
     return False
 

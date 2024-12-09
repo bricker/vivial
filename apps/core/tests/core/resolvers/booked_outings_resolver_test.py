@@ -32,8 +32,8 @@ class TestBookedOutingsResolver(BaseTestCase):
             await BookingActivityTemplateOrm.build(
                 booking_id=booking.id,
                 name=self.anystr("activity_name"),
-                start_time_utc=datetime.now(),
-                timezone=ZoneInfo("America/Los_Angeles"),
+                start_time_utc=self.anydatetime("activity_start_time"),
+                timezone=self.anytimezone("activity_timezone"),
                 photo_uri=self.anyurl("activity_photo_uri"),
                 headcount=self.anyint(min=1,max=2),
                 lat=self.anylatitude(),
@@ -55,8 +55,8 @@ class TestBookedOutingsResolver(BaseTestCase):
                 booking_id=booking.id,
                 name=self.anystr("reservation_name"),
                 photo_uri=self.anyurl("reservation_photo_uri"),
-                start_time_utc=datetime.now(),
-                timezone=ZoneInfo("America/Los_Angeles"),
+                start_time_utc=self.anydatetime("reservation_start_time"),
+                timezone=self.anytimezone("reservation_timezone"),
                 headcount=self.anyint(min=1,max=2),
                 lat=self.anylatitude(),
                 lon=self.anylongitude(),
@@ -89,7 +89,7 @@ class TestBookedOutingsResolver(BaseTestCase):
 
         assert data[0]["id"] == str(booking.id)
         assert data[0]["activityName"] == self.getstr("activity_name")
-        assert data[0]["activityStartTime"] == self.getdatetime("activity_start_time")
+        assert data[0]["activityStartTime"] == self.getdatetime("activity_start_time").astimezone(self.gettimezone("activity_timezone"))
         assert data[0]["restaurantName"] == self.getstr("reservation_name")
-        assert data[0]["restaurantArrivalTime"] == self.getdatetime("reservation_start_time")
+        assert data[0]["restaurantArrivalTime"] == self.getdatetime("reservation_start_time").astimezone(self.gettimezone("reservation_timezone"))
         assert data[0]["photoUri"] == self.geturl("activity_photo_uri")

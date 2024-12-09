@@ -22,10 +22,12 @@ class TestLoginMutation(BaseTestCase):
 
     async def test_login_with_valid_credentials(self) -> None:
         async with self.db_session.begin() as session:
-            account_orm = await AccountOrm.build(
+            account_orm = AccountOrm.build(
                 email=self.anyemail("email"),
                 plaintext_password=self.anystr("plaintext_password"),
-            ).save(session)
+            )
+            account_orm.last_login = self.anydatetime("last_login", past=True)
+            await account_orm.save(session)
 
         response = await self._make_request(
             email=self.getemail("email"), plaintext_password=self.getstr("plaintext_password")
@@ -44,12 +46,18 @@ class TestLoginMutation(BaseTestCase):
         assert response.cookies.get(REFRESH_TOKEN_COOKIE_NAME) is not None
         assert response.cookies.get(ACCESS_TOKEN_COOKIE_NAME) != response.cookies.get(REFRESH_TOKEN_COOKIE_NAME)
 
+        async with self.db_session.begin() as session:
+            updated_account_orm = await AccountOrm.get_one(session, account_orm.id)
+            assert updated_account_orm.last_login is not None and updated_account_orm.last_login > self.getdatetime("last_login")
+
     async def test_login_with_incorrect_password(self) -> None:
         async with self.db_session.begin() as session:
-            await AccountOrm.build(
+            account_orm = AccountOrm.build(
                 email=self.anyemail("email"),
                 plaintext_password=self.anystr("plaintext_password"),
-            ).save(session)
+            )
+            account_orm.last_login = self.anydatetime("last_login", past=True)
+            await account_orm.save(session)
 
         response = await self._make_request(
             email=self.getemail("email"), plaintext_password=self.anystr("incorrect password")
@@ -67,12 +75,18 @@ class TestLoginMutation(BaseTestCase):
         assert response.cookies.get(ACCESS_TOKEN_COOKIE_NAME) is None
         assert response.cookies.get(REFRESH_TOKEN_COOKIE_NAME) is None
 
+        async with self.db_session.begin() as session:
+            updated_account_orm = await AccountOrm.get_one(session, account_orm.id)
+            assert updated_account_orm.last_login is not None and updated_account_orm.last_login == self.getdatetime("last_login")
+
     async def test_login_with_non_existent_account(self) -> None:
         async with self.db_session.begin() as session:
-            await AccountOrm.build(
+            account_orm = AccountOrm.build(
                 email=self.anyemail("email"),
                 plaintext_password=self.anystr("plaintext_password"),
-            ).save(session)
+            )
+            account_orm.last_login = self.anydatetime("last_login", past=True)
+            await account_orm.save(session)
 
         response = await self._make_request(
             email=self.anyemail("some other email"), plaintext_password=self.getstr("plaintext_password")
@@ -90,12 +104,19 @@ class TestLoginMutation(BaseTestCase):
         assert response.cookies.get(ACCESS_TOKEN_COOKIE_NAME) is None
         assert response.cookies.get(REFRESH_TOKEN_COOKIE_NAME) is None
 
+        async with self.db_session.begin() as session:
+            updated_account_orm = await AccountOrm.get_one(session, account_orm.id)
+            assert updated_account_orm.last_login is not None and updated_account_orm.last_login == self.getdatetime("last_login")
+
     async def test_login_with_empty_password(self) -> None:
         async with self.db_session.begin() as session:
-            await AccountOrm.build(
+            account_orm = AccountOrm.build(
                 email=self.anyemail("email"),
                 plaintext_password=self.anystr("plaintext_password"),
-            ).save(session)
+            )
+
+            account_orm.last_login = self.anydatetime("last_login", past=True)
+            await account_orm.save(session)
 
         response = await self._make_request(email=self.anyemail("some other email"), plaintext_password="")
         result = self.parse_graphql_response(response)
@@ -110,3 +131,7 @@ class TestLoginMutation(BaseTestCase):
 
         assert response.cookies.get(ACCESS_TOKEN_COOKIE_NAME) is None
         assert response.cookies.get(REFRESH_TOKEN_COOKIE_NAME) is None
+
+        async with self.db_session.begin() as session:
+            updated_account_orm = await AccountOrm.get_one(session, account_orm.id)
+            assert updated_account_orm.last_login is not None and updated_account_orm.last_login == self.getdatetime("last_login")

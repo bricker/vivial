@@ -34,6 +34,7 @@ async def create_outing(
                 source_id=plan.activity.source_id,
                 source=plan.activity.source,
                 start_time_utc=plan.activity_start_time,
+                timezone=survey.timezone,
                 headcount=survey.headcount,
             ).save(session=db_session)
 
@@ -43,6 +44,7 @@ async def create_outing(
                 source_id=plan.restaurant.source_id,
                 source=plan.restaurant.source,
                 start_time_utc=plan.restaurant_arrival_time,
+                timezone=survey.timezone,
                 headcount=survey.headcount,
             ).save(session=db_session)
 

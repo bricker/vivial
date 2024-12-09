@@ -8,6 +8,7 @@ from uuid import UUID
 
 from sqlalchemy import PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.dialects.postgresql import TIMESTAMP
 
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.typing import NOT_SET
@@ -64,7 +65,7 @@ class AccountOrm(Base):
     password_key_salt: Mapped[str] = mapped_column()
     """hex encoded byte string"""
     password_key: Mapped[str] = mapped_column()
-    last_login: Mapped[datetime | None] = mapped_column(server_default=func.current_timestamp(), nullable=True)
+    last_login: Mapped[datetime | None] = mapped_column(type_=TIMESTAMP(timezone=True), server_default=func.current_timestamp(), nullable=True)
 
     @classmethod
     def build(
