@@ -13,7 +13,6 @@ from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.resolvers.mutations.helpers.planner import get_place
 from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import (
     StartTimeTooLateError,
     StartTimeTooSoonError,
@@ -22,7 +21,7 @@ from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import 
 from eave.core.graphql.types.booking import (
     Booking,
 )
-from eave.core.lib.google_places import get_google_photo_uris
+from eave.core.lib.google_places import get_google_place, photos_from_google_place
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.account_booking import AccountBookingOrm
 from eave.core.orm.activity import ActivityOrm
@@ -68,17 +67,17 @@ class EventDetails:
 
 async def _get_event_details(
     places_client: PlacesAsyncClient,
-    activities_client: EventbriteClient,
-    event_source: ActivitySource | RestaurantSource,
-    event_id: str,
+    eventbrite_client: EventbriteClient,
+    source: ActivitySource | RestaurantSource,
+    source_id: str,
 ) -> EventDetails:
     name = address1 = address2 = city = region = postal_code = country = lat = lon = booking_uri = photo_uri = None
-    match event_source:
+    match source:
         case ActivitySource.INTERNAL:
             async with database.async_session.begin() as db_session:
                 details = await ActivityOrm.get_one(
                     session=db_session,
-                    id=UUID(event_id),
+                    id=UUID(source_id),
                 )
             lat, lon = details.coordinates_to_lat_lon()
             name = details.title
@@ -88,18 +87,15 @@ async def _get_event_details(
             region = details.address.state
             postal_code = details.address.zip
             booking_uri = details.booking_url
+
         case ActivitySource.GOOGLE_PLACES | RestaurantSource.GOOGLE_PLACES:
-            details = await get_place(
-                client=places_client,
-                id=event_id,
-                # field_mask=",".join(["displayName.text", "addressComponents", "location", "websiteUri"]),
+            details = await get_google_place(
+                places_client=places_client,
+                place_id=source_id,
             )
 
-            photo_uris = await get_google_photo_uris(
-                places_client=places_client,
-                photos=details.photos,
-            )
-            photo_uri = photo_uris[0] if photo_uris else None
+            photos = await photos_from_google_place(places_client, place=details)
+            photo_uri = photos.cover_photo_uri
 
             name = details.display_name.text
             booking_uri = details.websiteUri
@@ -148,9 +144,10 @@ async def _get_event_details(
             )
             lat = details.location.latitude
             lon = details.location.longitude
+
         case ActivitySource.EVENTBRITE:
-            details = await activities_client.get_event_by_id(
-                event_id=event_id,
+            details = await eventbrite_client.get_event_by_id(
+                event_id=source_id,
                 query=GetEventQuery(expand=[Expansion.VENUE, Expansion.LOGO]),
             )
             name = details.get("name", {}).get("text")
@@ -207,9 +204,9 @@ async def _create_templates_from_outing(
         src = ActivitySource[activity.source]
         details = await _get_event_details(
             places_client=places_client,
-            activities_client=activities_client,
-            event_source=src,
-            event_id=activity.source_id,
+            eventbrite_client=activities_client,
+            source=src,
+            source_id=activity.source_id,
         )
 
         activity_details.append(
@@ -244,9 +241,9 @@ async def _create_templates_from_outing(
         src = RestaurantSource[reservation.source]
         details = await _get_event_details(
             places_client=places_client,
-            activities_client=activities_client,
-            event_source=src,
-            event_id=reservation.source_id,
+            eventbrite_client=activities_client,
+            source=src,
+            source_id=reservation.source_id,
         )
 
         reservation_details.append(

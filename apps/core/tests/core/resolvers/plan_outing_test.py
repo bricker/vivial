@@ -80,6 +80,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
             survey = await SurveyOrm.build(
                 visitor_id=self.anyuuid(),
                 start_time_utc=self.anydatetime(offset=2 * day_seconds),
+                timezone=self.anytimezone(),
                 search_area_ids=[SearchRegionOrm.all()[0].id],
                 budget=OutingBudget.INEXPENSIVE,
                 headcount=1,
@@ -120,6 +121,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
             survey = await SurveyOrm.build(
                 visitor_id=self.anyuuid(),
                 start_time_utc=self.anydatetime(offset=2 * day_seconds),
+                timezone=self.anytimezone(),
                 search_area_ids=[SearchRegionOrm.all()[0].id],
                 budget=OutingBudget.INEXPENSIVE,
                 headcount=1,

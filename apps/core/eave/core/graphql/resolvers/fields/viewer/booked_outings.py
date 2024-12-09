@@ -39,16 +39,16 @@ async def _get_booking_details(
     if activity:
         details.activity_start_time = activity.start_time_local
         details.activity = await get_activity(
-            event_id=activity.source_id,
-            event_source=activity.source,
+            source_id=activity.source_id,
+            source=activity.source,
         )
         details.headcount = max(details.headcount, activity.headcount)
 
     if reservation:
         details.restaurant_arrival_time = reservation.start_time_local
         details.restaurant = await get_restaurant(
-            restaurant_id=reservation.source_id,
-            event_source=reservation.source,
+            source_id=reservation.source_id,
+            source=reservation.source,
         )
         details.headcount = max(details.headcount, reservation.headcount)
 

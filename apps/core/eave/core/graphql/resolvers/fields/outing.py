@@ -2,10 +2,8 @@ from datetime import datetime
 from uuid import UUID, uuid4
 
 import strawberry
-from google.maps.places_v1 import PlacesAsyncClient
 
 from eave.core import database
-from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.activity import Activity, ActivityTicketInfo, ActivityVenue
 from eave.core.graphql.types.location import Location
@@ -18,16 +16,15 @@ from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.outing_activity import OutingActivityOrm
 from eave.core.orm.outing_reservation import OutingReservationOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
-from eave.core.zoneinfo import LOS_ANGELES_ZONE_INFO
-from eave.stdlib.eventbrite.client import EventbriteClient
+from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 
 # TODO: Remove once we're fetching from the appropriate sources.
 MOCK_OUTING = Outing(
     id=uuid4(),
     headcount=2,
     driving_time="25 min",
-    restaurant_arrival_time=(datetime(2024, 10, 15, hour=6, tzinfo=LOS_ANGELES_ZONE_INFO)),
-    activity_start_time=(datetime(2024, 10, 15, hour=8, tzinfo=LOS_ANGELES_ZONE_INFO)),
+    restaurant_arrival_time=(datetime(2024, 10, 15, hour=6, tzinfo=LOS_ANGELES_TIMEZONE)),
+    activity_start_time=(datetime(2024, 10, 15, hour=8, tzinfo=LOS_ANGELES_TIMEZONE)),
     restaurant=Restaurant(
         source_id=f"{uuid4()}",
         source=RestaurantSource.GOOGLE_PLACES,
@@ -94,9 +91,6 @@ MOCK_OUTING = Outing(
 
 
 async def get_outing_query(*, info: strawberry.Info[GraphQLContext], outing_id: UUID) -> Outing:
-    places_client = PlacesAsyncClient()
-    activities_client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
-
     async with database.async_session.begin() as db_session:
         outing_activity = await OutingActivityOrm.get_one_by_outing_id(
             session=db_session,
@@ -108,16 +102,13 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], outing_id: 
         )
 
     activity = await get_activity(
-        places_client=places_client,
-        activities_client=activities_client,
-        event_id=outing_activity.source_id,
-        event_source=ActivitySource[outing_activity.source],
+        source=outing_activity.source,
+        source_id=outing_activity.source_id,
     )
 
     restaurant = await get_restaurant(
-        places_client=places_client,
-        event_id=outing_reservation.source_id,
-        event_source=RestaurantSource[outing_reservation.source],
+        source=outing_reservation.source,
+        source_id=outing_reservation.source_id,
     )
 
     return Outing(

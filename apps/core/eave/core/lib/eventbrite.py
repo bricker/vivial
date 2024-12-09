@@ -1,7 +1,7 @@
 from eave.core.graphql.types.activity import Activity, ActivityVenue
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photos
-from eave.core.lib.event_helpers import google_maps_directions_url
+from eave.core.lib.google_places import google_maps_directions_url
 from eave.core.shared.enums import ActivitySource
 from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.eventbrite.models.event import Event, EventStatus

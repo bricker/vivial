@@ -1,3 +1,4 @@
+import urllib.parse
 from collections.abc import MutableSequence, Sequence
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
@@ -229,3 +230,8 @@ def place_is_accessible(place: Place) -> bool:
     can_sit = accessibility_options.wheelchair_accessible_seating
 
     return can_enter and can_park and can_pee and can_sit
+
+
+def google_maps_directions_url(address: str) -> str:
+    urlsafe_addr = urllib.parse.quote_plus(address)
+    return f"https://www.google.com/maps/place/{urlsafe_addr}"

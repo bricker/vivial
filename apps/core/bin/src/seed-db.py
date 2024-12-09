@@ -14,6 +14,8 @@ UNDER NO CIRCUMSTANCES SHOULD THIS BE EVER RUN AGAINST PROD
 
 import sys
 
+from eave.stdlib.time import LOS_ANGELES_TIMEZONE
+
 sys.path.append(".")
 
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
@@ -97,6 +99,7 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             start_time_utc=dummy_date,
             search_area_ids=[SearchRegionOrm.all()[0].id],
             budget=OutingBudget.EXPENSIVE,
+            timezone=LOS_ANGELES_TIMEZONE,
             headcount=2,
         ).save(session)
         outing = await OutingOrm.build(
@@ -109,6 +112,7 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             source_id=str(uuid.uuid4()),
             source=ActivitySource.INTERNAL,
             start_time_utc=dummy_date,
+            timezone=LOS_ANGELES_TIMEZONE,
             headcount=2,
         ).save(session)
         outing_reservation = await OutingReservationOrm.build(
@@ -116,6 +120,7 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             source_id=str(uuid.uuid4()),
             source=RestaurantSource.GOOGLE_PLACES,
             start_time_utc=dummy_date,
+            timezone=LOS_ANGELES_TIMEZONE,
             headcount=2,
         ).save(session)
         reserver_details = await ReserverDetailsOrm.build(
@@ -137,7 +142,8 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             source_id=str(uuid.uuid4()),
             source=ActivitySource.EVENTBRITE,
             name="Biking in McDonalds parking lot",
-            activity_start_time=outing_activity.start_time_utc,
+            start_time_utc=outing_activity.start_time_utc,
+            timezone=LOS_ANGELES_TIMEZONE,
             photo_uri="https://s3-media0.fl.yelpcdn.com/bphoto/NQFmn6sxr2RC-czWIBi8aw/o.jpg",
             headcount=outing_activity.headcount,
             external_booking_link="https://micndontlds.com",
@@ -157,7 +163,8 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             source_id=str(uuid.uuid4()),
             source=RestaurantSource.GOOGLE_PLACES,
             name="Red lobster dumpster",
-            reservation_start_time=outing_reservation.start_time_utc,
+            start_time_utc=outing_reservation.start_time_utc,
+            timezone=LOS_ANGELES_TIMEZONE,
             photo_uri="https://s3-media0.fl.yelpcdn.com/bphoto/NQFmn6sxr2RC-czWIBi8aw/o.jpg",
             headcount=outing_reservation.headcount,
             external_booking_link="https://redlobster.yum",

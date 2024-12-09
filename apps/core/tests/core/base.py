@@ -201,6 +201,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             survey = await SurveyOrm.build(
                 visitor_id=self.anyuuid(),
                 start_time_utc=self.anydatetime(offset=2 * 60 * 60 * 24),
+                timezone=self.anytimezone(),
                 search_area_ids=[SearchRegionOrm.all()[0].id],
                 budget=OutingBudget.INEXPENSIVE,
                 headcount=self.anyint(min=1, max=2),
