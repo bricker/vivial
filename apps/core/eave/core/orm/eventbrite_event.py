@@ -10,6 +10,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.lib.geo import GeoArea, GeoPoint
 from eave.core.orm.util.mixins import CoordinatesMixin
+from eave.core.orm.util.user_defined_column_types import ZoneInfoColumnType
 from eave.stdlib.typing import NOT_SET
 
 from .base import Base
@@ -27,7 +28,7 @@ class EventbriteEventOrm(Base, CoordinatesMixin):
     eventbrite_event_id: Mapped[str] = mapped_column(unique=True)
     title: Mapped[str] = mapped_column()
     time_range_utc: Mapped[Range[datetime]] = mapped_column(TSTZRANGE)
-    timezone: Mapped[ZoneInfo] = mapped_column(type_=String)
+    timezone: Mapped[ZoneInfo] = mapped_column(type_=ZoneInfoColumnType())
     cost_cents_range: Mapped[Range[int]] = mapped_column(INT4RANGE)
     vivial_activity_category_id: Mapped[UUID] = mapped_column()
     vivial_activity_format_id: Mapped[UUID] = mapped_column()
