@@ -16,7 +16,9 @@ from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.types.activity import Activity, ActivitySource, ActivityVenue
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import OutingPreferencesInput
+from eave.core.graphql.types.photos import Photos
 from eave.core.graphql.types.restaurant import Restaurant, RestaurantSource
+from eave.core.lib.event_helpers import get_eventbrite_activity, get_google_photo_uris
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
 from eave.core.lib.time_category import is_early_evening, is_early_morning, is_late_evening, is_late_morning
 from eave.core.orm.activity_category import ActivityCategoryOrm
@@ -230,93 +232,7 @@ class OutingPlanner:
 
             for event in results:
                 try:
-                    event_details = await self.eventbrite.get_event_by_id(event_id=event.eventbrite_event_id)
-
-                    if not (ticket_availability := event_details.get("ticket_availability")):
-                        LOGGER.warning(
-                            "Missing ticket_availability; excluding event.",
-                            {"eventbrite_event_id": event.eventbrite_event_id},
-                        )
-                        continue
-
-                    if not ticket_availability.get("has_available_tickets"):
-                        LOGGER.warning(
-                            "has_available_tickets=False; excluding event.",
-                            {"eventbrite_event_id": event.eventbrite_event_id},
-                        )
-                        continue
-
-                    if not (event_name := event_details.get("name")):
-                        LOGGER.warning(
-                            "event name missing; excluding event.",
-                            {"eventbrite_event_id": event.eventbrite_event_id},
-                        )
-                        continue
-
-                    if event_details.get("status") != EventStatus.LIVE:
-                        LOGGER.warning(
-                            "status != live; excluding event.", {"eventbrite_event_id": event.eventbrite_event_id}
-                        )
-                        continue
-
-                    if not (venue := event_details.get("venue")):
-                        LOGGER.warning(
-                            "Missing venue; excluding event.", {"eventbrite_event_id": event.eventbrite_event_id}
-                        )
-                        continue
-
-                    if (venue_address := venue.get("address")) is None:
-                        LOGGER.warning(
-                            "Missing venue address; excluding event.",
-                            {"eventbrite_event_id": event.eventbrite_event_id},
-                        )
-                        continue
-
-                    if (venue_formatted_address := venue_address.get("localized_address_display")) is None:
-                        LOGGER.warning(
-                            "Missing venue localized_address_display; excluding event.",
-                            {"eventbrite_event_id": event.eventbrite_event_id},
-                        )
-                        continue
-
-                    if (venue_lat := venue.get("latitude")) is None:
-                        LOGGER.warning(
-                            "Missing venue latitude; excluding event.",
-                            {"eventbrite_event_id": event.eventbrite_event_id},
-                        )
-                        continue
-
-                    if (venue_lon := venue.get("longitude")) is None:
-                        LOGGER.warning(
-                            "Missing venue longitude; excluding event.",
-                            {"eventbrite_event_id": event.eventbrite_event_id},
-                        )
-                        continue
-
-                    description = await self.eventbrite.get_event_description(event_id=event.eventbrite_event_id)
-                    event_details["description"] = description
-
-                    self.activity = Activity(
-                        source_id=str(event.id),
-                        source=ActivitySource.EVENTBRITE,
-                        name=event_name["text"],
-                        description=event_details["description"]["text"],
-                        photos=None,  # TODO
-                        ticket_info=None,  # TODO
-                        venue=ActivityVenue(
-                            name=venue["name"],
-                            location=Location(
-                                directions_uri=google_maps_directions_url(venue_formatted_address),
-                                latitude=float(venue_lat),
-                                longitude=float(venue_lon),
-                                formatted_address=venue_formatted_address,
-                            ),
-                        ),
-                        website_uri=event_details.get("vanity_url"),
-                        door_tips=None,
-                        insider_tips=None,
-                        parking_tips=None,
-                    )
+                    self.activity = await get_eventbrite_activity(eventbrite_client=self.eventbrite, event_id=event.eventbrite_event_id)
                     return self.activity
 
                 except Exception as e:
@@ -364,12 +280,20 @@ class OutingPlanner:
                     venue_lat = place.location.latitude
                     venue_lon = place.location.longitude
                     if venue_lat and venue_lon:
+                        photo_uris = await get_google_photo_uris(
+                            places_client=self.places,
+                            photos=place.photos,
+                        )
+
                         self.activity = Activity(
                             source_id=place.id,
                             source=ActivitySource.GOOGLE_PLACES,
                             name=place.display_name,
                             description=place.editorial_summary,
-                            photos=None,  # TODO
+                            photos=Photos(
+                                cover_photo_uri=photo_uris[0] if photo_uris else "",
+                                supplemental_photo_uris=photo_uris,
+                            ),
                             ticket_info=None,  # TODO
                             venue=ActivityVenue(
                                 name=place.display_name,
@@ -449,6 +373,12 @@ class OutingPlanner:
                         lat = restaurant.location.latitude
                         lon = restaurant.location.longitude
                         if lat and lon:
+
+                            photo_uris = await get_google_photo_uris(
+                                places_client=self.places,
+                                photos=restaurant.photos,
+                            )
+
                             self.restaurant = Restaurant(
                                 source_id=restaurant.id,
                                 source=RestaurantSource.GOOGLE_PLACES,
@@ -458,7 +388,10 @@ class OutingPlanner:
                                     formatted_address=restaurant.formatted_address,
                                     directions_uri=restaurant.google_maps_uri,
                                 ),
-                                photos=None,  # TODO
+                                photos=Photos(
+                                    cover_photo_uri=photo_uris[0] if photo_uris else "",
+                                    supplemental_photo_uris=photo_uris,
+                                ),
                                 name=restaurant.display_name,
                                 reservable=restaurant.reservable,
                                 rating=restaurant.rating,
@@ -488,13 +421,6 @@ class OutingPlanner:
             restaurant_arrival_time=self.restaurant_arrival_time_local,
             driving_time=None,
         )
-
-
-async def get_place(
-    client: PlacesAsyncClient,
-    id: str,
-) -> Place:
-    return await client.get_place(request=GetPlaceRequest(name=f"places/{id}"))
 
 
 async def get_places_nearby(
@@ -578,8 +504,3 @@ def place_is_accessible(place: Place) -> bool:
     can_sit = accessibility_options.wheelchair_accessible_seating
 
     return can_enter and can_park and can_pee and can_sit
-
-
-def google_maps_directions_url(address: str) -> str:
-    urlsafe_addr = urllib.parse.quote_plus(address)
-    return f"https://www.google.com/maps/place/{urlsafe_addr}"

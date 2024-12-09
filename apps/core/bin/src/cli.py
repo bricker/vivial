@@ -62,9 +62,9 @@ def run_migrations() -> None:
     eaveLogger.fprint(logging.WARNING, f"EAVE_DB_NAME={eave_db_name}")
     eaveLogger.fprint(logging.WARNING, f"EAVE_DB_USER={eave_db_user}")
 
-    answer = input(eaveLogger.f(logging.WARNING, "Proceed? (Y/n) "))
+    answer = input(eaveLogger.f(logging.WARNING, "Proceed? (y/n) "))
 
-    if answer != "Y":
+    if answer != "y":
         raise click.Abort()
 
     alembic.command.upgrade(

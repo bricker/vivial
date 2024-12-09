@@ -1,13 +1,13 @@
 from uuid import UUID
 
-import strawberry
 from google.maps.places_v1 import PlacesAsyncClient
+import strawberry
 
 from eave.core import database
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.booking import BookingDetailPeek, BookingDetails
-from eave.core.lib.event_helpers import get_activity, get_restuarant
+from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
 from eave.core.orm.booking_reservations_template import BookingReservationTemplateOrm
@@ -16,11 +16,10 @@ from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.util import unwrap
 
 
+
 async def _get_booking_details(
     booking_id: UUID,
 ) -> BookingDetails:
-    places_client = PlacesAsyncClient()
-    activities_client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
     activities_query = BookingActivityTemplateOrm.select().where(BookingActivityTemplateOrm.booking_id == booking_id)
     reservations_query = BookingReservationTemplateOrm.select().where(
         BookingReservationTemplateOrm.booking_id == booking_id
@@ -47,17 +46,14 @@ async def _get_booking_details(
         details.activity = await get_activity(
             event_id=activity.source_id,
             event_source=ActivitySource[activity.source],
-            places_client=places_client,
-            activities_client=activities_client,
         )
         details.headcount = max(details.headcount, activity.headcount)
 
     if reservation:
         details.restaurant_arrival_time = reservation.start_time_local
-        details.restaurant = await get_restuarant(
-            event_id=reservation.source_id,
+        details.restaurant = await get_restaurant(
+            restaurant_id=reservation.source_id,
             event_source=RestaurantSource[reservation.source],
-            places_client=places_client,
         )
         details.headcount = max(details.headcount, reservation.headcount)
 

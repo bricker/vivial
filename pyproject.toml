@@ -7,11 +7,11 @@ exclude = [
   "**/build/*",
   "**/.*",
 ]
-venvPath="./.venv"
+venvPath=".venv"
 extraPaths=[
-    "**/vendor",
-    "./apps/core",
-    "./apps/dashboard",
-    "./develop/python/src",
+  "./apps/core",
+  "./apps/dashboard",
+  "./libs/eave-stdlib-py/src",
+  "./develop/python/src",
 ]
 typeCheckingMode = "standard"

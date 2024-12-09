@@ -14,7 +14,7 @@ from eave.core.graphql.types.outing import (
 )
 from eave.core.graphql.types.photos import Photos
 from eave.core.graphql.types.restaurant import Restaurant
-from eave.core.lib.event_helpers import get_activity, get_restuarant
+from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.outing_activity import OutingActivityOrm
 from eave.core.orm.outing_reservation import OutingReservationOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
@@ -114,7 +114,7 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], outing_id: 
         event_source=ActivitySource[outing_activity.source],
     )
 
-    restaurant = await get_restuarant(
+    restaurant = await get_restaurant(
         places_client=places_client,
         event_id=outing_reservation.source_id,
         event_source=RestaurantSource[outing_reservation.source],
