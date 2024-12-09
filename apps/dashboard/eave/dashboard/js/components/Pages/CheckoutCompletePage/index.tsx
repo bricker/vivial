@@ -55,7 +55,12 @@ const Divider = styled("div")(() => ({
 const ConfirmationsContainer = styled("div")(() => ({
   display: "flex",
   flexDirection: "column",
-  gap: 24,
+  justifyContent: "space-around",
+  paddingTop: 8,
+  backgroundImage: `url("${imageUrl("background-line.png")}")`,
+  backgroundRepeat: "no-repeat",
+  backgroundPosition: "20% 0%",
+  backgroundSize: "contain",
 }));
 
 const ConfirmationOptionContainer = styled("div")(() => ({
@@ -106,7 +111,7 @@ const confirmationOptions: ConfirmationOptionDetail[] = [
     alt: "Vivial",
     bgColor: colors.vivialYellow,
     text: "for a itinerary confirmation and receipt (if applicable).",
-    padding: 10,
+    padding: 11,
   },
   {
     logoUri: imageUrl("opentable-logo.png"),
