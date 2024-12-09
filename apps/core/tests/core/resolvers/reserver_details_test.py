@@ -4,7 +4,7 @@ from ..base import BaseTestCase
 class TestReserverDetailsEndpoints(BaseTestCase):
     async def test_valid_reserver_details_form_submit(self) -> None:
         async with self.db_session.begin() as session:
-            await self.make_account(session=session)
+            account_orm = await self.make_account(session=session)
 
         phone_num = "+12345678900"
 
@@ -17,6 +17,7 @@ class TestReserverDetailsEndpoints(BaseTestCase):
                     "phoneNumber": phone_num,
                 },
             },
+            account_id=account_orm.id,
         )
 
         result = self.parse_graphql_response(response)
@@ -31,7 +32,7 @@ class TestReserverDetailsEndpoints(BaseTestCase):
 
     async def test_reserver_details_form_submit_invalid_phone_number(self) -> None:
         async with self.db_session.begin() as session:
-            await self.make_account(session=session)
+            account_orm = await self.make_account(session=session)
 
         # invalid phone number
         phone_num = "1-800-BEANS-FOR-BREAKFAST"
@@ -45,6 +46,7 @@ class TestReserverDetailsEndpoints(BaseTestCase):
                     "phoneNumber": phone_num,
                 },
             },
+            account_id=account_orm.id,
         )
 
         result = self.parse_graphql_response(response)

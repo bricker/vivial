@@ -6,6 +6,7 @@ mutation PlanOutingAuthenticated($input: PlanOutingInput!) {
       planOuting(input: $input) {
         ... on PlanOutingSuccess {
           outing {
+            id
             headcount
             activity {
               sourceId

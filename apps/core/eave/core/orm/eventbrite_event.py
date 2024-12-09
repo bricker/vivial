@@ -54,11 +54,11 @@ class EventbriteEventOrm(Base, CoordinatesMixin):
     ) -> Self:
         self.title = title
 
-        if start_time:
+        if start_time is not None:
             start_time = start_time.astimezone(UTC)
 
-        if end_time:
-            start_time = end_time.astimezone(UTC)
+        if end_time is not None:
+            end_time = end_time.astimezone(UTC)
 
         self.time_range_utc = Range(lower=start_time, upper=end_time, bounds=_TIMERANGE_BOUNDS)
         self.timezone = timezone or ZoneInfo("UTC")

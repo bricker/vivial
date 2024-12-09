@@ -280,8 +280,8 @@ async def _notify_slack(
     reserver_details_id: UUID,
 ) -> None:
     async with database.async_session.begin() as db_session:
-        account = await db_session.get_one(AccountOrm, account_id)
-        reserver = await db_session.get_one(ReserverDetailsOrm, reserver_details_id)
+        account = await AccountOrm.get_one(db_session, account_id)
+        reserver = await ReserverDetailsOrm.get_one(db_session, (account_id, reserver_details_id))
 
     try:
         channel_id = SHARED_CONFIG.eave_slack_signups_channel_id
@@ -376,7 +376,7 @@ async def create_booking_mutation(
 
             # validate outing time still valid to book
             try:
-                validate_time_within_bounds_or_exception(survey.start_time_utc)
+                validate_time_within_bounds_or_exception(start_time=survey.start_time_utc, timezone=survey.timezone)
             except StartTimeTooSoonError:
                 return CreateBookingFailure(failure_reason=CreateBookingFailureReason.START_TIME_TOO_SOON)
             except StartTimeTooLateError:

@@ -2,6 +2,7 @@ mutation ReplanOutingAnonymous($input: ReplanOutingInput!) {
   replanOuting(input: $input) {
     ... on ReplanOutingSuccess {
       outing {
+        id
         headcount
         activity {
           sourceId

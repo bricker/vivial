@@ -2,6 +2,7 @@ mutation PlanOutingAnonymous($input: PlanOutingInput!) {
   planOuting(input: $input) {
     ... on PlanOutingSuccess {
       outing {
+        id
         headcount
         activity {
           sourceId

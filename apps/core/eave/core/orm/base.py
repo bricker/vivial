@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Self
+from typing import Any, Self
 from uuid import UUID
 
 from sqlalchemy import MetaData, Select, func, select
@@ -35,7 +35,7 @@ class Base(DeclarativeBase):
         return self
 
     @classmethod
-    async def get_one(cls, session: AsyncSession, id: UUID) -> Self:
+    async def get_one(cls, session: AsyncSession, id: UUID | tuple[UUID, ...]) -> Self:
         return await session.get_one(cls, id)
 
     @classmethod

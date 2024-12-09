@@ -1,3 +1,4 @@
+import random
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
@@ -20,7 +21,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
                 "input": {
                     "visitorId": f"{vis_id}",
                     "startTime": f"{self.anydatetime(offset=2 * day_seconds).isoformat()}",
-                    "searchAreaIds": [f"{self.anyuuid()}"],
+                    "searchAreaIds": [s.id.hex for s in random.choices(SearchRegionOrm.all(), k=3)],
                     "budget": "INEXPENSIVE",
                     "headcount": 2,
                     "groupPreferences": [
@@ -37,7 +38,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
         assert result.data
         assert not result.errors
 
-        data = result.data["replanOuting"]
+        data = result.data["planOuting"]
         assert data["outing"]["id"] is not None
 
     async def test_plan_outing_authenticated(self) -> None:
@@ -52,7 +53,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
                 "input": {
                     "visitorId": f"{vis_id}",
                     "startTime": f"{self.anydatetime(offset=2 * day_seconds).isoformat()}",
-                    "searchAreaIds": [f"{self.anyuuid()}"],
+                    "searchAreaIds": [s.id.hex for s in random.choices(SearchRegionOrm.all(), k=3)],
                     "budget": "INEXPENSIVE",
                     "headcount": 2,
                     "groupPreferences": [
@@ -81,7 +82,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
                 visitor_id=self.anyuuid(),
                 start_time_utc=self.anydatetime(offset=2 * day_seconds),
                 timezone=self.anytimezone(),
-                search_area_ids=[SearchRegionOrm.all()[0].id],
+                search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
                 budget=OutingBudget.INEXPENSIVE,
                 headcount=1,
                 account_id=account.id,
@@ -93,7 +94,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
             ).save(sess)
 
         response = await self.make_graphql_request(
-            "replanOutingAnonymous",
+            "replanOutingAuthenticated",
             {
                 "input": {
                     "outingId": f"{outing.id}",
@@ -122,7 +123,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
                 visitor_id=self.anyuuid(),
                 start_time_utc=self.anydatetime(offset=2 * day_seconds),
                 timezone=self.anytimezone(),
-                search_area_ids=[SearchRegionOrm.all()[0].id],
+                search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
                 budget=OutingBudget.INEXPENSIVE,
                 headcount=1,
             ).save(sess)

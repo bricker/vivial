@@ -1,8 +1,10 @@
 import re
+from typing import Self
 from uuid import UUID
 
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from eave.core.shared.errors import ValidationError
 

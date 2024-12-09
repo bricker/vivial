@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
+from eave.stdlib.time import ONE_DAY_IN_SECONDS
 
 from ..base import BaseTestCase
 
@@ -107,9 +108,9 @@ class TestEventbriteEventOrm(BaseTestCase):
                 title=self.anystr(),
                 vivial_activity_category_id=self.anyuuid(),
                 vivial_activity_format_id=self.anyuuid(),
-                start_time=self.anydatetime("start_time", offset=-60 * 60 * 24),
+                start_time=self.anydatetime("start_time", offset=-ONE_DAY_IN_SECONDS),
+                end_time=self.anydatetime("end_time", offset=ONE_DAY_IN_SECONDS),
                 timezone=self.anytimezone(),
-                end_time=self.anydatetime("end_time", offset=60 * 60 * 24),
                 min_cost_cents=self.anyint("min_cost", min=0, max=999),
                 max_cost_cents=self.anyint("max_cost", min=2000, max=9999),
                 lat=self.anylatitude("lat"),
@@ -188,11 +189,11 @@ class TestEventbriteEventOrm(BaseTestCase):
                 title=self.anystr(),
                 vivial_activity_category_id=self.anyuuid(),
                 vivial_activity_format_id=self.anyuuid(),
-                start_time=self.anydatetime(),
-                end_time=self.anydatetime(),
+                start_time=self.anydatetime(past=True),
+                end_time=self.anydatetime(future=True),
                 timezone=self.anytimezone(),
-                min_cost_cents=self.anyint(),
-                max_cost_cents=self.anyint(),
+                min_cost_cents=self.anyint(min=0, max=999),
+                max_cost_cents=self.anyint(min=1000, max=9999),
                 lat=self.anylatitude("lat"),
                 lon=self.anylongitude("lon"),
             )

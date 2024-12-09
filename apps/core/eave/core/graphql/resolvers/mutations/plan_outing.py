@@ -64,7 +64,7 @@ async def plan_outing_mutation(
         return PlanOutingFailure(failure_reason=PlanOutingFailureReason.SEARCH_AREA_IDS_EMPTY)
 
     try:
-        validate_time_within_bounds_or_exception(input.start_time)
+        validate_time_within_bounds_or_exception(start_time=input.start_time, timezone=LOS_ANGELES_TIMEZONE)
     except StartTimeTooLateError:
         return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_LATE)
     except StartTimeTooSoonError:
