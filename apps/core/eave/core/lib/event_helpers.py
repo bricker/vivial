@@ -52,6 +52,7 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
     )
 
 async def get_activity(
+    *,
     event_source: ActivitySource,
     event_id: str,
 ) -> Activity | None:
@@ -72,6 +73,7 @@ async def get_activity(
 
 
 async def get_restaurant(
+    *,
     event_source: RestaurantSource,
     restaurant_id: str,
 ) -> Restaurant:

@@ -45,7 +45,7 @@ async def _get_booking_details(
         details.activity_start_time = activity.start_time_local
         details.activity = await get_activity(
             event_id=activity.source_id,
-            event_source=ActivitySource[activity.source],
+            event_source=activity.source,
         )
         details.headcount = max(details.headcount, activity.headcount)
 
@@ -53,7 +53,7 @@ async def _get_booking_details(
         details.restaurant_arrival_time = reservation.start_time_local
         details.restaurant = await get_restaurant(
             restaurant_id=reservation.source_id,
-            event_source=RestaurantSource[reservation.source],
+            event_source=reservation.source,
         )
         details.headcount = max(details.headcount, reservation.headcount)
 
@@ -82,6 +82,7 @@ async def list_bookings_query(
             # response type only accepts one of each
             activity = await db_session.scalar(activities_query)
             reservation = await db_session.scalar(reservations_query)
+
             photo_uri = None
             if reservation and reservation.photo_uri:
                 photo_uri = reservation.photo_uri
