@@ -1,6 +1,6 @@
-import type { AddPluginConfig } from "@graphql-codegen/add";
+import { type AddPluginConfig } from "@graphql-codegen/add";
 import type { CodegenConfig } from "@graphql-codegen/cli";
-import type { ClientPresetConfig } from "@graphql-codegen/client-preset";
+import { addTypenameSelectionDocumentTransform, type ClientPresetConfig } from "@graphql-codegen/client-preset";
 const schema = process.env["GRAPHQL_SCHEMA"] || "http://api.eave.run:8080/graphql";
 
 const config: CodegenConfig = {
@@ -13,6 +13,7 @@ const config: CodegenConfig = {
       presetConfig: <ClientPresetConfig>{
         fragmentMasking: false,
       },
+      documentTransforms: [addTypenameSelectionDocumentTransform],
       config: {
         // See here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#config-api
         // The options here are forwarded to other plugins and the exact properties aren't available in a type,
@@ -20,8 +21,8 @@ const config: CodegenConfig = {
         documentMode: "string",
         defaultScalarType: "string",
         strictScalars: true,
-        nonOptionalTypename: true,
         useTypeImports: true,
+
         scalars: {
           // These scalars match what the server provided, including the scalars built-in to Strawberry:
           // https://strawberry.rocks/docs/types/scalars

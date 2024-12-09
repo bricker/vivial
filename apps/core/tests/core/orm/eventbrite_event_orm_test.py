@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
+from eave.stdlib.time import ONE_DAY_IN_SECONDS
 
 from ..base import BaseTestCase
 
@@ -16,6 +17,7 @@ class TestEventbriteEventOrm(BaseTestCase):
                 vivial_activity_format_id=self.anyuuid(),
                 start_time=self.anydatetime("start_time", past=True),
                 end_time=self.anydatetime("end_time", future=True),
+                timezone=self.anytimezone("timezone"),
                 min_cost_cents=self.anyint("min_cost", min=0, max=999),
                 max_cost_cents=self.anyint("max_cost", min=1000, max=9999),
                 lat=self.anylatitude("lat"),
@@ -34,10 +36,11 @@ class TestEventbriteEventOrm(BaseTestCase):
             ).one()
 
             assert obj.eventbrite_event_id == self.getstr("eventbrite_event_id")
-            assert obj.time_range.lower == self.getdatetime("start_time")
-            assert obj.time_range.upper == self.getdatetime("end_time")
+            assert obj.time_range_utc.lower == self.getdatetime("start_time")
+            assert obj.time_range_utc.upper == self.getdatetime("end_time")
             assert obj.cost_cents_range.lower == self.getint("min_cost")
             assert obj.cost_cents_range.upper == self.getint("max_cost") + 1
+            assert obj.timezone == self.gettimezone("timezone")
 
     async def test_query_cost_range(self) -> None:
         async with self.db_session.begin() as session:
@@ -48,6 +51,7 @@ class TestEventbriteEventOrm(BaseTestCase):
                 vivial_activity_format_id=self.anyuuid(),
                 start_time=self.anydatetime("start_time", past=True),
                 end_time=self.anydatetime("end_time", future=True),
+                timezone=self.anytimezone(),
                 min_cost_cents=self.anyint("min_cost", min=0, max=999),
                 max_cost_cents=self.anyint("max_cost", min=2000, max=9999),
                 lat=self.anylatitude("lat"),
@@ -104,8 +108,9 @@ class TestEventbriteEventOrm(BaseTestCase):
                 title=self.anystr(),
                 vivial_activity_category_id=self.anyuuid(),
                 vivial_activity_format_id=self.anyuuid(),
-                start_time=self.anydatetime("start_time", offset=-60 * 60 * 24),
-                end_time=self.anydatetime("end_time", offset=60 * 60 * 24),
+                start_time=self.anydatetime("start_time", offset=-ONE_DAY_IN_SECONDS),
+                end_time=self.anydatetime("end_time", offset=ONE_DAY_IN_SECONDS),
+                timezone=self.anytimezone(),
                 min_cost_cents=self.anyint("min_cost", min=0, max=999),
                 max_cost_cents=self.anyint("max_cost", min=2000, max=9999),
                 lat=self.anylatitude("lat"),
@@ -184,10 +189,11 @@ class TestEventbriteEventOrm(BaseTestCase):
                 title=self.anystr(),
                 vivial_activity_category_id=self.anyuuid(),
                 vivial_activity_format_id=self.anyuuid(),
-                start_time=self.anydatetime(),
-                end_time=self.anydatetime(),
-                min_cost_cents=self.anyint(),
-                max_cost_cents=self.anyint(),
+                start_time=self.anydatetime(past=True),
+                end_time=self.anydatetime(future=True),
+                timezone=self.anytimezone(),
+                min_cost_cents=self.anyint(min=0, max=999),
+                max_cost_cents=self.anyint(min=1000, max=9999),
                 lat=self.anylatitude("lat"),
                 lon=self.anylongitude("lon"),
             )
@@ -233,6 +239,7 @@ class TestEventbriteEventOrm(BaseTestCase):
                 vivial_activity_format_id=self.anyuuid(),
                 start_time=self.anydatetime("start_time", past=True),
                 end_time=self.anydatetime("end_time", future=True),
+                timezone=self.anytimezone(),
                 min_cost_cents=self.anyint("min_cost", min=0, max=999),
                 max_cost_cents=self.anyint("max_cost", min=1000, max=9999),
                 lat=self.anylatitude("lat"),
@@ -256,6 +263,7 @@ class TestEventbriteEventOrm(BaseTestCase):
                 vivial_activity_format_id=self.anyuuid("new vivial_activity_format_id"),
                 start_time=self.anydatetime("new start_time", past=True),
                 end_time=self.anydatetime("new end_time", future=True),
+                timezone=self.anytimezone(),
                 min_cost_cents=self.anyint("new min_cost", min=0, max=999),
                 max_cost_cents=self.anyint("new max_cost", min=1000, max=9999),
                 lat=self.anylatitude("new lat"),
@@ -275,6 +283,6 @@ class TestEventbriteEventOrm(BaseTestCase):
             assert qobj.title == self.getdatetime("new title")
             assert qobj.vivial_activity_category_id == self.getdatetime("new vivial_activity_category_id")
             assert qobj.vivial_activity_format_id == self.getdatetime("new vivial_activity_format_id")
-            assert qobj.time_range.upper == self.getdatetime("new end_time")
+            assert qobj.time_range_utc.upper == self.getdatetime("new end_time")
             assert qobj.cost_cents_range.lower == self.getint("new min_cost")
             assert qobj.cost_cents_range.upper == self.getint("new max_cost") + 1

@@ -1,12 +1,12 @@
 import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
+import * as EmailValidator from "email-validator";
 import React, { useCallback, useState } from "react";
 import LoadingButton from "../../Buttons/LoadingButton";
 import SecondaryButton from "../../Buttons/SecondaryButton";
 import Input from "../../Inputs/Input";
 import InputError from "../../Inputs/InputError";
-
 const SpreadButtonsContainer = styled("div")(() => ({
   display: "flex",
   flexDirection: "row",
@@ -109,6 +109,8 @@ const AccountBookingInfoEditForm = ({
       setInternalError("Last name required");
     } else if (emailAddr.length === 0) {
       setInternalError("Email required");
+    } else if (!EmailValidator.validate(emailAddr)) {
+      setInternalError("Invalid email");
     } else if (phone.length === 0) {
       setInternalError("Phone number required");
     } else {

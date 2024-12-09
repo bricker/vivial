@@ -96,6 +96,10 @@ const PasswordResetForm = () => {
                     setExternalError(`The following fields are invalid: ${invalidFields}`);
                     break;
                   }
+                  case UpdateAccountFailureReason.WeakPassword: {
+                    setExternalError("The password does not meet the minimum requirements.");
+                    break;
+                  }
                   default:
                     console.error("Unexpected case for UpdateAccountFailure");
                     break;
@@ -110,7 +114,7 @@ const PasswordResetForm = () => {
           }
           case "UnauthenticatedViewer":
             dispatch(loggedOut());
-            navigate(AppRoute.login);
+            window.location.assign(AppRoute.logout);
             break;
           default:
             // loading/not-requested

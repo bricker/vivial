@@ -142,7 +142,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         return result
 
     async def make_graphql_request(
-        self, query_name: str, variables: dict[str, Any], account_id: UUID | None = None
+        self, query_name: str, variables: dict[str, Any], *, account_id: UUID | None = None
     ) -> Response:
         cookies: dict[str, str] = {}
 
@@ -200,7 +200,8 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         if surv_id is None:
             survey = await SurveyOrm.build(
                 visitor_id=self.anyuuid(),
-                start_time=self.anydatetime(offset=2 * 60 * 60 * 24),
+                start_time_utc=self.anydatetime(offset=2 * 60 * 60 * 24),
+                timezone=self.anytimezone(),
                 search_area_ids=[SearchRegionOrm.all()[0].id],
                 budget=OutingBudget.INEXPENSIVE,
                 headcount=self.anyint(min=1, max=2),

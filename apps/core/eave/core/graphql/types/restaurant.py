@@ -11,7 +11,7 @@ from .photos import Photos
 
 @strawberry.type
 class Restaurant:
-    id: str
+    source_id: str
     source: RestaurantSource
     location: Location
     photos: Photos | None

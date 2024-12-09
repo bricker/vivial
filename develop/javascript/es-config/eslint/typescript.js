@@ -1,3 +1,10 @@
+// @ts-check
+
+/**
+ * @typedef {import("eslint").Linter.LegacyConfig} ESLintConfig
+ */
+
+/** @type ESLintConfig */
 const config = {
   overrides: [
     {
@@ -70,12 +77,6 @@ const config = {
             minimumDescriptionLength: 1,
           },
         ],
-      },
-    },
-    {
-      files: ["*.test.ts"],
-      rules: {
-        "@typescript-eslint/no-unused-vars": "off", // Allow ava test context to be unused
       },
     },
   ],

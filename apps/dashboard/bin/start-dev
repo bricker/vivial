@@ -12,7 +12,7 @@ source "${EAVE_HOME}"/develop/functions.bash
 	cd "$(e.parentpath)"
 
 	python ./bin/src/start-dev-server.py &
-	bash ./bin/src/start-dev-webpack.bash &
-	bash ./bin/src/start-dev-graphql-codegen.bash &
+	./node_modules/.bin/webpack -w &
+	./node_modules/.bin/graphql-codegen --config codegen.ts --overwrite --watch &
 	wait
 )

@@ -16,6 +16,8 @@ import AccountPage from "./components/Pages/AccountPage";
 import AccountPreferencesPage from "./components/Pages/AccountPreferencesPage";
 import BookingConfirmationPage from "./components/Pages/BookingConfirmationPage/index";
 import CheckoutCompletePage from "./components/Pages/CheckoutCompletePage";
+import CheckoutReservationPage from "./components/Pages/CheckoutReservationPage";
+import DateItineraryPage from "./components/Pages/DateItineraryPage";
 import DateSurveyPage from "./components/Pages/DateSurveyPage";
 import ForgotPasswordPage from "./components/Pages/ForgotPasswordPage";
 import HelpPage from "./components/Pages/HelpPage";
@@ -30,7 +32,6 @@ import StripeElementsProvider from "./components/StripeElementsProvider";
 import { PrivateRoutes } from "./components/Util/PrivateRoutes";
 import RouteChangeTracker from "./components/Util/RouteChangeTracker";
 import ScrollToTop from "./components/Util/ScrollToTop";
-import { AppContextProvider } from "./context";
 import { AppRoute } from "./routes";
 
 const fireAnalyticsPageView = (path: string) => pageView({ name: path });
@@ -50,6 +51,7 @@ const App = () => {
           <Route path={AppRoute.root} element={<GlobalLayout />}>
             {/* always public routes */}
             <Route index element={<DateSurveyPage />} />
+            <Route path={`${AppRoute.itinerary}/:outingId`} element={<DateItineraryPage />} />
             <Route path={AppRoute.terms} element={<TermsPage />} />
             <Route path={AppRoute.privacy} element={<PrivacyPage />} />
 
@@ -69,6 +71,7 @@ const App = () => {
               <Route path={AppRoute.passwordReset} element={<PasswordResetPage />} />
               <Route path={AppRoute.accountPreferences} element={<AccountPreferencesPage />} />
               <Route path={AppRoute.checkoutComplete} element={<CheckoutCompletePage />} />
+              <Route path={AppRoute.checkoutReserve} element={<CheckoutReservationPage />} />
             </Route>
 
             {/* TODO: Remove /payment-example Route. */}
@@ -92,16 +95,13 @@ const App = () => {
 const ProviderWrappedApp = () => {
   return (
     <StoreProvider store={store}>
-      {/* TODO: Remove AppContextProvider in favor of Redux. */}
-      <AppContextProvider>
-        <CookiesProvider>
-          <ThemeProvider theme={theme}>
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
-              <App />
-            </LocalizationProvider>
-          </ThemeProvider>
-        </CookiesProvider>
-      </AppContextProvider>
+      <CookiesProvider>
+        <ThemeProvider theme={theme}>
+          <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <App />
+          </LocalizationProvider>
+        </ThemeProvider>
+      </CookiesProvider>
     </StoreProvider>
   );
 };

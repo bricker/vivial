@@ -18,4 +18,5 @@ export const AppRoute = {
   passwordReset: "/account/password",
   checkoutComplete: "/checkout/complete",
   checkoutReserve: "/checkout/reserve",
+  itinerary: "/itinerary",
 };

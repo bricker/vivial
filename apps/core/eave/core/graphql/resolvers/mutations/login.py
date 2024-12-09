@@ -1,4 +1,5 @@
 import enum
+from datetime import UTC, datetime
 from typing import Annotated
 
 import strawberry
@@ -44,6 +45,9 @@ async def login_mutation(*, info: strawberry.Info[GraphQLContext], input: LoginI
             account_orm.verify_password_or_exception(input.plaintext_password)
 
             set_new_auth_cookies(response=info.context["response"], account_id=account_orm.id)
+
+            account_orm.last_login = datetime.now(UTC)
+            await account_orm.save(db_session)
 
             account = Account(
                 id=account_orm.id,

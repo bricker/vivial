@@ -1,7 +1,6 @@
-from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import ForeignKeyConstraint, Index, PrimaryKeyConstraint, func
+from sqlalchemy import ForeignKeyConstraint, Index, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .base import Base
@@ -37,8 +36,6 @@ class AccountBookingOrm(Base):
 
     account_id: Mapped[UUID] = mapped_column()
     booking_id: Mapped[UUID] = mapped_column()
-    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
     def build(

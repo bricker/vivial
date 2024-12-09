@@ -3,21 +3,23 @@ import enum
 import strawberry
 from google.maps.places_v1 import PriceLevel
 
+from eave.stdlib.matched_str_enum import MatchedStrEnum
+
 
 @strawberry.enum
-class ActivitySource(enum.StrEnum):
+class ActivitySource(MatchedStrEnum):
     INTERNAL = enum.auto()
     EVENTBRITE = enum.auto()
     GOOGLE_PLACES = enum.auto()
 
 
 @strawberry.enum
-class RestaurantSource(enum.StrEnum):
+class RestaurantSource(MatchedStrEnum):
     GOOGLE_PLACES = enum.auto()
 
 
 @strawberry.enum
-class OutingBudget(enum.StrEnum):
+class OutingBudget(MatchedStrEnum):
     FREE = enum.auto()
     INEXPENSIVE = enum.auto()
     MODERATE = enum.auto()

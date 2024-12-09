@@ -1,0 +1,18 @@
+query ListBookedOutings {
+  viewer {
+    ... on AuthenticatedViewerQueries {
+      bookedOutings {
+        id
+        activityName
+        activityStartTime
+        restaurantName
+        restaurantArrivalTime
+        photoUri
+      }
+    }
+
+    ... on UnauthenticatedViewer {
+      authFailureReason
+    }
+  }
+}

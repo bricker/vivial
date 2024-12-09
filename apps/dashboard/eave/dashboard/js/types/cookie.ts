@@ -1,5 +1,7 @@
+export const VIVIAL_COOKIE_PREFIX = "vivial.";
+
 export enum CookieId {
-  Reroll = "vivial_reroll",
+  Reroll = `${VIVIAL_COOKIE_PREFIX}reroll`,
 }
 
 export interface RerollCookie {

@@ -6,7 +6,6 @@ mutation UpdateAccount($input: UpdateAccountInput!) {
         __typename
         ... on UpdateAccountSuccess {
           account {
-            id
             email
           }
         }
@@ -18,8 +17,10 @@ mutation UpdateAccount($input: UpdateAccountInput!) {
         }
       }
     }
+
     ... on UnauthenticatedViewer {
-      authAction
+      __typename
+      authFailureReason
     }
   }
 }

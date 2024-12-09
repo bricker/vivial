@@ -56,7 +56,6 @@
     ],
     "https://json.schemastore.org/github-workflow": ".github/workflows/*.yml",
   },
-  "graphql-config.dotEnvPath": "${workspaceFolder}/.env",
   "eslint.experimental.useFlatConfig": false,
   "eslint.format.enable": false,
   "eslint.lintTask.enable": true,
@@ -78,14 +77,6 @@
   "javascript.inlayHints.functionLikeReturnTypes.enabled": false,
   "javascript.inlayHints.parameterNames.enabled": "none",
   "javascript.inlayHints.variableTypes.suppressWhenTypeMatchesName": true,
-  "python.analysis.typeCheckingMode": "standard",
-  "python.analysis.extraPaths": [
-    "vendor",
-    "${workspaceFolder}/apps/core",
-    "${workspaceFolder}/apps/dashboard",
-    "${workspaceFolder}/develop/python/src",
-    "${workspaceFolder}/libs/eave-stdlib-py/src",
-  ],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
   "python.testing.unittestArgs": [
@@ -100,21 +91,12 @@
     "-c=${workspaceFolder}/develop/python/configs/pytest.pyproject.toml",
     "--cov-config=${workspaceFolder}/develop/python/configs/coverage.toml"
   ],
-  "python.analysis.exclude": [
-    "**/node_modules",
-    "**/__pycache__",
-    ".git",
-    ".venv",
-    "**/vendor",
-    "**/.mypy_cache",
-    "**/generated",
-    "**/build",
-    "**/.build",
-    "**/.ruff_cache",
-    "**/.pytest_cache"
-  ],
   "python.analysis.importFormat": "absolute",
   "python.autoComplete.extraPaths": [
+    "${workspaceFolder}/apps/core",
+    "${workspaceFolder}/apps/dashboard",
+    "${workspaceFolder}/develop/python/src",
+    "${workspaceFolder}/libs/eave-stdlib-py/src",
   ],
   "ruff.lint.args": [
     "--config=${workspaceFolder}/develop/python/configs/ruff.toml",

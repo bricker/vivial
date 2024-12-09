@@ -60,11 +60,20 @@ const SignUpPage = () => {
       }
       case "CreateAccountFailure": {
         const failureReason = resp.data?.createAccount.failureReason;
-        if (failureReason === CreateAccountFailureReason.AccountExists) {
-          setError("This account already exists.");
-        } else {
-          setError("Unable to create account. Reach out to friends@vivialapp.com.");
+        switch (failureReason) {
+          case CreateAccountFailureReason.AccountExists: {
+            setError("This account already exists.");
+            break;
+          }
+          case CreateAccountFailureReason.WeakPassword: {
+            setError("The password does not meet the minimum requirements.");
+            break;
+          }
+          default: {
+            setError("Unable to create account. Reach out to friends@vivialapp.com.");
+          }
         }
+
         break;
       }
       default: {
@@ -77,7 +86,7 @@ const SignUpPage = () => {
     <PageContainer>
       {allowClose && (
         <CloseButtonContainer>
-          <CloseButton onClick={() => navigate("/")} iconColor={colors.whiteText} />
+          <CloseButton onClick={() => navigate(AppRoute.root)} iconColor={colors.whiteText} />
         </CloseButtonContainer>
       )}
       <AuthForm

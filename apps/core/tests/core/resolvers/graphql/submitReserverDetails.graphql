@@ -1,6 +1,6 @@
 mutation SubmitReserverDetails($input: SubmitReserverDetailsInput!) {
   viewer {
-    ...on AuthenticatedViewerMutations {
+    ... on AuthenticatedViewerMutations {
       __typename
 
       submitReserverDetails(input: $input) {
@@ -28,7 +28,7 @@ mutation SubmitReserverDetails($input: SubmitReserverDetailsInput!) {
 
     ... on UnauthenticatedViewer {
       __typename
-      authAction
+      authFailureReason
     }
   }
 }

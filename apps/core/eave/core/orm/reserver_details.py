@@ -1,14 +1,13 @@
 import re
-from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, func
+from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.shared.errors import ValidationError
 
 from .base import Base
-from .util import PG_UUID_EXPR
+from .util.constants import PG_UUID_EXPR
 
 
 class ReserverDetailsOrm(Base):
@@ -28,8 +27,6 @@ class ReserverDetailsOrm(Base):
     first_name: Mapped[str] = mapped_column()
     last_name: Mapped[str] = mapped_column()
     phone_number: Mapped[str] = mapped_column()
-    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
     def build(
@@ -52,8 +49,16 @@ class ReserverDetailsOrm(Base):
     def validate(self) -> list[ValidationError]:
         errors: list[ValidationError] = []
 
-        phone_number_pattern = r"^\+?1?\d{10}$"  # TODO: something better
-        if re.match(phone_number_pattern, self.phone_number) is None:
+        phone_number_pattern = (
+            r"^(\+?1)?[\s-]?(\(\d{3}\)|\d{3})[\s-]?\d{3}[\s-]?\d{4}$"  # TODO: This only matches US numbers.
+        )
+        if not self.phone_number or not re.match(phone_number_pattern, self.phone_number):
             errors.append(ValidationError(field="phone_number"))
+
+        if not self.first_name:
+            errors.append(ValidationError(field="first_name"))
+
+        if not self.last_name:
+            errors.append(ValidationError(field="last_name"))
 
         return errors

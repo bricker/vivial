@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+(
+	node-activate-venv
+	cd "$(e.parentpath)"
+	./node_modules/.bin/webpack "$@"
+)

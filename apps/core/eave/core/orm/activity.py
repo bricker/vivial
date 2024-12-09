@@ -1,39 +1,30 @@
-from datetime import datetime
-from typing import cast
 from uuid import UUID
 
-import shapely.wkb
-from geoalchemy2 import WKBElement
-from geoalchemy2.types import Geography
-from shapely.geometry import Point
-from sqlalchemy import PrimaryKeyConstraint, func
+from sqlalchemy import PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.core.lib.geo import GeoPoint, SpatialReferenceSystemId
-from eave.core.orm.address_types import Address, AddressColumnType
+from eave.core.lib.geo import GeoPoint
+from eave.core.orm.util.mixins import CoordinatesMixin
+from eave.core.orm.util.user_defined_column_types import AddressColumnType
+from eave.core.shared.address import Address
 
 from .base import Base
-from .util import PG_UUID_EXPR
+from .util.constants import PG_UUID_EXPR
 
 
-class ActivityOrm(Base):
+class ActivityOrm(Base, CoordinatesMixin):
     __tablename__ = "activities"
     __table_args__ = (PrimaryKeyConstraint("id"),)
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     title: Mapped[str] = mapped_column()
     description: Mapped[str] = mapped_column()
-    coordinates: Mapped[WKBElement] = mapped_column(
-        type_=Geography(geometry_type="POINT", srid=SpatialReferenceSystemId.LAT_LON)
-    )
     activity_category_id: Mapped[UUID] = mapped_column()
     duration_minutes: Mapped[int] = mapped_column()
     availability: Mapped[str] = mapped_column()
     address: Mapped[Address] = mapped_column(type_=AddressColumnType())
     is_bookable: Mapped[bool] = mapped_column()
     booking_url: Mapped[str | None] = mapped_column()
-    created: Mapped[datetime] = mapped_column(server_default=func.current_timestamp())
-    updated: Mapped[datetime | None] = mapped_column(server_default=None, onupdate=func.current_timestamp())
 
     @classmethod
     def build(
@@ -61,7 +52,3 @@ class ActivityOrm(Base):
             is_bookable=is_bookable,
             booking_url=booking_url,
         )
-
-    def coordinates_to_lat_lon(self) -> tuple[float, float]:
-        geometry = cast(Point, shapely.wkb.loads(bytes(self.coordinates.data)))
-        return (geometry.x, geometry.y)

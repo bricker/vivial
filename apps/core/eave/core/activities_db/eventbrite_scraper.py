@@ -143,18 +143,21 @@ async def get_eventbrite_events() -> None:
                         max_cost_cents = None
 
                     if event_start := event.get("start"):
-                        start_time = datetime.fromisoformat(event_start["local"]).replace(
-                            tzinfo=ZoneInfo(event_start["timezone"])
-                        )
+                        start_time_utc = datetime.fromisoformat(event_start["utc"])
+                        start_timezone = ZoneInfo(event_start["timezone"])
                     else:
-                        start_time = None
+                        start_time_utc = None
+                        start_timezone = None
 
                     if event_end := event.get("end"):
-                        end_time = datetime.fromisoformat(event_end["local"]).replace(
-                            tzinfo=ZoneInfo(event_end["timezone"])
-                        )
+                        end_time_utc = datetime.fromisoformat(event_end["utc"])
+                        end_timezone = ZoneInfo(event_end["timezone"])
                     else:
-                        end_time = None
+                        end_time_utc = None
+                        end_timezone = None
+
+                    # These should never be different, but we need to choose one.
+                    timezone = start_timezone or end_timezone
 
                     query = EventbriteEventOrm.select(
                         eventbrite_event_id=eventbrite_event_id,
@@ -174,8 +177,9 @@ async def get_eventbrite_events() -> None:
 
                     target.update(
                         title=event_name["text"],
-                        start_time=start_time,
-                        end_time=end_time,
+                        start_time=start_time_utc,
+                        end_time=end_time_utc,
+                        timezone=timezone,
                         min_cost_cents=min_cost_cents,
                         max_cost_cents=max_cost_cents,
                         lat=float(lat),

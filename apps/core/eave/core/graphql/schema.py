@@ -1,7 +1,7 @@
+import strawberry
 from graphql import ASTValidationRule
 from graphql.error import GraphQLError
 from graphql.validation import NoSchemaIntrospectionCustomRule
-from strawberry import Schema
 from strawberry.extensions import (
     AddValidationRules,
     MaskErrors,
@@ -26,7 +26,7 @@ def _should_mask_error(error: GraphQLError) -> bool:
     return True
 
 
-schema = Schema(
+schema = strawberry.Schema(
     query=Query,
     mutation=Mutation,
     config=StrawberryConfig(

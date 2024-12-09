@@ -5,7 +5,10 @@
   },
   "type": "module",
   "devDependencies": {
-    "@graphql-eslint/eslint-plugin": "3.x",
+    "@eave-fyi/develop": "file:./develop/javascript",
+    "@eave-fyi/eslint-plugin": "file:./develop/javascript/es-config/eslint/plugin",
+    "@graphql-eslint/eslint-plugin": "4.x",
+    "@types/eslint": "^9.6.1",
     "@types/node": "18.x",
     "@types/on-finished": "2.x",
     "@types/request": "2.x",
@@ -27,8 +30,7 @@
     "prettier": "3.x",
     "prettier-plugin-organize-imports": "3.x",
     "tsx": "3.x",
-    "typescript": "5.x",
-    "@eave-fyi/develop": "file:./develop/javascript"
+    "typescript": "5.x"
   },
   "prettier": "./develop/javascript/es-config/prettier",
   "eslintConfig": {

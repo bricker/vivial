@@ -9,7 +9,6 @@ from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 
 @strawberry.type
 class OutingPreferences:
-    open_to_bars: bool | None
     restaurant_categories: list[RestaurantCategory] | None
     activity_categories: list[ActivityCategory] | None
 
@@ -31,13 +30,7 @@ class OutingPreferences:
                 if activity_category_orm := ActivityCategoryOrm.one_or_none(activity_category_id=activity_category_id):
                     activity_categories.append(ActivityCategory.from_orm(activity_category_orm))
 
-        if orm.open_to_bars is None:
-            open_to_bars = True  # Default value
-        else:
-            open_to_bars = orm.open_to_bars
-
         return OutingPreferences(
-            open_to_bars=open_to_bars,
             restaurant_categories=restaurant_categories,
             activity_categories=activity_categories,
         )

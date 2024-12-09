@@ -13,7 +13,8 @@ query ListBookedOutings {
       }
     }
     ... on UnauthenticatedViewer {
-      authAction
+      __typename
+      authFailureReason
     }
   }
 }
