@@ -18,8 +18,9 @@ from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import OutingPreferencesInput
 from eave.core.graphql.types.photos import Photos
 from eave.core.graphql.types.restaurant import Restaurant, RestaurantSource
-from eave.core.lib.event_helpers import get_eventbrite_activity, get_google_photo_uris
+from eave.core.lib.eventbrite import activity_from_eventbrite_event, get_eventbrite_activity
 from eave.core.lib.geo import Distance, GeoArea, GeoPoint
+from eave.core.lib.google_places import activity_from_google_place, get_google_photo_uris, get_places_nearby, place_is_in_budget, place_will_be_open, restaurant_from_google_place
 from eave.core.lib.time_category import is_early_evening, is_early_morning, is_late_evening, is_late_morning
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
@@ -31,32 +32,6 @@ from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.logging import LOGGER
 
-# You must pass a field mask to the Google Places API to specify the list of fields to return in the response.
-# Reference: https://developers.google.com/maps/documentation/places/web-service/nearby-search
-_RESTAURANT_FIELD_MASK = ",".join(
-    [
-        "places.id",
-        "places.displayName",
-        "places.accessibilityOptions",
-        "places.addressComponents",
-        "places.formattedAddress",
-        "places.businessStatus",
-        "places.googleMapsUri",
-        "places.location",
-        "places.photos",
-        "places.primaryType",
-        "places.primaryTypeDisplayName",
-        "places.types",
-        "places.nationalPhoneNumber",
-        "places.priceLevel",
-        "places.rating",
-        "places.regularOpeningHours",
-        "places.currentOpeningHours",
-        "places.userRatingCount",
-        "places.websiteUri",
-        "places.reservable",
-    ]
-)
 
 _BREAKFAST_GOOGLE_RESTAURANT_CATEGORY_IDS = (
     "coffee_shop",
@@ -165,8 +140,8 @@ class OutingPlanner:
     restaurant, then go to an event or engage in a cute activity.
     """
 
-    places: PlacesAsyncClient
-    eventbrite: EventbriteClient
+    places_client: PlacesAsyncClient
+    eventbrite_client: EventbriteClient
     survey: SurveyOrm
     activity: Activity | None
     restaurant: Restaurant | None
@@ -186,8 +161,8 @@ class OutingPlanner:
         activity_start_time: datetime | None = None,
         restaurant_arrival_time: datetime | None = None,
     ) -> None:
-        self.places = PlacesAsyncClient()
-        self.eventbrite = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
+        self.places_client = PlacesAsyncClient()
+        self.eventbrite_client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
         self.survey = survey
         self.activity = activity
         self.restaurant = restaurant
@@ -230,11 +205,11 @@ class OutingPlanner:
         async with eave.core.database.async_session.begin() as db_session:
             results = await db_session.scalars(query)
 
-            for event in results:
+            for event_orm in results:
                 try:
-                    self.activity = await get_eventbrite_activity(eventbrite_client=self.eventbrite, event_id=event.eventbrite_event_id)
+                    eventbrite_event = await self.eventbrite_client.get_event_by_id(event_id=event_orm.eventbrite_event_id)
+                    self.activity = await activity_from_eventbrite_event(self.eventbrite_client, event=eventbrite_event)
                     return self.activity
-
                 except Exception as e:
                     LOGGER.exception(e)
                     continue
@@ -266,51 +241,22 @@ class OutingPlanner:
 
         for search_area_id in self.survey.search_area_ids:
             region = SearchRegionOrm.one_or_exception(search_region_id=search_area_id)
+
             places_nearby = await get_places_nearby(
-                client=self.places,
+                places_client=self.places_client,
                 area=region.area,
                 included_primary_types=[place_type],
-                field_mask=_RESTAURANT_FIELD_MASK,
             )
+
             random.shuffle(places_nearby)
+
             for place in places_nearby:
                 will_be_open = place_will_be_open(place=place, arrival_time=start_time_local, departure_time=end_time_local, timezone=self.survey.timezone)
                 is_in_budget = place_is_in_budget(place, self.survey.budget)
-                if will_be_open and is_in_budget and place.location:
-                    venue_lat = place.location.latitude
-                    venue_lon = place.location.longitude
-                    if venue_lat and venue_lon:
-                        photo_uris = await get_google_photo_uris(
-                            places_client=self.places,
-                            photos=place.photos,
-                        )
 
-                        self.activity = Activity(
-                            source_id=place.id,
-                            source=ActivitySource.GOOGLE_PLACES,
-                            name=place.display_name,
-                            description=place.editorial_summary,
-                            photos=Photos(
-                                cover_photo_uri=photo_uris[0] if photo_uris else "",
-                                supplemental_photo_uris=photo_uris,
-                            ),
-                            ticket_info=None,  # TODO
-                            venue=ActivityVenue(
-                                name=place.display_name,
-                                location=Location(
-                                    directions_uri=place.google_maps_uri,
-                                    latitude=venue_lat,
-                                    longitude=venue_lon,
-                                    formatted_address=place.formatted_address,
-                                ),
-                            ),
-                            website_uri=place.website_uri,
-                            door_tips=None,
-                            insider_tips=None,
-                            parking_tips=None,
-                        )
-
-                        return self.activity
+                if will_be_open and is_in_budget:
+                    self.activity = await activity_from_google_place(self.places_client, place=place)
+                    return self.activity
 
         # CASE 4: No suitable activity was found :(
         self.activity = None
@@ -359,49 +305,20 @@ class OutingPlanner:
         # Find a restaurant that meets the outing constraints.
         for area in search_areas:
             restaurants_nearby = await get_places_nearby(
-                client=self.places,
+                places_client=self.places_client,
                 area=area,
                 included_primary_types=google_category_ids,
-                field_mask=_RESTAURANT_FIELD_MASK,
             )
+
             random.shuffle(restaurants_nearby)
+
             for restaurant in restaurants_nearby:
                 will_be_open = place_will_be_open(place=restaurant, arrival_time=arrival_time_local, departure_time=departure_time_local, timezone=self.survey.timezone)
                 is_in_budget = place_is_in_budget(restaurant, self.survey.budget)
+
                 if will_be_open and is_in_budget:
-                    if restaurant.location:
-                        lat = restaurant.location.latitude
-                        lon = restaurant.location.longitude
-                        if lat and lon:
-
-                            photo_uris = await get_google_photo_uris(
-                                places_client=self.places,
-                                photos=restaurant.photos,
-                            )
-
-                            self.restaurant = Restaurant(
-                                source_id=restaurant.id,
-                                source=RestaurantSource.GOOGLE_PLACES,
-                                location=Location(
-                                    latitude=lat,
-                                    longitude=lon,
-                                    formatted_address=restaurant.formatted_address,
-                                    directions_uri=restaurant.google_maps_uri,
-                                ),
-                                photos=Photos(
-                                    cover_photo_uri=photo_uris[0] if photo_uris else "",
-                                    supplemental_photo_uris=photo_uris,
-                                ),
-                                name=restaurant.display_name,
-                                reservable=restaurant.reservable,
-                                rating=restaurant.rating,
-                                primary_type_name=restaurant.primary_type_display_name,
-                                website_uri=restaurant.website_uri,
-                                description=restaurant.editorial_summary,
-                                parking_tips=None,
-                                customer_favorites=None,
-                            )
-                            return self.restaurant
+                    self.restaurant = await restaurant_from_google_place(self.places_client, place=restaurant)
+                    return self.restaurant
 
         # No restaurant was found :(
         self.restaurant = None
@@ -421,86 +338,3 @@ class OutingPlanner:
             restaurant_arrival_time=self.restaurant_arrival_time_local,
             driving_time=None,
         )
-
-
-async def get_places_nearby(
-    client: PlacesAsyncClient,
-    area: GeoArea,
-    included_primary_types: Sequence[str],
-    field_mask: str,
-) -> MutableSequence[Place]:
-    """
-    Given a Google Places API client, use it to search for places nearby the
-    given latitude and longitude that meet the given constraints.
-
-    https://developers.google.com/maps/documentation/places/web-service/nearby-search
-    """
-    location_restriction = SearchNearbyRequest.LocationRestriction()
-    location_restriction.circle.radius = area.rad.meters
-    location_restriction.circle.center.latitude = area.center.lat
-    location_restriction.circle.center.longitude = area.center.lon
-    request = SearchNearbyRequest(
-        location_restriction=location_restriction,
-        included_primary_types=included_primary_types[0:50],
-    )
-    response = await client.search_nearby(request=request, metadata=[("x-goog-fieldmask", field_mask)])
-    return response.places or []
-
-
-def place_will_be_open(*, place: Place, arrival_time: datetime, departure_time: datetime, timezone: ZoneInfo) -> bool:
-    """
-    Given a place from the Google Places API, determine whether or not that
-    place will be open during the given time period.
-
-    https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#OpeningHours
-    """
-    if place.regular_opening_hours is None:
-        return False
-
-    arrival_time_local = arrival_time.astimezone(timezone)
-    departure_time_local = departure_time.astimezone(timezone)
-
-    for period in place.regular_opening_hours.periods:
-        is_relevant = period.open_ and (period.open_.day == arrival_time_local.weekday())
-
-        if is_relevant and period.open_.hour is not None and period.open_.minute is not None:
-            open_time = arrival_time_local.replace(hour=period.open_.hour, minute=period.open_.minute)
-
-            if period.close and period.close.hour is not None and period.close.minute is not None:
-                close_time = arrival_time_local.replace(hour=period.close.hour, minute=period.close.minute)
-
-                if period.close.day != arrival_time_local.weekday():
-                    close_time = close_time + timedelta(days=1)  # Place closes the next day.
-
-                if open_time <= arrival_time_local and close_time >= departure_time_local:
-                    return True
-    return False
-
-
-def place_is_in_budget(place: Place, budget: OutingBudget) -> bool:
-    """
-    Given a place from the Google Places API, determine whether or not that
-    place is within the user's budget for the date.
-
-    https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#PriceLevel
-    """
-    return place.price_level == budget.google_places_price_level
-
-
-def place_is_accessible(place: Place) -> bool:
-    """
-    Given a place from the Google Places API, determine whether or not that
-    place is accessible for people in wheelchairs.
-
-    https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#AccessibilityOptions
-    """
-    accessibility_options = place.accessibility_options
-    if accessibility_options is None:
-        return False
-
-    can_enter = accessibility_options.wheelchair_accessible_entrance
-    can_park = accessibility_options.wheelchair_accessible_parking
-    can_pee = accessibility_options.wheelchair_accessible_restroom
-    can_sit = accessibility_options.wheelchair_accessible_seating
-
-    return can_enter and can_park and can_pee and can_sit

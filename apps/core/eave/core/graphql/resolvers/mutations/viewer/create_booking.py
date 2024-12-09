@@ -22,7 +22,7 @@ from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import 
 from eave.core.graphql.types.booking import (
     Booking,
 )
-from eave.core.lib.event_helpers import get_google_photo_uris
+from eave.core.lib.google_places import get_google_photo_uris
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.account_booking import AccountBookingOrm
 from eave.core.orm.activity import ActivityOrm
