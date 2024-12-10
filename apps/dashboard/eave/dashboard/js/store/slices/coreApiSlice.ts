@@ -20,6 +20,9 @@ import {
   UpdateAccountDocument,
   UpdateAccountMutation,
   UpdateAccountMutationVariables,
+  UpdateOutingPreferencesDocument,
+  UpdateOutingPreferencesMutation,
+  UpdateOutingPreferencesMutationVariables,
   UpdateReserverDetailsAccountDocument,
   type CreateAccountMutation,
   type CreateAccountMutationVariables,
@@ -100,6 +103,16 @@ export const coreApiSlice = createApi({
     updateAccount: builder.mutation<UpdateAccountMutation, UpdateAccountMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: UpdateAccountDocument, variables });
+        return { data };
+      },
+    }),
+
+    updateOutingPreferences: builder.mutation<
+      UpdateOutingPreferencesMutation,
+      UpdateOutingPreferencesMutationVariables
+    >({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: UpdateOutingPreferencesDocument, variables });
         return { data };
       },
     }),
@@ -186,9 +199,12 @@ export const {
   useGetOutingPreferencesQuery,
 
   // Core API GraphQL Mutation Hooks
+  usePlanOutingAnonymousMutation,
+  usePlanOutingAuthenticatedMutation,
   useCreateAccountMutation,
   useLoginMutation,
   useCreatePaymentIntentMutation,
   useUpdateReserverDetailsAccountMutation,
   useUpdateAccountMutation,
+  useUpdateOutingPreferencesMutation,
 } = coreApiSlice;

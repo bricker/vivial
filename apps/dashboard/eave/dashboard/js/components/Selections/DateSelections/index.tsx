@@ -50,6 +50,7 @@ interface DateSelectionsProps {
   onSelectBudget: (value: OutingBudget) => void;
   onSelectStartTime: () => void;
   onSelectSearchArea: () => void;
+  loading?: boolean;
 }
 
 const DateSelections = ({
@@ -58,6 +59,7 @@ const DateSelections = ({
   budget,
   startTime,
   searchAreaIds,
+  loading,
   onSubmit,
   onSelectHeadcount,
   onSelectBudget,
@@ -138,7 +140,7 @@ const DateSelections = ({
           </SelectButton>
         </RowButtons>
       </Row>
-      <SubmitButton onClick={onSubmit} loading={false} fullWidth>
+      <SubmitButton onClick={onSubmit} loading={!!loading} fullWidth>
         {cta}
       </SubmitButton>
     </>

@@ -645,6 +645,13 @@ export type UpdateAccountMutationVariables = Exact<{
 
 export type UpdateAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateAccount: { __typename: 'UpdateAccountFailure', failureReason: UpdateAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateAccountSuccess', account: { __typename: 'Account', email: string } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 
+export type UpdateOutingPreferencesMutationVariables = Exact<{
+  input: UpdateOutingPreferencesInput;
+}>;
+
+
+export type UpdateOutingPreferencesMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updatePreferences: { __typename: 'UpdateOutingPreferencesFailure', failureReason: UpdateOutingPreferencesFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateOutingPreferencesSuccess', outingPreferences: { __typename: 'OutingPreferences', restaurantCategories?: Array<{ __typename: 'RestaurantCategory', id: string, name: string, isDefault: boolean }> | null, activityCategories?: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> | null } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+
 export type UpdateReserverDetailsAccountMutationVariables = Exact<{
   input: UpdateReserverDetailsAccountInput;
 }>;
@@ -1474,6 +1481,50 @@ export const UpdateAccountDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<UpdateAccountMutation, UpdateAccountMutationVariables>;
+export const UpdateOutingPreferencesDocument = new TypedDocumentString(`
+    mutation UpdateOutingPreferences($input: UpdateOutingPreferencesInput!) {
+  __typename
+  viewer {
+    __typename
+    ... on AuthenticatedViewerMutations {
+      __typename
+      updatePreferences(input: $input) {
+        __typename
+        ... on UpdateOutingPreferencesSuccess {
+          __typename
+          outingPreferences {
+            __typename
+            restaurantCategories {
+              __typename
+              id
+              name
+              isDefault
+            }
+            activityCategories {
+              __typename
+              id
+              name
+              isDefault
+            }
+          }
+        }
+        ... on UpdateOutingPreferencesFailure {
+          __typename
+          failureReason
+          validationErrors {
+            __typename
+            field
+          }
+        }
+      }
+    }
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<UpdateOutingPreferencesMutation, UpdateOutingPreferencesMutationVariables>;
 export const UpdateReserverDetailsAccountDocument = new TypedDocumentString(`
     mutation UpdateReserverDetailsAccount($input: UpdateReserverDetailsAccountInput!) {
   __typename
