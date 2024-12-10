@@ -20,23 +20,38 @@ import { useNavigate, useParams } from "react-router-dom";
 import LoadingButton from "../../Buttons/LoadingButton";
 import Input from "../../Inputs/Input";
 import InputError from "../../Inputs/InputError";
+import LogoPill, { logos } from "../../LogoPill";
 import Paper from "../../Paper";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: 32,
+}));
+
+const FormPaper = styled(Paper)(() => ({
+  maxWidth: 450,
+}));
+
+const FooterContainer = styled("div")(() => ({
+  minWidth: 300,
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: 8,
+}));
+
+const FooterText = styled(Typography)(() => ({
+  textAlign: "center",
 }));
 
 const FieldsContainer = styled("div")(() => ({
   display: "flex",
   flexDirection: "column",
-  gap: 8,
+  gap: 16,
   marginBottom: 24,
-}));
-
-const NameInputContainer = styled("div")(() => ({
-  display: "flex",
-  flexDirection: "row",
-  gap: 8,
 }));
 
 const BoldInput = styled(Input)(() => ({
@@ -64,32 +79,8 @@ const PaddedPrimaryButton = styled(LoadingButton)(() => ({
 
 const TitleContainer = styled("div")(() => ({
   display: "flex",
-  flexDirection: "row",
-  justifyContent: "space-between",
-}));
-
-const LabeledInfoContainer = styled("div")(() => ({
-  display: "flex",
-  flexDirection: "row",
-  justifyContent: "space-between",
-}));
-
-const LabelText = styled("p")(({ theme }) => ({
-  color: theme.palette.text.secondary,
-  fontSize: rem("16px"),
-  lineHeight: rem("30px"),
-  fontFamily: fontFamilies.inter,
-  fontWeight: 400,
-  margin: 0,
-}));
-
-const ValueText = styled("p")(({ theme }) => ({
-  color: theme.palette.text.primary,
-  fontSize: rem("16px"),
-  lineHeight: rem("30px"),
-  fontFamily: fontFamilies.inter,
-  fontWeight: 400,
-  margin: 0,
+  flexDirection: "column",
+  gap: 16,
 }));
 
 const InfoContainer = styled("div")(() => ({
@@ -103,16 +94,22 @@ const StateContainer = styled("div")(() => ({
   padding: 32,
 }));
 
+interface ReserverFormFields {
+  id: string;
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+}
+
 const ReservationDetailsForm = () => {
   const localReserverDetails = useSelector((state: RootState) => state.reserverDetails.reserverDetails);
-  let reserverDetails = localReserverDetails;
   const params = useParams();
   const outingId = params["outingId"];
   // TODO: if outing id is empty/not a uuid, show some error screen
 
-  const [firstName, setFirstName] = useState(reserverDetails?.firstName || "");
-  const [lastName, setLastName] = useState(reserverDetails?.lastName || "");
-  const [phoneNumber, setPhoneNumber] = useState(reserverDetails?.phoneNumber || "");
+  const [reserverDetails, setReserverDetails] = useState<ReserverFormFields>(
+    localReserverDetails || { id: "", firstName: "", lastName: "", phoneNumber: "" },
+  );
   const [internalError, setInternalError] = useState<string | undefined>(undefined);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -129,42 +126,40 @@ const ReservationDetailsForm = () => {
   const submissionIsLoading = createBookingIsLoading || updateDetailsIsLoading;
   // only prevent submit on internalError since that can be fixed w/o another submit
   const submitButtonDisabled = !!(submissionIsLoading || internalError);
-
-  switch (reserverDetailsData?.viewer.__typename) {
-    case "AuthenticatedViewerQueries": {
-      // always prefer in-memory data (if available) over cached network resp
-      if (!reserverDetails) {
-        // NOTE: extracting and showing only the first one since we currently only
-        // allow 1 reserverDetails row to be created
-        reserverDetails = reserverDetailsData?.viewer?.reserverDetails[0] || null;
-      }
-      break;
-    }
-    case "UnauthenticatedViewer": {
-      dispatch(loggedOut());
-      window.location.assign(AppRoute.logout);
-      break;
-    }
-    default: {
-      break;
-    }
-  }
+  const reserverDetailsHasValues = !!reserverDetails.id;
 
   // set existing reservation details in form once we get them
   useEffect(() => {
-    if (reserverDetails) {
-      setFirstName(reserverDetails.firstName);
-      setLastName(reserverDetails.lastName);
-      setPhoneNumber(reserverDetails.phoneNumber);
+    switch (reserverDetailsData?.viewer.__typename) {
+      case "AuthenticatedViewerQueries": {
+        // always prefer in-memory data (if available) over cached network resp
+        if (!reserverDetails.id) {
+          // NOTE: extracting and showing only the first one since we currently only
+          // allow 1 reserverDetails row to be created
+          const newDetails = reserverDetailsData?.viewer?.reserverDetails[0];
+          if (newDetails) {
+            setReserverDetails(newDetails);
+          }
+        }
+        break;
+      }
+      case "UnauthenticatedViewer": {
+        dispatch(loggedOut());
+        window.location.assign(AppRoute.logout);
+        break;
+      }
+      default: {
+        break;
+      }
     }
   }, [reserverDetailsData]);
 
-  function checkInputs({ first, last, phone }: { first: string; last: string; phone: string }) {
-    if (first.length === 0) {
+  function checkInputs(details: ReserverFormFields) {
+    if (details.firstName.length === 0) {
       setInternalError("First name required");
-    } else if (last.length === 0) {
+    } else if (details.lastName.length === 0) {
       setInternalError("Last name required");
-    } else if (phone.length === 0) {
+    } else if (details.phoneNumber.length === 0) {
       setInternalError("Phone number required");
     } else {
       // all good
@@ -174,27 +169,36 @@ const ReservationDetailsForm = () => {
 
   const handleFirstNameChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newFirst = e.target.value;
-      setFirstName(newFirst);
-      checkInputs({ first: newFirst, last: lastName, phone: phoneNumber });
+      const newDetails = {
+        ...reserverDetails,
+        firstName: e.target.value,
+      };
+      setReserverDetails(newDetails);
+      checkInputs(newDetails);
     },
-    [firstName, lastName, phoneNumber],
+    [reserverDetails],
   );
   const handleLastNameChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newLast = e.target.value;
-      setLastName(newLast);
-      checkInputs({ first: firstName, last: newLast, phone: phoneNumber });
+      const newDetails = {
+        ...reserverDetails,
+        lastName: e.target.value,
+      };
+      setReserverDetails(newDetails);
+      checkInputs(newDetails);
     },
-    [firstName, lastName, phoneNumber],
+    [reserverDetails],
   );
   const handlePhoneNumberChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
-      const newPhone = e.target.value;
-      setPhoneNumber(newPhone);
-      checkInputs({ first: firstName, last: lastName, phone: newPhone });
+      const newDetails = {
+        ...reserverDetails,
+        phoneNumber: e.target.value,
+      };
+      setReserverDetails(newDetails);
+      checkInputs(newDetails);
     },
-    [firstName, lastName, phoneNumber],
+    [reserverDetails],
   );
   const handleSubmit = useCallback(async () => {
     setInternalError(undefined);
@@ -202,10 +206,10 @@ const ReservationDetailsForm = () => {
     try {
       const updateDetailsResp = await updateReserverDetails({
         input: {
-          id: reserverDetails!.id,
-          firstName,
-          lastName,
-          phoneNumber,
+          id: reserverDetails.id,
+          firstName: reserverDetails.firstName,
+          lastName: reserverDetails.lastName,
+          phoneNumber: reserverDetails.phoneNumber,
         },
       });
       switch (updateDetailsResp.data?.viewer.__typename) {
@@ -224,7 +228,7 @@ const ReservationDetailsForm = () => {
                   break;
                 }
                 default:
-                  console.error("Unexpected case for UpdateReserverDetailsFailure");
+                  console.error("Unhandled case for UpdateReserverDetailsFailure", updatedData.failureReason);
                   break;
               }
               return;
@@ -266,7 +270,7 @@ const ReservationDetailsForm = () => {
                   break;
                 }
                 default:
-                  console.error("Unexpected case for CreateBookingFailure");
+                  console.error("Unhandled case for CreateBookingFailure", createdData.failureReason);
                   break;
               }
               return;
@@ -289,23 +293,23 @@ const ReservationDetailsForm = () => {
       // network error
       setInternalError("Unable to book your outing. Please try again later.");
     }
-  }, [reserverDetailsData]);
+  }, [reserverDetails]);
 
   return (
     <PageContainer>
-      <Paper>
+      <FormPaper>
         <TitleContainer>
           <Typography variant="h2">Almost there!</Typography>
           <Typography variant="subtitle1">Submit your details to complete your reservation.</Typography>
         </TitleContainer>
 
-        {reserverDetails ? (
+        {reserverDetailsHasValues ? (
           // we have details to display; show them
           <InfoContainer>
             <FieldsContainer>
-              <BoldInput placeholder="First name" value={firstName} onChange={handleFirstNameChange} />
-              <BoldInput placeholder="Last name" value={lastName} onChange={handleLastNameChange} />
-              <BoldInput placeholder="Phone #" value={phoneNumber} onChange={handlePhoneNumberChange} />
+              <BoldInput placeholder="First name" value={reserverDetails.firstName} onChange={handleFirstNameChange} />
+              <BoldInput placeholder="Last name" value={reserverDetails.lastName} onChange={handleLastNameChange} />
+              <BoldInput placeholder="Phone #" value={reserverDetails.phoneNumber} onChange={handlePhoneNumberChange} />
             </FieldsContainer>
 
             {error && (
@@ -337,8 +341,15 @@ const ReservationDetailsForm = () => {
             )}
           </StateContainer>
         )}
-      </Paper>
-      TODO opentable footer
+      </FormPaper>
+      <FooterContainer>
+        <FooterText variant="body2">
+          Reservations
+          <br />
+          powered by
+        </FooterText>
+        <LogoPill attrs={logos["opentable"]!} />
+      </FooterContainer>
     </PageContainer>
   );
 };

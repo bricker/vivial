@@ -6,6 +6,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import HighlightButton from "../../Buttons/HighlightButton";
 import CalendarCheckIcon from "../../Icons/CalendarCheckIcon";
+import LogoPill, { LogoPillAttributes, logos } from "../../LogoPill";
 import Paper from "../../Paper";
 
 const PageContainer = styled("div")(() => ({
@@ -71,61 +72,32 @@ const ConfirmationOptionContainer = styled("div")(() => ({
   padding: 8,
 }));
 
-const LogoContainer = styled("div")<{ padding: number; backgroundColor: string }>(({ padding, backgroundColor }) => ({
-  borderRadius: 10,
-  width: "40%",
-  aspectRatio: 3.4,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  backgroundColor,
-  padding,
-}));
-
-const LogoImage = styled("img")(() => ({
-  height: "100%",
-}));
-
 interface ConfirmationOptionDetail {
-  logoUri: string;
-  alt: string;
-  bgColor: string;
   text: string;
-  padding: number;
+  attrs: LogoPillAttributes;
 }
 
 const ConfirmationOption = ({ option }: { option: ConfirmationOptionDetail }) => {
   return (
     <ConfirmationOptionContainer>
-      <LogoContainer backgroundColor={option.bgColor} padding={option.padding}>
-        <LogoImage alt={option.alt} src={option.logoUri} />
-      </LogoContainer>
-      <Typography variant="body1">{option.text}</Typography>
+      <LogoPill attrs={option.attrs} />
+      <Typography variant="body2">{option.text}</Typography>
     </ConfirmationOptionContainer>
   );
 };
 
 const confirmationOptions: ConfirmationOptionDetail[] = [
   {
-    logoUri: imageUrl("vivial-word-logo.png"),
-    alt: "Vivial",
-    bgColor: colors.vivialYellow,
+    attrs: logos["vivial"]!,
     text: "for a itinerary confirmation and receipt (if applicable).",
-    padding: 11,
   },
   {
-    logoUri: imageUrl("opentable-logo.png"),
-    alt: "Opentable",
-    bgColor: "#DA3644",
+    attrs: logos["opentable"]!,
     text: "for your reservation confirmation.",
-    padding: 8,
   },
   {
-    logoUri: imageUrl("eventbrite-logo.png"),
-    alt: "Eventbrite",
-    bgColor: "#F05537",
+    attrs: logos["eventbrite"]!,
     text: "for your tickets and event confirmation.",
-    padding: 12,
   },
 ];
 

@@ -6,11 +6,9 @@ import strawberry
 
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.types.account import Account
 from eave.core.graphql.types.reserver_details import (
     ReserverDetails,
 )
-from eave.core.orm.account import AccountOrm
 from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.shared.errors import ValidationError
