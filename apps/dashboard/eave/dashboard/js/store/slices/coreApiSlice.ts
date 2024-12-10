@@ -21,6 +21,9 @@ import {
   UpdateAccountMutation,
   UpdateAccountMutationVariables,
   UpdateReserverDetailsAccountDocument,
+  UpdateReserverDetailsDocument,
+  UpdateReserverDetailsMutation,
+  UpdateReserverDetailsMutationVariables,
   type CreateAccountMutation,
   type CreateAccountMutationVariables,
   type CreateBookingMutation,
@@ -125,6 +128,13 @@ export const coreApiSlice = createApi({
       },
     }),
 
+    updateReserverDetails: builder.mutation<UpdateReserverDetailsMutation, UpdateReserverDetailsMutationVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: UpdateReserverDetailsDocument, variables });
+        return { data };
+      },
+    }),
+
     updateReserverDetailsAccount: builder.mutation<
       UpdateReserverDetailsAccountMutation,
       UpdateReserverDetailsAccountMutationVariables
@@ -191,4 +201,6 @@ export const {
   useCreatePaymentIntentMutation,
   useUpdateReserverDetailsAccountMutation,
   useUpdateAccountMutation,
+  useCreateBookingMutation,
+  useUpdateReserverDetailsMutation,
 } = coreApiSlice;
