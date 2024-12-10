@@ -12,8 +12,6 @@ export const AppRoute = {
   help: "/help",
   terms: "/terms",
   privacy: "/privacy",
-  bookingConfirmation: "/booking-confirmation",
-  payment: "/payment-example",
   accountPreferences: "/account/preferences",
   passwordReset: "/account/password",
   checkoutComplete: "/checkout/complete",

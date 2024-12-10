@@ -6,15 +6,10 @@ import { CookiesProvider, withCookies } from "react-cookie";
 import { Helmet } from "react-helmet";
 import { Provider as StoreProvider, useSelector } from "react-redux";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-
 import { pageView } from "./analytics/segment";
-import store, { RootState } from "./store";
-import { theme } from "./theme";
-
 import GlobalLayout from "./components/Global/GlobalLayout";
 import AccountPage from "./components/Pages/AccountPage";
 import AccountPreferencesPage from "./components/Pages/AccountPreferencesPage";
-import BookingConfirmationPage from "./components/Pages/BookingConfirmationPage/index";
 import CheckoutCompletePage from "./components/Pages/CheckoutCompletePage";
 import CheckoutReservationPage from "./components/Pages/CheckoutReservationPage";
 import DateItineraryPage from "./components/Pages/DateItineraryPage";
@@ -23,16 +18,16 @@ import ForgotPasswordPage from "./components/Pages/ForgotPasswordPage";
 import HelpPage from "./components/Pages/HelpPage";
 import LogInPage from "./components/Pages/LogInPage";
 import PasswordResetPage from "./components/Pages/PasswordResetPage";
-import PaymentExamplePage from "./components/Pages/PaymentExamplePage/index";
 import PlansPage from "./components/Pages/PlansPage";
 import PrivacyPage from "./components/Pages/PrivacyPage";
 import SignUpPage from "./components/Pages/SignUpPage";
 import TermsPage from "./components/Pages/TermsPage";
-import StripeElementsProvider from "./components/StripeElementsProvider";
 import { PrivateRoutes } from "./components/Util/PrivateRoutes";
 import RouteChangeTracker from "./components/Util/RouteChangeTracker";
 import ScrollToTop from "./components/Util/ScrollToTop";
 import { AppRoute } from "./routes";
+import store, { RootState } from "./store";
+import { theme } from "./theme";
 
 const fireAnalyticsPageView = (path: string) => pageView({ name: path });
 
@@ -67,22 +62,11 @@ const App = () => {
               <Route path={AppRoute.account} element={<AccountPage />} />
               <Route path={AppRoute.plans} element={<PlansPage />} />
               <Route path={AppRoute.help} element={<HelpPage />} />
-              <Route path={AppRoute.bookingConfirmation} element={<BookingConfirmationPage />} />
               <Route path={AppRoute.passwordReset} element={<PasswordResetPage />} />
               <Route path={AppRoute.accountPreferences} element={<AccountPreferencesPage />} />
               <Route path={AppRoute.checkoutComplete} element={<CheckoutCompletePage />} />
               <Route path={`${AppRoute.checkoutReserve}/:outingId`} element={<CheckoutReservationPage />} />
             </Route>
-
-            {/* TODO: Remove /payment-example Route. */}
-            <Route
-              path={AppRoute.payment}
-              element={
-                <StripeElementsProvider>
-                  <PaymentExamplePage />
-                </StripeElementsProvider>
-              }
-            />
 
             <Route path="*" element={<Navigate to={AppRoute.root} />} />
           </Route>
