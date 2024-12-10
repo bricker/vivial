@@ -3,11 +3,13 @@ from uuid import UUID
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
+from eave.core.orm.util.mixins import GetOneByIdMixin
+
 from .base import Base
 from .util.constants import PG_UUID_EXPR
 
 
-class TicketTypeOrm(Base):
+class TicketTypeOrm(Base, GetOneByIdMixin):
     __tablename__ = "ticket_types"
     __table_args__ = (
         PrimaryKeyConstraint("id"),

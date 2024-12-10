@@ -10,6 +10,7 @@ from sqlalchemy import PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column
 
+from eave.core.orm.util.mixins import GetOneByIdMixin
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.typing import NOT_SET
 from eave.stdlib.util import b64encode
@@ -56,12 +57,12 @@ def derive_password_key(plaintext_password: str, salt: bytes) -> str:
     return b64encode(hashed)
 
 
-class AccountOrm(Base):
+class AccountOrm(Base, GetOneByIdMixin):
     __tablename__ = "accounts"
     __table_args__ = (PrimaryKeyConstraint("id"),)
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
-    email: Mapped[str] = mapped_column(unique=True)
+    email: Mapped[str] = mapped_column(unique=True, index=True)
     password_key_salt: Mapped[str] = mapped_column()
     """hex encoded byte string"""
     password_key: Mapped[str] = mapped_column()

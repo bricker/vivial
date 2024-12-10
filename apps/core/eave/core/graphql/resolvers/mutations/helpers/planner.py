@@ -26,7 +26,8 @@ from eave.core.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.orm.restaurant_category import MAGIC_BAR_RESTAURANT_CATEGORY_ID, RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
-from eave.stdlib.eventbrite.client import EventbriteClient
+from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery
+from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.logging import LOGGER
 
 _BREAKFAST_GOOGLE_RESTAURANT_CATEGORY_IDS = (
@@ -208,7 +209,10 @@ class OutingPlanner:
             for event_orm in results:
                 try:
                     eventbrite_event = await self.eventbrite_client.get_event_by_id(
-                        event_id=event_orm.eventbrite_event_id
+                        event_id=event_orm.eventbrite_event_id,
+                        query=GetEventQuery(
+                            expand=Expansion.all(),
+                        )
                     )
                     self.activity = await activity_from_eventbrite_event(self.eventbrite_client, event=eventbrite_event)
                     return self.activity
