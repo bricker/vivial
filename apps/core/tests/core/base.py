@@ -144,7 +144,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
     async def make_graphql_request(
         self, query_name: str, variables: dict[str, Any], *, account_id: UUID | None = None, cookies: dict[str, str] | None = None
     ) -> Response:
-        if not cookies:
+        if cookies is None:
             cookies = {}
 
         if account_id and ACCESS_TOKEN_COOKIE_NAME not in cookies:

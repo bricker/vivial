@@ -1,3 +1,4 @@
+import re
 from google.cloud.kms import MacVerifyRequest, MacVerifyResponse
 from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME
 from eave.core.config import JWT_AUDIENCE, JWT_ISSUER
@@ -12,6 +13,9 @@ from ..base import BaseTestCase
 
 
 class TestAuthenticationExtension(BaseTestCase):
+    def _auth_cookies_deleted(self, headers: list[tuple[str, str]]) -> bool:
+        return all(any(key.lower() == "set-cookie" and re.search(f'{cookie_name}=""', value) for key, value in headers) for cookie_name in [ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME])
+
     async def test_auth_extension_with_valid_access_token(self) -> None:
         async with self.db_session.begin() as session:
             account = await self.make_account(session=session)
@@ -22,8 +26,7 @@ class TestAuthenticationExtension(BaseTestCase):
             account_id=account.id,
         )
 
-        assert ACCESS_TOKEN_COOKIE_NAME not in response.cookies
-        assert REFRESH_TOKEN_COOKIE_NAME not in response.cookies
+        assert not self._auth_cookies_deleted(response.headers.multi_items())
 
         result = self.parse_graphql_response(response)
         assert result.data
@@ -41,7 +44,7 @@ class TestAuthenticationExtension(BaseTestCase):
             audience=JWT_AUDIENCE,
             subject=str(account.id),
             jwt_id=self.anystr(),
-            max_age_minutes=-1, # this token is immediately expired
+            max_age_minutes=-10, # this token is immediately expired. Be sure to use a number larger than the clock drift tolerance.
         )
 
         response = await self.make_graphql_request(
@@ -52,8 +55,7 @@ class TestAuthenticationExtension(BaseTestCase):
             },
         )
 
-        assert ACCESS_TOKEN_COOKIE_NAME not in response.cookies
-        assert REFRESH_TOKEN_COOKIE_NAME not in response.cookies
+        assert not self._auth_cookies_deleted(response.headers.multi_items())
 
         result = self.parse_graphql_response(response)
         assert result.data
@@ -69,8 +71,7 @@ class TestAuthenticationExtension(BaseTestCase):
             account_id=None,
         )
 
-        assert response.cookies.get(ACCESS_TOKEN_COOKIE_NAME) == ""
-        assert response.cookies.get(REFRESH_TOKEN_COOKIE_NAME) == ""
+        assert self._auth_cookies_deleted(response.headers.multi_items())
 
         result = self.parse_graphql_response(response)
         assert result.data
@@ -89,7 +90,7 @@ class TestAuthenticationExtension(BaseTestCase):
                 verified_success_integrity=True,
             )
 
-        self.get_mock("google.cloud.kms.KeyManagementServiceClient.mac_verify").side_effect = _verify_failure
+        self.get_mock("KeyManagementServiceClient.mac_verify").side_effect = _verify_failure
 
         async with self.db_session.begin() as session:
             account = await self.make_account(session=session)
@@ -100,8 +101,7 @@ class TestAuthenticationExtension(BaseTestCase):
             account_id=account.id,
         )
 
-        assert response.cookies.get(ACCESS_TOKEN_COOKIE_NAME) == ""
-        assert response.cookies.get(REFRESH_TOKEN_COOKIE_NAME) == ""
+        assert self._auth_cookies_deleted(response.headers.multi_items())
 
         result = self.parse_graphql_response(response)
         assert result.data
@@ -120,7 +120,7 @@ class TestAuthenticationExtension(BaseTestCase):
                 verified_success_integrity=True,
             )
 
-        self.get_mock("google.cloud.kms.KeyManagementServiceClient.mac_verify").side_effect = _verify_failure
+        self.get_mock("KeyManagementServiceClient.mac_verify").side_effect = _verify_failure
 
         async with self.db_session.begin() as session:
             account = await self.make_account(session=session)
@@ -131,8 +131,8 @@ class TestAuthenticationExtension(BaseTestCase):
             account_id=account.id,
         )
 
-        assert response.cookies.get(ACCESS_TOKEN_COOKIE_NAME) == ""
-        assert response.cookies.get(REFRESH_TOKEN_COOKIE_NAME) == ""
+        # In this case, it may be some failure with KMS and we don't want to log the user out.
+        assert not self._auth_cookies_deleted(response.headers.multi_items())
 
         result = self.parse_graphql_response(response)
 

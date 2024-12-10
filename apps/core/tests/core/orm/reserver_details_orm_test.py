@@ -12,7 +12,7 @@ class TestReserverDetailsOrm(BaseTestCase):
                 account_id=account.id,
                 first_name=self.anyalpha(),
                 last_name=self.anyalpha(),
-                phone_number="123-456-7890",
+                phone_number=self.anyphonenumber(),
             ).save(session)
 
         assert reserver_details.id is not None
@@ -25,7 +25,7 @@ class TestReserverDetailsOrm(BaseTestCase):
             account_id=account.id,
             first_name=self.anyalpha("first_name"),
             last_name=self.anyalpha("last_name"),
-            phone_number="123-456-7890",
+            phone_number=self.anyphonenumber(),
         )
 
         validation_errors = reserver_details.validate()
