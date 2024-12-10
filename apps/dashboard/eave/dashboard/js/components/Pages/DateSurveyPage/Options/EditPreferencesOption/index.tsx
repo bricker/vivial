@@ -12,6 +12,7 @@ const OptionContainer = styled("div")(({ theme }) => ({
   width: "100%",
   padding: "4px 8px 4px 16px",
   marginTop: 8,
+  height: 40,
 }));
 
 const FlexContainer = styled("div")(() => ({

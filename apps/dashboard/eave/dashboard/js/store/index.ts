@@ -2,12 +2,14 @@ import { StateFromReducersMapObject, configureStore, createListenerMiddleware } 
 import { loadState, saveState } from "./localStorage";
 import { authSlice } from "./slices/authSlice";
 import { coreApiSlice } from "./slices/coreApiSlice";
+import { outingSlice } from "./slices/outingSlice";
 import { reserverDetailsSlice } from "./slices/reserverDetailsSlice";
 
 const listenerMiddleware = createListenerMiddleware();
 const reducer = {
   coreApi: coreApiSlice.reducer,
   auth: authSlice.reducer,
+  outing: outingSlice.reducer,
   reserverDetails: reserverDetailsSlice.reducer,
 };
 const preloadedState = loadState();

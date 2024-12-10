@@ -1,4 +1,9 @@
-import { type OutingPreferences } from "$eave-dashboard/js/graphql/generated/graphql";
+import {
+  type ActivityCategoryGroup,
+  type OutingPreferences,
+  type OutingPreferencesInput,
+  type RestaurantCategory,
+} from "$eave-dashboard/js/graphql/generated/graphql";
 
 /**
  * If it's before 6:00 PM at the time that this function is called,
@@ -24,20 +29,54 @@ export function getHoursDiff(date1: Date, date2: Date): number {
   return msDiff / (1000 * 60 * 60);
 }
 
-export function getGroupPreferences(
+export function getPreferenceInputs(
   userPreferences: OutingPreferences | null,
   partnerPreferenecs: OutingPreferences | null,
-): OutingPreferences[] {
+  activityGroups?: ActivityCategoryGroup[],
+  restaurantCategories?: RestaurantCategory[],
+): OutingPreferencesInput[] {
+  const userPreferencesInput = {
+    activityCategoryIds: userPreferences?.activityCategories?.map((c) => c.id) || [],
+    restaurantCategoryIds: userPreferences?.restaurantCategories?.map((c) => c.id) || [],
+  };
+  const partnerPreferenecsInput = {
+    activityCategoryIds: partnerPreferenecs?.activityCategories?.map((c) => c.id) || [],
+    restaurantCategoryIds: partnerPreferenecs?.restaurantCategories?.map((c) => c.id) || [],
+  };
+  // Case 1: Both user and partner preferences are provided.
   if (userPreferences && partnerPreferenecs) {
-    return [userPreferences, partnerPreferenecs];
+    return [userPreferencesInput, partnerPreferenecsInput];
   }
+  // Case 2: Only user preferenecs are provided.
   if (userPreferences) {
-    return [userPreferences];
+    return [userPreferencesInput];
   }
+  // Case 3: Only partner preferences are provided (edge case).
   if (partnerPreferenecs) {
-    return [partnerPreferenecs];
+    return [partnerPreferenecsInput];
   }
-
-  // TODO: Return defaults
+  // Case 4: Preferences weren't provided, use defaults.
+  if (activityGroups && restaurantCategories) {
+    const defaultRestaurantCategoryIds: string[] = [];
+    const defaultActivityCategoryIds: string[] = [];
+    restaurantCategories.forEach((c) => {
+      if (c.isDefault) {
+        defaultRestaurantCategoryIds.push(c.id);
+      }
+    });
+    activityGroups.forEach((group) => {
+      group.activityCategories.forEach((c) => {
+        if (c.isDefault) {
+          defaultActivityCategoryIds.push(c.id);
+        }
+      });
+    });
+    const defaultPreferences: OutingPreferencesInput = {
+      activityCategoryIds: defaultActivityCategoryIds,
+      restaurantCategoryIds: defaultRestaurantCategoryIds,
+    };
+    return [defaultPreferences];
+  }
+  // Case 5: Defaults weren't provided.
   return [];
 }
