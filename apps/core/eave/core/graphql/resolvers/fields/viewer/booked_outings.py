@@ -7,8 +7,8 @@ from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.booking import BookingDetailPeek, BookingDetails
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.booking import BookingOrm
-from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
-from eave.core.orm.booking_reservations_template import BookingReservationTemplateOrm
+from eave.core.orm.booking import BookingActivityTemplateOrm
+from eave.core.orm.booking import BookingReservationTemplateOrm
 from eave.stdlib.util import unwrap
 
 

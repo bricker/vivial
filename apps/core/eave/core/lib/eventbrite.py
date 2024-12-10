@@ -3,13 +3,15 @@ from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photos
 from eave.core.lib.google_places import google_maps_directions_url
 from eave.core.shared.enums import ActivitySource
-from eave.stdlib.eventbrite.client import EventbriteClient
+from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery, ListTicketClassesForSaleQuery
 from eave.stdlib.eventbrite.models.event import Event, EventStatus
+from eave.stdlib.eventbrite.models.expansions import Expansion
+from eave.stdlib.eventbrite.models.ticket_class import PointOfSale, TicketClass
 from eave.stdlib.logging import LOGGER
 
 
 async def get_eventbrite_activity(eventbrite_client: EventbriteClient, *, event_id: str) -> Activity | None:
-    event = await eventbrite_client.get_event_by_id(event_id=event_id)
+    event = await eventbrite_client.get_event_by_id(event_id=event_id, query=GetEventQuery(expand=Expansion.all()))
     activity = await activity_from_eventbrite_event(eventbrite_client=eventbrite_client, event=event)
     return activity
 
@@ -79,6 +81,30 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         )
         return
 
+    ticket_classes_paginator = eventbrite_client.list_ticket_classes_for_sale_for_event(event_id=event_id, query=ListTicketClassesForSaleQuery(
+        pos=PointOfSale.ONLINE,
+    ))
+
+    best_ticket_class: TicketClass | None = None
+    max_cost_cents = 0
+
+    async for batch in ticket_classes_paginator:
+        for ticket_class in batch:
+            base_cost = ticket_class.get("cost")
+            if base_cost is None:
+                continue
+
+            total_cost_cents = base_cost["value"]
+
+            if (tax := ticket_class.get("tax")) is not None:
+                total_cost_cents += tax["value"]
+
+            if (fee := ticket_class.get("fee")) is not None:
+                total_cost_cents += fee["value"]
+
+            if total_cost_cents > max_cost_cents:
+                best_ticket_class = ticket_class
+
     description = await eventbrite_client.get_event_description(event_id=event_id)
     event["description"] = description
 
@@ -93,7 +119,8 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
             cover_photo_uri=logo["url"] if logo else None,
             supplemental_photo_uris=None,
         ),
-        ticket_info=None,  # TODO
+        ticket_info=ActivityTicketInfo(
+        ),
         venue=ActivityVenue(
             name=venue["name"],
             location=Location(

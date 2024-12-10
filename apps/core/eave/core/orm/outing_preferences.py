@@ -21,6 +21,7 @@ class OutingPreferencesOrm(Base, GetOneByIdMixin):
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     account_id: Mapped[UUID] = mapped_column(ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE))
+
     activity_category_ids: Mapped[list[UUID] | None] = mapped_column(
         type_=sqlalchemy.dialects.postgresql.ARRAY(
             item_type=sqlalchemy.types.Uuid,

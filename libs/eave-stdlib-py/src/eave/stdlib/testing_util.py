@@ -62,7 +62,8 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         self.empty_ctx = LogContext()
         SHARED_CONFIG.reset_cached_properties()
-        self.mock_google_services()
+        self.mock_google_secret_manager()
+        self.mock_google_kms()
         self.mock_slack_client()
         self.mock_eventbrite()
         self.mock_sendgrid_client()
@@ -440,7 +441,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
             return passing
 
-    def mock_google_services(self) -> None:
+    def mock_google_secret_manager(self) -> None:
         def _access_secret_version(
             request: AccessSecretVersionRequest | dict | None = None, *, name: str | None = None, **kwargs: Any
         ) -> AccessSecretVersionResponse:
@@ -471,6 +472,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             )
         )
 
+    def mock_google_kms(self) -> None:
         def _mac_sign(request: MacSignRequest) -> MacSignResponse:
             mac = self.anybytes()
             return MacSignResponse(

@@ -4,8 +4,8 @@ from eave.core import database
 from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
 from eave.core.graphql.types.outing import Outing, OutingPreferencesInput
 from eave.core.orm.outing import OutingOrm
-from eave.core.orm.outing_activity import OutingActivityOrm
-from eave.core.orm.outing_reservation import OutingReservationOrm
+from eave.core.orm.outing import OutingActivityOrm
+from eave.core.orm.outing import OutingReservationOrm
 from eave.core.orm.survey import SurveyOrm
 
 
@@ -20,6 +20,8 @@ async def create_outing(
         individual_preferences=individual_preferences,
         survey=survey,
     ).plan()
+
+    plan.activity.ticket_info
 
     async with database.async_session.begin() as db_session:
         outing_orm = await OutingOrm.build(

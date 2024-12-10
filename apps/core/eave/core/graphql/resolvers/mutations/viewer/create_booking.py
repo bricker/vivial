@@ -7,7 +7,9 @@ import strawberry
 from attr import dataclass
 from google.maps.places_v1 import PlacesAsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
+import stripe
 
+from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 import eave.stdlib.slack
 from eave.core import database
 from eave.core.analytics import ANALYTICS
@@ -23,15 +25,14 @@ from eave.core.graphql.types.booking import (
 )
 from eave.core.lib.google_places import get_google_place, photos_from_google_place
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.account_booking import AccountBookingOrm
 from eave.core.orm.activity import ActivityOrm
 from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.booking import BookingOrm
-from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
-from eave.core.orm.booking_reservations_template import BookingReservationTemplateOrm
+from eave.core.orm.booking import BookingActivityTemplateOrm
+from eave.core.orm.booking import BookingReservationTemplateOrm
 from eave.core.orm.outing import OutingOrm
-from eave.core.orm.outing_activity import OutingActivityOrm
-from eave.core.orm.outing_reservation import OutingReservationOrm
+from eave.core.orm.outing import OutingActivityOrm
+from eave.core.orm.outing import OutingReservationOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.address import Address
@@ -66,18 +67,19 @@ class EventDetails:
 
 
 async def _get_event_details(
-    places_client: PlacesAsyncClient,
-    eventbrite_client: EventbriteClient,
     source: ActivitySource | RestaurantSource,
     source_id: str,
 ) -> EventDetails:
+    places_client = PlacesAsyncClient()
+    eventbrite_client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
+
     name = address1 = address2 = city = region = postal_code = country = lat = lon = booking_uri = photo_uri = None
     match source:
         case ActivitySource.INTERNAL:
             async with database.async_session.begin() as db_session:
                 details = await ActivityOrm.get_one(
-                    session=db_session,
-                    id=UUID(source_id),
+                    db_session,
+                    UUID(source_id),
                 )
             lat, lon = details.coordinates_to_lat_lon()
             name = details.title
@@ -148,7 +150,7 @@ async def _get_event_details(
         case ActivitySource.EVENTBRITE:
             details = await eventbrite_client.get_event_by_id(
                 event_id=source_id,
-                query=GetEventQuery(expand=[Expansion.VENUE, Expansion.LOGO]),
+                query=GetEventQuery(expand=Expansion.all()),
             )
             name = details.get("name", {}).get("text")
             booking_uri = details.get("url")
@@ -187,90 +189,6 @@ async def _get_event_details(
         country=country,
         uri=booking_uri,
         photo_uri=photo_uri,
-    )
-
-
-async def _create_templates_from_outing(
-    db_session: AsyncSession,
-    booking_id: UUID,
-    outing: OutingOrm,
-) -> BookingTemplates:
-    places_client = PlacesAsyncClient()
-    activities_client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
-
-    activities = await db_session.scalars(OutingActivityOrm.select().where(OutingActivityOrm.outing_id == outing.id))
-    activity_details = []
-    for activity in activities:
-        details = await _get_event_details(
-            places_client=places_client,
-            eventbrite_client=activities_client,
-            source=activity.source,
-            source_id=activity.source_id,
-        )
-
-        activity_details.append(
-            await BookingActivityTemplateOrm.build(
-                booking_id=booking_id,
-                source=activity.source,
-                source_id=activity.source_id,
-                name=details.name,
-                start_time_utc=activity.start_time_utc,
-                timezone=activity.timezone,
-                headcount=activity.headcount,
-                external_booking_link=details.uri,
-                address=Address(
-                    address1=details.address1,
-                    address2=details.address2,
-                    city=details.city,
-                    state=details.region,
-                    zip=details.postal_code,
-                    country=details.country,
-                ),
-                lat=details.latitude,
-                lon=details.longitude,
-                photo_uri=details.photo_uri,
-            ).save(db_session)
-        )
-
-    reservations = await db_session.scalars(
-        OutingReservationOrm.select().where(OutingReservationOrm.outing_id == outing.id)
-    )
-    reservation_details = []
-    for reservation in reservations:
-        details = await _get_event_details(
-            places_client=places_client,
-            eventbrite_client=activities_client,
-            source=reservation.source,
-            source_id=reservation.source_id,
-        )
-
-        reservation_details.append(
-            await BookingReservationTemplateOrm.build(
-                booking_id=booking_id,
-                source=reservation.source,
-                source_id=reservation.source_id,
-                name=details.name,
-                start_time_utc=reservation.start_time_utc,
-                timezone=reservation.timezone,
-                headcount=reservation.headcount,
-                external_booking_link=details.uri,
-                address=Address(
-                    address1=details.address1,
-                    address2=details.address2,
-                    city=details.city,
-                    state=details.region,
-                    zip=details.postal_code,
-                    country=details.country,
-                ),
-                lat=details.latitude,
-                lon=details.longitude,
-                photo_uri=details.photo_uri,
-            ).save(db_session)
-        )
-
-    return BookingTemplates(
-        activities=activity_details,
-        reservations=reservation_details,
     )
 
 
@@ -372,7 +290,8 @@ async def create_booking_mutation(
     try:
         async with database.async_session.begin() as db_session:
             outing = await OutingOrm.get_one(db_session, input.outing_id)
-            survey = await SurveyOrm.get_one(db_session, outing.survey_id)
+            survey = outing.survey
+            # stripe_payment_intent_reference_orm = (await db_session.scalars(StripePaymentIntentReferenceOrm.select(outing_id=outing.id))).one_or_none()
 
             # validate outing time still valid to book
             try:
@@ -382,28 +301,86 @@ async def create_booking_mutation(
             except StartTimeTooLateError:
                 return CreateBookingFailure(failure_reason=CreateBookingFailureReason.START_TIME_TOO_LATE)
 
-            booking = await BookingOrm.build(
-                reserver_details_id=input.reserver_details_id,
-                account_id=account_id,
-            ).save(db_session)
-
-            await AccountBookingOrm.build(
-                account_id=account_id,
-                booking_id=booking.id,
-            ).save(db_session)
-
-            booking_details = await _create_templates_from_outing(
-                db_session=db_session,
-                booking_id=booking.id,
-                outing=outing,
+            booking = BookingOrm.build(
+                stripe_payment_intent_reference_id=stripe_payment_intent_reference_orm.id
             )
+
+            db_session.add(booking)
+
+            account = await AccountOrm.get_one(db_session, account_id)
+            booking.accounts = [account]
+
+            reserver_details = await ReserverDetailsOrm.get_one(db_session, input.reserver_details_id)
+            booking.reserver_details = reserver_details
+
+            for activity in outing.activities:
+                details = await _get_event_details(
+                    source=activity.source,
+                    source_id=activity.source_id,
+                )
+
+                booking.activities.append(
+                    BookingActivityTemplateOrm.build(
+                        booking_id=booking.id, # This is likely "None" at this point, but that's OK because in this case it will be filled in by SQLAlchemy
+                        source=activity.source,
+                        source_id=activity.source_id,
+                        name=details.name,
+                        start_time_utc=activity.start_time_utc,
+                        timezone=activity.timezone,
+                        headcount=activity.headcount,
+                        external_booking_link=details.uri,
+                        address=Address(
+                            address1=details.address1,
+                            address2=details.address2,
+                            city=details.city,
+                            state=details.region,
+                            zip=details.postal_code,
+                            country=details.country,
+                        ),
+                        lat=details.latitude,
+                        lon=details.longitude,
+                        photo_uri=details.photo_uri,
+                    )
+                )
+
+            for reservation in outing.reservations:
+                details = await _get_event_details(
+                    source=reservation.source,
+                    source_id=reservation.source_id,
+                )
+
+                booking.reservations.append(
+                    BookingReservationTemplateOrm.build(
+                        source=reservation.source,
+                        source_id=reservation.source_id,
+                        name=details.name,
+                        start_time_utc=reservation.start_time_utc,
+                        timezone=reservation.timezone,
+                        headcount=reservation.headcount,
+                        external_booking_link=details.uri,
+                        address=Address(
+                            address1=details.address1,
+                            address2=details.address2,
+                            city=details.city,
+                            state=details.region,
+                            zip=details.postal_code,
+                            country=details.country,
+                        ),
+                        lat=details.latitude,
+                        lon=details.longitude,
+                        photo_uri=details.photo_uri,
+                    )
+                )
+
     except InvalidRecordError as e:
         LOGGER.exception(e)
         return CreateBookingFailure(
             failure_reason=CreateBookingFailureReason.VALIDATION_ERRORS, validation_errors=e.validation_errors
         )
 
-    await _notify_slack(booking_details, account_id, input.reserver_details_id)
+    stripe_payment_intent = await stripe.PaymentIntent.get()
+
+    await _notify_slack(booking=booking, account=account, reserver_details=reserver_details)
 
     ANALYTICS.track(
         event_name="booking created",

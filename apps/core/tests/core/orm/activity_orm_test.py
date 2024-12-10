@@ -1,5 +1,6 @@
 from eave.core.lib.geo import GeoPoint
 from eave.core.orm.activity import ActivityOrm
+from eave.core.orm.image import ImageOrm
 from eave.core.shared.address import Address
 
 from ..base import BaseTestCase
@@ -50,3 +51,49 @@ class TestActivityOrm(BaseTestCase):
             assert obj.address.country == self.getstr("address.country")
             assert obj.address.state == self.getusstate("address.state")
             assert obj.address.zip == self.getdigits("address.zip")
+
+    async def test_activity_images(self) -> None:
+        async with self.db_session.begin() as session:
+            activity_orm = ActivityOrm.build(
+                title=self.anystr("title"),
+                description=self.anystr("description"),
+                lat=self.anylatitude("lat"),
+                lon=self.anylongitude("lon"),
+                is_bookable=self.anybool("is_bookable"),
+                booking_url=self.anyurl("booking_url"),
+                activity_category_id=self.anyuuid("category_id"),
+                duration_minutes=self.anyint("duration_minutes"),
+                availability=self.anystr("availability"),
+                address=Address(
+                    address1=self.anystr("address.address1"),
+                    address2=self.anystr("address.address2"),
+                    city=self.anystr("address.city"),
+                    country=self.anystr("address.country"),
+                    state=self.anyusstate("address.state"),
+                    zip=self.anydigits("address.zip", length=5),
+                ),
+            )
+
+            session.add(activity_orm)
+
+            images = [
+                ImageOrm.build(
+                    src=self.anyurl("image src 1"),
+                    alt=self.anystr("image alt 1"),
+                ),
+                ImageOrm.build(
+                    src=self.anyurl("image src 2"),
+                    alt=self.anystr("image alt 2"),
+                ),
+            ]
+
+            activity_orm.images = images
+
+        async with self.db_session.begin() as session:
+            activity_orm_fetched = await ActivityOrm.get_one(session, activity_orm.id)
+            assert len(activity_orm_fetched.images) == 2
+
+            assert activity_orm_fetched.images[0].src == self.geturl("image src 1")
+            assert activity_orm_fetched.images[0].alt == self.geturl("image alt 1")
+            assert activity_orm_fetched.images[1].src == self.geturl("image src 2")
+            assert activity_orm_fetched.images[1].alt == self.geturl("image alt 2")

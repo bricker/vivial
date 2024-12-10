@@ -21,23 +21,24 @@ from eave.stdlib.eventbrite.client import EventbriteClient
 
 async def get_internal_activity(*, event_id: str) -> Activity | None:
     async with database.async_session.begin() as db_session:
-        details = await ActivityOrm.get_one(
-            session=db_session,
-            id=uuid.UUID(event_id),
-        )
-    lat, lon = details.coordinates_to_lat_lon()
+        query = ActivityOrm.select(
+            uid=uuid.UUID(event_id),
+        ).join(ActivityImageOrm, ActivityOrm.id == ActivityImageOrm.activity_id)
+
+        images = await ActivityImageOrm.select(activity_id=activity.id)
+    lat, lon = activity.coordinates_to_lat_lon()
     formatted_address = dedent(f"""
-        {details.address.address1} {details.address.address2}
-        {details.address.city}, {details.address.state} {details.address.zip}
+        {activity.address.address1} {activity.address.address2}
+        {activity.address.city}, {activity.address.state} {activity.address.zip}
         """).strip()
 
     return Activity(
         source_id=event_id,
         source=ActivitySource.INTERNAL,
-        name=details.title,
-        description=details.description,
+        name=activity.title,
+        description=activity.description,
         venue=ActivityVenue(
-            name=details.title,
+            name=activity.title,
             location=Location(
                 latitude=lat,
                 longitude=lon,
@@ -47,7 +48,7 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
         ),
         photos=None,  # TODO
         ticket_info=None,  # TODO
-        website_uri=details.booking_url,
+        website_uri=activity.booking_url,
         door_tips=None,
         insider_tips=None,
         parking_tips=None,

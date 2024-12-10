@@ -1,6 +1,6 @@
 from eave.core.orm.booking import BookingOrm
-from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
-from eave.core.orm.booking_reservations_template import BookingReservationTemplateOrm
+from eave.core.orm.booking import BookingActivityTemplateOrm
+from eave.core.orm.booking import BookingReservationTemplateOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.shared.address import Address
 from eave.core.shared.enums import ActivitySource, RestaurantSource
