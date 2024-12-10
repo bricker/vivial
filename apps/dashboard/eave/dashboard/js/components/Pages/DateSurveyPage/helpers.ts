@@ -35,11 +35,11 @@ export function getPreferenceInputs(
   activityGroups?: ActivityCategoryGroup[],
   restaurantCategories?: RestaurantCategory[],
 ): OutingPreferencesInput[] {
-  const userPreferencesInput = {
+  const userPreferencesInput: OutingPreferencesInput = {
     activityCategoryIds: userPreferences?.activityCategories?.map((c) => c.id) || [],
     restaurantCategoryIds: userPreferences?.restaurantCategories?.map((c) => c.id) || [],
   };
-  const partnerPreferenecsInput = {
+  const partnerPreferenecsInput: OutingPreferencesInput = {
     activityCategoryIds: partnerPreferenecs?.activityCategories?.map((c) => c.id) || [],
     restaurantCategoryIds: partnerPreferenecs?.restaurantCategories?.map((c) => c.id) || [],
   };

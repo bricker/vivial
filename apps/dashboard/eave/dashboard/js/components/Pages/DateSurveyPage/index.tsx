@@ -148,8 +148,8 @@ const DateSurveyPage = () => {
       outingPreferencesData?.activityCategoryGroups,
       outingPreferencesData?.restaurantCategories,
     );
-    // Handle authenticated outing planning.
     if (isLoggedIn) {
+      // Handle authenticated outing planning.
       const resp = await planOuting({
         input: {
           visitorId,
@@ -160,12 +160,11 @@ const DateSurveyPage = () => {
           startTime: startTime.toISOString(),
         },
       });
-      const viewer = resp.data?.viewer;
       if (
-        viewer?.__typename === "AuthenticatedViewerMutations" &&
-        viewer.planOuting.__typename === "PlanOutingSuccess"
+        resp.data?.viewer?.__typename === "AuthenticatedViewerMutations" &&
+        resp.data.viewer.planOuting.__typename === "PlanOutingSuccess"
       ) {
-        const outing = viewer.planOuting.outing;
+        const outing = resp.data.viewer.planOuting.outing;
         dispatch(plannedOuting({ outing }));
         navigate(`${AppRoute.itinerary}/${outing.id}`);
       } else {
