@@ -3,11 +3,13 @@ from uuid import UUID
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
+from eave.core.orm.util.mixins import GetOneByIdMixin
+
 from .base import Base
-from .util.constants import PG_UUID_EXPR
+from .util.constants import ACCOUNTS_FK_CONSTRAINT, PG_UUID_EXPR
 
 
-class OutingOrm(Base):
+class OutingOrm(Base, GetOneByIdMixin):
     __tablename__ = "outings"
     __table_args__ = (
         PrimaryKeyConstraint("id"),
@@ -17,12 +19,7 @@ class OutingOrm(Base):
             ondelete="CASCADE",
             name="survey_id_outing_fk",
         ),
-        ForeignKeyConstraint(
-            ["account_id"],
-            ["accounts.id"],
-            ondelete="CASCADE",
-            name="account_id_outing_fk",
-        ),
+        ACCOUNTS_FK_CONSTRAINT,
     )
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)

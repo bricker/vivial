@@ -1,5 +1,6 @@
 from datetime import datetime
-from typing import cast
+from typing import Self, cast
+from uuid import UUID
 from zoneinfo import ZoneInfo
 
 import shapely.wkb
@@ -7,6 +8,7 @@ from geoalchemy2 import WKBElement
 from geoalchemy2.types import Geography
 from shapely.geometry import Point
 from sqlalchemy.dialects.postgresql import TIMESTAMP
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.lib.geo import SpatialReferenceSystemId
@@ -30,3 +32,8 @@ class CoordinatesMixin:
     def coordinates_to_lat_lon(self) -> tuple[float, float]:
         geometry = cast(Point, shapely.wkb.loads(bytes(self.coordinates.data)))
         return (geometry.x, geometry.y)
+
+class GetOneByIdMixin:
+    @classmethod
+    async def get_one(cls, session: AsyncSession, uid: UUID) -> Self:
+        return await session.get_one(cls, uid)

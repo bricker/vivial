@@ -5,21 +5,18 @@ import sqlalchemy.dialects.postgresql
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint, Select, select
 from sqlalchemy.orm import Mapped, mapped_column
 
+from eave.core.orm.util.mixins import GetOneByIdMixin
 from eave.stdlib.typing import NOT_SET
 
 from .base import Base
-from .util.constants import PG_UUID_EXPR
+from .util.constants import ACCOUNTS_FK_CONSTRAINT, PG_UUID_EXPR
 
 
-class OutingPreferencesOrm(Base):
+class OutingPreferencesOrm(Base, GetOneByIdMixin):
     __tablename__ = "outing_preferences"
     __table_args__ = (
         PrimaryKeyConstraint("id"),
-        ForeignKeyConstraint(
-            ["account_id"],
-            ["accounts.id"],
-            ondelete="CASCADE",
-        ),
+        ACCOUNTS_FK_CONSTRAINT,
     )
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)

@@ -6,24 +6,19 @@ import sqlalchemy
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.core.orm.util.mixins import TimedEventMixin
+from eave.core.orm.util.mixins import GetOneByIdMixin, TimedEventMixin
 from eave.core.orm.util.user_defined_column_types import OutingBudgetColumnType
 from eave.core.shared.enums import OutingBudget
 
 from .base import Base
-from .util.constants import PG_UUID_EXPR
+from .util.constants import ACCOUNTS_FK_CONSTRAINT, PG_UUID_EXPR
 
 
-class SurveyOrm(Base, TimedEventMixin):
+class SurveyOrm(Base, TimedEventMixin, GetOneByIdMixin):
     __tablename__ = "surveys"
     __table_args__ = (
         PrimaryKeyConstraint("id"),
-        ForeignKeyConstraint(
-            ["account_id"],
-            ["accounts.id"],
-            ondelete="CASCADE",
-            name="account_id_survey_fk",
-        ),
+        ACCOUNTS_FK_CONSTRAINT,
     )
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)

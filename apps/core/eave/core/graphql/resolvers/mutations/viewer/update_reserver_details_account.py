@@ -61,8 +61,8 @@ async def update_reserver_details_account_mutation(
     try:
         async with database.async_session.begin() as db_session:
             account = await AccountOrm.get_one(
-                session=db_session,
-                id=account_id,
+                db_session,
+                account_id,
             )
             account.email = input.email
             # validate

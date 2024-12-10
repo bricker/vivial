@@ -4,22 +4,18 @@ from uuid import UUID
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
+from eave.core.orm.util.mixins import GetOneByIdMixin
 from eave.core.shared.errors import ValidationError
 
 from .base import Base
-from .util.constants import PG_UUID_EXPR
+from .util.constants import ACCOUNTS_FK_CONSTRAINT, PG_UUID_EXPR
 
 
-class ReserverDetailsOrm(Base):
+class ReserverDetailsOrm(Base, GetOneByIdMixin):
     __tablename__ = "reserver_details"
     __table_args__ = (
         PrimaryKeyConstraint("account_id", "id", name="account_id_id_pk"),
-        ForeignKeyConstraint(
-            ["account_id"],
-            ["accounts.id"],
-            ondelete="CASCADE",
-            name="account_id_reserver_details_fk",
-        ),
+        ACCOUNTS_FK_CONSTRAINT,
     )
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, unique=True)

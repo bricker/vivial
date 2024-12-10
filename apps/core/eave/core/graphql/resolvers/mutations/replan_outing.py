@@ -57,12 +57,12 @@ async def replan_outing_mutation(
 
     async with database.async_session.begin() as db_session:
         original_outing = await OutingOrm.get_one(
-            session=db_session,
-            id=input.outing_id,
+            db_session,
+            input.outing_id,
         )
         survey = await SurveyOrm.get_one(
-            session=db_session,
-            id=original_outing.survey_id,
+            db_session,
+            original_outing.survey_id,
         )
 
     # validate that the survey's start time is still within the bounds.

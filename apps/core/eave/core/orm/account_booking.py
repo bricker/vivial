@@ -3,6 +3,8 @@ from uuid import UUID
 from sqlalchemy import ForeignKeyConstraint, Index, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
+from eave.core.orm.util.constants import ACCOUNTS_FK_CONSTRAINT
+
 from .base import Base
 
 
@@ -14,12 +16,7 @@ class AccountBookingOrm(Base):
             "booking_id",
             name="account_booking_pivot_pk",
         ),
-        ForeignKeyConstraint(
-            ["account_id"],
-            ["accounts.id"],
-            ondelete="CASCADE",
-            name="account_id_account_booking_fk",
-        ),
+        ACCOUNTS_FK_CONSTRAINT,
         ForeignKeyConstraint(
             ["booking_id"],
             ["bookings.id"],

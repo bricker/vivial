@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Self
+from typing import Any, Self, overload
 from uuid import UUID
 
 from sqlalchemy import MetaData, Select, func, select
@@ -33,10 +33,6 @@ class Base(DeclarativeBase):
         session.add(self)
         await session.flush()
         return self
-
-    @classmethod
-    async def get_one(cls, session: AsyncSession, id: UUID | tuple[UUID, ...]) -> Self:
-        return await session.get_one(cls, id)
 
     @classmethod
     def select(cls) -> Select[tuple[Self]]:

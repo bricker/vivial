@@ -1,8 +1,10 @@
 from datetime import UTC, datetime
+from typing import Self
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.lib.geo import GeoPoint
@@ -83,3 +85,7 @@ class BookingReservationTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
         )
 
         return obj
+
+    @classmethod
+    async def get_one(cls, session: AsyncSession, *, booking_id: UUID, uid: UUID) -> Self:
+        return await session.get_one(cls, (booking_id, uid))
