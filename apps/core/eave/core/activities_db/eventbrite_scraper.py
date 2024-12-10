@@ -29,13 +29,7 @@ async def get_eventbrite_events() -> None:
                 order_by=OrderBy.START_ASC,
                 status=EventStatus.LIVE,
                 only_public=True,
-                expand=[
-                    Expansion.TICKET_AVAILABILITY,
-                    Expansion.CATEGORY,
-                    Expansion.SUBCATEGORY,
-                    Expansion.FORMAT,
-                    Expansion.VENUE,
-                ],
+                expand=Expansion.all(),
             ),
         )
 

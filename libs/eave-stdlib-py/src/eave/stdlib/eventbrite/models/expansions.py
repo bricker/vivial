@@ -2,6 +2,10 @@ from enum import StrEnum
 
 
 class Expansion(StrEnum):
+    @classmethod
+    def all(cls) -> list["Expansion"]:
+        return list(cls)
+
     LOGO = "logo"
     """Event image logo."""
 
