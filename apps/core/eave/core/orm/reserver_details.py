@@ -1,25 +1,25 @@
 import re
 from uuid import UUID
 
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint
+from sqlalchemy import ForeignKey, ForeignKeyConstraint, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
+from eave.core.orm.account import AccountOrm
 from eave.core.orm.util.mixins import GetOneByIdMixin
 from eave.core.shared.errors import ValidationError
 
 from .base import Base
-from .util.constants import ACCOUNTS_FK_CONSTRAINT, PG_UUID_EXPR
+from .util.constants import PG_UUID_EXPR, OnDeleteOption
 
 
 class ReserverDetailsOrm(Base, GetOneByIdMixin):
     __tablename__ = "reserver_details"
     __table_args__ = (
         PrimaryKeyConstraint("account_id", "id", name="account_id_id_pk"),
-        ACCOUNTS_FK_CONSTRAINT,
     )
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, unique=True)
-    account_id: Mapped[UUID] = mapped_column()
+    account_id: Mapped[UUID] = mapped_column(ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE))
     first_name: Mapped[str] = mapped_column()
     last_name: Mapped[str] = mapped_column()
     phone_number: Mapped[str] = mapped_column()

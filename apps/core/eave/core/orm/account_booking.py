@@ -1,9 +1,11 @@
 from uuid import UUID
 
-from sqlalchemy import ForeignKeyConstraint, Index, PrimaryKeyConstraint
+from sqlalchemy import ForeignKey, ForeignKeyConstraint, Index, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.core.orm.util.constants import ACCOUNTS_FK_CONSTRAINT
+from eave.core.orm.account import AccountOrm
+from eave.core.orm.booking import BookingOrm
+from eave.core.orm.util.constants import OnDeleteOption
 
 from .base import Base
 
@@ -16,23 +18,10 @@ class AccountBookingOrm(Base):
             "booking_id",
             name="account_booking_pivot_pk",
         ),
-        ACCOUNTS_FK_CONSTRAINT,
-        ForeignKeyConstraint(
-            ["booking_id"],
-            ["bookings.id"],
-            ondelete="CASCADE",
-            name="booking_id_account_booking_fk",
-        ),
-        # reverse index to facilitate searching for other accounts
-        # associated w/ a booking
-        Index(
-            "account_booking_pivot_reverse_index",
-            "booking_id",
-        ),
     )
 
-    account_id: Mapped[UUID] = mapped_column()
-    booking_id: Mapped[UUID] = mapped_column()
+    account_id: Mapped[UUID] = mapped_column(ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE))
+    booking_id: Mapped[UUID] = mapped_column(ForeignKey(f"{BookingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE), index=True)
 
     @classmethod
     def build(

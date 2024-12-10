@@ -3,11 +3,13 @@ from typing import Self
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint
+from sqlalchemy import ForeignKey, ForeignKeyConstraint, PrimaryKeyConstraint
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.graphql.types.restaurant import RestaurantSource
+from eave.core.orm.outing import OutingOrm
+from eave.core.orm.util.constants import OnDeleteOption
 from eave.core.orm.util.mixins import TimedEventMixin
 from eave.core.orm.util.user_defined_column_types import (
     RestaurantSourceColumnType,
@@ -22,16 +24,9 @@ class OutingReservationOrm(Base, TimedEventMixin):
     __tablename__ = "outing_reservations"
     __table_args__ = (
         PrimaryKeyConstraint("outing_id", "source_id", name="outing_reservation_pivot_pk"),
-        ForeignKeyConstraint(
-            ["outing_id"],
-            ["outings.id"],
-            ondelete="CASCADE",
-            name="outing_id_reservation_pivot_fk",
-        ),
-        # no fk for reservation_id bcus it's a remote db
     )
 
-    outing_id: Mapped[UUID] = mapped_column()
+    outing_id: Mapped[UUID] = mapped_column(ForeignKey(f"{OutingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE))
     source_id: Mapped[str] = mapped_column()
     """ID of reservation in remote table"""
     source: Mapped[RestaurantSource] = mapped_column(type_=RestaurantSourceColumnType())

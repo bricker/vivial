@@ -7,13 +7,13 @@ import shapely.wkb
 from geoalchemy2 import WKBElement
 from geoalchemy2.types import Geography
 from shapely.geometry import Point
+from sqlalchemy import ForeignKey
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from eave.core.lib.geo import SpatialReferenceSystemId
 from eave.core.orm.util.user_defined_column_types import ZoneInfoColumnType
-
 
 class TimedEventMixin:
     start_time_utc: Mapped[datetime] = mapped_column(type_=TIMESTAMP(timezone=True))

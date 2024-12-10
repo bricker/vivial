@@ -3,27 +3,27 @@ from uuid import UUID
 from zoneinfo import ZoneInfo
 
 import sqlalchemy
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint
+from sqlalchemy import ForeignKey, ForeignKeyConstraint, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
+from eave.core.orm.account import AccountOrm
 from eave.core.orm.util.mixins import GetOneByIdMixin, TimedEventMixin
 from eave.core.orm.util.user_defined_column_types import OutingBudgetColumnType
 from eave.core.shared.enums import OutingBudget
 
 from .base import Base
-from .util.constants import ACCOUNTS_FK_CONSTRAINT, PG_UUID_EXPR
+from .util.constants import PG_UUID_EXPR, OnDeleteOption
 
 
 class SurveyOrm(Base, TimedEventMixin, GetOneByIdMixin):
     __tablename__ = "surveys"
     __table_args__ = (
         PrimaryKeyConstraint("id"),
-        ACCOUNTS_FK_CONSTRAINT,
     )
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     visitor_id: Mapped[UUID] = mapped_column()
-    account_id: Mapped[UUID | None] = mapped_column()
+    account_id: Mapped[UUID | None] = mapped_column(ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL))
     search_area_ids: Mapped[list[UUID]] = mapped_column(
         type_=sqlalchemy.dialects.postgresql.ARRAY(
             item_type=sqlalchemy.types.Uuid,

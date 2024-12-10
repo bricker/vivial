@@ -3,11 +3,12 @@ from typing import Self
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import ForeignKeyConstraint, PrimaryKeyConstraint
+from sqlalchemy import ForeignKey, ForeignKeyConstraint, PrimaryKeyConstraint
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.lib.geo import GeoPoint
+from eave.core.orm.booking import BookingOrm
 from eave.core.orm.util.mixins import CoordinatesMixin, TimedEventMixin
 from eave.core.orm.util.user_defined_column_types import (
     AddressColumnType,
@@ -17,7 +18,7 @@ from eave.core.shared.address import Address
 from eave.core.shared.enums import RestaurantSource
 
 from .base import Base
-from .util.constants import PG_UUID_EXPR
+from .util.constants import PG_UUID_EXPR, OnDeleteOption
 
 
 class BookingReservationTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
@@ -33,16 +34,10 @@ class BookingReservationTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
             "id",
             name="booking_reservation_template_pk",
         ),
-        ForeignKeyConstraint(
-            ["booking_id"],
-            ["bookings.id"],
-            ondelete="CASCADE",
-            name="booking_id_booking_reservation_template_fk",
-        ),
     )
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
-    booking_id: Mapped[UUID] = mapped_column()
+    booking_id: Mapped[UUID] = mapped_column(ForeignKey(f"{BookingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE))
     source_id: Mapped[str] = mapped_column()
     source: Mapped[RestaurantSource] = mapped_column(type_=RestaurantSourceColumnType())
     """RestaurantSource enum value"""
