@@ -1,3 +1,4 @@
+from typing import TYPE_CHECKING
 from uuid import UUID
 
 from sqlalchemy import ForeignKey, ForeignKeyConstraint, PrimaryKeyConstraint
@@ -10,6 +11,9 @@ from eave.core.orm.util.mixins import GetOneByIdMixin
 from .base import Base
 from .util.constants import PG_UUID_EXPR, OnDeleteOption
 
+if TYPE_CHECKING:
+    from .outing_activity import OutingActivityOrm
+    from .outing_reservation import OutingReservationOrm
 
 class OutingOrm(Base, GetOneByIdMixin):
     __tablename__ = "outings"
@@ -20,10 +24,13 @@ class OutingOrm(Base, GetOneByIdMixin):
     visitor_id: Mapped[UUID] = mapped_column()
 
     survey_id: Mapped[UUID] = mapped_column(ForeignKey(f"{SurveyOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE))
-    survey: Mapped[SurveyOrm] = relationship()
+    survey: Mapped[SurveyOrm] = relationship(lazy="selectin")
 
     account_id: Mapped[UUID | None] = mapped_column(ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL))
-    account: Mapped[AccountOrm] = relationship()
+    account: Mapped[AccountOrm] = relationship(lazy="selectin")
+
+    activities: Mapped[list[OutingActivityOrm]] = relationship(lazy="selectin")
+    reservations: Mapped[list[OutingReservationOrm]] = relationship(lazy="selectin")
 
     @classmethod
     def build(

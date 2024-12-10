@@ -6,9 +6,9 @@ from datetime import datetime
 from typing import Literal, Self
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, PrimaryKeyConstraint, Select, func, select
+from sqlalchemy import PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.dialects.postgresql import TIMESTAMP
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.orm.util.mixins import GetOneByIdMixin
 from eave.core.shared.errors import ValidationError

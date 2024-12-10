@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy import ForeignKey, ForeignKeyConstraint, PrimaryKeyConstraint
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.util.constants import OnDeleteOption
@@ -17,7 +17,7 @@ from .base import Base
 
 
 class OutingActivityOrm(Base, TimedEventMixin):
-    """Pivot table between `outings` and `activities` tables."""
+    """Pivot table between `outings` and activity sources"""
 
     __tablename__ = "outing_activities"
     __table_args__ = (

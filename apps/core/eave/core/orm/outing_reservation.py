@@ -19,7 +19,7 @@ from .base import Base
 
 
 class OutingReservationOrm(Base, TimedEventMixin):
-    """Pivot table between `outings` and `reservations` tables. (`reservations` is a remote dataset)"""
+    """Pivot table between `outings` and reservation sources"""
 
     __tablename__ = "outing_reservations"
     __table_args__ = (

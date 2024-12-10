@@ -1,18 +1,27 @@
+from typing import Self
 from uuid import UUID
 
-from sqlalchemy import PrimaryKeyConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Column, ForeignKey, PrimaryKeyConstraint, ScalarResult, Select, Table
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from eave.core.lib.geo import GeoPoint
-from eave.core.orm.util.mixins import CoordinatesMixin
+from eave.core.orm.image import ImageOrm
+from eave.core.orm.util.mixins import CoordinatesMixin, GetOneByIdMixin
 from eave.core.orm.util.user_defined_column_types import AddressColumnType
 from eave.core.shared.address import Address
+from eave.stdlib.typing import NOT_SET
 
 from .base import Base
-from .util.constants import PG_UUID_EXPR
+from .util.constants import PG_UUID_EXPR, OnDeleteOption
 
+_activity_images_join_table = Table(
+    "activity_images",
+    Base.metadata,
+    Column("activity_id", ForeignKey("activities.id", ondelete=OnDeleteOption.CASCADE)),
+    Column("image_id", ForeignKey(f"{ImageOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)),
+)
 
-class ActivityOrm(Base, CoordinatesMixin):
+class ActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
     __tablename__ = "activities"
     __table_args__ = (PrimaryKeyConstraint("id"),)
 
@@ -25,6 +34,8 @@ class ActivityOrm(Base, CoordinatesMixin):
     address: Mapped[Address] = mapped_column(type_=AddressColumnType())
     is_bookable: Mapped[bool] = mapped_column()
     booking_url: Mapped[str | None] = mapped_column()
+
+    images: Mapped[list[ImageOrm]] = relationship(secondary=_activity_images_join_table, lazy="selectin")
 
     @classmethod
     def build(
