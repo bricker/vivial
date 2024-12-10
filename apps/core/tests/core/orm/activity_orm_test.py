@@ -9,7 +9,7 @@ from ..base import BaseTestCase
 class TestActivityOrm(BaseTestCase):
     async def test_new_activity_record(self) -> None:
         async with self.db_session.begin() as session:
-            activity = ActivityOrm.build(
+            activity = ActivityOrm(
                 title=self.anystr("title"),
                 description=self.anystr("description"),
                 lat=self.anylatitude("lat"),
@@ -54,7 +54,7 @@ class TestActivityOrm(BaseTestCase):
 
     async def test_activity_images(self) -> None:
         async with self.db_session.begin() as session:
-            activity_orm = ActivityOrm.build(
+            activity_orm = ActivityOrm(
                 title=self.anystr("title"),
                 description=self.anystr("description"),
                 lat=self.anylatitude("lat"),
@@ -77,11 +77,11 @@ class TestActivityOrm(BaseTestCase):
             session.add(activity_orm)
 
             images = [
-                ImageOrm.build(
+                ImageOrm(
                     src=self.anyurl("image src 1"),
                     alt=self.anystr("image alt 1"),
                 ),
-                ImageOrm.build(
+                ImageOrm(
                     src=self.anyurl("image src 2"),
                     alt=self.anystr("image alt 2"),
                 ),

@@ -8,7 +8,7 @@ class TestReserverDetailsOrm(BaseTestCase):
         async with self.db_session.begin() as session:
             account = await self.make_account(session)
 
-            reserver_details = await ReserverDetailsOrm.build(
+            reserver_details = await ReserverDetailsOrm(
                 account_id=account.id,
                 first_name=self.anyalpha(),
                 last_name=self.anyalpha(),
@@ -21,7 +21,7 @@ class TestReserverDetailsOrm(BaseTestCase):
         async with self.db_session.begin() as session:
             account = await self.make_account(session)
 
-        reserver_details = ReserverDetailsOrm.build(
+        reserver_details = ReserverDetailsOrm(
             account_id=account.id,
             first_name=self.anyalpha("first_name"),
             last_name=self.anyalpha("last_name"),

@@ -33,10 +33,8 @@ class EventbriteEventOrm(Base, CoordinatesMixin, GetOneByIdMixin):
     vivial_activity_category_id: Mapped[UUID] = mapped_column()
     vivial_activity_format_id: Mapped[UUID] = mapped_column()
 
-    @classmethod
-    def build(cls, *, eventbrite_event_id: str) -> "EventbriteEventOrm":
-        obj = EventbriteEventOrm(eventbrite_event_id=eventbrite_event_id)
-        return obj
+    def __init__(self, *, eventbrite_event_id: str) -> None:
+        self.eventbrite_event_id = eventbrite_event_id
 
     def update(
         self,

@@ -70,19 +70,14 @@ class AccountOrm(Base, GetOneByIdMixin):
         type_=TIMESTAMP(timezone=True), server_default=func.current_timestamp(), nullable=True
     )
 
-    @classmethod
-    def build(
-        cls,
+    def __init__(
+        self,
         *,
         email: str,
         plaintext_password: str,
-    ) -> "AccountOrm":
-        obj = AccountOrm(
-            email=email,
-        )
-
-        obj.set_password(plaintext_password)
-        return obj
+    ) -> None:
+        self.email = email
+        self.set_password(plaintext_password)
 
     @classmethod
     def select(cls, *, email: str = NOT_SET) -> Select[tuple[Self]]:

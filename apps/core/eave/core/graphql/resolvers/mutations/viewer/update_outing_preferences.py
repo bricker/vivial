@@ -50,7 +50,7 @@ async def update_outing_preferences_mutation(
         ).one_or_none()
 
         if not outing_preferences:
-            outing_preferences = OutingPreferencesOrm.build(
+            outing_preferences = OutingPreferencesOrm(
                 account_id=account_id,
                 activity_category_ids=None,
                 restaurant_category_ids=None,

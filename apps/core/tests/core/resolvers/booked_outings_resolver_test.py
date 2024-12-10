@@ -12,19 +12,19 @@ class TestBookedOutingsResolver(BaseTestCase):
     async def test_booked_outings_with_activity_and_restaurant(self) -> None:
         async with self.db_session.begin() as db_session:
             account = await self.make_account(db_session)
-            reserver_details = await ReserverDetailsOrm.build(
+            reserver_details = await ReserverDetailsOrm(
                 account_id=account.id,
                 first_name=self.anyalpha(),
                 last_name=self.anyalpha(),
                 phone_number=self.anyphonenumber(),
             ).save(db_session)
 
-            booking = await BookingOrm.build(
+            booking = await BookingOrm(
                 account_id=account.id,
                 reserver_details_id=reserver_details.id,
             ).save(db_session)
 
-            await BookingActivityTemplateOrm.build(
+            await BookingActivityTemplateOrm(
                 booking_id=booking.id,
                 name=self.anystr("activity_name"),
                 start_time_utc=self.anydatetime("activity_start_time"),
@@ -46,7 +46,7 @@ class TestBookedOutingsResolver(BaseTestCase):
                 ),
             ).save(db_session)
 
-            await BookingReservationTemplateOrm.build(
+            await BookingReservationTemplateOrm(
                 booking_id=booking.id,
                 name=self.anystr("reservation_name"),
                 photo_uri=self.anyurl("reservation_photo_uri"),

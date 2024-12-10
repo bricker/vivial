@@ -26,21 +26,16 @@ class StripePaymentIntentReferenceOrm(Base, GetOneByIdMixin):
     account_id: Mapped[UUID] = mapped_column(ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE), index=True)
     outing_id: Mapped[UUID | None] = mapped_column(ForeignKey(f"{OutingOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL), index=True)
 
-    @classmethod
-    def build(
-        cls,
+    def __init__(
+        self,
         *,
         account_id: UUID,
         stripe_payment_intent_id: str,
         outing_id: UUID,
-    ) -> "StripePaymentIntentReferenceOrm":
-        obj = StripePaymentIntentReferenceOrm(
-            account_id=account_id,
-            stripe_payment_intent_id=stripe_payment_intent_id,
-            outing_id=outing_id,
-        )
-
-        return obj
+    ) -> None:
+        self.account_id = account_id
+        self.stripe_payment_intent_id = stripe_payment_intent_id
+        self.outing_id = outing_id
 
     @classmethod
     def select(cls, *, stripe_payment_intent_id: str = NOT_SET, outing_id: UUID = NOT_SET) -> Select[Tuple[Self]]:

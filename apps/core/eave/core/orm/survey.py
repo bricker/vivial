@@ -33,9 +33,8 @@ class SurveyOrm(Base, TimedEventMixin, GetOneByIdMixin):
     budget: Mapped[OutingBudget] = mapped_column(type_=OutingBudgetColumnType())
     headcount: Mapped[int] = mapped_column()
 
-    @classmethod
-    def build(
-        cls,
+    def __init__(
+        self,
         *,
         visitor_id: UUID,
         start_time_utc: datetime,
@@ -44,15 +43,11 @@ class SurveyOrm(Base, TimedEventMixin, GetOneByIdMixin):
         budget: OutingBudget,
         headcount: int,
         account_id: UUID | None = None,
-    ) -> "SurveyOrm":
-        obj = SurveyOrm(
-            visitor_id=visitor_id,
-            account_id=account_id,
-            start_time_utc=start_time_utc.astimezone(UTC),
-            timezone=timezone,
-            search_area_ids=search_area_ids,
-            budget=budget,
-            headcount=headcount,
-        )
-
-        return obj
+    ) -> None:
+        self.visitor_id = visitor_id
+        self.account_id = account_id
+        self.start_time_utc = start_time_utc.astimezone(UTC)
+        self.timezone = timezone
+        self.search_area_ids = search_area_ids
+        self.budget = budget
+        self.headcount = headcount

@@ -34,21 +34,16 @@ class OutingOrm(Base, GetOneByIdMixin):
     activities: Mapped[list["OutingActivityOrm"]] = relationship(lazy="selectin")
     reservations: Mapped[list["OutingReservationOrm"]] = relationship(lazy="selectin")
 
-    @classmethod
-    def build(
-        cls,
+    def __init__(
+        self,
         *,
         visitor_id: UUID,
         survey_id: UUID,
         account_id: UUID | None = None,
-    ) -> "OutingOrm":
-        obj = OutingOrm(
-            visitor_id=visitor_id,
-            account_id=account_id,
-            survey_id=survey_id,
-        )
-
-        return obj
+    ) -> None:
+        self.visitor_id = visitor_id
+        self.account_id = account_id
+        self.survey_id = survey_id
 
 class OutingActivityOrm(Base, TimedEventMixin):
     """Pivot table between `outings` and activity sources"""
@@ -65,9 +60,8 @@ class OutingActivityOrm(Base, TimedEventMixin):
     """ActivitySource enum value"""
     headcount: Mapped[int] = mapped_column()
 
-    @classmethod
-    def build(
-        cls,
+    def __init__(
+        self,
         *,
         outing_id: UUID,
         source_id: str,
@@ -75,17 +69,13 @@ class OutingActivityOrm(Base, TimedEventMixin):
         start_time_utc: datetime,
         timezone: ZoneInfo,
         headcount: int,
-    ) -> "OutingActivityOrm":
-        obj = OutingActivityOrm(
-            outing_id=outing_id,
-            source_id=source_id,
-            source=source,
-            start_time_utc=start_time_utc.astimezone(UTC),
-            timezone=timezone,
-            headcount=headcount,
-        )
-
-        return obj
+    ) -> None:
+        self.outing_id = outing_id
+        self.source_id = source_id
+        self.source = source
+        self.start_time_utc = start_time_utc.astimezone(UTC)
+        self.timezone = timezone
+        self.headcount = headcount
 
     @classmethod
     async def get_one_by_outing_id(cls, session: AsyncSession, outing_id: UUID) -> Self:
@@ -109,9 +99,8 @@ class OutingReservationOrm(Base, TimedEventMixin):
     """RestaurantSource enum value"""
     headcount: Mapped[int] = mapped_column()
 
-    @classmethod
-    def build(
-        cls,
+    def __init__(
+        self,
         *,
         outing_id: UUID,
         source_id: str,
@@ -119,17 +108,13 @@ class OutingReservationOrm(Base, TimedEventMixin):
         start_time_utc: datetime,
         timezone: ZoneInfo,
         headcount: int,
-    ) -> "OutingReservationOrm":
-        obj = OutingReservationOrm(
-            outing_id=outing_id,
-            source_id=source_id,
-            source=source,
-            start_time_utc=start_time_utc.astimezone(UTC),
-            timezone=timezone,
-            headcount=headcount,
-        )
-
-        return obj
+    ) -> None:
+        self.outing_id = outing_id
+        self.source_id = source_id
+        self.source = source
+        self.start_time_utc = start_time_utc.astimezone(UTC)
+        self.timezone = timezone
+        self.headcount = headcount
 
     @classmethod
     async def get_one_by_outing_id(cls, session: AsyncSession, outing_id: UUID) -> Self:

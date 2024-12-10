@@ -79,7 +79,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
         async with self.db_session.begin() as sess:
             account = await self.make_account(sess)
 
-            survey = await SurveyOrm.build(
+            survey = await SurveyOrm(
                 visitor_id=self.anyuuid(),
                 start_time_utc=self.anydatetime(offset=2 * day_seconds),
                 timezone=self.anytimezone(),
@@ -88,7 +88,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
                 headcount=1,
                 account_id=account.id,
             ).save(sess)
-            outing = await OutingOrm.build(
+            outing = await OutingOrm(
                 visitor_id=survey.visitor_id,
                 survey_id=survey.id,
                 account_id=survey.account_id,
@@ -120,7 +120,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
 
     async def test_replan_anonymous(self) -> None:
         async with self.db_session.begin() as sess:
-            survey = await SurveyOrm.build(
+            survey = await SurveyOrm(
                 visitor_id=self.anyuuid(),
                 start_time_utc=self.anydatetime(offset=2 * day_seconds),
                 timezone=self.anytimezone(),
@@ -128,7 +128,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
                 budget=OutingBudget.INEXPENSIVE,
                 headcount=1,
             ).save(sess)
-            outing = await OutingOrm.build(
+            outing = await OutingOrm(
                 visitor_id=survey.visitor_id,
                 survey_id=survey.id,
                 account_id=survey.account_id,

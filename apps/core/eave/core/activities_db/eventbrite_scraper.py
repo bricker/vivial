@@ -162,7 +162,7 @@ async def get_eventbrite_events() -> None:
                         LOGGER.debug(
                             f"{pfx} new event - adding to database", {"eventbrite_event_id": eventbrite_event_id}
                         )
-                        target = EventbriteEventOrm.build(eventbrite_event_id=eventbrite_event_id)
+                        target = EventbriteEventOrm(eventbrite_event_id=eventbrite_event_id)
                         db_session.add(target)
                     else:
                         LOGGER.debug(

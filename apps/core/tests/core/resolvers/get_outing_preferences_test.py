@@ -12,7 +12,7 @@ class TestGetOutingPreferences(BaseTestCase):
 
         async with self.db_session.begin() as db_session:
             account = await self.make_account(db_session)
-            await OutingPreferencesOrm.build(
+            await OutingPreferencesOrm(
                 account_id=account.id,
                 activity_category_ids=[first_activity_category.id],
                 restaurant_category_ids=[first_restaurant_category.id],
@@ -59,7 +59,7 @@ class TestGetOutingPreferences(BaseTestCase):
         async with self.db_session.begin() as db_session:
             account = await self.make_account(db_session)
 
-            await OutingPreferencesOrm.build(
+            await OutingPreferencesOrm(
                 account_id=account.id,
                 activity_category_ids=None,
                 restaurant_category_ids=None,

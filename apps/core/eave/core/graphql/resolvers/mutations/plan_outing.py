@@ -71,7 +71,7 @@ async def plan_outing_mutation(
         return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_SOON)
 
     async with database.async_session.begin() as db_session:
-        survey = await SurveyOrm.build(
+        survey = await SurveyOrm(
             account_id=account_id,
             visitor_id=input.visitor_id,
             start_time_utc=input.start_time,

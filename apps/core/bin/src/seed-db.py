@@ -87,13 +87,13 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
         dummy_date = datetime.datetime.now() + datetime.timedelta(days=2)
 
         if not account_id:
-            account = await AccountOrm.build(
+            account = await AccountOrm(
                 email=f"john{row}@gmail.com",
                 plaintext_password="pasword1!",  # noqa: S106
             ).save(session)
         assert account is not None
 
-        survey = await SurveyOrm.build(
+        survey = await SurveyOrm(
             visitor_id=visitor_id,
             account_id=account.id,
             start_time_utc=dummy_date,
@@ -102,12 +102,12 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             timezone=LOS_ANGELES_TIMEZONE,
             headcount=2,
         ).save(session)
-        outing = await OutingOrm.build(
+        outing = await OutingOrm(
             visitor_id=visitor_id,
             survey_id=survey.id,
             account_id=account.id,
         ).save(session)
-        outing_activity = await OutingActivityOrm.build(
+        outing_activity = await OutingActivityOrm(
             outing_id=outing.id,
             source_id=str(uuid.uuid4()),
             source=ActivitySource.INTERNAL,
@@ -115,7 +115,7 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             timezone=LOS_ANGELES_TIMEZONE,
             headcount=2,
         ).save(session)
-        outing_reservation = await OutingReservationOrm.build(
+        outing_reservation = await OutingReservationOrm(
             outing_id=outing.id,
             source_id=str(uuid.uuid4()),
             source=RestaurantSource.GOOGLE_PLACES,
@@ -123,21 +123,21 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             timezone=LOS_ANGELES_TIMEZONE,
             headcount=2,
         ).save(session)
-        reserver_details = await ReserverDetailsOrm.build(
+        reserver_details = await ReserverDetailsOrm(
             account_id=account.id,
             first_name="Jeff",
             last_name="Goldbloom",
             phone_number="+12698675309",
         ).save(session)
-        booking = await BookingOrm.build(
+        booking = await BookingOrm(
             account_id=account.id,
             reserver_details_id=reserver_details.id,
         ).save(session)
-        _account_booking = await AccountBookingOrm.build(
+        _account_booking = await AccountBookingOrm(
             account_id=account.id,
             booking_id=booking.id,
         ).save(session)
-        _booking_activity_template = await BookingActivityTemplateOrm.build(
+        _booking_activity_template = await BookingActivityTemplateOrm(
             booking_id=booking.id,
             source_id=str(uuid.uuid4()),
             source=ActivitySource.EVENTBRITE,
@@ -158,7 +158,7 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             lat=0,
             lon=0,
         ).save(session)
-        _booking_reservation_template = await BookingReservationTemplateOrm.build(
+        _booking_reservation_template = await BookingReservationTemplateOrm(
             booking_id=booking.id,
             source_id=str(uuid.uuid4()),
             source=RestaurantSource.GOOGLE_PLACES,

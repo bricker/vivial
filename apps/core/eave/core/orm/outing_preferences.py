@@ -35,20 +35,14 @@ class OutingPreferencesOrm(Base, GetOneByIdMixin):
         )
     )
 
-    @classmethod
-    def build(
-        cls,
-        *,
+    def __init__(self, *,
         account_id: UUID,
         activity_category_ids: list[UUID] | None,
         restaurant_category_ids: list[UUID] | None,
-    ) -> "OutingPreferencesOrm":
-        obj = OutingPreferencesOrm(
-            account_id=account_id,
-            activity_category_ids=activity_category_ids,
-            restaurant_category_ids=restaurant_category_ids,
-        )
-        return obj
+    ) -> None:
+        self.account_id = account_id
+        self.activity_category_ids = activity_category_ids
+        self.restaurant_category_ids = restaurant_category_ids
 
     @classmethod
     def select(cls, *, account_id: UUID = NOT_SET) -> Select[tuple[Self]]:

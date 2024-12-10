@@ -14,19 +14,19 @@ class TestBookingActivityTemplateOrm(BaseTestCase):
         async with self.db_session.begin() as session:
             account = await self.make_account(session)
 
-            reserver_details = await ReserverDetailsOrm.build(
+            reserver_details = await ReserverDetailsOrm(
                 account_id=account.id,
                 first_name=self.anyalpha(),
                 last_name=self.anyalpha(),
                 phone_number=self.anyphonenumber(),
             ).save(session)
 
-            booking = await BookingOrm.build(
+            booking = await BookingOrm(
                 account_id=account.id,
                 reserver_details_id=reserver_details.id,
             ).save(session)
 
-            await BookingActivityTemplateOrm.build(
+            await BookingActivityTemplateOrm(
                 booking_id=booking.id,
                 name=self.anystr("activity_name"),
                 start_time_utc=self.anydatetime("activity_start_time"),

@@ -301,7 +301,7 @@ async def create_booking_mutation(
             except StartTimeTooLateError:
                 return CreateBookingFailure(failure_reason=CreateBookingFailureReason.START_TIME_TOO_LATE)
 
-            booking = BookingOrm.build(
+            booking = BookingOrm(
                 stripe_payment_intent_reference_id=stripe_payment_intent_reference_orm.id
             )
 
@@ -320,7 +320,7 @@ async def create_booking_mutation(
                 )
 
                 booking.activities.append(
-                    BookingActivityTemplateOrm.build(
+                    BookingActivityTemplateOrm(
                         booking_id=booking.id, # This is likely "None" at this point, but that's OK because in this case it will be filled in by SQLAlchemy
                         source=activity.source,
                         source_id=activity.source_id,
@@ -350,7 +350,7 @@ async def create_booking_mutation(
                 )
 
                 booking.reservations.append(
-                    BookingReservationTemplateOrm.build(
+                    BookingReservationTemplateOrm(
                         source=reservation.source,
                         source_id=reservation.source_id,
                         name=details.name,

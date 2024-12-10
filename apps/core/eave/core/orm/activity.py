@@ -37,9 +37,8 @@ class ActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
 
     images: Mapped[list[ImageOrm]] = relationship(secondary=_activity_images_join_table, lazy="selectin")
 
-    @classmethod
-    def build(
-        cls,
+    def __init__(
+        self,
         *,
         title: str,
         description: str,
@@ -51,18 +50,16 @@ class ActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
         address: Address,
         is_bookable: bool,
         booking_url: str | None,
-    ) -> "ActivityOrm":
-        return ActivityOrm(
-            title=title,
-            description=description,
-            coordinates=GeoPoint(lat=lat, lon=lon).geoalchemy_shape(),
-            activity_category_id=activity_category_id,
-            duration_minutes=duration_minutes,
-            availability=availability,
-            address=address,
-            is_bookable=is_bookable,
-            booking_url=booking_url,
-        )
+    ) -> None:
+        self.title = title
+        self.description = description
+        self.coordinates = GeoPoint(lat=lat, lon=lon).geoalchemy_shape()
+        self.activity_category_id = activity_category_id
+        self.duration_minutes = duration_minutes
+        self.availability = availability
+        self.address = address
+        self.is_bookable = is_bookable
+        self.booking_url = booking_url
 
 
 class TicketTypeOrm(Base, GetOneByIdMixin):

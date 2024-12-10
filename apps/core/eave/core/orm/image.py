@@ -17,14 +17,6 @@ class ImageOrm(Base, GetOneByIdMixin):
     src: Mapped[str] = mapped_column()
     alt: Mapped[str] = mapped_column()
 
-    @classmethod
-    def build(
-        cls,
-        *,
-        src: str,
-        alt: str,
-    ) -> "ImageOrm":
-        return ImageOrm(
-            src=src,
-            alt=alt,
-        )
+    def __init__(self, *, src: str, alt: str) -> None:
+        self.src = src
+        self.alt = alt

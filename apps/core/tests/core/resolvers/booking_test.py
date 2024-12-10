@@ -12,7 +12,7 @@ class TestBookingEndpoints(BaseTestCase):
         async with self.db_session.begin() as session:
             account = await self.make_account(session=session)
             outing = await self.make_outing(session=session, account_id=account.id)
-            reserver_details = await ReserverDetailsOrm.build(
+            reserver_details = await ReserverDetailsOrm(
                 account_id=account.id,
                 first_name=self.anystr(),
                 last_name=self.anystr(),
@@ -41,7 +41,7 @@ class TestBookingEndpoints(BaseTestCase):
         async with self.db_session.begin() as session:
             account = await self.make_account(session=session)
             # cant use `create` convenience method since that includes validation
-            survey = SurveyOrm.build(
+            survey = SurveyOrm(
                 visitor_id=self.anyuuid(),
                 # survey time is expired
                 start_time_utc=self.anydatetime(past=True),
@@ -52,12 +52,12 @@ class TestBookingEndpoints(BaseTestCase):
             )
             session.add(survey)
             await session.flush()
-            outing = await OutingOrm.build(
+            outing = await OutingOrm(
                 visitor_id=self.anyuuid(),
                 account_id=account.id,
                 survey_id=survey.id,
             ).save(session)
-            reserver_details = await ReserverDetailsOrm.build(
+            reserver_details = await ReserverDetailsOrm(
                 account_id=account.id,
                 first_name=self.anystr(),
                 last_name=self.anystr(),

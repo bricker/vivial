@@ -175,7 +175,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         self,
         session: AsyncSession,
     ) -> AccountOrm:
-        account = await AccountOrm.build(
+        account = await AccountOrm(
             email=self.anyemail("make_account.email"),
             plaintext_password=self.anystr("make_account.plaintext_password"),
         ).save(session)
@@ -199,7 +199,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
 
         surv_id = survey_id
         if surv_id is None:
-            survey = await SurveyOrm.build(
+            survey = await SurveyOrm(
                 visitor_id=self.anyuuid(),
                 start_time_utc=self.anydatetime(offset=2 * 60 * 60 * 24),
                 timezone=self.anytimezone(),
@@ -209,7 +209,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             ).save(session)
             surv_id = survey.id
 
-        outing = await OutingOrm.build(
+        outing = await OutingOrm(
             visitor_id=self.anyuuid(),
             account_id=act_id,
             survey_id=surv_id,

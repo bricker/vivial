@@ -50,7 +50,7 @@ async def create_account_mutation(
             return CreateAccountFailure(failure_reason=CreateAccountFailureReason.ACCOUNT_EXISTS)
 
         try:
-            account_orm = await AccountOrm.build(
+            account_orm = await AccountOrm(
                 email=input.email,
                 plaintext_password=input.plaintext_password,
             ).save(db_session)

@@ -24,23 +24,18 @@ class ReserverDetailsOrm(Base, GetOneByIdMixin):
     last_name: Mapped[str] = mapped_column()
     phone_number: Mapped[str] = mapped_column()
 
-    @classmethod
-    def build(
-        cls,
+    def __init__(
+        self,
         *,
         account_id: UUID,
         first_name: str,
         last_name: str,
         phone_number: str,
-    ) -> "ReserverDetailsOrm":
-        obj = ReserverDetailsOrm(
-            account_id=account_id,
-            first_name=first_name,
-            last_name=last_name,
-            phone_number=phone_number,
-        )
-
-        return obj
+    ) -> None:
+        self.account_id = account_id
+        self.first_name = first_name
+        self.last_name = last_name
+        self.phone_number = phone_number
 
     def validate(self) -> list[ValidationError]:
         errors: list[ValidationError] = []

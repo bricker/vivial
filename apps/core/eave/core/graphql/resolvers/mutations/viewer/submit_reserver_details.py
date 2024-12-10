@@ -52,7 +52,7 @@ async def submit_reserver_details_mutation(
     e.g. "+11234567890" or "1234567890"
     """
     account_id = unwrap(info.context.get("authenticated_account_id"))
-    reserver_details = ReserverDetailsOrm.build(
+    reserver_details = ReserverDetailsOrm(
         account_id=account_id,
         first_name=input.first_name,
         last_name=input.last_name,

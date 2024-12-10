@@ -24,14 +24,14 @@ async def create_outing(
     plan.activity.ticket_info
 
     async with database.async_session.begin() as db_session:
-        outing_orm = await OutingOrm.build(
+        outing_orm = await OutingOrm(
             visitor_id=visitor_id,
             survey_id=survey.id,
             account_id=account_id,
         ).save(db_session)
 
         if plan.activity and plan.activity_start_time:
-            await OutingActivityOrm.build(
+            await OutingActivityOrm(
                 outing_id=outing_orm.id,
                 source_id=plan.activity.source_id,
                 source=plan.activity.source,
@@ -41,7 +41,7 @@ async def create_outing(
             ).save(session=db_session)
 
         if plan.restaurant and plan.restaurant_arrival_time:
-            await OutingReservationOrm.build(
+            await OutingReservationOrm(
                 outing_id=outing_orm.id,
                 source_id=plan.restaurant.source_id,
                 source=plan.restaurant.source,

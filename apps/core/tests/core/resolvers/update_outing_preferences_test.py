@@ -14,7 +14,7 @@ class TestUpdateOutingPreferences(BaseTestCase):
 
         async with self.db_session.begin() as db_session:
             account = await self.make_account(db_session)
-            outing_preferences_orm = await OutingPreferencesOrm.build(
+            outing_preferences_orm = await OutingPreferencesOrm(
                 account_id=account.id,
                 activity_category_ids=[first_activity_category.id],
                 restaurant_category_ids=[first_restaurant_category.id],
