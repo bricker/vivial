@@ -83,7 +83,7 @@ const TitleContainer = styled("div")(() => ({
   gap: 16,
 }));
 
-const InfoContainer = styled("div")(() => ({
+const InfoForm = styled("form")(() => ({
   marginTop: 24,
 }));
 
@@ -305,7 +305,7 @@ const ReservationDetailsForm = () => {
 
         {reserverDetailsHasValues ? (
           // we have details to display; show them
-          <InfoContainer>
+          <InfoForm onSubmit={handleSubmit}>
             <FieldsContainer>
               <BoldInput placeholder="First name" value={reserverDetails.firstName} onChange={handleFirstNameChange} />
               <BoldInput placeholder="Last name" value={reserverDetails.lastName} onChange={handleLastNameChange} />
@@ -318,15 +318,10 @@ const ReservationDetailsForm = () => {
               </InputErrorContainer>
             )}
 
-            <PaddedPrimaryButton
-              onClick={handleSubmit}
-              loading={submissionIsLoading}
-              disabled={submitButtonDisabled}
-              fullWidth
-            >
+            <PaddedPrimaryButton type="submit" loading={submissionIsLoading} disabled={submitButtonDisabled} fullWidth>
               Reserve
             </PaddedPrimaryButton>
-          </InfoContainer>
+          </InfoForm>
         ) : (
           <StateContainer>
             {listDetailsIsLoading ? (
