@@ -59,7 +59,7 @@ class AuthenticationExtension(FieldExtension):
         except AccessTokenExpiredError:
             return UnauthenticatedViewer(
                 auth_action=ViewerAuthenticationAction.REFRESH_ACCESS_TOKEN,
-                auth_failure_reason=AuthenticationFailureReason.ACCESS_TOKEN_INVALID,
+                auth_failure_reason=AuthenticationFailureReason.ACCESS_TOKEN_EXPIRED,
             )
 
         except InvalidTokenError:
