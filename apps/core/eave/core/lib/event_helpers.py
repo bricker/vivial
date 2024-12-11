@@ -21,16 +21,7 @@ from eave.stdlib.eventbrite.client import EventbriteClient
 
 async def get_internal_activity(*, event_id: str) -> Activity | None:
     async with database.async_session.begin() as db_session:
-        query = ActivityOrm.select(
-            uid=uuid.UUID(event_id),
-        ).join(ActivityImageOrm, ActivityOrm.id == ActivityImageOrm.activity_id)
-
-        images = await ActivityImageOrm.select(activity_id=activity.id)
-    lat, lon = activity.coordinates_to_lat_lon()
-    formatted_address = dedent(f"""
-        {activity.address.address1} {activity.address.address2}
-        {activity.address.city}, {activity.address.state} {activity.address.zip}
-        """).strip()
+        activity = await ActivityOrm.get_one(db_session, uid=uuid.UUID(event_id))
 
     return Activity(
         source_id=event_id,

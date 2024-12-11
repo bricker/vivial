@@ -9,6 +9,7 @@ from google.maps.places_v1 import PlacesAsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 import stripe
 
+from eave.core.lib.geo import GeoPoint
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 import eave.stdlib.slack
 from eave.core import database
@@ -54,14 +55,8 @@ class BookingTemplates:
 @dataclass
 class EventDetails:
     name: str
-    latitude: float
-    longitude: float
-    address1: str
-    address2: str | None
-    city: str
-    region: str
-    country: str
-    postal_code: str
+    coordinates: GeoPoint
+    address: Address
     uri: str
     photo_uri: str | None
 
@@ -73,7 +68,12 @@ async def _get_event_details(
     places_client = PlacesAsyncClient()
     eventbrite_client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
 
-    name = address1 = address2 = city = region = postal_code = country = lat = lon = booking_uri = photo_uri = None
+    name: str | None = None
+    address: Address | None = None
+    coordinates: GeoPoint | None = None
+    booking_uri: str | None = None
+    photo_uri: str | None = None
+
     match source:
         case ActivitySource.INTERNAL:
             async with database.async_session.begin() as db_session:
@@ -81,13 +81,16 @@ async def _get_event_details(
                     db_session,
                     UUID(source_id),
                 )
-            lat, lon = details.coordinates_to_lat_lon()
             name = details.title
-            address1 = details.address.address1
-            address2 = details.address.address2
-            city = details.address.city
-            region = details.address.state
-            postal_code = details.address.zip
+            coordinates = details.coordinates_to_geopoint()
+            address = Address(
+                address1=details.address.address1,
+                address2=details.address.address2,
+                city=details.address.city,
+                state=details.address.state,
+                zip=details.address.zip,
+                country=details.address.country,
+            )
             booking_uri = details.booking_url
 
         case ActivitySource.GOOGLE_PLACES | RestaurantSource.GOOGLE_PLACES:
@@ -101,51 +104,57 @@ async def _get_event_details(
 
             name = details.display_name.text
             booking_uri = details.websiteUri
-            country = next(
-                (component.shortText for component in details.addressComponents if "country" in component.types),
-                None,
-            )
-            region = next(
-                (
-                    component.shortText
-                    for component in details.addressComponents
-                    if "administrative_area_level_1" in component.types
+
+            address = Address(
+                country=next(
+                    (component.shortText for component in details.addressComponents if "country" in component.types),
+                    "US",
                 ),
-                None,
-            )
-            city = next(
-                (component.longText for component in details.addressComponents if "locality" in component.types),
-                None,
-            )
-            postal_code = next(
-                (component.longText for component in details.addressComponents if "postal_code" in component.types),
-                None,
-            )
-            address1 = next(
-                (component.longText for component in details.addressComponents if "street_address" in component.types),
-                None,
-            ) or " ".join(  # fallback to constructing address from more granular components
-                [
-                    next(
-                        (
-                            component.longText
-                            for component in details.addressComponents
-                            if "street_number" in component.types
+                state=next(
+                    (
+                        component.shortText
+                        for component in details.addressComponents
+                        if "administrative_area_level_1" in component.types
+                    ),
+                    "",
+                ),
+                city=next(
+                    (component.longText for component in details.addressComponents if "locality" in component.types),
+                    "",
+                ),
+                zip=next(
+                    (component.longText for component in details.addressComponents if "postal_code" in component.types),
+                    "",
+                ),
+                address1=next(
+                    (component.longText for component in details.addressComponents if "street_address" in component.types),
+                    None,
+                ) or " ".join(  # fallback to constructing address from more granular components
+                    [
+                        next(
+                            (
+                                component.longText
+                                for component in details.addressComponents
+                                if "street_number" in component.types
+                            ),
+                            "",
                         ),
-                        "",
-                    ),
-                    next(
-                        (component.longText for component in details.addressComponents if "route" in component.types),
-                        "",
-                    ),
-                ]
+                        next(
+                            (component.longText for component in details.addressComponents if "route" in component.types),
+                            "",
+                        ),
+                    ]
+                ),
+                address2=next(
+                    (component.longText for component in details.addressComponents if "subpremise" in component.types),
+                    None,
+                ),
             )
-            address2 = next(
-                (component.longText for component in details.addressComponents if "subpremise" in component.types),
-                None,
+
+            coordinates = GeoPoint(
+                lat=details.location.latitude,
+                lon=details.location.longitude,
             )
-            lat = details.location.latitude
-            lon = details.location.longitude
 
         case ActivitySource.EVENTBRITE:
             details = await eventbrite_client.get_event_by_id(
@@ -155,52 +164,46 @@ async def _get_event_details(
             name = details.get("name", {}).get("text")
             booking_uri = details.get("url")
             if venue := details.get("venue"):
-                lat = venue.get("latitude")
-                lon = venue.get("longitude")
-                if address := venue.get("address"):
-                    address1 = address.get("address_1")
-                    address2 = address.get("address_2")
-                    city = address.get("city")
-                    region = address.get("region")
-                    postal_code = address.get("postal_code")
-                    country = address.get("country")
+                lat=venue.get("latitude")
+                lon=venue.get("longitude")
+
+                if lat is not None and lon is not None:
+                    coordinates = GeoPoint(
+                        lat=float(lat),
+                        lon=float(lon),
+                    )
+
+                if venue_address := venue.get("address"):
+                    address = Address(
+                        address1=venue_address.get("address_1"),
+                        address2=venue_address.get("address_2"),
+                        city=venue_address.get("city"),
+                        state=venue_address.get("region"),
+                        zip=venue_address.get("postal_code"),
+                        country=venue_address.get("country"),
+                    )
             if logo := details.get("logo"):
                 photo_uri = logo.get("original", {}).get("url")
 
     assert name is not None
-    assert lat is not None
-    assert lon is not None
-    assert address1 is not None
-    assert city is not None
-    assert region is not None
-    assert postal_code is not None
-    assert country is not None
+    assert coordinates is not None
+    assert address is not None
     assert booking_uri is not None
 
     return EventDetails(
         name=name,
-        latitude=float(lat),
-        longitude=float(lon),
-        address1=address1,
-        address2=address2,
-        city=city,
-        region=region,
-        postal_code=postal_code,
-        country=country,
+        coordinates=coordinates,
+        address=address,
         uri=booking_uri,
         photo_uri=photo_uri,
     )
 
 
 async def _notify_slack(
-    booking_details: BookingTemplates,
-    account_id: UUID,
-    reserver_details_id: UUID,
+    booking: BookingOrm,
+    account: AccountOrm,
+    reserver_details: ReserverDetailsOrm,
 ) -> None:
-    async with database.async_session.begin() as db_session:
-        account = await AccountOrm.get_one(db_session, account_id)
-        reserver = await ReserverDetailsOrm.get_one(db_session, (account_id, reserver_details_id))
-
     try:
         channel_id = SHARED_CONFIG.eave_slack_signups_channel_id
         slack_client = eave.stdlib.slack.get_authenticated_eave_system_slack_client()
@@ -219,9 +222,9 @@ async def _notify_slack(
                     Account ID: `{account.id}`
                     Account email: `{account.email}`
 
-                    Reserver first name: `{reserver.first_name}`
-                    Reserver last name: `{reserver.last_name}`
-                    Reserver phone number: `{reserver.phone_number}`
+                    Reserver first name: `{reserver_details.first_name}`
+                    Reserver last name: `{reserver_details.last_name}`
+                    Reserver phone number: `{reserver_details.phone_number}`
 
                     {"\n".join([
                     f"""*Reservation:*
@@ -233,7 +236,7 @@ async def _notify_slack(
                     {reservation.address}
                     ```
                     """
-                        for reservation in booking_details.reservations
+                        for reservation in booking.reservations
                     ])}
 
                     {"\n".join([
@@ -246,7 +249,7 @@ async def _notify_slack(
                     {activity.address}
                     ```
                     """
-                        for activity in booking_details.activities
+                        for activity in booking.activities
                     ])}"""),
             )
     except Exception as e:
@@ -301,17 +304,16 @@ async def create_booking_mutation(
             except StartTimeTooLateError:
                 return CreateBookingFailure(failure_reason=CreateBookingFailureReason.START_TIME_TOO_LATE)
 
+            reserver_details = await ReserverDetailsOrm.get_one(db_session, input.reserver_details_id)
+            account = await AccountOrm.get_one(db_session, account_id)
+
             booking = BookingOrm(
-                stripe_payment_intent_reference_id=stripe_payment_intent_reference_orm.id
+                reserver_details=reserver_details,
+                stripe_payment_intent_reference=stripe_payment_intent_reference_orm,
             )
 
             db_session.add(booking)
-
-            account = await AccountOrm.get_one(db_session, account_id)
             booking.accounts = [account]
-
-            reserver_details = await ReserverDetailsOrm.get_one(db_session, input.reserver_details_id)
-            booking.reserver_details = reserver_details
 
             for activity in outing.activities:
                 details = await _get_event_details(
@@ -321,7 +323,7 @@ async def create_booking_mutation(
 
                 booking.activities.append(
                     BookingActivityTemplateOrm(
-                        booking_id=booking.id, # This is likely "None" at this point, but that's OK because in this case it will be filled in by SQLAlchemy
+                        booking=booking,
                         source=activity.source,
                         source_id=activity.source_id,
                         name=details.name,
@@ -329,16 +331,8 @@ async def create_booking_mutation(
                         timezone=activity.timezone,
                         headcount=activity.headcount,
                         external_booking_link=details.uri,
-                        address=Address(
-                            address1=details.address1,
-                            address2=details.address2,
-                            city=details.city,
-                            state=details.region,
-                            zip=details.postal_code,
-                            country=details.country,
-                        ),
-                        lat=details.latitude,
-                        lon=details.longitude,
+                        address=details.address,
+                        coordinates=details.coordinates,
                         photo_uri=details.photo_uri,
                     )
                 )
@@ -351,6 +345,7 @@ async def create_booking_mutation(
 
                 booking.reservations.append(
                     BookingReservationTemplateOrm(
+                        booking=booking,
                         source=reservation.source,
                         source_id=reservation.source_id,
                         name=details.name,
@@ -358,16 +353,8 @@ async def create_booking_mutation(
                         timezone=reservation.timezone,
                         headcount=reservation.headcount,
                         external_booking_link=details.uri,
-                        address=Address(
-                            address1=details.address1,
-                            address2=details.address2,
-                            city=details.city,
-                            state=details.region,
-                            zip=details.postal_code,
-                            country=details.country,
-                        ),
-                        lat=details.latitude,
-                        lon=details.longitude,
+                        address=details.address,
+                        coordinates=details.coordinates,
                         photo_uri=details.photo_uri,
                     )
                 )

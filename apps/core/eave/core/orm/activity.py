@@ -42,8 +42,7 @@ class ActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
         *,
         title: str,
         description: str,
-        lat: float,
-        lon: float,
+        coordinates: GeoPoint,
         activity_category_id: UUID,
         duration_minutes: int,
         availability: str,
@@ -53,7 +52,7 @@ class ActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
     ) -> None:
         self.title = title
         self.description = description
-        self.coordinates = GeoPoint(lat=lat, lon=lon).geoalchemy_shape()
+        self.coordinates = coordinates.geoalchemy_shape()
         self.activity_category_id = activity_category_id
         self.duration_minutes = duration_minutes
         self.availability = availability

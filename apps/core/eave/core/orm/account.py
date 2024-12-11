@@ -3,13 +3,14 @@ import hmac
 import os
 import re
 from datetime import datetime
-from typing import Literal, Self
+from typing import TYPE_CHECKING, Literal, Self
 from uuid import UUID
 
 from sqlalchemy import PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.dialects.postgresql import TIMESTAMP
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from eave.core.orm.account_bookings_join_table import ACCOUNT_BOOKINGS_JOIN_TABLE
 from eave.core.orm.util.mixins import GetOneByIdMixin
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.typing import NOT_SET
@@ -18,6 +19,8 @@ from eave.stdlib.util import b64encode
 from .base import Base
 from .util.constants import PG_UUID_EXPR
 
+if TYPE_CHECKING:
+    from eave.core.orm.booking import BookingOrm
 
 class InvalidPasswordError(Exception):
     pass
@@ -69,6 +72,8 @@ class AccountOrm(Base, GetOneByIdMixin):
     last_login: Mapped[datetime | None] = mapped_column(
         type_=TIMESTAMP(timezone=True), server_default=func.current_timestamp(), nullable=True
     )
+
+    bookings: Mapped[list["BookingOrm"]] = relationship(secondary=ACCOUNT_BOOKINGS_JOIN_TABLE, lazy="selectin", back_populates="accounts")
 
     def __init__(
         self,

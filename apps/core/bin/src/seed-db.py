@@ -41,7 +41,6 @@ import eave.core.orm.base
 from eave.core.graphql.types.activity import ActivitySource
 from eave.core.graphql.types.restaurant import RestaurantSource
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.account_booking import AccountBookingOrm
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.booking import BookingActivityTemplateOrm
 from eave.core.orm.booking import BookingReservationTemplateOrm
@@ -93,20 +92,25 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             ).save(session)
         assert account is not None
 
-        survey = await SurveyOrm(
+        survey = SurveyOrm(
             visitor_id=visitor_id,
-            account_id=account.id,
+            account=account,
             start_time_utc=dummy_date,
             search_area_ids=[SearchRegionOrm.all()[0].id],
             budget=OutingBudget.EXPENSIVE,
             timezone=LOS_ANGELES_TIMEZONE,
             headcount=2,
-        ).save(session)
-        outing = await OutingOrm(
+        )
+        session.add(survey)
+
+        outing = OutingOrm(
             visitor_id=visitor_id,
+            survey=survey,
+            account=account,
             survey_id=survey.id,
             account_id=account.id,
-        ).save(session)
+        )
+
         outing_activity = await OutingActivityOrm(
             outing_id=outing.id,
             source_id=str(uuid.uuid4()),

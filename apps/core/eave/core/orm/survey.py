@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 
 import sqlalchemy
 from sqlalchemy import ForeignKey, ForeignKeyConstraint, PrimaryKeyConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.util.mixins import GetOneByIdMixin, TimedEventMixin
@@ -23,7 +23,6 @@ class SurveyOrm(Base, TimedEventMixin, GetOneByIdMixin):
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     visitor_id: Mapped[UUID] = mapped_column()
-    account_id: Mapped[UUID | None] = mapped_column(ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL))
     search_area_ids: Mapped[list[UUID]] = mapped_column(
         type_=sqlalchemy.dialects.postgresql.ARRAY(
             item_type=sqlalchemy.types.Uuid,
@@ -32,6 +31,9 @@ class SurveyOrm(Base, TimedEventMixin, GetOneByIdMixin):
     )
     budget: Mapped[OutingBudget] = mapped_column(type_=OutingBudgetColumnType())
     headcount: Mapped[int] = mapped_column()
+
+    account_id: Mapped[UUID | None] = mapped_column(ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL))
+    account: Mapped[AccountOrm | None] = relationship(lazy="selectin")
 
     def __init__(
         self,
@@ -42,10 +44,10 @@ class SurveyOrm(Base, TimedEventMixin, GetOneByIdMixin):
         search_area_ids: list[UUID],
         budget: OutingBudget,
         headcount: int,
-        account_id: UUID | None = None,
+        account: AccountOrm | None,
     ) -> None:
+        self.account = account
         self.visitor_id = visitor_id
-        self.account_id = account_id
         self.start_time_utc = start_time_utc.astimezone(UTC)
         self.timezone = timezone
         self.search_area_ids = search_area_ids

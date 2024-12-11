@@ -12,8 +12,10 @@ class TestActivityOrm(BaseTestCase):
             activity = ActivityOrm(
                 title=self.anystr("title"),
                 description=self.anystr("description"),
-                lat=self.anylatitude("lat"),
-                lon=self.anylongitude("lon"),
+                coordinates=GeoPoint(
+                    lat=self.anylatitude("lat"),
+                    lon=self.anylongitude("lon"),
+                ),
                 is_bookable=self.anybool("is_bookable"),
                 booking_url=self.anyurl("booking_url"),
                 activity_category_id=self.anyuuid("category_id"),
@@ -57,8 +59,10 @@ class TestActivityOrm(BaseTestCase):
             activity_orm = ActivityOrm(
                 title=self.anystr("title"),
                 description=self.anystr("description"),
-                lat=self.anylatitude("lat"),
-                lon=self.anylongitude("lon"),
+                coordinates=GeoPoint(
+                    lat=self.anylatitude("lat"),
+                    lon=self.anylongitude("lon"),
+                ),
                 is_bookable=self.anybool("is_bookable"),
                 booking_url=self.anyurl("booking_url"),
                 activity_category_id=self.anyuuid("category_id"),

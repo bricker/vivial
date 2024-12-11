@@ -29,21 +29,21 @@ class OutingOrm(Base, GetOneByIdMixin):
     survey: Mapped[SurveyOrm] = relationship(lazy="selectin")
 
     account_id: Mapped[UUID | None] = mapped_column(ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL))
-    account: Mapped[AccountOrm] = relationship(lazy="selectin")
+    account: Mapped[AccountOrm | None] = relationship(lazy="selectin")
 
-    activities: Mapped[list["OutingActivityOrm"]] = relationship(lazy="selectin")
-    reservations: Mapped[list["OutingReservationOrm"]] = relationship(lazy="selectin")
+    activities: Mapped[list["OutingActivityOrm"]] = relationship(lazy="selectin", back_populates="outing")
+    reservations: Mapped[list["OutingReservationOrm"]] = relationship(lazy="selectin", back_populates="outing")
 
     def __init__(
         self,
         *,
         visitor_id: UUID,
-        survey_id: UUID,
-        account_id: UUID | None = None,
+        survey: SurveyOrm,
+        account: AccountOrm | None,
     ) -> None:
         self.visitor_id = visitor_id
-        self.account_id = account_id
-        self.survey_id = survey_id
+        self.account = account
+        self.survey = survey
 
 class OutingActivityOrm(Base, TimedEventMixin):
     """Pivot table between `outings` and activity sources"""
@@ -53,7 +53,10 @@ class OutingActivityOrm(Base, TimedEventMixin):
         PrimaryKeyConstraint("outing_id", "source_id", name="outing_activity_pivot_pk"),
     )
 
+    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, unique=True)
     outing_id: Mapped[UUID] = mapped_column(ForeignKey(f"{OutingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE))
+    outing: Mapped[OutingOrm] = relationship(lazy="selectin", back_populates="activities")
+
     source_id: Mapped[str] = mapped_column()
     """ID of activity in remote table"""
     source: Mapped[ActivitySource] = mapped_column(type_=ActivitySourceColumnType())
@@ -63,25 +66,19 @@ class OutingActivityOrm(Base, TimedEventMixin):
     def __init__(
         self,
         *,
-        outing_id: UUID,
+        outing: OutingOrm,
         source_id: str,
         source: ActivitySource,
         start_time_utc: datetime,
         timezone: ZoneInfo,
         headcount: int,
     ) -> None:
-        self.outing_id = outing_id
+        self.outing = outing
         self.source_id = source_id
         self.source = source
         self.start_time_utc = start_time_utc.astimezone(UTC)
         self.timezone = timezone
         self.headcount = headcount
-
-    @classmethod
-    async def get_one_by_outing_id(cls, session: AsyncSession, outing_id: UUID) -> Self:
-        lookup = cls.select().where(cls.outing_id == outing_id)
-        result = (await session.scalars(lookup)).one()
-        return result
 
 
 class OutingReservationOrm(Base, TimedEventMixin):
@@ -92,7 +89,10 @@ class OutingReservationOrm(Base, TimedEventMixin):
         PrimaryKeyConstraint("outing_id", "source_id", name="outing_reservation_pivot_pk"),
     )
 
+    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, unique=True)
     outing_id: Mapped[UUID] = mapped_column(ForeignKey(f"{OutingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE))
+    outing: Mapped[OutingOrm] = relationship(lazy="selectin", back_populates="reservations")
+
     source_id: Mapped[str] = mapped_column()
     """ID of reservation in remote table"""
     source: Mapped[RestaurantSource] = mapped_column(type_=RestaurantSourceColumnType())
@@ -102,22 +102,16 @@ class OutingReservationOrm(Base, TimedEventMixin):
     def __init__(
         self,
         *,
-        outing_id: UUID,
+        outing: OutingOrm,
         source_id: str,
         source: RestaurantSource,
         start_time_utc: datetime,
         timezone: ZoneInfo,
         headcount: int,
     ) -> None:
-        self.outing_id = outing_id
+        self.outing = outing
         self.source_id = source_id
         self.source = source
         self.start_time_utc = start_time_utc.astimezone(UTC)
         self.timezone = timezone
         self.headcount = headcount
-
-    @classmethod
-    async def get_one_by_outing_id(cls, session: AsyncSession, outing_id: UUID) -> Self:
-        lookup = cls.select().where(cls.outing_id == outing_id)
-        result = (await session.scalars(lookup)).one()
-        return result

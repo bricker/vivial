@@ -1,8 +1,10 @@
 import re
+from typing import Self
 from uuid import UUID
 
 from sqlalchemy import ForeignKey, ForeignKeyConstraint, PrimaryKeyConstraint
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.util.mixins import GetOneByIdMixin
@@ -12,27 +14,29 @@ from .base import Base
 from .util.constants import PG_UUID_EXPR, OnDeleteOption
 
 
-class ReserverDetailsOrm(Base, GetOneByIdMixin):
+class ReserverDetailsOrm(Base):
     __tablename__ = "reserver_details"
     __table_args__ = (
         PrimaryKeyConstraint("account_id", "id", name="account_id_id_pk"),
     )
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, unique=True)
-    account_id: Mapped[UUID] = mapped_column(ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE))
     first_name: Mapped[str] = mapped_column()
     last_name: Mapped[str] = mapped_column()
     phone_number: Mapped[str] = mapped_column()
 
+    account_id: Mapped[UUID] = mapped_column(ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE))
+    account: Mapped[AccountOrm] = relationship(lazy="selectin")
+
     def __init__(
         self,
         *,
-        account_id: UUID,
+        account: AccountOrm,
         first_name: str,
         last_name: str,
         phone_number: str,
     ) -> None:
-        self.account_id = account_id
+        self.account = account
         self.first_name = first_name
         self.last_name = last_name
         self.phone_number = phone_number
@@ -53,3 +57,7 @@ class ReserverDetailsOrm(Base, GetOneByIdMixin):
             errors.append(ValidationError(field="last_name"))
 
         return errors
+
+    @classmethod
+    async def get_one(cls, session: AsyncSession, *, account_id: UUID, uid: UUID) -> Self:
+        return await session.get_one(cls, (account_id, uid))

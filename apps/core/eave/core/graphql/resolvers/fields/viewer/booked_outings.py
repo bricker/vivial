@@ -6,28 +6,19 @@ from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.booking import BookingDetailPeek, BookingDetails
 from eave.core.lib.event_helpers import get_activity, get_restaurant
+from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.booking import BookingActivityTemplateOrm
 from eave.core.orm.booking import BookingReservationTemplateOrm
+from eave.stdlib.http_exceptions import NotFoundError
 from eave.stdlib.util import unwrap
 
 
 async def _get_booking_details(
-    booking_id: UUID,
+    booking: BookingOrm,
 ) -> BookingDetails:
-    activities_query = BookingActivityTemplateOrm.select().where(BookingActivityTemplateOrm.booking_id == booking_id)
-    reservations_query = BookingReservationTemplateOrm.select().where(
-        BookingReservationTemplateOrm.booking_id == booking_id
-    )
-
-    async with database.async_session.begin() as session:
-        # NOTE: only getting 1 (or None) result here instead of full scalars result since
-        # response type only accepts one of each
-        activity = await session.scalar(activities_query)
-        reservation = await session.scalar(reservations_query)
-
     details = BookingDetails(
-        id=booking_id,
+        id=booking.id,
         headcount=0,
         activity=None,
         activity_start_time=None,
@@ -35,6 +26,16 @@ async def _get_booking_details(
         restaurant_arrival_time=None,
         driving_time=None,  # TODO: can we fill this in?
     )
+    # NOTE: only getting 1 (or None) result here instead of full scalars result since
+    # response type only accepts one of each
+    activity = None
+    reservation = None
+
+    if len(booking.activities) > 0:
+        activity = booking.activities[0]
+    if len(booking.reservations) > 0:
+        reservation = booking.reservations[0]
+
 
     if activity:
         details.activity_start_time = activity.start_time_local
@@ -60,23 +61,22 @@ async def list_bookings_query(
     info: strawberry.Info[GraphQLContext],
 ) -> list[BookingDetailPeek]:
     account_id = unwrap(info.context.get("authenticated_account_id"))
-    query = BookingOrm.select().where(BookingOrm.account_id == account_id)
     booking_details = []
 
     async with database.async_session.begin() as db_session:
-        booking_orms = await db_session.scalars(query)
+        account = await AccountOrm.get_one(db_session, account_id)
 
-        for booking in booking_orms:
-            activities_query = BookingActivityTemplateOrm.select().where(
-                BookingActivityTemplateOrm.booking_id == booking.id
-            )
-            reservations_query = BookingReservationTemplateOrm.select().where(
-                BookingReservationTemplateOrm.booking_id == booking.id
-            )
+        for booking in account.bookings:
             # NOTE: only getting 1 (or None) result here instead of full scalars result since
             # response type only accepts one of each
-            activity = await db_session.scalar(activities_query)
-            reservation = await db_session.scalar(reservations_query)
+            activity = None
+            reservation = None
+
+            if len(booking.activities) > 0:
+                activity = booking.activities[0]
+
+            if len(booking.reservations) > 0:
+                reservation = booking.reservations[0]
 
             photo_uri = None
             if reservation and reservation.photo_uri:
@@ -109,14 +109,20 @@ async def get_booking_details_query(
     input: GetBookingDetailsQueryInput,
 ) -> BookingDetails:
     account_id = unwrap(info.context.get("authenticated_account_id"))
-    query = BookingOrm.select().where(BookingOrm.account_id == account_id).where(BookingOrm.id == input.booking_id)
 
     # validate the requesting account owns the booking requested
     async with database.async_session.begin() as db_session:
-        booking_orm = (await db_session.scalars(query)).one()
+        account = await AccountOrm.get_one(db_session, account_id)
+        bookings = account.bookings
+
+        # FIXME: This is inefficient, there is a better way to select just the right one using SQL.
+        # It's important that the account_id is used too, so that this booking can only be accessed by this account.
+        booking = next((b for b in account.bookings if b.id == input.booking_id), None)
+        if not booking:
+            raise NotFoundError("Booking not found")
 
     detail = await _get_booking_details(
-        booking_id=booking_orm.id,
+        booking=booking,
     )
 
     return detail
