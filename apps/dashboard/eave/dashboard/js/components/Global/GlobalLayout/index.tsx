@@ -12,6 +12,7 @@ const LayoutContainer = styled(Box)<BoxProps>(() => ({
   flexDirection: "column",
   justifyContent: "space-between",
   minHeight: "100vh",
+  overflowX: "hidden",
 }));
 
 const MainContent = styled("main")(() => ({

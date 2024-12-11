@@ -10,12 +10,18 @@ import Paper from "../../Paper";
 
 import { getAccentColor, getCategoryMap } from "./helpers";
 
-const CategoryRow = styled(Paper)(() => ({
+const RowContainer = styled(Paper)(() => ({
   position: "relative",
   display: "flex",
   flexDirection: "column",
-  justifyContent: "space-between",
   marginBottom: 16,
+}));
+
+const RowContentContainer = styled("div")(() => ({
+  display: "flex",
+  flexDirection: "column",
+  justifyContent: "space-between",
+  flex: 1,
 }));
 
 const Categories = styled("div")(() => ({
@@ -117,11 +123,11 @@ const PreferenceSelections = ({
   }, [collapsed]);
 
   return (
-    <CategoryRow>
+    <RowContainer>
       {collapsable && <CollapseButton onClick={handleForceCollapse} open={isCollapsed} large />}
       <Typography variant="h5">{categoryGroupName}</Typography>
       {isCollapsed && (
-        <>
+        <RowContentContainer>
           <Categories>
             <PillButton
               onClick={toggleSelectAll}
@@ -145,9 +151,9 @@ const PreferenceSelections = ({
           <SubmitButtonContainer>
             <SubmitButton onClick={handleSubmit}>{cta}</SubmitButton>
           </SubmitButtonContainer>
-        </>
+        </RowContentContainer>
       )}
-    </CategoryRow>
+    </RowContainer>
   );
 };
 

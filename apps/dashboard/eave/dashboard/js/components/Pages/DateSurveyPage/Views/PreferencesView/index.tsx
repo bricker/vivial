@@ -26,6 +26,7 @@ const SelectionsContainer = styled("div")(() => ({
   display: "flex",
   position: "relative",
   left: 0,
+  marginTop: 16,
   "& div": {
     minWidth: "100%",
     marginRight: 16,
