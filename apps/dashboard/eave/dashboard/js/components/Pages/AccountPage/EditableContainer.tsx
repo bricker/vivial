@@ -17,7 +17,7 @@ import AccountBookingInfoEditForm from "../../Forms/AccountBookingInfoEditForm";
 import EditIcon from "../../Icons/EditIcon";
 import Paper from "../../Paper";
 
-const FormContainer = styled(Paper)(({ theme }) => ({
+const MainContainer = styled(Paper)(({ theme }) => ({
   padding: 24,
   [theme.breakpoints.up(Breakpoint.Medium)]: {
     padding: "24px 40px",
@@ -192,7 +192,7 @@ const EditableContainer = () => {
   );
 
   return (
-    <FormContainer>
+    <MainContainer>
       <TitleContainer>
         <Typography variant="h2">Booking info</Typography>
         {!isEditing && reserverDetails && (
@@ -237,7 +237,7 @@ const EditableContainer = () => {
           )}
         </StateContainer>
       )}
-    </FormContainer>
+    </MainContainer>
   );
 };
 
