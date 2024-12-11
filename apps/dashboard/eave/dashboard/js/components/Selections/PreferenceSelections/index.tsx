@@ -1,6 +1,6 @@
 import { type Category } from "$eave-dashboard/js/types/category";
 import { styled } from "@mui/material";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import Typography from "@mui/material/Typography";
 import DropdownButton from "../../Buttons/DropdownButton";
@@ -11,14 +11,15 @@ import Paper from "../../Paper";
 import { getAccentColor, getCategoryMap } from "./helpers";
 
 const CategoryRow = styled(Paper)(() => ({
+  position: "relative",
   display: "flex",
   flexDirection: "column",
   justifyContent: "space-between",
-  marginTop: 16,
+  marginBottom: 16,
 }));
 
-const GroupName = styled(Typography)(() => ({
-  marginBottom: 16,
+const Categories = styled("div")(() => ({
+  marginTop: 16,
 }));
 
 const SubmitButton = styled(PrimaryButton)(() => ({
@@ -31,11 +32,18 @@ const SubmitButtonContainer = styled("div")(() => ({
   justifyContent: "flex-end",
 }));
 
+const CollapseButton = styled(DropdownButton)(() => ({
+  position: "absolute",
+  right: 32,
+  top: 18,
+}));
+
 interface PreferenceSelectionsProps {
   categoryGroupName: string;
   categories: Category[] | [];
   defaultCategories: Category[] | [];
-  onSubmit: (selectedCategories: Category[]) => void;
+  onSubmit: (selectedCategories: Category[], removedCategories?: Category[]) => void;
+  onCollapse?: () => void;
   categoryGroupId?: string;
   collapsable?: boolean;
   collapsed?: boolean;
@@ -48,16 +56,33 @@ const PreferenceSelections = ({
   categories,
   defaultCategories,
   onSubmit,
+  onCollapse,
   collapsable = false,
-  collapsed = false,
+  collapsed = true,
   cta = "Save",
 }: PreferenceSelectionsProps) => {
   const [selectedCategories, setSelectedCategories] = useState(defaultCategories);
   const [selectedCategoryMap, setSelectedCategoryMap] = useState(getCategoryMap(defaultCategories));
+  const [removedCategories, setRemovedCategories] = useState<Category[]>([]);
+  const [onCollapseEnabled, setOnCollapseEnabled] = useState(!!onCollapse);
+  const [isCollapsed, setIsCollapsed] = useState(collapsed);
   const accentColor = getAccentColor(categoryGroupId);
 
   const handleSubmit = () => {
-    onSubmit(selectedCategories);
+    onSubmit(selectedCategories, removedCategories);
+    setRemovedCategories([]);
+    if (collapsable) {
+      if (onCollapseEnabled && onCollapse) {
+        onCollapse();
+      } else {
+        setIsCollapsed(false);
+      }
+    }
+  };
+
+  const handleForceCollapse = () => {
+    setIsCollapsed(!isCollapsed);
+    setOnCollapseEnabled(false);
   };
 
   const handleSelect = useCallback(
@@ -65,9 +90,11 @@ const PreferenceSelections = ({
       const mapClone = { ...selectedCategoryMap };
       if (category.id in mapClone) {
         delete mapClone[category.id];
+        setRemovedCategories([...removedCategories, category]);
         setSelectedCategories(selectedCategories.filter((c) => c.id !== category.id));
       } else {
         mapClone[category.id] = category.name;
+        setRemovedCategories(removedCategories.filter((c) => c.id !== category.id));
         setSelectedCategories([...selectedCategories, category]);
       }
       setSelectedCategoryMap(mapClone);
@@ -85,33 +112,41 @@ const PreferenceSelections = ({
     }
   }, [selectedCategories]);
 
+  useEffect(() => {
+    setIsCollapsed(collapsed);
+  }, [collapsed]);
+
   return (
     <CategoryRow>
-      {collapsable && <DropdownButton open={collapsed} />}
-      <div>
-        <GroupName variant="h5">{categoryGroupName}</GroupName>
-        <PillButton
-          onClick={toggleSelectAll}
-          selected={selectedCategories.length === categories.length}
-          accentColor={accentColor}
-          outlined
-        >
-          All
-        </PillButton>
-        {categories.map((category) => (
-          <PillButton
-            onClick={() => handleSelect(category)}
-            key={category.name}
-            selected={category.id in selectedCategoryMap}
-            accentColor={accentColor}
-          >
-            {category.name}
-          </PillButton>
-        ))}
-      </div>
-      <SubmitButtonContainer>
-        <SubmitButton onClick={handleSubmit}>{cta}</SubmitButton>
-      </SubmitButtonContainer>
+      {collapsable && <CollapseButton onClick={handleForceCollapse} open={isCollapsed} large />}
+      <Typography variant="h5">{categoryGroupName}</Typography>
+      {isCollapsed && (
+        <>
+          <Categories>
+            <PillButton
+              onClick={toggleSelectAll}
+              selected={selectedCategories.length === categories.length}
+              accentColor={accentColor}
+              outlined
+            >
+              All
+            </PillButton>
+            {categories.map((category) => (
+              <PillButton
+                onClick={() => handleSelect(category)}
+                key={category.name}
+                selected={category.id in selectedCategoryMap}
+                accentColor={accentColor}
+              >
+                {category.name}
+              </PillButton>
+            ))}
+          </Categories>
+          <SubmitButtonContainer>
+            <SubmitButton onClick={handleSubmit}>{cta}</SubmitButton>
+          </SubmitButtonContainer>
+        </>
+      )}
     </CategoryRow>
   );
 };

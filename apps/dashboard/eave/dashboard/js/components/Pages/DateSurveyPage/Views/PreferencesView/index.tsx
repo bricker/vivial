@@ -5,6 +5,7 @@ import {
 } from "$eave-dashboard/js/graphql/generated/graphql";
 import { useGetOutingPreferencesQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 
+import { getDefaults } from "$eave-dashboard/js/components/Selections/PreferenceSelections/helpers";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { type Category } from "$eave-dashboard/js/types/category";
 import { styled } from "@mui/material";
@@ -16,8 +17,6 @@ import Button from "@mui/material/Button";
 import LinearProgress from "@mui/material/LinearProgress";
 import Typography from "@mui/material/Typography";
 import LoadingView from "../LoadingView";
-
-import { getDefaults } from "./helpers";
 
 const ViewContainer = styled("div")(() => ({
   padding: "24px 16px 102px",
