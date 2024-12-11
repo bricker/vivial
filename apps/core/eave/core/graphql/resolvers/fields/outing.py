@@ -18,7 +18,7 @@ from eave.core.orm.outing_reservation import OutingReservationOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 
-# TODO: Remove once we're fetching from the appropriate sources.
+# TODO: Remove once Date Picked UI is complete.
 MOCK_OUTING = Outing(
     id=uuid4(),
     headcount=2,
@@ -89,34 +89,36 @@ MOCK_OUTING = Outing(
     ),
 )
 
-
+# TODO: Uncomment once Date Picked UI is complete.
 async def get_outing_query(*, info: strawberry.Info[GraphQLContext], outing_id: UUID) -> Outing:
-    async with database.async_session.begin() as db_session:
-        outing_activity = await OutingActivityOrm.get_one_by_outing_id(
-            session=db_session,
-            outing_id=outing_id,
-        )
-        outing_reservation = await OutingReservationOrm.get_one_by_outing_id(
-            session=db_session,
-            outing_id=outing_id,
-        )
+    # async with database.async_session.begin() as db_session:
+    #     outing_activity = await OutingActivityOrm.get_one_by_outing_id(
+    #         session=db_session,
+    #         outing_id=outing_id,
+    #     )
+    #     outing_reservation = await OutingReservationOrm.get_one_by_outing_id(
+    #         session=db_session,
+    #         outing_id=outing_id,
+    #     )
 
-    activity = await get_activity(
-        source=outing_activity.source,
-        source_id=outing_activity.source_id,
-    )
+    # activity = await get_activity(
+    #     source=outing_activity.source,
+    #     source_id=outing_activity.source_id,
+    # )
 
-    restaurant = await get_restaurant(
-        source=outing_reservation.source,
-        source_id=outing_reservation.source_id,
-    )
+    # restaurant = await get_restaurant(
+    #     source=outing_reservation.source,
+    #     source_id=outing_reservation.source_id,
+    # )
 
-    return Outing(
-        id=outing_id,
-        headcount=max(outing_activity.headcount, outing_reservation.headcount),
-        activity=activity,
-        restaurant=restaurant,
-        driving_time=None,
-        activity_start_time=outing_activity.start_time_local,
-        restaurant_arrival_time=outing_reservation.start_time_local,
-    )
+    # return Outing(
+    #     id=outing_id,
+    #     headcount=max(outing_activity.headcount, outing_reservation.headcount),
+    #     activity=activity,
+    #     restaurant=restaurant,
+    #     driving_time=None,
+    #     activity_start_time=outing_activity.start_time_local,
+    #     restaurant_arrival_time=outing_reservation.start_time_local,
+    # )
+
+    return MOCK_OUTING

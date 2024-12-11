@@ -6,7 +6,6 @@ import {
 } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
-import { CookieId, RerollCookie } from "$eave-dashboard/js/types/cookie";
 
 import {
   useGetOutingPreferencesQuery,
@@ -19,7 +18,6 @@ import {
 import { plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 import React, { useCallback, useEffect, useState } from "react";
-import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -39,7 +37,7 @@ import LoadingView from "./Views/LoadingView";
 import PreferencesView from "./Views/PreferencesView";
 
 import { DateSurveyPageVariant } from "./constants";
-import { getHoursDiff, getInitialStartTime, getPreferenceInputs } from "./helpers";
+import { getInitialStartTime, getPreferenceInputs } from "./helpers";
 
 const PageContainer = styled("div")(({ theme }) => ({
   padding: "24px 16px",
@@ -122,10 +120,10 @@ const DateSurveyPage = () => {
   const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
   const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery({});
   const [searchParams, _] = useSearchParams();
-  const [planOuting, { isLoading: planOutingLoading }] = usePlanOutingAuthenticatedMutation();
-  const [planOutingAnon, { isLoading: planOutingAnonLoading }] = usePlanOutingAnonymousMutation();
+  const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingAuthenticatedMutation();
+  const [planOutingAnon, { data: planOutingAnonData, isLoading: planOutingAnonLoading }] =
+    usePlanOutingAnonymousMutation();
   const [updatePreferences] = useUpdateOutingPreferencesMutation();
-  const [cookies, setCookie] = useCookies([CookieId.Reroll]);
   const [budget, setBudget] = useState(OutingBudget.Expensive);
   const [headcount, setHeadcount] = useState(2);
   const [searchAreaIds, setSearchAreaIds] = useState<string[]>([]);
@@ -144,68 +142,26 @@ const DateSurveyPage = () => {
   const dispatch = useDispatch();
 
   const handleSubmit = useCallback(async () => {
-    const planErrorMessage = "There was an issue planning your outing. Contact friends@vivialapp.com for assistance.";
-    const visitorId = await getVisitorId();
     const groupPreferences = getPreferenceInputs(
       outingPreferences,
       partnerPreferences,
       outingPreferencesData?.activityCategoryGroups,
       outingPreferencesData?.restaurantCategories,
     );
+    const input = {
+      startTime: startTime.toISOString(),
+      visitorId: await getVisitorId(),
+      groupPreferences,
+      budget,
+      headcount,
+      searchAreaIds,
+    };
     if (isLoggedIn) {
-      // Handle authenticated outing planning.
-      const resp = await planOuting({
-        input: {
-          visitorId,
-          groupPreferences,
-          budget,
-          headcount,
-          searchAreaIds,
-          startTime: startTime.toISOString(),
-        },
-      });
-      if (
-        resp.data?.viewer?.__typename === "AuthenticatedViewerMutations" &&
-        resp.data.viewer.planOuting.__typename === "PlanOutingSuccess"
-      ) {
-        const outing = resp.data.viewer.planOuting.outing;
-        dispatch(plannedOuting({ outing }));
-        navigate(`${AppRoute.itinerary}/${outing.id}`);
-      } else {
-        setErrorMessage(planErrorMessage);
-      }
+      await planOuting({ input });
     } else {
-      // Handle unauthenticated outing planning.
-      const resp = await planOutingAnon({
-        input: {
-          visitorId,
-          groupPreferences,
-          budget,
-          headcount,
-          searchAreaIds,
-          startTime: startTime.toISOString(),
-        },
-      });
-      if (resp.data?.planOuting.__typename === "PlanOutingSuccess") {
-        const outing = resp.data.planOuting.outing;
-        dispatch(plannedOuting({ outing }));
-        navigate(`${AppRoute.itinerary}/${outing.id}`);
-      } else {
-        setErrorMessage(planErrorMessage);
-      }
+      await planOutingAnon({ input });
     }
-    // Handle unauthenticated reroll tracking.
-    const rerollCookie = cookies[CookieId.Reroll] as RerollCookie;
-    if (rerollCookie) {
-      const rerolls = rerollCookie.rerolls + 1;
-      const updated = new Date();
-      const hoursSinceUpdate = getHoursDiff(updated, new Date(rerollCookie.updated));
-      setCookie(CookieId.Reroll, { rerolls, updated });
-      if (rerolls >= 4 && hoursSinceUpdate < 24) {
-        navigate(AppRoute.signupMultiReroll);
-      }
-    }
-  }, [isLoggedIn, cookies, outingPreferencesData, budget, headcount, searchAreaIds, startTime]);
+  }, [isLoggedIn, outingPreferencesData, budget, headcount, searchAreaIds, startTime]);
 
   const handleSubmitPreferences = useCallback(
     async (restaurantCategories: RestaurantCategory[], activityCategories: ActivityCategory[]) => {
@@ -254,6 +210,34 @@ const DateSurveyPage = () => {
   }, [areasOpen]);
 
   useEffect(() => {
+    const viewer = planOutingData?.viewer;
+    if (viewer) {
+      if (
+        viewer.__typename === "AuthenticatedViewerMutations" &&
+        viewer.planOuting.__typename === "PlanOutingSuccess"
+      ) {
+        const outing = viewer.planOuting.outing;
+        dispatch(plannedOuting({ outing }));
+        navigate(`${AppRoute.itinerary}/${outing.id}`);
+      } else {
+        setErrorMessage("There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.");
+      }
+    }
+  }, [planOutingData]);
+
+  useEffect(() => {
+    if (planOutingAnonData) {
+      if (planOutingAnonData.planOuting?.__typename === "PlanOutingSuccess") {
+        const outing = planOutingAnonData.planOuting.outing;
+        dispatch(plannedOuting({ outing }));
+        navigate(`${AppRoute.itinerary}/${outing.id}`);
+      } else {
+        setErrorMessage("There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.");
+      }
+    }
+  }, [planOutingAnonData]);
+
+  useEffect(() => {
     if (searchRegionsData?.searchRegions) {
       setSearchAreaIds(searchRegionsData.searchRegions.map((region) => region.id));
     }
@@ -265,15 +249,6 @@ const DateSurveyPage = () => {
       setOutingPreferences(viewer.outingPreferences);
     }
   }, [outingPreferencesData]);
-
-  useEffect(() => {
-    if (!cookies[CookieId.Reroll]) {
-      setCookie(CookieId.Reroll, {
-        updated: new Date(),
-        rerolls: 0,
-      });
-    }
-  }, [cookies]);
 
   if (searchRegionsAreLoading) {
     return <LoadingView />;
