@@ -7,7 +7,7 @@ const CheckoutReservationPage = () => {
   const outingId = params["outingId"];
   // TODO: do something if id is bad
 
-  return <CheckoutReservation outingId={outingId!} />;
+  return <CheckoutReservation outingId={outingId!} showStripeBadge />;
 };
 
 export default CheckoutReservationPage;

@@ -1,6 +1,7 @@
 import { RootState } from "$eave-dashboard/js/store";
 import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
+import { imageUrl } from "$eave-dashboard/js/util/asset";
 import { CircularProgress, Typography, styled } from "@mui/material";
 import React from "react";
 import { useSelector } from "react-redux";
@@ -20,10 +21,9 @@ const FieldsContainer = styled("div")(() => ({
   marginBottom: 24,
 }));
 
-const BoldRoundableInput = styled(Input)<{ rounded: Corner[] }>(({ theme, rounded }) => ({
+const RoundableInput = styled(Input)<{ rounded: Corner[] }>(({ theme, rounded }) => ({
   padding: "5px 16px",
   fontFamily: fontFamilies.inter,
-  fontWeight: 600,
   fontSize: rem("16px"),
   lineHeight: rem("30px"),
   borderStyle: "solid",
@@ -56,11 +56,23 @@ const InputContainer = styled("div")(() => ({
   gap: 8,
 }));
 
+const HeaderContainer = styled("div")(() => ({
+  display: "flex",
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "flex-end",
+}));
+
 const CenteringContainer = styled("div")(() => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   padding: "24px 40px",
+}));
+
+const StripeImg = styled("img")(() => ({
+  height: rem("24px"),
+  maxHeight: 32,
 }));
 
 export interface ReserverFormFields {
@@ -75,18 +87,24 @@ const ReservationDetailsForm = ({
   error,
   onChange,
   isLoading,
+  showStripeBadge,
 }: {
   reserverDetails: ReserverFormFields;
   onChange: (key: keyof ReserverFormFields, value: string) => void;
   isLoading: boolean;
   error?: string;
+  showStripeBadge?: boolean;
 }) => {
   const email = useSelector((state: RootState) => state.auth.account?.email);
   // if there's no id value on reserverDetails, that means there's no db entry yet server-side
   const shouldShowEmail = !!(email && reserverDetails.id);
   return (
     <InputContainer>
-      <Typography variant="subtitle2">Your information</Typography>
+      <HeaderContainer>
+        <Typography variant="subtitle2">Your information</Typography>
+
+        {showStripeBadge && <StripeImg src={imageUrl("powered-by-stripe.png")} alt="powered by stripe" />}
+      </HeaderContainer>
 
       {isLoading ? (
         <CenteringContainer>
@@ -95,27 +113,27 @@ const ReservationDetailsForm = ({
       ) : (
         <FieldsContainer>
           <NameInputContainer>
-            <BoldRoundableInput
+            <RoundableInput
               placeholder="First name"
               value={reserverDetails.firstName}
               onChange={(e) => onChange("firstName", e.target.value)}
               rounded={[Corner.TOP_LEFT]}
             />
-            <BoldRoundableInput
+            <RoundableInput
               placeholder="Last name"
               value={reserverDetails.lastName}
               onChange={(e) => onChange("lastName", e.target.value)}
               rounded={[Corner.TOP_RIGHT]}
             />
           </NameInputContainer>
-          <BoldRoundableInput
+          <RoundableInput
             placeholder="Phone #"
             value={reserverDetails.phoneNumber}
             onChange={(e) => onChange("phoneNumber", e.target.value)}
             rounded={shouldShowEmail ? [] : [Corner.BOTTOM_LEFT, Corner.BOTTOM_RIGHT]}
           />
           {shouldShowEmail && (
-            <BoldRoundableInput
+            <RoundableInput
               value={email}
               contentEditable={false}
               disabled={true}

@@ -54,7 +54,7 @@ function hasPaidActivity(outing: Outing | null) {
   const costData = outing?.activity?.ticketInfo;
   return costData?.cost || costData?.fee || costData?.tax;
 }
-const CheckoutForm = ({ outingId }: { outingId: string }) => {
+const CheckoutForm = ({ outingId, showStripeBadge = false }: { outingId: string; showStripeBadge?: boolean }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   // https://docs.stripe.com/sdks/stripejs-react
@@ -350,6 +350,7 @@ const CheckoutForm = ({ outingId }: { outingId: string }) => {
         onChange={handleReserverDetailChange}
         error={reserverDetailError}
         isLoading={listDetailsIsLoading}
+        showStripeBadge={showStripeBadge}
       />
 
       {/* TODO pass real payment data */}
@@ -381,10 +382,10 @@ const CheckoutForm = ({ outingId }: { outingId: string }) => {
  * component because it requires the user to be authed, which we don't want
  * in our App root.
  */
-const CheckoutReservation = ({ outingId }: { outingId: string }) => {
+const CheckoutReservation = ({ outingId, showStripeBadge }: { outingId: string; showStripeBadge?: boolean }) => {
   return (
     <StripeElementsProvider>
-      <CheckoutForm outingId={outingId} />
+      <CheckoutForm outingId={outingId} showStripeBadge={showStripeBadge} />
     </StripeElementsProvider>
   );
 };

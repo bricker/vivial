@@ -94,14 +94,8 @@ const StripeElementsProvider = ({ children }: { children: React.ReactElement }) 
       colorText: colors.whiteText,
     },
     rules: {
-      ".Input": {
-        fontWeight: "bold",
-      },
       ".Error": {
         paddingBottom: "8px",
-      },
-      ".Label--resting": {
-        fontWeight: "bold",
       },
     },
   };
