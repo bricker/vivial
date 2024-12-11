@@ -32,6 +32,12 @@ const PaddedPrimaryButton = styled(LoadingButton)(() => ({
   minWidth: rem("76px"),
 }));
 
+const FormContainer = styled("form")(() => ({
+  display: "flex",
+  flexDirection: "column",
+  gap: 16,
+}));
+
 const InputErrorContainer = styled("div")(() => ({
   fontSize: rem("12px"),
   lineHeight: rem("16px"),
@@ -330,7 +336,7 @@ const CheckoutForm = ({ outingId }: { outingId: string }) => {
 
   // TODO: render cost header? opentable footer?
   return (
-    <form onSubmit={handleSubmit}>
+    <FormContainer onSubmit={handleSubmit}>
       <ReservationDetailsForm
         reserverDetails={reserverDetails}
         onChange={handleReserverDetailChange}
@@ -338,7 +344,8 @@ const CheckoutForm = ({ outingId }: { outingId: string }) => {
         isLoading={listDetailsIsLoading}
       />
 
-      {hasPaidActivity(outing) && <PaymentForm />}
+      {/* TODO pass real payment data */}
+      {hasPaidActivity(outing) && <PaymentForm paymentDetails="Visa *1234" />}
 
       {error && (
         <InputErrorContainer>
@@ -349,7 +356,7 @@ const CheckoutForm = ({ outingId }: { outingId: string }) => {
       <PaddedPrimaryButton type="submit" loading={submissionIsLoading} disabled={submitButtonDisabled} fullWidth>
         Save
       </PaddedPrimaryButton>
-    </form>
+    </FormContainer>
   );
 };
 

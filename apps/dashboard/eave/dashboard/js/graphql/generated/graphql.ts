@@ -685,18 +685,19 @@ export type UpdateAccountMutationVariables = Exact<{
 
 export type UpdateAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateAccount: { __typename: 'UpdateAccountFailure', failureReason: UpdateAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateAccountSuccess', account: { __typename: 'Account', email: string } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 
-export type UpdateReserverDetailsMutationVariables = Exact<{
-  input: UpdateReserverDetailsInput;
-}>;
-
-
-export type UpdateReserverDetailsMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateReserverDetails: { __typename: 'UpdateReserverDetailsFailure', failureReason: UpdateReserverDetailsFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateReserverDetailsSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 export type UpdateOutingPreferencesMutationVariables = Exact<{
   input: UpdateOutingPreferencesInput;
 }>;
 
 
 export type UpdateOutingPreferencesMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updatePreferences: { __typename: 'UpdateOutingPreferencesFailure', failureReason: UpdateOutingPreferencesFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateOutingPreferencesSuccess', outingPreferences: { __typename: 'OutingPreferences', restaurantCategories?: Array<{ __typename: 'RestaurantCategory', id: string, name: string, isDefault: boolean }> | null, activityCategories?: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> | null } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+
+export type UpdateReserverDetailsMutationVariables = Exact<{
+  input: UpdateReserverDetailsInput;
+}>;
+
+
+export type UpdateReserverDetailsMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateReserverDetails: { __typename: 'UpdateReserverDetailsFailure', failureReason: UpdateReserverDetailsFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateReserverDetailsSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 
 export type UpdateReserverDetailsAccountMutationVariables = Exact<{
   input: UpdateReserverDetailsAccountInput;
@@ -1585,6 +1586,42 @@ export const UpdateOutingPreferencesDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<UpdateOutingPreferencesMutation, UpdateOutingPreferencesMutationVariables>;
+export const UpdateReserverDetailsDocument = new TypedDocumentString(`
+    mutation UpdateReserverDetails($input: UpdateReserverDetailsInput!) {
+  __typename
+  viewer {
+    __typename
+    ... on AuthenticatedViewerMutations {
+      __typename
+      updateReserverDetails(input: $input) {
+        __typename
+        ... on UpdateReserverDetailsSuccess {
+          __typename
+          reserverDetails {
+            __typename
+            id
+            firstName
+            lastName
+            phoneNumber
+          }
+        }
+        ... on UpdateReserverDetailsFailure {
+          __typename
+          failureReason
+          validationErrors {
+            __typename
+            field
+          }
+        }
+      }
+    }
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<UpdateReserverDetailsMutation, UpdateReserverDetailsMutationVariables>;
 export const UpdateReserverDetailsAccountDocument = new TypedDocumentString(`
     mutation UpdateReserverDetailsAccount($input: UpdateReserverDetailsAccountInput!) {
   __typename
