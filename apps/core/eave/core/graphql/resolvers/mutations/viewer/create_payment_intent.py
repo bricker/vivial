@@ -44,11 +44,12 @@ async def create_payment_intent_mutation(
     info: strawberry.Info[GraphQLContext],
     input: CreatePaymentIntentInput,
 ) -> CreatePaymentIntentResult:
-    account_id = unwrap(info.context.get("authenticated_account_id"))
+    account = unwrap(info.context.get("authenticated_account"))
 
     async with database.async_session.begin() as db_session:
         outing_orm = await OutingOrm.get_one(db_session, input.outing_id)
 
+        outing_orm.activities
     stripe_payment_intent = await stripe.PaymentIntent.create_async(
         currency="usd",
         amount=outing_orm.pricing,
@@ -60,9 +61,9 @@ async def create_payment_intent_mutation(
 
     async with database.async_session.begin() as db_session:
         await StripePaymentIntentReferenceOrm(
-            account_id=account_id,
+            account=account,
             stripe_payment_intent_id=stripe_payment_intent.id,
-            outing_id=outing_orm.id,
+            outing=outing_orm,
         ).save(db_session)
 
     # Warning: `client_secret` is a sensitive value and shouldn't be logged or stored.

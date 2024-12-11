@@ -2,9 +2,9 @@ from typing import Self
 from uuid import UUID
 
 import sqlalchemy.dialects.postgresql
-from sqlalchemy import ForeignKey, PrimaryKeyConstraint, Select, select
+from sqlalchemy import ForeignKey, PrimaryKeyConstraint, Select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.util.mixins import GetOneByIdMixin
@@ -20,8 +20,10 @@ class OutingPreferencesOrm(Base):
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, unique=True)
     account_id: Mapped[UUID] = mapped_column(
-        ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)
+        ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE),
+        unique=True, # Unique constraint is needed to enforce a one-to-one mapping with Account
     )
+    account: Mapped[AccountOrm] = relationship(back_populates="outing_preferences", lazy="selectin")
 
     activity_category_ids: Mapped[list[UUID] | None] = mapped_column(
         type_=sqlalchemy.dialects.postgresql.ARRAY(
@@ -39,14 +41,22 @@ class OutingPreferencesOrm(Base):
     def __init__(
         self,
         *,
-        account_id: UUID,
+        account: AccountOrm,
         activity_category_ids: list[UUID] | None,
         restaurant_category_ids: list[UUID] | None,
     ) -> None:
-        self.account_id = account_id
+        self.account = account
         self.activity_category_ids = activity_category_ids
         self.restaurant_category_ids = restaurant_category_ids
 
     @classmethod
     async def get_one(cls, session: AsyncSession, *, account_id: UUID, uid: UUID) -> Self:
         return await session.get_one(cls, (account_id, uid))
+
+    @classmethod
+    def select(cls, *, account_id: UUID = NOT_SET) -> Select[tuple[Self]]:
+        query = super().select()
+        if account_id is not NOT_SET:
+            query = query.where(OutingPreferencesOrm.account_id == account_id)
+
+        return query

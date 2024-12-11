@@ -17,6 +17,7 @@ from eave.core.graphql.types.outing import (
     Outing,
     OutingPreferencesInput,
 )
+from eave.core.orm.account import AccountOrm
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
@@ -53,40 +54,36 @@ async def replan_outing_mutation(
     info: strawberry.Info[GraphQLContext],
     input: ReplanOutingInput,
 ) -> ReplanOutingResult:
-    account_id = info.context.get("authenticated_account_id")
+    account = info.context.get("authenticated_account")
 
     async with database.async_session.begin() as db_session:
         original_outing = await OutingOrm.get_one(
             db_session,
             input.outing_id,
         )
-        survey = await SurveyOrm.get_one(
-            db_session,
-            original_outing.survey_id,
-        )
 
     # validate that the survey's start time is still within the bounds.
     try:
-        validate_time_within_bounds_or_exception(start_time=survey.start_time_utc, timezone=LOS_ANGELES_TIMEZONE)
+        validate_time_within_bounds_or_exception(start_time=original_outing.survey.start_time_utc, timezone=LOS_ANGELES_TIMEZONE)
     except StartTimeTooLateError:
         return ReplanOutingFailure(failure_reason=ReplanOutingFailureReason.START_TIME_TOO_LATE)
     except StartTimeTooSoonError:
         return ReplanOutingFailure(failure_reason=ReplanOutingFailureReason.START_TIME_TOO_SOON)
 
-    outing = await create_outing(
+    new_outing = await create_outing(
         individual_preferences=input.group_preferences,
-        account_id=account_id,  # This should not be the original Outing's account ID, because someone else may be rerolling this outing.
         visitor_id=input.visitor_id,
-        survey=survey,
+        account=account,  # This should not be the original Outing's account ID, because someone else may be rerolling this outing.
+        survey=original_outing.survey,
     )
 
     ANALYTICS.track(
         event_name="outing plan created",
-        account_id=account_id,
+        account_id=account.id if account else None,
         visitor_id=input.visitor_id,
         extra_properties={
             "reroll": True,
         },
     )
 
-    return ReplanOutingSuccess(outing=outing)
+    return ReplanOutingSuccess(outing=new_outing)

@@ -6,9 +6,11 @@ from uuid import UUID
 import strawberry
 from strawberry.extensions import FieldExtension
 
+from eave.core import database
 from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME, delete_auth_cookies
 from eave.core.config import JWT_AUDIENCE, JWT_ISSUER
 from eave.core.graphql.context import GraphQLContext
+from eave.core.orm.account import AccountOrm
 from eave.stdlib.jwt import (
     AccessTokenExpiredError,
     InvalidTokenError,
@@ -52,7 +54,13 @@ class AuthenticationExtension(FieldExtension):
                 expired_ok=False,
             )
 
-            info.context["authenticated_account_id"] = UUID(jws.payload.sub)
+            account_id = UUID(jws.payload.sub)
+
+            async with database.async_session.begin() as db_session:
+                account_orm = await AccountOrm.get_one(db_session, account_id)
+
+            info.context["authenticated_account"] = account_orm
+            info.context["authenticated_account_id"] = account_orm.id
 
             result = await next_(source, info, **kwargs)
             return result

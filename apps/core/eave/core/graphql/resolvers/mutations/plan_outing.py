@@ -18,6 +18,7 @@ from eave.core.graphql.types.outing import (
     Outing,
     OutingPreferencesInput,
 )
+from eave.core.orm.account import AccountOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
@@ -58,7 +59,7 @@ async def plan_outing_mutation(
     info: strawberry.Info[GraphQLContext],
     input: PlanOutingInput,
 ) -> PlanOutingResult:
-    account_id = info.context.get("authenticated_account_id")
+    account = info.context.get("authenticated_account")
 
     if len(input.search_area_ids) == 0:
         return PlanOutingFailure(failure_reason=PlanOutingFailureReason.SEARCH_AREA_IDS_EMPTY)
@@ -71,26 +72,27 @@ async def plan_outing_mutation(
         return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_SOON)
 
     async with database.async_session.begin() as db_session:
-        survey = await SurveyOrm(
-            account_id=account_id,
+        survey = SurveyOrm(
+            account=account,
             visitor_id=input.visitor_id,
             start_time_utc=input.start_time,
             timezone=LOS_ANGELES_TIMEZONE,
             search_area_ids=input.search_area_ids,
             budget=input.budget,
             headcount=input.headcount,
-        ).save(session=db_session)
+        )
+        db_session.add(survey)
 
     outing = await create_outing(
         individual_preferences=input.group_preferences,
-        account_id=account_id,
         visitor_id=input.visitor_id,
+        account=account,
         survey=survey,
     )
 
     ANALYTICS.track(
         event_name="outing plan created",
-        account_id=account_id,
+        account_id=account.id if account else None,
         visitor_id=input.visitor_id,
         extra_properties={
             "reroll": False,

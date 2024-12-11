@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Literal, Self
 from uuid import UUID
 
-from sqlalchemy import PrimaryKeyConstraint, Select, func, select
+from sqlalchemy import ForeignKey, PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,7 +21,7 @@ from .util.constants import PG_UUID_EXPR
 
 if TYPE_CHECKING:
     from eave.core.orm.booking import BookingOrm
-    from eave.core.orm.reserver_details import ReserverDetailsOrm
+    from eave.core.orm.outing_preferences import OutingPreferencesOrm
 
 class InvalidPasswordError(Exception):
     pass
@@ -77,6 +77,9 @@ class AccountOrm(Base, GetOneByIdMixin):
     bookings: Mapped[list["BookingOrm"]] = relationship(
         secondary=ACCOUNT_BOOKINGS_JOIN_TABLE, lazy="selectin", back_populates="accounts"
     )
+
+    outing_preferences: Mapped["OutingPreferencesOrm | None"] = relationship(back_populates="account", lazy="selectin")
+
 
     def __init__(
         self,

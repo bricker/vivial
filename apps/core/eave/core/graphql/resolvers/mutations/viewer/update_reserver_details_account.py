@@ -56,14 +56,11 @@ async def update_reserver_details_account_mutation(
     info: strawberry.Info[GraphQLContext],
     input: UpdateReserverDetailsAccountInput,
 ) -> SubmitReserverDetailsResult:
-    account_id = unwrap(info.context.get("authenticated_account_id"))
+    account = unwrap(info.context.get("authenticated_account"))
 
     try:
         async with database.async_session.begin() as db_session:
-            account = await AccountOrm.get_one(
-                db_session,
-                account_id,
-            )
+            db_session.add(account)
             account.email = input.email
             # validate
             await account.save(db_session)

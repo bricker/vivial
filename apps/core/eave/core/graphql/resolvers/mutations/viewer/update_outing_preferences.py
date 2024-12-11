@@ -42,25 +42,21 @@ UpdateOutingPreferencesResult = Annotated[
 async def update_outing_preferences_mutation(
     *, info: strawberry.Info[GraphQLContext], input: UpdateOutingPreferencesInput
 ) -> UpdateOutingPreferencesResult:
-    account_id = unwrap(info.context.get("authenticated_account_id"))
+    account = unwrap(info.context.get("authenticated_account"))
 
     async with database.async_session.begin() as db_session:
-        outing_preferences = (
-            await db_session.scalars(OutingPreferencesOrm.select(account_id=account_id))
-        ).one_or_none()
+        db_session.add(account)
 
-        if not outing_preferences:
-            outing_preferences = OutingPreferencesOrm(
-                account_id=account_id,
+        if not account.outing_preferences:
+            account.outing_preferences = OutingPreferencesOrm(
+                account=account,
                 activity_category_ids=None,
                 restaurant_category_ids=None,
             )
 
         if input.activity_category_ids:
-            outing_preferences.activity_category_ids = input.activity_category_ids
+            account.outing_preferences.activity_category_ids = input.activity_category_ids
         if input.restaurant_category_ids:
-            outing_preferences.restaurant_category_ids = input.restaurant_category_ids
+            account.outing_preferences.restaurant_category_ids = input.restaurant_category_ids
 
-        await outing_preferences.save(db_session)
-
-    return UpdateOutingPreferencesSuccess(outing_preferences=OutingPreferences.from_orm(outing_preferences))
+    return UpdateOutingPreferencesSuccess(outing_preferences=OutingPreferences.from_orm(account.outing_preferences))

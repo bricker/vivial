@@ -1,5 +1,6 @@
 import enum
 from typing import Annotated
+from uuid import UUID
 
 import strawberry
 
@@ -18,6 +19,7 @@ from eave.core.shared.errors import ValidationError
 class CreateAccountInput:
     email: str
     plaintext_password: str
+    visitor_id: UUID
 
 
 @strawberry.type
@@ -64,7 +66,7 @@ async def create_account_mutation(
 
     ANALYTICS.identify(
         account_id=account_orm.id,
-        # TODO: visitor_id
+        visitor_id=input.visitor_id,
         extra_properties={
             "email": account_orm.email,
         },
@@ -73,6 +75,7 @@ async def create_account_mutation(
     ANALYTICS.track(
         event_name="signup",
         account_id=account_orm.id,
+        visitor_id=input.visitor_id,
     )
 
     set_new_auth_cookies(response=info.context["response"], account_id=account_orm.id)

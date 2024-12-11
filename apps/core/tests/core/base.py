@@ -15,14 +15,13 @@ from strawberry.types import ExecutionResult
 
 import eave.core.app
 import eave.core.database
+from eave.core._database_setup import get_base_metadata, init_database
 import eave.core.orm
 import eave.stdlib.testing_util
 import eave.stdlib.typing
 from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME
 from eave.core.config import CORE_API_APP_CONFIG, JWT_AUDIENCE, JWT_ISSUER
-from eave.core.database import init_database
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.base import get_base_metadata
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm

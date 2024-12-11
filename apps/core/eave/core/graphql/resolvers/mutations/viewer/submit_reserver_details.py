@@ -51,17 +51,17 @@ async def submit_reserver_details_mutation(
     phone_number parameter must be digits only (with the exception of country code +) to pass validation
     e.g. "+11234567890" or "1234567890"
     """
-    account_id = unwrap(info.context.get("authenticated_account_id"))
-    reserver_details = ReserverDetailsOrm(
-        account_id=account_id,
-        first_name=input.first_name,
-        last_name=input.last_name,
-        phone_number=input.phone_number,
-    )
+    account = unwrap(info.context.get("authenticated_account"))
 
     try:
         async with database.async_session.begin() as db_session:
-            await reserver_details.save(db_session)
+            reserver_details = ReserverDetailsOrm(
+                account=account,
+                first_name=input.first_name,
+                last_name=input.last_name,
+                phone_number=input.phone_number,
+            )
+            db_session.add(reserver_details)
 
         return SubmitReserverDetailsSuccess(reserver_details=ReserverDetails.from_orm(reserver_details))
 

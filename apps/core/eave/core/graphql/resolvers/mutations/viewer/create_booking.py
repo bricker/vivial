@@ -73,7 +73,7 @@ async def create_booking_mutation(
     info: strawberry.Info[GraphQLContext],
     input: CreateBookingInput,
 ) -> CreateBookingResult:
-    account_id = unwrap(info.context.get("authenticated_account_id"))
+    account = unwrap(info.context.get("authenticated_account"))
 
     try:
         async with database.async_session.begin() as db_session:
@@ -89,15 +89,14 @@ async def create_booking_mutation(
             except StartTimeTooLateError:
                 return CreateBookingFailure(failure_reason=CreateBookingFailureReason.START_TIME_TOO_LATE)
 
-            reserver_details = await ReserverDetailsOrm.get_one(db_session, account_id=account_id, uid=input.reserver_details_id)
-            account = await AccountOrm.get_one(db_session, account_id)
+            reserver_details = await ReserverDetailsOrm.get_one(db_session, account_id=account.id, uid=input.reserver_details_id)
 
             booking = BookingOrm(
                 reserver_details=reserver_details,
                 stripe_payment_intent_reference=stripe_payment_intent_reference_orm,
             )
-
             db_session.add(booking)
+
             booking.accounts = [account]
 
             for activity_orm in outing.activities:
@@ -154,7 +153,7 @@ async def create_booking_mutation(
 
     ANALYTICS.track(
         event_name="booking created",
-        account_id=account_id,
+        account_id=account.id,
         extra_properties={
             "booking_constraints": {
                 "headcount": survey.headcount,
