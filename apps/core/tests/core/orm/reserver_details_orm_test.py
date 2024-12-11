@@ -45,7 +45,9 @@ class TestReserverDetailsOrm(BaseTestCase):
             session.add(reserver_details_new)
 
         async with self.db_session.begin() as session:
-            reserver_details_fetched = await ReserverDetailsOrm.get_one(session, account_id=account.id, uid=reserver_details_new.id)
+            reserver_details_fetched = await ReserverDetailsOrm.get_one(
+                session, account_id=account.id, uid=reserver_details_new.id
+            )
 
         assert reserver_details_fetched.id is not None
 

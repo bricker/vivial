@@ -1,6 +1,6 @@
 query GetReserverDetails {
   viewer {
-    ...on AuthenticatedViewerQueries {
+    ... on AuthenticatedViewerQueries {
       __typename
 
       reserverDetails {
@@ -10,7 +10,7 @@ query GetReserverDetails {
       }
     }
 
-    ...on UnauthenticatedViewer {
+    ... on UnauthenticatedViewer {
       __typename
       authFailureReason
     }

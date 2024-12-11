@@ -212,7 +212,7 @@ class OutingPlanner:
                         event_id=event_orm.eventbrite_event_id,
                         query=GetEventQuery(
                             expand=Expansion.all(),
-                        )
+                        ),
                     )
                     self.activity = await activity_from_eventbrite_event(self.eventbrite_client, event=eventbrite_event)
                     return self.activity

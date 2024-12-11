@@ -1,7 +1,6 @@
-from typing import Self
 from uuid import UUID
 
-from sqlalchemy import Column, ForeignKey, ForeignKeyConstraint, PrimaryKeyConstraint, ScalarResult, Select, Table
+from sqlalchemy import Column, ForeignKey, ForeignKeyConstraint, PrimaryKeyConstraint, Table
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from eave.core.lib.geo import GeoPoint
@@ -9,7 +8,6 @@ from eave.core.orm.image import ImageOrm
 from eave.core.orm.util.mixins import CoordinatesMixin, GetOneByIdMixin
 from eave.core.orm.util.user_defined_column_types import AddressColumnType
 from eave.core.shared.address import Address
-from eave.stdlib.typing import NOT_SET
 
 from .base import Base
 from .util.constants import PG_UUID_EXPR, OnDeleteOption
@@ -20,6 +18,7 @@ _activity_images_join_table = Table(
     Column("activity_id", ForeignKey("activities.id", ondelete=OnDeleteOption.CASCADE)),
     Column("image_id", ForeignKey(f"{ImageOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)),
 )
+
 
 class ActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
     __tablename__ = "activities"
@@ -73,7 +72,9 @@ class TicketTypeOrm(Base, GetOneByIdMixin):
     )
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
-    activity_id: Mapped[UUID] = mapped_column(ForeignKey(f"{ActivityOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE))
+    activity_id: Mapped[UUID] = mapped_column(
+        ForeignKey(f"{ActivityOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)
+    )
     title: Mapped[str] = mapped_column()
     description: Mapped[str] = mapped_column()
     base_cost_cents: Mapped[int] = mapped_column()

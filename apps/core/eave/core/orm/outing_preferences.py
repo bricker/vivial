@@ -2,7 +2,7 @@ from typing import Self
 from uuid import UUID
 
 import sqlalchemy.dialects.postgresql
-from sqlalchemy import ForeignKey, ForeignKeyConstraint, PrimaryKeyConstraint, Select, select
+from sqlalchemy import ForeignKey, PrimaryKeyConstraint, Select, select
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.orm.account import AccountOrm
@@ -15,12 +15,12 @@ from .util.constants import PG_UUID_EXPR, OnDeleteOption
 
 class OutingPreferencesOrm(Base, GetOneByIdMixin):
     __tablename__ = "outing_preferences"
-    __table_args__ = (
-        PrimaryKeyConstraint("id"),
-    )
+    __table_args__ = (PrimaryKeyConstraint("id"),)
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
-    account_id: Mapped[UUID] = mapped_column(ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE))
+    account_id: Mapped[UUID] = mapped_column(
+        ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)
+    )
 
     activity_category_ids: Mapped[list[UUID] | None] = mapped_column(
         type_=sqlalchemy.dialects.postgresql.ARRAY(
@@ -35,7 +35,9 @@ class OutingPreferencesOrm(Base, GetOneByIdMixin):
         )
     )
 
-    def __init__(self, *,
+    def __init__(
+        self,
+        *,
         account_id: UUID,
         activity_category_ids: list[UUID] | None,
         restaurant_category_ids: list[UUID] | None,

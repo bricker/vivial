@@ -1,13 +1,9 @@
 import random
-from eave.core.lib.geo import GeoPoint
+
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.activity import ActivityOrm
-from eave.core.orm.image import ImageOrm
-from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservationOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
-from eave.core.shared.address import Address
-from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
+from eave.core.shared.enums import OutingBudget
 
 from ..base import BaseTestCase
 
@@ -24,7 +20,7 @@ class TestSurveyOrm(BaseTestCase):
             survey = SurveyOrm(
                 account=account,
                 budget=OutingBudget.INEXPENSIVE,
-                headcount=self.anyint(min=1,max=2),
+                headcount=self.anyint(min=1, max=2),
                 search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
                 start_time_utc=self.anydatetime(future=True),
                 timezone=self.anytimezone(),

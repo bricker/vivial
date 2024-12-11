@@ -1,11 +1,9 @@
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Self
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import Column, ForeignKey, ForeignKeyConstraint, Index, PrimaryKeyConstraint, Select, Table, select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column, relationship
+from sqlalchemy import ForeignKey, PrimaryKeyConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from eave.core.lib.geo import GeoPoint
 from eave.core.orm.account import AccountOrm
@@ -13,32 +11,42 @@ from eave.core.orm.account_bookings_join_table import ACCOUNT_BOOKINGS_JOIN_TABL
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.core.orm.util.mixins import CoordinatesMixin, GetOneByIdMixin, TimedEventMixin
-from eave.core.orm.util.user_defined_column_types import ActivitySourceColumnType, AddressColumnType, RestaurantSourceColumnType
+from eave.core.orm.util.user_defined_column_types import (
+    ActivitySourceColumnType,
+    AddressColumnType,
+    RestaurantSourceColumnType,
+)
 from eave.core.shared.address import Address
 from eave.core.shared.enums import ActivitySource, RestaurantSource
-from eave.stdlib.typing import NOT_SET
 
 from .base import Base
 from .util.constants import PG_UUID_EXPR, OnDeleteOption
 
+
 class BookingOrm(Base, GetOneByIdMixin):
     __tablename__ = "bookings"
-    __table_args__ = (
-        PrimaryKeyConstraint("id"),
-    )
+    __table_args__ = (PrimaryKeyConstraint("id"),)
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
 
-    stripe_payment_intent_reference_id: Mapped[UUID | None] = mapped_column(ForeignKey(f"{StripePaymentIntentReferenceOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL), index=True)
+    stripe_payment_intent_reference_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey(f"{StripePaymentIntentReferenceOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL), index=True
+    )
     stripe_payment_intent_reference: Mapped[StripePaymentIntentReferenceOrm | None] = relationship(lazy="selectin")
 
-    reserver_details_id: Mapped[UUID] = mapped_column(ForeignKey(f"{ReserverDetailsOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL), index=True)
+    reserver_details_id: Mapped[UUID] = mapped_column(
+        ForeignKey(f"{ReserverDetailsOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL), index=True
+    )
     reserver_details: Mapped[ReserverDetailsOrm] = relationship(lazy="selectin")
 
-    accounts: Mapped[list[AccountOrm]] = relationship(secondary=ACCOUNT_BOOKINGS_JOIN_TABLE, lazy="selectin", back_populates="bookings")
+    accounts: Mapped[list[AccountOrm]] = relationship(
+        secondary=ACCOUNT_BOOKINGS_JOIN_TABLE, lazy="selectin", back_populates="bookings"
+    )
 
     activities: Mapped[list["BookingActivityTemplateOrm"]] = relationship(lazy="selectin", back_populates="booking")
-    reservations: Mapped[list["BookingReservationTemplateOrm"]] = relationship(lazy="selectin", back_populates="booking")
+    reservations: Mapped[list["BookingReservationTemplateOrm"]] = relationship(
+        lazy="selectin", back_populates="booking"
+    )
 
     def __init__(
         self,
@@ -49,6 +57,7 @@ class BookingOrm(Base, GetOneByIdMixin):
         self.reserver_details = reserver_details
         self.stripe_payment_intent_reference = stripe_payment_intent_reference
 
+
 class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     """Editable template for a booked activity.
     Edits are visible to other accounts part of the same booking, but
@@ -56,9 +65,7 @@ class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     mutate the activity this template cloned its source data from."""
 
     __tablename__ = "booking_activity_templates"
-    __table_args__ = (
-        PrimaryKeyConstraint("id"),
-    )
+    __table_args__ = (PrimaryKeyConstraint("id"),)
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     source_id: Mapped[str] = mapped_column()
@@ -71,7 +78,9 @@ class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     """HTTP link to site for manual booking (possibly affiliate), if available"""
     address: Mapped[Address] = mapped_column(type_=AddressColumnType())
 
-    booking_id: Mapped[UUID] = mapped_column(ForeignKey(f"{BookingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE), index=True)
+    booking_id: Mapped[UUID] = mapped_column(
+        ForeignKey(f"{BookingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE), index=True
+    )
     booking: Mapped[BookingOrm] = relationship(lazy="selectin", back_populates="activities")
 
     def __init__(
@@ -109,9 +118,7 @@ class BookingReservationTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     mutate the reservation this template cloned its source data from."""
 
     __tablename__ = "booking_reservation_templates"
-    __table_args__ = (
-        PrimaryKeyConstraint("id"),
-    )
+    __table_args__ = (PrimaryKeyConstraint("id"),)
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     source_id: Mapped[str] = mapped_column()
@@ -124,7 +131,9 @@ class BookingReservationTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     """HTTP link to site for manual booking (possibly affiliate), if available"""
     address: Mapped[Address] = mapped_column(type_=AddressColumnType())
 
-    booking_id: Mapped[UUID] = mapped_column(ForeignKey(f"{BookingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE), index=True)
+    booking_id: Mapped[UUID] = mapped_column(
+        ForeignKey(f"{BookingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE), index=True
+    )
     booking: Mapped[BookingOrm] = relationship(lazy="selectin", back_populates="reservations")
 
     def __init__(

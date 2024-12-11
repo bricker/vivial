@@ -1,22 +1,15 @@
 from datetime import UTC, datetime, timedelta
-from uuid import UUID, uuid4
+from uuid import UUID
 
 import strawberry
 
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.types.activity import Activity, ActivityVenue
-from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import (
     Outing,
 )
-from eave.core.graphql.types.photos import Photos
-from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.lib.event_helpers import get_activity, get_restaurant
-from eave.core.orm.outing import OutingActivityOrm
-from eave.core.orm.outing import OutingReservationOrm
-from eave.core.shared.enums import ActivitySource, RestaurantSource
-from eave.stdlib.time import LOS_ANGELES_TIMEZONE
+from eave.core.orm.outing import OutingActivityOrm, OutingReservationOrm
 
 # # TODO: Remove once we're fetching from the appropriate sources.
 # MOCK_OUTING = Outing(

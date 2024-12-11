@@ -2,8 +2,7 @@ from datetime import UTC
 
 from eave.core.lib.geo import GeoPoint
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.booking import BookingOrm, BookingReservationTemplateOrm
-from eave.core.orm.booking import BookingActivityTemplateOrm
+from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.core.shared.address import Address
@@ -30,8 +29,7 @@ class TestBookingOrms(BaseTestCase):
             session.add(reserver_details)
 
             stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
-                account=account,
-                stripe_payment_intent_id=self.anystr()
+                account=account, stripe_payment_intent_id=self.anystr()
             )
             session.add(stripe_payment_intent_reference)
 
@@ -170,7 +168,9 @@ class TestBookingOrms(BaseTestCase):
             session.add(booking_activity_template_new)
 
         async with self.db_session.begin() as session:
-            booking_activity_template_fetched = await session.get_one(BookingActivityTemplateOrm, booking_activity_template_new.id)
+            booking_activity_template_fetched = await session.get_one(
+                BookingActivityTemplateOrm, booking_activity_template_new.id
+            )
 
             assert booking_activity_template_fetched.id == booking_activity_template_new.id
             assert booking_activity_template_fetched.booking.id == booking.id
@@ -178,14 +178,21 @@ class TestBookingOrms(BaseTestCase):
             assert booking_activity_template_fetched.start_time_utc == self.getdatetime("activity.start_time_utc")
             assert booking_activity_template_fetched.start_time_utc.tzinfo == UTC
             assert booking_activity_template_fetched.timezone == self.gettimezone("activity.timezone")
-            assert booking_activity_template_fetched.start_time_local == self.getdatetime("activity.start_time_utc").astimezone(
-                self.gettimezone("activity.timezone")
-            )
+            assert booking_activity_template_fetched.start_time_local == self.getdatetime(
+                "activity.start_time_utc"
+            ).astimezone(self.gettimezone("activity.timezone"))
 
             assert booking_activity_template_fetched.photo_uri == self.geturl("activity.photo_uri")
             assert booking_activity_template_fetched.headcount == self.getint("activity.headcount")
-            assert booking_activity_template_fetched.coordinates == GeoPoint(lat=self.getlatitude("activity.lat"), lon=self.getlongitude("activity.lon")).geoalchemy_shape()
-            assert booking_activity_template_fetched.external_booking_link == self.geturl("activity.external_booking_link")
+            assert (
+                booking_activity_template_fetched.coordinates
+                == GeoPoint(
+                    lat=self.getlatitude("activity.lat"), lon=self.getlongitude("activity.lon")
+                ).geoalchemy_shape()
+            )
+            assert booking_activity_template_fetched.external_booking_link == self.geturl(
+                "activity.external_booking_link"
+            )
             assert booking_activity_template_fetched.source == ActivitySource.EVENTBRITE
             assert booking_activity_template_fetched.source_id == self.getdigits("activity.source_id")
             assert booking_activity_template_fetched.address == Address(
@@ -247,7 +254,9 @@ class TestBookingOrms(BaseTestCase):
             session.add(booking_reservation_template_new)
 
         async with self.db_session.begin() as session:
-            booking_reservation_template_fetched = await session.get_one(BookingReservationTemplateOrm, booking_reservation_template_new.id)
+            booking_reservation_template_fetched = await session.get_one(
+                BookingReservationTemplateOrm, booking_reservation_template_new.id
+            )
 
             assert booking_reservation_template_fetched.id == booking_reservation_template_new.id
             assert booking_reservation_template_fetched.booking.id == booking.id
@@ -255,14 +264,21 @@ class TestBookingOrms(BaseTestCase):
             assert booking_reservation_template_fetched.start_time_utc == self.getdatetime("reservation.start_time_utc")
             assert booking_reservation_template_fetched.start_time_utc.tzinfo == UTC
             assert booking_reservation_template_fetched.timezone == self.gettimezone("reservation.timezone")
-            assert booking_reservation_template_fetched.start_time_local == self.getdatetime("reservation.start_time_utc").astimezone(
-                self.gettimezone("reservation.timezone")
-            )
+            assert booking_reservation_template_fetched.start_time_local == self.getdatetime(
+                "reservation.start_time_utc"
+            ).astimezone(self.gettimezone("reservation.timezone"))
 
             assert booking_reservation_template_fetched.photo_uri == self.geturl("reservation.photo_uri")
             assert booking_reservation_template_fetched.headcount == self.getint("reservation.headcount")
-            assert booking_reservation_template_fetched.coordinates == GeoPoint(lat=self.getlatitude("reservation.lat"), lon=self.getlongitude("reservation.lon")).geoalchemy_shape()
-            assert booking_reservation_template_fetched.external_booking_link == self.geturl("reservation.external_booking_link")
+            assert (
+                booking_reservation_template_fetched.coordinates
+                == GeoPoint(
+                    lat=self.getlatitude("reservation.lat"), lon=self.getlongitude("reservation.lon")
+                ).geoalchemy_shape()
+            )
+            assert booking_reservation_template_fetched.external_booking_link == self.geturl(
+                "reservation.external_booking_link"
+            )
             assert booking_reservation_template_fetched.source == RestaurantSource.GOOGLE_PLACES
             assert booking_reservation_template_fetched.source_id == self.getdigits("reservation.source_id")
             assert booking_reservation_template_fetched.address == Address(

@@ -3,7 +3,7 @@ from uuid import UUID
 from zoneinfo import ZoneInfo
 
 import sqlalchemy
-from sqlalchemy import ForeignKey, ForeignKeyConstraint, PrimaryKeyConstraint
+from sqlalchemy import ForeignKey, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from eave.core.orm.account import AccountOrm
@@ -17,9 +17,7 @@ from .util.constants import PG_UUID_EXPR, OnDeleteOption
 
 class SurveyOrm(Base, TimedEventMixin, GetOneByIdMixin):
     __tablename__ = "surveys"
-    __table_args__ = (
-        PrimaryKeyConstraint("id"),
-    )
+    __table_args__ = (PrimaryKeyConstraint("id"),)
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     visitor_id: Mapped[UUID] = mapped_column()
@@ -32,7 +30,9 @@ class SurveyOrm(Base, TimedEventMixin, GetOneByIdMixin):
     budget: Mapped[OutingBudget] = mapped_column(type_=OutingBudgetColumnType())
     headcount: Mapped[int] = mapped_column()
 
-    account_id: Mapped[UUID | None] = mapped_column(ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL))
+    account_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL)
+    )
     account: Mapped[AccountOrm | None] = relationship(lazy="selectin")
 
     def __init__(

@@ -8,8 +8,6 @@ from eave.core.graphql.types.booking import BookingDetailPeek, BookingDetails
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
-from eave.core.orm.booking import BookingActivityTemplateOrm
-from eave.core.orm.booking import BookingReservationTemplateOrm
 from eave.stdlib.http_exceptions import NotFoundError
 from eave.stdlib.util import unwrap
 
@@ -35,7 +33,6 @@ async def _get_booking_details(
         activity = booking.activities[0]
     if len(booking.reservations) > 0:
         reservation = booking.reservations[0]
-
 
     if activity:
         details.activity_start_time = activity.start_time_local

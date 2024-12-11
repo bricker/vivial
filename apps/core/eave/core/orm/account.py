@@ -22,6 +22,7 @@ from .util.constants import PG_UUID_EXPR
 if TYPE_CHECKING:
     from eave.core.orm.booking import BookingOrm
 
+
 class InvalidPasswordError(Exception):
     pass
 
@@ -73,7 +74,9 @@ class AccountOrm(Base, GetOneByIdMixin):
         type_=TIMESTAMP(timezone=True), server_default=func.current_timestamp(), nullable=True
     )
 
-    bookings: Mapped[list["BookingOrm"]] = relationship(secondary=ACCOUNT_BOOKINGS_JOIN_TABLE, lazy="selectin", back_populates="accounts")
+    bookings: Mapped[list["BookingOrm"]] = relationship(
+        secondary=ACCOUNT_BOOKINGS_JOIN_TABLE, lazy="selectin", back_populates="accounts"
+    )
 
     def __init__(
         self,

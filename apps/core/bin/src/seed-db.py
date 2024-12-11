@@ -41,12 +41,8 @@ import eave.core.orm.base
 from eave.core.graphql.types.activity import ActivitySource
 from eave.core.graphql.types.restaurant import RestaurantSource
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.booking import BookingOrm
-from eave.core.orm.booking import BookingActivityTemplateOrm
-from eave.core.orm.booking import BookingReservationTemplateOrm
-from eave.core.orm.outing import OutingOrm
-from eave.core.orm.outing import OutingActivityOrm
-from eave.core.orm.outing import OutingReservationOrm
+from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
+from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservationOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm

@@ -1,7 +1,5 @@
 from textwrap import dedent
-from eave.core.lib.geo import GeoPoint
-from eave.core.orm.activity import ActivityOrm
-from eave.core.orm.image import ImageOrm
+
 from eave.core.shared.address import Address
 
 from ..base import BaseTestCase
@@ -75,7 +73,6 @@ class TestAddressDataclass(BaseTestCase):
             f"""{self.getalpha("address1")}
             {self.getusstate("state")} {self.getdigits("zip")}"""
         )
-
 
         address = Address(
             address1=self.anyalpha("address1"),

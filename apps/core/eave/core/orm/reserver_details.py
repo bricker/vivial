@@ -2,12 +2,11 @@ import re
 from typing import Self
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, ForeignKeyConstraint, PrimaryKeyConstraint
+from sqlalchemy import ForeignKey, PrimaryKeyConstraint
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.util.mixins import GetOneByIdMixin
 from eave.core.shared.errors import ValidationError
 
 from .base import Base
@@ -16,16 +15,16 @@ from .util.constants import PG_UUID_EXPR, OnDeleteOption
 
 class ReserverDetailsOrm(Base):
     __tablename__ = "reserver_details"
-    __table_args__ = (
-        PrimaryKeyConstraint("account_id", "id", name="account_id_id_pk"),
-    )
+    __table_args__ = (PrimaryKeyConstraint("account_id", "id", name="account_id_id_pk"),)
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, unique=True)
     first_name: Mapped[str] = mapped_column()
     last_name: Mapped[str] = mapped_column()
     phone_number: Mapped[str] = mapped_column()
 
-    account_id: Mapped[UUID] = mapped_column(ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE))
+    account_id: Mapped[UUID] = mapped_column(
+        ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)
+    )
     account: Mapped[AccountOrm] = relationship(lazy="selectin")
 
     def __init__(

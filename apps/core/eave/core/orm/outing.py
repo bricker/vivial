@@ -1,10 +1,8 @@
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING, Self
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import ForeignKey, ForeignKeyConstraint, PrimaryKeyConstraint
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import ForeignKey, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from eave.core.graphql.types.restaurant import RestaurantSource
@@ -17,18 +15,22 @@ from eave.core.shared.enums import ActivitySource
 from .base import Base
 from .util.constants import PG_UUID_EXPR, OnDeleteOption
 
+
 class OutingOrm(Base, GetOneByIdMixin):
     __tablename__ = "outings"
-    __table_args__ = (
-    )
+    __table_args__ = ()
 
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=PG_UUID_EXPR)
     visitor_id: Mapped[UUID] = mapped_column()
 
-    survey_id: Mapped[UUID] = mapped_column(ForeignKey(f"{SurveyOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE))
+    survey_id: Mapped[UUID] = mapped_column(
+        ForeignKey(f"{SurveyOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)
+    )
     survey: Mapped[SurveyOrm] = relationship(lazy="selectin")
 
-    account_id: Mapped[UUID | None] = mapped_column(ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL))
+    account_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL)
+    )
     account: Mapped[AccountOrm | None] = relationship(lazy="selectin")
 
     activities: Mapped[list["OutingActivityOrm"]] = relationship(lazy="selectin", back_populates="outing")
@@ -45,16 +47,17 @@ class OutingOrm(Base, GetOneByIdMixin):
         self.account = account
         self.survey = survey
 
+
 class OutingActivityOrm(Base, TimedEventMixin):
     """Pivot table between `outings` and activity sources"""
 
     __tablename__ = "outing_activities"
-    __table_args__ = (
-        PrimaryKeyConstraint("outing_id", "source_id", name="outing_activity_pivot_pk"),
-    )
+    __table_args__ = (PrimaryKeyConstraint("outing_id", "source_id", name="outing_activity_pivot_pk"),)
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, unique=True)
-    outing_id: Mapped[UUID] = mapped_column(ForeignKey(f"{OutingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE))
+    outing_id: Mapped[UUID] = mapped_column(
+        ForeignKey(f"{OutingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)
+    )
     outing: Mapped[OutingOrm] = relationship(lazy="selectin", back_populates="activities")
 
     source_id: Mapped[str] = mapped_column()
@@ -85,12 +88,12 @@ class OutingReservationOrm(Base, TimedEventMixin):
     """Pivot table between `outings` and reservation sources"""
 
     __tablename__ = "outing_reservations"
-    __table_args__ = (
-        PrimaryKeyConstraint("outing_id", "source_id", name="outing_reservation_pivot_pk"),
-    )
+    __table_args__ = (PrimaryKeyConstraint("outing_id", "source_id", name="outing_reservation_pivot_pk"),)
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, unique=True)
-    outing_id: Mapped[UUID] = mapped_column(ForeignKey(f"{OutingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE))
+    outing_id: Mapped[UUID] = mapped_column(
+        ForeignKey(f"{OutingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)
+    )
     outing: Mapped[OutingOrm] = relationship(lazy="selectin", back_populates="reservations")
 
     source_id: Mapped[str] = mapped_column()

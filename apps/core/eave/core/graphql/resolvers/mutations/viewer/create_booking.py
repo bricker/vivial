@@ -4,13 +4,10 @@ from typing import Annotated
 from uuid import UUID
 
 import strawberry
+import stripe
 from attr import dataclass
 from google.maps.places_v1 import PlacesAsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
-import stripe
 
-from eave.core.lib.geo import GeoPoint
-from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 import eave.stdlib.slack
 from eave.core import database
 from eave.core.analytics import ANALYTICS
@@ -24,18 +21,14 @@ from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import 
 from eave.core.graphql.types.booking import (
     Booking,
 )
+from eave.core.lib.geo import GeoPoint
 from eave.core.lib.google_places import get_google_place, photos_from_google_place
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.activity import ActivityOrm
 from eave.core.orm.base import InvalidRecordError
-from eave.core.orm.booking import BookingOrm
-from eave.core.orm.booking import BookingActivityTemplateOrm
-from eave.core.orm.booking import BookingReservationTemplateOrm
+from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
 from eave.core.orm.outing import OutingOrm
-from eave.core.orm.outing import OutingActivityOrm
-from eave.core.orm.outing import OutingReservationOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
-from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.address import Address
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.core.shared.errors import ValidationError
@@ -127,9 +120,14 @@ async def _get_event_details(
                     "",
                 ),
                 address1=next(
-                    (component.longText for component in details.addressComponents if "street_address" in component.types),
+                    (
+                        component.longText
+                        for component in details.addressComponents
+                        if "street_address" in component.types
+                    ),
                     None,
-                ) or " ".join(  # fallback to constructing address from more granular components
+                )
+                or " ".join(  # fallback to constructing address from more granular components
                     [
                         next(
                             (
@@ -140,7 +138,11 @@ async def _get_event_details(
                             "",
                         ),
                         next(
-                            (component.longText for component in details.addressComponents if "route" in component.types),
+                            (
+                                component.longText
+                                for component in details.addressComponents
+                                if "route" in component.types
+                            ),
                             "",
                         ),
                     ]
@@ -164,8 +166,8 @@ async def _get_event_details(
             name = details.get("name", {}).get("text")
             booking_uri = details.get("url")
             if venue := details.get("venue"):
-                lat=venue.get("latitude")
-                lon=venue.get("longitude")
+                lat = venue.get("latitude")
+                lon = venue.get("longitude")
 
                 if lat is not None and lon is not None:
                     coordinates = GeoPoint(

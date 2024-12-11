@@ -8,14 +8,15 @@ import stripe
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.payment_intent import PaymentIntent
-from eave.core.orm.booking import BookingOrm
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.stdlib.util import unwrap
 
+
 @strawberry.input
 class CreatePaymentIntentInput:
     outing_id: UUID
+
 
 @strawberry.type
 class CreatePaymentIntentSuccess:

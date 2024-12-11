@@ -1,5 +1,4 @@
 import uuid
-from textwrap import dedent
 
 from google.maps.places import PlacesAsyncClient
 

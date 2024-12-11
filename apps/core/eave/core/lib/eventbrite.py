@@ -81,9 +81,12 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         )
         return
 
-    ticket_classes_paginator = eventbrite_client.list_ticket_classes_for_sale_for_event(event_id=event_id, query=ListTicketClassesForSaleQuery(
-        pos=PointOfSale.ONLINE,
-    ))
+    ticket_classes_paginator = eventbrite_client.list_ticket_classes_for_sale_for_event(
+        event_id=event_id,
+        query=ListTicketClassesForSaleQuery(
+            pos=PointOfSale.ONLINE,
+        ),
+    )
 
     best_ticket_class: TicketClass | None = None
     max_cost_cents = 0
@@ -119,8 +122,7 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
             cover_photo_uri=logo["url"] if logo else None,
             supplemental_photo_uris=None,
         ),
-        ticket_info=ActivityTicketInfo(
-        ),
+        ticket_info=ActivityTicketInfo(),
         venue=ActivityVenue(
             name=venue["name"],
             location=Location(

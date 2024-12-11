@@ -3,9 +3,7 @@ from uuid import UUID
 from eave.core import database
 from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
 from eave.core.graphql.types.outing import Outing, OutingPreferencesInput
-from eave.core.orm.outing import OutingOrm
-from eave.core.orm.outing import OutingActivityOrm
-from eave.core.orm.outing import OutingReservationOrm
+from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservationOrm
 from eave.core.orm.survey import SurveyOrm
 
 

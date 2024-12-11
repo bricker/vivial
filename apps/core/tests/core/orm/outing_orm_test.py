@@ -1,12 +1,9 @@
 import random
-from eave.core.lib.geo import GeoPoint
+
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.activity import ActivityOrm
-from eave.core.orm.image import ImageOrm
 from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservationOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
-from eave.core.shared.address import Address
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 
 from ..base import BaseTestCase
@@ -24,7 +21,7 @@ class TestOutingOrms(BaseTestCase):
             survey = SurveyOrm(
                 account=account,
                 budget=OutingBudget.INEXPENSIVE,
-                headcount=self.anyint(min=1,max=2),
+                headcount=self.anyint(min=1, max=2),
                 search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
                 start_time_utc=self.anydatetime(future=True),
                 timezone=self.anytimezone(),
@@ -84,7 +81,7 @@ class TestOutingOrms(BaseTestCase):
             survey = SurveyOrm(
                 account=None,
                 budget=OutingBudget.INEXPENSIVE,
-                headcount=self.anyint(min=1,max=2),
+                headcount=self.anyint(min=1, max=2),
                 search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
                 start_time_utc=self.anydatetime(future=True),
                 timezone=self.anytimezone(),
@@ -110,7 +107,7 @@ class TestOutingOrms(BaseTestCase):
             survey = SurveyOrm(
                 account=None,
                 budget=OutingBudget.INEXPENSIVE,
-                headcount=self.anyint(min=1,max=2),
+                headcount=self.anyint(min=1, max=2),
                 search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
                 start_time_utc=self.anydatetime(future=True),
                 timezone=self.anytimezone(),
@@ -144,7 +141,9 @@ class TestOutingOrms(BaseTestCase):
             assert outing_activity_fetched.source_id == self.getstr("source_id")
             assert outing_activity_fetched.source == ActivitySource.EVENTBRITE
             assert outing_activity_fetched.start_time_utc == self.getdatetime("start_time_utc")
-            assert outing_activity_fetched.start_time_local == self.getdatetime("start_time_utc").astimezone(survey.timezone)
+            assert outing_activity_fetched.start_time_local == self.getdatetime("start_time_utc").astimezone(
+                survey.timezone
+            )
             assert outing_activity_fetched.timezone == survey.timezone
             assert outing_activity_fetched.headcount == survey.headcount
 
@@ -153,7 +152,7 @@ class TestOutingOrms(BaseTestCase):
             survey = SurveyOrm(
                 account=None,
                 budget=OutingBudget.INEXPENSIVE,
-                headcount=self.anyint(min=1,max=2),
+                headcount=self.anyint(min=1, max=2),
                 search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
                 start_time_utc=self.anydatetime(future=True),
                 timezone=self.anytimezone(),
@@ -179,7 +178,9 @@ class TestOutingOrms(BaseTestCase):
             session.add(outing_reservation_new)
 
         async with self.db_session.begin() as session:
-            outing_reservation_fetched = await session.get_one(OutingReservationOrm, (outing.id, self.getdigits("source_id")))
+            outing_reservation_fetched = await session.get_one(
+                OutingReservationOrm, (outing.id, self.getdigits("source_id"))
+            )
 
             assert outing_reservation_fetched.id == outing_reservation_new.id
             assert outing_reservation_fetched.outing.id == outing.id
@@ -187,6 +188,8 @@ class TestOutingOrms(BaseTestCase):
             assert outing_reservation_fetched.source_id == self.getstr("source_id")
             assert outing_reservation_fetched.source == RestaurantSource.GOOGLE_PLACES
             assert outing_reservation_fetched.start_time_utc == self.getdatetime("start_time_utc")
-            assert outing_reservation_fetched.start_time_local == self.getdatetime("start_time_utc").astimezone(survey.timezone)
+            assert outing_reservation_fetched.start_time_local == self.getdatetime("start_time_utc").astimezone(
+                survey.timezone
+            )
             assert outing_reservation_fetched.timezone == survey.timezone
             assert outing_reservation_fetched.headcount == survey.headcount
