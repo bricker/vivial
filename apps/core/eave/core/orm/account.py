@@ -21,7 +21,7 @@ from .util.constants import PG_UUID_EXPR
 
 if TYPE_CHECKING:
     from eave.core.orm.booking import BookingOrm
-
+    from eave.core.orm.reserver_details import ReserverDetailsOrm
 
 class InvalidPasswordError(Exception):
     pass

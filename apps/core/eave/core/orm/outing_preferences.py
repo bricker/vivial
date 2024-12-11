@@ -3,6 +3,7 @@ from uuid import UUID
 
 import sqlalchemy.dialects.postgresql
 from sqlalchemy import ForeignKey, PrimaryKeyConstraint, Select, select
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.orm.account import AccountOrm
@@ -13,11 +14,11 @@ from .base import Base
 from .util.constants import PG_UUID_EXPR, OnDeleteOption
 
 
-class OutingPreferencesOrm(Base, GetOneByIdMixin):
+class OutingPreferencesOrm(Base):
     __tablename__ = "outing_preferences"
-    __table_args__ = (PrimaryKeyConstraint("id"),)
+    __table_args__ = (PrimaryKeyConstraint("account_id", "id"),)
 
-    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
+    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, unique=True)
     account_id: Mapped[UUID] = mapped_column(
         ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)
     )
@@ -47,10 +48,5 @@ class OutingPreferencesOrm(Base, GetOneByIdMixin):
         self.restaurant_category_ids = restaurant_category_ids
 
     @classmethod
-    def select(cls, *, account_id: UUID = NOT_SET) -> Select[tuple[Self]]:
-        query = select(cls)
-
-        if account_id is not NOT_SET:
-            query = query.where(cls.account_id == account_id)
-
-        return query
+    async def get_one(cls, session: AsyncSession, *, account_id: UUID, uid: UUID) -> Self:
+        return await session.get_one(cls, (account_id, uid))

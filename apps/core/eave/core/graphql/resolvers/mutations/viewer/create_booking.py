@@ -8,6 +8,7 @@ import stripe
 from attr import dataclass
 from google.maps.places_v1 import PlacesAsyncClient
 
+from eave.core.lib.event_helpers import get_activity, get_restaurant
 import eave.stdlib.slack
 from eave.core import database
 from eave.core.analytics import ANALYTICS
@@ -39,165 +40,132 @@ from eave.stdlib.logging import LOGGER
 from eave.stdlib.util import unwrap
 
 
-@dataclass
-class BookingTemplates:
-    activities: list[BookingActivityTemplateOrm]
-    reservations: list[BookingReservationTemplateOrm]
+
+@strawberry.input
+class CreateBookingInput:
+    outing_id: UUID
+    reserver_details_id: UUID # TODO: Should we get this from AccountOrm?
 
 
-@dataclass
-class EventDetails:
-    name: str
-    coordinates: GeoPoint
-    address: Address
-    uri: str
-    photo_uri: str | None
+@strawberry.type
+class CreateBookingSuccess:
+    booking: Booking
 
 
-async def _get_event_details(
-    source: ActivitySource | RestaurantSource,
-    source_id: str,
-) -> EventDetails:
-    places_client = PlacesAsyncClient()
-    eventbrite_client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
+@strawberry.enum
+class CreateBookingFailureReason(enum.Enum):
+    START_TIME_TOO_SOON = enum.auto()
+    START_TIME_TOO_LATE = enum.auto()
+    VALIDATION_ERRORS = enum.auto()
 
-    name: str | None = None
-    address: Address | None = None
-    coordinates: GeoPoint | None = None
-    booking_uri: str | None = None
-    photo_uri: str | None = None
 
-    match source:
-        case ActivitySource.INTERNAL:
-            async with database.async_session.begin() as db_session:
-                details = await ActivityOrm.get_one(
-                    db_session,
-                    UUID(source_id),
-                )
-            name = details.title
-            coordinates = details.coordinates_to_geopoint()
-            address = Address(
-                address1=details.address.address1,
-                address2=details.address.address2,
-                city=details.address.city,
-                state=details.address.state,
-                zip=details.address.zip,
-                country=details.address.country,
-            )
-            booking_uri = details.booking_url
+@strawberry.type
+class CreateBookingFailure:
+    failure_reason: CreateBookingFailureReason
+    validation_errors: list[ValidationError] | None = None
 
-        case ActivitySource.GOOGLE_PLACES | RestaurantSource.GOOGLE_PLACES:
-            details = await get_google_place(
-                places_client=places_client,
-                place_id=source_id,
-            )
 
-            photos = await photos_from_google_place(places_client, place=details)
-            photo_uri = photos.cover_photo_uri
+CreateBookingResult = Annotated[CreateBookingSuccess | CreateBookingFailure, strawberry.union("CreateBookingResult")]
 
-            name = details.display_name.text
-            booking_uri = details.websiteUri
 
-            address = Address(
-                country=next(
-                    (component.shortText for component in details.addressComponents if "country" in component.types),
-                    "US",
-                ),
-                state=next(
-                    (
-                        component.shortText
-                        for component in details.addressComponents
-                        if "administrative_area_level_1" in component.types
-                    ),
-                    "",
-                ),
-                city=next(
-                    (component.longText for component in details.addressComponents if "locality" in component.types),
-                    "",
-                ),
-                zip=next(
-                    (component.longText for component in details.addressComponents if "postal_code" in component.types),
-                    "",
-                ),
-                address1=next(
-                    (
-                        component.longText
-                        for component in details.addressComponents
-                        if "street_address" in component.types
-                    ),
-                    None,
-                )
-                or " ".join(  # fallback to constructing address from more granular components
-                    [
-                        next(
-                            (
-                                component.longText
-                                for component in details.addressComponents
-                                if "street_number" in component.types
-                            ),
-                            "",
-                        ),
-                        next(
-                            (
-                                component.longText
-                                for component in details.addressComponents
-                                if "route" in component.types
-                            ),
-                            "",
-                        ),
-                    ]
-                ),
-                address2=next(
-                    (component.longText for component in details.addressComponents if "subpremise" in component.types),
-                    None,
-                ),
+async def create_booking_mutation(
+    *,
+    info: strawberry.Info[GraphQLContext],
+    input: CreateBookingInput,
+) -> CreateBookingResult:
+    account_id = unwrap(info.context.get("authenticated_account_id"))
+
+    try:
+        async with database.async_session.begin() as db_session:
+            outing = await OutingOrm.get_one(db_session, input.outing_id)
+            survey = outing.survey
+            # stripe_payment_intent_reference_orm = (await db_session.scalars(StripePaymentIntentReferenceOrm.select(outing_id=outing.id))).one_or_none()
+
+            # validate outing time still valid to book
+            try:
+                validate_time_within_bounds_or_exception(start_time=survey.start_time_utc, timezone=survey.timezone)
+            except StartTimeTooSoonError:
+                return CreateBookingFailure(failure_reason=CreateBookingFailureReason.START_TIME_TOO_SOON)
+            except StartTimeTooLateError:
+                return CreateBookingFailure(failure_reason=CreateBookingFailureReason.START_TIME_TOO_LATE)
+
+            reserver_details = await ReserverDetailsOrm.get_one(db_session, account_id=account_id, uid=input.reserver_details_id)
+            account = await AccountOrm.get_one(db_session, account_id)
+
+            booking = BookingOrm(
+                reserver_details=reserver_details,
+                stripe_payment_intent_reference=stripe_payment_intent_reference_orm,
             )
 
-            coordinates = GeoPoint(
-                lat=details.location.latitude,
-                lon=details.location.longitude,
-            )
+            db_session.add(booking)
+            booking.accounts = [account]
 
-        case ActivitySource.EVENTBRITE:
-            details = await eventbrite_client.get_event_by_id(
-                event_id=source_id,
-                query=GetEventQuery(expand=Expansion.all()),
-            )
-            name = details.get("name", {}).get("text")
-            booking_uri = details.get("url")
-            if venue := details.get("venue"):
-                lat = venue.get("latitude")
-                lon = venue.get("longitude")
+            for activity_orm in outing.activities:
+                activity = await get_activity(source=activity_orm.source, source_id=activity_orm.source_id)
 
-                if lat is not None and lon is not None:
-                    coordinates = GeoPoint(
-                        lat=float(lat),
-                        lon=float(lon),
+                if activity:
+                    booking.activities.append(
+                        BookingActivityTemplateOrm(
+                            booking=booking,
+                            source=activity_orm.source,
+                            source_id=activity_orm.source_id,
+                            name=activity.name,
+                            start_time_utc=activity_orm.start_time_utc,
+                            timezone=activity_orm.timezone,
+                            headcount=activity_orm.headcount,
+                            external_booking_link=activity.website_uri,
+                            address=activity.venue.location.address,
+                            coordinates=activity.venue.location.coordinates,
+                            photo_uri=activity.photos.cover_photo.src if activity.photos.cover_photo else None,
+                        )
                     )
 
-                if venue_address := venue.get("address"):
-                    address = Address(
-                        address1=venue_address.get("address_1"),
-                        address2=venue_address.get("address_2"),
-                        city=venue_address.get("city"),
-                        state=venue_address.get("region"),
-                        zip=venue_address.get("postal_code"),
-                        country=venue_address.get("country"),
+            for reservation_orm in outing.reservations:
+                reservation = await get_restaurant(
+                    source=reservation_orm.source,
+                    source_id=reservation_orm.source_id,
+                )
+
+                booking.reservations.append(
+                    BookingReservationTemplateOrm(
+                        booking=booking,
+                        source=reservation_orm.source,
+                        source_id=reservation_orm.source_id,
+                        name=reservation.name,
+                        start_time_utc=reservation_orm.start_time_utc,
+                        timezone=reservation_orm.timezone,
+                        headcount=reservation_orm.headcount,
+                        external_booking_link=reservation.website_uri,
+                        address=reservation.location.address,
+                        coordinates=reservation.location.coordinates,
+                        photo_uri=reservation.photos.cover_photo.src if reservation.photos.cover_photo else None,
                     )
-            if logo := details.get("logo"):
-                photo_uri = logo.get("original", {}).get("url")
+                )
 
-    assert name is not None
-    assert coordinates is not None
-    assert address is not None
-    assert booking_uri is not None
+    except InvalidRecordError as e:
+        LOGGER.exception(e)
+        return CreateBookingFailure(
+            failure_reason=CreateBookingFailureReason.VALIDATION_ERRORS, validation_errors=e.validation_errors
+        )
 
-    return EventDetails(
-        name=name,
-        coordinates=coordinates,
-        address=address,
-        uri=booking_uri,
-        photo_uri=photo_uri,
+    stripe_payment_intent = await stripe.PaymentIntent.get()
+
+    await _notify_slack(booking=booking, account=account, reserver_details=reserver_details)
+
+    ANALYTICS.track(
+        event_name="booking created",
+        account_id=account_id,
+        extra_properties={
+            "booking_constraints": {
+                "headcount": survey.headcount,
+                "budget": survey.budget,
+                "search_areas": survey.search_area_ids,
+            }
+        },
+    )
+
+    return CreateBookingSuccess(
+        booking=Booking.from_orm(booking),
     )
 
 
@@ -256,133 +224,3 @@ async def _notify_slack(
             )
     except Exception as e:
         LOGGER.exception(e)
-
-
-@strawberry.input
-class CreateBookingInput:
-    outing_id: UUID
-    reserver_details_id: UUID
-
-
-@strawberry.type
-class CreateBookingSuccess:
-    booking: Booking
-
-
-@strawberry.enum
-class CreateBookingFailureReason(enum.Enum):
-    START_TIME_TOO_SOON = enum.auto()
-    START_TIME_TOO_LATE = enum.auto()
-    VALIDATION_ERRORS = enum.auto()
-
-
-@strawberry.type
-class CreateBookingFailure:
-    failure_reason: CreateBookingFailureReason
-    validation_errors: list[ValidationError] | None = None
-
-
-CreateBookingResult = Annotated[CreateBookingSuccess | CreateBookingFailure, strawberry.union("CreateBookingResult")]
-
-
-async def create_booking_mutation(
-    *,
-    info: strawberry.Info[GraphQLContext],
-    input: CreateBookingInput,
-) -> CreateBookingResult:
-    account_id = unwrap(info.context.get("authenticated_account_id"))
-
-    try:
-        async with database.async_session.begin() as db_session:
-            outing = await OutingOrm.get_one(db_session, input.outing_id)
-            survey = outing.survey
-            # stripe_payment_intent_reference_orm = (await db_session.scalars(StripePaymentIntentReferenceOrm.select(outing_id=outing.id))).one_or_none()
-
-            # validate outing time still valid to book
-            try:
-                validate_time_within_bounds_or_exception(start_time=survey.start_time_utc, timezone=survey.timezone)
-            except StartTimeTooSoonError:
-                return CreateBookingFailure(failure_reason=CreateBookingFailureReason.START_TIME_TOO_SOON)
-            except StartTimeTooLateError:
-                return CreateBookingFailure(failure_reason=CreateBookingFailureReason.START_TIME_TOO_LATE)
-
-            reserver_details = await ReserverDetailsOrm.get_one(db_session, input.reserver_details_id)
-            account = await AccountOrm.get_one(db_session, account_id)
-
-            booking = BookingOrm(
-                reserver_details=reserver_details,
-                stripe_payment_intent_reference=stripe_payment_intent_reference_orm,
-            )
-
-            db_session.add(booking)
-            booking.accounts = [account]
-
-            for activity in outing.activities:
-                details = await _get_event_details(
-                    source=activity.source,
-                    source_id=activity.source_id,
-                )
-
-                booking.activities.append(
-                    BookingActivityTemplateOrm(
-                        booking=booking,
-                        source=activity.source,
-                        source_id=activity.source_id,
-                        name=details.name,
-                        start_time_utc=activity.start_time_utc,
-                        timezone=activity.timezone,
-                        headcount=activity.headcount,
-                        external_booking_link=details.uri,
-                        address=details.address,
-                        coordinates=details.coordinates,
-                        photo_uri=details.photo_uri,
-                    )
-                )
-
-            for reservation in outing.reservations:
-                details = await _get_event_details(
-                    source=reservation.source,
-                    source_id=reservation.source_id,
-                )
-
-                booking.reservations.append(
-                    BookingReservationTemplateOrm(
-                        booking=booking,
-                        source=reservation.source,
-                        source_id=reservation.source_id,
-                        name=details.name,
-                        start_time_utc=reservation.start_time_utc,
-                        timezone=reservation.timezone,
-                        headcount=reservation.headcount,
-                        external_booking_link=details.uri,
-                        address=details.address,
-                        coordinates=details.coordinates,
-                        photo_uri=details.photo_uri,
-                    )
-                )
-
-    except InvalidRecordError as e:
-        LOGGER.exception(e)
-        return CreateBookingFailure(
-            failure_reason=CreateBookingFailureReason.VALIDATION_ERRORS, validation_errors=e.validation_errors
-        )
-
-    stripe_payment_intent = await stripe.PaymentIntent.get()
-
-    await _notify_slack(booking=booking, account=account, reserver_details=reserver_details)
-
-    ANALYTICS.track(
-        event_name="booking created",
-        account_id=account_id,
-        extra_properties={
-            "booking_constraints": {
-                "headcount": survey.headcount,
-                "budget": survey.budget,
-                "search_areas": survey.search_area_ids,
-            }
-        },
-    )
-
-    return CreateBookingSuccess(
-        booking=Booking.from_orm(booking),
-    )

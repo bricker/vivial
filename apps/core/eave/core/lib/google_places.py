@@ -1,3 +1,4 @@
+import enum
 import urllib.parse
 from collections.abc import MutableSequence, Sequence
 from datetime import datetime, timedelta
@@ -106,12 +107,71 @@ async def photos_from_google_place(places_client: PlacesAsyncClient, *, place: P
 
     return photos
 
+class GooglePlaceAddressComponentType(enum.StrEnum):
+    administrative_area_level_1 = "administrative_area_level_1"
+    country = "country"
+    locality = "locality"
+    postal_code = "postal_code"
+    street_address = "street_address"
+    street_number = "street_number"
+    route = "route"
+    subpremise = "subpremise"
 
 def location_from_google_place(place: Place) -> Location:
-    # FIXME
-    for component in place.address_components:
-        if "abc" in component.types:
-            pass
+    address = Address(
+        country=next(
+            (component.shortText for component in place.address_components if GooglePlaceAddressComponentType.country.value in component.types),
+            None,
+        ),
+        state=next(
+            (
+                component.shortText
+                for component in place.address_components
+                if GooglePlaceAddressComponentType.administrative_area_level_1.value in component.types
+            ),
+            None,
+        ),
+        city=next(
+            (component.longText for component in place.address_components if GooglePlaceAddressComponentType.locality.value in component.types),
+            "",
+        ),
+        zip=next(
+            (component.longText for component in place.address_components if GooglePlaceAddressComponentType.postal_code.value in component.types),
+            None,
+        ),
+        address1=next(
+            (
+                component.longText
+                for component in place.address_components
+                if GooglePlaceAddressComponentType.street_address.value in component.types
+            ),
+            None,
+        )
+        or " ".join(  # fallback to constructing address from more granular components
+            [
+                next(
+                    (
+                        component.longText
+                        for component in place.address_components
+                        if GooglePlaceAddressComponentType.street_number.value in component.types
+                    ),
+                    "",
+                ),
+                next(
+                    (
+                        component.longText
+                        for component in place.address_components
+                        if GooglePlaceAddressComponentType.route.value in component.types
+                    ),
+                    "",
+                ),
+            ]
+        ),
+        address2=next(
+            (component.longText for component in place.address_components if GooglePlaceAddressComponentType.subpremise.value in component.types),
+            None,
+        ),
+    )
 
     return Location(
         directions_uri=place.google_maps_uri,
@@ -119,14 +179,7 @@ def location_from_google_place(place: Place) -> Location:
             lat=place.location.latitude,
             lon=place.location.longitude,
         ),
-        address=Address(
-            address1=place.formatted_address, # This is a hack
-            address2=None,
-            city=None,
-            state=None,
-            zip=None,
-            country=None,
-        ),
+        address=address,
     )
 
 

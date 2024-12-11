@@ -6,7 +6,7 @@ from eave.core import database
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.types.activity import Activity, ActivityVenue
 from eave.core.graphql.types.location import Location
-from eave.core.graphql.types.photos import Photo
+from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.lib.eventbrite import get_eventbrite_activity
 from eave.core.lib.google_places import (
@@ -24,9 +24,6 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
         activity = await ActivityOrm.get_one(db_session, uid=uuid.UUID(event_id))
         images = activity.images
 
-        cover_photo = Photo.from_orm(images[0]) if len(images) > 0 else None
-        supplemental_photos = [Photo.from_orm(image) for image in images[1:]]
-
     return Activity(
         source_id=event_id,
         source=ActivitySource.INTERNAL,
@@ -40,8 +37,10 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
                 directions_uri=google_maps_directions_url(activity.address.formatted_singleline),
             ),
         ),
-        cover_photo=cover_photo,
-        supplemental_photos=supplemental_photos,
+        photos=Photos(
+            cover_photo=Photo.from_orm(images[0]) if len(images) > 0 else None,
+            supplemental_photos=[Photo.from_orm(image) for image in images[1:]],
+        ),
         pricing=None,  # FIXME
         website_uri=activity.booking_url,
         door_tips=None,
