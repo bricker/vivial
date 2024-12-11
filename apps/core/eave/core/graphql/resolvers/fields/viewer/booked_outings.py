@@ -110,7 +110,6 @@ async def get_booking_details_query(
     # validate the requesting account owns the booking requested
     async with database.async_session.begin() as db_session:
         account = await AccountOrm.get_one(db_session, account_id)
-        bookings = account.bookings
 
         # FIXME: This is inefficient, there is a better way to select just the right one using SQL.
         # It's important that the account_id is used too, so that this booking can only be accessed by this account.

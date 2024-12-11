@@ -9,7 +9,7 @@ from eave.core.graphql.types.outing import (
     Outing,
 )
 from eave.core.lib.event_helpers import get_activity, get_restaurant
-from eave.core.orm.outing import OutingActivityOrm, OutingReservationOrm
+from eave.core.orm.outing import OutingOrm
 
 # # TODO: Remove once we're fetching from the appropriate sources.
 # MOCK_OUTING = Outing(
@@ -85,34 +85,44 @@ from eave.core.orm.outing import OutingActivityOrm, OutingReservationOrm
 
 async def get_outing_query(*, info: strawberry.Info[GraphQLContext], outing_id: UUID) -> Outing | None:
     async with database.async_session.begin() as db_session:
-        outing_activity = await OutingActivityOrm.get_one_by_outing_id(
-            session=db_session,
-            outing_id=outing_id,
-        )
-        outing_reservation = await OutingReservationOrm.get_one_by_outing_id(
-            session=db_session,
-            outing_id=outing_id,
-        )
+        outing = await OutingOrm.get_one(db_session, outing_id)
 
-    if outing_activity.start_time_utc < (datetime.now(UTC) + timedelta(hours=24)):
-        return None
+        activity = None
+        restaurant = None
+        headcount = 0
+        activity_start_time = None
+        restaurant_arrival_time = None
 
-    activity = await get_activity(
-        source=outing_activity.source,
-        source_id=outing_activity.source_id,
-    )
+        if len(outing.activities) > 0:
+            outing_activity = outing.activities[0]
+            # This is a quick way to expire an outing URL 24 hours before the outing beings.
+            if outing_activity.start_time_utc < (datetime.now(UTC) + timedelta(hours=24)):
+                return None
 
-    restaurant = await get_restaurant(
-        source=outing_reservation.source,
-        source_id=outing_reservation.source_id,
-    )
+            headcount = max(headcount, outing_activity.headcount)
+            activity_start_time = outing_activity.start_time_local
+
+            activity = await get_activity(
+                source=outing_activity.source,
+                source_id=outing_activity.source_id,
+            )
+
+        if len(outing.reservations) > 0:
+            outing_reservation = outing.reservations[0]
+            headcount = max(headcount, outing_reservation.headcount)
+            restaurant_arrival_time = outing_reservation.start_time_local
+
+            restaurant = await get_restaurant(
+                source=outing_reservation.source,
+                source_id=outing_reservation.source_id,
+            )
 
     return Outing(
         id=outing_id,
-        headcount=max(outing_activity.headcount, outing_reservation.headcount),
+        headcount=headcount,
         activity=activity,
         restaurant=restaurant,
         driving_time=None,
-        activity_start_time=outing_activity.start_time_local,
-        restaurant_arrival_time=outing_reservation.start_time_local,
+        activity_start_time=activity_start_time,
+        restaurant_arrival_time=restaurant_arrival_time,
     )
