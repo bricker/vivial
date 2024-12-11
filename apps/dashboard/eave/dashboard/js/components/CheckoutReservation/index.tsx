@@ -328,6 +328,7 @@ const CheckoutForm = ({ outingId }: { outingId: string }) => {
     }
   }, [reserverDetails, stripeClient, stripeElements]);
 
+  // TODO: render cost header? opentable footer?
   return (
     <form onSubmit={handleSubmit}>
       <ReservationDetailsForm

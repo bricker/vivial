@@ -7,7 +7,6 @@ const CheckoutReservationPage = () => {
   const outingId = params["outingId"];
   // TODO: do something if id is bad
 
-  // TODO: render cost header? opentable footer?
   return <CheckoutReservation outingId={outingId!} />;
 };
 

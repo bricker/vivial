@@ -1,7 +1,7 @@
 import { RootState } from "$eave-dashboard/js/store";
 import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
-import { CircularProgress, styled } from "@mui/material";
+import { CircularProgress, Typography, styled } from "@mui/material";
 import React from "react";
 import { useSelector } from "react-redux";
 import Input from "../../Inputs/Input";
@@ -33,7 +33,6 @@ const InputErrorContainer = styled("div")(() => ({
 }));
 
 const InputContainer = styled("div")(() => ({
-  marginTop: 24,
 }));
 
 const CenteringContainer = styled("div")(() => ({
@@ -66,6 +65,8 @@ const ReservationDetailsForm = ({
   const shouldShowEmail = !!(email && reserverDetails.id);
   return (
     <InputContainer>
+      <Typography variant="subtitle2">Your information</Typography>
+
       {isLoading ? (
         <CenteringContainer>
           <CircularProgress color="secondary" />
