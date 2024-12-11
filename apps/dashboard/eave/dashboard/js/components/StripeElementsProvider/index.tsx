@@ -1,4 +1,6 @@
 import { useCreatePaymentIntentMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { colors } from "$eave-dashboard/js/theme/colors";
+import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { myWindow } from "$eave-dashboard/js/types/window";
 import { CircularProgress, Typography, styled } from "@mui/material";
 import { Elements } from "@stripe/react-stripe-js";
@@ -81,12 +83,26 @@ const StripeElementsProvider = ({ children }: { children: React.ReactElement }) 
 
   // Appearance API: https://docs.stripe.com/elements/appearance-api?platform=web
   const appearance: Appearance = {
-    theme: "night", // This is a pre-built theme to use as the base
+    theme: "night",
+    labels: "floating",
     variables: {
-      // fontFamily: "TODO Leilenah",
-      // colorPrimary: "TODO Leilenabh",
-      // colorText: "TODO Leilenah",
-      // ...etc, there are many options
+      fontFamily: `${fontFamilies.inter}, system-ui, sans-serif`,
+      gridColumnSpacing: "0px",
+      gridRowSpacing: "0px",
+      borderRadius: "0px",
+      colorBackground: colors.fieldBackground,
+      colorText: colors.whiteText,
+    },
+    rules: {
+      ".Input": {
+        fontWeight: "bold",
+      },
+      ".Error": {
+        paddingBottom: "8px",
+      },
+      ".Label--resting": {
+        fontWeight: "bold",
+      },
     },
   };
 

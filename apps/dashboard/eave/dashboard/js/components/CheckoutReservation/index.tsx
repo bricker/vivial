@@ -28,8 +28,8 @@ import PaymentForm from "./PaymentForm";
 import ReservationDetailsForm, { ReserverFormFields } from "./ReservationDetailsForm";
 
 const PaddedPrimaryButton = styled(LoadingButton)(() => ({
-  marginLeft: 16,
-  marginRight: 16,
+  width: "90%",
+  alignSelf: "center",
   marginBottom: 56,
 }));
 
@@ -367,7 +367,7 @@ const CheckoutForm = ({ outingId }: { outingId: string }) => {
         </InputErrorContainer>
       )}
 
-      <PaddedPrimaryButton type="submit" loading={submissionIsLoading} disabled={submitButtonDisabled} fullWidth>
+      <PaddedPrimaryButton type="submit" loading={submissionIsLoading} disabled={submitButtonDisabled}>
         Save
       </PaddedPrimaryButton>
     </FormContainer>

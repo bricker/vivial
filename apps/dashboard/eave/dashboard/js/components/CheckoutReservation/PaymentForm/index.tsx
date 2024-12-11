@@ -4,7 +4,11 @@ import { PaymentElement } from "@stripe/react-stripe-js";
 import React from "react";
 import EditIcon from "../../Icons/EditIcon";
 
-const PaymentContainer = styled("div")(() => ({}));
+const PaymentContainer = styled("div")(() => ({
+  display: "flex",
+  flexDirection: "column",
+  gap: 8,
+}));
 
 const BoldText = styled(Typography)(() => ({
   display: "inline",
@@ -23,7 +27,9 @@ const HeaderContainer = styled("div")(() => ({
 }));
 
 const CollapsingContainer = styled("div")<{ collapsed: boolean }>(({ collapsed }) => ({
-  display: collapsed ? "none" : "auto",
+  display: collapsed ? "none" : "flex",
+  flexDirection: "column",
+  gap: 8,
 }));
 
 const PaymentForm = ({
@@ -37,7 +43,7 @@ const PaymentForm = ({
 }) => {
   // Testing? See here: https://docs.stripe.com/testing#cards
   // TL;DR: Number: 4242 4242 4242 4242; Exp: 10/30; Code: 123; Zip: 12345
-  const titleText = `Payment info${paymentDetails ? ":" : "rmation"}`;
+  const titleText = `Payment info${paymentDetails ? ": " : "rmation"}`;
   return (
     <PaymentContainer>
       <HeaderContainer>
