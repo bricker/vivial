@@ -1,7 +1,7 @@
 import { RootState } from "$eave-dashboard/js/store";
 import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
-import { styled } from "@mui/material";
+import { CircularProgress, styled } from "@mui/material";
 import React from "react";
 import { useSelector } from "react-redux";
 import Input from "../../Inputs/Input";
@@ -47,9 +47,11 @@ const ReservationDetailsForm = ({
   reserverDetails,
   error,
   onChange,
+  isLoading,
 }: {
   reserverDetails: ReserverFormFields;
   onChange: (key: keyof ReserverFormFields, value: string) => void;
+  isLoading: boolean;
   error?: string;
 }) => {
   const email = useSelector((state: RootState) => state.auth.account?.email);
@@ -57,24 +59,28 @@ const ReservationDetailsForm = ({
   const shouldShowEmail = !!(email && reserverDetails.id);
   return (
     <InputContainer>
-      <FieldsContainer>
-        <BoldInput
-          placeholder="First name"
-          value={reserverDetails.firstName}
-          onChange={(e) => onChange("firstName", e.target.value)}
-        />
-        <BoldInput
-          placeholder="Last name"
-          value={reserverDetails.lastName}
-          onChange={(e) => onChange("lastName", e.target.value)}
-        />
-        <BoldInput
-          placeholder="Phone #"
-          value={reserverDetails.phoneNumber}
-          onChange={(e) => onChange("phoneNumber", e.target.value)}
-        />
-        {shouldShowEmail && <BoldInput value={"email"} contentEditable={false} />}
-      </FieldsContainer>
+      {isLoading ? (
+        <CircularProgress color="secondary" />
+      ) : (
+        <FieldsContainer>
+          <BoldInput
+            placeholder="First name"
+            value={reserverDetails.firstName}
+            onChange={(e) => onChange("firstName", e.target.value)}
+          />
+          <BoldInput
+            placeholder="Last name"
+            value={reserverDetails.lastName}
+            onChange={(e) => onChange("lastName", e.target.value)}
+          />
+          <BoldInput
+            placeholder="Phone #"
+            value={reserverDetails.phoneNumber}
+            onChange={(e) => onChange("phoneNumber", e.target.value)}
+          />
+          {shouldShowEmail && <BoldInput value={email} contentEditable={false} disabled={true} />}
+        </FieldsContainer>
+      )}
 
       {error && (
         <InputErrorContainer>

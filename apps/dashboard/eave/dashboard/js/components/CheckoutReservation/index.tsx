@@ -22,6 +22,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import LoadingButton from "../Buttons/LoadingButton";
+import InputError from "../Inputs/InputError";
 import StripeElementsProvider from "../StripeElementsProvider";
 import PaymentForm from "./PaymentForm";
 import ReservationDetailsForm, { ReserverFormFields } from "./ReservationDetailsForm";
@@ -29,6 +30,16 @@ import ReservationDetailsForm, { ReserverFormFields } from "./ReservationDetails
 const PaddedPrimaryButton = styled(LoadingButton)(() => ({
   padding: "10px 14px",
   minWidth: rem("76px"),
+}));
+
+const InputErrorContainer = styled("div")(() => ({
+  fontSize: rem("12px"),
+  lineHeight: rem("16px"),
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  marginBottom: 24,
+  padding: "0 16px",
 }));
 
 function hasPaidActivity(outing?: Outing) {
@@ -63,18 +74,19 @@ const CheckoutForm = ({ outingId }: { outingId: string }) => {
 
   const [internalReserverDetailError, setInternalReserverDetailError] = useState<string | undefined>(undefined);
   const [externalReserverDetailError, setExternalReserverDetailError] = useState<string | undefined>(undefined);
+  const [paymentError, setPaymentError] = useState<string | undefined>(undefined);
+  const [bookingError, setBookingError] = useState<string | undefined>(undefined);
   const [reserverDetails, setReserverDetails] = useState(
     localReserverDetails || { id: "", firstName: "", lastName: "", phoneNumber: "" },
   );
-  // TODO: make non optional
+  // TODO: fetch from redux
   const [outing, setOuting] = useState<Outing | undefined>(undefined);
 
-  const submissionIsLoading = createBookingIsLoading || updateDetailsIsLoading;
+  const submissionIsLoading = createBookingIsLoading || updateDetailsIsLoading || submitDetailsIsLoading;
   // only prevent submit on internalError since that can be fixed w/o another submit
   const submitButtonDisabled = !!(submissionIsLoading || internalReserverDetailError);
-  const reserverDetailsHasValues = !!reserverDetails.id;
-  // const error = internalReserverDetailError || externalError;
   const reserverDetailError = internalReserverDetailError || externalReserverDetailError;
+  const error = [paymentError, bookingError].filter((e) => e).join("\n");
 
   function checkReserverDetailsInputs(details: ReserverFormFields) {
     if (details.firstName.length === 0) {
@@ -244,7 +256,8 @@ const CheckoutForm = ({ outingId }: { outingId: string }) => {
       }
 
       if (hasPaidActivity(outing)) {
-        if (server_has_no_cc_details) {
+        const serverHasNoPaymentDetails = false;
+        if (serverHasNoPaymentDetails) {
           // TODO: create payment details
         } else {
           // TODO: update payment details
@@ -268,9 +281,9 @@ const CheckoutForm = ({ outingId }: { outingId: string }) => {
             case "CreateBookingFailure":
               switch (createdData.failureReason) {
                 case CreateBookingFailureReason.ValidationErrors: {
-                  // TODO: ????
-                  // const invalidFields = createdData.validationErrors?.map((e) => e.field).join(", ");
-                  // setInternalReserverDetailError(`The following fields are invalid: ${invalidFields}`);
+                  // TODO: when would this happen????
+                  const invalidFields = createdData.validationErrors?.map((e) => e.field).join(", ");
+                  setBookingError(`The following fields are invalid: ${invalidFields}`);
                   break;
                 }
                 default:
@@ -280,7 +293,7 @@ const CheckoutForm = ({ outingId }: { outingId: string }) => {
               return;
             default:
               // 500 error
-              setInternalReserverDetailError("Unable to book your outing. Please try again later.");
+              setBookingError("Unable to book your outing. Please try again later.");
               return;
           }
           // allow success case to continue execution
@@ -306,6 +319,7 @@ const CheckoutForm = ({ outingId }: { outingId: string }) => {
 
         if (response.error) {
           console.error(response.error);
+          setPaymentError(response.error.message);
         }
       }
     } catch {
@@ -320,9 +334,16 @@ const CheckoutForm = ({ outingId }: { outingId: string }) => {
         reserverDetails={reserverDetails}
         onChange={handleReserverDetailChange}
         error={reserverDetailError}
+        isLoading={listDetailsIsLoading}
       />
 
       {hasPaidActivity(outing) && <PaymentForm />}
+
+      {error && (
+        <InputErrorContainer>
+          <InputError>{error}</InputError>
+        </InputErrorContainer>
+      )}
 
       <PaddedPrimaryButton type="submit" loading={submissionIsLoading} disabled={submitButtonDisabled} fullWidth>
         Save
