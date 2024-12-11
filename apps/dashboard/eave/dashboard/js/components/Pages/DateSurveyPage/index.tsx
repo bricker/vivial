@@ -21,7 +21,7 @@ import { imageUrl } from "$eave-dashboard/js/util/asset";
 import React, { useCallback, useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
 import { Breakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
@@ -38,6 +38,7 @@ import EditPreferencesOption from "./Options/EditPreferencesOption";
 import LoadingView from "./Views/LoadingView";
 import PreferencesView from "./Views/PreferencesView";
 
+import { DateSurveyPageVariant } from "./constants";
 import { getHoursDiff, getInitialStartTime, getPreferenceInputs } from "./helpers";
 
 const PageContainer = styled("div")(({ theme }) => ({
@@ -120,6 +121,7 @@ const DateSurveyContainer = styled(Paper)(({ theme }) => ({
 const DateSurveyPage = () => {
   const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
   const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery({});
+  const [searchParams, _] = useSearchParams();
   const [planOuting, { isLoading: planOutingLoading }] = usePlanOutingAuthenticatedMutation();
   const [planOutingAnon, { isLoading: planOutingAnonLoading }] = usePlanOutingAnonymousMutation();
   const [updatePreferences] = useUpdateOutingPreferencesMutation();
@@ -132,7 +134,9 @@ const DateSurveyPage = () => {
   const [areasOpen, setAreasOpen] = useState(false);
   const [outingPreferences, setOutingPreferences] = useState<OutingPreferences | null>(null);
   const [partnerPreferences, setPartnerPreferences] = useState<OutingPreferences | null>(null);
-  const [outingPreferencesOpen, setOutingPreferencesOpen] = useState(false);
+  const [outingPreferencesOpen, setOutingPreferencesOpen] = useState(
+    searchParams.get("v") === DateSurveyPageVariant.PreferencesOpen,
+  );
   const [partnerPreferencesOpen, setPartnerPreferencesOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
