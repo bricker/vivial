@@ -1,3 +1,4 @@
+import { type ActivityCategoryGroup } from "$eave-dashboard/js/graphql/generated/graphql";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { type Category } from "$eave-dashboard/js/types/category";
 import { CATEGORY_ACCENT_COLOR_MAP } from "./constants";
@@ -18,4 +19,21 @@ export function getAccentColor(categoryId?: string): string {
     }
   }
   return colors.lightOrangeAccent;
+}
+
+export function getDefaults(preferredCategories: Category[], categoryOptions: Category[]): Category[] {
+  if (preferredCategories?.length) {
+    return preferredCategories;
+  }
+  if (categoryOptions?.length) {
+    return categoryOptions.filter((category) => category.isDefault);
+  }
+  return [];
+}
+
+export function initCollapsedGroups(groups: ActivityCategoryGroup[]): Map<string, boolean> {
+  const map: Map<string, boolean> = new Map();
+  map.set("default", true);
+  groups.forEach((group) => map.set(group.id, false));
+  return map;
 }

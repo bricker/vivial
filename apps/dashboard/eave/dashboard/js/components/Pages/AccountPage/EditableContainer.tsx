@@ -8,6 +8,7 @@ import {
 } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { storeReserverDetails } from "$eave-dashboard/js/store/slices/reserverDetailsSlice";
 import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
+import { Breakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { Button, CircularProgress, Typography, styled } from "@mui/material";
 import React, { useCallback, useState } from "react";
@@ -15,6 +16,13 @@ import { useDispatch, useSelector } from "react-redux";
 import AccountBookingInfoEditForm from "../../Forms/AccountBookingInfoEditForm";
 import EditIcon from "../../Icons/EditIcon";
 import Paper from "../../Paper";
+
+const MainContainer = styled(Paper)(({ theme }) => ({
+  padding: 24,
+  [theme.breakpoints.up(Breakpoint.Medium)]: {
+    padding: "24px 40px",
+  },
+}));
 
 const TitleContainer = styled("div")(() => ({
   display: "flex",
@@ -184,7 +192,7 @@ const EditableContainer = () => {
   );
 
   return (
-    <Paper>
+    <MainContainer>
       <TitleContainer>
         <Typography variant="h2">Booking info</Typography>
         {!isEditing && reserverDetails && (
@@ -229,7 +237,7 @@ const EditableContainer = () => {
           )}
         </StateContainer>
       )}
-    </Paper>
+    </MainContainer>
   );
 };
 

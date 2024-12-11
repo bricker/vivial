@@ -1,9 +1,15 @@
-import { type OutingPreferences } from "$eave-dashboard/js/graphql/generated/graphql";
+import {
+  type ActivityCategory,
+  type OutingPreferences,
+  type RestaurantCategory,
+} from "$eave-dashboard/js/graphql/generated/graphql";
 import { useGetOutingPreferencesQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
+
+import { getDefaults } from "$eave-dashboard/js/components/Selections/PreferenceSelections/helpers";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { type Category } from "$eave-dashboard/js/types/category";
 import { styled } from "@mui/material";
-import React, { useCallback, useState } from "react";
+import React, { useState } from "react";
 
 import Paper from "$eave-dashboard/js/components/Paper";
 import PreferenceSelections from "$eave-dashboard/js/components/Selections/PreferenceSelections";
@@ -11,8 +17,6 @@ import Button from "@mui/material/Button";
 import LinearProgress from "@mui/material/LinearProgress";
 import Typography from "@mui/material/Typography";
 import LoadingView from "../LoadingView";
-
-import { getDefaults } from "./helpers";
 
 const ViewContainer = styled("div")(() => ({
   padding: "24px 16px 102px",
@@ -22,6 +26,7 @@ const SelectionsContainer = styled("div")(() => ({
   display: "flex",
   position: "relative",
   left: 0,
+  marginTop: 16,
   "& div": {
     minWidth: "100%",
     marginRight: 16,
@@ -63,21 +68,15 @@ interface PreferencesViewProps {
   title: string;
   subtitle: string;
   outingPreferences: OutingPreferences | null;
-  onSubmitRestaurants: (categories: Category[]) => void;
-  onSubmitActivities: (categories: Category[]) => void;
+  onSubmit: (restaurantCategories: RestaurantCategory[], activityCategories: ActivityCategory[]) => void;
   onClose: () => void;
 }
 
-const PreferencesView = ({
-  title,
-  subtitle,
-  outingPreferences,
-  onSubmitRestaurants,
-  onSubmitActivities,
-  onClose,
-}: PreferencesViewProps) => {
+const PreferencesView = ({ title, subtitle, outingPreferences, onSubmit, onClose }: PreferencesViewProps) => {
   const { data, isLoading } = useGetOutingPreferencesQuery({});
   const [stepsCompleted, setStepsCompleted] = useState(0);
+  const [selectedResaturantCategories, setSelectedResaturantCategories] = useState<RestaurantCategory[]>([]);
+  const [selectedActivityCategories, setSelectedActivityCategories] = useState<ActivityCategory[]>([]);
   const restaurantCategories = data?.restaurantCategories || [];
   const activityCategoryGroups = data?.activityCategoryGroups || [];
   const preferredRestaurants = outingPreferences?.restaurantCategories || [];
@@ -100,30 +99,31 @@ const PreferencesView = ({
     }
   };
 
-  const updateStepsCompleted = (newValue: number) => {
-    setStepsCompleted(newValue);
-    if (newValue === totalSteps) {
+  const handleStep = (
+    stepNumber: number,
+    restaurantSelections: RestaurantCategory[],
+    activitySelections: ActivityCategory[],
+  ) => {
+    setStepsCompleted(stepNumber);
+    if (stepNumber === totalSteps) {
+      onSubmit(restaurantSelections, activitySelections);
       onClose();
     } else {
       animateSelectionsContainer();
     }
   };
 
-  const handleSubmitRestaurants = useCallback(
-    (categories: Category[]) => {
-      onSubmitRestaurants(categories);
-      updateStepsCompleted(stepsCompleted + 1);
-    },
-    [stepsCompleted],
-  );
+  const handleSubmitRestaurants = (categories: Category[]) => {
+    const restaurantSelections = selectedResaturantCategories.concat(categories as RestaurantCategory[]);
+    setSelectedResaturantCategories(restaurantSelections);
+    handleStep(stepsCompleted + 1, restaurantSelections, selectedActivityCategories);
+  };
 
-  const handleSubmitActivities = useCallback(
-    (categories: Category[]) => {
-      onSubmitActivities(categories);
-      updateStepsCompleted(stepsCompleted + 1);
-    },
-    [stepsCompleted],
-  );
+  const handleSubmitActivities = (categories: Category[]) => {
+    const activitySelections = selectedActivityCategories.concat(categories as ActivityCategory[]);
+    setSelectedActivityCategories(activitySelections);
+    handleStep(stepsCompleted + 1, selectedResaturantCategories, activitySelections);
+  };
 
   if (isLoading) {
     return <LoadingView />;
