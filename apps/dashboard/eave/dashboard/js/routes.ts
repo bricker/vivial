@@ -19,4 +19,5 @@ export const AppRoute = {
   accountPreferences: "/account/preferences",
   passwordReset: "/account/password",
   itinerary: "/itinerary",
+  checkout: "/checkout/reserve",
 };
