@@ -6,7 +6,7 @@ from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 from eave.core.shared.enums import RestaurantSource
 
 from .location import Location
-from .photos import Photos
+from .photos import Photo, Photos
 
 
 @strawberry.type
@@ -14,7 +14,7 @@ class Restaurant:
     source_id: str
     source: RestaurantSource
     location: Location
-    photos: Photos | None
+    photos: Photos
     name: str
     reservable: bool
     rating: float

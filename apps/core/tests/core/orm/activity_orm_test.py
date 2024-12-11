@@ -1,7 +1,7 @@
-from eave.core.shared.geo import GeoPoint
 from eave.core.orm.activity import ActivityOrm
 from eave.core.orm.image import ImageOrm
 from eave.core.shared.address import Address
+from eave.core.shared.geo import GeoPoint
 
 from ..base import BaseTestCase
 

@@ -1,13 +1,10 @@
-import strawberry
-from eave.core.lib.geo import SpatialReferenceSystemId
-
 
 import geoalchemy2.shape
+import strawberry
 from geoalchemy2 import WKBElement
 from shapely import Point
 
-
-from dataclasses import dataclass
+from eave.core.lib.geo import SpatialReferenceSystemId
 
 
 @strawberry.type

@@ -8,7 +8,7 @@ from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.shared.enums import ActivitySource
 
 from .location import Location
-from .photos import Photo
+from .photos import Photo, Photos
 
 
 @strawberry.type
@@ -24,8 +24,7 @@ class Activity:
     name: str
     description: str
     venue: ActivityVenue
-    cover_photo: Photo | None
-    supplemental_photos: list[Photo]
+    photos: Photos
     pricing: Pricing | None
     website_uri: str | None
     door_tips: str | None

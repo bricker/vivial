@@ -51,7 +51,7 @@ async def create_payment_intent_mutation(
 
     stripe_payment_intent = await stripe.PaymentIntent.create_async(
         currency="usd",
-        amount=outing.pricing,
+        amount=outing_orm.pricing,
     )
 
     client_secret = stripe_payment_intent.client_secret

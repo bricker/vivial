@@ -1,8 +1,7 @@
 from datetime import timedelta
 
-from eave.core.shared.geo import GeoArea
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
-from eave.core.shared.geo import Distance, GeoPoint
+from eave.core.shared.geo import Distance, GeoArea, GeoPoint
 from eave.stdlib.time import ONE_DAY_IN_SECONDS
 
 from ..base import BaseTestCase

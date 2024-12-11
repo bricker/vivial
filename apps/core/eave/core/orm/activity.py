@@ -3,11 +3,11 @@ from uuid import UUID
 from sqlalchemy import Column, ForeignKey, ForeignKeyConstraint, PrimaryKeyConstraint, Table
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from eave.core.shared.geo import GeoPoint
 from eave.core.orm.image import ImageOrm
 from eave.core.orm.util.mixins import CoordinatesMixin, GetOneByIdMixin
 from eave.core.orm.util.user_defined_column_types import AddressColumnType
 from eave.core.shared.address import Address
+from eave.core.shared.geo import GeoPoint
 
 from .base import Base
 from .util.constants import PG_UUID_EXPR, OnDeleteOption

@@ -5,7 +5,6 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import ForeignKey, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from eave.core.shared.geo import GeoPoint
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.account_bookings_join_table import ACCOUNT_BOOKINGS_JOIN_TABLE
 from eave.core.orm.reserver_details import ReserverDetailsOrm
@@ -18,6 +17,7 @@ from eave.core.orm.util.user_defined_column_types import (
 )
 from eave.core.shared.address import Address
 from eave.core.shared.enums import ActivitySource, RestaurantSource
+from eave.core.shared.geo import GeoPoint
 
 from .base import Base
 from .util.constants import PG_UUID_EXPR, OnDeleteOption

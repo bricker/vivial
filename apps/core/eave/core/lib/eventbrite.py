@@ -1,6 +1,6 @@
 from eave.core.graphql.types.activity import Activity, ActivityVenue
 from eave.core.graphql.types.location import Location
-from eave.core.graphql.types.photos import Photo
+from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.pricing import Pricing
 from eave.core.lib.google_places import google_maps_directions_url
 from eave.core.shared.address import Address
@@ -9,7 +9,7 @@ from eave.core.shared.geo import GeoPoint
 from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery, ListTicketClassesForSaleQuery
 from eave.stdlib.eventbrite.models.event import Event, EventStatus
 from eave.stdlib.eventbrite.models.expansions import Expansion
-from eave.stdlib.eventbrite.models.ticket_class import PointOfSale, TicketClass
+from eave.stdlib.eventbrite.models.ticket_class import PointOfSale
 from eave.stdlib.logging import LOGGER
 
 
@@ -118,17 +118,22 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         country=venue_address.get("country"),
     )
 
+    photos = Photos(
+        cover_photo=Photo(
+            id=logo["id"],
+            src=logo["url"],
+            alt=None,
+            attributions=[],
+        ) if logo else None,
+        supplemental_photos=[], # Eventbrite only gives one image
+    )
+
     activity = Activity(
         source_id=event_id,
         source=ActivitySource.EVENTBRITE,
         name=event_name["text"],
         description=event["description"]["text"],
-        cover_photo=Photo(
-            id=logo["id"],
-            src=logo["url"],
-            alt=None,
-        ) if logo else None,
-        supplemental_photos=[],
+        photos=photos,
         pricing=max_pricing,
         venue=ActivityVenue(
             name=venue["name"],

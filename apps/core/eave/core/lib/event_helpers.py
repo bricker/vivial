@@ -15,7 +15,6 @@ from eave.core.lib.google_places import (
     google_maps_directions_url,
 )
 from eave.core.orm.activity import ActivityOrm
-from eave.core.orm.image import ImageOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.stdlib.eventbrite.client import EventbriteClient
 
@@ -43,7 +42,7 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
         ),
         cover_photo=cover_photo,
         supplemental_photos=supplemental_photos,
-        pricing=None, # FIXME
+        pricing=None,  # FIXME
         website_uri=activity.booking_url,
         door_tips=None,
         insider_tips=None,

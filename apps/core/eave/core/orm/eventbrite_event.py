@@ -8,10 +8,9 @@ from sqlalchemy import PrimaryKeyConstraint, Select, or_, select
 from sqlalchemy.dialects.postgresql import INT4RANGE, TSTZRANGE, Range
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.core.shared.geo import GeoArea
 from eave.core.orm.util.mixins import CoordinatesMixin, GetOneByIdMixin
 from eave.core.orm.util.user_defined_column_types import ZoneInfoColumnType
-from eave.core.shared.geo import GeoPoint
+from eave.core.shared.geo import GeoArea, GeoPoint
 from eave.stdlib.typing import NOT_SET
 
 from .base import Base

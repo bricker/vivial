@@ -21,7 +21,6 @@ from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import 
 from eave.core.graphql.types.booking import (
     Booking,
 )
-from eave.core.shared.geo import GeoPoint
 from eave.core.lib.google_places import get_google_place, photos_from_google_place
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.activity import ActivityOrm
@@ -32,6 +31,7 @@ from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.shared.address import Address
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.core.shared.errors import ValidationError
+from eave.core.shared.geo import GeoPoint
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery
 from eave.stdlib.eventbrite.models.expansions import Expansion

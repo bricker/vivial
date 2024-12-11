@@ -12,7 +12,6 @@ from eave.core.graphql.types.activity import Activity
 from eave.core.graphql.types.outing import OutingPreferencesInput
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.lib.eventbrite import activity_from_eventbrite_event
-from eave.core.shared.geo import GeoArea
 from eave.core.lib.google_places import (
     activity_from_google_place,
     get_places_nearby,
@@ -26,7 +25,7 @@ from eave.core.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.orm.restaurant_category import MAGIC_BAR_RESTAURANT_CATEGORY_ID, RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
-from eave.core.shared.geo import Distance, GeoPoint
+from eave.core.shared.geo import Distance, GeoArea, GeoPoint
 from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery
 from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.logging import LOGGER
