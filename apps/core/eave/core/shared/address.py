@@ -1,7 +1,8 @@
-from dataclasses import dataclass
+import re
+import strawberry
 
 
-@dataclass
+@strawberry.type
 class Address:
     address1: str | None
     address2: str | None
@@ -11,26 +12,42 @@ class Address:
     country: str | None
 
     @property
-    def formatted(self) -> str:
+    def formatted_multiline(self) -> str:
         out = ""
+
         if self.address1:
             out += f"{self.address1}"
-        if self.address2:
-            out += f" {self.address2}"
 
-        if self.city or self.state or self.zip:
-            out += "\n"
+        if self.address1 and self.address2:
+            out += " "
+
+        if self.address2:
+            out += f"{self.address2}"
+
+        if not self.city and not self.state and not self.zip:
+            return out
+
+        out += "\n"
 
         if self.city:
             out += f"{self.city}"
 
-        if self.state or self.zip:
-            out += ", "
+        if not self.state and not self.zip:
+            return out
+
+        out += ", "
 
         if self.state:
             out += f"{self.state}"
 
+        if self.state and self.zip:
+            out += " "
+
         if self.zip:
-            out += f" {self.zip}"
+            out += f"{self.zip}"
 
         return out
+
+    @property
+    def formatted_singleline(self) -> str:
+        return self.formatted_multiline.replace("\n", ", ")

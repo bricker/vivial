@@ -6,6 +6,7 @@ from eave.core import database
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.types.activity import Activity, ActivityVenue
 from eave.core.graphql.types.location import Location
+from eave.core.graphql.types.photos import Photo
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.lib.eventbrite import get_eventbrite_activity
 from eave.core.lib.google_places import (
@@ -14,6 +15,7 @@ from eave.core.lib.google_places import (
     google_maps_directions_url,
 )
 from eave.core.orm.activity import ActivityOrm
+from eave.core.orm.image import ImageOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.stdlib.eventbrite.client import EventbriteClient
 
@@ -21,6 +23,10 @@ from eave.stdlib.eventbrite.client import EventbriteClient
 async def get_internal_activity(*, event_id: str) -> Activity | None:
     async with database.async_session.begin() as db_session:
         activity = await ActivityOrm.get_one(db_session, uid=uuid.UUID(event_id))
+        images = activity.images
+
+        cover_photo = Photo.from_orm(images[0]) if len(images) > 0 else None
+        supplemental_photos = [Photo.from_orm(image) for image in images[1:]]
 
     return Activity(
         source_id=event_id,
@@ -30,14 +36,14 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
         venue=ActivityVenue(
             name=activity.title,
             location=Location(
-                latitude=lat,
-                longitude=lon,
-                formatted_address=formatted_address,
-                directions_uri=google_maps_directions_url(formatted_address),
+                coordinates=activity.coordinates_to_geopoint(),
+                address=activity.address,
+                directions_uri=google_maps_directions_url(activity.address.formatted_singleline),
             ),
         ),
-        photos=None,  # TODO
-        ticket_info=None,  # TODO
+        cover_photo=cover_photo,
+        supplemental_photos=supplemental_photos,
+        pricing=None, # FIXME
         website_uri=activity.booking_url,
         door_tips=None,
         insider_tips=None,

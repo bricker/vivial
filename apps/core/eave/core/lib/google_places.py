@@ -15,8 +15,9 @@ from google.maps.places import (
 from eave.core.graphql.types.activity import Activity, ActivityVenue
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photos
+from eave.core.graphql.types.pricing import Pricing
 from eave.core.graphql.types.restaurant import Restaurant
-from eave.core.lib.geo import GeoArea
+from eave.core.shared.geo import GeoArea
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 
 # You must pass a field mask to the Google Places API to specify the list of fields to return in the response.
@@ -75,7 +76,7 @@ async def activity_from_google_place(places_client: PlacesAsyncClient, *, place:
         name=place.display_name.text,
         description=place.editorial_summary,
         photos=photos,
-        ticket_info=None,  # TODO
+        pricing=Pricing(), # Currently activities from Google Places (ice cream shop or bar) don't have pricing (i.e., we don't collect payment)
         venue=ActivityVenue(name=place.display_name.text, location=location_from_google_place(place)),
         website_uri=place.website_uri,
         door_tips=None,

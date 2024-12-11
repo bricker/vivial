@@ -1,6 +1,6 @@
 from datetime import UTC
 
-from eave.core.lib.geo import GeoPoint
+from eave.core.shared.geo import GeoPoint
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm

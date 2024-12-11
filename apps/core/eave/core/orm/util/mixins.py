@@ -11,8 +11,9 @@ from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.core.lib.geo import GeoPoint, SpatialReferenceSystemId
+from eave.core.lib.geo import SpatialReferenceSystemId
 from eave.core.orm.util.user_defined_column_types import ZoneInfoColumnType
+from eave.core.shared.geo import GeoPoint
 
 
 class TimedEventMixin:

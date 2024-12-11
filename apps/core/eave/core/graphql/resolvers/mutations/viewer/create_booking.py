@@ -21,7 +21,7 @@ from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import 
 from eave.core.graphql.types.booking import (
     Booking,
 )
-from eave.core.lib.geo import GeoPoint
+from eave.core.shared.geo import GeoPoint
 from eave.core.lib.google_places import get_google_place, photos_from_google_place
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.activity import ActivityOrm

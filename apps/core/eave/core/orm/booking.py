@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import ForeignKey, PrimaryKeyConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from eave.core.lib.geo import GeoPoint
+from eave.core.shared.geo import GeoPoint
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.account_bookings_join_table import ACCOUNT_BOOKINGS_JOIN_TABLE
 from eave.core.orm.reserver_details import ReserverDetailsOrm

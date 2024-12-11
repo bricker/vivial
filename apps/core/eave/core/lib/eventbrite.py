@@ -1,8 +1,11 @@
 from eave.core.graphql.types.activity import Activity, ActivityVenue
 from eave.core.graphql.types.location import Location
-from eave.core.graphql.types.photos import Photos
+from eave.core.graphql.types.photos import Photo
+from eave.core.graphql.types.pricing import Pricing
 from eave.core.lib.google_places import google_maps_directions_url
+from eave.core.shared.address import Address
 from eave.core.shared.enums import ActivitySource
+from eave.core.shared.geo import GeoPoint
 from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery, ListTicketClassesForSaleQuery
 from eave.stdlib.eventbrite.models.event import Event, EventStatus
 from eave.stdlib.eventbrite.models.expansions import Expansion
@@ -60,13 +63,6 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         )
         return
 
-    if (venue_formatted_address := venue_address.get("localized_address_display")) is None:
-        LOGGER.warning(
-            "Missing venue localized_address_display; excluding event.",
-            {"eventbrite_event_id": event_id},
-        )
-        return
-
     if (venue_lat := venue.get("latitude")) is None:
         LOGGER.warning(
             "Missing venue latitude; excluding event.",
@@ -88,8 +84,8 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         ),
     )
 
-    best_ticket_class: TicketClass | None = None
-    max_cost_cents = 0
+    # Start with a price with all 0's
+    max_pricing: Pricing = Pricing()
 
     async for batch in ticket_classes_paginator:
         for ticket_class in batch:
@@ -97,39 +93,52 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
             if base_cost is None:
                 continue
 
-            total_cost_cents = base_cost["value"]
-
-            if (tax := ticket_class.get("tax")) is not None:
-                total_cost_cents += tax["value"]
+            pricing = Pricing(base_cost_cents=base_cost["value"])
 
             if (fee := ticket_class.get("fee")) is not None:
-                total_cost_cents += fee["value"]
+                pricing.fee_cents = fee["value"]
 
-            if total_cost_cents > max_cost_cents:
-                best_ticket_class = ticket_class
+            if (tax := ticket_class.get("tax")) is not None:
+                pricing.tax_cents = tax["value"]
+
+            if pricing.total_cost_cents > max_pricing.total_cost_cents:
+                max_pricing = pricing
 
     description = await eventbrite_client.get_event_description(event_id=event_id)
     event["description"] = description
 
     logo = event.get("logo")
 
+    address = Address(
+        address1=venue_address.get("address_1"),
+        address2=venue_address.get("address_2"),
+        city=venue_address.get("city"),
+        state=venue_address.get("region"),
+        zip=venue_address.get("postal_code"),
+        country=venue_address.get("country"),
+    )
+
     activity = Activity(
         source_id=event_id,
         source=ActivitySource.EVENTBRITE,
         name=event_name["text"],
         description=event["description"]["text"],
-        photos=Photos(
-            cover_photo_uri=logo["url"] if logo else None,
-            supplemental_photo_uris=None,
-        ),
-        ticket_info=ActivityTicketInfo(),
+        cover_photo=Photo(
+            id=logo["id"],
+            src=logo["url"],
+            alt=None,
+        ) if logo else None,
+        supplemental_photos=[],
+        pricing=max_pricing,
         venue=ActivityVenue(
             name=venue["name"],
             location=Location(
-                directions_uri=google_maps_directions_url(venue_formatted_address),
-                latitude=float(venue_lat),
-                longitude=float(venue_lon),
-                formatted_address=venue_formatted_address,
+                directions_uri=google_maps_directions_url(address.formatted_singleline),
+                address=address,
+                coordinates=GeoPoint(
+                    lat=float(venue_lat),
+                    lon=float(venue_lon),
+                ),
             ),
         ),
         website_uri=event.get("vanity_url"),
