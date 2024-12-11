@@ -36,6 +36,13 @@ const InputContainer = styled("div")(() => ({
   marginTop: 24,
 }));
 
+const CenteringContainer = styled("div")(() => ({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "24px 40px",
+}));
+
 export interface ReserverFormFields {
   id: string;
   firstName: string;
@@ -60,7 +67,9 @@ const ReservationDetailsForm = ({
   return (
     <InputContainer>
       {isLoading ? (
-        <CircularProgress color="secondary" />
+        <CenteringContainer>
+          <CircularProgress color="secondary" />
+        </CenteringContainer>
       ) : (
         <FieldsContainer>
           <BoldInput
