@@ -1,0 +1,5 @@
+query OutingAnonymous($input: OutingInput!) {
+  outing(input: $input) {
+    ...OutingFields
+  }
+}

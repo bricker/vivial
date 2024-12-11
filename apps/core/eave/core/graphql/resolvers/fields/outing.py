@@ -90,15 +90,20 @@ MOCK_OUTING = Outing(
 )
 
 
-async def get_outing_query(*, info: strawberry.Info[GraphQLContext], outing_id: UUID) -> Outing:
+@strawberry.input
+class OutingInput:
+    id: UUID
+
+
+async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: OutingInput) -> Outing:
     async with database.async_session.begin() as db_session:
         outing_activity = await OutingActivityOrm.get_one_by_outing_id(
             session=db_session,
-            outing_id=outing_id,
+            outing_id=input.id,
         )
         outing_reservation = await OutingReservationOrm.get_one_by_outing_id(
             session=db_session,
-            outing_id=outing_id,
+            outing_id=input.id,
         )
 
     activity = await get_activity(
@@ -112,7 +117,7 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], outing_id: 
     )
 
     return Outing(
-        id=outing_id,
+        id=input.id,
         headcount=max(outing_activity.headcount, outing_reservation.headcount),
         activity=activity,
         restaurant=restaurant,

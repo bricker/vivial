@@ -32,6 +32,8 @@ const documents = {
     "mutation UpdateReserverDetailsAccount($input: UpdateReserverDetailsAccountInput!) {\n  viewer {\n    __typename\n    ... on AuthenticatedViewerMutations {\n      __typename\n      updateReserverDetailsAccount(input: $input) {\n        __typename\n        ... on UpdateReserverDetailsAccountSuccess {\n          reserverDetails {\n            id\n            firstName\n            lastName\n            phoneNumber\n          }\n          account {\n            id\n            email\n          }\n        }\n        ... on UpdateReserverDetailsAccountFailure {\n          failureReason\n          validationErrors {\n            field\n          }\n        }\n      }\n    }\n    ... on UnauthenticatedViewer {\n      __typename\n      authFailureReason\n    }\n  }\n}": types.UpdateReserverDetailsAccountDocument,
     "query ListBookedOutings {\n  viewer {\n    __typename\n    ... on AuthenticatedViewerQueries {\n      __typename\n      bookedOutings {\n        id\n        activityStartTime\n        restaurantArrivalTime\n        activityName\n        restaurantName\n        photoUri\n      }\n    }\n    ... on UnauthenticatedViewer {\n      __typename\n      authFailureReason\n    }\n  }\n}": types.ListBookedOutingsDocument,
     "query ListReserverDetails {\n  viewer {\n    __typename\n    ... on AuthenticatedViewerQueries {\n      __typename\n      reserverDetails {\n        id\n        firstName\n        lastName\n        phoneNumber\n      }\n    }\n    ... on UnauthenticatedViewer {\n      __typename\n      authFailureReason\n    }\n  }\n}": types.ListReserverDetailsDocument,
+    "query OutingAnonymous($input: OutingInput!) {\n  outing(input: $input) {\n    ...OutingFields\n  }\n}": types.OutingAnonymousDocument,
+    "query OutingAuthenticated($input: OutingInput!) {\n  viewer {\n    ... on AuthenticatedViewerQueries {\n      __typename\n      outing(input: $input) {\n        ...OutingFields\n      }\n    }\n    ... on UnauthenticatedViewer {\n      __typename\n      authFailureReason\n    }\n  }\n}": types.OutingAuthenticatedDocument,
     "query OutingPreferences {\n  activityCategoryGroups {\n    id\n    name\n    activityCategories {\n      id\n      name\n      isDefault\n    }\n  }\n  restaurantCategories {\n    id\n    name\n    isDefault\n  }\n  viewer {\n    __typename\n    ... on AuthenticatedViewerQueries {\n      __typename\n      outingPreferences {\n        restaurantCategories {\n          id\n          name\n          isDefault\n        }\n        activityCategories {\n          id\n          name\n          isDefault\n        }\n      }\n    }\n    ... on UnauthenticatedViewer {\n      __typename\n      authFailureReason\n    }\n  }\n}": types.OutingPreferencesDocument,
     "query SearchRegions {\n  searchRegions {\n    id\n    name\n  }\n}": types.SearchRegionsDocument,
 };
@@ -104,6 +106,14 @@ export function graphql(source: "query ListBookedOutings {\n  viewer {\n    __ty
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "query ListReserverDetails {\n  viewer {\n    __typename\n    ... on AuthenticatedViewerQueries {\n      __typename\n      reserverDetails {\n        id\n        firstName\n        lastName\n        phoneNumber\n      }\n    }\n    ... on UnauthenticatedViewer {\n      __typename\n      authFailureReason\n    }\n  }\n}"): typeof import('./graphql').ListReserverDetailsDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query OutingAnonymous($input: OutingInput!) {\n  outing(input: $input) {\n    ...OutingFields\n  }\n}"): typeof import('./graphql').OutingAnonymousDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query OutingAuthenticated($input: OutingInput!) {\n  viewer {\n    ... on AuthenticatedViewerQueries {\n      __typename\n      outing(input: $input) {\n        ...OutingFields\n      }\n    }\n    ... on UnauthenticatedViewer {\n      __typename\n      authFailureReason\n    }\n  }\n}"): typeof import('./graphql').OutingAuthenticatedDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

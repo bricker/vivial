@@ -1,0 +1,16 @@
+query OutingAuthenticated($input: OutingInput!) {
+  viewer {
+    ... on AuthenticatedViewerQueries {
+      __typename
+
+      outing(input: $input) {
+        ...OutingFields
+      }
+    }
+
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}
