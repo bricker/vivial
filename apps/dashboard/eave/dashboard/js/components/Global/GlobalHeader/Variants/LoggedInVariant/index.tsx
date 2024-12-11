@@ -23,6 +23,13 @@ const DesktopMenu = styled("div")(() => ({
   display: "flex",
 }));
 
+const MobileMenu = styled("div")(({ theme }) => ({
+  flex: "1 1 auto",
+  background: `linear-gradient(180deg, ${theme.palette.background.paper} 0%, #000 84.33%)`,
+  marginTop: "-1px",
+  padding: 40,
+}));
+
 const MenuItem = styled(Button)(({ theme }) => ({
   fontFamily: fontFamilies.quicksand,
   color: theme.palette.text.primary,
@@ -50,13 +57,6 @@ const MenuItem = styled(Button)(({ theme }) => ({
       backgroundColor: "transparent",
     },
   },
-}));
-
-const MobileMenu = styled("div")(({ theme }) => ({
-  flex: "1 1 auto",
-  background: `linear-gradient(180deg, ${theme.palette.background.paper} 0%, #000 84.33%)`,
-  marginTop: "-1px",
-  padding: 40,
 }));
 
 interface LoggedInVariantProps {

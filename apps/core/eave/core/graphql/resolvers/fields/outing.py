@@ -18,7 +18,7 @@ from eave.core.orm.outing_reservation import OutingReservationOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 
-# TODO: Remove once we're fetching from the appropriate sources.
+# TODO: Remove once Date Picked UI is complete.
 MOCK_OUTING = Outing(
     id=uuid4(),
     headcount=2,
@@ -89,7 +89,7 @@ MOCK_OUTING = Outing(
     ),
 )
 
-
+# TODO: Uncomment once Date Picked UI is complete.
 async def get_outing_query(*, info: strawberry.Info[GraphQLContext], outing_id: UUID) -> Outing:
     # async with database.async_session.begin() as db_session:
     #     outing_activity = await OutingActivityOrm.get_one_by_outing_id(
