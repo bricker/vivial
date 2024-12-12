@@ -45,6 +45,8 @@ import {
   type LoginMutationVariables,
   type OutingPreferencesQuery,
   type OutingPreferencesQueryVariables,
+  type OutingQuery,
+  type OutingQueryVariables,
   type PlanOutingAnonymousMutation,
   type PlanOutingAnonymousMutationVariables,
   type PlanOutingAuthenticatedMutation,

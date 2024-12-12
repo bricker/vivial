@@ -18,7 +18,7 @@ from eave.core.orm.outing_reservation import OutingReservationOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 
-# TODO: Remove once we're fetching from the appropriate sources.
+# TODO: Remove once Date Picked UI is complete.
 MOCK_OUTING = Outing(
     id=uuid4(),
     headcount=2,
