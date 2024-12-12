@@ -10,7 +10,12 @@ import {
   ListBookedOutingsQueryVariables,
   ListReserverDetailsDocument,
   LoginDocument,
-  OutingDocument,
+  OutingAnonymousDocument,
+  OutingAnonymousQuery,
+  OutingAnonymousQueryVariables,
+  OutingAuthenticatedDocument,
+  OutingAuthenticatedQuery,
+  OutingAuthenticatedQueryVariables,
   OutingPreferencesDocument,
   PlanOutingAnonymousDocument,
   PlanOutingAuthenticatedDocument,
@@ -25,6 +30,9 @@ import {
   UpdateOutingPreferencesMutation,
   UpdateOutingPreferencesMutationVariables,
   UpdateReserverDetailsAccountDocument,
+  UpdateReserverDetailsDocument,
+  UpdateReserverDetailsMutation,
+  UpdateReserverDetailsMutationVariables,
   type CreateAccountMutation,
   type CreateAccountMutationVariables,
   type CreateBookingMutation,
@@ -37,8 +45,6 @@ import {
   type LoginMutationVariables,
   type OutingPreferencesQuery,
   type OutingPreferencesQueryVariables,
-  type OutingQuery,
-  type OutingQueryVariables,
   type PlanOutingAnonymousMutation,
   type PlanOutingAnonymousMutationVariables,
   type PlanOutingAuthenticatedMutation,
@@ -65,13 +71,6 @@ export const coreApiSlice = createApi({
     /**
      * Core API - GraphQL Queries
      */
-    getOuting: builder.query<OutingQuery, OutingQueryVariables>({
-      async queryFn(variables, _api, _extraOptions, _baseQuery) {
-        const data = await executeOperation({ query: OutingDocument, variables });
-        return { data };
-      },
-    }),
-
     getOutingPreferences: builder.query<OutingPreferencesQuery, OutingPreferencesQueryVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: OutingPreferencesDocument, variables });
@@ -96,6 +95,20 @@ export const coreApiSlice = createApi({
     listBookedOutings: builder.query<ListBookedOutingsQuery, ListBookedOutingsQueryVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: ListBookedOutingsDocument, variables });
+        return { data };
+      },
+    }),
+
+    getOutingAnonymous: builder.query<OutingAnonymousQuery, OutingAnonymousQueryVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: OutingAnonymousDocument, variables });
+        return { data };
+      },
+    }),
+
+    getOutingAuthenticated: builder.query<OutingAuthenticatedQuery, OutingAuthenticatedQueryVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: OutingAuthenticatedDocument, variables });
         return { data };
       },
     }),
@@ -144,6 +157,13 @@ export const coreApiSlice = createApi({
     submitReserverDetails: builder.mutation<SubmitReserverDetailsMutation, SubmitReserverDetailsMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: SubmitReserverDetailsDocument, variables });
+        return { data };
+      },
+    }),
+
+    updateReserverDetails: builder.mutation<UpdateReserverDetailsMutation, UpdateReserverDetailsMutationVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: UpdateReserverDetailsDocument, variables });
         return { data };
       },
     }),
@@ -206,8 +226,9 @@ export const {
   useGetSearchRegionsQuery,
   useListReserverDetailsQuery,
   useListBookedOutingsQuery,
-  useGetOutingQuery,
   useGetOutingPreferencesQuery,
+  useGetOutingAnonymousQuery,
+  useGetOutingAuthenticatedQuery,
 
   // Core API GraphQL Mutation Hooks
   usePlanOutingAnonymousMutation,
@@ -217,5 +238,8 @@ export const {
   useCreatePaymentIntentMutation,
   useUpdateReserverDetailsAccountMutation,
   useUpdateAccountMutation,
+  useCreateBookingMutation,
+  useUpdateReserverDetailsMutation,
+  useSubmitReserverDetailsMutation,
   useUpdateOutingPreferencesMutation,
 } = coreApiSlice;

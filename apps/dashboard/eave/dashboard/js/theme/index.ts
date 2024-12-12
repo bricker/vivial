@@ -104,6 +104,10 @@ export const theme = createTheme({
       lineHeight: rem("19px"),
       fontWeight: 400,
     },
+    body2: {
+      fontSize: rem("12px"),
+      fontWeight: 500,
+    },
     button: {
       fontFamily: fontFamilies.quicksand,
       fontSize: rem("16px"),

@@ -1,13 +1,11 @@
 import { UpdateAccountFailureReason } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute } from "$eave-dashboard/js/routes";
-
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 import { useUpdateAccountMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { getPasswordInfo, passwordIsValid } from "$eave-dashboard/js/util/password";
 import { Typography, styled } from "@mui/material";
 import React, { useCallback, useEffect, useState } from "react";
-
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import LoadingButton from "../../Buttons/LoadingButton";
@@ -108,9 +106,7 @@ const PasswordResetForm = () => {
                 }
                 break;
               default:
-                // 500 error
-                setExternalError("Unable to change your password. Please try again later.");
-                break;
+                throw new Error("Unexected Graphql result");
             }
             break;
           }
@@ -119,7 +115,11 @@ const PasswordResetForm = () => {
             window.location.assign(AppRoute.logout);
             break;
           default:
-            // loading/not-requested
+            if (resp.error) {
+              // 500 error
+              throw new Error("Graphql error");
+            }
+            // else loading/not-requested
             break;
         }
       } catch {
