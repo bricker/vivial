@@ -27,7 +27,6 @@ const DateItineraryPage = () => {
   // const [cookies, setCookie] = useCookies([CookieId.Reroll]);
   const [bookingOpen, setBookingOpen] = useState(false);
   const [skipOutingQuery, setSkipOutingQuery] = useState(true);
-  // TODO: should we use the auth query when authed? how do that...?
   const { data: outingData, isLoading: outingDataLoading } = useGetOutingQuery(
     { input: { id: outingId } },
     { skip: skipOutingQuery },
