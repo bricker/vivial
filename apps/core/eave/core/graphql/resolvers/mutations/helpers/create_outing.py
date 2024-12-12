@@ -66,6 +66,7 @@ async def create_outing(
 
     return outing
 
+
 async def get_outing_total_cost_cents(*, outing_orm: OutingOrm) -> int:
     total_cost_cents = 0
 

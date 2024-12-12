@@ -9,7 +9,6 @@ from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.helpers.create_outing import get_outing_total_cost_cents
 from eave.core.graphql.types.payment_intent import PaymentIntent
-from eave.core.lib.event_helpers import get_activity
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.stdlib.util import unwrap

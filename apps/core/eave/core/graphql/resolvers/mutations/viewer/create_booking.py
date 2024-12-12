@@ -6,12 +6,11 @@ from uuid import UUID
 import strawberry
 import stripe
 
-from eave.core.graphql.resolvers.mutations.helpers.create_outing import get_outing_total_cost_cents
-from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 import eave.stdlib.slack
 from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
+from eave.core.graphql.resolvers.mutations.helpers.create_outing import get_outing_total_cost_cents
 from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import (
     StartTimeTooLateError,
     StartTimeTooSoonError,
@@ -26,6 +25,7 @@ from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
+from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
@@ -36,6 +36,7 @@ from eave.stdlib.util import unwrap
 class PaymentIntentInput:
     id: str
     client_secret: str
+
 
 @strawberry.input
 class CreateBookingInput:
@@ -97,7 +98,9 @@ async def create_booking_mutation(
                 # If a payment intent was given:
                 # 1. Confirm it's in the database,
                 # 2. Confirm it's for the given outing
-                stripe_payment_intent_reference = await StripePaymentIntentReferenceOrm.get_one(db_session, account_id=account.id, stripe_payment_intent_id=input.payment_intent.id)
+                stripe_payment_intent_reference = await StripePaymentIntentReferenceOrm.get_one(
+                    db_session, account_id=account.id, stripe_payment_intent_id=input.payment_intent.id
+                )
                 if stripe_payment_intent_reference.outing_id != outing.id:
                     return CreateBookingFailure(failure_reason=CreateBookingFailureReason.INVALID_PAYMENT_INTENT)
 
@@ -270,8 +273,7 @@ async def _notify_slack(
 
                     *Total Cost:* ${"{:.2f}".format(outing_total_cost_cents / 100)}
                     *Stripe Payment Intent ID*: {booking.stripe_payment_intent_reference.stripe_payment_intent_id if booking.stripe_payment_intent_reference else None}
-                    """
-                ),
+                    """),
             )
     except Exception as e:
         LOGGER.exception(e)
