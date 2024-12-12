@@ -18,7 +18,11 @@ const TextContainer = styled("div")(() => ({
   marginLeft: 8,
 }));
 
-const VivialLogo = () => {
+interface VivialLogoProps {
+  hideText?: boolean;
+}
+
+const VivialLogo = ({ hideText }: VivialLogoProps) => {
   const navigate = useNavigate();
   const handleClick = useCallback(() => {
     navigate(AppRoute.root);
@@ -27,9 +31,11 @@ const VivialLogo = () => {
   return (
     <LogoButton onClick={handleClick}>
       <VivialIcon />
-      <TextContainer>
-        <VivialText />
-      </TextContainer>
+      {!hideText && (
+        <TextContainer>
+          <VivialText />
+        </TextContainer>
+      )}
     </LogoButton>
   );
 };
