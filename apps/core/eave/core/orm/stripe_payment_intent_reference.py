@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from eave.core.orm.account import AccountOrm
+from eave.core.orm.outing import OutingOrm
 
 from .base import Base
 from .util.constants import PG_UUID_EXPR, OnDeleteOption
@@ -23,14 +24,21 @@ class StripePaymentIntentReferenceOrm(Base):
     )
     account: Mapped[AccountOrm] = relationship(lazy="selectin")
 
+    outing_id: Mapped[UUID] = mapped_column(
+    ForeignKey(f"{OutingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)
+    )
+    outing: Mapped[OutingOrm] = relationship(lazy="selectin")
+
     def __init__(
         self,
         *,
         account: AccountOrm,
         stripe_payment_intent_id: str,
+        outing: OutingOrm,
     ) -> None:
         self.account = account
         self.stripe_payment_intent_id = stripe_payment_intent_id
+        self.outing = outing
 
     @classmethod
     async def get_one(cls, session: AsyncSession, *, account_id: UUID, stripe_payment_intent_id: str) -> Self:

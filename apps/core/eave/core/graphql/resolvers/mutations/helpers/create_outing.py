@@ -3,6 +3,7 @@ from uuid import UUID
 from eave.core import database
 from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
 from eave.core.graphql.types.outing import Outing, OutingPreferencesInput
+from eave.core.lib.event_helpers import get_activity
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservationOrm
 from eave.core.orm.survey import SurveyOrm
@@ -55,6 +56,7 @@ async def create_outing(
     outing = Outing(
         id=outing_orm.id,
         headcount=survey.headcount,
+        budget=survey.budget,
         activity=plan.activity,
         activity_start_time=plan.activity_start_time,
         restaurant=plan.restaurant,
@@ -63,3 +65,13 @@ async def create_outing(
     )
 
     return outing
+
+async def get_outing_total_cost_cents(*, outing_orm: OutingOrm) -> int:
+    total_cost_cents = 0
+
+    for outing_activity_orm in outing_orm.activities:
+        activity = await get_activity(source=outing_activity_orm.source, source_id=outing_activity_orm.source_id)
+        if activity:
+            total_cost_cents += activity.pricing.total_cost_cents
+
+    return total_cost_cents

@@ -3,6 +3,8 @@ from uuid import UUID
 
 import strawberry
 
+from eave.core.shared.enums import OutingBudget
+
 from .activity import Activity
 from .restaurant import Restaurant
 
@@ -17,6 +19,7 @@ class OutingPreferencesInput:
 class Outing:
     id: UUID
     headcount: int
+    budget: OutingBudget
     activity: Activity | None
     activity_start_time: datetime | None
     restaurant: Restaurant | None

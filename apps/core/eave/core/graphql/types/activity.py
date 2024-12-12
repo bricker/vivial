@@ -25,7 +25,7 @@ class Activity:
     description: str
     venue: ActivityVenue
     photos: Photos
-    pricing: Pricing | None
+    pricing: Pricing
     website_uri: str | None
     door_tips: str | None
     insider_tips: str | None

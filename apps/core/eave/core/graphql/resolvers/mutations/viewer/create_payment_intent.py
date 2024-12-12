@@ -7,7 +7,9 @@ import stripe
 
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
+from eave.core.graphql.resolvers.mutations.helpers.create_outing import get_outing_total_cost_cents
 from eave.core.graphql.types.payment_intent import PaymentIntent
+from eave.core.lib.event_helpers import get_activity
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.stdlib.util import unwrap
@@ -49,24 +51,44 @@ async def create_payment_intent_mutation(
     async with database.async_session.begin() as db_session:
         outing_orm = await OutingOrm.get_one(db_session, input.outing_id)
 
-        outing_orm.activities
+        if account.stripe_customer_id is None:
+            stripe_customer = await stripe.Customer.create_async(
+                email=account.email,
+                source="vivial-core-api",
+                metadata={
+                    "vivial_account_id": str(account.id),
+                },
+            )
+
+            db_session.add(account)
+            account.stripe_customer_id = stripe_customer.id
+
+    outing_total_cost_cents = await get_outing_total_cost_cents(outing_orm=outing_orm)
+
     stripe_payment_intent = await stripe.PaymentIntent.create_async(
         currency="usd",
-        amount=outing_orm.pricing,
+        amount=outing_total_cost_cents,
+        capture_method="manual",
+        receipt_email="zz",
+        setup_future_usage="on_session",
+        customer=account.stripe_customer_id,
+        metadata={
+            "vivial_outing_id": str(outing_orm.id),
+        },
     )
 
-    client_secret = stripe_payment_intent.client_secret
-    if not client_secret:
+    if not stripe_payment_intent.client_secret:
         return CreatePaymentIntentFailure(failure_reason=CreatePaymentIntentFailureReason.PAYMENT_INTENT_FAILED)
 
     async with database.async_session.begin() as db_session:
-        await StripePaymentIntentReferenceOrm(
+        stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
             account=account,
             stripe_payment_intent_id=stripe_payment_intent.id,
             outing=outing_orm,
-        ).save(db_session)
+        )
+        db_session.add(stripe_payment_intent_reference)
 
     # Warning: `client_secret` is a sensitive value and shouldn't be logged or stored.
     # https://docs.stripe.com/api/payment_intents/object#payment_intent_object-client_secret
-    payment_intent = PaymentIntent(client_secret=client_secret)
+    payment_intent = PaymentIntent(id=stripe_payment_intent.id, client_secret=stripe_payment_intent.client_secret)
     return CreatePaymentIntentSuccess(payment_intent=payment_intent)

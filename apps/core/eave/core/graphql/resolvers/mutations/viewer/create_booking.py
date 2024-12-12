@@ -6,6 +6,8 @@ from uuid import UUID
 import strawberry
 import stripe
 
+from eave.core.graphql.resolvers.mutations.helpers.create_outing import get_outing_total_cost_cents
+from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 import eave.stdlib.slack
 from eave.core import database
 from eave.core.analytics import ANALYTICS
@@ -31,9 +33,15 @@ from eave.stdlib.util import unwrap
 
 
 @strawberry.input
+class PaymentIntentInput:
+    id: str
+    client_secret: str
+
+@strawberry.input
 class CreateBookingInput:
     outing_id: UUID
     reserver_details_id: UUID  # TODO: Should we get this from AccountOrm?
+    payment_intent: PaymentIntentInput | None
 
 
 @strawberry.type
@@ -43,6 +51,9 @@ class CreateBookingSuccess:
 
 @strawberry.enum
 class CreateBookingFailureReason(enum.Enum):
+    PAYMENT_REQUIRED = enum.auto()
+    INVALID_PAYMENT_INTENT = enum.auto()
+    INVALID_OUTING = enum.auto()
     START_TIME_TOO_SOON = enum.auto()
     START_TIME_TOO_LATE = enum.auto()
     VALIDATION_ERRORS = enum.auto()
@@ -68,7 +79,6 @@ async def create_booking_mutation(
         async with database.async_session.begin() as db_session:
             outing = await OutingOrm.get_one(db_session, input.outing_id)
             survey = outing.survey
-            # stripe_payment_intent_reference_orm = (await db_session.scalars(StripePaymentIntentReferenceOrm.select(outing_id=outing.id))).one_or_none()
 
             # validate outing time still valid to book
             try:
@@ -78,13 +88,55 @@ async def create_booking_mutation(
             except StartTimeTooLateError:
                 return CreateBookingFailure(failure_reason=CreateBookingFailureReason.START_TIME_TOO_LATE)
 
+            if input.payment_intent:
+                # Even if the cost of the outing is $0, if we were given a payment intent then we will validate it.
+                if not input.payment_intent.id or not input.payment_intent.client_secret:
+                    # Validates that the fields don't contain empty values.
+                    return CreateBookingFailure(failure_reason=CreateBookingFailureReason.INVALID_PAYMENT_INTENT)
+
+                # If a payment intent was given:
+                # 1. Confirm it's in the database,
+                # 2. Confirm it's for the given outing
+                stripe_payment_intent_reference = await StripePaymentIntentReferenceOrm.get_one(db_session, account_id=account.id, stripe_payment_intent_id=input.payment_intent.id)
+                if stripe_payment_intent_reference.outing_id != outing.id:
+                    return CreateBookingFailure(failure_reason=CreateBookingFailureReason.INVALID_PAYMENT_INTENT)
+
+                # Get the given payment intent from the Stripe API
+                stripe_payment_intent = await stripe.PaymentIntent.retrieve_async(
+                    id=input.payment_intent.id,
+                    client_secret=input.payment_intent.client_secret,
+                )
+
+                # Validate that the payment intent has been authorized, but the funds haven't been captured.
+                # This is important because if the payment authorization failed, we shouldn't create the booking.
+                if stripe_payment_intent.status not in ["success", "requires_capture"]:
+                    return CreateBookingFailure(failure_reason=CreateBookingFailureReason.PAYMENT_REQUIRED)
+            else:
+                stripe_payment_intent = None
+                stripe_payment_intent_reference = None
+
+            outing_total_cost_cents = await get_outing_total_cost_cents(outing_orm=outing)
+
+            if outing_total_cost_cents > 0:
+                # If the outing costs any money, then:
+
+                # Validate that there is a valid payment intent.
+                if not stripe_payment_intent:
+                    return CreateBookingFailure(failure_reason=CreateBookingFailureReason.PAYMENT_REQUIRED)
+
+                # Validate that the authorized amount for the payment intent can cover the cost of the outing.
+                if stripe_payment_intent.amount < outing_total_cost_cents:
+                    # We authorized an amount less than the actual cost of the outing.
+                    # If the authorization ended up being _more_, then we'll only capture the necessary amount when the funds are captured.
+                    return CreateBookingFailure(failure_reason=CreateBookingFailureReason.PAYMENT_REQUIRED)
+
             reserver_details = await ReserverDetailsOrm.get_one(
                 db_session, account_id=account.id, uid=input.reserver_details_id
             )
 
             booking = BookingOrm(
                 reserver_details=reserver_details,
-                stripe_payment_intent_reference=stripe_payment_intent_reference_orm,
+                stripe_payment_intent_reference=stripe_payment_intent_reference,
             )
             db_session.add(booking)
 
@@ -138,9 +190,12 @@ async def create_booking_mutation(
             failure_reason=CreateBookingFailureReason.VALIDATION_ERRORS, validation_errors=e.validation_errors
         )
 
-    stripe_payment_intent = await stripe.PaymentIntent.get()
-
-    await _notify_slack(booking=booking, account=account, reserver_details=reserver_details)
+    await _notify_slack(
+        booking=booking,
+        account=account,
+        reserver_details=reserver_details,
+        outing_total_cost_cents=outing_total_cost_cents,
+    )
 
     ANALYTICS.track(
         event_name="booking created",
@@ -163,6 +218,7 @@ async def _notify_slack(
     booking: BookingOrm,
     account: AccountOrm,
     reserver_details: ReserverDetailsOrm,
+    outing_total_cost_cents: int,
 ) -> None:
     try:
         channel_id = SHARED_CONFIG.eave_slack_signups_channel_id
@@ -210,7 +266,12 @@ async def _notify_slack(
                     ```
                     """
                         for activity in booking.activities
-                    ])}"""),
+                    ])}
+
+                    *Total Cost:* ${"{:.2f}".format(outing_total_cost_cents / 100)}
+                    *Stripe Payment Intent ID*: {booking.stripe_payment_intent_reference.stripe_payment_intent_id if booking.stripe_payment_intent_reference else None}
+                    """
+                ),
             )
     except Exception as e:
         LOGGER.exception(e)

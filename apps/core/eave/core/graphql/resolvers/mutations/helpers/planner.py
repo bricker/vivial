@@ -307,9 +307,7 @@ class OutingPlanner:
         if self.activity:
             search_areas = [
                 GeoArea(
-                    center=GeoPoint(
-                        lat=self.activity.venue.location.latitude, lon=self.activity.venue.location.longitude
-                    ),
+                    center=self.activity.venue.location.coordinates,
                     rad=Distance(miles=5),
                 ),
             ]

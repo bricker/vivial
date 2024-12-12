@@ -74,6 +74,7 @@ class AccountOrm(Base, GetOneByIdMixin):
     last_login: Mapped[datetime | None] = mapped_column(
         type_=TIMESTAMP(timezone=True), server_default=func.current_timestamp(), nullable=True
     )
+    stripe_customer_id: Mapped[str | None] = mapped_column()
 
     bookings: Mapped[list["BookingOrm"]] = relationship(
         secondary=ACCOUNT_BOOKINGS_JOIN_TABLE, lazy="selectin", back_populates="accounts"
