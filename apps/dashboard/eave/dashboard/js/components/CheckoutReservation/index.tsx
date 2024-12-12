@@ -32,7 +32,6 @@ const PaddedPrimaryButton = styled(LoadingButton)(() => ({
   width: "90%",
   alignSelf: "center",
   marginTop: 8,
-  marginBottom: 56,
 }));
 
 const FormContainer = styled("form")(() => ({
