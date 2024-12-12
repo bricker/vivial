@@ -1,4 +1,3 @@
-from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Any, Self
 
@@ -7,7 +6,6 @@ from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, UOWTransaction, mapped_column
 
-from eave.core import database
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.logging import LOGGER
 
@@ -75,6 +73,7 @@ def validate_session(session: Session, flush_context: UOWTransaction, instances:
 
     if len(validation_errors) > 0:
         raise InvalidRecordError(validation_errors=validation_errors)
+
 
 # @event.listens_for(Session, "transient_to_pending")
 # def validate_orm_object(session: Session, orm: Base) -> None:

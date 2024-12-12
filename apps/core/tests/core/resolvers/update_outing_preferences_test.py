@@ -47,7 +47,9 @@ class TestUpdateOutingPreferences(BaseTestCase):
         assert data["activityCategories"][1]["id"] == str(second_activity_category.id)
 
         async with self.db_session.begin() as db_session:
-            outing_preferences_orm = await OutingPreferencesOrm.get_one(db_session, account_id=account.id, uid=outing_preferences_orm.id)
+            outing_preferences_orm = await OutingPreferencesOrm.get_one(
+                db_session, account_id=account.id, uid=outing_preferences_orm.id
+            )
             assert outing_preferences_orm.activity_category_ids == [
                 first_activity_category.id,
                 second_activity_category.id,

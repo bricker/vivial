@@ -1,9 +1,13 @@
-from eave.core.orm.account import AccountOrm, InvalidPasswordError, WeakPasswordError, _derive_password_key, test_password_strength_or_exception
-from eave.core.orm.activity import ActivityOrm
+from eave.core.orm.account import (
+    AccountOrm,
+    InvalidPasswordError,
+    WeakPasswordError,
+    test_password_strength_or_exception,
+)
 from eave.core.orm.base import InvalidRecordError
-from eave.core.orm.image import ImageOrm
-from eave.core.shared.address import Address
-from eave.core.shared.geo import GeoPoint
+from eave.core.orm.booking import BookingOrm
+from eave.core.orm.outing_preferences import OutingPreferencesOrm
+from eave.core.orm.reserver_details import ReserverDetailsOrm
 
 from ..base import BaseTestCase
 
@@ -14,7 +18,6 @@ class TestAccountOrm(BaseTestCase):
             assert await self.count(session, AccountOrm) == 0
             new_account = AccountOrm(email=self.anyemail("email"), plaintext_password=self.anystr("plaintext_password"))
             session.add(new_account)
-
 
         async with self.db_session.begin() as session:
             assert await self.count(session, AccountOrm) == 1
@@ -60,7 +63,7 @@ class TestAccountOrm(BaseTestCase):
         with self.assertRaises(WeakPasswordError):
             async with self.db_session.begin() as session:
                 assert await self.count(session, AccountOrm) == 0
-                new_account = AccountOrm(email=self.anyemail(), plaintext_password=None) # type:ignore - testing what happens if None happens to be passed in at runtime
+                new_account = AccountOrm(email=self.anyemail(), plaintext_password=None)  # type:ignore - testing what happens if None happens to be passed in at runtime
                 session.add(new_account)
 
         async with self.db_session.begin() as session:
@@ -75,7 +78,9 @@ class TestAccountOrm(BaseTestCase):
             fetched_account = await AccountOrm.get_one(session, new_account.id)
 
             try:
-                assert fetched_account.verify_password_or_exception(plaintext_password=self.getstr("plaintext_password"))
+                assert fetched_account.verify_password_or_exception(
+                    plaintext_password=self.getstr("plaintext_password")
+                )
             except InvalidPasswordError as e:
                 self.fail(e)
 
@@ -88,7 +93,9 @@ class TestAccountOrm(BaseTestCase):
             fetched_account = await AccountOrm.get_one(session, new_account.id)
 
             with self.assertRaises(InvalidPasswordError):
-                fetched_account.verify_password_or_exception(plaintext_password=self.getstr("incorrect plaintext_password"))
+                fetched_account.verify_password_or_exception(
+                    plaintext_password=self.getstr("incorrect plaintext_password")
+                )
 
     async def test_account_set_password_with_valid_password(self) -> None:
         async with self.db_session.begin() as session:
@@ -110,7 +117,6 @@ class TestAccountOrm(BaseTestCase):
             next_fetched_account = await AccountOrm.get_one(session, new_account.id)
             assert next_fetched_account.password_key != fetched_account.password_key
             assert next_fetched_account.password_key_salt != fetched_account.password_key_salt
-
 
     async def test_account_set_password_with_weak_password(self) -> None:
         with self.assertRaises(WeakPasswordError):
@@ -142,7 +148,7 @@ class TestAccountOrm(BaseTestCase):
                 assert await self.count(session, AccountOrm) == 0
                 new_account = AccountOrm(email=self.anyemail(), plaintext_password=self.anystr())
                 session.add(new_account)
-                new_account.set_password(plaintext_password=None) # type:ignore - testing what happens if None happens to be passed in at runtime
+                new_account.set_password(plaintext_password=None)  # type:ignore - testing what happens if None happens to be passed in at runtime
 
         async with self.db_session.begin() as session:
             assert await self.count(session, AccountOrm) == 0
@@ -157,7 +163,7 @@ class TestAccountOrm(BaseTestCase):
             test_password_strength_or_exception(plaintext_password="")
 
         with self.assertRaises(WeakPasswordError):
-            test_password_strength_or_exception(plaintext_password=None) # type:ignore - test what happens if null passed in at runtime
+            test_password_strength_or_exception(plaintext_password=None)  # type:ignore - test what happens if null passed in at runtime
 
         with self.assertRaises(WeakPasswordError):
             # No alpha or special character
@@ -190,3 +196,37 @@ class TestAccountOrm(BaseTestCase):
         with self.assertRaises(WeakPasswordError):
             # Too long
             test_password_strength_or_exception(plaintext_password=self.anyalpha(length=300) + "123!@#")
+
+    async def test_account_associations(self) -> None:
+        async with self.db_session.begin() as session:
+            account = AccountOrm(email=self.anyemail(), plaintext_password=self.anystr("plaintext_password"))
+            session.add(account)
+
+            reserver_details = ReserverDetailsOrm(
+                account=account,
+                first_name=self.anyalpha(),
+                last_name=self.anyalpha(),
+                phone_number=self.anyphonenumber()
+            )
+            session.add(reserver_details)
+
+            booking = BookingOrm(
+                reserver_details=reserver_details,
+            )
+            session.add(booking)
+
+            outing_preferences = OutingPreferencesOrm(
+                account=account,
+                activity_category_ids=[],
+                restaurant_category_ids=[],
+            )
+            session.add(outing_preferences)
+
+        async with self.db_session.begin() as session:
+            fetched_account = await AccountOrm.get_one(session, account.id)
+
+            assert len(fetched_account.bookings) == 1
+            assert fetched_account.bookings[0].id == booking.id
+
+            assert fetched_account.outing_preferences is not None
+            assert fetched_account.outing_preferences.id == outing_preferences.id
