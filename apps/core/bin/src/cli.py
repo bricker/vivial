@@ -26,8 +26,8 @@ import click
 import eave.core.database
 import eave.core.orm
 import eave.core.orm.base
+from eave.core._database_setup import create_database_tables, init_database
 from eave.core.config import CORE_API_APP_CONFIG
-from eave.core.database import create_database_tables, init_database
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import eaveLogger
 

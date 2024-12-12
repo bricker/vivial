@@ -2,10 +2,12 @@ from datetime import UTC
 
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
+from eave.core.orm.outing import OutingOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
+from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.address import Address
-from eave.core.shared.enums import ActivitySource, RestaurantSource
+from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 from eave.core.shared.geo import GeoPoint
 
 from ..base import BaseTestCase
@@ -28,8 +30,28 @@ class TestBookingOrms(BaseTestCase):
             )
             session.add(reserver_details)
 
+            survey = SurveyOrm(
+                account=account,
+                budget=OutingBudget.INEXPENSIVE,
+                headcount=self.anyint(min=1, max=2),
+                search_area_ids=[],
+                start_time_utc=self.anydatetime(future=True),
+                timezone=self.anytimezone(),
+                visitor_id=self.anyuuid(),
+            )
+            session.add(survey)
+
+            outing = OutingOrm(
+                account=account,
+                survey=survey,
+                visitor_id=survey.visitor_id,
+            )
+            session.add(outing)
+
             stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
-                account=account, stripe_payment_intent_id=self.anystr()
+                account=account,
+                stripe_payment_intent_id=self.anystr(),
+                outing=outing,
             )
             session.add(stripe_payment_intent_reference)
 

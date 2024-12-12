@@ -8,6 +8,7 @@ from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.outing import (
     Outing,
 )
+from eave.core.graphql.types.survey import Survey
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.outing import OutingOrm
 
@@ -125,4 +126,5 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], outing_id: 
         driving_time=None,
         activity_start_time=activity_start_time,
         restaurant_arrival_time=restaurant_arrival_time,
+        survey=Survey.from_orm(outing.survey),
     )

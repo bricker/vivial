@@ -3,7 +3,7 @@ from uuid import UUID
 
 import strawberry
 
-from eave.core.shared.enums import OutingBudget
+from eave.core.graphql.types.survey import Survey
 
 from .activity import Activity
 from .restaurant import Restaurant
@@ -19,9 +19,9 @@ class OutingPreferencesInput:
 class Outing:
     id: UUID
     headcount: int
-    budget: OutingBudget
     activity: Activity | None
     activity_start_time: datetime | None
     restaurant: Restaurant | None
     restaurant_arrival_time: datetime | None
     driving_time: str | None
+    survey: Survey

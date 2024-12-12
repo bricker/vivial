@@ -3,7 +3,8 @@ from uuid import UUID
 
 import strawberry
 
-from eave.core.graphql.types.outing import Outing
+from eave.core.graphql.types.activity import Activity
+from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.orm.booking import BookingOrm
 
 
@@ -31,5 +32,11 @@ class BookingDetailPeek:
 
 
 @strawberry.type
-class BookingDetails(Outing):
-    pass
+class BookingDetails:
+    id: UUID
+    headcount: int
+    activity: Activity | None
+    activity_start_time: datetime | None
+    restaurant: Restaurant | None
+    restaurant_arrival_time: datetime | None
+    driving_time: str | None

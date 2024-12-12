@@ -68,7 +68,7 @@ async def create_payment_intent_mutation(
         currency="usd",
         amount=outing_total_cost_cents,
         capture_method="manual",
-        receipt_email="zz",
+        receipt_email=account.email,
         setup_future_usage="on_session",
         customer=account.stripe_customer_id,
         metadata={
