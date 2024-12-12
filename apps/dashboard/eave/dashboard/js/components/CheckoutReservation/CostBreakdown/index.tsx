@@ -32,14 +32,15 @@ const TotalText = styled(Typography)(({ theme }) => ({
 const BreakdownContainer = styled("div")(() => ({
   display: "flex",
   flexDirection: "row",
-  gap: 8,
   justifyContent: "flex-end",
 }));
 
 const LineItemContainer = styled("div")(() => ({
-  display: "flex",
-  flexDirection: "column",
+  display: "grid",
+  gridTemplateColumns: "auto auto",
   alignItems: "flex-end",
+  textAlign: "right",
+  columnGap: 8,
 }));
 
 const LineItemText = styled(Typography)<{ bold?: boolean }>(({ bold }) => ({
@@ -51,39 +52,44 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
   currency: "USD",
 });
 
-type Breakdown = { chargeName: string[]; costValue: string[] };
+type Breakdown = { costName: string; costValue: string };
 
 /**
- * Build a breakdown to render. Indicies of `chargeName` and `costValue`
- * correspond to each other.
+ * Build an array of cost breakdowns.
  * @param outing
- * @returns object with named sources of a cost, and the cost as a USD currency string (or "FREE")
+ * @returns list of objects with named sources of a cost, and the cost as a USD currency string (or "FREE")
  */
-function buildBreakdown(outing: Outing): Breakdown {
-  const breakdown: Breakdown = {
-    chargeName: [],
-    costValue: [],
-  };
+function buildBreakdowns(outing: Outing): Breakdown[] {
+  const breakdown: Breakdown[] = [];
 
   if (outing.restaurant) {
-    breakdown.chargeName.push(outing.restaurant.name);
-    breakdown.costValue.push(currencyFormatter.format(0));
+    breakdown.push({
+      costName: outing.restaurant.name,
+      costValue: currencyFormatter.format(0),
+    });
   }
 
   if (outing.activity) {
-    breakdown.chargeName.push(outing.activity.name);
     const cost = outing.activity.ticketInfo?.cost || 0;
-    breakdown.costValue.push(currencyFormatter.format(cost));
+    breakdown.push({
+      costName: outing.activity.name,
+      costValue: currencyFormatter.format(cost),
+    });
 
     if (outing.activity.ticketInfo?.fee || outing.activity.ticketInfo?.tax) {
-      breakdown.chargeName.push("3rd party Service Fees & Taxes");
       const taxFee = (outing.activity.ticketInfo.fee ?? 0) + (outing.activity.ticketInfo.tax ?? 0);
-      breakdown.costValue.push(currencyFormatter.format(taxFee));
+
+      breakdown.push({
+        costName: "3rd party Service Fees & Taxes",
+        costValue: currencyFormatter.format(taxFee),
+      });
     }
   }
 
-  breakdown.chargeName.push("Service Fees via Vivial");
-  breakdown.costValue.push("FREE");
+  breakdown.push({
+    costName: "Service Fees via Vivial",
+    costValue: "FREE",
+  });
 
   return breakdown;
 }
@@ -93,7 +99,7 @@ const CostBreakdown = ({ outing }: { outing: Outing }) => {
   const totalCost = currencyFormatter.format(
     (costDetails?.cost ?? 0) + (costDetails?.fee ?? 0) + (costDetails?.tax ?? 0),
   );
-  const breakdown = buildBreakdown(outing);
+  const breakdown = buildBreakdowns(outing);
   return (
     <>
       <TopDivider />
@@ -105,13 +111,11 @@ const CostBreakdown = ({ outing }: { outing: Outing }) => {
         <CostDivider />
         <BreakdownContainer>
           <LineItemContainer>
-            {breakdown.chargeName.map((chargeName) => (
-              <LineItemText>{chargeName} ...</LineItemText>
-            ))}
-          </LineItemContainer>
-          <LineItemContainer>
-            {breakdown.costValue.map((costValue) => (
-              <LineItemText bold={costValue === "FREE"}>{costValue}</LineItemText>
+            {breakdown.map((charge) => (
+              <>
+                <LineItemText>{charge.costName} ...</LineItemText>
+                <LineItemText bold={charge.costValue === "FREE"}>{charge.costValue}</LineItemText>
+              </>
             ))}
           </LineItemContainer>
         </BreakdownContainer>
