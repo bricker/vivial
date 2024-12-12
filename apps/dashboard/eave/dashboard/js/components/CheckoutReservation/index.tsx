@@ -31,6 +31,7 @@ import ReservationDetailsForm, { ReserverFormFields } from "./ReservationDetails
 const PaddedPrimaryButton = styled(LoadingButton)(() => ({
   width: "90%",
   alignSelf: "center",
+  marginTop: 8,
   marginBottom: 56,
 }));
 
@@ -51,9 +52,9 @@ const InputErrorContainer = styled("div")(() => ({
   padding: "0 16px",
 }));
 
-function hasPaidActivity(outing: Outing | null) {
+function hasPaidActivity(outing: Outing | null): boolean {
   const costData = outing?.activity?.ticketInfo;
-  return costData?.cost || costData?.fee || costData?.tax;
+  return !!(costData?.cost || costData?.fee || costData?.tax);
 }
 const CheckoutForm = ({
   outingId,
@@ -351,6 +352,8 @@ const CheckoutForm = ({
     [reserverDetails, stripeClient, stripeElements, outing],
   );
 
+  const usingStripe = hasPaidActivity(outing);
+
   // TODO: render opentable footer?
   return (
     <>
@@ -362,11 +365,11 @@ const CheckoutForm = ({
           onChange={handleReserverDetailChange}
           error={reserverDetailError}
           isLoading={listDetailsIsLoading}
-          showStripeBadge={showStripeBadge}
+          showStripeBadge={showStripeBadge && usingStripe}
         />
 
         {/* TODO pass real payment data */}
-        {hasPaidActivity(outing) && (
+        {usingStripe && (
           <PaymentForm
             paymentDetails="Visa *1234"
             isUsingNewCard={isUsingNewCard}
