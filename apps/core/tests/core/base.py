@@ -22,10 +22,6 @@ from eave.core._database_setup import get_base_metadata, init_database
 from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME
 from eave.core.config import CORE_API_APP_CONFIG, JWT_AUDIENCE, JWT_ISSUER
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.outing import OutingOrm
-from eave.core.orm.search_region import SearchRegionOrm
-from eave.core.orm.survey import SurveyOrm
-from eave.core.shared.enums import OutingBudget
 from eave.dev_tooling.constants import EAVE_HOME
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.jwt import JWTPurpose, create_jws
@@ -190,38 +186,6 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
     async def get_eave_account(self, session: AsyncSession, /, id: UUID) -> AccountOrm | None:
         acct = await AccountOrm.get_one(session, id)
         return acct
-
-    async def make_outing(
-        self,
-        session: AsyncSession,
-        account_id: UUID | None = None,
-        survey_id: UUID | None = None,
-    ) -> OutingOrm:
-        act_id = account_id
-        if act_id is None:
-            account = self.make_account(session=session)
-            act_id = account.id
-
-        surv_id = survey_id
-        if surv_id is None:
-            survey = await SurveyOrm(
-                account=account,
-                visitor_id=self.anyuuid(),
-                start_time_utc=self.anydatetime(offset=2 * 60 * 60 * 24),
-                timezone=self.anytimezone(),
-                search_area_ids=[SearchRegionOrm.all()[0].id],
-                budget=OutingBudget.INEXPENSIVE,
-                headcount=self.anyint(min=1, max=2),
-            ).save(session)
-            surv_id = survey.id
-
-        outing = await OutingOrm(
-            visitor_id=self.anyuuid(),
-            account_id=act_id,
-            survey_id=surv_id,
-        ).save(session)
-
-        return outing
 
     def mock_google_places(self) -> None:
         self.patch(

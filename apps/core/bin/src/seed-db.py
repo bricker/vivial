@@ -14,6 +14,7 @@ UNDER NO CIRCUMSTANCES SHOULD THIS BE EVER RUN AGAINST PROD
 
 import sys
 
+from eave.core.shared.geo import GeoPoint
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 
 sys.path.append(".")
@@ -88,7 +89,7 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             ).save(session)
         assert account is not None
 
-        survey = SurveyOrm(
+        survey = await SurveyOrm(
             visitor_id=visitor_id,
             account=account,
             start_time_utc=dummy_date,
@@ -96,19 +97,16 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             budget=OutingBudget.EXPENSIVE,
             timezone=LOS_ANGELES_TIMEZONE,
             headcount=2,
-        )
-        session.add(survey)
+        ).save(session)
 
-        outing = OutingOrm(
+        outing = await OutingOrm(
             visitor_id=visitor_id,
             survey=survey,
             account=account,
-            survey_id=survey.id,
-            account_id=account.id,
-        )
+        ).save(session)
 
         outing_activity = await OutingActivityOrm(
-            outing_id=outing.id,
+            outing=outing,
             source_id=str(uuid.uuid4()),
             source=ActivitySource.INTERNAL,
             start_time_utc=dummy_date,
@@ -116,7 +114,7 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             headcount=2,
         ).save(session)
         outing_reservation = await OutingReservationOrm(
-            outing_id=outing.id,
+            outing=outing,
             source_id=str(uuid.uuid4()),
             source=RestaurantSource.GOOGLE_PLACES,
             start_time_utc=dummy_date,
@@ -124,21 +122,20 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             headcount=2,
         ).save(session)
         reserver_details = await ReserverDetailsOrm(
-            account_id=account.id,
+            account=account,
             first_name="Jeff",
             last_name="Goldbloom",
             phone_number="+12698675309",
         ).save(session)
+
         booking = await BookingOrm(
-            account_id=account.id,
-            reserver_details_id=reserver_details.id,
+            reserver_details=reserver_details,
         ).save(session)
-        _account_booking = await AccountBookingOrm(
-            account_id=account.id,
-            booking_id=booking.id,
-        ).save(session)
-        _booking_activity_template = await BookingActivityTemplateOrm(
-            booking_id=booking.id,
+        booking.accounts.append(account)
+        await session.flush()
+
+        await BookingActivityTemplateOrm(
+            booking=booking,
             source_id=str(uuid.uuid4()),
             source=ActivitySource.EVENTBRITE,
             name="Biking in McDonalds parking lot",
@@ -155,11 +152,14 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
                 country="USA",
                 zip="12345",
             ),
-            lat=0,
-            lon=0,
+            coordinates=GeoPoint(
+                lat=0,
+                lon=0,
+            ),
         ).save(session)
-        _booking_reservation_template = await BookingReservationTemplateOrm(
-            booking_id=booking.id,
+
+        await BookingReservationTemplateOrm(
+            booking=booking,
             source_id=str(uuid.uuid4()),
             source=RestaurantSource.GOOGLE_PLACES,
             name="Red lobster dumpster",
@@ -176,8 +176,10 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
                 country="USA",
                 zip="12345",
             ),
-            lat=0,
-            lon=1,
+            coordinates=GeoPoint(
+                lat=0,
+                lon=1,
+            ),
         ).save(session)
 
         end = time.perf_counter()

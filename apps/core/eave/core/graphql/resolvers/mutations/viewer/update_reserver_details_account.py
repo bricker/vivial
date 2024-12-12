@@ -71,8 +71,6 @@ async def update_reserver_details_account_mutation(
             reserver_details.first_name = input.first_name
             reserver_details.last_name = input.last_name
             reserver_details.phone_number = input.phone_number
-            # validate
-            await reserver_details.save(db_session)
 
         return UpdateReserverDetailsAccountSuccess(
             reserver_details=ReserverDetails.from_orm(reserver_details),

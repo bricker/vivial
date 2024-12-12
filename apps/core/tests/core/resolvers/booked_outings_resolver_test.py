@@ -2,6 +2,7 @@ from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, Bookin
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.shared.address import Address
 from eave.core.shared.enums import ActivitySource, RestaurantSource
+from eave.core.shared.geo import GeoPoint
 
 from ..base import BaseTestCase
 
@@ -10,27 +11,30 @@ class TestBookedOutingsResolver(BaseTestCase):
     async def test_booked_outings_with_activity_and_restaurant(self) -> None:
         async with self.db_session.begin() as db_session:
             account = self.make_account(db_session)
-            reserver_details = await ReserverDetailsOrm(
-                account_id=account.id,
+            reserver_details = ReserverDetailsOrm(
+                account=account,
                 first_name=self.anyalpha(),
                 last_name=self.anyalpha(),
                 phone_number=self.anyphonenumber(),
-            ).save(db_session)
+            )
+            db_session.add(reserver_details)
 
-            booking = await BookingOrm(
-                account_id=account.id,
-                reserver_details_id=reserver_details.id,
-            ).save(db_session)
+            booking = BookingOrm(
+                reserver_details=reserver_details,
+            )
+            db_session.add(booking)
 
-            await BookingActivityTemplateOrm(
-                booking_id=booking.id,
+            booking_activity_template = BookingActivityTemplateOrm(
+                booking=booking,
                 name=self.anystr("activity_name"),
                 start_time_utc=self.anydatetime("activity_start_time"),
                 timezone=self.anytimezone("activity_timezone"),
                 photo_uri=self.anyurl("activity_photo_uri"),
                 headcount=self.anyint(min=1, max=2),
-                lat=self.anylatitude(),
-                lon=self.anylongitude(),
+                coordinates=GeoPoint(
+                    lat=self.anylatitude(),
+                    lon=self.anylongitude(),
+                ),
                 external_booking_link=self.anyurl(),
                 source=ActivitySource.EVENTBRITE,
                 source_id=self.anydigits(),
@@ -42,17 +46,20 @@ class TestBookedOutingsResolver(BaseTestCase):
                     state=self.anyusstate(),
                     zip=self.anydigits(),
                 ),
-            ).save(db_session)
+            )
+            booking.activities.append(booking_activity_template)
 
-            await BookingReservationTemplateOrm(
-                booking_id=booking.id,
+            booking_reservation_template = BookingReservationTemplateOrm(
+                booking=booking,
                 name=self.anystr("reservation_name"),
                 photo_uri=self.anyurl("reservation_photo_uri"),
                 start_time_utc=self.anydatetime("reservation_start_time"),
                 timezone=self.anytimezone("reservation_timezone"),
                 headcount=self.anyint(min=1, max=2),
-                lat=self.anylatitude(),
-                lon=self.anylongitude(),
+                coordinates=GeoPoint(
+                    lat=self.anylatitude(),
+                    lon=self.anylongitude(),
+                ),
                 external_booking_link=self.anyurl(),
                 source=RestaurantSource.GOOGLE_PLACES,
                 source_id=self.anydigits(),
@@ -64,7 +71,8 @@ class TestBookedOutingsResolver(BaseTestCase):
                     state=self.anyusstate(),
                     zip=self.anydigits(),
                 ),
-            ).save(db_session)
+            )
+            booking.reservations.append(booking_reservation_template)
 
         response = await self.make_graphql_request(
             "listBookedOutings",

@@ -206,7 +206,7 @@ class TestAccountOrm(BaseTestCase):
                 account=account,
                 first_name=self.anyalpha(),
                 last_name=self.anyalpha(),
-                phone_number=self.anyphonenumber()
+                phone_number=self.anyphonenumber(),
             )
             session.add(reserver_details)
 
