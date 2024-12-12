@@ -83,7 +83,6 @@ async def plan_outing_mutation(
 
     outing = await create_outing(
         individual_preferences=input.group_preferences,
-        account_id=account_id,
         visitor_id=input.visitor_id,
         survey=survey,
     )

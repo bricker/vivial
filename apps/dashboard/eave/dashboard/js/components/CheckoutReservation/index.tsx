@@ -9,7 +9,7 @@ import { RootState } from "$eave-dashboard/js/store";
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 import {
   useCreateBookingMutation,
-  useGetOutingAuthenticatedQuery,
+  useGetOutingQuery,
   useListReserverDetailsQuery,
   useSubmitReserverDetailsMutation,
   useUpdateReserverDetailsMutation,
@@ -112,7 +112,7 @@ const CheckoutForm = ({
   const localReserverDetails = useSelector((state: RootState) => state.reserverDetails.reserverDetails);
 
   const { data: reserverDetailsData, isLoading: listDetailsIsLoading } = useListReserverDetailsQuery({});
-  const { data: outingData, isLoading: outingIsLoading } = useGetOutingAuthenticatedQuery({ input: { id: outingId } });
+  const { data: outingData, isLoading: outingIsLoading } = useGetOutingQuery({ input: { id: outingId } });
   const [updateReserverDetails, { isLoading: updateDetailsIsLoading }] = useUpdateReserverDetailsMutation();
   const [createBooking, { isLoading: createBookingIsLoading }] = useCreateBookingMutation();
   const [submitReserverDetails, { isLoading: submitDetailsIsLoading }] = useSubmitReserverDetailsMutation();
@@ -173,21 +173,10 @@ const CheckoutForm = ({
   }, [reserverDetailsData]);
 
   useEffect(() => {
-    switch (outingData?.viewer.__typename) {
-      case "AuthenticatedViewerQueries": {
-        // prefer in-memory data (if vailable)
-        if (!outing) {
-          setOuting(outingData.viewer.outing);
-        }
-        break;
-      }
-      case "UnauthenticatedViewer": {
-        dispatch(loggedOut());
-        window.location.assign(AppRoute.logout);
-        break;
-      }
-      default: {
-        break;
+    if (outingData) {
+      // prefer in-memory data (if vailable)
+      if (!outing) {
+        setOuting(outingData.outing);
       }
     }
   }, [outingData]);

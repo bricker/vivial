@@ -105,7 +105,6 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
         outing = await OutingOrm.build(
             visitor_id=visitor_id,
             survey_id=survey.id,
-            account_id=account.id,
         ).save(session)
         outing_activity = await OutingActivityOrm.build(
             outing_id=outing.id,

@@ -1,6 +1,6 @@
-mutation PlanOutingAnonymous($input: PlanOutingInput!) {
-  planOuting(input: $input) {
-    ... on PlanOutingSuccess {
+mutation ReplanOuting($input: ReplanOutingInput!) {
+  replanOuting(input: $input) {
+    ... on ReplanOutingSuccess {
       outing {
         id
         headcount
@@ -19,7 +19,8 @@ mutation PlanOutingAnonymous($input: PlanOutingInput!) {
         drivingTime
       }
     }
-    ... on PlanOutingFailure {
+
+    ... on ReplanOutingFailure {
       failureReason
     }
   }

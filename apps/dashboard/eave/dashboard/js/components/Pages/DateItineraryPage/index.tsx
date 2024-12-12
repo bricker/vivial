@@ -1,4 +1,3 @@
-import { useGetOutingAnonymousQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { styled } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
@@ -9,6 +8,7 @@ import { RootState } from "$eave-dashboard/js/store";
 import { plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
 import { CookieId } from "$eave-dashboard/js/types/cookie";
 
+import { useGetOutingQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import BookingSection from "./Sections/BookingSection";
 import LogisticsSection from "./Sections/LogisticsSection";
 
@@ -21,9 +21,7 @@ const DateItineraryPage = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
   const [_cookies, _setCookie] = useCookies([CookieId.Reroll]);
   const [skipOutingQuery, setSkipOutingQuery] = useState(true);
-
-  // TODO: Use the auth query when authed.
-  const { data: outingData, isLoading: outingDataLoading } = useGetOutingAnonymousQuery(
+  const { data: outingData, isLoading: outingDataLoading } = useGetOutingQuery(
     { input: { id: outingId } },
     { skip: skipOutingQuery },
   );
