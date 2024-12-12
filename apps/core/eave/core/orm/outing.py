@@ -17,17 +17,10 @@ class OutingOrm(Base):
             ondelete="CASCADE",
             name="survey_id_outing_fk",
         ),
-        ForeignKeyConstraint(
-            ["account_id"],
-            ["accounts.id"],
-            ondelete="CASCADE",
-            name="account_id_outing_fk",
-        ),
     )
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     visitor_id: Mapped[UUID] = mapped_column()
-    account_id: Mapped[UUID | None] = mapped_column()
     survey_id: Mapped[UUID] = mapped_column()
 
     @classmethod
@@ -36,11 +29,9 @@ class OutingOrm(Base):
         *,
         visitor_id: UUID,
         survey_id: UUID,
-        account_id: UUID | None = None,
     ) -> "OutingOrm":
         obj = OutingOrm(
             visitor_id=visitor_id,
-            account_id=account_id,
             survey_id=survey_id,
         )
 

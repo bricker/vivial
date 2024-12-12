@@ -210,7 +210,6 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
 
         outing = await OutingOrm.build(
             visitor_id=self.anyuuid(),
-            account_id=act_id,
             survey_id=surv_id,
         ).save(session)
 

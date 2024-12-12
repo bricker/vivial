@@ -6,7 +6,7 @@ import { useParams } from "react-router-dom";
 import { RootState } from "$eave-dashboard/js/store";
 import { plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
 
-import { useGetOutingAnonymousQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { useGetOutingQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 import CheckoutReservation from "../../CheckoutReservation";
@@ -28,7 +28,7 @@ const DateItineraryPage = () => {
   const [bookingOpen, setBookingOpen] = useState(false);
   const [skipOutingQuery, setSkipOutingQuery] = useState(true);
   // TODO: should we use the auth query when authed? how do that...?
-  const { data: outingData, isLoading: outingDataLoading } = useGetOutingAnonymousQuery(
+  const { data: outingData, isLoading: outingDataLoading } = useGetOutingQuery(
     { input: { id: outingId } },
     { skip: skipOutingQuery },
   );
