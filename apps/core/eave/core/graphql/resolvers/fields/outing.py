@@ -97,6 +97,15 @@ class OutingInput:
 
 async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: OutingInput) -> Outing:
     return MOCK_OUTING # TODO: debug
+    # return Outing(
+    #     id=input.id,
+    #     headcount=2,
+    #     activity=None,
+    #     restaurant=None,
+    #     restaurant_arrival_time=None,
+    #     activity_start_time=None,
+    #     driving_time=None,
+    # )
     async with database.async_session.begin() as db_session:
         outing_activity = await OutingActivityOrm.get_one_by_outing_id(
             session=db_session,
