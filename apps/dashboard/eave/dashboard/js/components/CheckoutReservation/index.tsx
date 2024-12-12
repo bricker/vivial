@@ -24,6 +24,7 @@ import { useNavigate } from "react-router-dom";
 import LoadingButton from "../Buttons/LoadingButton";
 import InputError from "../Inputs/InputError";
 import StripeElementsProvider from "../StripeElementsProvider";
+import CostBreakdown from "./CostBreakdown";
 import PaymentForm from "./PaymentForm";
 import ReservationDetailsForm, { ReserverFormFields } from "./ReservationDetailsForm";
 
@@ -54,7 +55,15 @@ function hasPaidActivity(outing: Outing | null) {
   const costData = outing?.activity?.ticketInfo;
   return costData?.cost || costData?.fee || costData?.tax;
 }
-const CheckoutForm = ({ outingId, showStripeBadge = false }: { outingId: string; showStripeBadge?: boolean }) => {
+const CheckoutForm = ({
+  outingId,
+  showStripeBadge,
+  showCostBreakdown,
+}: {
+  outingId: string;
+  showStripeBadge?: boolean;
+  showCostBreakdown?: boolean;
+}) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   // https://docs.stripe.com/sdks/stripejs-react
@@ -342,36 +351,40 @@ const CheckoutForm = ({ outingId, showStripeBadge = false }: { outingId: string;
     [reserverDetails, stripeClient, stripeElements, outing],
   );
 
-  // TODO: render cost header? opentable footer?
+  // TODO: render opentable footer?
   return (
-    <FormContainer onSubmit={handleSubmit}>
-      <ReservationDetailsForm
-        reserverDetails={reserverDetails}
-        onChange={handleReserverDetailChange}
-        error={reserverDetailError}
-        isLoading={listDetailsIsLoading}
-        showStripeBadge={showStripeBadge}
-      />
+    <>
+      {showCostBreakdown && hasPaidActivity(outing) && <CostBreakdown outing={outing!} />}
 
-      {/* TODO pass real payment data */}
-      {hasPaidActivity(outing) && (
-        <PaymentForm
-          paymentDetails="Visa *1234"
-          isUsingNewCard={isUsingNewCard}
-          setIsUsingNewCard={setIsUsingNewCard}
+      <FormContainer onSubmit={handleSubmit}>
+        <ReservationDetailsForm
+          reserverDetails={reserverDetails}
+          onChange={handleReserverDetailChange}
+          error={reserverDetailError}
+          isLoading={listDetailsIsLoading}
+          showStripeBadge={showStripeBadge}
         />
-      )}
 
-      {error && (
-        <InputErrorContainer>
-          <InputError>{error}</InputError>
-        </InputErrorContainer>
-      )}
+        {/* TODO pass real payment data */}
+        {hasPaidActivity(outing) && (
+          <PaymentForm
+            paymentDetails="Visa *1234"
+            isUsingNewCard={isUsingNewCard}
+            setIsUsingNewCard={setIsUsingNewCard}
+          />
+        )}
 
-      <PaddedPrimaryButton type="submit" loading={submissionIsLoading} disabled={submitButtonDisabled}>
-        Save
-      </PaddedPrimaryButton>
-    </FormContainer>
+        {error && (
+          <InputErrorContainer>
+            <InputError>{error}</InputError>
+          </InputErrorContainer>
+        )}
+
+        <PaddedPrimaryButton type="submit" loading={submissionIsLoading} disabled={submitButtonDisabled}>
+          Reserve
+        </PaddedPrimaryButton>
+      </FormContainer>
+    </>
   );
 };
 
@@ -382,10 +395,18 @@ const CheckoutForm = ({ outingId, showStripeBadge = false }: { outingId: string;
  * component because it requires the user to be authed, which we don't want
  * in our App root.
  */
-const CheckoutReservation = ({ outingId, showStripeBadge }: { outingId: string; showStripeBadge?: boolean }) => {
+const CheckoutReservation = ({
+  outingId,
+  showStripeBadge,
+  showCostBreakdown,
+}: {
+  outingId: string;
+  showStripeBadge?: boolean;
+  showCostBreakdown?: boolean;
+}) => {
   return (
     <StripeElementsProvider>
-      <CheckoutForm outingId={outingId} showStripeBadge={showStripeBadge} />
+      <CheckoutForm outingId={outingId} showStripeBadge={showStripeBadge} showCostBreakdown={showCostBreakdown} />
     </StripeElementsProvider>
   );
 };

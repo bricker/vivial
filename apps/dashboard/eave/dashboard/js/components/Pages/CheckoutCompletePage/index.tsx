@@ -1,7 +1,7 @@
 import { AppRoute } from "$eave-dashboard/js/routes";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
-import { styled, Typography } from "@mui/material";
+import { Divider, styled, Typography } from "@mui/material";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import HighlightButton from "../../Buttons/HighlightButton";
@@ -46,11 +46,8 @@ const BookedContainer = styled(Paper)(() => ({
   gap: 16,
 }));
 
-const Divider = styled("div")(() => ({
+const LightDivider = styled(Divider)(() => ({
   borderColor: colors.midGreySecondaryField,
-  borderStyle: "solid",
-  width: "100%",
-  borderWidth: 1,
 }));
 
 const ConfirmationsContainer = styled("div")(() => ({
@@ -130,7 +127,7 @@ const CheckoutCompletePage = () => {
           <Typography variant="subtitle1">
             Check your inbox. Depending on your plans, you may see confirmations from the following:
           </Typography>
-          <Divider />
+          <LightDivider />
           <ConfirmationsContainer>
             {confirmationOptions.map((option) => (
               <ConfirmationOption option={option} />
