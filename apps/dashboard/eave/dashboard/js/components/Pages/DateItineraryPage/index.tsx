@@ -1,13 +1,16 @@
 import { styled } from "@mui/material";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useCookies } from "react-cookie";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
 import { RootState } from "$eave-dashboard/js/store";
 import { useGetOutingQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
+import { CookieId } from "$eave-dashboard/js/types/cookie";
 
-import Modal from "../../Modal";
+import BookingSection from "./Sections/BookingSection";
+import LogisticsSection from "./Sections/LogisticsSection";
 
 const PageContainer = styled("div")(() => ({}));
 
@@ -16,14 +19,9 @@ const DateItineraryPage = () => {
   const params = useParams();
   const outingId = params["outingId"] || "";
   const outing = useSelector((state: RootState) => state.outing.details);
-  // const [cookies, setCookie] = useCookies([CookieId.Reroll]);
-  const [bookingOpen, setBookingOpen] = useState(false);
+  const [_cookies, _setCookie] = useCookies([CookieId.Reroll]);
   const [skipOutingQuery, setSkipOutingQuery] = useState(true);
   const { data: outingData, isLoading: outingDataLoading } = useGetOutingQuery({ outingId }, { skip: skipOutingQuery });
-
-  const toggleBookingOpen = useCallback(() => {
-    setBookingOpen(!bookingOpen);
-  }, [bookingOpen]);
 
   useEffect(() => {
     if (outing === null) {
@@ -66,10 +64,8 @@ const DateItineraryPage = () => {
 
   return (
     <PageContainer>
-      <Modal title="Booking Info" onClose={toggleBookingOpen} open={bookingOpen}>
-        TODO: Booking modal content goes here (pending Liam).
-      </Modal>
-      <button onClick={toggleBookingOpen}>TEMP: Open Booking Modal</button>
+      <LogisticsSection />
+      <BookingSection />
     </PageContainer>
   );
 };

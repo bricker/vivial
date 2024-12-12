@@ -35,7 +35,8 @@ export const theme = createTheme({
       disabled: colors.midGreySecondaryField,
     },
     field: {
-      background: colors.fieldBackground,
+      primary: colors.fieldBackground.primary,
+      secondary: colors.fieldBackground.secondary,
     },
     background: {
       paper: colors.almostBlackBG,
