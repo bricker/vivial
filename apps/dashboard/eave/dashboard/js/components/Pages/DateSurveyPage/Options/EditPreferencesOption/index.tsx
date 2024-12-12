@@ -4,7 +4,7 @@ import React from "react";
 import EditButton from "../../../../Buttons/EditButton";
 
 const OptionContainer = styled("div")(({ theme }) => ({
-  backgroundColor: theme.palette.field.background,
+  backgroundColor: theme.palette.field.primary,
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",

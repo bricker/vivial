@@ -30,7 +30,7 @@ const CustomButton = styled(Button, {
     border: `1px solid ${theme.palette.grey[300]}`,
   }),
   ...(selected && {
-    color: "#121212", // one-off color
+    color: theme.palette.field.secondary,
     backgroundColor: accentColor,
     border: `1px solid transparent`,
   }),
