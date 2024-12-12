@@ -135,4 +135,10 @@
   "ruff.organizeImports": true,
   "typescript.preferences.preferTypeOnlyAutoImports": true,
   "typescript.tsdk": "./node_modules/typescript/lib",
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/apps/core",
+    "${workspaceFolder}/apps/dashboard",
+    "${workspaceFolder}/develop/python/src",
+    "${workspaceFolder}/libs/eave-stdlib-py/src"
+  ],
 }

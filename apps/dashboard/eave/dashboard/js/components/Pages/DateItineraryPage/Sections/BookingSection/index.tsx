@@ -1,24 +1,41 @@
-import Modal from "$eave-dashboard/js/components/Modal";
-import { styled } from "@mui/material";
 import React, { useCallback, useState } from "react";
+import { useSelector } from "react-redux";
+
+import { RootState } from "$eave-dashboard/js/store";
+import { rem } from "$eave-dashboard/js/theme/helpers/rem";
+import { imageUrl } from "$eave-dashboard/js/util/asset";
+import { styled } from "@mui/material";
+
+import CheckoutReservation from "$eave-dashboard/js/components/CheckoutReservation";
+import Modal from "$eave-dashboard/js/components/Modal";
 
 const Section = styled("section")(() => ({}));
 
+const BadgeImg = styled("img")(() => ({
+  height: rem("24px"),
+  maxHeight: 32,
+}));
+
 const BookingSection = () => {
   const [bookingOpen, setBookingOpen] = useState(false);
+  const outing = useSelector((state: RootState) => state.outing.details);
+  const stripeBadge = <BadgeImg src={imageUrl("powered-by-stripe.png")} alt="powered by Stripe" />;
 
   const toggleBookingOpen = useCallback(() => {
     setBookingOpen(!bookingOpen);
   }, [bookingOpen]);
 
-  return (
-    <Section>
-      <Modal title="Booking Info" onClose={toggleBookingOpen} open={bookingOpen}>
-        TODO: Booking modal content goes here (pending Liam).
-      </Modal>
-      {/* <button onClick={toggleBookingOpen}>Open Booking Modal</button> */}
-    </Section>
-  );
+  if (outing) {
+    return (
+      <Section>
+        <Modal title="Booking Info" onClose={toggleBookingOpen} open={bookingOpen} badge={stripeBadge} thinPadding>
+          <CheckoutReservation outingId={outing.id} />
+        </Modal>
+        {/* <button onClick={toggleBookingOpen}>TEMP: Open Booking Modal</button> */}
+      </Section>
+    );
+  }
+  return null;
 };
 
 export default BookingSection;

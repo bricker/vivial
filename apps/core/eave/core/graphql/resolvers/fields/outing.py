@@ -89,36 +89,49 @@ MOCK_OUTING = Outing(
     ),
 )
 
-# TODO: Uncomment once Date Picked UI is complete.
-async def get_outing_query(*, info: strawberry.Info[GraphQLContext], outing_id: UUID) -> Outing:
-    # async with database.async_session.begin() as db_session:
-    #     outing_activity = await OutingActivityOrm.get_one_by_outing_id(
-    #         session=db_session,
-    #         outing_id=outing_id,
-    #     )
-    #     outing_reservation = await OutingReservationOrm.get_one_by_outing_id(
-    #         session=db_session,
-    #         outing_id=outing_id,
-    #     )
 
-    # activity = await get_activity(
-    #     source=outing_activity.source,
-    #     source_id=outing_activity.source_id,
-    # )
+@strawberry.input
+class OutingInput:
+    id: UUID
 
-    # restaurant = await get_restaurant(
-    #     source=outing_reservation.source,
-    #     source_id=outing_reservation.source_id,
-    # )
 
+async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: OutingInput) -> Outing:
+    return MOCK_OUTING  # TODO: debug
     # return Outing(
-    #     id=outing_id,
-    #     headcount=max(outing_activity.headcount, outing_reservation.headcount),
-    #     activity=activity,
-    #     restaurant=restaurant,
+    #     id=input.id,
+    #     headcount=2,
+    #     activity=None,
+    #     restaurant=None,
+    #     restaurant_arrival_time=None,
+    #     activity_start_time=None,
     #     driving_time=None,
-    #     activity_start_time=outing_activity.start_time_local,
-    #     restaurant_arrival_time=outing_reservation.start_time_local,
     # )
+    async with database.async_session.begin() as db_session:
+        outing_activity = await OutingActivityOrm.get_one_by_outing_id(
+            session=db_session,
+            outing_id=input.id,
+        )
+        outing_reservation = await OutingReservationOrm.get_one_by_outing_id(
+            session=db_session,
+            outing_id=input.id,
+        )
 
-    return MOCK_OUTING
+    activity = await get_activity(
+        source=outing_activity.source,
+        source_id=outing_activity.source_id,
+    )
+
+    restaurant = await get_restaurant(
+        source=outing_reservation.source,
+        source_id=outing_reservation.source_id,
+    )
+
+    return Outing(
+        id=input.id,
+        headcount=max(outing_activity.headcount, outing_reservation.headcount),
+        activity=activity,
+        restaurant=restaurant,
+        driving_time=None,
+        activity_start_time=outing_activity.start_time_local,
+        restaurant_arrival_time=outing_reservation.start_time_local,
+    )
