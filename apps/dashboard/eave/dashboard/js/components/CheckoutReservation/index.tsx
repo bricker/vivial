@@ -248,6 +248,8 @@ const CheckoutForm = ({
                         break;
                     }
                     return;
+                  default:
+                    throw new Error("Unexected Graphql result");
                 }
                 // allow success case to continue execution
                 break;
@@ -295,6 +297,8 @@ const CheckoutForm = ({
                         break;
                     }
                     return;
+                  default:
+                    throw new Error("Unexected Graphql result");
                 }
                 // allow success case to continue execution
                 break;
@@ -350,6 +354,8 @@ const CheckoutForm = ({
                     break;
                 }
                 return;
+              default:
+                throw new Error("Unexected Graphql result");
             }
             // allow success case to continue execution
             break;

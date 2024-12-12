@@ -105,6 +105,8 @@ const PasswordResetForm = () => {
                     break;
                 }
                 break;
+              default:
+                throw new Error("Unexected Graphql result");
             }
             break;
           }
@@ -115,7 +117,7 @@ const PasswordResetForm = () => {
           default:
             if (resp.error) {
               // 500 error
-              throw new Error("Graphql error")
+              throw new Error("Graphql error");
             }
             // else loading/not-requested
             break;

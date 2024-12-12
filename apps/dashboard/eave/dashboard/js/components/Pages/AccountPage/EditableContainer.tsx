@@ -169,6 +169,8 @@ const EditableContainer = () => {
                     break;
                 }
                 break;
+              default:
+                throw new Error("Unexected Graphql result");
             }
             break;
           }
