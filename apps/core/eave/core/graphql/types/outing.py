@@ -3,7 +3,6 @@ from uuid import UUID
 
 import strawberry
 
-from eave.core.shared.enums import OutingBudget
 from .activity import Activity
 from .restaurant import Restaurant
 
