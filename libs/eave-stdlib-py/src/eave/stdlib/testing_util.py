@@ -166,7 +166,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getpath(self, name: str) -> str:
         return self.getstr(name)
 
-    def anystr(self, name: str | None = None, *, staticvalue: str | None = None) -> str:
+    def anystr(self, name: str | None = None, *, staticvalue: str | None = None, length: int | None = None) -> str:
         name = self._make_testdata_name(name)
 
         if staticvalue is None:

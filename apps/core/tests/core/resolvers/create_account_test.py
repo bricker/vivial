@@ -95,7 +95,7 @@ class TestCreateAccountMutation(BaseTestCase):
 
     async def test_create_account_with_existing_account(self) -> None:
         async with self.db_session.begin() as session:
-            account_orm = await self.make_account(session)
+            account_orm = self.make_account(session)
             count = await self.count(session, AccountOrm)
             assert count == 1
 

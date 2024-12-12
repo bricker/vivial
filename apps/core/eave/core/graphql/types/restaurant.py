@@ -6,7 +6,7 @@ from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 from eave.core.shared.enums import RestaurantSource
 
 from .location import Location
-from .photos import Photo, Photos
+from .photos import Photos
 
 
 @strawberry.type

@@ -1,13 +1,11 @@
 from typing import Self
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, PrimaryKeyConstraint, Select, select
+from sqlalchemy import ForeignKey, PrimaryKeyConstraint
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.util.mixins import GetOneByIdMixin
-from eave.stdlib.typing import NOT_SET
 
 from .base import Base
 from .util.constants import PG_UUID_EXPR, OnDeleteOption

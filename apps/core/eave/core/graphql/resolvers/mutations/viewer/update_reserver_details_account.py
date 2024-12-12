@@ -10,7 +10,6 @@ from eave.core.graphql.types.account import Account
 from eave.core.graphql.types.reserver_details import (
     ReserverDetails,
 )
-from eave.core.orm.account import AccountOrm
 from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.shared.errors import ValidationError
@@ -62,12 +61,10 @@ async def update_reserver_details_account_mutation(
         async with database.async_session.begin() as db_session:
             db_session.add(account)
             account.email = input.email
-            # validate
-            await account.save(db_session)
 
             lookup = (
                 ReserverDetailsOrm.select()
-                .where(ReserverDetailsOrm.account_id == account_id)
+                .where(ReserverDetailsOrm.account_id == account.id)
                 .where(ReserverDetailsOrm.id == input.id)
             )
             reserver_details = (await db_session.scalars(lookup)).one()

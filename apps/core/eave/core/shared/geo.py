@@ -1,4 +1,3 @@
-
 import geoalchemy2.shape
 import strawberry
 from geoalchemy2 import WKBElement

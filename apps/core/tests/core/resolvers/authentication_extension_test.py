@@ -18,7 +18,7 @@ class TestAuthenticationExtension(BaseTestCase):
 
     async def test_auth_extension_with_valid_access_token(self) -> None:
         async with self.db_session.begin() as session:
-            account = await self.make_account(session=session)
+            account = self.make_account(session=session)
 
         response = await self.make_graphql_request(
             "getReserverDetails",
@@ -36,7 +36,7 @@ class TestAuthenticationExtension(BaseTestCase):
 
     async def test_auth_extension_with_expired_access_token(self) -> None:
         async with self.db_session.begin() as session:
-            account = await self.make_account(session=session)
+            account = self.make_account(session=session)
 
         expired_jws = create_jws(
             purpose=JWTPurpose.ACCESS,
@@ -91,7 +91,7 @@ class TestAuthenticationExtension(BaseTestCase):
         self.get_mock("KeyManagementServiceClient.mac_verify").side_effect = _verify_failure
 
         async with self.db_session.begin() as session:
-            account = await self.make_account(session=session)
+            account = self.make_account(session=session)
 
         response = await self.make_graphql_request(
             "getReserverDetails",
@@ -121,7 +121,7 @@ class TestAuthenticationExtension(BaseTestCase):
         self.get_mock("KeyManagementServiceClient.mac_verify").side_effect = _verify_failure
 
         async with self.db_session.begin() as session:
-            account = await self.make_account(session=session)
+            account = self.make_account(session=session)
 
         response = await self.make_graphql_request(
             "getReserverDetails",

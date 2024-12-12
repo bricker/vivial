@@ -42,7 +42,7 @@ async def login_mutation(*, info: strawberry.Info[GraphQLContext], input: LoginI
             return LoginFailure(failure_reason=LoginFailureReason.INVALID_CREDENTIALS)
 
         try:
-            account_orm.verify_password_or_exception(input.plaintext_password)
+            account_orm.verify_password_or_exception(plaintext_password=input.plaintext_password)
 
             set_new_auth_cookies(response=info.context["response"], account_id=account_orm.id)
 

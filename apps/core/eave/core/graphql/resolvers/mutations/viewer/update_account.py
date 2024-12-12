@@ -6,7 +6,7 @@ import strawberry
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.account import Account
-from eave.core.orm.account import AccountOrm, WeakPasswordError
+from eave.core.orm.account import WeakPasswordError
 from eave.core.orm.base import InvalidRecordError
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.util import unwrap
@@ -42,6 +42,7 @@ async def update_account_mutation(
     *, info: strawberry.Info[GraphQLContext], input: UpdateAccountInput
 ) -> UpdateAccountResult:
     account = unwrap(info.context.get("authenticated_account"))
+
     try:
         async with database.async_session.begin() as db_session:
             db_session.add(account)
@@ -49,7 +50,7 @@ async def update_account_mutation(
             if input.email:
                 account.email = input.email
             if input.plaintext_password:
-                account.set_password(input.plaintext_password)
+                account.set_password(plaintext_password=input.plaintext_password)
 
         return UpdateAccountSuccess(account=Account.from_orm(account))
 

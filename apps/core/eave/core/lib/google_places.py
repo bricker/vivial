@@ -7,10 +7,12 @@ from zoneinfo import ZoneInfo
 from google.maps.places import (
     GetPhotoMediaRequest,
     GetPlaceRequest,
-    Photo as PlacePhoto,
     Place,
     PlacesAsyncClient,
     SearchNearbyRequest,
+)
+from google.maps.places import (
+    Photo as PlacePhoto,
 )
 
 from eave.core.graphql.types.activity import Activity, ActivityVenue
@@ -107,6 +109,7 @@ async def photos_from_google_place(places_client: PlacesAsyncClient, *, place: P
 
     return photos
 
+
 class GooglePlaceAddressComponentType(enum.StrEnum):
     administrative_area_level_1 = "administrative_area_level_1"
     country = "country"
@@ -117,10 +120,15 @@ class GooglePlaceAddressComponentType(enum.StrEnum):
     route = "route"
     subpremise = "subpremise"
 
+
 def location_from_google_place(place: Place) -> Location:
     address = Address(
         country=next(
-            (component.shortText for component in place.address_components if GooglePlaceAddressComponentType.country.value in component.types),
+            (
+                component.shortText
+                for component in place.address_components
+                if GooglePlaceAddressComponentType.country.value in component.types
+            ),
             None,
         ),
         state=next(
@@ -132,11 +140,19 @@ def location_from_google_place(place: Place) -> Location:
             None,
         ),
         city=next(
-            (component.longText for component in place.address_components if GooglePlaceAddressComponentType.locality.value in component.types),
+            (
+                component.longText
+                for component in place.address_components
+                if GooglePlaceAddressComponentType.locality.value in component.types
+            ),
             "",
         ),
         zip=next(
-            (component.longText for component in place.address_components if GooglePlaceAddressComponentType.postal_code.value in component.types),
+            (
+                component.longText
+                for component in place.address_components
+                if GooglePlaceAddressComponentType.postal_code.value in component.types
+            ),
             None,
         ),
         address1=next(
@@ -168,7 +184,11 @@ def location_from_google_place(place: Place) -> Location:
             ]
         ),
         address2=next(
-            (component.longText for component in place.address_components if GooglePlaceAddressComponentType.subpremise.value in component.types),
+            (
+                component.longText
+                for component in place.address_components
+                if GooglePlaceAddressComponentType.subpremise.value in component.types
+            ),
             None,
         ),
     )

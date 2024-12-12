@@ -15,10 +15,10 @@ from strawberry.types import ExecutionResult
 
 import eave.core.app
 import eave.core.database
-from eave.core._database_setup import get_base_metadata, init_database
 import eave.core.orm
 import eave.stdlib.testing_util
 import eave.stdlib.typing
+from eave.core._database_setup import get_base_metadata, init_database
 from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME
 from eave.core.config import CORE_API_APP_CONFIG, JWT_AUDIENCE, JWT_ISSUER
 from eave.core.orm.account import AccountOrm
@@ -175,15 +175,16 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         assert response.status_code == HTTPStatus.OK
         return response
 
-    async def make_account(
+    def make_account(
         self,
         session: AsyncSession,
     ) -> AccountOrm:
-        account = await AccountOrm(
+        account = AccountOrm(
             email=self.anyemail("make_account.email"),
             plaintext_password=self.anystr("make_account.plaintext_password"),
-        ).save(session)
+        )
 
+        session.add(account)
         return account
 
     async def get_eave_account(self, session: AsyncSession, /, id: UUID) -> AccountOrm | None:
@@ -198,12 +199,13 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
     ) -> OutingOrm:
         act_id = account_id
         if act_id is None:
-            account = await self.make_account(session=session)
+            account = self.make_account(session=session)
             act_id = account.id
 
         surv_id = survey_id
         if surv_id is None:
             survey = await SurveyOrm(
+                account=account,
                 visitor_id=self.anyuuid(),
                 start_time_utc=self.anydatetime(offset=2 * 60 * 60 * 24),
                 timezone=self.anytimezone(),

@@ -2,11 +2,9 @@ from uuid import UUID
 
 import strawberry
 
-from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.booking import BookingDetailPeek, BookingDetails
 from eave.core.lib.event_helpers import get_activity, get_restaurant
-from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
 from eave.stdlib.http_exceptions import NotFoundError
 from eave.stdlib.util import unwrap

@@ -1,15 +1,16 @@
+from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import Any, Self, cast
+from typing import Any, Self
 
-from sqlalchemy import MetaData, Select, event, func, select
+from sqlalchemy import Select, event, func, select
 from sqlalchemy.dialects.postgresql import TIMESTAMP
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, UOWTransaction, mapped_column
-from sqlalchemy.util import IdentitySet
 
+from eave.core import database
 from eave.core.shared.errors import ValidationError
-from eave.core.database import async_session
 from eave.stdlib.logging import LOGGER
+
 
 class InvalidRecordError(Exception):
     validation_errors: list[ValidationError]
@@ -42,8 +43,21 @@ class Base(DeclarativeBase):
     def validate(self) -> list[ValidationError]:
         return []
 
+
 @event.listens_for(Session, "before_flush")
-def validate_orm(session: Session, flush_context: UOWTransaction, instances: Any) -> None:
+def validate_session(session: Session, flush_context: UOWTransaction, instances: Any) -> None:
+    """
+    Validates all the records before a flush occurs.
+    This is done only on flush, because if done earlier (like when an object is added to the session),
+    it's possible that the object will become invalid before flush. Like in this scenario:
+
+    account = Account(email: "bryan@eave.fyi", plaintext_password: "unsafe0!")
+    session.add(account)
+    account.email = "invalid email"
+
+    The caveat is that the whole session must be wrapped in try/catch, otherwise the validation errors won't be caught.
+    This does have the benefit of validation everything at once, so the client will receive all validation errors.
+    """
     validation_errors: list[ValidationError] = []
 
     try:
@@ -61,3 +75,21 @@ def validate_orm(session: Session, flush_context: UOWTransaction, instances: Any
 
     if len(validation_errors) > 0:
         raise InvalidRecordError(validation_errors=validation_errors)
+
+# @event.listens_for(Session, "transient_to_pending")
+# def validate_orm_object(session: Session, orm: Base) -> None:
+#     validation_errors: list[ValidationError] = []
+
+#     try:
+#         validator = getattr(orm, "validate", None)
+#         if validator and callable(validator):
+#             validation_errors.extend(orm.validate())
+
+#     except Exception as e:
+#         # If there was some unexpected error during validation, then don't prevent the SQL operation.
+#         # Note that the validator functions aren't expected to throw errors for invalid records.
+#         # They return a list of validationi errors.
+#         LOGGER.exception(e)
+
+#     if len(validation_errors) > 0:
+#         raise InvalidRecordError(validation_errors=validation_errors)

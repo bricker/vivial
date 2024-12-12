@@ -13,12 +13,13 @@ class TestUpdateOutingPreferences(BaseTestCase):
         second_activity_category = ActivityCategoryOrm.all()[1]
 
         async with self.db_session.begin() as db_session:
-            account = await self.make_account(db_session)
-            outing_preferences_orm = await OutingPreferencesOrm(
-                account_id=account.id,
+            account = self.make_account(db_session)
+            outing_preferences_orm = OutingPreferencesOrm(
+                account=account,
                 activity_category_ids=[first_activity_category.id],
                 restaurant_category_ids=[first_restaurant_category.id],
-            ).save(db_session)
+            )
+            db_session.add(outing_preferences_orm)
 
         response = await self.make_graphql_request(
             "updateOutingPreferences",
@@ -46,7 +47,7 @@ class TestUpdateOutingPreferences(BaseTestCase):
         assert data["activityCategories"][1]["id"] == str(second_activity_category.id)
 
         async with self.db_session.begin() as db_session:
-            outing_preferences_orm = await OutingPreferencesOrm.get_one(db_session, outing_preferences_orm.id)
+            outing_preferences_orm = await OutingPreferencesOrm.get_one(db_session, account_id=account.id, uid=outing_preferences_orm.id)
             assert outing_preferences_orm.activity_category_ids == [
                 first_activity_category.id,
                 second_activity_category.id,
@@ -61,7 +62,7 @@ class TestUpdateOutingPreferences(BaseTestCase):
         first_activity_category = ActivityCategoryOrm.all()[0]
 
         async with self.db_session.begin() as db_session:
-            account = await self.make_account(db_session)
+            account = self.make_account(db_session)
             outing_preferences_orm = (
                 await db_session.scalars(OutingPreferencesOrm.select(account_id=account.id))
             ).one_or_none()

@@ -1,3 +1,4 @@
+from eave.core.orm.account import AccountOrm
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.outing_preferences import OutingPreferencesOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
@@ -11,12 +12,14 @@ class TestGetOutingPreferences(BaseTestCase):
         first_activity_category = ActivityCategoryOrm.all()[0]
 
         async with self.db_session.begin() as db_session:
-            account = await self.make_account(db_session)
-            await OutingPreferencesOrm(
-                account_id=account.id,
+            account = self.make_account(db_session)
+
+            outing_preferences = OutingPreferencesOrm(
+                account=account,
                 activity_category_ids=[first_activity_category.id],
                 restaurant_category_ids=[first_restaurant_category.id],
-            ).save(db_session)
+            )
+            db_session.add(outing_preferences)
 
         response = await self.make_graphql_request(
             "getOutingPreferences",
@@ -38,7 +41,7 @@ class TestGetOutingPreferences(BaseTestCase):
 
     async def test_outing_preferences_with_none_selected(self) -> None:
         async with self.db_session.begin() as db_session:
-            account = await self.make_account(db_session)
+            account = self.make_account(db_session)
 
         response = await self.make_graphql_request(
             "getOutingPreferences",
@@ -57,13 +60,14 @@ class TestGetOutingPreferences(BaseTestCase):
 
     async def test_outing_preferences_with_none_values(self) -> None:
         async with self.db_session.begin() as db_session:
-            account = await self.make_account(db_session)
+            account = self.make_account(db_session)
 
-            await OutingPreferencesOrm(
-                account_id=account.id,
+            outing_preferences = OutingPreferencesOrm(
+                account=account,
                 activity_category_ids=None,
                 restaurant_category_ids=None,
-            ).save(db_session)
+            )
+            db_session.add(outing_preferences)
 
         response = await self.make_graphql_request(
             "getOutingPreferences",

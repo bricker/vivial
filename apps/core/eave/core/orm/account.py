@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Literal, Self
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, PrimaryKeyConstraint, Select, func, select
+from sqlalchemy import PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,6 +23,7 @@ if TYPE_CHECKING:
     from eave.core.orm.booking import BookingOrm
     from eave.core.orm.outing_preferences import OutingPreferencesOrm
 
+
 class InvalidPasswordError(Exception):
     pass
 
@@ -31,7 +32,7 @@ class WeakPasswordError(Exception):
     pass
 
 
-def test_password_strength_or_exception(plaintext_password: str) -> Literal[True]:
+def test_password_strength_or_exception(*, plaintext_password: str) -> Literal[True]:
     if (
         plaintext_password
         and len(plaintext_password) >= 8
@@ -45,7 +46,7 @@ def test_password_strength_or_exception(plaintext_password: str) -> Literal[True
         raise WeakPasswordError()
 
 
-def derive_password_key(plaintext_password: str, salt: bytes) -> str:
+def _derive_password_key(*, plaintext_password: str, salt: bytes) -> str:
     if not plaintext_password:
         raise ValueError("invalid password")
 
@@ -80,7 +81,6 @@ class AccountOrm(Base, GetOneByIdMixin):
 
     outing_preferences: Mapped["OutingPreferencesOrm | None"] = relationship(back_populates="account", lazy="selectin")
 
-
     def __init__(
         self,
         *,
@@ -88,7 +88,7 @@ class AccountOrm(Base, GetOneByIdMixin):
         plaintext_password: str,
     ) -> None:
         self.email = email
-        self.set_password(plaintext_password)
+        self.set_password(plaintext_password=plaintext_password)
 
     @classmethod
     def select(cls, *, email: str = NOT_SET) -> Select[tuple[Self]]:
@@ -105,12 +105,12 @@ class AccountOrm(Base, GetOneByIdMixin):
         # This is deliberately simple, for basic data integrity - the client has a much more robust email validator.
         email_pattern = r"^.+?@.+?\..+$"
         if re.match(email_pattern, self.email) is None:
-            errors.append(ValidationError(field="email"))
+            errors.append(ValidationError(subject="account", field="email"))
 
         return errors
 
-    def verify_password_or_exception(self, plaintext_password: str) -> Literal[True]:
-        expected_password_key = derive_password_key(
+    def verify_password_or_exception(self, *, plaintext_password: str) -> Literal[True]:
+        expected_password_key = _derive_password_key(
             plaintext_password=plaintext_password, salt=bytes.fromhex(self.password_key_salt)
         )
 
@@ -121,9 +121,9 @@ class AccountOrm(Base, GetOneByIdMixin):
         else:
             raise InvalidPasswordError()
 
-    def set_password(self, plaintext_password: str) -> None:
-        if test_password_strength_or_exception(plaintext_password):
+    def set_password(self, *, plaintext_password: str) -> None:
+        if test_password_strength_or_exception(plaintext_password=plaintext_password):
             salt = os.urandom(16)
-            password_key = derive_password_key(plaintext_password=plaintext_password, salt=salt)
+            password_key = _derive_password_key(plaintext_password=plaintext_password, salt=salt)
             self.password_key_salt = salt.hex()
             self.password_key = password_key

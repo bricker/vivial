@@ -6,7 +6,7 @@ from ..base import BaseTestCase
 class TestUpdateAccountResolver(BaseTestCase):
     async def test_update_account_resolver_with_all_fields_updated(self) -> None:
         async with self.db_session.begin() as db_session:
-            original_account = await self.make_account(db_session)
+            original_account = self.make_account(db_session)
 
         response = await self.make_graphql_request(
             "updateAccount",
@@ -42,7 +42,7 @@ class TestUpdateAccountResolver(BaseTestCase):
 
     async def test_update_account_resolver_with_no_fields_updated(self) -> None:
         async with self.db_session.begin() as db_session:
-            original_account = await self.make_account(db_session)
+            original_account = self.make_account(db_session)
 
         response = await self.make_graphql_request(
             "updateAccount",
@@ -67,7 +67,7 @@ class TestUpdateAccountResolver(BaseTestCase):
 
     async def test_update_account_resolver_with_null_inputs(self) -> None:
         async with self.db_session.begin() as db_session:
-            original_account = await self.make_account(db_session)
+            original_account = self.make_account(db_session)
 
         response = await self.make_graphql_request(
             "updateAccount",
@@ -97,7 +97,7 @@ class TestUpdateAccountResolver(BaseTestCase):
 
     async def test_update_account_resolver_with_only_email_updated(self) -> None:
         async with self.db_session.begin() as db_session:
-            original_account = await self.make_account(db_session)
+            original_account = self.make_account(db_session)
 
         response = await self.make_graphql_request(
             "updateAccount",
@@ -127,7 +127,7 @@ class TestUpdateAccountResolver(BaseTestCase):
 
     async def test_update_account_resolver_with_only_password_updated(self) -> None:
         async with self.db_session.begin() as db_session:
-            original_account = await self.make_account(db_session)
+            original_account = self.make_account(db_session)
 
         response = await self.make_graphql_request(
             "updateAccount",
@@ -155,7 +155,7 @@ class TestUpdateAccountResolver(BaseTestCase):
 
     async def test_update_account_resolver_with_invalid_password(self) -> None:
         async with self.db_session.begin() as db_session:
-            original_account = await self.make_account(db_session)
+            original_account = self.make_account(db_session)
 
         response = await self.make_graphql_request(
             "updateAccount",
@@ -187,7 +187,7 @@ class TestUpdateAccountResolver(BaseTestCase):
 
     async def test_update_account_resolver_with_invalid_email(self) -> None:
         async with self.db_session.begin() as db_session:
-            original_account = await self.make_account(db_session)
+            original_account = self.make_account(db_session)
 
         response = await self.make_graphql_request(
             "updateAccount",
@@ -218,7 +218,7 @@ class TestUpdateAccountResolver(BaseTestCase):
 
     async def test_update_account_resolver_with_multiple_invalid_inputs(self) -> None:
         async with self.db_session.begin() as db_session:
-            original_account = await self.make_account(db_session)
+            original_account = self.make_account(db_session)
 
         response = await self.make_graphql_request(
             "updateAccount",

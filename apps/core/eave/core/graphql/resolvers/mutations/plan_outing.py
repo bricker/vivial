@@ -18,7 +18,6 @@ from eave.core.graphql.types.outing import (
     Outing,
     OutingPreferencesInput,
 )
-from eave.core.orm.account import AccountOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE

@@ -47,13 +47,13 @@ class ReserverDetailsOrm(Base):
             r"^(\+?1)?[\s-]?(\(\d{3}\)|\d{3})[\s-]?\d{3}[\s-]?\d{4}$"  # TODO: This only matches US numbers.
         )
         if not self.phone_number or not re.match(phone_number_pattern, self.phone_number):
-            errors.append(ValidationError(field="phone_number"))
+            errors.append(ValidationError(subject="reserver_details", field="phone_number"))
 
         if not self.first_name:
-            errors.append(ValidationError(field="first_name"))
+            errors.append(ValidationError(subject="reserver_details", field="first_name"))
 
         if not self.last_name:
-            errors.append(ValidationError(field="last_name"))
+            errors.append(ValidationError(subject="reserver_details", field="last_name"))
 
         return errors
 

@@ -44,7 +44,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
 
     async def test_plan_outing_authenticated(self) -> None:
         async with self.db_session.begin() as db_session:
-            account = await self.make_account(db_session)
+            account = self.make_account(db_session)
 
         vis_id = self.anyuuid()
 
@@ -77,22 +77,25 @@ class TestPlanOutingEndpoints(BaseTestCase):
 
     async def test_replan_authenticated(self) -> None:
         async with self.db_session.begin() as sess:
-            account = await self.make_account(sess)
+            account = self.make_account(sess)
 
-            survey = await SurveyOrm(
+            survey = SurveyOrm(
+                account=account,
                 visitor_id=self.anyuuid(),
                 start_time_utc=self.anydatetime(offset=2 * day_seconds),
                 timezone=self.anytimezone(),
                 search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
                 budget=OutingBudget.INEXPENSIVE,
                 headcount=1,
-                account_id=account.id,
-            ).save(sess)
-            outing = await OutingOrm(
+            )
+            sess.add(survey)
+
+            outing = OutingOrm(
                 visitor_id=survey.visitor_id,
-                survey_id=survey.id,
-                account_id=survey.account_id,
-            ).save(sess)
+                survey=survey,
+                account=survey.account,
+            )
+            sess.add(outing)
 
         response = await self.make_graphql_request(
             "replanOutingAuthenticated",
@@ -120,19 +123,23 @@ class TestPlanOutingEndpoints(BaseTestCase):
 
     async def test_replan_anonymous(self) -> None:
         async with self.db_session.begin() as sess:
-            survey = await SurveyOrm(
+            survey = SurveyOrm(
+                account=None,
                 visitor_id=self.anyuuid(),
                 start_time_utc=self.anydatetime(offset=2 * day_seconds),
                 timezone=self.anytimezone(),
                 search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
                 budget=OutingBudget.INEXPENSIVE,
                 headcount=1,
-            ).save(sess)
-            outing = await OutingOrm(
+            )
+            sess.add(survey)
+
+            outing = OutingOrm(
                 visitor_id=survey.visitor_id,
-                survey_id=survey.id,
-                account_id=survey.account_id,
-            ).save(sess)
+                survey=survey,
+                account=survey.account,
+            )
+            sess.add(outing)
 
         response = await self.make_graphql_request(
             "replanOutingAnonymous",

@@ -124,8 +124,10 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
             src=logo["url"],
             alt=None,
             attributions=[],
-        ) if logo else None,
-        supplemental_photos=[], # Eventbrite only gives one image
+        )
+        if logo
+        else None,
+        supplemental_photos=[],  # Eventbrite only gives one image
     )
 
     activity = Activity(

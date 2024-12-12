@@ -9,7 +9,7 @@ from ..base import BaseTestCase
 class TestBookedOutingsResolver(BaseTestCase):
     async def test_booked_outings_with_activity_and_restaurant(self) -> None:
         async with self.db_session.begin() as db_session:
-            account = await self.make_account(db_session)
+            account = self.make_account(db_session)
             reserver_details = await ReserverDetailsOrm(
                 account_id=account.id,
                 first_name=self.anyalpha(),

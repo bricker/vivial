@@ -7,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.util.mixins import GetOneByIdMixin
 from eave.stdlib.typing import NOT_SET
 
 from .base import Base
@@ -21,7 +20,7 @@ class OutingPreferencesOrm(Base):
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, unique=True)
     account_id: Mapped[UUID] = mapped_column(
         ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE),
-        unique=True, # Unique constraint is needed to enforce a one-to-one mapping with Account
+        unique=True,  # Unique constraint is needed to enforce a one-to-one mapping with Account
     )
     account: Mapped[AccountOrm] = relationship(back_populates="outing_preferences", lazy="selectin")
 

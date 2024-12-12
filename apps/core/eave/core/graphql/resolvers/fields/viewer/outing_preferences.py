@@ -1,9 +1,7 @@
 import strawberry
 
-from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.outing_preferences import OutingPreferences
-from eave.core.orm.outing_preferences import OutingPreferencesOrm
 from eave.stdlib.util import unwrap
 
 

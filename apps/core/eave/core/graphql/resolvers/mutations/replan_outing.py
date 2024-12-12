@@ -17,9 +17,7 @@ from eave.core.graphql.types.outing import (
     Outing,
     OutingPreferencesInput,
 )
-from eave.core.orm.account import AccountOrm
 from eave.core.orm.outing import OutingOrm
-from eave.core.orm.survey import SurveyOrm
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 
 
@@ -64,7 +62,9 @@ async def replan_outing_mutation(
 
     # validate that the survey's start time is still within the bounds.
     try:
-        validate_time_within_bounds_or_exception(start_time=original_outing.survey.start_time_utc, timezone=LOS_ANGELES_TIMEZONE)
+        validate_time_within_bounds_or_exception(
+            start_time=original_outing.survey.start_time_utc, timezone=LOS_ANGELES_TIMEZONE
+        )
     except StartTimeTooLateError:
         return ReplanOutingFailure(failure_reason=ReplanOutingFailureReason.START_TIME_TOO_LATE)
     except StartTimeTooSoonError:

@@ -6,10 +6,11 @@ if SHARED_CONFIG.is_local:
 
     import sqlalchemy
     from sqlalchemy import MetaData
-    from eave.core.orm.base import Base
     from sqlalchemy.ext.asyncio import create_async_engine
+
     from eave.core.config import CORE_API_APP_CONFIG
     from eave.core.database import async_engine
+    from eave.core.orm.base import Base
 
     def _load_all() -> None:
         """
@@ -25,9 +26,7 @@ if SHARED_CONFIG.is_local:
             if ext == ".py" and f not in {"__init__.py", "base.py"}:
                 importlib.import_module(f"eave.core.orm.{fname}")
 
-
     _base_metadata: MetaData | None = None
-
 
     def get_base_metadata() -> MetaData:
         global _base_metadata

@@ -1,4 +1,3 @@
-
 from eave.core.shared.address import Address
 
 from ..base import BaseTestCase

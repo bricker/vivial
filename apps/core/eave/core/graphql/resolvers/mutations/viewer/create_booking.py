@@ -5,14 +5,10 @@ from uuid import UUID
 
 import strawberry
 import stripe
-from attr import dataclass
-from google.maps.places_v1 import PlacesAsyncClient
 
-from eave.core.lib.event_helpers import get_activity, get_restaurant
 import eave.stdlib.slack
 from eave.core import database
 from eave.core.analytics import ANALYTICS
-from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import (
     StartTimeTooLateError,
@@ -22,29 +18,22 @@ from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import 
 from eave.core.graphql.types.booking import (
     Booking,
 )
-from eave.core.lib.google_places import get_google_place, photos_from_google_place
+from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.activity import ActivityOrm
 from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
-from eave.core.shared.address import Address
-from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.core.shared.errors import ValidationError
-from eave.core.shared.geo import GeoPoint
 from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery
-from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.util import unwrap
-
 
 
 @strawberry.input
 class CreateBookingInput:
     outing_id: UUID
-    reserver_details_id: UUID # TODO: Should we get this from AccountOrm?
+    reserver_details_id: UUID  # TODO: Should we get this from AccountOrm?
 
 
 @strawberry.type
@@ -89,7 +78,9 @@ async def create_booking_mutation(
             except StartTimeTooLateError:
                 return CreateBookingFailure(failure_reason=CreateBookingFailureReason.START_TIME_TOO_LATE)
 
-            reserver_details = await ReserverDetailsOrm.get_one(db_session, account_id=account.id, uid=input.reserver_details_id)
+            reserver_details = await ReserverDetailsOrm.get_one(
+                db_session, account_id=account.id, uid=input.reserver_details_id
+            )
 
             booking = BookingOrm(
                 reserver_details=reserver_details,

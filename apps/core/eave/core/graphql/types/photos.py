@@ -2,6 +2,7 @@ import strawberry
 
 from eave.core.orm.image import ImageOrm
 
+
 @strawberry.type
 class Photo:
     id: str
@@ -15,8 +16,9 @@ class Photo:
             id=str(orm.id),
             src=orm.src,
             alt=orm.alt,
-            attributions=[], # TODO: Add attributions to ImageOrm
+            attributions=[],  # TODO: Add attributions to ImageOrm
         )
+
 
 @strawberry.type
 class Photos:
