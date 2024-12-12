@@ -7,13 +7,11 @@ from eave.core.graphql.resolvers.fields.activity_category_groups import list_act
 from eave.core.graphql.resolvers.fields.outing import get_outing_query
 from eave.core.graphql.resolvers.fields.restaurant_categories import list_restaurant_categories_query
 from eave.core.graphql.resolvers.fields.search_regions import list_search_regions_query
-from eave.core.graphql.resolvers.fields.outing import get_outing_query
 from eave.core.graphql.resolvers.fields.viewer.viewer_queries import AuthenticatedViewerQueries
 from eave.core.graphql.types.activity import ActivityCategoryGroup
 from eave.core.graphql.types.outing import Outing
 from eave.core.graphql.types.restaurant import RestaurantCategory
 from eave.core.graphql.types.search_region import SearchRegion
-from eave.core.graphql.types.outing import Outing
 
 
 @strawberry.type
@@ -24,7 +22,6 @@ class Query:
         resolver=list_activity_category_groups_query
     )
     restaurant_categories: list[RestaurantCategory] = strawberry.field(resolver=list_restaurant_categories_query)
-    outing: Outing = strawberry.field(resolver=get_outing_query)
 
     @strawberry.field(extensions=[AuthenticationExtension()])
     def viewer(

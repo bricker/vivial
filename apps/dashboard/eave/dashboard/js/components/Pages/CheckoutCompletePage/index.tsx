@@ -130,7 +130,7 @@ const CheckoutCompletePage = () => {
           <LightDivider />
           <ConfirmationsContainer>
             {confirmationOptions.map((option) => (
-              <ConfirmationOption option={option} />
+              <ConfirmationOption key={option.text} option={option} />
             ))}
           </ConfirmationsContainer>
         </BookedContainer>

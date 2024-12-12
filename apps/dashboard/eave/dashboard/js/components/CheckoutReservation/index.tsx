@@ -205,8 +205,8 @@ const CheckoutForm = ({
   );
 
   const handleSubmit = useCallback(
-    async (e: FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
+    async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
       if (!stripeClient || !stripeElements) {
         console.warn("stripe not loaded; must wrap in StripeElementsProvider");
         return;
@@ -214,11 +214,11 @@ const CheckoutForm = ({
       setInternalReserverDetailError(undefined);
       const isPaidActivity = hasPaidActivity(outing);
 
-      let bookingDetails = { ...reserverDetails };
+      const bookingDetails = { ...reserverDetails };
       try {
         if (outing?.restaurant) {
           // if the reserver details dont have db ID yet, create a new entry
-          if (reserverDetails.id.length == 0) {
+          if (reserverDetails.id.length === 0) {
             const submitDetailsResp = await submitReserverDetails({
               input: reserverDetails,
             });
