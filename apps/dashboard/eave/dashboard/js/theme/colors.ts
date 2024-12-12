@@ -5,7 +5,10 @@
 export const colors = {
   whiteText: "#D9D9D9",
   vivialYellow: "#E6F025",
-  fieldBackground: "#312B2C",
+  fieldBackground: {
+    primary: "#312B2C",
+    secondary: "#121212",
+  },
   secondaryButtonCTA: "#434343",
   lightPurpleAccent: "#CCACEC",
   lightOrangeAccent: "#FCC3A3",

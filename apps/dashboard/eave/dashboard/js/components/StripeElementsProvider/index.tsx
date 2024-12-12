@@ -90,7 +90,7 @@ const StripeElementsProvider = ({ children }: { children: React.ReactElement }) 
       gridColumnSpacing: "0px",
       gridRowSpacing: "0px",
       borderRadius: "0px",
-      colorBackground: colors.fieldBackground,
+      colorBackground: colors.fieldBackground.primary,
       colorText: colors.whiteText,
     },
     rules: {
