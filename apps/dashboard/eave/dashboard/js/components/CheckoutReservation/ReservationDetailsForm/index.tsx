@@ -18,7 +18,6 @@ enum Corner {
 const FieldsContainer = styled("div")(() => ({
   display: "flex",
   flexDirection: "column",
-  marginBottom: 24,
 }));
 
 const RoundableInput = styled(Input)<{ rounded: Corner[] }>(({ theme, rounded }) => ({

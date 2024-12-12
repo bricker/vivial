@@ -37,7 +37,7 @@ const BreakdownContainer = styled("div")(() => ({
 
 const LineItemContainer = styled("div")(() => ({
   display: "grid",
-  gridTemplateColumns: "auto auto",
+  gridTemplateColumns: "auto auto auto",
   alignItems: "flex-end",
   textAlign: "right",
   columnGap: 8,
@@ -113,7 +113,8 @@ const CostBreakdown = ({ outing }: { outing: Outing }) => {
           <LineItemContainer>
             {breakdown.map((charge) => (
               <>
-                <LineItemText>{charge.costName} ...</LineItemText>
+                <LineItemText>{charge.costName}</LineItemText>
+                <LineItemText>...</LineItemText>
                 <LineItemText bold={charge.costValue === "FREE"}>{charge.costValue}</LineItemText>
               </>
             ))}

@@ -15,18 +15,29 @@ import {
   useUpdateReserverDetailsMutation,
 } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { storeReserverDetails } from "$eave-dashboard/js/store/slices/reserverDetailsSlice";
+import { Breakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
-import { styled } from "@mui/material";
+import { Typography, styled } from "@mui/material";
 import { useElements, useStripe } from "@stripe/react-stripe-js";
 import React, { FormEvent, useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import LoadingButton from "../Buttons/LoadingButton";
 import InputError from "../Inputs/InputError";
+import LogoPill, { logos } from "../LogoPill";
+import Paper from "../Paper";
 import StripeElementsProvider from "../StripeElementsProvider";
 import CostBreakdown from "./CostBreakdown";
 import PaymentForm from "./PaymentForm";
 import ReservationDetailsForm, { ReserverFormFields } from "./ReservationDetailsForm";
+
+const AltPageContainer = styled("div")(() => ({
+  padding: "24px 16px",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: 32,
+}));
 
 const PaddedPrimaryButton = styled(LoadingButton)(() => ({
   width: "90%",
@@ -51,6 +62,33 @@ const InputErrorContainer = styled("div")(() => ({
   padding: "0 16px",
 }));
 
+const FormPaper = styled(Paper)(({ theme }) => ({
+  maxWidth: 450,
+  [theme.breakpoints.down(Breakpoint.Medium)]: {
+    padding: 24,
+  },
+}));
+
+const PlainDiv = styled("div")(() => ({}));
+
+const HeaderContainer = styled("div")(() => ({
+  display: "flex",
+  flexDirection: "column",
+  gap: 16,
+}));
+
+const FooterContainer = styled("div")(() => ({
+  minWidth: 300,
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  gap: 8,
+}));
+
+const FooterText = styled(Typography)(() => ({
+  textAlign: "center",
+}));
+
 function hasPaidActivity(outing: Outing | null): boolean {
   const costData = outing?.activity?.ticketInfo;
   return !!(costData?.cost || costData?.fee || costData?.tax);
@@ -73,16 +111,8 @@ const CheckoutForm = ({
   const localOuting = useSelector((state: RootState) => state.outing.details);
   const localReserverDetails = useSelector((state: RootState) => state.reserverDetails.reserverDetails);
 
-  const {
-    data: reserverDetailsData,
-    isLoading: listDetailsIsLoading,
-    isError: listDetailsIsError,
-  } = useListReserverDetailsQuery({});
-  const {
-    data: outingData,
-    isLoading: outingIsLoading,
-    isError: outingIsError,
-  } = useGetOutingAuthenticatedQuery({ input: { id: outingId } });
+  const { data: reserverDetailsData, isLoading: listDetailsIsLoading } = useListReserverDetailsQuery({});
+  const { data: outingData, isLoading: outingIsLoading } = useGetOutingAuthenticatedQuery({ input: { id: outingId } });
   const [updateReserverDetails, { isLoading: updateDetailsIsLoading }] = useUpdateReserverDetailsMutation();
   const [createBooking, { isLoading: createBookingIsLoading }] = useCreateBookingMutation();
   const [submitReserverDetails, { isLoading: submitDetailsIsLoading }] = useSubmitReserverDetailsMutation();
@@ -99,7 +129,7 @@ const CheckoutForm = ({
 
   const submissionIsLoading = createBookingIsLoading || updateDetailsIsLoading || submitDetailsIsLoading;
   // only prevent submit on internalError since that can be fixed w/o another submit
-  const submitButtonDisabled = !!(submissionIsLoading || internalReserverDetailError);
+  const submitButtonDisabled = !!(submissionIsLoading || listDetailsIsLoading || internalReserverDetailError);
   const reserverDetailError = internalReserverDetailError || externalReserverDetailError;
   const error = [paymentError, bookingError].filter((e) => e).join("\n");
 
@@ -182,6 +212,7 @@ const CheckoutForm = ({
         return;
       }
       setInternalReserverDetailError(undefined);
+      const isPaidActivity = hasPaidActivity(outing);
 
       let bookingDetails = { ...reserverDetails };
       try {
@@ -272,7 +303,7 @@ const CheckoutForm = ({
           }
         }
 
-        if (hasPaidActivity(outing)) {
+        if (isPaidActivity) {
           const serverHasNoPaymentDetails = false;
           if (serverHasNoPaymentDetails) {
             // TODO: create payment details
@@ -325,7 +356,7 @@ const CheckoutForm = ({
         }
 
         // execute the payment
-        if (hasPaidActivity(outing)) {
+        if (isPaidActivity) {
           // TODO: send w/ existing payment details when not using new card
           if (isUsingNewCard) {
             const response = await stripeClient.confirmPayment({
@@ -351,42 +382,64 @@ const CheckoutForm = ({
     [reserverDetails, stripeClient, stripeElements, outing],
   );
 
-  const usingStripe = hasPaidActivity(outing);
+  const requiresPayment = hasPaidActivity(outing);
+  // when outing has been completely loaded into state & doesnt cost anything, use diff UI
+  const usingAltUI = !requiresPayment && !outingIsLoading && outing;
+  const Wrapper = usingAltUI ? FormPaper : PlainDiv;
+  const PageContainer = usingAltUI ? AltPageContainer : PlainDiv;
 
-  // TODO: render opentable footer?
   return (
-    <>
-      {showCostBreakdown && hasPaidActivity(outing) && <CostBreakdown outing={outing!} />}
+    <PageContainer>
+      {showCostBreakdown && requiresPayment && <CostBreakdown outing={outing!} />}
 
-      <FormContainer onSubmit={handleSubmit}>
-        <ReservationDetailsForm
-          reserverDetails={reserverDetails}
-          onChange={handleReserverDetailChange}
-          error={reserverDetailError}
-          isLoading={listDetailsIsLoading}
-          showStripeBadge={showStripeBadge && usingStripe}
-        />
-
-        {/* TODO pass real payment data */}
-        {usingStripe && (
-          <PaymentForm
-            paymentDetails="Visa *1234"
-            isUsingNewCard={isUsingNewCard}
-            setIsUsingNewCard={setIsUsingNewCard}
+      <Wrapper>
+        {usingAltUI && (
+          <HeaderContainer>
+            <Typography variant="h2">Almost there!</Typography>
+            <Typography variant="subtitle1">Submit your details to complete your reservation.</Typography>
+          </HeaderContainer>
+        )}
+        <FormContainer onSubmit={handleSubmit}>
+          <ReservationDetailsForm
+            reserverDetails={reserverDetails}
+            onChange={handleReserverDetailChange}
+            error={reserverDetailError}
+            isLoading={listDetailsIsLoading}
+            showStripeBadge={showStripeBadge && requiresPayment}
           />
-        )}
 
-        {error && (
-          <InputErrorContainer>
-            <InputError>{error}</InputError>
-          </InputErrorContainer>
-        )}
+          {/* TODO pass real payment data */}
+          {requiresPayment && (
+            <PaymentForm
+              paymentDetails="Visa *1234"
+              isUsingNewCard={isUsingNewCard}
+              setIsUsingNewCard={setIsUsingNewCard}
+            />
+          )}
 
-        <PaddedPrimaryButton type="submit" loading={submissionIsLoading} disabled={submitButtonDisabled}>
-          Reserve
-        </PaddedPrimaryButton>
-      </FormContainer>
-    </>
+          {error && (
+            <InputErrorContainer>
+              <InputError>{error}</InputError>
+            </InputErrorContainer>
+          )}
+
+          <PaddedPrimaryButton type="submit" loading={submissionIsLoading} disabled={submitButtonDisabled}>
+            Reserve
+          </PaddedPrimaryButton>
+        </FormContainer>
+      </Wrapper>
+
+      {usingAltUI && (
+        <FooterContainer>
+          <FooterText variant="body2">
+            Reservations
+            <br />
+            powered by
+          </FooterText>
+          <LogoPill attrs={logos["opentable"]!} />
+        </FooterContainer>
+      )}
+    </PageContainer>
   );
 };
 
