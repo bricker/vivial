@@ -45,7 +45,7 @@ const InputErrorContainer = styled("div")(() => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  marginBottom: 24,
+  marginBottom: 8,
   padding: "0 16px",
 }));
 

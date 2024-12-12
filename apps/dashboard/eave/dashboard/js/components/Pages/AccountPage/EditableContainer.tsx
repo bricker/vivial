@@ -169,10 +169,6 @@ const EditableContainer = () => {
                     break;
                 }
                 break;
-              default:
-                // 500 error
-                setError("Unable to update your booking info. Please try again later.");
-                break;
             }
             break;
           }
@@ -181,6 +177,10 @@ const EditableContainer = () => {
             window.location.assign(AppRoute.logout);
             break;
           default:
+            if (resp.error) {
+              // 500 error
+              throw new Error("Graphql error");
+            }
             break;
         }
       } catch {

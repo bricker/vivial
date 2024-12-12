@@ -58,7 +58,7 @@ const InputErrorContainer = styled("div")(() => ({
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  marginBottom: 24,
+  marginBottom: 8,
   padding: "0 16px",
 }));
 
@@ -213,14 +213,18 @@ const CheckoutForm = ({
       }
       setInternalReserverDetailError(undefined);
       const isPaidActivity = hasPaidActivity(outing);
-
+      // clone reserverDetails state so we can mutate values w/ network responses
       const bookingDetails = { ...reserverDetails };
       try {
         if (outing?.restaurant) {
           // if the reserver details dont have db ID yet, create a new entry
           if (reserverDetails.id.length === 0) {
             const submitDetailsResp = await submitReserverDetails({
-              input: reserverDetails,
+              input: {
+                firstName: bookingDetails.firstName,
+                lastName: bookingDetails.lastName,
+                phoneNumber: bookingDetails.phoneNumber,
+              },
             });
             switch (submitDetailsResp.data?.viewer.__typename) {
               case "AuthenticatedViewerMutations": {
@@ -244,10 +248,6 @@ const CheckoutForm = ({
                         break;
                     }
                     return;
-                  default:
-                    // 500 error
-                    setExternalReserverDetailError("Unable to book your outing. Please try again later.");
-                    return;
                 }
                 // allow success case to continue execution
                 break;
@@ -257,13 +257,23 @@ const CheckoutForm = ({
                 window.location.assign(AppRoute.logout);
                 return;
               default:
-                return;
+                if (submitDetailsResp.error) {
+                  // 500 error
+                  console.debug(submitDetailsResp.error);
+                  throw new Error("Graphql error");
+                }
+                break;
             }
           }
           // existing db entry needs to be updated
           else {
             const updateDetailsResp = await updateReserverDetails({
-              input: reserverDetails,
+              input: {
+                id: bookingDetails.id,
+                firstName: bookingDetails.firstName,
+                lastName: bookingDetails.lastName,
+                phoneNumber: bookingDetails.phoneNumber,
+              },
             });
             switch (updateDetailsResp.data?.viewer.__typename) {
               case "AuthenticatedViewerMutations": {
@@ -285,10 +295,6 @@ const CheckoutForm = ({
                         break;
                     }
                     return;
-                  default:
-                    // 500 error
-                    setExternalReserverDetailError("Unable to book your outing. Please try again later.");
-                    return;
                 }
                 // allow success case to continue execution
                 break;
@@ -298,7 +304,12 @@ const CheckoutForm = ({
                 window.location.assign(AppRoute.logout);
                 return;
               default:
-                return;
+                if (updateDetailsResp.error) {
+                  // 500 error
+                  console.debug(updateDetailsResp.error);
+                  throw new Error("Graphql error");
+                }
+                break;
             }
           }
         }
@@ -339,10 +350,6 @@ const CheckoutForm = ({
                     break;
                 }
                 return;
-              default:
-                // 500 error
-                setBookingError("Unable to book your outing. Please try again later.");
-                return;
             }
             // allow success case to continue execution
             break;
@@ -352,7 +359,12 @@ const CheckoutForm = ({
             window.location.assign(AppRoute.logout);
             return;
           default:
-            return;
+            if (createBookingResp.error) {
+              // 500 error
+              console.debug(createBookingResp.error);
+              throw new Error("Graphql error");
+            }
+            break;
         }
 
         // execute the payment

@@ -105,10 +105,6 @@ const PasswordResetForm = () => {
                     break;
                 }
                 break;
-              default:
-                // 500 error
-                setExternalError("Unable to change your password. Please try again later.");
-                break;
             }
             break;
           }
@@ -117,7 +113,11 @@ const PasswordResetForm = () => {
             window.location.assign(AppRoute.logout);
             break;
           default:
-            // loading/not-requested
+            if (resp.error) {
+              // 500 error
+              throw new Error("Graphql error")
+            }
+            // else loading/not-requested
             break;
         }
       } catch {
