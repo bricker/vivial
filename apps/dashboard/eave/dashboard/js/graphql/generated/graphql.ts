@@ -80,8 +80,6 @@ export type AuthenticatedViewerMutations = {
   __typename?: 'AuthenticatedViewerMutations';
   createBooking: CreateBookingResult;
   createPaymentIntent: CreatePaymentIntentResult;
-  planOuting: PlanOutingResult;
-  replanOuting: ReplanOutingResult;
   submitReserverDetails: SubmitReserverDetailsResult;
   updateAccount: UpdateAccountResult;
   updateOutingPreferences: UpdateOutingPreferencesResult;
@@ -93,16 +91,6 @@ export type AuthenticatedViewerMutations = {
 
 export type AuthenticatedViewerMutationsCreateBookingArgs = {
   input: CreateBookingInput;
-};
-
-
-export type AuthenticatedViewerMutationsPlanOutingArgs = {
-  input: PlanOutingInput;
-};
-
-
-export type AuthenticatedViewerMutationsReplanOutingArgs = {
-  input: ReplanOutingInput;
 };
 
 
@@ -139,7 +127,6 @@ export type AuthenticatedViewerQueries = {
   __typename?: 'AuthenticatedViewerQueries';
   bookedOutingDetails: BookingDetails;
   bookedOutings: Array<BookingDetailPeek>;
-  outing: Outing;
   outingPreferences: OutingPreferences;
   reserverDetails: Array<ReserverDetails>;
 };
@@ -147,11 +134,6 @@ export type AuthenticatedViewerQueries = {
 
 export type AuthenticatedViewerQueriesBookedOutingDetailsArgs = {
   input: GetBookingDetailsQueryInput;
-};
-
-
-export type AuthenticatedViewerQueriesOutingArgs = {
-  input: OutingInput;
 };
 
 export enum AuthenticationFailureReason {
@@ -643,33 +625,19 @@ export type LoginMutationVariables = Exact<{
 
 export type LoginMutation = { __typename: 'Mutation', login: { __typename: 'LoginFailure', failureReason: LoginFailureReason } | { __typename: 'LoginSuccess', account: { __typename: 'Account', id: string, email: string } } };
 
-export type PlanOutingAnonymousMutationVariables = Exact<{
+export type PlanOutingMutationVariables = Exact<{
   input: PlanOutingInput;
 }>;
 
 
-export type PlanOutingAnonymousMutation = { __typename: 'Mutation', planOuting: { __typename: 'PlanOutingFailure', failureReason: PlanOutingFailureReason } | { __typename: 'PlanOutingSuccess', outing: { __typename: 'Outing', id: string, headcount: number, activityStartTime?: string | null, restaurantArrivalTime?: string | null, drivingTime?: string | null, activity?: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description: string, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress?: string | null } }, photos?: { __typename: 'Photos', coverPhotoUri?: string | null, supplementalPhotoUris?: Array<string> | null } | null, ticketInfo?: { __typename: 'ActivityTicketInfo', type?: string | null, notes?: string | null, cost?: number | null, fee?: number | null, tax?: number | null } | null } | null, restaurant?: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress?: string | null }, photos?: { __typename: 'Photos', coverPhotoUri?: string | null, supplementalPhotoUris?: Array<string> | null } | null } | null } } };
+export type PlanOutingMutation = { __typename: 'Mutation', planOuting: { __typename: 'PlanOutingFailure', failureReason: PlanOutingFailureReason } | { __typename: 'PlanOutingSuccess', outing: { __typename: 'Outing', id: string, headcount: number, activityStartTime?: string | null, restaurantArrivalTime?: string | null, drivingTime?: string | null, activity?: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description: string, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress?: string | null } }, photos?: { __typename: 'Photos', coverPhotoUri?: string | null, supplementalPhotoUris?: Array<string> | null } | null, ticketInfo?: { __typename: 'ActivityTicketInfo', type?: string | null, notes?: string | null, cost?: number | null, fee?: number | null, tax?: number | null } | null } | null, restaurant?: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress?: string | null }, photos?: { __typename: 'Photos', coverPhotoUri?: string | null, supplementalPhotoUris?: Array<string> | null } | null } | null } } };
 
-export type PlanOutingAuthenticatedMutationVariables = Exact<{
-  input: PlanOutingInput;
-}>;
-
-
-export type PlanOutingAuthenticatedMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', planOuting: { __typename: 'PlanOutingFailure', failureReason: PlanOutingFailureReason } | { __typename: 'PlanOutingSuccess', outing: { __typename: 'Outing', id: string, headcount: number, activityStartTime?: string | null, restaurantArrivalTime?: string | null, drivingTime?: string | null, activity?: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description: string, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress?: string | null } }, photos?: { __typename: 'Photos', coverPhotoUri?: string | null, supplementalPhotoUris?: Array<string> | null } | null, ticketInfo?: { __typename: 'ActivityTicketInfo', type?: string | null, notes?: string | null, cost?: number | null, fee?: number | null, tax?: number | null } | null } | null, restaurant?: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress?: string | null }, photos?: { __typename: 'Photos', coverPhotoUri?: string | null, supplementalPhotoUris?: Array<string> | null } | null } | null } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
-
-export type ReplanOutingAnonymousMutationVariables = Exact<{
+export type ReplanOutingMutationVariables = Exact<{
   input: ReplanOutingInput;
 }>;
 
 
-export type ReplanOutingAnonymousMutation = { __typename: 'Mutation', replanOuting: { __typename: 'ReplanOutingFailure', failureReason: ReplanOutingFailureReason } | { __typename: 'ReplanOutingSuccess', outing: { __typename: 'Outing', id: string, headcount: number, activityStartTime?: string | null, restaurantArrivalTime?: string | null, drivingTime?: string | null, activity?: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description: string, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress?: string | null } }, photos?: { __typename: 'Photos', coverPhotoUri?: string | null, supplementalPhotoUris?: Array<string> | null } | null, ticketInfo?: { __typename: 'ActivityTicketInfo', type?: string | null, notes?: string | null, cost?: number | null, fee?: number | null, tax?: number | null } | null } | null, restaurant?: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress?: string | null }, photos?: { __typename: 'Photos', coverPhotoUri?: string | null, supplementalPhotoUris?: Array<string> | null } | null } | null } } };
-
-export type ReplanOutingAuthenticatedMutationVariables = Exact<{
-  input: ReplanOutingInput;
-}>;
-
-
-export type ReplanOutingAuthenticatedMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', replanOuting: { __typename: 'ReplanOutingFailure', failureReason: ReplanOutingFailureReason } | { __typename: 'ReplanOutingSuccess', outing: { __typename: 'Outing', id: string, headcount: number, activityStartTime?: string | null, restaurantArrivalTime?: string | null, drivingTime?: string | null, activity?: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description: string, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress?: string | null } }, photos?: { __typename: 'Photos', coverPhotoUri?: string | null, supplementalPhotoUris?: Array<string> | null } | null, ticketInfo?: { __typename: 'ActivityTicketInfo', type?: string | null, notes?: string | null, cost?: number | null, fee?: number | null, tax?: number | null } | null } | null, restaurant?: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress?: string | null }, photos?: { __typename: 'Photos', coverPhotoUri?: string | null, supplementalPhotoUris?: Array<string> | null } | null } | null } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+export type ReplanOutingMutation = { __typename: 'Mutation', replanOuting: { __typename: 'ReplanOutingFailure', failureReason: ReplanOutingFailureReason } | { __typename: 'ReplanOutingSuccess', outing: { __typename: 'Outing', id: string, headcount: number, activityStartTime?: string | null, restaurantArrivalTime?: string | null, drivingTime?: string | null, activity?: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description: string, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress?: string | null } }, photos?: { __typename: 'Photos', coverPhotoUri?: string | null, supplementalPhotoUris?: Array<string> | null } | null, ticketInfo?: { __typename: 'ActivityTicketInfo', type?: string | null, notes?: string | null, cost?: number | null, fee?: number | null, tax?: number | null } | null } | null, restaurant?: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress?: string | null }, photos?: { __typename: 'Photos', coverPhotoUri?: string | null, supplementalPhotoUris?: Array<string> | null } | null } | null } } };
 
 export type SubmitReserverDetailsMutationVariables = Exact<{
   input: SubmitReserverDetailsInput;
@@ -716,19 +684,12 @@ export type ListReserverDetailsQueryVariables = Exact<{ [key: string]: never; }>
 
 export type ListReserverDetailsQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', reserverDetails: Array<{ __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }> } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 
-export type OutingAnonymousQueryVariables = Exact<{
+export type OutingQueryVariables = Exact<{
   input: OutingInput;
 }>;
 
 
-export type OutingAnonymousQuery = { __typename: 'Query', outing: { __typename: 'Outing', id: string, headcount: number, activityStartTime?: string | null, restaurantArrivalTime?: string | null, drivingTime?: string | null, activity?: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description: string, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress?: string | null } }, photos?: { __typename: 'Photos', coverPhotoUri?: string | null, supplementalPhotoUris?: Array<string> | null } | null, ticketInfo?: { __typename: 'ActivityTicketInfo', type?: string | null, notes?: string | null, cost?: number | null, fee?: number | null, tax?: number | null } | null } | null, restaurant?: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress?: string | null }, photos?: { __typename: 'Photos', coverPhotoUri?: string | null, supplementalPhotoUris?: Array<string> | null } | null } | null } };
-
-export type OutingAuthenticatedQueryVariables = Exact<{
-  input: OutingInput;
-}>;
-
-
-export type OutingAuthenticatedQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', outing: { __typename: 'Outing', id: string, headcount: number, activityStartTime?: string | null, restaurantArrivalTime?: string | null, drivingTime?: string | null, activity?: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description: string, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress?: string | null } }, photos?: { __typename: 'Photos', coverPhotoUri?: string | null, supplementalPhotoUris?: Array<string> | null } | null, ticketInfo?: { __typename: 'ActivityTicketInfo', type?: string | null, notes?: string | null, cost?: number | null, fee?: number | null, tax?: number | null } | null } | null, restaurant?: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress?: string | null }, photos?: { __typename: 'Photos', coverPhotoUri?: string | null, supplementalPhotoUris?: Array<string> | null } | null } | null } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+export type OutingQuery = { __typename: 'Query', outing: { __typename: 'Outing', id: string, headcount: number, activityStartTime?: string | null, restaurantArrivalTime?: string | null, drivingTime?: string | null, activity?: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description: string, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress?: string | null } }, photos?: { __typename: 'Photos', coverPhotoUri?: string | null, supplementalPhotoUris?: Array<string> | null } | null, ticketInfo?: { __typename: 'ActivityTicketInfo', type?: string | null, notes?: string | null, cost?: number | null, fee?: number | null, tax?: number | null } | null } | null, restaurant?: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, latitude: number, longitude: number, formattedAddress?: string | null }, photos?: { __typename: 'Photos', coverPhotoUri?: string | null, supplementalPhotoUris?: Array<string> | null } | null } | null } };
 
 export type OutingPreferencesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1096,8 +1057,8 @@ export const LoginDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<LoginMutation, LoginMutationVariables>;
-export const PlanOutingAnonymousDocument = new TypedDocumentString(`
-    mutation PlanOutingAnonymous($input: PlanOutingInput!) {
+export const PlanOutingDocument = new TypedDocumentString(`
+    mutation PlanOuting($input: PlanOutingInput!) {
   __typename
   planOuting(input: $input) {
     __typename
@@ -1185,109 +1146,9 @@ fragment PlanOutingFields on PlanOutingResult {
     __typename
     failureReason
   }
-}`) as unknown as TypedDocumentString<PlanOutingAnonymousMutation, PlanOutingAnonymousMutationVariables>;
-export const PlanOutingAuthenticatedDocument = new TypedDocumentString(`
-    mutation PlanOutingAuthenticated($input: PlanOutingInput!) {
-  __typename
-  viewer {
-    __typename
-    ... on AuthenticatedViewerMutations {
-      __typename
-      planOuting(input: $input) {
-        __typename
-        ...PlanOutingFields
-      }
-    }
-    ... on UnauthenticatedViewer {
-      __typename
-      authFailureReason
-    }
-  }
-}
-    fragment OutingFields on Outing {
-  __typename
-  id
-  headcount
-  activityStartTime
-  restaurantArrivalTime
-  drivingTime
-  activity {
-    __typename
-    sourceId
-    source
-    name
-    description
-    websiteUri
-    doorTips
-    insiderTips
-    parkingTips
-    venue {
-      __typename
-      name
-      location {
-        __typename
-        directionsUri
-        latitude
-        longitude
-        formattedAddress
-      }
-    }
-    photos {
-      __typename
-      coverPhotoUri
-      supplementalPhotoUris
-    }
-    ticketInfo {
-      __typename
-      type
-      notes
-      cost
-      fee
-      tax
-    }
-  }
-  restaurant {
-    __typename
-    sourceId
-    source
-    name
-    reservable
-    rating
-    primaryTypeName
-    websiteUri
-    description
-    parkingTips
-    customerFavorites
-    location {
-      __typename
-      directionsUri
-      latitude
-      longitude
-      formattedAddress
-    }
-    photos {
-      __typename
-      coverPhotoUri
-      supplementalPhotoUris
-    }
-  }
-}
-fragment PlanOutingFields on PlanOutingResult {
-  __typename
-  ... on PlanOutingSuccess {
-    __typename
-    outing {
-      __typename
-      ...OutingFields
-    }
-  }
-  ... on PlanOutingFailure {
-    __typename
-    failureReason
-  }
-}`) as unknown as TypedDocumentString<PlanOutingAuthenticatedMutation, PlanOutingAuthenticatedMutationVariables>;
-export const ReplanOutingAnonymousDocument = new TypedDocumentString(`
-    mutation ReplanOutingAnonymous($input: ReplanOutingInput!) {
+}`) as unknown as TypedDocumentString<PlanOutingMutation, PlanOutingMutationVariables>;
+export const ReplanOutingDocument = new TypedDocumentString(`
+    mutation ReplanOuting($input: ReplanOutingInput!) {
   __typename
   replanOuting(input: $input) {
     __typename
@@ -1375,107 +1236,7 @@ fragment ReplanOutingFields on ReplanOutingResult {
     __typename
     failureReason
   }
-}`) as unknown as TypedDocumentString<ReplanOutingAnonymousMutation, ReplanOutingAnonymousMutationVariables>;
-export const ReplanOutingAuthenticatedDocument = new TypedDocumentString(`
-    mutation ReplanOutingAuthenticated($input: ReplanOutingInput!) {
-  __typename
-  viewer {
-    __typename
-    ... on AuthenticatedViewerMutations {
-      __typename
-      replanOuting(input: $input) {
-        __typename
-        ...ReplanOutingFields
-      }
-    }
-    ... on UnauthenticatedViewer {
-      __typename
-      authFailureReason
-    }
-  }
-}
-    fragment OutingFields on Outing {
-  __typename
-  id
-  headcount
-  activityStartTime
-  restaurantArrivalTime
-  drivingTime
-  activity {
-    __typename
-    sourceId
-    source
-    name
-    description
-    websiteUri
-    doorTips
-    insiderTips
-    parkingTips
-    venue {
-      __typename
-      name
-      location {
-        __typename
-        directionsUri
-        latitude
-        longitude
-        formattedAddress
-      }
-    }
-    photos {
-      __typename
-      coverPhotoUri
-      supplementalPhotoUris
-    }
-    ticketInfo {
-      __typename
-      type
-      notes
-      cost
-      fee
-      tax
-    }
-  }
-  restaurant {
-    __typename
-    sourceId
-    source
-    name
-    reservable
-    rating
-    primaryTypeName
-    websiteUri
-    description
-    parkingTips
-    customerFavorites
-    location {
-      __typename
-      directionsUri
-      latitude
-      longitude
-      formattedAddress
-    }
-    photos {
-      __typename
-      coverPhotoUri
-      supplementalPhotoUris
-    }
-  }
-}
-fragment ReplanOutingFields on ReplanOutingResult {
-  __typename
-  ... on ReplanOutingSuccess {
-    __typename
-    outing {
-      __typename
-      ...OutingFields
-    }
-  }
-  ... on ReplanOutingFailure {
-    __typename
-    failureReason
-  }
-}`) as unknown as TypedDocumentString<ReplanOutingAuthenticatedMutation, ReplanOutingAuthenticatedMutationVariables>;
+}`) as unknown as TypedDocumentString<ReplanOutingMutation, ReplanOutingMutationVariables>;
 export const SubmitReserverDetailsDocument = new TypedDocumentString(`
     mutation SubmitReserverDetails($input: SubmitReserverDetailsInput!) {
   __typename
@@ -1709,8 +1470,8 @@ export const ListReserverDetailsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<ListReserverDetailsQuery, ListReserverDetailsQueryVariables>;
-export const OutingAnonymousDocument = new TypedDocumentString(`
-    query OutingAnonymous($input: OutingInput!) {
+export const OutingDocument = new TypedDocumentString(`
+    query Outing($input: OutingInput!) {
   __typename
   outing(input: $input) {
     __typename
@@ -1784,93 +1545,7 @@ export const OutingAnonymousDocument = new TypedDocumentString(`
       supplementalPhotoUris
     }
   }
-}`) as unknown as TypedDocumentString<OutingAnonymousQuery, OutingAnonymousQueryVariables>;
-export const OutingAuthenticatedDocument = new TypedDocumentString(`
-    query OutingAuthenticated($input: OutingInput!) {
-  __typename
-  viewer {
-    __typename
-    ... on AuthenticatedViewerQueries {
-      __typename
-      outing(input: $input) {
-        __typename
-        ...OutingFields
-      }
-    }
-    ... on UnauthenticatedViewer {
-      __typename
-      authFailureReason
-    }
-  }
-}
-    fragment OutingFields on Outing {
-  __typename
-  id
-  headcount
-  activityStartTime
-  restaurantArrivalTime
-  drivingTime
-  activity {
-    __typename
-    sourceId
-    source
-    name
-    description
-    websiteUri
-    doorTips
-    insiderTips
-    parkingTips
-    venue {
-      __typename
-      name
-      location {
-        __typename
-        directionsUri
-        latitude
-        longitude
-        formattedAddress
-      }
-    }
-    photos {
-      __typename
-      coverPhotoUri
-      supplementalPhotoUris
-    }
-    ticketInfo {
-      __typename
-      type
-      notes
-      cost
-      fee
-      tax
-    }
-  }
-  restaurant {
-    __typename
-    sourceId
-    source
-    name
-    reservable
-    rating
-    primaryTypeName
-    websiteUri
-    description
-    parkingTips
-    customerFavorites
-    location {
-      __typename
-      directionsUri
-      latitude
-      longitude
-      formattedAddress
-    }
-    photos {
-      __typename
-      coverPhotoUri
-      supplementalPhotoUris
-    }
-  }
-}`) as unknown as TypedDocumentString<OutingAuthenticatedQuery, OutingAuthenticatedQueryVariables>;
+}`) as unknown as TypedDocumentString<OutingQuery, OutingQueryVariables>;
 export const OutingPreferencesDocument = new TypedDocumentString(`
     query OutingPreferences {
   __typename

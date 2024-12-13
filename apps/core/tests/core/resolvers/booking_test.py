@@ -54,7 +54,6 @@ class TestBookingEndpoints(BaseTestCase):
             await session.flush()
             outing = await OutingOrm.build(
                 visitor_id=self.anyuuid(),
-                account_id=account.id,
                 survey_id=survey.id,
             ).save(session)
             reserver_details = await ReserverDetailsOrm.build(

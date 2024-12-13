@@ -5,7 +5,6 @@ from uuid import UUID
 import strawberry
 
 from eave.core import database
-from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.helpers.create_outing import create_outing
 from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import (
@@ -75,18 +74,9 @@ async def replan_outing_mutation(
 
     outing = await create_outing(
         individual_preferences=input.group_preferences,
-        account_id=account_id,  # This should not be the original Outing's account ID, because someone else may be rerolling this outing.
         visitor_id=input.visitor_id,
-        survey=survey,
-    )
-
-    ANALYTICS.track(
-        event_name="outing plan created",
         account_id=account_id,
-        visitor_id=input.visitor_id,
-        extra_properties={
-            "reroll": True,
-        },
+        survey=survey,
     )
 
     return ReplanOutingSuccess(outing=outing)

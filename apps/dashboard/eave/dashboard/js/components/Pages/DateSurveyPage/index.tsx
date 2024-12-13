@@ -10,8 +10,7 @@ import { RootState } from "$eave-dashboard/js/store";
 import {
   useGetOutingPreferencesQuery,
   useGetSearchRegionsQuery,
-  usePlanOutingAnonymousMutation,
-  usePlanOutingAuthenticatedMutation,
+  usePlanOutingMutation,
   useUpdateOutingPreferencesMutation,
 } from "$eave-dashboard/js/store/slices/coreApiSlice";
 
@@ -120,9 +119,8 @@ const DateSurveyPage = () => {
   const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
   const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery({});
   const [searchParams, _] = useSearchParams();
-  const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingAuthenticatedMutation();
-  const [planOutingAnon, { data: planOutingAnonData, isLoading: planOutingAnonLoading }] =
-    usePlanOutingAnonymousMutation();
+  const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
+
   const [updatePreferences] = useUpdateOutingPreferencesMutation();
   const [budget, setBudget] = useState(OutingBudget.Expensive);
   const [headcount, setHeadcount] = useState(2);
@@ -156,11 +154,7 @@ const DateSurveyPage = () => {
       headcount,
       searchAreaIds,
     };
-    if (isLoggedIn) {
-      await planOuting({ input });
-    } else {
-      await planOutingAnon({ input });
-    }
+    await planOuting({ input });
   }, [isLoggedIn, outingPreferencesData, budget, headcount, searchAreaIds, startTime]);
 
   const handleSubmitPreferences = useCallback(
@@ -210,13 +204,9 @@ const DateSurveyPage = () => {
   }, [areasOpen]);
 
   useEffect(() => {
-    const viewer = planOutingData?.viewer;
-    if (viewer) {
-      if (
-        viewer.__typename === "AuthenticatedViewerMutations" &&
-        viewer.planOuting.__typename === "PlanOutingSuccess"
-      ) {
-        const outing = viewer.planOuting.outing;
+    if (planOutingData) {
+      if (planOutingData.planOuting?.__typename === "PlanOutingSuccess") {
+        const outing = planOutingData.planOuting.outing;
         dispatch(plannedOuting({ outing }));
         navigate(`${AppRoute.itinerary}/${outing.id}`);
       } else {
@@ -224,18 +214,6 @@ const DateSurveyPage = () => {
       }
     }
   }, [planOutingData]);
-
-  useEffect(() => {
-    if (planOutingAnonData) {
-      if (planOutingAnonData.planOuting?.__typename === "PlanOutingSuccess") {
-        const outing = planOutingAnonData.planOuting.outing;
-        dispatch(plannedOuting({ outing }));
-        navigate(`${AppRoute.itinerary}/${outing.id}`);
-      } else {
-        setErrorMessage("There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.");
-      }
-    }
-  }, [planOutingAnonData]);
 
   useEffect(() => {
     if (searchRegionsData?.searchRegions) {
@@ -315,7 +293,7 @@ const DateSurveyPage = () => {
             onSelectBudget={handleSelectBudget}
             onSelectStartTime={toggleDatePickerOpen}
             onSelectSearchArea={toggleAreasOpen}
-            loading={planOutingLoading || planOutingAnonLoading}
+            loading={planOutingLoading}
           />
         </DateSurveyContainer>
         {errorMessage && <ErrorCopy>ERROR: {errorMessage}</ErrorCopy>}

@@ -17,7 +17,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
         vis_id = self.anyuuid()
 
         response = await self.make_graphql_request(
-            "planOutingAnonymous",
+            "planOuting",
             {
                 "input": {
                     "visitorId": f"{vis_id}",
@@ -49,7 +49,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
         vis_id = self.anyuuid()
 
         response = await self.make_graphql_request(
-            "planOutingAuthenticated",
+            "planOuting",
             {
                 "input": {
                     "visitorId": f"{vis_id}",
@@ -72,7 +72,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
         assert result.data
         assert not result.errors
 
-        data = result.data["viewer"]["planOuting"]
+        data = result.data["planOuting"]
         assert data["outing"]["id"] is not None
 
     async def test_replan_authenticated(self) -> None:
@@ -91,11 +91,10 @@ class TestPlanOutingEndpoints(BaseTestCase):
             outing = await OutingOrm.build(
                 visitor_id=survey.visitor_id,
                 survey_id=survey.id,
-                account_id=survey.account_id,
             ).save(sess)
 
         response = await self.make_graphql_request(
-            "replanOutingAuthenticated",
+            "replanOuting",
             {
                 "input": {
                     "outingId": f"{outing.id}",
@@ -115,7 +114,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
         assert result.data
         assert not result.errors
 
-        data = result.data["viewer"]["replanOuting"]
+        data = result.data["replanOuting"]
         assert data["outing"]["id"] is not None
 
     async def test_replan_anonymous(self) -> None:
@@ -131,11 +130,10 @@ class TestPlanOutingEndpoints(BaseTestCase):
             outing = await OutingOrm.build(
                 visitor_id=survey.visitor_id,
                 survey_id=survey.id,
-                account_id=survey.account_id,
             ).save(sess)
 
         response = await self.make_graphql_request(
-            "replanOutingAnonymous",
+            "replanOuting",
             {
                 "input": {
                     "outingId": f"{outing.id}",
@@ -160,7 +158,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
     async def test_replan_anonymous_bad_outing_id(self) -> None:
         # try to replan an outing that doesn't exist
         response = await self.make_graphql_request(
-            "replanOutingAnonymous",
+            "replanOuting",
             {
                 "input": {
                     "outingId": f"{self.anyuuid()}",
