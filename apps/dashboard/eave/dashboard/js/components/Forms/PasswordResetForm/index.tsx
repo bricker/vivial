@@ -27,8 +27,8 @@ const Subtitle = styled(Typography)(() => ({
 }));
 
 const InputErrorContainer = styled("div")(() => ({
-  fontSize: rem("12px"),
-  lineHeight: rem("16px"),
+  fontSize: rem(12),
+  lineHeight: rem(16),
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -43,12 +43,12 @@ const SpreadButtonsContainer = styled("div")(() => ({
 
 const PaddedPrimaryButton = styled(LoadingButton)(() => ({
   padding: "10px 14px",
-  minWidth: rem("76px"),
+  minWidth: rem(76),
 }));
 
 const PaddedSecondaryButton = styled(SecondaryButton)(() => ({
   padding: "10px 14px",
-  minWidth: rem("76px"),
+  minWidth: rem(76),
 }));
 
 const PasswordResetForm = () => {

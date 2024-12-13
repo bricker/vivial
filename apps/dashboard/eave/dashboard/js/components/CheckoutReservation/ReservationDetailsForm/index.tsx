@@ -23,8 +23,8 @@ const FieldsContainer = styled("div")(() => ({
 const RoundableInput = styled(Input)<{ rounded: Corner[] }>(({ theme, rounded }) => ({
   padding: "5px 16px",
   fontFamily: fontFamilies.inter,
-  fontSize: rem("16px"),
-  lineHeight: rem("30px"),
+  fontSize: rem(16),
+  lineHeight: rem(30),
   borderStyle: "solid",
   borderWidth: 1,
   borderColor: theme.palette.grey[800],
@@ -40,8 +40,8 @@ const NameInputContainer = styled("div")(() => ({
 }));
 
 const InputErrorContainer = styled("div")(() => ({
-  fontSize: rem("12px"),
-  lineHeight: rem("16px"),
+  fontSize: rem(12),
+  lineHeight: rem(16),
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -70,7 +70,7 @@ const CenteringContainer = styled("div")(() => ({
 }));
 
 const StripeImg = styled("img")(() => ({
-  height: rem("24px"),
+  height: rem(24),
   maxHeight: 32,
 }));
 

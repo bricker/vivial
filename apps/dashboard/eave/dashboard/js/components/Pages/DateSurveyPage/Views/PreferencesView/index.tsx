@@ -39,8 +39,8 @@ const Title = styled(Typography)(() => ({
 
 const PreferenceCount = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.secondary,
-  fontSize: rem("12px"),
-  lineHeight: rem("18px"),
+  fontSize: rem(12),
+  lineHeight: rem(18),
   textAlign: "right",
 }));
 

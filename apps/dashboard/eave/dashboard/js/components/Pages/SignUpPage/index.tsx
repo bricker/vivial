@@ -10,10 +10,9 @@ import { useCreateAccountMutation } from "$eave-dashboard/js/store/slices/coreAp
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 
 import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
-import { AppRoute } from "$eave-dashboard/js/routes";
+import { AppRoute, SearchParam, SignUpPageVariant } from "$eave-dashboard/js/routes";
 import CloseButton from "../../Buttons/CloseButton";
 import AuthForm from "../../Forms/AuthForm";
-import { SignUpPageVariant } from "./constants";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
@@ -38,7 +37,7 @@ const SignUpPage = () => {
   const [searchParams, _] = useSearchParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const variant = searchParams.get("v") as SignUpPageVariant;
+  const variant = searchParams.get(SearchParam.variant) as SignUpPageVariant;
 
   let title = "Create a free account to book";
   let subtitle = "";

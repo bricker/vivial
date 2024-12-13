@@ -28,6 +28,7 @@ const Section = styled("section", {
   backgroundSize: "cover",
   width: "100%",
   height: 181,
+  marginBottom: 47,
   padding: "16px 24px",
   "&:after": {
     content: `""`,
@@ -69,16 +70,16 @@ const TimeAndPlace = styled("div")(() => ({
 
 const Time = styled(Typography)(({ theme }) => ({
   color: theme.palette.common.white,
-  fontSize: rem("16px"),
-  lineHeight: rem("19px"),
+  fontSize: rem(16),
+  lineHeight: rem(19),
   fontWeight: 600,
   marginBottom: 4,
 }));
 
 const Place = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.secondary,
-  fontSize: rem("12px"),
-  lineHeight: rem("15px"),
+  fontSize: rem(12),
+  lineHeight: rem(15),
 }));
 
 const LogisticsSection = () => {
@@ -138,12 +139,6 @@ const LogisticsSection = () => {
   }, [datePickerOpen]);
 
   useEffect(() => {
-    if (searchRegionsData?.searchRegions) {
-      setSearchAreaIds(searchRegionsData.searchRegions.map((region) => region.id));
-    }
-  }, [searchRegionsData]);
-
-  useEffect(() => {
     if (outing) {
       setStartTime(new Date(outing?.restaurantArrivalTime || ""));
       setHeadcount(outing?.headcount || 2);
@@ -167,7 +162,7 @@ const LogisticsSection = () => {
             </TimeAndPlace>
           </Logistics>
         </LogisticsGradient>
-        <LogisticsBadge startTime={startTime} />
+        <LogisticsBadge startTime={startTime} connect={!!outing.restaurant} />
         <Modal title="Date Details" onClose={toggleDetailsOpen} open={detailsOpen}>
           <DateSelections
             cta="Update"

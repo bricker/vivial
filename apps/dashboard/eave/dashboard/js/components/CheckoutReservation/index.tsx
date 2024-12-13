@@ -53,8 +53,8 @@ const FormContainer = styled("form")(() => ({
 }));
 
 const InputErrorContainer = styled("div")(() => ({
-  fontSize: rem("12px"),
-  lineHeight: rem("16px"),
+  fontSize: rem(12),
+  lineHeight: rem(16),
   display: "flex",
   alignItems: "center",
   justifyContent: "center",

@@ -22,8 +22,8 @@ const tooltipStyles = {
   padding: "24px",
   borderRadius: "8px",
   maxWidth: 260,
-  fontSize: rem("14px"),
-  lineHeight: rem("16px"),
+  fontSize: rem(14),
+  lineHeight: rem(16),
   backgroundColor: tooltipBgStyle,
   border: tooltipBorderStyle,
 };

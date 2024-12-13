@@ -30,13 +30,13 @@ const BoldInput = styled(Input)(() => ({
   padding: "5px 16px",
   fontFamily: fontFamilies.inter,
   fontWeight: 600,
-  fontSize: rem("16px"),
-  lineHeight: rem("30px"),
+  fontSize: rem(16),
+  lineHeight: rem(30),
 }));
 
 const InputErrorContainer = styled("div")(() => ({
-  fontSize: rem("12px"),
-  lineHeight: rem("16px"),
+  fontSize: rem(12),
+  lineHeight: rem(16),
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -46,12 +46,12 @@ const InputErrorContainer = styled("div")(() => ({
 
 const PaddedPrimaryButton = styled(LoadingButton)(() => ({
   padding: "10px 14px",
-  minWidth: rem("76px"),
+  minWidth: rem(76),
 }));
 
 const PaddedSecondaryButton = styled(SecondaryButton)(() => ({
   padding: "10px 14px",
-  minWidth: rem("76px"),
+  minWidth: rem(76),
 }));
 
 const AccountBookingInfoEditForm = ({

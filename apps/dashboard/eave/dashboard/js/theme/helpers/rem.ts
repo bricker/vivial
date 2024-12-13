@@ -5,7 +5,7 @@
  * In other words, it is a font size relative to the root element of the document.
  * This is useful for users who set a custom default browser font-size.
  */
-export function rem(pixelFontSize: string) {
+export function rem(pixelFontSize: number) {
   const rootFontSize = parseFloat(window.getComputedStyle(document.documentElement).fontSize) || 16;
-  return `${parseInt(pixelFontSize, 10) / rootFontSize}rem`;
+  return `${pixelFontSize / rootFontSize}rem`;
 }
