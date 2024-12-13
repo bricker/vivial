@@ -219,7 +219,7 @@ async def photo_from_google_place_photo(
         id=photo_res.name,
         src=photo_res.photo_uri,
         alt=None,
-        attributions=[attribution.display_name for attribution in photo.author_attributions],
+        attributions=[attribution.display_name for attribution in photo.author_attributions] if photo.author_attributions else [],
     )
 
 

@@ -5,31 +5,33 @@ from http import HTTPStatus
 from typing import Any, Protocol, TypeVar
 from uuid import UUID
 
+from google.maps.places import PhotoMedia
 import sqlalchemy
 import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
+import stripe
 from google.maps.places_v1.types import Place
 from httpx import ASGITransport, AsyncClient, Response
 from sqlalchemy import literal_column, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from strawberry.types import ExecutionResult
-import stripe
 
 import eave.core.app
 import eave.core.database
-from eave.core.graphql.types.search_region import SearchRegion
 import eave.core.orm
-from eave.core.orm.activity_category import ActivityCategoryOrm
-from eave.core.orm.restaurant_category import RestaurantCategoryOrm
-from eave.core.orm.search_region import SearchRegionOrm
-from eave.core.orm.survey import SurveyOrm
-from eave.core.shared.enums import OutingBudget
+from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservationOrm
+from eave.core.orm.reserver_details import ReserverDetailsOrm
 import eave.stdlib.testing_util
 import eave.stdlib.typing
 from eave.core._database_setup import get_base_metadata, init_database
 from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME
 from eave.core.config import CORE_API_APP_CONFIG, JWT_AUDIENCE, JWT_ISSUER
 from eave.core.orm.account import AccountOrm
+from eave.core.orm.activity_category import ActivityCategoryOrm
+from eave.core.orm.restaurant_category import RestaurantCategoryOrm
+from eave.core.orm.search_region import SearchRegionOrm
+from eave.core.orm.survey import SurveyOrm
+from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 from eave.dev_tooling.constants import EAVE_HOME
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.jwt import JWTPurpose, create_jws
@@ -198,12 +200,57 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             budget=random.choice(list(OutingBudget)),
             headcount=self.anyint("make_survey.headcount", min=1, max=2),
             search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
-            start_time_utc=self.anydatetime("make_survey.start_time_utc", offset=self.anyint(min=ONE_DAY_IN_SECONDS*2, max=ONE_DAY_IN_SECONDS*14)),
+            start_time_utc=self.anydatetime(
+                "make_survey.start_time_utc",
+                offset=self.anyint(min=ONE_DAY_IN_SECONDS * 2, max=ONE_DAY_IN_SECONDS * 14),
+            ),
             timezone=self.anytimezone("make_survey.timezone"),
             visitor_id=self.anyuuid("make_survey.visitor_id"),
         )
         session.add(survey)
         return survey
+
+    def make_outing(self, session: AsyncSession, account: AccountOrm, survey: SurveyOrm) -> OutingOrm:
+        outing = OutingOrm(
+            visitor_id=survey.visitor_id,
+            account=account,
+            survey=survey,
+        )
+        session.add(outing)
+
+        outing.activities.append(
+            OutingActivityOrm(
+                outing=outing,
+                headcount=survey.headcount,
+                source=ActivitySource.EVENTBRITE,
+                source_id=self.anystr("activity.source_id"),
+                start_time_utc=survey.start_time_utc,
+                timezone=survey.timezone,
+            )
+        )
+
+        outing.reservations.append(
+            OutingReservationOrm(
+                outing=outing,
+                headcount=survey.headcount,
+                source=RestaurantSource.GOOGLE_PLACES,
+                source_id=self.anystr("reservation.source_id"),
+                start_time_utc=survey.start_time_utc,
+                timezone=survey.timezone,
+            )
+        )
+
+        return outing
+
+    def make_reserver_details(self, session: AsyncSession, account: AccountOrm) -> ReserverDetailsOrm:
+        reserver_details = ReserverDetailsOrm(
+            account=account,
+            first_name=self.anystr(),
+            last_name=self.anystr(),
+            phone_number=self.anyphonenumber(),
+        )
+        session.add(reserver_details)
+        return reserver_details
 
     mock_stripe_payment_intent: stripe.PaymentIntent
     mock_stripe_customer: stripe.Customer
@@ -221,10 +268,8 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
 
         self.patch(
             name="stripe.PaymentIntent.create_async",
-            patch=unittest.mock.patch(
-                "stripe.PaymentIntent.create_async"
-            ),
-            side_effect=_mock_payment_intent_create_async
+            patch=unittest.mock.patch("stripe.PaymentIntent.create_async"),
+            side_effect=_mock_payment_intent_create_async,
         )
 
         async def _mock_payment_intent_retrieve_async(**kwargs: Any) -> stripe.PaymentIntent:
@@ -232,10 +277,8 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
 
         self.patch(
             name="stripe.PaymentIntent.retrieve_async",
-            patch=unittest.mock.patch(
-                "stripe.PaymentIntent.retrieve_async"
-            ),
-            side_effect=_mock_payment_intent_retrieve_async
+            patch=unittest.mock.patch("stripe.PaymentIntent.retrieve_async"),
+            side_effect=_mock_payment_intent_retrieve_async,
         )
 
         self.mock_stripe_customer = stripe.Customer(
@@ -247,10 +290,8 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
 
         self.patch(
             name="stripe.Customer.create_async",
-            patch=unittest.mock.patch(
-                "stripe.Customer.create_async"
-            ),
-            side_effect=_mock_customer_create_async
+            patch=unittest.mock.patch("stripe.Customer.create_async"),
+            side_effect=_mock_customer_create_async,
         )
 
     def mock_google_places(self) -> None:
@@ -259,15 +300,19 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             patch=unittest.mock.patch(
                 "google.maps.places_v1.services.places.async_client.PlacesAsyncClient.search_nearby"
             ),
-            return_value=MockPlacesResponse([]),
+            return_value=MockPlacesResponse([
+                Place(
+                    id=self.anystr("Place.id"),
+                )
+            ]),
         )
 
         self.patch(
             name="PlacesAsyncClient.get_place",
-            patch=unittest.mock.patch(
-                "google.maps.places_v1.services.places.async_client.PlacesAsyncClient.get_place"
+            patch=unittest.mock.patch("google.maps.places_v1.services.places.async_client.PlacesAsyncClient.get_place"),
+            return_value=Place(
+                id=self.anystr("Place.id"),
             ),
-            return_value=MockPlacesResponse([]),
         )
 
         self.patch(
@@ -275,7 +320,10 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             patch=unittest.mock.patch(
                 "google.maps.places_v1.services.places.async_client.PlacesAsyncClient.get_photo_media"
             ),
-            return_value=MockPlacesResponse([]),
+            return_value=PhotoMedia(
+                name=self.anystr("PhotoMedia.name"),
+                photo_uri=self.anyurl("PhotoMedia.photo_uri"),
+            ),
         )
 
     def random_search_areas(self, k: int = 3) -> list[SearchRegionOrm]:

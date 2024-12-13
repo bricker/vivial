@@ -70,6 +70,7 @@ async def get_activity(
 
     return activity
 
+
 async def get_restaurant(
     *,
     source: RestaurantSource,

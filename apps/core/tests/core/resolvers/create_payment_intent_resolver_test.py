@@ -1,14 +1,8 @@
-from typing import Any
-from uuid import UUID
 
-from httpx import Response
-from stripe import PaymentIntent
 
-from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.outing import OutingActivityOrm, OutingOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
-from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import ActivitySource
 
 from ..base import BaseTestCase
@@ -39,7 +33,7 @@ class TestCreatePaymentIntentResolver(BaseTestCase):
                     source=ActivitySource.EVENTBRITE,
                     source_id=self.anydigits(),
                     start_time_utc=self.anydatetime(future=True),
-                    timezone=self.anytimezone()
+                    timezone=self.anytimezone(),
                 )
             )
 
@@ -70,11 +64,15 @@ class TestCreatePaymentIntentResolver(BaseTestCase):
 
         async with self.db_session.begin() as session:
             assert await self.count(session, StripePaymentIntentReferenceOrm) == 1
-            fetched_stripe_payment_intent_reference = await StripePaymentIntentReferenceOrm.get_one(session, account_id=account.id, stripe_payment_intent_id=self.getstr("stripe.PaymentIntent.id"))
+            fetched_stripe_payment_intent_reference = await StripePaymentIntentReferenceOrm.get_one(
+                session, account_id=account.id, stripe_payment_intent_id=self.getstr("stripe.PaymentIntent.id")
+            )
             fetched_account = await AccountOrm.get_one(session, account.id)
 
         assert fetched_account.stripe_customer_id == self.getstr("stripe.Customer.id")
-        assert fetched_stripe_payment_intent_reference.stripe_payment_intent_id == self.getstr("stripe.PaymentIntent.id")
+        assert fetched_stripe_payment_intent_reference.stripe_payment_intent_id == self.getstr(
+            "stripe.PaymentIntent.id"
+        )
 
         list_eventbrite_ticket_classes_mock = self.get_mock("EventbriteClient.list_ticket_classes_for_sale_for_event")
         assert list_eventbrite_ticket_classes_mock.call_count == 1
@@ -84,7 +82,9 @@ class TestCreatePaymentIntentResolver(BaseTestCase):
         assert create_payment_intent_mock.call_args_list[0].kwargs["customer"] == fetched_account.stripe_customer_id
         assert create_payment_intent_mock.call_args_list[0].kwargs["receipt_email"] == fetched_account.email
         assert create_payment_intent_mock.call_args_list[0].kwargs["capture_method"] == "manual"
-        assert create_payment_intent_mock.call_args_list[0].kwargs["amount"] == self.getint("eventbrite.TicketClass.0.cost.value") + self.getint("eventbrite.TicketClass.0.fee.value") + self.getint("eventbrite.TicketClass.0.tax.value")
+        assert create_payment_intent_mock.call_args_list[0].kwargs["amount"] == self.getint(
+            "eventbrite.TicketClass.0.cost.value"
+        ) + self.getint("eventbrite.TicketClass.0.fee.value") + self.getint("eventbrite.TicketClass.0.tax.value")
 
         create_customer_mock = self.get_mock("stripe.Customer.create_async")
         assert create_customer_mock.call_count == 1
@@ -171,4 +171,3 @@ class TestCreatePaymentIntentResolver(BaseTestCase):
 
         async with self.db_session.begin() as session:
             assert await self.count(session, StripePaymentIntentReferenceOrm) == 0
-

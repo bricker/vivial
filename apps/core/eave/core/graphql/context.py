@@ -4,8 +4,6 @@ from uuid import UUID
 from starlette.requests import Request
 from starlette.responses import Response
 
-from eave.core.orm.account import AccountOrm
-
 
 class GraphQLContext(TypedDict):
     request: Request

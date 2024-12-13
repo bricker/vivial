@@ -1,10 +1,10 @@
 mutation CreatePaymentIntent($input: CreatePaymentIntentInput!) {
   viewer {
-    ...on AuthenticatedViewerMutations {
+    ... on AuthenticatedViewerMutations {
       createPaymentIntent(input: $input) {
         __typename
 
-        ...on CreatePaymentIntentSuccess {
+        ... on CreatePaymentIntentSuccess {
           __typename
 
           paymentIntent {
@@ -13,14 +13,14 @@ mutation CreatePaymentIntent($input: CreatePaymentIntentInput!) {
           }
         }
 
-        ...on CreatePaymentIntentFailure {
+        ... on CreatePaymentIntentFailure {
           __typename
           failureReason
         }
       }
     }
 
-    ...on UnauthenticatedViewer {
+    ... on UnauthenticatedViewer {
       __typename
       authFailureReason
     }

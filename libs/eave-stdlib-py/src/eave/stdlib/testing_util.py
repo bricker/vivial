@@ -1,7 +1,6 @@
 # ruff: noqa: FBT001, FBT002, FBT003, S311
 
 import base64
-from collections.abc import AsyncIterator
 import hashlib
 import json
 import os
@@ -10,6 +9,7 @@ import time
 import unittest.mock
 import uuid
 import zoneinfo
+from collections.abc import AsyncIterator
 from datetime import datetime, timedelta, tzinfo
 from math import floor
 from typing import Any, Literal, TypeVar
@@ -25,17 +25,16 @@ from google.cloud.kms import (
 )
 from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
 
-from eave.stdlib.eventbrite.models.category import Category
-from eave.stdlib.eventbrite.models.event import Event, EventDescription, EventStatus
+import eave.stdlib.http_exceptions
+import eave.stdlib.util
+from eave.stdlib.checksum import generate_checksum
+from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.eventbrite.models.event import Event, EventStatus
 from eave.stdlib.eventbrite.models.logo import Logo
 from eave.stdlib.eventbrite.models.shared import Address, CurrencyCost, MultipartText
 from eave.stdlib.eventbrite.models.ticket_availability import TicketAvailability
 from eave.stdlib.eventbrite.models.ticket_class import TicketClass
 from eave.stdlib.eventbrite.models.venue import Venue
-import eave.stdlib.http_exceptions
-import eave.stdlib.util
-from eave.stdlib.checksum import generate_checksum
-from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LogContext
 from eave.stdlib.time import ONE_YEAR_IN_SECONDS
 from eave.stdlib.typing import JsonObject
@@ -594,12 +593,16 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             )
         ]
 
-        async def _mocked_eventbrite_list_ticket_classes_for_sale_for_event(**kwargs: Any) -> AsyncIterator[list[TicketClass]]:
+        async def _mocked_eventbrite_list_ticket_classes_for_sale_for_event(
+            **kwargs: Any,
+        ) -> AsyncIterator[list[TicketClass]]:
             yield self.mock_eventbrite_ticket_class_batch
 
         self.patch(
             name="EventbriteClient.list_ticket_classes_for_sale_for_event",
-            patch=unittest.mock.patch("eave.stdlib.eventbrite.client.EventbriteClient.list_ticket_classes_for_sale_for_event"),
+            patch=unittest.mock.patch(
+                "eave.stdlib.eventbrite.client.EventbriteClient.list_ticket_classes_for_sale_for_event"
+            ),
             side_effect=_mocked_eventbrite_list_ticket_classes_for_sale_for_event,
         )
 
@@ -612,7 +615,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         self.patch(
             name="eventbrite get_event_description",
             patch=unittest.mock.patch("eave.stdlib.eventbrite.client.EventbriteClient.get_event_description"),
-            side_effect=_mocked_eventbrite_get_event_description
+            side_effect=_mocked_eventbrite_get_event_description,
         )
 
     def mock_sendgrid_client(self) -> None:

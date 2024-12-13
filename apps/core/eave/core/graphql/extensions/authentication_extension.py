@@ -6,11 +6,9 @@ from uuid import UUID
 import strawberry
 from strawberry.extensions import FieldExtension
 
-from eave.core import database
 from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME, delete_auth_cookies
 from eave.core.config import JWT_AUDIENCE, JWT_ISSUER
 from eave.core.graphql.context import GraphQLContext
-from eave.core.orm.account import AccountOrm
 from eave.stdlib.jwt import (
     AccessTokenExpiredError,
     InvalidTokenError,

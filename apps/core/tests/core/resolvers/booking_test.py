@@ -1,6 +1,5 @@
 from uuid import UUID
 
-import stripe
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservationOrm
@@ -21,54 +20,9 @@ class TestBookingEndpoints(BaseTestCase):
         async with self.db_session.begin() as session:
             assert await self.count(session, BookingOrm) == 0
             account = self.make_account(session)
-
-            survey = SurveyOrm(
-                account=account,
-                visitor_id=self.anyuuid(),
-                start_time_utc=self.anydatetime(offset=2 * 60 * 60 * 24),
-                timezone=self.anytimezone(),
-                search_area_ids=[SearchRegionOrm.all()[0].id],
-                budget=OutingBudget.INEXPENSIVE,
-                headcount=self.anyint(min=1, max=2),
-            )
-            session.add(survey)
-
-            outing = OutingOrm(
-                visitor_id=self.anyuuid(),
-                account=account,
-                survey=survey,
-            )
-            session.add(outing)
-
-            outing.activities.append(
-                OutingActivityOrm(
-                    outing=outing,
-                    headcount=survey.headcount,
-                    source=ActivitySource.EVENTBRITE,
-                    source_id=self.anystr("activity.source_id"),
-                    start_time_utc=survey.start_time_utc,
-                    timezone=survey.timezone,
-                )
-            )
-
-            outing.reservations.append(
-                OutingReservationOrm(
-                    outing=outing,
-                    headcount=survey.headcount,
-                    source=RestaurantSource.GOOGLE_PLACES,
-                    source_id=self.anystr("reservation.source_id"),
-                    start_time_utc=survey.start_time_utc,
-                    timezone=survey.timezone,
-                )
-            )
-
-            reserver_details = ReserverDetailsOrm(
-                account=account,
-                first_name=self.anystr(),
-                last_name=self.anystr(),
-                phone_number=self.anyphonenumber(),
-            )
-            session.add(reserver_details)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
 
             stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
                 account=account,
@@ -77,7 +31,11 @@ class TestBookingEndpoints(BaseTestCase):
             )
             session.add(stripe_payment_intent_reference)
 
-        self.mock_stripe_payment_intent.amount = self.getint("eventbrite.TicketClass.0.cost.value") + self.getint("eventbrite.TicketClass.0.fee.value") + self.getint("eventbrite.TicketClass.0.tax.value")
+        self.mock_stripe_payment_intent.amount = (
+            self.getint("eventbrite.TicketClass.0.cost.value")
+            + self.getint("eventbrite.TicketClass.0.fee.value")
+            + self.getint("eventbrite.TicketClass.0.tax.value")
+        )
 
         response = await self.make_graphql_request(
             "createBooking",
@@ -112,13 +70,285 @@ class TestBookingEndpoints(BaseTestCase):
         assert booking.activities[0].source_id == self.getstr("activity.source_id")
 
         assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 1
-        assert self.get_mock("slack client").call_count == 1
+        assert self.get_mock("slack client").call_count == 2 # One for parent, one for thread
+
+    async def test_create_booking_with_invalid_payment_intent_fields(self) -> None:
+        async with self.db_session.begin() as session:
+            assert await self.count(session, BookingOrm) == 0
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
+
+        response = await self.make_graphql_request(
+            "createBooking",
+            {
+                "input": {
+                    "outingId": str(outing.id),
+                    "reserverDetailsId": str(reserver_details.id),
+                    "paymentIntent": {
+                        "id": "",
+                        "clientSecret": "",
+                    },
+                },
+            },
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["viewer"]["createBooking"]
+        assert data["__typename"] == "CreateBookingFailure"
+        assert data["failureReason"] == "INVALID_PAYMENT_INTENT"
+
+        async with self.db_session.begin() as session:
+            assert await self.count(session, BookingOrm) == 0
+
+    async def test_create_booking_with_mismatched_outings(self) -> None:
+        async with self.db_session.begin() as session:
+            assert await self.count(session, BookingOrm) == 0
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            outing2 = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
+
+            stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
+                outing=outing,
+                account=account,
+                stripe_payment_intent_id=self.getstr("stripe.PaymentIntent.id"),
+            )
+            session.add(stripe_payment_intent_reference)
+
+        response = await self.make_graphql_request(
+            "createBooking",
+            {
+                "input": {
+                    "outingId": str(outing2.id),
+                    "reserverDetailsId": str(reserver_details.id),
+                    "paymentIntent": {
+                        "id": self.getstr("stripe.PaymentIntent.id"),
+                        "clientSecret": self.getstr("stripe.PaymentIntent.client_secret"),
+                    },
+                },
+            },
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["viewer"]["createBooking"]
+        assert data["__typename"] == "CreateBookingFailure"
+        assert data["failureReason"] == "INVALID_PAYMENT_INTENT"
+
+        async with self.db_session.begin() as session:
+            assert await self.count(session, BookingOrm) == 0
+
+    async def test_create_booking_with_incorrect_payment_intent_status(self) -> None:
+        async with self.db_session.begin() as session:
+            assert await self.count(session, BookingOrm) == 0
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
+
+            stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
+                outing=outing,
+                account=account,
+                stripe_payment_intent_id=self.getstr("stripe.PaymentIntent.id"),
+            )
+            session.add(stripe_payment_intent_reference)
+
+        self.mock_stripe_payment_intent.status = "requires_action"
+
+        response = await self.make_graphql_request(
+            "createBooking",
+            {
+                "input": {
+                    "outingId": str(outing.id),
+                    "reserverDetailsId": str(reserver_details.id),
+                    "paymentIntent": {
+                        "id": self.getstr("stripe.PaymentIntent.id"),
+                        "clientSecret": self.getstr("stripe.PaymentIntent.client_secret"),
+                    },
+                },
+            },
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["viewer"]["createBooking"]
+        assert data["__typename"] == "CreateBookingFailure"
+        assert data["failureReason"] == "PAYMENT_REQUIRED"
+
+        async with self.db_session.begin() as session:
+            assert await self.count(session, BookingOrm) == 0
+
+    async def test_create_booking_free(self) -> None:
+        async with self.db_session.begin() as session:
+            assert await self.count(session, BookingOrm) == 0
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
+
+        self.mock_eventbrite_ticket_class_batch = []
+
+        response = await self.make_graphql_request(
+            "createBooking",
+            {
+                "input": {
+                    "outingId": str(outing.id),
+                    "reserverDetailsId": str(reserver_details.id),
+                },
+            },
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["viewer"]["createBooking"]
+        assert data["__typename"] == "CreateBookingSuccess"
+
+        async with self.db_session.begin() as session:
+            assert await self.count(session, BookingOrm) == 1
+
+        assert self.get_mock("slack client").call_count == 2 # One for parent, one for thread
+
+    async def test_create_booking_without_payment_intent_payment_required(self) -> None:
+        async with self.db_session.begin() as session:
+            assert await self.count(session, BookingOrm) == 0
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
+
+            stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
+                outing=outing,
+                account=account,
+                stripe_payment_intent_id=self.getstr("stripe.PaymentIntent.id"),
+            )
+            session.add(stripe_payment_intent_reference)
+
+        response = await self.make_graphql_request(
+            "createBooking",
+            {
+                "input": {
+                    "outingId": str(outing.id),
+                    "reserverDetailsId": str(reserver_details.id),
+                },
+            },
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["viewer"]["createBooking"]
+        assert data["__typename"] == "CreateBookingFailure"
+        assert data["failureReason"] == "PAYMENT_REQUIRED"
+
+        async with self.db_session.begin() as session:
+            assert await self.count(session, BookingOrm) == 0
+
+    async def test_create_booking_with_mistmatched_amounts(self) -> None:
+        async with self.db_session.begin() as session:
+            assert await self.count(session, BookingOrm) == 0
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
+
+            stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
+                outing=outing,
+                account=account,
+                stripe_payment_intent_id=self.getstr("stripe.PaymentIntent.id"),
+            )
+            session.add(stripe_payment_intent_reference)
+
+        self.mock_stripe_payment_intent.amount = self.anyint("payment intent amount") # There is a very small chance this could be the same number as the random prices for the ticket classes.
+
+        response = await self.make_graphql_request(
+            "createBooking",
+            {
+                "input": {
+                    "outingId": str(outing.id),
+                    "reserverDetailsId": str(reserver_details.id),
+                    "paymentIntent": {
+                        "id": self.getstr("stripe.PaymentIntent.id"),
+                        "clientSecret": self.getstr("stripe.PaymentIntent.client_secret"),
+                    },
+                },
+            },
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["viewer"]["createBooking"]
+        assert data["__typename"] == "CreateBookingFailure"
+        assert data["failureReason"] == "PAYMENT_REQUIRED"
+
+        async with self.db_session.begin() as session:
+            assert await self.count(session, BookingOrm) == 0
+
+    async def test_create_booking_with_outing_amount_less_than_intent_amount(self) -> None:
+        async with self.db_session.begin() as session:
+            assert await self.count(session, BookingOrm) == 0
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
+
+            stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
+                outing=outing,
+                account=account,
+                stripe_payment_intent_id=self.getstr("stripe.PaymentIntent.id"),
+            )
+            session.add(stripe_payment_intent_reference)
+
+        self.mock_stripe_payment_intent.amount += 1000
+
+        response = await self.make_graphql_request(
+            "createBooking",
+            {
+                "input": {
+                    "outingId": str(outing.id),
+                    "reserverDetailsId": str(reserver_details.id),
+                    "paymentIntent": {
+                        "id": self.getstr("stripe.PaymentIntent.id"),
+                        "clientSecret": self.getstr("stripe.PaymentIntent.client_secret"),
+                    },
+                },
+            },
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["viewer"]["createBooking"]
+        assert data["__typename"] == "CreateBookingSuccess"
+
+        async with self.db_session.begin() as session:
+            assert await self.count(session, BookingOrm) == 1
 
     async def test_create_booking_from_expired_outing_fails(self) -> None:
         async with self.db_session.begin() as session:
-            account = AccountOrm(email=self.anyemail(), plaintext_password=self.anystr())
-            session.add(account)
-
+            account = self.make_account(session)
             survey = SurveyOrm(
                 account=account,
                 visitor_id=self.anyuuid(),
@@ -130,20 +360,8 @@ class TestBookingEndpoints(BaseTestCase):
             )
             session.add(survey)
 
-            outing = OutingOrm(
-                visitor_id=self.anyuuid(),
-                account=account,
-                survey=survey,
-            )
-            session.add(outing)
-
-            reserver_details = ReserverDetailsOrm(
-                account=account,
-                first_name=self.anystr(),
-                last_name=self.anystr(),
-                phone_number=self.anyphonenumber(),
-            )
-            session.add(reserver_details)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
 
         response = await self.make_graphql_request(
             "createBooking",
