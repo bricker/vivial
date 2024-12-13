@@ -17,23 +17,35 @@ fragment OutingFields on Outing {
       name
       location {
         directionsUri
-        latitude
-        longitude
-        formattedAddress
+        address {
+          address1
+          address2
+          city
+          state
+          zip
+          country
+        }
       }
     }
     photos {
-      coverPhotoUri
-      supplementalPhotoUris
+      coverPhoto {
+        id
+        src
+        alt
+      }
+      supplementalPhotos {
+        id
+        src
+        alt
+      }
     }
-    ticketInfo {
-      type
-      notes
-      cost
-      fee
-      tax
+    pricing {
+      taxCents
+      baseCostCents
+      feeCents
     }
   }
+
   restaurant {
     sourceId
     source
@@ -45,15 +57,30 @@ fragment OutingFields on Outing {
     description
     parkingTips
     customerFavorites
+
     location {
       directionsUri
-      latitude
-      longitude
-      formattedAddress
+      address {
+        address1
+        address2
+        city
+        state
+        zip
+        country
+      }
     }
+
     photos {
-      coverPhotoUri
-      supplementalPhotoUris
+      coverPhoto {
+        id
+        src
+        alt
+      }
+      supplementalPhotos {
+        id
+        src
+        alt
+      }
     }
   }
 }
