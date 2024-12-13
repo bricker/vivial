@@ -41,20 +41,20 @@ const AuthButton = styled(LoadingButton)(() => ({
 
 const ForgotPassword = styled("div")(() => ({
   textAlign: "right",
-  fontSize: rem("18px"),
-  lineHeight: rem("18px"),
+  fontSize: rem(18),
+  lineHeight: rem(18),
 }));
 
 const Legal = styled("p")(({ theme }) => ({
   color: theme.palette.grey[500],
   margin: 0,
-  fontSize: rem("14px"),
-  lineHeight: rem("18px"),
+  fontSize: rem(14),
+  lineHeight: rem(18),
 }));
 
 const InputErrorContainer = styled("div")(() => ({
-  fontSize: rem("12px"),
-  lineHeight: rem("16px"),
+  fontSize: rem(12),
+  lineHeight: rem(16),
   display: "flex",
   alignItems: "center",
   marginTop: 10,

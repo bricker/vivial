@@ -12,7 +12,7 @@ import Modal from "$eave-dashboard/js/components/Modal";
 const Section = styled("section")(() => ({}));
 
 const BadgeImg = styled("img")(() => ({
-  height: rem("24px"),
+  height: rem(24),
   maxHeight: 32,
 }));
 

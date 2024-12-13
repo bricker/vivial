@@ -21,8 +21,8 @@ const Title = styled(Typography)(() => ({
 }));
 
 const Body = styled(Typography)(() => ({
-  fontSize: rem("18px"),
-  lineHeight: rem("22px"),
+  fontSize: rem(18),
+  lineHeight: rem(22),
 }));
 
 interface LegalPageProps {

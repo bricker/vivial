@@ -28,7 +28,7 @@ const PlansContainer = styled("div")(() => ({
 const CenteredArea = styled("div")(() => ({
   display: "flex",
   width: "100%",
-  height: rem("128px"),
+  height: rem(128),
   justifyContent: "center",
   alignItems: "center",
 }));

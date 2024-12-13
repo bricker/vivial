@@ -45,33 +45,33 @@ const TimeInfo = styled("div")(() => ({
 const Time = styled(Typography)(({ theme }) => ({
   color: theme.palette.common.white,
   marginRight: 4,
-  fontSize: rem("16px"),
-  lineHeight: rem("19px"),
+  fontSize: rem(16),
+  lineHeight: rem(19),
   fontWeight: 600,
 }));
 
 const TableInfo = styled(Typography)(({ theme }) => ({
   color: theme.palette.common.white,
-  fontsize: rem("14px"),
-  lineHeight: rem("17px"),
+  fontsize: rem(14),
+  lineHeight: rem(17),
 }));
 
 const RestaurantRating = styled(BaseRestaurantRating)(() => ({
-  fontSize: rem("12px"),
-  lineHeight: rem("15px"),
+  fontSize: rem(12),
+  lineHeight: rem(15),
 }));
 
 const RestaurantName = styled(Typography)(({ theme }) => ({
   color: theme.palette.common.white,
-  fontSize: rem("14px"),
-  lineHeight: rem("17px"),
+  fontSize: rem(14),
+  lineHeight: rem(17),
   marginBottom: 4,
 }));
 
 const RestaurantType = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.secondary,
-  fontSize: rem("12px"),
-  lineHeight: rem("15px"),
+  fontSize: rem(12),
+  lineHeight: rem(15),
   marginBottom: 2,
 }));
 

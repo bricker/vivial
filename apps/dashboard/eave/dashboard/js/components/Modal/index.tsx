@@ -43,7 +43,7 @@ const TitleContainer = styled("div")(() => ({
 
 const Title = styled(Typography)(({ theme }) => ({
   color: theme.palette.common.white,
-  lineHeight: rem("32px"),
+  lineHeight: rem(32),
   marginLeft: 16,
 }));
 

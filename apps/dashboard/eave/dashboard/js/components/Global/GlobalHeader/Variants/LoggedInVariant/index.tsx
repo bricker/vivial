@@ -33,8 +33,8 @@ const MobileMenu = styled("div")(({ theme }) => ({
 const MenuItem = styled(Button)(({ theme }) => ({
   fontFamily: fontFamilies.quicksand,
   color: theme.palette.text.primary,
-  fontSize: rem("28px"),
-  lineHeight: rem("60px"),
+  fontSize: rem(28),
+  lineHeight: rem(60),
   fontWeight: 400,
   width: "100%",
   justifyContent: "left",
@@ -51,8 +51,8 @@ const MenuItem = styled(Button)(({ theme }) => ({
     width: "auto",
     minWidth: "0",
     margin: "0 20px",
-    fontSize: rem("15px"),
-    lineHeight: rem("18px"),
+    fontSize: rem(15),
+    lineHeight: rem(18),
     "&:hover": {
       backgroundColor: "transparent",
     },

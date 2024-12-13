@@ -6,8 +6,8 @@ import React from "react";
 const CustomButton = styled(Button)(({ theme }) => ({
   color: theme.palette.grey[500],
   border: `1px solid ${theme.palette.grey[500]}`,
-  fontSize: rem("15px"),
-  lineHeight: rem("18px"),
+  fontSize: rem(15),
+  lineHeight: rem(18),
   fontWeight: 700,
   padding: "8px 20px",
   borderRadius: "50px",

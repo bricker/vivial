@@ -19,8 +19,8 @@ const CustomButton = styled(Button)(() => ({
 
 const CTA = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.primary,
-  fontSize: rem("10px"),
-  lineHeight: rem("12px"),
+  fontSize: rem(10),
+  lineHeight: rem(12),
   marginBottom: 1,
   marginRight: 1,
 }));
