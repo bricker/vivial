@@ -15,11 +15,11 @@ class TestAddressDataclass(BaseTestCase):
         )
 
         assert (
-            address.formatted_multiline
+            address.formatted_multiline_internal
             == f"{self.getalpha("address1")} {self.getalpha("address2")}\n{self.getalpha("city")}, {self.getusstate("state")} {self.getdigits("zip")}"
         )
         assert (
-            address.formatted_singleline
+            address.formatted_singleline_internal
             == f"{self.getalpha("address1")} {self.getalpha("address2")}, {self.getalpha("city")}, {self.getusstate("state")} {self.getdigits("zip")}"
         )
 
@@ -33,8 +33,8 @@ class TestAddressDataclass(BaseTestCase):
             country="US",
         )
 
-        assert address.formatted_multiline == ""
-        assert address.formatted_singleline == ""
+        assert address.formatted_multiline_internal == ""
+        assert address.formatted_singleline_internal == ""
 
     async def test_address_formatted_empty_strings(self) -> None:
         address = Address(
@@ -46,8 +46,8 @@ class TestAddressDataclass(BaseTestCase):
             country="US",
         )
 
-        assert address.formatted_multiline == ""
-        assert address.formatted_singleline == ""
+        assert address.formatted_multiline_internal == ""
+        assert address.formatted_singleline_internal == ""
 
     async def test_address_formatted_some_fields_0(self) -> None:
         address = Address(
@@ -60,12 +60,12 @@ class TestAddressDataclass(BaseTestCase):
         )
 
         assert (
-            address.formatted_multiline
+            address.formatted_multiline_internal
             == f"{self.getalpha("address1")}\n{self.getalpha("city")}, {self.getusstate("state")} {self.getdigits("zip")}"
             ""
         )
         assert (
-            address.formatted_singleline
+            address.formatted_singleline_internal
             == f"{self.getalpha("address1")}, {self.getalpha("city")}, {self.getusstate("state")} {self.getdigits("zip")}"
             ""
         )
@@ -81,11 +81,11 @@ class TestAddressDataclass(BaseTestCase):
         )
 
         assert (
-            address.formatted_multiline
+            address.formatted_multiline_internal
             == f"{self.getalpha("address1")}\n{self.getusstate("state")} {self.getdigits("zip")}"
         )
         assert (
-            address.formatted_singleline
+            address.formatted_singleline_internal
             == f"{self.getalpha("address1")}, {self.getusstate("state")} {self.getdigits("zip")}"
         )
 
@@ -99,8 +99,8 @@ class TestAddressDataclass(BaseTestCase):
             country="US",
         )
 
-        assert address.formatted_multiline == f"{self.getalpha("address1")}\n{self.getdigits("zip")}"
-        assert address.formatted_singleline == f"{self.getalpha("address1")}, {self.getdigits("zip")}"
+        assert address.formatted_multiline_internal == f"{self.getalpha("address1")}\n{self.getdigits("zip")}"
+        assert address.formatted_singleline_internal == f"{self.getalpha("address1")}, {self.getdigits("zip")}"
 
     async def test_address_formatted_some_fields_3(self) -> None:
         address = Address(
@@ -113,10 +113,10 @@ class TestAddressDataclass(BaseTestCase):
         )
 
         assert (
-            address.formatted_multiline
+            address.formatted_multiline_internal
             == f"{self.getalpha("address1")}\n{self.getalpha("city")}{self.getdigits("zip")}"
         )
-        assert address.formatted_singleline == f"{self.getalpha("address1")}, {self.getdigits("zip")}"
+        assert address.formatted_singleline_internal == f"{self.getalpha("address1")}, {self.getdigits("zip")}"
 
     async def test_address_formatted_some_fields_4(self) -> None:
         address = Address(
@@ -128,8 +128,8 @@ class TestAddressDataclass(BaseTestCase):
             country="US",
         )
 
-        assert address.formatted_multiline == f"{self.getalpha("address1")}\n{self.getusstate("state")}"
-        assert address.formatted_singleline == f"{self.getalpha("address1")}, {self.getusstate("state")}"
+        assert address.formatted_multiline_internal == f"{self.getalpha("address1")}\n{self.getusstate("state")}"
+        assert address.formatted_singleline_internal == f"{self.getalpha("address1")}, {self.getusstate("state")}"
 
     async def test_address_formatted_some_fields_5(self) -> None:
         address = Address(
@@ -141,8 +141,8 @@ class TestAddressDataclass(BaseTestCase):
             country="US",
         )
 
-        assert address.formatted_multiline == f"{self.getalpha("address1")} {self.getalpha("address2")}"
-        assert address.formatted_singleline == f"{self.getalpha("address1")} {self.getalpha("address2")}"
+        assert address.formatted_multiline_internal == f"{self.getalpha("address1")} {self.getalpha("address2")}"
+        assert address.formatted_singleline_internal == f"{self.getalpha("address1")} {self.getalpha("address2")}"
 
     async def test_address_formatted_some_fields_6(self) -> None:
         address = Address(
@@ -155,10 +155,10 @@ class TestAddressDataclass(BaseTestCase):
         )
 
         assert (
-            address.formatted_multiline
+            address.formatted_multiline_internal
             == f"{self.getalpha("address1")} {self.getalpha("address2")}\n{self.getalpha("city")}"
         )
         assert (
-            address.formatted_singleline
+            address.formatted_singleline_internal
             == f"{self.getalpha("address1")} {self.getalpha("address2")}, {self.getalpha("city")}"
         )

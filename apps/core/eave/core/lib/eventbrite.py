@@ -2,6 +2,7 @@ from eave.core.graphql.types.activity import Activity, ActivityVenue
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.pricing import Pricing
+from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.lib.google_places import google_maps_directions_url
 from eave.core.shared.address import Address
 from eave.core.shared.enums import ActivitySource
@@ -9,7 +10,7 @@ from eave.core.shared.geo import GeoPoint
 from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery, ListTicketClassesForSaleQuery
 from eave.stdlib.eventbrite.models.event import Event, EventStatus
 from eave.stdlib.eventbrite.models.expansions import Expansion
-from eave.stdlib.eventbrite.models.ticket_class import PointOfSale
+from eave.stdlib.eventbrite.models.ticket_class import PointOfSale, TicketClass
 from eave.stdlib.logging import LOGGER
 
 
@@ -86,6 +87,7 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
 
     # Start with a price with all 0's
     max_pricing: Pricing = Pricing()
+    chosen_ticket_class: TicketClass | None = None
 
     async for batch in ticket_classes_paginator:
         for ticket_class in batch:
@@ -101,8 +103,9 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
             if (tax := ticket_class.get("tax")) is not None:
                 pricing.tax_cents = tax["value"]
 
-            if pricing.total_cost_cents > max_pricing.total_cost_cents:
+            if pricing.total_cost_cents_internal > max_pricing.total_cost_cents_internal:
                 max_pricing = pricing
+                chosen_ticket_class = ticket_class
 
     description = await eventbrite_client.get_event_description(event_id=event_id)
     event["description"] = description
@@ -137,10 +140,14 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         description=event["description"]["text"],
         photos=photos,
         pricing=max_pricing,
+        ticket_info=TicketInfo(
+            name=chosen_ticket_class.get("display_name"),
+            notes=chosen_ticket_class.get("description"), # FOXME: This is probably not the info we want for this field.
+        ) if chosen_ticket_class else None,
         venue=ActivityVenue(
             name=venue["name"],
             location=Location(
-                directions_uri=google_maps_directions_url(address.formatted_singleline),
+                directions_uri=google_maps_directions_url(address.formatted_singleline_internal),
                 address=address,
                 coordinates=GeoPoint(
                     lat=float(venue_lat),

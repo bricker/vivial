@@ -194,7 +194,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         session.add(account)
         return account
 
-    def make_survey(self, session: AsyncSession, account: AccountOrm) -> SurveyOrm:
+    def make_survey(self, session: AsyncSession, account: AccountOrm | None) -> SurveyOrm:
         survey = SurveyOrm(
             account=account,
             budget=random.choice(list(OutingBudget)),
@@ -210,7 +210,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         session.add(survey)
         return survey
 
-    def make_outing(self, session: AsyncSession, account: AccountOrm, survey: SurveyOrm) -> OutingOrm:
+    def make_outing(self, session: AsyncSession, account: AccountOrm | None, survey: SurveyOrm) -> OutingOrm:
         outing = OutingOrm(
             visitor_id=survey.visitor_id,
             account=account,

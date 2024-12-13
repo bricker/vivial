@@ -9,6 +9,7 @@ from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.pricing import Pricing
 from eave.core.graphql.types.restaurant import Restaurant
+from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.lib.eventbrite import get_eventbrite_activity
 from eave.core.lib.google_places import (
     get_google_places_activity,
@@ -35,7 +36,7 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
             location=Location(
                 coordinates=activity.coordinates_to_geopoint(),
                 address=activity.address,
-                directions_uri=google_maps_directions_url(activity.address.formatted_singleline),
+                directions_uri=google_maps_directions_url(activity.address.formatted_singleline_internal),
             ),
         ),
         photos=Photos(
@@ -43,6 +44,7 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
             supplemental_photos=[Photo.from_orm(image) for image in images[1:]],
         ),
         pricing=Pricing(),  # FIXME
+        ticket_info=TicketInfo(name="FIXME", notes="FIXME"), # FIXME
         website_uri=activity.booking_url,
         door_tips=None,
         insider_tips=None,
