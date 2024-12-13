@@ -4,7 +4,7 @@ import {
   type OutingPreferences,
   type RestaurantCategory,
 } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute } from "$eave-dashboard/js/routes";
+import { AppRoute, DateSurveyPageVariant, SearchParam } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 
 import {
@@ -35,7 +35,6 @@ import EditPreferencesOption from "./Options/EditPreferencesOption";
 import LoadingView from "./Views/LoadingView";
 import PreferencesView from "./Views/PreferencesView";
 
-import { DateSurveyPageVariant } from "./constants";
 import { getInitialStartTime, getPreferenceInputs } from "./helpers";
 
 const PageContainer = styled("div")(({ theme }) => ({
@@ -131,7 +130,7 @@ const DateSurveyPage = () => {
   const [outingPreferences, setOutingPreferences] = useState<OutingPreferences | null>(null);
   const [partnerPreferences, setPartnerPreferences] = useState<OutingPreferences | null>(null);
   const [outingPreferencesOpen, setOutingPreferencesOpen] = useState(
-    searchParams.get("v") === DateSurveyPageVariant.PreferencesOpen,
+    searchParams.get(SearchParam.variant) === DateSurveyPageVariant.PreferencesOpen,
   );
   const [partnerPreferencesOpen, setPartnerPreferencesOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");

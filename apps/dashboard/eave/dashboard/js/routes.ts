@@ -1,14 +1,23 @@
-import { DateSurveyPageVariant } from "./components/Pages/DateSurveyPage/constants";
-import { SignUpPageVariant } from "./components/Pages/SignUpPage/constants";
+export enum SearchParam {
+  variant = "v",
+}
+
+export enum DateSurveyPageVariant {
+  PreferencesOpen = "po",
+}
+
+export enum SignUpPageVariant {
+  MultiReroll = "mr",
+}
 
 export const AppRoute = {
   root: "/",
-  rootPreferencesOpen: `/?v=${DateSurveyPageVariant.PreferencesOpen}`,
+  rootPreferencesOpen: `/?${SearchParam.variant}=${DateSurveyPageVariant.PreferencesOpen}`,
   login: "/login",
   logout: "/logout",
   forgotPassword: "/login/password",
   signup: "/signup",
-  signupMultiReroll: `/signup?v=${SignUpPageVariant.MultiReroll}`,
+  signupMultiReroll: `/signup?${SearchParam.variant}=${SignUpPageVariant.MultiReroll}`,
   account: "/account",
   plans: "/plans",
   help: "/help",
