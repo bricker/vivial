@@ -17,8 +17,8 @@ const Badge = styled("div")(() => ({
 }));
 
 const Weekday = styled(Typography)(() => ({
-  fontSize: rem("10px"),
-  lineHeight: rem("12px"),
+  fontSize: rem(10),
+  lineHeight: rem(12),
   fontWeight: 500,
   textTransform: "uppercase",
   marginBottom: 3,
@@ -26,8 +26,8 @@ const Weekday = styled(Typography)(() => ({
 
 const Date = styled(Typography)(({ theme }) => ({
   color: theme.palette.background.paper,
-  fontSize: rem("18px"),
-  lineHeight: rem("22px"),
+  fontSize: rem(18),
+  lineHeight: rem(22),
   fontWeight: 600,
 }));
 

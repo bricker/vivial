@@ -17,8 +17,8 @@ const CopyContainer = styled("div")(({ theme }) => ({
 }));
 
 const Subtitle = styled(Typography)(() => ({
-  fontSize: rem("18px"),
-  lineHeight: rem("22px"),
+  fontSize: rem(18),
+  lineHeight: rem(22),
   marginTop: 16,
 }));
 

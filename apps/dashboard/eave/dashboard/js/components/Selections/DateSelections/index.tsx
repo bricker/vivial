@@ -18,8 +18,8 @@ const Row = styled("div")(() => ({
 
 const RowTitle = styled("div")(({ theme }) => ({
   color: theme.palette.grey[400],
-  fontSize: rem("16px"),
-  lineHeight: rem("19px"),
+  fontSize: rem(16),
+  lineHeight: rem(19),
   fontWeight: 500,
   minWidth: 60,
 }));

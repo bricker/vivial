@@ -19,8 +19,8 @@ const PageContainer = styled("div")(() => ({
 
 const SignUp = styled("p")(() => ({
   margin: "32px 0 0",
-  fontSize: rem("18px"),
-  lineHeight: rem("18px"),
+  fontSize: rem(18),
+  lineHeight: rem(18),
   textAlign: "center",
 }));
 

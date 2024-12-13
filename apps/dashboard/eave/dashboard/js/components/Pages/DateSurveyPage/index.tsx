@@ -81,16 +81,16 @@ const TitleCopy = styled(Typography)(({ theme }) => ({
 
 const CityCopy = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.secondary,
-  fontSize: rem("14px"),
-  lineHeight: rem("18px"),
+  fontSize: rem(14),
+  lineHeight: rem(18),
   marginBottom: 8,
   [theme.breakpoints.up(Breakpoint.Medium)]: {
     border: `1px solid ${theme.palette.primary.main}`,
     color: theme.palette.text.primary,
     display: "inline-block",
     borderRadius: "92.929px",
-    fontSize: rem("18.586px"),
-    lineHeight: rem("23x"),
+    fontSize: rem(18.586),
+    lineHeight: rem(23),
     padding: "10px 20px",
     marginBottom: 24,
     fontWeight: 700,
