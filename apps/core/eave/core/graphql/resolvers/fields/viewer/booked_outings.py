@@ -2,9 +2,11 @@ from uuid import UUID
 
 import strawberry
 
+from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.booking import BookingDetailPeek, BookingDetails
 from eave.core.lib.event_helpers import get_activity, get_restaurant
+from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
 from eave.stdlib.http_exceptions import NotFoundError
 from eave.stdlib.util import unwrap
@@ -55,7 +57,11 @@ async def list_bookings_query(
     *,
     info: strawberry.Info[GraphQLContext],
 ) -> list[BookingDetailPeek]:
-    account = unwrap(info.context.get("authenticated_account"))
+    account_id = unwrap(info.context.get("authenticated_account_id"))
+
+    async with database.async_session.begin() as db_session:
+        account = await AccountOrm.get_one(db_session, account_id)
+
     booking_details = []
 
     for booking in account.bookings:
@@ -100,7 +106,10 @@ async def get_booking_details_query(
     info: strawberry.Info[GraphQLContext],
     input: GetBookingDetailsQueryInput,
 ) -> BookingDetails:
-    account = unwrap(info.context.get("authenticated_account"))
+    account_id = unwrap(info.context.get("authenticated_account_id"))
+
+    async with database.async_session.begin() as session:
+        account = await AccountOrm.get_one(session, account_id)
 
     # FIXME: This is inefficient, there is a better way to select just the right one using SQL.
     booking = next((b for b in account.bookings if b.id == input.booking_id), None)

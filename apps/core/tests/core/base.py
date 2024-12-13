@@ -1,4 +1,5 @@
 import os
+import random
 import unittest.mock
 from http import HTTPStatus
 from typing import Any, Protocol, TypeVar
@@ -12,10 +13,17 @@ from httpx import ASGITransport, AsyncClient, Response
 from sqlalchemy import literal_column, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from strawberry.types import ExecutionResult
+import stripe
 
 import eave.core.app
 import eave.core.database
+from eave.core.graphql.types.search_region import SearchRegion
 import eave.core.orm
+from eave.core.orm.activity_category import ActivityCategoryOrm
+from eave.core.orm.restaurant_category import RestaurantCategoryOrm
+from eave.core.orm.search_region import SearchRegionOrm
+from eave.core.orm.survey import SurveyOrm
+from eave.core.shared.enums import OutingBudget
 import eave.stdlib.testing_util
 import eave.stdlib.typing
 from eave.core._database_setup import get_base_metadata, init_database
@@ -25,7 +33,7 @@ from eave.core.orm.account import AccountOrm
 from eave.dev_tooling.constants import EAVE_HOME
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.jwt import JWTPurpose, create_jws
-from eave.stdlib.time import ONE_YEAR_IN_MINUTES
+from eave.stdlib.time import ONE_DAY_IN_SECONDS, ONE_YEAR_IN_MINUTES
 
 
 class AnyStandardOrm(Protocol):
@@ -69,6 +77,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
 
         await super().asyncSetUp()
         self.mock_google_places()
+        self.mock_stripe()
 
         engine = eave.core.database.async_engine.execution_options(isolation_level="READ COMMITTED")
         self.db_session = eave.core.database.async_sessionmaker(engine, expire_on_commit=False)
@@ -183,9 +192,66 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         session.add(account)
         return account
 
-    async def get_eave_account(self, session: AsyncSession, /, id: UUID) -> AccountOrm | None:
-        acct = await AccountOrm.get_one(session, id)
-        return acct
+    def make_survey(self, session: AsyncSession, account: AccountOrm) -> SurveyOrm:
+        survey = SurveyOrm(
+            account=account,
+            budget=random.choice(list(OutingBudget)),
+            headcount=self.anyint("make_survey.headcount", min=1, max=2),
+            search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
+            start_time_utc=self.anydatetime("make_survey.start_time_utc", offset=self.anyint(min=ONE_DAY_IN_SECONDS*2, max=ONE_DAY_IN_SECONDS*14)),
+            timezone=self.anytimezone("make_survey.timezone"),
+            visitor_id=self.anyuuid("make_survey.visitor_id"),
+        )
+        session.add(survey)
+        return survey
+
+    mock_stripe_payment_intent: stripe.PaymentIntent
+    mock_stripe_customer: stripe.Customer
+
+    def mock_stripe(self) -> None:
+        mock_stripe_payment_intent = stripe.PaymentIntent(
+            id=self.anystr("stripe.PaymentIntent.id"),
+        )
+        mock_stripe_payment_intent.client_secret = self.anystr("stripe.PaymentIntent.client_secret")
+        mock_stripe_payment_intent.status = "requires_capture"
+        self.mock_stripe_payment_intent = mock_stripe_payment_intent
+
+        async def _mock_payment_intent_create_async(**kwargs: Any) -> stripe.PaymentIntent:
+            return self.mock_stripe_payment_intent
+
+        self.patch(
+            name="stripe.PaymentIntent.create_async",
+            patch=unittest.mock.patch(
+                "stripe.PaymentIntent.create_async"
+            ),
+            side_effect=_mock_payment_intent_create_async
+        )
+
+        async def _mock_payment_intent_retrieve_async(**kwargs: Any) -> stripe.PaymentIntent:
+            return self.mock_stripe_payment_intent
+
+        self.patch(
+            name="stripe.PaymentIntent.retrieve_async",
+            patch=unittest.mock.patch(
+                "stripe.PaymentIntent.retrieve_async"
+            ),
+            side_effect=_mock_payment_intent_retrieve_async
+        )
+
+        self.mock_stripe_customer = stripe.Customer(
+            id=self.anystr("stripe.Customer.id"),
+        )
+
+        async def _mock_customer_create_async(**kwargs: Any) -> stripe.Customer:
+            return self.mock_stripe_customer
+
+        self.patch(
+            name="stripe.Customer.create_async",
+            patch=unittest.mock.patch(
+                "stripe.Customer.create_async"
+            ),
+            side_effect=_mock_customer_create_async
+        )
 
     def mock_google_places(self) -> None:
         self.patch(
@@ -195,3 +261,31 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             ),
             return_value=MockPlacesResponse([]),
         )
+
+        self.patch(
+            name="PlacesAsyncClient.get_place",
+            patch=unittest.mock.patch(
+                "google.maps.places_v1.services.places.async_client.PlacesAsyncClient.get_place"
+            ),
+            return_value=MockPlacesResponse([]),
+        )
+
+        self.patch(
+            name="PlacesAsyncClient.get_photo_media",
+            patch=unittest.mock.patch(
+                "google.maps.places_v1.services.places.async_client.PlacesAsyncClient.get_photo_media"
+            ),
+            return_value=MockPlacesResponse([]),
+        )
+
+    def random_search_areas(self, k: int = 3) -> list[SearchRegionOrm]:
+        return random.choices(SearchRegionOrm.all(), k=k)
+
+    def random_restaurant_categories(self, k: int = 3) -> list[RestaurantCategoryOrm]:
+        return random.choices(RestaurantCategoryOrm.all(), k=k)
+
+    def random_activity_categories(self, k: int = 3) -> list[ActivityCategoryOrm]:
+        return random.choices(ActivityCategoryOrm.all(), k=k)
+
+    def random_outing_budget(self) -> OutingBudget:
+        return random.choice(list(OutingBudget))

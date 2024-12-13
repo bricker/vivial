@@ -9,6 +9,7 @@ from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.helpers.create_outing import get_outing_total_cost_cents
 from eave.core.graphql.types.payment_intent import PaymentIntent
+from eave.core.orm.account import AccountOrm
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.stdlib.util import unwrap
@@ -45,20 +46,25 @@ async def create_payment_intent_mutation(
     info: strawberry.Info[GraphQLContext],
     input: CreatePaymentIntentInput,
 ) -> CreatePaymentIntentResult:
-    account = unwrap(info.context.get("authenticated_account"))
+    account_id = unwrap(info.context.get("authenticated_account_id"))
 
     async with database.async_session.begin() as db_session:
+        account = await AccountOrm.get_one(db_session, account_id)
         outing_orm = await OutingOrm.get_one(db_session, input.outing_id)
 
-        if account.stripe_customer_id is None:
-            stripe_customer = await stripe.Customer.create_async(
-                email=account.email,
-                source="vivial-core-api",
-                metadata={
-                    "vivial_account_id": str(account.id),
-                },
-            )
+    if account.stripe_customer_id is None:
+        stripe_customer = await stripe.Customer.create_async(
+            email=account.email,
+            source="vivial-core-api",
+            metadata={
+                "vivial_account_id": str(account.id),
+            },
+        )
 
+        async with database.async_session.begin() as db_session:
+            # We do this in a different session than the one fetching outing_orm because fetching outing_orm loads the
+            # associated account, which may be the same as the authed account, in which case the session already has the
+            # account attached and an error is thrown. This should not be an issue when account_id is removed from Outing.
             db_session.add(account)
             account.stripe_customer_id = stripe_customer.id
 

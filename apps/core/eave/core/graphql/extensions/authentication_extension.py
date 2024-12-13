@@ -54,13 +54,7 @@ class AuthenticationExtension(FieldExtension):
                 expired_ok=False,
             )
 
-            account_id = UUID(jws.payload.sub)
-
-            async with database.async_session.begin() as db_session:
-                account_orm = await AccountOrm.get_one(db_session, account_id)
-
-            info.context["authenticated_account"] = account_orm
-            info.context["authenticated_account_id"] = account_orm.id
+            info.context["authenticated_account_id"] = UUID(jws.payload.sub)
 
             result = await next_(source, info, **kwargs)
             return result

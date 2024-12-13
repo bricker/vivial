@@ -1,0 +1,28 @@
+mutation CreatePaymentIntent($input: CreatePaymentIntentInput!) {
+  viewer {
+    ...on AuthenticatedViewerMutations {
+      createPaymentIntent(input: $input) {
+        __typename
+
+        ...on CreatePaymentIntentSuccess {
+          __typename
+
+          paymentIntent {
+            id
+            clientSecret
+          }
+        }
+
+        ...on CreatePaymentIntentFailure {
+          __typename
+          failureReason
+        }
+      }
+    }
+
+    ...on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}

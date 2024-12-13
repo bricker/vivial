@@ -17,8 +17,10 @@ from eave.core.graphql.types.outing import (
     Outing,
     OutingPreferencesInput,
 )
+from eave.core.orm.account import AccountOrm
 from eave.core.orm.outing import OutingOrm
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
+from eave.stdlib.util import unwrap
 
 
 @strawberry.input
@@ -52,9 +54,11 @@ async def replan_outing_mutation(
     info: strawberry.Info[GraphQLContext],
     input: ReplanOutingInput,
 ) -> ReplanOutingResult:
-    account = info.context.get("authenticated_account")
+    account_id = unwrap(info.context.get("authenticated_account_id"))
 
     async with database.async_session.begin() as db_session:
+        account = await AccountOrm.get_one(db_session, account_id)
+
         original_outing = await OutingOrm.get_one(
             db_session,
             input.outing_id,

@@ -94,7 +94,7 @@ ignore = [
 
 [lint.extend-per-file-ignores]
 "__init__.py" = ["PLC0414"] # https://docs.astral.sh/ruff/rules/useless-import-alias/
-"**/tests/**/*_test.py" = [
+"**/tests/**/*.py" = [
   "S", # Disable security checks in test files
   "ANN", # Tests have lots of functions without return types, Any, etc.
   "FBT", # boolean args used in test util functions for brevity

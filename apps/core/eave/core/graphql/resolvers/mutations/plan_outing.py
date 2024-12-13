@@ -18,9 +18,11 @@ from eave.core.graphql.types.outing import (
     Outing,
     OutingPreferencesInput,
 )
+from eave.core.orm.account import AccountOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
+from eave.stdlib.util import unwrap
 
 
 @strawberry.input
@@ -58,7 +60,7 @@ async def plan_outing_mutation(
     info: strawberry.Info[GraphQLContext],
     input: PlanOutingInput,
 ) -> PlanOutingResult:
-    account = info.context.get("authenticated_account")
+    account_id = unwrap(info.context.get("authenticated_account_id"))
 
     if len(input.search_area_ids) == 0:
         return PlanOutingFailure(failure_reason=PlanOutingFailureReason.SEARCH_AREA_IDS_EMPTY)
@@ -71,6 +73,8 @@ async def plan_outing_mutation(
         return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_SOON)
 
     async with database.async_session.begin() as db_session:
+        account = await AccountOrm.get_one(db_session, account_id)
+
         survey = SurveyOrm(
             account=account,
             visitor_id=input.visitor_id,

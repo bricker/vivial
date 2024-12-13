@@ -17,15 +17,7 @@ class TestSurveyOrm(BaseTestCase):
             )
             session.add(account)
 
-            survey = SurveyOrm(
-                account=account,
-                budget=OutingBudget.INEXPENSIVE,
-                headcount=self.anyint(min=1, max=2),
-                search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
-                start_time_utc=self.anydatetime(future=True),
-                timezone=self.anytimezone(),
-                visitor_id=self.anyuuid("visitor id"),
-            )
+            survey = self.make_survey(session, account)
             session.add(survey)
 
         async with self.db_session.begin() as session:

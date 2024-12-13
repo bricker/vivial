@@ -11,4 +11,3 @@ class GraphQLContext(TypedDict):
     request: Request
     response: Response
     authenticated_account_id: NotRequired[UUID]
-    authenticated_account: NotRequired[AccountOrm]

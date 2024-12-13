@@ -1,6 +1,7 @@
 # ruff: noqa: FBT001, FBT002, FBT003, S311
 
 import base64
+from collections.abc import AsyncIterator
 import hashlib
 import json
 import os
@@ -24,6 +25,13 @@ from google.cloud.kms import (
 )
 from google.cloud.secretmanager import AccessSecretVersionRequest, AccessSecretVersionResponse, SecretPayload
 
+from eave.stdlib.eventbrite.models.category import Category
+from eave.stdlib.eventbrite.models.event import Event, EventDescription, EventStatus
+from eave.stdlib.eventbrite.models.logo import Logo
+from eave.stdlib.eventbrite.models.shared import Address, CurrencyCost, MultipartText
+from eave.stdlib.eventbrite.models.ticket_availability import TicketAvailability
+from eave.stdlib.eventbrite.models.ticket_class import TicketClass
+from eave.stdlib.eventbrite.models.venue import Venue
 import eave.stdlib.http_exceptions
 import eave.stdlib.util
 from eave.stdlib.checksum import generate_checksum
@@ -525,16 +533,86 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             return_value={},
         )
 
+    mock_eventbrite_event: Event
+    mock_eventbrite_ticket_class_batch: list[TicketClass]
+
     def mock_eventbrite(self) -> None:
+        self.mock_eventbrite_event = Event(
+            id=self.anydigits("eventbrite.Event.id"),
+            name=MultipartText(
+                text=self.anystr("eventbrite.Event.name.text"),
+                html=self.anystr("eventbrite.Event.name.html"),
+            ),
+            status=EventStatus.LIVE,
+            venue=Venue(
+                address=Address(),
+                latitude=str(self.anylatitude("eventbrite.Venue.latitude")),
+                longitude=str(self.anylongitude("eventbrite.Venue.longitude")),
+                name=self.anystr("eventbrite.Venue.name"),
+            ),
+            ticket_availability=TicketAvailability(
+                has_available_tickets=True,
+            ),
+            logo=Logo(
+                id=self.anydigits("eventbrite.Logo.id"),
+                url=self.anyurl("eventbrite.Logo.url"),
+            ),
+            changed=self.anydatetime().isoformat(),
+            created=self.anydatetime().isoformat(),
+        )
+
+        async def _mocked_eventbrite_get_event_by_id(**kwargs: Any) -> Event:
+            return self.mock_eventbrite_event
+
         self.patch(
             name="eventbrite get_event_by_id",
             patch=unittest.mock.patch("eave.stdlib.eventbrite.client.EventbriteClient.get_event_by_id"),
-            return_value={},
+            side_effect=_mocked_eventbrite_get_event_by_id,
         )
+
+        self.mock_eventbrite_ticket_class_batch = [
+            TicketClass(
+                id=self.anydigits("eventbrite.Event.id"),
+                cost=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=self.anyint("eventbrite.TicketClass.0.cost.value"),
+                ),
+                fee=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=self.anyint("eventbrite.TicketClass.0.fee.value"),
+                ),
+                tax=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=self.anyint("eventbrite.TicketClass.0.tax.value"),
+                ),
+            )
+        ]
+
+        async def _mocked_eventbrite_list_ticket_classes_for_sale_for_event(**kwargs: Any) -> AsyncIterator[list[TicketClass]]:
+            yield self.mock_eventbrite_ticket_class_batch
+
+        self.patch(
+            name="EventbriteClient.list_ticket_classes_for_sale_for_event",
+            patch=unittest.mock.patch("eave.stdlib.eventbrite.client.EventbriteClient.list_ticket_classes_for_sale_for_event"),
+            side_effect=_mocked_eventbrite_list_ticket_classes_for_sale_for_event,
+        )
+
+        async def _mocked_eventbrite_get_event_description(**kwargs: Any) -> MultipartText:
+            return MultipartText(
+                text=self.anystr("eventbrite.EventDescription.text"),
+                html=self.anystr("eventbrite.EventDescription.html"),
+            )
+
         self.patch(
             name="eventbrite get_event_description",
             patch=unittest.mock.patch("eave.stdlib.eventbrite.client.EventbriteClient.get_event_description"),
-            return_value="description",
+            side_effect=_mocked_eventbrite_get_event_description
         )
 
     def mock_sendgrid_client(self) -> None:

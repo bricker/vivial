@@ -61,15 +61,14 @@ async def get_activity(
     match source:
         case ActivitySource.INTERNAL:
             activity = await get_internal_activity(event_id=source_id)
-            return activity
 
         case ActivitySource.GOOGLE_PLACES:
             activity = await get_google_places_activity(places_client=places_client, event_id=source_id)
-            return activity
 
         case ActivitySource.EVENTBRITE:
             activity = await get_eventbrite_activity(eventbrite_client=eventbrite_client, event_id=source_id)
 
+    return activity
 
 async def get_restaurant(
     *,
