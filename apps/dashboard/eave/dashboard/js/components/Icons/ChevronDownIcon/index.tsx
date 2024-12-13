@@ -4,9 +4,17 @@ import { IconProps } from "../types";
 
 interface ChevronDownIconProps extends IconProps {
   large?: boolean;
+  thin?: boolean;
 }
 
-const ChevronDownIcon = ({ color = colors.whiteText, large = false }: ChevronDownIconProps) => {
+const ChevronDownIcon = ({ color = colors.whiteText, large = false, thin = false }: ChevronDownIconProps) => {
+  if (thin) {
+    return (
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="17" viewBox="0 0 16 17" fill="none">
+        <path d="M12 6.26087L8 10.4348L4 6.26087" stroke={color} strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
   if (large) {
     return (
       <svg xmlns="http://www.w3.org/2000/svg" width="18" height="16" viewBox="0 0 18 16" fill="none">
