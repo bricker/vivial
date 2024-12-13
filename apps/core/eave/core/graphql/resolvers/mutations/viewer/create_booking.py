@@ -42,7 +42,7 @@ class PaymentIntentInput:
 class CreateBookingInput:
     outing_id: UUID
     reserver_details_id: UUID  # TODO: Should we get this from AccountOrm?
-    payment_intent: PaymentIntentInput | None
+    payment_intent: PaymentIntentInput | None = strawberry.UNSET
 
 
 @strawberry.type
