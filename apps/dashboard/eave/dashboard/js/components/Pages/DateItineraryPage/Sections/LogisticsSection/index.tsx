@@ -14,6 +14,7 @@ import DateAreaSelections from "$eave-dashboard/js/components/Selections/DateAre
 import DateSelections from "$eave-dashboard/js/components/Selections/DateSelections";
 import DateTimeSelections from "$eave-dashboard/js/components/Selections/DateTimeSelections";
 import Typography from "@mui/material/Typography";
+import LogisticsBadge from "./LogisticsBadge";
 
 interface LogisticsSectionProps extends React.HTMLAttributes<HTMLDivElement> {
   bgImgUrl: string;
@@ -166,6 +167,7 @@ const LogisticsSection = () => {
             </TimeAndPlace>
           </Logistics>
         </LogisticsGradient>
+        <LogisticsBadge startTime={startTime} />
         <Modal title="Date Details" onClose={toggleDetailsOpen} open={detailsOpen}>
           <DateSelections
             cta="Update"
