@@ -18,33 +18,20 @@ fragment OutingFields on Outing {
       location {
         directionsUri
         address {
-          address1
-          address2
-          city
-          state
-          zip
-          country
-          formattedMultiline
-          formattedSingleline
+          ...AddressFields
         }
       }
     }
     photos {
       coverPhoto {
-        id
-        src
-        alt
+        ...PhotoFields
       }
       supplementalPhotos {
-        id
-        src
-        alt
+        ...PhotoFields
       }
     }
     pricing {
-      taxCents
-      baseCostCents
-      feeCents
+      ...PricingFields
     }
   }
 
@@ -63,27 +50,16 @@ fragment OutingFields on Outing {
     location {
       directionsUri
       address {
-        address1
-        address2
-        city
-        state
-        zip
-        country
-        formattedMultiline
-        formattedSingleline
+        ...AddressFields
       }
     }
 
     photos {
       coverPhoto {
-        id
-        src
-        alt
+        ...PhotoFields
       }
       supplementalPhotos {
-        id
-        src
-        alt
+        ...PhotoFields
       }
     }
   }

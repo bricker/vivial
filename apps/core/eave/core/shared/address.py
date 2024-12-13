@@ -12,7 +12,9 @@ class Address:
     formatted_multiline: str
     formatted_singleline: str
 
-    def __init__(self, *,
+    def __init__(
+        self,
+        *,
         address1: str | None,
         address2: str | None,
         city: str | None,
@@ -38,37 +40,37 @@ class Address:
 
 
 def _format_address_multiline(address: Address) -> str:
-        out = ""
+    out = ""
 
-        if address.address1:
-            out += f"{address.address1}"
+    if address.address1:
+        out += f"{address.address1}"
 
-        if address.address1 and address.address2:
-            out += " "
+    if address.address1 and address.address2:
+        out += " "
 
-        if address.address2:
-            out += f"{address.address2}"
+    if address.address2:
+        out += f"{address.address2}"
 
-        if not address.city and not address.state and not address.zip_code:
-            return out
-
-        out += "\n"
-
-        if address.city:
-            out += f"{address.city}"
-
-        if not address.state and not address.zip_code:
-            return out
-
-        out += ", "
-
-        if address.state:
-            out += f"{address.state}"
-
-        if address.state and address.zip_code:
-            out += " "
-
-        if address.zip_code:
-            out += f"{address.zip_code}"
-
+    if not address.city and not address.state and not address.zip_code:
         return out
+
+    out += "\n"
+
+    if address.city:
+        out += f"{address.city}"
+
+    if not address.state and not address.zip_code:
+        return out
+
+    out += ", "
+
+    if address.state:
+        out += f"{address.state}"
+
+    if address.state and address.zip_code:
+        out += " "
+
+    if address.zip_code:
+        out += f"{address.zip_code}"
+
+    return out
