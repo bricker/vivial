@@ -1,5 +1,3 @@
-
-
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.outing import OutingActivityOrm, OutingOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm

@@ -1,13 +1,10 @@
 from uuid import UUID
 
-from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
-from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservationOrm
-from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.core.orm.survey import SurveyOrm
-from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
+from eave.core.shared.enums import OutingBudget
 
 from ..base import BaseTestCase
 
@@ -70,7 +67,7 @@ class TestBookingEndpoints(BaseTestCase):
         assert booking.activities[0].source_id == self.getstr("activity.source_id")
 
         assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 1
-        assert self.get_mock("slack client").call_count == 2 # One for parent, one for thread
+        assert self.get_mock("slack client").call_count == 2  # One for parent, one for thread
 
     async def test_create_booking_with_invalid_payment_intent_fields(self) -> None:
         async with self.db_session.begin() as session:
@@ -222,7 +219,7 @@ class TestBookingEndpoints(BaseTestCase):
         async with self.db_session.begin() as session:
             assert await self.count(session, BookingOrm) == 1
 
-        assert self.get_mock("slack client").call_count == 2 # One for parent, one for thread
+        assert self.get_mock("slack client").call_count == 2  # One for parent, one for thread
 
     async def test_create_booking_without_payment_intent_payment_required(self) -> None:
         async with self.db_session.begin() as session:
@@ -276,7 +273,9 @@ class TestBookingEndpoints(BaseTestCase):
             )
             session.add(stripe_payment_intent_reference)
 
-        self.mock_stripe_payment_intent.amount = self.anyint("payment intent amount") # There is a very small chance this could be the same number as the random prices for the ticket classes.
+        self.mock_stripe_payment_intent.amount = self.anyint(
+            "payment intent amount"
+        )  # There is a very small chance this could be the same number as the random prices for the ticket classes.
 
         response = await self.make_graphql_request(
             "createBooking",
@@ -319,9 +318,12 @@ class TestBookingEndpoints(BaseTestCase):
             )
             session.add(stripe_payment_intent_reference)
 
-        self.mock_stripe_payment_intent.amount = self.getint(
-            "eventbrite.TicketClass.0.cost.value"
-        ) + self.getint("eventbrite.TicketClass.0.fee.value") + self.getint("eventbrite.TicketClass.0.tax.value") + 1000
+        self.mock_stripe_payment_intent.amount = (
+            self.getint("eventbrite.TicketClass.0.cost.value")
+            + self.getint("eventbrite.TicketClass.0.fee.value")
+            + self.getint("eventbrite.TicketClass.0.tax.value")
+            + 1000
+        )
 
         response = await self.make_graphql_request(
             "createBooking",

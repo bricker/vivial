@@ -5,11 +5,11 @@ from http import HTTPStatus
 from typing import Any, Protocol, TypeVar
 from uuid import UUID
 
-from google.maps.places import PhotoMedia
 import sqlalchemy
 import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
 import stripe
+from google.maps.places import PhotoMedia
 from google.maps.places_v1.types import Place
 from httpx import ASGITransport, AsyncClient, Response
 from sqlalchemy import literal_column, select, text
@@ -19,8 +19,6 @@ from strawberry.types import ExecutionResult
 import eave.core.app
 import eave.core.database
 import eave.core.orm
-from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservationOrm
-from eave.core.orm.reserver_details import ReserverDetailsOrm
 import eave.stdlib.testing_util
 import eave.stdlib.typing
 from eave.core._database_setup import get_base_metadata, init_database
@@ -28,6 +26,8 @@ from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME
 from eave.core.config import CORE_API_APP_CONFIG, JWT_AUDIENCE, JWT_ISSUER
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.activity_category import ActivityCategoryOrm
+from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservationOrm
+from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
@@ -300,11 +300,13 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             patch=unittest.mock.patch(
                 "google.maps.places_v1.services.places.async_client.PlacesAsyncClient.search_nearby"
             ),
-            return_value=MockPlacesResponse([
-                Place(
-                    id=self.anystr("Place.id"),
-                )
-            ]),
+            return_value=MockPlacesResponse(
+                [
+                    Place(
+                        id=self.anystr("Place.id"),
+                    )
+                ]
+            ),
         )
 
         self.patch(
