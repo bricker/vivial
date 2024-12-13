@@ -114,7 +114,7 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         address2=venue_address.get("address_2"),
         city=venue_address.get("city"),
         state=venue_address.get("region"),
-        zip=venue_address.get("postal_code"),
+        zip_code=venue_address.get("postal_code"),
         country=venue_address.get("country"),
     )
 
@@ -140,7 +140,7 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         venue=ActivityVenue(
             name=venue["name"],
             location=Location(
-                directions_uri=google_maps_directions_url(address.formatted_singleline_internal),
+                directions_uri=google_maps_directions_url(address.formatted_singleline),
                 address=address,
                 coordinates=GeoPoint(
                     lat=float(venue_lat),

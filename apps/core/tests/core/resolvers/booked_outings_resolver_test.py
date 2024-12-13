@@ -44,7 +44,7 @@ class TestBookedOutingsResolver(BaseTestCase):
                     city=self.anystr(),
                     country="US",
                     state=self.anyusstate(),
-                    zip=self.anydigits(),
+                    zip_code=self.anydigits(),
                 ),
             )
             booking.activities.append(booking_activity_template)
@@ -69,7 +69,7 @@ class TestBookedOutingsResolver(BaseTestCase):
                     city=self.anystr(),
                     country="US",
                     state=self.anyusstate(),
-                    zip=self.anydigits(),
+                    zip_code=self.anydigits(),
                 ),
             )
             booking.reservations.append(booking_reservation_template)

@@ -147,7 +147,7 @@ def location_from_google_place(place: Place) -> Location:
             ),
             "",
         ),
-        zip=next(
+        zip_code=next(
             (
                 component.longText
                 for component in place.address_components

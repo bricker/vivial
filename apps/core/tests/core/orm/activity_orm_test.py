@@ -27,7 +27,7 @@ class TestActivityOrm(BaseTestCase):
                     city=self.anystr("address.city"),
                     country=self.anystr("address.country"),
                     state=self.anyusstate("address.state"),
-                    zip=self.anydigits("address.zip", length=5),
+                    zip_code=self.anydigits("address.zip", length=5),
                 ),
             )
             session.add(activity)
@@ -52,7 +52,7 @@ class TestActivityOrm(BaseTestCase):
             assert obj.address.city == self.getstr("address.city")
             assert obj.address.country == self.getstr("address.country")
             assert obj.address.state == self.getusstate("address.state")
-            assert obj.address.zip == self.getdigits("address.zip")
+            assert obj.address.zip_code == self.getdigits("address.zip")
 
     async def test_activity_images(self) -> None:
         async with self.db_session.begin() as session:
@@ -74,7 +74,7 @@ class TestActivityOrm(BaseTestCase):
                     city=self.anystr("address.city"),
                     country=self.anystr("address.country"),
                     state=self.anyusstate("address.state"),
-                    zip=self.anydigits("address.zip", length=5),
+                    zip_code=self.anydigits("address.zip", length=5),
                 ),
             )
 

@@ -82,7 +82,7 @@ class TestBookingOrms(BaseTestCase):
                     address2=self.anystr("activity.address.address2"),
                     city=self.anystr("activity.address.city"),
                     state=self.anyusstate("activity.address.state"),
-                    zip=self.anydigits("activity.address.zip"),
+                    zip_code=self.anydigits("activity.address.zip"),
                     country="US",
                 ),
             )
@@ -108,7 +108,7 @@ class TestBookingOrms(BaseTestCase):
                     address2=self.anystr("reservation.address.address2"),
                     city=self.anystr("reservation.address.city"),
                     state=self.anyusstate("reservation.address.state"),
-                    zip=self.anydigits("reservation.address.zip"),
+                    zip_code=self.anydigits("reservation.address.zip"),
                     country="US",
                 ),
             )
@@ -182,7 +182,7 @@ class TestBookingOrms(BaseTestCase):
                     address2=self.anystr("activity.address.address2"),
                     city=self.anystr("activity.address.city"),
                     state=self.anyusstate("activity.address.state"),
-                    zip=self.anydigits("activity.address.zip"),
+                    zip_code=self.anydigits("activity.address.zip"),
                     country="US",
                 ),
             )
@@ -222,7 +222,7 @@ class TestBookingOrms(BaseTestCase):
                 address2=self.getstr("activity.address.address2"),
                 city=self.getstr("activity.address.city"),
                 state=self.getusstate("activity.address.state"),
-                zip=self.getdigits("activity.address.zip"),
+                zip_code=self.getdigits("activity.address.zip"),
                 country="US",
             )
 
@@ -268,7 +268,7 @@ class TestBookingOrms(BaseTestCase):
                     address2=self.anystr("reservation.address.address2"),
                     city=self.anystr("reservation.address.city"),
                     state=self.anyusstate("reservation.address.state"),
-                    zip=self.anydigits("reservation.address.zip"),
+                    zip_code=self.anydigits("reservation.address.zip"),
                     country="US",
                 ),
             )
@@ -308,6 +308,6 @@ class TestBookingOrms(BaseTestCase):
                 address2=self.getstr("reservation.address.address2"),
                 city=self.getstr("reservation.address.city"),
                 state=self.getusstate("reservation.address.state"),
-                zip=self.getdigits("reservation.address.zip"),
+                zip_code=self.getdigits("reservation.address.zip"),
                 country="US",
             )

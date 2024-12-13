@@ -150,7 +150,7 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
                 city="LA",
                 state="CA",
                 country="USA",
-                zip="12345",
+                zip_code="12345",
             ),
             coordinates=GeoPoint(
                 lat=0,
@@ -174,7 +174,7 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
                 city="LA",
                 state="CA",
                 country="USA",
-                zip="12345",
+                zip_code="12345",
             ),
             coordinates=GeoPoint(
                 lat=0,
