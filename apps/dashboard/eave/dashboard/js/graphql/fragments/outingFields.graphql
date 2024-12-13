@@ -63,4 +63,15 @@ fragment OutingFields on Outing {
       }
     }
   }
+
+  survey {
+    id
+    headcount
+    budget
+    startTime
+    searchRegions {
+      id
+      name
+    }
+  }
 }
