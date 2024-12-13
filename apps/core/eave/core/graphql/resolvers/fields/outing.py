@@ -12,10 +12,11 @@ from eave.core.graphql.types.outing import (
 )
 from eave.core.graphql.types.photos import Photos
 from eave.core.graphql.types.restaurant import Restaurant
+from eave.core.graphql.types.search_region import SearchRegion
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.outing_activity import OutingActivityOrm
 from eave.core.orm.outing_reservation import OutingReservationOrm
-from eave.core.shared.enums import ActivitySource, RestaurantSource
+from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 
 # TODO: Remove once Date Picked UI is complete.
@@ -23,8 +24,11 @@ MOCK_OUTING = Outing(
     id=uuid4(),
     headcount=2,
     driving_time="25 min",
+    budget=OutingBudget.EXPENSIVE,
     restaurant_arrival_time=(datetime(2024, 10, 15, hour=6, tzinfo=LOS_ANGELES_TIMEZONE)),
     activity_start_time=(datetime(2024, 10, 15, hour=8, tzinfo=LOS_ANGELES_TIMEZONE)),
+    restaurant_region=SearchRegion(id=uuid4(), name="DTLA"),
+    activity_region=SearchRegion(id=uuid4(), name="DTLA"),
     restaurant=Restaurant(
         source_id=f"{uuid4()}",
         source=RestaurantSource.GOOGLE_PLACES,
