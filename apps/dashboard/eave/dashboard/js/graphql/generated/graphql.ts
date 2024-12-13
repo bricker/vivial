@@ -129,6 +129,7 @@ export type AuthenticatedViewerQueries = {
   bookedOutings: Array<BookingDetailPeek>;
   outingPreferences: OutingPreferences;
   reserverDetails: Array<ReserverDetails>;
+  stripePortal: StripePortal;
 };
 
 
@@ -446,6 +447,11 @@ export type SearchRegion = {
   name: Scalars['String']['output'];
 };
 
+export type StripePortal = {
+  __typename?: 'StripePortal';
+  url: Scalars['String']['output'];
+};
+
 export type SubmitReserverDetailsFailure = {
   __typename?: 'SubmitReserverDetailsFailure';
   failureReason: SubmitReserverDetailsFailureReason;
@@ -700,6 +706,11 @@ export type SearchRegionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type SearchRegionsQuery = { __typename: 'Query', searchRegions: Array<{ __typename: 'SearchRegion', id: string, name: string }> };
+
+export type StripePortalQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type StripePortalQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', stripePortal: { __typename: 'StripePortal', url: string } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 
 export class TypedDocumentString<TResult, TVariables>
   extends String
@@ -1603,3 +1614,22 @@ export const SearchRegionsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<SearchRegionsQuery, SearchRegionsQueryVariables>;
+export const StripePortalDocument = new TypedDocumentString(`
+    query StripePortal {
+  __typename
+  viewer {
+    __typename
+    ... on AuthenticatedViewerQueries {
+      __typename
+      stripePortal {
+        __typename
+        url
+      }
+    }
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}
+    `) as unknown as TypedDocumentString<StripePortalQuery, StripePortalQueryVariables>;

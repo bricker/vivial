@@ -34,6 +34,7 @@ const documents = {
     "query Outing($input: OutingInput!) {\n  outing(input: $input) {\n    ...OutingFields\n  }\n}": types.OutingDocument,
     "query OutingPreferences {\n  activityCategoryGroups {\n    id\n    name\n    activityCategories {\n      id\n      name\n      isDefault\n    }\n  }\n  restaurantCategories {\n    id\n    name\n    isDefault\n  }\n  viewer {\n    __typename\n    ... on AuthenticatedViewerQueries {\n      __typename\n      outingPreferences {\n        restaurantCategories {\n          id\n          name\n          isDefault\n        }\n        activityCategories {\n          id\n          name\n          isDefault\n        }\n      }\n    }\n    ... on UnauthenticatedViewer {\n      __typename\n      authFailureReason\n    }\n  }\n}": types.OutingPreferencesDocument,
     "query SearchRegions {\n  searchRegions {\n    id\n    name\n  }\n}": types.SearchRegionsDocument,
+    "query StripePortal {\n  viewer {\n    __typename\n    ... on AuthenticatedViewerQueries {\n      __typename\n      stripePortal {\n        url\n      }\n    }\n    ... on UnauthenticatedViewer {\n      __typename\n      authFailureReason\n    }\n  }\n}": types.StripePortalDocument,
 };
 
 /**
@@ -112,6 +113,10 @@ export function graphql(source: "query OutingPreferences {\n  activityCategoryGr
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "query SearchRegions {\n  searchRegions {\n    id\n    name\n  }\n}"): typeof import('./graphql').SearchRegionsDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query StripePortal {\n  viewer {\n    __typename\n    ... on AuthenticatedViewerQueries {\n      __typename\n      stripePortal {\n        url\n      }\n    }\n    ... on UnauthenticatedViewer {\n      __typename\n      authFailureReason\n    }\n  }\n}"): typeof import('./graphql').StripePortalDocument;
 
 
 export function graphql(source: string) {

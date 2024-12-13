@@ -21,6 +21,7 @@ import PasswordResetPage from "./components/Pages/PasswordResetPage";
 import PlansPage from "./components/Pages/PlansPage";
 import PrivacyPage from "./components/Pages/PrivacyPage";
 import SignUpPage from "./components/Pages/SignUpPage";
+import StripeCustomerPortal from "./components/Pages/StripeCustomerPortal";
 import TermsPage from "./components/Pages/TermsPage";
 import { PrivateRoutes } from "./components/Util/PrivateRoutes";
 import RouteChangeTracker from "./components/Util/RouteChangeTracker";
@@ -63,6 +64,7 @@ const App = () => {
               <Route path={AppRoute.plans} element={<PlansPage />} />
               <Route path={AppRoute.help} element={<HelpPage />} />
               <Route path={AppRoute.passwordReset} element={<PasswordResetPage />} />
+              <Route path={AppRoute.billing} element={<StripeCustomerPortal />} />
               <Route path={AppRoute.accountPreferences} element={<AccountPreferencesPage />} />
               <Route path={AppRoute.checkoutComplete} element={<CheckoutCompletePage />} />
               <Route path={`${AppRoute.checkoutReserve}/:outingId`} element={<CheckoutReservationPage />} />

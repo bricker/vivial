@@ -1,0 +1,15 @@
+query StripePortal {
+  viewer {
+    __typename
+    ... on AuthenticatedViewerQueries {
+      __typename
+      stripePortal {
+        url
+      }
+    }
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}

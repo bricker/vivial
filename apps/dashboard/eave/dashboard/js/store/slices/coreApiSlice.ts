@@ -17,6 +17,9 @@ import {
   PlanOutingDocument,
   ReplanOutingDocument,
   SearchRegionsDocument,
+  StripePortalDocument,
+  StripePortalQuery,
+  StripePortalQueryVariables,
   SubmitReserverDetailsDocument,
   UpdateAccountDocument,
   UpdateAccountMutation,
@@ -93,6 +96,13 @@ export const coreApiSlice = createApi({
     getOuting: builder.query<OutingQuery, OutingQueryVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: OutingDocument, variables });
+        return { data };
+      },
+    }),
+
+    getStripePortal: builder.query<StripePortalQuery, StripePortalQueryVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: StripePortalDocument, variables });
         return { data };
       },
     }),
@@ -193,6 +203,7 @@ export const {
   useListBookedOutingsQuery,
   useGetOutingPreferencesQuery,
   useGetOutingQuery,
+  useGetStripePortalQuery,
 
   // Core API GraphQL Mutation Hooks
   usePlanOutingMutation,

@@ -16,6 +16,7 @@ export const AppRoute = {
   privacy: "/privacy",
   accountPreferences: "/account/preferences",
   passwordReset: "/account/password",
+  billing: "/account/billing",
   checkoutComplete: "/checkout/complete",
   checkoutReserve: "/checkout/reserve",
   itinerary: "/itinerary",
