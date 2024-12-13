@@ -1,5 +1,4 @@
 import uuid
-from textwrap import dedent
 
 from google.maps.places import PlacesAsyncClient
 
@@ -25,11 +24,8 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
             session=db_session,
             id=uuid.UUID(event_id),
         )
-    lat, lon = details.coordinates_to_lat_lon()
-    formatted_address = dedent(f"""
-        {details.address.address1} {details.address.address2}
-        {details.address.city}, {details.address.state} {details.address.zip}
-        """).strip()
+    lat, lon = details.coordinates_lat_lon
+    formatted_address = details.address.formatted()
 
     return Activity(
         source_id=event_id,

@@ -3,12 +3,14 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from uuid import UUID
 
+from geoalchemy2.functions import ST_DWithin
 from google.maps.places_v1 import PlacesAsyncClient
-from sqlalchemy import func
+from sqlalchemy import func, or_
 
 import eave.core.database
 from eave.core.config import CORE_API_APP_CONFIG
-from eave.core.graphql.types.activity import Activity
+from eave.core.graphql.types.activity import Activity, ActivityTicketInfo, ActivityVenue
+from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import OutingPreferencesInput
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.lib.eventbrite import activity_from_eventbrite_event
@@ -21,11 +23,13 @@ from eave.core.lib.google_places import (
     restaurant_from_google_place,
 )
 from eave.core.lib.time_category import is_early_evening, is_early_morning, is_late_evening, is_late_morning
+from eave.core.orm.activity import ActivityOrm
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.orm.restaurant_category import MAGIC_BAR_RESTAURANT_CATEGORY_ID, RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
+from eave.core.shared.enums import ActivitySource
 from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.logging import LOGGER
 
@@ -203,37 +207,69 @@ class OutingPlanner:
         ).order_by(func.random())
 
         async with eave.core.database.async_session.begin() as db_session:
-            results = await db_session.scalars(query)
+            eventbrite_event_orms = await db_session.scalars(query)
 
-            for event_orm in results:
-                try:
-                    eventbrite_event = await self.eventbrite_client.get_event_by_id(
-                        event_id=event_orm.eventbrite_event_id
-                    )
-                    self.activity = await activity_from_eventbrite_event(self.eventbrite_client, event=eventbrite_event)
-                    return self.activity
-                except Exception as e:
-                    LOGGER.exception(e)
-                    continue
+        for event_orm in eventbrite_event_orms:
+            try:
+                eventbrite_event = await self.eventbrite_client.get_event_by_id(event_id=event_orm.eventbrite_event_id)
+                self.activity = await activity_from_eventbrite_event(self.eventbrite_client, event=eventbrite_event)
+                return self.activity
+            except Exception as e:
+                LOGGER.exception(e)
+                continue
 
         # CASE 2: Recommend an "evergreen" activity from our manually curated database.
-        # for search_area_id in self.constraints.search_area_ids:
-        #     for category in self.preferences.activity_categories:
-        #         activities = []
-        # TODO: Fetch from internal database when that is ready (pending Bryan).
-        # activities = get_evergreen_activities(
-        #     search_area_id=search_area_id,
-        #     category_id=category.id,
-        #     subcategory_id=category.subcategory_id,
-        #     start_time=activity_start_time,
-        #     end_time=activity_end_time,
-        #     budget=ACTIVITY_BUDGET_MAP[self.constraints.budget],
-        # )
-        # if len(activities):
-        #     random.shuffle(activities)
-        #     geo_location = GeoLocation(TODO)
-        #     self.activity = OutingComponent(TODO)
-        #     return self.activity
+        evergreen_query = ActivityOrm.select()
+        # TODO: evergreen activities don't have budget or time range constraints?? orm might be missing some data
+        # evergreen_query = evergreen_query.where(ActivityOrm.time_range_contains == start_time_local)
+        # evergreen_query = evergreen_query.where(ActivityOrm.cost_cents_range.contains(self.survey.budget.upper_limit_cents))
+        evergreen_query = evergreen_query.where(
+            or_(
+                *[
+                    ST_DWithin(ActivityOrm.coordinates, area.center.geoalchemy_shape(), area.rad.meters)
+                    for area in within_areas
+                ]
+            )
+        )
+        evergreen_query = evergreen_query.where(
+            or_(
+                *[
+                    ActivityOrm.activity_category_id == vivial_activity_category_id
+                    for vivial_activity_category_id in self.group_activity_category_preferences
+                ]
+            )
+        )
+        evergreen_query = evergreen_query.order_by(func.random())
+
+        async with eave.core.database.async_session.begin() as db_session:
+            evergreen_activity = await db_session.scalar(evergreen_query)
+
+        if evergreen_activity:
+            lat, lon = evergreen_activity.coordinates_lat_lon
+            self.activity = Activity(
+                name=evergreen_activity.title,
+                source_id=str(evergreen_activity.id),
+                source=ActivitySource.INTERNAL,
+                description=evergreen_activity.description,
+                venue=ActivityVenue(
+                    name=evergreen_activity.title,
+                    location=Location(
+                        latitude=lat,
+                        longitude=lon,
+                        directions_uri=None,
+                        formatted_address=evergreen_activity.address.formatted(),
+                    ),
+                ),
+                ticket_info=ActivityTicketInfo(type=None, notes=evergreen_activity.booking_url)
+                if evergreen_activity.is_bookable
+                else None,
+                photos=None,
+                website_uri=None,
+                door_tips=None,
+                insider_tips=None,
+                parking_tips=None,
+            )
+            return self.activity
 
         # CASE 3: Recommend a bar or an ice cream shop as a fallback activity.
         is_evening = is_early_evening(self.survey.start_time_utc, self.survey.timezone) or is_late_evening(

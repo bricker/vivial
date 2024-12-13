@@ -79,7 +79,7 @@ async def _get_event_details(
                     session=db_session,
                     id=UUID(source_id),
                 )
-            lat, lon = details.coordinates_to_lat_lon()
+            lat, lon = details.coordinates_lat_lon
             name = details.title
             address1 = details.address.address1
             address2 = details.address.address2

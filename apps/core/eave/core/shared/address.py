@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from textwrap import dedent
 
 
 @dataclass
@@ -9,3 +10,9 @@ class Address:
     state: str
     zip: str
     country: str
+
+    def formatted(self) -> str:
+        return dedent(f"""
+            {self.address1} {self.address2}
+            {self.city}, {self.state} {self.zip}
+            """).strip()

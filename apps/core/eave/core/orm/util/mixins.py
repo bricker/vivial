@@ -1,4 +1,5 @@
 from datetime import datetime
+from functools import cached_property
 from typing import cast
 from zoneinfo import ZoneInfo
 
@@ -27,6 +28,7 @@ class CoordinatesMixin:
         type_=Geography(geometry_type="POINT", srid=SpatialReferenceSystemId.LAT_LON)
     )
 
-    def coordinates_to_lat_lon(self) -> tuple[float, float]:
+    @cached_property
+    def coordinates_lat_lon(self) -> tuple[float, float]:
         geometry = cast(Point, shapely.wkb.loads(bytes(self.coordinates.data)))
         return (geometry.x, geometry.y)
