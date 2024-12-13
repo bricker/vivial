@@ -1,3 +1,4 @@
+import math
 from datetime import datetime
 from uuid import UUID, uuid4
 
@@ -15,6 +16,7 @@ from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.graphql.types.search_region import SearchRegion
 from eave.core.graphql.types.survey import Survey
 from eave.core.lib.event_helpers import get_activity, get_restaurant
+from eave.core.lib.geo import GeoPoint
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.outing_activity import OutingActivityOrm
@@ -22,7 +24,6 @@ from eave.core.orm.outing_reservation import OutingReservationOrm
 from eave.core.orm.search_region import _SEARCH_REGIONS_TABLE, SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
-from eave.stdlib.geo import haversine_distance
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 
 # TODO: Remove once Date Picked UI is complete.
@@ -47,8 +48,10 @@ MOCK_OUTING = Outing(
         name="Zarape Cocina & Cantina",
         location=Location(
             directions_uri="https://g.co/kgs/o6Z9PpR",
-            latitude=0,
-            longitude=0,
+            coordinates=GeoPoint(
+                lat=0,
+                lon=0,
+            ),
             formatted_address="8351 Santa Monica Blvd, West Hollywood, CA, 90069",
         ),
         photos=Photos(
@@ -82,8 +85,10 @@ MOCK_OUTING = Outing(
             name="The Comedy Store, Main Room",
             location=Location(
                 directions_uri="https://g.co/kgs/h1SY9De",
-                latitude=0,
-                longitude=0,
+                coordinates=GeoPoint(
+                    lat=0,
+                    lon=0,
+                ),
                 formatted_address="8433 Sunset Blvd, Hollywood, CA, 90069",
             ),
         ),
@@ -151,44 +156,23 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
     )
 
     activity_region = restaurant_region = None
+    activity_curr_min_dist = restaurant_curr_min_dist = math.inf
     # get the search region closest to each event
     for region in (SearchRegionOrm.one_or_exception(search_region_id=area_id) for area_id in survey.search_area_ids):
         if activity:
-            if not activity_region:
+            # see if dist to `activity` from `region` is less than from current closest `activity_region`
+            dist_from_region_center = activity.venue.location.coordinates.haversine_distance(
+                to_point=region.area.center
+            )
+            if dist_from_region_center < activity_curr_min_dist:
+                activity_curr_min_dist = dist_from_region_center
                 activity_region = region
-            else:
-                activity_loc = activity.venue.location
-                # see if dist to `activity` from `region` is less than from current closest `activity_region`
-                if haversine_distance(
-                    activity_loc.latitude,
-                    activity_loc.longitude,
-                    region.area.center.lat,
-                    region.area.center.lon,
-                ) < haversine_distance(
-                    activity_region.area.center.lat,
-                    activity_region.area.center.lon,
-                    region.area.center.lat,
-                    region.area.center.lon,
-                ):
-                    activity_region = region
         if restaurant:
-            if not restaurant_region:
+            # see if dist to `restaurant` from `region` is less than from current closest `restaurant_region`
+            dist_from_region_center = restaurant.location.coordinates.haversine_distance(to_point=region.area.center)
+            if dist_from_region_center < restaurant_curr_min_dist:
+                restaurant_curr_min_dist = dist_from_region_center
                 restaurant_region = region
-            else:
-                restaurant_loc = restaurant.location
-                # see if dist to `restaurant` from `region` is less than from current closest `restaurant_region`
-                if haversine_distance(
-                    restaurant_loc.latitude,
-                    restaurant_loc.longitude,
-                    region.area.center.lat,
-                    region.area.center.lon,
-                ) < haversine_distance(
-                    restaurant_region.area.center.lat,
-                    restaurant_region.area.center.lon,
-                    region.area.center.lat,
-                    region.area.center.lon,
-                ):
-                    restaurant_region = region
 
     return Outing(
         id=input.id,
