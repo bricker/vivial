@@ -1,12 +1,21 @@
 import { LOCALE, MONTH_DAY_LABELS, WEEKDAY_LABELS } from "./constant";
 
-export function getTimeOfDay(date: Date): string {
+/**
+ * 6:00 PM -> 6pm
+ * 6:30 PM -> 6:30pm
+ *
+ * if stripZeroes:
+ * 6:00 PM -> 6:00pm
+ * 6:30 PM -> 6:30pm
+ */
+export function getTimeOfDay(date: Date, stripZeroes: boolean = true): string {
   const formattedDate = date.toLocaleTimeString(LOCALE, {
     hour12: true,
     hour: "numeric",
     minute: "numeric",
   });
-  return formattedDate.replace(/ |:00/g, "").toLowerCase(); // 6:00 PM -> 6pm, 6:30 PM -> 6:30pm
+  const charsToStrip = stripZeroes ? / |:00/g : / /g;
+  return formattedDate.replace(charsToStrip, "").toLowerCase();
 }
 
 export function getDayOfMonth(date: Date): string {
@@ -19,6 +28,13 @@ export function getDayOfWeek(date: Date): string {
 
 export function getMonth(date: Date): string {
   return date.toLocaleDateString(LOCALE, { month: "short" });
+}
+
+export function getDate(date: Date): number | null {
+  if (isNaN(date.getDate())) {
+    return null;
+  }
+  return date.getDate();
 }
 
 export function isTomorrow(date: Date): boolean {

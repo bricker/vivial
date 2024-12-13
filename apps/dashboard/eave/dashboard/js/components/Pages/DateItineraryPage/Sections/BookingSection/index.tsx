@@ -12,7 +12,7 @@ import Modal from "$eave-dashboard/js/components/Modal";
 const Section = styled("section")(() => ({}));
 
 const BadgeImg = styled("img")(() => ({
-  height: rem("24px"),
+  height: rem(24),
   maxHeight: 32,
 }));
 
@@ -28,7 +28,13 @@ const BookingSection = () => {
   if (outing) {
     return (
       <Section>
-        <Modal title="Booking Info" onClose={toggleBookingOpen} open={bookingOpen} badge={stripeBadge} thinPadding>
+        <Modal
+          title="Booking Info"
+          onClose={toggleBookingOpen}
+          open={bookingOpen}
+          badge={stripeBadge}
+          padChildren={false}
+        >
           <CheckoutReservation outingId={outing.id} />
         </Modal>
         {/* <button onClick={toggleBookingOpen}>TEMP: Open Booking Modal</button> */}
