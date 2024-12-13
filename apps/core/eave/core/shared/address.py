@@ -10,8 +10,17 @@ class Address:
     zip: str | None
     country: str | None
 
-    @property
+    @strawberry.field
     def formatted_multiline(self) -> str:
+        return self.formatted_multiline_internal
+
+    @strawberry.field
+    def formatted_singleline(self) -> str:
+        return self.formatted_singleline_internal
+
+    @property
+    def formatted_multiline_internal(self) -> str:
+        """Not exposed to GraphQL"""
         out = ""
 
         if self.address1:
@@ -48,5 +57,6 @@ class Address:
         return out
 
     @property
-    def formatted_singleline(self) -> str:
-        return self.formatted_multiline.replace("\n", ", ")
+    def formatted_singleline_internal(self) -> str:
+        """Not exposed to GraphQL"""
+        return self.formatted_multiline_internal.replace("\n", ", ")

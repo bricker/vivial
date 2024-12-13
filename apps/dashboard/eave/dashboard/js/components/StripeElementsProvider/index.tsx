@@ -10,7 +10,11 @@ const StripeElementsProvider = ({ children }: { children: React.ReactElement }) 
   const [createPaymentIntent, { isLoading, data }] = useCreatePaymentIntentMutation();
 
   useEffect(() => {
-    void createPaymentIntent({});
+    void createPaymentIntent({
+      input: {
+        outingId: "", // FIXME
+      },
+    });
   }, []);
 
   if (isLoading) {

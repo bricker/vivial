@@ -24,6 +24,8 @@ fragment OutingFields on Outing {
           state
           zip
           country
+          formattedMultiline
+          formattedSingleline
         }
       }
     }
@@ -67,6 +69,8 @@ fragment OutingFields on Outing {
         state
         zip
         country
+        formattedMultiline
+        formattedSingleline
       }
     }
 

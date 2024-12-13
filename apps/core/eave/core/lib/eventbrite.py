@@ -140,7 +140,7 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         venue=ActivityVenue(
             name=venue["name"],
             location=Location(
-                directions_uri=google_maps_directions_url(address.formatted_singleline),
+                directions_uri=google_maps_directions_url(address.formatted_singleline_internal),
                 address=address,
                 coordinates=GeoPoint(
                     lat=float(venue_lat),
