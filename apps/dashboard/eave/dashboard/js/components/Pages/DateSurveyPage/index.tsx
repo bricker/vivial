@@ -1,15 +1,24 @@
-import { OutingBudget, type OutingPreferences } from "$eave-dashboard/js/graphql/generated/graphql";
+import {
+  OutingBudget,
+  type ActivityCategory,
+  type OutingPreferences,
+  type RestaurantCategory,
+} from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
-import { type Category } from "$eave-dashboard/js/types/category";
-import { CookieId, RerollCookie } from "$eave-dashboard/js/types/cookie";
 
-import { useGetOutingPreferencesQuery, useGetSearchRegionsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import {
+  useGetOutingPreferencesQuery,
+  useGetSearchRegionsQuery,
+  usePlanOutingMutation,
+  useUpdateOutingPreferencesMutation,
+} from "$eave-dashboard/js/store/slices/coreApiSlice";
+
+import { plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 import React, { useCallback, useEffect, useState } from "react";
-import { useCookies } from "react-cookie";
-import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
 import { Breakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
@@ -26,7 +35,8 @@ import EditPreferencesOption from "./Options/EditPreferencesOption";
 import LoadingView from "./Views/LoadingView";
 import PreferencesView from "./Views/PreferencesView";
 
-import { getGroupPreferences, getHoursDiff, getInitialStartTime } from "./helpers";
+import { DateSurveyPageVariant } from "./constants";
+import { getInitialStartTime, getPreferenceInputs } from "./helpers";
 
 const PageContainer = styled("div")(({ theme }) => ({
   padding: "24px 16px",
@@ -88,6 +98,12 @@ const CityCopy = styled(Typography)(({ theme }) => ({
   },
 }));
 
+const ErrorCopy = styled(Typography)(({ theme }) => ({
+  color: theme.palette.error.main,
+  margin: "16px 0px",
+  padding: "0px 24px",
+}));
+
 const DateSurveyContainer = styled(Paper)(({ theme }) => ({
   marginTop: 16,
   [theme.breakpoints.up(Breakpoint.Medium)]: {
@@ -102,7 +118,10 @@ const DateSurveyContainer = styled(Paper)(({ theme }) => ({
 const DateSurveyPage = () => {
   const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
   const { data: searchRegionsData, isLoading: searchRegionsAreLoading } = useGetSearchRegionsQuery({});
-  const [cookies, setCookie] = useCookies([CookieId.Reroll]);
+  const [searchParams, _] = useSearchParams();
+  const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
+
+  const [updatePreferences] = useUpdateOutingPreferencesMutation();
   const [budget, setBudget] = useState(OutingBudget.Expensive);
   const [headcount, setHeadcount] = useState(2);
   const [searchAreaIds, setSearchAreaIds] = useState<string[]>([]);
@@ -110,49 +129,53 @@ const DateSurveyPage = () => {
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [areasOpen, setAreasOpen] = useState(false);
   const [outingPreferences, setOutingPreferences] = useState<OutingPreferences | null>(null);
-  const [partnerPreferences, _setPartnerPreferences] = useState<OutingPreferences | null>(null);
-  const [outingPreferencesOpen, setOutingPreferencesOpen] = useState(false);
+  const [partnerPreferences, setPartnerPreferences] = useState<OutingPreferences | null>(null);
+  const [outingPreferencesOpen, setOutingPreferencesOpen] = useState(
+    searchParams.get("v") === DateSurveyPageVariant.PreferencesOpen,
+  );
   const [partnerPreferencesOpen, setPartnerPreferencesOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleSubmit = useCallback(async () => {
-    if (!isLoggedIn) {
-      const rerollCookie = cookies[CookieId.Reroll] as RerollCookie;
-      if (rerollCookie) {
-        const rerolls = rerollCookie.rerolls + 1;
-        const updated = new Date();
-        const hoursSinceUpdate = getHoursDiff(updated, new Date(rerollCookie.updated));
-        setCookie(CookieId.Reroll, { rerolls, updated });
-        if (rerolls >= 4 && hoursSinceUpdate < 24) {
-          navigate(AppRoute.signupMultiReroll);
-        }
-      }
-    }
+    const groupPreferences = getPreferenceInputs(
+      outingPreferences,
+      partnerPreferences,
+      outingPreferencesData?.activityCategoryGroups,
+      outingPreferencesData?.restaurantCategories,
+    );
+    const input = {
+      startTime: startTime.toISOString(),
+      visitorId: await getVisitorId(),
+      groupPreferences,
+      budget,
+      headcount,
+      searchAreaIds,
+    };
+    await planOuting({ input });
+  }, [isLoggedIn, outingPreferencesData, budget, headcount, searchAreaIds, startTime]);
 
-    const _visitorId = await getVisitorId();
-    const _groupPreferences = getGroupPreferences(outingPreferences, partnerPreferences);
-    // TODO: return default preferences if no preferences have been selected.
-    // TODO: call planOuting mutation.
-  }, [cookies, isLoggedIn]);
+  const handleSubmitPreferences = useCallback(
+    async (restaurantCategories: RestaurantCategory[], activityCategories: ActivityCategory[]) => {
+      setOutingPreferences({ restaurantCategories, activityCategories });
+      await updatePreferences({
+        input: {
+          restaurantCategoryIds: restaurantCategories.map((c) => c.id),
+          activityCategoryIds: activityCategories.map((c) => c.id),
+        },
+      });
+    },
+    [],
+  );
 
-  const handleSubmitRestaurantPreferences = useCallback((_categories: Category[]) => {
-    // TODO: call preferences mutation.
-    // TODO: set outing preferences.
-  }, []);
-
-  const handleSubmitActivityPreferences = useCallback((_categories: Category[]) => {
-    // TODO: call preferences mutation.
-    // TODO: set outing preferences.
-  }, []);
-
-  const handlePartnerRestaurantPreferences = useCallback((_categories: Category[]) => {
-    // TODO: set partner preferences.
-  }, []);
-
-  const handlePartnerActivityPreferences = useCallback((_categories: Category[]) => {
-    // TODO: set partner preferences.
-  }, []);
+  const handlePartnerPreferences = useCallback(
+    (restaurantCategories: RestaurantCategory[], activityCategories: ActivityCategory[]) => {
+      setPartnerPreferences({ restaurantCategories, activityCategories });
+    },
+    [],
+  );
 
   const handleSelectHeadcount = useCallback((value: number) => {
     setHeadcount(value);
@@ -181,6 +204,18 @@ const DateSurveyPage = () => {
   }, [areasOpen]);
 
   useEffect(() => {
+    if (planOutingData) {
+      if (planOutingData.planOuting?.__typename === "PlanOutingSuccess") {
+        const outing = planOutingData.planOuting.outing;
+        dispatch(plannedOuting({ outing }));
+        navigate(`${AppRoute.itinerary}/${outing.id}`);
+      } else {
+        setErrorMessage("There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.");
+      }
+    }
+  }, [planOutingData]);
+
+  useEffect(() => {
     if (searchRegionsData?.searchRegions) {
       setSearchAreaIds(searchRegionsData.searchRegions.map((region) => region.id));
     }
@@ -193,15 +228,6 @@ const DateSurveyPage = () => {
     }
   }, [outingPreferencesData]);
 
-  useEffect(() => {
-    if (!cookies[CookieId.Reroll]) {
-      setCookie(CookieId.Reroll, {
-        updated: new Date(),
-        rerolls: 0,
-      });
-    }
-  }, [cookies]);
-
   if (searchRegionsAreLoading) {
     return <LoadingView />;
   }
@@ -213,8 +239,7 @@ const DateSurveyPage = () => {
           title="Get personalized recommendations"
           subtitle="Your saved preferences are used to make more personalized recommendations."
           outingPreferences={outingPreferences}
-          onSubmitRestaurants={handleSubmitRestaurantPreferences}
-          onSubmitActivities={handleSubmitActivityPreferences}
+          onSubmit={handleSubmitPreferences}
           onClose={() => setOutingPreferencesOpen(false)}
         />
       );
@@ -225,8 +250,7 @@ const DateSurveyPage = () => {
           title="Add partner preferences"
           subtitle="We’ll use your saved preferences and your partner preferences to make recommendations."
           outingPreferences={partnerPreferences}
-          onSubmitRestaurants={handlePartnerRestaurantPreferences}
-          onSubmitActivities={handlePartnerActivityPreferences}
+          onSubmit={handlePartnerPreferences}
           onClose={() => setPartnerPreferencesOpen(false)}
         />
       );
@@ -269,8 +293,10 @@ const DateSurveyPage = () => {
             onSelectBudget={handleSelectBudget}
             onSelectStartTime={toggleDatePickerOpen}
             onSelectSearchArea={toggleAreasOpen}
+            loading={planOutingLoading}
           />
         </DateSurveyContainer>
+        {errorMessage && <ErrorCopy>ERROR: {errorMessage}</ErrorCopy>}
       </PageContentContainer>
       <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
         <DateAreaSelections cta="Save" onSubmit={handleSelectSearchAreas} regions={searchRegionsData?.searchRegions} />

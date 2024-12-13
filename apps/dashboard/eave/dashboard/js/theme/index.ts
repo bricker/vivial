@@ -35,7 +35,8 @@ export const theme = createTheme({
       disabled: colors.midGreySecondaryField,
     },
     field: {
-      background: colors.fieldBackground,
+      primary: colors.fieldBackground.primary,
+      secondary: colors.fieldBackground.secondary,
     },
     background: {
       paper: colors.almostBlackBG,
@@ -103,6 +104,10 @@ export const theme = createTheme({
       fontSize: rem("16px"),
       lineHeight: rem("19px"),
       fontWeight: 400,
+    },
+    body2: {
+      fontSize: rem("12px"),
+      fontWeight: 500,
     },
     button: {
       fontFamily: fontFamilies.quicksand,

@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from eave.core import database
+from eave.core.analytics import ANALYTICS
 from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
 from eave.core.graphql.types.outing import Outing, OutingPreferencesInput
 from eave.core.graphql.types.survey import Survey
@@ -16,6 +17,7 @@ async def create_outing(
     visitor_id: UUID,
     account: AccountOrm | None,
     survey: SurveyOrm,
+    account_id: UUID | None = None,
 ) -> Outing:
     plan = await OutingPlanner(
         individual_preferences=individual_preferences,
@@ -63,6 +65,15 @@ async def create_outing(
         restaurant_arrival_time=plan.restaurant_arrival_time,
         driving_time=None,  # TODO
         survey=Survey.from_orm(outing_orm.survey),
+    )
+
+    ANALYTICS.track(
+        event_name="outing plan created",
+        account_id=account_id,
+        visitor_id=visitor_id,
+        extra_properties={
+            "reroll": True,
+        },
     )
 
     return outing

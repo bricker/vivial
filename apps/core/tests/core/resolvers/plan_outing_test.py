@@ -17,7 +17,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
         vis_id = self.anyuuid()
 
         response = await self.make_graphql_request(
-            "planOutingAnonymous",
+            "planOuting",
             {
                 "input": {
                     "visitorId": f"{vis_id}",
@@ -49,7 +49,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
         vis_id = self.anyuuid()
 
         response = await self.make_graphql_request(
-            "planOutingAuthenticated",
+            "planOuting",
             {
                 "input": {
                     "visitorId": f"{vis_id}",
@@ -72,33 +72,17 @@ class TestPlanOutingEndpoints(BaseTestCase):
         assert result.data
         assert not result.errors
 
-        data = result.data["viewer"]["planOuting"]
+        data = result.data["planOuting"]
         assert data["outing"]["id"] is not None
 
     async def test_replan_authenticated(self) -> None:
         async with self.db_session.begin() as sess:
             account = self.make_account(sess)
-
-            survey = SurveyOrm(
-                account=account,
-                visitor_id=self.anyuuid(),
-                start_time_utc=self.anydatetime(offset=2 * day_seconds),
-                timezone=self.anytimezone(),
-                search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
-                budget=OutingBudget.INEXPENSIVE,
-                headcount=1,
-            )
-            sess.add(survey)
-
-            outing = OutingOrm(
-                visitor_id=survey.visitor_id,
-                survey=survey,
-                account=survey.account,
-            )
-            sess.add(outing)
+            survey = self.make_survey(sess, account)
+            outing = self.make_outing(sess, account, survey)
 
         response = await self.make_graphql_request(
-            "replanOutingAuthenticated",
+            "replanOuting",
             {
                 "input": {
                     "outingId": f"{outing.id}",
@@ -118,31 +102,16 @@ class TestPlanOutingEndpoints(BaseTestCase):
         assert result.data
         assert not result.errors
 
-        data = result.data["viewer"]["replanOuting"]
+        data = result.data["replanOuting"]
         assert data["outing"]["id"] is not None
 
     async def test_replan_anonymous(self) -> None:
         async with self.db_session.begin() as sess:
-            survey = SurveyOrm(
-                account=None,
-                visitor_id=self.anyuuid(),
-                start_time_utc=self.anydatetime(offset=2 * day_seconds),
-                timezone=self.anytimezone(),
-                search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
-                budget=OutingBudget.INEXPENSIVE,
-                headcount=1,
-            )
-            sess.add(survey)
-
-            outing = OutingOrm(
-                visitor_id=survey.visitor_id,
-                survey=survey,
-                account=survey.account,
-            )
-            sess.add(outing)
+            survey = self.make_survey(sess, account=None)
+            outing = self.make_outing(sess, survey=survey, account=None)
 
         response = await self.make_graphql_request(
-            "replanOutingAnonymous",
+            "replanOuting",
             {
                 "input": {
                     "outingId": f"{outing.id}",
@@ -167,7 +136,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
     async def test_replan_anonymous_bad_outing_id(self) -> None:
         # try to replan an outing that doesn't exist
         response = await self.make_graphql_request(
-            "replanOutingAnonymous",
+            "replanOuting",
             {
                 "input": {
                     "outingId": f"{self.anyuuid()}",

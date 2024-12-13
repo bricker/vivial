@@ -1,5 +1,0 @@
-mutation ReplanOutingAnonymous($input: ReplanOutingInput!) {
-  replanOuting(input: $input) {
-    ...ReplanOutingFields
-  }
-}

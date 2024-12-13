@@ -1,0 +1,26 @@
+mutation PlanOuting($input: PlanOutingInput!) {
+  planOuting(input: $input) {
+    ... on PlanOutingSuccess {
+      outing {
+        id
+        headcount
+        activity {
+          sourceId
+          source
+          name
+        }
+        activityStartTime
+        restaurant {
+          sourceId
+          source
+          name
+        }
+        restaurantArrivalTime
+        drivingTime
+      }
+    }
+    ... on PlanOutingFailure {
+      failureReason
+    }
+  }
+}
