@@ -234,8 +234,8 @@ class OutingPlanner:
         evergreen_query = evergreen_query.where(
             or_(
                 *[
-                    ActivityOrm.activity_category_id == vivial_activity_category_id
-                    for vivial_activity_category_id in self.group_activity_category_preferences
+                    ActivityOrm.activity_category_id == vivial_activity_category.id
+                    for vivial_activity_category in self.group_activity_category_preferences
                 ]
             )
         )
