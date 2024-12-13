@@ -131,6 +131,7 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
         booking = await BookingOrm.build(
             account_id=account.id,
             reserver_details_id=reserver_details.id,
+            survey_id=survey.id,
         ).save(session)
         _account_booking = await AccountBookingOrm.build(
             account_id=account.id,

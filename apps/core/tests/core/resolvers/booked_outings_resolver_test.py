@@ -1,9 +1,13 @@
+from zoneinfo import ZoneInfo
+
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
 from eave.core.orm.booking_reservations_template import BookingReservationTemplateOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
+from eave.core.orm.search_region import SearchRegionOrm
+from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.address import Address
-from eave.core.shared.enums import ActivitySource, RestaurantSource
+from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 
 from ..base import BaseTestCase
 
@@ -18,10 +22,20 @@ class TestBookedOutingsResolver(BaseTestCase):
                 last_name=self.anyalpha(),
                 phone_number=self.anyphonenumber(),
             ).save(db_session)
+            survey = await SurveyOrm.build(
+                visitor_id=self.anyuuid(),
+                start_time_utc=self.anydatetime(future=True),
+                timezone=ZoneInfo("America/Los_Angeles"),
+                search_area_ids=[orm.id for orm in SearchRegionOrm.all()],
+                budget=OutingBudget.EXPENSIVE,
+                headcount=2,
+                account_id=account.id,
+            ).save(db_session)
 
             booking = await BookingOrm.build(
                 account_id=account.id,
                 reserver_details_id=reserver_details.id,
+                survey_id=survey.id,
             ).save(db_session)
 
             await BookingActivityTemplateOrm.build(

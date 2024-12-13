@@ -23,6 +23,12 @@ class BookingOrm(Base):
             ondelete="CASCADE",
             name="accounts_booking_fk",
         ),
+        ForeignKeyConstraint(
+            ["survey_id"],
+            ["surveys.id"],
+            ondelete="CASCADE",
+            name="surveys_booking_fk",
+        ),
         Index(
             "account_id_booking_index",
             "account_id",
@@ -32,6 +38,7 @@ class BookingOrm(Base):
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     account_id: Mapped[UUID] = mapped_column()
     reserver_details_id: Mapped[UUID] = mapped_column()
+    survey_id: Mapped[UUID] = mapped_column()
 
     @classmethod
     def build(
@@ -39,10 +46,12 @@ class BookingOrm(Base):
         *,
         account_id: UUID,
         reserver_details_id: UUID,
+        survey_id: UUID,
     ) -> "BookingOrm":
         obj = BookingOrm(
             account_id=account_id,
             reserver_details_id=reserver_details_id,
+            survey_id=survey_id,
         )
 
         return obj

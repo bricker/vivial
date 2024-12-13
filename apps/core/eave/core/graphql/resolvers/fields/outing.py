@@ -1,4 +1,3 @@
-import math
 from datetime import datetime
 from uuid import UUID, uuid4
 
@@ -15,7 +14,7 @@ from eave.core.graphql.types.photos import Photos
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.graphql.types.search_region import SearchRegion
 from eave.core.graphql.types.survey import Survey
-from eave.core.lib.event_helpers import get_activity, get_restaurant
+from eave.core.lib.event_helpers import get_activity, get_closest_search_region_to_point, get_restaurant
 from eave.core.lib.geo import GeoPoint
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.orm.outing import OutingOrm
@@ -108,7 +107,9 @@ MOCK_OUTING = Outing(
         insider_tips="Order your two drink minimum all at once because it takes a while for the waitress to make the second round. If you sit in the front, expect to get picked on by the comedians.",
         parking_tips="Free open lot behind the building next to the market.",
         category_group=ActivityCategoryGroup.from_orm(
-            ActivityCategoryGroupOrm.one_or_exception(activity_category_id=UUID("988e0bf142564462985a2657602aad1b"))
+            ActivityCategoryGroupOrm.one_or_exception(
+                activity_category_group_id=UUID("988e0bf142564462985a2657602aad1b")
+            )
         ),
     ),
 )
@@ -156,23 +157,11 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
     )
 
     activity_region = restaurant_region = None
-    activity_curr_min_dist = restaurant_curr_min_dist = math.inf
-    # get the search region closest to each event
-    for region in (SearchRegionOrm.one_or_exception(search_region_id=area_id) for area_id in survey.search_area_ids):
-        if activity:
-            # see if dist to `activity` from `region` is less than from current closest `activity_region`
-            dist_from_region_center = activity.venue.location.coordinates.haversine_distance(
-                to_point=region.area.center
-            )
-            if dist_from_region_center < activity_curr_min_dist:
-                activity_curr_min_dist = dist_from_region_center
-                activity_region = region
-        if restaurant:
-            # see if dist to `restaurant` from `region` is less than from current closest `restaurant_region`
-            dist_from_region_center = restaurant.location.coordinates.haversine_distance(to_point=region.area.center)
-            if dist_from_region_center < restaurant_curr_min_dist:
-                restaurant_curr_min_dist = dist_from_region_center
-                restaurant_region = region
+    regions = [SearchRegionOrm.one_or_exception(search_region_id=area_id) for area_id in survey.search_area_ids]
+    if activity:
+        activity_region = get_closest_search_region_to_point(regions=regions, point=activity.venue.location.coordinates)
+    if restaurant:
+        restaurant_region = get_closest_search_region_to_point(regions=regions, point=restaurant.location.coordinates)
 
     return Outing(
         id=input.id,

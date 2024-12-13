@@ -4,9 +4,13 @@ from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
 from eave.core.graphql.types.outing import Outing, OutingPreferencesInput
+from eave.core.graphql.types.search_region import SearchRegion
+from eave.core.graphql.types.survey import Survey
+from eave.core.lib.event_helpers import get_closest_search_region_to_point
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.outing_activity import OutingActivityOrm
 from eave.core.orm.outing_reservation import OutingReservationOrm
+from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
 
 
@@ -48,14 +52,27 @@ async def create_outing(
                 headcount=survey.headcount,
             ).save(session=db_session)
 
+        activity_region = restaurant_region = None
+        regions = [SearchRegionOrm.one_or_exception(search_region_id=area_id) for area_id in survey.search_area_ids]
+        if plan.activity:
+            activity_region = get_closest_search_region_to_point(
+                regions=regions, point=plan.activity.venue.location.coordinates
+            )
+        if plan.restaurant:
+            restaurant_region = get_closest_search_region_to_point(
+                regions=regions, point=plan.restaurant.location.coordinates
+            )
+
         outing = Outing(
             id=outing_orm.id,
-            headcount=survey.headcount,
+            survey=Survey.from_orm(survey),
             activity=plan.activity,
             activity_start_time=plan.activity_start_time,
             restaurant=plan.restaurant,
             restaurant_arrival_time=plan.restaurant_arrival_time,
             driving_time=None,  # TODO
+            activity_region=SearchRegion.from_orm(activity_region) if activity_region else None,
+            restaurant_region=SearchRegion.from_orm(restaurant_region) if restaurant_region else None,
         )
 
     ANALYTICS.track(

@@ -1,10 +1,13 @@
 from datetime import UTC
+from zoneinfo import ZoneInfo
 
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.booking_activities_template import BookingActivityTemplateOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
+from eave.core.orm.search_region import SearchRegionOrm
+from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.address import Address
-from eave.core.shared.enums import ActivitySource
+from eave.core.shared.enums import ActivitySource, OutingBudget
 
 from ..base import BaseTestCase
 
@@ -13,6 +16,16 @@ class TestBookingActivityTemplateOrm(BaseTestCase):
     async def test_create_booking_activity_template_orm(self) -> None:
         async with self.db_session.begin() as session:
             account = await self.make_account(session)
+
+            survey = await SurveyOrm.build(
+                visitor_id=self.anyuuid(),
+                start_time_utc=self.anydatetime(future=True),
+                timezone=ZoneInfo("America/Los_Angeles"),
+                search_area_ids=[orm.id for orm in SearchRegionOrm.all()],
+                budget=OutingBudget.EXPENSIVE,
+                headcount=2,
+                account_id=account.id,
+            ).save(session)
 
             reserver_details = await ReserverDetailsOrm.build(
                 account_id=account.id,
@@ -24,6 +37,7 @@ class TestBookingActivityTemplateOrm(BaseTestCase):
             booking = await BookingOrm.build(
                 account_id=account.id,
                 reserver_details_id=reserver_details.id,
+                survey_id=survey.id,
             ).save(session)
 
             await BookingActivityTemplateOrm.build(

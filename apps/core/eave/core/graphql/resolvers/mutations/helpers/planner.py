@@ -12,7 +12,7 @@ from eave.core.graphql.types.activity import Activity
 from eave.core.graphql.types.outing import OutingPreferencesInput
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.lib.eventbrite import activity_from_eventbrite_event
-from eave.core.lib.geo import Distance, GeoArea, GeoPoint
+from eave.core.lib.geo import Distance, GeoArea
 from eave.core.lib.google_places import (
     activity_from_google_place,
     get_places_nearby,
@@ -300,9 +300,7 @@ class OutingPlanner:
         if self.activity:
             search_areas = [
                 GeoArea(
-                    center=GeoPoint(
-                        lat=self.activity.venue.location.latitude, lon=self.activity.venue.location.longitude
-                    ),
+                    center=self.activity.venue.location.coordinates,
                     rad=Distance(miles=5),
                 ),
             ]
