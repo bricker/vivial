@@ -102,7 +102,7 @@ const CondensedView = () => {
           </div>
         </div>
         <ImgContainer>
-          <Img src={restaurant.photos?.coverPhotoUri || ""} />
+          <Img src={restaurant.photos.coverPhoto?.src || ""} />
         </ImgContainer>
       </ViewContainer>
     );
