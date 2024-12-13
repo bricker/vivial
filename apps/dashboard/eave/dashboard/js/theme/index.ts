@@ -105,6 +105,10 @@ export const theme = createTheme({
       lineHeight: rem("19px"),
       fontWeight: 400,
     },
+    body1: {
+      fontSize: rem("14px"),
+      lineHeight: rem("22px"),
+    },
     body2: {
       fontSize: rem("12px"),
       fontWeight: 500,

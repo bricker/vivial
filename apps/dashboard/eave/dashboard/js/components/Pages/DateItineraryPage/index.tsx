@@ -1,3 +1,4 @@
+import { useGetOutingQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { styled } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
@@ -8,9 +9,9 @@ import { RootState } from "$eave-dashboard/js/store";
 import { plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
 import { CookieId } from "$eave-dashboard/js/types/cookie";
 
-import { useGetOutingQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import BookingSection from "./Sections/BookingSection";
 import LogisticsSection from "./Sections/LogisticsSection";
+import RestaurantSection from "./Sections/RestaurantSection";
 
 const PageContainer = styled("div")(() => ({}));
 
@@ -69,6 +70,7 @@ const DateItineraryPage = () => {
     <PageContainer>
       <LogisticsSection />
       <BookingSection />
+      <RestaurantSection />
     </PageContainer>
   );
 };
