@@ -2,4 +2,5 @@ fragment PricingFields on Pricing {
   taxCents
   baseCostCents
   feeCents
+  totalCostCents
 }

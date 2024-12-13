@@ -89,7 +89,7 @@ const FooterText = styled(Typography)(() => ({
   textAlign: "center",
 }));
 
-function hasPaidActivity(outing: Outing | null): boolean {
+function hasPaidActivity(outing?: Outing | null): boolean {
   if (!outing?.activity) {
     return false;
   }
@@ -129,7 +129,7 @@ const CheckoutForm = ({
   const [reserverDetails, setReserverDetails] = useState(
     localReserverDetails || { id: "", firstName: "", lastName: "", phoneNumber: "" },
   );
-  const [outing, setOuting] = useState<Outing | null>(localOuting);
+  const [outing, setOuting] = useState<Outing | null | undefined>(localOuting);
 
   const submissionIsLoading = createBookingIsLoading || updateDetailsIsLoading || submitDetailsIsLoading;
   // only prevent submit on internalError since that can be fixed w/o another submit

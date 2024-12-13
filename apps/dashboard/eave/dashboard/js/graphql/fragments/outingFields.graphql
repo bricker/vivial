@@ -16,10 +16,7 @@ fragment OutingFields on Outing {
     venue {
       name
       location {
-        directionsUri
-        address {
-          ...AddressFields
-        }
+        ...LocationFields
       }
     }
     photos {
@@ -48,10 +45,7 @@ fragment OutingFields on Outing {
     customerFavorites
 
     location {
-      directionsUri
-      address {
-        ...AddressFields
-      }
+      ...LocationFields
     }
 
     photos {
