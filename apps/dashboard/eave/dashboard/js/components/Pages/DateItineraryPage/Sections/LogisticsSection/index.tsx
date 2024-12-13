@@ -85,7 +85,7 @@ const LogisticsSection = () => {
   const { data: searchRegionsData } = useGetSearchRegionsQuery({});
   const outing = useSelector((state: RootState) => state.outing.details);
   const [startTime, setStartTime] = useState(new Date(outing?.restaurantArrivalTime || ""));
-  const [headcount, setHeadcount] = useState(outing?.headcount || 2);
+  const [headcount, setHeadcount] = useState(outing?.survey.headcount || 2);
   const [replanDisabled, setReplanDisabled] = useState(true);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [areasOpen, setAreasOpen] = useState(false);
@@ -145,13 +145,12 @@ const LogisticsSection = () => {
 
   useEffect(() => {
     if (outing) {
-      setStartTime(new Date(outing?.restaurantArrivalTime || ""));
-      setHeadcount(outing?.headcount || 2);
-
-      // TODO: get budget from outing object (pending).
-      // TODO: get search area Ids from outing object (pending).
-      setBudget(OutingBudget.Expensive);
-      setSearchAreaIds(["354c2020-6227-46c1-be04-6f5965ba452d", "94d05616-887a-440e-a2c5-c06ece510877"]);
+      setStartTime(new Date(outing.restaurantArrivalTime || ""));
+      setHeadcount(outing.survey.headcount || 2);
+      setBudget(outing.survey.budget);
+      setSearchAreaIds(
+        [outing.restaurantRegion?.id, outing.activityRegion?.id].filter((region) => region !== undefined) as string[],
+      );
     }
   }, [outing]);
 

@@ -3,7 +3,10 @@ mutation PlanOuting($input: PlanOutingInput!) {
     ... on PlanOutingSuccess {
       outing {
         id
-        headcount
+        survey {
+          headcount
+          budget
+        }
         activity {
           sourceId
           source

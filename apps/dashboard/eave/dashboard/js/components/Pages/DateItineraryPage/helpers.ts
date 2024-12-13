@@ -6,13 +6,13 @@ import { getMultiRegionLabel } from "$eave-dashboard/js/util/region";
 
 export function getTotalCost(outing: Outing | null): string | null {
   if (outing?.activity) {
-    const { headcount, activity } = outing;
+    const { activity } = outing;
     const ticketInfo = activity.ticketInfo;
     if (ticketInfo) {
       const cost = ticketInfo.cost || 0;
       const fee = ticketInfo.fee || 0;
       const tax = ticketInfo.tax || 0;
-      const totalCost = (cost + fee + tax) * headcount;
+      const totalCost = (cost + fee + tax) * outing.survey.headcount;
       if (totalCost) {
         return `$${(totalCost / 100).toFixed(2)}`;
       }

@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from enum import IntEnum
 
 import geoalchemy2.shape
+import strawberry
 from geoalchemy2 import WKBElement
 from shapely import Point
 
@@ -20,7 +21,7 @@ class Distance:
         return self.miles * 1609.34
 
 
-@dataclass(kw_only=True)
+@strawberry.type
 class GeoPoint:
     lat: float
     lon: float
