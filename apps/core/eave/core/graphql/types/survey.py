@@ -25,11 +25,9 @@ class Survey:
             budget=orm.budget,
             headcount=orm.headcount,
             search_regions=[
-                SearchRegion.from_orm(
-                    SearchRegionOrm.one_or_exception(search_region_id=search_region_id)
-                )
+                SearchRegion.from_orm(SearchRegionOrm.one_or_exception(search_region_id=search_region_id))
                 for search_region_id in orm.search_area_ids
-            ]
+            ],
         )
 
 

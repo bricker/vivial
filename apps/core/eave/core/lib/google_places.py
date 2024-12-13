@@ -81,7 +81,7 @@ async def activity_from_google_place(places_client: PlacesAsyncClient, *, place:
         description=place.editorial_summary,
         photos=photos,
         pricing=Pricing(),  # Currently activities from Google Places (ice cream shop or bar) don't have pricing (i.e., we don't collect payment)
-        ticket_info=None, # No tickets for activity from Google Places
+        ticket_info=None,  # No tickets for activity from Google Places
         venue=ActivityVenue(name=place.display_name.text, location=location_from_google_place(place)),
         website_uri=place.website_uri,
         door_tips=None,

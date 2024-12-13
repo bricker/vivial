@@ -142,8 +142,12 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         pricing=max_pricing,
         ticket_info=TicketInfo(
             name=chosen_ticket_class.get("display_name"),
-            notes=chosen_ticket_class.get("description"), # FOXME: This is probably not the info we want for this field.
-        ) if chosen_ticket_class else None,
+            notes=chosen_ticket_class.get(
+                "description"
+            ),  # FOXME: This is probably not the info we want for this field.
+        )
+        if chosen_ticket_class
+        else None,
         venue=ActivityVenue(
             name=venue["name"],
             location=Location(

@@ -1,11 +1,8 @@
 import random
 
 from eave.core.orm.activity_category import ActivityCategoryOrm
-from eave.core.orm.outing import OutingOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
-from eave.core.orm.survey import SurveyOrm
-from eave.core.shared.enums import OutingBudget
 
 from ..base import BaseTestCase
 

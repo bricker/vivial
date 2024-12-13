@@ -175,7 +175,6 @@ MOCK_OUTING = Outing(
 )
 
 
-
 @strawberry.input
 class OutingInput:
     id: UUID

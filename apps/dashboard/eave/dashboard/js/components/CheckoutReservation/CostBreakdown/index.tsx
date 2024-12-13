@@ -70,14 +70,14 @@ function buildBreakdowns(outing: Outing): Breakdown[] {
   }
 
   if (outing.activity) {
-    const cost = outing.activity.ticketInfo?.cost || 0;
+    const baseCost = outing.activity.pricing.baseCostCents;
     breakdown.push({
       costName: outing.activity.name,
-      costValue: currencyFormatter.format(cost),
+      costValue: currencyFormatter.format(baseCost),
     });
 
-    if (outing.activity.ticketInfo?.fee || outing.activity.ticketInfo?.tax) {
-      const taxFee = (outing.activity.ticketInfo.fee ?? 0) + (outing.activity.ticketInfo.tax ?? 0);
+    if (outing.activity.pricing.feeCents || outing.activity.pricing.taxCents) {
+      const taxFee = outing.activity.pricing.feeCents + outing.activity.pricing.taxCents;
 
       breakdown.push({
         costName: "3rd party Service Fees & Taxes",
@@ -95,10 +95,14 @@ function buildBreakdowns(outing: Outing): Breakdown[] {
 }
 
 const CostBreakdown = ({ outing }: { outing: Outing }) => {
-  const costDetails = outing.activity?.ticketInfo;
-  const totalCost = currencyFormatter.format(
-    (costDetails?.cost ?? 0) + (costDetails?.fee ?? 0) + (costDetails?.tax ?? 0),
-  );
+  let totalCost: string;
+
+  if (outing.activity) {
+    totalCost = currencyFormatter.format(outing.activity.pricing.totalCostCents);
+  } else {
+    totalCost = "$0.00";
+  }
+
   const breakdown = buildBreakdowns(outing);
   return (
     <>

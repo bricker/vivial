@@ -44,7 +44,7 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
             supplemental_photos=[Photo.from_orm(image) for image in images[1:]],
         ),
         pricing=Pricing(),  # FIXME
-        ticket_info=TicketInfo(name="FIXME", notes="FIXME"), # FIXME
+        ticket_info=TicketInfo(name="FIXME", notes="FIXME"),  # FIXME
         website_uri=activity.booking_url,
         door_tips=None,
         insider_tips=None,

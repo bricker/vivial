@@ -90,9 +90,13 @@ const FooterText = styled(Typography)(() => ({
 }));
 
 function hasPaidActivity(outing: Outing | null): boolean {
-  const costData = outing?.activity?.ticketInfo;
-  return !!(costData?.cost || costData?.fee || costData?.tax);
+  if (!outing?.activity) {
+    return false;
+  }
+
+  return outing.activity.pricing.totalCostCents > 0;
 }
+
 const CheckoutForm = ({
   outingId,
   showStripeBadge,

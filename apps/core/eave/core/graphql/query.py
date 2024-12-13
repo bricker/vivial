@@ -17,12 +17,11 @@ from eave.core.graphql.types.search_region import SearchRegion
 @strawberry.type
 class Query:
     search_regions: list[SearchRegion] = strawberry.field(resolver=list_search_regions_query)
-    outing: Outing = strawberry.field(resolver=get_outing_query)
+    outing: Outing | None = strawberry.field(resolver=get_outing_query)
     activity_category_groups: list[ActivityCategoryGroup] = strawberry.field(
         resolver=list_activity_category_groups_query
     )
     restaurant_categories: list[RestaurantCategory] = strawberry.field(resolver=list_restaurant_categories_query)
-    outing: Outing | None = strawberry.field(resolver=get_outing_query)
 
     @strawberry.field(extensions=[AuthenticationExtension()])
     def viewer(
