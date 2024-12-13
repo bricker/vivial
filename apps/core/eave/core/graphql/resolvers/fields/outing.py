@@ -121,7 +121,7 @@ class OutingInput:
 
 
 async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: OutingInput) -> Outing:
-    # return MOCK_OUTING  # TODO: debug
+    return MOCK_OUTING  # TODO: debug
     # return Outing(
     #     id=input.id,
     #     headcount=2,

@@ -90,14 +90,10 @@ const LogisticsSection = () => {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [areasOpen, setAreasOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
-
-  // TODO: get budget from outing object (pending).
-  // TODO: get search area Ids from outing object (pending).
-  const [budget, setBudget] = useState(OutingBudget.Expensive);
-  const [searchAreaIds, setSearchAreaIds] = useState<string[]>([
-    "354c2020-6227-46c1-be04-6f5965ba452d",
-    "94d05616-887a-440e-a2c5-c06ece510877",
-  ]);
+  const [budget, setBudget] = useState(outing?.survey.budget || OutingBudget.Expensive);
+  const [searchAreaIds, setSearchAreaIds] = useState<string[]>(
+    [outing?.restaurantRegion?.id, outing?.activityRegion?.id].filter((region) => region !== undefined) as string[],
+  );
 
   const handleReplan = useCallback(async () => {
     // TODO: Replan outing.
