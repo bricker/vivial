@@ -319,7 +319,9 @@ class TestBookingEndpoints(BaseTestCase):
             )
             session.add(stripe_payment_intent_reference)
 
-        self.mock_stripe_payment_intent.amount += 1000
+        self.mock_stripe_payment_intent.amount = self.getint(
+            "eventbrite.TicketClass.0.cost.value"
+        ) + self.getint("eventbrite.TicketClass.0.fee.value") + self.getint("eventbrite.TicketClass.0.tax.value") + 1000
 
         response = await self.make_graphql_request(
             "createBooking",
