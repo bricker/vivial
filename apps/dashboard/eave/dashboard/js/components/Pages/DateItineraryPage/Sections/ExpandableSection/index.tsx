@@ -19,15 +19,15 @@ const ExpandButton = styled(BaseExpandButton)(() => ({
   bottom: -13,
 }));
 
-interface ExpandableSectionProps {
+interface ExpandableSectionProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
   expanded: boolean;
   onExpand: () => void;
 }
 
-const ExpandableSection = ({ children, expanded, onExpand }: ExpandableSectionProps) => {
+const ExpandableSection = ({ children, expanded, onExpand, ...props }: ExpandableSectionProps) => {
   return (
-    <Section>
+    <Section {...props}>
       {children}
       <ExpandButton onClick={onExpand} expanded={expanded} />
     </Section>

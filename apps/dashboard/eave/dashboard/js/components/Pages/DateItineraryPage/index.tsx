@@ -10,6 +10,7 @@ import { plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
 import { CookieId } from "$eave-dashboard/js/types/cookie";
 
 import BookingSection from "./Sections/BookingSection";
+import DistanceSection from "./Sections/DistanceSection";
 import LogisticsSection from "./Sections/LogisticsSection";
 import RestaurantSection from "./Sections/RestaurantSection";
 
@@ -71,6 +72,7 @@ const DateItineraryPage = () => {
       <LogisticsSection />
       <BookingSection />
       <RestaurantSection />
+      <DistanceSection />
     </PageContainer>
   );
 };
