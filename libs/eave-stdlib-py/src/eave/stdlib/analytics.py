@@ -25,7 +25,7 @@ class AnalyticsTracker:
         self,
         *,
         account_id: UUID,
-        visitor_id: str | None = None,
+        visitor_id: str | None,
         extra_properties: JsonObject | None = None,
     ) -> None:
         """Identify a user.
@@ -42,15 +42,14 @@ class AnalyticsTracker:
         self,
         *,
         event_name: str,
-        account_id: UUID | None = None,
-        visitor_id: str | None = None,
+        account_id: UUID | None,
+        visitor_id: str | None,
         extra_properties: JsonObject | None = None,
     ) -> None:
         """Track a user triggered action.
         At least one of `user_id` or `visitor_id` must be provided.
         https://segment.com/docs/connections/sources/catalog/libraries/server/python/#track
         """
-        assert account_id or visitor_id, "At least one of `user_id` or `visitor_id` must be provided"
         user_id = str(account_id) if account_id else None
         anon_id = visitor_id
         segment.analytics.track(

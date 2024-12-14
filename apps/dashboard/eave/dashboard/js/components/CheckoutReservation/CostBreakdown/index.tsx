@@ -1,4 +1,5 @@
 import { Outing } from "$eave-dashboard/js/graphql/generated/graphql";
+import { currencyFormatter } from "$eave-dashboard/js/util/currency";
 import { Divider, Typography, styled } from "@mui/material";
 import React from "react";
 
@@ -46,11 +47,6 @@ const LineItemContainer = styled("div")(() => ({
 const LineItemText = styled(Typography)<{ bold?: boolean }>(({ bold }) => ({
   fontWeight: bold ? "bold" : "inherit",
 }));
-
-const currencyFormatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-});
 
 type Breakdown = { costName: string; costValue: string };
 
@@ -100,7 +96,7 @@ const CostBreakdown = ({ outing }: { outing: Outing }) => {
   if (outing.activity) {
     totalCost = currencyFormatter.format(outing.activity.pricing.totalCostCents);
   } else {
-    totalCost = "$0.00";
+    totalCost = currencyFormatter.format(0);
   }
 
   const breakdown = buildBreakdowns(outing);

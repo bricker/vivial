@@ -5,11 +5,13 @@ from google.maps.places import PlacesAsyncClient
 from eave.core import database
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.types.activity import Activity, ActivityVenue
+from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.pricing import Pricing
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.graphql.types.ticket_info import TicketInfo
+from eave.core.lib.address import format_address
 from eave.core.lib.eventbrite import get_eventbrite_activity
 from eave.core.lib.google_places import (
     get_google_places_activity,
@@ -35,8 +37,8 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
             name=activity.title,
             location=Location(
                 coordinates=activity.coordinates_to_geopoint(),
-                address=activity.address,
-                directions_uri=google_maps_directions_url(activity.address.formatted_singleline),
+                address=GraphQLAddress.from_address(activity.address),
+                directions_uri=google_maps_directions_url(format_address(activity.address, singleline=True)),
             ),
         ),
         photos=Photos(

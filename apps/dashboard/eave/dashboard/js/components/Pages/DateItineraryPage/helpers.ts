@@ -1,6 +1,7 @@
 import { type Outing, type OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 import { getBudgetLabel } from "$eave-dashboard/js/util/budget";
+import { currencyFormatter } from "$eave-dashboard/js/util/currency";
 import { getDayOfWeek, getMonth, getTimeOfDay } from "$eave-dashboard/js/util/date";
 import { getMultiRegionLabel } from "$eave-dashboard/js/util/region";
 
@@ -8,9 +9,9 @@ export function getTotalCost(outing: Outing | null): string | null {
   if (outing?.activity) {
     const { activity } = outing;
     const pricing = activity.pricing;
-    const totalCost = pricing.totalCostCents;
-    if (totalCost) {
-      return `$${(totalCost / 100).toFixed(2)}`;
+    const totalCostCents = pricing.totalCostCents;
+    if (totalCostCents > 0) {
+      return currencyFormatter.format(totalCostCents / 100);
     }
   }
   return null;

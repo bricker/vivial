@@ -11,13 +11,10 @@ day_seconds = 60 * 60 * 24
 
 class TestPlanOutingEndpoints(BaseTestCase):
     async def test_plan_outing_anonymous(self) -> None:
-        vis_id = self.anyuuid()
-
         response = await self.make_graphql_request(
             "planOuting",
             {
                 "input": {
-                    "visitorId": f"{vis_id}",
                     "startTime": f"{self.anydatetime(offset=2 * day_seconds).isoformat()}",
                     "searchAreaIds": [s.id.hex for s in random.choices(SearchRegionOrm.all(), k=3)],
                     "budget": "INEXPENSIVE",
@@ -43,13 +40,10 @@ class TestPlanOutingEndpoints(BaseTestCase):
         async with self.db_session.begin() as db_session:
             account = self.make_account(db_session)
 
-        vis_id = self.anyuuid()
-
         response = await self.make_graphql_request(
             "planOuting",
             {
                 "input": {
-                    "visitorId": f"{vis_id}",
                     "startTime": f"{self.anydatetime(offset=2 * day_seconds).isoformat()}",
                     "searchAreaIds": [s.id.hex for s in random.choices(SearchRegionOrm.all(), k=3)],
                     "budget": "INEXPENSIVE",
@@ -83,7 +77,6 @@ class TestPlanOutingEndpoints(BaseTestCase):
             {
                 "input": {
                     "outingId": f"{outing.id}",
-                    "visitorId": f"{self.anyuuid()}",
                     "groupPreferences": [
                         {
                             "restaurantCategoryIds": [str(RestaurantCategoryOrm.all()[0].id)],
@@ -112,7 +105,6 @@ class TestPlanOutingEndpoints(BaseTestCase):
             {
                 "input": {
                     "outingId": f"{outing.id}",
-                    "visitorId": f"{self.anyuuid()}",
                     "groupPreferences": [
                         {
                             "restaurantCategoryIds": [str(RestaurantCategoryOrm.all()[0].id)],
@@ -137,7 +129,6 @@ class TestPlanOutingEndpoints(BaseTestCase):
             {
                 "input": {
                     "outingId": f"{self.anyuuid()}",
-                    "visitorId": f"{self.anyuuid()}",
                     "groupPreferences": [
                         {
                             "restaurantCategoryIds": [str(RestaurantCategoryOrm.all()[0].id)],

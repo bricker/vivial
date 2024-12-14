@@ -59,7 +59,11 @@ class TestAccountOrm(BaseTestCase):
         with self.assertRaises(WeakPasswordError):
             async with self.db_session.begin() as session:
                 assert await self.count(session, AccountOrm) == 0
-                AccountOrm(email=self.anyemail(), plaintext_password=None)  # type:ignore - testing what happens if None happens to be passed in at runtime
+                AccountOrm(
+                    session,
+                    email=self.anyemail(),
+                    plaintext_password=None,  # type:ignore - testing what happens if None happens to be passed in at runtime
+                )
 
         async with self.db_session.begin() as session:
             assert await self.count(session, AccountOrm) == 0
@@ -208,6 +212,7 @@ class TestAccountOrm(BaseTestCase):
 
             booking = BookingOrm(
                 session,
+                accounts=[],
                 reserver_details=reserver_details,
             )
 
@@ -228,3 +233,6 @@ class TestAccountOrm(BaseTestCase):
 
             assert fetched_account.outing_preferences is not None
             assert fetched_account.outing_preferences.id == outing_preferences.id
+
+            assert len(booking.accounts) == 1
+            assert booking.accounts[0].id == fetched_account.id

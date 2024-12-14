@@ -139,9 +139,9 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
 
         booking = BookingOrm(
             session,
+            accounts=[account],
             reserver_details=reserver_details,
         )
-        booking.accounts.append(account)
 
         booking.activities.append(
             BookingActivityTemplateOrm(

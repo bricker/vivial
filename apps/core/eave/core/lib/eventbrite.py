@@ -3,6 +3,7 @@ from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.pricing import Pricing
 from eave.core.graphql.types.ticket_info import TicketInfo
+from eave.core.lib.address import format_address
 from eave.core.lib.google_places import google_maps_directions_url
 from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.shared.enums import ActivitySource
@@ -151,7 +152,7 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         venue=ActivityVenue(
             name=venue["name"],
             location=Location(
-                directions_uri=google_maps_directions_url(address.formatted_singleline),
+                directions_uri=google_maps_directions_url(format_address(address, singleline=True)),
                 address=address,
                 coordinates=GeoPoint(
                     lat=float(venue_lat),

@@ -13,7 +13,7 @@ class TestAddressDataclass(BaseTestCase):
             address2=self.anyalpha("address2"),
             city=self.anyalpha("city"),
             state=self.anyusstate("state"),
-            zip_code=self.anydigits("zip", length=5),
+            zip_code=self.anydigits("zip_code", length=5),
             country="US",
         )
 
@@ -38,11 +38,11 @@ class TestAddressDataclass(BaseTestCase):
 
         assert (
             format_address(address, singleline=False)
-            == f"{self.getalpha("address1")} {self.getalpha("address2")}\n{self.getalpha("city")}, {self.getusstate("state")} {self.getdigits("zip")}"
+            == f"{self.getalpha("address1")}, {self.getalpha("address2")}\n{self.getalpha("city")}, {self.getusstate("state")}, {self.getdigits("zip")}"
         )
         assert (
             format_address(address, singleline=True)
-            == f"{self.getalpha("address1")} {self.getalpha("address2")}, {self.getalpha("city")}, {self.getusstate("state")} {self.getdigits("zip")}"
+            == f"{self.getalpha("address1")}, {self.getalpha("address2")}, {self.getalpha("city")}, {self.getusstate("state")}, {self.getdigits("zip")}"
         )
 
     async def test_address_formatted_none(self) -> None:
@@ -83,12 +83,12 @@ class TestAddressDataclass(BaseTestCase):
 
         assert (
             format_address(address, singleline=False)
-            == f"{self.getalpha("address1")}\n{self.getalpha("city")}, {self.getusstate("state")} {self.getdigits("zip")}"
+            == f"{self.getalpha("address1")}\n{self.getalpha("city")}, {self.getusstate("state")}, {self.getdigits("zip")}"
             ""
         )
         assert (
             format_address(address, singleline=True)
-            == f"{self.getalpha("address1")}, {self.getalpha("city")}, {self.getusstate("state")} {self.getdigits("zip")}"
+            == f"{self.getalpha("address1")}, {self.getalpha("city")}, {self.getusstate("state")}, {self.getdigits("zip")}"
             ""
         )
 
@@ -104,11 +104,11 @@ class TestAddressDataclass(BaseTestCase):
 
         assert (
             format_address(address, singleline=False)
-            == f"{self.getalpha("address1")}\n{self.getusstate("state")} {self.getdigits("zip")}"
+            == f"{self.getalpha("address1")}\n{self.getusstate("state")}, {self.getdigits("zip")}"
         )
         assert (
             format_address(address, singleline=True)
-            == f"{self.getalpha("address1")}, {self.getusstate("state")} {self.getdigits("zip")}"
+            == f"{self.getalpha("address1")}, {self.getusstate("state")}, {self.getdigits("zip")}"
         )
 
     async def test_address_formatted_some_fields_2(self) -> None:
@@ -136,9 +136,9 @@ class TestAddressDataclass(BaseTestCase):
 
         assert (
             format_address(address, singleline=False)
-            == f"{self.getalpha("address1")}\n{self.getalpha("city")}{self.getdigits("zip")}"
+            == f"{self.getalpha("address1")}\n{self.getalpha("city")}, {self.getdigits("zip")}"
         )
-        assert format_address(address, singleline=True) == f"{self.getalpha("address1")}, {self.getdigits("zip")}"
+        assert format_address(address, singleline=True) == f"{self.getalpha("address1")}, {self.getalpha("city")}, {self.getdigits("zip")}"
 
     async def test_address_formatted_some_fields_4(self) -> None:
         address = Address(
@@ -163,8 +163,8 @@ class TestAddressDataclass(BaseTestCase):
             country="US",
         )
 
-        assert format_address(address, singleline=False) == f"{self.getalpha("address1")} {self.getalpha("address2")}"
-        assert format_address(address, singleline=True) == f"{self.getalpha("address1")} {self.getalpha("address2")}"
+        assert format_address(address, singleline=False) == f"{self.getalpha("address1")}, {self.getalpha("address2")}"
+        assert format_address(address, singleline=True) == f"{self.getalpha("address1")}, {self.getalpha("address2")}"
 
     async def test_address_formatted_some_fields_6(self) -> None:
         address = Address(
@@ -178,9 +178,9 @@ class TestAddressDataclass(BaseTestCase):
 
         assert (
             format_address(address, singleline=False)
-            == f"{self.getalpha("address1")} {self.getalpha("address2")}\n{self.getalpha("city")}"
+            == f"{self.getalpha("address1")}, {self.getalpha("address2")}\n{self.getalpha("city")}"
         )
         assert (
             format_address(address, singleline=True)
-            == f"{self.getalpha("address1")} {self.getalpha("address2")}, {self.getalpha("city")}"
+            == f"{self.getalpha("address1")}, {self.getalpha("address2")}, {self.getalpha("city")}"
         )

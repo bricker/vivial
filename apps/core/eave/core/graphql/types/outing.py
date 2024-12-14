@@ -24,4 +24,3 @@ class Outing:
     restaurant: Restaurant | None
     restaurant_arrival_time: datetime | None
     driving_time: str | None
-    survey: Survey

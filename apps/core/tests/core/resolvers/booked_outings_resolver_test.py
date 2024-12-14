@@ -15,6 +15,7 @@ class TestBookedOutingsResolver(BaseTestCase):
 
             booking = BookingOrm(
                 session,
+                accounts=[account],
                 reserver_details=reserver_details,
             )
 

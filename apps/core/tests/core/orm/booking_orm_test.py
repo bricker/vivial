@@ -30,11 +30,10 @@ class TestBookingOrms(BaseTestCase):
 
             booking_new = BookingOrm(
                 session,
+                accounts=[account],
                 reserver_details=reserver_details,
                 stripe_payment_intent_reference=stripe_payment_intent_reference,
             )
-
-            booking_new.accounts.append(account)
 
             booking_activity = BookingActivityTemplateOrm(
                 session,
@@ -122,10 +121,9 @@ class TestBookingOrms(BaseTestCase):
 
             booking = BookingOrm(
                 session,
+                accounts=[account],
                 reserver_details=reserver_details,
             )
-
-            booking.accounts.append(account)
 
             booking_activity_template_new = BookingActivityTemplateOrm(
                 session,
@@ -196,10 +194,9 @@ class TestBookingOrms(BaseTestCase):
 
             booking = BookingOrm(
                 session,
+                accounts=[account],
                 reserver_details=reserver_details,
             )
-
-            booking.accounts.append(account)
 
             booking_reservation_template_new = BookingReservationTemplateOrm(
                 session,

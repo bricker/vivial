@@ -43,40 +43,16 @@ class Address(BaseAddress):
         )
 
 def format_address(address: BaseAddress, *, singleline: bool = False) -> str:
-    out = ""
+    line1 = ", ".join(
+        s for s in [address.address1, address.address2] if s
+    )
 
-    if address.address1:
-        out += f"{address.address1}"
+    line2 = ", ".join(
+        s for s in [address.city, address.state, address.zip_code] if s
+    )
 
-    if address.address1 and address.address2:
-        out += " "
-
-    if address.address2:
-        out += f"{address.address2}"
-
-    if not address.city and not address.state and not address.zip_code:
-        return out
-
-    out += "\n"
-
-    if address.city:
-        out += f"{address.city}"
-
-    if not address.state and not address.zip_code:
-        return out
-
-    out += ", "
-
-    if address.state:
-        out += f"{address.state}"
-
-    if address.state and address.zip_code:
-        out += " "
-
-    if address.zip_code:
-        out += f"{address.zip_code}"
-
+    condensed = [s for s in [line1, line2] if s]
     if singleline:
-        out = out.replace("\n", ", ")
-
-    return out
+        return ", ".join(condensed)
+    else:
+        return "\n".join(condensed)

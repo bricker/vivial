@@ -41,7 +41,7 @@ class PaymentIntentInput:
 @strawberry.input
 class CreateBookingInput:
     outing_id: UUID
-    reserver_details_id: UUID  # TODO: Should we get this from AccountOrm?
+    reserver_details_id: UUID
     payment_intent: PaymentIntentInput | None = strawberry.UNSET
 
 
@@ -75,6 +75,7 @@ async def create_booking_mutation(
     input: CreateBookingInput,
 ) -> CreateBookingResult:
     account_id = unwrap(info.context.get("authenticated_account_id"))
+    visitor_id = info.context.get("visitor_id")
 
     try:
         async with database.async_session.begin() as db_session:
@@ -140,11 +141,10 @@ async def create_booking_mutation(
 
             booking = BookingOrm(
                 db_session,
+                accounts=[account],
                 reserver_details=reserver_details,
                 stripe_payment_intent_reference=stripe_payment_intent_reference,
             )
-
-            booking.accounts = [account]
 
             for activity_orm in outing.activities:
                 activity = await get_activity(source=activity_orm.source, source_id=activity_orm.source_id)
@@ -152,6 +152,7 @@ async def create_booking_mutation(
                 if activity:
                     booking.activities.append(
                         BookingActivityTemplateOrm(
+                            db_session,
                             booking=booking,
                             source=activity_orm.source,
                             source_id=activity_orm.source_id,
@@ -160,7 +161,7 @@ async def create_booking_mutation(
                             timezone=activity_orm.timezone,
                             headcount=activity_orm.headcount,
                             external_booking_link=activity.website_uri,
-                            address=activity.venue.location.address,
+                            address=activity.venue.location.address.to_address(),
                             coordinates=activity.venue.location.coordinates,
                             photo_uri=activity.photos.cover_photo.src if activity.photos.cover_photo else None,
                         )
@@ -174,6 +175,7 @@ async def create_booking_mutation(
 
                 booking.reservations.append(
                     BookingReservationTemplateOrm(
+                        db_session,
                         booking=booking,
                         source=reservation_orm.source,
                         source_id=reservation_orm.source_id,
@@ -182,7 +184,7 @@ async def create_booking_mutation(
                         timezone=reservation_orm.timezone,
                         headcount=reservation_orm.headcount,
                         external_booking_link=reservation.website_uri,
-                        address=reservation.location.address,
+                        address=reservation.location.address.to_address(),
                         coordinates=reservation.location.coordinates,
                         photo_uri=reservation.photos.cover_photo.src if reservation.photos.cover_photo else None,
                     )
@@ -204,6 +206,7 @@ async def create_booking_mutation(
     ANALYTICS.track(
         event_name="booking created",
         account_id=account.id,
+        visitor_id=visitor_id,
         extra_properties={
             "booking_constraints": {
                 "headcount": survey.headcount,

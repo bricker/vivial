@@ -53,11 +53,13 @@ class BookingOrm(Base, GetOneByIdMixin):
         self,
         session: AsyncSession | None,
         *,
+        accounts: list[AccountOrm],
         reserver_details: ReserverDetailsOrm,
         stripe_payment_intent_reference: StripePaymentIntentReferenceOrm | None = None,
     ) -> None:
         self.reserver_details = reserver_details
         self.stripe_payment_intent_reference = stripe_payment_intent_reference
+        self.accounts = accounts
 
         if session:
             session.add(self)
