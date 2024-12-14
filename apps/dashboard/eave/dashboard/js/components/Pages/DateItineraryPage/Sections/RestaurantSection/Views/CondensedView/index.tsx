@@ -11,7 +11,7 @@ import Typography from "@mui/material/Typography";
 import RestaurantBadge from "../../RestaurantBadge";
 import BaseRestaurantRating from "../../RestaurantRating";
 
-import { RESERVATION_INFO } from "../constant";
+import { RESERVATION_WARNING } from "../constant";
 
 const ViewContainer = styled("div")(() => ({
   display: "flex",
@@ -91,7 +91,7 @@ const CondensedView = () => {
             <TimeAndTableInfo>
               <TimeInfo>
                 <Time>{getTimeOfDay(arrivalTime, false)}</Time>
-                <TooltipButton info={RESERVATION_INFO} iconColor={colors.lightOrangeAccent} />
+                <TooltipButton info={RESERVATION_WARNING} iconColor={colors.lightOrangeAccent} />
               </TimeInfo>
               <TableInfo>Table for {outing?.survey.headcount}</TableInfo>
             </TimeAndTableInfo>

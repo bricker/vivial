@@ -16,7 +16,7 @@ import { parseAddress } from "$eave-dashboard/js/util/address";
 import { getTimeOfDay } from "$eave-dashboard/js/util/date";
 import { getRestaurantImgUrls } from "../../../../helpers";
 
-import { RESERVATION_INFO } from "../constant";
+import { RESERVATION_WARNING } from "../constant";
 
 const ViewContainer = styled("div")(() => ({
   position: "relative",
@@ -113,9 +113,9 @@ const ExpandedView = () => {
           <ReservationInfo>
             <TimeAndTableInfo>
               <TimeAndTable>
-                {getTimeOfDay(arrivalTime, false)} | Table for {outing?.survey.headcount}
+                {getTimeOfDay(arrivalTime, false)} | Table for {outing.survey.headcount}
               </TimeAndTable>
-              <TooltipButton info={RESERVATION_INFO} iconColor={colors.lightOrangeAccent} iconLarge />
+              <TooltipButton info={RESERVATION_WARNING} iconColor={colors.lightOrangeAccent} iconLarge />
             </TimeAndTableInfo>
             <RestaurantName>{restaurant.name}</RestaurantName>
             <div>
