@@ -1,3 +1,4 @@
+import { type Photos } from "$eave-dashboard/js/graphql/generated/graphql";
 import { RootState } from "$eave-dashboard/js/store";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
@@ -14,7 +15,7 @@ import BaseRestaurantRating from "../../RestaurantRating";
 
 import { parseAddress } from "$eave-dashboard/js/util/address";
 import { getTimeOfDay } from "$eave-dashboard/js/util/date";
-import { getRestaurantImgUrls } from "../../../../helpers";
+import { getImgUrls } from "../../../../helpers";
 
 import { RESERVATION_WARNING } from "../constant";
 
@@ -107,7 +108,7 @@ const ExpandedView = () => {
       <ViewContainer>
         <RestaurantBadge />
         <CarouselContainer>
-          <ImageCarousel imgUrls={getRestaurantImgUrls(restaurant)} />
+          <ImageCarousel imgUrls={getImgUrls(restaurant.photos as Photos)} />
         </CarouselContainer>
         <InfoContainer>
           <ReservationInfo>

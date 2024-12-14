@@ -20,6 +20,15 @@ fragment OutingFields on Outing {
   }
   drivingTime
   activity {
+    categoryGroup {
+      id
+      name
+      activityCategories {
+        id
+        name
+        isDefault
+      }
+    }
     sourceId
     source
     name
