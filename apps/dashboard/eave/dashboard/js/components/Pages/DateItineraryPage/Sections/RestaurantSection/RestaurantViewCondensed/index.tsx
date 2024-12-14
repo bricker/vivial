@@ -8,8 +8,8 @@ import { useSelector } from "react-redux";
 
 import TooltipButton from "$eave-dashboard/js/components/Buttons/TooltipButton";
 import Typography from "@mui/material/Typography";
-import RestaurantBadge from "../../RestaurantBadge";
-import BaseRestaurantRating from "../../RestaurantRating";
+import RestaurantBadge from "../RestaurantBadge";
+import BaseRestaurantRating from "../RestaurantRating";
 
 import { RESERVATION_WARNING } from "../constant";
 
@@ -79,7 +79,7 @@ const RestaurantType = styled(Typography)(({ theme }) => ({
   marginBottom: 4,
 }));
 
-const CondensedView = () => {
+const RestaurantViewCondensed = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
   const arrivalTime = new Date(outing?.restaurantArrivalTime || "");
   const restaurant = outing?.restaurant;
@@ -113,4 +113,4 @@ const CondensedView = () => {
   return null;
 };
 
-export default CondensedView;
+export default RestaurantViewCondensed;

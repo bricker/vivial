@@ -10,12 +10,12 @@ import DirectionsButton from "$eave-dashboard/js/components/Buttons/DirectionsBu
 import TooltipButton from "$eave-dashboard/js/components/Buttons/TooltipButton";
 import ImageCarousel from "$eave-dashboard/js/components/Carousels/ImageCarousel";
 import Typography from "@mui/material/Typography";
-import BaseRestaurantBadge from "../../RestaurantBadge";
-import BaseRestaurantRating from "../../RestaurantRating";
+import BaseRestaurantBadge from "../RestaurantBadge";
+import BaseRestaurantRating from "../RestaurantRating";
 
 import { parseAddress } from "$eave-dashboard/js/util/address";
 import { getTimeOfDay } from "$eave-dashboard/js/util/date";
-import { getImgUrls } from "../../../../helpers";
+import { getImgUrls } from "../../../helpers";
 
 import { RESERVATION_WARNING } from "../constant";
 
@@ -96,7 +96,7 @@ const RestaurantDesc = styled(Typography)(({ theme }) => ({
   marginBottom: 8,
 }));
 
-const ExpandedView = () => {
+const RestaurantViewExpanded = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
   const arrivalTime = new Date(outing?.restaurantArrivalTime || "");
   const restaurant = outing?.restaurant;
@@ -143,4 +143,4 @@ const ExpandedView = () => {
   return null;
 };
 
-export default ExpandedView;
+export default RestaurantViewExpanded;

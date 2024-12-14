@@ -9,12 +9,12 @@ import DirectionsButton from "$eave-dashboard/js/components/Buttons/DirectionsBu
 import ImageCarousel from "$eave-dashboard/js/components/Carousels/ImageCarousel";
 import LongDescription from "$eave-dashboard/js/components/LongDescription";
 import Typography from "@mui/material/Typography";
-import BaseActivityBadge from "../../ActivityBadge";
+import BaseActivityBadge from "../ActivityBadge";
 
 import { parseAddress } from "$eave-dashboard/js/util/address";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 import { getTimeOfDay } from "$eave-dashboard/js/util/date";
-import { getImgUrls } from "../../../../helpers";
+import { getImgUrls } from "../../../helpers";
 
 const ViewContainer = styled("div")(() => ({
   position: "relative",
@@ -86,7 +86,7 @@ const EventbriteLogo = styled("img")(() => ({
   marginBottom: 8,
 }));
 
-const ExpandedView = () => {
+const ActivityViewExpanded = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
   const startTime = new Date(outing?.activityStartTime || "");
   const activity = outing?.activity;
@@ -129,4 +129,4 @@ const ExpandedView = () => {
   return null;
 };
 
-export default ExpandedView;
+export default ActivityViewExpanded;

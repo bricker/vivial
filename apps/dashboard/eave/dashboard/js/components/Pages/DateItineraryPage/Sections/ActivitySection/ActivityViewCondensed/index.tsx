@@ -6,7 +6,7 @@ import React from "react";
 import { useSelector } from "react-redux";
 
 import Typography from "@mui/material/Typography";
-import ActivityBadge from "../../ActivityBadge";
+import ActivityBadge from "../ActivityBadge";
 
 const ViewContainer = styled("div")(() => ({
   display: "flex",
@@ -68,7 +68,7 @@ const ActivityDesc = styled(Typography)(({ theme }) => ({
   },
 }));
 
-const CondensedView = () => {
+const ActivityViewCondensed = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
   const startTime = new Date(outing?.activityStartTime || "");
   const activity = outing?.activity;
@@ -97,4 +97,4 @@ const CondensedView = () => {
   return null;
 };
 
-export default CondensedView;
+export default ActivityViewCondensed;
