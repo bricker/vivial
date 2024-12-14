@@ -7,19 +7,15 @@ from ..base import BaseTestCase
 class TestReserverDetailsOrm(BaseTestCase):
     async def test_valid_reserver_details_record(self) -> None:
         async with self.db_session.begin() as session:
-            account = AccountOrm(
-                email=self.anyemail(),
-                plaintext_password=self.anystr(),
-            )
-            session.add(account)
+            account = self.make_account(session)
 
             reserver_details = ReserverDetailsOrm(
+                session,
                 account=account,
                 first_name=self.anyalpha("first_name"),
                 last_name=self.anyalpha("last_name"),
                 phone_number=self.anyphonenumber("phone_number"),
             )
-            session.add(reserver_details)
 
         assert reserver_details.id is not None
         assert reserver_details.account.id == account.id
@@ -30,19 +26,15 @@ class TestReserverDetailsOrm(BaseTestCase):
 
     async def test_reserver_details_get_one(self) -> None:
         async with self.db_session.begin() as session:
-            account = AccountOrm(
-                email=self.anyemail(),
-                plaintext_password=self.anystr(),
-            )
-            session.add(account)
+            account = self.make_account(session)
 
             reserver_details_new = ReserverDetailsOrm(
+                session,
                 account=account,
                 first_name=self.anyalpha("first_name"),
                 last_name=self.anyalpha("last_name"),
                 phone_number=self.anyphonenumber("phone_number"),
             )
-            session.add(reserver_details_new)
 
         async with self.db_session.begin() as session:
             reserver_details_fetched = await ReserverDetailsOrm.get_one(
@@ -53,13 +45,10 @@ class TestReserverDetailsOrm(BaseTestCase):
 
     async def test_reserver_details_validation(self) -> None:
         async with self.db_session.begin() as session:
-            account = AccountOrm(
-                email=self.anyemail(),
-                plaintext_password=self.anystr(),
-            )
-            session.add(account)
+            account = self.make_account(session)
 
         reserver_details = ReserverDetailsOrm(
+            session,
             account=account,
             first_name=self.anyalpha("first_name"),
             last_name=self.anyalpha("last_name"),

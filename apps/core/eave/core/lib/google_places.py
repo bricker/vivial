@@ -20,7 +20,7 @@ from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.pricing import Pricing
 from eave.core.graphql.types.restaurant import Restaurant
-from eave.core.shared.address import Address
+from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 from eave.core.shared.geo import GeoArea, GeoPoint
 
@@ -123,7 +123,7 @@ class GooglePlaceAddressComponentType(enum.StrEnum):
 
 
 def location_from_google_place(place: Place) -> Location:
-    address = Address(
+    address = GraphQLAddress(
         country=next(
             (
                 component.shortText

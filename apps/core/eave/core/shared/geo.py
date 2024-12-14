@@ -22,10 +22,11 @@ class GeoPoint:
 @strawberry.type
 class Distance:
     miles: float
+    meters: float
 
-    @property
-    def meters(self) -> float:
-        return self.miles * 1609.34
+    def __init__(self, *, miles: float) -> None:
+        self.miles = miles
+        self.meters = miles * 1609.34
 
 
 @strawberry.type

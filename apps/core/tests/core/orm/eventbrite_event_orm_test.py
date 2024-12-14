@@ -10,7 +10,7 @@ from ..base import BaseTestCase
 class TestEventbriteEventOrm(BaseTestCase):
     async def test_new_event_record(self) -> None:
         async with self.db_session.begin() as session:
-            obj = EventbriteEventOrm(eventbrite_event_id=self.anystr("eventbrite_event_id"))
+            obj = EventbriteEventOrm(session, eventbrite_event_id=self.anystr("eventbrite_event_id"))
             obj.update(
                 title=self.anystr(),
                 vivial_activity_category_id=self.anyuuid(),
@@ -23,8 +23,6 @@ class TestEventbriteEventOrm(BaseTestCase):
                 lat=self.anylatitude("lat"),
                 lon=self.anylongitude("lon"),
             )
-
-            session.add(obj)
 
         async with self.db_session.begin() as session:
             obj = (
@@ -44,7 +42,7 @@ class TestEventbriteEventOrm(BaseTestCase):
 
     async def test_query_cost_range(self) -> None:
         async with self.db_session.begin() as session:
-            obj = EventbriteEventOrm(eventbrite_event_id=self.anystr("eventbrite_event_id"))
+            obj = EventbriteEventOrm(session, eventbrite_event_id=self.anystr("eventbrite_event_id"))
             obj.update(
                 title=self.anystr(),
                 vivial_activity_category_id=self.anyuuid(),
@@ -57,8 +55,6 @@ class TestEventbriteEventOrm(BaseTestCase):
                 lat=self.anylatitude("lat"),
                 lon=self.anylongitude("lon"),
             )
-
-            session.add(obj)
 
         async with self.db_session.begin() as session:
             results = (
@@ -103,7 +99,7 @@ class TestEventbriteEventOrm(BaseTestCase):
 
     async def test_query_time_range(self) -> None:
         async with self.db_session.begin() as session:
-            obj = EventbriteEventOrm(eventbrite_event_id=self.anystr("eventbrite_event_id"))
+            obj = EventbriteEventOrm(session, eventbrite_event_id=self.anystr("eventbrite_event_id"))
             obj.update(
                 title=self.anystr(),
                 vivial_activity_category_id=self.anyuuid(),
@@ -116,8 +112,6 @@ class TestEventbriteEventOrm(BaseTestCase):
                 lat=self.anylatitude("lat"),
                 lon=self.anylongitude("lon"),
             )
-
-            session.add(obj)
 
         async with self.db_session.begin() as session:
             results = (
@@ -184,7 +178,7 @@ class TestEventbriteEventOrm(BaseTestCase):
 
     async def test_query_search_area(self) -> None:
         async with self.db_session.begin() as session:
-            obj = EventbriteEventOrm(eventbrite_event_id=self.anystr("eventbrite_event_id"))
+            obj = EventbriteEventOrm(session, eventbrite_event_id=self.anystr("eventbrite_event_id"))
             obj.update(
                 title=self.anystr(),
                 vivial_activity_category_id=self.anyuuid(),
@@ -197,8 +191,6 @@ class TestEventbriteEventOrm(BaseTestCase):
                 lat=self.anylatitude("lat"),
                 lon=self.anylongitude("lon"),
             )
-
-            session.add(obj)
 
         async with self.db_session.begin() as session:
             search_area = GeoArea(
@@ -232,7 +224,7 @@ class TestEventbriteEventOrm(BaseTestCase):
 
     async def test_update_existing_record(self) -> None:
         async with self.db_session.begin() as session:
-            obj = EventbriteEventOrm(eventbrite_event_id=self.anystr("eventbrite_event_id"))
+            obj = EventbriteEventOrm(session, eventbrite_event_id=self.anystr("eventbrite_event_id"))
             obj.update(
                 title=self.anystr(),
                 vivial_activity_category_id=self.anyuuid(),
@@ -245,8 +237,6 @@ class TestEventbriteEventOrm(BaseTestCase):
                 lat=self.anylatitude("lat"),
                 lon=self.anylongitude("lon"),
             )
-
-            session.add(obj)
 
         async with self.db_session.begin() as session:
             qobj = (

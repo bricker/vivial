@@ -12,13 +12,14 @@ class TestOutingOrms(BaseTestCase):
             survey = self.make_survey(session, None)
 
             outing = OutingOrm(
+                session,
                 account=account,
                 survey=survey,
                 visitor_id=survey.visitor_id,
             )
-            session.add(outing)
 
             activity = OutingActivityOrm(
+                session,
                 outing=outing,
                 headcount=survey.headcount,
                 source=ActivitySource.EVENTBRITE,
@@ -29,6 +30,7 @@ class TestOutingOrms(BaseTestCase):
             outing.activities.append(activity)
 
             reservation = OutingReservationOrm(
+                session,
                 outing=outing,
                 headcount=survey.headcount,
                 source=RestaurantSource.GOOGLE_PLACES,
@@ -63,11 +65,11 @@ class TestOutingOrms(BaseTestCase):
             survey = self.make_survey(session, None)
 
             outing = OutingOrm(
+                session,
                 account=None,
                 survey=survey,
                 visitor_id=survey.visitor_id,
             )
-            session.add(outing)
 
         async with self.db_session.begin() as session:
             outing_fetched = await OutingOrm.get_one(session, outing.id)
@@ -80,13 +82,14 @@ class TestOutingOrms(BaseTestCase):
             survey = self.make_survey(session, None)
 
             outing = OutingOrm(
+                session,
                 account=None,
                 survey=survey,
                 visitor_id=survey.visitor_id,
             )
-            session.add(outing)
 
             outing_activity_new = OutingActivityOrm(
+                session,
                 outing=outing,
                 headcount=survey.headcount,
                 source=ActivitySource.EVENTBRITE,
@@ -94,7 +97,6 @@ class TestOutingOrms(BaseTestCase):
                 start_time_utc=self.anydatetime("start_time_utc", future=True),
                 timezone=survey.timezone,
             )
-            session.add(outing_activity_new)
 
         async with self.db_session.begin() as session:
             outing_activity_fetched = await session.get_one(OutingActivityOrm, (outing.id, self.getdigits("source_id")))
@@ -116,13 +118,14 @@ class TestOutingOrms(BaseTestCase):
             survey = self.make_survey(session, None)
 
             outing = OutingOrm(
+                session,
                 account=None,
                 survey=survey,
                 visitor_id=survey.visitor_id,
             )
-            session.add(outing)
 
             outing_reservation_new = OutingReservationOrm(
+                session,
                 outing=outing,
                 headcount=survey.headcount,
                 source=RestaurantSource.GOOGLE_PLACES,
@@ -130,7 +133,6 @@ class TestOutingOrms(BaseTestCase):
                 start_time_utc=self.anydatetime("start_time_utc", future=True),
                 timezone=survey.timezone,
             )
-            session.add(outing_reservation_new)
 
         async with self.db_session.begin() as session:
             outing_reservation_fetched = await session.get_one(

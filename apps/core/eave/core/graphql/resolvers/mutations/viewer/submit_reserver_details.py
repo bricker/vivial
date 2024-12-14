@@ -58,12 +58,12 @@ async def submit_reserver_details_mutation(
         async with database.async_session.begin() as db_session:
             account = await AccountOrm.get_one(db_session, account_id)
             reserver_details = ReserverDetailsOrm(
+                db_session,
                 account=account,
                 first_name=input.first_name,
                 last_name=input.last_name,
                 phone_number=input.phone_number,
             )
-            db_session.add(reserver_details)
 
         return SubmitReserverDetailsSuccess(reserver_details=ReserverDetails.from_orm(reserver_details))
 

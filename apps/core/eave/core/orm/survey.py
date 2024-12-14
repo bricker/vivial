@@ -4,6 +4,7 @@ from zoneinfo import ZoneInfo
 
 import sqlalchemy
 from sqlalchemy import ForeignKey, PrimaryKeyConstraint
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from eave.core.orm.account import AccountOrm
@@ -37,6 +38,7 @@ class SurveyOrm(Base, TimedEventMixin, GetOneByIdMixin):
 
     def __init__(
         self,
+        session: AsyncSession | None,
         *,
         visitor_id: str | None,
         start_time_utc: datetime,
@@ -53,3 +55,6 @@ class SurveyOrm(Base, TimedEventMixin, GetOneByIdMixin):
         self.search_area_ids = search_area_ids
         self.budget = budget
         self.headcount = headcount
+
+        if session:
+            session.add(self)

@@ -1,12 +1,12 @@
 from datetime import UTC
 
+from eave.core.lib.address import Address
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.core.orm.survey import SurveyOrm
-from eave.core.shared.address import Address
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 from eave.core.shared.geo import GeoPoint
 
@@ -22,21 +22,22 @@ class TestBookingOrms(BaseTestCase):
             outing = self.make_outing(session, account, survey)
 
             stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
+                session,
                 account=account,
                 stripe_payment_intent_id=self.anystr(),
                 outing=outing,
             )
-            session.add(stripe_payment_intent_reference)
 
             booking_new = BookingOrm(
+                session,
                 reserver_details=reserver_details,
                 stripe_payment_intent_reference=stripe_payment_intent_reference,
             )
-            session.add(booking_new)
 
             booking_new.accounts.append(account)
 
             booking_activity = BookingActivityTemplateOrm(
+                session,
                 booking=booking_new,
                 name=self.anystr("activity.name"),
                 start_time_utc=self.anydatetime("activity.start_time_utc"),
@@ -63,6 +64,7 @@ class TestBookingOrms(BaseTestCase):
             booking_new.activities.append(booking_activity)
 
             booking_reservation = BookingReservationTemplateOrm(
+                session,
                 booking=booking_new,
                 name=self.anystr("reservation.name"),
                 start_time_utc=self.anydatetime("reservation.start_time_utc"),
@@ -119,13 +121,14 @@ class TestBookingOrms(BaseTestCase):
             reserver_details = self.make_reserver_details(session, account)
 
             booking = BookingOrm(
+                session,
                 reserver_details=reserver_details,
             )
-            session.add(booking)
 
             booking.accounts.append(account)
 
             booking_activity_template_new = BookingActivityTemplateOrm(
+                session,
                 booking=booking,
                 name=self.anystr("activity.name"),
                 start_time_utc=self.anydatetime("activity.start_time_utc"),
@@ -148,8 +151,6 @@ class TestBookingOrms(BaseTestCase):
                     country="US",
                 ),
             )
-
-            session.add(booking_activity_template_new)
 
         async with self.db_session.begin() as session:
             booking_activity_template_fetched = await session.get_one(
@@ -194,13 +195,14 @@ class TestBookingOrms(BaseTestCase):
             reserver_details = self.make_reserver_details(session, account)
 
             booking = BookingOrm(
+                session,
                 reserver_details=reserver_details,
             )
-            session.add(booking)
 
             booking.accounts.append(account)
 
             booking_reservation_template_new = BookingReservationTemplateOrm(
+                session,
                 booking=booking,
                 name=self.anystr("reservation.name"),
                 start_time_utc=self.anydatetime("reservation.start_time_utc"),
@@ -223,8 +225,6 @@ class TestBookingOrms(BaseTestCase):
                     country="US",
                 ),
             )
-
-            session.add(booking_reservation_template_new)
 
         async with self.db_session.begin() as session:
             booking_reservation_template_fetched = await session.get_one(

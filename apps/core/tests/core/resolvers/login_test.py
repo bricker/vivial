@@ -23,6 +23,7 @@ class TestLoginMutation(BaseTestCase):
     async def test_login_with_valid_credentials(self) -> None:
         async with self.db_session.begin() as session:
             account_orm = AccountOrm(
+                session,
                 email=self.anyemail("email"),
                 plaintext_password=self.anystr("plaintext_password"),
             )

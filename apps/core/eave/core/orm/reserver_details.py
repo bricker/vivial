@@ -29,6 +29,7 @@ class ReserverDetailsOrm(Base):
 
     def __init__(
         self,
+        session: AsyncSession | None,
         *,
         account: AccountOrm,
         first_name: str,
@@ -39,6 +40,9 @@ class ReserverDetailsOrm(Base):
         self.first_name = first_name
         self.last_name = last_name
         self.phone_number = phone_number
+
+        if session:
+            session.add(self)
 
     def validate(self) -> list[ValidationError]:
         errors: list[ValidationError] = []

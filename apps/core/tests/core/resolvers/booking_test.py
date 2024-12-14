@@ -21,12 +21,12 @@ class TestBookingEndpoints(BaseTestCase):
             outing = self.make_outing(session, account, survey)
             reserver_details = self.make_reserver_details(session, account)
 
-            stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
+            StripePaymentIntentReferenceOrm(
+                session,
                 account=account,
                 outing=outing,
                 stripe_payment_intent_id=self.getstr("stripe.PaymentIntent.id"),
             )
-            session.add(stripe_payment_intent_reference)
 
         self.mock_stripe_payment_intent.amount = (
             self.getint("eventbrite.TicketClass.0.cost.value")
@@ -112,12 +112,12 @@ class TestBookingEndpoints(BaseTestCase):
             outing2 = self.make_outing(session, account, survey)
             reserver_details = self.make_reserver_details(session, account)
 
-            stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
+            StripePaymentIntentReferenceOrm(
+                session,
                 outing=outing,
                 account=account,
                 stripe_payment_intent_id=self.getstr("stripe.PaymentIntent.id"),
             )
-            session.add(stripe_payment_intent_reference)
 
         response = await self.make_graphql_request(
             "createBooking",
@@ -153,12 +153,12 @@ class TestBookingEndpoints(BaseTestCase):
             outing = self.make_outing(session, account, survey)
             reserver_details = self.make_reserver_details(session, account)
 
-            stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
+            StripePaymentIntentReferenceOrm(
+                session,
                 outing=outing,
                 account=account,
                 stripe_payment_intent_id=self.getstr("stripe.PaymentIntent.id"),
             )
-            session.add(stripe_payment_intent_reference)
 
         self.mock_stripe_payment_intent.status = "requires_action"
 
@@ -229,12 +229,12 @@ class TestBookingEndpoints(BaseTestCase):
             outing = self.make_outing(session, account, survey)
             reserver_details = self.make_reserver_details(session, account)
 
-            stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
+            StripePaymentIntentReferenceOrm(
+                session,
                 outing=outing,
                 account=account,
                 stripe_payment_intent_id=self.getstr("stripe.PaymentIntent.id"),
             )
-            session.add(stripe_payment_intent_reference)
 
         response = await self.make_graphql_request(
             "createBooking",
@@ -266,12 +266,12 @@ class TestBookingEndpoints(BaseTestCase):
             outing = self.make_outing(session, account, survey)
             reserver_details = self.make_reserver_details(session, account)
 
-            stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
+            StripePaymentIntentReferenceOrm(
+                session,
                 outing=outing,
                 account=account,
                 stripe_payment_intent_id=self.getstr("stripe.PaymentIntent.id"),
             )
-            session.add(stripe_payment_intent_reference)
 
         self.mock_stripe_payment_intent.amount = self.anyint(
             "payment intent amount"
@@ -311,12 +311,12 @@ class TestBookingEndpoints(BaseTestCase):
             outing = self.make_outing(session, account, survey)
             reserver_details = self.make_reserver_details(session, account)
 
-            stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
+            StripePaymentIntentReferenceOrm(
+                session,
                 outing=outing,
                 account=account,
                 stripe_payment_intent_id=self.getstr("stripe.PaymentIntent.id"),
             )
-            session.add(stripe_payment_intent_reference)
 
         self.mock_stripe_payment_intent.amount = (
             self.getint("eventbrite.TicketClass.0.cost.value")
@@ -354,6 +354,7 @@ class TestBookingEndpoints(BaseTestCase):
         async with self.db_session.begin() as session:
             account = self.make_account(session)
             survey = SurveyOrm(
+                session,
                 account=account,
                 visitor_id=self.anystr(),
                 start_time_utc=self.anydatetime(past=True),
@@ -362,7 +363,6 @@ class TestBookingEndpoints(BaseTestCase):
                 budget=OutingBudget.INEXPENSIVE,
                 headcount=self.anyint(min=1, max=2),
             )
-            session.add(survey)
 
             outing = self.make_outing(session, account, survey)
             reserver_details = self.make_reserver_details(session, account)

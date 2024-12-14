@@ -39,6 +39,7 @@ class OutingPreferencesOrm(Base):
 
     def __init__(
         self,
+        session: AsyncSession | None,
         *,
         account: AccountOrm,
         activity_category_ids: list[UUID] | None,
@@ -47,6 +48,9 @@ class OutingPreferencesOrm(Base):
         self.account = account
         self.activity_category_ids = activity_category_ids
         self.restaurant_category_ids = restaurant_category_ids
+
+        if session:
+            session.add(self)
 
     @classmethod
     async def get_one(cls, session: AsyncSession, *, account_id: UUID, uid: UUID) -> Self:

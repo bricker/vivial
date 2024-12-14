@@ -77,6 +77,7 @@ async def plan_outing_mutation(
             account = None
 
         survey = SurveyOrm(
+            db_session,
             account=account,
             visitor_id=visitor_id,
             start_time_utc=input.start_time,
@@ -85,7 +86,6 @@ async def plan_outing_mutation(
             budget=input.budget,
             headcount=input.headcount,
         )
-        db_session.add(survey)
 
     outing = await create_outing(
         individual_preferences=input.group_preferences,

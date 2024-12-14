@@ -25,15 +25,16 @@ async def create_outing(
 
     async with database.async_session.begin() as db_session:
         outing_orm = OutingOrm(
+            db_session,
             visitor_id=visitor_id,
             survey=survey,
             account=account,
         )
-        db_session.add(outing_orm)
 
         if plan.activity and plan.activity_start_time:
             outing_orm.activities.append(
                 OutingActivityOrm(
+                    db_session,
                     outing=outing_orm,
                     source_id=plan.activity.source_id,
                     source=plan.activity.source,
@@ -46,6 +47,7 @@ async def create_outing(
         if plan.restaurant and plan.restaurant_arrival_time:
             outing_orm.reservations.append(
                 OutingReservationOrm(
+                    db_session,
                     outing=outing_orm,
                     source_id=plan.restaurant.source_id,
                     source=plan.restaurant.source,

@@ -53,10 +53,10 @@ async def create_account_mutation(
                 return CreateAccountFailure(failure_reason=CreateAccountFailureReason.ACCOUNT_EXISTS)
 
             new_account_orm = AccountOrm(
+                db_session,
                 email=input.email,
                 plaintext_password=input.plaintext_password,
             )
-            db_session.add(new_account_orm)
 
     except InvalidRecordError as e:
         return CreateAccountFailure(

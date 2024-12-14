@@ -14,6 +14,7 @@ UNDER NO CIRCUMSTANCES SHOULD THIS BE EVER RUN AGAINST PROD
 
 import sys
 
+from eave.core.lib.address import Address
 from eave.core.shared.geo import GeoPoint
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 
@@ -47,7 +48,6 @@ from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservation
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
-from eave.core.shared.address import Address
 from eave.core.shared.enums import OutingBudget
 from eave.stdlib.logging import eaveLogger
 
@@ -79,17 +79,20 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
     for row in range(num_rows):
         start = time.perf_counter()
 
-        visitor_id = uuid.uuid4()
+        visitor_id = str(uuid.uuid4())
         dummy_date = datetime.datetime.now() + datetime.timedelta(days=2)
 
         if not account_id:
-            account = await AccountOrm(
+            account = AccountOrm(
+                session,
                 email=f"john{row}@gmail.com",
                 plaintext_password="pasword1!",  # noqa: S106
-            ).save(session)
+            )
+
         assert account is not None
 
-        survey = await SurveyOrm(
+        survey = SurveyOrm(
+            session,
             visitor_id=visitor_id,
             account=account,
             start_time_utc=dummy_date,
@@ -97,90 +100,104 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
             budget=OutingBudget.EXPENSIVE,
             timezone=LOS_ANGELES_TIMEZONE,
             headcount=2,
-        ).save(session)
+        )
 
-        outing = await OutingOrm(
+        outing = OutingOrm(
+            session,
             visitor_id=visitor_id,
             survey=survey,
             account=account,
-        ).save(session)
+        )
 
-        outing_activity = await OutingActivityOrm(
+        outing_activity = OutingActivityOrm(
+            session,
             outing=outing,
             source_id=str(uuid.uuid4()),
             source=ActivitySource.INTERNAL,
             start_time_utc=dummy_date,
             timezone=LOS_ANGELES_TIMEZONE,
             headcount=2,
-        ).save(session)
-        outing_reservation = await OutingReservationOrm(
+        )
+
+        outing_reservation = OutingReservationOrm(
+            session,
             outing=outing,
             source_id=str(uuid.uuid4()),
             source=RestaurantSource.GOOGLE_PLACES,
             start_time_utc=dummy_date,
             timezone=LOS_ANGELES_TIMEZONE,
             headcount=2,
-        ).save(session)
-        reserver_details = await ReserverDetailsOrm(
+        )
+
+        reserver_details = ReserverDetailsOrm(
+            session,
             account=account,
             first_name="Jeff",
             last_name="Goldbloom",
             phone_number="+12698675309",
-        ).save(session)
+        )
 
-        booking = await BookingOrm(
+        booking = BookingOrm(
+            session,
             reserver_details=reserver_details,
-        ).save(session)
+        )
         booking.accounts.append(account)
+
+        booking.activities.append(
+            BookingActivityTemplateOrm(
+                session,
+                booking=booking,
+                source_id=str(uuid.uuid4()),
+                source=ActivitySource.EVENTBRITE,
+                name="Biking in McDonalds parking lot",
+                start_time_utc=outing_activity.start_time_utc,
+                timezone=LOS_ANGELES_TIMEZONE,
+                photo_uri="https://s3-media0.fl.yelpcdn.com/bphoto/NQFmn6sxr2RC-czWIBi8aw/o.jpg",
+                headcount=outing_activity.headcount,
+                external_booking_link="https://micndontlds.com",
+                address=Address(
+                    address1="101 Mcdonald St",
+                    address2="Unit 666",
+                    city="LA",
+                    state="CA",
+                    country="USA",
+                    zip_code="12345",
+                ),
+                coordinates=GeoPoint(
+                    lat=0,
+                    lon=0,
+                ),
+            )
+        )
+
+        booking.reservations.append(
+            BookingReservationTemplateOrm(
+                session,
+                booking=booking,
+                source_id=str(uuid.uuid4()),
+                source=RestaurantSource.GOOGLE_PLACES,
+                name="Red lobster dumpster",
+                start_time_utc=outing_reservation.start_time_utc,
+                timezone=LOS_ANGELES_TIMEZONE,
+                photo_uri="https://s3-media0.fl.yelpcdn.com/bphoto/NQFmn6sxr2RC-czWIBi8aw/o.jpg",
+                headcount=outing_reservation.headcount,
+                external_booking_link="https://redlobster.yum",
+                address=Address(
+                    address1="3269 Abandoned Alley Way",
+                    address2=None,
+                    city="LA",
+                    state="CA",
+                    country="USA",
+                    zip_code="12345",
+                ),
+                coordinates=GeoPoint(
+                    lat=0,
+                    lon=1,
+                ),
+            )
+        )
+
         await session.flush()
-
-        await BookingActivityTemplateOrm(
-            booking=booking,
-            source_id=str(uuid.uuid4()),
-            source=ActivitySource.EVENTBRITE,
-            name="Biking in McDonalds parking lot",
-            start_time_utc=outing_activity.start_time_utc,
-            timezone=LOS_ANGELES_TIMEZONE,
-            photo_uri="https://s3-media0.fl.yelpcdn.com/bphoto/NQFmn6sxr2RC-czWIBi8aw/o.jpg",
-            headcount=outing_activity.headcount,
-            external_booking_link="https://micndontlds.com",
-            address=Address(
-                address1="101 Mcdonald St",
-                address2="Unit 666",
-                city="LA",
-                state="CA",
-                country="USA",
-                zip_code="12345",
-            ),
-            coordinates=GeoPoint(
-                lat=0,
-                lon=0,
-            ),
-        ).save(session)
-
-        await BookingReservationTemplateOrm(
-            booking=booking,
-            source_id=str(uuid.uuid4()),
-            source=RestaurantSource.GOOGLE_PLACES,
-            name="Red lobster dumpster",
-            start_time_utc=outing_reservation.start_time_utc,
-            timezone=LOS_ANGELES_TIMEZONE,
-            photo_uri="https://s3-media0.fl.yelpcdn.com/bphoto/NQFmn6sxr2RC-czWIBi8aw/o.jpg",
-            headcount=outing_reservation.headcount,
-            external_booking_link="https://redlobster.yum",
-            address=Address(
-                address1="3269 Abandoned Alley Way",
-                address2=None,
-                city="LA",
-                state="CA",
-                country="USA",
-                zip_code="12345",
-            ),
-            coordinates=GeoPoint(
-                lat=0,
-                lon=1,
-            ),
-        ).save(session)
 
         end = time.perf_counter()
         elapsed = end - start

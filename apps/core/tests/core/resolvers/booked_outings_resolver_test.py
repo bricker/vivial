@@ -1,6 +1,6 @@
+from eave.core.lib.address import Address
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
-from eave.core.shared.address import Address
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.core.shared.geo import GeoPoint
 
@@ -9,22 +9,17 @@ from ..base import BaseTestCase
 
 class TestBookedOutingsResolver(BaseTestCase):
     async def test_booked_outings_with_activity_and_restaurant(self) -> None:
-        async with self.db_session.begin() as db_session:
-            account = self.make_account(db_session)
-            reserver_details = ReserverDetailsOrm(
-                account=account,
-                first_name=self.anyalpha(),
-                last_name=self.anyalpha(),
-                phone_number=self.anyphonenumber(),
-            )
-            db_session.add(reserver_details)
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            reserver_details = self.make_reserver_details(session, account)
 
             booking = BookingOrm(
+                session,
                 reserver_details=reserver_details,
             )
-            db_session.add(booking)
 
             booking_activity_template = BookingActivityTemplateOrm(
+                session,
                 booking=booking,
                 name=self.anystr("activity_name"),
                 start_time_utc=self.anydatetime("activity_start_time"),
@@ -50,6 +45,7 @@ class TestBookedOutingsResolver(BaseTestCase):
             booking.activities.append(booking_activity_template)
 
             booking_reservation_template = BookingReservationTemplateOrm(
+                session,
                 booking=booking,
                 name=self.anystr("reservation_name"),
                 photo_uri=self.anyurl("reservation_photo_uri"),

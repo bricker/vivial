@@ -2,7 +2,7 @@ from eave.core.orm.account import (
     AccountOrm,
     InvalidPasswordError,
     WeakPasswordError,
-    test_password_strength_or_exception,
+    validate_password_strength_or_exception,
 )
 from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.booking import BookingOrm
@@ -16,8 +16,7 @@ class TestAccountOrm(BaseTestCase):
     async def test_new_account_record(self) -> None:
         async with self.db_session.begin() as session:
             assert await self.count(session, AccountOrm) == 0
-            new_account = AccountOrm(email=self.anyemail("email"), plaintext_password=self.anystr("plaintext_password"))
-            session.add(new_account)
+            new_account = AccountOrm(session, email=self.anyemail("email"), plaintext_password=self.anystr("plaintext_password"))
 
         async with self.db_session.begin() as session:
             assert await self.count(session, AccountOrm) == 1
@@ -31,8 +30,7 @@ class TestAccountOrm(BaseTestCase):
         with self.assertRaises(InvalidRecordError):
             async with self.db_session.begin() as session:
                 assert await self.count(session, AccountOrm) == 0
-                new_account = AccountOrm(email="invalid email", plaintext_password=self.anystr("plaintext_password"))
-                session.add(new_account)
+                AccountOrm(session, email="invalid email", plaintext_password=self.anystr("plaintext_password"))
 
         async with self.db_session.begin() as session:
             assert await self.count(session, AccountOrm) == 0
@@ -41,8 +39,7 @@ class TestAccountOrm(BaseTestCase):
         with self.assertRaises(WeakPasswordError):
             async with self.db_session.begin() as session:
                 assert await self.count(session, AccountOrm) == 0
-                new_account = AccountOrm(email=self.anyemail(), plaintext_password="weak password")
-                session.add(new_account)
+                AccountOrm(session, email=self.anyemail(), plaintext_password="weak password")
 
         async with self.db_session.begin() as session:
             assert await self.count(session, AccountOrm) == 0
@@ -51,8 +48,7 @@ class TestAccountOrm(BaseTestCase):
         with self.assertRaises(WeakPasswordError):
             async with self.db_session.begin() as session:
                 assert await self.count(session, AccountOrm) == 0
-                new_account = AccountOrm(email=self.anyemail(), plaintext_password="")
-                session.add(new_account)
+                AccountOrm(session, email=self.anyemail(), plaintext_password="")
 
         async with self.db_session.begin() as session:
             assert await self.count(session, AccountOrm) == 0
@@ -63,16 +59,14 @@ class TestAccountOrm(BaseTestCase):
         with self.assertRaises(WeakPasswordError):
             async with self.db_session.begin() as session:
                 assert await self.count(session, AccountOrm) == 0
-                new_account = AccountOrm(email=self.anyemail(), plaintext_password=None)  # type:ignore - testing what happens if None happens to be passed in at runtime
-                session.add(new_account)
+                AccountOrm(email=self.anyemail(), plaintext_password=None)  # type:ignore - testing what happens if None happens to be passed in at runtime
 
         async with self.db_session.begin() as session:
             assert await self.count(session, AccountOrm) == 0
 
     async def test_account_verify_password_verified(self) -> None:
         async with self.db_session.begin() as session:
-            new_account = AccountOrm(email=self.anyemail(), plaintext_password=self.anystr("plaintext_password"))
-            session.add(new_account)
+            new_account = AccountOrm(session, email=self.anyemail(), plaintext_password=self.anystr("plaintext_password"))
 
         async with self.db_session.begin() as session:
             fetched_account = await AccountOrm.get_one(session, new_account.id)
@@ -86,28 +80,31 @@ class TestAccountOrm(BaseTestCase):
 
     async def test_account_verify_password_not_verified(self) -> None:
         async with self.db_session.begin() as session:
-            new_account = AccountOrm(email=self.anyemail(), plaintext_password=self.anystr("plaintext_password"))
-            session.add(new_account)
+            new_account = AccountOrm(session, email=self.anyemail(), plaintext_password=self.anystr("plaintext_password"))
 
         async with self.db_session.begin() as session:
             fetched_account = await AccountOrm.get_one(session, new_account.id)
 
             with self.assertRaises(InvalidPasswordError):
                 fetched_account.verify_password_or_exception(
-                    plaintext_password=self.getstr("incorrect plaintext_password")
+                    plaintext_password=self.anystr("incorrect plaintext_password")
                 )
 
     async def test_account_set_password_with_valid_password(self) -> None:
         async with self.db_session.begin() as session:
             assert await self.count(session, AccountOrm) == 0
-            new_account = AccountOrm(email=self.anyemail(), plaintext_password=self.anystr("plaintext_password"))
-            session.add(new_account)
+            new_account = AccountOrm(session, email=self.anyemail(), plaintext_password=self.anystr("plaintext_password"))
 
         async with self.db_session.begin() as session:
             assert await self.count(session, AccountOrm) == 1
 
             fetched_account = await AccountOrm.get_one(session, new_account.id)
             assert fetched_account.password_key != self.getstr("plaintext_password")
+
+            # Test assumptions before changing password
+            assert fetched_account.password_key == new_account.password_key
+            assert fetched_account.password_key_salt == new_account.password_key_salt
+
             fetched_account.set_password(plaintext_password=self.anystr("new plaintext_password"))
             assert fetched_account.password_key != self.getstr("new plaintext_password")
             assert fetched_account.password_key != new_account.password_key
@@ -122,8 +119,7 @@ class TestAccountOrm(BaseTestCase):
         with self.assertRaises(WeakPasswordError):
             async with self.db_session.begin() as session:
                 assert await self.count(session, AccountOrm) == 0
-                new_account = AccountOrm(email=self.anyemail(), plaintext_password=self.anystr())
-                session.add(new_account)
+                new_account = self.make_account(session)
                 new_account.set_password(plaintext_password="weak password")
 
         async with self.db_session.begin() as session:
@@ -133,8 +129,7 @@ class TestAccountOrm(BaseTestCase):
         with self.assertRaises(WeakPasswordError):
             async with self.db_session.begin() as session:
                 assert await self.count(session, AccountOrm) == 0
-                new_account = AccountOrm(email=self.anyemail(), plaintext_password=self.anystr())
-                session.add(new_account)
+                new_account = self.make_account(session)
                 new_account.set_password(plaintext_password="")
 
         async with self.db_session.begin() as session:
@@ -146,8 +141,7 @@ class TestAccountOrm(BaseTestCase):
         with self.assertRaises(WeakPasswordError):
             async with self.db_session.begin() as session:
                 assert await self.count(session, AccountOrm) == 0
-                new_account = AccountOrm(email=self.anyemail(), plaintext_password=self.anystr())
-                session.add(new_account)
+                new_account = self.make_account(session)
                 new_account.set_password(plaintext_password=None)  # type:ignore - testing what happens if None happens to be passed in at runtime
 
         async with self.db_session.begin() as session:
@@ -155,72 +149,71 @@ class TestAccountOrm(BaseTestCase):
 
     async def test_account_password_strength_validation(self) -> None:
         try:
-            assert test_password_strength_or_exception(plaintext_password=self.anystr())
+            assert validate_password_strength_or_exception(plaintext_password=self.anystr())
         except WeakPasswordError as e:
             self.fail(e)
 
         with self.assertRaises(WeakPasswordError):
-            test_password_strength_or_exception(plaintext_password="")
+            validate_password_strength_or_exception(plaintext_password="")
 
         with self.assertRaises(WeakPasswordError):
-            test_password_strength_or_exception(plaintext_password=None)  # type:ignore - test what happens if null passed in at runtime
+            validate_password_strength_or_exception(plaintext_password=None)  # type:ignore - test what happens if null passed in at runtime
 
         with self.assertRaises(WeakPasswordError):
             # No alpha or special character
-            test_password_strength_or_exception(plaintext_password="0123456789")
+            validate_password_strength_or_exception(plaintext_password="0123456789")
 
         with self.assertRaises(WeakPasswordError):
             # Too short
-            test_password_strength_or_exception(plaintext_password="123aBc!")
+            validate_password_strength_or_exception(plaintext_password="123aBc!")
 
         with self.assertRaises(WeakPasswordError):
             # No special characters
-            test_password_strength_or_exception(plaintext_password="1234abcdEFG")
+            validate_password_strength_or_exception(plaintext_password="1234abcdEFG")
 
         with self.assertRaises(WeakPasswordError):
             # No alpha
-            test_password_strength_or_exception(plaintext_password="1234!@#$%^&")
+            validate_password_strength_or_exception(plaintext_password="1234!@#$%^&")
 
         with self.assertRaises(WeakPasswordError):
             # No digits
-            test_password_strength_or_exception(plaintext_password="abcdEFG!@#$%^")
+            validate_password_strength_or_exception(plaintext_password="abcdEFG!@#$%^")
 
         with self.assertRaises(WeakPasswordError):
             # No digits or alpha
-            test_password_strength_or_exception(plaintext_password="!@#$%*&^%$#$%^")
+            validate_password_strength_or_exception(plaintext_password="!@#$%*&^%$#$%^")
 
         with self.assertRaises(WeakPasswordError):
             # No digits or special characters
-            test_password_strength_or_exception(plaintext_password="abcdefghiJKL")
+            validate_password_strength_or_exception(plaintext_password="abcdefghiJKL")
 
         with self.assertRaises(WeakPasswordError):
             # Too long
-            test_password_strength_or_exception(plaintext_password=self.anyalpha(length=300) + "123!@#")
+            validate_password_strength_or_exception(plaintext_password=self.anyalpha(length=300) + "123!@#")
 
     async def test_account_associations(self) -> None:
         async with self.db_session.begin() as session:
-            account = AccountOrm(email=self.anyemail(), plaintext_password=self.anystr("plaintext_password"))
-            session.add(account)
+            account = AccountOrm(session, email=self.anyemail(), plaintext_password=self.anystr("plaintext_password"))
 
             reserver_details = ReserverDetailsOrm(
+                session,
                 account=account,
                 first_name=self.anyalpha(),
                 last_name=self.anyalpha(),
                 phone_number=self.anyphonenumber(),
             )
-            session.add(reserver_details)
 
             booking = BookingOrm(
+                session,
                 reserver_details=reserver_details,
             )
-            session.add(booking)
 
             outing_preferences = OutingPreferencesOrm(
+                session,
                 account=account,
                 activity_category_ids=[],
                 restaurant_category_ids=[],
             )
-            session.add(outing_preferences)
 
         async with self.db_session.begin() as session:
             fetched_account = await AccountOrm.get_one(session, account.id)

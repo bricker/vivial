@@ -3,6 +3,7 @@ from uuid import UUID
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import ForeignKey, PrimaryKeyConstraint
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from eave.core.graphql.types.restaurant import RestaurantSource
@@ -38,6 +39,7 @@ class OutingOrm(Base, GetOneByIdMixin):
 
     def __init__(
         self,
+        session: AsyncSession | None,
         *,
         visitor_id: str | None,
         survey: SurveyOrm,
@@ -46,6 +48,9 @@ class OutingOrm(Base, GetOneByIdMixin):
         self.visitor_id = visitor_id
         self.account = account
         self.survey = survey
+
+        if session:
+            session.add(self)
 
 
 class OutingActivityOrm(Base, TimedEventMixin):
@@ -68,6 +73,7 @@ class OutingActivityOrm(Base, TimedEventMixin):
 
     def __init__(
         self,
+        session: AsyncSession | None,
         *,
         outing: OutingOrm,
         source_id: str,
@@ -83,6 +89,8 @@ class OutingActivityOrm(Base, TimedEventMixin):
         self.timezone = timezone
         self.headcount = headcount
 
+        if session:
+            session.add(self)
 
 class OutingReservationOrm(Base, TimedEventMixin):
     """Pivot table between `outings` and reservation sources"""
@@ -104,6 +112,7 @@ class OutingReservationOrm(Base, TimedEventMixin):
 
     def __init__(
         self,
+        session: AsyncSession | None,
         *,
         outing: OutingOrm,
         source_id: str,
@@ -118,3 +127,6 @@ class OutingReservationOrm(Base, TimedEventMixin):
         self.start_time_utc = start_time_utc.astimezone(UTC)
         self.timezone = timezone
         self.headcount = headcount
+
+        if session:
+            session.add(self)

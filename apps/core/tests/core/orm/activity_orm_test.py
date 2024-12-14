@@ -1,6 +1,6 @@
+from eave.core.lib.address import Address
 from eave.core.orm.activity import ActivityOrm
 from eave.core.orm.image import ImageOrm
-from eave.core.shared.address import Address
 from eave.core.shared.geo import GeoPoint
 
 from ..base import BaseTestCase
@@ -10,6 +10,7 @@ class TestActivityOrm(BaseTestCase):
     async def test_new_activity_record(self) -> None:
         async with self.db_session.begin() as session:
             activity = ActivityOrm(
+                session,
                 title=self.anystr("title"),
                 description=self.anystr("description"),
                 coordinates=GeoPoint(
@@ -30,7 +31,6 @@ class TestActivityOrm(BaseTestCase):
                     zip_code=self.anydigits("address.zip", length=5),
                 ),
             )
-            session.add(activity)
 
         async with self.db_session.begin() as session:
             obj = await ActivityOrm.get_one(session, activity.id)
@@ -57,6 +57,7 @@ class TestActivityOrm(BaseTestCase):
     async def test_activity_images(self) -> None:
         async with self.db_session.begin() as session:
             activity_orm = ActivityOrm(
+                session,
                 title=self.anystr("title"),
                 description=self.anystr("description"),
                 coordinates=GeoPoint(
@@ -78,14 +79,14 @@ class TestActivityOrm(BaseTestCase):
                 ),
             )
 
-            session.add(activity_orm)
-
             images = [
                 ImageOrm(
+                    session,
                     src=self.anyurl("image src 1"),
                     alt=self.anystr("image alt 1"),
                 ),
                 ImageOrm(
+                    session,
                     src=self.anyurl("image src 2"),
                     alt=self.anystr("image alt 2"),
                 ),

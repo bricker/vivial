@@ -3,8 +3,10 @@ from uuid import UUID
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import ForeignKey, PrimaryKeyConstraint
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from eave.core.lib.address import Address
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.account_bookings_join_table import ACCOUNT_BOOKINGS_JOIN_TABLE
 from eave.core.orm.reserver_details import ReserverDetailsOrm
@@ -12,10 +14,9 @@ from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentRef
 from eave.core.orm.util.mixins import CoordinatesMixin, GetOneByIdMixin, TimedEventMixin
 from eave.core.orm.util.user_defined_column_types import (
     ActivitySourceColumnType,
-    AddressColumnType,
+    AddressFieldsColumnType,
     RestaurantSourceColumnType,
 )
-from eave.core.shared.address import Address
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.core.shared.geo import GeoPoint
 
@@ -50,12 +51,16 @@ class BookingOrm(Base, GetOneByIdMixin):
 
     def __init__(
         self,
+        session: AsyncSession | None,
         *,
         reserver_details: ReserverDetailsOrm,
         stripe_payment_intent_reference: StripePaymentIntentReferenceOrm | None = None,
     ) -> None:
         self.reserver_details = reserver_details
         self.stripe_payment_intent_reference = stripe_payment_intent_reference
+
+        if session:
+            session.add(self)
 
 
 class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
@@ -76,7 +81,7 @@ class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     headcount: Mapped[int] = mapped_column()
     external_booking_link: Mapped[str | None] = mapped_column()
     """HTTP link to site for manual booking (possibly affiliate), if available"""
-    address: Mapped[Address] = mapped_column(type_=AddressColumnType())
+    address: Mapped[Address] = mapped_column(type_=AddressFieldsColumnType())
 
     booking_id: Mapped[UUID] = mapped_column(
         ForeignKey(f"{BookingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE), index=True
@@ -85,6 +90,7 @@ class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
 
     def __init__(
         self,
+        session: AsyncSession | None,
         *,
         booking: BookingOrm,
         source: ActivitySource,
@@ -110,6 +116,8 @@ class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
         self.address = address
         self.coordinates = coordinates.geoalchemy_shape()
 
+        if session:
+            session.add(self)
 
 class BookingReservationTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     """Editable template for a booked reservation.
@@ -129,7 +137,7 @@ class BookingReservationTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     headcount: Mapped[int] = mapped_column()
     external_booking_link: Mapped[str | None] = mapped_column()
     """HTTP link to site for manual booking (possibly affiliate), if available"""
-    address: Mapped[Address] = mapped_column(type_=AddressColumnType())
+    address: Mapped[Address] = mapped_column(type_=AddressFieldsColumnType())
 
     booking_id: Mapped[UUID] = mapped_column(
         ForeignKey(f"{BookingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE), index=True
@@ -138,6 +146,7 @@ class BookingReservationTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
 
     def __init__(
         self,
+        session: AsyncSession | None,
         *,
         booking: BookingOrm,
         source: RestaurantSource,
@@ -162,3 +171,6 @@ class BookingReservationTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
         self.external_booking_link = external_booking_link
         self.address = address
         self.coordinates = coordinates.geoalchemy_shape()
+
+        if session:
+            session.add(self)

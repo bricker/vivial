@@ -31,6 +31,7 @@ class StripePaymentIntentReferenceOrm(Base):
 
     def __init__(
         self,
+        session: AsyncSession | None,
         *,
         account: AccountOrm,
         stripe_payment_intent_id: str,
@@ -39,6 +40,9 @@ class StripePaymentIntentReferenceOrm(Base):
         self.account = account
         self.stripe_payment_intent_id = stripe_payment_intent_id
         self.outing = outing
+
+        if session:
+            session.add(self)
 
     @classmethod
     async def get_one(cls, session: AsyncSession, *, account_id: UUID, stripe_payment_intent_id: str) -> Self:

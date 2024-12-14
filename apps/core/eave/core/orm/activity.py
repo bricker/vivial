@@ -1,12 +1,14 @@
 from uuid import UUID
 
 from sqlalchemy import Column, ForeignKey, ForeignKeyConstraint, PrimaryKeyConstraint, Table
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from eave.core.lib.address import Address, BaseAddress
 from eave.core.orm.image import ImageOrm
 from eave.core.orm.util.mixins import CoordinatesMixin, GetOneByIdMixin
-from eave.core.orm.util.user_defined_column_types import AddressColumnType
-from eave.core.shared.address import Address
+from eave.core.orm.util.user_defined_column_types import AddressFieldsColumnType
+from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.shared.geo import GeoPoint
 
 from .base import Base
@@ -30,14 +32,16 @@ class ActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
     activity_category_id: Mapped[UUID] = mapped_column()
     duration_minutes: Mapped[int] = mapped_column()
     availability: Mapped[str] = mapped_column()
-    address: Mapped[Address] = mapped_column(type_=AddressColumnType())
+    address: Mapped[Address] = mapped_column(type_=AddressFieldsColumnType())
     is_bookable: Mapped[bool] = mapped_column()
     booking_url: Mapped[str | None] = mapped_column()
 
     images: Mapped[list[ImageOrm]] = relationship(secondary=_activity_images_join_table, lazy="selectin")
+    ticket_types: Mapped[list["TicketTypeOrm"]] = relationship(lazy="selectin", back_populates="activity")
 
     def __init__(
         self,
+        session: AsyncSession | None,
         *,
         title: str,
         description: str,
@@ -59,6 +63,8 @@ class ActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
         self.is_bookable = is_bookable
         self.booking_url = booking_url
 
+        if session:
+            session.add(self)
 
 class TicketTypeOrm(Base, GetOneByIdMixin):
     __tablename__ = "ticket_types"
@@ -72,11 +78,33 @@ class TicketTypeOrm(Base, GetOneByIdMixin):
     )
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
-    activity_id: Mapped[UUID] = mapped_column(
-        ForeignKey(f"{ActivityOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)
-    )
     title: Mapped[str] = mapped_column()
     description: Mapped[str] = mapped_column()
     base_cost_cents: Mapped[int] = mapped_column()
     service_fee_cents: Mapped[int] = mapped_column()
     tax_percentage: Mapped[float] = mapped_column()
+
+    activity_id: Mapped[UUID] = mapped_column(
+        ForeignKey(f"{ActivityOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)
+    )
+    activity: Mapped[ActivityOrm] = relationship(lazy="selectin", back_populates="ticket_types")
+
+    def __init__(self,
+        session: AsyncSession | None,
+        *,
+        activity: ActivityOrm,
+        title: str,
+        description: str,
+        base_cost_cents: int,
+        service_fee_cents: int,
+        tax_percentage: float,
+    ) -> None:
+        self.activity = activity
+        self.title = title
+        self.description = description
+        self.base_cost_cents = base_cost_cents
+        self.service_fee_cents = service_fee_cents
+        self.tax_percentage = tax_percentage
+
+        if session:
+            session.add(self)

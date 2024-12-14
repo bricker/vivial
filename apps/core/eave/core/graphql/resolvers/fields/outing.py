@@ -19,7 +19,7 @@ from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.outing import OutingOrm
 from eave.core.orm.search_region import SearchRegionOrm
-from eave.core.shared.address import Address
+from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 from eave.core.shared.geo import GeoPoint
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
@@ -46,7 +46,7 @@ MOCK_OUTING = Outing(
         name="Zarape Cocina & Cantina",
         location=Location(
             directions_uri="https://g.co/kgs/o6Z9PpR",
-            address=Address(
+            address=GraphQLAddress(
                 address1="8351 Santa Monica Blvd",
                 address2=None,
                 city="West Hollywood",
@@ -121,7 +121,7 @@ MOCK_OUTING = Outing(
                     lat=0,
                     lon=0,
                 ),
-                address=Address(
+                address=GraphQLAddress(
                     address1="8433 Sunset Blvd",
                     address2=None,
                     city="Hollywood",

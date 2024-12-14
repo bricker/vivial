@@ -117,10 +117,6 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
 
         return self._gql_cache[name]
 
-    async def save(self, session: AsyncSession, /, obj: J) -> J:
-        session.add(obj)
-        return obj
-
     async def reload(self, session: AsyncSession, /, obj: J) -> J | None:
         stmt = select(obj.__class__).where(literal_column("id") == obj.id)
         result: J | None = await session.scalar(stmt)
@@ -187,15 +183,16 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         session: AsyncSession,
     ) -> AccountOrm:
         account = AccountOrm(
+            session,
             email=self.anyemail("make_account.email"),
             plaintext_password=self.anystr("make_account.plaintext_password"),
         )
 
-        session.add(account)
         return account
 
     def make_survey(self, session: AsyncSession, account: AccountOrm | None) -> SurveyOrm:
         survey = SurveyOrm(
+            session,
             account=account,
             budget=random.choice(list(OutingBudget)),
             headcount=self.anyint("make_survey.headcount", min=1, max=2),
@@ -207,19 +204,19 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             timezone=self.anytimezone("make_survey.timezone"),
             visitor_id=self.anystr("make_survey.visitor_id"),
         )
-        session.add(survey)
         return survey
 
     def make_outing(self, session: AsyncSession, account: AccountOrm | None, survey: SurveyOrm) -> OutingOrm:
         outing = OutingOrm(
+            session,
             visitor_id=survey.visitor_id,
             account=account,
             survey=survey,
         )
-        session.add(outing)
 
         outing.activities.append(
             OutingActivityOrm(
+                session,
                 outing=outing,
                 headcount=survey.headcount,
                 source=ActivitySource.EVENTBRITE,
@@ -231,6 +228,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
 
         outing.reservations.append(
             OutingReservationOrm(
+                session,
                 outing=outing,
                 headcount=survey.headcount,
                 source=RestaurantSource.GOOGLE_PLACES,
@@ -244,12 +242,12 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
 
     def make_reserver_details(self, session: AsyncSession, account: AccountOrm) -> ReserverDetailsOrm:
         reserver_details = ReserverDetailsOrm(
+            session,
             account=account,
             first_name=self.anystr(),
             last_name=self.anystr(),
             phone_number=self.anyphonenumber(),
         )
-        session.add(reserver_details)
         return reserver_details
 
     mock_stripe_payment_intent: stripe.PaymentIntent

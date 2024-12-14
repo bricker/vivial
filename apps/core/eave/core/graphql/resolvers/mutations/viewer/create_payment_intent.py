@@ -87,11 +87,11 @@ async def create_payment_intent_mutation(
 
     async with database.async_session.begin() as db_session:
         stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
+            db_session,
             account=account,
             stripe_payment_intent_id=stripe_payment_intent.id,
             outing=outing_orm,
         )
-        db_session.add(stripe_payment_intent_reference)
 
     # Warning: `client_secret` is a sensitive value and shouldn't be logged or stored.
     # https://docs.stripe.com/api/payment_intents/object#payment_intent_object-client_secret

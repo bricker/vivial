@@ -6,6 +6,7 @@ from zoneinfo import ZoneInfo
 from geoalchemy2.functions import ST_DWithin
 from sqlalchemy import PrimaryKeyConstraint, Select, or_, select
 from sqlalchemy.dialects.postgresql import INT4RANGE, TSTZRANGE, Range
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.orm.util.mixins import CoordinatesMixin, GetOneByIdMixin
@@ -33,8 +34,11 @@ class EventbriteEventOrm(Base, CoordinatesMixin, GetOneByIdMixin):
     vivial_activity_category_id: Mapped[UUID] = mapped_column()
     vivial_activity_format_id: Mapped[UUID] = mapped_column()
 
-    def __init__(self, *, eventbrite_event_id: str) -> None:
+    def __init__(self, session: AsyncSession | None, *, eventbrite_event_id: str) -> None:
         self.eventbrite_event_id = eventbrite_event_id
+
+        if session:
+            session.add(self)
 
     def update(
         self,

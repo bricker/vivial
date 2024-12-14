@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from sqlalchemy import PrimaryKeyConstraint
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.orm.util.mixins import GetOneByIdMixin
@@ -17,6 +18,9 @@ class ImageOrm(Base, GetOneByIdMixin):
     src: Mapped[str] = mapped_column()
     alt: Mapped[str] = mapped_column()
 
-    def __init__(self, *, src: str, alt: str) -> None:
+    def __init__(self, session: AsyncSession | None, *, src: str, alt: str) -> None:
         self.src = src
         self.alt = alt
+
+        if session:
+            session.add(self)

@@ -49,11 +49,17 @@ async def update_outing_preferences_mutation(
         account = await AccountOrm.get_one(db_session, account_id)
 
         if not account.outing_preferences:
-            account.outing_preferences = OutingPreferencesOrm(
+            outing_preferences = OutingPreferencesOrm(
+                db_session,
                 account=account,
                 activity_category_ids=None,
                 restaurant_category_ids=None,
             )
+
+            # Adding the OutingPreferences to the session is necessary because
+            # just setting account.outing_preferences doesn't automatically back-populate.
+            # I think it's because it's a one-to-one relationship.
+            account.outing_preferences = outing_preferences
 
         if input.activity_category_ids:
             account.outing_preferences.activity_category_ids = input.activity_category_ids

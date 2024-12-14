@@ -8,6 +8,7 @@ from uuid import UUID
 
 from sqlalchemy import PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.dialects.postgresql import TIMESTAMP
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from eave.core.orm.account_bookings_join_table import ACCOUNT_BOOKINGS_JOIN_TABLE
@@ -32,7 +33,7 @@ class WeakPasswordError(Exception):
     pass
 
 
-def test_password_strength_or_exception(*, plaintext_password: str) -> Literal[True]:
+def validate_password_strength_or_exception(*, plaintext_password: str) -> Literal[True]:
     if (
         plaintext_password
         and len(plaintext_password) >= 8
@@ -84,12 +85,16 @@ class AccountOrm(Base, GetOneByIdMixin):
 
     def __init__(
         self,
+        session: AsyncSession | None,
         *,
         email: str,
         plaintext_password: str,
     ) -> None:
         self.email = email
         self.set_password(plaintext_password=plaintext_password)
+
+        if session:
+            session.add(self)
 
     @classmethod
     def select(cls, *, email: str = NOT_SET) -> Select[tuple[Self]]:
@@ -123,7 +128,7 @@ class AccountOrm(Base, GetOneByIdMixin):
             raise InvalidPasswordError()
 
     def set_password(self, *, plaintext_password: str) -> None:
-        if test_password_strength_or_exception(plaintext_password=plaintext_password):
+        if validate_password_strength_or_exception(plaintext_password=plaintext_password):
             salt = os.urandom(16)
             password_key = _derive_password_key(plaintext_password=plaintext_password, salt=salt)
             self.password_key_salt = salt.hex()

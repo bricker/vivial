@@ -139,10 +139,10 @@ async def create_booking_mutation(
             )
 
             booking = BookingOrm(
+                db_session,
                 reserver_details=reserver_details,
                 stripe_payment_intent_reference=stripe_payment_intent_reference,
             )
-            db_session.add(booking)
 
             booking.accounts = [account]
 

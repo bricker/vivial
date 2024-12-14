@@ -25,14 +25,11 @@ class Base(DeclarativeBase):
         type_=TIMESTAMP(timezone=True), server_default=None, onupdate=func.current_timestamp()
     )
 
-    async def save(self, session: AsyncSession) -> Self:
-        validation_errors = self.validate()
-        if len(validation_errors) > 0:
-            raise InvalidRecordError(validation_errors)
-
-        session.add(self)
-        await session.flush()
-        return self
+    # @classmethod
+    # def init_pending(cls, session: AsyncSession, **kwargs: Any) -> Self:
+    #     instance = cls(**kwargs)
+    #     session.add(instance)
+    #     return instance
 
     @classmethod
     def select(cls) -> Select[tuple[Self]]:
@@ -54,7 +51,7 @@ def validate_session(session: Session, flush_context: UOWTransaction, instances:
     account.email = "invalid email"
 
     The caveat is that the whole session must be wrapped in try/catch, otherwise the validation errors won't be caught.
-    This does have the benefit of validation everything at once, so the client will receive all validation errors.
+    This does have the benefit of validating everything at once, so the client will receive all validation errors.
     """
     validation_errors: list[ValidationError] = []
 

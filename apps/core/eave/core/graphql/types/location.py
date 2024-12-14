@@ -1,6 +1,6 @@
 import strawberry
 
-from eave.core.shared.address import Address
+from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.shared.geo import GeoPoint
 
 
@@ -8,4 +8,4 @@ from eave.core.shared.geo import GeoPoint
 class Location:
     directions_uri: str | None
     coordinates: GeoPoint
-    address: Address
+    address: GraphQLAddress

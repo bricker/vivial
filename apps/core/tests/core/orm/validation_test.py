@@ -13,19 +13,8 @@ class TestValidation(BaseTestCase):
 
         try:
             async with self.db_session.begin() as session:
-                account = AccountOrm(
-                    email=self.anyemail(),
-                    plaintext_password=self.anystr(),
-                )
-                session.add(account)
-
-                reserver_details = ReserverDetailsOrm(
-                    account=account,
-                    first_name=self.anyalpha(),
-                    last_name=self.anyalpha(),
-                    phone_number=self.anyphonenumber(),
-                )
-                session.add(reserver_details)
+                account = self.make_account(session)
+                self.make_reserver_details(session, account)
         except InvalidRecordError as e:
             self.fail(e)
 
@@ -40,19 +29,15 @@ class TestValidation(BaseTestCase):
 
         with self.assertRaises(InvalidRecordError):
             async with self.db_session.begin() as session:
-                account = AccountOrm(
-                    email=self.anyemail(),
-                    plaintext_password=self.anystr(),
-                )
-                session.add(account)
+                account = self.make_account(session)
 
                 reserver_details = ReserverDetailsOrm(
+                    session,
                     account=account,
                     first_name="",
                     last_name="",
                     phone_number="",
                 )
-                session.add(reserver_details)
 
         async with self.db_session.begin() as session:
             assert await self.count(session, AccountOrm) == 0
@@ -62,10 +47,10 @@ class TestValidation(BaseTestCase):
         # This isn't really testing validations, it's just something I wanted to test and happened to be in this file.
         async with self.db_session.begin() as session:
             account = AccountOrm(
+                session,
                 email=self.anyemail("old email"),
                 plaintext_password=self.anystr(),
             )
-            session.add(account)
 
         async with self.db_session.begin() as session:
             session.add(account)

@@ -10,15 +10,15 @@ class TestGetOutingPreferences(BaseTestCase):
         first_restaurant_category = RestaurantCategoryOrm.all()[0]
         first_activity_category = ActivityCategoryOrm.all()[0]
 
-        async with self.db_session.begin() as db_session:
-            account = self.make_account(db_session)
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
 
-            outing_preferences = OutingPreferencesOrm(
+            OutingPreferencesOrm(
+                session,
                 account=account,
                 activity_category_ids=[first_activity_category.id],
                 restaurant_category_ids=[first_restaurant_category.id],
             )
-            db_session.add(outing_preferences)
 
         response = await self.make_graphql_request(
             "getOutingPreferences",
@@ -58,15 +58,15 @@ class TestGetOutingPreferences(BaseTestCase):
         assert data["activityCategories"] is None
 
     async def test_outing_preferences_with_none_values(self) -> None:
-        async with self.db_session.begin() as db_session:
-            account = self.make_account(db_session)
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
 
-            outing_preferences = OutingPreferencesOrm(
+            OutingPreferencesOrm(
+                session,
                 account=account,
                 activity_category_ids=None,
                 restaurant_category_ids=None,
             )
-            db_session.add(outing_preferences)
 
         response = await self.make_graphql_request(
             "getOutingPreferences",

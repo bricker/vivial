@@ -9,12 +9,12 @@ from sqlalchemy import Dialect
 from sqlalchemy.sql.type_api import _BindProcessorType, _ResultProcessorType
 from sqlalchemy.types import UserDefinedType
 
-from eave.core.shared.address import Address
+from eave.core.graphql.types.address import GraphQLAddress
+from eave.core.lib.address import Address, BaseAddress
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 from eave.stdlib.logging import LOGGER
 
-
-class AddressColumnType(UserDefinedType):
+class AddressFieldsColumnType(UserDefinedType):
     cache_ok = True
 
     def get_col_spec(self) -> Literal["JSON"]:

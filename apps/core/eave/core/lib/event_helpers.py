@@ -36,7 +36,7 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
             location=Location(
                 coordinates=activity.coordinates_to_geopoint(),
                 address=activity.address,
-                directions_uri=google_maps_directions_url(activity.address.formatted_singleline_internal),
+                directions_uri=google_maps_directions_url(activity.address.formatted_singleline),
             ),
         ),
         photos=Photos(
