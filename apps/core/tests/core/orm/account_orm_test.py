@@ -112,8 +112,11 @@ class TestAccountOrm(BaseTestCase):
 
         async with self.db_session.begin() as session:
             next_fetched_account = await AccountOrm.get_one(session, new_account.id)
-            assert next_fetched_account.password_key != fetched_account.password_key
-            assert next_fetched_account.password_key_salt != fetched_account.password_key_salt
+            assert next_fetched_account.password_key == fetched_account.password_key
+            assert next_fetched_account.password_key_salt == fetched_account.password_key_salt
+
+            assert next_fetched_account.password_key != new_account.password_key
+            assert next_fetched_account.password_key_salt != new_account.password_key_salt
 
     async def test_account_set_password_with_weak_password(self) -> None:
         with self.assertRaises(WeakPasswordError):
@@ -207,6 +210,8 @@ class TestAccountOrm(BaseTestCase):
                 session,
                 reserver_details=reserver_details,
             )
+
+            account.bookings.append(booking)
 
             outing_preferences = OutingPreferencesOrm(
                 session,

@@ -111,7 +111,7 @@ class TestBookingOrms(BaseTestCase):
             assert first_activity.booking.id == booking_new.id
 
             assert len(booking_fetched.reservations) == 1
-            first_reservation = booking_fetched.activities[0]
+            first_reservation = booking_fetched.reservations[0]
             assert first_reservation.id == booking_reservation.id
             assert first_reservation.booking.id == booking_new.id
 

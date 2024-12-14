@@ -44,7 +44,7 @@ M = TypeVar("M", bound=unittest.mock.Mock)
 
 # This should only be used in testing - it is inefficient
 _AVAILABLE_TIMEZONES = list(zoneinfo.available_timezones())
-
+_ALPHAS = "abcdefghijklmnopqrstuvwxyz" * 100
 
 class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     testdata: dict[str, Any]
@@ -278,8 +278,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def anyalpha(self, name: str | None = None, *, length: int = 10) -> str:
         name = self._make_testdata_name(name)
 
-        alphas = "abcdefghijklmnopqrstuvwxyz"
-        data = "".join(random.sample(alphas, k=length))
+        data = "".join(random.sample(_ALPHAS, k=length))
         self.testdata[name] = data
         return self.getalpha(name)
 
