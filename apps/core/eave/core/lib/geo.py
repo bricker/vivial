@@ -1,7 +1,9 @@
+import math
 from dataclasses import dataclass
 from enum import IntEnum
 
 import geoalchemy2.shape
+import strawberry
 from geoalchemy2 import WKBElement
 from shapely import Point
 
@@ -19,7 +21,7 @@ class Distance:
         return self.miles * 1609.34
 
 
-@dataclass(kw_only=True)
+@strawberry.type
 class GeoPoint:
     lat: float
     lon: float
@@ -30,6 +32,24 @@ class GeoPoint:
 
     def geoalchemy_shape(self) -> WKBElement:
         return geoalchemy2.shape.from_shape(self.shapely_shape(), srid=SpatialReferenceSystemId.LAT_LON, extended=False)
+
+    def haversine_distance(self, to_point: "GeoPoint") -> float:
+        """
+        Returns the distance between `self` and `to_point` measured in miles.
+        https://en.wikipedia.org/wiki/Haversine_formula
+        """
+        # Convert latitude and longitude from degrees to radians
+        lat1, lon1, lat2, lon2 = map(math.radians, [self.lat, self.lon, to_point.lat, to_point.lon])
+
+        # Haversine formula
+        dlat = lat2 - lat1
+        dlon = lon2 - lon1
+        a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+        c = 2 * math.asin(math.sqrt(a))
+
+        # Radius of Earth in miles (mean value)
+        r = 3958.75
+        return c * r
 
 
 @dataclass(kw_only=True)

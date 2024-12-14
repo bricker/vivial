@@ -1,8 +1,23 @@
 fragment OutingFields on Outing {
   id
-  headcount
   activityStartTime
   restaurantArrivalTime
+  restaurantRegion {
+    id
+    name
+  }
+  activityRegion {
+    id
+    name
+  }
+  survey {
+    id
+    budget
+    headcount
+    searchAreaIds
+    startTime
+    visitorId
+  }
   drivingTime
   activity {
     sourceId
@@ -17,8 +32,10 @@ fragment OutingFields on Outing {
       name
       location {
         directionsUri
-        latitude
-        longitude
+        coordinates {
+          lat
+          lon
+        }
         formattedAddress
       }
     }
@@ -47,9 +64,11 @@ fragment OutingFields on Outing {
     customerFavorites
     location {
       directionsUri
-      latitude
-      longitude
       formattedAddress
+      coordinates {
+        lat
+        lon
+      }
     }
     photos {
       coverPhotoUri

@@ -5,34 +5,52 @@ import strawberry
 
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.types.activity import Activity, ActivityTicketInfo, ActivityVenue
+from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityTicketInfo, ActivityVenue
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import (
     Outing,
 )
 from eave.core.graphql.types.photos import Photos
 from eave.core.graphql.types.restaurant import Restaurant
-from eave.core.lib.event_helpers import get_activity, get_restaurant
+from eave.core.graphql.types.search_region import SearchRegion
+from eave.core.graphql.types.survey import Survey
+from eave.core.lib.event_helpers import get_activity, get_closest_search_region_to_point, get_restaurant
+from eave.core.lib.geo import GeoPoint
+from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
+from eave.core.orm.outing import OutingOrm
 from eave.core.orm.outing_activity import OutingActivityOrm
 from eave.core.orm.outing_reservation import OutingReservationOrm
-from eave.core.shared.enums import ActivitySource, RestaurantSource
+from eave.core.orm.search_region import _SEARCH_REGIONS_TABLE, SearchRegionOrm
+from eave.core.orm.survey import SurveyOrm
+from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 
 # TODO: Remove once Date Picked UI is complete.
 MOCK_OUTING = Outing(
     id=uuid4(),
-    headcount=2,
     driving_time="25 min",
+    survey=Survey(
+        id=uuid4(),
+        visitor_id=uuid4(),
+        start_time=datetime(2024, 10, 15, hour=6, tzinfo=LOS_ANGELES_TIMEZONE),
+        search_area_ids=[uuid4(), uuid4()],
+        budget=OutingBudget.EXPENSIVE,
+        headcount=2,
+    ),
     restaurant_arrival_time=(datetime(2024, 10, 15, hour=6, tzinfo=LOS_ANGELES_TIMEZONE)),
     activity_start_time=(datetime(2024, 10, 15, hour=8, tzinfo=LOS_ANGELES_TIMEZONE)),
+    restaurant_region=SearchRegion.from_orm(_SEARCH_REGIONS_TABLE[0]),
+    activity_region=SearchRegion.from_orm(_SEARCH_REGIONS_TABLE[1]),
     restaurant=Restaurant(
         source_id=f"{uuid4()}",
         source=RestaurantSource.GOOGLE_PLACES,
         name="Zarape Cocina & Cantina",
         location=Location(
             directions_uri="https://g.co/kgs/o6Z9PpR",
-            latitude=0,
-            longitude=0,
+            coordinates=GeoPoint(
+                lat=0,
+                lon=0,
+            ),
             formatted_address="8351 Santa Monica Blvd, West Hollywood, CA, 90069",
         ),
         photos=Photos(
@@ -66,8 +84,10 @@ MOCK_OUTING = Outing(
             name="The Comedy Store, Main Room",
             location=Location(
                 directions_uri="https://g.co/kgs/h1SY9De",
-                latitude=0,
-                longitude=0,
+                coordinates=GeoPoint(
+                    lat=0,
+                    lon=0,
+                ),
                 formatted_address="8433 Sunset Blvd, Hollywood, CA, 90069",
             ),
         ),
@@ -86,6 +106,11 @@ MOCK_OUTING = Outing(
         door_tips="Doors open at 7:30PM, Event begins at 8:00PM, Expected end time is 10:30PM",
         insider_tips="Order your two drink minimum all at once because it takes a while for the waitress to make the second round. If you sit in the front, expect to get picked on by the comedians.",
         parking_tips="Free open lot behind the building next to the market.",
+        category_group=ActivityCategoryGroup.from_orm(
+            ActivityCategoryGroupOrm.one_or_exception(
+                activity_category_group_id=UUID("988e0bf142564462985a2657602aad1b")
+            )
+        ),
     ),
 )
 
@@ -107,31 +132,45 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
     #     driving_time=None,
     # )
     async with database.async_session.begin() as db_session:
+        outing = await OutingOrm.get_one(
+            session=db_session,
+            id=input.id,
+        )
         outing_activity = await OutingActivityOrm.get_one_by_outing_id(
             session=db_session,
-            outing_id=input.id,
+            outing_id=outing.id,
         )
         outing_reservation = await OutingReservationOrm.get_one_by_outing_id(
             session=db_session,
-            outing_id=input.id,
+            outing_id=outing.id,
         )
+        survey_query = SurveyOrm.select().where(SurveyOrm.id == outing.survey_id)
+        survey = (await db_session.scalars(survey_query)).one()
 
     activity = await get_activity(
         source=outing_activity.source,
         source_id=outing_activity.source_id,
     )
-
     restaurant = await get_restaurant(
         source=outing_reservation.source,
         source_id=outing_reservation.source_id,
     )
 
+    activity_region = restaurant_region = None
+    regions = [SearchRegionOrm.one_or_exception(search_region_id=area_id) for area_id in survey.search_area_ids]
+    if activity:
+        activity_region = get_closest_search_region_to_point(regions=regions, point=activity.venue.location.coordinates)
+    if restaurant:
+        restaurant_region = get_closest_search_region_to_point(regions=regions, point=restaurant.location.coordinates)
+
     return Outing(
         id=input.id,
-        headcount=max(outing_activity.headcount, outing_reservation.headcount),
+        survey=Survey.from_orm(survey),
         activity=activity,
         restaurant=restaurant,
         driving_time=None,
         activity_start_time=outing_activity.start_time_local,
         restaurant_arrival_time=outing_reservation.start_time_local,
+        activity_region=SearchRegion.from_orm(activity_region) if activity_region else None,
+        restaurant_region=SearchRegion.from_orm(restaurant_region) if restaurant_region else None,
     )

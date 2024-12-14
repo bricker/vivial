@@ -1,9 +1,10 @@
 import strawberry
 
+from eave.core.lib.geo import GeoPoint
+
 
 @strawberry.type
 class Location:
     directions_uri: str | None
-    latitude: float
-    longitude: float
+    coordinates: GeoPoint
     formatted_address: str | None

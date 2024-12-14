@@ -15,8 +15,12 @@ class ActivityCategoryGroupOrm:
         return list(_ACTIVITY_CATEGORY_GROUPS_TABLE)
 
     @classmethod
-    def one_or_exception(cls, *, activity_category_id: UUID) -> "ActivityCategoryGroupOrm":
-        return _ACTIVITY_CATEGORY_GROUPS_PK[activity_category_id]
+    def one_or_exception(cls, *, activity_category_group_id: UUID) -> "ActivityCategoryGroupOrm":
+        return _ACTIVITY_CATEGORY_GROUPS_PK[activity_category_group_id]
+
+    @classmethod
+    def one_or_none(cls, *, activity_category_group_id: UUID) -> "ActivityCategoryGroupOrm | None":
+        return _ACTIVITY_CATEGORY_GROUPS_PK.get(activity_category_group_id)
 
     @property
     def activity_categories(self) -> list[ActivityCategoryOrm]:

@@ -385,6 +385,7 @@ async def create_booking_mutation(
             booking = await BookingOrm.build(
                 reserver_details_id=input.reserver_details_id,
                 account_id=account_id,
+                survey_id=survey.id,
             ).save(db_session)
 
             await AccountBookingOrm.build(
