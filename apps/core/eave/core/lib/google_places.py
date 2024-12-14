@@ -16,11 +16,11 @@ from google.maps.places import (
 )
 
 from eave.core.graphql.types.activity import Activity, ActivityVenue
+from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
-from eave.core.graphql.types.pricing import Pricing
+from eave.core.graphql.types.pricing import CostBreakdown
 from eave.core.graphql.types.restaurant import Restaurant
-from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 from eave.core.shared.geo import GeoArea, GeoPoint
 
@@ -80,7 +80,6 @@ async def activity_from_google_place(places_client: PlacesAsyncClient, *, place:
         name=place.display_name.text,
         description=place.editorial_summary,
         photos=photos,
-        pricing=Pricing(),  # Currently activities from Google Places (ice cream shop or bar) don't have pricing (i.e., we don't collect payment)
         ticket_info=None,  # No tickets for activity from Google Places
         venue=ActivityVenue(name=place.display_name.text, location=location_from_google_place(place)),
         website_uri=place.website_uri,

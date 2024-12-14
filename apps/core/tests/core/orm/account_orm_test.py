@@ -16,7 +16,9 @@ class TestAccountOrm(BaseTestCase):
     async def test_new_account_record(self) -> None:
         async with self.db_session.begin() as session:
             assert await self.count(session, AccountOrm) == 0
-            new_account = AccountOrm(session, email=self.anyemail("email"), plaintext_password=self.anystr("plaintext_password"))
+            new_account = AccountOrm(
+                session, email=self.anyemail("email"), plaintext_password=self.anystr("plaintext_password")
+            )
 
         async with self.db_session.begin() as session:
             assert await self.count(session, AccountOrm) == 1
@@ -70,7 +72,9 @@ class TestAccountOrm(BaseTestCase):
 
     async def test_account_verify_password_verified(self) -> None:
         async with self.db_session.begin() as session:
-            new_account = AccountOrm(session, email=self.anyemail(), plaintext_password=self.anystr("plaintext_password"))
+            new_account = AccountOrm(
+                session, email=self.anyemail(), plaintext_password=self.anystr("plaintext_password")
+            )
 
         async with self.db_session.begin() as session:
             fetched_account = await AccountOrm.get_one(session, new_account.id)
@@ -84,7 +88,9 @@ class TestAccountOrm(BaseTestCase):
 
     async def test_account_verify_password_not_verified(self) -> None:
         async with self.db_session.begin() as session:
-            new_account = AccountOrm(session, email=self.anyemail(), plaintext_password=self.anystr("plaintext_password"))
+            new_account = AccountOrm(
+                session, email=self.anyemail(), plaintext_password=self.anystr("plaintext_password")
+            )
 
         async with self.db_session.begin() as session:
             fetched_account = await AccountOrm.get_one(session, new_account.id)
@@ -97,7 +103,9 @@ class TestAccountOrm(BaseTestCase):
     async def test_account_set_password_with_valid_password(self) -> None:
         async with self.db_session.begin() as session:
             assert await self.count(session, AccountOrm) == 0
-            new_account = AccountOrm(session, email=self.anyemail(), plaintext_password=self.anystr("plaintext_password"))
+            new_account = AccountOrm(
+                session, email=self.anyemail(), plaintext_password=self.anystr("plaintext_password")
+            )
 
         async with self.db_session.begin() as session:
             assert await self.count(session, AccountOrm) == 1

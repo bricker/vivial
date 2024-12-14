@@ -36,7 +36,6 @@ schema = strawberry.Schema(
     extensions=[
         # Custom extensions
         VisitorIdExtension(),
-
         # Security extensions
         AddValidationRules(_validation_rules),
         QueryDepthLimiter(max_depth=10),

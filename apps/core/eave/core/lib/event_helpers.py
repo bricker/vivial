@@ -8,7 +8,7 @@ from eave.core.graphql.types.activity import Activity, ActivityVenue
 from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
-from eave.core.graphql.types.pricing import Pricing
+from eave.core.graphql.types.pricing import CostBreakdown
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.lib.address import format_address
@@ -45,8 +45,11 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
             cover_photo=Photo.from_orm(images[0]) if len(images) > 0 else None,
             supplemental_photos=[Photo.from_orm(image) for image in images[1:]],
         ),
-        pricing=Pricing(),  # FIXME
-        ticket_info=TicketInfo(name="FIXME", notes="FIXME"),  # FIXME
+        ticket_info=TicketInfo(
+            name="FIXME",
+            notes="FIXME",
+            cost_breakdown=CostBreakdown(),  # FIXME
+        ),
         website_uri=activity.booking_url,
         door_tips=None,
         insider_tips=None,

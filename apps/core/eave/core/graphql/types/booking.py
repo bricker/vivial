@@ -3,9 +3,7 @@ from uuid import UUID
 
 import strawberry
 
-from eave.core.graphql.types.activity import Activity
 from eave.core.graphql.types.outing import Outing
-from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.orm.booking import BookingOrm
 
 

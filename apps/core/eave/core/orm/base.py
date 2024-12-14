@@ -3,7 +3,6 @@ from typing import Any, Self
 
 from sqlalchemy import Select, event, func, select
 from sqlalchemy.dialects.postgresql import TIMESTAMP
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, UOWTransaction, mapped_column
 
 from eave.core.shared.errors import ValidationError

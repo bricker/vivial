@@ -1,6 +1,7 @@
 import dataclasses
 from typing import Any
 
+
 @dataclasses.dataclass(kw_only=True)
 class BaseAddress:
     """
@@ -9,6 +10,7 @@ class BaseAddress:
     They are separate because GraphQLAddress has some special fields that can't be
     serialized correctly for insert into the database.
     """
+
     address1: str | None
     address2: str | None
     city: str | None
@@ -16,20 +18,23 @@ class BaseAddress:
     zip_code: str | None
     country: str | None
 
+
 class Address(BaseAddress):
     """
     A plain address for internal (database) use.
     For GraphQL, use GraphQLAddress.
     """
 
-    def __init__(self, *,
+    def __init__(
+        self,
+        *,
         address1: str | None = None,
         address2: str | None = None,
         city: str | None = None,
         state: str | None = None,
         zip_code: str | None = None,
         country: str | None = None,
-        **kwargs: Any, # In case anything else was in this field in the database
+        **kwargs: Any,  # In case anything else was in this field in the database
     ) -> None:
         # We define our own init function because this dataclass is populated from a JSON object in the database,
         # and if there are any extra fields, we'd get an error "unexpected keyword argument"
@@ -42,14 +47,11 @@ class Address(BaseAddress):
             country=country,
         )
 
-def format_address(address: BaseAddress, *, singleline: bool = False) -> str:
-    line1 = ", ".join(
-        s for s in [address.address1, address.address2] if s
-    )
 
-    line2 = ", ".join(
-        s for s in [address.city, address.state, address.zip_code] if s
-    )
+def format_address(address: BaseAddress, *, singleline: bool = False) -> str:
+    line1 = ", ".join(s for s in [address.address1, address.address2] if s)
+
+    line2 = ", ".join(s for s in [address.city, address.state, address.zip_code] if s)
 
     condensed = [s for s in [line1, line2] if s]
     if singleline:

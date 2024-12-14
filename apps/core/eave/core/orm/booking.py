@@ -121,6 +121,7 @@ class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
         if session:
             session.add(self)
 
+
 class BookingReservationTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     """Editable template for a booked reservation.
     Edits are visible to other accounts part of the same booking, but

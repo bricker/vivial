@@ -3,7 +3,7 @@ from uuid import UUID
 
 import strawberry
 
-from eave.core.graphql.types.survey import Survey
+from eave.core.graphql.types.pricing import CostBreakdown
 
 from .activity import Activity
 from .restaurant import Restaurant
@@ -18,6 +18,7 @@ class OutingPreferencesInput:
 @strawberry.type
 class Outing:
     id: UUID
+    cost_breakdown: CostBreakdown
     headcount: int
     activity: Activity | None
     activity_start_time: datetime | None

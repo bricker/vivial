@@ -86,7 +86,7 @@ async def create_payment_intent_mutation(
         return CreatePaymentIntentFailure(failure_reason=CreatePaymentIntentFailureReason.PAYMENT_INTENT_FAILED)
 
     async with database.async_session.begin() as db_session:
-        stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
+        StripePaymentIntentReferenceOrm(
             db_session,
             account=account,
             stripe_payment_intent_id=stripe_payment_intent.id,

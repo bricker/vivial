@@ -1,4 +1,3 @@
-
 from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservationOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 

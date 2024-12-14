@@ -1,11 +1,11 @@
 from eave.core.graphql.types.activity import Activity, ActivityVenue
+from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
-from eave.core.graphql.types.pricing import Pricing
+from eave.core.graphql.types.pricing import CostBreakdown
 from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.lib.address import format_address
 from eave.core.lib.google_places import google_maps_directions_url
-from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.shared.enums import ActivitySource
 from eave.core.shared.geo import GeoPoint
 from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery, ListTicketClassesForSaleQuery
@@ -87,7 +87,7 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
     )
 
     # Start with a price with all 0's
-    max_pricing: Pricing = Pricing()
+    max_pricing: CostBreakdown = CostBreakdown()
     chosen_ticket_class: TicketClass | None = None
 
     async for batch in ticket_classes_paginator:
@@ -96,16 +96,16 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
             if base_cost is None:
                 continue
 
-            pricing = Pricing(base_cost_cents=base_cost["value"])
+            cost_breakdown = CostBreakdown(base_cost_cents=base_cost["value"])
 
             if (fee := ticket_class.get("fee")) is not None:
-                pricing.fee_cents = fee["value"]
+                cost_breakdown.fee_cents = fee["value"]
 
             if (tax := ticket_class.get("tax")) is not None:
-                pricing.tax_cents = tax["value"]
+                cost_breakdown.tax_cents = tax["value"]
 
-            if pricing.total_cost_cents_internal > max_pricing.total_cost_cents_internal:
-                max_pricing = pricing
+            if cost_breakdown.total_cost_cents_internal > max_pricing.total_cost_cents_internal:
+                max_pricing = cost_breakdown
                 chosen_ticket_class = ticket_class
 
     description = await eventbrite_client.get_event_description(event_id=event_id)
@@ -140,12 +140,13 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         name=event_name["text"],
         description=event["description"]["text"],
         photos=photos,
-        pricing=max_pricing,
         ticket_info=TicketInfo(
             name=chosen_ticket_class.get("display_name"),
             notes=chosen_ticket_class.get(
                 "description"
-            ),  # FOXME: This is probably not the info we want for this field.
+            ),  # FIXME: This is probably not the info we want for this field.
+            cost_breakdown=max_pricing,
+
         )
         if chosen_ticket_class
         else None,

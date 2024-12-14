@@ -31,7 +31,7 @@ class TestValidation(BaseTestCase):
             async with self.db_session.begin() as session:
                 account = self.make_account(session)
 
-                reserver_details = ReserverDetailsOrm(
+                ReserverDetailsOrm(
                     session,
                     account=account,
                     first_name="",

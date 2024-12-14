@@ -54,17 +54,10 @@ async def update_reserver_details_mutation(
 
     try:
         async with database.async_session.begin() as db_session:
-            lookup = (
-                ReserverDetailsOrm.select()
-                .where(ReserverDetailsOrm.account_id == account_id)
-                .where(ReserverDetailsOrm.id == input.id)
-            )
-            reserver_details = (await db_session.scalars(lookup)).one()
+            reserver_details = await ReserverDetailsOrm.get_one(db_session, account_id=account_id, uid=input.id)
             reserver_details.first_name = input.first_name
             reserver_details.last_name = input.last_name
             reserver_details.phone_number = input.phone_number
-            # validate
-            await reserver_details.save(db_session)
 
         return UpdateReserverDetailsSuccess(
             reserver_details=ReserverDetails.from_orm(reserver_details),

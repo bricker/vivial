@@ -4,11 +4,10 @@ from sqlalchemy import Column, ForeignKey, ForeignKeyConstraint, PrimaryKeyConst
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from eave.core.lib.address import Address, BaseAddress
+from eave.core.lib.address import Address
 from eave.core.orm.image import ImageOrm
 from eave.core.orm.util.mixins import CoordinatesMixin, GetOneByIdMixin
 from eave.core.orm.util.user_defined_column_types import AddressFieldsColumnType
-from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.shared.geo import GeoPoint
 
 from .base import Base
@@ -66,6 +65,7 @@ class ActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
         if session:
             session.add(self)
 
+
 class TicketTypeOrm(Base, GetOneByIdMixin):
     __tablename__ = "ticket_types"
     __table_args__ = (
@@ -89,7 +89,8 @@ class TicketTypeOrm(Base, GetOneByIdMixin):
     )
     activity: Mapped[ActivityOrm] = relationship(lazy="selectin", back_populates="ticket_types")
 
-    def __init__(self,
+    def __init__(
+        self,
         session: AsyncSession | None,
         *,
         activity: ActivityOrm,

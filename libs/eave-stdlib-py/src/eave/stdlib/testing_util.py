@@ -46,6 +46,7 @@ M = TypeVar("M", bound=unittest.mock.Mock)
 _AVAILABLE_TIMEZONES = list(zoneinfo.available_timezones())
 _ALPHAS = "abcdefghijklmnopqrstuvwxyz" * 100
 
+
 class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     testdata: dict[str, Any]
     active_mocks: dict[str, unittest.mock.Mock]

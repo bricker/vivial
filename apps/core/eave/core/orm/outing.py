@@ -92,6 +92,7 @@ class OutingActivityOrm(Base, TimedEventMixin):
         if session:
             session.add(self)
 
+
 class OutingReservationOrm(Base, TimedEventMixin):
     """Pivot table between `outings` and reservation sources"""
 

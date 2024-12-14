@@ -1,11 +1,9 @@
 from collections.abc import Awaitable, Callable
-from typing import Any, cast
+from typing import Any
 
 from graphql import GraphQLResolveInfo
-import strawberry
 from strawberry.extensions import SchemaExtension
 
-from eave.core.graphql.context import GraphQLContext
 from eave.stdlib.analytics import SEGMENT_ANONYMOUS_ID_COOKIE_NAME
 
 

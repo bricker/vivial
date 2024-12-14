@@ -1,12 +1,9 @@
 import logging
 import sys
-import uuid
 from logging import Logger, LogRecord
-from typing import Any, cast
+from typing import Any
 
 import google.cloud.logging
-from asgiref.typing import HTTPScope
-from starlette.types import Scope
 
 from eave.stdlib.typing import JsonObject
 
@@ -83,6 +80,7 @@ class CustomFilter(logging.Filter):
         else:
             return log and record.name in self._whitelist_records
 
+
 _root_logger = logging.getLogger()
 _root_logger.setLevel(SHARED_CONFIG.log_level)
 
@@ -133,9 +131,7 @@ class EaveLogger:
         kwargs.setdefault("exc_info", True)
         self._raw_logger.critical(**self._preparekwargs(msg, *args, **kwargs))
 
-    def _preparekwargs(
-        self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any
-    ) -> dict[str, Any]:
+    def _preparekwargs(self, msg: str | Exception, *args: JsonObject | None, **kwargs: Any) -> dict[str, Any]:
         if isinstance(msg, Exception):
             kwargs["exc_info"] = msg
 
