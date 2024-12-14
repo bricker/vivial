@@ -78,8 +78,8 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         CORE_API_APP_CONFIG.reset_cached_properties()
 
         await super().asyncSetUp()
-        self.mock_google_places()
-        self.mock_stripe()
+        self._add_google_places_client_mocks()
+        self._add_stripe_client_mocks()
 
         engine = eave.core.database.async_engine.execution_options(isolation_level="READ COMMITTED")
         self.db_session = eave.core.database.async_sessionmaker(engine, expire_on_commit=False)
@@ -205,7 +205,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
                 offset=self.anyint(min=ONE_DAY_IN_SECONDS * 2, max=ONE_DAY_IN_SECONDS * 14),
             ),
             timezone=self.anytimezone("make_survey.timezone"),
-            visitor_id=self.anyuuid("make_survey.visitor_id"),
+            visitor_id=self.anystr("make_survey.visitor_id"),
         )
         session.add(survey)
         return survey
@@ -255,7 +255,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
     mock_stripe_payment_intent: stripe.PaymentIntent
     mock_stripe_customer: stripe.Customer
 
-    def mock_stripe(self) -> None:
+    def _add_stripe_client_mocks(self) -> None:
         mock_stripe_payment_intent = stripe.PaymentIntent(
             id=self.anystr("stripe.PaymentIntent.id"),
         )
@@ -294,7 +294,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             side_effect=_mock_customer_create_async,
         )
 
-    def mock_google_places(self) -> None:
+    def _add_google_places_client_mocks(self) -> None:
         self.patch(
             name="google places searchNearby",
             patch=unittest.mock.patch(

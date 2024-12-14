@@ -16,37 +16,10 @@ from ..base import BaseTestCase
 class TestBookingOrms(BaseTestCase):
     async def test_booking_associations(self) -> None:
         async with self.db_session.begin() as session:
-            account = AccountOrm(
-                email=self.anyemail(),
-                plaintext_password=self.anystr(),
-            )
-            session.add(account)
-
-            reserver_details = ReserverDetailsOrm(
-                account=account,
-                first_name=self.anyalpha(),
-                last_name=self.anyalpha(),
-                phone_number=self.anyphonenumber(),
-            )
-            session.add(reserver_details)
-
-            survey = SurveyOrm(
-                account=account,
-                budget=OutingBudget.INEXPENSIVE,
-                headcount=self.anyint(min=1, max=2),
-                search_area_ids=[],
-                start_time_utc=self.anydatetime(future=True),
-                timezone=self.anytimezone(),
-                visitor_id=self.anyuuid(),
-            )
-            session.add(survey)
-
-            outing = OutingOrm(
-                account=account,
-                survey=survey,
-                visitor_id=survey.visitor_id,
-            )
-            session.add(outing)
+            account = self.make_account(session)
+            reserver_details = self.make_reserver_details(session, account)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
 
             stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
                 account=account,
@@ -142,19 +115,8 @@ class TestBookingOrms(BaseTestCase):
 
     async def test_booking_activity_template_orm_initialization(self) -> None:
         async with self.db_session.begin() as session:
-            account = AccountOrm(
-                email=self.anyemail(),
-                plaintext_password=self.anystr(),
-            )
-            session.add(account)
-
-            reserver_details = ReserverDetailsOrm(
-                account=account,
-                first_name=self.anyalpha(),
-                last_name=self.anyalpha(),
-                phone_number=self.anyphonenumber(),
-            )
-            session.add(reserver_details)
+            account = self.make_account(session)
+            reserver_details = self.make_reserver_details(session, account)
 
             booking = BookingOrm(
                 reserver_details=reserver_details,
@@ -228,19 +190,8 @@ class TestBookingOrms(BaseTestCase):
 
     async def test_booking_reservation_template_orm_initialization(self) -> None:
         async with self.db_session.begin() as session:
-            account = AccountOrm(
-                email=self.anyemail(),
-                plaintext_password=self.anystr(),
-            )
-            session.add(account)
-
-            reserver_details = ReserverDetailsOrm(
-                account=account,
-                first_name=self.anyalpha(),
-                last_name=self.anyalpha(),
-                phone_number=self.anyphonenumber(),
-            )
-            session.add(reserver_details)
+            account = self.make_account(session)
+            reserver_details = self.make_reserver_details(session, account)
 
             booking = BookingOrm(
                 reserver_details=reserver_details,

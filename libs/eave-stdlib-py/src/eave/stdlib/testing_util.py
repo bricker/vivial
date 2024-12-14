@@ -66,11 +66,12 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         await super().asyncSetUp()
 
         SHARED_CONFIG.reset_cached_properties()
-        self.mock_google_secret_manager()
-        self.mock_google_kms()
-        self.mock_slack_client()
-        self.mock_eventbrite()
-        self.mock_sendgrid_client()
+        self._add_google_secret_manager_mocks()
+        self._add_google_kms_mocks()
+        self._add_slack_client_mocks()
+        self._add_eventbrite_client_mocks()
+        self._add_sendgrid_client_mocks()
+        self._add_segment_client_mocks()
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
@@ -445,7 +446,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
             return passing
 
-    def mock_google_secret_manager(self) -> None:
+    def _add_google_secret_manager_mocks(self) -> None:
         def _access_secret_version(
             request: AccessSecretVersionRequest | dict | None = None, *, name: str | None = None, **kwargs: Any
         ) -> AccessSecretVersionResponse:
@@ -476,7 +477,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             )
         )
 
-    def mock_google_kms(self) -> None:
+    def _add_google_kms_mocks(self) -> None:
         def _mac_sign(request: MacSignRequest) -> MacSignResponse:
             mac = self.anybytes()
             return MacSignResponse(
@@ -522,17 +523,36 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             )
         )
 
-    def mock_slack_client(self) -> None:
+    def _add_slack_client_mocks(self) -> None:
         self.patch(
             name="slack client",
             patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient.chat_postMessage"),
             return_value={},
         )
 
+    def _add_segment_client_mocks(self) -> None:
+        def _mocked_sendgrid_track(*args: Any, **kwargs: Any) -> Any:
+            pass
+
+        self.patch(
+            name="segment.analytics.track",
+            patch=unittest.mock.patch("segment.analytics.track"),
+            side_effect=_mocked_sendgrid_track,
+        )
+
+        def _mocked_sendgrid_identify(*args: Any, **kwargs: Any) -> Any:
+            pass
+
+        self.patch(
+            name="segment.analytics.identify",
+            patch=unittest.mock.patch("segment.analytics.identify"),
+            side_effect=_mocked_sendgrid_identify,
+        )
+
     mock_eventbrite_event: Event
     mock_eventbrite_ticket_class_batch: list[TicketClass]
 
-    def mock_eventbrite(self) -> None:
+    def _add_eventbrite_client_mocks(self) -> None:
         self.mock_eventbrite_event = Event(
             id=self.anydigits("eventbrite.Event.id"),
             name=MultipartText(
@@ -615,7 +635,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             side_effect=_mocked_eventbrite_get_event_description,
         )
 
-    def mock_sendgrid_client(self) -> None:
+    def _add_sendgrid_client_mocks(self) -> None:
         self.patch(
             name="SendGridAPIClient.send",
             patch=unittest.mock.patch(

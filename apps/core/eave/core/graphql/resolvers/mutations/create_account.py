@@ -44,6 +44,8 @@ CreateAccountResult = Annotated[CreateAccountSuccess | CreateAccountFailure, str
 async def create_account_mutation(
     *, info: strawberry.Info[GraphQLContext], input: CreateAccountInput
 ) -> CreateAccountResult:
+    visitor_id = info.context.get("visitor_id")
+
     try:
         async with eave.core.database.async_session.begin() as db_session:
             existing_account_orm = await db_session.scalar(AccountOrm.select(email=input.email).limit(1))
@@ -65,7 +67,7 @@ async def create_account_mutation(
 
     ANALYTICS.identify(
         account_id=new_account_orm.id,
-        visitor_id=info.context.get("visitor_id"),
+        visitor_id=visitor_id,
         extra_properties={
             "email": new_account_orm.email,
         },
@@ -74,7 +76,7 @@ async def create_account_mutation(
     ANALYTICS.track(
         event_name="signup",
         account_id=new_account_orm.id,
-        visitor_id=info.context.get("visitor_id"),
+        visitor_id=visitor_id,
     )
 
     set_new_auth_cookies(response=info.context["response"], account_id=new_account_orm.id)
