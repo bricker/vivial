@@ -65,19 +65,20 @@ function buildBreakdowns(outing: Outing): Breakdown[] {
     });
   }
 
-  if (outing.activity) {
-    const baseCost = outing.activity.pricing.baseCostCents;
+  if (outing.activity?.ticketInfo) {
+    const costBreakdown = outing.activity.ticketInfo.costBreakdown;
+
     breakdown.push({
       costName: outing.activity.name,
-      costValue: currencyFormatter.format(baseCost),
+      costValue: currencyFormatter.format(costBreakdown.totalCostCents / 100),
     });
 
-    if (outing.activity.pricing.feeCents || outing.activity.pricing.taxCents) {
-      const taxFee = outing.activity.pricing.feeCents + outing.activity.pricing.taxCents;
+    if (costBreakdown.feeCents || costBreakdown.taxCents) {
+      const feesCents = costBreakdown.feeCents + costBreakdown.taxCents;
 
       breakdown.push({
         costName: "3rd party Service Fees & Taxes",
-        costValue: currencyFormatter.format(taxFee),
+        costValue: currencyFormatter.format(feesCents / 100),
       });
     }
   }
@@ -91,22 +92,18 @@ function buildBreakdowns(outing: Outing): Breakdown[] {
 }
 
 const CostBreakdown = ({ outing }: { outing: Outing }) => {
-  let totalCost: string;
-
-  if (outing.activity) {
-    totalCost = currencyFormatter.format(outing.activity.pricing.totalCostCents);
-  } else {
-    totalCost = currencyFormatter.format(0);
-  }
+  const totalCostCents = outing.costBreakdown.totalCostCents;
+  const totalCostFormatted = currencyFormatter.format(totalCostCents / 100);
 
   const breakdown = buildBreakdowns(outing);
+
   return (
     <>
       <TopDivider />
       <ComponentContainer>
         <TotalCostContainer>
           <TotalText variant="subtitle2">Total Costs</TotalText>
-          <TotalText variant="subtitle2">{totalCost}</TotalText>
+          <TotalText variant="subtitle2">{totalCostFormatted}</TotalText>
         </TotalCostContainer>
         <CostDivider />
         <BreakdownContainer>

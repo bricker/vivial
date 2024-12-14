@@ -4,6 +4,9 @@ fragment OutingFields on Outing {
   activityStartTime
   restaurantArrivalTime
   drivingTime
+  costBreakdown {
+    ...CostBreakdownFields
+  }
   activity {
     sourceId
     source
@@ -13,6 +16,13 @@ fragment OutingFields on Outing {
     doorTips
     insiderTips
     parkingTips
+    ticketInfo {
+      name
+      notes
+      costBreakdown {
+        ...CostBreakdownFields
+      }
+    }
     venue {
       name
       location {
@@ -26,9 +36,6 @@ fragment OutingFields on Outing {
       supplementalPhotos {
         ...PhotoFields
       }
-    }
-    pricing {
-      ...PricingFields
     }
   }
 

@@ -109,7 +109,9 @@ MOCK_OUTING = Outing(
     id=uuid4(),
     headcount=_mock_survey.headcount,
     driving_time="25 min",
-    cost_breakdown=_mock_activity.ticket_info.cost_breakdown * _mock_survey.headcount if _mock_activity.ticket_info else CostBreakdown(),
+    cost_breakdown=_mock_activity.ticket_info.cost_breakdown * _mock_survey.headcount
+    if _mock_activity.ticket_info
+    else CostBreakdown(),
     restaurant_arrival_time=_mock_survey.start_time,
     activity_start_time=_mock_survey.start_time + timedelta(hours=2),
     restaurant=Restaurant(

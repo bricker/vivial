@@ -2,7 +2,6 @@ from uuid import UUID
 
 import strawberry
 
-from eave.core.graphql.types.pricing import CostBreakdown
 from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm

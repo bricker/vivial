@@ -93,6 +93,8 @@ async def get_outing_total_cost_cents(*, outing_orm: OutingOrm) -> int:
     for outing_activity_orm in outing_orm.activities:
         activity = await get_activity(source=outing_activity_orm.source, source_id=outing_activity_orm.source_id)
         if activity and activity.ticket_info:
-            total_cost_cents += (activity.ticket_info.cost_breakdown * outing_orm.survey.headcount).total_cost_cents_internal
+            total_cost_cents += (
+                activity.ticket_info.cost_breakdown * outing_orm.survey.headcount
+            ).total_cost_cents_internal
 
     return total_cost_cents

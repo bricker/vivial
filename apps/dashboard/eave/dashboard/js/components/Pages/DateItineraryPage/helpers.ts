@@ -5,7 +5,7 @@ import { currencyFormatter } from "$eave-dashboard/js/util/currency";
 import { getDayOfWeek, getMonth, getTimeOfDay } from "$eave-dashboard/js/util/date";
 import { getMultiRegionLabel } from "$eave-dashboard/js/util/region";
 
-export function getTotalCost(outing: Outing | null): string | null {
+export function getFormattedTotalCost(outing: Outing | null): string | null {
   if (outing) {
     const totalCostCents = outing.costBreakdown.totalCostCents;
     if (totalCostCents > 0) {

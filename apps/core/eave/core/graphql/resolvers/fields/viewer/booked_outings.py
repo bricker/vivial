@@ -5,6 +5,7 @@ import strawberry
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.booking import BookingDetailPeek, BookingDetails
+from eave.core.graphql.types.pricing import CostBreakdown
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
@@ -17,6 +18,7 @@ async def _get_booking_details(
 ) -> BookingDetails:
     details = BookingDetails(
         id=booking.id,
+        cost_breakdown=CostBreakdown(),
         headcount=0,
         activity=None,
         activity_start_time=None,
@@ -26,29 +28,34 @@ async def _get_booking_details(
     )
     # NOTE: only getting 1 (or None) result here instead of full scalars result since
     # response type only accepts one of each
-    activity = None
-    reservation = None
+    activity_orm = None
+    reservation_orm = None
 
     if len(booking.activities) > 0:
-        activity = booking.activities[0]
+        activity_orm = booking.activities[0]
     if len(booking.reservations) > 0:
-        reservation = booking.reservations[0]
+        reservation_orm = booking.reservations[0]
 
-    if activity:
-        details.activity_start_time = activity.start_time_local
-        details.activity = await get_activity(
-            source_id=activity.source_id,
-            source=activity.source,
+    if activity_orm:
+        details.activity_start_time = activity_orm.start_time_local
+        details.headcount = max(details.headcount, activity_orm.headcount)
+        activity = await get_activity(
+            source_id=activity_orm.source_id,
+            source=activity_orm.source,
         )
-        details.headcount = max(details.headcount, activity.headcount)
 
-    if reservation:
-        details.restaurant_arrival_time = reservation.start_time_local
+        if activity:
+            details.activity = activity
+            if activity.ticket_info:
+                details.cost_breakdown = activity.ticket_info.cost_breakdown
+
+    if reservation_orm:
+        details.restaurant_arrival_time = reservation_orm.start_time_local
         details.restaurant = await get_restaurant(
-            source_id=reservation.source_id,
-            source=reservation.source,
+            source_id=reservation_orm.source_id,
+            source=reservation_orm.source,
         )
-        details.headcount = max(details.headcount, reservation.headcount)
+        details.headcount = max(details.headcount, reservation_orm.headcount)
 
     return details
 

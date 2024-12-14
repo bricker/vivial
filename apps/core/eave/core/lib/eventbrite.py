@@ -146,7 +146,6 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
                 "description"
             ),  # FIXME: This is probably not the info we want for this field.
             cost_breakdown=max_pricing,
-
         )
         if chosen_ticket_class
         else None,
