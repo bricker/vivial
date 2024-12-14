@@ -19,7 +19,7 @@ class ActivityOrm(Base, CoordinatesMixin):
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     title: Mapped[str] = mapped_column()
     description: Mapped[str] = mapped_column()
-    activity_category_group_id: Mapped[UUID] = mapped_column()
+    activity_category_id: Mapped[UUID] = mapped_column()
     duration_minutes: Mapped[int] = mapped_column()
     availability: Mapped[str] = mapped_column()
     address: Mapped[Address] = mapped_column(type_=AddressColumnType())
@@ -34,7 +34,7 @@ class ActivityOrm(Base, CoordinatesMixin):
         description: str,
         lat: float,
         lon: float,
-        activity_category_group_id: UUID,
+        activity_category_id: UUID,
         duration_minutes: int,
         availability: str,
         address: Address,
@@ -45,7 +45,7 @@ class ActivityOrm(Base, CoordinatesMixin):
             title=title,
             description=description,
             coordinates=GeoPoint(lat=lat, lon=lon).geoalchemy_shape(),
-            activity_category_group_id=activity_category_group_id,
+            activity_category_id=activity_category_id,
             duration_minutes=duration_minutes,
             availability=availability,
             address=address,
