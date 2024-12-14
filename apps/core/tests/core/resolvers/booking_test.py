@@ -355,7 +355,7 @@ class TestBookingEndpoints(BaseTestCase):
             account = self.make_account(session)
             survey = SurveyOrm(
                 account=account,
-                visitor_id=self.anyuuid(),
+                visitor_id=self.anystr(),
                 start_time_utc=self.anydatetime(past=True),
                 timezone=self.anytimezone(),
                 search_area_ids=[SearchRegionOrm.all()[0].id],

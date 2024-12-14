@@ -5,15 +5,12 @@ import starlette.types
 from starlette.requests import Request
 from starlette.responses import Response
 
-from eave.stdlib.logging import LogContext
-
 
 class HTTPEndpoint:
     scope: asgiref.typing.HTTPScope
     receive: asgiref.typing.ASGIReceiveCallable
     send: asgiref.typing.ASGISendCallable
     request: Request
-    ctx: LogContext
 
     def __init__(
         self,
@@ -31,16 +28,14 @@ class HTTPEndpoint:
             receive=typing.cast(starlette.types.Receive, self.receive),
         )
 
-        self.ctx = LogContext.load(scope=scope)
-
     def __await__(self) -> typing.Generator[typing.Any, None, None]:
         return self._dispatch().__await__()
 
-    async def handle(self, request: Request, scope: asgiref.typing.HTTPScope, ctx: LogContext) -> Response:
+    async def handle(self, request: Request, scope: asgiref.typing.HTTPScope) -> Response:
         raise NotImplementedError("HTTPEndpoint.handler")
 
     async def _dispatch(self) -> None:
-        response = await self.handle(request=self.request, scope=self.scope, ctx=self.ctx)
+        response = await self.handle(request=self.request, scope=self.scope)
 
         await response(
             typing.cast(starlette.types.Scope, self.scope),

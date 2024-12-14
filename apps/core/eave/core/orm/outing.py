@@ -21,7 +21,7 @@ class OutingOrm(Base, GetOneByIdMixin):
     __table_args__ = ()
 
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=PG_UUID_EXPR)
-    visitor_id: Mapped[UUID] = mapped_column()
+    visitor_id: Mapped[str | None] = mapped_column()
 
     survey_id: Mapped[UUID] = mapped_column(
         ForeignKey(f"{SurveyOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)
@@ -39,7 +39,7 @@ class OutingOrm(Base, GetOneByIdMixin):
     def __init__(
         self,
         *,
-        visitor_id: UUID,
+        visitor_id: str | None,
         survey: SurveyOrm,
         account: AccountOrm | None,
     ) -> None:

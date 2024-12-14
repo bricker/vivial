@@ -1,7 +1,5 @@
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.outing import OutingActivityOrm, OutingOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
-from eave.core.shared.enums import ActivitySource
 
 from ..base import BaseTestCase
 
@@ -12,28 +10,8 @@ class TestCreatePaymentIntentResolver(BaseTestCase):
             assert await self.count(session, StripePaymentIntentReferenceOrm) == 0
 
             account = self.make_account(session)
-            session.add(account)
-
             survey = self.make_survey(session, account)
-            session.add(survey)
-
-            outing = OutingOrm(
-                account=account,
-                survey=survey,
-                visitor_id=self.anyuuid(),
-            )
-            session.add(outing)
-
-            outing.activities.append(
-                OutingActivityOrm(
-                    outing=outing,
-                    headcount=survey.headcount,
-                    source=ActivitySource.EVENTBRITE,
-                    source_id=self.anydigits(),
-                    start_time_utc=self.anydatetime(future=True),
-                    timezone=self.anytimezone(),
-                )
-            )
+            outing = self.make_outing(session, account, survey)
 
         assert account.stripe_customer_id is None
         assert self.get_mock("stripe.PaymentIntent.create_async").call_count == 0
@@ -93,18 +71,10 @@ class TestCreatePaymentIntentResolver(BaseTestCase):
             assert await self.count(session, StripePaymentIntentReferenceOrm) == 0
 
             account = self.make_account(session)
-            session.add(account)
             account.stripe_customer_id = self.anystr("stripe_customer_id")
 
             survey = self.make_survey(session, account)
-            session.add(survey)
-
-            outing = OutingOrm(
-                account=account,
-                survey=survey,
-                visitor_id=self.anyuuid(),
-            )
-            session.add(outing)
+            outing = self.make_outing(session, account, survey)
 
         assert self.get_mock("stripe.Customer.create_async").call_count == 0
 
@@ -137,18 +107,10 @@ class TestCreatePaymentIntentResolver(BaseTestCase):
         async with self.db_session.begin() as session:
             assert await self.count(session, StripePaymentIntentReferenceOrm) == 0
             account = self.make_account(session)
-            session.add(account)
             account.stripe_customer_id = self.anystr("sripe_customer_id")
 
             survey = self.make_survey(session, account)
-            session.add(survey)
-
-            outing = OutingOrm(
-                account=account,
-                survey=survey,
-                visitor_id=self.anyuuid(),
-            )
-            session.add(outing)
+            outing = self.make_outing(session, account, survey)
 
         response = await self.make_graphql_request(
             "createPaymentIntent",

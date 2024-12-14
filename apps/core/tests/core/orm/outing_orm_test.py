@@ -1,10 +1,6 @@
-import random
 
-from eave.core.orm.account import AccountOrm
 from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservationOrm
-from eave.core.orm.search_region import SearchRegionOrm
-from eave.core.orm.survey import SurveyOrm
-from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
+from eave.core.shared.enums import ActivitySource, RestaurantSource
 
 from ..base import BaseTestCase
 
@@ -12,22 +8,8 @@ from ..base import BaseTestCase
 class TestOutingOrms(BaseTestCase):
     async def test_outing_associations(self) -> None:
         async with self.db_session.begin() as session:
-            account = AccountOrm(
-                email=self.anyemail(),
-                plaintext_password=self.anystr(),
-            )
-            session.add(account)
-
-            survey = SurveyOrm(
-                account=account,
-                budget=OutingBudget.INEXPENSIVE,
-                headcount=self.anyint(min=1, max=2),
-                search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
-                start_time_utc=self.anydatetime(future=True),
-                timezone=self.anytimezone(),
-                visitor_id=self.anyuuid("visitor id"),
-            )
-            session.add(survey)
+            account = self.make_account(session)
+            survey = self.make_survey(session, None)
 
             outing = OutingOrm(
                 account=account,
@@ -78,16 +60,7 @@ class TestOutingOrms(BaseTestCase):
 
     async def test_outing_without_account(self) -> None:
         async with self.db_session.begin() as session:
-            survey = SurveyOrm(
-                account=None,
-                budget=OutingBudget.INEXPENSIVE,
-                headcount=self.anyint(min=1, max=2),
-                search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
-                start_time_utc=self.anydatetime(future=True),
-                timezone=self.anytimezone(),
-                visitor_id=self.anyuuid("visitor id"),
-            )
-            session.add(survey)
+            survey = self.make_survey(session, None)
 
             outing = OutingOrm(
                 account=None,
@@ -104,16 +77,7 @@ class TestOutingOrms(BaseTestCase):
 
     async def test_outing_activity_initialization(self) -> None:
         async with self.db_session.begin() as session:
-            survey = SurveyOrm(
-                account=None,
-                budget=OutingBudget.INEXPENSIVE,
-                headcount=self.anyint(min=1, max=2),
-                search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
-                start_time_utc=self.anydatetime(future=True),
-                timezone=self.anytimezone(),
-                visitor_id=self.anyuuid("visitor id"),
-            )
-            session.add(survey)
+            survey = self.make_survey(session, None)
 
             outing = OutingOrm(
                 account=None,
@@ -149,16 +113,7 @@ class TestOutingOrms(BaseTestCase):
 
     async def test_outing_reservation_initialization(self) -> None:
         async with self.db_session.begin() as session:
-            survey = SurveyOrm(
-                account=None,
-                budget=OutingBudget.INEXPENSIVE,
-                headcount=self.anyint(min=1, max=2),
-                search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
-                start_time_utc=self.anydatetime(future=True),
-                timezone=self.anytimezone(),
-                visitor_id=self.anyuuid("visitor id"),
-            )
-            session.add(survey)
+            survey = self.make_survey(session, None)
 
             outing = OutingOrm(
                 account=None,

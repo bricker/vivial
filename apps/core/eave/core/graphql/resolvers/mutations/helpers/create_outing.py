@@ -1,4 +1,3 @@
-from uuid import UUID
 
 from eave.core import database
 from eave.core.analytics import ANALYTICS
@@ -14,10 +13,10 @@ from eave.core.orm.survey import SurveyOrm
 async def create_outing(
     *,
     individual_preferences: list[OutingPreferencesInput],
-    visitor_id: UUID,
+    visitor_id: str | None,
     account: AccountOrm | None,
     survey: SurveyOrm,
-    account_id: UUID | None = None,
+    reroll: bool,
 ) -> Outing:
     plan = await OutingPlanner(
         individual_preferences=individual_preferences,
@@ -69,10 +68,10 @@ async def create_outing(
 
     ANALYTICS.track(
         event_name="outing plan created",
-        account_id=account_id,
+        account_id=account.id if account else None,
         visitor_id=visitor_id,
         extra_properties={
-            "reroll": True,
+            "reroll": reroll,
         },
     )
 

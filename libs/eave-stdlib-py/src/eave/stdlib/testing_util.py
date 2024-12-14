@@ -35,7 +35,6 @@ from eave.stdlib.eventbrite.models.shared import Address, CurrencyCost, Multipar
 from eave.stdlib.eventbrite.models.ticket_availability import TicketAvailability
 from eave.stdlib.eventbrite.models.ticket_class import TicketClass
 from eave.stdlib.eventbrite.models.venue import Venue
-from eave.stdlib.logging import LogContext
 from eave.stdlib.time import ONE_YEAR_IN_SECONDS
 from eave.stdlib.typing import JsonObject
 
@@ -50,7 +49,6 @@ _AVAILABLE_TIMEZONES = list(zoneinfo.available_timezones())
 class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     testdata: dict[str, Any]
     active_mocks: dict[str, unittest.mock.Mock]
-    empty_ctx: LogContext
     _active_patches: dict[str, unittest.mock._patch]
     _active_patched_dicts: dict[str, unittest.mock._patch_dict]
 
@@ -67,7 +65,6 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
-        self.empty_ctx = LogContext()
         SHARED_CONFIG.reset_cached_properties()
         self.mock_google_secret_manager()
         self.mock_google_kms()

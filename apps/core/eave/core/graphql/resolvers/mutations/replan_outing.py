@@ -5,7 +5,6 @@ from uuid import UUID
 import strawberry
 
 from eave.core import database
-from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.helpers.create_outing import create_outing
 from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import (
@@ -20,12 +19,10 @@ from eave.core.graphql.types.outing import (
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.outing import OutingOrm
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
-from eave.stdlib.util import unwrap
 
 
 @strawberry.input
 class ReplanOutingInput:
-    visitor_id: UUID
     outing_id: UUID
     group_preferences: list[OutingPreferencesInput]
 
@@ -54,10 +51,14 @@ async def replan_outing_mutation(
     info: strawberry.Info[GraphQLContext],
     input: ReplanOutingInput,
 ) -> ReplanOutingResult:
-    account_id = unwrap(info.context.get("authenticated_account_id"))
+    account_id = info.context.get("authenticated_account_id")
+    visitor_id = info.context.get("visitor_id")
 
     async with database.async_session.begin() as db_session:
-        account = await AccountOrm.get_one(db_session, account_id)
+        if account_id:
+            account = await AccountOrm.get_one(db_session, account_id)
+        else:
+            account = None
 
         original_outing = await OutingOrm.get_one(
             db_session,
@@ -76,18 +77,10 @@ async def replan_outing_mutation(
 
     new_outing = await create_outing(
         individual_preferences=input.group_preferences,
-        visitor_id=input.visitor_id,
+        visitor_id=visitor_id,
         account=account,  # This should not be the original Outing's account ID, because someone else may be rerolling this outing.
         survey=original_outing.survey,
-    )
-
-    ANALYTICS.track(
-        event_name="outing plan created",
-        account_id=account.id if account else None,
-        visitor_id=input.visitor_id,
-        extra_properties={
-            "reroll": True,
-        },
+        reroll=True,
     )
 
     return ReplanOutingSuccess(outing=new_outing)

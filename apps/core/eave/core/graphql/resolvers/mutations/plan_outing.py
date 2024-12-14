@@ -6,7 +6,6 @@ from uuid import UUID
 import strawberry
 
 from eave.core import database
-from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.helpers.create_outing import create_outing
 from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import (
@@ -22,12 +21,10 @@ from eave.core.orm.account import AccountOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
-from eave.stdlib.util import unwrap
 
 
 @strawberry.input
 class PlanOutingInput:
-    visitor_id: UUID
     group_preferences: list[OutingPreferencesInput]
     start_time: datetime
     search_area_ids: list[UUID]
@@ -60,7 +57,8 @@ async def plan_outing_mutation(
     info: strawberry.Info[GraphQLContext],
     input: PlanOutingInput,
 ) -> PlanOutingResult:
-    account_id = unwrap(info.context.get("authenticated_account_id"))
+    account_id = info.context.get("authenticated_account_id")
+    visitor_id = info.context.get("visitor_id")
 
     if len(input.search_area_ids) == 0:
         return PlanOutingFailure(failure_reason=PlanOutingFailureReason.SEARCH_AREA_IDS_EMPTY)
@@ -73,11 +71,14 @@ async def plan_outing_mutation(
         return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_SOON)
 
     async with database.async_session.begin() as db_session:
-        account = await AccountOrm.get_one(db_session, account_id)
+        if account_id:
+            account = await AccountOrm.get_one(db_session, account_id)
+        else:
+            account = None
 
         survey = SurveyOrm(
             account=account,
-            visitor_id=input.visitor_id,
+            visitor_id=visitor_id,
             start_time_utc=input.start_time,
             timezone=LOS_ANGELES_TIMEZONE,
             search_area_ids=input.search_area_ids,
@@ -88,18 +89,10 @@ async def plan_outing_mutation(
 
     outing = await create_outing(
         individual_preferences=input.group_preferences,
-        visitor_id=input.visitor_id,
+        visitor_id=visitor_id,
         account=account,
         survey=survey,
-    )
-
-    ANALYTICS.track(
-        event_name="outing plan created",
-        account_id=account.id if account else None,
-        visitor_id=input.visitor_id,
-        extra_properties={
-            "reroll": False,
-        },
+        reroll=False,
     )
 
     return PlanOutingSuccess(outing=outing)

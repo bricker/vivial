@@ -20,7 +20,7 @@ class SurveyOrm(Base, TimedEventMixin, GetOneByIdMixin):
     __table_args__ = (PrimaryKeyConstraint("id"),)
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
-    visitor_id: Mapped[UUID] = mapped_column()
+    visitor_id: Mapped[str | None] = mapped_column()
     search_area_ids: Mapped[list[UUID]] = mapped_column(
         type_=sqlalchemy.dialects.postgresql.ARRAY(
             item_type=sqlalchemy.types.Uuid,
@@ -38,7 +38,7 @@ class SurveyOrm(Base, TimedEventMixin, GetOneByIdMixin):
     def __init__(
         self,
         *,
-        visitor_id: UUID,
+        visitor_id: str | None,
         start_time_utc: datetime,
         timezone: ZoneInfo,
         search_area_ids: list[UUID],
