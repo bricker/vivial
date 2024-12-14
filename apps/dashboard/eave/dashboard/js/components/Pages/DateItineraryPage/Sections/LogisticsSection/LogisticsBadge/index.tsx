@@ -47,7 +47,7 @@ const LogisticsBadge = ({ startTime, connect }: LogisticsBadgeProps) => {
     <Badge>
       <Weekday>{getDayOfWeek(startTime)}</Weekday>
       <Circle color={colors.vivialYellow}>
-        <Date>{getDate(startTime)}</Date>
+        <DateText>{getDate(startTime)}</DateText>
       </Circle>
       {connect && <Connector />}
     </Badge>

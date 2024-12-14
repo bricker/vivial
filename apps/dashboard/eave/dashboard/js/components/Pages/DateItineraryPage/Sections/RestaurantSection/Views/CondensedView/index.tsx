@@ -92,7 +92,7 @@ const CondensedView = () => {
                 <Time>{getTimeOfDay(arrivalTime, false)}</Time>
                 <TooltipButton info={arrivalTimeInfo} iconColor={colors.lightOrangeAccent} />
               </TimeInfo>
-              <TableInfo>Table for {outing?.headcount}</TableInfo>
+              <TableInfo>Table for {outing?.survey.headcount}</TableInfo>
             </TimeAndTableInfo>
           </CopyContainer>
           <div>
