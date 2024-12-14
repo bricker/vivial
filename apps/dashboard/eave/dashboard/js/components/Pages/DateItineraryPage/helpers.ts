@@ -6,14 +6,13 @@ import { getDayOfWeek, getMonth, getTimeOfDay } from "$eave-dashboard/js/util/da
 import { getMultiRegionLabel } from "$eave-dashboard/js/util/region";
 
 export function getTotalCost(outing: Outing | null): string | null {
-  if (outing?.activity) {
-    const { activity } = outing;
-    const pricing = activity.pricing;
-    const totalCostCents = pricing.totalCostCents;
+  if (outing) {
+    const totalCostCents = outing.costBreakdown.totalCostCents;
     if (totalCostCents > 0) {
       return currencyFormatter.format(totalCostCents / 100);
     }
   }
+
   return null;
 }
 
