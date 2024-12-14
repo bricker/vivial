@@ -9,7 +9,6 @@ import { loggedIn } from "$eave-dashboard/js/store/slices/authSlice";
 import { useCreateAccountMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 
-import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
 import { AppRoute, SearchParam, SignUpPageVariant } from "$eave-dashboard/js/routes";
 import CloseButton from "../../Buttons/CloseButton";
 import AuthForm from "../../Forms/AuthForm";
@@ -52,8 +51,7 @@ const SignUpPage = () => {
   }
 
   const handleSubmit = useCallback(async ({ email, password }: { email: string; password: string }) => {
-    const visitorId = await getVisitorId();
-    const resp = await createAccount({ input: { email, plaintextPassword: password, visitorId } });
+    const resp = await createAccount({ input: { email, plaintextPassword: password } });
     const typename = resp.data?.createAccount.__typename;
     switch (typename) {
       case "CreateAccountSuccess": {

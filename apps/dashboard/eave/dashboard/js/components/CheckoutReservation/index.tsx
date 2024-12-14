@@ -89,12 +89,11 @@ const FooterText = styled(Typography)(() => ({
   textAlign: "center",
 }));
 
-function hasPaidActivity(outing?: Outing | null): boolean {
-  if (!outing?.activity) {
+function isPaidOuting(outing?: Outing | null): boolean {
+  if (!outing) {
     return false;
   }
-
-  return outing.activity.pricing.totalCostCents > 0;
+  return outing?.costBreakdown.totalCostCents > 0;
 }
 
 const CheckoutForm = ({
@@ -205,7 +204,7 @@ const CheckoutForm = ({
         return;
       }
       setInternalReserverDetailError(undefined);
-      const isPaidActivity = hasPaidActivity(outing);
+      const isPaidActivity = isPaidOuting(outing);
       // clone reserverDetails state so we can mutate values w/ network responses
       const bookingDetails = { ...reserverDetails };
       try {
@@ -393,7 +392,7 @@ const CheckoutForm = ({
     [reserverDetails, stripeClient, stripeElements, outing],
   );
 
-  const requiresPayment = hasPaidActivity(outing);
+  const requiresPayment = isPaidOuting(outing);
   // when outing has been completely loaded into state & doesnt cost anything, use diff UI
   const usingAltUI = !requiresPayment && !outingIsLoading && outing;
   const Wrapper = usingAltUI ? FormPaper : PlainDiv;
