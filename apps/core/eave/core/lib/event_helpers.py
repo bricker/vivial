@@ -17,6 +17,7 @@ from eave.core.lib.google_places import (
     google_maps_directions_url,
 )
 from eave.core.orm.activity import ActivityOrm
+from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
@@ -34,7 +35,11 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
         {details.address.address1} {details.address.address2}
         {details.address.city}, {details.address.state} {details.address.zip}
         """).strip()
-    category_group = ActivityCategoryGroupOrm.one_or_none(activity_category_group_id=details.activity_category_group_id)
+    category_group = None
+    if category := ActivityCategoryOrm.one_or_none(activity_category_id=details.activity_category_id):
+        category_group = ActivityCategoryGroupOrm.one_or_none(
+            activity_category_group_id=category.activity_category_group_id
+        )
 
     return Activity(
         source_id=event_id,
