@@ -62,7 +62,7 @@ const DateItineraryPage = () => {
   // }, [cookies]);
 
   // TODO: Loading View
-  if (outingDataLoading === true) {
+  if (outingDataLoading) {
     return "Loading...";
   }
 

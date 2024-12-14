@@ -1,12 +1,22 @@
 import { RootState } from "$eave-dashboard/js/store";
+import { colors } from "$eave-dashboard/js/theme/colors";
+import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 import React from "react";
 import { useSelector } from "react-redux";
 
+import DirectionsButton from "$eave-dashboard/js/components/Buttons/DirectionsButton";
+import TooltipButton from "$eave-dashboard/js/components/Buttons/TooltipButton";
 import ImageCarousel from "$eave-dashboard/js/components/Carousels/ImageCarousel";
+import Typography from "@mui/material/Typography";
 import BaseRestaurantBadge from "../../RestaurantBadge";
+import BaseRestaurantRating from "../../RestaurantRating";
 
+import { parseAddress } from "$eave-dashboard/js/util/address";
+import { getTimeOfDay } from "$eave-dashboard/js/util/date";
 import { getRestaurantImgUrls } from "../../../../helpers";
+
+import { RESERVATION_WARNING } from "../constant";
 
 const ViewContainer = styled("div")(() => ({
   position: "relative",
@@ -22,9 +32,75 @@ const RestaurantBadge = styled(BaseRestaurantBadge)(() => ({
   left: 0,
 }));
 
+const InfoContainer = styled("div")(() => ({
+  display: "flex",
+  justifyContent: "space-between",
+  marginBottom: 16,
+}));
+
+const ReservationInfo = styled("div")(() => ({
+  paddingRight: 16,
+}));
+
+const TimeAndTableInfo = styled("div")(() => ({
+  display: "flex",
+  alignItems: "center",
+  marginBottom: 8,
+}));
+
+const TimeAndTable = styled(Typography)(({ theme }) => ({
+  color: theme.palette.common.white,
+  fontSize: rem(16),
+  lineHeight: rem(18),
+  fontWeight: 600,
+  marginRight: 7,
+}));
+
+const RestaurantName = styled(Typography)(({ theme }) => ({
+  color: theme.palette.common.white,
+  fontSize: rem(16),
+  lineHeight: rem(19),
+  marginBottom: 8,
+}));
+
+const RestaurantAddress = styled(Typography)(({ theme }) => ({
+  color: theme.palette.grey[400],
+  fontSize: rem(10),
+  lineHeight: rem(12),
+}));
+
+const ExtraInfo = styled("div")(() => ({
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "flex-end",
+}));
+
+const RestaurantRating = styled(BaseRestaurantRating)(() => ({
+  fontSize: rem(14),
+  height: 17,
+  marginBottom: 8,
+}));
+
+const RestaurantType = styled(Typography)(({ theme }) => ({
+  color: theme.palette.text.secondary,
+  fontSize: rem(12),
+  lineHeight: rem(15),
+  marginBottom: 8,
+}));
+
+const RestaurantDesc = styled(Typography)(({ theme }) => ({
+  color: theme.palette.grey[400],
+  fontSize: rem(14),
+  lineHeight: rem(17),
+  marginBottom: 8,
+}));
+
 const ExpandedView = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
+  const arrivalTime = new Date(outing?.restaurantArrivalTime || "");
   const restaurant = outing?.restaurant;
+  const address = parseAddress(restaurant?.location?.formattedAddress);
+  const directionsUri = restaurant?.location.directionsUri;
 
   if (restaurant) {
     return (
@@ -33,6 +109,33 @@ const ExpandedView = () => {
         <CarouselContainer>
           <ImageCarousel imgUrls={getRestaurantImgUrls(restaurant)} />
         </CarouselContainer>
+        <InfoContainer>
+          <ReservationInfo>
+            <TimeAndTableInfo>
+              <TimeAndTable>
+                {getTimeOfDay(arrivalTime, false)} | Table for {outing.survey.headcount}
+              </TimeAndTable>
+              <TooltipButton info={RESERVATION_WARNING} iconColor={colors.lightOrangeAccent} iconLarge />
+            </TimeAndTableInfo>
+            <RestaurantName>{restaurant.name}</RestaurantName>
+            <div>
+              <RestaurantAddress>{address.street}</RestaurantAddress>
+              <RestaurantAddress>
+                {address.city}, {address.state}, {address.zipCode}
+              </RestaurantAddress>
+            </div>
+          </ReservationInfo>
+          <ExtraInfo>
+            <RestaurantRating rating={restaurant.rating} />
+            <RestaurantType>{restaurant.primaryTypeName}</RestaurantType>
+            {directionsUri && <DirectionsButton uri={directionsUri} />}
+          </ExtraInfo>
+        </InfoContainer>
+        <RestaurantDesc>{restaurant.description}</RestaurantDesc>
+        {restaurant.parkingTips && <RestaurantDesc>🚘 Parking Tips: {restaurant.parkingTips}</RestaurantDesc>}
+        {restaurant.customerFavorites && (
+          <RestaurantDesc>🍲 Customer favorites: {restaurant.customerFavorites}</RestaurantDesc>
+        )}
       </ViewContainer>
     );
   }
