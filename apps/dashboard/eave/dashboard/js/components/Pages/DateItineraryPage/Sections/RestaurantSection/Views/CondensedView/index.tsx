@@ -11,6 +11,8 @@ import Typography from "@mui/material/Typography";
 import RestaurantBadge from "../../RestaurantBadge";
 import BaseRestaurantRating from "../../RestaurantRating";
 
+import { RESERVATION_INFO } from "../constant";
+
 const ViewContainer = styled("div")(() => ({
   display: "flex",
   justifyContent: "space-between",
@@ -58,7 +60,7 @@ const TableInfo = styled(Typography)(({ theme }) => ({
 
 const RestaurantRating = styled(BaseRestaurantRating)(() => ({
   fontSize: rem(12),
-  lineHeight: rem(15),
+  height: 15,
 }));
 
 const RestaurantName = styled(Typography)(({ theme }) => ({
@@ -72,13 +74,12 @@ const RestaurantType = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.secondary,
   fontSize: rem(12),
   lineHeight: rem(15),
-  marginBottom: 2,
+  marginBottom: 4,
 }));
 
 const CondensedView = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
   const arrivalTime = new Date(outing?.restaurantArrivalTime || "");
-  const arrivalTimeInfo = "Dinner reservation times may vary by 30 minutes.";
   const restaurant = outing?.restaurant;
 
   if (restaurant) {
@@ -90,7 +91,7 @@ const CondensedView = () => {
             <TimeAndTableInfo>
               <TimeInfo>
                 <Time>{getTimeOfDay(arrivalTime, false)}</Time>
-                <TooltipButton info={arrivalTimeInfo} iconColor={colors.lightOrangeAccent} />
+                <TooltipButton info={RESERVATION_INFO} iconColor={colors.lightOrangeAccent} />
               </TimeInfo>
               <TableInfo>Table for {outing?.survey.headcount}</TableInfo>
             </TimeAndTableInfo>
