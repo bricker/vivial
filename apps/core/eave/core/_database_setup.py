@@ -107,3 +107,21 @@ if SHARED_CONFIG.is_local:
         async with target_engine.begin() as connection:
             # create tables in empty db
             await connection.run_sync(get_base_metadata().create_all)
+
+    async def drop_database_tables(db_name: str) -> None:
+        # create schema in the target db
+        target_db_uri = async_engine.url._replace(database=db_name)
+        target_engine = create_async_engine(
+            target_db_uri,
+            isolation_level="AUTOCOMMIT",
+            echo=False,
+            connect_args={
+                "server_settings": {
+                    "timezone": "UTC",
+                },
+            },
+        )
+
+        async with target_engine.begin() as connection:
+            # create tables in empty db
+            await connection.run_sync(get_base_metadata().drop_all)
