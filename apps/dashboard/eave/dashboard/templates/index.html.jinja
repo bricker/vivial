@@ -5,12 +5,16 @@
     <!-- window -->
     <script>
         window.app = {
-            apiBase: '{{api_base}}',
-            assetBase: '{{asset_base}}',
-            appEnv: '{{app_env}}',
-            segmentWriteKey: '{{segment_write_key}}',
-            analyticsEnabled: '{{analytics_enabled}}' === "True",
-            stripePublishableKey: '{{stripe_publishable_key}}',
+            apiBase: "{{api_base}}",
+            assetBase: "{{asset_base}}",
+            appEnv: "{{app_env}}",
+            version: "{{app_version}}",
+            segmentWriteKey: "{{segment_write_key}}",
+            analyticsEnabled: "{{analytics_enabled}}" === "true",
+            monitoringEnabled: "{{monitoring_enabled}}" === "true",
+            stripePublishableKey: "{{stripe_publishable_key}}",
+            datadogApplicationId: "{{datadog_application_id}}",
+            datadogClientToken: "{{datadog_client_token}}",
         };
     </script>
 
