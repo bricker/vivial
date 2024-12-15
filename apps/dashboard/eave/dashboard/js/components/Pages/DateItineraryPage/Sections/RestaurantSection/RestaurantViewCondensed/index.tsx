@@ -81,36 +81,43 @@ const RestaurantType = styled(Typography)(({ theme }) => ({
 
 const RestaurantViewCondensed = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
-  const arrivalTime = new Date(outing?.restaurantArrivalTime || "");
-  const restaurant = outing?.restaurant;
-
-  if (restaurant) {
-    return (
-      <ViewContainer>
-        <div>
-          <CopyContainer>
-            <RestaurantBadge />
-            <TimeAndTableInfo>
-              <TimeInfo>
-                <Time>{getTimeOfDay(arrivalTime, false)}</Time>
-                <TooltipButton info={RESERVATION_WARNING} iconColor={colors.lightOrangeAccent} />
-              </TimeInfo>
-              <TableInfo>Table for {outing?.survey.headcount}</TableInfo>
-            </TimeAndTableInfo>
-          </CopyContainer>
-          <div>
-            <RestaurantName>{restaurant.name}</RestaurantName>
-            <RestaurantType>{restaurant.primaryTypeName}</RestaurantType>
-            <RestaurantRating rating={restaurant.rating} />
-          </div>
-        </div>
-        <ImgContainer>
-          <Img src={restaurant.photos.coverPhoto?.src || ""} />
-        </ImgContainer>
-      </ViewContainer>
-    );
+  if (!outing) {
+    return null;
   }
-  return null;
+
+  const arrivalTime = new Date(outing.restaurantArrivalTime || "");
+  const restaurant = outing.restaurant;
+
+  if (!restaurant) {
+    return null;
+  }
+
+  return (
+    <ViewContainer>
+      <div>
+        <CopyContainer>
+          <RestaurantBadge />
+          <TimeAndTableInfo>
+            <TimeInfo>
+              <Time>{getTimeOfDay(arrivalTime, false)}</Time>
+              <TooltipButton info={RESERVATION_WARNING} iconColor={colors.lightOrangeAccent} />
+            </TimeInfo>
+            <TableInfo>Table for {outing.survey.headcount}</TableInfo>
+          </TimeAndTableInfo>
+        </CopyContainer>
+        <div>
+          <RestaurantName>{restaurant.name}</RestaurantName>
+          <RestaurantType>{restaurant.primaryTypeName}</RestaurantType>
+          <RestaurantRating rating={restaurant.rating} />
+        </div>
+      </div>
+      {restaurant.photos.coverPhoto && (
+        <ImgContainer>
+          <Img src={restaurant.photos.coverPhoto.src} />
+        </ImgContainer>
+      )}
+    </ViewContainer>
+  );
 };
 
 export default RestaurantViewCondensed;

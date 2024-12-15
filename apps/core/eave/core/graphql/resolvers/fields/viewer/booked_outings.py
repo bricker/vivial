@@ -21,7 +21,6 @@ async def _get_booking_details(
 ) -> BookingDetails:
     details = BookingDetails(
         id=booking.id,
-        headcount=booking.survey.headcount,
         survey=Survey.from_orm(booking.survey),
         cost_breakdown=CostBreakdown(),
         activity=None,
@@ -43,7 +42,6 @@ async def _get_booking_details(
     if len(booking.activities) > 0:
         activity_orm = booking.activities[0]
         details.activity_start_time = activity_orm.start_time_local
-        details.headcount = max(details.headcount, activity_orm.headcount)
 
         details.activity = await get_activity(
             source_id=activity_orm.source_id,
@@ -62,7 +60,6 @@ async def _get_booking_details(
     if len(booking.reservations) > 0:
         reservation_orm = booking.reservations[0]
         details.restaurant_arrival_time = reservation_orm.start_time_local
-        details.headcount = max(details.headcount, reservation_orm.headcount)
 
         details.restaurant = await get_restaurant(
             source_id=reservation_orm.source_id,

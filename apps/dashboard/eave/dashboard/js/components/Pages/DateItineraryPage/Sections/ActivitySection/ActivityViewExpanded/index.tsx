@@ -88,45 +88,54 @@ const EventbriteLogo = styled("img")(() => ({
 
 const ActivityViewExpanded = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
-  const startTime = new Date(outing?.activityStartTime || "");
-  const activity = outing?.activity;
-  const address = parseAddress(activity?.venue.location.formattedAddress);
-  const directionsUri = activity?.venue.location.directionsUri;
-
-  if (activity) {
-    return (
-      <ViewContainer>
-        <ActivityBadge categoryGroupId={activity.categoryGroup?.id} />
-        <CarouselContainer>
-          <ImageCarousel imgUrls={getImgUrls(activity.photos as Photos)} />
-        </CarouselContainer>
-        <InfoContainer>
-          <EventInfo>
-            <TimeAndTickets>
-              {getTimeOfDay(startTime, false)} | {outing.survey.headcount} Tickets
-            </TimeAndTickets>
-            <ActivityName>{activity.name}</ActivityName>
-            <VenueInfo>{activity.venue.name}</VenueInfo>
-            <VenueInfo>{address.street}</VenueInfo>
-            <VenueInfo>
-              {address.city}, {address.state}, {address.zipCode}
-            </VenueInfo>
-          </EventInfo>
-          <ExtraInfo>
-            <PoweredBy>Events powered by</PoweredBy>
-            <EventbriteLogo src={imageUrl("eventbrite-logo-orange.png")} />
-            {directionsUri && <DirectionsButton uri={directionsUri} />}
-          </ExtraInfo>
-        </InfoContainer>
-        <LongDescription>{activity.description}</LongDescription>
-        {activity.doorTips && <Notes>⏰ {activity.doorTips}</Notes>}
-        {activity.ticketInfo?.notes && <Notes>🎫 {activity.ticketInfo.notes}</Notes>}
-        {activity.parkingTips && <Notes>🚘 Parking Tips: {activity.parkingTips}</Notes>}
-        {activity.insiderTips && <Notes>🍨 Insider scoop: {activity.insiderTips}</Notes>}
-      </ViewContainer>
-    );
+  if (!outing) {
+    return null;
   }
-  return null;
+
+  const startTime = new Date(outing.activityStartTime || "");
+  const activity = outing.activity;
+  if (!activity) {
+    return null;
+  }
+
+  const address = activity.venue.location.address;
+  const directionsUri = activity.venue.location.directionsUri;
+
+  return (
+    <ViewContainer>
+      <ActivityBadge categoryGroupId={activity.categoryGroup?.id} />
+      <CarouselContainer>
+        <ImageCarousel imgUrls={getImgUrls(activity.photos)} />
+      </CarouselContainer>
+      <InfoContainer>
+        <EventInfo>
+          <TimeAndTickets>
+            {getTimeOfDay(startTime, false)} | {outing.survey.headcount} Tickets
+          </TimeAndTickets>
+          <ActivityName>{activity.name}</ActivityName>
+          <VenueInfo>{activity.venue.name}</VenueInfo>
+          {address && (
+            <>
+              <VenueInfo>{address.address1} {address.address2}</VenueInfo>
+              <VenueInfo>
+                {[address.city, address.state, address.zipCode].join(", ")}
+              </VenueInfo>
+            </>
+          )}
+        </EventInfo>
+        <ExtraInfo>
+          <PoweredBy>Events powered by</PoweredBy>
+          <EventbriteLogo src={imageUrl("eventbrite-logo-orange.png")} />
+          {directionsUri && <DirectionsButton uri={directionsUri} />}
+        </ExtraInfo>
+      </InfoContainer>
+      <LongDescription>{activity.description}</LongDescription>
+      {activity.doorTips && <Notes>⏰ {activity.doorTips}</Notes>}
+      {activity.ticketInfo?.notes && <Notes>🎫 {activity.ticketInfo.notes}</Notes>}
+      {activity.parkingTips && <Notes>🚘 Parking Tips: {activity.parkingTips}</Notes>}
+      {activity.insiderTips && <Notes>🍨 Insider scoop: {activity.insiderTips}</Notes>}
+    </ViewContainer>
+  );
 };
 
 export default ActivityViewExpanded;

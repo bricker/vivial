@@ -100,7 +100,7 @@ const RestaurantViewExpanded = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
   const arrivalTime = new Date(outing?.restaurantArrivalTime || "");
   const restaurant = outing?.restaurant;
-  const address = parseAddress(restaurant?.location?.formattedAddress);
+  const address = restaurant?.location?.address;
   const directionsUri = restaurant?.location.directionsUri;
 
   if (restaurant) {
@@ -108,7 +108,7 @@ const RestaurantViewExpanded = () => {
       <ViewContainer>
         <RestaurantBadge />
         <CarouselContainer>
-          <ImageCarousel imgUrls={getImgUrls(restaurant.photos as Photos)} />
+          <ImageCarousel imgUrls={getImgUrls(restaurant.photos)} />
         </CarouselContainer>
         <InfoContainer>
           <ReservationInfo>
@@ -119,12 +119,14 @@ const RestaurantViewExpanded = () => {
               <TooltipButton info={RESERVATION_WARNING} iconColor={colors.lightOrangeAccent} iconLarge />
             </TimeAndTableInfo>
             <RestaurantName>{restaurant.name}</RestaurantName>
-            <div>
-              <RestaurantAddress>{address.street}</RestaurantAddress>
-              <RestaurantAddress>
-                {address.city}, {address.state}, {address.zipCode}
-              </RestaurantAddress>
-            </div>
+            {address && (
+              <div>
+                <RestaurantAddress>{address.address1} {address.address2}</RestaurantAddress>
+                <RestaurantAddress>
+                  {[address.city, address.state, address.zipCode].join(", ")}
+                </RestaurantAddress>
+              </div>
+            )}
           </ReservationInfo>
           <ExtraInfo>
             <RestaurantRating rating={restaurant.rating} />

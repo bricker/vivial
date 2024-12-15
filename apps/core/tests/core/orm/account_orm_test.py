@@ -7,7 +7,6 @@ from eave.core.orm.account import (
 from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.outing_preferences import OutingPreferencesOrm
-from eave.core.orm.reserver_details import ReserverDetailsOrm
 
 from ..base import BaseTestCase
 
@@ -209,18 +208,13 @@ class TestAccountOrm(BaseTestCase):
     async def test_account_associations(self) -> None:
         async with self.db_session.begin() as session:
             account = AccountOrm(session, email=self.anyemail(), plaintext_password=self.anystr("plaintext_password"))
-
-            reserver_details = ReserverDetailsOrm(
-                session,
-                account=account,
-                first_name=self.anyalpha(),
-                last_name=self.anyalpha(),
-                phone_number=self.anyphonenumber(),
-            )
+            reserver_details = self.make_reserver_details(session, account)
+            survey = self.make_survey(session, account)
 
             booking = BookingOrm(
                 session,
                 accounts=[],
+                survey=survey,
                 reserver_details=reserver_details,
             )
 
