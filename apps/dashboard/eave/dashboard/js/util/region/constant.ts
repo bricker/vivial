@@ -13,3 +13,12 @@ export const REGION_LABELS: { [key: string]: string } = {
   [SOUTH_BAY_REGION_ID]: "South Bay",
   [SGV_REGION_ID]: "SGV",
 };
+
+export const REGION_IMAGE_PATHS: { [key: string]: string } = {
+  [CENTRAL_LA_REGION_ID]: "regions/hollywood.png",
+  [DTLA_REGION_ID]: "regions/dtla.png",
+  [PGN_REGION_ID]: "regions/pasadena.png",
+  [WESTSIDE_REGION_ID]: "regions/westside.png",
+  [SOUTH_BAY_REGION_ID]: "regions/southbay.png",
+  [SGV_REGION_ID]: "regions/sgv.png",
+};
