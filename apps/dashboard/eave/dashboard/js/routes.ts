@@ -1,6 +1,12 @@
 export enum SearchParam {
   variant = "v",
   redirect = "r",
+
+  // These come from Stripe and cannot be changed.
+  stripePaymentIntentId = "payment_intent",
+  stripePaymentIntentClientSecret = "payment_intent_client_secret",
+  stripeRedirectStatus = "redirect_status",
+
 }
 
 export enum DateSurveyPageVariant {

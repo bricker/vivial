@@ -8,7 +8,7 @@ import { AppRoute } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 import {
-  useCreateBookingMutation,
+  useInitiateBookingMutation,
   useGetOutingQuery,
   useListReserverDetailsQuery,
   useSubmitReserverDetailsMutation,
@@ -117,24 +117,22 @@ const CheckoutForm = ({
   const { data: reserverDetailsData, isLoading: listDetailsIsLoading } = useListReserverDetailsQuery({});
   const { data: outingData, isLoading: outingIsLoading } = useGetOutingQuery({ input: { id: outingId } });
   const [updateReserverDetails, { isLoading: updateDetailsIsLoading }] = useUpdateReserverDetailsMutation();
-  const [createBooking, { isLoading: createBookingIsLoading }] = useCreateBookingMutation();
   const [submitReserverDetails, { isLoading: submitDetailsIsLoading }] = useSubmitReserverDetailsMutation();
 
   const [internalReserverDetailError, setInternalReserverDetailError] = useState<string | undefined>(undefined);
   const [externalReserverDetailError, setExternalReserverDetailError] = useState<string | undefined>(undefined);
   const [paymentError, setPaymentError] = useState<string | undefined>(undefined);
-  const [bookingError, setBookingError] = useState<string | undefined>(undefined);
   const [isUsingNewCard, setIsUsingNewCard] = useState(false);
   const [reserverDetails, setReserverDetails] = useState(
     localReserverDetails || { id: "", firstName: "", lastName: "", phoneNumber: "" },
   );
   const [outing, setOuting] = useState<Outing | null | undefined>(localOuting);
 
-  const submissionIsLoading = createBookingIsLoading || updateDetailsIsLoading || submitDetailsIsLoading;
+  const submissionIsLoading = updateDetailsIsLoading || submitDetailsIsLoading;
   // only prevent submit on internalError since that can be fixed w/o another submit
   const submitButtonDisabled = !!(submissionIsLoading || listDetailsIsLoading || internalReserverDetailError);
   const reserverDetailError = internalReserverDetailError || externalReserverDetailError;
-  const error = [paymentError, bookingError].filter((e) => e).join("\n");
+  const error = [paymentError].filter((e) => e).join("\n");
 
   function checkReserverDetailsInputs(details: ReserverFormFields) {
     if (details.firstName.length === 0) {
@@ -321,53 +319,6 @@ const CheckoutForm = ({
           }
         }
 
-        const createBookingResp = await createBooking({
-          input: {
-            reserverDetailsId: bookingDetails.id,
-            outingId,
-          },
-        });
-        switch (createBookingResp.data?.viewer.__typename) {
-          case "AuthenticatedViewerMutations": {
-            const createdData = createBookingResp.data?.viewer.createBooking;
-            switch (createdData?.__typename) {
-              case "CreateBookingSuccess":
-                navigate(AppRoute.checkoutComplete);
-                // allow success case to continue execution
-                break;
-              case "CreateBookingFailure":
-                switch (createdData.failureReason) {
-                  case CreateBookingFailureReason.ValidationErrors: {
-                    // TODO: when would this happen????
-                    const invalidFields = createdData.validationErrors?.map((e) => e.field).join(", ");
-                    setBookingError(`The following fields are invalid: ${invalidFields}`);
-                    break;
-                  }
-                  default:
-                    console.error("Unhandled case for CreateBookingFailure", createdData.failureReason);
-                    break;
-                }
-                return;
-              default:
-                console.error("Unexected Graphql result");
-                return;
-            }
-            // allow success case to continue execution
-            break;
-          }
-          case "UnauthenticatedViewer":
-            dispatch(loggedOut());
-            window.location.assign(AppRoute.logout);
-            return;
-          default:
-            if (createBookingResp.error) {
-              // 500 error
-              console.error("Unexected Graphql result");
-              return;
-            }
-            break;
-        }
-
         // execute the payment
         if (isPaidActivity) {
           // TODO: send w/ existing payment details when not using new card
@@ -473,7 +424,7 @@ const CheckoutReservation = ({
   showCostBreakdown?: boolean;
 }) => {
   return (
-    <StripeElementsProvider>
+    <StripeElementsProvider outingId={outingId}>
       <CheckoutForm outingId={outingId} showStripeBadge={showStripeBadge} showCostBreakdown={showCostBreakdown} />
     </StripeElementsProvider>
   );

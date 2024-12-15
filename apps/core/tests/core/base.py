@@ -19,6 +19,7 @@ from strawberry.types import ExecutionResult
 import eave.core.app
 import eave.core.database
 import eave.core.orm
+from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 import eave.stdlib.testing_util
 import eave.stdlib.typing
 from eave.core._database_setup import get_base_metadata, init_database
@@ -187,8 +188,8 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
     ) -> AccountOrm:
         account = AccountOrm(
             session,
-            email=self.anyemail("make_account.email"),
-            plaintext_password=self.anystr("make_account.plaintext_password"),
+            email=self.anyemail(),
+            plaintext_password=self.anystr(),
         )
 
         return account
@@ -198,14 +199,13 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             session,
             account=account,
             budget=random.choice(list(OutingBudget)),
-            headcount=self.anyint("make_survey.headcount", min=1, max=2),
+            headcount=self.anyint(min=1, max=2),
             search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
             start_time_utc=self.anydatetime(
-                "make_survey.start_time_utc",
                 offset=self.anyint(min=ONE_DAY_IN_SECONDS * 2, max=ONE_DAY_IN_SECONDS * 14),
             ),
-            timezone=self.anytimezone("make_survey.timezone"),
-            visitor_id=self.anystr("make_survey.visitor_id"),
+            timezone=self.anytimezone(),
+            visitor_id=self.anystr(),
         )
         return survey
 
@@ -253,23 +253,32 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         )
         return reserver_details
 
+    def make_stripe_payment_intent_reference(self, session: AsyncSession, account: AccountOrm) -> StripePaymentIntentReferenceOrm:
+        stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
+            session,
+            account=account,
+            stripe_payment_intent_id=self.mock_stripe_payment_intent.id
+        )
+        return stripe_payment_intent_reference
+
     def make_booking(
-        self, session: AsyncSession, account: AccountOrm, survey: SurveyOrm, reserver_details: ReserverDetailsOrm
+        self, session: AsyncSession, account: AccountOrm, survey: SurveyOrm, stripe_payment_intent_reference: StripePaymentIntentReferenceOrm | None = None, reserver_details: ReserverDetailsOrm | None = None
     ) -> BookingOrm:
         booking = BookingOrm(
             session,
             survey=survey,
             accounts=[account],
             reserver_details=reserver_details,
+            stripe_payment_intent_reference=stripe_payment_intent_reference,
         )
 
         booking_activity_template = BookingActivityTemplateOrm(
             session,
             booking=booking,
-            name=self.anystr("activity_name"),
-            start_time_utc=self.anydatetime("activity_start_time"),
-            timezone=self.anytimezone("activity_timezone"),
-            photo_uri=self.anyurl("activity_photo_uri"),
+            name=self.anystr(),
+            start_time_utc=self.anydatetime(),
+            timezone=self.anytimezone(),
+            photo_uri=self.anyurl(),
             headcount=self.anyint(min=1, max=2),
             coordinates=GeoPoint(
                 lat=self.anylatitude(),
@@ -277,7 +286,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             ),
             external_booking_link=self.anyurl(),
             source=ActivitySource.EVENTBRITE,
-            source_id=self.getdigits("eventbrite.Event.id"),
+            source_id=self.mock_eventbrite_event.get("id", "MISSING"),
             address=Address(
                 address1=self.anystr(),
                 address2=self.anystr(),
@@ -292,10 +301,10 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         booking_reservation_template = BookingReservationTemplateOrm(
             session,
             booking=booking,
-            name=self.anystr("reservation_name"),
-            photo_uri=self.anyurl("reservation_photo_uri"),
-            start_time_utc=self.anydatetime("reservation_start_time"),
-            timezone=self.anytimezone("reservation_timezone"),
+            name=self.anystr(),
+            photo_uri=self.anyurl(),
+            start_time_utc=self.anydatetime(),
+            timezone=self.anytimezone(),
             headcount=self.anyint(min=1, max=2),
             coordinates=GeoPoint(
                 lat=self.anylatitude(),
@@ -303,7 +312,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             ),
             external_booking_link=self.anyurl(),
             source=RestaurantSource.GOOGLE_PLACES,
-            source_id=self.getstr("Place.id"),
+            source_id=self.mock_google_place.id,
             address=Address(
                 address1=self.anystr(),
                 address2=self.anystr(),
@@ -359,40 +368,48 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             side_effect=_mock_customer_create_async,
         )
 
+    mock_google_place: Place
+    mock_google_places_photo_media: PhotoMedia
+
     def _add_google_places_client_mocks(self) -> None:
-        place_id = self.anystr("Place.id")
+        self.mock_google_place =Place(
+            id=self.anystr("Place.id"),
+        )
+
+        async def _mock_google_places_search_nearby(*args, **kwargs) -> MockPlacesResponse:
+            return MockPlacesResponse(places=[self.mock_google_place])
 
         self.patch(
             name="google places searchNearby",
             patch=unittest.mock.patch(
                 "google.maps.places_v1.services.places.async_client.PlacesAsyncClient.search_nearby"
             ),
-            return_value=MockPlacesResponse(
-                [
-                    Place(
-                        id=place_id,
-                    )
-                ]
-            ),
+            side_effect=_mock_google_places_search_nearby
         )
+
+        async def _mock_google_places_get_place(*args, **kwargs) -> Place:
+            return self.mock_google_place
 
         self.patch(
             name="PlacesAsyncClient.get_place",
             patch=unittest.mock.patch("google.maps.places_v1.services.places.async_client.PlacesAsyncClient.get_place"),
-            return_value=Place(
-                id=place_id,
-            ),
+            side_effect=_mock_google_places_get_place
         )
+
+        self.mock_google_places_photo_media = PhotoMedia(
+            name=self.anystr("PhotoMedia.name"),
+            photo_uri=self.anyurl("PhotoMedia.photo_uri"),
+        )
+
+        async def _mock_google_places_get_photo_media(*args, **kwargs) -> PhotoMedia:
+            return self.mock_google_places_photo_media
 
         self.patch(
             name="PlacesAsyncClient.get_photo_media",
             patch=unittest.mock.patch(
                 "google.maps.places_v1.services.places.async_client.PlacesAsyncClient.get_photo_media"
             ),
-            return_value=PhotoMedia(
-                name=self.anystr("PhotoMedia.name"),
-                photo_uri=self.anyurl("PhotoMedia.photo_uri"),
-            ),
+            side_effect=_mock_google_places_get_photo_media
         )
 
     def random_search_areas(self, k: int = 3) -> list[SearchRegionOrm]:

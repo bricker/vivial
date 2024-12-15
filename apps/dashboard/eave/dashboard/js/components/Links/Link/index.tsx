@@ -14,8 +14,7 @@ const CustomLink = styled(BaseLink)(({ theme }) => ({
 interface CustomLinkProps extends LinkProps {
   underline?: boolean;
   preserveQueryParams?: boolean;
-
-}
+};
 
 const Link = (props: CustomLinkProps) => {
   const textDecoration = props.underline ? "underline" : "none";

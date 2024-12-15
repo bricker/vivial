@@ -32,6 +32,7 @@ schema = strawberry.Schema(
     mutation=Mutation,
     config=StrawberryConfig(
         auto_camel_case=True,
+        disable_field_suggestions=(not SHARED_CONFIG.is_local)
     ),
     extensions=[
         # Custom extensions

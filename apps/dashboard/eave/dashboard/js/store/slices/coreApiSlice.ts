@@ -128,13 +128,6 @@ export const coreApiSlice = createApi({
       },
     }),
 
-    createPaymentIntent: builder.mutation<CreatePaymentIntentMutation, CreatePaymentIntentMutationVariables>({
-      async queryFn(variables, _api, _extraOptions, _baseQuery) {
-        const data = await executeOperation({ query: CreatePaymentIntentDocument, variables });
-        return { data };
-      },
-    }),
-
     submitReserverDetails: builder.mutation<SubmitReserverDetailsMutation, SubmitReserverDetailsMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: SubmitReserverDetailsDocument, variables });
@@ -167,9 +160,16 @@ export const coreApiSlice = createApi({
       },
     }),
 
-    createBooking: builder.mutation<CreateBookingMutation, CreateBookingMutationVariables>({
+    initiateBooking: builder.mutation<InitiateBookingMutation, InitiateBookingMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
-        const data = await executeOperation({ query: CreateBookingDocument, variables });
+        const data = await executeOperation({ query: InitiateBookingDocument, variables });
+        return { data };
+      },
+    }),
+
+    confirmBooking: builder.mutation<ConfirmBookingMutation, ConfirmBookingMutationVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: ConfirmBookingDocument, variables });
         return { data };
       },
     }),
@@ -188,10 +188,10 @@ export const {
   usePlanOutingMutation,
   useCreateAccountMutation,
   useLoginMutation,
-  useCreatePaymentIntentMutation,
   useUpdateReserverDetailsAccountMutation,
   useUpdateAccountMutation,
-  useCreateBookingMutation,
+  useInitiateBookingMutation,
+  useConfirmBookingMutation,
   useUpdateReserverDetailsMutation,
   useSubmitReserverDetailsMutation,
   useUpdateOutingPreferencesMutation,

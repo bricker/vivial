@@ -1,23 +1,30 @@
-mutation CreatePaymentIntent($input: CreatePaymentIntentInput!) {
+mutation InitiateBooking($input: InitiateBookingInput!) {
   viewer {
     __typename
     ... on AuthenticatedViewerMutations {
       __typename
 
-      createPaymentIntent(input: $input) {
-        __typename
-
-        ... on CreatePaymentIntentSuccess {
+      initiateBooking(input: $input) {
+        ... on InitiateBookingSuccess {
           __typename
 
+          booking {
+            id
+          }
+
           paymentIntent {
+            id
             clientSecret
           }
         }
 
-        ... on CreatePaymentIntentFailure {
+        ... on InitiateBookingFailure {
           __typename
           failureReason
+
+          validationErrors {
+            field
+          }
         }
       }
     }

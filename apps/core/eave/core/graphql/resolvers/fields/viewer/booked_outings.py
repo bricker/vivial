@@ -112,6 +112,7 @@ async def list_bookings_query(
                 restaurant_name=reservation.name if reservation else None,
                 restaurant_arrival_time=reservation.start_time_local if reservation else None,
                 photo_uri=photo_uri,
+                state=booking.state,
             )
         )
 

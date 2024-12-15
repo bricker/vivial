@@ -10,6 +10,7 @@ query ListBookedOutings {
         activityName
         restaurantName
         photoUri
+        state
       }
     }
     ... on UnauthenticatedViewer {

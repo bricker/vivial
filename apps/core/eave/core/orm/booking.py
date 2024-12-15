@@ -1,8 +1,9 @@
 from datetime import UTC, datetime
+from typing import Self
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import ForeignKey, PrimaryKeyConstraint
+from sqlalchemy import ForeignKey, PrimaryKeyConstraint, Select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -17,13 +18,19 @@ from eave.core.orm.util.user_defined_column_types import (
     ActivitySourceColumnType,
     AddressColumnType,
     RestaurantSourceColumnType,
+    StrEnumColumnType,
 )
 from eave.core.shared.enums import ActivitySource, RestaurantSource
+from eave.core.shared.enums import BookingState
 from eave.core.shared.geo import GeoPoint
+from eave.stdlib.typing import NOT_SET
 
 from .base import Base
 from .util.constants import PG_UUID_EXPR, OnDeleteOption
 
+class BookingStateColumnType(StrEnumColumnType[BookingState]):
+    def enum_member(self, value: str) -> BookingState:
+        return BookingState[value]
 
 class BookingOrm(Base, GetOneByIdMixin):
     __tablename__ = "bookings"
@@ -31,21 +38,24 @@ class BookingOrm(Base, GetOneByIdMixin):
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
 
+    state: Mapped[BookingState] = mapped_column(server_default=BookingState.INITIATED.value)
+
     stripe_payment_intent_reference_id: Mapped[UUID | None] = mapped_column(
         ForeignKey(f"{StripePaymentIntentReferenceOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL.value),
         index=True,
     )
     stripe_payment_intent_reference: Mapped[StripePaymentIntentReferenceOrm | None] = relationship(lazy="selectin")
 
-    reserver_details_id: Mapped[UUID] = mapped_column(
+    # This is nullable because if the Reserver Details is deleted, we still want to keep this Booking, so we set this field to Null.
+    reserver_details_id: Mapped[UUID | None] = mapped_column(
         ForeignKey(f"{ReserverDetailsOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL.value), index=True
     )
-    reserver_details: Mapped[ReserverDetailsOrm] = relationship(lazy="selectin")
+    reserver_details: Mapped[ReserverDetailsOrm | None] = relationship(lazy="selectin")
 
-    survey_id: Mapped[UUID] = mapped_column(
+    survey_id: Mapped[UUID | None] = mapped_column(
         ForeignKey(f"{SurveyOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL.value), index=True
     )
-    survey: Mapped[SurveyOrm] = relationship(lazy="selectin")
+    survey: Mapped[SurveyOrm | None] = relationship(lazy="selectin")
 
     accounts: Mapped[list[AccountOrm]] = relationship(
         secondary=ACCOUNT_BOOKINGS_JOIN_TABLE, lazy="selectin", back_populates="bookings"
@@ -61,18 +71,31 @@ class BookingOrm(Base, GetOneByIdMixin):
         session: AsyncSession | None,
         *,
         accounts: list[AccountOrm],
-        reserver_details: ReserverDetailsOrm,
+        reserver_details: ReserverDetailsOrm | None,
         survey: SurveyOrm,
+        state: BookingState = BookingState.INITIATED,
         stripe_payment_intent_reference: StripePaymentIntentReferenceOrm | None = None,
     ) -> None:
         self.reserver_details = reserver_details
         self.survey = survey
         self.stripe_payment_intent_reference = stripe_payment_intent_reference
         self.accounts = accounts
+        self.state = state
 
         if session:
             session.add(self)
 
+    @classmethod
+    def select(cls, *, account_id: UUID = NOT_SET, uid: UUID = NOT_SET) -> Select[tuple[Self]]:
+        query = super().select()
+
+        if uid is not NOT_SET:
+            query = query.where(BookingOrm.id == uid).limit(1)
+
+        if account_id is not NOT_SET:
+            query = query.join(BookingOrm.accounts).where(AccountOrm.id == account_id)
+
+        return query
 
 class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     """Editable template for a booked activity.

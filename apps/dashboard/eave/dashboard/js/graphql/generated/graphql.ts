@@ -154,6 +154,7 @@ export type Booking = {
   __typename?: 'Booking';
   id: Scalars['UUID']['output'];
   reserverDetailsId: Scalars['UUID']['output'];
+  state: BookingState;
 };
 
 export type BookingDetailPeek = {
@@ -164,6 +165,7 @@ export type BookingDetailPeek = {
   photoUri?: Maybe<Scalars['String']['output']>;
   restaurantArrivalTime?: Maybe<Scalars['DateTime']['output']>;
   restaurantName?: Maybe<Scalars['String']['output']>;
+  state: BookingState;
 };
 
 export type BookingDetails = {
@@ -179,6 +181,13 @@ export type BookingDetails = {
   restaurantRegion?: Maybe<SearchRegion>;
   survey: Survey;
 };
+
+export enum BookingState {
+  Canceled = 'CANCELED',
+  Confirmed = 'CONFIRMED',
+  Initiated = 'INITIATED',
+  Pending = 'PENDING'
+}
 
 export type CostBreakdown = {
   __typename?: 'CostBreakdown';
@@ -711,7 +720,7 @@ export type UpdateReserverDetailsAccountMutation = { __typename: 'Mutation', vie
 export type ListBookedOutingsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ListBookedOutingsQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', bookedOutings: Array<{ __typename: 'BookingDetailPeek', id: string, activityStartTime?: string | null, restaurantArrivalTime?: string | null, activityName?: string | null, restaurantName?: string | null, photoUri?: string | null }> } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+export type ListBookedOutingsQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', bookedOutings: Array<{ __typename: 'BookingDetailPeek', id: string, activityStartTime?: string | null, restaurantArrivalTime?: string | null, activityName?: string | null, restaurantName?: string | null, photoUri?: string | null, state: BookingState }> } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 
 export type ListReserverDetailsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1598,6 +1607,7 @@ export const ListBookedOutingsDocument = new TypedDocumentString(`
         activityName
         restaurantName
         photoUri
+        state
       }
     }
     ... on UnauthenticatedViewer {
