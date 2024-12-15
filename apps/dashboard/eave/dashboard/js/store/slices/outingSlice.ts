@@ -33,8 +33,12 @@ export const outingSlice = createSlice({
         };
       },
     ) => {
-      state.preferenes.user = action.payload.user || null;
-      state.preferenes.partner = action.payload.partner || null;
+      if (action.payload.user) {
+        state.preferenes.user = action.payload.user;
+      }
+      if (action.payload.partner) {
+        state.preferenes.partner = action.payload.partner;
+      }
     },
     unsetOuting: (state) => {
       state.details = null;

@@ -111,8 +111,6 @@ const LogisticsSection = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  console.log(planOutingData);
-
   const handleReplan = useCallback(async () => {
     const groupPreferences = getPreferenceInputs(
       userPreferences,
