@@ -29,6 +29,7 @@ const ImgContainer = styled("div")(() => ({
 
 const Img = styled("img")(() => ({
   objectFit: "cover",
+  minHeight: "100%",
   width: "100%",
 }));
 

@@ -15,7 +15,6 @@ import {
   OutingQuery,
   OutingQueryVariables,
   PlanOutingDocument,
-  ReplanOutingDocument,
   SearchRegionsDocument,
   SubmitReserverDetailsDocument,
   UpdateAccountDocument,
@@ -42,8 +41,6 @@ import {
   type OutingPreferencesQueryVariables,
   type PlanOutingMutation,
   type PlanOutingMutationVariables,
-  type ReplanOutingMutation,
-  type ReplanOutingMutationVariables,
   type SearchRegionsQuery,
   type SearchRegionsQueryVariables,
   type SubmitReserverDetailsMutation,
@@ -166,13 +163,6 @@ export const coreApiSlice = createApi({
     planOuting: builder.mutation<PlanOutingMutation, PlanOutingMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: PlanOutingDocument, variables });
-        return { data };
-      },
-    }),
-
-    replanOuting: builder.mutation<ReplanOutingMutation, ReplanOutingMutationVariables>({
-      async queryFn(variables, _api, _extraOptions, _baseQuery) {
-        const data = await executeOperation({ query: ReplanOutingDocument, variables });
         return { data };
       },
     }),

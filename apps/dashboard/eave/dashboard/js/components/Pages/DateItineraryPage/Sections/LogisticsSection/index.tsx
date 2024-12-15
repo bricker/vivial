@@ -1,11 +1,20 @@
+import { chosePreferences, plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 import React, { useCallback, useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
+import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
 import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
+import { AppRoute } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
-import { useGetSearchRegionsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import {
+  useGetOutingPreferencesQuery,
+  useGetSearchRegionsQuery,
+  usePlanOutingMutation,
+} from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
 import { getRegionIds, getRegionImage } from "$eave-dashboard/js/util/region";
 import { getPlaceLabel, getTimeLabel } from "../../helpers";
 
@@ -84,8 +93,12 @@ const Place = styled(Typography)(({ theme }) => ({
 }));
 
 const LogisticsSection = () => {
+  const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
+  const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
   const { data: searchRegionsData } = useGetSearchRegionsQuery({});
   const outing = useSelector((state: RootState) => state.outing.details);
+  const userPreferences = useSelector((state: RootState) => state.outing.preferenes.user);
+  const partnerPreferences = useSelector((state: RootState) => state.outing.preferenes.partner);
   const [startTime, setStartTime] = useState(new Date(outing?.restaurantArrivalTime || ""));
   const [headcount, setHeadcount] = useState(outing?.survey.headcount || 2);
   const [replanDisabled, setReplanDisabled] = useState(true);
@@ -94,10 +107,43 @@ const LogisticsSection = () => {
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [budget, setBudget] = useState(outing?.survey.budget || OutingBudget.Expensive);
   const [searchAreaIds, setSearchAreaIds] = useState<string[]>(getRegionIds(outing));
+  const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  console.log(planOutingData);
 
   const handleReplan = useCallback(async () => {
-    // TODO: Replan outing.
-  }, []);
+    const groupPreferences = getPreferenceInputs(
+      userPreferences,
+      partnerPreferences,
+      outingPreferencesData?.activityCategoryGroups,
+      outingPreferencesData?.restaurantCategories,
+    );
+    const input = {
+      startTime: startTime.toISOString(),
+      visitorId: await getVisitorId(),
+      groupPreferences,
+      budget,
+      headcount,
+      searchAreaIds,
+    };
+    await planOuting({ input });
+  }, [outingPreferencesData, userPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime]);
+
+  useEffect(() => {
+    if (planOutingData) {
+      if (planOutingData.planOuting?.__typename === "PlanOutingSuccess") {
+        const updatedOuting = planOutingData.planOuting.outing;
+        setDetailsOpen(false);
+        dispatch(plannedOuting({ outing: updatedOuting }));
+        dispatch(chosePreferences({ user: userPreferences }));
+        navigate(`${AppRoute.itinerary}/${updatedOuting.id}`);
+      } else {
+        setErrorMessage("There was an issue updating this outing. Reach out to friends@vivialapp.com for assistance.");
+      }
+    }
+  }, [planOutingData, userPreferences, partnerPreferences]);
 
   const handleSelectHeadcount = useCallback((value: number) => {
     setHeadcount(value);
@@ -167,8 +213,9 @@ const LogisticsSection = () => {
             onSelectBudget={handleSelectBudget}
             onSelectStartTime={toggleDatePickerOpen}
             onSelectSearchArea={toggleAreasOpen}
+            errorMessage={errorMessage}
             disabled={replanDisabled}
-            loading={false}
+            loading={planOutingLoading}
           />
         </Modal>
         <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>

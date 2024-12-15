@@ -11,6 +11,7 @@ import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 import React from "react";
 
+import Typography from "@mui/material/Typography";
 import HighlightButton from "../../Buttons/HighlightButton";
 import LoadingButton from "../../Buttons/LoadingButton";
 import { getSearchAreaLabel, getStartTimeLabel } from "./helpers";
@@ -44,6 +45,12 @@ const SubmitButton = styled(LoadingButton)(() => ({
   marginTop: 8,
 }));
 
+const Error = styled(Typography)(({ theme }) => ({
+  color: theme.palette.error.main,
+  marginTop: 16,
+  textAlign: "left",
+}));
+
 interface DateSelectionsProps {
   cta: string;
   headcount: number;
@@ -57,6 +64,7 @@ interface DateSelectionsProps {
   onSelectSearchArea: () => void;
   loading?: boolean;
   disabled?: boolean;
+  errorMessage?: string;
 }
 
 const DateSelections = ({
@@ -67,6 +75,7 @@ const DateSelections = ({
   searchAreaIds,
   loading,
   disabled,
+  errorMessage,
   onSubmit,
   onSelectHeadcount,
   onSelectBudget,
@@ -168,6 +177,7 @@ const DateSelections = ({
       <SubmitButton onClick={handleSubmit} loading={!!loading} disabled={!!disabled} fullWidth>
         {cta}
       </SubmitButton>
+      {errorMessage && <Error>ERROR: {errorMessage}</Error>}
     </>
   );
 };
