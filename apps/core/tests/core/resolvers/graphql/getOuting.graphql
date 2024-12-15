@@ -1,0 +1,139 @@
+query Outing($input: OutingInput!) {
+  outing(input: $input) {
+    __typename
+    id
+    costBreakdown {
+      baseCostCents
+      feeCents
+      taxCents
+      totalCostCents
+    }
+    survey {
+      id
+      startTime
+      searchRegions {
+        id
+        name
+      }
+      budget
+      headcount
+    }
+    activity {
+      sourceId
+      source
+      name
+      description
+      venue {
+        name
+        location {
+          directionsUri
+          coordinates {
+            lat
+            lon
+          }
+          address {
+            address1
+            address2
+            city
+            state
+            zipCode
+            country
+            formattedMultiline
+            formattedSingleline
+          }
+        }
+      }
+      photos {
+        coverPhoto {
+          id
+          src
+          alt
+          attributions
+        }
+        supplementalPhotos {
+          id
+          src
+          alt
+          attributions
+        }
+      }
+      ticketInfo {
+        name
+        notes
+        costBreakdown {
+          baseCostCents
+          feeCents
+          taxCents
+          totalCostCents
+        }
+      }
+      websiteUri
+      doorTips
+      insiderTips
+      parkingTips
+      categoryGroup {
+        id
+        name
+        activityCategories {
+          id
+          name
+          isDefault
+        }
+      }
+    }
+    activityStartTime
+    activityRegion {
+      id
+      name
+    }
+    restaurant {
+      sourceId
+      source
+      location {
+        directionsUri
+        coordinates {
+          lat
+          lon
+        }
+        address {
+          address1
+          address2
+          city
+          state
+          zipCode
+          country
+          formattedMultiline
+          formattedSingleline
+        }
+      }
+      photos {
+        coverPhoto {
+          id
+          src
+          alt
+          attributions
+        }
+        supplementalPhotos {
+          id
+          src
+          alt
+          attributions
+        }
+      }
+      name
+      description
+      websiteUri
+      primaryTypeName
+      rating
+      reservable
+      parkingTips
+      customerFavorites
+    }
+    restaurantArrivalTime
+    restaurantRegion {
+      id
+      name
+    }
+    drivingTime
+  }
+}

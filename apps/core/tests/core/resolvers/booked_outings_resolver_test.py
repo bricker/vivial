@@ -99,3 +99,28 @@ class TestBookedOutingsResolver(BaseTestCase):
             .isoformat()
         )
         assert data[0]["photoUri"] == self.geturl("activity_photo_uri")
+
+    async def test_booked_outings_details(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            reserver_details = self.make_reserver_details(session, account)
+            booking = self.make_booking(session, account, survey, reserver_details)
+
+        response = await self.make_graphql_request(
+            "bookingDetails",
+            {
+                "input": {
+                    "bookingId": str(booking.id),
+                }
+            },
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["viewer"]["bookingDetails"]
+
+        assert data["id"] == str(booking.id)

@@ -106,6 +106,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         if not name:
             name = uuid.uuid4().hex
 
+        assert name not in self.testdata, f"test value {name} has already been set. "
         return name
 
     def anydatetime(
@@ -588,7 +589,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         self.mock_eventbrite_ticket_class_batch = [
             TicketClass(
-                id=self.anydigits("eventbrite.Event.id"),
+                id=self.anydigits("eventbrite.TicketClass.0.id"),
                 cost=CurrencyCost(
                     currency="usd",
                     display=self.anystr(),

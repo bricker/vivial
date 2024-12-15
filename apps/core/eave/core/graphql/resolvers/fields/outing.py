@@ -194,14 +194,14 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
     async with database.async_session.begin() as db_session:
         outing = await OutingOrm.get_one(db_session, input.id)
 
-    activity = None
-    restaurant = None
+    activity: Activity | None = None
+    restaurant: Restaurant | None = None
     headcount = 0
-    activity_start_time = None
-    restaurant_arrival_time = None
-    activity_region = None
-    restaurant_region = None
-    cost_breakdown = CostBreakdown()
+    activity_start_time: datetime | None = None
+    restaurant_arrival_time: datetime | None = None
+    activity_region: SearchRegionOrm | None = None
+    restaurant_region: SearchRegionOrm | None = None
+    cost_breakdown =  CostBreakdown()
 
     regions = [SearchRegionOrm.one_or_exception(search_region_id=area_id) for area_id in outing.survey.search_area_ids]
 
@@ -222,7 +222,7 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
 
         if activity:
             if activity.ticket_info:
-                cost_breakdown = activity.ticket_info.cost_breakdown
+                cost_breakdown = activity.ticket_info.cost_breakdown * outing.survey.headcount
 
             activity_region = get_closest_search_region_to_point(
                 regions=regions, point=activity.venue.location.coordinates

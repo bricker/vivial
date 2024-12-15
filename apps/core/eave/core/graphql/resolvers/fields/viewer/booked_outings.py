@@ -55,7 +55,7 @@ async def _get_booking_details(
                 details.activity_region = SearchRegion.from_orm(activity_region)
 
             if details.activity.ticket_info:
-                details.cost_breakdown = details.activity.ticket_info.cost_breakdown
+                details.cost_breakdown = details.activity.ticket_info.cost_breakdown * booking.survey.headcount
 
     if len(booking.reservations) > 0:
         reservation_orm = booking.reservations[0]

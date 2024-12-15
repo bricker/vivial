@@ -1,0 +1,27 @@
+query BookingDetails($input: GetBookingDetailsQueryInput!) {
+  viewer {
+    ... on AuthenticatedViewerQueries {
+      bookedOutingDetails(input: $input) {
+        id
+        costBreakdown {
+          baseCostCents
+          feeCents
+          taxCents
+          totalCostCents
+        }
+        activity {
+          sourceId
+          source
+        }
+        restaurant {
+          sourceId
+          source
+        }
+      }
+    }
+
+    ... on UnauthenticatedViewer {
+      authFailureReason
+    }
+  }
+}

@@ -18,7 +18,10 @@ from strawberry.types import ExecutionResult
 
 import eave.core.app
 import eave.core.database
+from eave.core.lib.address import Address
 import eave.core.orm
+from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
+from eave.core.shared.geo import GeoPoint
 import eave.stdlib.testing_util
 import eave.stdlib.typing
 from eave.core._database_setup import get_base_metadata, init_database
@@ -220,7 +223,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
                 outing=outing,
                 headcount=survey.headcount,
                 source=ActivitySource.EVENTBRITE,
-                source_id=self.anystr("activity.source_id"),
+                source_id=self.getdigits("eventbrite.Event.id"),
                 start_time_utc=survey.start_time_utc,
                 timezone=survey.timezone,
             )
@@ -232,7 +235,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
                 outing=outing,
                 headcount=survey.headcount,
                 source=RestaurantSource.GOOGLE_PLACES,
-                source_id=self.anystr("reservation.source_id"),
+                source_id=self.getstr("Place.id"),
                 start_time_utc=survey.start_time_utc,
                 timezone=survey.timezone,
             )
@@ -249,6 +252,68 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             phone_number=self.anyphonenumber(),
         )
         return reserver_details
+
+    def make_booking(self, session: AsyncSession, account: AccountOrm, survey: SurveyOrm, reserver_details: ReserverDetailsOrm) -> BookingOrm:
+        booking = BookingOrm(
+            session,
+            survey=survey,
+            accounts=[account],
+            reserver_details=reserver_details,
+        )
+
+        booking_activity_template = BookingActivityTemplateOrm(
+            session,
+            booking=booking,
+            name=self.anystr("activity_name"),
+            start_time_utc=self.anydatetime("activity_start_time"),
+            timezone=self.anytimezone("activity_timezone"),
+            photo_uri=self.anyurl("activity_photo_uri"),
+            headcount=self.anyint(min=1, max=2),
+            coordinates=GeoPoint(
+                lat=self.anylatitude(),
+                lon=self.anylongitude(),
+            ),
+            external_booking_link=self.anyurl(),
+            source=ActivitySource.EVENTBRITE,
+            source_id=self.getdigits("eventbrite.Event.id"),
+            address=Address(
+                address1=self.anystr(),
+                address2=self.anystr(),
+                city=self.anystr(),
+                country="US",
+                state=self.anyusstate(),
+                zip_code=self.anydigits(),
+            ),
+        )
+        booking.activities.append(booking_activity_template)
+
+        booking_reservation_template = BookingReservationTemplateOrm(
+            session,
+            booking=booking,
+            name=self.anystr("reservation_name"),
+            photo_uri=self.anyurl("reservation_photo_uri"),
+            start_time_utc=self.anydatetime("reservation_start_time"),
+            timezone=self.anytimezone("reservation_timezone"),
+            headcount=self.anyint(min=1, max=2),
+            coordinates=GeoPoint(
+                lat=self.anylatitude(),
+                lon=self.anylongitude(),
+            ),
+            external_booking_link=self.anyurl(),
+            source=RestaurantSource.GOOGLE_PLACES,
+            source_id=self.getstr("Place.id"),
+            address=Address(
+                address1=self.anystr(),
+                address2=self.anystr(),
+                city=self.anystr(),
+                country="US",
+                state=self.anyusstate(),
+                zip_code=self.anydigits(),
+            ),
+        )
+        booking.reservations.append(booking_reservation_template)
+
+        return booking
 
     mock_stripe_payment_intent: stripe.PaymentIntent
     mock_stripe_customer: stripe.Customer
@@ -293,6 +358,8 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         )
 
     def _add_google_places_client_mocks(self) -> None:
+        place_id = self.anystr("Place.id")
+
         self.patch(
             name="google places searchNearby",
             patch=unittest.mock.patch(
@@ -301,7 +368,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             return_value=MockPlacesResponse(
                 [
                     Place(
-                        id=self.anystr("Place.id"),
+                        id=place_id,
                     )
                 ]
             ),
@@ -311,7 +378,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             name="PlacesAsyncClient.get_place",
             patch=unittest.mock.patch("google.maps.places_v1.services.places.async_client.PlacesAsyncClient.get_place"),
             return_value=Place(
-                id=self.anystr("Place.id"),
+                id=place_id,
             ),
         )
 
