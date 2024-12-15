@@ -5,6 +5,6 @@ export enum CookieId {
 }
 
 export interface RerollCookie {
-  updated: string;
   rerolls: number;
+  expires: Date;
 }

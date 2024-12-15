@@ -6,7 +6,8 @@ import { useSelector } from "react-redux";
 import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
 import { RootState } from "$eave-dashboard/js/store";
 import { useGetSearchRegionsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
-import { getBackgroundImgUrl, getPlaceLabel, getTimeLabel } from "../../helpers";
+import { getRegionIds, getRegionImage } from "$eave-dashboard/js/util/region";
+import { getPlaceLabel, getTimeLabel } from "../../helpers";
 
 import SettingsButton from "$eave-dashboard/js/components/Buttons/SettingsButton";
 import Modal from "$eave-dashboard/js/components/Modal";
@@ -17,7 +18,7 @@ import Typography from "@mui/material/Typography";
 import LogisticsBadge from "./LogisticsBadge";
 
 interface LogisticsSectionProps extends React.HTMLAttributes<HTMLDivElement> {
-  bgImgUrl: string;
+  bgImgUrl?: string;
 }
 
 const Section = styled("section", {
@@ -92,9 +93,7 @@ const LogisticsSection = () => {
   const [areasOpen, setAreasOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [budget, setBudget] = useState(outing?.survey.budget || OutingBudget.Expensive);
-  const [searchAreaIds, setSearchAreaIds] = useState<string[]>(
-    [outing?.restaurantRegion?.id, outing?.activityRegion?.id].filter((region) => region !== undefined) as string[],
-  );
+  const [searchAreaIds, setSearchAreaIds] = useState<string[]>(getRegionIds(outing));
 
   const handleReplan = useCallback(async () => {
     // TODO: Replan outing.
@@ -139,15 +138,13 @@ const LogisticsSection = () => {
       setStartTime(new Date(outing.restaurantArrivalTime || ""));
       setHeadcount(outing.survey.headcount || 2);
       setBudget(outing.survey.budget);
-      setSearchAreaIds(
-        [outing.restaurantRegion?.id, outing.activityRegion?.id].filter((region) => region !== undefined) as string[],
-      );
+      setSearchAreaIds(getRegionIds(outing));
     }
   }, [outing]);
 
   if (outing) {
     return (
-      <Section bgImgUrl={getBackgroundImgUrl(outing)}>
+      <Section bgImgUrl={getRegionImage(outing.restaurantRegion?.id)}>
         <LogisticsGradient>
           <Logistics>
             <SettingsButton onClick={toggleDetailsOpen} />

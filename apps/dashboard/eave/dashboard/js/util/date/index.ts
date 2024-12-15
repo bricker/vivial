@@ -43,3 +43,9 @@ export function isTomorrow(date: Date): boolean {
   tomorrow.setDate(today.getDate() + 1);
   return date.toDateString() === tomorrow.toDateString();
 }
+
+export function in24Hours(): Date {
+  const now = new Date();
+  const millisecondsIn24Hours = 24 * 60 * 60 * 1000;
+  return new Date(now.getTime() + millisecondsIn24Hours);
+}

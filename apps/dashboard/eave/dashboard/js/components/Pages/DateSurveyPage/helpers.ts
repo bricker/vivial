@@ -24,11 +24,6 @@ export function getInitialStartTime(): Date {
   return startTime;
 }
 
-export function getHoursDiff(date1: Date, date2: Date): number {
-  const msDiff = Math.abs(date1.getTime() - date2.getTime());
-  return msDiff / (1000 * 60 * 60);
-}
-
 export function getPreferenceInputs(
   userPreferences: OutingPreferences | null,
   partnerPreferenecs: OutingPreferences | null,
