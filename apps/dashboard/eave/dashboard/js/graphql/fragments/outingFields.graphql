@@ -14,9 +14,11 @@ fragment OutingFields on Outing {
     id
     budget
     headcount
-    searchAreaIds
+    searchRegions {
+      id
+      name
+    }
     startTime
-    visitorId
   }
   drivingTime
   costBreakdown {
