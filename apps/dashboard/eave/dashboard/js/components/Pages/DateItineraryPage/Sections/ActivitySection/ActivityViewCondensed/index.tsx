@@ -63,6 +63,7 @@ const ActivityDesc = styled(Typography)(({ theme }) => ({
   fontSize: rem(12),
   lineHeight: rem(15),
   marginBottom: 4,
+  textTransform: "capitalize",
   "&:last-of-type": {
     marginBottom: 0,
   },

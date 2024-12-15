@@ -1,12 +1,12 @@
-import { useGetOutingQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { styled } from "@mui/material";
 import React, { useEffect, useState } from "react";
 
+import { useGetOutingPreferencesQuery, useGetOutingQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 
 import { RootState } from "$eave-dashboard/js/store";
-import { plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
+import { chosePreferences, plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
 
 import ActivitySection from "./Sections/ActivitySection";
 import BookingSection from "./Sections/BookingSection";
@@ -24,15 +24,19 @@ const DateItineraryPage = () => {
   const params = useParams();
   const outingId = params["outingId"] || "";
   const outing = useSelector((state: RootState) => state.outing.details);
-  const [skipOutingQuery, setSkipOutingQuery] = useState(true);
+  const [skipQueries, setSkipQueries] = useState(true);
+  const { data: preferencesData, isLoading: preferencesLoading } = useGetOutingPreferencesQuery(
+    {},
+    { skip: skipQueries },
+  );
   const { data: outingData, isLoading: outingDataLoading } = useGetOutingQuery(
     { input: { id: outingId } },
-    { skip: skipOutingQuery },
+    { skip: skipQueries },
   );
 
   useEffect(() => {
     if (outing === null) {
-      setSkipOutingQuery(false);
+      setSkipQueries(false);
     }
   }, [outing]);
 
@@ -42,7 +46,14 @@ const DateItineraryPage = () => {
     }
   }, [outingData]);
 
-  if (!outing || outingDataLoading) {
+  useEffect(() => {
+    const viewer = preferencesData?.viewer;
+    if (viewer?.__typename === "AuthenticatedViewerQueries") {
+      dispatch(chosePreferences({ user: viewer.outingPreferences }));
+    }
+  }, [preferencesData]);
+
+  if (!outing || outingDataLoading || preferencesLoading) {
     return <LoadingView />;
   }
 
