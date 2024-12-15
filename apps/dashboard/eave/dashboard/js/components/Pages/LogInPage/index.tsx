@@ -60,7 +60,7 @@ const LogInPage = () => {
         showForgotPassword
       />
       <SignUp>
-        Don't have an account? <Link to={AppRoute.signup}>Sign up</Link>
+        Don't have an account? <Link to={AppRoute.signup} preserveQueryParams>Sign up</Link>
       </SignUp>
     </PageContainer>
   );
