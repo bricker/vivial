@@ -1,5 +1,6 @@
 query BookingDetails($input: GetBookingDetailsQueryInput!) {
   viewer {
+    __typename
     ... on AuthenticatedViewerQueries {
       bookedOutingDetails(input: $input) {
         id

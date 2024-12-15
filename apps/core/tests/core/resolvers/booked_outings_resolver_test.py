@@ -108,7 +108,7 @@ class TestBookedOutingsResolver(BaseTestCase):
             booking = self.make_booking(session, account, survey, reserver_details)
 
         response = await self.make_graphql_request(
-            "bookingDetails",
+            "bookedOutingDetails",
             {
                 "input": {
                     "bookingId": str(booking.id),
@@ -121,6 +121,7 @@ class TestBookedOutingsResolver(BaseTestCase):
         assert result.data
         assert not result.errors
 
-        data = result.data["viewer"]["bookingDetails"]
+        assert result.data["viewer"]["__typename"] == "AuthenticatedViewerQueries"
+        data = result.data["viewer"]["bookedOutingDetails"]
 
         assert data["id"] == str(booking.id)

@@ -61,10 +61,10 @@ class TestBookingEndpoints(BaseTestCase):
             booking = await BookingOrm.get_one(session, UUID(data["booking"]["id"]))
 
         assert len(booking.reservations) == 1
-        assert booking.reservations[0].source_id == self.getstr("reservation.source_id")
+        assert booking.reservations[0].source_id == outing.reservations[0].source_id
 
         assert len(booking.activities) == 1
-        assert booking.activities[0].source_id == self.getstr("activity.source_id")
+        assert booking.activities[0].source_id == outing.activities[0].source_id
 
         assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 1
         assert self.get_mock("slack client").call_count == 2  # One for parent, one for thread

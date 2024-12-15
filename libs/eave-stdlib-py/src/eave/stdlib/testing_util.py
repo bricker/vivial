@@ -624,11 +624,13 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             side_effect=_mocked_eventbrite_list_ticket_classes_for_sale_for_event,
         )
 
+        mock_eventbrite_description = MultipartText(
+            text=self.anystr("eventbrite.EventDescription.text"),
+            html=self.anystr("eventbrite.EventDescription.html"),
+        )
+
         async def _mocked_eventbrite_get_event_description(**kwargs: Any) -> MultipartText:
-            return MultipartText(
-                text=self.anystr("eventbrite.EventDescription.text"),
-                html=self.anystr("eventbrite.EventDescription.html"),
-            )
+            return mock_eventbrite_description
 
         self.patch(
             name="eventbrite get_event_description",
