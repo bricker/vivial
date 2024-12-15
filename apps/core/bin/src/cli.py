@@ -22,12 +22,11 @@ import alembic.config
 import alembic.migration
 import alembic.script
 import click
-from sqlalchemy.ext.asyncio import create_async_engine
 
 import eave.core.database
 import eave.core.orm
 import eave.core.orm.base
-from eave.core._database_setup import create_database_tables, drop_database_tables, get_base_metadata, init_database
+from eave.core._database_setup import create_database_tables, drop_database_tables, init_database
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import eaveLogger
