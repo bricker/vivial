@@ -14,9 +14,6 @@ UNDER NO CIRCUMSTANCES SHOULD THIS BE EVER RUN AGAINST PROD
 
 import sys
 
-from eave.core.lib.address import Address
-from eave.core.shared.geo import GeoPoint
-from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 
 sys.path.append(".")
 
@@ -49,6 +46,9 @@ from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
+from eave.core.lib.address import Address
+from eave.core.shared.geo import GeoPoint
+from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 from eave.stdlib.logging import eaveLogger
 
 _EAVE_DB_NAME = os.getenv("EAVE_DB_NAME")
