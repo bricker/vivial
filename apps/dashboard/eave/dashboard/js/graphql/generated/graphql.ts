@@ -173,7 +173,6 @@ export type BookingDetails = {
   activityStartTime?: Maybe<Scalars['DateTime']['output']>;
   costBreakdown: CostBreakdown;
   drivingTime?: Maybe<Scalars['String']['output']>;
-  headcount: Scalars['Int']['output'];
   id: Scalars['UUID']['output'];
   restaurant?: Maybe<Restaurant>;
   restaurantArrivalTime?: Maybe<Scalars['DateTime']['output']>;
@@ -336,7 +335,6 @@ export type Outing = {
   activityStartTime?: Maybe<Scalars['DateTime']['output']>;
   costBreakdown: CostBreakdown;
   drivingTime?: Maybe<Scalars['String']['output']>;
-  headcount: Scalars['Int']['output'];
   id: Scalars['UUID']['output'];
   restaurant?: Maybe<Restaurant>;
   restaurantArrivalTime?: Maybe<Scalars['DateTime']['output']>;

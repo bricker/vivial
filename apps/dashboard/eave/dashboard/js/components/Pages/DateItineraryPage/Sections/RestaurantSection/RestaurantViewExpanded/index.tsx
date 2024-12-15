@@ -1,4 +1,3 @@
-import { type Photos } from "$eave-dashboard/js/graphql/generated/graphql";
 import { RootState } from "$eave-dashboard/js/store";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
@@ -13,7 +12,6 @@ import Typography from "@mui/material/Typography";
 import BaseRestaurantBadge from "../RestaurantBadge";
 import BaseRestaurantRating from "../RestaurantRating";
 
-import { parseAddress } from "$eave-dashboard/js/util/address";
 import { getTimeOfDay } from "$eave-dashboard/js/util/date";
 import { getImgUrls } from "../../../helpers";
 
@@ -121,10 +119,10 @@ const RestaurantViewExpanded = () => {
             <RestaurantName>{restaurant.name}</RestaurantName>
             {address && (
               <div>
-                <RestaurantAddress>{address.address1} {address.address2}</RestaurantAddress>
                 <RestaurantAddress>
-                  {[address.city, address.state, address.zipCode].join(", ")}
+                  {address.address1} {address.address2}
                 </RestaurantAddress>
+                <RestaurantAddress>{[address.city, address.state, address.zipCode].join(", ")}</RestaurantAddress>
               </div>
             )}
           </ReservationInfo>

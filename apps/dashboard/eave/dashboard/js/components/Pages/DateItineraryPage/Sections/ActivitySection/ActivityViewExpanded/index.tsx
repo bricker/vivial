@@ -1,4 +1,3 @@
-import { type Photos } from "$eave-dashboard/js/graphql/generated/graphql";
 import { RootState } from "$eave-dashboard/js/store";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
@@ -11,7 +10,6 @@ import LongDescription from "$eave-dashboard/js/components/LongDescription";
 import Typography from "@mui/material/Typography";
 import BaseActivityBadge from "../ActivityBadge";
 
-import { parseAddress } from "$eave-dashboard/js/util/address";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 import { getTimeOfDay } from "$eave-dashboard/js/util/date";
 import { getImgUrls } from "../../../helpers";
@@ -116,10 +114,10 @@ const ActivityViewExpanded = () => {
           <VenueInfo>{activity.venue.name}</VenueInfo>
           {address && (
             <>
-              <VenueInfo>{address.address1} {address.address2}</VenueInfo>
               <VenueInfo>
-                {[address.city, address.state, address.zipCode].join(", ")}
+                {address.address1} {address.address2}
               </VenueInfo>
+              <VenueInfo>{[address.city, address.state, address.zipCode].join(", ")}</VenueInfo>
             </>
           )}
         </EventInfo>
