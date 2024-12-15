@@ -18,23 +18,23 @@ from strawberry.types import ExecutionResult
 
 import eave.core.app
 import eave.core.database
-from eave.core.lib.address import Address
 import eave.core.orm
-from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
-from eave.core.shared.geo import GeoPoint
 import eave.stdlib.testing_util
 import eave.stdlib.typing
 from eave.core._database_setup import get_base_metadata, init_database
 from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME
 from eave.core.config import CORE_API_APP_CONFIG, JWT_AUDIENCE, JWT_ISSUER
+from eave.core.lib.address import Address
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.activity_category import ActivityCategoryOrm
+from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
 from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservationOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
+from eave.core.shared.geo import GeoPoint
 from eave.dev_tooling.constants import EAVE_HOME
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.jwt import JWTPurpose, create_jws
@@ -253,7 +253,9 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         )
         return reserver_details
 
-    def make_booking(self, session: AsyncSession, account: AccountOrm, survey: SurveyOrm, reserver_details: ReserverDetailsOrm) -> BookingOrm:
+    def make_booking(
+        self, session: AsyncSession, account: AccountOrm, survey: SurveyOrm, reserver_details: ReserverDetailsOrm
+    ) -> BookingOrm:
         booking = BookingOrm(
             session,
             survey=survey,

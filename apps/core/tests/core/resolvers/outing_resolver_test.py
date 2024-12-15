@@ -1,12 +1,7 @@
 import datetime
 from uuid import UUID
 
-from eave.core.orm.booking import BookingOrm
 from eave.core.orm.outing import OutingOrm
-from eave.core.orm.search_region import SearchRegionOrm
-from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
-from eave.core.orm.survey import SurveyOrm
-from eave.core.shared.enums import OutingBudget
 
 from ..base import BaseTestCase
 
@@ -35,12 +30,13 @@ class TestOutingResolver(BaseTestCase):
         data = result.data["outing"]
 
         async with self.db_session.begin() as session:
-           fetched_outing = await OutingOrm.get_one(session, UUID(data["id"]))
+            fetched_outing = await OutingOrm.get_one(session, UUID(data["id"]))
 
         assert data["activity"]["sourceId"] == fetched_outing.activities[0].source_id
         assert data["restaurant"]["sourceId"] == fetched_outing.reservations[0].source_id
 
-        expected_total_cost = (self.getint("eventbrite.TicketClass.0.cost.value")
+        expected_total_cost = (
+            self.getint("eventbrite.TicketClass.0.cost.value")
             + self.getint("eventbrite.TicketClass.0.fee.value")
             + self.getint("eventbrite.TicketClass.0.tax.value")
         ) * 2
@@ -70,12 +66,13 @@ class TestOutingResolver(BaseTestCase):
         data = result.data["outing"]
 
         async with self.db_session.begin() as session:
-           fetched_outing = await OutingOrm.get_one(session, UUID(data["id"]))
+            fetched_outing = await OutingOrm.get_one(session, UUID(data["id"]))
 
         assert data["activity"]["sourceId"] == fetched_outing.activities[0].source_id
         assert data["restaurant"]["sourceId"] == fetched_outing.reservations[0].source_id
 
-        expected_total_cost = (self.getint("eventbrite.TicketClass.0.cost.value")
+        expected_total_cost = (
+            self.getint("eventbrite.TicketClass.0.cost.value")
             + self.getint("eventbrite.TicketClass.0.fee.value")
             + self.getint("eventbrite.TicketClass.0.tax.value")
         ) * 1

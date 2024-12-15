@@ -201,7 +201,7 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
     restaurant_arrival_time: datetime | None = None
     activity_region: SearchRegionOrm | None = None
     restaurant_region: SearchRegionOrm | None = None
-    cost_breakdown =  CostBreakdown()
+    cost_breakdown = CostBreakdown()
 
     regions = [SearchRegionOrm.one_or_exception(search_region_id=area_id) for area_id in outing.survey.search_area_ids]
 
