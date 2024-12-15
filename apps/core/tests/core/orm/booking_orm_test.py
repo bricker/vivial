@@ -27,6 +27,7 @@ class TestBookingOrms(BaseTestCase):
             booking_new = BookingOrm(
                 session,
                 accounts=[account],
+                survey=survey,
                 reserver_details=reserver_details,
                 stripe_payment_intent_reference=stripe_payment_intent_reference,
             )
@@ -113,11 +114,13 @@ class TestBookingOrms(BaseTestCase):
     async def test_booking_activity_template_orm_initialization(self) -> None:
         async with self.db_session.begin() as session:
             account = self.make_account(session)
+            survey = self.make_survey(session, account)
             reserver_details = self.make_reserver_details(session, account)
 
             booking = BookingOrm(
                 session,
                 accounts=[account],
+                survey=survey,
                 reserver_details=reserver_details,
             )
 
@@ -186,11 +189,13 @@ class TestBookingOrms(BaseTestCase):
     async def test_booking_reservation_template_orm_initialization(self) -> None:
         async with self.db_session.begin() as session:
             account = self.make_account(session)
+            survey = self.make_survey(session, account)
             reserver_details = self.make_reserver_details(session, account)
 
             booking = BookingOrm(
                 session,
                 accounts=[account],
+                survey=survey,
                 reserver_details=reserver_details,
             )
 

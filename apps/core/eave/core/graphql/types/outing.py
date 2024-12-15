@@ -21,7 +21,6 @@ class OutingPreferencesInput:
 class Outing:
     id: UUID
     cost_breakdown: CostBreakdown
-    headcount: int
     survey: Survey
     activity: Activity | None
     activity_start_time: datetime | None

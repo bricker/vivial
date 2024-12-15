@@ -111,7 +111,6 @@ _mock_activity = Activity(
 
 MOCK_OUTING = Outing(
     id=uuid4(),
-    headcount=_mock_survey.headcount,
     survey=_mock_survey,
     driving_time="25 min",
     cost_breakdown=_mock_activity.ticket_info.cost_breakdown * _mock_survey.headcount
@@ -192,8 +191,6 @@ class OutingInput:
 
 
 async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: OutingInput) -> Outing | None:
-    return MOCK_OUTING  # TODO: debug
-
     async with database.async_session.begin() as db_session:
         outing = await OutingOrm.get_one(db_session, input.id)
 
@@ -204,6 +201,7 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
     restaurant_arrival_time = None
     activity_region = None
     restaurant_region = None
+    cost_breakdown = CostBreakdown()
 
     regions = [SearchRegionOrm.one_or_exception(search_region_id=area_id) for area_id in outing.survey.search_area_ids]
 
@@ -223,6 +221,9 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
         )
 
         if activity:
+            if activity.ticket_info:
+                cost_breakdown = activity.ticket_info.cost_breakdown
+
             activity_region = get_closest_search_region_to_point(
                 regions=regions, point=activity.venue.location.coordinates
             )
@@ -245,7 +246,8 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
 
     return Outing(
         id=outing.id,
-        headcount=headcount,
+        survey=Survey.from_orm(outing.survey),
+        cost_breakdown=cost_breakdown,
         activity=activity,
         restaurant=restaurant,
         driving_time=None,

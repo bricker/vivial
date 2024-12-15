@@ -82,7 +82,6 @@ async def create_outing(
 
     outing = Outing(
         id=outing_orm.id,
-        headcount=survey.headcount,
         cost_breakdown=cost_breakdown,
         survey=Survey.from_orm(survey),
         activity=plan.activity,
