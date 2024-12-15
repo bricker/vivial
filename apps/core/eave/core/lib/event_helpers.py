@@ -5,8 +5,8 @@ from google.maps.places import PlacesAsyncClient
 
 from eave.core import database
 from eave.core.config import CORE_API_APP_CONFIG
-from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
+from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.pricing import CostBreakdown
@@ -14,7 +14,6 @@ from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.lib.address import format_address
 from eave.core.lib.eventbrite import get_eventbrite_activity
-from eave.core.shared.geo import GeoPoint
 from eave.core.lib.google_places import (
     get_google_places_activity,
     get_google_places_restaurant,
@@ -25,6 +24,7 @@ from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
+from eave.core.shared.geo import GeoPoint
 from eave.stdlib.eventbrite.client import EventbriteClient
 
 

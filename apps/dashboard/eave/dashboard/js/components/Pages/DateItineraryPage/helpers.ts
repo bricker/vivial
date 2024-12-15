@@ -47,6 +47,6 @@ export function getImgUrls(photos: Photos): string[] {
     imgUrls.push(photos.coverPhoto.src);
   }
 
-  imgUrls = imgUrls.concat(photos.supplementalPhotos.map(p => p.src));
+  imgUrls = imgUrls.concat(photos.supplementalPhotos.map((p) => p.src));
   return imgUrls;
 }

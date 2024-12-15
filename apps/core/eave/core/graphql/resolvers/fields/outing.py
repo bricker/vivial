@@ -5,9 +5,8 @@ import strawberry
 
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
-from eave.core.graphql.types.ticket_info import TicketInfo
+from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import (
     Outing,
@@ -17,15 +16,13 @@ from eave.core.graphql.types.pricing import CostBreakdown
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.graphql.types.search_region import SearchRegion
 from eave.core.graphql.types.survey import Survey
-from eave.core.orm.search_region import SearchRegionOrm
-from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
+from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.lib.event_helpers import get_activity, get_closest_search_region_to_point, get_restaurant
-from eave.core.shared.geo import GeoPoint
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
-from eave.core.orm.outing import OutingOrm, OutingReservationOrm, OutingActivityOrm
+from eave.core.orm.outing import OutingOrm
 from eave.core.orm.search_region import SearchRegionOrm
-from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
+from eave.core.shared.geo import GeoPoint
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 
 # TODO: Remove once Date Picked UI is complete.
@@ -108,9 +105,7 @@ _mock_activity = Activity(
     insider_tips="Order your two drink minimum all at once because it takes a while for the waitress to make the second round. If you sit in the front, expect to get picked on by the comedians.",
     parking_tips="Free open lot behind the building next to the market.",
     category_group=ActivityCategoryGroup.from_orm(
-        ActivityCategoryGroupOrm.one_or_exception(
-            activity_category_group_id=UUID("988e0bf142564462985a2657602aad1b")
-        )
+        ActivityCategoryGroupOrm.one_or_exception(activity_category_group_id=UUID("988e0bf142564462985a2657602aad1b"))
     ),
 )
 
@@ -228,7 +223,9 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
         )
 
         if activity:
-            activity_region = get_closest_search_region_to_point(regions=regions, point=activity.venue.location.coordinates)
+            activity_region = get_closest_search_region_to_point(
+                regions=regions, point=activity.venue.location.coordinates
+            )
 
     if len(outing.reservations) > 0:
         # Currently the client only supports 1 restaurant per outing.
@@ -242,7 +239,9 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
         )
 
         if restaurant:
-            restaurant_region = get_closest_search_region_to_point(regions=regions, point=restaurant.location.coordinates)
+            restaurant_region = get_closest_search_region_to_point(
+                regions=regions, point=restaurant.location.coordinates
+            )
 
     return Outing(
         id=outing.id,

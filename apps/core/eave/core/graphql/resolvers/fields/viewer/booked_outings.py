@@ -6,20 +6,19 @@ from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.booking import BookingDetailPeek, BookingDetails
 from eave.core.graphql.types.pricing import CostBreakdown
-from eave.core.orm.account import AccountOrm
-from eave.core.orm.booking import BookingOrm
-from eave.stdlib.http_exceptions import NotFoundError
 from eave.core.graphql.types.search_region import SearchRegion
 from eave.core.graphql.types.survey import Survey
 from eave.core.lib.event_helpers import get_activity, get_closest_search_region_to_point, get_restaurant
+from eave.core.orm.account import AccountOrm
+from eave.core.orm.booking import BookingOrm
 from eave.core.orm.search_region import SearchRegionOrm
+from eave.stdlib.http_exceptions import NotFoundError
 from eave.stdlib.util import unwrap
 
 
 async def _get_booking_details(
     booking: BookingOrm,
 ) -> BookingDetails:
-
     details = BookingDetails(
         id=booking.id,
         headcount=booking.survey.headcount,

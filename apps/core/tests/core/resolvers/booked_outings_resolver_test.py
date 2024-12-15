@@ -1,9 +1,8 @@
+
 from eave.core.lib.address import Address
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
-from eave.core.shared.geo import GeoPoint
-from zoneinfo import ZoneInfo
-
 from eave.core.shared.enums import ActivitySource, RestaurantSource
+from eave.core.shared.geo import GeoPoint
 
 from ..base import BaseTestCase
 

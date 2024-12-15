@@ -1,4 +1,5 @@
 import math
+
 import geoalchemy2.shape
 import strawberry
 from geoalchemy2 import WKBElement
@@ -18,7 +19,6 @@ class GeoPoint:
 
     def geoalchemy_shape(self) -> WKBElement:
         return geoalchemy2.shape.from_shape(self.shapely_shape(), srid=SpatialReferenceSystemId.LAT_LON, extended=False)
-
 
     def haversine_distance(self, to_point: "GeoPoint") -> float:
         """

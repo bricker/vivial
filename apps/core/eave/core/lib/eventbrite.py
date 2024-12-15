@@ -1,13 +1,12 @@
-from eave.core.graphql.types.address import GraphQLAddress
-from eave.core.graphql.types.pricing import CostBreakdown
-from eave.core.graphql.types.ticket_info import TicketInfo
-from eave.core.lib.address import format_address
 from uuid import UUID
 
 from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
+from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.location import Location
-from eave.core.graphql.types.photos import Photos, Photo
-from eave.core.shared.geo import GeoPoint
+from eave.core.graphql.types.photos import Photo, Photos
+from eave.core.graphql.types.pricing import CostBreakdown
+from eave.core.graphql.types.ticket_info import TicketInfo
+from eave.core.lib.address import format_address
 from eave.core.lib.google_places import google_maps_directions_url
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.shared.enums import ActivitySource

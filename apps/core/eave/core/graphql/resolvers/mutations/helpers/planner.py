@@ -12,7 +12,6 @@ from eave.core.graphql.types.activity import Activity
 from eave.core.graphql.types.outing import OutingPreferencesInput
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.lib.eventbrite import activity_from_eventbrite_event
-from eave.core.shared.geo import Distance, GeoArea
 from eave.core.lib.google_places import (
     activity_from_google_place,
     get_places_nearby,

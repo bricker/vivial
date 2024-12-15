@@ -16,12 +16,11 @@ from google.maps.places import (
     Photo as PlacePhoto,
 )
 
-from eave.core.graphql.types.activity import Activity, ActivityVenue, ActivityCategoryGroup
+from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
 from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.restaurant import Restaurant
-from eave.core.shared.geo import GeoArea, GeoPoint
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 from eave.core.shared.geo import GeoArea, GeoPoint

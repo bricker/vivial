@@ -53,7 +53,7 @@ fragment OutingFields on Outing {
       name
       location {
         ...LocationFields
-     }
+      }
     }
     photos {
       coverPhoto {
