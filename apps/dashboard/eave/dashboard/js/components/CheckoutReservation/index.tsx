@@ -241,7 +241,8 @@ const CheckoutForm = ({
                     }
                     return;
                   default:
-                    throw new Error("Unexected Graphql result");
+                    console.error("Unexected Graphql result");
+                    return;
                 }
                 // allow success case to continue execution
                 break;
@@ -253,8 +254,8 @@ const CheckoutForm = ({
               default:
                 if (submitDetailsResp.error) {
                   // 500 error
-                  console.debug(submitDetailsResp.error);
-                  throw new Error("Graphql error");
+                  console.error(submitDetailsResp.error);
+                  return;
                 }
                 break;
             }
@@ -290,7 +291,8 @@ const CheckoutForm = ({
                     }
                     return;
                   default:
-                    throw new Error("Unexected Graphql result");
+                    console.error("Unexected Graphql result");
+                    return;
                 }
                 // allow success case to continue execution
                 break;
@@ -302,8 +304,8 @@ const CheckoutForm = ({
               default:
                 if (updateDetailsResp.error) {
                   // 500 error
-                  console.debug(updateDetailsResp.error);
-                  throw new Error("Graphql error");
+                  console.error(updateDetailsResp.error);
+                  return;
                 }
                 break;
             }
@@ -347,7 +349,8 @@ const CheckoutForm = ({
                 }
                 return;
               default:
-                throw new Error("Unexected Graphql result");
+                console.error("Unexected Graphql result");
+                return;
             }
             // allow success case to continue execution
             break;
@@ -359,8 +362,8 @@ const CheckoutForm = ({
           default:
             if (createBookingResp.error) {
               // 500 error
-              console.debug(createBookingResp.error);
-              throw new Error("Graphql error");
+              console.error("Unexected Graphql result");
+              return;
             }
             break;
         }

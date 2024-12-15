@@ -55,11 +55,11 @@ const StripeElementsProvider = ({ children }: { children: React.ReactElement }) 
       break;
     }
     case "UnauthenticatedViewer": {
-      console.debug("ERROR: unauthenticated user");
+      console.error("unauthenticated user");
       return errorView;
     }
     default: {
-      console.debug("ERROR: unexepected graphql response viewer type");
+      console.error("unexepected graphql response viewer type");
       return errorView;
     }
   }
@@ -69,11 +69,11 @@ const StripeElementsProvider = ({ children }: { children: React.ReactElement }) 
       break;
     }
     case "CreatePaymentIntentFailure": {
-      console.debug(`ERROR: mutation failure: ${data.viewer.createPaymentIntent.failureReason}`);
+      console.error(`mutation failure: ${data.viewer.createPaymentIntent.failureReason}`);
       return errorView;
     }
     default: {
-      console.debug("ERROR: unexepected graphql response CreatePaymentIntentResult type");
+      console.error("unexepected graphql response CreatePaymentIntentResult type");
       return errorView;
     }
   }
@@ -81,7 +81,7 @@ const StripeElementsProvider = ({ children }: { children: React.ReactElement }) 
   const clientSecret = data.viewer.createPaymentIntent.paymentIntent.clientSecret;
 
   if (!clientSecret) {
-    console.debug("ERROR: Payment Intent clientSecret missing");
+    console.error("Payment Intent clientSecret missing");
     return errorView;
   }
 
