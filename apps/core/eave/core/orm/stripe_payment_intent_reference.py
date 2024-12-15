@@ -20,12 +20,12 @@ class StripePaymentIntentReferenceOrm(Base):
     stripe_payment_intent_id: Mapped[str] = mapped_column()
 
     account_id: Mapped[UUID] = mapped_column(
-        ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)
+        ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value)
     )
     account: Mapped[AccountOrm] = relationship(lazy="selectin")
 
     outing_id: Mapped[UUID] = mapped_column(
-        ForeignKey(f"{OutingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)
+        ForeignKey(f"{OutingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value)
     )
     outing: Mapped[OutingOrm] = relationship(lazy="selectin")
 

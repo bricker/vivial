@@ -16,8 +16,8 @@ from .util.constants import PG_UUID_EXPR, OnDeleteOption
 _activity_images_join_table = Table(
     "activity_images",
     Base.metadata,
-    Column("activity_id", ForeignKey("activities.id", ondelete=OnDeleteOption.CASCADE)),
-    Column("image_id", ForeignKey(f"{ImageOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)),
+    Column("activity_id", ForeignKey("activities.id", ondelete=OnDeleteOption.CASCADE.value)),
+    Column("image_id", ForeignKey(f"{ImageOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value)),
 )
 
 
@@ -85,7 +85,7 @@ class TicketTypeOrm(Base, GetOneByIdMixin):
     tax_percentage: Mapped[float] = mapped_column()
 
     activity_id: Mapped[UUID] = mapped_column(
-        ForeignKey(f"{ActivityOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)
+        ForeignKey(f"{ActivityOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value)
     )
     activity: Mapped[ActivityOrm] = relationship(lazy="selectin", back_populates="ticket_types")
 

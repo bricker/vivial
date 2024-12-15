@@ -32,17 +32,17 @@ class BookingOrm(Base, GetOneByIdMixin):
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
 
     stripe_payment_intent_reference_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey(f"{StripePaymentIntentReferenceOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL), index=True
+        ForeignKey(f"{StripePaymentIntentReferenceOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL.value), index=True
     )
     stripe_payment_intent_reference: Mapped[StripePaymentIntentReferenceOrm | None] = relationship(lazy="selectin")
 
     reserver_details_id: Mapped[UUID] = mapped_column(
-        ForeignKey(f"{ReserverDetailsOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL), index=True
+        ForeignKey(f"{ReserverDetailsOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL.value), index=True
     )
     reserver_details: Mapped[ReserverDetailsOrm] = relationship(lazy="selectin")
 
     survey_id: Mapped[UUID] = mapped_column(
-        ForeignKey(f"{SurveyOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL), index=True
+        ForeignKey(f"{SurveyOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL.value), index=True
     )
     survey: Mapped[SurveyOrm] = relationship(lazy="selectin")
 
@@ -94,7 +94,7 @@ class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     address: Mapped[Address] = mapped_column(type_=AddressFieldsColumnType())
 
     booking_id: Mapped[UUID] = mapped_column(
-        ForeignKey(f"{BookingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE), index=True
+        ForeignKey(f"{BookingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value), index=True
     )
     booking: Mapped[BookingOrm] = relationship(lazy="selectin", back_populates="activities")
 
@@ -151,7 +151,7 @@ class BookingReservationTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     address: Mapped[Address] = mapped_column(type_=AddressFieldsColumnType())
 
     booking_id: Mapped[UUID] = mapped_column(
-        ForeignKey(f"{BookingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE), index=True
+        ForeignKey(f"{BookingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value), index=True
     )
     booking: Mapped[BookingOrm] = relationship(lazy="selectin", back_populates="reservations")
 

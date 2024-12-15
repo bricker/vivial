@@ -25,12 +25,12 @@ class OutingOrm(Base, GetOneByIdMixin):
     visitor_id: Mapped[str | None] = mapped_column()
 
     survey_id: Mapped[UUID] = mapped_column(
-        ForeignKey(f"{SurveyOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)
+        ForeignKey(f"{SurveyOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value)
     )
     survey: Mapped[SurveyOrm] = relationship(lazy="selectin")
 
     account_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL)
+        ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL.value)
     )
     account: Mapped[AccountOrm | None] = relationship(lazy="selectin")
 
@@ -61,7 +61,7 @@ class OutingActivityOrm(Base, TimedEventMixin):
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, unique=True)
     outing_id: Mapped[UUID] = mapped_column(
-        ForeignKey(f"{OutingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)
+        ForeignKey(f"{OutingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value)
     )
     outing: Mapped[OutingOrm] = relationship(lazy="selectin", back_populates="activities")
 
@@ -101,7 +101,7 @@ class OutingReservationOrm(Base, TimedEventMixin):
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, unique=True)
     outing_id: Mapped[UUID] = mapped_column(
-        ForeignKey(f"{OutingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)
+        ForeignKey(f"{OutingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value)
     )
     outing: Mapped[OutingOrm] = relationship(lazy="selectin", back_populates="reservations")
 

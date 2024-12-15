@@ -19,7 +19,7 @@ class OutingPreferencesOrm(Base):
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, unique=True)
     account_id: Mapped[UUID] = mapped_column(
-        ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE),
+        ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value),
         unique=True,  # Unique constraint is needed to enforce a one-to-one mapping with Account
     )
     account: Mapped[AccountOrm] = relationship(back_populates="outing_preferences", lazy="selectin")

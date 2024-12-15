@@ -23,7 +23,7 @@ class ReserverDetailsOrm(Base):
     phone_number: Mapped[str] = mapped_column()
 
     account_id: Mapped[UUID] = mapped_column(
-        ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE)
+        ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value)
     )
     account: Mapped[AccountOrm] = relationship(lazy="selectin")
 

@@ -32,7 +32,7 @@ class SurveyOrm(Base, TimedEventMixin, GetOneByIdMixin):
     headcount: Mapped[int] = mapped_column()
 
     account_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL)
+        ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL.value)
     )
     account: Mapped[AccountOrm | None] = relationship(lazy="selectin")
 
