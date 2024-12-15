@@ -27,30 +27,30 @@ from eave.core.shared.geo import GeoArea, GeoPoint
 
 # You must pass a field mask to the Google Places API to specify the list of fields to return in the response.
 # Reference: https://developers.google.com/maps/documentation/places/web-service/nearby-search
-_RESTAURANT_FIELD_MASK = ",".join(
-    [
-        "places.id",
-        "places.displayName",
-        "places.accessibilityOptions",
-        "places.addressComponents",
-        "places.formattedAddress",
-        "places.businessStatus",
-        "places.googleMapsUri",
-        "places.location",
-        "places.photos",
-        "places.primaryType",
-        "places.primaryTypeDisplayName",
-        "places.types",
-        "places.nationalPhoneNumber",
-        "places.priceLevel",
-        "places.rating",
-        "places.regularOpeningHours",
-        "places.currentOpeningHours",
-        "places.userRatingCount",
-        "places.websiteUri",
-        "places.reservable",
-    ]
-)
+_PLACE_FIELDS = [
+    "id",
+    "displayName",
+    "accessibilityOptions",
+    "addressComponents",
+    "formattedAddress",
+    "businessStatus",
+    "googleMapsUri",
+    "location",
+    "photos",
+    "primaryType",
+    "primaryTypeDisplayName",
+    "types",
+    "nationalPhoneNumber",
+    "priceLevel",
+    "rating",
+    "regularOpeningHours",
+    "currentOpeningHours",
+    "userRatingCount",
+    "websiteUri",
+    "reservable",
+]
+_SEARCH_NEARBY_FIELD_MASK = ",".join([f"places.{s}" for s in _PLACE_FIELDS])
+_PLACE_FIELD_MASK = ",".join(_PLACE_FIELDS)
 
 
 async def restaurant_from_google_place(places_client: PlacesAsyncClient, *, place: Place) -> Restaurant:
@@ -237,7 +237,9 @@ async def get_google_place(
     *,
     place_id: str,
 ) -> Place:
-    return await places_client.get_place(request=GetPlaceRequest(name=f"places/{place_id}"))
+    return await places_client.get_place(
+        request=GetPlaceRequest(name=f"places/{place_id}"), metadata=[("x-goog-fieldmask", _PLACE_FIELD_MASK)]
+    )
 
 
 async def get_google_places_activity(places_client: PlacesAsyncClient, *, event_id: str) -> Activity | None:
@@ -281,7 +283,7 @@ async def get_places_nearby(
         included_primary_types=included_primary_types[0:50],
     )
     response = await places_client.search_nearby(
-        request=request, metadata=[("x-goog-fieldmask", _RESTAURANT_FIELD_MASK)]
+        request=request, metadata=[("x-goog-fieldmask", _SEARCH_NEARBY_FIELD_MASK)]
     )
     return response.places or []
 
