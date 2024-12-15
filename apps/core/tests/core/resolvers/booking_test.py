@@ -258,7 +258,7 @@ class TestBookingEndpoints(BaseTestCase):
         async with self.db_session.begin() as session:
             assert await self.count(session, BookingOrm) == 0
 
-    async def test_create_booking_with_mistmatched_amounts(self) -> None:
+    async def test_create_booking_with_outing_amount_more_than_intent_amount(self) -> None:
         async with self.db_session.begin() as session:
             assert await self.count(session, BookingOrm) == 0
             account = self.make_account(session)
@@ -323,7 +323,7 @@ class TestBookingEndpoints(BaseTestCase):
             + self.getint("eventbrite.TicketClass.0.fee.value")
             + self.getint("eventbrite.TicketClass.0.tax.value")
             + 1000
-        )
+        ) * outing.survey.headcount
 
         response = await self.make_graphql_request(
             "createBooking",

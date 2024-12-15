@@ -58,9 +58,11 @@ class TestCreatePaymentIntentResolver(BaseTestCase):
         assert create_payment_intent_mock.call_args_list[0].kwargs["customer"] == fetched_account.stripe_customer_id
         assert create_payment_intent_mock.call_args_list[0].kwargs["receipt_email"] == fetched_account.email
         assert create_payment_intent_mock.call_args_list[0].kwargs["capture_method"] == "manual"
-        assert create_payment_intent_mock.call_args_list[0].kwargs["amount"] == self.getint(
-            "eventbrite.TicketClass.0.cost.value"
-        ) + self.getint("eventbrite.TicketClass.0.fee.value") + self.getint("eventbrite.TicketClass.0.tax.value")
+        assert create_payment_intent_mock.call_args_list[0].kwargs["amount"] == (
+            self.getint(
+                "eventbrite.TicketClass.0.cost.value"
+            ) + self.getint("eventbrite.TicketClass.0.fee.value") + self.getint("eventbrite.TicketClass.0.tax.value")
+        ) * outing.survey.headcount
 
         create_customer_mock = self.get_mock("stripe.Customer.create_async")
         assert create_customer_mock.call_count == 1
