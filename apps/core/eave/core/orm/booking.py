@@ -32,7 +32,8 @@ class BookingOrm(Base, GetOneByIdMixin):
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
 
     stripe_payment_intent_reference_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey(f"{StripePaymentIntentReferenceOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL.value), index=True
+        ForeignKey(f"{StripePaymentIntentReferenceOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL.value),
+        index=True,
     )
     stripe_payment_intent_reference: Mapped[StripePaymentIntentReferenceOrm | None] = relationship(lazy="selectin")
 
