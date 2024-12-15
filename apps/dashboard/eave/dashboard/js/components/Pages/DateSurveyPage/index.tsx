@@ -14,7 +14,7 @@ import {
   useUpdateOutingPreferencesMutation,
 } from "$eave-dashboard/js/store/slices/coreApiSlice";
 
-import { plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
+import { chosePreferences, plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -34,7 +34,8 @@ import EditPreferencesOption from "./Options/EditPreferencesOption";
 import LoadingView from "./Views/LoadingView";
 import PreferencesView from "./Views/PreferencesView";
 
-import { getInitialStartTime, getPreferenceInputs } from "./helpers";
+import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
+import { getInitialStartTime } from "./helpers";
 
 const PageContainer = styled("div")(({ theme }) => ({
   padding: "24px 16px",
@@ -96,12 +97,6 @@ const CityCopy = styled(Typography)(({ theme }) => ({
   },
 }));
 
-const ErrorCopy = styled(Typography)(({ theme }) => ({
-  color: theme.palette.error.main,
-  margin: "16px 0px",
-  padding: "0px 24px",
-}));
-
 const DateSurveyContainer = styled(Paper)(({ theme }) => ({
   marginTop: 16,
   [theme.breakpoints.up(Breakpoint.Medium)]: {
@@ -153,7 +148,7 @@ const DateSurveyPage = () => {
         searchAreaIds,
       },
     });
-  }, [isLoggedIn, outingPreferencesData, budget, headcount, searchAreaIds, startTime]);
+  }, [outingPreferencesData, outingPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime]);
 
   const handleSubmitPreferences = useCallback(
     async (restaurantCategories: RestaurantCategory[], activityCategories: ActivityCategory[]) => {
@@ -206,12 +201,18 @@ const DateSurveyPage = () => {
       if (planOutingData.planOuting?.__typename === "PlanOutingSuccess") {
         const outing = planOutingData.planOuting.outing;
         dispatch(plannedOuting({ outing }));
+        dispatch(
+          chosePreferences({
+            user: outingPreferences,
+            partner: partnerPreferences,
+          }),
+        );
         navigate(`${AppRoute.itinerary}/${outing.id}`);
       } else {
         setErrorMessage("There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.");
       }
     }
-  }, [planOutingData]);
+  }, [planOutingData, outingPreferences, partnerPreferences]);
 
   useEffect(() => {
     if (searchRegionsData?.searchRegions) {
@@ -291,10 +292,10 @@ const DateSurveyPage = () => {
             onSelectBudget={handleSelectBudget}
             onSelectStartTime={toggleDatePickerOpen}
             onSelectSearchArea={toggleAreasOpen}
+            errorMessage={errorMessage}
             loading={planOutingLoading}
           />
         </DateSurveyContainer>
-        {errorMessage && <ErrorCopy>ERROR: {errorMessage}</ErrorCopy>}
       </PageContentContainer>
       <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
         <DateAreaSelections cta="Save" onSubmit={handleSelectSearchAreas} regions={searchRegionsData?.searchRegions} />
