@@ -1,3 +1,5 @@
+import { imageUrl } from "../asset";
+
 export const CENTRAL_LA_REGION_ID = "354c2020-6227-46c1-be04-6f5965ba452d";
 export const DTLA_REGION_ID = "94d05616-887a-440e-a2c5-c06ece510877";
 export const PGN_REGION_ID = "5b8c5453-2404-4510-87c9-2e9aba6cdce7";
@@ -12,4 +14,13 @@ export const REGION_LABELS: { [key: string]: string } = {
   [WESTSIDE_REGION_ID]: "Westside",
   [SOUTH_BAY_REGION_ID]: "South Bay",
   [SGV_REGION_ID]: "SGV",
+};
+
+export const REGION_IMAGES: { [key: string]: string } = {
+  [CENTRAL_LA_REGION_ID]: imageUrl("regions/hollywood.png"),
+  [DTLA_REGION_ID]: imageUrl("regions/dtla.png"),
+  [PGN_REGION_ID]: imageUrl("regions/pasadena.png"),
+  [WESTSIDE_REGION_ID]: imageUrl("regions/westside.png"),
+  [SOUTH_BAY_REGION_ID]: imageUrl("regions/southbay.png"),
+  [SGV_REGION_ID]: imageUrl("regions/sgv.png"),
 };

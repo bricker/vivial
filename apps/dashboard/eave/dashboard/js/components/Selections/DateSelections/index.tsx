@@ -1,5 +1,11 @@
 import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
+import { AppRoute } from "$eave-dashboard/js/routes";
+import { RootState } from "$eave-dashboard/js/store";
 import { useGetSearchRegionsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { MAX_REROLLS, useReroll } from "$eave-dashboard/js/util/reroll";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
@@ -7,7 +13,6 @@ import React from "react";
 
 import HighlightButton from "../../Buttons/HighlightButton";
 import LoadingButton from "../../Buttons/LoadingButton";
-
 import { getSearchAreaLabel, getStartTimeLabel } from "./helpers";
 
 const Row = styled("div")(() => ({
@@ -69,9 +74,27 @@ const DateSelections = ({
   onSelectSearchArea,
 }: DateSelectionsProps) => {
   const { data } = useGetSearchRegionsQuery({});
+  const [rerolls, rerolled] = useReroll();
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
+  const navigate = useNavigate();
+
   const searchRegions = data?.searchRegions || [];
   const searchAreaLabel = getSearchAreaLabel(searchAreaIds, searchRegions);
   const startTimeLabel = getStartTimeLabel(startTime);
+
+  const handleSubmit = () => {
+    if (isLoggedIn) {
+      onSubmit();
+    } else {
+      if (rerolls >= MAX_REROLLS) {
+        navigate(AppRoute.signupMultiReroll);
+      } else {
+        rerolled();
+        onSubmit();
+      }
+    }
+  };
+
   return (
     <>
       <Row>
@@ -142,7 +165,7 @@ const DateSelections = ({
           </SelectButton>
         </RowButtons>
       </Row>
-      <SubmitButton onClick={onSubmit} loading={!!loading} disabled={!!disabled} fullWidth>
+      <SubmitButton onClick={handleSubmit} loading={!!loading} disabled={!!disabled} fullWidth>
         {cta}
       </SubmitButton>
     </>

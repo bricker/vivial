@@ -29,6 +29,12 @@ export function getHoursDiff(date1: Date, date2: Date): number {
   return msDiff / (1000 * 60 * 60);
 }
 
+export function in24Hours(): Date {
+  const now = new Date();
+  const millisecondsIn24Hours = 24 * 60 * 60 * 1000;
+  return new Date(now.getTime() + millisecondsIn24Hours);
+}
+
 export function getPreferenceInputs(
   userPreferences: OutingPreferences | null,
   partnerPreferenecs: OutingPreferences | null,
