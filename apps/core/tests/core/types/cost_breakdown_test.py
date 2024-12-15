@@ -1,4 +1,3 @@
-
 from eave.core.graphql.types.pricing import CostBreakdown
 
 from ..base import BaseTestCase
