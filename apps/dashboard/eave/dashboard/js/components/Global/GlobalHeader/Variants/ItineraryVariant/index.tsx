@@ -29,7 +29,7 @@ const ItineraryVariant = () => {
 
   const handleBook = useCallback(() => {
     if (outing) {
-      navigate(`${AppRoute.checkout}/${outing.id}`);
+      navigate(`${AppRoute.checkoutReserve}/${outing.id}`);
     }
   }, [outing]);
 
