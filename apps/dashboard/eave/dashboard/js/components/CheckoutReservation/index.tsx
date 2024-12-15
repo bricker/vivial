@@ -93,7 +93,7 @@ function isPaidOuting(outing?: Outing | null): boolean {
   if (!outing) {
     return false;
   }
-  return outing?.costBreakdown.totalCostCents > 0;
+  return outing.costBreakdown.totalCostCents > 0;
 }
 
 const CheckoutForm = ({

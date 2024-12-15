@@ -117,7 +117,7 @@ const ActivityViewExpanded = () => {
               <VenueInfo>
                 {address.address1} {address.address2}
               </VenueInfo>
-              <VenueInfo>{[address.city, address.state, address.zipCode].join(", ")}</VenueInfo>
+              <VenueInfo>{[address.city, address.state, address.zipCode].filter(k => k).join(", ")}</VenueInfo>
             </>
           )}
         </EventInfo>

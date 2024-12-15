@@ -24,12 +24,6 @@ class Base(DeclarativeBase):
         type_=TIMESTAMP(timezone=True), server_default=None, onupdate=func.current_timestamp()
     )
 
-    # @classmethod
-    # def init_pending(cls, session: AsyncSession, **kwargs: Any) -> Self:
-    #     instance = cls(**kwargs)
-    #     session.add(instance)
-    #     return instance
-
     @classmethod
     def select(cls) -> Select[tuple[Self]]:
         return select(cls)
@@ -69,22 +63,3 @@ def validate_session(session: Session, flush_context: UOWTransaction, instances:
 
     if len(validation_errors) > 0:
         raise InvalidRecordError(validation_errors=validation_errors)
-
-
-# @event.listens_for(Session, "transient_to_pending")
-# def validate_orm_object(session: Session, orm: Base) -> None:
-#     validation_errors: list[ValidationError] = []
-
-#     try:
-#         validator = getattr(orm, "validate", None)
-#         if validator and callable(validator):
-#             validation_errors.extend(orm.validate())
-
-#     except Exception as e:
-#         # If there was some unexpected error during validation, then don't prevent the SQL operation.
-#         # Note that the validator functions aren't expected to throw errors for invalid records.
-#         # They return a list of validationi errors.
-#         LOGGER.exception(e)
-
-#     if len(validation_errors) > 0:
-#         raise InvalidRecordError(validation_errors=validation_errors)

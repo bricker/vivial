@@ -122,7 +122,7 @@ const RestaurantViewExpanded = () => {
                 <RestaurantAddress>
                   {address.address1} {address.address2}
                 </RestaurantAddress>
-                <RestaurantAddress>{[address.city, address.state, address.zipCode].join(", ")}</RestaurantAddress>
+                <RestaurantAddress>{[address.city, address.state, address.zipCode].filter(k => k).join(", ")}</RestaurantAddress>
               </div>
             )}
           </ReservationInfo>

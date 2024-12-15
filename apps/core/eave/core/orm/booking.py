@@ -15,7 +15,7 @@ from eave.core.orm.survey import SurveyOrm
 from eave.core.orm.util.mixins import CoordinatesMixin, GetOneByIdMixin, TimedEventMixin
 from eave.core.orm.util.user_defined_column_types import (
     ActivitySourceColumnType,
-    AddressFieldsColumnType,
+    AddressColumnType,
     RestaurantSourceColumnType,
 )
 from eave.core.shared.enums import ActivitySource, RestaurantSource
@@ -92,7 +92,7 @@ class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     headcount: Mapped[int] = mapped_column()
     external_booking_link: Mapped[str | None] = mapped_column()
     """HTTP link to site for manual booking (possibly affiliate), if available"""
-    address: Mapped[Address] = mapped_column(type_=AddressFieldsColumnType())
+    address: Mapped[Address] = mapped_column(type_=AddressColumnType())
 
     booking_id: Mapped[UUID] = mapped_column(
         ForeignKey(f"{BookingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value), index=True
@@ -149,7 +149,7 @@ class BookingReservationTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     headcount: Mapped[int] = mapped_column()
     external_booking_link: Mapped[str | None] = mapped_column()
     """HTTP link to site for manual booking (possibly affiliate), if available"""
-    address: Mapped[Address] = mapped_column(type_=AddressFieldsColumnType())
+    address: Mapped[Address] = mapped_column(type_=AddressColumnType())
 
     booking_id: Mapped[UUID] = mapped_column(
         ForeignKey(f"{BookingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value), index=True

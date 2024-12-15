@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from eave.core.lib.address import Address
 from eave.core.orm.image import ImageOrm
 from eave.core.orm.util.mixins import CoordinatesMixin, GetOneByIdMixin
-from eave.core.orm.util.user_defined_column_types import AddressFieldsColumnType
+from eave.core.orm.util.user_defined_column_types import AddressColumnType
 from eave.core.shared.geo import GeoPoint
 
 from .base import Base
@@ -31,7 +31,7 @@ class ActivityOrm(Base, CoordinatesMixin, GetOneByIdMixin):
     activity_category_id: Mapped[UUID] = mapped_column()
     duration_minutes: Mapped[int] = mapped_column()
     availability: Mapped[str] = mapped_column()
-    address: Mapped[Address] = mapped_column(type_=AddressFieldsColumnType())
+    address: Mapped[Address] = mapped_column(type_=AddressColumnType())
     is_bookable: Mapped[bool] = mapped_column()
     booking_url: Mapped[str | None] = mapped_column()
 

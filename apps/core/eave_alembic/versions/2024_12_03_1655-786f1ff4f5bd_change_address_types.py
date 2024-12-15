@@ -9,7 +9,7 @@ Create Date: 2024-12-03 16:55:15.544494
 import sqlalchemy as sa
 from alembic import op
 
-from eave.core.orm.util.user_defined_column_types import AddressFieldsColumnType
+from eave.core.orm.util.user_defined_column_types import AddressColumnType
 
 # revision identifiers, used by Alembic.
 revision = "786f1ff4f5bd"
@@ -26,15 +26,15 @@ def upgrade() -> None:
 
     op.add_column(
         "booking_activity_templates",
-        sa.Column("address", AddressFieldsColumnType(), nullable=False),
+        sa.Column("address", AddressColumnType(), nullable=False),
     )
     op.add_column(
         "booking_reservation_templates",
-        sa.Column("address", AddressFieldsColumnType(), nullable=False),
+        sa.Column("address", AddressColumnType(), nullable=False),
     )
     op.add_column(
         "activities",
-        sa.Column("address", AddressFieldsColumnType(), nullable=False),
+        sa.Column("address", AddressColumnType(), nullable=False),
     )
     # ### end Alembic commands ###
 

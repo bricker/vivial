@@ -14,7 +14,7 @@ from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSourc
 from eave.stdlib.logging import LOGGER
 
 
-class AddressFieldsColumnType(UserDefinedType):
+class AddressColumnType(UserDefinedType):
     cache_ok = True
 
     def get_col_spec(self) -> Literal["JSON"]:
