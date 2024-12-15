@@ -9,6 +9,7 @@ import TooltipIcon from "../../Icons/TooltipIcon";
 interface TooltipButtonProps {
   info: string;
   iconColor?: string;
+  iconLarge?: boolean;
 }
 
 const Button = styled(IconButton)(() => ({
@@ -34,11 +35,11 @@ const arrowStyles = {
   },
 };
 
-const TooltipButton = ({ info, iconColor }: TooltipButtonProps) => {
+const TooltipButton = ({ info, iconColor, iconLarge }: TooltipButtonProps) => {
   return (
     <Tooltip slotProps={{ tooltip: { sx: tooltipStyles }, arrow: { sx: arrowStyles } }} title={info} arrow>
       <Button>
-        <TooltipIcon color={iconColor} />
+        <TooltipIcon color={iconColor} large={iconLarge} />
       </Button>
     </Tooltip>
   );

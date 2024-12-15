@@ -1,7 +1,12 @@
+import { styled } from "@mui/material";
 import React, { useCallback, useState } from "react";
 import ExpandableSection from "../ExpandableSection";
-import CondensedView from "./Views/CondensedView";
-import ExpandedView from "./Views/ExpandedView";
+import RestaurantViewCondensed from "./RestaurantViewCondensed";
+import RestaurantViewExpanded from "./RestaurantViewExpanded";
+
+const Section = styled(ExpandableSection)(() => ({
+  marginBottom: 32,
+}));
 
 const RestaurantSection = () => {
   const [expanded, setExpanded] = useState(false);
@@ -10,9 +15,9 @@ const RestaurantSection = () => {
   }, [expanded]);
 
   return (
-    <ExpandableSection onExpand={toggleExpand} expanded={expanded}>
-      {expanded ? <ExpandedView /> : <CondensedView />}
-    </ExpandableSection>
+    <Section onExpand={toggleExpand} expanded={expanded}>
+      {expanded ? <RestaurantViewExpanded /> : <RestaurantViewCondensed />}
+    </Section>
   );
 };
 

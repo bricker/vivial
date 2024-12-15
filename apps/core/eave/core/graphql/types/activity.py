@@ -18,21 +18,6 @@ class ActivityVenue:
 
 
 @strawberry.type
-class Activity:
-    source_id: str
-    source: ActivitySource
-    name: str
-    description: str
-    venue: ActivityVenue
-    photos: Photos
-    ticket_info: TicketInfo | None
-    website_uri: str | None
-    door_tips: str | None
-    insider_tips: str | None
-    parking_tips: str | None
-
-
-@strawberry.type
 class ActivityCategory:
     id: UUID
     name: str
@@ -60,3 +45,19 @@ class ActivityCategoryGroup:
             name=orm.name,
             activity_categories=[ActivityCategory.from_orm(orm) for orm in orm.activity_categories],
         )
+
+
+@strawberry.type
+class Activity:
+    source_id: str
+    source: ActivitySource
+    name: str
+    description: str
+    venue: ActivityVenue
+    photos: Photos
+    ticket_info: TicketInfo | None
+    website_uri: str | None
+    door_tips: str | None
+    insider_tips: str | None
+    parking_tips: str | None
+    category_group: ActivityCategoryGroup | None

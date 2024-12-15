@@ -1,13 +1,37 @@
 fragment OutingFields on Outing {
   id
-  headcount
   activityStartTime
   restaurantArrivalTime
+  restaurantRegion {
+    id
+    name
+  }
+  activityRegion {
+    id
+    name
+  }
+  survey {
+    id
+    budget
+    headcount
+    searchAreaIds
+    startTime
+    visitorId
+  }
   drivingTime
   costBreakdown {
     ...CostBreakdownFields
   }
   activity {
+    categoryGroup {
+      id
+      name
+      activityCategories {
+        id
+        name
+        isDefault
+      }
+    }
     sourceId
     source
     name
@@ -27,7 +51,7 @@ fragment OutingFields on Outing {
       name
       location {
         ...LocationFields
-      }
+     }
     }
     photos {
       coverPhoto {

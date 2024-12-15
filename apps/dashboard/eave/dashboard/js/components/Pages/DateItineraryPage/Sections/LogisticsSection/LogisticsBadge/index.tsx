@@ -24,7 +24,7 @@ const Weekday = styled(Typography)(() => ({
   marginBottom: 3,
 }));
 
-const Date = styled(Typography)(({ theme }) => ({
+const DateText = styled(Typography)(({ theme }) => ({
   color: theme.palette.background.paper,
   fontSize: rem(18),
   lineHeight: rem(22),
@@ -47,7 +47,7 @@ const LogisticsBadge = ({ startTime, connect }: LogisticsBadgeProps) => {
     <Badge>
       <Weekday>{getDayOfWeek(startTime)}</Weekday>
       <Circle color={colors.vivialYellow}>
-        <Date>{getDate(startTime)}</Date>
+        <DateText>{getDate(startTime)}</DateText>
       </Circle>
       {connect && <Connector />}
     </Badge>

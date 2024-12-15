@@ -8,8 +8,10 @@ import { useSelector } from "react-redux";
 
 import TooltipButton from "$eave-dashboard/js/components/Buttons/TooltipButton";
 import Typography from "@mui/material/Typography";
-import RestaurantBadge from "../../RestaurantBadge";
-import BaseRestaurantRating from "../../RestaurantRating";
+import RestaurantBadge from "../RestaurantBadge";
+import BaseRestaurantRating from "../RestaurantRating";
+
+import { RESERVATION_WARNING } from "../constant";
 
 const ViewContainer = styled("div")(() => ({
   display: "flex",
@@ -19,9 +21,10 @@ const ViewContainer = styled("div")(() => ({
 const ImgContainer = styled("div")(() => ({
   height: 102,
   width: 184,
+  minWidth: 184,
   overflow: "hidden",
   borderRadius: 10,
-  marginLeft: 7,
+  marginLeft: 16,
 }));
 
 const Img = styled("img")(() => ({
@@ -31,6 +34,7 @@ const Img = styled("img")(() => ({
 
 const CopyContainer = styled("div")(() => ({
   display: "flex",
+  alignItems: "center",
   marginBottom: 12,
 }));
 
@@ -58,7 +62,7 @@ const TableInfo = styled(Typography)(({ theme }) => ({
 
 const RestaurantRating = styled(BaseRestaurantRating)(() => ({
   fontSize: rem(12),
-  lineHeight: rem(15),
+  height: 15,
 }));
 
 const RestaurantName = styled(Typography)(({ theme }) => ({
@@ -72,13 +76,12 @@ const RestaurantType = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.secondary,
   fontSize: rem(12),
   lineHeight: rem(15),
-  marginBottom: 2,
+  marginBottom: 4,
 }));
 
-const CondensedView = () => {
+const RestaurantViewCondensed = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
   const arrivalTime = new Date(outing?.restaurantArrivalTime || "");
-  const arrivalTimeInfo = "Dinner reservation times may vary by 30 minutes.";
   const restaurant = outing?.restaurant;
 
   if (restaurant) {
@@ -90,9 +93,9 @@ const CondensedView = () => {
             <TimeAndTableInfo>
               <TimeInfo>
                 <Time>{getTimeOfDay(arrivalTime, false)}</Time>
-                <TooltipButton info={arrivalTimeInfo} iconColor={colors.lightOrangeAccent} />
+                <TooltipButton info={RESERVATION_WARNING} iconColor={colors.lightOrangeAccent} />
               </TimeInfo>
-              <TableInfo>Table for {outing?.headcount}</TableInfo>
+              <TableInfo>Table for {outing?.survey.headcount}</TableInfo>
             </TimeAndTableInfo>
           </CopyContainer>
           <div>
@@ -110,4 +113,4 @@ const CondensedView = () => {
   return null;
 };
 
-export default CondensedView;
+export default RestaurantViewCondensed;

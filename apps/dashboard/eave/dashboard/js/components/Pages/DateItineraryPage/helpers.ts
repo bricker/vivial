@@ -1,4 +1,4 @@
-import { type Outing, type OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
+import { type Outing, type OutingBudget, type Photos } from "$eave-dashboard/js/graphql/generated/graphql";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 import { getBudgetLabel } from "$eave-dashboard/js/util/budget";
 import { currencyFormatter } from "$eave-dashboard/js/util/currency";
@@ -34,4 +34,19 @@ export function getPlaceLabel(headcount: number, searchAreaIds: string[], budget
   const regionLabel = getMultiRegionLabel(searchAreaIds);
   const budgetLabel = getBudgetLabel(budget);
   return `For ${headcount} • ${regionLabel} • ${budgetLabel}`;
+}
+
+export function getImgUrls(photos: Photos): string[] {
+  let imgUrls: string[] = [];
+
+  if (!photos) {
+    return imgUrls;
+  }
+
+  if (photos.coverPhoto) {
+    imgUrls.push(photos.coverPhoto.src);
+  }
+
+  imgUrls = imgUrls.concat(photos.supplementalPhotos.map(p => p.src));
+  return imgUrls;
 }

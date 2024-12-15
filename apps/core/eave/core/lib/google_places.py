@@ -2,6 +2,7 @@ import enum
 import urllib.parse
 from collections.abc import MutableSequence, Sequence
 from datetime import datetime, timedelta
+from uuid import UUID
 from zoneinfo import ZoneInfo
 
 from google.maps.places import (
@@ -15,11 +16,13 @@ from google.maps.places import (
     Photo as PlacePhoto,
 )
 
-from eave.core.graphql.types.activity import Activity, ActivityVenue
+from eave.core.graphql.types.activity import Activity, ActivityVenue, ActivityCategoryGroup
 from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.restaurant import Restaurant
+from eave.core.shared.geo import GeoArea, GeoPoint
+from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 from eave.core.shared.geo import GeoArea, GeoPoint
 
@@ -85,6 +88,12 @@ async def activity_from_google_place(places_client: PlacesAsyncClient, *, place:
         door_tips=None,
         insider_tips=None,
         parking_tips=None,
+        category_group=ActivityCategoryGroup.from_orm(
+            # NOTE: assumes all google places activities will be a food/drink thing
+            ActivityCategoryGroupOrm.one_or_exception(
+                activity_category_group_id=UUID("f3a21e9638d2401ebc290fee6fe44384")
+            )
+        ),
     )
 
     return activity

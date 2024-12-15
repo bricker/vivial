@@ -6,56 +6,75 @@ from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.booking import BookingDetailPeek, BookingDetails
 from eave.core.graphql.types.pricing import CostBreakdown
-from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
 from eave.stdlib.http_exceptions import NotFoundError
+from eave.core.graphql.types.search_region import SearchRegion
+from eave.core.graphql.types.survey import Survey
+from eave.core.lib.event_helpers import get_activity, get_closest_search_region_to_point, get_restaurant
+from eave.core.orm.search_region import SearchRegionOrm
 from eave.stdlib.util import unwrap
 
 
 async def _get_booking_details(
     booking: BookingOrm,
 ) -> BookingDetails:
+
     details = BookingDetails(
         id=booking.id,
+        headcount=booking.survey.headcount,
+        survey=Survey.from_orm(booking.survey),
         cost_breakdown=CostBreakdown(),
-        headcount=0,
         activity=None,
         activity_start_time=None,
         restaurant=None,
         restaurant_arrival_time=None,
         driving_time=None,  # TODO: can we fill this in?
+        activity_region=None,
+        restaurant_region=None,
     )
+
     # NOTE: only getting 1 (or None) result here instead of full scalars result since
     # response type only accepts one of each
     activity_orm = None
     reservation_orm = None
 
+    regions = [SearchRegionOrm.one_or_exception(search_region_id=id) for id in booking.survey.search_area_ids]
+
     if len(booking.activities) > 0:
         activity_orm = booking.activities[0]
-    if len(booking.reservations) > 0:
-        reservation_orm = booking.reservations[0]
-
-    if activity_orm:
         details.activity_start_time = activity_orm.start_time_local
         details.headcount = max(details.headcount, activity_orm.headcount)
-        activity = await get_activity(
+
+        details.activity = await get_activity(
             source_id=activity_orm.source_id,
             source=activity_orm.source,
         )
 
-        if activity:
-            details.activity = activity
-            if activity.ticket_info:
-                details.cost_breakdown = activity.ticket_info.cost_breakdown
+        if details.activity:
+            if activity_region := get_closest_search_region_to_point(
+                regions=regions, point=details.activity.venue.location.coordinates
+            ):
+                details.activity_region = SearchRegion.from_orm(activity_region)
 
-    if reservation_orm:
+            if details.activity.ticket_info:
+                details.cost_breakdown = details.activity.ticket_info.cost_breakdown
+
+    if len(booking.reservations) > 0:
+        reservation_orm = booking.reservations[0]
         details.restaurant_arrival_time = reservation_orm.start_time_local
+        details.headcount = max(details.headcount, reservation_orm.headcount)
+
         details.restaurant = await get_restaurant(
             source_id=reservation_orm.source_id,
             source=reservation_orm.source,
         )
-        details.headcount = max(details.headcount, reservation_orm.headcount)
+
+        if details.restaurant:
+            if restaurant_region := get_closest_search_region_to_point(
+                regions=regions, point=details.restaurant.location.coordinates
+            ):
+                details.restaurant_region = SearchRegion.from_orm(restaurant_region)
 
     return details
 

@@ -1,7 +1,9 @@
 from eave.core.lib.address import Address
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
-from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.core.shared.geo import GeoPoint
+from zoneinfo import ZoneInfo
+
+from eave.core.shared.enums import ActivitySource, RestaurantSource
 
 from ..base import BaseTestCase
 
@@ -10,10 +12,12 @@ class TestBookedOutingsResolver(BaseTestCase):
     async def test_booked_outings_with_activity_and_restaurant(self) -> None:
         async with self.db_session.begin() as session:
             account = self.make_account(session)
+            survey = self.make_survey(session, account)
             reserver_details = self.make_reserver_details(session, account)
 
             booking = BookingOrm(
                 session,
+                survey=survey,
                 accounts=[account],
                 reserver_details=reserver_details,
             )

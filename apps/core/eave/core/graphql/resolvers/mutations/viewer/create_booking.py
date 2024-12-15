@@ -143,6 +143,7 @@ async def create_booking_mutation(
                 db_session,
                 accounts=[account],
                 reserver_details=reserver_details,
+                survey=survey,
                 stripe_payment_intent_reference=stripe_payment_intent_reference,
             )
 

@@ -5,8 +5,9 @@ import strawberry
 
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.types.activity import Activity, ActivityVenue
 from eave.core.graphql.types.address import GraphQLAddress
+from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
+from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.outing import (
     Outing,
@@ -16,12 +17,15 @@ from eave.core.graphql.types.pricing import CostBreakdown
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.graphql.types.search_region import SearchRegion
 from eave.core.graphql.types.survey import Survey
-from eave.core.graphql.types.ticket_info import TicketInfo
-from eave.core.lib.event_helpers import get_activity, get_restaurant
-from eave.core.orm.outing import OutingOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
+from eave.core.lib.event_helpers import get_activity, get_closest_search_region_to_point, get_restaurant
 from eave.core.shared.geo import GeoPoint
+from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
+from eave.core.orm.outing import OutingOrm, OutingReservationOrm, OutingActivityOrm
+from eave.core.orm.search_region import SearchRegionOrm
+from eave.core.orm.survey import SurveyOrm
+from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 
 # TODO: Remove once Date Picked UI is complete.
@@ -103,17 +107,25 @@ _mock_activity = Activity(
     door_tips="Doors open at 7:30PM, Event begins at 8:00PM, Expected end time is 10:30PM",
     insider_tips="Order your two drink minimum all at once because it takes a while for the waitress to make the second round. If you sit in the front, expect to get picked on by the comedians.",
     parking_tips="Free open lot behind the building next to the market.",
+    category_group=ActivityCategoryGroup.from_orm(
+        ActivityCategoryGroupOrm.one_or_exception(
+            activity_category_group_id=UUID("988e0bf142564462985a2657602aad1b")
+        )
+    ),
 )
 
 MOCK_OUTING = Outing(
     id=uuid4(),
     headcount=_mock_survey.headcount,
+    survey=_mock_survey,
     driving_time="25 min",
     cost_breakdown=_mock_activity.ticket_info.cost_breakdown * _mock_survey.headcount
     if _mock_activity.ticket_info
     else CostBreakdown(),
     restaurant_arrival_time=_mock_survey.start_time,
     activity_start_time=_mock_survey.start_time + timedelta(hours=2),
+    restaurant_region=SearchRegion.from_orm(SearchRegionOrm.all()[0]),
+    activity_region=SearchRegion.from_orm(SearchRegionOrm.all()[1]),
     restaurant=Restaurant(
         source_id=f"{uuid4()}",
         source=RestaurantSource.GOOGLE_PLACES,
@@ -195,6 +207,10 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
     headcount = 0
     activity_start_time = None
     restaurant_arrival_time = None
+    activity_region = None
+    restaurant_region = None
+
+    regions = [SearchRegionOrm.one_or_exception(search_region_id=area_id) for area_id in outing.survey.search_area_ids]
 
     if len(outing.activities) > 0:
         # Currently the client only supports 1 activity per outing.
@@ -211,6 +227,9 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
             source_id=outing_activity.source_id,
         )
 
+        if activity:
+            activity_region = get_closest_search_region_to_point(regions=regions, point=activity.venue.location.coordinates)
+
     if len(outing.reservations) > 0:
         # Currently the client only supports 1 restaurant per outing.
         outing_reservation = outing.reservations[0]
@@ -222,6 +241,9 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
             source_id=outing_reservation.source_id,
         )
 
+        if restaurant:
+            restaurant_region = get_closest_search_region_to_point(regions=regions, point=restaurant.location.coordinates)
+
     return Outing(
         id=outing.id,
         headcount=headcount,
@@ -230,4 +252,6 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
         driving_time=None,
         activity_start_time=activity_start_time,
         restaurant_arrival_time=restaurant_arrival_time,
+        activity_region=SearchRegion.from_orm(activity_region) if activity_region else None,
+        restaurant_region=SearchRegion.from_orm(restaurant_region) if restaurant_region else None,
     )

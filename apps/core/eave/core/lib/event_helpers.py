@@ -1,11 +1,12 @@
+import math
 import uuid
 
 from google.maps.places import PlacesAsyncClient
 
 from eave.core import database
 from eave.core.config import CORE_API_APP_CONFIG
-from eave.core.graphql.types.activity import Activity, ActivityVenue
 from eave.core.graphql.types.address import GraphQLAddress
+from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.pricing import CostBreakdown
@@ -13,32 +14,43 @@ from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.lib.address import format_address
 from eave.core.lib.eventbrite import get_eventbrite_activity
+from eave.core.shared.geo import GeoPoint
 from eave.core.lib.google_places import (
     get_google_places_activity,
     get_google_places_restaurant,
     google_maps_directions_url,
 )
 from eave.core.orm.activity import ActivityOrm
+from eave.core.orm.activity_category import ActivityCategoryOrm
+from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
+from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.stdlib.eventbrite.client import EventbriteClient
 
 
 async def get_internal_activity(*, event_id: str) -> Activity | None:
     async with database.async_session.begin() as db_session:
-        activity = await ActivityOrm.get_one(db_session, uid=uuid.UUID(event_id))
-        images = activity.images
+        activity_orm = await ActivityOrm.get_one(db_session, uid=uuid.UUID(event_id))
+        images = activity_orm.images
+
+    category_group = None
+
+    if category := ActivityCategoryOrm.one_or_none(activity_category_id=activity_orm.activity_category_id):
+        category_group = ActivityCategoryGroupOrm.one_or_none(
+            activity_category_group_id=category.activity_category_group_id
+        )
 
     return Activity(
         source_id=event_id,
         source=ActivitySource.INTERNAL,
-        name=activity.title,
-        description=activity.description,
+        name=activity_orm.title,
+        description=activity_orm.description,
         venue=ActivityVenue(
-            name=activity.title,
+            name=activity_orm.title,
             location=Location(
-                coordinates=activity.coordinates_to_geopoint(),
-                address=GraphQLAddress.from_address(activity.address),
-                directions_uri=google_maps_directions_url(format_address(activity.address, singleline=True)),
+                coordinates=activity_orm.coordinates_to_geopoint(),
+                address=GraphQLAddress.from_address(activity_orm.address),
+                directions_uri=google_maps_directions_url(format_address(activity_orm.address, singleline=True)),
             ),
         ),
         photos=Photos(
@@ -50,10 +62,11 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
             notes="FIXME",
             cost_breakdown=CostBreakdown(),  # FIXME
         ),
-        website_uri=activity.booking_url,
+        website_uri=activity_orm.booking_url,
         door_tips=None,
         insider_tips=None,
         parking_tips=None,
+        category_group=ActivityCategoryGroup.from_orm(category_group) if category_group else None,
     )
 
 
@@ -89,3 +102,24 @@ async def get_restaurant(
         case RestaurantSource.GOOGLE_PLACES:
             restaurant = await get_google_places_restaurant(places_client=places_client, restaurant_id=source_id)
             return restaurant
+
+
+def get_closest_search_region_to_point(
+    *,
+    regions: list[SearchRegionOrm],
+    point: GeoPoint,
+) -> SearchRegionOrm | None:
+    """
+    From the input `regions`, return the one that is closest to `point`.
+    Only returns `None` if `regions` is empty.
+    """
+    closest_region = None
+    activity_curr_min_dist = math.inf
+    for region in regions:
+        # see if dist to `activity` from `region` is less than from current closest `activity_region`
+        dist_from_region_center = point.haversine_distance(to_point=region.area.center)
+        if dist_from_region_center < activity_curr_min_dist:
+            activity_curr_min_dist = dist_from_region_center
+            closest_region = region
+
+    return closest_region
