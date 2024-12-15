@@ -32,7 +32,7 @@ class TestBookingEndpoints(BaseTestCase):
             self.getint("eventbrite.TicketClass.0.cost.value")
             + self.getint("eventbrite.TicketClass.0.fee.value")
             + self.getint("eventbrite.TicketClass.0.tax.value")
-        )
+        ) * survey.headcount
 
         response = await self.make_graphql_request(
             "createBooking",
