@@ -1,5 +1,6 @@
 export enum SearchParam {
   variant = "v",
+  redirect = "r",
 }
 
 export enum DateSurveyPageVariant {
