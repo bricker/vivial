@@ -24,7 +24,7 @@ const LoadingView = () => {
       <LogisticsSkeleton variant="rectangular" width="100%" height={181} />
       <RestaurantSkeleton variant="rectangular" width="100%" height={139} />
       <ActivitySkeleton variant="rectangular" width="100%" height={139} />
-      <ActivitySkeleton variant="rectangular" width="100%" height={319} />
+      <BaseSkeleton variant="rectangular" width="100%" height={319} />
     </>
   );
 };

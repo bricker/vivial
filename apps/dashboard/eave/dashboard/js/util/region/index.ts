@@ -1,16 +1,14 @@
 import { type Outing } from "$eave-dashboard/js/graphql/generated/graphql";
 import { imageUrl } from "../asset";
-import { REGION_IMAGES, REGION_LABELS } from "./constant";
+import { REGION_IMAGE_PATHS, REGION_LABELS } from "./constant";
 
 export function getRegionLabel(regionId: string): string | undefined {
   return REGION_LABELS[regionId];
 }
 
 export function getRegionImage(regionId: string | undefined): string | undefined {
-  if (regionId) {
-    return REGION_IMAGES[regionId];
-  }
-  return imageUrl("regions/dtla.png");
+  const imgPath = (regionId && REGION_IMAGE_PATHS[regionId]) || "regions/dtla.png";
+  return imageUrl(imgPath);
 }
 
 export function getRegionIds(outing: Outing | null): string[] {

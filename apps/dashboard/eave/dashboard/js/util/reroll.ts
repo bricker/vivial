@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
-import { in24Hours } from "../components/Pages/DateSurveyPage/helpers";
 import { CookieId, RerollCookie } from "../types/cookie";
+import { in24Hours } from "./date";
 
 export const MAX_REROLLS = 3;
 
