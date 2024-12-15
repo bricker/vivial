@@ -7,7 +7,7 @@ import React, { useCallback } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import { getTotalCost } from "$eave-dashboard/js/components/Pages/DateItineraryPage/helpers";
+import { getFormattedTotalCost } from "$eave-dashboard/js/components/Pages/DateItineraryPage/helpers";
 
 import PrimaryButton from "$eave-dashboard/js/components/Buttons/PrimaryButton";
 import Typography from "@mui/material/Typography";
@@ -24,11 +24,13 @@ const Cost = styled("span")(() => ({
 
 const ItineraryVariant = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
-  const cost = getTotalCost(outing);
+  const cost = getFormattedTotalCost(outing);
   const navigate = useNavigate();
 
   const handleBook = useCallback(() => {
-    navigate(`${AppRoute.checkout}/${outing?.id}`);
+    if (outing) {
+      navigate(`${AppRoute.checkout}/${outing.id}`);
+    }
   }, [outing]);
 
   return (

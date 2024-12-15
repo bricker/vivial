@@ -1,22 +1,17 @@
 import { type Outing, type OutingBudget, type Photos } from "$eave-dashboard/js/graphql/generated/graphql";
 import { getBudgetLabel } from "$eave-dashboard/js/util/budget";
+import { currencyFormatter } from "$eave-dashboard/js/util/currency";
 import { getDayOfWeek, getMonth, getTimeOfDay } from "$eave-dashboard/js/util/date";
 import { getMultiRegionLabel } from "$eave-dashboard/js/util/region";
 
-export function getTotalCost(outing: Outing | null): string | null {
-  if (outing?.activity) {
-    const { activity } = outing;
-    const ticketInfo = activity.ticketInfo;
-    if (ticketInfo) {
-      const cost = ticketInfo.cost || 0;
-      const fee = ticketInfo.fee || 0;
-      const tax = ticketInfo.tax || 0;
-      const totalCost = (cost + fee + tax) * outing.survey.headcount;
-      if (totalCost) {
-        return `$${(totalCost / 100).toFixed(2)}`;
-      }
+export function getFormattedTotalCost(outing: Outing | null): string | null {
+  if (outing) {
+    const totalCostCents = outing.costBreakdown.totalCostCents;
+    if (totalCostCents > 0) {
+      return currencyFormatter.format(totalCostCents / 100);
     }
   }
+
   return null;
 }
 
@@ -36,11 +31,15 @@ export function getPlaceLabel(headcount: number, searchAreaIds: string[], budget
 
 export function getImgUrls(photos: Photos): string[] {
   let imgUrls: string[] = [];
-  if (photos?.coverPhotoUri) {
-    imgUrls.push(photos.coverPhotoUri);
+
+  if (!photos) {
+    return imgUrls;
   }
-  if (photos?.supplementalPhotoUris) {
-    imgUrls = imgUrls.concat(photos.supplementalPhotoUris);
+
+  if (photos.coverPhoto) {
+    imgUrls.push(photos.coverPhoto.src);
   }
+
+  imgUrls = imgUrls.concat(photos.supplementalPhotos.map((p) => p.src));
   return imgUrls;
 }

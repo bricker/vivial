@@ -89,10 +89,13 @@ const FooterText = styled(Typography)(() => ({
   textAlign: "center",
 }));
 
-function hasPaidActivity(outing: Outing | null): boolean {
-  const costData = outing?.activity?.ticketInfo;
-  return !!(costData?.cost || costData?.fee || costData?.tax);
+function isPaidOuting(outing?: Outing | null): boolean {
+  if (!outing) {
+    return false;
+  }
+  return outing.costBreakdown.totalCostCents > 0;
 }
+
 const CheckoutForm = ({
   outingId,
   showStripeBadge,
@@ -125,7 +128,7 @@ const CheckoutForm = ({
   const [reserverDetails, setReserverDetails] = useState(
     localReserverDetails || { id: "", firstName: "", lastName: "", phoneNumber: "" },
   );
-  const [outing, setOuting] = useState<Outing | null>(localOuting);
+  const [outing, setOuting] = useState<Outing | null | undefined>(localOuting);
 
   const submissionIsLoading = createBookingIsLoading || updateDetailsIsLoading || submitDetailsIsLoading;
   // only prevent submit on internalError since that can be fixed w/o another submit
@@ -201,7 +204,7 @@ const CheckoutForm = ({
         return;
       }
       setInternalReserverDetailError(undefined);
-      const isPaidActivity = hasPaidActivity(outing);
+      const isPaidActivity = isPaidOuting(outing);
       // clone reserverDetails state so we can mutate values w/ network responses
       const bookingDetails = { ...reserverDetails };
       try {
@@ -389,7 +392,7 @@ const CheckoutForm = ({
     [reserverDetails, stripeClient, stripeElements, outing],
   );
 
-  const requiresPayment = hasPaidActivity(outing);
+  const requiresPayment = isPaidOuting(outing);
   // when outing has been completely loaded into state & doesnt cost anything, use diff UI
   const usingAltUI = !requiresPayment && !outingIsLoading && outing;
   const Wrapper = usingAltUI ? FormPaper : PlainDiv;

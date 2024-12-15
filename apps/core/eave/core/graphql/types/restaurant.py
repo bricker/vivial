@@ -14,7 +14,7 @@ class Restaurant:
     source_id: str
     source: RestaurantSource
     location: Location
-    photos: Photos | None
+    photos: Photos
     name: str
     reservable: bool
     rating: float

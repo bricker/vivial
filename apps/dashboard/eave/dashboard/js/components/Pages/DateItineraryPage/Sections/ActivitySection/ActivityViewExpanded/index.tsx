@@ -1,4 +1,3 @@
-import { type Photos } from "$eave-dashboard/js/graphql/generated/graphql";
 import { RootState } from "$eave-dashboard/js/store";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
@@ -11,7 +10,6 @@ import LongDescription from "$eave-dashboard/js/components/LongDescription";
 import Typography from "@mui/material/Typography";
 import BaseActivityBadge from "../ActivityBadge";
 
-import { parseAddress } from "$eave-dashboard/js/util/address";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 import { getTimeOfDay } from "$eave-dashboard/js/util/date";
 import { getImgUrls } from "../../../helpers";
@@ -88,45 +86,54 @@ const EventbriteLogo = styled("img")(() => ({
 
 const ActivityViewExpanded = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
-  const startTime = new Date(outing?.activityStartTime || "");
-  const activity = outing?.activity;
-  const address = parseAddress(activity?.venue.location.formattedAddress);
-  const directionsUri = activity?.venue.location.directionsUri;
-
-  if (activity) {
-    return (
-      <ViewContainer>
-        <ActivityBadge categoryGroupId={activity.categoryGroup?.id} />
-        <CarouselContainer>
-          <ImageCarousel imgUrls={getImgUrls(activity.photos as Photos)} />
-        </CarouselContainer>
-        <InfoContainer>
-          <EventInfo>
-            <TimeAndTickets>
-              {getTimeOfDay(startTime, false)} | {outing.survey.headcount} Tickets
-            </TimeAndTickets>
-            <ActivityName>{activity.name}</ActivityName>
-            <VenueInfo>{activity.venue.name}</VenueInfo>
-            <VenueInfo>{address.street}</VenueInfo>
-            <VenueInfo>
-              {address.city}, {address.state}, {address.zipCode}
-            </VenueInfo>
-          </EventInfo>
-          <ExtraInfo>
-            <PoweredBy>Events powered by</PoweredBy>
-            <EventbriteLogo src={imageUrl("eventbrite-logo-orange.png")} />
-            {directionsUri && <DirectionsButton uri={directionsUri} />}
-          </ExtraInfo>
-        </InfoContainer>
-        <LongDescription>{activity.description}</LongDescription>
-        {activity.doorTips && <Notes>⏰ {activity.doorTips}</Notes>}
-        {activity.ticketInfo?.notes && <Notes>🎫 {activity.ticketInfo.notes}</Notes>}
-        {activity.parkingTips && <Notes>🚘 Parking Tips: {activity.parkingTips}</Notes>}
-        {activity.insiderTips && <Notes>🍨 Insider scoop: {activity.insiderTips}</Notes>}
-      </ViewContainer>
-    );
+  if (!outing) {
+    return null;
   }
-  return null;
+
+  const startTime = new Date(outing.activityStartTime || "");
+  const activity = outing.activity;
+  if (!activity) {
+    return null;
+  }
+
+  const address = activity.venue.location.address;
+  const directionsUri = activity.venue.location.directionsUri;
+
+  return (
+    <ViewContainer>
+      <ActivityBadge categoryGroupId={activity.categoryGroup?.id} />
+      <CarouselContainer>
+        <ImageCarousel imgUrls={getImgUrls(activity.photos)} />
+      </CarouselContainer>
+      <InfoContainer>
+        <EventInfo>
+          <TimeAndTickets>
+            {getTimeOfDay(startTime, false)} | {outing.survey.headcount} Tickets
+          </TimeAndTickets>
+          <ActivityName>{activity.name}</ActivityName>
+          <VenueInfo>{activity.venue.name}</VenueInfo>
+          {address && (
+            <>
+              <VenueInfo>
+                {address.address1} {address.address2}
+              </VenueInfo>
+              <VenueInfo>{[address.city, address.state, address.zipCode].filter((k) => k).join(", ")}</VenueInfo>
+            </>
+          )}
+        </EventInfo>
+        <ExtraInfo>
+          <PoweredBy>Events powered by</PoweredBy>
+          <EventbriteLogo src={imageUrl("eventbrite-logo-orange.png")} />
+          {directionsUri && <DirectionsButton uri={directionsUri} />}
+        </ExtraInfo>
+      </InfoContainer>
+      <LongDescription>{activity.description}</LongDescription>
+      {activity.doorTips && <Notes>⏰ {activity.doorTips}</Notes>}
+      {activity.ticketInfo?.notes && <Notes>🎫 {activity.ticketInfo.notes}</Notes>}
+      {activity.parkingTips && <Notes>🚘 Parking Tips: {activity.parkingTips}</Notes>}
+      {activity.insiderTips && <Notes>🍨 Insider scoop: {activity.insiderTips}</Notes>}
+    </ViewContainer>
+  );
 };
 
 export default ActivityViewExpanded;

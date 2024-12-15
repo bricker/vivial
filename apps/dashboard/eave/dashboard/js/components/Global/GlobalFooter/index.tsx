@@ -84,7 +84,7 @@ const GlobalFooter = () => {
           <InstagramIcon />
         </SocialLink>
       </SocialContainer>
-      <FootNote>(C) {year} Vivial by Eave Technologies, Inc.</FootNote>
+      <FootNote>&copy; {year} Vivial by Eave Technologies, Inc.</FootNote>
       <FootNote>All rights reserved.</FootNote>
       <LegalContainer>
         <LegalButton onClick={handleTermsClick}>Terms</LegalButton>

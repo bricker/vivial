@@ -52,7 +52,7 @@ select = [
   "Q", # https://docs.astral.sh/ruff/rules/#flake8-quotes-q
   # "RET", # https://docs.astral.sh/ruff/rules/#flake8-return-ret
   # "RET502", # https://docs.astral.sh/ruff/rules/implicit-return-value/
-  # "RET503", # https://docs.astral.sh/ruff/rules/implicit-return/
+  "RET503", # https://docs.astral.sh/ruff/rules/implicit-return/
   "SLF", # https://docs.astral.sh/ruff/rules/#flake8-self-slf
   "SLOT", # https://docs.astral.sh/ruff/rules/#flake8-slots-slot
   # "SIM", # https://docs.astral.sh/ruff/rules/#flake8-simplify-sim
@@ -94,7 +94,7 @@ ignore = [
 
 [lint.extend-per-file-ignores]
 "__init__.py" = ["PLC0414"] # https://docs.astral.sh/ruff/rules/useless-import-alias/
-"**/tests/**/*_test.py" = [
+"**/tests/**/*.py" = [
   "S", # Disable security checks in test files
   "ANN", # Tests have lots of functions without return types, Any, etc.
   "FBT", # boolean args used in test util functions for brevity

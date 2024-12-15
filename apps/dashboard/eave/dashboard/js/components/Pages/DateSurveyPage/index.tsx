@@ -20,7 +20,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
 import { Breakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
@@ -140,15 +139,15 @@ const DateSurveyPage = () => {
       outingPreferencesData?.activityCategoryGroups,
       outingPreferencesData?.restaurantCategories,
     );
-    const input = {
-      startTime: startTime.toISOString(),
-      visitorId: await getVisitorId(),
-      groupPreferences,
-      budget,
-      headcount,
-      searchAreaIds,
-    };
-    await planOuting({ input });
+    await planOuting({
+      input: {
+        startTime: startTime.toISOString(),
+        groupPreferences,
+        budget,
+        headcount,
+        searchAreaIds,
+      },
+    });
   }, [outingPreferencesData, outingPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime]);
 
   const handleSubmitPreferences = useCallback(

@@ -1,4 +1,5 @@
 import { Outing } from "$eave-dashboard/js/graphql/generated/graphql";
+import { currencyFormatter } from "$eave-dashboard/js/util/currency";
 import { Divider, Typography, styled } from "@mui/material";
 import React from "react";
 
@@ -47,11 +48,6 @@ const LineItemText = styled(Typography)<{ bold?: boolean }>(({ bold }) => ({
   fontWeight: bold ? "bold" : "inherit",
 }));
 
-const currencyFormatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-});
-
 type Breakdown = { costName: string; costValue: string };
 
 /**
@@ -69,19 +65,20 @@ function buildBreakdowns(outing: Outing): Breakdown[] {
     });
   }
 
-  if (outing.activity) {
-    const cost = outing.activity.ticketInfo?.cost || 0;
+  if (outing.activity?.ticketInfo) {
+    const costBreakdown = outing.activity.ticketInfo.costBreakdown;
+
     breakdown.push({
       costName: outing.activity.name,
-      costValue: currencyFormatter.format(cost),
+      costValue: currencyFormatter.format(costBreakdown.totalCostCents / 100),
     });
 
-    if (outing.activity.ticketInfo?.fee || outing.activity.ticketInfo?.tax) {
-      const taxFee = (outing.activity.ticketInfo.fee ?? 0) + (outing.activity.ticketInfo.tax ?? 0);
+    if (costBreakdown.feeCents || costBreakdown.taxCents) {
+      const feesCents = costBreakdown.feeCents + costBreakdown.taxCents;
 
       breakdown.push({
         costName: "3rd party Service Fees & Taxes",
-        costValue: currencyFormatter.format(taxFee),
+        costValue: currencyFormatter.format(feesCents / 100),
       });
     }
   }
@@ -95,18 +92,18 @@ function buildBreakdowns(outing: Outing): Breakdown[] {
 }
 
 const CostBreakdown = ({ outing }: { outing: Outing }) => {
-  const costDetails = outing.activity?.ticketInfo;
-  const totalCost = currencyFormatter.format(
-    (costDetails?.cost ?? 0) + (costDetails?.fee ?? 0) + (costDetails?.tax ?? 0),
-  );
+  const totalCostCents = outing.costBreakdown.totalCostCents;
+  const totalCostFormatted = currencyFormatter.format(totalCostCents / 100);
+
   const breakdown = buildBreakdowns(outing);
+
   return (
     <>
       <TopDivider />
       <ComponentContainer>
         <TotalCostContainer>
           <TotalText variant="subtitle2">Total Costs</TotalText>
-          <TotalText variant="subtitle2">{totalCost}</TotalText>
+          <TotalText variant="subtitle2">{totalCostFormatted}</TotalText>
         </TotalCostContainer>
         <CostDivider />
         <BreakdownContainer>

@@ -71,31 +71,38 @@ const ActivityDesc = styled(Typography)(({ theme }) => ({
 
 const ActivityViewCondensed = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
-  const startTime = new Date(outing?.activityStartTime || "");
-  const activity = outing?.activity;
-
-  if (activity) {
-    return (
-      <ViewContainer>
-        <div>
-          <CopyContainer>
-            <ActivityBadge categoryGroupId={activity.categoryGroup?.id} />
-            <TimeAndTicketInfo>
-              <Time>{getTimeOfDay(startTime, false)}</Time>
-              <Tickets>{outing.survey.headcount} Tickets</Tickets>
-            </TimeAndTicketInfo>
-          </CopyContainer>
-          <ActivityName>{activity.name}</ActivityName>
-          <ActivityDesc>{activity.venue.name}</ActivityDesc>
-          {activity.categoryGroup && <ActivityDesc>{activity.categoryGroup.name}</ActivityDesc>}
-        </div>
-        <ImgContainer>
-          <Img src={activity.photos?.coverPhotoUri || ""} />
-        </ImgContainer>
-      </ViewContainer>
-    );
+  if (!outing) {
+    return null;
   }
-  return null;
+
+  const startTime = new Date(outing.activityStartTime || "");
+  const activity = outing.activity;
+
+  if (!activity) {
+    return null;
+  }
+
+  return (
+    <ViewContainer>
+      <div>
+        <CopyContainer>
+          <ActivityBadge categoryGroupId={activity.categoryGroup?.id} />
+          <TimeAndTicketInfo>
+            <Time>{getTimeOfDay(startTime, false)}</Time>
+            <Tickets>{outing.survey.headcount} Tickets</Tickets>
+          </TimeAndTicketInfo>
+        </CopyContainer>
+        <ActivityName>{activity.name}</ActivityName>
+        <ActivityDesc>{activity.venue.name}</ActivityDesc>
+        {activity.categoryGroup && <ActivityDesc>{activity.categoryGroup.name}</ActivityDesc>}
+      </div>
+      {activity.photos.coverPhoto && (
+        <ImgContainer>
+          <Img src={activity.photos.coverPhoto.src} />
+        </ImgContainer>
+      )}
+    </ViewContainer>
+  );
 };
 
 export default ActivityViewCondensed;

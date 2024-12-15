@@ -1,4 +1,5 @@
 import os
+import random
 import unittest.mock
 from http import HTTPStatus
 from typing import Any, Protocol, TypeVar
@@ -7,6 +8,8 @@ from uuid import UUID
 import sqlalchemy
 import sqlalchemy.orm
 import sqlalchemy.sql.functions as safunc
+import stripe
+from google.maps.places import PhotoMedia
 from google.maps.places_v1.types import Place
 from httpx import ASGITransport, AsyncClient, Response
 from sqlalchemy import literal_column, select, text
@@ -18,19 +21,24 @@ import eave.core.database
 import eave.core.orm
 import eave.stdlib.testing_util
 import eave.stdlib.typing
+from eave.core._database_setup import get_base_metadata, init_database
 from eave.core.auth_cookies import ACCESS_TOKEN_COOKIE_NAME
 from eave.core.config import CORE_API_APP_CONFIG, JWT_AUDIENCE, JWT_ISSUER
-from eave.core.database import init_database
+from eave.core.lib.address import Address
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.base import get_base_metadata
-from eave.core.orm.outing import OutingOrm
+from eave.core.orm.activity_category import ActivityCategoryOrm
+from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
+from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservationOrm
+from eave.core.orm.reserver_details import ReserverDetailsOrm
+from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
-from eave.core.shared.enums import OutingBudget
+from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
+from eave.core.shared.geo import GeoPoint
 from eave.dev_tooling.constants import EAVE_HOME
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.jwt import JWTPurpose, create_jws
-from eave.stdlib.time import ONE_YEAR_IN_MINUTES
+from eave.stdlib.time import ONE_DAY_IN_SECONDS, ONE_YEAR_IN_MINUTES
 
 
 class AnyStandardOrm(Protocol):
@@ -73,7 +81,8 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         CORE_API_APP_CONFIG.reset_cached_properties()
 
         await super().asyncSetUp()
-        self.mock_google_places()
+        self._add_google_places_client_mocks()
+        self._add_stripe_client_mocks()
 
         engine = eave.core.database.async_engine.execution_options(isolation_level="READ COMMITTED")
         self.db_session = eave.core.database.async_sessionmaker(engine, expire_on_commit=False)
@@ -111,10 +120,6 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
 
         return self._gql_cache[name]
 
-    async def save(self, session: AsyncSession, /, obj: J) -> J:
-        session.add(obj)
-        return obj
-
     async def reload(self, session: AsyncSession, /, obj: J) -> J | None:
         stmt = select(obj.__class__).where(literal_column("id") == obj.id)
         result: J | None = await session.scalar(stmt)
@@ -142,11 +147,17 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         return result
 
     async def make_graphql_request(
-        self, query_name: str, variables: dict[str, Any], *, account_id: UUID | None = None
+        self,
+        query_name: str,
+        variables: dict[str, Any],
+        *,
+        account_id: UUID | None = None,
+        cookies: dict[str, str] | None = None,
     ) -> Response:
-        cookies: dict[str, str] = {}
+        if cookies is None:
+            cookies = {}
 
-        if account_id:
+        if account_id and ACCESS_TOKEN_COOKIE_NAME not in cookies:
             jws = create_jws(
                 purpose=JWTPurpose.ACCESS,
                 issuer=JWT_ISSUER,
@@ -170,56 +181,228 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         assert response.status_code == HTTPStatus.OK
         return response
 
-    async def make_account(
+    def make_account(
         self,
         session: AsyncSession,
     ) -> AccountOrm:
-        account = await AccountOrm.build(
+        account = AccountOrm(
+            session,
             email=self.anyemail("make_account.email"),
             plaintext_password=self.anystr("make_account.plaintext_password"),
-        ).save(session)
+        )
 
         return account
 
-    async def get_eave_account(self, session: AsyncSession, /, id: UUID) -> AccountOrm | None:
-        acct = await AccountOrm.get_one(session, id)
-        return acct
+    def make_survey(self, session: AsyncSession, account: AccountOrm | None) -> SurveyOrm:
+        survey = SurveyOrm(
+            session,
+            account=account,
+            budget=random.choice(list(OutingBudget)),
+            headcount=self.anyint("make_survey.headcount", min=1, max=2),
+            search_area_ids=[s.id for s in random.choices(SearchRegionOrm.all(), k=3)],
+            start_time_utc=self.anydatetime(
+                "make_survey.start_time_utc",
+                offset=self.anyint(min=ONE_DAY_IN_SECONDS * 2, max=ONE_DAY_IN_SECONDS * 14),
+            ),
+            timezone=self.anytimezone("make_survey.timezone"),
+            visitor_id=self.anystr("make_survey.visitor_id"),
+        )
+        return survey
 
-    async def make_outing(
-        self,
-        session: AsyncSession,
-        account_id: UUID | None = None,
-        survey_id: UUID | None = None,
-    ) -> OutingOrm:
-        act_id = account_id
-        if act_id is None:
-            account = await self.make_account(session=session)
-            act_id = account.id
+    def make_outing(self, session: AsyncSession, account: AccountOrm | None, survey: SurveyOrm) -> OutingOrm:
+        outing = OutingOrm(
+            session,
+            visitor_id=survey.visitor_id,
+            account=account,
+            survey=survey,
+        )
 
-        surv_id = survey_id
-        if surv_id is None:
-            survey = await SurveyOrm.build(
-                visitor_id=self.anyuuid(),
-                start_time_utc=self.anydatetime(offset=2 * 60 * 60 * 24),
-                timezone=self.anytimezone(),
-                search_area_ids=[SearchRegionOrm.all()[0].id],
-                budget=OutingBudget.INEXPENSIVE,
-                headcount=self.anyint(min=1, max=2),
-            ).save(session)
-            surv_id = survey.id
+        outing.activities.append(
+            OutingActivityOrm(
+                session,
+                outing=outing,
+                headcount=survey.headcount,
+                source=ActivitySource.EVENTBRITE,
+                source_id=self.getdigits("eventbrite.Event.id"),
+                start_time_utc=survey.start_time_utc,
+                timezone=survey.timezone,
+            )
+        )
 
-        outing = await OutingOrm.build(
-            visitor_id=self.anyuuid(),
-            survey_id=surv_id,
-        ).save(session)
+        outing.reservations.append(
+            OutingReservationOrm(
+                session,
+                outing=outing,
+                headcount=survey.headcount,
+                source=RestaurantSource.GOOGLE_PLACES,
+                source_id=self.getstr("Place.id"),
+                start_time_utc=survey.start_time_utc,
+                timezone=survey.timezone,
+            )
+        )
 
         return outing
 
-    def mock_google_places(self) -> None:
+    def make_reserver_details(self, session: AsyncSession, account: AccountOrm) -> ReserverDetailsOrm:
+        reserver_details = ReserverDetailsOrm(
+            session,
+            account=account,
+            first_name=self.anystr(),
+            last_name=self.anystr(),
+            phone_number=self.anyphonenumber(),
+        )
+        return reserver_details
+
+    def make_booking(
+        self, session: AsyncSession, account: AccountOrm, survey: SurveyOrm, reserver_details: ReserverDetailsOrm
+    ) -> BookingOrm:
+        booking = BookingOrm(
+            session,
+            survey=survey,
+            accounts=[account],
+            reserver_details=reserver_details,
+        )
+
+        booking_activity_template = BookingActivityTemplateOrm(
+            session,
+            booking=booking,
+            name=self.anystr("activity_name"),
+            start_time_utc=self.anydatetime("activity_start_time"),
+            timezone=self.anytimezone("activity_timezone"),
+            photo_uri=self.anyurl("activity_photo_uri"),
+            headcount=self.anyint(min=1, max=2),
+            coordinates=GeoPoint(
+                lat=self.anylatitude(),
+                lon=self.anylongitude(),
+            ),
+            external_booking_link=self.anyurl(),
+            source=ActivitySource.EVENTBRITE,
+            source_id=self.getdigits("eventbrite.Event.id"),
+            address=Address(
+                address1=self.anystr(),
+                address2=self.anystr(),
+                city=self.anystr(),
+                country="US",
+                state=self.anyusstate(),
+                zip_code=self.anydigits(),
+            ),
+        )
+        booking.activities.append(booking_activity_template)
+
+        booking_reservation_template = BookingReservationTemplateOrm(
+            session,
+            booking=booking,
+            name=self.anystr("reservation_name"),
+            photo_uri=self.anyurl("reservation_photo_uri"),
+            start_time_utc=self.anydatetime("reservation_start_time"),
+            timezone=self.anytimezone("reservation_timezone"),
+            headcount=self.anyint(min=1, max=2),
+            coordinates=GeoPoint(
+                lat=self.anylatitude(),
+                lon=self.anylongitude(),
+            ),
+            external_booking_link=self.anyurl(),
+            source=RestaurantSource.GOOGLE_PLACES,
+            source_id=self.getstr("Place.id"),
+            address=Address(
+                address1=self.anystr(),
+                address2=self.anystr(),
+                city=self.anystr(),
+                country="US",
+                state=self.anyusstate(),
+                zip_code=self.anydigits(),
+            ),
+        )
+        booking.reservations.append(booking_reservation_template)
+
+        return booking
+
+    mock_stripe_payment_intent: stripe.PaymentIntent
+    mock_stripe_customer: stripe.Customer
+
+    def _add_stripe_client_mocks(self) -> None:
+        mock_stripe_payment_intent = stripe.PaymentIntent(
+            id=self.anystr("stripe.PaymentIntent.id"),
+        )
+        mock_stripe_payment_intent.client_secret = self.anystr("stripe.PaymentIntent.client_secret")
+        mock_stripe_payment_intent.status = "requires_capture"
+        self.mock_stripe_payment_intent = mock_stripe_payment_intent
+
+        async def _mock_payment_intent_create_async(**kwargs: Any) -> stripe.PaymentIntent:
+            return self.mock_stripe_payment_intent
+
+        self.patch(
+            name="stripe.PaymentIntent.create_async",
+            patch=unittest.mock.patch("stripe.PaymentIntent.create_async"),
+            side_effect=_mock_payment_intent_create_async,
+        )
+
+        async def _mock_payment_intent_retrieve_async(**kwargs: Any) -> stripe.PaymentIntent:
+            return self.mock_stripe_payment_intent
+
+        self.patch(
+            name="stripe.PaymentIntent.retrieve_async",
+            patch=unittest.mock.patch("stripe.PaymentIntent.retrieve_async"),
+            side_effect=_mock_payment_intent_retrieve_async,
+        )
+
+        self.mock_stripe_customer = stripe.Customer(
+            id=self.anystr("stripe.Customer.id"),
+        )
+
+        async def _mock_customer_create_async(**kwargs: Any) -> stripe.Customer:
+            return self.mock_stripe_customer
+
+        self.patch(
+            name="stripe.Customer.create_async",
+            patch=unittest.mock.patch("stripe.Customer.create_async"),
+            side_effect=_mock_customer_create_async,
+        )
+
+    def _add_google_places_client_mocks(self) -> None:
+        place_id = self.anystr("Place.id")
+
         self.patch(
             name="google places searchNearby",
             patch=unittest.mock.patch(
                 "google.maps.places_v1.services.places.async_client.PlacesAsyncClient.search_nearby"
             ),
-            return_value=MockPlacesResponse([]),
+            return_value=MockPlacesResponse(
+                [
+                    Place(
+                        id=place_id,
+                    )
+                ]
+            ),
         )
+
+        self.patch(
+            name="PlacesAsyncClient.get_place",
+            patch=unittest.mock.patch("google.maps.places_v1.services.places.async_client.PlacesAsyncClient.get_place"),
+            return_value=Place(
+                id=place_id,
+            ),
+        )
+
+        self.patch(
+            name="PlacesAsyncClient.get_photo_media",
+            patch=unittest.mock.patch(
+                "google.maps.places_v1.services.places.async_client.PlacesAsyncClient.get_photo_media"
+            ),
+            return_value=PhotoMedia(
+                name=self.anystr("PhotoMedia.name"),
+                photo_uri=self.anyurl("PhotoMedia.photo_uri"),
+            ),
+        )
+
+    def random_search_areas(self, k: int = 3) -> list[SearchRegionOrm]:
+        return random.choices(SearchRegionOrm.all(), k=k)
+
+    def random_restaurant_categories(self, k: int = 3) -> list[RestaurantCategoryOrm]:
+        return random.choices(RestaurantCategoryOrm.all(), k=k)
+
+    def random_activity_categories(self, k: int = 3) -> list[ActivityCategoryOrm]:
+        return random.choices(ActivityCategoryOrm.all(), k=k)
+
+    def random_outing_budget(self) -> OutingBudget:
+        return random.choice(list(OutingBudget))

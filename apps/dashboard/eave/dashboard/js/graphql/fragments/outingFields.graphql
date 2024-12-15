@@ -14,11 +14,16 @@ fragment OutingFields on Outing {
     id
     budget
     headcount
-    searchAreaIds
+    searchRegions {
+      id
+      name
+    }
     startTime
-    visitorId
   }
   drivingTime
+  costBreakdown {
+    ...CostBreakdownFields
+  }
   activity {
     categoryGroup {
       id
@@ -37,29 +42,29 @@ fragment OutingFields on Outing {
     doorTips
     insiderTips
     parkingTips
+    ticketInfo {
+      name
+      notes
+      costBreakdown {
+        ...CostBreakdownFields
+      }
+    }
     venue {
       name
       location {
-        directionsUri
-        coordinates {
-          lat
-          lon
-        }
-        formattedAddress
+        ...LocationFields
       }
     }
     photos {
-      coverPhotoUri
-      supplementalPhotoUris
-    }
-    ticketInfo {
-      type
-      notes
-      cost
-      fee
-      tax
+      coverPhoto {
+        ...PhotoFields
+      }
+      supplementalPhotos {
+        ...PhotoFields
+      }
     }
   }
+
   restaurant {
     sourceId
     source
@@ -71,17 +76,18 @@ fragment OutingFields on Outing {
     description
     parkingTips
     customerFavorites
+
     location {
-      directionsUri
-      formattedAddress
-      coordinates {
-        lat
-        lon
-      }
+      ...LocationFields
     }
+
     photos {
-      coverPhotoUri
-      supplementalPhotoUris
+      coverPhoto {
+        ...PhotoFields
+      }
+      supplementalPhotos {
+        ...PhotoFields
+      }
     }
   }
 }

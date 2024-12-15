@@ -1,4 +1,3 @@
-import { type Photos } from "$eave-dashboard/js/graphql/generated/graphql";
 import { RootState } from "$eave-dashboard/js/store";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
@@ -13,7 +12,6 @@ import Typography from "@mui/material/Typography";
 import BaseRestaurantBadge from "../RestaurantBadge";
 import BaseRestaurantRating from "../RestaurantRating";
 
-import { parseAddress } from "$eave-dashboard/js/util/address";
 import { getTimeOfDay } from "$eave-dashboard/js/util/date";
 import { getImgUrls } from "../../../helpers";
 
@@ -100,7 +98,7 @@ const RestaurantViewExpanded = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
   const arrivalTime = new Date(outing?.restaurantArrivalTime || "");
   const restaurant = outing?.restaurant;
-  const address = parseAddress(restaurant?.location?.formattedAddress);
+  const address = restaurant?.location?.address;
   const directionsUri = restaurant?.location.directionsUri;
 
   if (restaurant) {
@@ -108,7 +106,7 @@ const RestaurantViewExpanded = () => {
       <ViewContainer>
         <RestaurantBadge />
         <CarouselContainer>
-          <ImageCarousel imgUrls={getImgUrls(restaurant.photos as Photos)} />
+          <ImageCarousel imgUrls={getImgUrls(restaurant.photos)} />
         </CarouselContainer>
         <InfoContainer>
           <ReservationInfo>
@@ -119,12 +117,16 @@ const RestaurantViewExpanded = () => {
               <TooltipButton info={RESERVATION_WARNING} iconColor={colors.lightOrangeAccent} iconLarge />
             </TimeAndTableInfo>
             <RestaurantName>{restaurant.name}</RestaurantName>
-            <div>
-              <RestaurantAddress>{address.street}</RestaurantAddress>
-              <RestaurantAddress>
-                {address.city}, {address.state}, {address.zipCode}
-              </RestaurantAddress>
-            </div>
+            {address && (
+              <div>
+                <RestaurantAddress>
+                  {address.address1} {address.address2}
+                </RestaurantAddress>
+                <RestaurantAddress>
+                  {[address.city, address.state, address.zipCode].filter((k) => k).join(", ")}
+                </RestaurantAddress>
+              </div>
+            )}
           </ReservationInfo>
           <ExtraInfo>
             <RestaurantRating rating={restaurant.rating} />

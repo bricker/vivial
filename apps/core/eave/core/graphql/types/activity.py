@@ -2,21 +2,13 @@ from uuid import UUID
 
 import strawberry
 
+from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.shared.enums import ActivitySource
 
 from .location import Location
 from .photos import Photos
-
-
-@strawberry.type
-class ActivityTicketInfo:
-    type: str | None
-    notes: str | None
-    cost: int | None = 0
-    fee: int | None = 0
-    tax: int | None = 0
 
 
 @strawberry.type
@@ -62,8 +54,8 @@ class Activity:
     name: str
     description: str
     venue: ActivityVenue
-    photos: Photos | None
-    ticket_info: ActivityTicketInfo | None
+    photos: Photos
+    ticket_info: TicketInfo | None
     website_uri: str | None
     door_tips: str | None
     insider_tips: str | None

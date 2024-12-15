@@ -9,7 +9,7 @@ from sqlalchemy import Dialect
 from sqlalchemy.sql.type_api import _BindProcessorType, _ResultProcessorType
 from sqlalchemy.types import UserDefinedType
 
-from eave.core.shared.address import Address
+from eave.core.lib.address import Address
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 from eave.stdlib.logging import LOGGER
 

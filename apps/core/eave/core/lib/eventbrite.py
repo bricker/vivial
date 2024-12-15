@@ -1,19 +1,25 @@
 from uuid import UUID
 
 from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
+from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.location import Location
-from eave.core.graphql.types.photos import Photos
-from eave.core.lib.geo import GeoPoint
+from eave.core.graphql.types.photos import Photo, Photos
+from eave.core.graphql.types.pricing import CostBreakdown
+from eave.core.graphql.types.ticket_info import TicketInfo
+from eave.core.lib.address import format_address
 from eave.core.lib.google_places import google_maps_directions_url
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.shared.enums import ActivitySource
-from eave.stdlib.eventbrite.client import EventbriteClient
+from eave.core.shared.geo import GeoPoint
+from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery, ListTicketClassesForSaleQuery
 from eave.stdlib.eventbrite.models.event import Event, EventStatus
+from eave.stdlib.eventbrite.models.expansions import Expansion
+from eave.stdlib.eventbrite.models.ticket_class import PointOfSale, TicketClass
 from eave.stdlib.logging import LOGGER
 
 
 async def get_eventbrite_activity(eventbrite_client: EventbriteClient, *, event_id: str) -> Activity | None:
-    event = await eventbrite_client.get_event_by_id(event_id=event_id)
+    event = await eventbrite_client.get_event_by_id(event_id=event_id, query=GetEventQuery(expand=Expansion.all()))
     activity = await activity_from_eventbrite_event(eventbrite_client=eventbrite_client, event=event)
     return activity
 
@@ -62,13 +68,6 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         )
         return
 
-    if (venue_formatted_address := venue_address.get("localized_address_display")) is None:
-        LOGGER.warning(
-            "Missing venue localized_address_display; excluding event.",
-            {"eventbrite_event_id": event_id},
-        )
-        return
-
     if (venue_lat := venue.get("latitude")) is None:
         LOGGER.warning(
             "Missing venue latitude; excluding event.",
@@ -83,6 +82,35 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         )
         return
 
+    ticket_classes_paginator = eventbrite_client.list_ticket_classes_for_sale_for_event(
+        event_id=event_id,
+        query=ListTicketClassesForSaleQuery(
+            pos=PointOfSale.ONLINE,
+        ),
+    )
+
+    # Start with a price with all 0's
+    max_pricing: CostBreakdown = CostBreakdown()
+    chosen_ticket_class: TicketClass | None = None
+
+    async for batch in ticket_classes_paginator:
+        for ticket_class in batch:
+            base_cost = ticket_class.get("cost")
+            if base_cost is None:
+                continue
+
+            cost_breakdown = CostBreakdown(base_cost_cents=base_cost["value"])
+
+            if (fee := ticket_class.get("fee")) is not None:
+                cost_breakdown.fee_cents = fee["value"]
+
+            if (tax := ticket_class.get("tax")) is not None:
+                cost_breakdown.tax_cents = tax["value"]
+
+            if cost_breakdown.total_cost_cents_internal > max_pricing.total_cost_cents_internal:
+                max_pricing = cost_breakdown
+                chosen_ticket_class = ticket_class
+
     description = await eventbrite_client.get_event_description(event_id=event_id)
     event["description"] = description
     category_group_id = event.get("category_id")
@@ -94,25 +122,51 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
 
     logo = event.get("logo")
 
+    address = GraphQLAddress(
+        address1=venue_address.get("address_1"),
+        address2=venue_address.get("address_2"),
+        city=venue_address.get("city"),
+        state=venue_address.get("region"),
+        zip_code=venue_address.get("postal_code"),
+        country=venue_address.get("country"),
+    )
+
+    photos = Photos(
+        cover_photo=Photo(
+            id=logo["id"],
+            src=logo["url"],
+            alt=None,
+            attributions=[],
+        )
+        if logo
+        else None,
+        supplemental_photos=[],  # Eventbrite only gives one image
+    )
+
     activity = Activity(
         source_id=event_id,
         source=ActivitySource.EVENTBRITE,
         name=event_name["text"],
         description=event["description"]["text"],
-        photos=Photos(
-            cover_photo_uri=logo["url"] if logo else None,
-            supplemental_photo_uris=None,
-        ),
-        ticket_info=None,  # TODO
+        photos=photos,
+        ticket_info=TicketInfo(
+            name=chosen_ticket_class.get("display_name"),
+            notes=chosen_ticket_class.get(
+                "description"
+            ),  # FIXME: This is probably not the info we want for this field.
+            cost_breakdown=max_pricing,
+        )
+        if chosen_ticket_class
+        else None,
         venue=ActivityVenue(
             name=venue["name"],
             location=Location(
-                directions_uri=google_maps_directions_url(venue_formatted_address),
+                directions_uri=google_maps_directions_url(format_address(address, singleline=True)),
+                address=address,
                 coordinates=GeoPoint(
                     lat=float(venue_lat),
                     lon=float(venue_lon),
                 ),
-                formatted_address=venue_formatted_address,
             ),
         ),
         website_uri=event.get("vanity_url"),

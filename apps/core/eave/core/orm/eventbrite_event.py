@@ -6,11 +6,12 @@ from zoneinfo import ZoneInfo
 from geoalchemy2.functions import ST_DWithin
 from sqlalchemy import PrimaryKeyConstraint, Select, or_, select
 from sqlalchemy.dialects.postgresql import INT4RANGE, TSTZRANGE, Range
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from eave.core.lib.geo import GeoArea, GeoPoint
-from eave.core.orm.util.mixins import CoordinatesMixin
+from eave.core.orm.util.mixins import CoordinatesMixin, GetOneByIdMixin
 from eave.core.orm.util.user_defined_column_types import ZoneInfoColumnType
+from eave.core.shared.geo import GeoArea, GeoPoint
 from eave.stdlib.typing import NOT_SET
 
 from .base import Base
@@ -20,7 +21,7 @@ _TIMERANGE_BOUNDS = "[)"
 _COST_BOUNDS = "[)"
 
 
-class EventbriteEventOrm(Base, CoordinatesMixin):
+class EventbriteEventOrm(Base, CoordinatesMixin, GetOneByIdMixin):
     __tablename__ = "eventbrite_events"
     __table_args__ = (PrimaryKeyConstraint("id"),)
 
@@ -33,10 +34,11 @@ class EventbriteEventOrm(Base, CoordinatesMixin):
     vivial_activity_category_id: Mapped[UUID] = mapped_column()
     vivial_activity_format_id: Mapped[UUID] = mapped_column()
 
-    @classmethod
-    def build(cls, *, eventbrite_event_id: str) -> "EventbriteEventOrm":
-        obj = EventbriteEventOrm(eventbrite_event_id=eventbrite_event_id)
-        return obj
+    def __init__(self, session: AsyncSession | None, *, eventbrite_event_id: str) -> None:
+        self.eventbrite_event_id = eventbrite_event_id
+
+        if session:
+            session.add(self)
 
     def update(
         self,

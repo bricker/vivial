@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from uuid import UUID
 
-from eave.core.lib.geo import Distance, GeoArea, GeoPoint
+from eave.core.shared.geo import Distance, GeoArea, GeoPoint
 
 
 @dataclass(kw_only=True, frozen=True)

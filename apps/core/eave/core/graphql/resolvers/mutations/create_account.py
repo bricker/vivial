@@ -44,40 +44,44 @@ CreateAccountResult = Annotated[CreateAccountSuccess | CreateAccountFailure, str
 async def create_account_mutation(
     *, info: strawberry.Info[GraphQLContext], input: CreateAccountInput
 ) -> CreateAccountResult:
-    async with eave.core.database.async_session.begin() as db_session:
-        existing_account_orm = await db_session.scalar(AccountOrm.select(email=input.email).limit(1))
-        if existing_account_orm:
-            return CreateAccountFailure(failure_reason=CreateAccountFailureReason.ACCOUNT_EXISTS)
+    visitor_id = info.context.get("visitor_id")
 
-        try:
-            account_orm = await AccountOrm.build(
+    try:
+        async with eave.core.database.async_session.begin() as db_session:
+            existing_account_orm = await db_session.scalar(AccountOrm.select(email=input.email).limit(1))
+            if existing_account_orm:
+                return CreateAccountFailure(failure_reason=CreateAccountFailureReason.ACCOUNT_EXISTS)
+
+            new_account_orm = AccountOrm(
+                db_session,
                 email=input.email,
                 plaintext_password=input.plaintext_password,
-            ).save(db_session)
-
-        except InvalidRecordError as e:
-            return CreateAccountFailure(
-                failure_reason=CreateAccountFailureReason.VALIDATION_ERRORS, validation_errors=e.validation_errors
             )
-        except WeakPasswordError:
-            return CreateAccountFailure(failure_reason=CreateAccountFailureReason.WEAK_PASSWORD)
+
+    except InvalidRecordError as e:
+        return CreateAccountFailure(
+            failure_reason=CreateAccountFailureReason.VALIDATION_ERRORS, validation_errors=e.validation_errors
+        )
+    except WeakPasswordError:
+        return CreateAccountFailure(failure_reason=CreateAccountFailureReason.WEAK_PASSWORD)
 
     ANALYTICS.identify(
-        account_id=account_orm.id,
-        # TODO: visitor_id
+        account_id=new_account_orm.id,
+        visitor_id=visitor_id,
         extra_properties={
-            "email": account_orm.email,
+            "email": new_account_orm.email,
         },
     )
 
     ANALYTICS.track(
         event_name="signup",
-        account_id=account_orm.id,
+        account_id=new_account_orm.id,
+        visitor_id=visitor_id,
     )
 
-    set_new_auth_cookies(response=info.context["response"], account_id=account_orm.id)
+    set_new_auth_cookies(response=info.context["response"], account_id=new_account_orm.id)
 
-    send_welcome_email(to_emails=[account_orm.email])
+    send_welcome_email(to_emails=[new_account_orm.email])
 
-    account = Account.from_orm(account_orm)
+    account = Account.from_orm(new_account_orm)
     return CreateAccountSuccess(account=account)

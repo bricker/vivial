@@ -9,3 +9,4 @@ class GraphQLContext(TypedDict):
     request: Request
     response: Response
     authenticated_account_id: NotRequired[UUID]
+    visitor_id: NotRequired[str | None]

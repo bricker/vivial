@@ -1,10 +1,10 @@
-mutation CreatePaymentIntent {
+mutation CreatePaymentIntent($input: CreatePaymentIntentInput!) {
   viewer {
     __typename
     ... on AuthenticatedViewerMutations {
       __typename
 
-      createPaymentIntent {
+      createPaymentIntent(input: $input) {
         __typename
 
         ... on CreatePaymentIntentSuccess {

@@ -22,12 +22,12 @@ class TestLoginMutation(BaseTestCase):
 
     async def test_login_with_valid_credentials(self) -> None:
         async with self.db_session.begin() as session:
-            account_orm = AccountOrm.build(
+            account_orm = AccountOrm(
+                session,
                 email=self.anyemail("email"),
                 plaintext_password=self.anystr("plaintext_password"),
             )
             account_orm.last_login = self.anydatetime("last_login", past=True)
-            await account_orm.save(session)
 
         response = await self._make_request(
             email=self.getemail("email"), plaintext_password=self.getstr("plaintext_password")
@@ -54,12 +54,12 @@ class TestLoginMutation(BaseTestCase):
 
     async def test_login_with_incorrect_password(self) -> None:
         async with self.db_session.begin() as session:
-            account_orm = AccountOrm.build(
+            account_orm = AccountOrm(
+                session,
                 email=self.anyemail("email"),
                 plaintext_password=self.anystr("plaintext_password"),
             )
             account_orm.last_login = self.anydatetime("last_login", past=True)
-            await account_orm.save(session)
 
         response = await self._make_request(
             email=self.getemail("email"), plaintext_password=self.anystr("incorrect password")
@@ -85,12 +85,12 @@ class TestLoginMutation(BaseTestCase):
 
     async def test_login_with_non_existent_account(self) -> None:
         async with self.db_session.begin() as session:
-            account_orm = AccountOrm.build(
+            account_orm = AccountOrm(
+                session,
                 email=self.anyemail("email"),
                 plaintext_password=self.anystr("plaintext_password"),
             )
             account_orm.last_login = self.anydatetime("last_login", past=True)
-            await account_orm.save(session)
 
         response = await self._make_request(
             email=self.anyemail("some other email"), plaintext_password=self.getstr("plaintext_password")
@@ -116,13 +116,13 @@ class TestLoginMutation(BaseTestCase):
 
     async def test_login_with_empty_password(self) -> None:
         async with self.db_session.begin() as session:
-            account_orm = AccountOrm.build(
+            account_orm = AccountOrm(
+                session,
                 email=self.anyemail("email"),
                 plaintext_password=self.anystr("plaintext_password"),
             )
 
             account_orm.last_login = self.anydatetime("last_login", past=True)
-            await account_orm.save(session)
 
         response = await self._make_request(email=self.anyemail("some other email"), plaintext_password="")
         result = self.parse_graphql_response(response)

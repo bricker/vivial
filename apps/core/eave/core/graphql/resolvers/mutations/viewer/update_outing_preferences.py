@@ -7,6 +7,7 @@ import strawberry
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.outing_preferences import OutingPreferences
+from eave.core.orm.account import AccountOrm
 from eave.core.orm.outing_preferences import OutingPreferencesOrm
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.util import unwrap
@@ -45,22 +46,24 @@ async def update_outing_preferences_mutation(
     account_id = unwrap(info.context.get("authenticated_account_id"))
 
     async with database.async_session.begin() as db_session:
-        outing_preferences = (
-            await db_session.scalars(OutingPreferencesOrm.select(account_id=account_id))
-        ).one_or_none()
+        account = await AccountOrm.get_one(db_session, account_id)
 
-        if not outing_preferences:
-            outing_preferences = OutingPreferencesOrm.build(
-                account_id=account_id,
+        if not account.outing_preferences:
+            outing_preferences = OutingPreferencesOrm(
+                db_session,
+                account=account,
                 activity_category_ids=None,
                 restaurant_category_ids=None,
             )
 
+            # Adding the OutingPreferences to the session is necessary because
+            # just setting account.outing_preferences doesn't automatically back-populate.
+            # I think it's because it's a one-to-one relationship.
+            account.outing_preferences = outing_preferences
+
         if input.activity_category_ids:
-            outing_preferences.activity_category_ids = input.activity_category_ids
+            account.outing_preferences.activity_category_ids = input.activity_category_ids
         if input.restaurant_category_ids:
-            outing_preferences.restaurant_category_ids = input.restaurant_category_ids
+            account.outing_preferences.restaurant_category_ids = input.restaurant_category_ids
 
-        await outing_preferences.save(db_session)
-
-    return UpdateOutingPreferencesSuccess(outing_preferences=OutingPreferences.from_orm(outing_preferences))
+    return UpdateOutingPreferencesSuccess(outing_preferences=OutingPreferences.from_orm(account.outing_preferences))

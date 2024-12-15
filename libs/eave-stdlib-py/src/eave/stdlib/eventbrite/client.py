@@ -35,8 +35,11 @@ class GetEventQuery:
     def compile(self) -> Mapping[str, Any]:
         params: dict[str, Any] = {}
 
-        if self.expand is not NOT_SET:
-            params["expand"] = ",".join(self.expand)
+        expand = self.expand
+        if expand is NOT_SET:
+            expand = list(Expansion)
+
+        params["expand"] = ",".join(expand)
 
         return params
 
@@ -61,8 +64,11 @@ class ListEventsQuery:
     def compile(self) -> Mapping[str, Any]:
         params: dict[str, Any] = {}
 
-        if self.expand is not NOT_SET:
-            params["expand"] = ",".join(self.expand)
+        expand = self.expand
+        if expand is NOT_SET:
+            expand = list(Expansion)
+
+        params["expand"] = ",".join(self.expand)
 
         if self.status is not NOT_SET:
             params["status"] = self.status.value

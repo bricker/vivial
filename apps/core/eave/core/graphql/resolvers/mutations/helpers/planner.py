@@ -12,7 +12,6 @@ from eave.core.graphql.types.activity import Activity
 from eave.core.graphql.types.outing import OutingPreferencesInput
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.lib.eventbrite import activity_from_eventbrite_event
-from eave.core.lib.geo import Distance, GeoArea
 from eave.core.lib.google_places import (
     activity_from_google_place,
     get_places_nearby,
@@ -26,7 +25,9 @@ from eave.core.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.orm.restaurant_category import MAGIC_BAR_RESTAURANT_CATEGORY_ID, RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
-from eave.stdlib.eventbrite.client import EventbriteClient
+from eave.core.shared.geo import Distance, GeoArea
+from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery
+from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.logging import LOGGER
 
 _BREAKFAST_GOOGLE_RESTAURANT_CATEGORY_IDS = (
@@ -208,7 +209,10 @@ class OutingPlanner:
             for event_orm in results:
                 try:
                     eventbrite_event = await self.eventbrite_client.get_event_by_id(
-                        event_id=event_orm.eventbrite_event_id
+                        event_id=event_orm.eventbrite_event_id,
+                        query=GetEventQuery(
+                            expand=Expansion.all(),
+                        ),
                     )
                     self.activity = await activity_from_eventbrite_event(self.eventbrite_client, event=eventbrite_event)
                     return self.activity
@@ -239,6 +243,9 @@ class OutingPlanner:
         is_evening = is_early_evening(self.survey.start_time_utc, self.survey.timezone) or is_late_evening(
             self.survey.start_time_utc, self.survey.timezone
         )
+
+        # If it's night time, then send them to either an ice cream shop or a bar, depending on the group preferences.
+        # Reminder that here we're recommending _activities_ not restaurants.
         place_type = "ice_cream_shop"
         if is_evening and self.group_open_to_bars:
             place_type = "bar"

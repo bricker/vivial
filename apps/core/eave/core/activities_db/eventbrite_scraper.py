@@ -29,13 +29,7 @@ async def get_eventbrite_events() -> None:
                 order_by=OrderBy.START_ASC,
                 status=EventStatus.LIVE,
                 only_public=True,
-                expand=[
-                    Expansion.TICKET_AVAILABILITY,
-                    Expansion.CATEGORY,
-                    Expansion.SUBCATEGORY,
-                    Expansion.FORMAT,
-                    Expansion.VENUE,
-                ],
+                expand=Expansion.all(),
             ),
         )
 
@@ -168,8 +162,7 @@ async def get_eventbrite_events() -> None:
                         LOGGER.debug(
                             f"{pfx} new event - adding to database", {"eventbrite_event_id": eventbrite_event_id}
                         )
-                        target = EventbriteEventOrm.build(eventbrite_event_id=eventbrite_event_id)
-                        db_session.add(target)
+                        target = EventbriteEventOrm(db_session, eventbrite_event_id=eventbrite_event_id)
                     else:
                         LOGGER.debug(
                             f"{pfx} existing event - updating database", {"eventbrite_event_id": eventbrite_event_id}

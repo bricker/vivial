@@ -1,10 +1,11 @@
 import strawberry
 
-from eave.core.lib.geo import GeoPoint
+from eave.core.graphql.types.address import GraphQLAddress
+from eave.core.shared.geo import GeoPoint
 
 
 @strawberry.type
 class Location:
     directions_uri: str | None
     coordinates: GeoPoint
-    formatted_address: str | None
+    address: GraphQLAddress
