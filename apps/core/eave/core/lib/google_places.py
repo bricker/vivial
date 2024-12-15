@@ -132,7 +132,7 @@ def location_from_google_place(place: Place) -> Location:
     address = GraphQLAddress(
         country=next(
             (
-                component.shortText
+                component.short_text
                 for component in place.address_components
                 if GooglePlaceAddressComponentType.country.value in component.types
             ),
@@ -140,7 +140,7 @@ def location_from_google_place(place: Place) -> Location:
         ),
         state=next(
             (
-                component.shortText
+                component.short_text
                 for component in place.address_components
                 if GooglePlaceAddressComponentType.administrative_area_level_1.value in component.types
             ),
@@ -148,7 +148,7 @@ def location_from_google_place(place: Place) -> Location:
         ),
         city=next(
             (
-                component.longText
+                component.long_text
                 for component in place.address_components
                 if GooglePlaceAddressComponentType.locality.value in component.types
             ),
@@ -156,7 +156,7 @@ def location_from_google_place(place: Place) -> Location:
         ),
         zip_code=next(
             (
-                component.longText
+                component.long_text
                 for component in place.address_components
                 if GooglePlaceAddressComponentType.postal_code.value in component.types
             ),
@@ -164,7 +164,7 @@ def location_from_google_place(place: Place) -> Location:
         ),
         address1=next(
             (
-                component.longText
+                component.long_text
                 for component in place.address_components
                 if GooglePlaceAddressComponentType.street_address.value in component.types
             ),
@@ -174,7 +174,7 @@ def location_from_google_place(place: Place) -> Location:
             [
                 next(
                     (
-                        component.longText
+                        component.long_text
                         for component in place.address_components
                         if GooglePlaceAddressComponentType.street_number.value in component.types
                     ),
@@ -182,7 +182,7 @@ def location_from_google_place(place: Place) -> Location:
                 ),
                 next(
                     (
-                        component.longText
+                        component.long_text
                         for component in place.address_components
                         if GooglePlaceAddressComponentType.route.value in component.types
                     ),
@@ -192,7 +192,7 @@ def location_from_google_place(place: Place) -> Location:
         ),
         address2=next(
             (
-                component.longText
+                component.long_text
                 for component in place.address_components
                 if GooglePlaceAddressComponentType.subpremise.value in component.types
             ),
