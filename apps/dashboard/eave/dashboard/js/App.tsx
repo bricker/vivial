@@ -30,7 +30,7 @@ import { AppRoute } from "./routes";
 import store, { RootState } from "./store";
 import { theme } from "./theme";
 
-const fireAnalyticsPageView = (path: string) => pageView({ name: path });
+const fireAnalyticsPageView = (_path: string) => pageView({});
 
 const App = () => {
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
