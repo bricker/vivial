@@ -50,6 +50,8 @@ class AnalyticsTracker:
         At least one of `user_id` or `visitor_id` must be provided.
         https://segment.com/docs/connections/sources/catalog/libraries/server/python/#track
         """
+
+        # TODO: What values to pass if account_id and visitor_id are null?
         user_id = str(account_id) if account_id else None
         anon_id = visitor_id
         segment.analytics.track(
