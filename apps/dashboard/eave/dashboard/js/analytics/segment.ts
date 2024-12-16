@@ -91,3 +91,27 @@ export async function getVisitorId(): Promise<string> {
 
   throw new Error("failed to get visitor ID");
 }
+
+// track all click events
+document.getElementsByTagName("body")[0]?.addEventListener("click", (ev: MouseEvent) => {
+  const target = ev.target as HTMLElement | null;
+  const tagName = target?.tagName || "BODY";
+  let innerText: string | null | undefined = target?.innerText;
+  if (tagName === "INPUT" || tagName === "FORM") {
+    innerText = "[redacted]";
+  }
+  const placeholder = target?.getAttribute("placeholder");
+  const href = target?.getAttribute("href");
+
+  track({
+    eventName: EventName.CLICK,
+    extraProperties: {
+      tagName,
+      href,
+      innerText,
+      placeholder,
+    },
+  }).catch(() => {
+    /* no-op */
+  });
+});
