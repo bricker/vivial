@@ -102,24 +102,3 @@ async def get_restaurant(
         case RestaurantSource.GOOGLE_PLACES:
             restaurant = await get_google_places_restaurant(places_client=places_client, restaurant_id=source_id)
             return restaurant
-
-
-def get_closest_search_region_to_point(
-    *,
-    regions: list[SearchRegionOrm],
-    point: GeoPoint,
-) -> SearchRegionOrm | None:
-    """
-    From the input `regions`, return the one that is closest to `point`.
-    Only returns `None` if `regions` is empty.
-    """
-    closest_region = None
-    activity_curr_min_dist = math.inf
-    for region in regions:
-        # see if dist to `activity` from `region` is less than from current closest `activity_region`
-        dist_from_region_center = point.haversine_distance(to_point=region.area.center)
-        if dist_from_region_center < activity_curr_min_dist:
-            activity_curr_min_dist = dist_from_region_center
-            closest_region = region
-
-    return closest_region

@@ -9,7 +9,7 @@ mutation InitiateBooking($input: InitiateBookingInput!) {
           __typename
 
           booking {
-            ...BookingFields
+            ...BookingDetailsFields
           }
 
           paymentIntent {

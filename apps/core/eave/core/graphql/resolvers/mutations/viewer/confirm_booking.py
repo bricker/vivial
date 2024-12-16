@@ -19,6 +19,7 @@ from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import 
 )
 from eave.core.graphql.types.booking import (
     Booking,
+    BookingDetails,
 )
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.account import AccountOrm

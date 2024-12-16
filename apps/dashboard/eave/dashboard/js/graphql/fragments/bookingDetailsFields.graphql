@@ -2,14 +2,6 @@ fragment BookingDetailsFields on BookingDetails {
   id
   activityStartTime
   restaurantArrivalTime
-  restaurantRegion {
-    id
-    name
-  }
-  activityRegion {
-    id
-    name
-  }
   survey {
     id
     budget

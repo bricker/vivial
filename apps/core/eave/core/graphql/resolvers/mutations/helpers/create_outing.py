@@ -5,7 +5,7 @@ from eave.core.graphql.types.outing import Outing, OutingPreferencesInput
 from eave.core.graphql.types.pricing import CostBreakdown
 from eave.core.graphql.types.search_region import SearchRegion
 from eave.core.graphql.types.survey import Survey
-from eave.core.lib.event_helpers import get_activity, get_closest_search_region_to_point
+from eave.core.lib.event_helpers import get_activity
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservationOrm
@@ -68,19 +68,6 @@ async def create_outing(
     if not cost_breakdown:
         cost_breakdown = CostBreakdown()
 
-    activity_region = None
-    restaurant_region = None
-
-    regions = [SearchRegionOrm.one_or_exception(search_region_id=area_id) for area_id in survey.search_area_ids]
-    if plan.activity:
-        activity_region = get_closest_search_region_to_point(
-            regions=regions, point=plan.activity.venue.location.coordinates
-        )
-    if plan.restaurant:
-        restaurant_region = get_closest_search_region_to_point(
-            regions=regions, point=plan.restaurant.location.coordinates
-        )
-
     outing = Outing(
         id=outing_orm.id,
         cost_breakdown=cost_breakdown,
@@ -90,8 +77,6 @@ async def create_outing(
         restaurant=plan.restaurant,
         restaurant_arrival_time=plan.restaurant_arrival_time,
         driving_time=None,  # TODO
-        activity_region=SearchRegion.from_orm(activity_region) if activity_region else None,
-        restaurant_region=SearchRegion.from_orm(restaurant_region) if restaurant_region else None,
     )
 
     ANALYTICS.track(

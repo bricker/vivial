@@ -2,14 +2,6 @@ fragment OutingFields on Outing {
   id
   activityStartTime
   restaurantArrivalTime
-  restaurantRegion {
-    id
-    name
-  }
-  activityRegion {
-    id
-    name
-  }
   survey {
     id
     budget

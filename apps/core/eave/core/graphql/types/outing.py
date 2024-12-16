@@ -25,8 +25,6 @@ class Outing:
     survey: Survey | None
     activity: Activity | None
     activity_start_time: datetime | None
-    activity_region: SearchRegion | None
     restaurant: Restaurant | None
     restaurant_arrival_time: datetime | None
-    restaurant_region: SearchRegion | None
     driving_time: str | None

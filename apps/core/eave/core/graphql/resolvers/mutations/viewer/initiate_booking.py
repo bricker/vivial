@@ -87,8 +87,6 @@ async def initiate_booking_mutation(
         return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.START_TIME_TOO_LATE)
 
     try:
-        outing_total_cost_cents = 0
-
         async with database.async_session.begin() as db_session:
             booking = BookingOrm(
                 db_session,
@@ -108,8 +106,6 @@ async def initiate_booking_mutation(
                 restaurant=None,
                 restaurant_arrival_time=None,
                 driving_time=None,  # TODO: can we fill this in?
-                activity_region=None,
-                restaurant_region=None,
             )
 
 
@@ -120,7 +116,6 @@ async def initiate_booking_mutation(
                     if not booking_details.activity:
                         booking_details.activity = activity
                         booking_details.activity_start_time = activity_orm.start_time_local
-                        booking_details.activity_region = activity_orm.region
 
                     if activity.ticket_info:
                         booking_details.cost_breakdown += (activity.ticket_info.cost_breakdown * activity_orm.headcount)
@@ -149,9 +144,8 @@ async def initiate_booking_mutation(
                 )
 
                 if not booking_details.restaurant:
-                    booking_details.restaurant= reservation
+                    booking_details.restaurant = reservation
                     booking_details.restaurant_arrival_time = reservation_orm.start_time_local
-                    booking_details.restaurant_region = reservation_orm.region
 
                 booking.reservations.append(
                     BookingReservationTemplateOrm(
@@ -170,7 +164,7 @@ async def initiate_booking_mutation(
                     )
                 )
 
-        if outing_total_cost_cents > 0:
+        if booking_details.cost_breakdown.total_cost_cents_internal > 0:
             if account_orm.stripe_customer_id is None:
                 stripe_customer = await stripe.Customer.create_async(
                     email=account_orm.email,
@@ -188,7 +182,7 @@ async def initiate_booking_mutation(
 
             stripe_payment_intent = await stripe.PaymentIntent.create_async(
                 currency="usd",
-                amount=outing_total_cost_cents,
+                amount=booking_details.cost_breakdown.total_cost_cents_internal,
                 capture_method="manual",
                 receipt_email=account_orm.email,
                 setup_future_usage="on_session",
@@ -231,7 +225,7 @@ async def initiate_booking_mutation(
         visitor_id=visitor_id,
         extra_properties={
             "booking_id": str(booking.id),
-            "total_cost_cents": outing_total_cost_cents,
+            "total_cost_cents": booking_details.cost_breakdown.total_cost_cents_internal,
             "booking_constraints": {
                 "headcount": survey_orm.headcount,
                 "budget": survey_orm.budget,
@@ -241,6 +235,6 @@ async def initiate_booking_mutation(
     )
 
     return InitiateBookingSuccess(
-        booking=BookingDetails.from_orm(booking),
+        booking=booking_details,
         payment_intent=graphql_payment_intent,
     )
