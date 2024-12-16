@@ -174,7 +174,7 @@ async def confirm_booking_mutation(
             "booking_constraints": {
                 "headcount": booking.survey.headcount,
                 "budget": booking.survey.budget,
-                "search_areas": booking.survey.search_area_ids,
+                "search_areas": [str(i) for i in booking.survey.search_area_ids],
             } if booking.survey else {}
         },
     )

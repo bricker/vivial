@@ -1,4 +1,4 @@
-import { setBooking } from "$eave-dashboard/js/store/slices/bookingSlice";
+import { setBookingDetails } from "$eave-dashboard/js/store/slices/bookingSlice";
 import { useInitiateBookingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
@@ -69,7 +69,7 @@ const StripeElementsProvider = ({ outingId, children }: { outingId: string; chil
 
   switch (data.viewer.initiateBooking.__typename) {
     case "InitiateBookingSuccess": {
-      dispatch(setBooking({ booking: data.viewer.initiateBooking.booking }));
+      dispatch(setBookingDetails({ bookingDetails: data.viewer.initiateBooking.booking }));
       break;
     }
     case "InitiateBookingFailure": {

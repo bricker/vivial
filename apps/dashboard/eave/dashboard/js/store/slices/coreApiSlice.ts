@@ -93,6 +93,13 @@ export const coreApiSlice = createApi({
       },
     }),
 
+    getBookingDetials: builder.query<BookingDetailsQuery, BookingDetailsQueryVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: BookingDetailsDocument, variables });
+        return { data };
+      },
+    }),
+
     getOuting: builder.query<OutingQuery, OutingQueryVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: OutingDocument, variables });

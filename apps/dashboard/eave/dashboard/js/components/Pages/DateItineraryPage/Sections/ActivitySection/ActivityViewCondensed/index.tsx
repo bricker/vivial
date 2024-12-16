@@ -89,7 +89,7 @@ const ActivityViewCondensed = () => {
           <ActivityBadge categoryGroupId={activity.categoryGroup?.id} />
           <TimeAndTicketInfo>
             <Time>{getTimeOfDay(startTime, false)}</Time>
-            <Tickets>{outing.survey.headcount} Tickets</Tickets>
+            {outing.survey && <Tickets>{outing.survey.headcount} Tickets</Tickets>}
           </TimeAndTicketInfo>
         </CopyContainer>
         <ActivityName>{activity.name}</ActivityName>

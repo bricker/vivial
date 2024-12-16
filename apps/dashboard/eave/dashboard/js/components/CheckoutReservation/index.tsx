@@ -2,6 +2,7 @@ import {
   Outing,
   SubmitReserverDetailsFailureReason,
   UpdateReserverDetailsFailureReason,
+  type BookingDetails,
 } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
@@ -86,11 +87,11 @@ const FooterText = styled(Typography)(() => ({
   textAlign: "center",
 }));
 
-function isPaidOuting(outing?: Outing | null): boolean {
-  if (!outing) {
+function isPaidOuting(bookingDetails?: BookingDetails): boolean {
+  if (!bookingDetails) {
     return false;
   }
-  return outing.costBreakdown.totalCostCents > 0;
+  return bookingDetails.costBreakdown.totalCostCents > 0;
 }
 
 const CheckoutForm = ({
@@ -105,14 +106,15 @@ const CheckoutForm = ({
   const stripeClient = useStripe();
   const stripeElements = useElements();
 
-  const localOuting = useSelector((state: RootState) => state.outing.details);
+  // const localOuting = useSelector((state: RootState) => state.outing.details);
   const localReserverDetails = useSelector((state: RootState) => state.reserverDetails.reserverDetails);
-  const booking = useSelector((state: RootState) => state.booking.booking);
+  const localBookingDetails = useSelector((state: RootState) => state.booking.bookingDetails);
 
   const { data: reserverDetailsData, isLoading: listDetailsIsLoading } = useListReserverDetailsQuery({});
   const [updateReserverDetails, { isLoading: updateDetailsIsLoading }] = useUpdateReserverDetailsMutation();
   const [submitReserverDetails, { isLoading: submitDetailsIsLoading }] = useSubmitReserverDetailsMutation();
-  const [updateBooking, { isLoading: updateBookingIsLoading }] = useUpdateBookingMutation();
+  // const [updateBooking, { isLoading: updateBookingIsLoading }] = useUpdateBookingMutation();
+  // const [getBookingDetails, { isLoading: getBookingDetailsIsLoading }] = useGetBookingDetailsQuery();
 
   const [internalReserverDetailError, setInternalReserverDetailError] = useState<string | undefined>(undefined);
   const [externalReserverDetailError, setExternalReserverDetailError] = useState<string | undefined>(undefined);
@@ -121,7 +123,9 @@ const CheckoutForm = ({
   const [reserverDetails, setReserverDetails] = useState(
     localReserverDetails || { id: "", firstName: "", lastName: "", phoneNumber: "" },
   );
-  const [outing, setOuting] = useState<Outing | null | undefined>(localOuting);
+  // const [outing, setOuting] = useState<Outing | null | undefined>(localOuting);
+
+  const [bookingDetails, setBookingDetials] = useState<BookingDetails | undefined>(localBookingDetails);
 
   const submissionIsLoading = updateDetailsIsLoading || submitDetailsIsLoading;
   // only prevent submit on internalError since that can be fixed w/o another submit
@@ -168,14 +172,14 @@ const CheckoutForm = ({
     }
   }, [reserverDetailsData]);
 
-  useEffect(() => {
-    if (outingData) {
-      // prefer in-memory data (if vailable)
-      if (!outing) {
-        setOuting(outingData.outing);
-      }
-    }
-  }, [outingData]);
+  // useEffect(() => {
+  //   if (outingData) {
+  //     // prefer in-memory data (if vailable)
+  //     if (!outing) {
+  //       setOuting(outingData.outing);
+  //     }
+  //   }
+  // }, [outingData]);
 
   const handleReserverDetailChange = useCallback(
     (key: keyof ReserverFormFields, value: string) => {
@@ -197,18 +201,18 @@ const CheckoutForm = ({
         return;
       }
       setInternalReserverDetailError(undefined);
-      const isPaidActivity = isPaidOuting(outing);
+      const isPaidActivity = isPaidOuting(localBookingDetails);
       // clone reserverDetails state so we can mutate values w/ network responses
-      const bookingDetails = { ...reserverDetails };
+      const mutatableReserverDetails = { ...reserverDetails };
       try {
-        if (outing?.restaurant) {
+        if (bookingDetails?.restaurant) {
           // if the reserver details dont have db ID yet, create a new entry
           if (reserverDetails.id.length === 0) {
             const submitDetailsResp = await submitReserverDetails({
               input: {
-                firstName: bookingDetails.firstName,
-                lastName: bookingDetails.lastName,
-                phoneNumber: bookingDetails.phoneNumber,
+                firstName: mutatableReserverDetails.firstName,
+                lastName: mutatableReserverDetails.lastName,
+                phoneNumber: mutatableReserverDetails.phoneNumber,
               },
             });
             switch (submitDetailsResp.data?.viewer.__typename) {
@@ -216,8 +220,8 @@ const CheckoutForm = ({
                 const createdData = submitDetailsResp.data.viewer.submitReserverDetails;
                 switch (createdData?.__typename) {
                   case "SubmitReserverDetailsSuccess": {
-                    bookingDetails.id = createdData.reserverDetails.id;
-                    dispatch(storeReserverDetails({ details: bookingDetails }));
+                    mutatableReserverDetails.id = createdData.reserverDetails.id;
+                    dispatch(storeReserverDetails({ details: mutatableReserverDetails }));
                     // allow success case to continue execution
                     break;
                   }
@@ -257,10 +261,10 @@ const CheckoutForm = ({
           else {
             const updateDetailsResp = await updateReserverDetails({
               input: {
-                id: bookingDetails.id,
-                firstName: bookingDetails.firstName,
-                lastName: bookingDetails.lastName,
-                phoneNumber: bookingDetails.phoneNumber,
+                id: mutatableReserverDetails.id,
+                firstName: mutatableReserverDetails.firstName,
+                lastName: mutatableReserverDetails.lastName,
+                phoneNumber: mutatableReserverDetails.phoneNumber,
               },
             });
             switch (updateDetailsResp.data?.viewer.__typename) {
@@ -316,12 +320,12 @@ const CheckoutForm = ({
 
         // execute the payment
         if (isPaidActivity) {
-          if (!booking) {
+          if (!localBookingDetails) {
             console.warn("no booking is set");
             return null;
           }
 
-          const returnPath = routePath(AppRoute.checkoutComplete, { bookingId: booking.id });
+          const returnPath = routePath(AppRoute.checkoutComplete, { bookingId: localBookingDetails.id })
 
           // TODO: send w/ existing payment details when not using new card
           if (isUsingNewCard) {
@@ -345,18 +349,18 @@ const CheckoutForm = ({
         setInternalReserverDetailError("Unable to book your outing. Please try again later.");
       }
     },
-    [reserverDetails, stripeClient, stripeElements, outing],
+    [reserverDetails, stripeClient, stripeElements, localBookingDetails],
   );
 
-  const requiresPayment = isPaidOuting(outing);
+  const requiresPayment = isPaidOuting(localBookingDetails);
   // when outing has been completely loaded into state & doesnt cost anything, use diff UI
-  const usingAltUI = !requiresPayment && !outingIsLoading && outing;
+  const usingAltUI = !requiresPayment;
   const Wrapper = usingAltUI ? FormPaper : PlainDiv;
   const PageContainer = usingAltUI ? AltPageContainer : PlainDiv;
 
   return (
     <PageContainer>
-      {showCostBreakdown && requiresPayment && <CostBreakdown outing={outing!} />}
+      {showCostBreakdown && requiresPayment && <CostBreakdown outing={localBookingDetails!} />}
 
       <Wrapper>
         {usingAltUI && (

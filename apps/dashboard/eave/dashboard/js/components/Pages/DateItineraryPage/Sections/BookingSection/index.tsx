@@ -94,14 +94,13 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         outingPreferencesData?.activityCategoryGroups,
         outingPreferencesData?.restaurantCategories,
       );
-      const input = {
+      await planOuting({ input: {
         startTime: new Date(outing.restaurantArrivalTime || "").toISOString(),
         searchAreaIds: getRegionIds(outing),
-        budget: outing.survey.budget,
-        headcount: outing.survey.headcount,
+        budget: outing.survey!.budget, // FIXME: survey can be null
+        headcount: outing.survey!.headcount, // FIXME: survey can be null
         groupPreferences,
-      };
-      await planOuting({ input });
+      }});
     }
   }, [outingPreferencesData, userPreferences, partnerPreferences, outing]);
 

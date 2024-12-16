@@ -103,7 +103,7 @@ const RestaurantViewCondensed = () => {
               <Time>{getTimeOfDay(arrivalTime, false)}</Time>
               <TooltipButton info={RESERVATION_WARNING} iconColor={colors.lightOrangeAccent} />
             </TimeInfo>
-            <TableInfo>Table for {outing.survey.headcount}</TableInfo>
+            {outing.survey && <TableInfo>Table for {outing.survey.headcount}</TableInfo>}
           </TimeAndTableInfo>
         </CopyContainer>
         <div>

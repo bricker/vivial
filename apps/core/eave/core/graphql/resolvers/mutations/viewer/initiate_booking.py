@@ -86,6 +86,12 @@ async def initiate_booking_mutation(
     except StartTimeTooLateError:
         return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.START_TIME_TOO_LATE)
 
+    booking_details_cost_breakdown = CostBreakdown()
+    booking_details_activity = None
+    booking_details_activity_start_time = None
+    booking_details_restaurant = None
+    booking_details_restaurant_arrival_time = None
+
     try:
         async with database.async_session.begin() as db_session:
             booking = BookingOrm(
@@ -97,28 +103,16 @@ async def initiate_booking_mutation(
                 state=BookingState.INITIATED,
             )
 
-            booking_details = BookingDetails(
-                id=booking.id,
-                survey=Survey.from_orm(booking.survey) if booking.survey else None,
-                cost_breakdown=CostBreakdown(),
-                activity=None,
-                activity_start_time=None,
-                restaurant=None,
-                restaurant_arrival_time=None,
-                driving_time=None,  # TODO: can we fill this in?
-            )
-
-
             for activity_orm in outing_orm.activities:
                 activity = await get_activity(source=activity_orm.source, source_id=activity_orm.source_id)
 
                 if activity:
-                    if not booking_details.activity:
-                        booking_details.activity = activity
-                        booking_details.activity_start_time = activity_orm.start_time_local
+                    if not booking_details_activity:
+                        booking_details_activity = activity
+                        booking_details_activity_start_time = activity_orm.start_time_local
 
                     if activity.ticket_info:
-                        booking_details.cost_breakdown += (activity.ticket_info.cost_breakdown * activity_orm.headcount)
+                        booking_details_cost_breakdown += (activity.ticket_info.cost_breakdown * activity_orm.headcount)
 
                     booking.activities.append(
                         BookingActivityTemplateOrm(
@@ -143,9 +137,9 @@ async def initiate_booking_mutation(
                     source_id=reservation_orm.source_id,
                 )
 
-                if not booking_details.restaurant:
-                    booking_details.restaurant = reservation
-                    booking_details.restaurant_arrival_time = reservation_orm.start_time_local
+                if not booking_details_restaurant:
+                    booking_details_restaurant = reservation
+                    booking_details_restaurant_arrival_time = reservation_orm.start_time_local
 
                 booking.reservations.append(
                     BookingReservationTemplateOrm(
@@ -164,7 +158,7 @@ async def initiate_booking_mutation(
                     )
                 )
 
-        if booking_details.cost_breakdown.total_cost_cents_internal > 0:
+        if booking_details_cost_breakdown.total_cost_cents_internal > 0:
             if account_orm.stripe_customer_id is None:
                 stripe_customer = await stripe.Customer.create_async(
                     email=account_orm.email,
@@ -182,7 +176,7 @@ async def initiate_booking_mutation(
 
             stripe_payment_intent = await stripe.PaymentIntent.create_async(
                 currency="usd",
-                amount=booking_details.cost_breakdown.total_cost_cents_internal,
+                amount=booking_details_cost_breakdown.total_cost_cents_internal,
                 capture_method="manual",
                 receipt_email=account_orm.email,
                 setup_future_usage="on_session",
@@ -225,16 +219,25 @@ async def initiate_booking_mutation(
         visitor_id=visitor_id,
         extra_properties={
             "booking_id": str(booking.id),
-            "total_cost_cents": booking_details.cost_breakdown.total_cost_cents_internal,
+            "total_cost_cents": booking_details_cost_breakdown.total_cost_cents_internal,
             "booking_constraints": {
                 "headcount": survey_orm.headcount,
                 "budget": survey_orm.budget,
-                "search_areas": survey_orm.search_area_ids,
+                "search_areas": [str(i) for i in survey_orm.search_area_ids],
             }
         },
     )
 
     return InitiateBookingSuccess(
-        booking=booking_details,
+        booking=BookingDetails(
+            id=booking.id, # Warning: This is NULL until the Booking object is persisted!
+            survey=Survey.from_orm(booking.survey) if booking.survey else None,
+            cost_breakdown=booking_details_cost_breakdown,
+            activity=booking_details_activity,
+            activity_start_time=booking_details_activity_start_time,
+            restaurant=booking_details_restaurant,
+            restaurant_arrival_time=booking_details_restaurant_arrival_time,
+            driving_time=None,  # TODO: can we fill this in?
+        ),
         payment_intent=graphql_payment_intent,
     )
