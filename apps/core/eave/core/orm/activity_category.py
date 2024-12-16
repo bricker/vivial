@@ -25,13 +25,12 @@ class ActivityCategoryOrm:
         return _ACTIVITY_CATEGORIES_PK.get(activity_category_id)
 
     @classmethod
-    def get_by_eventbrite_id(cls, *, eventbrite_subcategory_id: str) -> "ActivityCategoryOrm | None":
+    def get_by_eventbrite_subcategory_id(cls, *, eventbrite_subcategory_id: str) -> "ActivityCategoryOrm | None":
         return _ACTIVITY_CATEGORIES_EBID_IDX.get(eventbrite_subcategory_id)
 
     @classmethod
     def get_by_activity_category_group_id(cls, *, activity_category_group_id: UUID) -> list["ActivityCategoryOrm"]:
         return _ACTIVITY_CATEGORIES_CATEGORY_GROUP_ID_IDX.get(activity_category_group_id, [])
-
 
 _ACTIVITY_CATEGORIES_TABLE = (
     ActivityCategoryOrm(

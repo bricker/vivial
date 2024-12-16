@@ -12,7 +12,7 @@ from eave.stdlib.eventbrite.models.pagination import Pagination
 from eave.stdlib.typing import NOT_SET
 
 from .models.category import Category, Subcategory
-from .models.event import Event, EventStatus
+from .models.event import Event, EventDescription, EventStatus
 from .models.format import Format
 from .models.organizer import Organizer
 from .models.question import Question
@@ -197,7 +197,7 @@ class EventbriteClient:
         j = await response.json()
         return j
 
-    async def get_event_description(self, *, event_id: str) -> MultipartText:
+    async def get_event_description(self, *, event_id: str) -> EventDescription:
         """https://www.eventbrite.com/platform/api#/reference/event-description/retrieve-full-html-description"""
 
         response = await self.make_request(method=HTTPMethod.GET, path=f"/events/{event_id}/description")

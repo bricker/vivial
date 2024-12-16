@@ -315,7 +315,7 @@ async def get_eventbrite_events() -> None:
                         continue
 
                     if not (
-                        vivial_category := ActivityCategoryOrm.get_by_eventbrite_id(
+                        vivial_category := ActivityCategoryOrm.get_by_eventbrite_subcategory_id(
                             eventbrite_subcategory_id=eb_subcategory_id
                         )
                     ):
@@ -330,15 +330,15 @@ async def get_eventbrite_events() -> None:
                         )
                         continue
 
-                    if minimum_ticket_price := ticket_availability.get("minimum_ticket_price"):
-                        min_cost_cents = minimum_ticket_price["value"]
-                    else:
-                        min_cost_cents = None
+                    # if minimum_ticket_price := ticket_availability.get("minimum_ticket_price"):
+                    #     min_cost_cents = minimum_ticket_price["value"]
+                    # else:
+                    #     min_cost_cents = None
 
                     if maximum_ticket_price := ticket_availability.get("maximum_ticket_price"):
                         max_cost_cents = maximum_ticket_price["value"]
                     else:
-                        max_cost_cents = None
+                        max_cost_cents = 0
 
                     if event_start := event.get("start"):
                         start_time_utc = datetime.fromisoformat(event_start["utc"])
@@ -377,7 +377,6 @@ async def get_eventbrite_events() -> None:
                         start_time=start_time_utc,
                         end_time=end_time_utc,
                         timezone=timezone,
-                        min_cost_cents=min_cost_cents,
                         max_cost_cents=max_cost_cents,
                         lat=float(lat),
                         lon=float(lon),
