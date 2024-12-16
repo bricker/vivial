@@ -42,4 +42,4 @@ class TestVisitorIdExtension(BaseTestCase):
         # Account doesn't have visitor_id so we're just checking something to make sure visitor_id was received.
         # It doesn't really matter what we're checking.
         assert self.get_mock("segment.analytics.track").call_count == 1
-        assert self.get_mock("segment.analytics.track").call_args_list[0].kwargs["anonymous_id"] is None
+        assert self.get_mock("segment.analytics.track").call_args_list[0].kwargs["anonymous_id"] == ""

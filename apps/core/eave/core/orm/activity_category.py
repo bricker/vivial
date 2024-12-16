@@ -32,6 +32,7 @@ class ActivityCategoryOrm:
     def get_by_activity_category_group_id(cls, *, activity_category_group_id: UUID) -> list["ActivityCategoryOrm"]:
         return _ACTIVITY_CATEGORIES_CATEGORY_GROUP_ID_IDX.get(activity_category_group_id, [])
 
+
 _ACTIVITY_CATEGORIES_TABLE = (
     ActivityCategoryOrm(
         id=UUID("bb6ceceeec6c4e0fb12f1a188b89a2da"),

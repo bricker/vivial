@@ -11,7 +11,7 @@ from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.types.activity import Activity
 from eave.core.graphql.types.outing import OutingPreferencesInput
 from eave.core.graphql.types.restaurant import Restaurant
-from eave.core.lib.eventbrite import activity_from_eventbrite_event, get_eventbrite_activity
+from eave.core.lib.eventbrite import get_eventbrite_activity
 from eave.core.lib.google_places import (
     activity_from_google_place,
     get_places_nearby,
@@ -26,8 +26,7 @@ from eave.core.orm.restaurant_category import MAGIC_BAR_RESTAURANT_CATEGORY_ID, 
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.geo import Distance, GeoArea
-from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery
-from eave.stdlib.eventbrite.models.expansions import Expansion
+from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.logging import LOGGER
 
 _BREAKFAST_GOOGLE_RESTAURANT_CATEGORY_IDS = (
@@ -208,7 +207,9 @@ class OutingPlanner:
 
             for event_orm in results:
                 try:
-                    if activity := await get_eventbrite_activity(self.eventbrite_client, event_id=event_orm.eventbrite_event_id):
+                    if activity := await get_eventbrite_activity(
+                        self.eventbrite_client, event_id=event_orm.eventbrite_event_id
+                    ):
                         self.activity = activity
                         return activity
                 except Exception as e:

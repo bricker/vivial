@@ -57,7 +57,7 @@ class TestEventbriteEventOrm(BaseTestCase):
             results = (
                 await session.scalars(
                     EventbriteEventOrm.select(
-                        up_to_cost_cents=self.getint("max_cost"), # the event's max_cost is equal to the query limit
+                        up_to_cost_cents=self.getint("max_cost"),  # the event's max_cost is equal to the query limit
                     )
                 )
             ).all()
@@ -67,7 +67,8 @@ class TestEventbriteEventOrm(BaseTestCase):
             results = (
                 await session.scalars(
                     EventbriteEventOrm.select(
-                        up_to_cost_cents=self.getint("max_cost") - 1,  # the event's max_cost is 1 higher than the query limit
+                        up_to_cost_cents=self.getint("max_cost")
+                        - 1,  # the event's max_cost is 1 higher than the query limit
                     )
                 )
             ).all()
@@ -77,7 +78,8 @@ class TestEventbriteEventOrm(BaseTestCase):
             results = (
                 await session.scalars(
                     EventbriteEventOrm.select(
-                        up_to_cost_cents=self.getint("max_cost") + 1, # the event's max_cost is 1 lower than the query limit
+                        up_to_cost_cents=self.getint("max_cost")
+                        + 1,  # the event's max_cost is 1 lower than the query limit
                     )
                 )
             ).all()

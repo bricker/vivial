@@ -1,4 +1,3 @@
-from uuid import UUID
 
 from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
 from eave.core.graphql.types.address import GraphQLAddress
@@ -122,8 +121,12 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
     vivial_activity_category_group = None
 
     if eventbrite_subcategory_id := event.get("subcategory_id"):
-        if vivial_activity_category := ActivityCategoryOrm.get_by_eventbrite_subcategory_id(eventbrite_subcategory_id=eventbrite_subcategory_id):
-            vivial_activity_category_group = ActivityCategoryGroupOrm.one_or_none(activity_category_group_id=vivial_activity_category.activity_category_group_id)
+        if vivial_activity_category := ActivityCategoryOrm.get_by_eventbrite_subcategory_id(
+            eventbrite_subcategory_id=eventbrite_subcategory_id
+        ):
+            vivial_activity_category_group = ActivityCategoryGroupOrm.one_or_none(
+                activity_category_group_id=vivial_activity_category.activity_category_group_id
+            )
 
     logo = event.get("logo")
 
@@ -178,7 +181,9 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         door_tips=None,
         insider_tips=None,
         parking_tips=None,
-        category_group=ActivityCategoryGroup.from_orm(vivial_activity_category_group) if vivial_activity_category_group else None,
+        category_group=ActivityCategoryGroup.from_orm(vivial_activity_category_group)
+        if vivial_activity_category_group
+        else None,
     )
 
     return activity

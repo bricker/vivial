@@ -16,7 +16,6 @@ from .models.event import Event, EventDescription, EventStatus
 from .models.format import Format
 from .models.organizer import Organizer
 from .models.question import Question
-from .models.shared import MultipartText
 from .models.ticket_class import PointOfSale, TicketClass
 
 

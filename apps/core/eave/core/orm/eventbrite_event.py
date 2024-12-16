@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 
 from geoalchemy2.functions import ST_DWithin
 from sqlalchemy import PrimaryKeyConstraint, Select, or_, select
-from sqlalchemy.dialects.postgresql import INT4RANGE, TSTZRANGE, Range
+from sqlalchemy.dialects.postgresql import TSTZRANGE, Range
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
