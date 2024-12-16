@@ -1,3 +1,4 @@
+import { Breakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
 import { styled } from "@mui/material";
 import React from "react";
 import { Carousel } from "react-responsive-carousel";
@@ -7,12 +8,15 @@ import Button from "@mui/material/Button";
 import ArrowNextIcon from "../../Icons/ArrowNextIcon";
 import ArrowPrevIcon from "../../Icons/ArrowPrevIcon";
 
-const ImgContainer = styled("div")(() => ({
-  width: 288,
+const ImgContainer = styled("div")(({ theme }) => ({
+  width: "calc(100% - 8px)",
   height: 168,
   marginRight: 8,
   borderRadius: 10,
   overflow: "hidden",
+  [theme.breakpoints.up(Breakpoint.Small)]: {
+    height: 300,
+  },
 }));
 
 const Img = styled("img")(() => ({

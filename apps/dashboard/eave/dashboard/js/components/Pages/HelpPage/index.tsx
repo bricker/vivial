@@ -8,6 +8,8 @@ import ExternalLink from "../../Links/ExternalLink";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
+  maxWidth: 600,
+  margin: "0 auto",
 }));
 
 const CopyContainer = styled("div")(({ theme }) => ({

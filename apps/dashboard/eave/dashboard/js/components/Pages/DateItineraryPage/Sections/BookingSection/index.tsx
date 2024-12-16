@@ -42,6 +42,7 @@ const Header = styled("div")(({ theme }) => ({
 }));
 
 const CostBreakdown = styled("div")(() => ({
+  borderBottom: `1px solid ${colors.secondaryButtonCTA}`,
   paddingBottom: 16,
   display: "grid",
   gridTemplateColumns: "1fr auto",
@@ -56,8 +57,7 @@ const CostItem = styled(Typography, {
 }));
 
 const ActionButtons = styled("div")(() => ({
-  borderTop: `1px solid ${colors.secondaryButtonCTA}`,
-  paddingTop: 24,
+  marginTop: 24,
   display: "flex",
 }));
 
@@ -149,12 +149,14 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
           <CostItem bold>FREE</CostItem>
         </CostBreakdown>
         {!viewOnly && (
-          <ActionButtons>
-            <RerollButton onReroll={handleReroll} loading={planOutingLoading} />
-            <BookButton onClick={toggleBookingOpen} fullWidth>
-              Book
-            </BookButton>
-          </ActionButtons>
+          <>
+            <ActionButtons>
+              <RerollButton onReroll={handleReroll} loading={planOutingLoading} />
+              <BookButton onClick={toggleBookingOpen} fullWidth>
+                Book
+              </BookButton>
+            </ActionButtons>
+          </>
         )}
         {errorMessage && <Error>ERROR: {errorMessage}</Error>}
         <Modal

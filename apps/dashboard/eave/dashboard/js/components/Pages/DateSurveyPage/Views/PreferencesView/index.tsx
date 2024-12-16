@@ -20,6 +20,9 @@ import LoadingView from "../LoadingView";
 
 const ViewContainer = styled("div")(() => ({
   padding: "24px 16px 102px",
+  maxWidth: 600,
+  margin: "0 auto",
+  overflow: "hidden",
 }));
 
 const SelectionsContainer = styled("div")(() => ({

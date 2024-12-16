@@ -14,7 +14,7 @@ const ModalContainer = styled("div")(() => ({
   overflowX: "hidden",
   top: 0,
   left: 0,
-  zIndex: 2,
+  zIndex: 10,
 }));
 
 const ModalContent = styled("div")(({ theme }) => ({
