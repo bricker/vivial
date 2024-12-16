@@ -16,7 +16,7 @@ import RestaurantSection from "./Sections/RestaurantSection";
 import LoadingView from "./Views/LoadingView";
 
 const PageContainer = styled("div")(() => ({
-  paddingBottom: 102,
+  paddingBottom: 56,
 }));
 
 const DateItineraryPage = () => {
@@ -60,10 +60,10 @@ const DateItineraryPage = () => {
   return (
     <PageContainer>
       <LogisticsSection />
-      <BookingSection />
       <RestaurantSection />
       <DistanceSection />
       <ActivitySection />
+      <BookingSection />
     </PageContainer>
   );
 };

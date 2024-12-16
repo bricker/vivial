@@ -1,6 +1,6 @@
+import { datadogRum } from "@datadog/browser-rum";
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { datadogRum } from "@datadog/browser-rum";
 import App from "./App";
 import { myWindow } from "./types/window";
 
@@ -20,7 +20,6 @@ if (myWindow.app.monitoringEnabled && myWindow.app.datadogApplicationId && myWin
     defaultPrivacyLevel: "mask-user-input",
   });
 }
-
 
 const root = ReactDOM.createRoot(document.getElementById("root")!);
 root.render(<App />);
