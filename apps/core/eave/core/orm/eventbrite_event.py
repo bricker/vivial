@@ -18,8 +18,6 @@ from .base import Base
 from .util.constants import PG_UUID_EXPR
 
 _TIMERANGE_BOUNDS = "[)"
-_COST_BOUNDS = "[)"
-
 
 class EventbriteEventOrm(Base, CoordinatesMixin, GetOneByIdMixin):
     __tablename__ = "eventbrite_events"
@@ -27,6 +25,7 @@ class EventbriteEventOrm(Base, CoordinatesMixin, GetOneByIdMixin):
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     eventbrite_event_id: Mapped[str] = mapped_column(unique=True)
+    eventbrite_organizer_id: Mapped[str] = mapped_column(index=True)
     title: Mapped[str] = mapped_column()
     time_range_utc: Mapped[Range[datetime]] = mapped_column(TSTZRANGE)
     timezone: Mapped[ZoneInfo] = mapped_column(type_=ZoneInfoColumnType())
@@ -34,8 +33,9 @@ class EventbriteEventOrm(Base, CoordinatesMixin, GetOneByIdMixin):
     vivial_activity_category_id: Mapped[UUID] = mapped_column()
     vivial_activity_format_id: Mapped[UUID] = mapped_column()
 
-    def __init__(self, session: AsyncSession | None, *, eventbrite_event_id: str) -> None:
+    def __init__(self, session: AsyncSession | None, *, eventbrite_event_id: str, eventbrite_organizer_id: str) -> None:
         self.eventbrite_event_id = eventbrite_event_id
+        self.eventbrite_organizer_id = eventbrite_organizer_id
 
         if session:
             session.add(self)
