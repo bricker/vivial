@@ -470,7 +470,7 @@ const CheckoutReservation = ({
   showCostBreakdown?: boolean;
 }) => {
   return (
-    <StripeElementsProvider>
+    <StripeElementsProvider outingId={outingId}>
       <CheckoutForm outingId={outingId} showStripeBadge={showStripeBadge} showCostBreakdown={showCostBreakdown} />
     </StripeElementsProvider>
   );
