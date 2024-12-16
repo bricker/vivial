@@ -50,8 +50,8 @@ class AnalyticsTracker:
         At least one of `user_id` or `visitor_id` must be provided.
         https://segment.com/docs/connections/sources/catalog/libraries/server/python/#track
         """
-        user_id = str(account_id) if account_id else None
-        anon_id = visitor_id
+        user_id = str(account_id or "")
+        anon_id = visitor_id or ""
         segment.analytics.track(
             user_id=user_id,
             event=event_name,
