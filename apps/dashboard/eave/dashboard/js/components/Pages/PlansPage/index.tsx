@@ -6,6 +6,7 @@ import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { CircularProgress, Paper as MuiPaper, Typography, styled } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import PrimaryButton from "../../Buttons/PrimaryButton";
 import Paper from "../../Paper";
 
@@ -100,6 +101,7 @@ const NewDateCta = () => {
 };
 
 const BookingDetails = ({ booking }: { booking: BookingDetailPeek }) => {
+  const navigate = useNavigate();
   const imgUri = booking.photoUri;
   const dateDayString = booking.activityStartTime || booking.restaurantArrivalTime;
   if (!dateDayString) {
@@ -111,7 +113,7 @@ const BookingDetails = ({ booking }: { booking: BookingDetailPeek }) => {
     dateDay,
   );
   return (
-    <DetailsPaper>
+    <DetailsPaper onClick={() => navigate(`${AppRoute.plans}/${booking.id}`)}>
       <BookingContainer>
         <BookingDetailsContainer>
           <DetailsTitle variant="subtitle2">{formattedDay}</DetailsTitle>

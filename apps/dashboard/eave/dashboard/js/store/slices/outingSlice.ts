@@ -1,4 +1,4 @@
-import { type Outing, type OutingPreferences } from "$eave-dashboard/js/graphql/generated/graphql";
+import { type BookingDetails, type Outing, type OutingPreferences } from "$eave-dashboard/js/graphql/generated/graphql";
 import { createSlice } from "@reduxjs/toolkit";
 
 export interface OutingState {
@@ -23,6 +23,9 @@ export const outingSlice = createSlice({
   reducers: {
     plannedOuting: (state, action: { payload: { outing: Outing } }) => {
       state.details = action.payload.outing;
+    },
+    openedBookingDetails: (state, action: { payload: { bookingDetails: BookingDetails } }) => {
+      state.details = action.payload.bookingDetails as Outing;
     },
     chosePreferences: (
       state,
@@ -50,4 +53,4 @@ export const outingSlice = createSlice({
   },
 });
 
-export const { plannedOuting, chosePreferences, unsetOuting } = outingSlice.actions;
+export const { plannedOuting, openedBookingDetails, chosePreferences, unsetOuting } = outingSlice.actions;

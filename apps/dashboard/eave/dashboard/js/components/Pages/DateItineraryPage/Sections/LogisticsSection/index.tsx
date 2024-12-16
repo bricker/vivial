@@ -63,11 +63,11 @@ const LogisticsGradient = styled("div")(() => ({
   justifyContent: "center",
 }));
 
-const Logistics = styled("div")(({ theme }) => ({
+const Logistics = styled("div")<{ viewOnly?: boolean }>(({ theme, viewOnly }) => ({
   backgroundColor: theme.palette.field.secondary,
   display: "flex",
   alignItems: "center",
-  padding: "12px 16px",
+  padding: viewOnly ? "12px 32px" : "12px 16px",
   height: 58,
   width: "calc(100% - 4px)",
   borderRadius: 40,
@@ -91,7 +91,7 @@ const Place = styled(Typography)(({ theme }) => ({
   lineHeight: rem(15),
 }));
 
-const LogisticsSection = () => {
+const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
   const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
   const { data: searchRegionsData } = useGetSearchRegionsQuery({});
@@ -188,8 +188,8 @@ const LogisticsSection = () => {
     return (
       <Section bgImgUrl={getRegionImage(outing.restaurantRegion?.id)}>
         <LogisticsGradient>
-          <Logistics>
-            <SettingsButton onClick={toggleDetailsOpen} />
+          <Logistics viewOnly={viewOnly}>
+            {!viewOnly && <SettingsButton onClick={toggleDetailsOpen} />}
             <TimeAndPlace>
               <Time>{getTimeLabel(startTime)}</Time>
               <Place>{getPlaceLabel(headcount, searchAreaIds, budget)}</Place>

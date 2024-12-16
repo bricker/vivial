@@ -71,7 +71,7 @@ const Error = styled(Typography)(({ theme }) => ({
   textAlign: "left",
 }));
 
-const BookingSection = () => {
+const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
   const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
   const outing = useSelector((state: RootState) => state.outing.details);
@@ -148,12 +148,14 @@ const BookingSection = () => {
           <CostItem>Service Fees via Vivial ...</CostItem>
           <CostItem bold>FREE</CostItem>
         </CostBreakdown>
-        <ActionButtons>
-          <RerollButton onReroll={handleReroll} loading={planOutingLoading} />
-          <BookButton onClick={toggleBookingOpen} fullWidth>
-            Book
-          </BookButton>
-        </ActionButtons>
+        {!viewOnly && (
+          <ActionButtons>
+            <RerollButton onReroll={handleReroll} loading={planOutingLoading} />
+            <BookButton onClick={toggleBookingOpen} fullWidth>
+              Book
+            </BookButton>
+          </ActionButtons>
+        )}
         {errorMessage && <Error>ERROR: {errorMessage}</Error>}
         <Modal
           title="Booking Info"
