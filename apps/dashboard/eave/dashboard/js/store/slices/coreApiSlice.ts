@@ -2,6 +2,7 @@ import { CORE_API_BASE } from "$eave-dashboard/js/util/http";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import {
+  BookingDetailsDocument,
   CreateAccountDocument,
   CreateBookingDocument,
   CreatePaymentIntentDocument,
@@ -27,6 +28,8 @@ import {
   UpdateReserverDetailsDocument,
   UpdateReserverDetailsMutation,
   UpdateReserverDetailsMutationVariables,
+  type BookingDetailsQuery,
+  type BookingDetailsQueryVariables,
   type CreateAccountMutation,
   type CreateAccountMutationVariables,
   type CreateBookingMutation,
@@ -90,6 +93,13 @@ export const coreApiSlice = createApi({
     getOuting: builder.query<OutingQuery, OutingQueryVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: OutingDocument, variables });
+        return { data };
+      },
+    }),
+
+    getBookingDetails: builder.query<BookingDetailsQuery, BookingDetailsQueryVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: BookingDetailsDocument, variables });
         return { data };
       },
     }),
@@ -183,6 +193,7 @@ export const {
   useListBookedOutingsQuery,
   useGetOutingPreferencesQuery,
   useGetOutingQuery,
+  useGetBookingDetailsQuery,
 
   // Core API GraphQL Mutation Hooks
   usePlanOutingMutation,
