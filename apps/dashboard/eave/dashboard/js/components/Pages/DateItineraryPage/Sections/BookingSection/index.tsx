@@ -10,7 +10,6 @@ import { colors } from "$eave-dashboard/js/theme/colors";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 
-import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
 import { getBaseCost, getFees, getTotalCost } from "$eave-dashboard/js/util/currency";
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
 import { getRegionIds } from "$eave-dashboard/js/util/region";
@@ -97,7 +96,6 @@ const BookingSection = () => {
       );
       const input = {
         startTime: new Date(outing.restaurantArrivalTime || "").toISOString(),
-        visitorId: await getVisitorId(),
         searchAreaIds: getRegionIds(outing),
         budget: outing.survey.budget,
         headcount: outing.survey.headcount,
