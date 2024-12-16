@@ -204,6 +204,7 @@ const CheckoutForm = ({
       const isPaidActivity = isPaidOuting(localBookingDetails);
       // clone reserverDetails state so we can mutate values w/ network responses
       const mutatableReserverDetails = { ...reserverDetails };
+
       try {
         if (bookingDetails?.restaurant) {
           // if the reserver details dont have db ID yet, create a new entry
@@ -327,22 +328,30 @@ const CheckoutForm = ({
 
           const returnPath = routePath(AppRoute.checkoutComplete, { bookingId: localBookingDetails.id })
 
-          // TODO: send w/ existing payment details when not using new card
-          if (isUsingNewCard) {
-            const response = await stripeClient.confirmPayment({
-              elements: stripeElements,
-              clientSecret: "", // This property is required but already provided by stripeElements
-              confirmParams: {
-                return_url: `${window.location.origin}${returnPath}`,
-              },
-            });
+          const _response = await stripeClient.confirmPayment({
+            elements: stripeElements,
+            clientSecret: "", // This property is required but already provided by stripeElements
+            confirmParams: {
+              return_url: `${window.location.origin}${returnPath}`,
+            },
+          });
 
-            if (response.error) {
-              console.error(response.error);
-              setPaymentError(response.error.message);
-              return;
-            }
-          }
+          // // TODO: send w/ existing payment details when not using new card
+          // if (isUsingNewCard) {
+          //   const response = await stripeClient.confirmPayment({
+          //     elements: stripeElements,
+          //     clientSecret: "", // This property is required but already provided by stripeElements
+          //     confirmParams: {
+          //       return_url: `${window.location.origin}${returnPath}`,
+          //     },
+          //   });
+
+          //   if (response.error) {
+          //     console.error(response.error);
+          //     setPaymentError(response.error.message);
+          //     return;
+          //   }
+          // }
         }
       } catch {
         // network error

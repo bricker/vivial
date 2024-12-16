@@ -38,16 +38,22 @@ const SignUpPage = () => {
   const dispatch = useDispatch();
   const variant = searchParams.get(SearchParam.variant) as SignUpPageVariant;
 
+
   let title = "Create a free account to book";
   let subtitle = "";
   let allowClose = false;
-  let redirectRoute = AppRoute.root;
+  let redirectRoute: string = AppRoute.root;
 
   if (variant === SignUpPageVariant.MultiReroll) {
     title = "🎯 Not quite right?";
     subtitle = "Create a free Vivial account to unlock personalized recommendations.";
     allowClose = true;
     redirectRoute = AppRoute.rootPreferencesOpen;
+  }
+
+  const redirectQueryParam = searchParams.get(SearchParam.redirect);
+  if (redirectQueryParam) {
+    redirectRoute = decodeURIComponent(redirectQueryParam);
   }
 
   const handleSubmit = useCallback(async ({ email, password }: { email: string; password: string }) => {

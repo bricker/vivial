@@ -2,12 +2,12 @@ import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 import React, { useCallback, useState } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { loggedIn } from "$eave-dashboard/js/store/slices/authSlice";
 import { useLoginMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 
-import { AppRoute } from "$eave-dashboard/js/routes";
+import { AppRoute, SearchParam } from "$eave-dashboard/js/routes";
 import AuthForm from "../../Forms/AuthForm";
 import Link from "../../Links/Link";
 
@@ -29,6 +29,14 @@ const LogInPage = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [searchParams,] = useSearchParams();
+
+  let redirectRoute: string = AppRoute.root;
+
+  const redirectQueryParam = searchParams.get(SearchParam.redirect);
+  if (redirectQueryParam) {
+    redirectRoute = decodeURIComponent(redirectQueryParam);
+  }
 
   const handleSubmit = useCallback(async ({ email, password }: { email: string; password: string }) => {
     const resp = await login({ input: { email, plaintextPassword: password } });
@@ -36,7 +44,7 @@ const LogInPage = () => {
     switch (typename) {
       case "LoginSuccess": {
         dispatch(loggedIn({ account: resp.data!.login.account }));
-        navigate(AppRoute.root);
+        navigate(redirectRoute);
         break;
       }
       case "LoginFailure": {

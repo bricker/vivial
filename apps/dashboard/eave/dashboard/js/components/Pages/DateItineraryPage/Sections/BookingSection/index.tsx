@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import { AppRoute } from "$eave-dashboard/js/routes";
+import { AppRoute, routePath, SearchParam } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
@@ -75,6 +75,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
   const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
   const outing = useSelector((state: RootState) => state.outing.details);
+  const { isLoggedIn } = useSelector((state: RootState) => state.auth);
   const userPreferences = useSelector((state: RootState) => state.outing.preferenes.user);
   const partnerPreferences = useSelector((state: RootState) => state.outing.preferenes.partner);
   const [bookingOpen, setBookingOpen] = useState(false);
@@ -107,6 +108,25 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const toggleBookingOpen = useCallback(() => {
     setBookingOpen(!bookingOpen);
   }, [bookingOpen]);
+
+  const handleBookClick = useCallback(() => {
+    if (!outing) {
+      console.warn("No outing");
+      return;
+    }
+
+    navigate(routePath(AppRoute.checkoutReserve, { outingId: outing.id }));
+
+    // if (isLoggedIn) {
+    //   toggleBookingOpen();
+    // } else {
+    //   const returnPath = encodeURIComponent(routePath(AppRoute.checkoutReserve, { outingId: outing.id }));
+    //   navigate({
+    //     pathname: AppRoute.signup,
+    //     search: `?${SearchParam.redirect}=${returnPath}`,
+    //   });
+    // }
+  }, [isLoggedIn, outing]);
 
   useEffect(() => {
     if (planOutingData) {
@@ -151,14 +171,14 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
           <>
             <ActionButtons>
               <RerollButton onReroll={handleReroll} loading={planOutingLoading} />
-              <BookButton onClick={toggleBookingOpen} fullWidth>
+              <BookButton onClick={handleBookClick} fullWidth>
                 Book
               </BookButton>
             </ActionButtons>
           </>
         )}
         {errorMessage && <Error>ERROR: {errorMessage}</Error>}
-        <Modal
+        {/* <Modal
           title="Booking Info"
           onClose={toggleBookingOpen}
           open={bookingOpen}
@@ -166,7 +186,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
           padChildren={false}
         >
           <CheckoutReservation outingId={outing.id} />
-        </Modal>
+        </Modal> */}
       </Section>
     );
   }

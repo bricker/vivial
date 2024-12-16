@@ -86,6 +86,13 @@ async def confirm_booking_mutation(
     if not booking:
         return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.BOOKING_NOT_FOUND)
 
+    if booking.state != BookingState.INITIATED:
+        # If this booking was already confirmed, then just return the success state,
+        # so we don't try to charge their card again and stuff.
+        return ConfirmBookingSuccess(
+            booking=Booking.from_orm(booking),
+        )
+
     if booking.survey:
         # TODO: This is messy, consolidate all of these duplicate checks into one place
         # validate outing time still valid to book
@@ -118,7 +125,7 @@ async def confirm_booking_mutation(
         # Get the given payment intent from the Stripe API
         stripe_payment_intent = await stripe.PaymentIntent.retrieve_async(
             id=input.payment_intent.id,
-            client_secret=input.payment_intent.client_secret,
+            # client_secret=input.payment_intent.client_secret,
         )
 
         # Validate that the payment intent has been authorized, but the funds haven't been captured.

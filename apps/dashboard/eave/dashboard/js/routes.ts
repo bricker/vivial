@@ -40,7 +40,7 @@ export function routePath(route: AppRoute, pathParams: { [key: string]: string }
   let filledRoute = route.toString();
 
   for (const [paramName, paramValue] of Object.entries(pathParams)) {
-    filledRoute = filledRoute.replaceAll(new RegExp(`/:${paramName}/?$`, "g"), paramValue);
+    filledRoute = filledRoute.replaceAll(new RegExp(`/:${paramName}/?$`, "g"), `/${paramValue}`);
   }
 
   return filledRoute;
