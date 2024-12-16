@@ -12,8 +12,13 @@ export function getRegionImage(regionId: string | undefined): string | undefined
 }
 
 export function getRegionIds(outing: Outing | null): string[] {
-  const restaurantRegionId = outing?.restaurantRegion?.id;
-  const activityRegionId = outing?.activityRegion?.id;
+  if (!outing) {
+    return [];
+  }
+
+  const restaurantRegionId = outing.restaurant?.location.searchRegion.id;
+  const activityRegionId = outing.activity?.venue.location.searchRegion.id;
+
   const ids: string[] = [];
   if (restaurantRegionId) {
     ids.push(restaurantRegionId);
