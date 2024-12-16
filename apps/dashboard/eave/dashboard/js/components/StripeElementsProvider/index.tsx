@@ -21,13 +21,13 @@ const ErrorText = styled(Typography)(({ theme }) => ({
 
 const stripePromise = loadStripe(myWindow.app.stripePublishableKey!);
 
-const StripeElementsProvider = ({ children }: { children: React.ReactElement }) => {
+const StripeElementsProvider = ({ children, outingId }: { children: React.ReactElement; outingId: string }) => {
   const [createPaymentIntent, { isLoading, data }] = useCreatePaymentIntentMutation();
 
   useEffect(() => {
     void createPaymentIntent({
       input: {
-        outingId: "", // FIXME
+        outingId,
       },
     });
   }, []);
