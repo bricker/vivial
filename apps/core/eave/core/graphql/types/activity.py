@@ -52,7 +52,7 @@ class Activity:
     source_id: str
     source: ActivitySource
     name: str
-    description: str
+    description: str | None
     venue: ActivityVenue
     photos: Photos
     ticket_info: TicketInfo | None

@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 
 from geoalchemy2.functions import ST_DWithin
 from sqlalchemy import PrimaryKeyConstraint, Select, or_, select
-from sqlalchemy.dialects.postgresql import INT4RANGE, TSTZRANGE, Range
+from sqlalchemy.dialects.postgresql import TSTZRANGE, Range
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -30,7 +30,7 @@ class EventbriteEventOrm(Base, CoordinatesMixin, GetOneByIdMixin):
     title: Mapped[str] = mapped_column()
     time_range_utc: Mapped[Range[datetime]] = mapped_column(TSTZRANGE)
     timezone: Mapped[ZoneInfo] = mapped_column(type_=ZoneInfoColumnType())
-    cost_cents_range: Mapped[Range[int]] = mapped_column(INT4RANGE)
+    max_cost_cents: Mapped[int | None] = mapped_column()
     vivial_activity_category_id: Mapped[UUID] = mapped_column()
     vivial_activity_format_id: Mapped[UUID] = mapped_column()
 
@@ -47,8 +47,7 @@ class EventbriteEventOrm(Base, CoordinatesMixin, GetOneByIdMixin):
         start_time: datetime | None,
         end_time: datetime | None,
         timezone: ZoneInfo | None,
-        min_cost_cents: int | None,
-        max_cost_cents: int | None,
+        max_cost_cents: int,
         lat: float,
         lon: float,
         vivial_activity_category_id: UUID,
@@ -65,14 +64,7 @@ class EventbriteEventOrm(Base, CoordinatesMixin, GetOneByIdMixin):
         self.time_range_utc = Range(lower=start_time, upper=end_time, bounds=_TIMERANGE_BOUNDS)
         self.timezone = timezone or ZoneInfo("UTC")
 
-        # The int4range range type in postgresql always uses the lower-inclusive bounds ("[)"), so the given "bounds" value here is actually ignored on insert.
-        # Because the upper bound is exclusive, but the max_cost_cents value passed in is interpreted as the maximum amount the user is willing to pay (i.e. inclusive),
-        # we therefore add 1 (cent) to the upper bound value so that the given max_cost_cents value is inluded in the range.
-        # https://www.postgresql.org/docs/current/rangetypes.html#RANGETYPES-DISCRETE
-        if max_cost_cents is not None:
-            max_cost_cents += 1
-
-        self.cost_cents_range = Range(lower=min_cost_cents, upper=max_cost_cents, bounds=_COST_BOUNDS)
+        self.max_cost_cents = max_cost_cents
         self.coordinates = GeoPoint(lat=lat, lon=lon).geoalchemy_shape()
         self.vivial_activity_category_id = vivial_activity_category_id
         self.vivial_activity_format_id = vivial_activity_format_id
@@ -83,7 +75,7 @@ class EventbriteEventOrm(Base, CoordinatesMixin, GetOneByIdMixin):
         cls,
         *,
         eventbrite_event_id: str = NOT_SET,
-        cost_range_contains: int | None = NOT_SET,
+        up_to_cost_cents: int | None = NOT_SET,
         time_range_contains: datetime = NOT_SET,
         within_areas: list[GeoArea] = NOT_SET,
         vivial_activity_category_ids: list[UUID] = NOT_SET,
@@ -103,8 +95,8 @@ class EventbriteEventOrm(Base, CoordinatesMixin, GetOneByIdMixin):
                 )
             )
 
-        if cost_range_contains is not NOT_SET and cost_range_contains is not None:
-            lookup = lookup.where(cls.cost_cents_range.contains(cost_range_contains))
+        if up_to_cost_cents is not NOT_SET and up_to_cost_cents is not None:
+            lookup = lookup.where(cls.max_cost_cents <= up_to_cost_cents)
 
         if time_range_contains is not NOT_SET:
             lookup = lookup.where(cls.time_range_utc.contains(time_range_contains.astimezone(UTC)))
