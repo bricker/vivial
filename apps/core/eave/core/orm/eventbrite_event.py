@@ -19,6 +19,7 @@ from .util.constants import PG_UUID_EXPR
 
 _TIMERANGE_BOUNDS = "[)"
 
+
 class EventbriteEventOrm(Base, CoordinatesMixin, GetOneByIdMixin):
     __tablename__ = "eventbrite_events"
     __table_args__ = (PrimaryKeyConstraint("id"),)

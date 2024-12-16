@@ -10,7 +10,11 @@ from ..base import BaseTestCase
 class TestEventbriteEventOrm(BaseTestCase):
     async def test_new_event_record(self) -> None:
         async with self.db_session.begin() as session:
-            obj = EventbriteEventOrm(session, eventbrite_event_id=self.anystr("eventbrite_event_id"))
+            obj = EventbriteEventOrm(
+                session,
+                eventbrite_event_id=self.anystr("eventbrite_event_id"),
+                eventbrite_organizer_id=self.anystr("eventbrite_organizer_id"),
+            )
             obj.update(
                 title=self.anystr(),
                 vivial_activity_category_id=self.anyuuid(),
@@ -33,6 +37,7 @@ class TestEventbriteEventOrm(BaseTestCase):
             ).one()
 
             assert obj.eventbrite_event_id == self.getstr("eventbrite_event_id")
+            assert obj.eventbrite_organizer_id == self.getstr("eventbrite_organizer_id")
             assert obj.time_range_utc.lower == self.getdatetime("start_time")
             assert obj.time_range_utc.upper == self.getdatetime("end_time")
             assert obj.max_cost_cents == self.getint("max_cost")
@@ -40,7 +45,11 @@ class TestEventbriteEventOrm(BaseTestCase):
 
     async def test_query_max_cost(self) -> None:
         async with self.db_session.begin() as session:
-            obj = EventbriteEventOrm(session, eventbrite_event_id=self.anystr("eventbrite_event_id"))
+            obj = EventbriteEventOrm(
+                session,
+                eventbrite_event_id=self.anystr("eventbrite_event_id"),
+                eventbrite_organizer_id=self.anystr("eventbrite_organizer_id"),
+            )
             obj.update(
                 title=self.anystr(),
                 vivial_activity_category_id=self.anyuuid(),
@@ -123,7 +132,11 @@ class TestEventbriteEventOrm(BaseTestCase):
 
     async def test_query_time_range(self) -> None:
         async with self.db_session.begin() as session:
-            obj = EventbriteEventOrm(session, eventbrite_event_id=self.anystr("eventbrite_event_id"))
+            obj = EventbriteEventOrm(
+                session,
+                eventbrite_event_id=self.anystr("eventbrite_event_id"),
+                eventbrite_organizer_id=self.anystr("eventbrite_organizer_id"),
+            )
             obj.update(
                 title=self.anystr(),
                 vivial_activity_category_id=self.anyuuid(),
@@ -201,7 +214,11 @@ class TestEventbriteEventOrm(BaseTestCase):
 
     async def test_query_search_area(self) -> None:
         async with self.db_session.begin() as session:
-            obj = EventbriteEventOrm(session, eventbrite_event_id=self.anystr("eventbrite_event_id"))
+            obj = EventbriteEventOrm(
+                session,
+                eventbrite_event_id=self.anystr("eventbrite_event_id"),
+                eventbrite_organizer_id=self.anystr("eventbrite_organizer_id"),
+            )
             obj.update(
                 title=self.anystr(),
                 vivial_activity_category_id=self.anyuuid(),
@@ -246,7 +263,11 @@ class TestEventbriteEventOrm(BaseTestCase):
 
     async def test_update_existing_record(self) -> None:
         async with self.db_session.begin() as session:
-            obj = EventbriteEventOrm(session, eventbrite_event_id=self.anystr("eventbrite_event_id"))
+            obj = EventbriteEventOrm(
+                session,
+                eventbrite_event_id=self.anystr("eventbrite_event_id"),
+                eventbrite_organizer_id=self.anystr("eventbrite_organizer_id"),
+            )
             obj.update(
                 title=self.anystr(),
                 vivial_activity_category_id=self.anyuuid(),
