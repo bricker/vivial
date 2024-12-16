@@ -98,9 +98,9 @@ document.getElementsByTagName("body")[0]?.addEventListener("click", (ev: MouseEv
   const tagName = target?.tagName || "BODY";
   let innerText: string | null | undefined = target?.innerText;
   if (tagName === "INPUT" || tagName === "FORM") {
-    // track placeholder text if available for identifiability
-    innerText = target?.hasAttribute("placeholder") ? target?.getAttribute("placeholder") : "[redacted]";
+    innerText = "[redacted]";
   }
+  const placeholder = target?.getAttribute("placeholder");
   const href = target?.getAttribute("href");
 
   track({
@@ -109,6 +109,7 @@ document.getElementsByTagName("body")[0]?.addEventListener("click", (ev: MouseEv
       tagName,
       href,
       innerText,
+      placeholder,
     },
   }).catch(() => {
     /* no-op */
