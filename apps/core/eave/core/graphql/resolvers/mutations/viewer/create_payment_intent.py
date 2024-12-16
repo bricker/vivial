@@ -55,7 +55,6 @@ async def create_payment_intent_mutation(
     if account.stripe_customer_id is None:
         stripe_customer = await stripe.Customer.create_async(
             email=account.email,
-            source="vivial-core-api",
             metadata={
                 "vivial_account_id": str(account.id),
             },

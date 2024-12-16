@@ -5,7 +5,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
 import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
@@ -120,7 +119,6 @@ const LogisticsSection = () => {
     );
     const input = {
       startTime: startTime.toISOString(),
-      visitorId: await getVisitorId(),
       groupPreferences,
       budget,
       headcount,
