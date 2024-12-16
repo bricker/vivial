@@ -1,6 +1,15 @@
+import { Breakpoint, isDesktop, useBreakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
 import { styled } from "@mui/material";
+import CircularProgress from "@mui/material/CircularProgress";
 import BaseSkeleton from "@mui/material/Skeleton";
 import React from "react";
+
+const ViewContainer = styled("div")(({ theme }) => ({
+  [theme.breakpoints.up(Breakpoint.Medium)]: {
+    padding: "112px 104px",
+    textAlign: "center",
+  },
+}));
 
 const LogisticsSkeleton = styled(BaseSkeleton)(() => ({
   marginBottom: 47,
@@ -19,6 +28,14 @@ const ActivitySkeleton = styled(BaseSkeleton)(() => ({
 }));
 
 const LoadingView = () => {
+  const breakpoint = useBreakpoint();
+  if (isDesktop(breakpoint)) {
+    return (
+      <ViewContainer>
+        <CircularProgress />
+      </ViewContainer>
+    );
+  }
   return (
     <>
       <LogisticsSkeleton variant="rectangular" width="100%" height={181} />
