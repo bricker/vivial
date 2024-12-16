@@ -1,10 +1,4 @@
-from uuid import UUID
-
 from eave.core.orm.booking import BookingOrm
-from eave.core.orm.search_region import SearchRegionOrm
-from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
-from eave.core.orm.survey import SurveyOrm
-from eave.core.shared.enums import OutingBudget
 
 from ..base import BaseTestCase
 
@@ -69,7 +63,7 @@ class TestUpdateBookingResolver(BaseTestCase):
 
         result = self.parse_graphql_response(response)
         assert not result.data
-        assert result.errors # Currently this just throws an uncaught error.
+        assert result.errors  # Currently this just throws an uncaught error.
 
         async with self.db_session.begin() as session:
             booking_fetched = await BookingOrm.get_one(session, booking.id)
@@ -190,7 +184,9 @@ class TestUpdateBookingResolver(BaseTestCase):
         assert result.data
         assert not result.errors
 
-        assert result.data["viewer"]["updateBooking"]["booking"]["reserverDetails"]["id"] == str(new_reserver_details.id)
+        assert result.data["viewer"]["updateBooking"]["booking"]["reserverDetails"]["id"] == str(
+            new_reserver_details.id
+        )
 
         async with self.db_session.begin() as session:
             booking_fetched = await BookingOrm.get_one(session, booking.id)

@@ -4,29 +4,16 @@ from typing import Annotated
 from uuid import UUID
 
 import strawberry
-import stripe
 
-from eave.core.shared.enums import BookingState
 import eave.stdlib.slack
 from eave.core import database
-from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.resolvers.mutations.helpers.create_outing import get_total_cost_cents
-from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import (
-    StartTimeTooLateError,
-    StartTimeTooSoonError,
-    validate_time_within_bounds_or_exception,
-)
 from eave.core.graphql.types.booking import (
     Booking,
 )
-from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.base import InvalidRecordError
-from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
-from eave.core.orm.outing import OutingOrm
+from eave.core.orm.booking import BookingOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
-from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
@@ -78,7 +65,9 @@ async def update_booking_mutation(
 
         if input.reserver_details_id:
             # It's also important that we make sure the given reserver details ID belongs to the viewer account.
-            reserver_details = await ReserverDetailsOrm.get_one(db_session, account_id=account_id, uid=input.reserver_details_id)
+            reserver_details = await ReserverDetailsOrm.get_one(
+                db_session, account_id=account_id, uid=input.reserver_details_id
+            )
             booking.reserver_details = reserver_details
 
     return UpdateBookingSuccess(

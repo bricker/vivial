@@ -20,17 +20,18 @@ from eave.core.orm.util.user_defined_column_types import (
     RestaurantSourceColumnType,
     StrEnumColumnType,
 )
-from eave.core.shared.enums import ActivitySource, RestaurantSource
-from eave.core.shared.enums import BookingState
+from eave.core.shared.enums import ActivitySource, BookingState, RestaurantSource
 from eave.core.shared.geo import GeoPoint
 from eave.stdlib.typing import NOT_SET
 
 from .base import Base
 from .util.constants import PG_UUID_EXPR, OnDeleteOption
 
+
 class BookingStateColumnType(StrEnumColumnType[BookingState]):
     def enum_member(self, value: str) -> BookingState:
         return BookingState[value]
+
 
 class BookingOrm(Base, GetOneByIdMixin):
     __tablename__ = "bookings"
@@ -38,7 +39,9 @@ class BookingOrm(Base, GetOneByIdMixin):
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
 
-    state: Mapped[BookingState] = mapped_column(type_=BookingStateColumnType(), server_default=BookingState.INITIATED.value)
+    state: Mapped[BookingState] = mapped_column(
+        type_=BookingStateColumnType(), server_default=BookingState.INITIATED.value
+    )
 
     stripe_payment_intent_reference_id: Mapped[UUID | None] = mapped_column(
         ForeignKey(f"{StripePaymentIntentReferenceOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL.value),
@@ -96,6 +99,7 @@ class BookingOrm(Base, GetOneByIdMixin):
             query = query.join(BookingOrm.accounts).where(AccountOrm.id == account_id)
 
         return query
+
 
 class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     """Editable template for a booked activity.

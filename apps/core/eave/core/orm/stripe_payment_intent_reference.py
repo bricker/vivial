@@ -6,8 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.outing import OutingOrm
-from eave.core.orm.reserver_details import ReserverDetailsOrm
 
 from .base import Base
 from .util.constants import PG_UUID_EXPR, OnDeleteOption

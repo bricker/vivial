@@ -29,7 +29,7 @@ const LogInPage = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [searchParams,] = useSearchParams();
+  const [searchParams] = useSearchParams();
 
   let redirectRoute: string = AppRoute.root;
 

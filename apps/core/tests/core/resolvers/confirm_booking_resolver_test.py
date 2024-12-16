@@ -1,13 +1,11 @@
-from uuid import UUID
-
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.search_region import SearchRegionOrm
-from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import BookingState, OutingBudget
 from eave.stdlib.time import ONE_YEAR_IN_SECONDS
 
 from ..base import BaseTestCase
+
 
 class TestConfirmBookingResolver(BaseTestCase):
     async def test_confirm_booking_with_no_reserver_details_set(self) -> None:
@@ -17,7 +15,13 @@ class TestConfirmBookingResolver(BaseTestCase):
             reserver_details = self.make_reserver_details(session, account)
             _reserver_details_alt = self.make_reserver_details(session, account)
             stripe_payment_intent_reference = self.make_stripe_payment_intent_reference(session, account)
-            booking = self.make_booking(session, account, survey, stripe_payment_intent_reference=stripe_payment_intent_reference, reserver_details=None)
+            booking = self.make_booking(
+                session,
+                account,
+                survey,
+                stripe_payment_intent_reference=stripe_payment_intent_reference,
+                reserver_details=None,
+            )
 
         assert booking.state == BookingState.INITIATED
 
@@ -62,7 +66,13 @@ class TestConfirmBookingResolver(BaseTestCase):
             survey = self.make_survey(session, account)
             reserver_details = self.make_reserver_details(session, account)
             stripe_payment_intent_reference = self.make_stripe_payment_intent_reference(session, account)
-            booking = self.make_booking(session, account, survey, stripe_payment_intent_reference=stripe_payment_intent_reference, reserver_details=reserver_details)
+            booking = self.make_booking(
+                session,
+                account,
+                survey,
+                stripe_payment_intent_reference=stripe_payment_intent_reference,
+                reserver_details=reserver_details,
+            )
 
         assert booking.state == BookingState.INITIATED
 
@@ -137,7 +147,9 @@ class TestConfirmBookingResolver(BaseTestCase):
             account = self.make_account(session)
             survey = self.make_survey(session, account)
             stripe_payment_intent_reference = self.make_stripe_payment_intent_reference(session, account)
-            _booking1 = self.make_booking(session, account, survey, stripe_payment_intent_reference=stripe_payment_intent_reference)
+            _booking1 = self.make_booking(
+                session, account, survey, stripe_payment_intent_reference=stripe_payment_intent_reference
+            )
             booking2 = self.make_booking(session, account, survey)
 
         response = await self.make_graphql_request(
@@ -202,7 +214,9 @@ class TestConfirmBookingResolver(BaseTestCase):
             account = self.make_account(session)
             survey = self.make_survey(session, account)
             stripe_payment_intent_reference = self.make_stripe_payment_intent_reference(session, account)
-            booking = self.make_booking(session, account, survey, stripe_payment_intent_reference=stripe_payment_intent_reference)
+            booking = self.make_booking(
+                session, account, survey, stripe_payment_intent_reference=stripe_payment_intent_reference
+            )
 
         self.mock_stripe_payment_intent.status = "requires_action"
 
@@ -266,7 +280,7 @@ class TestConfirmBookingResolver(BaseTestCase):
             assert booking_fetched.state == BookingState.CONFIRMED
 
         assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 0
-        assert self.get_mock("slack client").call_count == 2 # One for parent, one for thread
+        assert self.get_mock("slack client").call_count == 2  # One for parent, one for thread
 
     async def test_confirm_booking_without_payment_intent_payment_required(self) -> None:
         async with self.db_session.begin() as session:
@@ -274,7 +288,9 @@ class TestConfirmBookingResolver(BaseTestCase):
             survey = self.make_survey(session, account)
 
             stripe_payment_intent_reference = self.make_stripe_payment_intent_reference(session, account)
-            booking = self.make_booking(session, account, survey, stripe_payment_intent_reference=stripe_payment_intent_reference)
+            booking = self.make_booking(
+                session, account, survey, stripe_payment_intent_reference=stripe_payment_intent_reference
+            )
 
         assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 0
         assert self.get_mock("slack client").call_count == 0
@@ -309,7 +325,9 @@ class TestConfirmBookingResolver(BaseTestCase):
             account = self.make_account(session)
             survey = self.make_survey(session, account)
             stripe_payment_intent_reference = self.make_stripe_payment_intent_reference(session, account)
-            booking = self.make_booking(session, account, survey, stripe_payment_intent_reference=stripe_payment_intent_reference)
+            booking = self.make_booking(
+                session, account, survey, stripe_payment_intent_reference=stripe_payment_intent_reference
+            )
 
         assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 0
         assert self.get_mock("slack client").call_count == 0
@@ -354,13 +372,20 @@ class TestConfirmBookingResolver(BaseTestCase):
             outing = self.make_outing(session, account, survey)
             reserver_details = self.make_reserver_details(session, account)
             stripe_payment_intent_reference = self.make_stripe_payment_intent_reference(session, account)
-            booking = self.make_booking(session, account, survey, reserver_details=reserver_details, stripe_payment_intent_reference=stripe_payment_intent_reference)
-
+            booking = self.make_booking(
+                session,
+                account,
+                survey,
+                reserver_details=reserver_details,
+                stripe_payment_intent_reference=stripe_payment_intent_reference,
+            )
 
         assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 0
         assert self.get_mock("slack client").call_count == 0
 
-        self.mock_stripe_payment_intent.amount = self.get_mock_eventbrite_ticket_class_batch_cost() * outing.survey.headcount + 1000
+        self.mock_stripe_payment_intent.amount = (
+            self.get_mock_eventbrite_ticket_class_batch_cost() * outing.survey.headcount + 1000
+        )
 
         response = await self.make_graphql_request(
             "confirmBooking",

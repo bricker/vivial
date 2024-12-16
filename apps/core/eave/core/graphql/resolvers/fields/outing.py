@@ -11,11 +11,9 @@ from eave.core.graphql.types.outing import (
 )
 from eave.core.graphql.types.pricing import CostBreakdown
 from eave.core.graphql.types.restaurant import Restaurant
-from eave.core.graphql.types.search_region import SearchRegion
 from eave.core.graphql.types.survey import Survey
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.outing import OutingOrm
-from eave.core.orm.search_region import SearchRegionOrm
 
 
 @strawberry.input

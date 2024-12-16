@@ -1,4 +1,3 @@
-import math
 import uuid
 
 from google.maps.places import PlacesAsyncClient
@@ -22,9 +21,7 @@ from eave.core.lib.google_places import (
 from eave.core.orm.activity import ActivityOrm
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
-from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
-from eave.core.shared.geo import GeoPoint
 from eave.stdlib.eventbrite.client import EventbriteClient
 
 

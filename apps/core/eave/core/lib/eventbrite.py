@@ -3,13 +3,11 @@ from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.pricing import CostBreakdown
-from eave.core.graphql.types.search_region import SearchRegion
 from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.lib.address import format_address
 from eave.core.lib.google_places import google_maps_directions_url
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
-from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.shared.enums import ActivitySource
 from eave.core.shared.geo import GeoPoint
 from eave.stdlib.eventbrite.client import EventbriteClient, GetEventQuery, ListTicketClassesForSaleQuery

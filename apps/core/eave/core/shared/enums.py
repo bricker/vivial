@@ -1,5 +1,4 @@
 import enum
-from enum import StrEnum
 
 import strawberry
 from google.maps.places_v1 import PriceLevel

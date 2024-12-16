@@ -133,7 +133,9 @@ class TestBookingOrms(BaseTestCase):
                 assert len(bookings_fetched[0].accounts) == 1
                 assert bookings_fetched[0].accounts[0].id == accounts[i].id
 
-            bookings_fetched_invalid_account_id = (await session.scalars(BookingOrm.select(account_id=self.anyuuid()))).all()
+            bookings_fetched_invalid_account_id = (
+                await session.scalars(BookingOrm.select(account_id=self.anyuuid()))
+            ).all()
             assert len(bookings_fetched_invalid_account_id) == 0
 
     async def test_booking_account_and_uid_select(self) -> None:
@@ -152,15 +154,21 @@ class TestBookingOrms(BaseTestCase):
 
         async with self.db_session.begin() as session:
             for i in range(5):
-                bookings_fetched = (await session.scalars(BookingOrm.select(account_id=accounts[i].id, uid=bookings[i].id))).all()
+                bookings_fetched = (
+                    await session.scalars(BookingOrm.select(account_id=accounts[i].id, uid=bookings[i].id))
+                ).all()
                 assert len(bookings_fetched) == 1
                 assert len(bookings_fetched[0].accounts) == 1
                 assert bookings_fetched[0].accounts[0].id == accounts[i].id
 
-                bookings_fetched_mismatched_account_id = (await session.scalars(BookingOrm.select(account_id=accounts[(i + 1) % 5].id, uid=bookings[i].id))).all()
+                bookings_fetched_mismatched_account_id = (
+                    await session.scalars(BookingOrm.select(account_id=accounts[(i + 1) % 5].id, uid=bookings[i].id))
+                ).all()
                 assert len(bookings_fetched_mismatched_account_id) == 0
 
-                bookings_fetched_mismatched_uid = (await session.scalars(BookingOrm.select(account_id=accounts[i].id, uid=bookings[(i + 1) % 5].id))).all()
+                bookings_fetched_mismatched_uid = (
+                    await session.scalars(BookingOrm.select(account_id=accounts[i].id, uid=bookings[(i + 1) % 5].id))
+                ).all()
                 assert len(bookings_fetched_mismatched_uid) == 0
 
     async def test_booking_account_and_uid_select_with_multiple_bookings(self) -> None:
@@ -200,13 +208,17 @@ class TestBookingOrms(BaseTestCase):
             )
 
         async with self.db_session.begin() as session:
-            bookings_fetched = (await session.scalars(BookingOrm.select(account_id=accounts[0].id, uid=booking.id))).all()
+            bookings_fetched = (
+                await session.scalars(BookingOrm.select(account_id=accounts[0].id, uid=booking.id))
+            ).all()
             assert len(bookings_fetched) == 1
             assert bookings_fetched[0].id == booking.id
             assert len(bookings_fetched[0].accounts) == 2
             assert bookings_fetched[0].accounts[0].id == accounts[0].id
 
-            bookings_fetched_by_other_account_id = (await session.scalars(BookingOrm.select(account_id=accounts[1].id, uid=booking.id))).all()
+            bookings_fetched_by_other_account_id = (
+                await session.scalars(BookingOrm.select(account_id=accounts[1].id, uid=booking.id))
+            ).all()
             assert len(bookings_fetched_by_other_account_id) == 1
             assert bookings_fetched_by_other_account_id[0].id == booking.id
             assert len(bookings_fetched_by_other_account_id[0].accounts) == 2
@@ -221,7 +233,9 @@ class TestBookingOrms(BaseTestCase):
             )
 
         async with self.db_session.begin() as session:
-            other_bookings_fetched = (await session.scalars(BookingOrm.select(account_id=accounts[1].id, uid=other_booking.id))).all()
+            other_bookings_fetched = (
+                await session.scalars(BookingOrm.select(account_id=accounts[1].id, uid=other_booking.id))
+            ).all()
             assert len(other_bookings_fetched) == 1
             assert other_bookings_fetched[0].id == other_booking.id
             assert len(other_bookings_fetched[0].accounts) == 1

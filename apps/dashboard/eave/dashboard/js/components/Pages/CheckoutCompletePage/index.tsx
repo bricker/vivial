@@ -89,7 +89,7 @@ const ConfirmationOption = ({ option }: { option: ConfirmationOptionDetail }) =>
 const confirmationOptions: ConfirmationOptionDetail[] = [
   {
     attrs: logos["vivial"]!,
-    text: "for a itinerary confirmation and receipt (if applicable).",
+    text: "for an itinerary confirmation and receipt (if applicable).",
   },
   {
     attrs: logos["opentable"]!,

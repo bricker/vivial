@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import { AppRoute, routePath, SearchParam } from "$eave-dashboard/js/routes";
+import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
@@ -16,9 +16,6 @@ import { getRegionIds } from "$eave-dashboard/js/util/region";
 
 import PrimaryButton from "$eave-dashboard/js/components/Buttons/PrimaryButton";
 import RerollButton from "$eave-dashboard/js/components/Buttons/RerollButton";
-import CheckoutReservation from "$eave-dashboard/js/components/CheckoutReservation";
-import StripeBadge from "$eave-dashboard/js/components/CheckoutReservation/StripeBadge";
-import Modal from "$eave-dashboard/js/components/Modal";
 import Typography from "@mui/material/Typography";
 import VivialBadge from "./VivialBadge";
 
@@ -95,13 +92,15 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         outingPreferencesData?.activityCategoryGroups,
         outingPreferencesData?.restaurantCategories,
       );
-      await planOuting({ input: {
-        startTime: new Date(outing.restaurantArrivalTime || "").toISOString(),
-        searchAreaIds: getRegionIds(outing),
-        budget: outing.survey!.budget, // FIXME: survey can be null
-        headcount: outing.survey!.headcount, // FIXME: survey can be null
-        groupPreferences,
-      }});
+      await planOuting({
+        input: {
+          startTime: new Date(outing.restaurantArrivalTime || "").toISOString(),
+          searchAreaIds: getRegionIds(outing),
+          budget: outing.survey!.budget, // FIXME: survey can be null
+          headcount: outing.survey!.headcount, // FIXME: survey can be null
+          groupPreferences,
+        },
+      });
     }
   }, [outingPreferencesData, userPreferences, partnerPreferences, outing]);
 

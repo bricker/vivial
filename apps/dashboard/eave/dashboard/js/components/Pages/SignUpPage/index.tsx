@@ -38,7 +38,6 @@ const SignUpPage = () => {
   const dispatch = useDispatch();
   const variant = searchParams.get(SearchParam.variant) as SignUpPageVariant;
 
-
   let title = "Create a free account to book";
   let subtitle = "";
   let allowClose = false;

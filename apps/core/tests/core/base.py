@@ -19,7 +19,6 @@ from strawberry.types import ExecutionResult
 import eave.core.app
 import eave.core.database
 import eave.core.orm
-from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 import eave.stdlib.testing_util
 import eave.stdlib.typing
 from eave.core._database_setup import get_base_metadata, init_database
@@ -33,6 +32,7 @@ from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservation
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
+from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
 from eave.core.shared.geo import GeoPoint
@@ -253,16 +253,21 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         )
         return reserver_details
 
-    def make_stripe_payment_intent_reference(self, session: AsyncSession, account: AccountOrm) -> StripePaymentIntentReferenceOrm:
+    def make_stripe_payment_intent_reference(
+        self, session: AsyncSession, account: AccountOrm
+    ) -> StripePaymentIntentReferenceOrm:
         stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
-            session,
-            account=account,
-            stripe_payment_intent_id=self.mock_stripe_payment_intent.id
+            session, account=account, stripe_payment_intent_id=self.mock_stripe_payment_intent.id
         )
         return stripe_payment_intent_reference
 
     def make_booking(
-        self, session: AsyncSession, account: AccountOrm, survey: SurveyOrm, stripe_payment_intent_reference: StripePaymentIntentReferenceOrm | None = None, reserver_details: ReserverDetailsOrm | None = None
+        self,
+        session: AsyncSession,
+        account: AccountOrm,
+        survey: SurveyOrm,
+        stripe_payment_intent_reference: StripePaymentIntentReferenceOrm | None = None,
+        reserver_details: ReserverDetailsOrm | None = None,
     ) -> BookingOrm:
         booking = BookingOrm(
             session,
@@ -372,7 +377,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
     mock_google_places_photo_media: PhotoMedia
 
     def _add_google_places_client_mocks(self) -> None:
-        self.mock_google_place =Place(
+        self.mock_google_place = Place(
             id=self.anystr("Place.id"),
         )
 
@@ -384,7 +389,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             patch=unittest.mock.patch(
                 "google.maps.places_v1.services.places.async_client.PlacesAsyncClient.search_nearby"
             ),
-            side_effect=_mock_google_places_search_nearby
+            side_effect=_mock_google_places_search_nearby,
         )
 
         async def _mock_google_places_get_place(*args, **kwargs) -> Place:
@@ -393,7 +398,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         self.patch(
             name="PlacesAsyncClient.get_place",
             patch=unittest.mock.patch("google.maps.places_v1.services.places.async_client.PlacesAsyncClient.get_place"),
-            side_effect=_mock_google_places_get_place
+            side_effect=_mock_google_places_get_place,
         )
 
         self.mock_google_places_photo_media = PhotoMedia(
@@ -409,7 +414,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             patch=unittest.mock.patch(
                 "google.maps.places_v1.services.places.async_client.PlacesAsyncClient.get_photo_media"
             ),
-            side_effect=_mock_google_places_get_photo_media
+            side_effect=_mock_google_places_get_photo_media,
         )
 
     def random_search_areas(self, k: int = 3) -> list[SearchRegionOrm]:

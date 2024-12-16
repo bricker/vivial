@@ -6,7 +6,6 @@ from uuid import UUID
 import strawberry
 import stripe
 
-from eave.core.shared.enums import BookingState
 import eave.stdlib.slack
 from eave.core import database
 from eave.core.analytics import ANALYTICS
@@ -19,15 +18,12 @@ from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import 
 )
 from eave.core.graphql.types.booking import (
     Booking,
-    BookingDetails,
 )
-from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.base import InvalidRecordError
-from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
-from eave.core.orm.outing import OutingOrm
+from eave.core.orm.booking import BookingOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
+from eave.core.shared.enums import BookingState
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
@@ -66,7 +62,9 @@ class ConfirmBookingFailure:
     validation_errors: list[ValidationError] | None = None
 
 
-ConfirmBookingResult = Annotated[ConfirmBookingSuccess | ConfirmBookingFailure, strawberry.union("ConfirmBookingResult")]
+ConfirmBookingResult = Annotated[
+    ConfirmBookingSuccess | ConfirmBookingFailure, strawberry.union("ConfirmBookingResult")
+]
 
 
 async def confirm_booking_mutation(
@@ -97,7 +95,9 @@ async def confirm_booking_mutation(
         # TODO: This is messy, consolidate all of these duplicate checks into one place
         # validate outing time still valid to book
         try:
-            validate_time_within_bounds_or_exception(start_time=booking.survey.start_time_utc, timezone=booking.survey.timezone)
+            validate_time_within_bounds_or_exception(
+                start_time=booking.survey.start_time_utc, timezone=booking.survey.timezone
+            )
         except StartTimeTooSoonError:
             return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.START_TIME_TOO_SOON)
         except StartTimeTooLateError:
@@ -182,7 +182,9 @@ async def confirm_booking_mutation(
                 "headcount": booking.survey.headcount,
                 "budget": booking.survey.budget,
                 "search_areas": [str(i) for i in booking.survey.search_area_ids],
-            } if booking.survey else {}
+            }
+            if booking.survey
+            else {}
         },
     )
 

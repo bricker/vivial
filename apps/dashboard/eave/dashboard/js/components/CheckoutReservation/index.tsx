@@ -1,5 +1,4 @@
 import {
-  Outing,
   SubmitReserverDetailsFailureReason,
   UpdateReserverDetailsFailureReason,
   type BookingDetails,
@@ -10,7 +9,6 @@ import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 import {
   useListReserverDetailsQuery,
   useSubmitReserverDetailsMutation,
-  useUpdateBookingMutation,
   useUpdateReserverDetailsMutation,
 } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { storeReserverDetails } from "$eave-dashboard/js/store/slices/reserverDetailsSlice";
@@ -326,7 +324,7 @@ const CheckoutForm = ({
             return null;
           }
 
-          const returnPath = routePath(AppRoute.checkoutComplete, { bookingId: localBookingDetails.id })
+          const returnPath = routePath(AppRoute.checkoutComplete, { bookingId: localBookingDetails.id });
 
           const _response = await stripeClient.confirmPayment({
             elements: stripeElements,

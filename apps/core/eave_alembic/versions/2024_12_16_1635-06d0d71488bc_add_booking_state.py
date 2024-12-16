@@ -6,11 +6,10 @@ Create Date: 2024-12-16 16:35:13.105460
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 from eave.core.orm.booking import BookingStateColumnType
-
 
 # revision identifiers, used by Alembic.
 revision = "06d0d71488bc"

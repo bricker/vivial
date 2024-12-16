@@ -34,6 +34,7 @@ class BookingDetailPeek:
     photo_uri: str | None
     state: BookingState
 
+
 @strawberry.type
 class BookingDetails(Outing):
     pass

@@ -28,11 +28,7 @@ class TestInitiateBookingResolver(BaseTestCase):
         tax = self.mock_eventbrite_ticket_class_batch[0].get("tax")
         assert cost and tax and fee
 
-        self.mock_stripe_payment_intent.amount = (
-            cost["value"] +
-            fee["value"] +
-            tax["value"]
-        ) * survey.headcount
+        self.mock_stripe_payment_intent.amount = (cost["value"] + fee["value"] + tax["value"]) * survey.headcount
 
         response = await self.make_graphql_request(
             "initiateBooking",
@@ -247,17 +243,12 @@ class TestInitiateBookingResolver(BaseTestCase):
 
         assert (
             create_payment_intent_mock.call_args_list[0].kwargs["amount"]
-            == (
-                cost["value"] +
-                fee["value"] +
-                tax["value"]
-            ) * outing.survey.headcount
+            == (cost["value"] + fee["value"] + tax["value"]) * outing.survey.headcount
         )
 
         create_customer_mock = self.get_mock("stripe.Customer.create_async")
         assert create_customer_mock.call_count == 1
         assert create_customer_mock.call_args_list[0].kwargs["metadata"]["vivial_account_id"] == str(account.id)
-
 
     async def test_create_payment_intent_with_existing_customer_id_doesnt_create_stripe_customer_account(self) -> None:
         async with self.db_session.begin() as session:

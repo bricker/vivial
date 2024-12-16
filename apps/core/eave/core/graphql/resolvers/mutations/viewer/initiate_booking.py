@@ -1,38 +1,32 @@
 import enum
-from textwrap import dedent
 from typing import Annotated
 from uuid import UUID
 
 import strawberry
 import stripe
 
-from eave.core.graphql.types.payment_intent import PaymentIntent
-from eave.core.graphql.types.pricing import CostBreakdown
-from eave.core.graphql.types.survey import Survey
-from eave.core.shared.enums import BookingState
-import eave.stdlib.slack
 from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.resolvers.mutations.helpers.create_outing import get_total_cost_cents
 from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import (
     StartTimeTooLateError,
     StartTimeTooSoonError,
     validate_time_within_bounds_or_exception,
 )
 from eave.core.graphql.types.booking import (
-    Booking,
     BookingDetails,
 )
+from eave.core.graphql.types.payment_intent import PaymentIntent
+from eave.core.graphql.types.pricing import CostBreakdown
+from eave.core.graphql.types.survey import Survey
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
 from eave.core.orm.outing import OutingOrm
-from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
+from eave.core.shared.enums import BookingState
 from eave.core.shared.errors import ValidationError
-from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.util import unwrap
 
@@ -62,7 +56,9 @@ class InitiateBookingFailure:
     validation_errors: list[ValidationError] | None = None
 
 
-InitiateBookingResult = Annotated[InitiateBookingSuccess | InitiateBookingFailure, strawberry.union("InitiateBookingResult")]
+InitiateBookingResult = Annotated[
+    InitiateBookingSuccess | InitiateBookingFailure, strawberry.union("InitiateBookingResult")
+]
 
 
 async def initiate_booking_mutation(
@@ -97,9 +93,9 @@ async def initiate_booking_mutation(
             booking = BookingOrm(
                 db_session,
                 accounts=[account_orm],
-                reserver_details=None, # At this point, the client hasn't given us this information.
+                reserver_details=None,  # At this point, the client hasn't given us this information.
                 survey=survey_orm,
-                stripe_payment_intent_reference=None, # Not created yet
+                stripe_payment_intent_reference=None,  # Not created yet
                 state=BookingState.INITIATED,
             )
 
@@ -112,7 +108,7 @@ async def initiate_booking_mutation(
                         booking_details_activity_start_time = activity_orm.start_time_local
 
                     if activity.ticket_info:
-                        booking_details_cost_breakdown += (activity.ticket_info.cost_breakdown * activity_orm.headcount)
+                        booking_details_cost_breakdown += activity.ticket_info.cost_breakdown * activity_orm.headcount
 
                     booking.activities.append(
                         BookingActivityTemplateOrm(
@@ -203,7 +199,9 @@ async def initiate_booking_mutation(
                 db_session.add(booking)
                 booking.stripe_payment_intent_reference = stripe_payment_intent_reference_orm
 
-            graphql_payment_intent = PaymentIntent(id=stripe_payment_intent.id, client_secret=stripe_payment_intent.client_secret)
+            graphql_payment_intent = PaymentIntent(
+                id=stripe_payment_intent.id, client_secret=stripe_payment_intent.client_secret
+            )
         else:
             graphql_payment_intent = None
 
@@ -224,13 +222,13 @@ async def initiate_booking_mutation(
                 "headcount": survey_orm.headcount,
                 "budget": survey_orm.budget,
                 "search_areas": [str(i) for i in survey_orm.search_area_ids],
-            }
+            },
         },
     )
 
     return InitiateBookingSuccess(
         booking=BookingDetails(
-            id=booking.id, # Warning: This is NULL until the Booking object is persisted!
+            id=booking.id,  # Warning: This is NULL until the Booking object is persisted!
             survey=Survey.from_orm(booking.survey) if booking.survey else None,
             cost_breakdown=booking_details_cost_breakdown,
             activity=booking_details_activity,
