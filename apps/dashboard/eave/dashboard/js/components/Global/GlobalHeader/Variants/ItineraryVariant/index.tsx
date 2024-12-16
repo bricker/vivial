@@ -1,15 +1,14 @@
-import VivialLogo from "$eave-dashboard/js/components/Logo";
-import { AppRoute } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
-
+import { getTotalCost } from "$eave-dashboard/js/util/currency";
 import { styled } from "@mui/material";
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-
-import { getFormattedTotalCost } from "$eave-dashboard/js/components/Pages/DateItineraryPage/helpers";
 
 import PrimaryButton from "$eave-dashboard/js/components/Buttons/PrimaryButton";
+import CheckoutReservation from "$eave-dashboard/js/components/CheckoutReservation";
+import StripeBadge from "$eave-dashboard/js/components/CheckoutReservation/StripeBadge";
+import VivialLogo from "$eave-dashboard/js/components/Logo";
+import Modal from "$eave-dashboard/js/components/Modal";
 import Typography from "@mui/material/Typography";
 import Header from "../../Shared/Header";
 
@@ -23,27 +22,34 @@ const Cost = styled("span")(() => ({
 }));
 
 const ItineraryVariant = () => {
+  const [bookingOpen, setBookingOpen] = useState(false);
   const outing = useSelector((state: RootState) => state.outing.details);
-  const cost = getFormattedTotalCost(outing);
-  const navigate = useNavigate();
+  const hasCost = !!outing?.costBreakdown?.totalCostCents;
 
-  const handleBook = useCallback(() => {
-    if (outing) {
-      navigate(`${AppRoute.checkout}/${outing.id}`);
-    }
-  }, [outing]);
+  const toggleBookingOpen = useCallback(() => {
+    setBookingOpen(!bookingOpen);
+  }, [bookingOpen]);
 
   return (
     <Header>
-      <VivialLogo hideText />
-      {cost && (
-        <Typography variant="subtitle1">
-          Total: <Cost>{cost}</Cost>
-        </Typography>
+      <VivialLogo hideText={hasCost} />
+      {hasCost && (
+        <>
+          <Typography variant="subtitle1">
+            Total: <Cost>{getTotalCost(outing)}</Cost>
+          </Typography>
+          <BookButton onClick={toggleBookingOpen}>Book</BookButton>
+          <Modal
+            title="Booking Info"
+            onClose={toggleBookingOpen}
+            open={bookingOpen}
+            badge={<StripeBadge />}
+            padChildren={false}
+          >
+            <CheckoutReservation outingId={outing.id} />
+          </Modal>
+        </>
       )}
-      <BookButton onClick={handleBook} disabled={!outing}>
-        Book
-      </BookButton>
     </Header>
   );
 };

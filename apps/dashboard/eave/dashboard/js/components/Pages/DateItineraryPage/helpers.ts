@@ -1,19 +1,7 @@
-import { type Outing, type OutingBudget, type Photos } from "$eave-dashboard/js/graphql/generated/graphql";
+import { type OutingBudget, type Photos } from "$eave-dashboard/js/graphql/generated/graphql";
 import { getBudgetLabel } from "$eave-dashboard/js/util/budget";
-import { currencyFormatter } from "$eave-dashboard/js/util/currency";
 import { getDayOfWeek, getMonth, getTimeOfDay } from "$eave-dashboard/js/util/date";
 import { getMultiRegionLabel } from "$eave-dashboard/js/util/region";
-
-export function getFormattedTotalCost(outing: Outing | null): string | null {
-  if (outing) {
-    const totalCostCents = outing.costBreakdown.totalCostCents;
-    if (totalCostCents > 0) {
-      return currencyFormatter.format(totalCostCents / 100);
-    }
-  }
-
-  return null;
-}
 
 export function getTimeLabel(startTime: Date): string {
   const weekday = getDayOfWeek(startTime);
