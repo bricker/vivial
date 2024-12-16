@@ -1,8 +1,8 @@
-import { type Booking, type Outing, type OutingPreferences } from "$eave-dashboard/js/graphql/generated/graphql";
+import { type Booking, type BookingDetails, type Outing, type OutingPreferences } from "$eave-dashboard/js/graphql/generated/graphql";
 import { createSlice } from "@reduxjs/toolkit";
 
 export interface BookingState {
-  booking?: Booking;
+  booking?: BookingDetails;
 }
 
 const initialState: BookingState = {

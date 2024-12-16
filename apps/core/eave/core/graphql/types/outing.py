@@ -6,6 +6,7 @@ import strawberry
 from eave.core.graphql.types.pricing import CostBreakdown
 from eave.core.graphql.types.search_region import SearchRegion
 from eave.core.graphql.types.survey import Survey
+from eave.core.orm.outing import OutingOrm
 
 from .activity import Activity
 from .restaurant import Restaurant
@@ -21,7 +22,7 @@ class OutingPreferencesInput:
 class Outing:
     id: UUID
     cost_breakdown: CostBreakdown
-    survey: Survey
+    survey: Survey | None
     activity: Activity | None
     activity_start_time: datetime | None
     activity_region: SearchRegion | None

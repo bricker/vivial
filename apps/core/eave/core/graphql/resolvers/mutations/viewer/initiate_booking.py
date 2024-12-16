@@ -7,6 +7,8 @@ import strawberry
 import stripe
 
 from eave.core.graphql.types.payment_intent import PaymentIntent
+from eave.core.graphql.types.pricing import CostBreakdown
+from eave.core.graphql.types.survey import Survey
 from eave.core.shared.enums import BookingState
 import eave.stdlib.slack
 from eave.core import database
@@ -20,6 +22,7 @@ from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import 
 )
 from eave.core.graphql.types.booking import (
     Booking,
+    BookingDetails,
 )
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.account import AccountOrm
@@ -41,7 +44,7 @@ class InitiateBookingInput:
 
 @strawberry.type
 class InitiateBookingSuccess:
-    booking: Booking
+    booking: BookingDetails
     payment_intent: PaymentIntent | None
 
 
@@ -96,12 +99,31 @@ async def initiate_booking_mutation(
                 state=BookingState.INITIATED,
             )
 
+            booking_details = BookingDetails(
+                id=booking.id,
+                survey=Survey.from_orm(booking.survey) if booking.survey else None,
+                cost_breakdown=CostBreakdown(),
+                activity=None,
+                activity_start_time=None,
+                restaurant=None,
+                restaurant_arrival_time=None,
+                driving_time=None,  # TODO: can we fill this in?
+                activity_region=None,
+                restaurant_region=None,
+            )
+
+
             for activity_orm in outing_orm.activities:
                 activity = await get_activity(source=activity_orm.source, source_id=activity_orm.source_id)
 
                 if activity:
+                    if not booking_details.activity:
+                        booking_details.activity = activity
+                        booking_details.activity_start_time = activity_orm.start_time_local
+                        booking_details.activity_region = activity_orm.region
+
                     if activity.ticket_info:
-                        outing_total_cost_cents += activity.ticket_info.cost_breakdown.total_cost_cents_internal * activity_orm.headcount
+                        booking_details.cost_breakdown += (activity.ticket_info.cost_breakdown * activity_orm.headcount)
 
                     booking.activities.append(
                         BookingActivityTemplateOrm(
@@ -126,6 +148,11 @@ async def initiate_booking_mutation(
                     source_id=reservation_orm.source_id,
                 )
 
+                if not booking_details.restaurant:
+                    booking_details.restaurant= reservation
+                    booking_details.restaurant_arrival_time = reservation_orm.start_time_local
+                    booking_details.restaurant_region = reservation_orm.region
+
                 booking.reservations.append(
                     BookingReservationTemplateOrm(
                         db_session,
@@ -147,7 +174,6 @@ async def initiate_booking_mutation(
             if account_orm.stripe_customer_id is None:
                 stripe_customer = await stripe.Customer.create_async(
                     email=account_orm.email,
-                    source="vivial-core-api",
                     metadata={
                         "vivial_account_id": str(account_orm.id),
                     },
@@ -215,6 +241,6 @@ async def initiate_booking_mutation(
     )
 
     return InitiateBookingSuccess(
-        booking=Booking.from_orm(booking),
+        booking=BookingDetails.from_orm(booking),
         payment_intent=graphql_payment_intent,
     )

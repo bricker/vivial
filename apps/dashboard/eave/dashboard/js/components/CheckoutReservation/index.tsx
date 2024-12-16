@@ -112,7 +112,6 @@ const CheckoutForm = ({
   const booking = useSelector((state: RootState) => state.booking.booking);
 
   const { data: reserverDetailsData, isLoading: listDetailsIsLoading } = useListReserverDetailsQuery({});
-  const { data: outingData, isLoading: outingIsLoading } = useGetOutingQuery({ input: { id: outingId } });
   const [updateReserverDetails, { isLoading: updateDetailsIsLoading }] = useUpdateReserverDetailsMutation();
   const [submitReserverDetails, { isLoading: submitDetailsIsLoading }] = useSubmitReserverDetailsMutation();
   const [updateBooking, { isLoading: updateBookingIsLoading }] = useUpdateBookingMutation();
@@ -319,6 +318,11 @@ const CheckoutForm = ({
 
         // execute the payment
         if (isPaidActivity) {
+          if (!booking) {
+            console.warn("no booking is set");
+            return null;
+          }
+
           const returnPath = routePath(AppRoute.checkoutComplete, { bookingId: booking.id })
 
           // TODO: send w/ existing payment details when not using new card
