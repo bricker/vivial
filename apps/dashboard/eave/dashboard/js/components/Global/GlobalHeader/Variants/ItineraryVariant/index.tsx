@@ -1,5 +1,5 @@
 import VivialLogo from "$eave-dashboard/js/components/Logo";
-import { AppRoute } from "$eave-dashboard/js/routes";
+import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 
 import { styled } from "@mui/material";
@@ -29,7 +29,8 @@ const ItineraryVariant = () => {
 
   const handleBook = useCallback(() => {
     if (outing) {
-      navigate(`${AppRoute.checkoutReserve}/${outing.id}`);
+      const reservePath = routePath(AppRoute.checkoutReserve, { outingId: outing.id })
+      navigate(reservePath);
     }
   }, [outing]);
 

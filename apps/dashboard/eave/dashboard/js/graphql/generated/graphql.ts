@@ -82,10 +82,11 @@ export type Address = {
 
 export type AuthenticatedViewerMutations = {
   __typename?: 'AuthenticatedViewerMutations';
-  createBooking: CreateBookingResult;
-  createPaymentIntent: CreatePaymentIntentResult;
+  confirmBooking: ConfirmBookingResult;
+  initiateBooking: InitiateBookingResult;
   submitReserverDetails: SubmitReserverDetailsResult;
   updateAccount: UpdateAccountResult;
+  updateBooking: UpdateBookingResult;
   updateOutingPreferences: UpdateOutingPreferencesResult;
   updatePreferences: UpdateOutingPreferencesResult;
   updateReserverDetails: UpdateReserverDetailsResult;
@@ -93,13 +94,13 @@ export type AuthenticatedViewerMutations = {
 };
 
 
-export type AuthenticatedViewerMutationsCreateBookingArgs = {
-  input: CreateBookingInput;
+export type AuthenticatedViewerMutationsConfirmBookingArgs = {
+  input: ConfirmBookingInput;
 };
 
 
-export type AuthenticatedViewerMutationsCreatePaymentIntentArgs = {
-  input: CreatePaymentIntentInput;
+export type AuthenticatedViewerMutationsInitiateBookingArgs = {
+  input: InitiateBookingInput;
 };
 
 
@@ -110,6 +111,11 @@ export type AuthenticatedViewerMutationsSubmitReserverDetailsArgs = {
 
 export type AuthenticatedViewerMutationsUpdateAccountArgs = {
   input: UpdateAccountInput;
+};
+
+
+export type AuthenticatedViewerMutationsUpdateBookingArgs = {
+  input: UpdateBookingInput;
 };
 
 
@@ -153,7 +159,7 @@ export enum AuthenticationFailureReason {
 export type Booking = {
   __typename?: 'Booking';
   id: Scalars['UUID']['output'];
-  reserverDetailsId: Scalars['UUID']['output'];
+  reserverDetails?: Maybe<ReserverDetails>;
   state: BookingState;
 };
 
@@ -183,11 +189,38 @@ export type BookingDetails = {
 };
 
 export enum BookingState {
+  Booked = 'BOOKED',
   Canceled = 'CANCELED',
   Confirmed = 'CONFIRMED',
-  Initiated = 'INITIATED',
-  Pending = 'PENDING'
+  Initiated = 'INITIATED'
 }
+
+export type ConfirmBookingFailure = {
+  __typename?: 'ConfirmBookingFailure';
+  failureReason: ConfirmBookingFailureReason;
+  validationErrors?: Maybe<Array<ValidationError>>;
+};
+
+export enum ConfirmBookingFailureReason {
+  BookingNotFound = 'BOOKING_NOT_FOUND',
+  InvalidPaymentIntent = 'INVALID_PAYMENT_INTENT',
+  PaymentRequired = 'PAYMENT_REQUIRED',
+  StartTimeTooLate = 'START_TIME_TOO_LATE',
+  StartTimeTooSoon = 'START_TIME_TOO_SOON',
+  ValidationErrors = 'VALIDATION_ERRORS'
+}
+
+export type ConfirmBookingInput = {
+  bookingId: Scalars['UUID']['input'];
+  paymentIntent?: InputMaybe<PaymentIntentInput>;
+};
+
+export type ConfirmBookingResult = ConfirmBookingFailure | ConfirmBookingSuccess;
+
+export type ConfirmBookingSuccess = {
+  __typename?: 'ConfirmBookingSuccess';
+  booking: Booking;
+};
 
 export type CostBreakdown = {
   __typename?: 'CostBreakdown';
@@ -221,55 +254,6 @@ export type CreateAccountSuccess = {
   account: Account;
 };
 
-export type CreateBookingFailure = {
-  __typename?: 'CreateBookingFailure';
-  failureReason: CreateBookingFailureReason;
-  validationErrors?: Maybe<Array<ValidationError>>;
-};
-
-export enum CreateBookingFailureReason {
-  InvalidOuting = 'INVALID_OUTING',
-  InvalidPaymentIntent = 'INVALID_PAYMENT_INTENT',
-  PaymentRequired = 'PAYMENT_REQUIRED',
-  StartTimeTooLate = 'START_TIME_TOO_LATE',
-  StartTimeTooSoon = 'START_TIME_TOO_SOON',
-  ValidationErrors = 'VALIDATION_ERRORS'
-}
-
-export type CreateBookingInput = {
-  outingId: Scalars['UUID']['input'];
-  paymentIntent?: InputMaybe<PaymentIntentInput>;
-  reserverDetailsId: Scalars['UUID']['input'];
-};
-
-export type CreateBookingResult = CreateBookingFailure | CreateBookingSuccess;
-
-export type CreateBookingSuccess = {
-  __typename?: 'CreateBookingSuccess';
-  booking: Booking;
-};
-
-export type CreatePaymentIntentFailure = {
-  __typename?: 'CreatePaymentIntentFailure';
-  failureReason: CreatePaymentIntentFailureReason;
-};
-
-export enum CreatePaymentIntentFailureReason {
-  PaymentIntentFailed = 'PAYMENT_INTENT_FAILED',
-  Unknown = 'UNKNOWN'
-}
-
-export type CreatePaymentIntentInput = {
-  outingId: Scalars['UUID']['input'];
-};
-
-export type CreatePaymentIntentResult = CreatePaymentIntentFailure | CreatePaymentIntentSuccess;
-
-export type CreatePaymentIntentSuccess = {
-  __typename?: 'CreatePaymentIntentSuccess';
-  paymentIntent: PaymentIntent;
-};
-
 export type GeoPoint = {
   __typename?: 'GeoPoint';
   lat: Scalars['Float']['output'];
@@ -278,6 +262,31 @@ export type GeoPoint = {
 
 export type GetBookingDetailsQueryInput = {
   bookingId: Scalars['UUID']['input'];
+};
+
+export type InitiateBookingFailure = {
+  __typename?: 'InitiateBookingFailure';
+  failureReason: InitiateBookingFailureReason;
+  validationErrors?: Maybe<Array<ValidationError>>;
+};
+
+export enum InitiateBookingFailureReason {
+  PaymentIntentFailed = 'PAYMENT_INTENT_FAILED',
+  StartTimeTooLate = 'START_TIME_TOO_LATE',
+  StartTimeTooSoon = 'START_TIME_TOO_SOON',
+  ValidationErrors = 'VALIDATION_ERRORS'
+}
+
+export type InitiateBookingInput = {
+  outingId: Scalars['UUID']['input'];
+};
+
+export type InitiateBookingResult = InitiateBookingFailure | InitiateBookingSuccess;
+
+export type InitiateBookingSuccess = {
+  __typename?: 'InitiateBookingSuccess';
+  booking: Booking;
+  paymentIntent?: Maybe<PaymentIntent>;
 };
 
 export type Location = {
@@ -435,7 +444,6 @@ export type QueryOutingArgs = {
 
 export type ReserverDetails = {
   __typename?: 'ReserverDetails';
-  accountId: Scalars['UUID']['output'];
   firstName: Scalars['String']['output'];
   id: Scalars['UUID']['output'];
   lastName: Scalars['String']['output'];
@@ -544,6 +552,29 @@ export type UpdateAccountSuccess = {
   account: Account;
 };
 
+export type UpdateBookingFailure = {
+  __typename?: 'UpdateBookingFailure';
+  failureReason: UpdateBookingFailureReason;
+  validationErrors?: Maybe<Array<ValidationError>>;
+};
+
+export enum UpdateBookingFailureReason {
+  BookingNotFound = 'BOOKING_NOT_FOUND',
+  ValidationErrors = 'VALIDATION_ERRORS'
+}
+
+export type UpdateBookingInput = {
+  bookingId: Scalars['UUID']['input'];
+  reserverDetailsId?: InputMaybe<Scalars['UUID']['input']>;
+};
+
+export type UpdateBookingResult = UpdateBookingFailure | UpdateBookingSuccess;
+
+export type UpdateBookingSuccess = {
+  __typename?: 'UpdateBookingSuccess';
+  booking: Booking;
+};
+
 export type UpdateOutingPreferencesFailure = {
   __typename?: 'UpdateOutingPreferencesFailure';
   failureReason: UpdateOutingPreferencesFailureReason;
@@ -633,6 +664,8 @@ export type ViewerQueries = AuthenticatedViewerQueries | UnauthenticatedViewer;
 
 export type AddressFieldsFragment = { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string };
 
+export type BookingFieldsFragment = { __typename: 'Booking', id: string, state: BookingState, reserverDetails?: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string } | null };
+
 export type CostBreakdownFieldsFragment = { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number };
 
 export type LocationFieldsFragment = { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string } };
@@ -647,6 +680,13 @@ type PlanOutingFields_PlanOutingSuccess_Fragment = { __typename: 'PlanOutingSucc
 
 export type PlanOutingFieldsFragment = PlanOutingFields_PlanOutingFailure_Fragment | PlanOutingFields_PlanOutingSuccess_Fragment;
 
+export type ConfirmBookingMutationVariables = Exact<{
+  input: ConfirmBookingInput;
+}>;
+
+
+export type ConfirmBookingMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', confirmBooking: { __typename: 'ConfirmBookingFailure', failureReason: ConfirmBookingFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'ConfirmBookingSuccess', booking: { __typename: 'Booking', id: string, state: BookingState, reserverDetails?: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string } | null } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+
 export type CreateAccountMutationVariables = Exact<{
   input: CreateAccountInput;
 }>;
@@ -654,19 +694,12 @@ export type CreateAccountMutationVariables = Exact<{
 
 export type CreateAccountMutation = { __typename: 'Mutation', createAccount: { __typename: 'CreateAccountFailure', failureReason: CreateAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'CreateAccountSuccess', account: { __typename: 'Account', id: string, email: string } } };
 
-export type CreateBookingMutationVariables = Exact<{
-  input: CreateBookingInput;
+export type InitiateBookingMutationVariables = Exact<{
+  input: InitiateBookingInput;
 }>;
 
 
-export type CreateBookingMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', createBooking: { __typename: 'CreateBookingFailure', failureReason: CreateBookingFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'CreateBookingSuccess', booking: { __typename: 'Booking', id: string } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
-
-export type CreatePaymentIntentMutationVariables = Exact<{
-  input: CreatePaymentIntentInput;
-}>;
-
-
-export type CreatePaymentIntentMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', createPaymentIntent: { __typename: 'CreatePaymentIntentFailure', failureReason: CreatePaymentIntentFailureReason } | { __typename: 'CreatePaymentIntentSuccess', paymentIntent: { __typename: 'PaymentIntent', clientSecret: string } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+export type InitiateBookingMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', initiateBooking: { __typename: 'InitiateBookingFailure', failureReason: InitiateBookingFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'InitiateBookingSuccess', booking: { __typename: 'Booking', id: string, state: BookingState, reserverDetails?: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string } | null }, paymentIntent?: { __typename: 'PaymentIntent', id: string, clientSecret: string } | null } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 
 export type LoginMutationVariables = Exact<{
   input: LoginInput;
@@ -695,6 +728,13 @@ export type UpdateAccountMutationVariables = Exact<{
 
 
 export type UpdateAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateAccount: { __typename: 'UpdateAccountFailure', failureReason: UpdateAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateAccountSuccess', account: { __typename: 'Account', email: string } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+
+export type UpdateBookingMutationVariables = Exact<{
+  input: UpdateBookingInput;
+}>;
+
+
+export type UpdateBookingMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateBooking: { __typename: 'UpdateBookingFailure', failureReason: UpdateBookingFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateBookingSuccess', booking: { __typename: 'Booking', id: string, state: BookingState, reserverDetails?: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string } | null } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 
 export type UpdateOutingPreferencesMutationVariables = Exact<{
   input: UpdateOutingPreferencesInput;
@@ -758,6 +798,20 @@ export class TypedDocumentString<TResult, TVariables>
     return this.value;
   }
 }
+export const BookingFieldsFragmentDoc = new TypedDocumentString(`
+    fragment BookingFields on Booking {
+  __typename
+  id
+  state
+  reserverDetails {
+    __typename
+    id
+    firstName
+    lastName
+    phoneNumber
+  }
+}
+    `, {"fragmentName":"BookingFields"}) as unknown as TypedDocumentString<BookingFieldsFragment, unknown>;
 export const CostBreakdownFieldsFragmentDoc = new TypedDocumentString(`
     fragment CostBreakdownFields on CostBreakdown {
   __typename
@@ -1128,6 +1182,50 @@ fragment PhotoFields on Photo {
   alt
   attributions
 }`, {"fragmentName":"PlanOutingFields"}) as unknown as TypedDocumentString<PlanOutingFieldsFragment, unknown>;
+export const ConfirmBookingDocument = new TypedDocumentString(`
+    mutation ConfirmBooking($input: ConfirmBookingInput!) {
+  __typename
+  viewer {
+    __typename
+    ... on AuthenticatedViewerMutations {
+      __typename
+      confirmBooking(input: $input) {
+        __typename
+        ... on ConfirmBookingSuccess {
+          __typename
+          booking {
+            __typename
+            ...BookingFields
+          }
+        }
+        ... on ConfirmBookingFailure {
+          __typename
+          failureReason
+          validationErrors {
+            __typename
+            field
+          }
+        }
+      }
+    }
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}
+    fragment BookingFields on Booking {
+  __typename
+  id
+  state
+  reserverDetails {
+    __typename
+    id
+    firstName
+    lastName
+    phoneNumber
+  }
+}`) as unknown as TypedDocumentString<ConfirmBookingMutation, ConfirmBookingMutationVariables>;
 export const CreateAccountDocument = new TypedDocumentString(`
     mutation CreateAccount($input: CreateAccountInput!) {
   __typename
@@ -1152,23 +1250,28 @@ export const CreateAccountDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<CreateAccountMutation, CreateAccountMutationVariables>;
-export const CreateBookingDocument = new TypedDocumentString(`
-    mutation CreateBooking($input: CreateBookingInput!) {
+export const InitiateBookingDocument = new TypedDocumentString(`
+    mutation InitiateBooking($input: InitiateBookingInput!) {
   __typename
   viewer {
     __typename
     ... on AuthenticatedViewerMutations {
       __typename
-      createBooking(input: $input) {
+      initiateBooking(input: $input) {
         __typename
-        ... on CreateBookingSuccess {
+        ... on InitiateBookingSuccess {
           __typename
           booking {
             __typename
+            ...BookingFields
+          }
+          paymentIntent {
+            __typename
             id
+            clientSecret
           }
         }
-        ... on CreateBookingFailure {
+        ... on InitiateBookingFailure {
           __typename
           failureReason
           validationErrors {
@@ -1184,36 +1287,18 @@ export const CreateBookingDocument = new TypedDocumentString(`
     }
   }
 }
-    `) as unknown as TypedDocumentString<CreateBookingMutation, CreateBookingMutationVariables>;
-export const CreatePaymentIntentDocument = new TypedDocumentString(`
-    mutation CreatePaymentIntent($input: CreatePaymentIntentInput!) {
+    fragment BookingFields on Booking {
   __typename
-  viewer {
+  id
+  state
+  reserverDetails {
     __typename
-    ... on AuthenticatedViewerMutations {
-      __typename
-      createPaymentIntent(input: $input) {
-        __typename
-        ... on CreatePaymentIntentSuccess {
-          __typename
-          paymentIntent {
-            __typename
-            clientSecret
-          }
-        }
-        ... on CreatePaymentIntentFailure {
-          __typename
-          failureReason
-        }
-      }
-    }
-    ... on UnauthenticatedViewer {
-      __typename
-      authFailureReason
-    }
+    id
+    firstName
+    lastName
+    phoneNumber
   }
-}
-    `) as unknown as TypedDocumentString<CreatePaymentIntentMutation, CreatePaymentIntentMutationVariables>;
+}`) as unknown as TypedDocumentString<InitiateBookingMutation, InitiateBookingMutationVariables>;
 export const LoginDocument = new TypedDocumentString(`
     mutation Login($input: LoginInput!) {
   __typename
@@ -1471,6 +1556,50 @@ export const UpdateAccountDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<UpdateAccountMutation, UpdateAccountMutationVariables>;
+export const UpdateBookingDocument = new TypedDocumentString(`
+    mutation UpdateBooking($input: UpdateBookingInput!) {
+  __typename
+  viewer {
+    __typename
+    ... on AuthenticatedViewerMutations {
+      __typename
+      updateBooking(input: $input) {
+        __typename
+        ... on UpdateBookingSuccess {
+          __typename
+          booking {
+            __typename
+            ...BookingFields
+          }
+        }
+        ... on UpdateBookingFailure {
+          __typename
+          failureReason
+          validationErrors {
+            __typename
+            field
+          }
+        }
+      }
+    }
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}
+    fragment BookingFields on Booking {
+  __typename
+  id
+  state
+  reserverDetails {
+    __typename
+    id
+    firstName
+    lastName
+    phoneNumber
+  }
+}`) as unknown as TypedDocumentString<UpdateBookingMutation, UpdateBookingMutationVariables>;
 export const UpdateOutingPreferencesDocument = new TypedDocumentString(`
     mutation UpdateOutingPreferences($input: UpdateOutingPreferencesInput!) {
   __typename

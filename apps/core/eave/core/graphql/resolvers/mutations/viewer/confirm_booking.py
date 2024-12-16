@@ -57,7 +57,6 @@ class ConfirmBookingFailureReason(enum.Enum):
     INVALID_PAYMENT_INTENT = enum.auto()
     START_TIME_TOO_SOON = enum.auto()
     START_TIME_TOO_LATE = enum.auto()
-    VALIDATION_ERRORS = enum.auto()
 
 
 @strawberry.type

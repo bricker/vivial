@@ -1,14 +1,17 @@
 import { AppRoute, SearchParam } from "$eave-dashboard/js/routes";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
-import { Divider, styled, Typography } from "@mui/material";
+import { CircularProgress, Divider, styled, Typography } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import HighlightButton from "../../Buttons/HighlightButton";
 import CalendarCheckIcon from "../../Icons/CalendarCheckIcon";
 import LogoPill, { LogoPillAttributes, logos } from "../../LogoPill";
 import Paper from "../../Paper";
-import { useInitiateBookingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { useConfirmBookingMutation, useInitiateBookingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { ConfirmBookingFailureReason } from "$eave-dashboard/js/graphql/generated/graphql";
+import { useDispatch } from "react-redux";
+import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
@@ -100,7 +103,92 @@ const confirmationOptions: ConfirmationOptionDetail[] = [
 ];
 
 const CheckoutCompletePage = () => {
+  const [searchParams] = useSearchParams();
+
+  const params = useParams();
+  const bookingId = params["bookingId"];
+
+  if (!bookingId) {
+    console.error("Invalid booking ID");
+    return null;
+  }
+
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const [confirmBooking, { isLoading: confirmBookingIsLoading, data: confirmBookingData, error: confirmBookingError }] = useConfirmBookingMutation();
+
+  const paymentIntentId = searchParams.get(SearchParam.stripePaymentIntentId);
+  const clientSecret = searchParams.get(SearchParam.stripePaymentIntentClientSecret);
+  // const redirectStatus = searchParams.get(SearchParam.stripeRedirectStatus);
+
+  if (!paymentIntentId || !clientSecret) {
+    // TODO: Better error handling
+    console.error("missing required query params");
+    return null;
+  }
+
+  useEffect(() => {
+    void confirmBooking({
+      input: {
+        bookingId: bookingId,
+        paymentIntent: {
+          id: paymentIntentId,
+          clientSecret,
+        }
+      },
+    });
+  }, []);
+
+  if (confirmBookingIsLoading) {
+    return (
+      <>
+        <CircularProgress color="secondary" />
+      </>
+    );
+  }
+
+  if (confirmBookingError) {
+    // TODO: Better error handling
+    // 500 error
+    console.error("Unexected Graphql result");
+    return null;
+  }
+
+  if (!confirmBookingData) {
+    // TODO: Better error handling
+    console.error("confirmBooking data error");
+    return null;
+  }
+
+  switch (confirmBookingData.viewer.__typename) {
+    case "AuthenticatedViewerMutations": {
+      const resp = confirmBookingData.viewer.confirmBooking;
+      switch (resp?.__typename) {
+        case "ConfirmBookingSuccess":
+          break;
+        case "ConfirmBookingFailure":
+          switch (resp.failureReason) {
+            default:
+              console.warn("Unhandled case for CreateBookingFailure", resp.failureReason);
+              break;
+          }
+          return;
+        default:
+          console.error("Unexected Graphql result");
+          return;
+      }
+      // allow success case to continue execution
+      break;
+    }
+    case "UnauthenticatedViewer":
+      dispatch(loggedOut());
+      window.location.assign(AppRoute.logout);
+      return;
+    default:
+      console.error("Unexected Graphql result");
+      return;
+  }
 
   const handleNewDateClick = () => {
     navigate(AppRoute.root);
@@ -143,63 +231,4 @@ const CheckoutCompletePage = () => {
   );
 };
 
-const BookingCreator = () => {
-  const [searchParams] = useSearchParams();
-  const [createBooking, { isLoading: createBookingIsLoading }] = useInitiateBookingMutation();
-  const [bookingError, setBookingError] = useState<string | undefined>(undefined);
-
-  const paymentIntentId = searchParams.get(SearchParam.stripePaymentIntentId);
-  const clientSecret = searchParams.get(SearchParam.stripePaymentIntentClientSecret);
-  const redirectStatus = searchParams.get(SearchParam.stripeRedirectStatus);
-  const reserverDetailsId = searchParams.get
-  useEffect(async () => {
-    const createBookingResp = await createBooking({
-      input: {
-        reserverDetailsId: bookingDetails.id,
-        outingId,
-      },
-    });
-  }, []);
-
-  switch (createBookingResp.data?.viewer.__typename) {
-    case "AuthenticatedViewerMutations": {
-      const createdData = createBookingResp.data?.viewer.createBooking;
-      switch (createdData?.__typename) {
-        case "CreateBookingSuccess":
-          navigate(AppRoute.checkoutComplete);
-          // allow success case to continue execution
-          break;
-        case "CreateBookingFailure":
-          switch (createdData.failureReason) {
-            case CreateBookingFailureReason.ValidationErrors: {
-              // TODO: when would this happen????
-              const invalidFields = createdData.validationErrors?.map((e) => e.field).join(", ");
-              setBookingError(`The following fields are invalid: ${invalidFields}`);
-              break;
-            }
-            default:
-              console.error("Unhandled case for CreateBookingFailure", createdData.failureReason);
-              break;
-          }
-          return;
-        default:
-          console.error("Unexected Graphql result");
-          return;
-      }
-      // allow success case to continue execution
-      break;
-    }
-    case "UnauthenticatedViewer":
-      dispatch(loggedOut());
-      window.location.assign(AppRoute.logout);
-      return;
-    default:
-      if (createBookingResp.error) {
-        // 500 error
-        console.error("Unexected Graphql result");
-        return;
-      }
-      break;
-  }
-};
 export default CheckoutCompletePage;

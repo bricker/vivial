@@ -4,6 +4,7 @@ import { authSlice } from "./slices/authSlice";
 import { coreApiSlice } from "./slices/coreApiSlice";
 import { outingSlice } from "./slices/outingSlice";
 import { reserverDetailsSlice } from "./slices/reserverDetailsSlice";
+import { bookingSlice } from "./slices/bookingSlice";
 
 const listenerMiddleware = createListenerMiddleware();
 const reducer = {
@@ -11,6 +12,7 @@ const reducer = {
   auth: authSlice.reducer,
   outing: outingSlice.reducer,
   reserverDetails: reserverDetailsSlice.reducer,
+  booking: bookingSlice.reducer,
 };
 const preloadedState = loadState();
 const store = configureStore({

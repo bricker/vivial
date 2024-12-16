@@ -2,9 +2,9 @@ import { CORE_API_BASE } from "$eave-dashboard/js/util/http";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import {
+  ConfirmBookingDocument,
   CreateAccountDocument,
-  CreateBookingDocument,
-  CreatePaymentIntentDocument,
+  InitiateBookingDocument,
   ListBookedOutingsDocument,
   ListBookedOutingsQuery,
   ListBookedOutingsQueryVariables,
@@ -20,6 +20,7 @@ import {
   UpdateAccountDocument,
   UpdateAccountMutation,
   UpdateAccountMutationVariables,
+  UpdateBookingDocument,
   UpdateOutingPreferencesDocument,
   UpdateOutingPreferencesMutation,
   UpdateOutingPreferencesMutationVariables,
@@ -27,12 +28,12 @@ import {
   UpdateReserverDetailsDocument,
   UpdateReserverDetailsMutation,
   UpdateReserverDetailsMutationVariables,
+  type ConfirmBookingMutation,
+  type ConfirmBookingMutationVariables,
   type CreateAccountMutation,
   type CreateAccountMutationVariables,
-  type CreateBookingMutation,
-  type CreateBookingMutationVariables,
-  type CreatePaymentIntentMutation,
-  type CreatePaymentIntentMutationVariables,
+  type InitiateBookingMutation,
+  type InitiateBookingMutationVariables,
   type ListReserverDetailsQuery,
   type ListReserverDetailsQueryVariables,
   type LoginMutation,
@@ -45,6 +46,8 @@ import {
   type SearchRegionsQueryVariables,
   type SubmitReserverDetailsMutation,
   type SubmitReserverDetailsMutationVariables,
+  type UpdateBookingMutation,
+  type UpdateBookingMutationVariables,
   type UpdateReserverDetailsAccountMutation,
   type UpdateReserverDetailsAccountMutationVariables,
 } from "$eave-dashboard/js/graphql/generated/graphql";
@@ -167,6 +170,13 @@ export const coreApiSlice = createApi({
       },
     }),
 
+    updateBooking: builder.mutation<UpdateBookingMutation, UpdateBookingMutationVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: UpdateBookingDocument, variables });
+        return { data };
+      },
+    }),
+
     confirmBooking: builder.mutation<ConfirmBookingMutation, ConfirmBookingMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: ConfirmBookingDocument, variables });
@@ -191,6 +201,7 @@ export const {
   useUpdateReserverDetailsAccountMutation,
   useUpdateAccountMutation,
   useInitiateBookingMutation,
+  useUpdateBookingMutation,
   useConfirmBookingMutation,
   useUpdateReserverDetailsMutation,
   useSubmitReserverDetailsMutation,

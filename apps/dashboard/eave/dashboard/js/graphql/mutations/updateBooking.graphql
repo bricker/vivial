@@ -1,24 +1,19 @@
-mutation InitiateBooking($input: InitiateBookingInput!) {
+mutation UpdateBooking($input: UpdateBookingInput!) {
   viewer {
     __typename
     ... on AuthenticatedViewerMutations {
       __typename
 
-      initiateBooking(input: $input) {
-        ... on InitiateBookingSuccess {
+      updateBooking(input: $input) {
+        ... on UpdateBookingSuccess {
           __typename
 
           booking {
             ...BookingFields
           }
-
-          paymentIntent {
-            id
-            clientSecret
-          }
         }
 
-        ... on InitiateBookingFailure {
+        ... on UpdateBookingFailure {
           __typename
           failureReason
 

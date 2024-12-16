@@ -9,7 +9,7 @@ mutation ConfirmBooking($input: ConfirmBookingInput!) {
           __typename
 
           booking {
-            id
+            ...BookingFields
           }
         }
 

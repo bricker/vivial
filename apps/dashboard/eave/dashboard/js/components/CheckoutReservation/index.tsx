@@ -1,17 +1,16 @@
 import {
-  CreateBookingFailureReason,
   Outing,
   SubmitReserverDetailsFailureReason,
   UpdateReserverDetailsFailureReason,
 } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute } from "$eave-dashboard/js/routes";
+import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 import {
-  useInitiateBookingMutation,
   useGetOutingQuery,
   useListReserverDetailsQuery,
   useSubmitReserverDetailsMutation,
+  useUpdateBookingMutation,
   useUpdateReserverDetailsMutation,
 } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { storeReserverDetails } from "$eave-dashboard/js/store/slices/reserverDetailsSlice";
@@ -97,27 +96,26 @@ function isPaidOuting(outing?: Outing | null): boolean {
 }
 
 const CheckoutForm = ({
-  outingId,
   showStripeBadge,
   showCostBreakdown,
 }: {
-  outingId: string;
   showStripeBadge?: boolean;
   showCostBreakdown?: boolean;
 }) => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   // https://docs.stripe.com/sdks/stripejs-react
   const stripeClient = useStripe();
   const stripeElements = useElements();
 
   const localOuting = useSelector((state: RootState) => state.outing.details);
   const localReserverDetails = useSelector((state: RootState) => state.reserverDetails.reserverDetails);
+  const booking = useSelector((state: RootState) => state.booking.booking);
 
   const { data: reserverDetailsData, isLoading: listDetailsIsLoading } = useListReserverDetailsQuery({});
   const { data: outingData, isLoading: outingIsLoading } = useGetOutingQuery({ input: { id: outingId } });
   const [updateReserverDetails, { isLoading: updateDetailsIsLoading }] = useUpdateReserverDetailsMutation();
   const [submitReserverDetails, { isLoading: submitDetailsIsLoading }] = useSubmitReserverDetailsMutation();
+  const [updateBooking, { isLoading: updateBookingIsLoading }] = useUpdateBookingMutation();
 
   const [internalReserverDetailError, setInternalReserverDetailError] = useState<string | undefined>(undefined);
   const [externalReserverDetailError, setExternalReserverDetailError] = useState<string | undefined>(undefined);
@@ -321,13 +319,15 @@ const CheckoutForm = ({
 
         // execute the payment
         if (isPaidActivity) {
+          const returnPath = routePath(AppRoute.checkoutComplete, { bookingId: booking.id })
+
           // TODO: send w/ existing payment details when not using new card
           if (isUsingNewCard) {
             const response = await stripeClient.confirmPayment({
               elements: stripeElements,
               clientSecret: "", // This property is required but already provided by stripeElements
               confirmParams: {
-                return_url: `${window.location.origin}${AppRoute.checkoutComplete}`,
+                return_url: `${window.location.origin}${returnPath}`,
               },
             });
 
@@ -425,7 +425,7 @@ const CheckoutReservation = ({
 }) => {
   return (
     <StripeElementsProvider outingId={outingId}>
-      <CheckoutForm outingId={outingId} showStripeBadge={showStripeBadge} showCostBreakdown={showCostBreakdown} />
+      <CheckoutForm showStripeBadge={showStripeBadge} showCostBreakdown={showCostBreakdown} />
     </StripeElementsProvider>
   );
 };
