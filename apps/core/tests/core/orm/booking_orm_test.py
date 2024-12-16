@@ -15,7 +15,6 @@ class TestBookingOrms(BaseTestCase):
             account = self.make_account(session)
             reserver_details = self.make_reserver_details(session, account)
             survey = self.make_survey(session, account)
-            outing = self.make_outing(session, account, survey)
 
             stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
                 session,
