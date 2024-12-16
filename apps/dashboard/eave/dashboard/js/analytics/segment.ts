@@ -94,10 +94,9 @@ export async function getVisitorId(): Promise<string> {
 
 // track all click events
 document.getElementsByTagName("body")[0]?.addEventListener("click", (ev: MouseEvent) => {
-  const target = ev.target as Element | null;
+  const target = ev.target as HTMLElement | null;
   const tagName = target?.tagName || "BODY";
-  // @ts-ignore
-  let innerText = target?.innerText;
+  let innerText: string | null | undefined = target?.innerText;
   if (tagName === "INPUT" || tagName === "FORM") {
     // track placeholder text if available for identifiability
     innerText = target?.hasAttribute("placeholder") ? target?.getAttribute("placeholder") : "[redacted]";
@@ -111,5 +110,7 @@ document.getElementsByTagName("body")[0]?.addEventListener("click", (ev: MouseEv
       href,
       innerText,
     },
+  }).catch(() => {
+    /* no-op */
   });
 });
