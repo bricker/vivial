@@ -1,0 +1,93 @@
+fragment BookingDetailsFields on BookingDetails {
+  id
+  activityStartTime
+  restaurantArrivalTime
+  restaurantRegion {
+    id
+    name
+  }
+  activityRegion {
+    id
+    name
+  }
+  survey {
+    id
+    budget
+    headcount
+    searchRegions {
+      id
+      name
+    }
+    startTime
+  }
+  drivingTime
+  costBreakdown {
+    ...CostBreakdownFields
+  }
+  activity {
+    categoryGroup {
+      id
+      name
+      activityCategories {
+        id
+        name
+        isDefault
+      }
+    }
+    sourceId
+    source
+    name
+    description
+    websiteUri
+    doorTips
+    insiderTips
+    parkingTips
+    ticketInfo {
+      name
+      notes
+      costBreakdown {
+        ...CostBreakdownFields
+      }
+    }
+    venue {
+      name
+      location {
+        ...LocationFields
+      }
+    }
+    photos {
+      coverPhoto {
+        ...PhotoFields
+      }
+      supplementalPhotos {
+        ...PhotoFields
+      }
+    }
+  }
+
+  restaurant {
+    sourceId
+    source
+    name
+    reservable
+    rating
+    primaryTypeName
+    websiteUri
+    description
+    parkingTips
+    customerFavorites
+
+    location {
+      ...LocationFields
+    }
+
+    photos {
+      coverPhoto {
+        ...PhotoFields
+      }
+      supplementalPhotos {
+        ...PhotoFields
+      }
+    }
+  }
+}

@@ -10,6 +10,7 @@ import { pageView } from "./analytics/segment";
 import GlobalLayout from "./components/Global/GlobalLayout";
 import AccountPage from "./components/Pages/AccountPage";
 import AccountPreferencesPage from "./components/Pages/AccountPreferencesPage";
+import BookingDetailsPage from "./components/Pages/BookingDetailsPage";
 import CheckoutCompletePage from "./components/Pages/CheckoutCompletePage";
 import CheckoutReservationPage from "./components/Pages/CheckoutReservationPage";
 import DateItineraryPage from "./components/Pages/DateItineraryPage";
@@ -61,6 +62,7 @@ const App = () => {
             <Route element={<PrivateRoutes hasPermissions={!!isLoggedIn} redirectPath={AppRoute.login} />}>
               <Route path={AppRoute.account} element={<AccountPage />} />
               <Route path={AppRoute.plans} element={<PlansPage />} />
+              <Route path={`${AppRoute.plans}/:bookingId`} element={<BookingDetailsPage />} />
               <Route path={AppRoute.help} element={<HelpPage />} />
               <Route path={AppRoute.passwordReset} element={<PasswordResetPage />} />
               <Route path={AppRoute.accountPreferences} element={<AccountPreferencesPage />} />

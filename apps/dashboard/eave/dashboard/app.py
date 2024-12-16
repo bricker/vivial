@@ -103,5 +103,6 @@ app = Starlette(
     lifespan=_app_lifespan,
 )
 
-def _python_bool_to_js(v: bool) -> str:
+
+def _python_bool_to_js(v: bool) -> str:  # noqa
     return "true" if v else "false"

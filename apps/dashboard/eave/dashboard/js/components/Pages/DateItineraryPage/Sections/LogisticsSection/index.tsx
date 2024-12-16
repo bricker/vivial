@@ -5,7 +5,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
 import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
@@ -64,11 +63,11 @@ const LogisticsGradient = styled("div")(() => ({
   justifyContent: "center",
 }));
 
-const Logistics = styled("div")(({ theme }) => ({
+const Logistics = styled("div")<{ viewOnly?: boolean }>(({ theme, viewOnly }) => ({
   backgroundColor: theme.palette.field.secondary,
   display: "flex",
   alignItems: "center",
-  padding: "12px 16px",
+  padding: viewOnly ? "12px 32px" : "12px 16px",
   height: 58,
   width: "calc(100% - 4px)",
   borderRadius: 40,
@@ -92,7 +91,7 @@ const Place = styled(Typography)(({ theme }) => ({
   lineHeight: rem(15),
 }));
 
-const LogisticsSection = () => {
+const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
   const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
   const { data: searchRegionsData } = useGetSearchRegionsQuery({});
@@ -120,7 +119,6 @@ const LogisticsSection = () => {
     );
     const input = {
       startTime: startTime.toISOString(),
-      visitorId: await getVisitorId(),
       groupPreferences,
       budget,
       headcount,
@@ -128,20 +126,6 @@ const LogisticsSection = () => {
     };
     await planOuting({ input });
   }, [outingPreferencesData, userPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime]);
-
-  useEffect(() => {
-    if (planOutingData) {
-      if (planOutingData.planOuting?.__typename === "PlanOutingSuccess") {
-        const updatedOuting = planOutingData.planOuting.outing;
-        setDetailsOpen(false);
-        dispatch(plannedOuting({ outing: updatedOuting }));
-        dispatch(chosePreferences({ user: userPreferences }));
-        navigate(`${AppRoute.itinerary}/${updatedOuting.id}`);
-      } else {
-        setErrorMessage("There was an issue updating this outing. Reach out to friends@vivialapp.com for assistance.");
-      }
-    }
-  }, [planOutingData, userPreferences, partnerPreferences]);
 
   const handleSelectHeadcount = useCallback((value: number) => {
     setHeadcount(value);
@@ -186,12 +170,26 @@ const LogisticsSection = () => {
     }
   }, [outing]);
 
+  useEffect(() => {
+    if (planOutingData) {
+      if (planOutingData.planOuting?.__typename === "PlanOutingSuccess") {
+        const updatedOuting = planOutingData.planOuting.outing;
+        setDetailsOpen(false);
+        dispatch(plannedOuting({ outing: updatedOuting }));
+        dispatch(chosePreferences({ user: userPreferences }));
+        navigate(`${AppRoute.itinerary}/${updatedOuting.id}`);
+      } else {
+        setErrorMessage("There was an issue updating this outing. Reach out to friends@vivialapp.com for assistance.");
+      }
+    }
+  }, [planOutingData, userPreferences, partnerPreferences]);
+
   if (outing) {
     return (
       <Section bgImgUrl={getRegionImage(outing.restaurantRegion?.id)}>
         <LogisticsGradient>
-          <Logistics>
-            <SettingsButton onClick={toggleDetailsOpen} />
+          <Logistics viewOnly={viewOnly}>
+            {!viewOnly && <SettingsButton onClick={toggleDetailsOpen} />}
             <TimeAndPlace>
               <Time>{getTimeLabel(startTime)}</Time>
               <Place>{getPlaceLabel(headcount, searchAreaIds, budget)}</Place>

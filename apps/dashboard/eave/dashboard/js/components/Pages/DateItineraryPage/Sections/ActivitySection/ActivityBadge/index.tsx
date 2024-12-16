@@ -27,7 +27,7 @@ const Connector = styled("div")(() => ({
   height: 48,
   width: 3,
   top: -48,
-  left: 19.5,
+  left: 18,
   background: "linear-gradient(0deg, rgba(255,129,181,1) 0%, rgba(175,131,253,1) 100%)",
 }));
 

@@ -52,8 +52,8 @@ class AnalyticsTracker:
         """
 
         # TODO: What values to pass if account_id and visitor_id are null?
-        user_id = str(account_id) if account_id else None
-        anon_id = visitor_id
+        user_id = str(account_id or "")
+        anon_id = visitor_id or ""
         segment.analytics.track(
             user_id=user_id,
             event=event_name,

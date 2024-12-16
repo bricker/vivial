@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
 from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.location import Location
@@ -8,6 +6,7 @@ from eave.core.graphql.types.pricing import CostBreakdown
 from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.lib.address import format_address
 from eave.core.lib.google_places import google_maps_directions_url
+from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.shared.enums import ActivitySource
 from eave.core.shared.geo import GeoPoint
@@ -111,14 +110,22 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
                 max_pricing = cost_breakdown
                 chosen_ticket_class = ticket_class
 
-    description = await eventbrite_client.get_event_description(event_id=event_id)
-    event["description"] = description
-    category_group_id = event.get("category_id")
-    category_group = (
-        ActivityCategoryGroupOrm.one_or_none(activity_category_group_id=UUID(category_group_id))
-        if category_group_id
-        else None
-    )
+    # event_description = await eventbrite_client.get_event_description(event_id=event_id)
+
+    if event_description := event.get("description"):
+        event_description_text = event_description["text"]
+    else:
+        event_description_text = None
+
+    vivial_activity_category_group = None
+
+    if eventbrite_subcategory_id := event.get("subcategory_id"):
+        if vivial_activity_category := ActivityCategoryOrm.get_by_eventbrite_subcategory_id(
+            eventbrite_subcategory_id=eventbrite_subcategory_id
+        ):
+            vivial_activity_category_group = ActivityCategoryGroupOrm.one_or_none(
+                activity_category_group_id=vivial_activity_category.activity_category_group_id
+            )
 
     logo = event.get("logo")
 
@@ -147,7 +154,7 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         source_id=event_id,
         source=ActivitySource.EVENTBRITE,
         name=event_name["text"],
-        description=event["description"]["text"],
+        description=event_description_text,
         photos=photos,
         ticket_info=TicketInfo(
             name=chosen_ticket_class.get("display_name"),
@@ -173,7 +180,9 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         door_tips=None,
         insider_tips=None,
         parking_tips=None,
-        category_group=ActivityCategoryGroup.from_orm(category_group) if category_group else None,
+        category_group=ActivityCategoryGroup.from_orm(vivial_activity_category_group)
+        if vivial_activity_category_group
+        else None,
     )
 
     return activity

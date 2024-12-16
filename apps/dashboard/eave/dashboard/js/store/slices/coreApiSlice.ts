@@ -3,6 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import {
   ConfirmBookingDocument,
+  BookingDetailsDocument,
   CreateAccountDocument,
   InitiateBookingDocument,
   ListBookedOutingsDocument,
@@ -30,6 +31,8 @@ import {
   UpdateReserverDetailsMutationVariables,
   type ConfirmBookingMutation,
   type ConfirmBookingMutationVariables,
+  type BookingDetailsQuery,
+  type BookingDetailsQueryVariables,
   type CreateAccountMutation,
   type CreateAccountMutationVariables,
   type InitiateBookingMutation,
@@ -93,6 +96,13 @@ export const coreApiSlice = createApi({
     getOuting: builder.query<OutingQuery, OutingQueryVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: OutingDocument, variables });
+        return { data };
+      },
+    }),
+
+    getBookingDetails: builder.query<BookingDetailsQuery, BookingDetailsQueryVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: BookingDetailsDocument, variables });
         return { data };
       },
     }),
@@ -193,6 +203,7 @@ export const {
   useListBookedOutingsQuery,
   useGetOutingPreferencesQuery,
   useGetOutingQuery,
+  useGetBookingDetailsQuery,
 
   // Core API GraphQL Mutation Hooks
   usePlanOutingMutation,

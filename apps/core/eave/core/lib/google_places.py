@@ -325,7 +325,7 @@ def place_is_in_budget(place: Place, budget: OutingBudget) -> bool:
 
     https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#PriceLevel
     """
-    return place.price_level == budget.google_places_price_level
+    return place.price_level <= budget.google_places_price_level
 
 
 def place_is_accessible(place: Place) -> bool:

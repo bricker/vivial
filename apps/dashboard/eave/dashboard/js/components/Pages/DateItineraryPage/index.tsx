@@ -7,6 +7,7 @@ import { useParams } from "react-router-dom";
 
 import { RootState } from "$eave-dashboard/js/store";
 import { chosePreferences, plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
+import { Breakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
 
 import ActivitySection from "./Sections/ActivitySection";
 import BookingSection from "./Sections/BookingSection";
@@ -15,8 +16,16 @@ import LogisticsSection from "./Sections/LogisticsSection";
 import RestaurantSection from "./Sections/RestaurantSection";
 import LoadingView from "./Views/LoadingView";
 
-const PageContainer = styled("div")(() => ({
-  paddingBottom: 102,
+export const PageContainer = styled("div")(({ theme }) => ({
+  paddingBottom: 56,
+  maxWidth: 600,
+  [theme.breakpoints.up(Breakpoint.Medium)]: {
+    border: `1.5px solid ${theme.palette.primary.main}`,
+    borderRadius: 25,
+    overflow: "hidden",
+    margin: "56px auto",
+    paddingBottom: 0,
+  },
 }));
 
 const DateItineraryPage = () => {
@@ -60,10 +69,10 @@ const DateItineraryPage = () => {
   return (
     <PageContainer>
       <LogisticsSection />
-      <BookingSection />
       <RestaurantSection />
       <DistanceSection />
       <ActivitySection />
+      <BookingSection />
     </PageContainer>
   );
 };
