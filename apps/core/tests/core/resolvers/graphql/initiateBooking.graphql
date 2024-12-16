@@ -9,12 +9,6 @@ mutation InitiateBooking($input: InitiateBookingInput!) {
 
           booking {
             id
-            reserverDetails {
-              id
-              firstName
-              lastName
-              phoneNumber
-            }
           }
 
           paymentIntent {
