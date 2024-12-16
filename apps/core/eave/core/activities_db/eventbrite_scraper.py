@@ -84,7 +84,6 @@ _EVENTBRITE_ORGANIZER_IDS = {
     "58136354603",
     "75753930373",
     "31125575477",
-    "25864600649",
     "68235366273",
     "15433390756",
     "52816846893",
@@ -366,7 +365,11 @@ async def get_eventbrite_events() -> None:
                         LOGGER.debug(
                             f"{pfx} new event - adding to database", {"eventbrite_event_id": eventbrite_event_id}
                         )
-                        target = EventbriteEventOrm(db_session, eventbrite_event_id=eventbrite_event_id)
+                        target = EventbriteEventOrm(
+                            db_session,
+                            eventbrite_event_id=eventbrite_event_id,
+                            eventbrite_organizer_id=event.get("organizer_id", organizer_id),
+                        )
                     else:
                         LOGGER.debug(
                             f"{pfx} existing event - updating database", {"eventbrite_event_id": eventbrite_event_id}
