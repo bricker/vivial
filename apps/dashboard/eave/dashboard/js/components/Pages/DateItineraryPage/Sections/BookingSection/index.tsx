@@ -75,7 +75,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const { isLoggedIn } = useSelector((state: RootState) => state.auth);
   const userPreferences = useSelector((state: RootState) => state.outing.preferenes.user);
   const partnerPreferences = useSelector((state: RootState) => state.outing.preferenes.partner);
-  const [bookingOpen, setBookingOpen] = useState(false);
+  const [, setBookingOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -104,9 +104,9 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
     }
   }, [outingPreferencesData, userPreferences, partnerPreferences, outing]);
 
-  const toggleBookingOpen = useCallback(() => {
-    setBookingOpen(!bookingOpen);
-  }, [bookingOpen]);
+  // const toggleBookingOpen = useCallback(() => {
+  //   setBookingOpen(!bookingOpen);
+  // }, [bookingOpen]);
 
   const handleBookClick = useCallback(() => {
     if (!outing) {
