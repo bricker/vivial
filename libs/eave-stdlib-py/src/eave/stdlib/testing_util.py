@@ -560,11 +560,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         tax = self.mock_eventbrite_ticket_class_batch[0].get("tax")
         assert cost and tax and fee
 
-        return (
-            cost["value"] +
-            fee["value"] +
-            tax["value"]
-        )
+        return cost["value"] + fee["value"] + tax["value"]
 
     def _add_eventbrite_client_mocks(self) -> None:
         self.mock_eventbrite_event = Event(

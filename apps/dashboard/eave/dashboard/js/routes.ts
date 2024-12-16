@@ -6,7 +6,6 @@ export enum SearchParam {
   stripePaymentIntentId = "payment_intent",
   stripePaymentIntentClientSecret = "payment_intent_client_secret",
   stripeRedirectStatus = "redirect_status",
-
 }
 
 export enum DateSurveyPageVariant {
@@ -35,9 +34,9 @@ export enum AppRoute {
   checkoutComplete = "/checkout/complete/:bookingId",
   checkoutReserve = "/checkout/reserve/:outingId",
   itinerary = "/itinerary",
-};
+}
 
-export function routePath(route: AppRoute, pathParams: {[key:string]: string}): string {
+export function routePath(route: AppRoute, pathParams: { [key: string]: string }): string {
   let filledRoute = route.toString();
 
   for (const [paramName, paramValue] of Object.entries(pathParams)) {

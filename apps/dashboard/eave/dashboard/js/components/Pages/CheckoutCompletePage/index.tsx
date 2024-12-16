@@ -1,17 +1,16 @@
 import { AppRoute, SearchParam } from "$eave-dashboard/js/routes";
+import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
+import { useConfirmBookingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
-import { CircularProgress, Divider, styled, Typography } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import { CircularProgress, Divider, Typography, styled } from "@mui/material";
+import React, { useEffect } from "react";
+import { useDispatch } from "react-redux";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import HighlightButton from "../../Buttons/HighlightButton";
 import CalendarCheckIcon from "../../Icons/CalendarCheckIcon";
 import LogoPill, { LogoPillAttributes, logos } from "../../LogoPill";
 import Paper from "../../Paper";
-import { useConfirmBookingMutation, useInitiateBookingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
-import { ConfirmBookingFailureReason } from "$eave-dashboard/js/graphql/generated/graphql";
-import { useDispatch } from "react-redux";
-import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
@@ -116,7 +115,8 @@ const CheckoutCompletePage = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const [confirmBooking, { isLoading: confirmBookingIsLoading, data: confirmBookingData, error: confirmBookingError }] = useConfirmBookingMutation();
+  const [confirmBooking, { isLoading: confirmBookingIsLoading, data: confirmBookingData, error: confirmBookingError }] =
+    useConfirmBookingMutation();
 
   const paymentIntentId = searchParams.get(SearchParam.stripePaymentIntentId);
   const clientSecret = searchParams.get(SearchParam.stripePaymentIntentClientSecret);
@@ -135,7 +135,7 @@ const CheckoutCompletePage = () => {
         paymentIntent: {
           id: paymentIntentId,
           clientSecret,
-        }
+        },
       },
     });
   }, []);

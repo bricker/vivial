@@ -7,7 +7,6 @@ import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 import {
-  useGetOutingQuery,
   useListReserverDetailsQuery,
   useSubmitReserverDetailsMutation,
   useUpdateBookingMutation,
@@ -20,7 +19,6 @@ import { Typography, styled } from "@mui/material";
 import { useElements, useStripe } from "@stripe/react-stripe-js";
 import React, { FormEvent, useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import LoadingButton from "../Buttons/LoadingButton";
 import InputError from "../Inputs/InputError";
 import LogoPill, { logos } from "../LogoPill";
@@ -323,7 +321,7 @@ const CheckoutForm = ({
             return null;
           }
 
-          const returnPath = routePath(AppRoute.checkoutComplete, { bookingId: booking.id })
+          const returnPath = routePath(AppRoute.checkoutComplete, { bookingId: booking.id });
 
           // TODO: send w/ existing payment details when not using new card
           if (isUsingNewCard) {
