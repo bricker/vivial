@@ -21,7 +21,6 @@ class TestBookingOrms(BaseTestCase):
                 session,
                 account=account,
                 stripe_payment_intent_id=self.anystr(),
-                outing=outing,
             )
 
             booking_new = BookingOrm(
