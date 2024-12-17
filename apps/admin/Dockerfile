@@ -15,10 +15,10 @@ RUN apt-get update && apt-get install -y git
 
 # Copy relevant files
 RUN mkdir -p ${EAVE_HOME}
-COPY apps/dashboard ${EAVE_HOME}/apps/dashboard
+COPY apps/admin ${EAVE_HOME}/apps/admin
 COPY libs ${EAVE_HOME}/libs
 
-WORKDIR ${EAVE_HOME}/apps/dashboard
+WORKDIR ${EAVE_HOME}/apps/admin
 
 # Install dependencies
 RUN mkdir -p /vendor
@@ -40,13 +40,13 @@ RUN apt-get update && apt-get install -y git
 
 # Copy relevant files
 RUN mkdir -p ${EAVE_HOME}
-COPY apps/dashboard ${EAVE_HOME}/apps/dashboard
+COPY apps/admin ${EAVE_HOME}/apps/admin
 COPY develop ${EAVE_HOME}/develop
 
 WORKDIR ${EAVE_HOME}/develop/javascript
 RUN npm ci
 
-WORKDIR ${EAVE_HOME}/apps/dashboard
+WORKDIR ${EAVE_HOME}/apps/admin
 RUN npm ci
 RUN npx webpack build --mode=production --no-devtool
 
@@ -59,7 +59,7 @@ RUN npx webpack build --mode=production --no-devtool
 FROM python:${PYTHON_VERSION}-slim AS base
 
 ARG GAE_RELEASE_DATE="unknown"
-ARG GAE_SERVICE="dashboard"
+ARG GAE_SERVICE="admin"
 ARG GAE_VERSION="unknown"
 
 # Copy python dependencies into base image
@@ -69,7 +69,7 @@ COPY --from=builder-py /vendor /vendor/
 
 # Copy the app source code into the Docker image.
 RUN mkdir -p /app/eave
-COPY --from=builder-node /build/apps/dashboard/eave /app/eave/
+COPY --from=builder-node /build/apps/admin/eave /app/eave/
 
 # Create a non-privileged user that the app will run under.
 # See https://docs.docker.com/go/dockerfile-user-best-practices/
@@ -95,4 +95,4 @@ ENV GAE_RELEASE_DATE="$GAE_RELEASE_DATE"
 ENV GAE_SERVICE="$GAE_SERVICE"
 ENV GAE_VERSION="$GAE_VERSION"
 
-ENTRYPOINT ["python", "-m", "gunicorn", "--pythonpath", "/vendor", "--worker-class", "eave.stdlib.uvicorn.EaveUvicornWorker", "eave.dashboard.app:app"]
+ENTRYPOINT ["python", "-m", "gunicorn", "--pythonpath", "/vendor", "--worker-class", "eave.stdlib.uvicorn.EaveUvicornWorker", "eave.server.app:app"]
