@@ -69,7 +69,9 @@ class OutingOrm(Base, GetOneByIdMixin):
 
     @property
     def start_time_local(self) -> datetime:
-        return self.start_time_utc.astimezone(self.timezone)
+        reservations_min = min(r.start_time_local for r in self.reservations)
+        activities_min = min(a.start_time_local for a in self.activities)
+        return min(activities_min, reservations_min)
 
 class OutingActivityOrm(Base, TimedEventMixin):
     """Pivot table between `outings` and activity sources"""
