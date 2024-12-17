@@ -1,3 +1,4 @@
+import { ActivitySource } from "$eave-dashboard/js/graphql/generated/graphql";
 import { RootState } from "$eave-dashboard/js/store";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
@@ -89,13 +90,11 @@ const ActivityViewExpanded = () => {
   if (!outing) {
     return null;
   }
-
   const startTime = new Date(outing.activityStartTime || "");
   const activity = outing.activity;
   if (!activity) {
     return null;
   }
-
   const address = activity.venue.location.address;
   const directionsUri = activity.venue.location.directionsUri;
 
@@ -122,8 +121,12 @@ const ActivityViewExpanded = () => {
           )}
         </EventInfo>
         <ExtraInfo>
-          <PoweredBy>Events powered by</PoweredBy>
-          <EventbriteLogo src={imageUrl("eventbrite-logo-orange.png")} />
+          {activity.source === ActivitySource.Eventbrite && (
+            <>
+              <PoweredBy>Events powered by</PoweredBy>
+              <EventbriteLogo src={imageUrl("eventbrite-logo-orange.png")} />
+            </>
+          )}
           {directionsUri && <DirectionsButton uri={directionsUri} />}
         </ExtraInfo>
       </InfoContainer>
