@@ -7,10 +7,6 @@ variable "dns_domain" {
   type = string
 }
 
-variable "eave_slack_signups_channel_id" {
-  type = string
-}
-
 variable "www_public_domain_prefix" {
   type    = string
   default = "www"
@@ -19,4 +15,8 @@ variable "www_public_domain_prefix" {
 variable "api_public_domain_prefix" {
   type    = string
   default = "api"
+}
+
+variable "STRIPE_ENVIRONMENT" {
+  type = string
 }

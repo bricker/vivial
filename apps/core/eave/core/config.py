@@ -1,7 +1,7 @@
 import os
 from functools import cached_property
 
-from eave.stdlib.config import ConfigBase, get_required_env, get_secret
+from eave.stdlib.config import SHARED_CONFIG, ConfigBase, EaveEnvironment, get_secret
 
 JWT_ISSUER = "core-api"
 JWT_AUDIENCE = "core-api"
@@ -43,10 +43,15 @@ class _AppConfig(ConfigBase):
     def eventbrite_api_key(self) -> str:
         return get_secret("EVENTBRITE_API_KEY")
 
-    @cached_property
+    @property
     def segment_write_key(self) -> str:
-        # Not sensitive
-        return get_required_env("SEGMENT_CORE_API_WRITE_KEY")
+        match SHARED_CONFIG.eave_env:
+            case EaveEnvironment.test | EaveEnvironment.development:
+                return "ZzSxy8sDYNbSHeIaKKTL4ESAupEX6ufV"  # Not Sensitive
+            case EaveEnvironment.staging:
+                return "uUjBMbm9CcTL9XV1Rf6S9xGpLnvtCObZ"  # Not Sensitive
+            case EaveEnvironment.production:
+                return "cVBM36ZvqJV2gagtnOT60fTNn1Q5P5na"  # Not Sensitive
 
     @cached_property
     def stripe_secret_key(self) -> str:

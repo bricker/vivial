@@ -9,6 +9,7 @@ export type GlobalWindow = Window &
       analyticsEnabled?: boolean;
       monitoringEnabled?: boolean;
       stripePublishableKey?: string;
+      stripeCustomerPortalUrl: string;
       datadogApplicationId?: string;
       datadogClientToken?: string;
     };

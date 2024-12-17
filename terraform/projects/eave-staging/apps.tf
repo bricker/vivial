@@ -1,10 +1,10 @@
 module "shared_kubernetes_resources" {
-  source                        = "../../modules/kube_shared_resources"
-  iap_oauth_client_secret       = var.IAP_OAUTH_CLIENT_SECRET
-  dns_domain                    = local.dns_domain
-  www_public_domain_prefix      = local.www_public_domain_prefix
-  api_public_domain_prefix      = local.api_public_domain_prefix
-  eave_slack_signups_channel_id = local.eave_slack_signups_channel_id
+  source                   = "../../modules/kube_shared_resources"
+  iap_oauth_client_secret  = var.IAP_OAUTH_CLIENT_SECRET
+  dns_domain               = local.dns_domain
+  www_public_domain_prefix = local.www_public_domain_prefix
+  api_public_domain_prefix = local.api_public_domain_prefix
+  STRIPE_ENVIRONMENT       = local.STRIPE_ENVIRONMENT
 }
 
 module "core_api_app" {
@@ -30,7 +30,6 @@ module "core_api_app" {
 
   LOG_LEVEL                    = "DEBUG"
   release_version              = "latest"
-  SEGMENT_CORE_API_WRITE_KEY   = local.SEGMENT_CORE_API_WRITE_KEY
   JWS_SIGNING_KEY_VERSION_PATH = module.project_base.kms_jws_signing_key_default_version_id
 
   iap_enabled                       = true
@@ -50,11 +49,9 @@ module "dashboard_app" {
   kube_namespace_name                        = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name                     = module.shared_kubernetes_resources.shared_config_map_name
 
-  cdn_base_url              = module.cdn.url
-  LOG_LEVEL                 = "DEBUG"
-  release_version           = "latest"
-  SEGMENT_WEBSITE_WRITE_KEY = local.SEGMENT_WEBSITE_WRITE_KEY
-  STRIPE_PUBLISHABLE_KEY    = local.STRIPE_PUBLISHABLE_KEY
+  cdn_base_url    = module.cdn.url
+  LOG_LEVEL       = "DEBUG"
+  release_version = "latest"
 
   iap_enabled                       = true
   iap_oauth_client_id               = var.IAP_OAUTH_CLIENT_ID
