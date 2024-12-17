@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- window -->
+    <script>
+        window.app = {
+            apiBase: "{{api_base}}",
+            assetBase: "{{asset_base}}",
+            appEnv: "{{app_env}}",
+            version: "{{app_version}}",
+        };
+    </script>
+
+    <!-- Google Fonts (Inter, Quicksand) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link id="global-font-src" href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Quicksand:wght@300..700&display=swap" rel="stylesheet">
+    <!-- End Google Fonts -->
+
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/x-icon" href="{{asset_base}}/images/vivial-logo.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="admin booking things." />
+    <title>{{ page_title|default("Vivial Admin dash") }}</title>
+
+    <script defer src="{{asset_base}}/dist/main.js"></script>
+</head>
+
+<body>
+    <div id="root"></div>
+</body>
+
+</html>

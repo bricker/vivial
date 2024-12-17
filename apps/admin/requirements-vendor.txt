@@ -1,0 +1,2 @@
+# Requirements that are vendored into /vendor during deployment.
+${EAVE_HOME}/libs/eave-stdlib-py

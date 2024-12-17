@@ -97,6 +97,7 @@
     "${workspaceFolder}/apps/dashboard",
     "${workspaceFolder}/develop/python/src",
     "${workspaceFolder}/libs/eave-stdlib-py/src",
+    "${workspaceFolder}/apps/admin"
   ],
   "ruff.lint.args": [
     "--config=${workspaceFolder}/develop/python/configs/ruff.toml",
@@ -139,6 +140,7 @@
     "${workspaceFolder}/apps/core",
     "${workspaceFolder}/apps/dashboard",
     "${workspaceFolder}/develop/python/src",
-    "${workspaceFolder}/libs/eave-stdlib-py/src"
+    "${workspaceFolder}/libs/eave-stdlib-py/src",
+    "${workspaceFolder}/apps/admin"
   ],
 }

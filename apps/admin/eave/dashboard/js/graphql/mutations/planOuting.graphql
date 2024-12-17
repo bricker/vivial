@@ -1,0 +1,5 @@
+mutation PlanOuting($input: PlanOutingInput!) {
+  planOuting(input: $input) {
+    ...PlanOutingFields
+  }
+}

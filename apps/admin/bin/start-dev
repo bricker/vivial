@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+(
+	trap 'kill 0' SIGINT
+
+	python-activate-venv
+	node-activate-venv
+	cd "$(e.parentpath)"
+
+	python ./bin/src/start-dev-server.py &
+	./node_modules/.bin/webpack -w &
+	./node_modules/.bin/graphql-codegen --config codegen.ts --overwrite --watch &
+	wait
+)

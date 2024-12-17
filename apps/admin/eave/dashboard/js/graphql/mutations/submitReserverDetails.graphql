@@ -1,0 +1,34 @@
+mutation SubmitReserverDetails($input: SubmitReserverDetailsInput!) {
+  viewer {
+    __typename
+    ... on AuthenticatedViewerMutations {
+      __typename
+
+      submitReserverDetails(input: $input) {
+        __typename
+
+        ... on SubmitReserverDetailsSuccess {
+          __typename
+
+          reserverDetails {
+            id
+          }
+        }
+
+        ... on SubmitReserverDetailsFailure {
+          __typename
+          failureReason
+
+          validationErrors {
+            field
+          }
+        }
+      }
+    }
+
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}
