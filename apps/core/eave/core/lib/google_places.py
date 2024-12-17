@@ -22,7 +22,7 @@ from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
-from eave.core.shared.enums import ActivitySource, OutingBudget, RestaurantSource
+from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.core.shared.geo import GeoArea, GeoPoint
 
 # You must pass a field mask to the Google Places API to specify the list of fields to return in the response.
@@ -316,6 +316,7 @@ def place_will_be_open(*, place: Place, arrival_time: datetime, departure_time: 
                 if open_time <= arrival_time_local and close_time >= departure_time_local:
                     return True
     return False
+
 
 def place_is_accessible(place: Place) -> bool:
     """

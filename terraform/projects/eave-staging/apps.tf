@@ -1,10 +1,10 @@
 module "shared_kubernetes_resources" {
-  source                        = "../../modules/kube_shared_resources"
-  iap_oauth_client_secret       = var.IAP_OAUTH_CLIENT_SECRET
-  dns_domain                    = local.dns_domain
-  www_public_domain_prefix      = local.www_public_domain_prefix
-  api_public_domain_prefix      = local.api_public_domain_prefix
-  STRIPE_ENVIRONMENT = local.STRIPE_ENVIRONMENT
+  source                   = "../../modules/kube_shared_resources"
+  iap_oauth_client_secret  = var.IAP_OAUTH_CLIENT_SECRET
+  dns_domain               = local.dns_domain
+  www_public_domain_prefix = local.www_public_domain_prefix
+  api_public_domain_prefix = local.api_public_domain_prefix
+  STRIPE_ENVIRONMENT       = local.STRIPE_ENVIRONMENT
 }
 
 module "core_api_app" {
@@ -49,9 +49,9 @@ module "dashboard_app" {
   kube_namespace_name                        = module.shared_kubernetes_resources.eave_namespace_name
   shared_config_map_name                     = module.shared_kubernetes_resources.shared_config_map_name
 
-  cdn_base_url              = module.cdn.url
-  LOG_LEVEL                 = "DEBUG"
-  release_version           = "latest"
+  cdn_base_url    = module.cdn.url
+  LOG_LEVEL       = "DEBUG"
+  release_version = "latest"
 
   iap_enabled                       = true
   iap_oauth_client_id               = var.IAP_OAUTH_CLIENT_ID

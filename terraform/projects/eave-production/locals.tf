@@ -30,5 +30,5 @@ locals {
     "eave-develop",
   ])
 
-  STRIPE_ENVIRONMENT="test"
+  STRIPE_ENVIRONMENT = "test"
 }

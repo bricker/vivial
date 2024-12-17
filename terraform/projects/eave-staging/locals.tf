@@ -22,5 +22,5 @@ locals {
     },
   }
 
-  STRIPE_ENVIRONMENT="test"
+  STRIPE_ENVIRONMENT = "test"
 }

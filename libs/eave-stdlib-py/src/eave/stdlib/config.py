@@ -10,9 +10,11 @@ import google.cloud.secretmanager
 
 from . import checksum
 
+
 class StripeEnvironment(enum.Enum):
     TEST = enum.auto()
     LIVE = enum.auto()
+
 
 class EaveEnvironment(enum.StrEnum):
     test = "test"
@@ -20,7 +22,9 @@ class EaveEnvironment(enum.StrEnum):
     staging = "staging"
     production = "production"
 
+
 _SLACK_CHANNEL_ID_BOT_TESTING = "C04GDPU3B5Z"
+
 
 class ConfigBase:
     def preload(self) -> None:
@@ -249,14 +253,14 @@ class _EaveConfig(ConfigBase):
         if self.is_local:
             return _SLACK_CHANNEL_ID_BOT_TESTING
         else:
-            return "C04HH2N08LD" # alerts-signups
+            return "C04HH2N08LD"  # alerts-signups
 
     @property
     def eave_slack_alerts_bookings_channel_id(self) -> str:
         if self.is_local:
             return _SLACK_CHANNEL_ID_BOT_TESTING
         else:
-            return "C085C89U211" # alerts-bookings
+            return "C085C89U211"  # alerts-bookings
 
     @cached_property
     def send_grid_api_key(self) -> str:
@@ -287,6 +291,7 @@ class _EaveConfig(ConfigBase):
                 return "https://billing.stripe.com/p/login/test_3cs7uT6FmfXceBO144"
             case _:
                 return "https://billing.stripe.com/p/login/5kAaHYgIEcGv3tu6oo"
+
 
 def get_secret(name: str) -> str:
     # Allow overrides from the environment

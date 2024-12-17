@@ -18,5 +18,5 @@ variable "api_public_domain_prefix" {
 }
 
 variable "STRIPE_ENVIRONMENT" {
-  type=string
+  type = string
 }
