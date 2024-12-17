@@ -200,7 +200,7 @@ async def _notify_slack(
     total_cost_cents: int,
 ) -> None:
     try:
-        channel_id = SHARED_CONFIG.eave_slack_signups_channel_id
+        channel_id = SHARED_CONFIG.eave_slack_alerts_bookings_channel_id
         slack_client = eave.stdlib.slack.get_authenticated_eave_system_slack_client()
 
         if slack_client and channel_id:
