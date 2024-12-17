@@ -116,14 +116,14 @@ const CheckoutForm = ({
 
   const [internalReserverDetailError, setInternalReserverDetailError] = useState<string | undefined>(undefined);
   const [externalReserverDetailError, setExternalReserverDetailError] = useState<string | undefined>(undefined);
-  const [paymentError,] = useState<string | undefined>(undefined);
+  const [paymentError] = useState<string | undefined>(undefined);
   const [isUsingNewCard, setIsUsingNewCard] = useState(false);
   const [reserverDetails, setReserverDetails] = useState(
     localReserverDetails || { id: "", firstName: "", lastName: "", phoneNumber: "" },
   );
   // const [outing, setOuting] = useState<Outing | null | undefined>(localOuting);
 
-  const [bookingDetails,] = useState<BookingDetails | undefined>(localBookingDetails);
+  const [bookingDetails] = useState<BookingDetails | undefined>(localBookingDetails);
 
   const submissionIsLoading = updateDetailsIsLoading || submitDetailsIsLoading;
   // only prevent submit on internalError since that can be fixed w/o another submit
