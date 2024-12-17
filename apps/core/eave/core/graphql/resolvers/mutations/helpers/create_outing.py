@@ -94,11 +94,42 @@ async def create_outing(
     )
 
     ANALYTICS.track(
-        event_name="outing plan created",
+        event_name="outing_created",
         account_id=account.id if account else None,
         visitor_id=visitor_id,
         extra_properties={
             "reroll": reroll,
+            "outing_id": str(outing.id),
+            "restaurant_info": {
+                "start_time": outing.restaurant_arrival_time.isoformat() if outing.restaurant_arrival_time else None,
+                "category": outing.restaurant.primary_type_name if outing.restaurant else None,
+                "accepts_reservations": outing.restaurant.reservable if outing.restaurant else None,
+                "address": outing.restaurant.location.address.formatted_singleline() if outing.restaurant else None,
+            },
+            "activity_info": {
+                "start_time": outing.activity_start_time.isoformat() if outing.activity_start_time else None,
+                "category": outing.activity.category_group.name
+                if outing.activity and outing.activity.category_group
+                else None,
+                "costs": {
+                    "total_cents": outing.activity.ticket_info.cost_breakdown.total_cost_cents()
+                    if outing.activity and outing.activity.ticket_info
+                    else None,
+                    "fees_cents": outing.activity.ticket_info.cost_breakdown.fee_cents
+                    if outing.activity and outing.activity.ticket_info
+                    else None,
+                    "tax_cents": outing.activity.ticket_info.cost_breakdown.tax_cents
+                    if outing.activity and outing.activity.ticket_info
+                    else None,
+                },
+                "address": outing.activity.venue.location.address.formatted_singleline() if outing.activity else None,
+            },
+            "survey_info": {
+                "headcount": outing.survey.headcount,
+                "start_time": outing.survey.start_time.isoformat(),
+                "regions": [region.name for region in outing.survey.search_regions],
+                "budget": outing.survey.budget,
+            },
         },
     )
 

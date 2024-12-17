@@ -6,6 +6,8 @@ from uuid import UUID
 import strawberry
 import stripe
 
+from eave.core.lib.address import format_address
+from eave.core.orm.search_region import SearchRegionOrm
 import eave.stdlib.slack
 from eave.core import database
 from eave.core.analytics import ANALYTICS
@@ -204,16 +206,46 @@ async def create_booking_mutation(
         outing_total_cost_cents=outing_total_cost_cents,
     )
 
+    # TODO: save info we lose along the way above
     ANALYTICS.track(
-        event_name="booking created",
+        event_name="booking_complete",
         account_id=account.id,
         visitor_id=visitor_id,
         extra_properties={
-            "booking_constraints": {
+            "booking_id": str(booking.id),
+            "booked_outing_id": str(outing.id),
+            "restaurant_info": {
+                "start_time": booking.reservations[0].start_time_local.isoformat() if booking.reservations else None,
+                "category": outing.restaurant.primary_type_name if outing.restaurant else None,
+                "accepts_reservations": outing.restaurant.reservable if outing.restaurant else None,
+                "address": format_address(booking.reservations[0].address) if booking.reservations else None,
+            },
+            "activity_info": {
+                "start_time": booking.activities[0].start_time_local.isoformat() if booking.activities else None,
+                "category": booking.activities[0].category_group.name
+                if outing.activity and outing.activity.category_group
+                else None,
+                "costs": {
+                    "total_cents": outing.activity.ticket_info.cost_breakdown.total_cost_cents()
+                    if outing.activity and outing.activity.ticket_info
+                    else None,
+                    "fees_cents": outing.activity.ticket_info.cost_breakdown.fee_cents
+                    if outing.activity and outing.activity.ticket_info
+                    else None,
+                    "tax_cents": outing.activity.ticket_info.cost_breakdown.tax_cents
+                    if outing.activity and outing.activity.ticket_info
+                    else None,
+                },
+                "address": format_address(booking.activities[0].address) if booking.activities else None,
+            },
+            "survey_info": {
                 "headcount": survey.headcount,
+                "start_time": survey.start_time_local.isoformat(),
+                "regions": [
+                    SearchRegionOrm.one_or_exception(search_region_id=region).name for region in survey.search_area_ids
+                ],
                 "budget": survey.budget,
-                "search_areas": survey.search_area_ids,
-            }
+            },
         },
     )
 
