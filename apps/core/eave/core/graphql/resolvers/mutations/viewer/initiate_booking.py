@@ -221,7 +221,9 @@ async def initiate_booking_mutation(
             "booking_id": str(booking.id),
             "outing_id": str(input.outing_id),
             "restaurant_info": {
-                "start_time": booking_details_restaurant_arrival_time.isoformat() if booking_details_restaurant_arrival_time else None,
+                "start_time": booking_details_restaurant_arrival_time.isoformat()
+                if booking_details_restaurant_arrival_time
+                else None,
                 "category": booking_details_restaurant.primary_type_name if booking_details_restaurant else None,
                 "accepts_reservations": booking_details_restaurant.reservable if booking_details_restaurant else None,
                 "address": format_address(booking_details_restaurant.location.address.to_address(), singleline=True)
@@ -229,7 +231,9 @@ async def initiate_booking_mutation(
                 else None,
             },
             "activity_info": {
-                "start_time": booking_details_activity_start_time.isoformat() if booking_details_activity_start_time else None,
+                "start_time": booking_details_activity_start_time.isoformat()
+                if booking_details_activity_start_time
+                else None,
                 "category": booking_details_activity.category_group.name
                 if booking_details_activity and booking_details_activity.category_group
                 else None,
