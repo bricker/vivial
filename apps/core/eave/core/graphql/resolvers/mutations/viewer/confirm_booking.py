@@ -180,7 +180,7 @@ async def confirm_booking_mutation(
         visitor_id=visitor_id,
         extra_properties={
             "booking_id": str(booking.id),
-            "booked_outing_id": str(booking.outing.id) if booking.outing else None,
+            "outing_id": str(booking.outing.id) if booking.outing else None,
             "activity_info": {
                 "costs": {
                     "total_cents": booking_total_cost_cents,

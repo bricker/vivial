@@ -19,11 +19,13 @@ from eave.core.graphql.types.booking import (
 from eave.core.graphql.types.payment_intent import PaymentIntent
 from eave.core.graphql.types.pricing import CostBreakdown
 from eave.core.graphql.types.survey import Survey
+from eave.core.lib.address import format_address
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
 from eave.core.orm.outing import OutingOrm
+from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.core.shared.enums import BookingState
 from eave.core.shared.errors import ValidationError
@@ -212,16 +214,46 @@ async def initiate_booking_mutation(
         )
 
     ANALYTICS.track(
-        event_name="booking initiated",
-        account_id=account_orm.id,
+        event_name="booking_initiated",
+        account_id=account_id,
         visitor_id=visitor_id,
         extra_properties={
             "booking_id": str(booking.id),
-            "total_cost_cents": booking_details_cost_breakdown.total_cost_cents_internal,
-            "booking_constraints": {
-                "headcount": survey_orm.headcount,
-                "budget": survey_orm.budget,
-                "search_areas": [str(i) for i in survey_orm.search_area_ids],
+            "outing_id": str(input.outing_id),
+            "restaurant_info": {
+                "start_time": booking_details_restaurant_arrival_time.isoformat() if booking_details_restaurant_arrival_time else None,
+                "category": booking_details_restaurant.primary_type_name if booking_details_restaurant else None,
+                "accepts_reservations": booking_details_restaurant.reservable if booking_details_restaurant else None,
+                "address": format_address(booking_details_restaurant.location.address.to_address(), singleline=True)
+                if booking_details_restaurant
+                else None,
+            },
+            "activity_info": {
+                "start_time": booking_details_activity_start_time.isoformat() if booking_details_activity_start_time else None,
+                "category": booking_details_activity.category_group.name
+                if booking_details_activity and booking_details_activity.category_group
+                else None,
+                "costs": {
+                    "total_cents": booking_details_cost_breakdown.total_cost_cents_internal,
+                    "fees_cents": booking_details_cost_breakdown.fee_cents,
+                    "tax_cents": booking_details_cost_breakdown.tax_cents,
+                },
+                "address": format_address(booking_details_activity.venue.location.address.to_address(), singleline=True)
+                if booking_details_activity
+                else None,
+            },
+            "survey_info": {
+                "headcount": booking.outing.survey.headcount if booking.outing and booking.outing.survey else None,
+                "start_time": booking.outing.survey.start_time_local.isoformat()
+                if booking.outing and booking.outing.survey
+                else None,
+                "regions": [
+                    SearchRegionOrm.one_or_exception(search_region_id=region).name
+                    for region in booking.outing.survey.search_area_ids
+                ]
+                if booking.outing and booking.outing.survey
+                else None,
+                "budget": booking.outing.survey.budget if booking.outing and booking.outing.survey else None,
             },
         },
     )
