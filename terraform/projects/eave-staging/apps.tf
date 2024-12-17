@@ -4,7 +4,6 @@ module "shared_kubernetes_resources" {
   dns_domain                    = local.dns_domain
   www_public_domain_prefix      = local.www_public_domain_prefix
   api_public_domain_prefix      = local.api_public_domain_prefix
-  eave_slack_signups_channel_id = local.eave_slack_signups_channel_id
 }
 
 module "core_api_app" {

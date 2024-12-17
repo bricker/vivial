@@ -12,6 +12,10 @@ from . import checksum
 
 GITHUB_EVENT_QUEUE_NAME = "github-events-processor"
 
+class SlackChannelId(enum.StrEnum):
+    BOT_TESTING = "C04GDPU3B5Z"
+    ALERTS_BOOKINGS = "C085C89U211"
+    ALERTS_SIGNUPS = "C04HH2N08LD"
 
 class EaveEnvironment(enum.StrEnum):
     test = "test"
@@ -242,10 +246,17 @@ class _EaveConfig(ConfigBase):
         value = get_secret("SLACK_SYSTEM_BOT_TOKEN")
         return value
 
-    @cached_property
-    def eave_slack_signups_channel_id(self) -> str | None:
-        value = os.getenv("EAVE_SLACK_SIGNUPS_CHANNEL_ID")
-        return value
+    def eave_slack_alerts_signups_channel_id(self) -> str:
+        if self.is_local:
+            return SlackChannelId.BOT_TESTING
+        else:
+            return SlackChannelId.ALERTS_SIGNUPS
+
+    def eave_slack_alerts_bookings_channel_id(self) -> str:
+        if self.is_local:
+            return SlackChannelId.BOT_TESTING
+        else:
+            return SlackChannelId.ALERTS_BOOKINGS
 
     @cached_property
     def send_grid_api_key(self) -> str:

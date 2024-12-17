@@ -13,8 +13,6 @@ locals {
   www_public_domain_prefix = "www-preview"
   api_public_domain_prefix = "api"
 
-  eave_slack_signups_channel_id = "C04HH2N08LD" # #sign-ups in eave slack
-
   authorized_networks = {
     "bryan-wifi" : {
       cidr_block   = "75.83.177.78/32"
