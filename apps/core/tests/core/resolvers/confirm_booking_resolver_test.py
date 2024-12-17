@@ -12,13 +12,14 @@ class TestConfirmBookingResolver(BaseTestCase):
         async with self.db_session.begin() as session:
             account = self.make_account(session)
             survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
             reserver_details = self.make_reserver_details(session, account)
             _reserver_details_alt = self.make_reserver_details(session, account)
             stripe_payment_intent_reference = self.make_stripe_payment_intent_reference(session, account)
             booking = self.make_booking(
                 session,
                 account,
-                survey,
+                outing,
                 stripe_payment_intent_reference=stripe_payment_intent_reference,
                 reserver_details=None,
             )
@@ -64,12 +65,13 @@ class TestConfirmBookingResolver(BaseTestCase):
         async with self.db_session.begin() as session:
             account = self.make_account(session)
             survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
             reserver_details = self.make_reserver_details(session, account)
             stripe_payment_intent_reference = self.make_stripe_payment_intent_reference(session, account)
             booking = self.make_booking(
                 session,
                 account,
-                survey,
+                outing,
                 stripe_payment_intent_reference=stripe_payment_intent_reference,
                 reserver_details=reserver_details,
             )
@@ -114,7 +116,8 @@ class TestConfirmBookingResolver(BaseTestCase):
         async with self.db_session.begin() as session:
             account = self.make_account(session)
             survey = self.make_survey(session, account)
-            booking = self.make_booking(session, account, survey)
+            outing = self.make_outing(session, account, survey)
+            booking = self.make_booking(session, account, outing)
 
         response = await self.make_graphql_request(
             "confirmBooking",
@@ -146,11 +149,12 @@ class TestConfirmBookingResolver(BaseTestCase):
         async with self.db_session.begin() as session:
             account = self.make_account(session)
             survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
             stripe_payment_intent_reference = self.make_stripe_payment_intent_reference(session, account)
             _booking1 = self.make_booking(
-                session, account, survey, stripe_payment_intent_reference=stripe_payment_intent_reference
+                session, account, outing, stripe_payment_intent_reference=stripe_payment_intent_reference
             )
-            booking2 = self.make_booking(session, account, survey)
+            booking2 = self.make_booking(session, account, outing)
 
         response = await self.make_graphql_request(
             "confirmBooking",
@@ -184,7 +188,8 @@ class TestConfirmBookingResolver(BaseTestCase):
             account1 = self.make_account(session)
             account2 = self.make_account(session)
             survey = self.make_survey(session, account1)
-            booking = self.make_booking(session, account1, survey)
+            outing = self.make_outing(session, account1, survey)
+            booking = self.make_booking(session, account1, outing)
 
         response = await self.make_graphql_request(
             "confirmBooking",
@@ -213,9 +218,10 @@ class TestConfirmBookingResolver(BaseTestCase):
         async with self.db_session.begin() as session:
             account = self.make_account(session)
             survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
             stripe_payment_intent_reference = self.make_stripe_payment_intent_reference(session, account)
             booking = self.make_booking(
-                session, account, survey, stripe_payment_intent_reference=stripe_payment_intent_reference
+                session, account, outing, stripe_payment_intent_reference=stripe_payment_intent_reference
             )
 
         self.mock_stripe_payment_intent.status = "requires_action"
@@ -247,8 +253,9 @@ class TestConfirmBookingResolver(BaseTestCase):
         async with self.db_session.begin() as session:
             account = self.make_account(session)
             survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
             reserver_details = self.make_reserver_details(session, account)
-            booking = self.make_booking(session, account, survey, reserver_details=reserver_details)
+            booking = self.make_booking(session, account, outing, reserver_details=reserver_details)
 
         assert booking.state == BookingState.INITIATED
 
@@ -286,10 +293,10 @@ class TestConfirmBookingResolver(BaseTestCase):
         async with self.db_session.begin() as session:
             account = self.make_account(session)
             survey = self.make_survey(session, account)
-
+            outing = self.make_outing(session, account, survey)
             stripe_payment_intent_reference = self.make_stripe_payment_intent_reference(session, account)
             booking = self.make_booking(
-                session, account, survey, stripe_payment_intent_reference=stripe_payment_intent_reference
+                session, account, outing, stripe_payment_intent_reference=stripe_payment_intent_reference
             )
 
         assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 0
@@ -324,9 +331,10 @@ class TestConfirmBookingResolver(BaseTestCase):
         async with self.db_session.begin() as session:
             account = self.make_account(session)
             survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
             stripe_payment_intent_reference = self.make_stripe_payment_intent_reference(session, account)
             booking = self.make_booking(
-                session, account, survey, stripe_payment_intent_reference=stripe_payment_intent_reference
+                session, account, outing, stripe_payment_intent_reference=stripe_payment_intent_reference
             )
 
         assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 0
@@ -375,7 +383,7 @@ class TestConfirmBookingResolver(BaseTestCase):
             booking = self.make_booking(
                 session,
                 account,
-                survey,
+                outing,
                 reserver_details=reserver_details,
                 stripe_payment_intent_reference=stripe_payment_intent_reference,
             )
@@ -428,8 +436,8 @@ class TestConfirmBookingResolver(BaseTestCase):
                 budget=OutingBudget.INEXPENSIVE,
                 headcount=self.anyint(min=1, max=2),
             )
-
-            booking = self.make_booking(session, account, survey)
+            outing = self.make_outing(session, account, survey)
+            booking = self.make_booking(session, account, outing)
 
         response = await self.make_graphql_request(
             "confirmBooking",
@@ -462,8 +470,8 @@ class TestConfirmBookingResolver(BaseTestCase):
                 budget=OutingBudget.INEXPENSIVE,
                 headcount=self.anyint(min=1, max=2),
             )
-
-            booking = self.make_booking(session, account, survey)
+            outing = self.make_outing(session, account, survey)
+            booking = self.make_booking(session, account, outing)
 
         response = await self.make_graphql_request(
             "confirmBooking",

@@ -4,6 +4,7 @@ from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
 from eave.core.graphql.types.outing import Outing, OutingPreferencesInput
 from eave.core.graphql.types.pricing import CostBreakdown
 from eave.core.graphql.types.survey import Survey
+from eave.core.lib.address import format_address
 from eave.core.lib.event_helpers import get_activity
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
@@ -78,11 +79,46 @@ async def create_outing(
     )
 
     ANALYTICS.track(
-        event_name="outing plan created",
+        event_name="outing_created",
         account_id=account.id if account else None,
         visitor_id=visitor_id,
         extra_properties={
             "reroll": reroll,
+            "outing_id": str(outing.id),
+            "restaurant_info": {
+                "start_time": outing.restaurant_arrival_time.isoformat() if outing.restaurant_arrival_time else None,
+                "category": outing.restaurant.primary_type_name if outing.restaurant else None,
+                "accepts_reservations": outing.restaurant.reservable if outing.restaurant else None,
+                "address": format_address(outing.restaurant.location.address.to_address(), singleline=True)
+                if outing.restaurant
+                else None,
+            },
+            "activity_info": {
+                "start_time": outing.activity_start_time.isoformat() if outing.activity_start_time else None,
+                "category": outing.activity.category_group.name
+                if outing.activity and outing.activity.category_group
+                else None,
+                "costs": {
+                    "total_cents": outing.activity.ticket_info.cost_breakdown.total_cost_cents_internal
+                    if outing.activity and outing.activity.ticket_info
+                    else None,
+                    "fees_cents": outing.activity.ticket_info.cost_breakdown.fee_cents
+                    if outing.activity and outing.activity.ticket_info
+                    else None,
+                    "tax_cents": outing.activity.ticket_info.cost_breakdown.tax_cents
+                    if outing.activity and outing.activity.ticket_info
+                    else None,
+                },
+                "address": format_address(outing.activity.venue.location.address.to_address(), singleline=True)
+                if outing.activity
+                else None,
+            },
+            "survey_info": {
+                "headcount": outing.survey.headcount if outing.survey else None,
+                "start_time": outing.survey.start_time.isoformat() if outing.survey else None,
+                "regions": [region.name for region in outing.survey.search_regions] if outing.survey else None,
+                "budget": outing.survey.budget if outing.survey else None,
+            },
         },
     )
 

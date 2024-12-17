@@ -22,6 +22,7 @@ from eave.core.graphql.types.booking import (
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
+from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.core.shared.enums import BookingState
 from eave.core.shared.errors import ValidationError
@@ -91,12 +92,12 @@ async def confirm_booking_mutation(
             booking=Booking.from_orm(booking),
         )
 
-    if booking.survey:
+    if booking.outing and booking.outing.survey:
         # TODO: This is messy, consolidate all of these duplicate checks into one place
         # validate outing time still valid to book
         try:
             validate_time_within_bounds_or_exception(
-                start_time=booking.survey.start_time_utc, timezone=booking.survey.timezone
+                start_time=booking.outing.survey.start_time_utc, timezone=booking.outing.survey.timezone
             )
         except StartTimeTooSoonError:
             return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.START_TIME_TOO_SOON)
@@ -174,17 +175,30 @@ async def confirm_booking_mutation(
     )
 
     ANALYTICS.track(
-        event_name="booking complete",
-        account_id=account.id,
+        event_name="booking_complete",
+        account_id=account_id,
         visitor_id=visitor_id,
         extra_properties={
-            "booking_constraints": {
-                "headcount": booking.survey.headcount,
-                "budget": booking.survey.budget,
-                "search_areas": [str(i) for i in booking.survey.search_area_ids],
-            }
-            if booking.survey
-            else {}
+            "booking_id": str(booking.id),
+            "outing_id": str(booking.outing.id) if booking.outing else None,
+            "activity_info": {
+                "costs": {
+                    "total_cents": booking_total_cost_cents,
+                },
+            },
+            "survey_info": {
+                "headcount": booking.outing.survey.headcount if booking.outing and booking.outing.survey else None,
+                "start_time": booking.outing.survey.start_time_local.isoformat()
+                if booking.outing and booking.outing.survey
+                else None,
+                "regions": [
+                    SearchRegionOrm.one_or_exception(search_region_id=region).name
+                    for region in booking.outing.survey.search_area_ids
+                ]
+                if booking.outing and booking.outing.survey
+                else None,
+                "budget": booking.outing.survey.budget if booking.outing and booking.outing.survey else None,
+            },
         },
     )
 

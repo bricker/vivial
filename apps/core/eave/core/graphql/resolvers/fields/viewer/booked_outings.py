@@ -19,7 +19,7 @@ async def _get_booking_details(
 ) -> BookingDetails:
     details = BookingDetails(
         id=booking.id,
-        survey=Survey.from_orm(booking.survey) if booking.survey else None,
+        survey=Survey.from_orm(booking.outing.survey) if booking.outing and booking.outing.survey else None,
         cost_breakdown=CostBreakdown(),
         activity=None,
         activity_start_time=None,

@@ -11,11 +11,12 @@ class TestBookedOutingsResolver(BaseTestCase):
         async with self.db_session.begin() as session:
             account = self.make_account(session)
             survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
             reserver_details = self.make_reserver_details(session, account)
 
             booking = BookingOrm(
                 session,
-                survey=survey,
+                outing=outing,
                 accounts=[account],
                 reserver_details=reserver_details,
             )
@@ -104,8 +105,9 @@ class TestBookedOutingsResolver(BaseTestCase):
         async with self.db_session.begin() as session:
             account = self.make_account(session)
             survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
             reserver_details = self.make_reserver_details(session, account)
-            booking = self.make_booking(session, account, survey, reserver_details=reserver_details)
+            booking = self.make_booking(session, account, outing, reserver_details=reserver_details)
 
         response = await self.make_graphql_request(
             "bookedOutingDetails",

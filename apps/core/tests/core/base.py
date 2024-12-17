@@ -265,13 +265,13 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
         self,
         session: AsyncSession,
         account: AccountOrm,
-        survey: SurveyOrm,
+        outing: OutingOrm,
         stripe_payment_intent_reference: StripePaymentIntentReferenceOrm | None = None,
         reserver_details: ReserverDetailsOrm | None = None,
     ) -> BookingOrm:
         booking = BookingOrm(
             session,
-            survey=survey,
+            outing=outing,
             accounts=[account],
             reserver_details=reserver_details,
             stripe_payment_intent_reference=stripe_payment_intent_reference,

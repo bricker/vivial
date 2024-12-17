@@ -138,7 +138,7 @@ async def seed_database(db: AsyncEngine, account_id: uuid.UUID | None) -> None:
 
         booking = BookingOrm(
             session,
-            survey=survey,
+            outing=outing,
             accounts=[account],
             reserver_details=reserver_details,
         )
