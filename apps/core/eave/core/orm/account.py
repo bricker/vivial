@@ -23,6 +23,7 @@ from .util.constants import PG_UUID_EXPR
 if TYPE_CHECKING:
     from eave.core.orm.booking import BookingOrm
     from eave.core.orm.outing_preferences import OutingPreferencesOrm
+    from eave.core.orm.reserver_details import ReserverDetailsOrm
 
 
 class InvalidPasswordError(Exception):
@@ -82,6 +83,7 @@ class AccountOrm(Base, GetOneByIdMixin):
     )
 
     outing_preferences: Mapped["OutingPreferencesOrm | None"] = relationship(back_populates="account", lazy="selectin")
+    reserver_details: Mapped[list["ReserverDetailsOrm"]] = relationship(back_populates="account", lazy="selectin")
 
     def __init__(
         self,
@@ -104,6 +106,10 @@ class AccountOrm(Base, GetOneByIdMixin):
             query = query.where(cls.email == email)
 
         return query
+
+    def get_booking(self, *, booking_id: UUID) -> "BookingOrm | None":
+        # This is more efficient than querying the database directly, because we're already eager-loading account.bookings
+        return next((b for b in self.bookings if b.id == booking_id), None)
 
     def validate(self) -> list[ValidationError]:
         errors: list[ValidationError] = []

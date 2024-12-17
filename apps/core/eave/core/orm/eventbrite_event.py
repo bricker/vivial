@@ -26,7 +26,7 @@ class EventbriteEventOrm(Base, CoordinatesMixin, GetOneByIdMixin):
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     eventbrite_event_id: Mapped[str] = mapped_column(unique=True)
-    eventbrite_organizer_id: Mapped[str] = mapped_column(index=True)
+    eventbrite_organizer_id: Mapped[str | None] = mapped_column(index=True)
     title: Mapped[str] = mapped_column()
     time_range_utc: Mapped[Range[datetime]] = mapped_column(TSTZRANGE)
     timezone: Mapped[ZoneInfo] = mapped_column(type_=ZoneInfoColumnType())

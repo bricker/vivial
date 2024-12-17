@@ -1,4 +1,5 @@
-import { AppRoute } from "$eave-dashboard/js/routes";
+import VivialLogo from "$eave-dashboard/js/components/Logo";
+import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { getTotalCost } from "$eave-dashboard/js/util/currency";
 import { styled } from "@mui/material";
@@ -8,7 +9,6 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import PrimaryButton from "$eave-dashboard/js/components/Buttons/PrimaryButton";
-import VivialLogo from "$eave-dashboard/js/components/Logo";
 import Typography from "@mui/material/Typography";
 import Header from "../../Shared/Header";
 
@@ -28,7 +28,8 @@ const ItineraryVariant = () => {
 
   const handleBook = useCallback(() => {
     if (outing) {
-      navigate(`${AppRoute.checkout}/${outing.id}`);
+      const reservePath = routePath(AppRoute.checkoutReserve, { outingId: outing.id });
+      navigate(reservePath);
     }
   }, [outing]);
 

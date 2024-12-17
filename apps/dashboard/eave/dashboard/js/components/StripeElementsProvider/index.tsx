@@ -1,4 +1,5 @@
-import { useCreatePaymentIntentMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { setBookingDetails } from "$eave-dashboard/js/store/slices/bookingSlice";
+import { useInitiateBookingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { myWindow } from "$eave-dashboard/js/types/window";
@@ -6,6 +7,7 @@ import { CircularProgress, Typography, styled } from "@mui/material";
 import { Elements } from "@stripe/react-stripe-js";
 import { Appearance, CssFontSource, CustomFontSource, loadStripe } from "@stripe/stripe-js";
 import React, { useEffect } from "react";
+import { useDispatch } from "react-redux";
 
 const CenteringContainer = styled("div")(() => ({
   display: "flex",
@@ -21,11 +23,12 @@ const ErrorText = styled(Typography)(({ theme }) => ({
 
 const stripePromise = loadStripe(myWindow.app.stripePublishableKey!);
 
-const StripeElementsProvider = ({ children, outingId }: { children: React.ReactElement; outingId: string }) => {
-  const [createPaymentIntent, { isLoading, data }] = useCreatePaymentIntentMutation();
+const StripeElementsProvider = ({ outingId, children }: { outingId: string; children: React.ReactElement }) => {
+  const [initiateBooking, { isLoading, data }] = useInitiateBookingMutation();
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    void createPaymentIntent({
+    void initiateBooking({
       input: {
         outingId,
       },
@@ -55,33 +58,34 @@ const StripeElementsProvider = ({ children, outingId }: { children: React.ReactE
       break;
     }
     case "UnauthenticatedViewer": {
-      console.debug("ERROR: unauthenticated user");
+      console.error("unauthenticated user");
       return errorView;
     }
     default: {
-      console.debug("ERROR: unexepected graphql response viewer type");
+      console.error("unexepected graphql response viewer type");
       return errorView;
     }
   }
 
-  switch (data.viewer.createPaymentIntent.__typename) {
-    case "CreatePaymentIntentSuccess": {
+  switch (data.viewer.initiateBooking.__typename) {
+    case "InitiateBookingSuccess": {
+      dispatch(setBookingDetails({ bookingDetails: data.viewer.initiateBooking.booking }));
       break;
     }
-    case "CreatePaymentIntentFailure": {
-      console.debug(`ERROR: mutation failure: ${data.viewer.createPaymentIntent.failureReason}`);
+    case "InitiateBookingFailure": {
+      console.error(`mutation failure: ${data.viewer.initiateBooking.failureReason}`);
       return errorView;
     }
     default: {
-      console.debug("ERROR: unexepected graphql response CreatePaymentIntentResult type");
+      console.error("unexepected graphql response InitiateBookingResult type");
       return errorView;
     }
   }
 
-  const clientSecret = data.viewer.createPaymentIntent.paymentIntent.clientSecret;
+  const clientSecret = data.viewer.initiateBooking.paymentIntent?.clientSecret;
 
   if (!clientSecret) {
-    console.debug("ERROR: Payment Intent clientSecret missing");
+    console.error("Payment Intent clientSecret missing");
     return errorView;
   }
 

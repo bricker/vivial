@@ -7,4 +7,8 @@ fragment LocationFields on Location {
   address {
     ...AddressFields
   }
+  searchRegion {
+    id
+    name
+  }
 }

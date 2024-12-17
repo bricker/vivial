@@ -1,6 +1,7 @@
 import { StateFromReducersMapObject, configureStore, createListenerMiddleware } from "@reduxjs/toolkit";
 import { loadState, saveState } from "./localStorage";
 import { authSlice } from "./slices/authSlice";
+import { bookingSlice } from "./slices/bookingSlice";
 import { coreApiSlice } from "./slices/coreApiSlice";
 import { outingSlice } from "./slices/outingSlice";
 import { reserverDetailsSlice } from "./slices/reserverDetailsSlice";
@@ -11,6 +12,7 @@ const reducer = {
   auth: authSlice.reducer,
   outing: outingSlice.reducer,
   reserverDetails: reserverDetailsSlice.reducer,
+  booking: bookingSlice.reducer,
 };
 const preloadedState = loadState();
 const store = configureStore({

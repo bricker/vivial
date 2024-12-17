@@ -105,7 +105,7 @@ class TestBookedOutingsResolver(BaseTestCase):
             account = self.make_account(session)
             survey = self.make_survey(session, account)
             reserver_details = self.make_reserver_details(session, account)
-            booking = self.make_booking(session, account, survey, reserver_details)
+            booking = self.make_booking(session, account, survey, reserver_details=reserver_details)
 
         response = await self.make_graphql_request(
             "bookedOutingDetails",

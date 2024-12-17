@@ -1,15 +1,12 @@
 import {
-  CreateBookingFailureReason,
-  Outing,
   SubmitReserverDetailsFailureReason,
   UpdateReserverDetailsFailureReason,
+  type BookingDetails,
 } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute } from "$eave-dashboard/js/routes";
+import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 import {
-  useCreateBookingMutation,
-  useGetOutingQuery,
   useListReserverDetailsQuery,
   useSubmitReserverDetailsMutation,
   useUpdateReserverDetailsMutation,
@@ -21,7 +18,6 @@ import { Typography, styled } from "@mui/material";
 import { useElements, useStripe } from "@stripe/react-stripe-js";
 import React, { FormEvent, useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import LoadingButton from "../Buttons/LoadingButton";
 import InputError from "../Inputs/InputError";
 import LogoPill, { logos } from "../LogoPill";
@@ -89,52 +85,51 @@ const FooterText = styled(Typography)(() => ({
   textAlign: "center",
 }));
 
-function isPaidOuting(outing?: Outing | null): boolean {
-  if (!outing) {
+function isPaidOuting(bookingDetails?: BookingDetails): boolean {
+  if (!bookingDetails) {
     return false;
   }
-  return outing.costBreakdown.totalCostCents > 0;
+  return bookingDetails.costBreakdown.totalCostCents > 0;
 }
 
 const CheckoutForm = ({
-  outingId,
   showStripeBadge,
   showCostBreakdown,
 }: {
-  outingId: string;
   showStripeBadge?: boolean;
   showCostBreakdown?: boolean;
 }) => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
   // https://docs.stripe.com/sdks/stripejs-react
   const stripeClient = useStripe();
   const stripeElements = useElements();
 
-  const localOuting = useSelector((state: RootState) => state.outing.details);
+  // const localOuting = useSelector((state: RootState) => state.outing.details);
   const localReserverDetails = useSelector((state: RootState) => state.reserverDetails.reserverDetails);
+  const localBookingDetails = useSelector((state: RootState) => state.booking.bookingDetails);
 
   const { data: reserverDetailsData, isLoading: listDetailsIsLoading } = useListReserverDetailsQuery({});
-  const { data: outingData, isLoading: outingIsLoading } = useGetOutingQuery({ input: { id: outingId } });
   const [updateReserverDetails, { isLoading: updateDetailsIsLoading }] = useUpdateReserverDetailsMutation();
-  const [createBooking, { isLoading: createBookingIsLoading }] = useCreateBookingMutation();
   const [submitReserverDetails, { isLoading: submitDetailsIsLoading }] = useSubmitReserverDetailsMutation();
+  // const [updateBooking, { isLoading: updateBookingIsLoading }] = useUpdateBookingMutation();
+  // const [getBookingDetails, { isLoading: getBookingDetailsIsLoading }] = useGetBookingDetailsQuery();
 
   const [internalReserverDetailError, setInternalReserverDetailError] = useState<string | undefined>(undefined);
   const [externalReserverDetailError, setExternalReserverDetailError] = useState<string | undefined>(undefined);
-  const [paymentError, setPaymentError] = useState<string | undefined>(undefined);
-  const [bookingError, setBookingError] = useState<string | undefined>(undefined);
+  const [paymentError,] = useState<string | undefined>(undefined);
   const [isUsingNewCard, setIsUsingNewCard] = useState(false);
   const [reserverDetails, setReserverDetails] = useState(
     localReserverDetails || { id: "", firstName: "", lastName: "", phoneNumber: "" },
   );
-  const [outing, setOuting] = useState<Outing | null | undefined>(localOuting);
+  // const [outing, setOuting] = useState<Outing | null | undefined>(localOuting);
 
-  const submissionIsLoading = createBookingIsLoading || updateDetailsIsLoading || submitDetailsIsLoading;
+  const [bookingDetails,] = useState<BookingDetails | undefined>(localBookingDetails);
+
+  const submissionIsLoading = updateDetailsIsLoading || submitDetailsIsLoading;
   // only prevent submit on internalError since that can be fixed w/o another submit
   const submitButtonDisabled = !!(submissionIsLoading || listDetailsIsLoading || internalReserverDetailError);
   const reserverDetailError = internalReserverDetailError || externalReserverDetailError;
-  const error = [paymentError, bookingError].filter((e) => e).join("\n");
+  const error = [paymentError].filter((e) => e).join("\n");
 
   function checkReserverDetailsInputs(details: ReserverFormFields) {
     if (details.firstName.length === 0) {
@@ -175,14 +170,14 @@ const CheckoutForm = ({
     }
   }, [reserverDetailsData]);
 
-  useEffect(() => {
-    if (outingData) {
-      // prefer in-memory data (if vailable)
-      if (!outing) {
-        setOuting(outingData.outing);
-      }
-    }
-  }, [outingData]);
+  // useEffect(() => {
+  //   if (outingData) {
+  //     // prefer in-memory data (if vailable)
+  //     if (!outing) {
+  //       setOuting(outingData.outing);
+  //     }
+  //   }
+  // }, [outingData]);
 
   const handleReserverDetailChange = useCallback(
     (key: keyof ReserverFormFields, value: string) => {
@@ -204,18 +199,19 @@ const CheckoutForm = ({
         return;
       }
       setInternalReserverDetailError(undefined);
-      const isPaidActivity = isPaidOuting(outing);
+      const isPaidActivity = isPaidOuting(localBookingDetails);
       // clone reserverDetails state so we can mutate values w/ network responses
-      const bookingDetails = { ...reserverDetails };
+      const mutatableReserverDetails = { ...reserverDetails };
+
       try {
-        if (outing?.restaurant) {
+        if (bookingDetails?.restaurant) {
           // if the reserver details dont have db ID yet, create a new entry
           if (reserverDetails.id.length === 0) {
             const submitDetailsResp = await submitReserverDetails({
               input: {
-                firstName: bookingDetails.firstName,
-                lastName: bookingDetails.lastName,
-                phoneNumber: bookingDetails.phoneNumber,
+                firstName: mutatableReserverDetails.firstName,
+                lastName: mutatableReserverDetails.lastName,
+                phoneNumber: mutatableReserverDetails.phoneNumber,
               },
             });
             switch (submitDetailsResp.data?.viewer.__typename) {
@@ -223,8 +219,8 @@ const CheckoutForm = ({
                 const createdData = submitDetailsResp.data.viewer.submitReserverDetails;
                 switch (createdData?.__typename) {
                   case "SubmitReserverDetailsSuccess": {
-                    bookingDetails.id = createdData.reserverDetails.id;
-                    dispatch(storeReserverDetails({ details: bookingDetails }));
+                    mutatableReserverDetails.id = createdData.reserverDetails.id;
+                    dispatch(storeReserverDetails({ details: mutatableReserverDetails }));
                     // allow success case to continue execution
                     break;
                   }
@@ -241,7 +237,8 @@ const CheckoutForm = ({
                     }
                     return;
                   default:
-                    throw new Error("Unexected Graphql result");
+                    console.error("Unexected Graphql result");
+                    return;
                 }
                 // allow success case to continue execution
                 break;
@@ -253,8 +250,8 @@ const CheckoutForm = ({
               default:
                 if (submitDetailsResp.error) {
                   // 500 error
-                  console.debug(submitDetailsResp.error);
-                  throw new Error("Graphql error");
+                  console.error(submitDetailsResp.error);
+                  return;
                 }
                 break;
             }
@@ -263,10 +260,10 @@ const CheckoutForm = ({
           else {
             const updateDetailsResp = await updateReserverDetails({
               input: {
-                id: bookingDetails.id,
-                firstName: bookingDetails.firstName,
-                lastName: bookingDetails.lastName,
-                phoneNumber: bookingDetails.phoneNumber,
+                id: mutatableReserverDetails.id,
+                firstName: mutatableReserverDetails.firstName,
+                lastName: mutatableReserverDetails.lastName,
+                phoneNumber: mutatableReserverDetails.phoneNumber,
               },
             });
             switch (updateDetailsResp.data?.viewer.__typename) {
@@ -290,7 +287,8 @@ const CheckoutForm = ({
                     }
                     return;
                   default:
-                    throw new Error("Unexected Graphql result");
+                    console.error("Unexected Graphql result");
+                    return;
                 }
                 // allow success case to continue execution
                 break;
@@ -302,8 +300,8 @@ const CheckoutForm = ({
               default:
                 if (updateDetailsResp.error) {
                   // 500 error
-                  console.debug(updateDetailsResp.error);
-                  throw new Error("Graphql error");
+                  console.error(updateDetailsResp.error);
+                  return;
                 }
                 break;
             }
@@ -319,88 +317,57 @@ const CheckoutForm = ({
           }
         }
 
-        const createBookingResp = await createBooking({
-          input: {
-            reserverDetailsId: bookingDetails.id,
-            outingId,
-          },
-        });
-        switch (createBookingResp.data?.viewer.__typename) {
-          case "AuthenticatedViewerMutations": {
-            const createdData = createBookingResp.data?.viewer.createBooking;
-            switch (createdData?.__typename) {
-              case "CreateBookingSuccess":
-                navigate(AppRoute.checkoutComplete);
-                // allow success case to continue execution
-                break;
-              case "CreateBookingFailure":
-                switch (createdData.failureReason) {
-                  case CreateBookingFailureReason.ValidationErrors: {
-                    // TODO: when would this happen????
-                    const invalidFields = createdData.validationErrors?.map((e) => e.field).join(", ");
-                    setBookingError(`The following fields are invalid: ${invalidFields}`);
-                    break;
-                  }
-                  default:
-                    console.error("Unhandled case for CreateBookingFailure", createdData.failureReason);
-                    break;
-                }
-                return;
-              default:
-                throw new Error("Unexected Graphql result");
-            }
-            // allow success case to continue execution
-            break;
-          }
-          case "UnauthenticatedViewer":
-            dispatch(loggedOut());
-            window.location.assign(AppRoute.logout);
-            return;
-          default:
-            if (createBookingResp.error) {
-              // 500 error
-              console.debug(createBookingResp.error);
-              throw new Error("Graphql error");
-            }
-            break;
-        }
-
         // execute the payment
         if (isPaidActivity) {
-          // TODO: send w/ existing payment details when not using new card
-          if (isUsingNewCard) {
-            const response = await stripeClient.confirmPayment({
-              elements: stripeElements,
-              clientSecret: "", // This property is required but already provided by stripeElements
-              confirmParams: {
-                return_url: `${window.location.origin}${AppRoute.checkoutComplete}`,
-              },
-            });
-
-            if (response.error) {
-              console.error(response.error);
-              setPaymentError(response.error.message);
-              return;
-            }
+          if (!localBookingDetails) {
+            console.warn("no booking is set");
+            return;
           }
+
+          const returnPath = routePath(AppRoute.checkoutComplete, { bookingId: localBookingDetails.id });
+
+          const _response = await stripeClient.confirmPayment({
+            elements: stripeElements,
+            clientSecret: "", // This property is required but already provided by stripeElements
+            confirmParams: {
+              return_url: `${window.location.origin}${returnPath}`,
+            },
+          });
+
+          // // TODO: send w/ existing payment details when not using new card
+          // if (isUsingNewCard) {
+          //   const response = await stripeClient.confirmPayment({
+          //     elements: stripeElements,
+          //     clientSecret: "", // This property is required but already provided by stripeElements
+          //     confirmParams: {
+          //       return_url: `${window.location.origin}${returnPath}`,
+          //     },
+          //   });
+
+          //   if (response.error) {
+          //     console.error(response.error);
+          //     setPaymentError(response.error.message);
+          //     return;
+          //   }
+          // }
         }
       } catch {
         // network error
         setInternalReserverDetailError("Unable to book your outing. Please try again later.");
       }
     },
-    [reserverDetails, stripeClient, stripeElements, outing],
+    [reserverDetails, stripeClient, stripeElements, localBookingDetails],
   );
 
-  const requiresPayment = isPaidOuting(outing);
+  const requiresPayment = isPaidOuting(localBookingDetails);
   // when outing has been completely loaded into state & doesnt cost anything, use diff UI
-  const usingAltUI = !requiresPayment && !outingIsLoading && outing;
+  const usingAltUI = !requiresPayment;
   const Wrapper = usingAltUI ? FormPaper : PlainDiv;
   const PageContainer = usingAltUI ? AltPageContainer : PlainDiv;
 
   return (
     <PageContainer>
-      {showCostBreakdown && requiresPayment && <CostBreakdown outing={outing!} />}
+      {showCostBreakdown && requiresPayment && <CostBreakdown outing={localBookingDetails!} />}
 
       <Wrapper>
         {usingAltUI && (
@@ -471,7 +438,7 @@ const CheckoutReservation = ({
 }) => {
   return (
     <StripeElementsProvider outingId={outingId}>
-      <CheckoutForm outingId={outingId} showStripeBadge={showStripeBadge} showCostBreakdown={showCostBreakdown} />
+      <CheckoutForm showStripeBadge={showStripeBadge} showCostBreakdown={showCostBreakdown} />
     </StripeElementsProvider>
   );
 };

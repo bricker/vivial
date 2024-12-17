@@ -35,5 +35,6 @@ locals {
   # These are not considered sensitive values
   SEGMENT_WEBSITE_WRITE_KEY  = "GcB5ShHbFcZZKIGTlvanJerSyKp9yJNv"
   SEGMENT_CORE_API_WRITE_KEY = "cVBM36ZvqJV2gagtnOT60fTNn1Q5P5na"
-  STRIPE_PUBLISHABLE_KEY     = "pk_live_51NXpyaDQEmxo4go9vM0htIXc5t8Sr1SjYS3izOCZPulRkSDaaQRkna1v0GBBVNe3PdkzlRmEV6Jh65jJWWvzaRyQ00n1yz7jsJ"
+  STRIPE_PUBLISHABLE_KEY     = "pk_test_51NXpyaDQEmxo4go9FNJWSszhjShiPJNSPF8TNidSdSDttvVPnpHOAmkFzPM8pfywwwSngOXxXWfDGvbjz2sevFO900ACLz7Tqm"
+  # STRIPE_PUBLISHABLE_KEY     = "pk_live_51NXpyaDQEmxo4go9vM0htIXc5t8Sr1SjYS3izOCZPulRkSDaaQRkna1v0GBBVNe3PdkzlRmEV6Jh65jJWWvzaRyQ00n1yz7jsJ"
 }

@@ -1,18 +1,24 @@
-mutation CreateBooking($input: CreateBookingInput!) {
+mutation ConfirmBooking($input: ConfirmBookingInput!) {
   viewer {
     ... on AuthenticatedViewerMutations {
       __typename
 
-      createBooking(input: $input) {
-        ... on CreateBookingSuccess {
+      confirmBooking(input: $input) {
+        ... on ConfirmBookingSuccess {
           __typename
 
           booking {
             id
+            reserverDetails {
+              id
+              firstName
+              lastName
+              phoneNumber
+            }
           }
         }
 
-        ... on CreateBookingFailure {
+        ... on ConfirmBookingFailure {
           __typename
           failureReason
 

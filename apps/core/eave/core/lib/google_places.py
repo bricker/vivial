@@ -317,17 +317,6 @@ def place_will_be_open(*, place: Place, arrival_time: datetime, departure_time: 
                     return True
     return False
 
-
-def place_is_in_budget(place: Place, budget: OutingBudget) -> bool:
-    """
-    Given a place from the Google Places API, determine whether or not that
-    place is within the user's budget for the date.
-
-    https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places#PriceLevel
-    """
-    return place.price_level <= budget.google_places_price_level
-
-
 def place_is_accessible(place: Place) -> bool:
     """
     Given a place from the Google Places API, determine whether or not that

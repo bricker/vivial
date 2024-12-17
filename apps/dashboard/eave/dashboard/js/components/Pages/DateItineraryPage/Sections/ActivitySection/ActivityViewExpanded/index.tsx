@@ -108,7 +108,7 @@ const ActivityViewExpanded = () => {
       <InfoContainer>
         <EventInfo>
           <TimeAndTickets>
-            {getTimeOfDay(startTime, false)} | {outing.survey.headcount} Tickets
+            {getTimeOfDay(startTime, false)} | {outing.survey && `${outing.survey.headcount} Tickets`}
           </TimeAndTickets>
           <ActivityName>{activity.name}</ActivityName>
           <VenueInfo>{activity.venue.name}</VenueInfo>

@@ -15,7 +15,6 @@ from eave.core.lib.eventbrite import get_eventbrite_activity
 from eave.core.lib.google_places import (
     activity_from_google_place,
     get_places_nearby,
-    place_is_in_budget,
     place_will_be_open,
     restaurant_from_google_place,
 )
@@ -264,9 +263,9 @@ class OutingPlanner:
                     departure_time=end_time_local,
                     timezone=self.survey.timezone,
                 )
-                is_in_budget = place_is_in_budget(place, self.survey.budget)
 
-                if will_be_open and is_in_budget:
+                # Select activities that are within (<=) their requested budget.
+                if will_be_open and place.price_level <= self.survey.budget.google_places_price_level:
                     self.activity = await activity_from_google_place(self.places_client, place=place)
                     return self.activity
 
@@ -329,9 +328,10 @@ class OutingPlanner:
                     departure_time=departure_time_local,
                     timezone=self.survey.timezone,
                 )
-                is_in_budget = place_is_in_budget(restaurant, self.survey.budget)
 
-                if will_be_open and is_in_budget:
+                # Select restaurants that _match_ their requested budget.
+                # So if they request an expensive date, we don't recommend McDonald's.
+                if will_be_open and restaurant.price_level == self.survey.budget.google_places_price_level:
                     self.restaurant = await restaurant_from_google_place(self.places_client, place=restaurant)
                     return self.restaurant
 

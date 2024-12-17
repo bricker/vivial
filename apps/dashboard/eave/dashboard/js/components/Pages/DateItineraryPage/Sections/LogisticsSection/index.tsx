@@ -99,12 +99,12 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const userPreferences = useSelector((state: RootState) => state.outing.preferenes.user);
   const partnerPreferences = useSelector((state: RootState) => state.outing.preferenes.partner);
   const [startTime, setStartTime] = useState(new Date(outing?.restaurantArrivalTime || ""));
-  const [headcount, setHeadcount] = useState(outing?.survey.headcount || 2);
+  const [headcount, setHeadcount] = useState(outing?.survey?.headcount || 2);
   const [replanDisabled, setReplanDisabled] = useState(true);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [areasOpen, setAreasOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [budget, setBudget] = useState(outing?.survey.budget || OutingBudget.Expensive);
+  const [budget, setBudget] = useState(outing?.survey?.budget || OutingBudget.Expensive);
   const [searchAreaIds, setSearchAreaIds] = useState<string[]>(getRegionIds(outing));
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
@@ -164,8 +164,10 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   useEffect(() => {
     if (outing) {
       setStartTime(new Date(outing.restaurantArrivalTime || ""));
-      setHeadcount(outing.survey.headcount || 2);
-      setBudget(outing.survey.budget);
+      setHeadcount(outing.survey?.headcount || 2);
+      if (outing.survey) {
+        setBudget(outing.survey.budget);
+      }
       setSearchAreaIds(getRegionIds(outing));
     }
   }, [outing]);
@@ -184,50 +186,51 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
     }
   }, [planOutingData, userPreferences, partnerPreferences]);
 
-  if (outing) {
-    return (
-      <Section bgImgUrl={getRegionImage(outing.restaurantRegion?.id)}>
-        <LogisticsGradient>
-          <Logistics viewOnly={viewOnly}>
-            {!viewOnly && <SettingsButton onClick={toggleDetailsOpen} />}
-            <TimeAndPlace>
-              <Time>{getTimeLabel(startTime)}</Time>
-              <Place>{getPlaceLabel(headcount, searchAreaIds, budget)}</Place>
-            </TimeAndPlace>
-          </Logistics>
-        </LogisticsGradient>
-        <LogisticsBadge startTime={startTime} connect={!!outing.restaurant} />
-        <Modal title="Date Details" onClose={toggleDetailsOpen} open={detailsOpen}>
-          <DateSelections
-            cta="Update"
-            headcount={headcount}
-            budget={budget}
-            startTime={startTime}
-            searchAreaIds={searchAreaIds}
-            onSubmit={handleReplan}
-            onSelectHeadcount={handleSelectHeadcount}
-            onSelectBudget={handleSelectBudget}
-            onSelectStartTime={toggleDatePickerOpen}
-            onSelectSearchArea={toggleAreasOpen}
-            errorMessage={errorMessage}
-            disabled={replanDisabled}
-            loading={planOutingLoading}
-          />
-        </Modal>
-        <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
-          <DateAreaSelections
-            cta="Update"
-            onSubmit={handleSelectSearchAreas}
-            regions={searchRegionsData?.searchRegions}
-          />
-        </Modal>
-        <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={datePickerOpen}>
-          <DateTimeSelections cta="Update" onSubmit={handleSelectStartTime} startDateTime={startTime} />
-        </Modal>
-      </Section>
-    );
+  if (!outing) {
+    return null;
   }
-  return null;
+
+  return (
+    <Section bgImgUrl={getRegionImage(outing.restaurant?.location.searchRegion.id)}>
+      <LogisticsGradient>
+        <Logistics viewOnly={viewOnly}>
+          {!viewOnly && <SettingsButton onClick={toggleDetailsOpen} />}
+          <TimeAndPlace>
+            <Time>{getTimeLabel(startTime)}</Time>
+            <Place>{getPlaceLabel(headcount, searchAreaIds, budget)}</Place>
+          </TimeAndPlace>
+        </Logistics>
+      </LogisticsGradient>
+      <LogisticsBadge startTime={startTime} connect={!!outing.restaurant} />
+      <Modal title="Date Details" onClose={toggleDetailsOpen} open={detailsOpen}>
+        <DateSelections
+          cta="Update"
+          headcount={headcount}
+          budget={budget}
+          startTime={startTime}
+          searchAreaIds={searchAreaIds}
+          onSubmit={handleReplan}
+          onSelectHeadcount={handleSelectHeadcount}
+          onSelectBudget={handleSelectBudget}
+          onSelectStartTime={toggleDatePickerOpen}
+          onSelectSearchArea={toggleAreasOpen}
+          errorMessage={errorMessage}
+          disabled={replanDisabled}
+          loading={planOutingLoading}
+        />
+      </Modal>
+      <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
+        <DateAreaSelections
+          cta="Update"
+          onSubmit={handleSelectSearchAreas}
+          regions={searchRegionsData?.searchRegions}
+        />
+      </Modal>
+      <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={datePickerOpen}>
+        <DateTimeSelections cta="Update" onSubmit={handleSelectStartTime} startDateTime={startTime} />
+      </Modal>
+    </Section>
+  );
 };
 
 export default LogisticsSection;
