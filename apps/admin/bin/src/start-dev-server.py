@@ -10,12 +10,12 @@ sys.path.append(".")
 
 load_standard_dotenv_files()
 
-os.environ["GAE_SERVICE"] = "dashboard"
+os.environ["GAE_SERVICE"] = "admin"
 
 if __name__ == "__main__":
     uvicorn.run(
-        app="eave.dashboard.app:app",
-        port=5000,
+        app="eave.admin.app:app",
+        port=5200,
         reload=True,
         log_level="debug",
         reload_includes=[

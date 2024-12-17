@@ -29,7 +29,7 @@ def health_endpoint(request: Request) -> Response:
     return Response(content="1", status_code=HTTPStatus.OK)
 
 
-templates = Jinja2Templates(directory="../dashboard/templates")
+templates = Jinja2Templates(directory="eave/dashboard/templates")
 
 
 def web_app_endpoint(request: Request) -> Response:
@@ -63,7 +63,7 @@ async def _app_lifespan(app: Starlette) -> AsyncGenerator[None, None]:
 
 app = Starlette(
     routes=[
-        Mount("/static", StaticFiles(directory="../dashboard/static")),
+        Mount("/static", StaticFiles(directory="eave/dashboard/static")),
         Route(
             path="/status",
             methods=["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"],

@@ -47,6 +47,9 @@ def request(flow: mitmproxy.http.HTTPFlow) -> None:
                 )
         port = 5100
 
+    elif re.match(r"^(admin)\.", flow.request.host):
+        port = 5200
+
     elif re.match(r"^cdn\.", flow.request.host):
         # This is the port for a webpack server.
         port = 3001
