@@ -100,6 +100,24 @@ class BookingOrm(Base, GetOneByIdMixin):
 
         return query
 
+    @property
+    def timezone(self) -> ZoneInfo:
+        if len(self.activities) > 0:
+            return self.activities[0].timezone
+        elif len(self.reservations) > 0:
+            return self.activities[0].timezone
+        else:
+            return ZoneInfo("UTC")
+
+    @property
+    def start_time_utc(self) -> datetime:
+        reservations_min = min(r.start_time_utc for r in self.reservations)
+        activities_min = min(a.start_time_utc for a in self.activities)
+        return min(activities_min, reservations_min)
+
+    @property
+    def start_time_local(self) -> datetime:
+        return self.start_time_utc.astimezone(self.timezone)
 
 class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     """Editable template for a booked activity.

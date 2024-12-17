@@ -8,17 +8,13 @@ import stripe
 from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import (
-    StartTimeTooLateError,
-    StartTimeTooSoonError,
-    validate_time_within_bounds_or_exception,
-)
 from eave.core.graphql.types.booking import (
     BookingDetails,
 )
 from eave.core.graphql.types.payment_intent import PaymentIntent
 from eave.core.graphql.types.pricing import CostBreakdown
 from eave.core.graphql.types.survey import Survey
+from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
 from eave.core.lib.address import format_address
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.account import AccountOrm
@@ -46,10 +42,10 @@ class InitiateBookingSuccess:
 
 @strawberry.enum
 class InitiateBookingFailureReason(enum.Enum):
-    START_TIME_TOO_SOON = enum.auto()
-    START_TIME_TOO_LATE = enum.auto()
     PAYMENT_INTENT_FAILED = enum.auto()
     VALIDATION_ERRORS = enum.auto()
+    START_TIME_TOO_SOON = enum.auto()
+    START_TIME_TOO_LATE = enum.auto()
 
 
 @strawberry.type
@@ -74,15 +70,12 @@ async def initiate_booking_mutation(
     async with database.async_session.begin() as db_session:
         account_orm = await AccountOrm.get_one(db_session, account_id)
         outing_orm = await OutingOrm.get_one(db_session, input.outing_id)
-        survey_orm = outing_orm.survey
 
-    # validate outing time still valid to book
-    try:
-        validate_time_within_bounds_or_exception(start_time=survey_orm.start_time_utc, timezone=survey_orm.timezone)
-    except StartTimeTooSoonError:
+    if start_time_too_soon(start_time=outing_orm.start_time_utc, timezone=outing_orm.timezone):
         return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.START_TIME_TOO_SOON)
-    except StartTimeTooLateError:
-        return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.START_TIME_TOO_LATE)
+
+    if start_time_too_far_away(start_time=outing_orm.start_time_utc, timezone=outing_orm.timezone):
+        return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.START_TIME_TOO_SOON)
 
     booking_details_cost_breakdown = CostBreakdown()
     booking_details_activity = None

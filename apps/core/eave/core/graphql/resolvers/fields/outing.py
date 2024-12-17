@@ -23,7 +23,7 @@ class OutingInput:
 
 async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: OutingInput) -> Outing | None:
     async with database.async_session.begin() as db_session:
-        outing = await OutingOrm.get_one(db_session, input.id)
+        outing_orm = await OutingOrm.get_one(db_session, input.id)
 
     activity: Activity | None = None
     restaurant: Restaurant | None = None
@@ -32,9 +32,9 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
     restaurant_arrival_time: datetime | None = None
     cost_breakdown = CostBreakdown()
 
-    if len(outing.activities) > 0:
+    if len(outing_orm.activities) > 0:
         # Currently the client only supports 1 activity per outing.
-        outing_activity_orm = outing.activities[0]
+        outing_activity_orm = outing_orm.activities[0]
         # This is a quick way to expire an outing URL 24 hours before the outing beings.
         if outing_activity_orm.start_time_utc < (datetime.now(UTC) + timedelta(hours=24)):
             return None
@@ -51,9 +51,9 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
             if activity.ticket_info:
                 cost_breakdown = activity.ticket_info.cost_breakdown * outing_activity_orm.headcount
 
-    if len(outing.reservations) > 0:
+    if len(outing_orm.reservations) > 0:
         # Currently the client only supports 1 restaurant per outing.
-        outing_reservation_orm = outing.reservations[0]
+        outing_reservation_orm = outing_orm.reservations[0]
         headcount = max(headcount, outing_reservation_orm.headcount)
         restaurant_arrival_time = outing_reservation_orm.start_time_local
 
@@ -63,8 +63,8 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
         )
 
     return Outing(
-        id=outing.id,
-        survey=Survey.from_orm(outing.survey),
+        id=outing_orm.id,
+        survey=Survey.from_orm(outing_orm.survey),
         cost_breakdown=cost_breakdown,
         activity=activity,
         restaurant=restaurant,

@@ -33,7 +33,7 @@ async def create_outing(
             account=account,
         )
 
-        cost_breakdown: CostBreakdown | None = None
+        cost_breakdown = CostBreakdown()
 
         if plan.activity and plan.activity_start_time:
             outing_orm.activities.append(
@@ -49,7 +49,7 @@ async def create_outing(
             )
 
             if plan.activity.ticket_info:
-                cost_breakdown = plan.activity.ticket_info.cost_breakdown * outing_orm.survey.headcount
+                cost_breakdown = plan.activity.ticket_info.cost_breakdown * survey.headcount
 
         if plan.restaurant and plan.restaurant_arrival_time:
             outing_orm.reservations.append(
@@ -63,9 +63,6 @@ async def create_outing(
                     headcount=survey.headcount,
                 )
             )
-
-    if not cost_breakdown:
-        cost_breakdown = CostBreakdown()
 
     outing = Outing(
         id=outing_orm.id,

@@ -8,15 +8,11 @@ import strawberry
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.helpers.create_outing import create_outing
-from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import (
-    StartTimeTooLateError,
-    StartTimeTooSoonError,
-    validate_time_within_bounds_or_exception,
-)
 from eave.core.graphql.types.outing import (
     Outing,
     OutingPreferencesInput,
 )
+from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
@@ -39,9 +35,9 @@ class PlanOutingSuccess:
 
 @strawberry.enum
 class PlanOutingFailureReason(enum.Enum):
+    SEARCH_AREA_IDS_EMPTY = enum.auto()
     START_TIME_TOO_SOON = enum.auto()
     START_TIME_TOO_LATE = enum.auto()
-    SEARCH_AREA_IDS_EMPTY = enum.auto()
 
 
 @strawberry.type
@@ -51,7 +47,6 @@ class PlanOutingFailure:
 
 PlanOutingResult = Annotated[PlanOutingSuccess | PlanOutingFailure, strawberry.union("PlanOutingResult")]
 
-
 async def plan_outing_mutation(
     *,
     info: strawberry.Info[GraphQLContext],
@@ -60,14 +55,10 @@ async def plan_outing_mutation(
     account_id = info.context.get("authenticated_account_id")
     visitor_id = info.context.get("visitor_id")
 
-    if len(input.search_area_ids) == 0:
-        return PlanOutingFailure(failure_reason=PlanOutingFailureReason.SEARCH_AREA_IDS_EMPTY)
+    if start_time_too_soon(start_time=input.start_time, timezone=LOS_ANGELES_TIMEZONE):
+        return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_SOON)
 
-    try:
-        validate_time_within_bounds_or_exception(start_time=input.start_time, timezone=LOS_ANGELES_TIMEZONE)
-    except StartTimeTooLateError:
-        return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_LATE)
-    except StartTimeTooSoonError:
+    if start_time_too_far_away(start_time=input.start_time, timezone=LOS_ANGELES_TIMEZONE):
         return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_SOON)
 
     async with database.async_session.begin() as db_session:

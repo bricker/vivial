@@ -11,6 +11,7 @@ from eave.core.orm.account import AccountOrm
 from eave.core.orm.util.mixins import GetOneByIdMixin, TimedEventMixin
 from eave.core.orm.util.user_defined_column_types import OutingBudgetColumnType
 from eave.core.shared.enums import OutingBudget
+from eave.core.shared.errors import ValidationError
 
 from .base import Base
 from .util.constants import PG_UUID_EXPR, OnDeleteOption
@@ -58,3 +59,11 @@ class SurveyOrm(Base, TimedEventMixin, GetOneByIdMixin):
 
         if session:
             session.add(self)
+
+    def validate(self) -> list[ValidationError]:
+        errors: list[ValidationError] = []
+
+        if len(self.search_area_ids) == 0:
+            errors.append(ValidationError(subject="survey", field="search_area_ids"))
+
+        return errors
