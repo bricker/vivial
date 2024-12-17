@@ -4,6 +4,7 @@ import React, { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import ListArrowButton from "../../Buttons/ListArrowButton";
 import EditableContainer from "./EditableContainer";
+import { myWindow } from "$eave-dashboard/js/types/window";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
@@ -24,8 +25,7 @@ const AccountPage = () => {
     navigate(AppRoute.accountPreferences);
   }, [navigate]);
   const handleBillingClick = useCallback(() => {
-    // TODO: go to stripe user portal
-    navigate("https://billing.stripe.com/p/login/5kAaHYgIEcGv3tu6oo");
+    navigate(myWindow.app.stripeCustomerPortalUrl);
   }, [navigate]);
   const handlePasswordResetClick = useCallback(() => {
     navigate(AppRoute.passwordReset);
