@@ -9,7 +9,8 @@ class TestUpdateBookingResolver(BaseTestCase):
             account1 = self.make_account(session)
             reserver_details = self.make_reserver_details(session, account1)
             survey = self.make_survey(session, account1)
-            booking = self.make_booking(session, account1, survey)
+            outing = self.make_outing(session, account1, survey)
+            booking = self.make_booking(session, account1, outing)
 
             viewer_account = self.make_account(session)
 
@@ -46,7 +47,8 @@ class TestUpdateBookingResolver(BaseTestCase):
 
             viewer_account = self.make_account(session)
             survey = self.make_survey(session, viewer_account)
-            booking = self.make_booking(session, viewer_account, survey)
+            outing = self.make_outing(session, viewer_account, survey)
+            booking = self.make_booking(session, viewer_account, outing)
 
         assert booking.reserver_details is None
 
@@ -74,7 +76,8 @@ class TestUpdateBookingResolver(BaseTestCase):
             viewer_account = self.make_account(session)
             reserver_details = self.make_reserver_details(session, viewer_account)
             survey = self.make_survey(session, viewer_account)
-            booking = self.make_booking(session, viewer_account, survey)
+            outing = self.make_outing(session, viewer_account, survey)
+            booking = self.make_booking(session, viewer_account, outing)
 
         assert booking.reserver_details is None
 
@@ -104,7 +107,8 @@ class TestUpdateBookingResolver(BaseTestCase):
         async with self.db_session.begin() as session:
             viewer_account = self.make_account(session)
             survey = self.make_survey(session, viewer_account)
-            booking = self.make_booking(session, viewer_account, survey)
+            outing = self.make_outing(session, viewer_account, survey)
+            booking = self.make_booking(session, viewer_account, outing)
 
         assert booking.reserver_details is None
 
@@ -132,7 +136,8 @@ class TestUpdateBookingResolver(BaseTestCase):
         async with self.db_session.begin() as session:
             viewer_account = self.make_account(session)
             survey = self.make_survey(session, viewer_account)
-            booking = self.make_booking(session, viewer_account, survey)
+            outing = self.make_outing(session, viewer_account, survey)
+            booking = self.make_booking(session, viewer_account, outing)
 
         assert booking.reserver_details is None
 
@@ -161,8 +166,9 @@ class TestUpdateBookingResolver(BaseTestCase):
         async with self.db_session.begin() as session:
             viewer_account = self.make_account(session)
             survey = self.make_survey(session, viewer_account)
+            outing = self.make_outing(session, viewer_account, survey)
             prev_reserver_details = self.make_reserver_details(session, viewer_account)
-            booking = self.make_booking(session, viewer_account, survey, reserver_details=prev_reserver_details)
+            booking = self.make_booking(session, viewer_account, outing, reserver_details=prev_reserver_details)
 
             new_reserver_details = self.make_reserver_details(session, viewer_account)
 

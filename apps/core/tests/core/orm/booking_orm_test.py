@@ -15,6 +15,7 @@ class TestBookingOrms(BaseTestCase):
             account = self.make_account(session)
             reserver_details = self.make_reserver_details(session, account)
             survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
 
             stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
                 session,
@@ -25,7 +26,7 @@ class TestBookingOrms(BaseTestCase):
             booking_new = BookingOrm(
                 session,
                 accounts=[account],
-                survey=survey,
+                outing=outing,
                 reserver_details=reserver_details,
                 stripe_payment_intent_reference=stripe_payment_intent_reference,
             )
@@ -118,7 +119,11 @@ class TestBookingOrms(BaseTestCase):
                 BookingOrm(
                     session,
                     accounts=[accounts[i]],
-                    survey=self.make_survey(session, accounts[i]),
+                    outing=self.make_outing(
+                        session,
+                        accounts[i],
+                        self.make_survey(session, accounts[i]),
+                    ),
                     reserver_details=None,
                 )
                 for i in range(5)
@@ -144,7 +149,11 @@ class TestBookingOrms(BaseTestCase):
                 BookingOrm(
                     session,
                     accounts=[accounts[i]],
-                    survey=self.make_survey(session, accounts[i]),
+                    outing=self.make_outing(
+                        session,
+                        accounts[i],
+                        self.make_survey(session, accounts[i]),
+                    ),
                     reserver_details=None,
                 )
                 for i in range(5)
@@ -176,14 +185,22 @@ class TestBookingOrms(BaseTestCase):
             booking = BookingOrm(
                 session,
                 accounts=[account],
-                survey=self.make_survey(session, account),
+                outing=self.make_outing(
+                    session,
+                    account,
+                    self.make_survey(session, account),
+                ),
                 reserver_details=None,
             )
 
             _other_booking = BookingOrm(
                 session,
                 accounts=[account],
-                survey=self.make_survey(session, account),
+                outing=self.make_outing(
+                    session,
+                    account,
+                    self.make_survey(session, account),
+                ),
                 reserver_details=None,
             )
 
@@ -201,7 +218,11 @@ class TestBookingOrms(BaseTestCase):
             booking = BookingOrm(
                 session,
                 accounts=accounts,
-                survey=self.make_survey(session, accounts[0]),
+                outing=self.make_outing(
+                    session,
+                    accounts[0],
+                    self.make_survey(session, accounts[0]),
+                ),
                 reserver_details=None,
             )
 
@@ -226,7 +247,11 @@ class TestBookingOrms(BaseTestCase):
             other_booking = BookingOrm(
                 session,
                 accounts=[accounts[1]],
-                survey=self.make_survey(session, accounts[1]),
+                outing=self.make_outing(
+                    session,
+                    accounts[1],
+                    self.make_survey(session, accounts[1]),
+                ),
                 reserver_details=None,
             )
 
@@ -243,12 +268,13 @@ class TestBookingOrms(BaseTestCase):
         async with self.db_session.begin() as session:
             account = self.make_account(session)
             survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
             reserver_details = self.make_reserver_details(session, account)
 
             booking = BookingOrm(
                 session,
                 accounts=[account],
-                survey=survey,
+                outing=outing,
                 reserver_details=reserver_details,
             )
 
@@ -318,12 +344,13 @@ class TestBookingOrms(BaseTestCase):
         async with self.db_session.begin() as session:
             account = self.make_account(session)
             survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
             reserver_details = self.make_reserver_details(session, account)
 
             booking = BookingOrm(
                 session,
                 accounts=[account],
-                survey=survey,
+                outing=outing,
                 reserver_details=reserver_details,
             )
 

@@ -210,11 +210,12 @@ class TestAccountOrm(BaseTestCase):
             account = AccountOrm(session, email=self.anyemail(), plaintext_password=self.anystr("plaintext_password"))
             reserver_details = self.make_reserver_details(session, account)
             survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
 
             booking = BookingOrm(
                 session,
                 accounts=[],
-                survey=survey,
+                outing=outing,
                 reserver_details=reserver_details,
             )
 

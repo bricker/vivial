@@ -94,7 +94,7 @@ async def initiate_booking_mutation(
                 db_session,
                 accounts=[account_orm],
                 reserver_details=None,  # At this point, the client hasn't given us this information.
-                survey=survey_orm,
+                outing=outing_orm,
                 stripe_payment_intent_reference=None,  # Not created yet
                 state=BookingState.INITIATED,
             )
@@ -229,7 +229,7 @@ async def initiate_booking_mutation(
     return InitiateBookingSuccess(
         booking=BookingDetails(
             id=booking.id,  # Warning: This is NULL until the Booking object is persisted!
-            survey=Survey.from_orm(booking.survey) if booking.survey else None,
+            survey=Survey.from_orm(booking.outing.survey) if booking.outing and booking.outing.survey else None,
             cost_breakdown=booking_details_cost_breakdown,
             activity=booking_details_activity,
             activity_start_time=booking_details_activity_start_time,

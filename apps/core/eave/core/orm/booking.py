@@ -10,9 +10,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from eave.core.lib.address import Address
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.account_bookings_join_table import ACCOUNT_BOOKINGS_JOIN_TABLE
+from eave.core.orm.outing import OutingOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
-from eave.core.orm.survey import SurveyOrm
 from eave.core.orm.util.mixins import CoordinatesMixin, GetOneByIdMixin, TimedEventMixin
 from eave.core.orm.util.user_defined_column_types import (
     ActivitySourceColumnType,
@@ -55,10 +55,10 @@ class BookingOrm(Base, GetOneByIdMixin):
     )
     reserver_details: Mapped[ReserverDetailsOrm | None] = relationship(lazy="selectin")
 
-    survey_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey(f"{SurveyOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL.value), index=True
+    outing_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey(f"{OutingOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL.value), index=True
     )
-    survey: Mapped[SurveyOrm | None] = relationship(lazy="selectin")
+    outing: Mapped[OutingOrm | None] = relationship(lazy="selectin")
 
     accounts: Mapped[list[AccountOrm]] = relationship(
         secondary=ACCOUNT_BOOKINGS_JOIN_TABLE, lazy="selectin", back_populates="bookings"
@@ -75,12 +75,12 @@ class BookingOrm(Base, GetOneByIdMixin):
         *,
         accounts: list[AccountOrm],
         reserver_details: ReserverDetailsOrm | None,
-        survey: SurveyOrm,
+        outing: OutingOrm,
         state: BookingState = BookingState.INITIATED,
         stripe_payment_intent_reference: StripePaymentIntentReferenceOrm | None = None,
     ) -> None:
         self.reserver_details = reserver_details
-        self.survey = survey
+        self.outing = outing
         self.stripe_payment_intent_reference = stripe_payment_intent_reference
         self.accounts = accounts
         self.state = state
