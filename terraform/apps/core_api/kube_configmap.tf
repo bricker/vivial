@@ -14,7 +14,6 @@ resource "kubernetes_config_map" "app" {
 
   data = {
     LOG_LEVEL                    = var.LOG_LEVEL
-    SEGMENT_CORE_API_WRITE_KEY   = var.SEGMENT_CORE_API_WRITE_KEY
     JWS_SIGNING_KEY_VERSION_PATH = var.JWS_SIGNING_KEY_VERSION_PATH
   }
 }

@@ -61,8 +61,8 @@ def web_app_endpoint(request: Request) -> Response:
             "datadog_client_token": DASHBOARD_APP_CONFIG.datadog_client_token,
             "app_env": SHARED_CONFIG.eave_env,
             "app_version": SHARED_CONFIG.app_version,
-            "segment_write_key": DASHBOARD_APP_CONFIG.segment_website_write_key,
-            "stripe_publishable_key": DASHBOARD_APP_CONFIG.stripe_publishable_key,
+            "segment_write_key": DASHBOARD_APP_CONFIG.segment_write_key,
+            "stripe_publishable_key": SHARED_CONFIG.stripe_publishable_key,
         },
     )
 

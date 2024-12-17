@@ -16,3 +16,7 @@ variable "api_public_domain_prefix" {
   type    = string
   default = "api"
 }
+
+variable "STRIPE_ENVIRONMENT" {
+  type=string
+}

@@ -4,6 +4,7 @@ module "shared_kubernetes_resources" {
   dns_domain                    = local.dns_domain
   www_public_domain_prefix      = local.www_public_domain_prefix
   api_public_domain_prefix      = local.api_public_domain_prefix
+  STRIPE_ENVIRONMENT = local.STRIPE_ENVIRONMENT
 }
 
 module "core_api_app" {
@@ -29,7 +30,6 @@ module "core_api_app" {
 
   LOG_LEVEL                    = "DEBUG"
   release_version              = "latest"
-  SEGMENT_CORE_API_WRITE_KEY   = local.SEGMENT_CORE_API_WRITE_KEY
   JWS_SIGNING_KEY_VERSION_PATH = module.project_base.kms_jws_signing_key_default_version_id
 
   iap_enabled                       = true
@@ -52,8 +52,6 @@ module "dashboard_app" {
   cdn_base_url              = module.cdn.url
   LOG_LEVEL                 = "DEBUG"
   release_version           = "latest"
-  SEGMENT_WEBSITE_WRITE_KEY = local.SEGMENT_WEBSITE_WRITE_KEY
-  STRIPE_PUBLISHABLE_KEY    = local.STRIPE_PUBLISHABLE_KEY
 
   iap_enabled                       = true
   iap_oauth_client_id               = var.IAP_OAUTH_CLIENT_ID

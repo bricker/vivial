@@ -25,7 +25,7 @@ const AccountPage = () => {
   }, [navigate]);
   const handleBillingClick = useCallback(() => {
     // TODO: go to stripe user portal
-    navigate("https://stripe.com");
+    navigate("https://billing.stripe.com/p/login/5kAaHYgIEcGv3tu6oo");
   }, [navigate]);
   const handlePasswordResetClick = useCallback(() => {
     navigate(AppRoute.passwordReset);
