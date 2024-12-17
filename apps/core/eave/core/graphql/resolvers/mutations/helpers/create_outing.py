@@ -3,12 +3,11 @@ from eave.core.analytics import ANALYTICS
 from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
 from eave.core.graphql.types.outing import Outing, OutingPreferencesInput
 from eave.core.graphql.types.pricing import CostBreakdown
-from eave.core.graphql.types.search_region import SearchRegion
 from eave.core.graphql.types.survey import Survey
-from eave.core.lib.event_helpers import get_activity, get_closest_search_region_to_point
+from eave.core.lib.event_helpers import get_activity
 from eave.core.orm.account import AccountOrm
+from eave.core.orm.booking import BookingOrm
 from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservationOrm
-from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
 
 
@@ -67,19 +66,6 @@ async def create_outing(
     if not cost_breakdown:
         cost_breakdown = CostBreakdown()
 
-    activity_region = None
-    restaurant_region = None
-
-    regions = [SearchRegionOrm.one_or_exception(search_region_id=area_id) for area_id in survey.search_area_ids]
-    if plan.activity:
-        activity_region = get_closest_search_region_to_point(
-            regions=regions, point=plan.activity.venue.location.coordinates
-        )
-    if plan.restaurant:
-        restaurant_region = get_closest_search_region_to_point(
-            regions=regions, point=plan.restaurant.location.coordinates
-        )
-
     outing = Outing(
         id=outing_orm.id,
         cost_breakdown=cost_breakdown,
@@ -89,8 +75,6 @@ async def create_outing(
         restaurant=plan.restaurant,
         restaurant_arrival_time=plan.restaurant_arrival_time,
         driving_time=None,  # TODO
-        activity_region=SearchRegion.from_orm(activity_region) if activity_region else None,
-        restaurant_region=SearchRegion.from_orm(restaurant_region) if restaurant_region else None,
     )
 
     ANALYTICS.track(
@@ -105,14 +89,12 @@ async def create_outing(
     return outing
 
 
-async def get_outing_total_cost_cents(*, outing_orm: OutingOrm) -> int:
+async def get_total_cost_cents(orm: OutingOrm | BookingOrm) -> int:
     total_cost_cents = 0
 
-    for outing_activity_orm in outing_orm.activities:
-        activity = await get_activity(source=outing_activity_orm.source, source_id=outing_activity_orm.source_id)
+    for activity_orm in orm.activities:
+        activity = await get_activity(source=activity_orm.source, source_id=activity_orm.source_id)
         if activity and activity.ticket_info:
-            total_cost_cents += (
-                activity.ticket_info.cost_breakdown * outing_orm.survey.headcount
-            ).total_cost_cents_internal
+            total_cost_cents += (activity.ticket_info.cost_breakdown * activity_orm.headcount).total_cost_cents_internal
 
     return total_cost_cents

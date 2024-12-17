@@ -1,0 +1,32 @@
+mutation ConfirmBooking($input: ConfirmBookingInput!) {
+  viewer {
+    __typename
+    ... on AuthenticatedViewerMutations {
+      __typename
+
+      confirmBooking(input: $input) {
+        ... on ConfirmBookingSuccess {
+          __typename
+
+          booking {
+            ...BookingFields
+          }
+        }
+
+        ... on ConfirmBookingFailure {
+          __typename
+          failureReason
+
+          validationErrors {
+            field
+          }
+        }
+      }
+    }
+
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}

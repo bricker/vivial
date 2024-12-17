@@ -21,3 +21,10 @@ class CostBreakdown:
             fee_cents=self.fee_cents * n,
             tax_cents=self.tax_cents * n,
         )
+
+    def __add__(self, other: "CostBreakdown") -> "CostBreakdown":
+        return CostBreakdown(
+            base_cost_cents=self.base_cost_cents + other.base_cost_cents,
+            fee_cents=self.fee_cents + other.fee_cents,
+            tax_cents=self.tax_cents + other.tax_cents,
+        )

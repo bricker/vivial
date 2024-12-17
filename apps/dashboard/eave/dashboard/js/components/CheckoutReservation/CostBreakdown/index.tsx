@@ -1,7 +1,9 @@
-import { Outing } from "$eave-dashboard/js/graphql/generated/graphql";
+import { Outing, type BookingDetails } from "$eave-dashboard/js/graphql/generated/graphql";
 import { currencyFormatter } from "$eave-dashboard/js/util/currency";
 import { Divider, Typography, styled } from "@mui/material";
 import React from "react";
+
+const FREE = "FREE";
 
 const ComponentContainer = styled("div")(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -55,7 +57,7 @@ type Breakdown = { costName: string; costValue: string };
  * @param outing
  * @returns list of objects with named sources of a cost, and the cost as a USD currency string (or "FREE")
  */
-function buildBreakdowns(outing: Outing): Breakdown[] {
+function buildBreakdowns(outing: Outing | BookingDetails): Breakdown[] {
   const breakdown: Breakdown[] = [];
 
   if (outing.restaurant) {
@@ -85,13 +87,13 @@ function buildBreakdowns(outing: Outing): Breakdown[] {
 
   breakdown.push({
     costName: "Service Fees via Vivial",
-    costValue: "FREE",
+    costValue: FREE,
   });
 
   return breakdown;
 }
 
-const CostBreakdown = ({ outing }: { outing: Outing }) => {
+const CostBreakdown = ({ outing }: { outing: Outing | BookingDetails }) => {
   const totalCostCents = outing.costBreakdown.totalCostCents;
   const totalCostFormatted = currencyFormatter.format(totalCostCents / 100);
 
@@ -112,7 +114,7 @@ const CostBreakdown = ({ outing }: { outing: Outing }) => {
               <>
                 <LineItemText>{charge.costName}</LineItemText>
                 <LineItemText>...</LineItemText>
-                <LineItemText bold={charge.costValue === "FREE"}>{charge.costValue}</LineItemText>
+                <LineItemText bold={charge.costValue === FREE}>{charge.costValue}</LineItemText>
               </>
             ))}
           </LineItemContainer>

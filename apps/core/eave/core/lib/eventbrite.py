@@ -150,6 +150,11 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         supplemental_photos=[],  # Eventbrite only gives one image
     )
 
+    coordinates = GeoPoint(
+        lat=float(venue_lat),
+        lon=float(venue_lon),
+    )
+
     activity = Activity(
         source_id=event_id,
         source=ActivitySource.EVENTBRITE,
@@ -170,10 +175,7 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
             location=Location(
                 directions_uri=google_maps_directions_url(format_address(address, singleline=True)),
                 address=address,
-                coordinates=GeoPoint(
-                    lat=float(venue_lat),
-                    lon=float(venue_lon),
-                ),
+                coordinates=coordinates,
             ),
         ),
         website_uri=event.get("vanity_url"),

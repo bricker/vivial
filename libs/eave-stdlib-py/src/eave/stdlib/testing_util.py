@@ -553,6 +553,15 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     mock_eventbrite_event: Event
     mock_eventbrite_ticket_class_batch: list[TicketClass]
 
+    def get_mock_eventbrite_ticket_class_batch_cost(self) -> int:
+        # These checks are just for the typechecker
+        cost = self.mock_eventbrite_ticket_class_batch[0].get("cost")
+        fee = self.mock_eventbrite_ticket_class_batch[0].get("fee")
+        tax = self.mock_eventbrite_ticket_class_batch[0].get("tax")
+        assert cost and tax and fee
+
+        return cost["value"] + fee["value"] + tax["value"]
+
     def _add_eventbrite_client_mocks(self) -> None:
         self.mock_eventbrite_event = Event(
             id=self.anydigits("eventbrite.Event.id"),

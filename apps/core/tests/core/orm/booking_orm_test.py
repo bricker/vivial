@@ -15,13 +15,11 @@ class TestBookingOrms(BaseTestCase):
             account = self.make_account(session)
             reserver_details = self.make_reserver_details(session, account)
             survey = self.make_survey(session, account)
-            outing = self.make_outing(session, account, survey)
 
             stripe_payment_intent_reference = StripePaymentIntentReferenceOrm(
                 session,
                 account=account,
                 stripe_payment_intent_id=self.anystr(),
-                outing=outing,
             )
 
             booking_new = BookingOrm(
@@ -91,6 +89,7 @@ class TestBookingOrms(BaseTestCase):
             assert len(booking_fetched.accounts) == 1
             assert booking_fetched.accounts[0].id == account.id
 
+            assert booking_fetched.reserver_details is not None
             assert booking_fetched.reserver_details.id == reserver_details.id
             assert booking_fetched.reserver_details_id == reserver_details.id
 
@@ -110,6 +109,135 @@ class TestBookingOrms(BaseTestCase):
             first_reservation = booking_fetched.reservations[0]
             assert first_reservation.id == booking_reservation.id
             assert first_reservation.booking.id == booking_new.id
+
+    async def test_booking_account_select(self) -> None:
+        async with self.db_session.begin() as session:
+            accounts = [self.make_account(session) for _ in range(5)]
+
+            [
+                BookingOrm(
+                    session,
+                    accounts=[accounts[i]],
+                    survey=self.make_survey(session, accounts[i]),
+                    reserver_details=None,
+                )
+                for i in range(5)
+            ]
+
+        async with self.db_session.begin() as session:
+            for i in range(5):
+                bookings_fetched = (await session.scalars(BookingOrm.select(account_id=accounts[i].id))).all()
+                assert len(bookings_fetched) == 1
+                assert len(bookings_fetched[0].accounts) == 1
+                assert bookings_fetched[0].accounts[0].id == accounts[i].id
+
+            bookings_fetched_invalid_account_id = (
+                await session.scalars(BookingOrm.select(account_id=self.anyuuid()))
+            ).all()
+            assert len(bookings_fetched_invalid_account_id) == 0
+
+    async def test_booking_account_and_uid_select(self) -> None:
+        async with self.db_session.begin() as session:
+            accounts = [self.make_account(session) for _ in range(5)]
+
+            bookings = [
+                BookingOrm(
+                    session,
+                    accounts=[accounts[i]],
+                    survey=self.make_survey(session, accounts[i]),
+                    reserver_details=None,
+                )
+                for i in range(5)
+            ]
+
+        async with self.db_session.begin() as session:
+            for i in range(5):
+                bookings_fetched = (
+                    await session.scalars(BookingOrm.select(account_id=accounts[i].id, uid=bookings[i].id))
+                ).all()
+                assert len(bookings_fetched) == 1
+                assert len(bookings_fetched[0].accounts) == 1
+                assert bookings_fetched[0].accounts[0].id == accounts[i].id
+
+                bookings_fetched_mismatched_account_id = (
+                    await session.scalars(BookingOrm.select(account_id=accounts[(i + 1) % 5].id, uid=bookings[i].id))
+                ).all()
+                assert len(bookings_fetched_mismatched_account_id) == 0
+
+                bookings_fetched_mismatched_uid = (
+                    await session.scalars(BookingOrm.select(account_id=accounts[i].id, uid=bookings[(i + 1) % 5].id))
+                ).all()
+                assert len(bookings_fetched_mismatched_uid) == 0
+
+    async def test_booking_account_and_uid_select_with_multiple_bookings(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+
+            booking = BookingOrm(
+                session,
+                accounts=[account],
+                survey=self.make_survey(session, account),
+                reserver_details=None,
+            )
+
+            _other_booking = BookingOrm(
+                session,
+                accounts=[account],
+                survey=self.make_survey(session, account),
+                reserver_details=None,
+            )
+
+        async with self.db_session.begin() as session:
+            bookings_fetched = (await session.scalars(BookingOrm.select(account_id=account.id, uid=booking.id))).all()
+            assert len(bookings_fetched) == 1
+            assert bookings_fetched[0].id == booking.id
+            assert len(bookings_fetched[0].accounts) == 1
+            assert bookings_fetched[0].accounts[0].id == account.id
+
+    async def test_booking_account_and_uid_select_with_multiple_accounts(self) -> None:
+        async with self.db_session.begin() as session:
+            accounts = [self.make_account(session) for _ in range(2)]
+
+            booking = BookingOrm(
+                session,
+                accounts=accounts,
+                survey=self.make_survey(session, accounts[0]),
+                reserver_details=None,
+            )
+
+        async with self.db_session.begin() as session:
+            bookings_fetched = (
+                await session.scalars(BookingOrm.select(account_id=accounts[0].id, uid=booking.id))
+            ).all()
+            assert len(bookings_fetched) == 1
+            assert bookings_fetched[0].id == booking.id
+            assert len(bookings_fetched[0].accounts) == 2
+            assert bookings_fetched[0].accounts[0].id == accounts[0].id
+
+            bookings_fetched_by_other_account_id = (
+                await session.scalars(BookingOrm.select(account_id=accounts[1].id, uid=booking.id))
+            ).all()
+            assert len(bookings_fetched_by_other_account_id) == 1
+            assert bookings_fetched_by_other_account_id[0].id == booking.id
+            assert len(bookings_fetched_by_other_account_id[0].accounts) == 2
+            assert bookings_fetched_by_other_account_id[0].accounts[1].id == accounts[1].id
+
+        async with self.db_session.begin() as session:
+            other_booking = BookingOrm(
+                session,
+                accounts=[accounts[1]],
+                survey=self.make_survey(session, accounts[1]),
+                reserver_details=None,
+            )
+
+        async with self.db_session.begin() as session:
+            other_bookings_fetched = (
+                await session.scalars(BookingOrm.select(account_id=accounts[1].id, uid=other_booking.id))
+            ).all()
+            assert len(other_bookings_fetched) == 1
+            assert other_bookings_fetched[0].id == other_booking.id
+            assert len(other_bookings_fetched[0].accounts) == 1
+            assert other_bookings_fetched[0].accounts[0].id == accounts[1].id
 
     async def test_booking_activity_template_orm_initialization(self) -> None:
         async with self.db_session.begin() as session:

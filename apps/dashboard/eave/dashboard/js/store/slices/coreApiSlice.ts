@@ -3,9 +3,9 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import {
   BookingDetailsDocument,
+  ConfirmBookingDocument,
   CreateAccountDocument,
-  CreateBookingDocument,
-  CreatePaymentIntentDocument,
+  InitiateBookingDocument,
   ListBookedOutingsDocument,
   ListBookedOutingsQuery,
   ListBookedOutingsQueryVariables,
@@ -21,6 +21,7 @@ import {
   UpdateAccountDocument,
   UpdateAccountMutation,
   UpdateAccountMutationVariables,
+  UpdateBookingDocument,
   UpdateOutingPreferencesDocument,
   UpdateOutingPreferencesMutation,
   UpdateOutingPreferencesMutationVariables,
@@ -30,12 +31,12 @@ import {
   UpdateReserverDetailsMutationVariables,
   type BookingDetailsQuery,
   type BookingDetailsQueryVariables,
+  type ConfirmBookingMutation,
+  type ConfirmBookingMutationVariables,
   type CreateAccountMutation,
   type CreateAccountMutationVariables,
-  type CreateBookingMutation,
-  type CreateBookingMutationVariables,
-  type CreatePaymentIntentMutation,
-  type CreatePaymentIntentMutationVariables,
+  type InitiateBookingMutation,
+  type InitiateBookingMutationVariables,
   type ListReserverDetailsQuery,
   type ListReserverDetailsQueryVariables,
   type LoginMutation,
@@ -48,6 +49,8 @@ import {
   type SearchRegionsQueryVariables,
   type SubmitReserverDetailsMutation,
   type SubmitReserverDetailsMutationVariables,
+  type UpdateBookingMutation,
+  type UpdateBookingMutationVariables,
   type UpdateReserverDetailsAccountMutation,
   type UpdateReserverDetailsAccountMutationVariables,
 } from "$eave-dashboard/js/graphql/generated/graphql";
@@ -86,6 +89,13 @@ export const coreApiSlice = createApi({
     listBookedOutings: builder.query<ListBookedOutingsQuery, ListBookedOutingsQueryVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: ListBookedOutingsDocument, variables });
+        return { data };
+      },
+    }),
+
+    getBookingDetials: builder.query<BookingDetailsQuery, BookingDetailsQueryVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: BookingDetailsDocument, variables });
         return { data };
       },
     }),
@@ -138,13 +148,6 @@ export const coreApiSlice = createApi({
       },
     }),
 
-    createPaymentIntent: builder.mutation<CreatePaymentIntentMutation, CreatePaymentIntentMutationVariables>({
-      async queryFn(variables, _api, _extraOptions, _baseQuery) {
-        const data = await executeOperation({ query: CreatePaymentIntentDocument, variables });
-        return { data };
-      },
-    }),
-
     submitReserverDetails: builder.mutation<SubmitReserverDetailsMutation, SubmitReserverDetailsMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: SubmitReserverDetailsDocument, variables });
@@ -177,9 +180,23 @@ export const coreApiSlice = createApi({
       },
     }),
 
-    createBooking: builder.mutation<CreateBookingMutation, CreateBookingMutationVariables>({
+    initiateBooking: builder.mutation<InitiateBookingMutation, InitiateBookingMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
-        const data = await executeOperation({ query: CreateBookingDocument, variables });
+        const data = await executeOperation({ query: InitiateBookingDocument, variables });
+        return { data };
+      },
+    }),
+
+    updateBooking: builder.mutation<UpdateBookingMutation, UpdateBookingMutationVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: UpdateBookingDocument, variables });
+        return { data };
+      },
+    }),
+
+    confirmBooking: builder.mutation<ConfirmBookingMutation, ConfirmBookingMutationVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: ConfirmBookingDocument, variables });
         return { data };
       },
     }),
@@ -199,10 +216,11 @@ export const {
   usePlanOutingMutation,
   useCreateAccountMutation,
   useLoginMutation,
-  useCreatePaymentIntentMutation,
   useUpdateReserverDetailsAccountMutation,
   useUpdateAccountMutation,
-  useCreateBookingMutation,
+  useInitiateBookingMutation,
+  useUpdateBookingMutation,
+  useConfirmBookingMutation,
   useUpdateReserverDetailsMutation,
   useSubmitReserverDetailsMutation,
   useUpdateOutingPreferencesMutation,

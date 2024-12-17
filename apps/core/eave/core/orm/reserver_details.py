@@ -25,7 +25,7 @@ class ReserverDetailsOrm(Base):
     account_id: Mapped[UUID] = mapped_column(
         ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value)
     )
-    account: Mapped[AccountOrm] = relationship(lazy="selectin")
+    account: Mapped[AccountOrm] = relationship(lazy="selectin", back_populates="reserver_details")
 
     def __init__(
         self,

@@ -82,10 +82,6 @@ query Outing($input: OutingInput!) {
       }
     }
     activityStartTime
-    activityRegion {
-      id
-      name
-    }
     restaurant {
       sourceId
       source
@@ -130,10 +126,6 @@ query Outing($input: OutingInput!) {
       customerFavorites
     }
     restaurantArrivalTime
-    restaurantRegion {
-      id
-      name
-    }
     drivingTime
   }
 }

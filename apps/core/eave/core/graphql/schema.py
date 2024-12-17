@@ -30,9 +30,7 @@ def _should_mask_error(error: GraphQLError) -> bool:
 schema = strawberry.Schema(
     query=Query,
     mutation=Mutation,
-    config=StrawberryConfig(
-        auto_camel_case=True,
-    ),
+    config=StrawberryConfig(auto_camel_case=True, disable_field_suggestions=(not SHARED_CONFIG.is_local)),
     extensions=[
         # Custom extensions
         VisitorIdExtension(),

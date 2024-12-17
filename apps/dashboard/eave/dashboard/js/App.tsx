@@ -67,7 +67,7 @@ const App = () => {
               <Route path={AppRoute.passwordReset} element={<PasswordResetPage />} />
               <Route path={AppRoute.accountPreferences} element={<AccountPreferencesPage />} />
               <Route path={AppRoute.checkoutComplete} element={<CheckoutCompletePage />} />
-              <Route path={`${AppRoute.checkoutReserve}/:outingId`} element={<CheckoutReservationPage />} />
+              <Route path={AppRoute.checkoutReserve} element={<CheckoutReservationPage />} />
             </Route>
 
             <Route path="*" element={<Navigate to={AppRoute.root} />} />
