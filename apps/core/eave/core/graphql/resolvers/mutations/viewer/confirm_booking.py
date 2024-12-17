@@ -174,7 +174,7 @@ async def confirm_booking_mutation(
     )
 
     ANALYTICS.track(
-        event_name="booking created",
+        event_name="booking complete",
         account_id=account.id,
         visitor_id=visitor_id,
         extra_properties={
