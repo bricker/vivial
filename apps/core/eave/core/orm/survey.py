@@ -66,4 +66,7 @@ class SurveyOrm(Base, TimedEventMixin, GetOneByIdMixin):
         if len(self.search_area_ids) == 0:
             errors.append(ValidationError(subject="survey", field="search_area_ids"))
 
+        if self.headcount < 1:
+            errors.append(ValidationError(subject="survey", field="headcount"))
+
         return errors

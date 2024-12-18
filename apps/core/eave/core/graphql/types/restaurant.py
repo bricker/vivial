@@ -4,8 +4,10 @@ from uuid import UUID
 import strawberry
 
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
+from eave.core.lib.address import format_address
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 from eave.core.shared.enums import RestaurantSource
+from eave.stdlib.typing import JsonObject
 
 from .location import Location
 from .photos import Photos
@@ -46,3 +48,18 @@ class Reservation:
     arrival_time: datetime
     headcount: int
     restaurant: Restaurant
+
+    @strawberry.field
+    def cost_breakdown(self) -> CostBreakdown:
+        return self.calculate_cost_breakdown()
+
+    def calculate_cost_breakdown(self) -> CostBreakdown:
+        return CostBreakdown() # Reservations are currently always free
+
+    def build_analytics_properties(self) -> JsonObject:
+        return {
+            "start_time": self.arrival_time.isoformat(),
+            "category": self.restaurant.primary_type_name,
+            "accepts_reservations": self.restaurant.reservable,
+            "address": format_address(self.restaurant.location.address.to_address(), singleline=True)
+        }

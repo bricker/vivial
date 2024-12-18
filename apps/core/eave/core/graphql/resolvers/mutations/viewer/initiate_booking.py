@@ -8,11 +8,13 @@ import stripe
 from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
+from eave.core.graphql.types.activity import ActivityPlan
 from eave.core.graphql.types.booking import (
     BookingDetails,
 )
 from eave.core.graphql.types.payment_intent import PaymentIntent
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
+from eave.core.graphql.types.restaurant import Reservation
 from eave.core.graphql.types.survey import Survey
 from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
 from eave.core.lib.address import format_address
@@ -77,15 +79,13 @@ async def initiate_booking_mutation(
     if start_time_too_far_away(start_time=outing_orm.start_time_utc, timezone=outing_orm.timezone):
         return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.START_TIME_TOO_SOON)
 
-    booking_details_cost_breakdown = CostBreakdown()
-    booking_details_activity = None
-    booking_details_activity_start_time = None
-    booking_details_restaurant = None
-    booking_details_restaurant_arrival_time = None
+    activity_plan: ActivityPlan | None = None
+    reservation: Reservation | None = None
+    total_cost_breakdown = CostBreakdown()
 
     try:
         async with database.async_session.begin() as db_session:
-            booking = BookingOrm(
+            booking_orm = BookingOrm(
                 db_session,
                 accounts=[account_orm],
                 reserver_details=None,  # At this point, the client hasn't given us this information.
@@ -94,62 +94,69 @@ async def initiate_booking_mutation(
                 state=BookingState.INITIATED,
             )
 
-            for activity_orm in outing_orm.activities:
-                activity = await get_activity(source=activity_orm.source, source_id=activity_orm.source_id)
+            if len(outing_orm.activities) > 0:
+                outing_activity_orm = outing_orm.activities[0] # We only support one activity currently.
+                activity = await get_activity(source=outing_activity_orm.source, source_id=outing_activity_orm.source_id)
 
                 if activity:
-                    if not booking_details_activity:
-                        booking_details_activity = activity
-                        booking_details_activity_start_time = activity_orm.start_time_local
-
-                    if activity.ticket_info:
-                        booking_details_cost_breakdown += activity.ticket_info.cost_breakdown * activity_orm.headcount
-
-                    booking.activities.append(
-                        BookingActivityTemplateOrm(
-                            db_session,
-                            booking=booking,
-                            source=activity_orm.source,
-                            source_id=activity_orm.source_id,
-                            name=activity.name,
-                            start_time_utc=activity_orm.start_time_utc,
-                            timezone=activity_orm.timezone,
-                            headcount=activity_orm.headcount,
-                            external_booking_link=activity.website_uri,
-                            address=activity.venue.location.address.to_address(),
-                            coordinates=activity.venue.location.coordinates,
-                            photo_uri=activity.photos.cover_photo.src if activity.photos.cover_photo else None,
-                        )
+                    booking_activity_orm = BookingActivityTemplateOrm(
+                        db_session,
+                        booking=booking_orm,
+                        source=outing_activity_orm.source,
+                        source_id=outing_activity_orm.source_id,
+                        name=activity.name,
+                        start_time_utc=outing_activity_orm.start_time_utc,
+                        timezone=outing_activity_orm.timezone,
+                        headcount=outing_activity_orm.headcount,
+                        external_booking_link=activity.website_uri,
+                        address=activity.venue.location.address.to_address(),
+                        coordinates=activity.venue.location.coordinates,
+                        photo_uri=activity.photos.cover_photo.src if activity.photos.cover_photo else None,
                     )
 
-            for reservation_orm in outing_orm.reservations:
-                reservation = await get_restaurant(
+                    booking_orm.activities.append(booking_activity_orm)
+
+                    activity_plan = ActivityPlan(
+                        activity=activity,
+                        start_time=booking_activity_orm.start_time_local,
+                        headcount=booking_activity_orm.headcount,
+                    )
+
+                    total_cost_breakdown += activity_plan.calculate_cost_breakdown()
+
+            if len(outing_orm.reservations) > 0:
+                reservation_orm = outing_orm.reservations[0] # We only support 1 reservation right now
+                restaurant = await get_restaurant(
                     source=reservation_orm.source,
                     source_id=reservation_orm.source_id,
                 )
 
-                if not booking_details_restaurant:
-                    booking_details_restaurant = reservation
-                    booking_details_restaurant_arrival_time = reservation_orm.start_time_local
-
-                booking.reservations.append(
-                    BookingReservationTemplateOrm(
-                        db_session,
-                        booking=booking,
-                        source=reservation_orm.source,
-                        source_id=reservation_orm.source_id,
-                        name=reservation.name,
-                        start_time_utc=reservation_orm.start_time_utc,
-                        timezone=reservation_orm.timezone,
-                        headcount=reservation_orm.headcount,
-                        external_booking_link=reservation.website_uri,
-                        address=reservation.location.address.to_address(),
-                        coordinates=reservation.location.coordinates,
-                        photo_uri=reservation.photos.cover_photo.src if reservation.photos.cover_photo else None,
-                    )
+                booking_reservation_orm = BookingReservationTemplateOrm(
+                    db_session,
+                    booking=booking_orm,
+                    source=reservation_orm.source,
+                    source_id=reservation_orm.source_id,
+                    name=restaurant.name,
+                    start_time_utc=reservation_orm.start_time_utc,
+                    timezone=reservation_orm.timezone,
+                    headcount=reservation_orm.headcount,
+                    external_booking_link=restaurant.website_uri,
+                    address=restaurant.location.address.to_address(),
+                    coordinates=restaurant.location.coordinates,
+                    photo_uri=restaurant.photos.cover_photo.src if restaurant.photos.cover_photo else None,
                 )
 
-        if booking_details_cost_breakdown.total_cost_cents_internal > 0:
+                booking_orm.reservations.append(booking_reservation_orm)
+
+                reservation = Reservation(
+                    arrival_time=booking_reservation_orm.start_time_local,
+                    headcount=booking_reservation_orm.headcount,
+                    restaurant=restaurant,
+                )
+
+                total_cost_breakdown += reservation.calculate_cost_breakdown()
+
+        if total_cost_breakdown.calculate_total_cost_cents() > 0:
             if account_orm.stripe_customer_id is None:
                 stripe_customer = await stripe.Customer.create_async(
                     email=account_orm.email,
@@ -167,13 +174,13 @@ async def initiate_booking_mutation(
 
             stripe_payment_intent = await stripe.PaymentIntent.create_async(
                 currency="usd",
-                amount=booking_details_cost_breakdown.total_cost_cents_internal,
+                amount=total_cost_breakdown.calculate_total_cost_cents(),
                 capture_method="manual",
                 receipt_email=account_orm.email,
                 setup_future_usage="on_session",
                 customer=account_orm.stripe_customer_id,
                 metadata={
-                    "vivial_outing_id": str(outing_orm.id),
+                    "vivial_booking_id": str(booking_orm.id),
                 },
             )
 
@@ -191,8 +198,8 @@ async def initiate_booking_mutation(
                     stripe_payment_intent_id=stripe_payment_intent.id,
                 )
 
-                db_session.add(booking)
-                booking.stripe_payment_intent_reference = stripe_payment_intent_reference_orm
+                db_session.add(booking_orm)
+                booking_orm.stripe_payment_intent_reference = stripe_payment_intent_reference_orm
 
             graphql_payment_intent = PaymentIntent(
                 id=stripe_payment_intent.id, client_secret=stripe_payment_intent.client_secret
@@ -211,60 +218,20 @@ async def initiate_booking_mutation(
         account_id=account_id,
         visitor_id=visitor_id,
         extra_properties={
-            "booking_id": str(booking.id),
+            "booking_id": str(booking_orm.id),
             "outing_id": str(input.outing_id),
-            "restaurant_info": {
-                "start_time": booking_details_restaurant_arrival_time.isoformat()
-                if booking_details_restaurant_arrival_time
-                else None,
-                "category": booking_details_restaurant.primary_type_name if booking_details_restaurant else None,
-                "accepts_reservations": booking_details_restaurant.reservable if booking_details_restaurant else None,
-                "address": format_address(booking_details_restaurant.location.address.to_address(), singleline=True)
-                if booking_details_restaurant
-                else None,
-            },
-            "activity_info": {
-                "start_time": booking_details_activity_start_time.isoformat()
-                if booking_details_activity_start_time
-                else None,
-                "category": booking_details_activity.category_group.name
-                if booking_details_activity and booking_details_activity.category_group
-                else None,
-                "costs": {
-                    "total_cents": booking_details_cost_breakdown.total_cost_cents_internal,
-                    "fees_cents": booking_details_cost_breakdown.fee_cents,
-                    "tax_cents": booking_details_cost_breakdown.tax_cents,
-                },
-                "address": format_address(booking_details_activity.venue.location.address.to_address(), singleline=True)
-                if booking_details_activity
-                else None,
-            },
-            "survey_info": {
-                "headcount": booking.outing.survey.headcount if booking.outing and booking.outing.survey else None,
-                "start_time": booking.outing.survey.start_time_local.isoformat()
-                if booking.outing and booking.outing.survey
-                else None,
-                "regions": [
-                    SearchRegionOrm.one_or_exception(search_region_id=region).name
-                    for region in booking.outing.survey.search_area_ids
-                ]
-                if booking.outing and booking.outing.survey
-                else None,
-                "budget": booking.outing.survey.budget if booking.outing and booking.outing.survey else None,
-            },
+            "restaurant_info": reservation.build_analytics_properties() if reservation else None,
+            "activity_info": activity_plan.build_analytics_properties() if activity_plan else None,
+            "survey_info": Survey.from_orm(outing_orm.survey).build_analytics_properties() if outing_orm.survey else None
         },
     )
 
     return InitiateBookingSuccess(
         booking=BookingDetails(
-            id=booking.id,  # Warning: This is NULL until the Booking object is persisted!
-            survey=Survey.from_orm(booking.outing.survey) if booking.outing and booking.outing.survey else None,
-            cost_breakdown=booking_details_cost_breakdown,
-            activity=booking_details_activity,
-            activity_start_time=booking_details_activity_start_time,
-            restaurant=booking_details_restaurant,
-            restaurant_arrival_time=booking_details_restaurant_arrival_time,
-            driving_time=None,  # TODO: can we fill this in?
+            id=booking_orm.id,  # Warning: This is NULL until the Booking object is persisted!
+            state=booking_orm.state,
+            activity_plan=activity_plan,
+            reservation=reservation,
         ),
         payment_intent=graphql_payment_intent,
     )

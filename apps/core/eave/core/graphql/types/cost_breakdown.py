@@ -1,5 +1,5 @@
 import strawberry
-
+from eave.stdlib.typing import JsonObject
 
 @strawberry.type
 class CostBreakdown:
@@ -9,11 +9,17 @@ class CostBreakdown:
 
     @strawberry.field
     def total_cost_cents(self) -> int:
-        return self.total_cost_cents_internal
+        return self.calculate_total_cost_cents()
 
-    @property
-    def total_cost_cents_internal(self) -> int:
+    def calculate_total_cost_cents(self) -> int:
         return self.base_cost_cents + self.fee_cents + self.tax_cents
+
+    def build_analytics_properties(self) -> JsonObject:
+        return {
+            "total_cents": self.calculate_total_cost_cents(),
+            "fees_cents": self.fee_cents,
+            "tax_cents": self.tax_cents,
+        }
 
     def __mul__(self, n: int) -> "CostBreakdown":
         return CostBreakdown(

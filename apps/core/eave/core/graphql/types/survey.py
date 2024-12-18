@@ -7,7 +7,7 @@ from eave.core.graphql.types.search_region import SearchRegion
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
-
+from eave.stdlib.typing import JsonObject
 
 @strawberry.type
 class Survey:
@@ -30,6 +30,13 @@ class Survey:
             ],
         )
 
+    def build_analytics_properties(self) -> JsonObject:
+        return {
+            "headcount": self.headcount,
+            "start_time": self.start_time.isoformat(),
+            "regions": [region.name for region in self.search_regions],
+            "budget": self.budget,
+        }
 
 @strawberry.input
 class SurveyInput:

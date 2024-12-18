@@ -106,7 +106,7 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
             if (tax := ticket_class.get("tax")) is not None:
                 cost_breakdown.tax_cents = tax["value"]
 
-            if cost_breakdown.total_cost_cents_internal > max_pricing.total_cost_cents_internal:
+            if cost_breakdown.calculate_total_cost_cents() > max_pricing.calculate_total_cost_cents():
                 max_pricing = cost_breakdown
                 chosen_ticket_class = ticket_class
 

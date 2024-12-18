@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, tzinfo
 from uuid import UUID
 from zoneinfo import ZoneInfo
 

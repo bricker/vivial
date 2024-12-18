@@ -5,9 +5,11 @@ import strawberry
 
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.ticket_info import TicketInfo
+from eave.core.lib.address import format_address
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.shared.enums import ActivitySource
+from eave.stdlib.typing import JsonObject
 
 from .location import Location
 from .photos import Photos
@@ -68,5 +70,20 @@ class Activity:
 class ActivityPlan:
     start_time: datetime
     headcount: int
-    cost_breakdown: CostBreakdown
     activity: Activity
+
+    @strawberry.field
+    def cost_breakdown(self) -> CostBreakdown:
+        return self.calculate_cost_breakdown()
+
+    def calculate_cost_breakdown(self) -> CostBreakdown:
+        cb = self.activity.ticket_info.cost_breakdown if self.activity.ticket_info else CostBreakdown()
+        return cb * self.headcount
+
+    def build_analytics_properties(self) -> JsonObject:
+        return {
+            "start_time": self.start_time.isoformat(),
+            "category": self.activity.category_group.name if self.activity.category_group else None,
+            "costs": self.calculate_cost_breakdown().build_analytics_properties(),
+            "address": format_address(self.activity.venue.location.address.to_address(), singleline=True),
+        }
