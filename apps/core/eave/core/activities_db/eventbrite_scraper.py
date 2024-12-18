@@ -342,8 +342,8 @@ async def get_eventbrite_events() -> None:
                         end_time_utc = datetime.fromisoformat(event_end["utc"])
                         end_timezone = ZoneInfo(event_end["timezone"])
                     else:
-                        end_time_utc = None
                         end_timezone = None
+                        end_time_utc = None
 
                     if minimum_ticket_price := ticket_availability.get("minimum_ticket_price"):
                         min_cost_cents = minimum_ticket_price["value"]

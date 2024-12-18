@@ -4,7 +4,7 @@ from uuid import UUID
 from zoneinfo import ZoneInfo
 
 from geoalchemy2.functions import ST_DWithin
-from sqlalchemy import PrimaryKeyConstraint, Select, or_, select
+from sqlalchemy import TIMESTAMP, PrimaryKeyConstraint, Select, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -23,9 +23,9 @@ class EventbriteEventOrm(Base, TimedEventMixin, CoordinatesMixin, GetOneByIdMixi
 
     id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
     eventbrite_event_id: Mapped[str] = mapped_column(unique=True)
-    eventbrite_organizer_id: Mapped[str | None] = mapped_column(index=True)
+    eventbrite_organizer_id: Mapped[str] = mapped_column(index=True)
     title: Mapped[str] = mapped_column()
-    end_time_utc: Mapped[datetime | None] = mapped_column()
+    end_time_utc: Mapped[datetime | None] = mapped_column(type_=TIMESTAMP(timezone=True))
     min_cost_cents: Mapped[int | None] = mapped_column()
     max_cost_cents: Mapped[int | None] = mapped_column()
     vivial_activity_category_id: Mapped[UUID] = mapped_column()

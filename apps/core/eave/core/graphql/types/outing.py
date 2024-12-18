@@ -1,4 +1,5 @@
 from datetime import datetime
+import random
 from uuid import UUID
 
 import strawberry
@@ -26,15 +27,17 @@ class Outing:
 
     @strawberry.field
     def search_regions(self) -> list[SearchRegion]:
-        search_regions: list[SearchRegion] = []
+        search_regions: dict[UUID, SearchRegion] = {}
 
         if self.activity_plan:
-            search_regions.append(self.activity_plan.activity.venue.location.find_closest_search_region())
+            r = self.activity_plan.activity.venue.location.find_closest_search_region()
+            search_regions[r.id] = r
 
         if self.reservation:
-            search_regions.append(self.reservation.restaurant.location.find_closest_search_region())
+            r = self.reservation.restaurant.location.find_closest_search_region()
+            search_regions[r.id] = r
 
-        return search_regions
+        return list(search_regions.values())
 
     @strawberry.field
     def headcount(self) -> int:
@@ -62,7 +65,7 @@ class Outing:
 
     @strawberry.field
     async def driving_time_minutes(self) -> int | None:
-        return 15  # FIXME: ABL
+        return random.choice(range(5, 15))  # FIXME: ABL  # noqa: S311
 
     @strawberry.field
     def cost_breakdown(self) -> CostBreakdown:

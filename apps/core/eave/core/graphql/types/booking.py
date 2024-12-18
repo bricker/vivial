@@ -1,4 +1,5 @@
 from datetime import datetime
+import random
 from uuid import UUID
 
 import strawberry
@@ -84,7 +85,7 @@ class BookingDetails:
 
     @strawberry.field
     async def driving_time_minutes(self) -> int | None:
-        return 15  # FIXME: ABL
+        return random.choice(range(5, 15))  # FIXME: ABL  # noqa: S311
 
     @strawberry.field
     def cost_breakdown(self) -> CostBreakdown:
