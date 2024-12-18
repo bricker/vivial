@@ -9,6 +9,7 @@ from eave.core.orm.survey import SurveyOrm
 from eave.core.shared.enums import OutingBudget
 from eave.stdlib.typing import JsonObject
 
+
 @strawberry.type
 class Survey:
     id: UUID
@@ -37,6 +38,7 @@ class Survey:
             "regions": [region.name for region in self.search_regions],
             "budget": self.budget,
         }
+
 
 @strawberry.input
 class SurveyInput:

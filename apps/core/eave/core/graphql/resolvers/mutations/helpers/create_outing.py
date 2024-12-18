@@ -1,13 +1,8 @@
-from datetime import UTC
-from zoneinfo import ZoneInfo
 from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
-from eave.core.graphql.types.activity import ActivityPlan
 from eave.core.graphql.types.outing import Outing, OutingPreferencesInput
-from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.survey import Survey
-from eave.core.lib.address import format_address
 from eave.core.lib.event_helpers import get_activity
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
@@ -44,7 +39,7 @@ async def create_outing(
                     source_id=activity_plan.activity.source_id,
                     source=activity_plan.activity.source,
                     start_time_utc=activity_plan.start_time,
-                    timezone=survey.timezone, # FIXME: This should come from arrival_time,
+                    timezone=survey.timezone,  # FIXME: This should come from arrival_time,
                     headcount=activity_plan.headcount,
                 )
             )
@@ -57,7 +52,7 @@ async def create_outing(
                     source_id=reservation.restaurant.source_id,
                     source=reservation.restaurant.source,
                     start_time_utc=reservation.arrival_time,
-                    timezone=survey.timezone, # FIXME: This should come from arrival_time
+                    timezone=survey.timezone,  # FIXME: This should come from arrival_time
                     headcount=reservation.headcount,
                 )
             )
@@ -93,6 +88,8 @@ async def get_total_cost_cents(orm: OutingOrm | BookingOrm) -> int:
     for activity_orm in orm.activities:
         activity = await get_activity(source=activity_orm.source, source_id=activity_orm.source_id)
         if activity and activity.ticket_info:
-            total_cost_cents += activity.ticket_info.cost_breakdown.calculate_total_cost_cents() * activity_orm.headcount
+            total_cost_cents += (
+                activity.ticket_info.cost_breakdown.calculate_total_cost_cents() * activity_orm.headcount
+            )
 
     return total_cost_cents

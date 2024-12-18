@@ -5,7 +5,6 @@ import strawberry
 
 from eave.core.graphql.types.activity import ActivityPlan
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
-from eave.core.graphql.types.outing import Outing
 from eave.core.graphql.types.reserver_details import ReserverDetails
 from eave.core.graphql.types.restaurant import Reservation
 from eave.core.orm.booking import BookingOrm
@@ -47,7 +46,7 @@ class BookingDetails:
 
     @strawberry.field
     async def driving_time_minutes(self) -> int | None:
-        return 15 # FIXME: ABL
+        return 15  # FIXME: ABL
 
     @strawberry.field
     def cost_breakdown(self) -> CostBreakdown:

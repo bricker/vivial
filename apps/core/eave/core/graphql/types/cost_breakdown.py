@@ -1,5 +1,7 @@
 import strawberry
+
 from eave.stdlib.typing import JsonObject
+
 
 @strawberry.type
 class CostBreakdown:

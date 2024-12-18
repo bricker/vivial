@@ -66,6 +66,7 @@ class Activity:
     parking_tips: str | None
     category_group: ActivityCategoryGroup | None
 
+
 @strawberry.type
 class ActivityPlan:
     start_time: datetime

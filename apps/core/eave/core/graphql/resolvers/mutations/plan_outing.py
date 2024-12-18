@@ -47,6 +47,7 @@ class PlanOutingFailure:
 
 PlanOutingResult = Annotated[PlanOutingSuccess | PlanOutingFailure, strawberry.union("PlanOutingResult")]
 
+
 async def plan_outing_mutation(
     *,
     info: strawberry.Info[GraphQLContext],

@@ -340,7 +340,9 @@ class TestConfirmBookingResolver(BaseTestCase):
         assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 0
         assert self.get_mock("slack client").call_count == 0
 
-        self.mock_stripe_payment_intent.amount = (self.get_mock_eventbrite_ticket_class_batch_cost() * outing.survey.headcount) - 1000
+        self.mock_stripe_payment_intent.amount = (
+            self.get_mock_eventbrite_ticket_class_batch_cost() * outing.survey.headcount
+        ) - 1000
 
         response = await self.make_graphql_request(
             "confirmBooking",
@@ -389,7 +391,9 @@ class TestConfirmBookingResolver(BaseTestCase):
         assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 0
         assert self.get_mock("slack client").call_count == 0
 
-        self.mock_stripe_payment_intent.amount = (self.get_mock_eventbrite_ticket_class_batch_cost() * outing.survey.headcount) + 1000
+        self.mock_stripe_payment_intent.amount = (
+            self.get_mock_eventbrite_ticket_class_batch_cost() * outing.survey.headcount
+        ) + 1000
 
         response = await self.make_graphql_request(
             "confirmBooking",

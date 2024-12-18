@@ -11,18 +11,17 @@ from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.helpers.create_outing import get_total_cost_cents
+from eave.core.graphql.types.booking import (
+    Booking,
+)
 from eave.core.graphql.validators.time_bounds_validator import (
     start_time_too_far_away,
     start_time_too_soon,
-)
-from eave.core.graphql.types.booking import (
-    Booking,
 )
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.search_region import SearchRegionOrm
-from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.core.shared.enums import BookingState
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.config import SHARED_CONFIG
@@ -58,6 +57,7 @@ class ConfirmBookingFailure:
 ConfirmBookingResult = Annotated[
     ConfirmBookingSuccess | ConfirmBookingFailure, strawberry.union("ConfirmBookingResult")
 ]
+
 
 async def confirm_booking_mutation(
     *,

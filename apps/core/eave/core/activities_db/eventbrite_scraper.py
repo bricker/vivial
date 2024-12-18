@@ -15,7 +15,7 @@ load_standard_dotenv_files()
 # ruff: noqa: E402
 
 import asyncio
-from datetime import UTC, datetime
+from datetime import datetime
 from zoneinfo import ZoneInfo
 
 import eave.core.database
@@ -335,9 +335,7 @@ async def get_eventbrite_events() -> None:
                         start_time_utc = datetime.fromisoformat(event_start["utc"])
                         start_timezone = ZoneInfo(event_start["timezone"])
                     else:
-                        LOGGER.warning(
-                            f"{pfx} No start time; skipping", {"eventbrite_event_id": eventbrite_event_id}
-                        )
+                        LOGGER.warning(f"{pfx} No start time; skipping", {"eventbrite_event_id": eventbrite_event_id})
                         continue
 
                     if event_end := event.get("end"):

@@ -1,4 +1,3 @@
-from datetime import datetime
 from uuid import UUID
 
 import strawberry
@@ -6,8 +5,8 @@ import strawberry
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.survey import Survey
 
-from .activity import Activity, ActivityPlan
-from .restaurant import Reservation, Restaurant
+from .activity import ActivityPlan
+from .restaurant import Reservation
 
 
 @strawberry.input
@@ -25,7 +24,7 @@ class Outing:
 
     @strawberry.field
     async def driving_time_minutes(self) -> int | None:
-        return 15 # FIXME: ABL
+        return 15  # FIXME: ABL
 
     @strawberry.field
     def cost_breakdown(self) -> CostBreakdown:

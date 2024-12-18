@@ -43,6 +43,7 @@ class RestaurantCategory:
             is_default=orm.is_default,
         )
 
+
 @strawberry.type
 class Reservation:
     arrival_time: datetime
@@ -54,12 +55,12 @@ class Reservation:
         return self.calculate_cost_breakdown()
 
     def calculate_cost_breakdown(self) -> CostBreakdown:
-        return CostBreakdown() # Reservations are currently always free
+        return CostBreakdown()  # Reservations are currently always free
 
     def build_analytics_properties(self) -> JsonObject:
         return {
             "start_time": self.arrival_time.isoformat(),
             "category": self.restaurant.primary_type_name,
             "accepts_reservations": self.restaurant.reservable,
-            "address": format_address(self.restaurant.location.address.to_address(), singleline=True)
+            "address": format_address(self.restaurant.location.address.to_address(), singleline=True),
         }

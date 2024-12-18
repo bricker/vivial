@@ -121,6 +121,7 @@ class BookingOrm(Base, GetOneByIdMixin):
         activities_min = min(a.start_time_local for a in self.activities)
         return min(activities_min, reservations_min)
 
+
 class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     """Editable template for a booked activity.
     Edits are visible to other accounts part of the same booking, but

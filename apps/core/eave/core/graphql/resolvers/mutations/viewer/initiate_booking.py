@@ -12,18 +12,16 @@ from eave.core.graphql.types.activity import ActivityPlan
 from eave.core.graphql.types.booking import (
     BookingDetails,
 )
-from eave.core.graphql.types.payment_intent import PaymentIntent
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
+from eave.core.graphql.types.payment_intent import PaymentIntent
 from eave.core.graphql.types.restaurant import Reservation
 from eave.core.graphql.types.survey import Survey
 from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
-from eave.core.lib.address import format_address
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
 from eave.core.orm.outing import OutingOrm
-from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.core.shared.enums import BookingState
 from eave.core.shared.errors import ValidationError
@@ -95,8 +93,10 @@ async def initiate_booking_mutation(
             )
 
             if len(outing_orm.activities) > 0:
-                outing_activity_orm = outing_orm.activities[0] # We only support one activity currently.
-                activity = await get_activity(source=outing_activity_orm.source, source_id=outing_activity_orm.source_id)
+                outing_activity_orm = outing_orm.activities[0]  # We only support one activity currently.
+                activity = await get_activity(
+                    source=outing_activity_orm.source, source_id=outing_activity_orm.source_id
+                )
 
                 if activity:
                     booking_activity_orm = BookingActivityTemplateOrm(
@@ -125,7 +125,7 @@ async def initiate_booking_mutation(
                     total_cost_breakdown += activity_plan.calculate_cost_breakdown()
 
             if len(outing_orm.reservations) > 0:
-                reservation_orm = outing_orm.reservations[0] # We only support 1 reservation right now
+                reservation_orm = outing_orm.reservations[0]  # We only support 1 reservation right now
                 restaurant = await get_restaurant(
                     source=reservation_orm.source,
                     source_id=reservation_orm.source_id,
@@ -222,7 +222,9 @@ async def initiate_booking_mutation(
             "outing_id": str(input.outing_id),
             "restaurant_info": reservation.build_analytics_properties() if reservation else None,
             "activity_info": activity_plan.build_analytics_properties() if activity_plan else None,
-            "survey_info": Survey.from_orm(outing_orm.survey).build_analytics_properties() if outing_orm.survey else None
+            "survey_info": Survey.from_orm(outing_orm.survey).build_analytics_properties()
+            if outing_orm.survey
+            else None,
         },
     )
 

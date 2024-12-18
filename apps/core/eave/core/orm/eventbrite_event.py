@@ -5,12 +5,10 @@ from zoneinfo import ZoneInfo
 
 from geoalchemy2.functions import ST_DWithin
 from sqlalchemy import PrimaryKeyConstraint, Select, or_, select
-from sqlalchemy.dialects.postgresql import TSTZRANGE, Range
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
 from eave.core.orm.util.mixins import CoordinatesMixin, GetOneByIdMixin, TimedEventMixin
-from eave.core.orm.util.user_defined_column_types import ZoneInfoColumnType
 from eave.core.shared.geo import GeoArea, GeoPoint
 from eave.stdlib.time import datetime_window
 from eave.stdlib.typing import NOT_SET

@@ -6,9 +6,7 @@ from eave.core import database
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.activity import ActivityPlan
 from eave.core.graphql.types.booking import BookingDetailPeek, BookingDetails
-from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.restaurant import Reservation
-from eave.core.graphql.types.survey import Survey
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
