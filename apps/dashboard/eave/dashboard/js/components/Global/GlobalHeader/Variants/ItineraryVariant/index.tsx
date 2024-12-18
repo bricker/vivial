@@ -24,7 +24,6 @@ const Cost = styled("span")(() => ({
 const ItineraryVariant = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
   const navigate = useNavigate();
-  const hasCost = !!outing?.costBreakdown?.totalCostCents;
 
   const handleBook = useCallback(() => {
     if (outing) {
@@ -35,15 +34,11 @@ const ItineraryVariant = () => {
 
   return (
     <Header>
-      <VivialLogo hideText={hasCost} />
-      {hasCost && (
-        <>
-          <Typography variant="subtitle1">
-            Total: <Cost>{getTotalCost(outing)}</Cost>
-          </Typography>
-          <BookButton onClick={handleBook}>Book</BookButton>
-        </>
-      )}
+      <VivialLogo hideText />
+      <Typography variant="subtitle1">
+        Total: <Cost>{getTotalCost(outing)}</Cost>
+      </Typography>
+      <BookButton onClick={handleBook}>Book</BookButton>
     </Header>
   );
 };

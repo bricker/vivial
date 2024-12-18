@@ -1,10 +1,10 @@
 import { AppRoute } from "$eave-dashboard/js/routes";
+import { myWindow } from "$eave-dashboard/js/types/window";
 import { styled } from "@mui/material";
 import React, { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import ListArrowButton from "../../Buttons/ListArrowButton";
 import EditableContainer from "./EditableContainer";
-import { myWindow } from "$eave-dashboard/js/types/window";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",

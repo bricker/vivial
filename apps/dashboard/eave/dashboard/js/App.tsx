@@ -58,7 +58,7 @@ const App = () => {
               <Route path={AppRoute.forgotPassword} element={<ForgotPasswordPage />} />
             </Route>
 
-            {/* auth only routes */}
+            {/* auth only routes - login redirect */}
             <Route element={<PrivateRoutes hasPermissions={!!isLoggedIn} redirectPath={AppRoute.login} />}>
               <Route path={AppRoute.account} element={<AccountPage />} />
               <Route path={AppRoute.plans} element={<PlansPage />} />
@@ -67,6 +67,10 @@ const App = () => {
               <Route path={AppRoute.passwordReset} element={<PasswordResetPage />} />
               <Route path={AppRoute.accountPreferences} element={<AccountPreferencesPage />} />
               <Route path={AppRoute.checkoutComplete} element={<CheckoutCompletePage />} />
+            </Route>
+
+            {/* auth only routes - signup redirect */}
+            <Route element={<PrivateRoutes hasPermissions={!!isLoggedIn} redirectPath={AppRoute.signup} />}>
               <Route path={AppRoute.checkoutReserve} element={<CheckoutReservationPage />} />
             </Route>
 
