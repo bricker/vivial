@@ -1,7 +1,9 @@
+from datetime import datetime
 from uuid import UUID
 
 import strawberry
 
+from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
@@ -61,3 +63,10 @@ class Activity:
     insider_tips: str | None
     parking_tips: str | None
     category_group: ActivityCategoryGroup | None
+
+@strawberry.type
+class ActivityPlan:
+    start_time: datetime
+    headcount: int
+    cost_breakdown: CostBreakdown
+    activity: Activity

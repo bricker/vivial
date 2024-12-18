@@ -8,7 +8,7 @@ from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, Ac
 from eave.core.graphql.types.address import GraphQLAddress
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
-from eave.core.graphql.types.pricing import CostBreakdown
+from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.lib.address import format_address

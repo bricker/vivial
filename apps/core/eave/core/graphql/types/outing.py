@@ -3,7 +3,7 @@ from uuid import UUID
 
 import strawberry
 
-from eave.core.graphql.types.pricing import CostBreakdown
+from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.survey import Survey
 
 from .activity import Activity

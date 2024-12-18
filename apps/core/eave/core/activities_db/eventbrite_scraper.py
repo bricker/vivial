@@ -2,6 +2,8 @@
 
 import sys
 
+from eave.stdlib.time import LOS_ANGELES_TIMEZONE
+
 sys.path.append(".")
 
 from eave.dev_tooling.dotenv_loader import load_standard_dotenv_files
@@ -13,7 +15,7 @@ load_standard_dotenv_files()
 # ruff: noqa: E402
 
 import asyncio
-from datetime import datetime
+from datetime import UTC, datetime
 from zoneinfo import ZoneInfo
 
 import eave.core.database
@@ -329,22 +331,14 @@ async def get_eventbrite_events() -> None:
                         )
                         continue
 
-                    # if minimum_ticket_price := ticket_availability.get("minimum_ticket_price"):
-                    #     min_cost_cents = minimum_ticket_price["value"]
-                    # else:
-                    #     min_cost_cents = None
-
-                    if maximum_ticket_price := ticket_availability.get("maximum_ticket_price"):
-                        max_cost_cents = maximum_ticket_price["value"]
-                    else:
-                        max_cost_cents = 0
-
                     if event_start := event.get("start"):
                         start_time_utc = datetime.fromisoformat(event_start["utc"])
                         start_timezone = ZoneInfo(event_start["timezone"])
                     else:
-                        start_time_utc = None
-                        start_timezone = None
+                        LOGGER.warning(
+                            f"{pfx} No start time; skipping", {"eventbrite_event_id": eventbrite_event_id}
+                        )
+                        continue
 
                     if event_end := event.get("end"):
                         end_time_utc = datetime.fromisoformat(event_end["utc"])
@@ -353,8 +347,18 @@ async def get_eventbrite_events() -> None:
                         end_time_utc = None
                         end_timezone = None
 
+                    if minimum_ticket_price := ticket_availability.get("minimum_ticket_price"):
+                        min_cost_cents = minimum_ticket_price["value"]
+                    else:
+                        min_cost_cents = 0
+
+                    if maximum_ticket_price := ticket_availability.get("maximum_ticket_price"):
+                        max_cost_cents = maximum_ticket_price["value"]
+                    else:
+                        max_cost_cents = 0
+
                     # These should never be different, but we need to choose one.
-                    timezone = start_timezone or end_timezone
+                    timezone = start_timezone or end_timezone or LOS_ANGELES_TIMEZONE
 
                     query = EventbriteEventOrm.select(
                         eventbrite_event_id=eventbrite_event_id,
@@ -380,6 +384,7 @@ async def get_eventbrite_events() -> None:
                         start_time=start_time_utc,
                         end_time=end_time_utc,
                         timezone=timezone,
+                        min_cost_cents=min_cost_cents,
                         max_cost_cents=max_cost_cents,
                         lat=float(lat),
                         lon=float(lon),

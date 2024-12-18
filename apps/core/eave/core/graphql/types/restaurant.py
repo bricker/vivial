@@ -1,7 +1,9 @@
+from datetime import datetime
 from uuid import UUID
 
 import strawberry
 
+from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.orm.restaurant_category import RestaurantCategoryOrm
 from eave.core.shared.enums import RestaurantSource
 
@@ -38,3 +40,9 @@ class RestaurantCategory:
             name=orm.name,
             is_default=orm.is_default,
         )
+
+@strawberry.type
+class Reservation:
+    arrival_time: datetime
+    headcount: int
+    restaurant: Restaurant

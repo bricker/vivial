@@ -12,7 +12,7 @@ from eave.core.graphql.types.booking import (
     BookingDetails,
 )
 from eave.core.graphql.types.payment_intent import PaymentIntent
-from eave.core.graphql.types.pricing import CostBreakdown
+from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.survey import Survey
 from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
 from eave.core.lib.address import format_address

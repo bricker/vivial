@@ -11,10 +11,9 @@ from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.helpers.create_outing import get_total_cost_cents
-from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import (
-    StartTimeTooLateError,
-    StartTimeTooSoonError,
-    validate_time_within_bounds_or_exception,
+from eave.core.graphql.validators.time_bounds_validator import (
+    start_time_too_far_away,
+    start_time_too_soon,
 )
 from eave.core.graphql.types.booking import (
     Booking,
@@ -32,15 +31,8 @@ from eave.stdlib.util import unwrap
 
 
 @strawberry.input
-class PaymentIntentInput:
-    id: str
-    client_secret: str
-
-
-@strawberry.input
 class ConfirmBookingInput:
     booking_id: UUID
-    payment_intent: PaymentIntentInput | None = strawberry.UNSET
 
 
 @strawberry.type
@@ -67,7 +59,6 @@ ConfirmBookingResult = Annotated[
     ConfirmBookingSuccess | ConfirmBookingFailure, strawberry.union("ConfirmBookingResult")
 ]
 
-
 async def confirm_booking_mutation(
     *,
     info: strawberry.Info[GraphQLContext],
@@ -92,50 +83,25 @@ async def confirm_booking_mutation(
             booking=Booking.from_orm(booking),
         )
 
-    if booking.outing and booking.outing.survey:
-        # TODO: This is messy, consolidate all of these duplicate checks into one place
-        # validate outing time still valid to book
-        try:
-            validate_time_within_bounds_or_exception(
-                start_time=booking.outing.survey.start_time_utc, timezone=booking.outing.survey.timezone
-            )
-        except StartTimeTooSoonError:
-            return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.START_TIME_TOO_SOON)
-        except StartTimeTooLateError:
-            return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.START_TIME_TOO_LATE)
+    if start_time_too_soon(start_time=booking.start_time_utc, timezone=booking.timezone):
+        return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.START_TIME_TOO_SOON)
 
-    if input.payment_intent:
-        # Even if the cost of the outing is $0, if we were given a payment intent then we will validate it.
-        if not input.payment_intent.id or not input.payment_intent.client_secret:
-            LOGGER.error("invalid payment intent input")
-            # Validates that the fields don't contain empty values.
-            return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.INVALID_PAYMENT_INTENT)
+    if start_time_too_far_away(start_time=booking.start_time_utc, timezone=booking.timezone):
+        return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.START_TIME_TOO_SOON)
 
-        async with database.async_session.begin() as db_session:
-            # If a payment intent was given:
-            # 1. Confirm it's in the database,
-            # 2. Confirm it's for the given booking
-            stripe_payment_intent_reference = await StripePaymentIntentReferenceOrm.get_one(
-                db_session, account_id=account.id, stripe_payment_intent_id=input.payment_intent.id
-            )
-
-        if booking.stripe_payment_intent_reference_id != stripe_payment_intent_reference.id:
-            LOGGER.error("given payment intent not for given booking")
-            return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.INVALID_PAYMENT_INTENT)
-
+    if booking.stripe_payment_intent_reference:
         # Get the given payment intent from the Stripe API
         stripe_payment_intent = await stripe.PaymentIntent.retrieve_async(
-            id=input.payment_intent.id,
-            # client_secret=input.payment_intent.client_secret,
+            id=booking.stripe_payment_intent_reference.stripe_payment_intent_id,
         )
 
         # Validate that the payment intent has been authorized, but the funds haven't been captured.
         # This is important because if the payment authorization failed, we shouldn't create the booking.
         if stripe_payment_intent.status not in ["success", "requires_capture"]:
+            LOGGER.error("invalid stripe payment intent status")
             return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.PAYMENT_REQUIRED)
     else:
         stripe_payment_intent = None
-        stripe_payment_intent_reference = None
 
     # Although we already checked the cost in the `initiate booking` operation,
     # It's important that we double-check it here too, in case the real cost changed.
@@ -146,8 +112,8 @@ async def confirm_booking_mutation(
         # If the outing costs any money, then:
 
         # Validate that there is a payment intent.
-        if not stripe_payment_intent or not stripe_payment_intent_reference:
-            LOGGER.error("No payment intent available")
+        if not stripe_payment_intent:
+            LOGGER.error("No payment intent available for paid outing")
             return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.PAYMENT_REQUIRED)
 
         # Validate that the authorized amount for the payment intent can cover the cost of the outing.

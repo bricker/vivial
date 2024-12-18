@@ -2,7 +2,7 @@ from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.resolvers.mutations.helpers.planner import OutingPlanner
 from eave.core.graphql.types.outing import Outing, OutingPreferencesInput
-from eave.core.graphql.types.pricing import CostBreakdown
+from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.survey import Survey
 from eave.core.lib.address import format_address
 from eave.core.lib.event_helpers import get_activity
@@ -33,7 +33,7 @@ async def create_outing(
             account=account,
         )
 
-        cost_breakdown = CostBreakdown()
+        activity_cost_breakdown = CostBreakdown()
 
         if plan.activity and plan.activity_start_time:
             outing_orm.activities.append(
@@ -49,7 +49,7 @@ async def create_outing(
             )
 
             if plan.activity.ticket_info:
-                cost_breakdown = plan.activity.ticket_info.cost_breakdown * survey.headcount
+                activity_cost_breakdown = plan.activity.ticket_info.cost_breakdown * survey.headcount
 
         if plan.restaurant and plan.restaurant_arrival_time:
             outing_orm.reservations.append(
@@ -128,6 +128,6 @@ async def get_total_cost_cents(orm: OutingOrm | BookingOrm) -> int:
     for activity_orm in orm.activities:
         activity = await get_activity(source=activity_orm.source, source_id=activity_orm.source_id)
         if activity and activity.ticket_info:
-            total_cost_cents += (activity.ticket_info.cost_breakdown * activity_orm.headcount).total_cost_cents_internal
+            total_cost_cents += activity.ticket_info.cost_breakdown.total_cost_cents_internal * activity_orm.headcount
 
     return total_cost_cents

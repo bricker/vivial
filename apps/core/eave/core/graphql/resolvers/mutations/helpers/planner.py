@@ -195,7 +195,7 @@ class OutingPlanner:
 
         # CASE 1: Recommend an Eventbrite event.
         query = EventbriteEventOrm.select(
-            time_range_contains=start_time_local,
+            start_time=start_time_local,
             up_to_cost_cents=self.survey.budget.upper_limit_cents,
             within_areas=within_areas,
             vivial_activity_category_ids=[cat.id for cat in self.group_activity_category_preferences],

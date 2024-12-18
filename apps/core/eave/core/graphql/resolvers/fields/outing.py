@@ -9,7 +9,7 @@ from eave.core.graphql.types.activity import Activity
 from eave.core.graphql.types.outing import (
     Outing,
 )
-from eave.core.graphql.types.pricing import CostBreakdown
+from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.graphql.types.survey import Survey
 from eave.core.lib.event_helpers import get_activity, get_restaurant
