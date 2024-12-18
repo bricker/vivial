@@ -17,10 +17,11 @@ from eave.core.orm.util.mixins import CoordinatesMixin, GetOneByIdMixin, TimedEv
 from eave.core.orm.util.user_defined_column_types import (
     ActivitySourceColumnType,
     AddressColumnType,
+    OutingBudgetColumnType,
     RestaurantSourceColumnType,
     StrEnumColumnType,
 )
-from eave.core.shared.enums import ActivitySource, BookingState, RestaurantSource
+from eave.core.shared.enums import ActivitySource, BookingState, OutingBudget, RestaurantSource
 from eave.core.shared.geo import GeoPoint
 from eave.stdlib.typing import NOT_SET
 
@@ -105,7 +106,7 @@ class BookingOrm(Base, GetOneByIdMixin):
         if len(self.activities) > 0:
             return self.activities[0].timezone
         elif len(self.reservations) > 0:
-            return self.activities[0].timezone
+            return self.reservations[0].timezone
         else:
             return ZoneInfo("UTC")
 

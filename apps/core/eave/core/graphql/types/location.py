@@ -14,4 +14,7 @@ class Location:
 
     @strawberry.field
     def search_region(self) -> SearchRegion:
+        return self.find_closest_search_region()
+
+    def find_closest_search_region(self) -> SearchRegion:
         return SearchRegion.from_orm(SearchRegionOrm.get_closest(point=self.coordinates))

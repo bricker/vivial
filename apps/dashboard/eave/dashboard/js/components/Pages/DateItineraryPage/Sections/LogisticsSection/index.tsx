@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute } from "$eave-dashboard/js/routes";
+import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import {
   useGetOutingPreferencesQuery,
@@ -14,7 +14,7 @@ import {
   usePlanOutingMutation,
 } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
-import { getRegionIds, getRegionImage } from "$eave-dashboard/js/util/region";
+import { getRegionImage } from "$eave-dashboard/js/util/region";
 import { getPlaceLabel, getTimeLabel } from "../../helpers";
 
 import SettingsButton from "$eave-dashboard/js/components/Buttons/SettingsButton";
@@ -96,16 +96,23 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
   const { data: searchRegionsData } = useGetSearchRegionsQuery({});
   const outing = useSelector((state: RootState) => state.outing.details);
+
+  if (!outing) {
+    console.warn("No outing present in store.");
+    return null;
+  }
+
   const userPreferences = useSelector((state: RootState) => state.outing.preferenes.user);
   const partnerPreferences = useSelector((state: RootState) => state.outing.preferenes.partner);
-  const [startTime, setStartTime] = useState(new Date(outing?.restaurantArrivalTime || ""));
-  const [headcount, setHeadcount] = useState(outing?.survey?.headcount || 2);
+
+  const [startTime, setStartTime] = useState(new Date(outing.startTime));
+  const [headcount, setHeadcount] = useState(outing.headcount);
   const [replanDisabled, setReplanDisabled] = useState(true);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [areasOpen, setAreasOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [budget, setBudget] = useState(outing?.survey?.budget || OutingBudget.Expensive);
-  const [searchAreaIds, setSearchAreaIds] = useState<string[]>(getRegionIds(outing));
+  const [searchAreaIds, setSearchAreaIds] = useState(outing.searchRegions.map((r) => r.id));
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -117,14 +124,15 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
       outingPreferencesData?.activityCategoryGroups,
       outingPreferencesData?.restaurantCategories,
     );
-    const input = {
-      startTime: startTime.toISOString(),
-      groupPreferences,
-      budget,
-      headcount,
-      searchAreaIds,
-    };
-    await planOuting({ input });
+    await planOuting({
+      input: {
+        startTime: startTime.toISOString(),
+        groupPreferences,
+        budget,
+        headcount,
+        searchAreaIds,
+      },
+    });
   }, [outingPreferencesData, userPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime]);
 
   const handleSelectHeadcount = useCallback((value: number) => {
@@ -162,14 +170,14 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   }, [datePickerOpen]);
 
   useEffect(() => {
-    if (outing) {
-      setStartTime(new Date(outing.restaurantArrivalTime || ""));
-      setHeadcount(outing.survey?.headcount || 2);
-      if (outing.survey) {
-        setBudget(outing.survey.budget);
-      }
-      setSearchAreaIds(getRegionIds(outing));
+    setStartTime(new Date(outing.startTime));
+    setHeadcount(outing.headcount);
+
+    if (outing.survey) {
+      setBudget(outing.survey.budget);
     }
+
+    setSearchAreaIds(outing.searchRegions.map((r) => r.id));
   }, [outing]);
 
   useEffect(() => {
@@ -179,19 +187,15 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         setDetailsOpen(false);
         dispatch(plannedOuting({ outing: updatedOuting }));
         dispatch(chosePreferences({ user: userPreferences }));
-        navigate(`${AppRoute.itinerary}/${updatedOuting.id}`);
+        navigate(routePath(AppRoute.itinerary, { outingId: updatedOuting.id }));
       } else {
         setErrorMessage("There was an issue updating this outing. Reach out to friends@vivialapp.com for assistance.");
       }
     }
   }, [planOutingData, userPreferences, partnerPreferences]);
 
-  if (!outing) {
-    return null;
-  }
-
   return (
-    <Section bgImgUrl={getRegionImage(outing.restaurant?.location.searchRegion.id)}>
+    <Section bgImgUrl={getRegionImage(outing.reservation?.restaurant.location.searchRegion.id)}>
       <LogisticsGradient>
         <Logistics viewOnly={viewOnly}>
           {!viewOnly && <SettingsButton onClick={toggleDetailsOpen} />}
@@ -201,7 +205,7 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
           </TimeAndPlace>
         </Logistics>
       </LogisticsGradient>
-      <LogisticsBadge startTime={startTime} connect={!!outing.restaurant} />
+      <LogisticsBadge startTime={startTime} connect={!!outing.reservation} />
       <Modal title="Date Details" onClose={toggleDetailsOpen} open={detailsOpen}>
         <DateSelections
           cta="Update"

@@ -10,6 +10,7 @@ from eave.core.graphql.types.restaurant import Reservation
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
+from eave.core.shared.enums import OutingBudget
 from eave.stdlib.http_exceptions import NotFoundError
 from eave.stdlib.util import unwrap
 
@@ -54,6 +55,7 @@ async def _get_booking_details(
     return BookingDetails(
         id=booking_orm.id,
         state=booking_orm.state,
+        budget=booking_orm.budget,
         activity_plan=activity_plan,
         reservation=reservation,
     )

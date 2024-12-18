@@ -1,5 +1,12 @@
 fragment BookingDetailsFields on BookingDetails {
   id
+  startTime
+  headcount
+  state
+  searchRegions {
+    ...SearchRegionFields
+  }
+
   drivingTimeMinutes
   costBreakdown {
     ...CostBreakdownFields

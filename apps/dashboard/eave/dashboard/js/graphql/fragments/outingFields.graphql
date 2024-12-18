@@ -1,5 +1,10 @@
 fragment OutingFields on Outing {
   id
+  startTime
+  headcount
+  searchRegions {
+    ...SearchRegionFields
+  }
   survey {
     id
     budget
