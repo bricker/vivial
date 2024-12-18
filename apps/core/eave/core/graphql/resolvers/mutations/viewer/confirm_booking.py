@@ -1,3 +1,4 @@
+from datetime import datetime
 import enum
 from textwrap import dedent
 from typing import Annotated
@@ -179,6 +180,8 @@ async def _notify_slack(
     reserver_details: ReserverDetailsOrm | None,
     total_cost_cents: int,
 ) -> None:
+    total_cost_formatted = f"${"{:.2f}".format(total_cost_cents / 100)}"
+
     try:
         channel_id = SHARED_CONFIG.eave_slack_alerts_bookings_channel_id
         slack_client = eave.stdlib.slack.get_authenticated_eave_system_slack_client()
@@ -186,50 +189,74 @@ async def _notify_slack(
         if slack_client and channel_id:
             slack_response = await slack_client.chat_postMessage(
                 channel=channel_id,
-                text="Someone just booked an outing!",
+                text=f"Outing Booked: {total_cost_formatted}",
             )
+
 
             # TODO: distinguish whether any action on our part is needed for one or both options?
             await slack_client.chat_postMessage(
                 channel=channel_id,
                 thread_ts=slack_response.get("ts"),
                 text=dedent(f"""
-                    Account ID: `{account.id}`
-                    Account email: `{account.email}`
+                    - Account ID: `{account.id}`
+                    - Account email: `{account.email}`
 
-                    Reserver first name: `{reserver_details.first_name if reserver_details else "UNKNOWN"}`
-                    Reserver last name: `{reserver_details.last_name if reserver_details else "UNKNOWN"}`
-                    Reserver phone number: `{reserver_details.phone_number if reserver_details else "UNKNOWN"}`
+                    ---
+
+                    *Reserver Details*
+
+                    - *First Name:* `{reserver_details.first_name if reserver_details else "UNKNOWN"}`
+                    - *Last Name:* `{reserver_details.last_name if reserver_details else "UNKNOWN"}`
+                    - *Phone Number:* `{reserver_details.phone_number if reserver_details else "UNKNOWN"}`
+
+                    ---
 
                     {"\n".join([
-                    f"""*Reservation:*
-                    for {reservation.headcount} attendees
-                    on (ISO time): {reservation.start_time_local.isoformat()}
-                    at
-                    ```
-                    {reservation.name}
-                    {reservation.address}
-                    ```
+                    f"""*Reservation*
+
+                    - *Source:* {reservation.source}
+                    - *Name:* {reservation.name}
+                    - *Start Tim:** {_pretty_time(reservation.start_time_local)}
+                    - *Attendees:* {reservation.headcount}
+                    - **Booking URL:** {reservation.external_booking_link}
+
+                    ---
+
                     """
                         for reservation in booking.reservations
                     ])}
 
                     {"\n".join([
-                    f"""*Activity:*
-                    for {activity.headcount} attendees
-                    on (ISO time): {activity.start_time_local.isoformat()}
-                    at
-                    ```
-                    {activity.name}
-                    {activity.address}
-                    ```
+                    f"""*Activity*
+
+                    - *Source:* {activity.source}
+                    - *Name:* {activity.name}
+                    - *Start Tim:** {_pretty_time(activity.start_time_local)}
+                    - *Attendees:* {activity.headcount}
+                    - *Booking URL:* {activity.external_booking_link}
+
+                    ---
+
                     """
                         for activity in booking.activities
                     ])}
 
-                    *Total Cost:* ${"{:.2f}".format(total_cost_cents / 100)}
-                    *Stripe Payment Intent ID*: {booking.stripe_payment_intent_reference.stripe_payment_intent_id if booking.stripe_payment_intent_reference else None}
+                    ---
+
+                    - *Total Cost:* {total_cost_formatted}
+                    - *Stripe Payment Intent*: {f"https://dashboard.stripe.com/payments/{booking.stripe_payment_intent_reference.stripe_payment_intent_id}" if booking.stripe_payment_intent_reference else None}
+
+                    ---
+
+                    *Internal Booking ID:* {booking.id}
+
+                    ---
+
+                    @customer-support
                     """),
             )
     except Exception as e:
         LOGGER.exception(e)
+
+def _pretty_time(dt: datetime) -> str:
+    return dt.strftime("%A, %B %d at %I:%M%p %Z")
