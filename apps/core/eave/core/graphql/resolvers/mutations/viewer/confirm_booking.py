@@ -175,6 +175,7 @@ async def confirm_booking_mutation(
 
 
 async def _notify_slack(
+    *,
     booking: BookingOrm,
     account: AccountOrm,
     reserver_details: ReserverDetailsOrm | None,
@@ -189,7 +190,7 @@ async def _notify_slack(
         if slack_client and channel_id:
             slack_response = await slack_client.chat_postMessage(
                 channel=channel_id,
-                text=f"Outing Booked: {total_cost_formatted}",
+                text=f"Outing Booked for {total_cost_formatted}",
             )
 
 
@@ -198,27 +199,27 @@ async def _notify_slack(
                 channel=channel_id,
                 thread_ts=slack_response.get("ts"),
                 text=dedent(f"""
-                    - Account ID: `{account.id}`
-                    - Account email: `{account.email}`
+                    - *Account ID*: `{account.id}`
+                    - *Account Email*: `{account.email}`
 
                     ---
 
                     *Reserver Details*
 
-                    - *First Name:* `{reserver_details.first_name if reserver_details else "UNKNOWN"}`
-                    - *Last Name:* `{reserver_details.last_name if reserver_details else "UNKNOWN"}`
-                    - *Phone Number:* `{reserver_details.phone_number if reserver_details else "UNKNOWN"}`
+                    - *First Name*: `{reserver_details.first_name if reserver_details else "UNKNOWN"}`
+                    - *Last Name*: `{reserver_details.last_name if reserver_details else "UNKNOWN"}`
+                    - *Phone Number*: `{reserver_details.phone_number if reserver_details else "UNKNOWN"}`
 
                     ---
 
                     {"\n".join([
                     f"""*Reservation*
 
-                    - *Source:* {reservation.source}
-                    - *Name:* {reservation.name}
-                    - *Start Tim:** {_pretty_time(reservation.start_time_local)}
-                    - *Attendees:* {reservation.headcount}
-                    - **Booking URL:** {reservation.external_booking_link}
+                    - *Source*: {reservation.source}
+                    - *Name*: {reservation.name}
+                    - *Start Time*: {_pretty_time(reservation.start_time_local)}
+                    - *Attendees*: {reservation.headcount}
+                    - **Booking URL*: {reservation.external_booking_link}
 
                     ---
 
@@ -229,11 +230,11 @@ async def _notify_slack(
                     {"\n".join([
                     f"""*Activity*
 
-                    - *Source:* {activity.source}
-                    - *Name:* {activity.name}
-                    - *Start Tim:** {_pretty_time(activity.start_time_local)}
-                    - *Attendees:* {activity.headcount}
-                    - *Booking URL:* {activity.external_booking_link}
+                    - *Source*: {activity.source}
+                    - *Name*: {activity.name}
+                    - *Start Time*: {_pretty_time(activity.start_time_local)}
+                    - *Attendees*: {activity.headcount}
+                    - *Booking URL*: {activity.external_booking_link}
 
                     ---
 
@@ -243,12 +244,12 @@ async def _notify_slack(
 
                     ---
 
-                    - *Total Cost:* {total_cost_formatted}
+                    - *Total Cost*: {total_cost_formatted}
                     - *Stripe Payment Intent*: {f"https://dashboard.stripe.com/payments/{booking.stripe_payment_intent_reference.stripe_payment_intent_id}" if booking.stripe_payment_intent_reference else None}
 
                     ---
 
-                    *Internal Booking ID:* {booking.id}
+                    *Internal Booking ID*: {booking.id}
 
                     ---
 
