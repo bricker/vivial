@@ -298,10 +298,9 @@ class OutingPlanner:
             ]
 
         if len(google_category_ids) == 0:
-            # No restaurant was found :(
+            # If included_primary_types is empty, this query returns everything, like car rental places and junk.
             self.restaurant = None
             return self.restaurant
-
 
         # If an activity has been selected, use that as the search area.
         if self.activity:
