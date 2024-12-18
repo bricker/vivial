@@ -1,0 +1,19 @@
+fragment ActivityCategoryFields on ActivityCategory {
+  id
+  name
+  isDefault
+}
+
+fragment ActivityCategoryGroupFields on ActivityCategoryGroup {
+  id
+  name
+  activityCategories {
+    ...ActivityCategoryFields
+  }
+}
+
+fragment RestaurantCategoryFields on RestaurantCategory {
+  id
+  name
+  isDefault
+}

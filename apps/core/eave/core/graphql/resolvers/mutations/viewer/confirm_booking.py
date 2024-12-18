@@ -1,5 +1,5 @@
-from datetime import datetime
 import enum
+from datetime import datetime
 from textwrap import dedent
 from typing import Annotated
 from uuid import UUID
@@ -193,7 +193,6 @@ async def _notify_slack(
                 text=f"Outing Booked for {total_cost_formatted}",
             )
 
-
             # TODO: distinguish whether any action on our part is needed for one or both options?
             await slack_client.chat_postMessage(
                 channel=channel_id,
@@ -258,6 +257,7 @@ async def _notify_slack(
             )
     except Exception as e:
         LOGGER.exception(e)
+
 
 def _pretty_time(dt: datetime) -> str:
     return dt.strftime("%A, %B %d at %I:%M%p %Z")

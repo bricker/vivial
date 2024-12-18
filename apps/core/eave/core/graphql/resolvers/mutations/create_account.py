@@ -92,6 +92,7 @@ async def create_account_mutation(
     account = Account.from_orm(new_account_orm)
     return CreateAccountSuccess(account=account)
 
+
 async def _notify_slack(
     *,
     account: AccountOrm,
@@ -105,7 +106,6 @@ async def _notify_slack(
                 channel=channel_id,
                 text=f"New account! {account.email}",
             )
-
 
             await slack_client.chat_postMessage(
                 channel=channel_id,
