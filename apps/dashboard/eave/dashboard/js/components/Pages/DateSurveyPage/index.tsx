@@ -227,6 +227,13 @@ const DateSurveyPage = () => {
     }
   }, [outingPreferencesData]);
 
+  useEffect(() => {
+    const redirectPath = searchParams.get(SearchParam.redirect);
+    if (redirectPath) {
+      navigate(redirectPath);
+    }
+  }, [searchParams]);
+
   if (searchRegionsAreLoading) {
     return <LoadingView />;
   }
