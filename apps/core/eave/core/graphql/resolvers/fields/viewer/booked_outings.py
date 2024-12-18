@@ -10,7 +10,7 @@ from eave.core.graphql.types.restaurant import Reservation
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
-from eave.core.shared.enums import OutingBudget
+from eave.core.shared.enums import BookingState
 from eave.stdlib.http_exceptions import NotFoundError
 from eave.stdlib.util import unwrap
 
@@ -55,7 +55,6 @@ async def _get_booking_details(
     return BookingDetails(
         id=booking_orm.id,
         state=booking_orm.state,
-        budget=booking_orm.budget,
         activity_plan=activity_plan,
         reservation=reservation,
     )
@@ -73,6 +72,9 @@ async def list_bookings_query(
     booking_peeks = []
 
     for booking in account.bookings:
+        if booking.state != BookingState.CONFIRMED:
+            continue
+
         # NOTE: only getting 1 (or None) result here instead of full scalars result since
         # response type only accepts one of each
         activity_orm: BookingActivityTemplateOrm | None = None

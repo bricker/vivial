@@ -1,5 +1,5 @@
-from datetime import datetime
 import random
+from datetime import datetime
 from uuid import UUID
 
 import strawberry
@@ -7,7 +7,6 @@ import strawberry
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.search_region import SearchRegion
 from eave.core.graphql.types.survey import Survey
-from eave.core.shared.enums import OutingBudget
 
 from .activity import ActivityPlan
 from .restaurant import Reservation
@@ -17,6 +16,7 @@ from .restaurant import Reservation
 class OutingPreferencesInput:
     restaurant_category_ids: list[UUID]
     activity_category_ids: list[UUID]
+
 
 @strawberry.type
 class Outing:

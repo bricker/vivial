@@ -1,5 +1,5 @@
-from datetime import datetime
 import random
+from datetime import datetime
 from uuid import UUID
 
 import strawberry
@@ -10,7 +10,7 @@ from eave.core.graphql.types.reserver_details import ReserverDetails
 from eave.core.graphql.types.restaurant import Reservation
 from eave.core.graphql.types.search_region import SearchRegion
 from eave.core.orm.booking import BookingOrm
-from eave.core.shared.enums import BookingState, OutingBudget
+from eave.core.shared.enums import BookingState
 
 
 @strawberry.type
@@ -57,7 +57,6 @@ class BookingDetails:
             search_regions.append(self.reservation.restaurant.location.find_closest_search_region())
 
         return search_regions
-
 
     @strawberry.field
     def headcount(self) -> int:
