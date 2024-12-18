@@ -7,8 +7,6 @@ import { colors } from "../../../theme/colors";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import DropdownButton from "../../Buttons/DropdownButton";
-import PrimaryButton from "../../Buttons/PrimaryButton";
-import TooltipButton from "../../Buttons/TooltipButton";
 import CheckIcon from "../../Icons/CheckIcon";
 
 import { getMaxDate, getMinDate, getTimeObj, getTimeOptions, TimeObj } from "./helpers";
@@ -86,9 +84,10 @@ const DatePicker = styled(DateCalendar)(({ theme }) => ({
   },
 }));
 
-const SubmitButton = styled(PrimaryButton)(() => ({
+const SubmitButton = styled(Button)(() => ({
   maxWidth: 264, // aligns with MUI calendar
 }));
+
 
 const DateTimeSelections = ({ cta, startDateTime, onSubmit }: DateTimeSelectionsProps) => {
   const defaultValue = dayjs(startDateTime);
@@ -116,7 +115,6 @@ const DateTimeSelections = ({ cta, startDateTime, onSubmit }: DateTimeSelections
   return (
     <DateTimeContainer>
       <TimeRow>
-        <TooltipButton info="Recommended plans will be within roughly a 4 hour window from selected start time." />
         <TimeTitle>Date Start Time:</TimeTitle>
         <TimePicker>
           <Time data-selected>{selectedTime.label}</Time>
@@ -145,7 +143,7 @@ const DateTimeSelections = ({ cta, startDateTime, onSubmit }: DateTimeSelections
         maxDate={getMaxDate()}
         disablePast
       />
-      <SubmitButton onClick={handleSubmit} bg={colors.lightPurpleAccent} fullWidth>
+      <SubmitButton onClick={handleSubmit} fullWidth>
         {cta}
       </SubmitButton>
     </DateTimeContainer>

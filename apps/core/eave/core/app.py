@@ -24,6 +24,7 @@ from eave.stdlib.logging import LOGGER
 
 from .database import async_engine
 from .graphql.schema import schema
+from .admin.graphql.schema import schema as internal_schema
 
 eave.stdlib.time.set_utc()
 
@@ -45,7 +46,7 @@ graphql_app = GraphQL(
 
 
 internal_graphql_app = GraphQL(
-    schema=schema,
+    schema=internal_schema,
     allow_queries_via_get=False,
     graphql_ide="graphiql" if SHARED_CONFIG.is_development else None,  # Disable graphiql in production
 )
@@ -142,6 +143,7 @@ app = starlette.applications.Starlette(
             CORSMiddleware,
             allow_origins=[
                 SHARED_CONFIG.eave_dashboard_base_url_public,
+                SHARED_CONFIG.eave_admin_base_url_internal,
             ],
             allow_methods=[
                 aiohttp.hdrs.METH_GET,

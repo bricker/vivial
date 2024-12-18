@@ -6,4 +6,4 @@ from eave.core.admin.graphql.resolvers.mutations.update_booking import admin_upd
 
 @strawberry.type
 class Mutation:
-    update_booking = strawberry.mutation(resolver=admin_update_booking_mutation)
+    admin_update_booking = strawberry.mutation(resolver=admin_update_booking_mutation)

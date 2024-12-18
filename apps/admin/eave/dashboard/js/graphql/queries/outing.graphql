@@ -1,5 +1,0 @@
-query Outing($input: OutingInput!) {
-  outing(input: $input) {
-    ...OutingFields
-  }
-}

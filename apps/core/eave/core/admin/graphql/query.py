@@ -7,5 +7,5 @@ from eave.core.graphql.types.booking import BookingDetailPeek, BookingDetails
 
 @strawberry.type
 class Query:
-    booking: BookingDetails | None = strawberry.field(resolver=admin_get_booking_details_query)
-    bookings: list[BookingDetailPeek] = strawberry.field(resolver=admin_list_bookings_query)
+    admin_booking: BookingDetails | None = strawberry.field(resolver=admin_get_booking_details_query)
+    admin_bookings: list[BookingDetailPeek] = strawberry.field(resolver=admin_list_bookings_query)
