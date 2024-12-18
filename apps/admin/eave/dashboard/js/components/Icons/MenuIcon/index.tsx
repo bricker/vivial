@@ -1,5 +1,5 @@
-import { colors } from "../../../theme/colors";
 import React from "react";
+import { colors } from "../../../theme/colors";
 import { IconProps } from "../types";
 
 const MenuIcon = ({ width = 28, height = 21, color = colors.vivialYellow }: IconProps) => {

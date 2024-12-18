@@ -1,5 +1,5 @@
-import { CORE_API_BASE } from "../../util/http";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { CORE_API_BASE } from "../../util/http";
 
 import {
   BookingDetailsDocument,
@@ -55,8 +55,8 @@ import {
   type UpdateReserverDetailsAccountMutationVariables,
 } from "../../graphql/generated/graphql";
 
-import { executeOperation } from "../../graphql/graphql-fetch";
 import type {} from "@reduxjs/toolkit/query";
+import { executeOperation } from "../../graphql/graphql-fetch";
 
 export const coreApiSlice = createApi({
   reducerPath: "coreApi",

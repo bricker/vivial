@@ -1,6 +1,6 @@
+import { styled, Typography } from "@mui/material";
 import { Breakpoint } from "../../theme/helpers/breakpoint";
 import { rem } from "../../theme/helpers/rem";
-import { styled, Typography } from "@mui/material";
 
 import IconButton from "@mui/material/IconButton";
 import React from "react";

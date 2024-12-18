@@ -1,6 +1,5 @@
-import os
 
-from eave.stdlib.config import SHARED_CONFIG, ConfigBase, EaveEnvironment
+from eave.stdlib.config import ConfigBase
 
 
 class _AppConfig(ConfigBase):

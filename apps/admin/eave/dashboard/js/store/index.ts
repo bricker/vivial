@@ -1,7 +1,6 @@
 import { StateFromReducersMapObject, configureStore, createListenerMiddleware } from "@reduxjs/toolkit";
 import { coreApiSlice } from "./slices/coreApiSlice";
 
-
 const listenerMiddleware = createListenerMiddleware();
 const reducer = {
   coreApi: coreApiSlice.reducer,

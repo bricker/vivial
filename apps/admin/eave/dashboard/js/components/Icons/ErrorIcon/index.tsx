@@ -1,5 +1,5 @@
-import { colors } from "../../../theme/colors";
 import React from "react";
+import { colors } from "../../../theme/colors";
 import { IconProps } from "../types";
 
 const ErrorIcon = ({ size = 16, color = colors.errorRed }: IconProps) => {

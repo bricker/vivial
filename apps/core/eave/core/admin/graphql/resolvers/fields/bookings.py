@@ -4,15 +4,12 @@ import strawberry
 
 from eave.core import database
 from eave.core.admin.graphql.context import AdminGraphQLContext
-from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.types.booking import BookingDetailPeek, BookingDetails
 from eave.core.graphql.types.pricing import CostBreakdown
 from eave.core.graphql.types.survey import Survey
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
-from eave.stdlib.http_exceptions import NotFoundError
-from eave.stdlib.util import unwrap
 
 
 async def _get_booking_details(
@@ -58,16 +55,17 @@ async def _get_booking_details(
 
     return details
 
+
 @strawberry.input
 class AdminListBookingsInput:
     account_id: UUID
+
 
 async def admin_list_bookings_query(
     *,
     info: strawberry.Info[AdminGraphQLContext],
     input: AdminListBookingsInput,
 ) -> list[BookingDetailPeek]:
-
     async with database.async_session.begin() as db_session:
         account = await AccountOrm.get_one(db_session, input.account_id)
 
@@ -116,7 +114,6 @@ async def admin_get_booking_details_query(
     info: strawberry.Info[AdminGraphQLContext],
     input: GetBookingDetailsQueryInput,
 ) -> BookingDetails:
-
     async with database.async_session.begin() as session:
         booking = await BookingOrm.get_one(session, input.booking_id)
 

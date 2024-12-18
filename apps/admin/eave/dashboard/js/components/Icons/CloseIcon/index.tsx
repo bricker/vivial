@@ -1,5 +1,5 @@
-import { colors } from "../../../theme/colors";
 import React from "react";
+import { colors } from "../../../theme/colors";
 import { IconProps } from "../types";
 
 const CloseIcon = ({ width = 24, height = 24, color = colors.vivialYellow }: IconProps) => {

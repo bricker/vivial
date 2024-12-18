@@ -1,5 +1,5 @@
-import { colors } from "../../../theme/colors";
 import React from "react";
+import { colors } from "../../../theme/colors";
 import { IconProps } from "../types";
 
 const EmailIcon = ({ width = 13, height = 10, color = colors.whiteText }: IconProps) => {
