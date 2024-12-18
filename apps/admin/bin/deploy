@@ -11,7 +11,7 @@ function main() (
 	cd "$(e.parentpath)"
 	bin/lint
 
-	"${EAVE_HOME}"/develop/deploy/bin/deploy-service -s dashboard
+	"${EAVE_HOME}"/develop/deploy/bin/deploy-service -s admin
 )
 
 main "$@"
