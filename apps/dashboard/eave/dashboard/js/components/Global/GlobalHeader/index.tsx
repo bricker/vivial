@@ -16,15 +16,14 @@ const GlobalHeader = () => {
   const { pathname } = useLocation();
   const isItinerary = pathname.startsWith(ITINERARY_PREFIX);
 
-  if (isItinerary) {
-    return <ItineraryVariant />;
-  }
-
   if (isLoggedIn) {
     if (isDesktop(breakpoint)) {
       return <LoggedInVariant deviceType={DeviceType.Desktop} />;
     }
     return <LoggedInVariant deviceType={DeviceType.Mobile} />;
+  }
+  if (isItinerary) {
+    return <ItineraryVariant />;
   }
   return <LoggedOutVariant />;
 };
