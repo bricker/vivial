@@ -44,6 +44,13 @@ graphql_app = GraphQL(
 )
 
 
+internal_graphql_app = GraphQL(
+    schema=schema,
+    allow_queries_via_get=False,
+    graphql_ide="graphiql" if SHARED_CONFIG.is_development else None,  # Disable graphiql in production
+)
+
+
 @contextlib.asynccontextmanager
 async def _app_lifespan(app: starlette.applications.Starlette) -> AsyncGenerator[None, None]:
     if not SHARED_CONFIG.is_local:
@@ -102,6 +109,16 @@ app = starlette.applications.Starlette(
                 aiohttp.hdrs.METH_POST,
             ],
             endpoint=graphql_app,
+        ),
+        Route(
+            path="/internal/graphql",
+            methods=[
+                aiohttp.hdrs.METH_POST,
+                aiohttp.hdrs.METH_GET,  # Allows GraphiQL in development
+            ]
+            if SHARED_CONFIG.is_development
+            else [aiohttp.hdrs.METH_POST],
+            endpoint=internal_graphql_app,
         ),
         Route(
             path="/public/logout",
