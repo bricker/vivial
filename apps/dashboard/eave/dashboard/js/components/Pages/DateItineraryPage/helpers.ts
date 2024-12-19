@@ -38,9 +38,8 @@ export function getImgUrls(photos: Photos): string[] {
 export function getTicketInfo(outing: Outing): string {
   const activity = outing.activityPlan?.activity;
   if (activity) {
-    const headcount = outing.headcount;
     if (activity.source === ActivitySource.Eventbrite) {
-      return `${headcount} Tickets`;
+      return `${outing.headcount} Tickets`;
     }
     if (activity.source === ActivitySource.GooglePlaces) {
       const primaryTypeName = activity.primaryTypeName?.toLocaleLowerCase();
