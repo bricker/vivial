@@ -1,4 +1,4 @@
-import { useGetOutingPreferencesQuery, usePlanOutingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { usePlanOutingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
 import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -70,7 +70,6 @@ const Error = styled(Typography)(({ theme }) => ({
 
 const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
-  const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
   const outing = useSelector((state: RootState) => state.outing.details);
   const { isLoggedIn } = useSelector((state: RootState) => state.auth);
   const userPreferences = useSelector((state: RootState) => state.outing.preferenes.user);
@@ -89,12 +88,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const reservation = outing.reservation;
 
   const handleReroll = useCallback(async () => {
-    const groupPreferences = getPreferenceInputs(
-      userPreferences,
-      partnerPreferences,
-      outingPreferencesData?.activityCategoryGroups,
-      outingPreferencesData?.restaurantCategories,
-    );
+    const groupPreferences = getPreferenceInputs(userPreferences, partnerPreferences);
     await planOuting({
       input: {
         startTime: new Date(outing.survey?.startTime || outing.startTime).toISOString(),
@@ -105,7 +99,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         isReroll: true,
       },
     });
-  }, [outingPreferencesData, userPreferences, partnerPreferences, outing]);
+  }, [userPreferences, partnerPreferences, outing]);
 
   // const toggleBookingOpen = useCallback(() => {
   //   setBookingOpen(!bookingOpen);

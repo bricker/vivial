@@ -47,10 +47,10 @@ const TimePicker = styled("div")(({ theme }) => ({
   position: "absolute",
   left: 162,
   top: 0,
-  padding: "4px 16px 2px 24px",
+  padding: "4px 16px 2px 28px",
   borderRadius: "20px",
   maxHeight: 358,
-  overflowX: "scroll",
+  overflowY: "auto",
 }));
 
 const TimeOptions = styled("div")(() => ({
@@ -70,6 +70,17 @@ const TimeButton = styled(Button)(() => ({
   padding: "12px 0px",
   minWidth: 0,
   display: "block",
+  "&:hover": {
+    backgroundColor: "transparent",
+  },
+}));
+
+const DropdownButtonContainer = styled("div")(() => ({
+  display: "flex",
+  alignItems: "center",
+  "&:hover": {
+    cursor: "pointer",
+  },
 }));
 
 const DatePicker = styled(DateCalendar)(({ theme }) => ({
@@ -119,8 +130,10 @@ const DateTimeSelections = ({ cta, startDateTime, onSubmit }: DateTimeSelections
         <TooltipButton info="Recommended plans will be within roughly a 4 hour window from selected start time." />
         <TimeTitle>Date Start Time:</TimeTitle>
         <TimePicker>
-          <Time data-selected>{selectedTime.label}</Time>
-          <DropdownButton open={timeDropdownOpen} onClick={() => setTimeDropdownOpen(!timeDropdownOpen)} />
+          <DropdownButtonContainer onClick={() => setTimeDropdownOpen(!timeDropdownOpen)}>
+            <Time data-selected>{selectedTime.label}</Time>
+            <DropdownButton open={timeDropdownOpen} />
+          </DropdownButtonContainer>
           {timeDropdownOpen && (
             <TimeOptions>
               {timeOptions.map((timeObj) => (

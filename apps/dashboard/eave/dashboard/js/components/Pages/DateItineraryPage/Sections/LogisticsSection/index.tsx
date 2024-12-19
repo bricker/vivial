@@ -8,11 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
-import {
-  useGetOutingPreferencesQuery,
-  useGetSearchRegionsQuery,
-  usePlanOutingMutation,
-} from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { useGetSearchRegionsQuery, usePlanOutingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
 import { getRegionImage } from "$eave-dashboard/js/util/region";
 import { getPlaceLabel, getTimeLabel } from "../../helpers";
@@ -93,7 +89,6 @@ const Place = styled(Typography)(({ theme }) => ({
 
 const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
-  const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
   const { data: searchRegionsData } = useGetSearchRegionsQuery({});
   const outing = useSelector((state: RootState) => state.outing.details);
 
@@ -118,12 +113,7 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const dispatch = useDispatch();
 
   const handleReplan = useCallback(async () => {
-    const groupPreferences = getPreferenceInputs(
-      userPreferences,
-      partnerPreferences,
-      outingPreferencesData?.activityCategoryGroups,
-      outingPreferencesData?.restaurantCategories,
-    );
+    const groupPreferences = getPreferenceInputs(userPreferences, partnerPreferences);
     await planOuting({
       input: {
         startTime: startTime.toISOString(),
@@ -134,7 +124,7 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         isReroll: true,
       },
     });
-  }, [outingPreferencesData, userPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime]);
+  }, [userPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime]);
 
   const handleSelectHeadcount = useCallback((value: number) => {
     setHeadcount(value);
