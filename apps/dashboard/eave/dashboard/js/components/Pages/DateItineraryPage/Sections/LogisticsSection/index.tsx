@@ -203,7 +203,6 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
             <Time>{getTimeLabel(startTime)}</Time>
             <Place>
               For {headcount} •<Region>{getMultiRegionLabel(searchAreaIds)}</Region>• {getBudgetLabel(budget)}
-              {/* For {headcount} •<Region>SGV</Region>• {getBudgetLabel(budget)} */}
             </Place>
           </TimeAndPlace>
         </Logistics>
