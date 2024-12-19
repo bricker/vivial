@@ -182,6 +182,7 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         door_tips=None,
         insider_tips=None,
         parking_tips=None,
+        primary_type_name=None,
         category_group=ActivityCategoryGroup.from_orm(vivial_activity_category_group)
         if vivial_activity_category_group
         else None,

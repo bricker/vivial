@@ -87,6 +87,7 @@ async def activity_from_google_place(places_client: PlacesAsyncClient, *, place:
         door_tips=None,
         insider_tips=None,
         parking_tips=None,
+        primary_type_name=place.primary_type_display_name.text,
         category_group=ActivityCategoryGroup.from_orm(
             # NOTE: assumes all google places activities will be a food/drink thing
             ActivityCategoryGroupOrm.one_or_exception(

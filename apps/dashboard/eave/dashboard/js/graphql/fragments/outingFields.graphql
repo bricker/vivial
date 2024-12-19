@@ -55,6 +55,7 @@ fragment OutingFields on Outing {
         ...PhotoFields
       }
     }
+    primaryTypeName
   }
 
   restaurant {
