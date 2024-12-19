@@ -79,26 +79,23 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  if (!outing) {
-    console.warn("No outing available in store.");
-    return null;
-  }
-
-  const activityPlan = outing.activityPlan;
-  const reservation = outing.reservation;
+  const activityPlan = outing?.activityPlan;
+  const reservation = outing?.reservation;
 
   const handleReroll = useCallback(async () => {
-    const groupPreferences = getPreferenceInputs(userPreferences, partnerPreferences);
-    await planOuting({
-      input: {
-        startTime: new Date(outing.survey?.startTime || outing.startTime).toISOString(),
-        searchAreaIds: (outing.survey?.searchRegions || outing.searchRegions).map((r) => r.id),
-        budget: outing.survey?.budget || OutingBudget.Expensive,
-        headcount: outing.survey?.headcount || outing.headcount,
-        groupPreferences,
-        isReroll: true,
-      },
-    });
+    if (outing) {
+      const groupPreferences = getPreferenceInputs(userPreferences, partnerPreferences);
+      await planOuting({
+        input: {
+          startTime: new Date(outing.survey?.startTime || outing.startTime).toISOString(),
+          searchAreaIds: (outing.survey?.searchRegions || outing.searchRegions).map((r) => r.id),
+          budget: outing.survey?.budget || OutingBudget.Expensive,
+          headcount: outing.survey?.headcount || outing.headcount,
+          groupPreferences,
+          isReroll: true,
+        },
+      });
+    }
   }, [userPreferences, partnerPreferences, outing]);
 
   // const toggleBookingOpen = useCallback(() => {
@@ -106,17 +103,19 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   // }, [bookingOpen]);
 
   const handleBookClick = useCallback(() => {
-    navigate(routePath(AppRoute.checkoutReserve, { outingId: outing.id }));
+    if (outing) {
+      navigate(routePath(AppRoute.checkoutReserve, { outingId: outing.id }));
 
-    // if (isLoggedIn) {
-    //   toggleBookingOpen();
-    // } else {
-    //   const returnPath = encodeURIComponent(routePath(AppRoute.checkoutReserve, { outingId: outing.id }));
-    //   navigate({
-    //     pathname: AppRoute.signup,
-    //     search: `?${SearchParam.redirect}=${returnPath}`,
-    //   });
-    // }
+      // if (isLoggedIn) {
+      //   toggleBookingOpen();
+      // } else {
+      //   const returnPath = encodeURIComponent(routePath(AppRoute.checkoutReserve, { outingId: outing.id }));
+      //   navigate({
+      //     pathname: AppRoute.signup,
+      //     search: `?${SearchParam.redirect}=${returnPath}`,
+      //   });
+      // }
+    }
   }, [isLoggedIn, outing]);
 
   useEffect(() => {
@@ -137,6 +136,10 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
       }
     }
   }, [planOutingData]);
+
+  if (!outing) {
+    return null;
+  }
 
   return (
     <Section>

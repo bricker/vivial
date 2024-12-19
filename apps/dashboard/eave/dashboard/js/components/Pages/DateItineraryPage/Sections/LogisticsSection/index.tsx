@@ -9,9 +9,10 @@ import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { useGetSearchRegionsQuery, usePlanOutingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { getBudgetLabel } from "$eave-dashboard/js/util/budget";
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
-import { getRegionImage } from "$eave-dashboard/js/util/region";
-import { getPlaceLabel, getTimeLabel } from "../../helpers";
+import { getMultiRegionLabel, getRegionImage } from "$eave-dashboard/js/util/region";
+import { getTimeLabel } from "../../helpers";
 
 import SettingsButton from "$eave-dashboard/js/components/Buttons/SettingsButton";
 import Modal from "$eave-dashboard/js/components/Modal";
@@ -82,9 +83,20 @@ const Time = styled(Typography)(({ theme }) => ({
 }));
 
 const Place = styled(Typography)(({ theme }) => ({
+  display: "flex",
   color: theme.palette.text.secondary,
   fontSize: rem(12),
   lineHeight: rem(15),
+}));
+
+const Region = styled("span")(() => ({
+  display: "inline-block",
+  height: rem(15),
+  maxWidth: 164,
+  overflow: "hidden",
+  whiteSpace: "nowrap",
+  textOverflow: "ellipsis",
+  padding: "0 3px",
 }));
 
 const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
@@ -92,22 +104,16 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const { data: searchRegionsData } = useGetSearchRegionsQuery({});
   const outing = useSelector((state: RootState) => state.outing.details);
 
-  if (!outing) {
-    console.warn("No outing present in store.");
-    return null;
-  }
-
   const userPreferences = useSelector((state: RootState) => state.outing.preferenes.user);
   const partnerPreferences = useSelector((state: RootState) => state.outing.preferenes.partner);
-
-  const [startTime, setStartTime] = useState(new Date(outing.startTime));
-  const [headcount, setHeadcount] = useState(outing.headcount);
+  const [startTime, setStartTime] = useState(new Date());
+  const [headcount, setHeadcount] = useState(2);
   const [replanDisabled, setReplanDisabled] = useState(true);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [areasOpen, setAreasOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [budget, setBudget] = useState(outing?.survey?.budget || OutingBudget.Expensive);
-  const [searchAreaIds, setSearchAreaIds] = useState(outing.searchRegions.map((r) => r.id));
+  const [budget, setBudget] = useState(OutingBudget.Expensive);
+  const [searchAreaIds, setSearchAreaIds] = useState<string[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -161,14 +167,14 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   }, [datePickerOpen]);
 
   useEffect(() => {
-    setStartTime(new Date(outing.startTime));
-    setHeadcount(outing.headcount);
-
-    if (outing.survey) {
-      setBudget(outing.survey.budget);
+    if (outing) {
+      setStartTime(new Date(outing.startTime));
+      setHeadcount(outing.headcount);
+      if (outing.survey) {
+        setSearchAreaIds(outing.survey.searchRegions.map((r) => r.id));
+        setBudget(outing.survey.budget);
+      }
     }
-
-    setSearchAreaIds(outing.searchRegions.map((r) => r.id));
   }, [outing]);
 
   useEffect(() => {
@@ -185,14 +191,20 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
     }
   }, [planOutingData, userPreferences, partnerPreferences]);
 
+  if (!outing) {
+    return null;
+  }
+
   return (
-    <Section bgImgUrl={getRegionImage(outing.reservation?.restaurant.location.searchRegion.id)}>
+    <Section bgImgUrl={getRegionImage(outing.searchRegions)}>
       <LogisticsGradient>
         <Logistics viewOnly={viewOnly}>
           {!viewOnly && <SettingsButton onClick={toggleDetailsOpen} />}
           <TimeAndPlace>
             <Time>{getTimeLabel(startTime)}</Time>
-            <Place>{getPlaceLabel(headcount, searchAreaIds, budget)}</Place>
+            <Place>
+              For {headcount} •<Region>{getMultiRegionLabel(searchAreaIds)}</Region>• {getBudgetLabel(budget)}
+            </Place>
           </TimeAndPlace>
         </Logistics>
       </LogisticsGradient>
