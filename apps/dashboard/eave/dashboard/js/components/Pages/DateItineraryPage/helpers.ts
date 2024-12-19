@@ -66,7 +66,7 @@ export function getActivityCategoryInfo(activity: Activity): string {
 }
 
 export function getActivityVenueName(activity: Activity): string {
-  if (activity.source === ActivitySource.Eventbrite) {
+  if (activity.source !== ActivitySource.GooglePlaces) {
     return activity.venue.name;
   }
   return "";
