@@ -1,21 +1,11 @@
-query ListBookedOutings {
-  viewer {
-    __typename
-    ... on AuthenticatedViewerQueries {
-      __typename
-      bookedOutings {
-        id
-        activityStartTime
-        restaurantArrivalTime
-        activityName
-        restaurantName
-        photoUri
-        state
-      }
-    }
-    ... on UnauthenticatedViewer {
-      __typename
-      authFailureReason
-    }
+query ListBookedOutings($input: AdminListBookingsInput!) {
+  adminBookings(input: $input) {
+    id
+    activityStartTime
+    restaurantArrivalTime
+    activityName
+    restaurantName
+    photoUri
+    state
   }
 }

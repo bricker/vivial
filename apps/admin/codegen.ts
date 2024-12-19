@@ -1,7 +1,7 @@
 import { type AddPluginConfig } from "@graphql-codegen/add";
 import type { CodegenConfig } from "@graphql-codegen/cli";
 import { addTypenameSelectionDocumentTransform, type ClientPresetConfig } from "@graphql-codegen/client-preset";
-const schema = process.env["GRAPHQL_SCHEMA"] || "http://api.internal.eave.run:8080/internal/graphql";
+const schema = process.env["ADMIN_GRAPHQL_SCHEMA"] || "http://api.internal.eave.run:8080/internal/graphql";
 
 const config: CodegenConfig = {
   schema,

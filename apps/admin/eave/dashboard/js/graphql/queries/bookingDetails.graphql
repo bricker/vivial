@@ -1,14 +1,5 @@
 query BookingDetails($input: GetBookingDetailsQueryInput!) {
-  viewer {
-    __typename
-    ... on AuthenticatedViewerQueries {
-      __typename
-      bookedOutingDetails(input: $input) {
-        ...BookingDetailsFields
-      }
-    }
-    ... on UnauthenticatedViewer {
-      authFailureReason
-    }
+  adminBooking(input: $input) {
+    ...BookingDetailsFields
   }
 }

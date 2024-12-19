@@ -1,0 +1,8 @@
+query ReserverDetails($input: AdminReserverDetailsQueryInput!) {
+  adminReserverDetails(input: $input) {
+    id
+    firstName
+    lastName
+    phoneNumber
+  }
+}

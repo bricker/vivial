@@ -1,32 +1,20 @@
 mutation UpdateBooking($input: UpdateBookingInput!) {
-  viewer {
-    __typename
-    ... on AuthenticatedViewerMutations {
+  adminUpdateBooking(input: $input) {
+    ... on UpdateBookingSuccess {
       __typename
 
-      updateBooking(input: $input) {
-        ... on UpdateBookingSuccess {
-          __typename
-
-          booking {
-            ...BookingFields
-          }
-        }
-
-        ... on UpdateBookingFailure {
-          __typename
-          failureReason
-
-          validationErrors {
-            field
-          }
-        }
+      booking {
+        ...BookingFields
       }
     }
 
-    ... on UnauthenticatedViewer {
+    ... on UpdateBookingFailure {
       __typename
-      authFailureReason
+      failureReason
+
+      validationErrors {
+        field
+      }
     }
   }
 }

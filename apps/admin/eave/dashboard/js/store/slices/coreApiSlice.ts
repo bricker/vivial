@@ -3,19 +3,18 @@ import { CORE_API_INTERNAL_BASE } from "../../util/http";
 
 import {
   BookingDetailsDocument,
+  BookingDetailsQuery,
+  BookingDetailsQueryVariables,
   ListBookedOutingsDocument,
   ListBookedOutingsQuery,
   ListBookedOutingsQueryVariables,
-  ListReserverDetailsDocument,
+  ReserverDetailsDocument,
+  ReserverDetailsQuery,
+  ReserverDetailsQueryVariables,
   UpdateBookingDocument,
-  type BookingDetailsQuery,
-  type BookingDetailsQueryVariables,
-  type ListReserverDetailsQuery,
-  type ListReserverDetailsQueryVariables,
-  type UpdateBookingMutation,
-  type UpdateBookingMutationVariables,
-} from "../../graphql/generated/graphql";
-
+  UpdateBookingMutation,
+  UpdateBookingMutationVariables,
+} from "$eave-dashboard/js/graphql/generated/graphql";
 import type {} from "@reduxjs/toolkit/query";
 import { executeOperation } from "../../graphql/graphql-fetch";
 
@@ -26,9 +25,9 @@ export const coreApiSlice = createApi({
     /**
      * Admin Core API - GraphQL Queries
      */
-    listReserverDetails: builder.query<ListReserverDetailsQuery, ListReserverDetailsQueryVariables>({
+    getReserverDetails: builder.query<ReserverDetailsQuery, ReserverDetailsQueryVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
-        const data = await executeOperation({ query: ListReserverDetailsDocument, variables });
+        const data = await executeOperation({ query: ReserverDetailsDocument, variables });
         return { data };
       },
     }),
@@ -61,7 +60,7 @@ export const coreApiSlice = createApi({
 
 export const {
   // Admin Core API GraphQL Query Hooks
-  useListReserverDetailsQuery,
+  useGetReserverDetailsQuery,
   useListBookedOutingsQuery,
   useGetBookingDetialsQuery,
 

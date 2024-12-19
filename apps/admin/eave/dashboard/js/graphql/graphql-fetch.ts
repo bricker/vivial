@@ -1,12 +1,6 @@
 import { GraphQLExecutionError } from "../types/network";
-import { CORE_API_INTERNAL_BASE, ADMIN_GRAPHQL_API_BASE } from "../util/http";
-import {
-  AuthenticationFailureReason,
-  ViewerAuthenticationAction,
-  type TypedDocumentString,
-  type ViewerMutations,
-  type ViewerQueries,
-} from "./generated/graphql";
+import { ADMIN_GRAPHQL_API_BASE } from "../util/http";
+import { type TypedDocumentString } from "./generated/graphql";
 
 export type GraphQLOperation<TNetworkState, TVariables> = {
   execute: (variables: TVariables) => Promise<void>;
