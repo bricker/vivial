@@ -2,6 +2,7 @@ import ExternalLink from "$eave-dashboard/js/components/Links/ExternalLink";
 import { AdminBookingInfo, Restaurant } from "$eave-dashboard/js/graphql/generated/graphql";
 import { CircularProgress } from "@mui/material";
 import React from "react";
+import { formatDateString } from "../helper";
 
 const RestaurantView = ({
   data,
@@ -20,7 +21,7 @@ const RestaurantView = ({
       {data ? (
         <div>
           <b>Name: {data.restaurantName}</b>
-          <p>at time: {data.restaurantArrivalTime}</p>
+          <p>at time: {formatDateString(data.restaurantArrivalTime)}</p>
           <p>
             Reserve at:{" "}
             {data.restaurantBookingLink ? (
@@ -29,6 +30,8 @@ const RestaurantView = ({
               "[no booking URL]"
             )}{" "}
           </p>
+          <p>Source: {data.restaurantSource}</p>
+          <p>ID: {data.restaurantSourceId}</p>
         </div>
       ) : isLoading ? (
         <CircularProgress />
@@ -40,10 +43,6 @@ const RestaurantView = ({
         <div>
           {/* <p>{detailData.description}</p> */}
           {detailData.reservable && <b>Reservation possible; Please reserve.</b>}
-          <p>
-            Source: {detailData.source}
-            ID: {detailData.sourceId}
-          </p>
           <p>
             Location:
             {detailData.location.address.formattedMultiline}

@@ -8,9 +8,13 @@ query AdminBookingInfo($bookingId: UUID!) {
     activityStartTime
     activityName
     activityBookingLink
+    activitySource
+    activitySourceId
     restaurantArrivalTime
     restaurantName
     restaurantBookingLink
+    restaurantSource
+    restaurantSourceId
     state
     reserverDetails {
       id

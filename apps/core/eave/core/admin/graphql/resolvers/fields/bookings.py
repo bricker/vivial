@@ -15,7 +15,7 @@ from eave.core.graphql.types.survey import Survey
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm
-from eave.core.shared.enums import BookingState
+from eave.core.shared.enums import ActivitySource, BookingState, RestaurantSource
 
 
 async def admin_list_bookings_query(
@@ -68,9 +68,13 @@ class AdminBookingInfo:
     activity_start_time: datetime | None
     activity_name: str | None
     activity_booking_link: str | None
+    activity_source: ActivitySource | None
+    activity_source_id: str | None
     restaurant_arrival_time: datetime | None
     restaurant_name: str | None
     restaurant_booking_link: str | None
+    restaurant_source: RestaurantSource | None
+    restaurant_source_id: str | None
     state: BookingState
     reserver_details: ReserverDetails | None
     stripe_payment_id: UUID | None
@@ -85,20 +89,42 @@ async def admin_get_booking_info_query(
     async with database.async_session.begin() as session:
         booking = await BookingOrm.get_one(session, booking_id)
 
-    return AdminBookingInfo(
+    booking_info = AdminBookingInfo(
         id=booking.id,
         accounts=[Account.from_orm(account) for account in booking.accounts],
-        activity_start_time=booking.activities[0].start_time_local if booking.activities else None,
-        activity_name=booking.activities[0].name if booking.activities else None,
-        activity_booking_link=booking.activities[0].external_booking_link if booking.activities else None,
-        restaurant_name=booking.reservations[0].name if booking.reservations[0] else None,
-        restaurant_arrival_time=booking.reservations[0].start_time_local if booking.reservations else None,
-        restaurant_booking_link=booking.reservations[0].external_booking_link if booking.reservations else None,
+        activity_start_time=None,
+        activity_name=None,
+        activity_booking_link=None,
+        activity_source=None,
+        activity_source_id=None,
+        restaurant_name=None,
+        restaurant_arrival_time=None,
+        restaurant_booking_link=None,
+        restaurant_source=None,
+        restaurant_source_id=None,
         state=booking.state,
         reserver_details=ReserverDetails.from_orm(booking.reserver_details) if booking.reserver_details else None,
         stripe_payment_id=booking.stripe_payment_intent_reference_id,
         survey=Survey.from_orm(booking.outing.survey) if booking.outing and booking.outing.survey else None,
     )
+
+    if booking.activities:
+        activity = booking.activities[0]
+        booking_info.activity_start_time = activity.start_time_local
+        booking_info.activity_name = activity.name
+        booking_info.activity_booking_link = activity.external_booking_link
+        booking_info.activity_source = activity.source
+        booking_info.activity_source_id = activity.source_id
+
+    if booking.reservations:
+        reservation = booking.reservations[0]
+        booking_info.restaurant_arrival_time = reservation.start_time_local
+        booking_info.restaurant_name = reservation.name
+        booking_info.restaurant_booking_link = reservation.external_booking_link
+        booking_info.restaurant_source = reservation.source
+        booking_info.restaurant_source_id = reservation.source_id
+
+    return booking_info
 
 
 async def admin_get_booking_activity_query(
