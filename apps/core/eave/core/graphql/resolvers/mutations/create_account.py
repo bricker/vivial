@@ -111,8 +111,8 @@ async def _notify_slack(
                 channel=channel_id,
                 thread_ts=slack_response.get("ts"),
                 text=dedent(f"""
-                    - *Account ID:* `{account.id}`
-                    - *Email:* `{account.email}`
+                    - *Account ID*: `{account.id}`
+                    - *Email*: `{account.email}`
                     """),
             )
     except Exception as e:

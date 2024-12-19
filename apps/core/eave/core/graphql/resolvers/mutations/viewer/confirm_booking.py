@@ -88,7 +88,7 @@ async def confirm_booking_mutation(
         return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.START_TIME_TOO_SOON)
 
     if start_time_too_far_away(start_time=booking.start_time_utc, timezone=booking.timezone):
-        return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.START_TIME_TOO_SOON)
+        return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.START_TIME_TOO_LATE)
 
     if booking.stripe_payment_intent_reference:
         # Get the given payment intent from the Stripe API

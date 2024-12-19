@@ -75,7 +75,7 @@ async def initiate_booking_mutation(
         return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.START_TIME_TOO_SOON)
 
     if start_time_too_far_away(start_time=outing_orm.start_time_utc, timezone=outing_orm.timezone):
-        return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.START_TIME_TOO_SOON)
+        return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.START_TIME_TOO_LATE)
 
     activity_plan: ActivityPlan | None = None
     reservation: Reservation | None = None

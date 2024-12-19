@@ -35,7 +35,6 @@ class PlanOutingSuccess:
 
 @strawberry.enum
 class PlanOutingFailureReason(enum.Enum):
-    SEARCH_AREA_IDS_EMPTY = enum.auto()
     START_TIME_TOO_SOON = enum.auto()
     START_TIME_TOO_LATE = enum.auto()
 
@@ -60,7 +59,7 @@ async def plan_outing_mutation(
         return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_SOON)
 
     if start_time_too_far_away(start_time=input.start_time, timezone=LOS_ANGELES_TIMEZONE):
-        return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_SOON)
+        return PlanOutingFailure(failure_reason=PlanOutingFailureReason.START_TIME_TOO_LATE)
 
     async with database.async_session.begin() as db_session:
         if account_id:
