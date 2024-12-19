@@ -1,5 +1,6 @@
 from eave.core.orm.outing import OutingActivityOrm, OutingOrm, OutingReservationOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
+from eave.stdlib.time import ONE_DAY_IN_SECONDS
 
 from ..base import BaseTestCase
 
@@ -58,6 +59,86 @@ class TestOutingOrms(BaseTestCase):
             assert len(outing_fetched.reservations) == 1
             assert outing_fetched.reservations[0].outing_id == outing.id
             assert outing_fetched.reservations[0].outing.id == outing.id
+
+    async def test_outing_calculated_time_fields(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+
+            outing = OutingOrm(
+                session,
+                visitor_id=survey.visitor_id,
+                account=account,
+                survey=survey,
+            )
+
+            outing_activity1 = OutingActivityOrm(
+                session,
+                outing=outing,
+                headcount=survey.headcount,
+                source=ActivitySource.EVENTBRITE,
+                source_id=self.getdigits("eventbrite.Event.id"),
+                start_time_utc=self.anydatetime(offset=ONE_DAY_IN_SECONDS * 3),
+                timezone=self.anytimezone(),
+            )
+
+            outing.activities.append(outing_activity1)
+
+            outing_activity2 = OutingActivityOrm(
+                session,
+                outing=outing,
+                headcount=survey.headcount,
+                source=ActivitySource.EVENTBRITE,
+                source_id=self.getdigits("eventbrite.Event.id"),
+                start_time_utc=self.anydatetime(offset=ONE_DAY_IN_SECONDS * 2),
+                timezone=self.anytimezone(),
+            )
+
+            outing.activities.append(outing_activity2)
+
+            outing.reservations.append(
+                OutingReservationOrm(
+                    session,
+                    outing=outing,
+                    headcount=survey.headcount,
+                    source=RestaurantSource.GOOGLE_PLACES,
+                    source_id=self.getstr("Place.id"),
+                    start_time_utc=self.anydatetime(offset=ONE_DAY_IN_SECONDS),
+                    timezone=self.anytimezone(),
+                )
+            )
+
+        assert outing.timezone == outing_activity1.timezone
+        assert outing.start_time_utc == outing_activity2.start_time_utc
+        assert outing.start_time_local == outing_activity2.start_time_local
+
+    async def test_outing_calculated_time_fields_without_activities(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+
+            outing = OutingOrm(
+                session,
+                visitor_id=survey.visitor_id,
+                account=account,
+                survey=survey,
+            )
+
+            outing_reservation = OutingReservationOrm(
+                session,
+                outing=outing,
+                headcount=survey.headcount,
+                source=RestaurantSource.GOOGLE_PLACES,
+                source_id=self.getstr("Place.id"),
+                start_time_utc=self.anydatetime(offset=ONE_DAY_IN_SECONDS),
+                timezone=self.anytimezone(),
+            )
+
+            outing.reservations.append(outing_reservation)
+
+        assert outing.timezone == outing_reservation.timezone
+        assert outing.start_time_utc == outing_reservation.start_time_utc
+        assert outing.start_time_local == outing_reservation.start_time_local
 
     async def test_outing_without_account(self) -> None:
         async with self.db_session.begin() as session:

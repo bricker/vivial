@@ -11,7 +11,7 @@ mutation SubmitReserverDetails($input: SubmitReserverDetailsInput!) {
           __typename
 
           reserverDetails {
-            id
+            ...ReserverDetailsFields
           }
         }
 

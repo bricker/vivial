@@ -1,4 +1,5 @@
 import enum
+from datetime import datetime
 from textwrap import dedent
 from typing import Annotated
 from uuid import UUID
@@ -11,19 +12,17 @@ from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
 from eave.core.graphql.resolvers.mutations.helpers.create_outing import get_total_cost_cents
-from eave.core.graphql.resolvers.mutations.helpers.time_bounds_validator import (
-    StartTimeTooLateError,
-    StartTimeTooSoonError,
-    validate_time_within_bounds_or_exception,
-)
 from eave.core.graphql.types.booking import (
     Booking,
+)
+from eave.core.graphql.validators.time_bounds_validator import (
+    start_time_too_far_away,
+    start_time_too_soon,
 )
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.search_region import SearchRegionOrm
-from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.core.shared.enums import BookingState
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.config import SHARED_CONFIG
@@ -32,15 +31,8 @@ from eave.stdlib.util import unwrap
 
 
 @strawberry.input
-class PaymentIntentInput:
-    id: str
-    client_secret: str
-
-
-@strawberry.input
 class ConfirmBookingInput:
     booking_id: UUID
-    payment_intent: PaymentIntentInput | None = strawberry.UNSET
 
 
 @strawberry.type
@@ -92,50 +84,25 @@ async def confirm_booking_mutation(
             booking=Booking.from_orm(booking),
         )
 
-    if booking.outing and booking.outing.survey:
-        # TODO: This is messy, consolidate all of these duplicate checks into one place
-        # validate outing time still valid to book
-        try:
-            validate_time_within_bounds_or_exception(
-                start_time=booking.outing.survey.start_time_utc, timezone=booking.outing.survey.timezone
-            )
-        except StartTimeTooSoonError:
-            return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.START_TIME_TOO_SOON)
-        except StartTimeTooLateError:
-            return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.START_TIME_TOO_LATE)
+    if start_time_too_soon(start_time=booking.start_time_utc, timezone=booking.timezone):
+        return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.START_TIME_TOO_SOON)
 
-    if input.payment_intent:
-        # Even if the cost of the outing is $0, if we were given a payment intent then we will validate it.
-        if not input.payment_intent.id or not input.payment_intent.client_secret:
-            LOGGER.error("invalid payment intent input")
-            # Validates that the fields don't contain empty values.
-            return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.INVALID_PAYMENT_INTENT)
+    if start_time_too_far_away(start_time=booking.start_time_utc, timezone=booking.timezone):
+        return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.START_TIME_TOO_LATE)
 
-        async with database.async_session.begin() as db_session:
-            # If a payment intent was given:
-            # 1. Confirm it's in the database,
-            # 2. Confirm it's for the given booking
-            stripe_payment_intent_reference = await StripePaymentIntentReferenceOrm.get_one(
-                db_session, account_id=account.id, stripe_payment_intent_id=input.payment_intent.id
-            )
-
-        if booking.stripe_payment_intent_reference_id != stripe_payment_intent_reference.id:
-            LOGGER.error("given payment intent not for given booking")
-            return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.INVALID_PAYMENT_INTENT)
-
+    if booking.stripe_payment_intent_reference:
         # Get the given payment intent from the Stripe API
         stripe_payment_intent = await stripe.PaymentIntent.retrieve_async(
-            id=input.payment_intent.id,
-            # client_secret=input.payment_intent.client_secret,
+            id=booking.stripe_payment_intent_reference.stripe_payment_intent_id,
         )
 
         # Validate that the payment intent has been authorized, but the funds haven't been captured.
         # This is important because if the payment authorization failed, we shouldn't create the booking.
         if stripe_payment_intent.status not in ["success", "requires_capture"]:
+            LOGGER.error("invalid stripe payment intent status")
             return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.PAYMENT_REQUIRED)
     else:
         stripe_payment_intent = None
-        stripe_payment_intent_reference = None
 
     # Although we already checked the cost in the `initiate booking` operation,
     # It's important that we double-check it here too, in case the real cost changed.
@@ -146,8 +113,8 @@ async def confirm_booking_mutation(
         # If the outing costs any money, then:
 
         # Validate that there is a payment intent.
-        if not stripe_payment_intent or not stripe_payment_intent_reference:
-            LOGGER.error("No payment intent available")
+        if not stripe_payment_intent:
+            LOGGER.error("No payment intent available for paid outing")
             return ConfirmBookingFailure(failure_reason=ConfirmBookingFailureReason.PAYMENT_REQUIRED)
 
         # Validate that the authorized amount for the payment intent can cover the cost of the outing.
@@ -208,11 +175,14 @@ async def confirm_booking_mutation(
 
 
 async def _notify_slack(
+    *,
     booking: BookingOrm,
     account: AccountOrm,
     reserver_details: ReserverDetailsOrm | None,
     total_cost_cents: int,
 ) -> None:
+    total_cost_formatted = f"${"{:.2f}".format(total_cost_cents / 100)}"
+
     try:
         channel_id = SHARED_CONFIG.eave_slack_alerts_bookings_channel_id
         slack_client = eave.stdlib.slack.get_authenticated_eave_system_slack_client()
@@ -220,7 +190,7 @@ async def _notify_slack(
         if slack_client and channel_id:
             slack_response = await slack_client.chat_postMessage(
                 channel=channel_id,
-                text="Someone just booked an outing!",
+                text=f"Outing Booked for {total_cost_formatted}",
             )
 
             # TODO: distinguish whether any action on our part is needed for one or both options?
@@ -228,42 +198,66 @@ async def _notify_slack(
                 channel=channel_id,
                 thread_ts=slack_response.get("ts"),
                 text=dedent(f"""
-                    Account ID: `{account.id}`
-                    Account email: `{account.email}`
+                    - *Account ID*: `{account.id}`
+                    - *Account Email*: `{account.email}`
 
-                    Reserver first name: `{reserver_details.first_name if reserver_details else "UNKNOWN"}`
-                    Reserver last name: `{reserver_details.last_name if reserver_details else "UNKNOWN"}`
-                    Reserver phone number: `{reserver_details.phone_number if reserver_details else "UNKNOWN"}`
+                    ---
+
+                    *Reserver Details*
+
+                    - *First Name*: `{reserver_details.first_name if reserver_details else "UNKNOWN"}`
+                    - *Last Name*: `{reserver_details.last_name if reserver_details else "UNKNOWN"}`
+                    - *Phone Number*: `{reserver_details.phone_number if reserver_details else "UNKNOWN"}`
+
+                    ---
 
                     {"\n".join([
-                    f"""*Reservation:*
-                    for {reservation.headcount} attendees
-                    on (ISO time): {reservation.start_time_local.isoformat()}
-                    at
-                    ```
-                    {reservation.name}
-                    {reservation.address}
-                    ```
+                    f"""*Reservation*
+
+                    - *Source*: {reservation.source}
+                    - *Name*: {reservation.name}
+                    - *Start Time*: {_pretty_time(reservation.start_time_local)}
+                    - *Attendees*: {reservation.headcount}
+                    - **Booking URL*: {reservation.external_booking_link}
+
+                    ---
+
                     """
                         for reservation in booking.reservations
                     ])}
 
                     {"\n".join([
-                    f"""*Activity:*
-                    for {activity.headcount} attendees
-                    on (ISO time): {activity.start_time_local.isoformat()}
-                    at
-                    ```
-                    {activity.name}
-                    {activity.address}
-                    ```
+                    f"""*Activity*
+
+                    - *Source*: {activity.source}
+                    - *Name*: {activity.name}
+                    - *Start Time*: {_pretty_time(activity.start_time_local)}
+                    - *Attendees*: {activity.headcount}
+                    - *Booking URL*: {activity.external_booking_link}
+
+                    ---
+
                     """
                         for activity in booking.activities
                     ])}
 
-                    *Total Cost:* ${"{:.2f}".format(total_cost_cents / 100)}
-                    *Stripe Payment Intent ID*: {booking.stripe_payment_intent_reference.stripe_payment_intent_id if booking.stripe_payment_intent_reference else None}
+                    ---
+
+                    - *Total Cost*: {total_cost_formatted}
+                    - *Stripe Payment Intent*: {f"https://dashboard.stripe.com/payments/{booking.stripe_payment_intent_reference.stripe_payment_intent_id}" if booking.stripe_payment_intent_reference else None}
+
+                    ---
+
+                    *Internal Booking ID*: {booking.id}
+
+                    ---
+
+                    @customer-support
                     """),
             )
     except Exception as e:
         LOGGER.exception(e)
+
+
+def _pretty_time(dt: datetime) -> str:
+    return dt.strftime("%A, %B %d at %I:%M%p %Z")

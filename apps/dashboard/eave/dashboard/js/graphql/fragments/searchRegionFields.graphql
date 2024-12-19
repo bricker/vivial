@@ -1,0 +1,4 @@
+fragment SearchRegionFields on SearchRegion {
+  id
+  name
+}

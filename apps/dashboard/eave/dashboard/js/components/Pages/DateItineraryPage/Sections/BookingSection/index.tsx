@@ -10,12 +10,12 @@ import { colors } from "$eave-dashboard/js/theme/colors";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 
-import { getBaseCost, getFees, getTotalCost } from "$eave-dashboard/js/util/currency";
+import { formatBaseCost, formatFeesAndTaxes, formatTotalCost } from "$eave-dashboard/js/util/currency";
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
-import { getRegionIds } from "$eave-dashboard/js/util/region";
 
 import PrimaryButton from "$eave-dashboard/js/components/Buttons/PrimaryButton";
 import RerollButton from "$eave-dashboard/js/components/Buttons/RerollButton";
+import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
 import Typography from "@mui/material/Typography";
 import VivialBadge from "./VivialBadge";
 
@@ -80,28 +80,30 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const hasCost = !!outing?.costBreakdown?.totalCostCents;
-  const activity = outing?.activity;
-  const restaurant = outing?.restaurant;
+  if (!outing) {
+    console.warn("No outing available in store.");
+    return null;
+  }
+
+  const activityPlan = outing.activityPlan;
+  const reservation = outing.reservation;
 
   const handleReroll = useCallback(async () => {
-    if (outing) {
-      const groupPreferences = getPreferenceInputs(
-        userPreferences,
-        partnerPreferences,
-        outingPreferencesData?.activityCategoryGroups,
-        outingPreferencesData?.restaurantCategories,
-      );
-      await planOuting({
-        input: {
-          startTime: new Date(outing.restaurantArrivalTime || "").toISOString(),
-          searchAreaIds: getRegionIds(outing),
-          budget: outing.survey!.budget, // FIXME: survey can be null
-          headcount: outing.survey!.headcount, // FIXME: survey can be null
-          groupPreferences,
-        },
-      });
-    }
+    const groupPreferences = getPreferenceInputs(
+      userPreferences,
+      partnerPreferences,
+      outingPreferencesData?.activityCategoryGroups,
+      outingPreferencesData?.restaurantCategories,
+    );
+    await planOuting({
+      input: {
+        startTime: new Date(outing.survey?.startTime || outing.startTime).toISOString(),
+        searchAreaIds: (outing.survey?.searchRegions || outing.searchRegions).map((r) => r.id),
+        budget: outing.survey?.budget || OutingBudget.Expensive,
+        headcount: outing.survey?.headcount || outing.headcount,
+        groupPreferences,
+      },
+    });
   }, [outingPreferencesData, userPreferences, partnerPreferences, outing]);
 
   // const toggleBookingOpen = useCallback(() => {
@@ -109,11 +111,6 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   // }, [bookingOpen]);
 
   const handleBookClick = useCallback(() => {
-    if (!outing) {
-      console.warn("No outing");
-      return;
-    }
-
     navigate(routePath(AppRoute.checkoutReserve, { outingId: outing.id }));
 
     // if (isLoggedIn) {
@@ -129,67 +126,70 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
 
   useEffect(() => {
     if (planOutingData) {
-      if (planOutingData.planOuting?.__typename === "PlanOutingSuccess") {
-        const newOuting = planOutingData.planOuting.outing;
-        setBookingOpen(false);
-        dispatch(plannedOuting({ outing: newOuting }));
-        navigate(`${AppRoute.itinerary}/${newOuting.id}`);
-      } else {
-        setErrorMessage("There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.");
+      switch (planOutingData.planOuting?.__typename) {
+        case "PlanOutingSuccess": {
+          const newOuting = planOutingData.planOuting.outing;
+          setBookingOpen(false);
+          dispatch(plannedOuting({ outing: newOuting }));
+          navigate(routePath(AppRoute.itinerary, { outingId: newOuting.id }));
+          break;
+        }
+        default: {
+          setErrorMessage(
+            "There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.",
+          );
+        }
       }
     }
   }, [planOutingData]);
 
-  if (outing) {
-    return (
-      <Section>
-        <VivialBadge />
-        <Header>
-          <Typography variant="inherit">Total Costs</Typography>
-          <Typography variant="inherit">{getTotalCost(outing)}</Typography>
-        </Header>
-        <CostBreakdown>
-          {restaurant && restaurant.reservable && (
-            <>
-              <CostItem>{restaurant.name} Reservations ...</CostItem>
-              <CostItem>$0.00</CostItem>
-            </>
-          )}
-          {activity && hasCost && (
-            <>
-              <CostItem>{activity.name} Tickets ...</CostItem>
-              <CostItem>{getBaseCost(outing)}</CostItem>
-              <CostItem>Service Fees & Taxes via Eventbrite ...</CostItem>
-              <CostItem>{getFees(outing)}</CostItem>
-            </>
-          )}
-          <CostItem>Service Fees via Vivial ...</CostItem>
-          <CostItem bold>FREE</CostItem>
-        </CostBreakdown>
-        {!viewOnly && (
+  return (
+    <Section>
+      <VivialBadge />
+      <Header>
+        <Typography variant="inherit">Total Costs</Typography>
+        <Typography variant="inherit">{formatTotalCost(outing.costBreakdown)}</Typography>
+      </Header>
+      <CostBreakdown>
+        {reservation && reservation.restaurant.reservable && (
           <>
-            <ActionButtons>
-              <RerollButton onReroll={handleReroll} loading={planOutingLoading} />
-              <BookButton onClick={handleBookClick} fullWidth>
-                Book
-              </BookButton>
-            </ActionButtons>
+            <CostItem>{reservation.restaurant.name} Reservations ...</CostItem>
+            <CostItem>{formatTotalCost(reservation.costBreakdown)}</CostItem>
           </>
         )}
-        {errorMessage && <Error>ERROR: {errorMessage}</Error>}
-        {/* <Modal
-          title="Booking Info"
-          onClose={toggleBookingOpen}
-          open={bookingOpen}
-          badge={<StripeBadge />}
-          padChildren={false}
-        >
-          <CheckoutReservation outingId={outing.id} />
-        </Modal> */}
-      </Section>
-    );
-  }
-  return null;
+        {activityPlan && activityPlan.costBreakdown.totalCostCents > 0 && (
+          <>
+            <CostItem>{activityPlan.activity.name} Tickets ...</CostItem>
+            <CostItem>{formatBaseCost(activityPlan.costBreakdown)}</CostItem>
+            <CostItem>Service Fees & Taxes via Eventbrite ...</CostItem>
+            <CostItem>{formatFeesAndTaxes(activityPlan.costBreakdown)}</CostItem>
+          </>
+        )}
+        <CostItem>Service Fees via Vivial ...</CostItem>
+        <CostItem bold>FREE</CostItem>
+      </CostBreakdown>
+      {!viewOnly && (
+        <>
+          <ActionButtons>
+            <RerollButton onReroll={handleReroll} loading={planOutingLoading} />
+            <BookButton onClick={handleBookClick} fullWidth>
+              Book
+            </BookButton>
+          </ActionButtons>
+        </>
+      )}
+      {errorMessage && <Error>ERROR: {errorMessage}</Error>}
+      {/* <Modal
+        title="Booking Info"
+        onClose={toggleBookingOpen}
+        open={bookingOpen}
+        badge={<StripeBadge />}
+        padChildren={false}
+      >
+        <CheckoutReservation outingId={outing.id} />
+      </Modal> */}
+    </Section>
+  );
 };
 
 export default BookingSection;

@@ -204,7 +204,7 @@ const CheckoutForm = ({
       const mutatableReserverDetails = { ...reserverDetails };
 
       try {
-        if (bookingDetails?.restaurant) {
+        if (bookingDetails?.reservation) {
           // if the reserver details dont have db ID yet, create a new entry
           if (reserverDetails.id.length === 0) {
             const submitDetailsResp = await submitReserverDetails({

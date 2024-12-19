@@ -1,85 +1,28 @@
 fragment OutingFields on Outing {
   id
-  activityStartTime
-  restaurantArrivalTime
+  startTime
+  headcount
+  searchRegions {
+    ...SearchRegionFields
+  }
   survey {
     id
     budget
     headcount
     searchRegions {
-      id
-      name
+      ...SearchRegionFields
     }
     startTime
   }
-  drivingTime
+  drivingTimeMinutes
   costBreakdown {
     ...CostBreakdownFields
   }
-  activity {
-    categoryGroup {
-      id
-      name
-      activityCategories {
-        id
-        name
-        isDefault
-      }
-    }
-    sourceId
-    source
-    name
-    description
-    websiteUri
-    doorTips
-    insiderTips
-    parkingTips
-    ticketInfo {
-      name
-      notes
-      costBreakdown {
-        ...CostBreakdownFields
-      }
-    }
-    venue {
-      name
-      location {
-        ...LocationFields
-      }
-    }
-    photos {
-      coverPhoto {
-        ...PhotoFields
-      }
-      supplementalPhotos {
-        ...PhotoFields
-      }
-    }
+  activityPlan {
+    ...ActivityPlanFields
   }
 
-  restaurant {
-    sourceId
-    source
-    name
-    reservable
-    rating
-    primaryTypeName
-    websiteUri
-    description
-    parkingTips
-    customerFavorites
-
-    location {
-      ...LocationFields
-    }
-
-    photos {
-      coverPhoto {
-        ...PhotoFields
-      }
-      supplementalPhotos {
-        ...PhotoFields
-      }
-    }
+  reservation {
+    ...ReservationFields
   }
 }

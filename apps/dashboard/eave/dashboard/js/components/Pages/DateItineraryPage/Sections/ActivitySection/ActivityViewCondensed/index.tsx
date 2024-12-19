@@ -72,16 +72,12 @@ const ActivityDesc = styled(Typography)(({ theme }) => ({
 
 const ActivityViewCondensed = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
-  if (!outing) {
+  if (!outing || !outing.activityPlan) {
     return null;
   }
 
-  const startTime = new Date(outing.activityStartTime || "");
-  const activity = outing.activity;
-
-  if (!activity) {
-    return null;
-  }
+  const startTime = new Date(outing.startTime);
+  const activity = outing.activityPlan.activity;
 
   return (
     <ViewContainer>
@@ -90,7 +86,7 @@ const ActivityViewCondensed = () => {
           <ActivityBadge categoryGroupId={activity.categoryGroup?.id} />
           <TimeAndTicketInfo>
             <Time>{getTimeOfDay(startTime, false)}</Time>
-            {outing.survey && <Tickets>{outing.survey.headcount} Tickets</Tickets>}
+            <Tickets>{outing.headcount} Tickets</Tickets>
           </TimeAndTicketInfo>
         </CopyContainer>
         <ActivityName>{activity.name}</ActivityName>

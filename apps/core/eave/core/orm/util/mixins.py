@@ -17,7 +17,7 @@ from eave.core.shared.geo import GeoPoint
 
 
 class TimedEventMixin:
-    start_time_utc: Mapped[datetime] = mapped_column(type_=TIMESTAMP(timezone=True))
+    start_time_utc: Mapped[datetime] = mapped_column(type_=TIMESTAMP(timezone=True), index=True)
     timezone: Mapped[ZoneInfo] = mapped_column(type_=ZoneInfoColumnType())
 
     @property

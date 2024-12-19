@@ -16,6 +16,8 @@ export enum SignUpPageVariant {
   MultiReroll = "mr",
 }
 
+export const ITINERARY_PREFIX = "/itinerary";
+
 export enum AppRoute {
   root = "/",
   rootPreferencesOpen = `/?${SearchParam.variant}=${DateSurveyPageVariant.PreferencesOpen}`,
@@ -26,6 +28,7 @@ export enum AppRoute {
   signupMultiReroll = `/signup?${SearchParam.variant}=${SignUpPageVariant.MultiReroll}`,
   account = "/account",
   plans = "/plans",
+  planDetails = "/plans/:bookingId",
   help = "/help",
   terms = "/terms",
   privacy = "/privacy",
@@ -33,7 +36,7 @@ export enum AppRoute {
   passwordReset = "/account/password",
   checkoutComplete = "/checkout/complete/:bookingId",
   checkoutReserve = "/checkout/reserve/:outingId",
-  itinerary = "/itinerary",
+  itinerary = `${ITINERARY_PREFIX}/:outingId`,
 }
 
 export function routePath(route: AppRoute, pathParams: { [key: string]: string }): string {

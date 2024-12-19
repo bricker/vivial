@@ -87,14 +87,12 @@ const EventbriteLogo = styled("img")(() => ({
 
 const ActivityViewExpanded = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
-  if (!outing) {
+  if (!outing || !outing.activityPlan) {
     return null;
   }
-  const startTime = new Date(outing.activityStartTime || "");
-  const activity = outing.activity;
-  if (!activity) {
-    return null;
-  }
+
+  const startTime = new Date(outing.activityPlan.startTime || "");
+  const activity = outing.activityPlan.activity;
   const address = activity.venue.location.address;
   const directionsUri = activity.venue.location.directionsUri;
 
@@ -107,7 +105,7 @@ const ActivityViewExpanded = () => {
       <InfoContainer>
         <EventInfo>
           <TimeAndTickets>
-            {getTimeOfDay(startTime, false)} | {outing.survey && `${outing.survey.headcount} Tickets`}
+            {getTimeOfDay(startTime, false)} | {outing.headcount} Tickets
           </TimeAndTickets>
           <ActivityName>{activity.name}</ActivityName>
           <VenueInfo>{activity.venue.name}</VenueInfo>

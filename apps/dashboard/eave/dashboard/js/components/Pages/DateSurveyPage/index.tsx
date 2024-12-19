@@ -4,7 +4,7 @@ import {
   type OutingPreferences,
   type RestaurantCategory,
 } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute, DateSurveyPageVariant, SearchParam } from "$eave-dashboard/js/routes";
+import { AppRoute, DateSurveyPageVariant, SearchParam, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 
 import {
@@ -207,7 +207,7 @@ const DateSurveyPage = () => {
             partner: partnerPreferences,
           }),
         );
-        navigate(`${AppRoute.itinerary}/${outing.id}`);
+        navigate(routePath(AppRoute.itinerary, { outingId: outing.id }));
       } else {
         setErrorMessage("There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.");
       }
