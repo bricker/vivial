@@ -18,11 +18,10 @@ from eave.core.orm.account import AccountOrm
 from eave.stdlib.headers import MIME_TYPE_TEXT
 from eave.stdlib.http_endpoint import HTTPEndpoint
 from eave.stdlib.jwt import InvalidTokenError, JWTPurpose, validate_jws_or_exception, validate_jws_pair_or_exception
-from eave.stdlib.logging import LogContext
 
 
 class RefreshTokensEndpoint(HTTPEndpoint):
-    async def handle(self, request: Request, scope: HTTPScope, ctx: LogContext) -> Response:
+    async def handle(self, request: Request, scope: HTTPScope) -> Response:
         encoded_access_token = request.cookies.get(ACCESS_TOKEN_COOKIE_NAME)
         encoded_refresh_token = request.cookies.get(REFRESH_TOKEN_COOKIE_NAME)
 

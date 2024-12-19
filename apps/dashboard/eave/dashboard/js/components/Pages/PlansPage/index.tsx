@@ -1,16 +1,19 @@
 import { BookingDetailPeek } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute } from "$eave-dashboard/js/routes";
+import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 import { useListBookedOutingsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { CircularProgress, Paper as MuiPaper, Typography, styled } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import PrimaryButton from "../../Buttons/PrimaryButton";
 import Paper from "../../Paper";
 
 const PageContainer = styled("div")(() => ({
   padding: 16,
+  maxWidth: 600,
+  margin: "0 auto",
 }));
 
 const BookingGroupContainer = styled("div")(() => ({
@@ -28,7 +31,7 @@ const PlansContainer = styled("div")(() => ({
 const CenteredArea = styled("div")(() => ({
   display: "flex",
   width: "100%",
-  height: rem("128px"),
+  height: rem(128),
   justifyContent: "center",
   alignItems: "center",
 }));
@@ -100,6 +103,7 @@ const NewDateCta = () => {
 };
 
 const BookingDetails = ({ booking }: { booking: BookingDetailPeek }) => {
+  const navigate = useNavigate();
   const imgUri = booking.photoUri;
   const dateDayString = booking.activityStartTime || booking.restaurantArrivalTime;
   if (!dateDayString) {
@@ -111,7 +115,7 @@ const BookingDetails = ({ booking }: { booking: BookingDetailPeek }) => {
     dateDay,
   );
   return (
-    <DetailsPaper>
+    <DetailsPaper onClick={() => navigate(routePath(AppRoute.planDetails, { bookingId: booking.id }))}>
       <BookingContainer>
         <BookingDetailsContainer>
           <DetailsTitle variant="subtitle2">{formattedDay}</DetailsTitle>

@@ -1,0 +1,34 @@
+fragment ActivityFields on Activity {
+  categoryGroup {
+    id
+    name
+    activityCategories {
+      ...ActivityCategoryFields
+    }
+  }
+  sourceId
+  source
+  name
+  description
+  websiteUri
+  doorTips
+  insiderTips
+  parkingTips
+  primaryTypeName
+  ticketInfo {
+    name
+    notes
+    costBreakdown {
+      ...CostBreakdownFields
+    }
+  }
+  venue {
+    name
+    location {
+      ...LocationFields
+    }
+  }
+  photos {
+    ...PhotosFields
+  }
+}

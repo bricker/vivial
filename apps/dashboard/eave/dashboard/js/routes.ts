@@ -1,24 +1,51 @@
-import { DateSurveyPageVariant } from "./components/Pages/DateSurveyPage/constants";
-import { SignUpPageVariant } from "./components/Pages/SignUpPage/constants";
+export enum SearchParam {
+  variant = "v",
+  redirect = "r",
 
-export const AppRoute = {
-  root: "/",
-  rootPreferencesOpen: `/?v=${DateSurveyPageVariant.PreferencesOpen}`,
-  login: "/login",
-  logout: "/logout",
-  forgotPassword: "/login/password",
-  signup: "/signup",
-  signupMultiReroll: `/signup?v=${SignUpPageVariant.MultiReroll}`,
-  account: "/account",
-  plans: "/plans",
-  help: "/help",
-  terms: "/terms",
-  privacy: "/privacy",
-  accountPreferences: "/account/preferences",
-  passwordReset: "/account/password",
-  billing: "/account/billing",
-  checkoutComplete: "/checkout/complete",
-  checkoutReserve: "/checkout/reserve",
-  itinerary: "/itinerary",
-  checkout: "/checkout/reserve",
-};
+  // These come from Stripe and cannot be changed.
+  stripePaymentIntentId = "payment_intent",
+  stripePaymentIntentClientSecret = "payment_intent_client_secret",
+  stripeRedirectStatus = "redirect_status",
+}
+
+export enum DateSurveyPageVariant {
+  PreferencesOpen = "po",
+}
+
+export enum SignUpPageVariant {
+  MultiReroll = "mr",
+}
+
+export const ITINERARY_PREFIX = "/itinerary";
+
+export enum AppRoute {
+  root = "/",
+  rootPreferencesOpen = `/?${SearchParam.variant}=${DateSurveyPageVariant.PreferencesOpen}`,
+  login = "/login",
+  logout = "/logout",
+  forgotPassword = "/login/password",
+  signup = "/signup",
+  signupMultiReroll = `/signup?${SearchParam.variant}=${SignUpPageVariant.MultiReroll}`,
+  account = "/account",
+  plans = "/plans",
+  planDetails = "/plans/:bookingId",
+  help = "/help",
+  terms = "/terms",
+  privacy = "/privacy",
+  accountPreferences = "/account/preferences",
+  passwordReset = "/account/password",
+  billing = "/account/billing",
+  checkoutComplete = "/checkout/complete/:bookingId",
+  checkoutReserve = "/checkout/reserve/:outingId",
+  itinerary = `${ITINERARY_PREFIX}/:outingId`,
+}
+
+export function routePath(route: AppRoute, pathParams: { [key: string]: string }): string {
+  let filledRoute = route.toString();
+
+  for (const [paramName, paramValue] of Object.entries(pathParams)) {
+    filledRoute = filledRoute.replaceAll(new RegExp(`/:${paramName}/?$`, "g"), `/${paramValue}`);
+  }
+
+  return filledRoute;
+}

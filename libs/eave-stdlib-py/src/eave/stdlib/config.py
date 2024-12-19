@@ -10,7 +10,10 @@ import google.cloud.secretmanager
 
 from . import checksum
 
-GITHUB_EVENT_QUEUE_NAME = "github-events-processor"
+
+class StripeEnvironment(enum.Enum):
+    TEST = enum.auto()
+    LIVE = enum.auto()
 
 
 class EaveEnvironment(enum.StrEnum):
@@ -18,6 +21,9 @@ class EaveEnvironment(enum.StrEnum):
     development = "development"
     staging = "staging"
     production = "production"
+
+
+_SLACK_CHANNEL_ID_BOT_TESTING = "C04GDPU3B5Z"
 
 
 class ConfigBase:
@@ -242,14 +248,49 @@ class _EaveConfig(ConfigBase):
         value = get_secret("SLACK_SYSTEM_BOT_TOKEN")
         return value
 
-    @cached_property
-    def eave_slack_signups_channel_id(self) -> str | None:
-        value = os.getenv("EAVE_SLACK_SIGNUPS_CHANNEL_ID")
-        return value
+    @property
+    def eave_slack_alerts_signups_channel_id(self) -> str:
+        if self.is_local:
+            return _SLACK_CHANNEL_ID_BOT_TESTING
+        else:
+            return "C04HH2N08LD"  # alerts-signups
+
+    @property
+    def eave_slack_alerts_bookings_channel_id(self) -> str:
+        if self.is_local:
+            return _SLACK_CHANNEL_ID_BOT_TESTING
+        else:
+            return "C085C89U211"  # alerts-bookings
 
     @cached_property
     def send_grid_api_key(self) -> str:
         return get_secret("SENDGRID_API_KEY")
+
+    @property
+    def stripe_environment(self) -> StripeEnvironment:
+        v = os.getenv("STRIPE_ENVIRONMENT", "live")
+
+        match v:
+            case "test":
+                return StripeEnvironment.TEST
+            case _:
+                return StripeEnvironment.LIVE
+
+    @property
+    def stripe_publishable_key(self) -> str:
+        match self.stripe_environment:
+            case StripeEnvironment.TEST:
+                return "pk_test_51NXpyaDQEmxo4go9FNJWSszhjShiPJNSPF8TNidSdSDttvVPnpHOAmkFzPM8pfywwwSngOXxXWfDGvbjz2sevFO900ACLz7Tqm"
+            case _:
+                return "pk_live_51NXpyaDQEmxo4go9vM0htIXc5t8Sr1SjYS3izOCZPulRkSDaaQRkna1v0GBBVNe3PdkzlRmEV6Jh65jJWWvzaRyQ00n1yz7jsJ"
+
+    @property
+    def stripe_customer_portal_url(self) -> str:
+        match self.stripe_environment:
+            case StripeEnvironment.TEST:
+                return "https://billing.stripe.com/p/login/test_3cs7uT6FmfXceBO144"
+            case _:
+                return "https://billing.stripe.com/p/login/5kAaHYgIEcGv3tu6oo"
 
 
 def get_secret(name: str) -> str:

@@ -1,13 +1,19 @@
 import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
+import { AppRoute } from "$eave-dashboard/js/routes";
+import { RootState } from "$eave-dashboard/js/store";
 import { useGetSearchRegionsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { MAX_REROLLS, useReroll } from "$eave-dashboard/js/util/reroll";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 import React from "react";
 
+import Typography from "@mui/material/Typography";
 import HighlightButton from "../../Buttons/HighlightButton";
 import LoadingButton from "../../Buttons/LoadingButton";
-
 import { getSearchAreaLabel, getStartTimeLabel } from "./helpers";
 
 const Row = styled("div")(() => ({
@@ -18,8 +24,8 @@ const Row = styled("div")(() => ({
 
 const RowTitle = styled("div")(({ theme }) => ({
   color: theme.palette.grey[400],
-  fontSize: rem("16px"),
-  lineHeight: rem("19px"),
+  fontSize: rem(16),
+  lineHeight: rem(19),
   fontWeight: 500,
   minWidth: 60,
 }));
@@ -39,6 +45,12 @@ const SubmitButton = styled(LoadingButton)(() => ({
   marginTop: 8,
 }));
 
+const Error = styled(Typography)(({ theme }) => ({
+  color: theme.palette.error.main,
+  marginTop: 16,
+  textAlign: "left",
+}));
+
 interface DateSelectionsProps {
   cta: string;
   headcount: number;
@@ -52,6 +64,7 @@ interface DateSelectionsProps {
   onSelectSearchArea: () => void;
   loading?: boolean;
   disabled?: boolean;
+  errorMessage?: string;
 }
 
 const DateSelections = ({
@@ -62,6 +75,7 @@ const DateSelections = ({
   searchAreaIds,
   loading,
   disabled,
+  errorMessage,
   onSubmit,
   onSelectHeadcount,
   onSelectBudget,
@@ -69,9 +83,27 @@ const DateSelections = ({
   onSelectSearchArea,
 }: DateSelectionsProps) => {
   const { data } = useGetSearchRegionsQuery({});
+  const [rerolls, rerolled] = useReroll();
+  const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
+  const navigate = useNavigate();
+
   const searchRegions = data?.searchRegions || [];
   const searchAreaLabel = getSearchAreaLabel(searchAreaIds, searchRegions);
   const startTimeLabel = getStartTimeLabel(startTime);
+
+  const handleSubmit = () => {
+    if (isLoggedIn) {
+      onSubmit();
+    } else {
+      if (rerolls >= MAX_REROLLS) {
+        navigate(AppRoute.signupMultiReroll);
+      } else {
+        rerolled();
+        onSubmit();
+      }
+    }
+  };
+
   return (
     <>
       <Row>
@@ -142,9 +174,10 @@ const DateSelections = ({
           </SelectButton>
         </RowButtons>
       </Row>
-      <SubmitButton onClick={onSubmit} loading={!!loading} disabled={!!disabled} fullWidth>
+      <SubmitButton onClick={handleSubmit} loading={!!loading} disabled={!!disabled} fullWidth>
         {cta}
       </SubmitButton>
+      {errorMessage && <Error>ERROR: {errorMessage}</Error>}
     </>
   );
 };

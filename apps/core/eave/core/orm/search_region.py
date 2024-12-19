@@ -1,8 +1,9 @@
+import math
 from dataclasses import dataclass
 from types import MappingProxyType
 from uuid import UUID
 
-from eave.core.lib.geo import Distance, GeoArea, GeoPoint
+from eave.core.shared.geo import Distance, GeoArea, GeoPoint
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -18,6 +19,27 @@ class SearchRegionOrm:
     @classmethod
     def one_or_exception(cls, *, search_region_id: UUID) -> "SearchRegionOrm":
         return _SEARCH_REGIONS_PK[search_region_id]
+
+    @classmethod
+    def get_closest(
+        cls,
+        *,
+        point: GeoPoint,
+    ) -> "SearchRegionOrm":
+        """
+        From all search regions, return the one that is closest to `point`.
+        """
+        closest_region = _SEARCH_REGIONS_TABLE[0]
+        activity_curr_min_dist = math.inf
+
+        for region in SearchRegionOrm.all():
+            # see if dist to `activity` from `region` is less than from current closest `activity_region`
+            dist_from_region_center = point.haversine_distance(to_point=region.area.center)
+            if dist_from_region_center < activity_curr_min_dist:
+                activity_curr_min_dist = dist_from_region_center
+                closest_region = region
+
+        return closest_region
 
 
 _SEARCH_REGIONS_TABLE = (

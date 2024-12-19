@@ -1,12 +1,21 @@
+import { chosePreferences, plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 import React, { useCallback, useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
+import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
-import { useGetSearchRegionsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
-import { getBackgroundImgUrl, getPlaceLabel, getTimeLabel } from "../../helpers";
+import {
+  useGetOutingPreferencesQuery,
+  useGetSearchRegionsQuery,
+  usePlanOutingMutation,
+} from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
+import { getRegionImage } from "$eave-dashboard/js/util/region";
+import { getPlaceLabel, getTimeLabel } from "../../helpers";
 
 import SettingsButton from "$eave-dashboard/js/components/Buttons/SettingsButton";
 import Modal from "$eave-dashboard/js/components/Modal";
@@ -14,9 +23,10 @@ import DateAreaSelections from "$eave-dashboard/js/components/Selections/DateAre
 import DateSelections from "$eave-dashboard/js/components/Selections/DateSelections";
 import DateTimeSelections from "$eave-dashboard/js/components/Selections/DateTimeSelections";
 import Typography from "@mui/material/Typography";
+import LogisticsBadge from "./LogisticsBadge";
 
 interface LogisticsSectionProps extends React.HTMLAttributes<HTMLDivElement> {
-  bgImgUrl: string;
+  bgImgUrl?: string;
 }
 
 const Section = styled("section", {
@@ -27,6 +37,7 @@ const Section = styled("section", {
   backgroundSize: "cover",
   width: "100%",
   height: 181,
+  marginBottom: 47,
   padding: "16px 24px",
   "&:after": {
     content: `""`,
@@ -52,11 +63,11 @@ const LogisticsGradient = styled("div")(() => ({
   justifyContent: "center",
 }));
 
-const Logistics = styled("div")(({ theme }) => ({
+const Logistics = styled("div")<{ viewOnly?: boolean }>(({ theme, viewOnly }) => ({
   backgroundColor: theme.palette.field.secondary,
   display: "flex",
   alignItems: "center",
-  padding: "12px 16px",
+  padding: viewOnly ? "12px 32px" : "12px 16px",
   height: 58,
   width: "calc(100% - 4px)",
   borderRadius: 40,
@@ -68,39 +79,61 @@ const TimeAndPlace = styled("div")(() => ({
 
 const Time = styled(Typography)(({ theme }) => ({
   color: theme.palette.common.white,
-  fontSize: rem("16px"),
-  lineHeight: rem("19px"),
+  fontSize: rem(16),
+  lineHeight: rem(19),
   fontWeight: 600,
   marginBottom: 4,
 }));
 
 const Place = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.secondary,
-  fontSize: rem("12px"),
-  lineHeight: rem("15px"),
+  fontSize: rem(12),
+  lineHeight: rem(15),
 }));
 
-const LogisticsSection = () => {
+const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
+  const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
+  const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
   const { data: searchRegionsData } = useGetSearchRegionsQuery({});
   const outing = useSelector((state: RootState) => state.outing.details);
-  const [startTime, setStartTime] = useState(new Date(outing?.restaurantArrivalTime || ""));
-  const [headcount, setHeadcount] = useState(outing?.headcount || 2);
+
+  if (!outing) {
+    console.warn("No outing present in store.");
+    return null;
+  }
+
+  const userPreferences = useSelector((state: RootState) => state.outing.preferenes.user);
+  const partnerPreferences = useSelector((state: RootState) => state.outing.preferenes.partner);
+
+  const [startTime, setStartTime] = useState(new Date(outing.startTime));
+  const [headcount, setHeadcount] = useState(outing.headcount);
   const [replanDisabled, setReplanDisabled] = useState(true);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [areasOpen, setAreasOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
-
-  // TODO: get budget from outing object (pending).
-  // TODO: get search area Ids from outing object (pending).
-  const [budget, setBudget] = useState(OutingBudget.Expensive);
-  const [searchAreaIds, setSearchAreaIds] = useState<string[]>([
-    "354c2020-6227-46c1-be04-6f5965ba452d",
-    "94d05616-887a-440e-a2c5-c06ece510877",
-  ]);
+  const [budget, setBudget] = useState(outing?.survey?.budget || OutingBudget.Expensive);
+  const [searchAreaIds, setSearchAreaIds] = useState(outing.searchRegions.map((r) => r.id));
+  const [errorMessage, setErrorMessage] = useState("");
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleReplan = useCallback(async () => {
-    // TODO: Replan outing.
-  }, []);
+    const groupPreferences = getPreferenceInputs(
+      userPreferences,
+      partnerPreferences,
+      outingPreferencesData?.activityCategoryGroups,
+      outingPreferencesData?.restaurantCategories,
+    );
+    await planOuting({
+      input: {
+        startTime: startTime.toISOString(),
+        groupPreferences,
+        budget,
+        headcount,
+        searchAreaIds,
+      },
+    });
+  }, [outingPreferencesData, userPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime]);
 
   const handleSelectHeadcount = useCallback((value: number) => {
     setHeadcount(value);
@@ -137,65 +170,71 @@ const LogisticsSection = () => {
   }, [datePickerOpen]);
 
   useEffect(() => {
-    if (searchRegionsData?.searchRegions) {
-      setSearchAreaIds(searchRegionsData.searchRegions.map((region) => region.id));
-    }
-  }, [searchRegionsData]);
+    setStartTime(new Date(outing.startTime));
+    setHeadcount(outing.headcount);
 
-  useEffect(() => {
-    if (outing) {
-      setStartTime(new Date(outing?.restaurantArrivalTime || ""));
-      setHeadcount(outing?.headcount || 2);
-
-      // TODO: get budget from outing object (pending).
-      // TODO: get search area Ids from outing object (pending).
-      setBudget(OutingBudget.Expensive);
-      setSearchAreaIds(["354c2020-6227-46c1-be04-6f5965ba452d", "94d05616-887a-440e-a2c5-c06ece510877"]);
+    if (outing.survey) {
+      setBudget(outing.survey.budget);
     }
+
+    setSearchAreaIds(outing.searchRegions.map((r) => r.id));
   }, [outing]);
 
-  if (outing) {
-    return (
-      <Section bgImgUrl={getBackgroundImgUrl(outing)}>
-        <LogisticsGradient>
-          <Logistics>
-            <SettingsButton onClick={toggleDetailsOpen} />
-            <TimeAndPlace>
-              <Time>{getTimeLabel(startTime)}</Time>
-              <Place>{getPlaceLabel(headcount, searchAreaIds, budget)}</Place>
-            </TimeAndPlace>
-          </Logistics>
-        </LogisticsGradient>
-        <Modal title="Date Details" onClose={toggleDetailsOpen} open={detailsOpen}>
-          <DateSelections
-            cta="Update"
-            headcount={headcount}
-            budget={budget}
-            startTime={startTime}
-            searchAreaIds={searchAreaIds}
-            onSubmit={handleReplan}
-            onSelectHeadcount={handleSelectHeadcount}
-            onSelectBudget={handleSelectBudget}
-            onSelectStartTime={toggleDatePickerOpen}
-            onSelectSearchArea={toggleAreasOpen}
-            disabled={replanDisabled}
-            loading={false}
-          />
-        </Modal>
-        <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
-          <DateAreaSelections
-            cta="Update"
-            onSubmit={handleSelectSearchAreas}
-            regions={searchRegionsData?.searchRegions}
-          />
-        </Modal>
-        <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={datePickerOpen}>
-          <DateTimeSelections cta="Update" onSubmit={handleSelectStartTime} startDateTime={startTime} />
-        </Modal>
-      </Section>
-    );
-  }
-  return null;
+  useEffect(() => {
+    if (planOutingData) {
+      if (planOutingData.planOuting?.__typename === "PlanOutingSuccess") {
+        const updatedOuting = planOutingData.planOuting.outing;
+        setDetailsOpen(false);
+        dispatch(plannedOuting({ outing: updatedOuting }));
+        dispatch(chosePreferences({ user: userPreferences }));
+        navigate(routePath(AppRoute.itinerary, { outingId: updatedOuting.id }));
+      } else {
+        setErrorMessage("There was an issue updating this outing. Reach out to friends@vivialapp.com for assistance.");
+      }
+    }
+  }, [planOutingData, userPreferences, partnerPreferences]);
+
+  return (
+    <Section bgImgUrl={getRegionImage(outing.reservation?.restaurant.location.searchRegion.id)}>
+      <LogisticsGradient>
+        <Logistics viewOnly={viewOnly}>
+          {!viewOnly && <SettingsButton onClick={toggleDetailsOpen} />}
+          <TimeAndPlace>
+            <Time>{getTimeLabel(startTime)}</Time>
+            <Place>{getPlaceLabel(headcount, searchAreaIds, budget)}</Place>
+          </TimeAndPlace>
+        </Logistics>
+      </LogisticsGradient>
+      <LogisticsBadge startTime={startTime} connect={!!outing.reservation} />
+      <Modal title="Date Details" onClose={toggleDetailsOpen} open={detailsOpen}>
+        <DateSelections
+          cta="Update"
+          headcount={headcount}
+          budget={budget}
+          startTime={startTime}
+          searchAreaIds={searchAreaIds}
+          onSubmit={handleReplan}
+          onSelectHeadcount={handleSelectHeadcount}
+          onSelectBudget={handleSelectBudget}
+          onSelectStartTime={toggleDatePickerOpen}
+          onSelectSearchArea={toggleAreasOpen}
+          errorMessage={errorMessage}
+          disabled={replanDisabled}
+          loading={planOutingLoading}
+        />
+      </Modal>
+      <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
+        <DateAreaSelections
+          cta="Update"
+          onSubmit={handleSelectSearchAreas}
+          regions={searchRegionsData?.searchRegions}
+        />
+      </Modal>
+      <Modal title="When is your date?" onClose={toggleDatePickerOpen} open={datePickerOpen}>
+        <DateTimeSelections cta="Update" onSubmit={handleSelectStartTime} startDateTime={startTime} />
+      </Modal>
+    </Section>
+  );
 };
 
 export default LogisticsSection;

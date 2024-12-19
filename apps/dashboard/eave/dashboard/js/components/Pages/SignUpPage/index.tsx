@@ -9,10 +9,9 @@ import { loggedIn } from "$eave-dashboard/js/store/slices/authSlice";
 import { useCreateAccountMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 
-import { AppRoute } from "$eave-dashboard/js/routes";
+import { AppRoute, SearchParam, SignUpPageVariant } from "$eave-dashboard/js/routes";
 import CloseButton from "../../Buttons/CloseButton";
 import AuthForm from "../../Forms/AuthForm";
-import { SignUpPageVariant } from "./constants";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
@@ -37,18 +36,23 @@ const SignUpPage = () => {
   const [searchParams, _] = useSearchParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const variant = searchParams.get("v") as SignUpPageVariant;
+  const variant = searchParams.get(SearchParam.variant) as SignUpPageVariant;
 
   let title = "Create a free account to book";
   let subtitle = "";
   let allowClose = false;
-  let redirectRoute = AppRoute.root;
+  let redirectRoute: string = AppRoute.root;
 
   if (variant === SignUpPageVariant.MultiReroll) {
     title = "🎯 Not quite right?";
     subtitle = "Create a free Vivial account to unlock personalized recommendations.";
     allowClose = true;
     redirectRoute = AppRoute.rootPreferencesOpen;
+  }
+
+  const redirectQueryParam = searchParams.get(SearchParam.redirect);
+  if (redirectQueryParam) {
+    redirectRoute = decodeURIComponent(redirectQueryParam);
   }
 
   const handleSubmit = useCallback(async ({ email, password }: { email: string; password: string }) => {

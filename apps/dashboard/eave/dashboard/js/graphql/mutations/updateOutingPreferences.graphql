@@ -6,16 +6,7 @@ mutation UpdateOutingPreferences($input: UpdateOutingPreferencesInput!) {
         __typename
         ... on UpdateOutingPreferencesSuccess {
           outingPreferences {
-            restaurantCategories {
-              id
-              name
-              isDefault
-            }
-            activityCategories {
-              id
-              name
-              isDefault
-            }
+            ...OutingPreferencesFields
           }
         }
         ... on UpdateOutingPreferencesFailure {

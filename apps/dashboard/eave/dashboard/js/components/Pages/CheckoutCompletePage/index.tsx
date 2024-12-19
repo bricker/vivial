@@ -1,9 +1,12 @@
 import { AppRoute } from "$eave-dashboard/js/routes";
+import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
+import { useConfirmBookingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
-import { Divider, styled, Typography } from "@mui/material";
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import { CircularProgress, Divider, Typography, styled } from "@mui/material";
+import React, { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
 import HighlightButton from "../../Buttons/HighlightButton";
 import CalendarCheckIcon from "../../Icons/CalendarCheckIcon";
 import LogoPill, { LogoPillAttributes, logos } from "../../LogoPill";
@@ -86,7 +89,7 @@ const ConfirmationOption = ({ option }: { option: ConfirmationOptionDetail }) =>
 const confirmationOptions: ConfirmationOptionDetail[] = [
   {
     attrs: logos["vivial"]!,
-    text: "for a itinerary confirmation and receipt (if applicable).",
+    text: "for an itinerary confirmation and receipt (if applicable).",
   },
   {
     attrs: logos["opentable"]!,
@@ -99,12 +102,81 @@ const confirmationOptions: ConfirmationOptionDetail[] = [
 ];
 
 const CheckoutCompletePage = () => {
-  // const [searchParams] = useSearchParams();
+  const params = useParams();
+  const bookingId = params["bookingId"];
 
-  // const paymentIntentId = searchParams.get("payment_intent");
-  // const clientSecret = searchParams.get("payment_intent_client_secret");
-  // const redirectStatus = searchParams.get("redirect_status");
+  if (!bookingId) {
+    console.error("Invalid booking ID");
+    return null;
+  }
+
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const [confirmBooking, { isLoading: confirmBookingIsLoading, data: confirmBookingData, error: confirmBookingError }] =
+    useConfirmBookingMutation();
+
+  // const paymentIntentId = searchParams.get(SearchParam.stripePaymentIntentId);
+  // const clientSecret = searchParams.get(SearchParam.stripePaymentIntentClientSecret);
+  // const redirectStatus = searchParams.get(SearchParam.stripeRedirectStatus);
+
+  useEffect(() => {
+    void confirmBooking({
+      input: {
+        bookingId: bookingId,
+      },
+    });
+  }, []);
+
+  if (confirmBookingIsLoading) {
+    return (
+      <>
+        <CircularProgress color="secondary" />
+      </>
+    );
+  }
+
+  if (confirmBookingError) {
+    // TODO: Better error handling
+    // 500 error
+    console.error("Unexected Graphql result");
+    return null;
+  }
+
+  if (!confirmBookingData) {
+    // TODO: Better error handling
+    console.error("confirmBooking data error");
+    return null;
+  }
+
+  switch (confirmBookingData.viewer.__typename) {
+    case "AuthenticatedViewerMutations": {
+      const resp = confirmBookingData.viewer.confirmBooking;
+      switch (resp?.__typename) {
+        case "ConfirmBookingSuccess":
+          break;
+        case "ConfirmBookingFailure":
+          switch (resp.failureReason) {
+            default:
+              console.warn("Unhandled case for CreateBookingFailure", resp.failureReason);
+              break;
+          }
+          return;
+        default:
+          console.error("Unexected Graphql result");
+          return;
+      }
+      // allow success case to continue execution
+      break;
+    }
+    case "UnauthenticatedViewer":
+      dispatch(loggedOut());
+      window.location.assign(AppRoute.logout);
+      return;
+    default:
+      console.error("Unexected Graphql result");
+      return;
+  }
 
   const handleNewDateClick = () => {
     navigate(AppRoute.root);

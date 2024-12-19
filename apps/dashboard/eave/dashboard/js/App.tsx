@@ -10,6 +10,7 @@ import { pageView } from "./analytics/segment";
 import GlobalLayout from "./components/Global/GlobalLayout";
 import AccountPage from "./components/Pages/AccountPage";
 import AccountPreferencesPage from "./components/Pages/AccountPreferencesPage";
+import BookingDetailsPage from "./components/Pages/BookingDetailsPage";
 import CheckoutCompletePage from "./components/Pages/CheckoutCompletePage";
 import CheckoutReservationPage from "./components/Pages/CheckoutReservationPage";
 import DateItineraryPage from "./components/Pages/DateItineraryPage";
@@ -30,7 +31,7 @@ import { AppRoute } from "./routes";
 import store, { RootState } from "./store";
 import { theme } from "./theme";
 
-const fireAnalyticsPageView = (path: string) => pageView({ name: path });
+const fireAnalyticsPageView = (_path: string) => pageView({});
 
 const App = () => {
   const isLoggedIn = useSelector((state: RootState) => state.auth.isLoggedIn);
@@ -47,7 +48,7 @@ const App = () => {
           <Route path={AppRoute.root} element={<GlobalLayout />}>
             {/* always public routes */}
             <Route index element={<DateSurveyPage />} />
-            <Route path={`${AppRoute.itinerary}/:outingId`} element={<DateItineraryPage />} />
+            <Route path={AppRoute.itinerary} element={<DateItineraryPage />} />
             <Route path={AppRoute.terms} element={<TermsPage />} />
             <Route path={AppRoute.privacy} element={<PrivacyPage />} />
 
@@ -58,16 +59,21 @@ const App = () => {
               <Route path={AppRoute.forgotPassword} element={<ForgotPasswordPage />} />
             </Route>
 
-            {/* auth only routes */}
+            {/* auth only routes - login redirect */}
             <Route element={<PrivateRoutes hasPermissions={!!isLoggedIn} redirectPath={AppRoute.login} />}>
               <Route path={AppRoute.account} element={<AccountPage />} />
               <Route path={AppRoute.plans} element={<PlansPage />} />
+              <Route path={AppRoute.planDetails} element={<BookingDetailsPage />} />
               <Route path={AppRoute.help} element={<HelpPage />} />
               <Route path={AppRoute.passwordReset} element={<PasswordResetPage />} />
               <Route path={AppRoute.billing} element={<StripeCustomerPortal />} />
               <Route path={AppRoute.accountPreferences} element={<AccountPreferencesPage />} />
               <Route path={AppRoute.checkoutComplete} element={<CheckoutCompletePage />} />
-              <Route path={`${AppRoute.checkoutReserve}/:outingId`} element={<CheckoutReservationPage />} />
+            </Route>
+
+            {/* auth only routes - signup redirect */}
+            <Route element={<PrivateRoutes hasPermissions={!!isLoggedIn} redirectPath={AppRoute.signup} />}>
+              <Route path={AppRoute.checkoutReserve} element={<CheckoutReservationPage />} />
             </Route>
 
             <Route path="*" element={<Navigate to={AppRoute.root} />} />

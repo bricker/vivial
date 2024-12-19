@@ -11,8 +11,6 @@ locals {
   www_public_domain_prefix = "www"
   api_public_domain_prefix = "api"
 
-  eave_slack_signups_channel_id = "C04GDPU3B5Z" # #bot-testing in eave slack
-
   authorized_networks = {
     "bryan-wifi" : {
       cidr_block   = "75.83.177.78/32"
@@ -24,8 +22,5 @@ locals {
     },
   }
 
-  # These are not considered sensitive values
-  SEGMENT_CORE_API_WRITE_KEY = "uUjBMbm9CcTL9XV1Rf6S9xGpLnvtCObZ"
-  SEGMENT_WEBSITE_WRITE_KEY  = "dO1quf6odO8UQ5lLiJPHu0SFjy6OImu1"
-  STRIPE_PUBLISHABLE_KEY     = "pk_test_51NXpyaDQEmxo4go9FNJWSszhjShiPJNSPF8TNidSdSDttvVPnpHOAmkFzPM8pfywwwSngOXxXWfDGvbjz2sevFO900ACLz7Tqm"
+  STRIPE_ENVIRONMENT = "test"
 }

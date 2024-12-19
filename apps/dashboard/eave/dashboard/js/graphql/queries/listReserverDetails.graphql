@@ -4,10 +4,7 @@ query ListReserverDetails {
     ... on AuthenticatedViewerQueries {
       __typename
       reserverDetails {
-        id
-        firstName
-        lastName
-        phoneNumber
+        ...ReserverDetailsFields
       }
     }
     ... on UnauthenticatedViewer {

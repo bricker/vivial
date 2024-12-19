@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-set -eu
-
-source "${EAVE_HOME}"/develop/functions.bash
-python-activate-venv
-python -i "${EAVE_HOME}/apps/core/bin/src/repl.py"

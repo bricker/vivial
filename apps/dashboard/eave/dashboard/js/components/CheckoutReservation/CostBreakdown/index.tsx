@@ -1,6 +1,9 @@
-import { Outing } from "$eave-dashboard/js/graphql/generated/graphql";
+import { Outing, type BookingDetails } from "$eave-dashboard/js/graphql/generated/graphql";
+import { formatBaseCost, formatFeesAndTaxes, formatTotalCost } from "$eave-dashboard/js/util/currency";
 import { Divider, Typography, styled } from "@mui/material";
 import React from "react";
+
+const FREE = "FREE";
 
 const ComponentContainer = styled("div")(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
@@ -47,11 +50,6 @@ const LineItemText = styled(Typography)<{ bold?: boolean }>(({ bold }) => ({
   fontWeight: bold ? "bold" : "inherit",
 }));
 
-const currencyFormatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-});
-
 type Breakdown = { costName: string; costValue: string };
 
 /**
@@ -59,54 +57,50 @@ type Breakdown = { costName: string; costValue: string };
  * @param outing
  * @returns list of objects with named sources of a cost, and the cost as a USD currency string (or "FREE")
  */
-function buildBreakdowns(outing: Outing): Breakdown[] {
+function buildBreakdowns(outing: Outing | BookingDetails): Breakdown[] {
   const breakdown: Breakdown[] = [];
 
-  if (outing.restaurant) {
+  if (outing.reservation) {
     breakdown.push({
-      costName: outing.restaurant.name,
-      costValue: currencyFormatter.format(0),
+      costName: outing.reservation.restaurant.name,
+      costValue: formatBaseCost(outing.reservation.costBreakdown),
     });
   }
 
-  if (outing.activity) {
-    const cost = outing.activity.ticketInfo?.cost || 0;
+  if (outing.activityPlan) {
     breakdown.push({
-      costName: outing.activity.name,
-      costValue: currencyFormatter.format(cost),
+      costName: outing.activityPlan.activity.name,
+      costValue: formatBaseCost(outing.activityPlan.costBreakdown),
     });
+  }
 
-    if (outing.activity.ticketInfo?.fee || outing.activity.ticketInfo?.tax) {
-      const taxFee = (outing.activity.ticketInfo.fee ?? 0) + (outing.activity.ticketInfo.tax ?? 0);
-
-      breakdown.push({
-        costName: "3rd party Service Fees & Taxes",
-        costValue: currencyFormatter.format(taxFee),
-      });
-    }
+  const feesAndTaxesCents = outing.costBreakdown.feeCents + outing.costBreakdown.taxCents;
+  if (feesAndTaxesCents > 0) {
+    breakdown.push({
+      costName: "3rd party Service Fees & Taxes",
+      costValue: formatFeesAndTaxes(outing.costBreakdown),
+    });
   }
 
   breakdown.push({
     costName: "Service Fees via Vivial",
-    costValue: "FREE",
+    costValue: FREE,
   });
 
   return breakdown;
 }
 
-const CostBreakdown = ({ outing }: { outing: Outing }) => {
-  const costDetails = outing.activity?.ticketInfo;
-  const totalCost = currencyFormatter.format(
-    (costDetails?.cost ?? 0) + (costDetails?.fee ?? 0) + (costDetails?.tax ?? 0),
-  );
+const CostBreakdown = ({ outing }: { outing: Outing | BookingDetails }) => {
+  const totalCostFormatted = formatTotalCost(outing.costBreakdown);
   const breakdown = buildBreakdowns(outing);
+
   return (
     <>
       <TopDivider />
       <ComponentContainer>
         <TotalCostContainer>
           <TotalText variant="subtitle2">Total Costs</TotalText>
-          <TotalText variant="subtitle2">{totalCost}</TotalText>
+          <TotalText variant="subtitle2">{totalCostFormatted}</TotalText>
         </TotalCostContainer>
         <CostDivider />
         <BreakdownContainer>
@@ -115,7 +109,7 @@ const CostBreakdown = ({ outing }: { outing: Outing }) => {
               <>
                 <LineItemText>{charge.costName}</LineItemText>
                 <LineItemText>...</LineItemText>
-                <LineItemText bold={charge.costValue === "FREE"}>{charge.costValue}</LineItemText>
+                <LineItemText bold={charge.costValue === FREE}>{charge.costValue}</LineItemText>
               </>
             ))}
           </LineItemContainer>

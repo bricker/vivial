@@ -4,7 +4,7 @@ import {
   type OutingPreferences,
   type RestaurantCategory,
 } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute } from "$eave-dashboard/js/routes";
+import { AppRoute, DateSurveyPageVariant, SearchParam, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 
 import {
@@ -14,13 +14,12 @@ import {
   useUpdateOutingPreferencesMutation,
 } from "$eave-dashboard/js/store/slices/coreApiSlice";
 
-import { plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
+import { chosePreferences, plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
-import { getVisitorId } from "$eave-dashboard/js/analytics/segment";
 import { Breakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
@@ -35,8 +34,8 @@ import EditPreferencesOption from "./Options/EditPreferencesOption";
 import LoadingView from "./Views/LoadingView";
 import PreferencesView from "./Views/PreferencesView";
 
-import { DateSurveyPageVariant } from "./constants";
-import { getInitialStartTime, getPreferenceInputs } from "./helpers";
+import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
+import { getInitialStartTime } from "./helpers";
 
 const PageContainer = styled("div")(({ theme }) => ({
   padding: "24px 16px",
@@ -82,26 +81,20 @@ const TitleCopy = styled(Typography)(({ theme }) => ({
 
 const CityCopy = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.secondary,
-  fontSize: rem("14px"),
-  lineHeight: rem("18px"),
+  fontSize: rem(14),
+  lineHeight: rem(18),
   marginBottom: 8,
   [theme.breakpoints.up(Breakpoint.Medium)]: {
     border: `1px solid ${theme.palette.primary.main}`,
     color: theme.palette.text.primary,
     display: "inline-block",
     borderRadius: "92.929px",
-    fontSize: rem("18.586px"),
-    lineHeight: rem("23x"),
+    fontSize: rem(18.586),
+    lineHeight: rem(23),
     padding: "10px 20px",
     marginBottom: 24,
     fontWeight: 700,
   },
-}));
-
-const ErrorCopy = styled(Typography)(({ theme }) => ({
-  color: theme.palette.error.main,
-  margin: "16px 0px",
-  padding: "0px 24px",
 }));
 
 const DateSurveyContainer = styled(Paper)(({ theme }) => ({
@@ -131,7 +124,7 @@ const DateSurveyPage = () => {
   const [outingPreferences, setOutingPreferences] = useState<OutingPreferences | null>(null);
   const [partnerPreferences, setPartnerPreferences] = useState<OutingPreferences | null>(null);
   const [outingPreferencesOpen, setOutingPreferencesOpen] = useState(
-    searchParams.get("v") === DateSurveyPageVariant.PreferencesOpen,
+    searchParams.get(SearchParam.variant) === DateSurveyPageVariant.PreferencesOpen,
   );
   const [partnerPreferencesOpen, setPartnerPreferencesOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -146,16 +139,16 @@ const DateSurveyPage = () => {
       outingPreferencesData?.activityCategoryGroups,
       outingPreferencesData?.restaurantCategories,
     );
-    const input = {
-      startTime: startTime.toISOString(),
-      visitorId: await getVisitorId(),
-      groupPreferences,
-      budget,
-      headcount,
-      searchAreaIds,
-    };
-    await planOuting({ input });
-  }, [isLoggedIn, outingPreferencesData, budget, headcount, searchAreaIds, startTime]);
+    await planOuting({
+      input: {
+        startTime: startTime.toISOString(),
+        groupPreferences,
+        budget,
+        headcount,
+        searchAreaIds,
+      },
+    });
+  }, [outingPreferencesData, outingPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime]);
 
   const handleSubmitPreferences = useCallback(
     async (restaurantCategories: RestaurantCategory[], activityCategories: ActivityCategory[]) => {
@@ -208,12 +201,18 @@ const DateSurveyPage = () => {
       if (planOutingData.planOuting?.__typename === "PlanOutingSuccess") {
         const outing = planOutingData.planOuting.outing;
         dispatch(plannedOuting({ outing }));
-        navigate(`${AppRoute.itinerary}/${outing.id}`);
+        dispatch(
+          chosePreferences({
+            user: outingPreferences,
+            partner: partnerPreferences,
+          }),
+        );
+        navigate(routePath(AppRoute.itinerary, { outingId: outing.id }));
       } else {
         setErrorMessage("There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.");
       }
     }
-  }, [planOutingData]);
+  }, [planOutingData, outingPreferences, partnerPreferences]);
 
   useEffect(() => {
     if (searchRegionsData?.searchRegions) {
@@ -227,6 +226,13 @@ const DateSurveyPage = () => {
       setOutingPreferences(viewer.outingPreferences);
     }
   }, [outingPreferencesData]);
+
+  useEffect(() => {
+    const redirectPath = searchParams.get(SearchParam.redirect);
+    if (redirectPath) {
+      navigate(redirectPath);
+    }
+  }, [searchParams]);
 
   if (searchRegionsAreLoading) {
     return <LoadingView />;
@@ -293,10 +299,10 @@ const DateSurveyPage = () => {
             onSelectBudget={handleSelectBudget}
             onSelectStartTime={toggleDatePickerOpen}
             onSelectSearchArea={toggleAreasOpen}
+            errorMessage={errorMessage}
             loading={planOutingLoading}
           />
         </DateSurveyContainer>
-        {errorMessage && <ErrorCopy>ERROR: {errorMessage}</ErrorCopy>}
       </PageContentContainer>
       <Modal title="Where in LA?" onClose={toggleAreasOpen} open={areasOpen}>
         <DateAreaSelections cta="Save" onSubmit={handleSelectSearchAreas} regions={searchRegionsData?.searchRegions} />

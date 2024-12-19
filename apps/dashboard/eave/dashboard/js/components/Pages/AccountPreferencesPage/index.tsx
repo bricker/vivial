@@ -17,6 +17,8 @@ import LoadingView from "./LoadingView";
 
 const PageContainer = styled("div")(() => ({
   padding: "12px 16px 102px",
+  maxWidth: 600,
+  margin: "0 auto",
 }));
 
 const CopyContainer = styled(Paper)(() => ({

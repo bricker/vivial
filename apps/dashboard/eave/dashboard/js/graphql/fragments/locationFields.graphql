@@ -1,0 +1,13 @@
+fragment LocationFields on Location {
+  directionsUri
+  coordinates {
+    lat
+    lon
+  }
+  address {
+    ...AddressFields
+  }
+  searchRegion {
+    ...SearchRegionFields
+  }
+}

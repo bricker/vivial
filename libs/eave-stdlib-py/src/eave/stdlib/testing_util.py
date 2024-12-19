@@ -9,6 +9,7 @@ import time
 import unittest.mock
 import uuid
 import zoneinfo
+from collections.abc import AsyncIterator
 from datetime import datetime, timedelta, tzinfo
 from math import floor
 from typing import Any, Literal, TypeVar
@@ -28,7 +29,12 @@ import eave.stdlib.http_exceptions
 import eave.stdlib.util
 from eave.stdlib.checksum import generate_checksum
 from eave.stdlib.config import SHARED_CONFIG
-from eave.stdlib.logging import LogContext
+from eave.stdlib.eventbrite.models.event import Event, EventStatus
+from eave.stdlib.eventbrite.models.logo import Logo
+from eave.stdlib.eventbrite.models.shared import Address, CurrencyCost, MultipartText
+from eave.stdlib.eventbrite.models.ticket_availability import TicketAvailability
+from eave.stdlib.eventbrite.models.ticket_class import TicketClass
+from eave.stdlib.eventbrite.models.venue import Venue
 from eave.stdlib.time import ONE_YEAR_IN_SECONDS
 from eave.stdlib.typing import JsonObject
 
@@ -38,12 +44,12 @@ M = TypeVar("M", bound=unittest.mock.Mock)
 
 # This should only be used in testing - it is inefficient
 _AVAILABLE_TIMEZONES = list(zoneinfo.available_timezones())
+_ALPHAS = "abcdefghijklmnopqrstuvwxyz" * 100
 
 
 class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     testdata: dict[str, Any]
     active_mocks: dict[str, unittest.mock.Mock]
-    empty_ctx: LogContext
     _active_patches: dict[str, unittest.mock._patch]
     _active_patched_dicts: dict[str, unittest.mock._patch_dict]
 
@@ -60,12 +66,13 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self) -> None:
         await super().asyncSetUp()
 
-        self.empty_ctx = LogContext()
         SHARED_CONFIG.reset_cached_properties()
-        self.mock_google_services()
-        self.mock_slack_client()
-        self.mock_eventbrite()
-        self.mock_sendgrid_client()
+        self._add_google_secret_manager_mocks()
+        self._add_google_kms_mocks()
+        self._add_slack_client_mocks()
+        self._add_eventbrite_client_mocks()
+        self._add_sendgrid_client_mocks()
+        self._add_segment_client_mocks()
 
     async def asyncTearDown(self) -> None:
         await super().asyncTearDown()
@@ -99,6 +106,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
         if not name:
             name = uuid.uuid4().hex
 
+        assert name not in self.testdata, f"test value {name} has already been set. "
         return name
 
     def anydatetime(
@@ -165,7 +173,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def getpath(self, name: str) -> str:
         return self.getstr(name)
 
-    def anystr(self, name: str | None = None, *, staticvalue: str | None = None) -> str:
+    def anystr(self, name: str | None = None, *, staticvalue: str | None = None, length: int | None = None) -> str:
         name = self._make_testdata_name(name)
 
         if staticvalue is None:
@@ -272,8 +280,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
     def anyalpha(self, name: str | None = None, *, length: int = 10) -> str:
         name = self._make_testdata_name(name)
 
-        alphas = "abcdefghijklmnopqrstuvwxyz"
-        data = "".join(random.sample(alphas, k=length))
+        data = "".join(random.sample(_ALPHAS, k=length))
         self.testdata[name] = data
         return self.getalpha(name)
 
@@ -440,7 +447,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
             return passing
 
-    def mock_google_services(self) -> None:
+    def _add_google_secret_manager_mocks(self) -> None:
         def _access_secret_version(
             request: AccessSecretVersionRequest | dict | None = None, *, name: str | None = None, **kwargs: Any
         ) -> AccessSecretVersionResponse:
@@ -471,6 +478,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             )
         )
 
+    def _add_google_kms_mocks(self) -> None:
         def _mac_sign(request: MacSignRequest) -> MacSignResponse:
             mac = self.anybytes()
             return MacSignResponse(
@@ -516,26 +524,130 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
             )
         )
 
-    def mock_slack_client(self) -> None:
+    def _add_slack_client_mocks(self) -> None:
         self.patch(
             name="slack client",
             patch=unittest.mock.patch("slack_sdk.web.async_client.AsyncWebClient.chat_postMessage"),
             return_value={},
         )
 
-    def mock_eventbrite(self) -> None:
+    def _add_segment_client_mocks(self) -> None:
+        def _mocked_sendgrid_track(*args: Any, **kwargs: Any) -> Any:
+            pass
+
+        self.patch(
+            name="segment.analytics.track",
+            patch=unittest.mock.patch("segment.analytics.track"),
+            side_effect=_mocked_sendgrid_track,
+        )
+
+        def _mocked_sendgrid_identify(*args: Any, **kwargs: Any) -> Any:
+            pass
+
+        self.patch(
+            name="segment.analytics.identify",
+            patch=unittest.mock.patch("segment.analytics.identify"),
+            side_effect=_mocked_sendgrid_identify,
+        )
+
+    mock_eventbrite_event: Event
+    mock_eventbrite_ticket_class_batch: list[TicketClass]
+
+    def get_mock_eventbrite_ticket_class_batch_cost(self) -> int:
+        # These checks are just for the typechecker
+        cost = self.mock_eventbrite_ticket_class_batch[0].get("cost")
+        fee = self.mock_eventbrite_ticket_class_batch[0].get("fee")
+        tax = self.mock_eventbrite_ticket_class_batch[0].get("tax")
+        assert cost and tax and fee
+
+        return cost["value"] + fee["value"] + tax["value"]
+
+    def _add_eventbrite_client_mocks(self) -> None:
+        self.mock_eventbrite_event = Event(
+            id=self.anydigits("eventbrite.Event.id"),
+            name=MultipartText(
+                text=self.anystr("eventbrite.Event.name.text"),
+                html=self.anystr("eventbrite.Event.name.html"),
+            ),
+            status=EventStatus.LIVE,
+            venue=Venue(
+                address=Address(),
+                latitude=str(self.anylatitude("eventbrite.Venue.latitude")),
+                longitude=str(self.anylongitude("eventbrite.Venue.longitude")),
+                name=self.anystr("eventbrite.Venue.name"),
+            ),
+            ticket_availability=TicketAvailability(
+                has_available_tickets=True,
+            ),
+            logo=Logo(
+                id=self.anydigits("eventbrite.Logo.id"),
+                url=self.anyurl("eventbrite.Logo.url"),
+            ),
+            changed=self.anydatetime().isoformat(),
+            created=self.anydatetime().isoformat(),
+        )
+
+        async def _mocked_eventbrite_get_event_by_id(**kwargs: Any) -> Event:
+            return self.mock_eventbrite_event
+
         self.patch(
             name="eventbrite get_event_by_id",
             patch=unittest.mock.patch("eave.stdlib.eventbrite.client.EventbriteClient.get_event_by_id"),
-            return_value={},
+            side_effect=_mocked_eventbrite_get_event_by_id,
         )
+
+        self.mock_eventbrite_ticket_class_batch = [
+            TicketClass(
+                id=self.anydigits("eventbrite.TicketClass.0.id"),
+                cost=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=self.anyint("eventbrite.TicketClass.0.cost.value"),
+                ),
+                fee=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=self.anyint("eventbrite.TicketClass.0.fee.value"),
+                ),
+                tax=CurrencyCost(
+                    currency="usd",
+                    display=self.anystr(),
+                    major_value=self.anystr(),
+                    value=self.anyint("eventbrite.TicketClass.0.tax.value"),
+                ),
+            )
+        ]
+
+        async def _mocked_eventbrite_list_ticket_classes_for_sale_for_event(
+            **kwargs: Any,
+        ) -> AsyncIterator[list[TicketClass]]:
+            yield self.mock_eventbrite_ticket_class_batch
+
+        self.patch(
+            name="EventbriteClient.list_ticket_classes_for_sale_for_event",
+            patch=unittest.mock.patch(
+                "eave.stdlib.eventbrite.client.EventbriteClient.list_ticket_classes_for_sale_for_event"
+            ),
+            side_effect=_mocked_eventbrite_list_ticket_classes_for_sale_for_event,
+        )
+
+        mock_eventbrite_description = MultipartText(
+            text=self.anystr("eventbrite.EventDescription.text"),
+            html=self.anystr("eventbrite.EventDescription.html"),
+        )
+
+        async def _mocked_eventbrite_get_event_description(**kwargs: Any) -> MultipartText:
+            return mock_eventbrite_description
+
         self.patch(
             name="eventbrite get_event_description",
             patch=unittest.mock.patch("eave.stdlib.eventbrite.client.EventbriteClient.get_event_description"),
-            return_value="description",
+            side_effect=_mocked_eventbrite_get_event_description,
         )
 
-    def mock_sendgrid_client(self) -> None:
+    def _add_sendgrid_client_mocks(self) -> None:
         self.patch(
             name="SendGridAPIClient.send",
             patch=unittest.mock.patch(

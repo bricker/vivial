@@ -1,13 +1,12 @@
 from datetime import datetime
-from typing import Self
-from uuid import UUID
+from typing import Any, Self
 
-from sqlalchemy import MetaData, Select, func, select
+from sqlalchemy import Select, event, func, select
 from sqlalchemy.dialects.postgresql import TIMESTAMP
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, Session, UOWTransaction, mapped_column
 
 from eave.core.shared.errors import ValidationError
+from eave.stdlib.logging import LOGGER
 
 
 class InvalidRecordError(Exception):
@@ -25,19 +24,6 @@ class Base(DeclarativeBase):
         type_=TIMESTAMP(timezone=True), server_default=None, onupdate=func.current_timestamp()
     )
 
-    async def save(self, session: AsyncSession) -> Self:
-        validation_errors = self.validate()
-        if len(validation_errors) > 0:
-            raise InvalidRecordError(validation_errors)
-
-        session.add(self)
-        await session.flush()
-        return self
-
-    @classmethod
-    async def get_one(cls, session: AsyncSession, id: UUID | tuple[UUID, ...]) -> Self:
-        return await session.get_one(cls, id)
-
     @classmethod
     def select(cls) -> Select[tuple[Self]]:
         return select(cls)
@@ -46,30 +32,34 @@ class Base(DeclarativeBase):
         return []
 
 
-def _load_all() -> None:
+@event.listens_for(Session, "before_flush")
+def validate_session(session: Session, flush_context: UOWTransaction, instances: Any) -> None:
     """
-    This is meant to be used for scripts (eg Alembic or tests), where Base.metadata has to be fully populated.
+    Validates all the records before a flush occurs.
+    This is done only on flush, because if done earlier (like when an object is added to the session),
+    it's possible that the object will become invalid before flush. Like in this scenario:
+
+    account = Account(email: "bryan@eave.fyi", plaintext_password: "unsafe0!")
+    session.add(account)
+    account.email = "invalid email"
+
+    The caveat is that the whole session must be wrapped in try/catch, otherwise the validation errors won't be caught.
+    This does have the benefit of validating everything at once, so the client will receive all validation errors.
     """
-    import importlib
-    import os
+    validation_errors: list[ValidationError] = []
 
-    dirname = os.path.dirname(os.path.abspath(__file__))
-    dirents = os.listdir(dirname)
+    try:
+        for obj in session.dirty:
+            if isinstance(obj, Base):
+                validation_errors.extend(obj.validate())
 
-    for f in dirents:
-        fname, ext = os.path.splitext(f)
+        for obj in session.new:
+            if isinstance(obj, Base):
+                validation_errors.extend(obj.validate())
 
-        if ext == ".py" and f not in {"__init__.py", "base.py"}:
-            importlib.import_module(f"eave.core.orm.{fname}")
+    except Exception as e:
+        # If there was some unexpected error during validation, then don't prevent the SQL operation
+        LOGGER.exception(e)
 
-
-_base_metadata: MetaData | None = None
-
-
-def get_base_metadata() -> MetaData:
-    global _base_metadata
-    if _base_metadata is None:
-        _load_all()
-        _base_metadata = Base.metadata
-
-    return _base_metadata
+    if len(validation_errors) > 0:
+        raise InvalidRecordError(validation_errors=validation_errors)

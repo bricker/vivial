@@ -42,17 +42,15 @@ async def update_account_mutation(
     *, info: strawberry.Info[GraphQLContext], input: UpdateAccountInput
 ) -> UpdateAccountResult:
     account_id = unwrap(info.context.get("authenticated_account_id"))
+
     try:
         async with database.async_session.begin() as db_session:
-            account = await AccountOrm.get_one(
-                session=db_session,
-                id=account_id,
-            )
+            account = await AccountOrm.get_one(db_session, account_id)
+
             if input.email:
                 account.email = input.email
             if input.plaintext_password:
-                account.set_password(input.plaintext_password)
-            await account.save(db_session)
+                account.set_password(plaintext_password=input.plaintext_password)
 
         return UpdateAccountSuccess(account=Account.from_orm(account))
 

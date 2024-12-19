@@ -53,3 +53,18 @@ class OutingBudget(MatchedStrEnum):
                 return PriceLevel.PRICE_LEVEL_EXPENSIVE
             case OutingBudget.VERY_EXPENSIVE:
                 return PriceLevel.PRICE_LEVEL_VERY_EXPENSIVE
+
+
+@strawberry.enum
+class BookingState(MatchedStrEnum):
+    INITIATED = enum.auto()
+    """The user clicked the "Book" button and initiated the flow."""
+
+    CONFIRMED = enum.auto()
+    """The user finished the booking flow, including any necessary payment (authorization)"""
+
+    BOOKED = enum.auto()
+    """Vivial booked the outing"""
+
+    CANCELED = enum.auto()
+    """Vivial canceled the booking"""

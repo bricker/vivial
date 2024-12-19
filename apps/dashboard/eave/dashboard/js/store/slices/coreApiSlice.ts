@@ -2,9 +2,10 @@ import { CORE_API_BASE } from "$eave-dashboard/js/util/http";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import {
+  BookingDetailsDocument,
+  ConfirmBookingDocument,
   CreateAccountDocument,
-  CreateBookingDocument,
-  CreatePaymentIntentDocument,
+  InitiateBookingDocument,
   ListBookedOutingsDocument,
   ListBookedOutingsQuery,
   ListBookedOutingsQueryVariables,
@@ -15,7 +16,6 @@ import {
   OutingQuery,
   OutingQueryVariables,
   PlanOutingDocument,
-  ReplanOutingDocument,
   SearchRegionsDocument,
   StripePortalDocument,
   StripePortalQuery,
@@ -24,6 +24,7 @@ import {
   UpdateAccountDocument,
   UpdateAccountMutation,
   UpdateAccountMutationVariables,
+  UpdateBookingDocument,
   UpdateOutingPreferencesDocument,
   UpdateOutingPreferencesMutation,
   UpdateOutingPreferencesMutationVariables,
@@ -31,12 +32,14 @@ import {
   UpdateReserverDetailsDocument,
   UpdateReserverDetailsMutation,
   UpdateReserverDetailsMutationVariables,
+  type BookingDetailsQuery,
+  type BookingDetailsQueryVariables,
+  type ConfirmBookingMutation,
+  type ConfirmBookingMutationVariables,
   type CreateAccountMutation,
   type CreateAccountMutationVariables,
-  type CreateBookingMutation,
-  type CreateBookingMutationVariables,
-  type CreatePaymentIntentMutation,
-  type CreatePaymentIntentMutationVariables,
+  type InitiateBookingMutation,
+  type InitiateBookingMutationVariables,
   type ListReserverDetailsQuery,
   type ListReserverDetailsQueryVariables,
   type LoginMutation,
@@ -45,12 +48,12 @@ import {
   type OutingPreferencesQueryVariables,
   type PlanOutingMutation,
   type PlanOutingMutationVariables,
-  type ReplanOutingMutation,
-  type ReplanOutingMutationVariables,
   type SearchRegionsQuery,
   type SearchRegionsQueryVariables,
   type SubmitReserverDetailsMutation,
   type SubmitReserverDetailsMutationVariables,
+  type UpdateBookingMutation,
+  type UpdateBookingMutationVariables,
   type UpdateReserverDetailsAccountMutation,
   type UpdateReserverDetailsAccountMutationVariables,
 } from "$eave-dashboard/js/graphql/generated/graphql";
@@ -89,6 +92,13 @@ export const coreApiSlice = createApi({
     listBookedOutings: builder.query<ListBookedOutingsQuery, ListBookedOutingsQueryVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: ListBookedOutingsDocument, variables });
+        return { data };
+      },
+    }),
+
+    getBookingDetials: builder.query<BookingDetailsQuery, BookingDetailsQueryVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: BookingDetailsDocument, variables });
         return { data };
       },
     }),
@@ -141,13 +151,6 @@ export const coreApiSlice = createApi({
       },
     }),
 
-    createPaymentIntent: builder.mutation<CreatePaymentIntentMutation, CreatePaymentIntentMutationVariables>({
-      async queryFn(variables, _api, _extraOptions, _baseQuery) {
-        const data = await executeOperation({ query: CreatePaymentIntentDocument, variables });
-        return { data };
-      },
-    }),
-
     submitReserverDetails: builder.mutation<SubmitReserverDetailsMutation, SubmitReserverDetailsMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: SubmitReserverDetailsDocument, variables });
@@ -180,16 +183,23 @@ export const coreApiSlice = createApi({
       },
     }),
 
-    replanOuting: builder.mutation<ReplanOutingMutation, ReplanOutingMutationVariables>({
+    initiateBooking: builder.mutation<InitiateBookingMutation, InitiateBookingMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
-        const data = await executeOperation({ query: ReplanOutingDocument, variables });
+        const data = await executeOperation({ query: InitiateBookingDocument, variables });
         return { data };
       },
     }),
 
-    createBooking: builder.mutation<CreateBookingMutation, CreateBookingMutationVariables>({
+    updateBooking: builder.mutation<UpdateBookingMutation, UpdateBookingMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
-        const data = await executeOperation({ query: CreateBookingDocument, variables });
+        const data = await executeOperation({ query: UpdateBookingDocument, variables });
+        return { data };
+      },
+    }),
+
+    confirmBooking: builder.mutation<ConfirmBookingMutation, ConfirmBookingMutationVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: ConfirmBookingDocument, variables });
         return { data };
       },
     }),
@@ -204,15 +214,17 @@ export const {
   useGetOutingPreferencesQuery,
   useGetOutingQuery,
   useGetStripePortalQuery,
+  useGetBookingDetailsQuery,
 
   // Core API GraphQL Mutation Hooks
   usePlanOutingMutation,
   useCreateAccountMutation,
   useLoginMutation,
-  useCreatePaymentIntentMutation,
   useUpdateReserverDetailsAccountMutation,
   useUpdateAccountMutation,
-  useCreateBookingMutation,
+  useInitiateBookingMutation,
+  useUpdateBookingMutation,
+  useConfirmBookingMutation,
   useUpdateReserverDetailsMutation,
   useSubmitReserverDetailsMutation,
   useUpdateOutingPreferencesMutation,

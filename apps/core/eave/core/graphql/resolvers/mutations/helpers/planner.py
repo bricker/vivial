@@ -8,15 +8,14 @@ from sqlalchemy import func
 
 import eave.core.database
 from eave.core.config import CORE_API_APP_CONFIG
-from eave.core.graphql.types.activity import Activity
+from eave.core.graphql.types.activity import Activity, ActivityPlan
+from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.outing import OutingPreferencesInput
-from eave.core.graphql.types.restaurant import Restaurant
-from eave.core.lib.eventbrite import activity_from_eventbrite_event
-from eave.core.lib.geo import Distance, GeoArea, GeoPoint
+from eave.core.graphql.types.restaurant import Reservation, Restaurant
+from eave.core.lib.eventbrite import get_eventbrite_activity
 from eave.core.lib.google_places import (
     activity_from_google_place,
     get_places_nearby,
-    place_is_in_budget,
     place_will_be_open,
     restaurant_from_google_place,
 )
@@ -26,6 +25,7 @@ from eave.core.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.orm.restaurant_category import MAGIC_BAR_RESTAURANT_CATEGORY_ID, RestaurantCategoryOrm
 from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.orm.survey import SurveyOrm
+from eave.core.shared.geo import Distance, GeoArea
 from eave.stdlib.eventbrite.client import EventbriteClient
 from eave.stdlib.logging import LOGGER
 
@@ -45,11 +45,9 @@ _BRUNCH_GOOGLE_RESTAURANT_CATEGORY_IDS = (
 
 @dataclass(kw_only=True)
 class PlannerResult:
-    activity: Activity | None
-    activity_start_time: datetime | None
-    restaurant: Restaurant | None
-    restaurant_arrival_time: datetime | None
-    driving_time: str | None
+    cost_breakdown: CostBreakdown
+    activity_plan: ActivityPlan | None
+    reservation: Reservation | None
 
 
 def _combine_restaurant_categories(individual_preferences: list[OutingPreferencesInput]) -> list[RestaurantCategoryOrm]:
@@ -196,8 +194,8 @@ class OutingPlanner:
 
         # CASE 1: Recommend an Eventbrite event.
         query = EventbriteEventOrm.select(
-            time_range_contains=start_time_local,
-            cost_range_contains=self.survey.budget.upper_limit_cents,
+            start_time=start_time_local,
+            up_to_cost_cents=self.survey.budget.upper_limit_cents,
             within_areas=within_areas,
             vivial_activity_category_ids=[cat.id for cat in self.group_activity_category_preferences],
         ).order_by(func.random())
@@ -207,11 +205,11 @@ class OutingPlanner:
 
             for event_orm in results:
                 try:
-                    eventbrite_event = await self.eventbrite_client.get_event_by_id(
-                        event_id=event_orm.eventbrite_event_id
-                    )
-                    self.activity = await activity_from_eventbrite_event(self.eventbrite_client, event=eventbrite_event)
-                    return self.activity
+                    if activity := await get_eventbrite_activity(
+                        self.eventbrite_client, event_id=event_orm.eventbrite_event_id
+                    ):
+                        self.activity = activity
+                        return activity
                 except Exception as e:
                     LOGGER.exception(e)
                     continue
@@ -239,6 +237,9 @@ class OutingPlanner:
         is_evening = is_early_evening(self.survey.start_time_utc, self.survey.timezone) or is_late_evening(
             self.survey.start_time_utc, self.survey.timezone
         )
+
+        # If it's night time, then send them to either an ice cream shop or a bar, depending on the group preferences.
+        # Reminder that here we're recommending _activities_ not restaurants.
         place_type = "ice_cream_shop"
         if is_evening and self.group_open_to_bars:
             place_type = "bar"
@@ -261,9 +262,9 @@ class OutingPlanner:
                     departure_time=end_time_local,
                     timezone=self.survey.timezone,
                 )
-                is_in_budget = place_is_in_budget(place, self.survey.budget)
 
-                if will_be_open and is_in_budget:
+                # Select activities that are within (<=) their requested budget.
+                if will_be_open and place.price_level <= self.survey.budget.google_places_price_level:
                     self.activity = await activity_from_google_place(self.places_client, place=place)
                     return self.activity
 
@@ -296,13 +297,16 @@ class OutingPlanner:
                 gcid for cat in self.group_restaurant_category_preferences for gcid in cat.google_category_ids
             ]
 
+        if len(google_category_ids) == 0:
+            # If included_primary_types is empty, this query returns everything, like car rental places and junk.
+            self.restaurant = None
+            return self.restaurant
+
         # If an activity has been selected, use that as the search area.
         if self.activity:
             search_areas = [
                 GeoArea(
-                    center=GeoPoint(
-                        lat=self.activity.venue.location.latitude, lon=self.activity.venue.location.longitude
-                    ),
+                    center=self.activity.venue.location.coordinates,
                     rad=Distance(miles=5),
                 ),
             ]
@@ -328,9 +332,10 @@ class OutingPlanner:
                     departure_time=departure_time_local,
                     timezone=self.survey.timezone,
                 )
-                is_in_budget = place_is_in_budget(restaurant, self.survey.budget)
 
-                if will_be_open and is_in_budget:
+                # Select restaurants that _match_ their requested budget.
+                # So if they request an expensive date, we don't recommend McDonald's.
+                if will_be_open and restaurant.price_level == self.survey.budget.google_places_price_level:
                     self.restaurant = await restaurant_from_google_place(self.places_client, place=restaurant)
                     return self.restaurant
 
@@ -345,10 +350,33 @@ class OutingPlanner:
         """
         await self.plan_activity()
         await self.plan_restaurant()
+
+        total_cost_breakdown = CostBreakdown()
+
+        if self.activity and self.activity_start_time_local:
+            activity_plan = ActivityPlan(
+                activity=self.activity,
+                start_time=self.activity_start_time_local,
+                headcount=self.survey.headcount,
+            )
+
+            total_cost_breakdown += activity_plan.calculate_cost_breakdown()
+        else:
+            activity_plan = None
+
+        if self.restaurant and self.restaurant_arrival_time_local:
+            reservation = Reservation(
+                restaurant=self.restaurant,
+                arrival_time=self.restaurant_arrival_time_local,
+                headcount=self.survey.headcount,
+            )
+
+            total_cost_breakdown += reservation.calculate_cost_breakdown()
+        else:
+            reservation = None
+
         return PlannerResult(
-            activity=self.activity,
-            activity_start_time=self.activity_start_time_local,
-            restaurant=self.restaurant,
-            restaurant_arrival_time=self.restaurant_arrival_time_local,
-            driving_time=None,
+            cost_breakdown=total_cost_breakdown,
+            activity_plan=activity_plan,
+            reservation=reservation,
         )

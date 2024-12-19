@@ -21,7 +21,7 @@ const Footer = styled("footer")(() => ({
 
 const FootNote = styled("p")(({ theme }) => ({
   color: theme.palette.text.secondary,
-  fontSize: rem("12px"),
+  fontSize: rem(12),
   margin: 0,
   textAlign: "center",
 }));
@@ -36,8 +36,8 @@ const LegalButton = styled(Button)(({ theme }) => ({
   color: theme.palette.text.primary,
   textDecoration: "underline",
   minWidth: "auto",
-  fontSize: rem("12px"),
-  lineHeight: rem("15px"),
+  fontSize: rem(12),
+  lineHeight: rem(15),
   padding: "0 12px",
   "&:focus": {
     textDecoration: "underline",
@@ -84,7 +84,7 @@ const GlobalFooter = () => {
           <InstagramIcon />
         </SocialLink>
       </SocialContainer>
-      <FootNote>(C) {year} Vivial by Eave Technologies, Inc.</FootNote>
+      <FootNote>&copy; {year} Vivial by Eave Technologies, Inc.</FootNote>
       <FootNote>All rights reserved.</FootNote>
       <LegalContainer>
         <LegalButton onClick={handleTermsClick}>Terms</LegalButton>

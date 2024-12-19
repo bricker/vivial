@@ -1,0 +1,7 @@
+fragment BookingFields on Booking {
+  id
+  state
+  reserverDetails {
+    ...ReserverDetailsFields
+  }
+}
