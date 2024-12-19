@@ -25,13 +25,19 @@ const Stars = styled("div")(() => ({
 
 function starIterator(rating: number): number[] {
   const iterator: number[] = [];
-  let counter = Math.round(rating * 2) / 2; // rating rounded to nearest .5
-  while (counter >= 1) {
-    counter -= 1;
-    iterator.push(1);
-  }
-  if (counter) {
-    iterator.push(counter);
+  let ratingCounter = Math.round(rating * 2) / 2; // rating rounded to nearest .5
+  for (let i = 0; i < 5; i++) {
+    if (ratingCounter >= 1) {
+      iterator.push(1);
+      ratingCounter -= 1;
+      continue;
+    }
+    if (ratingCounter === 0.5) {
+      iterator.push(0.5);
+      ratingCounter = 0;
+      continue;
+    }
+    iterator.push(0);
   }
   return iterator;
 }
@@ -46,7 +52,7 @@ const RestaurantRating = ({ rating, ...props }: RestaurantRatingProps) => {
       <Rating>{rating}</Rating>
       <Stars>
         {starIterator(rating).map((starValue, i) => (
-          <StarIcon key={i} half={starValue === 0.5} />
+          <StarIcon key={i} half={starValue === 0.5} empty={starValue === 0} />
         ))}
       </Stars>
     </RatingContainer>
