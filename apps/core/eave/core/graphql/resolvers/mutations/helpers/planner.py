@@ -85,10 +85,11 @@ def _combine_restaurant_categories(individual_preferences: list[OutingPreference
     if len(result) == 0:
         # Failsafe - This should never happen
         LOGGER.warning("No restaurant categories could be resolved; falling back to defaults")
-        result = list(RestaurantCategoryOrm.defaults()) # Already a list, copying again for safety
+        result = list(RestaurantCategoryOrm.defaults())  # Already a list, copying again for safety
         random.shuffle(result)
 
     return result
+
 
 def _combine_activity_categories(individual_preferences: list[OutingPreferencesInput]) -> list[ActivityCategoryOrm]:
     """
@@ -124,7 +125,7 @@ def _combine_activity_categories(individual_preferences: list[OutingPreferencesI
     if len(result) == 0:
         # Failsafe - This should never happen
         LOGGER.warning("No activity categories could be resolved; falling back to defaults")
-        result = list(ActivityCategoryOrm.defaults()) # Already a list, copying again for safety
+        result = list(ActivityCategoryOrm.defaults())  # Already a list, copying again for safety
         random.shuffle(result)
 
     return result
@@ -210,9 +211,7 @@ class OutingPlanner:
         if len(within_areas) == 0:
             # Failsafe - This should never happen
             LOGGER.warning("No activity search areas categories could be resolved; falling back to defaults")
-            within_areas = [
-                region.area for region in SearchRegionOrm.all()
-            ]
+            within_areas = [region.area for region in SearchRegionOrm.all()]
 
         random.shuffle(within_areas)
 
@@ -317,7 +316,9 @@ class OutingPlanner:
             random.shuffle(google_category_ids)
         else:
             # Already randomized in combiner funcs
-            google_category_ids = RestaurantCategoryOrm.combine_google_category_ids(self.group_restaurant_category_preferences)
+            google_category_ids = RestaurantCategoryOrm.combine_google_category_ids(
+                self.group_restaurant_category_preferences
+            )
 
         if len(google_category_ids) == 0:
             # Failsafe - This should never happen

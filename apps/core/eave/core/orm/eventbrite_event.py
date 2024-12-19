@@ -31,7 +31,10 @@ class EventbriteEventOrm(Base, TimedEventMixin, CoordinatesMixin, GetOneByIdMixi
     vivial_activity_category_id: Mapped[UUID] = mapped_column()
     vivial_activity_format_id: Mapped[UUID] = mapped_column()
 
-    def __init__(self, session: AsyncSession | None, *,
+    def __init__(
+        self,
+        session: AsyncSession | None,
+        *,
         eventbrite_event_id: str,
         eventbrite_organizer_id: str,
         title: str,

@@ -1,6 +1,6 @@
-from datetime import datetime, timedelta
 import random
-from typing import Sequence
+from collections.abc import Sequence
+from datetime import datetime, timedelta
 from uuid import UUID
 
 from eave.core.orm.activity_category import ActivityCategoryOrm
@@ -162,20 +162,28 @@ class TestEventbriteEventOrm(BaseTestCase):
         return results
 
     async def test_eventbrite_event_query_start_time_20(self) -> None:
-        results = await self._setup_results(self.anydatetime("start_time", offset=ONE_DAY_IN_SECONDS), timedelta(minutes=-120),
+        results = await self._setup_results(
+            self.anydatetime("start_time", offset=ONE_DAY_IN_SECONDS),
+            timedelta(minutes=-120),
         )
         assert len(results) == 0
 
     async def test_eventbrite_event_query_start_time_21(self) -> None:
-        results = await self._setup_results(self.anydatetime("start_time", offset=ONE_DAY_IN_SECONDS), timedelta(minutes=120))
+        results = await self._setup_results(
+            self.anydatetime("start_time", offset=ONE_DAY_IN_SECONDS), timedelta(minutes=120)
+        )
         assert len(results) == 0
 
     async def test_eventbrite_event_query_start_time_22(self) -> None:
-        results = await self._setup_results(self.anydatetime("start_time", offset=ONE_DAY_IN_SECONDS), timedelta(minutes=15))
+        results = await self._setup_results(
+            self.anydatetime("start_time", offset=ONE_DAY_IN_SECONDS), timedelta(minutes=15)
+        )
         assert len(results) == 0
 
     async def test_eventbrite_event_query_start_time_23(self) -> None:
-        results = await self._setup_results(self.anydatetime("start_time", offset=ONE_DAY_IN_SECONDS), timedelta(minutes=-16))
+        results = await self._setup_results(
+            self.anydatetime("start_time", offset=ONE_DAY_IN_SECONDS), timedelta(minutes=-16)
+        )
         assert len(results) == 0
 
     async def test_eventbrite_event_query_start_time_1(self) -> None:
@@ -228,7 +236,7 @@ class TestEventbriteEventOrm(BaseTestCase):
 
     async def test_eventbrite_event_query_search_area(self) -> None:
         async with self.db_session.begin() as session:
-            obj = EventbriteEventOrm(
+            EventbriteEventOrm(
                 session,
                 eventbrite_event_id=self.anystr("eventbrite_event_id"),
                 eventbrite_organizer_id=self.anystr("eventbrite_organizer_id"),
@@ -335,7 +343,9 @@ class TestEventbriteEventOrm(BaseTestCase):
             assert qobj.coordinates_to_geopoint().lat == self.getlatitude("new lat")
             assert qobj.coordinates_to_geopoint().lon == self.getlatitude("new lon")
 
-    async def _setup_eventbrite_events_for_query_by_activity_category(self, activity_category_id: UUID) -> EventbriteEventOrm:
+    async def _setup_eventbrite_events_for_query_by_activity_category(
+        self, activity_category_id: UUID
+    ) -> EventbriteEventOrm:
         async with self.db_session.begin() as session:
             obj = EventbriteEventOrm(
                 session,
@@ -360,7 +370,9 @@ class TestEventbriteEventOrm(BaseTestCase):
         obj = await self._setup_eventbrite_events_for_query_by_activity_category(activity_category_id)
 
         async with self.db_session.begin() as session:
-            result = (await session.scalars(EventbriteEventOrm.select(vivial_activity_category_ids=[activity_category_id]))).all()
+            result = (
+                await session.scalars(EventbriteEventOrm.select(vivial_activity_category_ids=[activity_category_id]))
+            ).all()
             assert len(result) == 1
             assert result[0].id == obj.id
 
@@ -372,7 +384,9 @@ class TestEventbriteEventOrm(BaseTestCase):
         obj_2 = await self._setup_eventbrite_events_for_query_by_activity_category(activity_category_id_2)
 
         async with self.db_session.begin() as session:
-            result = (await session.scalars(EventbriteEventOrm.select(vivial_activity_category_ids=[activity_category_id_2]))).all()
+            result = (
+                await session.scalars(EventbriteEventOrm.select(vivial_activity_category_ids=[activity_category_id_2]))
+            ).all()
             assert len(result) == 1
             assert result[0].id == obj_2.id
 
@@ -386,7 +400,9 @@ class TestEventbriteEventOrm(BaseTestCase):
         obj_3 = await self._setup_eventbrite_events_for_query_by_activity_category(activity_category_id_2)
 
         async with self.db_session.begin() as session:
-            result = (await session.scalars(EventbriteEventOrm.select(vivial_activity_category_ids=[activity_category_id_2]))).all()
+            result = (
+                await session.scalars(EventbriteEventOrm.select(vivial_activity_category_ids=[activity_category_id_2]))
+            ).all()
             assert len(result) == 2
             assert result[0].id == obj_2.id
             assert result[1].id == obj_3.id
@@ -401,7 +417,13 @@ class TestEventbriteEventOrm(BaseTestCase):
         obj_4 = await self._setup_eventbrite_events_for_query_by_activity_category(activity_category_id_2)
 
         async with self.db_session.begin() as session:
-            result = (await session.scalars(EventbriteEventOrm.select(vivial_activity_category_ids=[activity_category_id_1, activity_category_id_2]))).all()
+            result = (
+                await session.scalars(
+                    EventbriteEventOrm.select(
+                        vivial_activity_category_ids=[activity_category_id_1, activity_category_id_2]
+                    )
+                )
+            ).all()
             assert len(result) == 4
             assert result[0].id == obj_1.id
             assert result[1].id == obj_2.id
@@ -415,7 +437,13 @@ class TestEventbriteEventOrm(BaseTestCase):
         obj_1 = await self._setup_eventbrite_events_for_query_by_activity_category(activity_category_id_1)
 
         async with self.db_session.begin() as session:
-            result = (await session.scalars(EventbriteEventOrm.select(vivial_activity_category_ids=[activity_category_id_1, activity_category_id_2]))).all()
+            result = (
+                await session.scalars(
+                    EventbriteEventOrm.select(
+                        vivial_activity_category_ids=[activity_category_id_1, activity_category_id_2]
+                    )
+                )
+            ).all()
             assert len(result) == 1
             assert result[0].id == obj_1.id
 
@@ -426,5 +454,7 @@ class TestEventbriteEventOrm(BaseTestCase):
         await self._setup_eventbrite_events_for_query_by_activity_category(activity_category_id_1)
 
         async with self.db_session.begin() as session:
-            result = (await session.scalars(EventbriteEventOrm.select(vivial_activity_category_ids=[activity_category_id_2]))).all()
+            result = (
+                await session.scalars(EventbriteEventOrm.select(vivial_activity_category_ids=[activity_category_id_2]))
+            ).all()
             assert len(result) == 0

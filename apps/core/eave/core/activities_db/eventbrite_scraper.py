@@ -1,5 +1,6 @@
 # isort: off
 
+import random
 import sys
 
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
@@ -227,7 +228,10 @@ _EVENTBRITE_ORGANIZER_IDS = {
 async def get_eventbrite_events() -> None:
     client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
 
-    for organizer_id in _EVENTBRITE_ORGANIZER_IDS:
+    organizer_ids_copy = list(_EVENTBRITE_ORGANIZER_IDS)
+    random.shuffle(organizer_ids_copy)
+
+    for organizer_id in organizer_ids_copy:
         paginator = client.list_events_for_organizer(
             organizer_id=organizer_id,
             query=ListEventsQuery(

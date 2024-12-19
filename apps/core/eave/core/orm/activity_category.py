@@ -14,7 +14,7 @@ class ActivityCategoryOrm:
 
     @classmethod
     def all(cls) -> list["ActivityCategoryOrm"]:
-        return list(_ACTIVITY_CATEGORIES_TABLE) # shallow copy
+        return list(_ACTIVITY_CATEGORIES_TABLE)  # shallow copy
 
     @classmethod
     def one_or_exception(cls, *, activity_category_id: UUID) -> "ActivityCategoryOrm":
@@ -34,7 +34,8 @@ class ActivityCategoryOrm:
 
     @classmethod
     def defaults(cls) -> list["ActivityCategoryOrm"]:
-        return list(_DEFAULT_ACTIVITY_CATEGORIES) # shallow copy
+        return list(_DEFAULT_ACTIVITY_CATEGORIES)  # shallow copy
+
 
 _ACTIVITY_CATEGORIES_TABLE = (
     ActivityCategoryOrm(
