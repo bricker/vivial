@@ -30,14 +30,12 @@ function starIterator(rating: number): number[] {
     if (ratingCounter >= 1) {
       iterator.push(1);
       ratingCounter -= 1;
-      continue;
-    }
-    if (ratingCounter === 0.5) {
+    } else if (ratingCounter === 0.5) {
       iterator.push(0.5);
       ratingCounter = 0;
-      continue;
+    } else {
+      iterator.push(0);
     }
-    iterator.push(0);
   }
   return iterator;
 }
