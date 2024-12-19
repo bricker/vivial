@@ -31,9 +31,38 @@ class EventbriteEventOrm(Base, TimedEventMixin, CoordinatesMixin, GetOneByIdMixi
     vivial_activity_category_id: Mapped[UUID] = mapped_column()
     vivial_activity_format_id: Mapped[UUID] = mapped_column()
 
-    def __init__(self, session: AsyncSession | None, *, eventbrite_event_id: str, eventbrite_organizer_id: str) -> None:
+    def __init__(
+        self,
+        session: AsyncSession | None,
+        *,
+        eventbrite_event_id: str,
+        eventbrite_organizer_id: str,
+        title: str,
+        start_time: datetime,
+        end_time: datetime | None,
+        timezone: ZoneInfo,
+        min_cost_cents: int,
+        max_cost_cents: int,
+        lat: float,
+        lon: float,
+        vivial_activity_category_id: UUID,
+        vivial_activity_format_id: UUID,
+    ) -> None:
         self.eventbrite_event_id = eventbrite_event_id
         self.eventbrite_organizer_id = eventbrite_organizer_id
+
+        self.update(
+            title=title,
+            start_time=start_time,
+            end_time=end_time,
+            timezone=timezone,
+            min_cost_cents=min_cost_cents,
+            max_cost_cents=max_cost_cents,
+            lat=lat,
+            lon=lon,
+            vivial_activity_category_id=vivial_activity_category_id,
+            vivial_activity_format_id=vivial_activity_format_id,
+        )
 
         if session:
             session.add(self)

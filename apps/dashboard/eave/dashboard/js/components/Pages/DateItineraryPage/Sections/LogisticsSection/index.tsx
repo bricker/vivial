@@ -121,6 +121,7 @@ const LogisticsSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         budget,
         headcount,
         searchAreaIds,
+        isReroll: true,
       },
     });
   }, [userPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime]);

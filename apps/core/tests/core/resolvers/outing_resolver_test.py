@@ -32,14 +32,10 @@ class TestOutingResolver(BaseTestCase):
         async with self.db_session.begin() as session:
             fetched_outing = await OutingOrm.get_one(session, UUID(data["id"]))
 
-        assert data["activity"]["sourceId"] == fetched_outing.activities[0].source_id
-        assert data["restaurant"]["sourceId"] == fetched_outing.reservations[0].source_id
+        assert data["activityPlan"]["activity"]["sourceId"] == fetched_outing.activities[0].source_id
+        assert data["reservation"]["restaurant"]["sourceId"] == fetched_outing.reservations[0].source_id
 
-        expected_total_cost = (
-            self.getint("eventbrite.TicketClass.0.cost.value")
-            + self.getint("eventbrite.TicketClass.0.fee.value")
-            + self.getint("eventbrite.TicketClass.0.tax.value")
-        ) * 2
+        expected_total_cost = self.get_mock_eventbrite_ticket_class_batch_cost() * 2
 
         assert data["costBreakdown"]["totalCostCents"] == expected_total_cost
 
@@ -68,14 +64,10 @@ class TestOutingResolver(BaseTestCase):
         async with self.db_session.begin() as session:
             fetched_outing = await OutingOrm.get_one(session, UUID(data["id"]))
 
-        assert data["activity"]["sourceId"] == fetched_outing.activities[0].source_id
-        assert data["restaurant"]["sourceId"] == fetched_outing.reservations[0].source_id
+        assert data["activityPlan"]["activity"]["sourceId"] == fetched_outing.activities[0].source_id
+        assert data["reservation"]["restaurant"]["sourceId"] == fetched_outing.reservations[0].source_id
 
-        expected_total_cost = (
-            self.getint("eventbrite.TicketClass.0.cost.value")
-            + self.getint("eventbrite.TicketClass.0.fee.value")
-            + self.getint("eventbrite.TicketClass.0.tax.value")
-        ) * 1
+        expected_total_cost = self.get_mock_eventbrite_ticket_class_batch_cost() * 1
 
         assert data["costBreakdown"]["totalCostCents"] == expected_total_cost
 
