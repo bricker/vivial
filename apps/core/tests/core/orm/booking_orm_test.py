@@ -5,6 +5,7 @@ from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, Bookin
 from eave.core.orm.stripe_payment_intent_reference import StripePaymentIntentReferenceOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.core.shared.geo import GeoPoint
+from eave.stdlib.time import ONE_DAY_IN_SECONDS, ONE_WEEK_IN_SECONDS
 
 from ..base import BaseTestCase
 
@@ -110,6 +111,152 @@ class TestBookingOrms(BaseTestCase):
             first_reservation = booking_fetched.reservations[0]
             assert first_reservation.id == booking_reservation.id
             assert first_reservation.booking.id == booking_new.id
+
+    async def test_booking_calculated_time_fields(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+
+            booking = BookingOrm(
+                session,
+                outing=outing,
+                accounts=[account],
+                reserver_details=None,
+                stripe_payment_intent_reference=None,
+            )
+
+            booking_activity_template1 = BookingActivityTemplateOrm(
+                session,
+                booking=booking,
+                name=self.anystr(),
+                start_time_utc=self.anydatetime(offset=ONE_WEEK_IN_SECONDS),
+                timezone=self.anytimezone("activity_timezone 1"),
+                photo_uri=self.anyurl(),
+                headcount=self.anyint(min=1, max=2),
+                coordinates=GeoPoint(
+                    lat=self.anylatitude(),
+                    lon=self.anylongitude(),
+                ),
+                external_booking_link=self.anyurl(),
+                source=ActivitySource.EVENTBRITE,
+                source_id=self.mock_eventbrite_event.get("id", "MISSING"),
+                address=Address(
+                    address1=self.anystr(),
+                    address2=self.anystr(),
+                    city=self.anystr(),
+                    country="US",
+                    state=self.anyusstate(),
+                    zip_code=self.anydigits(),
+                ),
+            )
+            booking.activities.append(booking_activity_template1)
+
+            booking_activity_template2 = BookingActivityTemplateOrm(
+                session,
+                booking=booking,
+                name=self.anystr(),
+                start_time_utc=self.anydatetime(offset=ONE_DAY_IN_SECONDS),
+                timezone=self.anytimezone(),
+                photo_uri=self.anyurl(),
+                headcount=self.anyint(min=1, max=2),
+                coordinates=GeoPoint(
+                    lat=self.anylatitude(),
+                    lon=self.anylongitude(),
+                ),
+                external_booking_link=self.anyurl(),
+                source=ActivitySource.EVENTBRITE,
+                source_id=self.mock_eventbrite_event.get("id", "MISSING"),
+                address=Address(
+                    address1=self.anystr(),
+                    address2=self.anystr(),
+                    city=self.anystr(),
+                    country="US",
+                    state=self.anyusstate(),
+                    zip_code=self.anydigits(),
+                ),
+            )
+            booking.activities.append(booking_activity_template2)
+
+            booking_reservation_template = BookingReservationTemplateOrm(
+                session,
+                booking=booking,
+                name=self.anystr(),
+                photo_uri=self.anyurl(),
+                start_time_utc=self.anydatetime(offset=ONE_DAY_IN_SECONDS * 3),
+                timezone=self.anytimezone(),
+                headcount=self.anyint(min=1, max=2),
+                coordinates=GeoPoint(
+                    lat=self.anylatitude(),
+                    lon=self.anylongitude(),
+                ),
+                external_booking_link=self.anyurl(),
+                source=RestaurantSource.GOOGLE_PLACES,
+                source_id=self.mock_google_place.id,
+                address=Address(
+                    address1=self.anystr(),
+                    address2=self.anystr(),
+                    city=self.anystr(),
+                    country="US",
+                    state=self.anyusstate(),
+                    zip_code=self.anydigits(),
+                ),
+            )
+            booking.reservations.append(booking_reservation_template)
+
+        assert booking.timezone == booking_activity_template1.timezone
+        assert booking.start_time_utc == booking_activity_template2.start_time_utc
+        assert booking.start_time_local == booking_activity_template2.start_time_local
+
+    async def test_booking_calculated_time_fields_without_activities(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+
+            booking = BookingOrm(
+                session,
+                outing=outing,
+                accounts=[account],
+                reserver_details=None,
+                stripe_payment_intent_reference=None,
+            )
+
+            booking_reservation_template = BookingReservationTemplateOrm(
+                session,
+                booking=booking,
+                name=self.anystr(),
+                photo_uri=self.anyurl(),
+                start_time_utc=self.anydatetime(offset=ONE_DAY_IN_SECONDS * 3),
+                timezone=self.anytimezone(),
+                headcount=self.anyint(min=1, max=2),
+                coordinates=GeoPoint(
+                    lat=self.anylatitude(),
+                    lon=self.anylongitude(),
+                ),
+                external_booking_link=self.anyurl(),
+                source=RestaurantSource.GOOGLE_PLACES,
+                source_id=self.mock_google_place.id,
+                address=Address(
+                    address1=self.anystr(),
+                    address2=self.anystr(),
+                    city=self.anystr(),
+                    country="US",
+                    state=self.anyusstate(),
+                    zip_code=self.anydigits(),
+                ),
+            )
+            booking.reservations.append(booking_reservation_template)
+
+        assert booking.timezone == booking_reservation_template.timezone
+        assert booking.start_time_utc == booking_reservation_template.start_time_utc
+        assert booking.start_time_local == booking_reservation_template.start_time_local
+
+    async def test_booking_start_time_utc(self) -> None:
+        self.fail()
+
+    async def test_booking_start_time_local(self) -> None:
+        self.fail()
 
     async def test_booking_account_select(self) -> None:
         async with self.db_session.begin() as session:

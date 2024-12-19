@@ -1,4 +1,4 @@
-import { AppRoute, SearchParam } from "$eave-dashboard/js/routes";
+import { AppRoute } from "$eave-dashboard/js/routes";
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 import { useConfirmBookingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { colors } from "$eave-dashboard/js/theme/colors";
@@ -6,7 +6,7 @@ import { imageUrl } from "$eave-dashboard/js/util/asset";
 import { CircularProgress, Divider, Typography, styled } from "@mui/material";
 import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import HighlightButton from "../../Buttons/HighlightButton";
 import CalendarCheckIcon from "../../Icons/CalendarCheckIcon";
 import LogoPill, { LogoPillAttributes, logos } from "../../LogoPill";
@@ -102,8 +102,6 @@ const confirmationOptions: ConfirmationOptionDetail[] = [
 ];
 
 const CheckoutCompletePage = () => {
-  const [searchParams] = useSearchParams();
-
   const params = useParams();
   const bookingId = params["bookingId"];
 
@@ -118,24 +116,14 @@ const CheckoutCompletePage = () => {
   const [confirmBooking, { isLoading: confirmBookingIsLoading, data: confirmBookingData, error: confirmBookingError }] =
     useConfirmBookingMutation();
 
-  const paymentIntentId = searchParams.get(SearchParam.stripePaymentIntentId);
-  const clientSecret = searchParams.get(SearchParam.stripePaymentIntentClientSecret);
+  // const paymentIntentId = searchParams.get(SearchParam.stripePaymentIntentId);
+  // const clientSecret = searchParams.get(SearchParam.stripePaymentIntentClientSecret);
   // const redirectStatus = searchParams.get(SearchParam.stripeRedirectStatus);
-
-  if (!paymentIntentId || !clientSecret) {
-    // TODO: Better error handling
-    console.error("missing required query params");
-    return null;
-  }
 
   useEffect(() => {
     void confirmBooking({
       input: {
         bookingId: bookingId,
-        paymentIntent: {
-          id: paymentIntentId,
-          clientSecret,
-        },
       },
     });
   }, []);

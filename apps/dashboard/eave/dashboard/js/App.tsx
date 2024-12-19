@@ -47,7 +47,7 @@ const App = () => {
           <Route path={AppRoute.root} element={<GlobalLayout />}>
             {/* always public routes */}
             <Route index element={<DateSurveyPage />} />
-            <Route path={`${AppRoute.itinerary}/:outingId`} element={<DateItineraryPage />} />
+            <Route path={AppRoute.itinerary} element={<DateItineraryPage />} />
             <Route path={AppRoute.terms} element={<TermsPage />} />
             <Route path={AppRoute.privacy} element={<PrivacyPage />} />
 
@@ -62,7 +62,7 @@ const App = () => {
             <Route element={<PrivateRoutes hasPermissions={!!isLoggedIn} redirectPath={AppRoute.login} />}>
               <Route path={AppRoute.account} element={<AccountPage />} />
               <Route path={AppRoute.plans} element={<PlansPage />} />
-              <Route path={`${AppRoute.plans}/:bookingId`} element={<BookingDetailsPage />} />
+              <Route path={AppRoute.planDetails} element={<BookingDetailsPage />} />
               <Route path={AppRoute.help} element={<HelpPage />} />
               <Route path={AppRoute.passwordReset} element={<PasswordResetPage />} />
               <Route path={AppRoute.accountPreferences} element={<AccountPreferencesPage />} />

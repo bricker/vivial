@@ -2,9 +2,6 @@ fragment BookingFields on Booking {
   id
   state
   reserverDetails {
-    id
-    firstName
-    lastName
-    phoneNumber
+    ...ReserverDetailsFields
   }
 }

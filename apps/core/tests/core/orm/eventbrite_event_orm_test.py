@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from eave.core.orm.eventbrite_event import EventbriteEventOrm
 from eave.core.shared.geo import Distance, GeoArea, GeoPoint
@@ -22,6 +22,7 @@ class TestEventbriteEventOrm(BaseTestCase):
                 start_time=self.anydatetime("start_time", past=True),
                 end_time=self.anydatetime("end_time", future=True),
                 timezone=self.anytimezone("timezone"),
+                min_cost_cents=self.anyint("min_cost", min=0, max=999),
                 max_cost_cents=self.anyint("max_cost", min=1000, max=9999),
                 lat=self.anylatitude("lat"),
                 lon=self.anylongitude("lon"),
@@ -38,8 +39,8 @@ class TestEventbriteEventOrm(BaseTestCase):
 
             assert obj.eventbrite_event_id == self.getstr("eventbrite_event_id")
             assert obj.eventbrite_organizer_id == self.getstr("eventbrite_organizer_id")
-            assert obj.time_range_utc.lower == self.getdatetime("start_time")
-            assert obj.time_range_utc.upper == self.getdatetime("end_time")
+            assert obj.start_time_utc == self.getdatetime("start_time")
+            assert obj.end_time_utc == self.getdatetime("end_time")
             assert obj.max_cost_cents == self.getint("max_cost")
             assert obj.timezone == self.gettimezone("timezone")
 
@@ -57,6 +58,7 @@ class TestEventbriteEventOrm(BaseTestCase):
                 start_time=self.anydatetime("start_time", past=True),
                 end_time=self.anydatetime("end_time", future=True),
                 timezone=self.anytimezone(),
+                min_cost_cents=self.anyint("min_cost", min=0, max=1999),
                 max_cost_cents=self.anyint("max_cost", min=2000, max=9999),
                 lat=self.anylatitude("lat"),
                 lon=self.anylongitude("lon"),
@@ -144,6 +146,7 @@ class TestEventbriteEventOrm(BaseTestCase):
                 start_time=self.anydatetime("start_time", offset=-ONE_DAY_IN_SECONDS),
                 end_time=self.anydatetime("end_time", offset=ONE_DAY_IN_SECONDS),
                 timezone=self.anytimezone(),
+                min_cost_cents=self.anyint("min_cost", min=0, max=1999),
                 max_cost_cents=self.anyint("max_cost", min=2000, max=9999),
                 lat=self.anylatitude("lat"),
                 lon=self.anylongitude("lon"),
@@ -153,7 +156,7 @@ class TestEventbriteEventOrm(BaseTestCase):
             results = (
                 await session.scalars(
                     EventbriteEventOrm.select(
-                        time_range_contains=self.getdatetime("start_time") - timedelta(minutes=1),  # out of range
+                        start_time=obj.start_time_utc - timedelta(minutes=120),  # out of range
                     )
                 )
             ).all()
@@ -163,7 +166,7 @@ class TestEventbriteEventOrm(BaseTestCase):
             results = (
                 await session.scalars(
                     EventbriteEventOrm.select(
-                        time_range_contains=self.getdatetime("end_time") + timedelta(minutes=1),  # out of range
+                        start_time=obj.start_time_utc + timedelta(minutes=120),  # out of range
                     )
                 )
             ).all()
@@ -173,28 +176,7 @@ class TestEventbriteEventOrm(BaseTestCase):
             results = (
                 await session.scalars(
                     EventbriteEventOrm.select(
-                        time_range_contains=self.getdatetime("start_time"),  # lower bound
-                    )
-                )
-            ).all()
-
-            assert len(results) == 1, "query failed, but expected 1 result"
-
-            results = (
-                await session.scalars(
-                    EventbriteEventOrm.select(
-                        time_range_contains=self.getdatetime("start_time")
-                        + timedelta(minutes=1),  # just inside of the lower bound
-                    )
-                )
-            ).all()
-
-            assert len(results) == 1, "query failed, but expected 1 result"
-
-            results = (
-                await session.scalars(
-                    EventbriteEventOrm.select(
-                        time_range_contains=self.getdatetime("end_time"),  # upper bound EXCLUSIVE
+                        start_time=obj.start_time_utc + timedelta(minutes=15),  # just barely out of range
                     )
                 )
             ).all()
@@ -204,13 +186,88 @@ class TestEventbriteEventOrm(BaseTestCase):
             results = (
                 await session.scalars(
                     EventbriteEventOrm.select(
-                        time_range_contains=self.getdatetime("end_time")
-                        - timedelta(minutes=1),  # just inside of the upper bound
+                        start_time=obj.start_time_utc - timedelta(minutes=16),  # just barely out of range
+                    )
+                )
+            ).all()
+
+            assert len(results) == 0, "query expected to fail, but found a result"
+
+            results = (
+                await session.scalars(
+                    EventbriteEventOrm.select(
+                        start_time=obj.start_time_utc,  # exact match
                     )
                 )
             ).all()
 
             assert len(results) == 1, "query failed, but expected 1 result"
+
+        # Test specific datetime scenarios
+        async with self.db_session.begin() as session:
+            session.add(obj)
+            obj.start_time_utc = datetime(2024, 12, 18, 10, 00)
+
+        async with self.db_session.begin() as session:
+            results = (
+                await session.scalars(
+                    EventbriteEventOrm.select(
+                        start_time=datetime(2024, 12, 18, 10, 45),
+                    )
+                )
+            ).all()
+
+            assert len(results) == 1, "query failed, but expected 1 result"
+
+            results = (
+                await session.scalars(
+                    EventbriteEventOrm.select(
+                        start_time=datetime(2024, 12, 18, 10, 14),
+                    )
+                )
+            ).all()
+
+            assert len(results) == 1, "query failed, but expected 1 result"
+
+        async with self.db_session.begin() as session:
+            session.add(obj)
+            obj.start_time_utc = datetime(2024, 12, 18, 10, 15)
+
+        async with self.db_session.begin() as session:
+            results = (
+                await session.scalars(
+                    EventbriteEventOrm.select(
+                        start_time=datetime(2024, 12, 18, 10, 10),
+                    )
+                )
+            ).all()
+
+            assert len(results) == 1, "query failed, but expected 1 result"
+
+        async with self.db_session.begin() as session:
+            session.add(obj)
+            obj.start_time_utc = datetime(2024, 12, 18, 10, 30)
+
+        async with self.db_session.begin() as session:
+            results = (
+                await session.scalars(
+                    EventbriteEventOrm.select(
+                        start_time=datetime(2024, 12, 18, 10, 15),
+                    )
+                )
+            ).all()
+
+            assert len(results) == 1, "query failed, but expected 1 result"
+
+            results = (
+                await session.scalars(
+                    EventbriteEventOrm.select(
+                        start_time=datetime(2024, 12, 18, 10, 45),
+                    )
+                )
+            ).all()
+
+            assert len(results) == 0, "query expected to fail, but found 1 result"
 
     async def test_query_search_area(self) -> None:
         async with self.db_session.begin() as session:
@@ -226,6 +283,7 @@ class TestEventbriteEventOrm(BaseTestCase):
                 start_time=self.anydatetime(past=True),
                 end_time=self.anydatetime(future=True),
                 timezone=self.anytimezone(),
+                min_cost_cents=0,
                 max_cost_cents=self.anyint(min=1000, max=9999),
                 lat=self.anylatitude("lat"),
                 lon=self.anylongitude("lon"),
@@ -275,6 +333,7 @@ class TestEventbriteEventOrm(BaseTestCase):
                 start_time=self.anydatetime("start_time", past=True),
                 end_time=self.anydatetime("end_time", future=True),
                 timezone=self.anytimezone(),
+                min_cost_cents=self.anyint("max_cost", min=0, max=999),
                 max_cost_cents=self.anyint("max_cost", min=1000, max=9999),
                 lat=self.anylatitude("lat"),
                 lon=self.anylongitude("lon"),
@@ -295,7 +354,8 @@ class TestEventbriteEventOrm(BaseTestCase):
                 vivial_activity_format_id=self.anyuuid("new vivial_activity_format_id"),
                 start_time=self.anydatetime("new start_time", past=True),
                 end_time=self.anydatetime("new end_time", future=True),
-                timezone=self.anytimezone(),
+                timezone=self.anytimezone("new timezone"),
+                min_cost_cents=self.anyint("new min_cost", min=0, max=999),
                 max_cost_cents=self.anyint("new max_cost", min=1000, max=9999),
                 lat=self.anylatitude("new lat"),
                 lon=self.anylongitude("new lon"),
@@ -314,5 +374,10 @@ class TestEventbriteEventOrm(BaseTestCase):
             assert qobj.title == self.getdatetime("new title")
             assert qobj.vivial_activity_category_id == self.getdatetime("new vivial_activity_category_id")
             assert qobj.vivial_activity_format_id == self.getdatetime("new vivial_activity_format_id")
-            assert qobj.time_range_utc.upper == self.getdatetime("new end_time")
+            assert qobj.start_time_utc == self.getdatetime("new start_time")
+            assert qobj.end_time_utc == self.getdatetime("new end_time")
             assert qobj.max_cost_cents == self.getint("new max_cost")
+            assert qobj.min_cost_cents == self.getint("new min_cost")
+            assert qobj.timezone == self.gettimezone("new timezone")
+            assert qobj.coordinates_to_geopoint().lat == self.getlatitude("new lat")
+            assert qobj.coordinates_to_geopoint().lon == self.getlatitude("new lon")

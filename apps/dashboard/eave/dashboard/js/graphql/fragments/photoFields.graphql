@@ -1,3 +1,12 @@
+fragment PhotosFields on Photos {
+  coverPhoto {
+    ...PhotoFields
+  }
+  supplementalPhotos {
+    ...PhotoFields
+  }
+}
+
 fragment PhotoFields on Photo {
   id
   src

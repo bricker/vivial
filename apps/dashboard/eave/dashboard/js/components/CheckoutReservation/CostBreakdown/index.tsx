@@ -1,5 +1,5 @@
 import { Outing, type BookingDetails } from "$eave-dashboard/js/graphql/generated/graphql";
-import { currencyFormatter } from "$eave-dashboard/js/util/currency";
+import { formatBaseCost, formatFeesAndTaxes, formatTotalCost } from "$eave-dashboard/js/util/currency";
 import { Divider, Typography, styled } from "@mui/material";
 import React from "react";
 
@@ -60,29 +60,26 @@ type Breakdown = { costName: string; costValue: string };
 function buildBreakdowns(outing: Outing | BookingDetails): Breakdown[] {
   const breakdown: Breakdown[] = [];
 
-  if (outing.restaurant) {
+  if (outing.reservation) {
     breakdown.push({
-      costName: outing.restaurant.name,
-      costValue: currencyFormatter.format(0),
+      costName: outing.reservation.restaurant.name,
+      costValue: formatBaseCost(outing.reservation.costBreakdown),
     });
   }
 
-  if (outing.activity?.ticketInfo) {
-    const costBreakdown = outing.activity.ticketInfo.costBreakdown;
-
+  if (outing.activityPlan) {
     breakdown.push({
-      costName: outing.activity.name,
-      costValue: currencyFormatter.format(costBreakdown.totalCostCents / 100),
+      costName: outing.activityPlan.activity.name,
+      costValue: formatBaseCost(outing.activityPlan.costBreakdown),
     });
+  }
 
-    if (costBreakdown.feeCents || costBreakdown.taxCents) {
-      const feesCents = costBreakdown.feeCents + costBreakdown.taxCents;
-
-      breakdown.push({
-        costName: "3rd party Service Fees & Taxes",
-        costValue: currencyFormatter.format(feesCents / 100),
-      });
-    }
+  const feesAndTaxesCents = outing.costBreakdown.feeCents + outing.costBreakdown.taxCents;
+  if (feesAndTaxesCents > 0) {
+    breakdown.push({
+      costName: "3rd party Service Fees & Taxes",
+      costValue: formatFeesAndTaxes(outing.costBreakdown),
+    });
   }
 
   breakdown.push({
@@ -94,9 +91,7 @@ function buildBreakdowns(outing: Outing | BookingDetails): Breakdown[] {
 }
 
 const CostBreakdown = ({ outing }: { outing: Outing | BookingDetails }) => {
-  const totalCostCents = outing.costBreakdown.totalCostCents;
-  const totalCostFormatted = currencyFormatter.format(totalCostCents / 100);
-
+  const totalCostFormatted = formatTotalCost(outing.costBreakdown);
   const breakdown = buildBreakdowns(outing);
 
   return (

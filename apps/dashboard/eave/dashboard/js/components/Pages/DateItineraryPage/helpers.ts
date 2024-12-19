@@ -36,9 +36,9 @@ export function getImgUrls(photos: Photos): string[] {
 }
 
 export function getTicketInfo(outing: Outing): string {
-  const activity = outing.activity;
+  const activity = outing.activityPlan?.activity;
   if (activity) {
-    const headcount = outing.survey?.headcount;
+    const headcount = outing.headcount;
     if (activity.source === ActivitySource.Eventbrite) {
       return `${headcount} Tickets`;
     }

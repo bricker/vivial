@@ -5,12 +5,11 @@ import strawberry
 
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.types.activity import Activity
+from eave.core.graphql.types.activity import ActivityPlan
 from eave.core.graphql.types.outing import (
     Outing,
 )
-from eave.core.graphql.types.pricing import CostBreakdown
-from eave.core.graphql.types.restaurant import Restaurant
+from eave.core.graphql.types.restaurant import Reservation
 from eave.core.graphql.types.survey import Survey
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.outing import OutingOrm
@@ -23,24 +22,20 @@ class OutingInput:
 
 async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: OutingInput) -> Outing | None:
     async with database.async_session.begin() as db_session:
-        outing = await OutingOrm.get_one(db_session, input.id)
+        outing_orm = await OutingOrm.get_one(db_session, input.id)
 
-    activity: Activity | None = None
-    restaurant: Restaurant | None = None
-    headcount = 0
-    activity_start_time: datetime | None = None
-    restaurant_arrival_time: datetime | None = None
-    cost_breakdown = CostBreakdown()
+    one_day_from_now = datetime.now(UTC) + timedelta(hours=24)
 
-    if len(outing.activities) > 0:
+    activity_plan: ActivityPlan | None = None
+    reservation: Reservation | None = None
+
+    if len(outing_orm.activities) > 0:
         # Currently the client only supports 1 activity per outing.
-        outing_activity_orm = outing.activities[0]
-        # This is a quick way to expire an outing URL 24 hours before the outing beings.
-        if outing_activity_orm.start_time_utc < (datetime.now(UTC) + timedelta(hours=24)):
-            return None
+        outing_activity_orm = outing_orm.activities[0]
 
-        headcount = max(headcount, outing_activity_orm.headcount)
-        activity_start_time = outing_activity_orm.start_time_local
+        # This is a quick way to expire an outing URL 24 hours before the outing beings.
+        if outing_activity_orm.start_time_utc < one_day_from_now:
+            return None
 
         activity = await get_activity(
             source=outing_activity_orm.source,
@@ -48,27 +43,34 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
         )
 
         if activity:
-            if activity.ticket_info:
-                cost_breakdown = activity.ticket_info.cost_breakdown * outing_activity_orm.headcount
+            activity_plan = ActivityPlan(
+                activity=activity,
+                headcount=outing_activity_orm.headcount,
+                start_time=outing_activity_orm.start_time_local,
+            )
 
-    if len(outing.reservations) > 0:
+    if len(outing_orm.reservations) > 0:
         # Currently the client only supports 1 restaurant per outing.
-        outing_reservation_orm = outing.reservations[0]
-        headcount = max(headcount, outing_reservation_orm.headcount)
-        restaurant_arrival_time = outing_reservation_orm.start_time_local
+        outing_reservation_orm = outing_orm.reservations[0]
+
+        # This is a quick way to expire an outing URL 24 hours before the outing beings.
+        if outing_reservation_orm.start_time_utc < one_day_from_now:
+            return None
 
         restaurant = await get_restaurant(
             source=outing_reservation_orm.source,
             source_id=outing_reservation_orm.source_id,
         )
 
+        reservation = Reservation(
+            restaurant=restaurant,
+            arrival_time=outing_reservation_orm.start_time_local,
+            headcount=outing_reservation_orm.headcount,
+        )
+
     return Outing(
-        id=outing.id,
-        survey=Survey.from_orm(outing.survey),
-        cost_breakdown=cost_breakdown,
-        activity=activity,
-        restaurant=restaurant,
-        driving_time=None,
-        activity_start_time=activity_start_time,
-        restaurant_arrival_time=restaurant_arrival_time,
+        id=outing_orm.id,
+        survey=Survey.from_orm(outing_orm.survey),
+        activity_plan=activity_plan,
+        reservation=reservation,
     )

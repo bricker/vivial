@@ -1,7 +1,7 @@
 import VivialLogo from "$eave-dashboard/js/components/Logo";
 import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
-import { getTotalCost } from "$eave-dashboard/js/util/currency";
+import { formatTotalCost } from "$eave-dashboard/js/util/currency";
 import { styled } from "@mui/material";
 
 import React, { useCallback } from "react";
@@ -23,20 +23,22 @@ const Cost = styled("span")(() => ({
 
 const ItineraryVariant = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
+  if (!outing) {
+    console.warn("No outing available in store.");
+    return null;
+  }
   const navigate = useNavigate();
 
   const handleBook = useCallback(() => {
-    if (outing) {
-      const reservePath = routePath(AppRoute.checkoutReserve, { outingId: outing.id });
-      navigate(reservePath);
-    }
+    const reservePath = routePath(AppRoute.checkoutReserve, { outingId: outing.id });
+    navigate(reservePath);
   }, [outing]);
 
   return (
     <Header>
       <VivialLogo hideText />
       <Typography variant="subtitle1">
-        Total: <Cost>{getTotalCost(outing)}</Cost>
+        Total: <Cost>{formatTotalCost(outing.costBreakdown)}</Cost>
       </Typography>
       <BookButton onClick={handleBook}>Book</BookButton>
     </Header>

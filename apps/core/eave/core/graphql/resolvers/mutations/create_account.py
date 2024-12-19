@@ -1,4 +1,5 @@
 import enum
+from textwrap import dedent
 from typing import Annotated
 
 import strawberry
@@ -12,6 +13,9 @@ from eave.core.mail import send_welcome_email
 from eave.core.orm.account import AccountOrm, WeakPasswordError
 from eave.core.orm.base import InvalidRecordError
 from eave.core.shared.errors import ValidationError
+from eave.stdlib.config import SHARED_CONFIG
+from eave.stdlib.logging import LOGGER
+from eave.stdlib.slack import get_authenticated_eave_system_slack_client
 
 
 @strawberry.input
@@ -81,7 +85,35 @@ async def create_account_mutation(
 
     set_new_auth_cookies(response=info.context["response"], account_id=new_account_orm.id)
 
+    # TODO: Send in offline queue
     send_welcome_email(to_emails=[new_account_orm.email])
+    await _notify_slack(account=new_account_orm)
 
     account = Account.from_orm(new_account_orm)
     return CreateAccountSuccess(account=account)
+
+
+async def _notify_slack(
+    *,
+    account: AccountOrm,
+) -> None:
+    try:
+        channel_id = SHARED_CONFIG.eave_slack_alerts_signups_channel_id
+        slack_client = get_authenticated_eave_system_slack_client()
+
+        if slack_client and channel_id:
+            slack_response = await slack_client.chat_postMessage(
+                channel=channel_id,
+                text=f"New account! {account.email}",
+            )
+
+            await slack_client.chat_postMessage(
+                channel=channel_id,
+                thread_ts=slack_response.get("ts"),
+                text=dedent(f"""
+                    - *Account ID*: `{account.id}`
+                    - *Email*: `{account.email}`
+                    """),
+            )
+    except Exception as e:
+        LOGGER.exception(e)

@@ -87,14 +87,12 @@ const EventbriteLogo = styled("img")(() => ({
 
 const ActivityViewExpanded = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
-  if (!outing) {
+  if (!outing || !outing.activityPlan) {
     return null;
   }
-  const startTime = new Date(outing.activityStartTime || "");
-  const activity = outing.activity;
-  if (!activity) {
-    return null;
-  }
+
+  const startTime = new Date(outing.activityPlan.startTime || "");
+  const activity = outing.activityPlan.activity;
   const address = activity.venue.location.address;
   const directionsUri = activity.venue.location.directionsUri;
 

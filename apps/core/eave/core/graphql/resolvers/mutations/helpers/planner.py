@@ -8,9 +8,10 @@ from sqlalchemy import func
 
 import eave.core.database
 from eave.core.config import CORE_API_APP_CONFIG
-from eave.core.graphql.types.activity import Activity
+from eave.core.graphql.types.activity import Activity, ActivityPlan
+from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.outing import OutingPreferencesInput
-from eave.core.graphql.types.restaurant import Restaurant
+from eave.core.graphql.types.restaurant import Reservation, Restaurant
 from eave.core.lib.eventbrite import get_eventbrite_activity
 from eave.core.lib.google_places import (
     activity_from_google_place,
@@ -44,11 +45,9 @@ _BRUNCH_GOOGLE_RESTAURANT_CATEGORY_IDS = (
 
 @dataclass(kw_only=True)
 class PlannerResult:
-    activity: Activity | None
-    activity_start_time: datetime | None
-    restaurant: Restaurant | None
-    restaurant_arrival_time: datetime | None
-    driving_time: str | None
+    cost_breakdown: CostBreakdown
+    activity_plan: ActivityPlan | None
+    reservation: Reservation | None
 
 
 def _combine_restaurant_categories(individual_preferences: list[OutingPreferencesInput]) -> list[RestaurantCategoryOrm]:
@@ -195,7 +194,7 @@ class OutingPlanner:
 
         # CASE 1: Recommend an Eventbrite event.
         query = EventbriteEventOrm.select(
-            time_range_contains=start_time_local,
+            start_time=start_time_local,
             up_to_cost_cents=self.survey.budget.upper_limit_cents,
             within_areas=within_areas,
             vivial_activity_category_ids=[cat.id for cat in self.group_activity_category_preferences],
@@ -298,6 +297,11 @@ class OutingPlanner:
                 gcid for cat in self.group_restaurant_category_preferences for gcid in cat.google_category_ids
             ]
 
+        if len(google_category_ids) == 0:
+            # If included_primary_types is empty, this query returns everything, like car rental places and junk.
+            self.restaurant = None
+            return self.restaurant
+
         # If an activity has been selected, use that as the search area.
         if self.activity:
             search_areas = [
@@ -346,10 +350,33 @@ class OutingPlanner:
         """
         await self.plan_activity()
         await self.plan_restaurant()
+
+        total_cost_breakdown = CostBreakdown()
+
+        if self.activity and self.activity_start_time_local:
+            activity_plan = ActivityPlan(
+                activity=self.activity,
+                start_time=self.activity_start_time_local,
+                headcount=self.survey.headcount,
+            )
+
+            total_cost_breakdown += activity_plan.calculate_cost_breakdown()
+        else:
+            activity_plan = None
+
+        if self.restaurant and self.restaurant_arrival_time_local:
+            reservation = Reservation(
+                restaurant=self.restaurant,
+                arrival_time=self.restaurant_arrival_time_local,
+                headcount=self.survey.headcount,
+            )
+
+            total_cost_breakdown += reservation.calculate_cost_breakdown()
+        else:
+            reservation = None
+
         return PlannerResult(
-            activity=self.activity,
-            activity_start_time=self.activity_start_time_local,
-            restaurant=self.restaurant,
-            restaurant_arrival_time=self.restaurant_arrival_time_local,
-            driving_time=None,
+            cost_breakdown=total_cost_breakdown,
+            activity_plan=activity_plan,
+            reservation=reservation,
         )
