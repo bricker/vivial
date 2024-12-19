@@ -19,7 +19,7 @@ const ActivitySection = () => {
     setExpanded(!expanded);
   }, [expanded]);
 
-  if (!outing || !outing.activityPlan) {
+  if (!outing?.activityPlan) {
     return null;
   }
 
