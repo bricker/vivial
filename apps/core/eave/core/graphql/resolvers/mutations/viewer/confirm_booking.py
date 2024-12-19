@@ -228,6 +228,7 @@ async def _notify_slack(
                 channel=channel_id,
                 thread_ts=slack_response.get("ts"),
                 text=dedent(f"""
+                    Dashboard link: https://admin.internal.vivialapp.com/booking/edit/{booking.id}
                     Account ID: `{account.id}`
                     Account email: `{account.email}`
 
