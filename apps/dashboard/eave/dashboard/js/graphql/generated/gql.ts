@@ -16,7 +16,7 @@ import * as types from './graphql';
  */
 const documents = {
     "fragment AccountFields on Account {\n  id\n  email\n}": types.AccountFieldsFragmentDoc,
-    "fragment ActivityFields on Activity {\n  categoryGroup {\n    id\n    name\n    activityCategories {\n      ...ActivityCategoryFields\n    }\n  }\n  sourceId\n  source\n  name\n  description\n  websiteUri\n  doorTips\n  insiderTips\n  parkingTips\n  ticketInfo {\n    name\n    notes\n    costBreakdown {\n      ...CostBreakdownFields\n    }\n  }\n  venue {\n    name\n    location {\n      ...LocationFields\n    }\n  }\n  photos {\n    ...PhotosFields\n  }\n}": types.ActivityFieldsFragmentDoc,
+    "fragment ActivityFields on Activity {\n  categoryGroup {\n    id\n    name\n    activityCategories {\n      ...ActivityCategoryFields\n    }\n  }\n  sourceId\n  source\n  name\n  description\n  websiteUri\n  doorTips\n  insiderTips\n  parkingTips\n  primaryTypeName\n  ticketInfo {\n    name\n    notes\n    costBreakdown {\n      ...CostBreakdownFields\n    }\n  }\n  venue {\n    name\n    location {\n      ...LocationFields\n    }\n  }\n  photos {\n    ...PhotosFields\n  }\n}": types.ActivityFieldsFragmentDoc,
     "fragment ActivityPlanFields on ActivityPlan {\n  startTime\n  headcount\n  costBreakdown {\n    ...CostBreakdownFields\n  }\n  activity {\n    ...ActivityFields\n  }\n}": types.ActivityPlanFieldsFragmentDoc,
     "fragment AddressFields on Address {\n  address1\n  address2\n  city\n  state\n  zipCode\n  country\n  formattedMultiline\n  formattedSingleline\n}": types.AddressFieldsFragmentDoc,
     "fragment BookingDetailsFields on BookingDetails {\n  id\n  startTime\n  headcount\n  state\n  searchRegions {\n    ...SearchRegionFields\n  }\n  drivingTimeMinutes\n  costBreakdown {\n    ...CostBreakdownFields\n  }\n  activityPlan {\n    ...ActivityPlanFields\n  }\n  reservation {\n    ...ReservationFields\n  }\n}": types.BookingDetailsFieldsFragmentDoc,
@@ -57,7 +57,7 @@ export function graphql(source: "fragment AccountFields on Account {\n  id\n  em
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "fragment ActivityFields on Activity {\n  categoryGroup {\n    id\n    name\n    activityCategories {\n      ...ActivityCategoryFields\n    }\n  }\n  sourceId\n  source\n  name\n  description\n  websiteUri\n  doorTips\n  insiderTips\n  parkingTips\n  ticketInfo {\n    name\n    notes\n    costBreakdown {\n      ...CostBreakdownFields\n    }\n  }\n  venue {\n    name\n    location {\n      ...LocationFields\n    }\n  }\n  photos {\n    ...PhotosFields\n  }\n}"): typeof import('./graphql').ActivityFieldsFragmentDoc;
+export function graphql(source: "fragment ActivityFields on Activity {\n  categoryGroup {\n    id\n    name\n    activityCategories {\n      ...ActivityCategoryFields\n    }\n  }\n  sourceId\n  source\n  name\n  description\n  websiteUri\n  doorTips\n  insiderTips\n  parkingTips\n  primaryTypeName\n  ticketInfo {\n    name\n    notes\n    costBreakdown {\n      ...CostBreakdownFields\n    }\n  }\n  venue {\n    name\n    location {\n      ...LocationFields\n    }\n  }\n  photos {\n    ...PhotosFields\n  }\n}"): typeof import('./graphql').ActivityFieldsFragmentDoc;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

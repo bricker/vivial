@@ -63,6 +63,7 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
         door_tips=None,
         insider_tips=None,
         parking_tips=None,
+        primary_type_name=None,
         category_group=ActivityCategoryGroup.from_orm(category_group) if category_group else None,
     )
 

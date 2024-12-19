@@ -14,6 +14,7 @@ fragment ActivityFields on Activity {
   doorTips
   insiderTips
   parkingTips
+  primaryTypeName
   ticketInfo {
     name
     notes

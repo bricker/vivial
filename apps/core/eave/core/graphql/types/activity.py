@@ -64,6 +64,7 @@ class Activity:
     door_tips: str | None
     insider_tips: str | None
     parking_tips: str | None
+    primary_type_name: str | None
     category_group: ActivityCategoryGroup | None
 
 

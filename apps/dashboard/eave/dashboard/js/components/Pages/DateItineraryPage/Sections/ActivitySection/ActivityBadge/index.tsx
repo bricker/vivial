@@ -1,4 +1,5 @@
 import Circle from "$eave-dashboard/js/components/Shapes/Circle";
+import { type Activity } from "$eave-dashboard/js/graphql/generated/graphql";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { styled } from "@mui/material";
 import React from "react";
@@ -32,7 +33,7 @@ const Connector = styled("div")(() => ({
 }));
 
 interface ActivityBadgeProps extends React.HTMLAttributes<HTMLDivElement> {
-  categoryGroupId?: string;
+  activity: Activity;
 }
 
 const emojiMap: { [key: string]: string } = {
@@ -45,19 +46,29 @@ const emojiMap: { [key: string]: string } = {
   [FITNESS_GROUP_ID]: "️⛰",
 };
 
-function getEmoji(categoryGroupId?: string): string {
-  if (categoryGroupId) {
-    return emojiMap[categoryGroupId] || "🍦";
+function getEmoji(activity: Activity): string {
+  const primaryTypeName = activity.primaryTypeName?.toLocaleLowerCase();
+  if (primaryTypeName) {
+    if (primaryTypeName.includes("bar")) {
+      return "🍸";
+    }
+    if (primaryTypeName.includes("ice cream")) {
+      return "🍦";
+    }
   }
-  return "🍦";
+  const categoryGroupId = activity.categoryGroup?.id;
+  if (categoryGroupId) {
+    return emojiMap[categoryGroupId] || "🎟️";
+  }
+  return "🎟️";
 }
 
-const ActivityBadge = ({ categoryGroupId, ...props }: ActivityBadgeProps) => {
+const ActivityBadge = ({ activity, ...props }: ActivityBadgeProps) => {
   return (
     <Badge {...props}>
       <Connector />
       <Circle color={colors.lightPinkAccent}>
-        <Emoji>{getEmoji(categoryGroupId)}</Emoji>
+        <Emoji>{getEmoji(activity)}</Emoji>
       </Circle>
     </Badge>
   );
