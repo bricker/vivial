@@ -1,15 +1,8 @@
-import {
-  type ActivityCategoryGroup,
-  type OutingPreferences,
-  type OutingPreferencesInput,
-  type RestaurantCategory,
-} from "$eave-dashboard/js/graphql/generated/graphql";
+import { type OutingPreferences, type OutingPreferencesInput } from "$eave-dashboard/js/graphql/generated/graphql";
 
 export function getPreferenceInputs(
   userPreferences: OutingPreferences | null,
   partnerPreferenecs: OutingPreferences | null,
-  activityGroups?: ActivityCategoryGroup[],
-  restaurantCategories?: RestaurantCategory[],
 ): OutingPreferencesInput[] {
   const userPreferencesInput: OutingPreferencesInput = {
     activityCategoryIds: userPreferences?.activityCategories?.map((c) => c.id) || [],
@@ -31,28 +24,5 @@ export function getPreferenceInputs(
   if (partnerPreferenecs) {
     return [partnerPreferenecsInput];
   }
-  // Case 4: Preferences weren't provided, use defaults.
-  if (activityGroups && restaurantCategories) {
-    const defaultRestaurantCategoryIds: string[] = [];
-    const defaultActivityCategoryIds: string[] = [];
-    restaurantCategories.forEach((c) => {
-      if (c.isDefault) {
-        defaultRestaurantCategoryIds.push(c.id);
-      }
-    });
-    activityGroups.forEach((group) => {
-      group.activityCategories.forEach((c) => {
-        if (c.isDefault) {
-          defaultActivityCategoryIds.push(c.id);
-        }
-      });
-    });
-    const defaultPreferences: OutingPreferencesInput = {
-      activityCategoryIds: defaultActivityCategoryIds,
-      restaurantCategoryIds: defaultRestaurantCategoryIds,
-    };
-    return [defaultPreferences];
-  }
-  // Case 5: Defaults weren't provided.
   return [];
 }
