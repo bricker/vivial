@@ -1,0 +1,47 @@
+import { CostBreakdown } from "$eave-dashboard/js/graphql/generated/graphql";
+import { CircularProgress } from "@mui/material";
+import React from "react";
+import { Link } from "react-router-dom";
+
+const currencyFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+});
+
+function formatCents(cents: number): string {
+  return currencyFormatter.format(cents / 100);
+}
+
+const CostBreakdownView = ({
+  data,
+  stripePaymentIntentId,
+  isLoading,
+}: {
+  data: CostBreakdown | undefined;
+  stripePaymentIntentId: string | undefined | null;
+  isLoading: boolean;
+}) => {
+  return (
+    <div>
+      <h2>Cost info:</h2>
+      {isLoading ? (
+        <CircularProgress />
+      ) : (
+        <div>
+          <p>Event costs: {formatCents(data?.baseCostCents || 0)}</p>
+          <p>Taxes: {formatCents(data?.taxCents || 0)}</p>
+          <p>Fees: {formatCents(data?.feeCents || 0)}</p>
+          <p style={{ fontWeight: "bold" }}>TOTAL: {formatCents(data?.totalCostCents || 0)}</p>
+
+          {stripePaymentIntentId ? (
+            <Link to={`https://dashboard.stripe.com/payments/${stripePaymentIntentId}`}>Accept payment on Stripe</Link>
+          ) : (
+            "[No stripe payment intent found]"
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default CostBreakdownView;

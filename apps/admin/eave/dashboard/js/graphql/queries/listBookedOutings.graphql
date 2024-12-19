@@ -1,5 +1,5 @@
-query ListBookedOutings($input: AdminListBookingsInput!) {
-  adminBookings(input: $input) {
+query ListBookedOutings($accountId: UUID!) {
+  adminBookings(accountId: $accountId) {
     id
     activityStartTime
     restaurantArrivalTime

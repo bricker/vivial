@@ -1,22 +1,36 @@
-fragment BookingDetailsFields on BookingDetails {
-  id
-  activityStartTime
-  restaurantArrivalTime
-  survey {
+query AdminBookingInfo($bookingId: UUID!) {
+  adminBooking(bookingId: $bookingId) {
     id
-    budget
-    headcount
-    searchRegions {
+    accounts {
       id
-      name
+      email
     }
-    startTime
+    activityStartTime
+    activityName
+    activityBookingLink
+    restaurantArrivalTime
+    restaurantName
+    restaurantBookingLink
+    state
+    reserverDetails {
+      id
+      firstName
+      lastName
+      phoneNumber
+    }
+    stripePaymentId
+    survey {
+      id
+      headcount
+      budget
+      startTime
+      searchRegions {
+        id
+        name
+      }
+    }
   }
-  drivingTime
-  costBreakdown {
-    ...CostBreakdownFields
-  }
-  activity {
+  adminBookingActivityDetail(bookingId: $bookingId) {
     categoryGroup {
       id
       name
@@ -56,8 +70,7 @@ fragment BookingDetailsFields on BookingDetails {
       }
     }
   }
-
-  restaurant {
+  adminBookingRestaurantDetail(bookingId: $bookingId) {
     sourceId
     source
     name
@@ -68,11 +81,9 @@ fragment BookingDetailsFields on BookingDetails {
     description
     parkingTips
     customerFavorites
-
     location {
       ...LocationFields
     }
-
     photos {
       coverPhoto {
         ...PhotoFields

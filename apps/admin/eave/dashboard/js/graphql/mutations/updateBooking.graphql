@@ -1,6 +1,6 @@
-mutation UpdateBooking($input: UpdateBookingInput!) {
+mutation UpdateBooking($input: AdminUpdateBookingInput!) {
   adminUpdateBooking(input: $input) {
-    ... on UpdateBookingSuccess {
+    ... on AdminUpdateBookingSuccess {
       __typename
 
       booking {
@@ -8,7 +8,7 @@ mutation UpdateBooking($input: UpdateBookingInput!) {
       }
     }
 
-    ... on UpdateBookingFailure {
+    ... on AdminUpdateBookingFailure {
       __typename
       failureReason
 

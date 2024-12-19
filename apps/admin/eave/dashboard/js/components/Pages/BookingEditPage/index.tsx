@@ -1,18 +1,13 @@
 import { ActivitySource, RestaurantSource } from "$eave-dashboard/js/graphql/generated/graphql";
-import { useGetBookingDetialsQuery, useUpdateBookingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { useGetBookingInfoQuery, useUpdateBookingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { CircularProgress } from "@mui/material";
 import React, { useCallback, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import LoadingButton from "../../Buttons/LoadingButton";
-
-const currencyFormatter = new Intl.NumberFormat("en-US", {
-  style: "currency",
-  currency: "USD",
-});
-
-function formatCents(cents: number): string {
-  return currencyFormatter.format(cents / 100);
-}
+import { useParams } from "react-router-dom";
+import ActivityView from "./ActivityView";
+import CostBreakdownView from "./CostBreakdownView";
+import ReserverDetailsView from "./ReserverDetailsView";
+import RestaurantView from "./RestaurantView";
+import SurveyView from "./SurveyView";
 
 const BookingEditPage = () => {
   const [newActivitySource, setNewActivitySource] = useState<ActivitySource | null | undefined>(undefined);
@@ -28,7 +23,7 @@ const BookingEditPage = () => {
   if (!bookingId) {
     return <h1 style={{ color: "red" }}>Booking ID is required. please add it as a path parameter</h1>;
   }
-  const { data: bookingInfo, isLoading: bookingIsLoading } = useGetBookingDetialsQuery({ input: { bookingId } });
+  const { data: bookingInfo, isLoading: bookingIsLoading } = useGetBookingInfoQuery({ bookingId });
   const [updateBooking, { isLoading: updateBookingIsLoading }] = useUpdateBookingMutation();
 
   const handleUpdateBooking = useCallback(() => {
@@ -57,125 +52,37 @@ const BookingEditPage = () => {
   ]);
 
   // TODO: ability to update/delete aspects of booking
-  // TODO: booking fetch shouldnt explode if remote data disappears...
-  //       separate activity + restaurant fetching from core booking info fetch?
-  // TODO: fetch reserver info
   return (
     <div>
       <h1>Booking {bookingId}</h1>
-      {bookingInfo?.adminBooking ? (
-        <div>
-          <h2>Reserver info:</h2>
-          <div>
-            <p>account id: todo</p>
-            <p>First name: todo</p>
-            <p>Last name: todo</p>
-          </div>
+      <div>
+        <ReserverDetailsView data={bookingInfo?.adminBooking} isLoading={bookingIsLoading} />
 
-          <h2>Survey details:</h2>
-          <div>
-            {bookingInfo.adminBooking.survey ? (
-              <div>
-                <p>headcount: {bookingInfo.adminBooking.survey.headcount}</p>
-                <p>budget: {bookingInfo.adminBooking.survey.budget}</p>
-                <p>
-                  open to following regions:{" "}
-                  {bookingInfo.adminBooking.survey.searchRegions.map((r) => r.name).join(", ")}
-                </p>
-                <p>at time: {bookingInfo.adminBooking.survey.startTime}</p>
-              </div>
-            ) : (
-              "[None]"
-            )}
-          </div>
+        <SurveyView data={bookingInfo?.adminBooking?.survey} isLoading={bookingIsLoading} />
 
-          <h2>Activity info:</h2>
-          <div>
-            {bookingInfo.adminBooking.activity ? (
-              <div>
-                <h4>{bookingInfo.adminBooking.activity.name}</h4>
-                <p>
-                  Description:
-                  {bookingInfo.adminBooking.activity.description}
-                </p>
-                <p>at time: {bookingInfo.adminBooking.activityStartTime}</p>
-                <p>
-                  Website link:{" "}
-                  {bookingInfo.adminBooking.activity.websiteUri ? (
-                    <Link to={bookingInfo.adminBooking.activity.websiteUri}>
-                      {bookingInfo.adminBooking.activity.websiteUri}
-                    </Link>
-                  ) : (
-                    "[none]"
-                  )}
-                </p>
-                <p>
-                  Source: {bookingInfo.adminBooking.activity.source} -- {bookingInfo.adminBooking.activity.sourceId}
-                </p>
-                <p>
-                  Location: {bookingInfo.adminBooking.activity.venue.name}
-                  {bookingInfo.adminBooking.activity.venue.location.address.formattedMultiline}
-                </p>
-                <p>{`(in region: ${bookingInfo.adminBooking.activity.venue.location.searchRegion.name})`}</p>
-                <p>Category: {bookingInfo.adminBooking.activity.categoryGroup?.name}</p>
-              </div>
-            ) : (
-              "[None]"
-            )}
-          </div>
+        <RestaurantView
+          data={bookingInfo?.adminBooking}
+          detailData={bookingInfo?.adminBookingRestaurantDetail}
+          isLoading={bookingIsLoading}
+        />
 
-          <h2>Restaurant info:</h2>
-          <div>
-            {bookingInfo.adminBooking.restaurant ? (
-              <div>
-                <h4>{bookingInfo.adminBooking.restaurant.name}</h4>
-                <p>{bookingInfo.adminBooking.restaurant.description}</p>
-                <p>at time: {bookingInfo.adminBooking.restaurantArrivalTime}</p>
-                {bookingInfo.adminBooking.restaurant.reservable && (
-                  <p>
-                    Please reserve.{" "}
-                    {bookingInfo.adminBooking.restaurant.websiteUri ? (
-                      <Link to={bookingInfo.adminBooking.restaurant.websiteUri}>
-                        {bookingInfo.adminBooking.restaurant.websiteUri}
-                      </Link>
-                    ) : (
-                      "[no site URL]"
-                    )}
-                  </p>
-                )}
-                <p>
-                  Source: {bookingInfo.adminBooking.restaurant.source} -- {bookingInfo.adminBooking.restaurant.sourceId}
-                </p>
-                <p>
-                  Location:
-                  {bookingInfo.adminBooking.restaurant.location.address.formattedMultiline}
-                </p>
-                <p>{`(in region: ${bookingInfo.adminBooking.restaurant.location.searchRegion.name})`}</p>
-              </div>
-            ) : (
-              "[None]"
-            )}
-          </div>
+        <ActivityView
+          data={bookingInfo?.adminBooking}
+          detailData={bookingInfo?.adminBookingActivityDetail}
+          isLoading={bookingIsLoading}
+        />
 
-          <h2>Cost info:</h2>
-          <div>
-            <h3>Cost breakdown</h3>
-            <div>
-              <p>Event costs: {formatCents(bookingInfo.adminBooking.costBreakdown.baseCostCents)}</p>
-              <p>Taxes: {formatCents(bookingInfo.adminBooking.costBreakdown.taxCents)}</p>
-              <p>Fees: {formatCents(bookingInfo.adminBooking.costBreakdown.feeCents)}</p>
-              <p style={{ fontWeight: "bold" }}>{formatCents(bookingInfo.adminBooking.costBreakdown.totalCostCents)}</p>
-            </div>
-            <p>
-              Stripe link: <Link to={`https://dashboard.stripe.com/payments/${"todo payment id"}`}>todo</Link>
-            </p>
-          </div>
+        <CostBreakdownView
+          data={bookingInfo?.adminBookingActivityDetail?.ticketInfo?.costBreakdown}
+          stripePaymentIntentId={bookingInfo?.adminBooking?.stripePaymentId}
+          isLoading={bookingIsLoading}
+        />
 
-          <LoadingButton loading={updateBookingIsLoading} onClick={handleUpdateBooking}>
+        {/* <LoadingButton loading={updateBookingIsLoading} onClick={handleUpdateBooking}>
             Update Booking
-          </LoadingButton>
-        </div>
-      ) : bookingInfo ? (
+          </LoadingButton> */}
+      </div>
+      {bookingInfo ? (
         <h2 style={{ color: "red" }}>Booking not found</h2>
       ) : bookingIsLoading ? (
         <CircularProgress />

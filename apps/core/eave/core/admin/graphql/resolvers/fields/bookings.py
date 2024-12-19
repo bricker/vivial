@@ -1,73 +1,30 @@
+from datetime import datetime
 from uuid import UUID
 
 import strawberry
 
 from eave.core import database
 from eave.core.admin.graphql.context import AdminGraphQLContext
+from eave.core.graphql.types.account import Account
+from eave.core.graphql.types.activity import Activity
 from eave.core.graphql.types.booking import BookingDetailPeek, BookingDetails
 from eave.core.graphql.types.pricing import CostBreakdown
+from eave.core.graphql.types.reserver_details import ReserverDetails
+from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.graphql.types.survey import Survey
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.booking import BookingOrm
-
-
-async def _get_booking_details(
-    booking: BookingOrm,
-) -> BookingDetails:
-    details = BookingDetails(
-        id=booking.id,
-        survey=Survey.from_orm(booking.outing.survey) if booking.outing and booking.outing.survey else None,
-        cost_breakdown=CostBreakdown(),
-        activity=None,
-        activity_start_time=None,
-        restaurant=None,
-        restaurant_arrival_time=None,
-        driving_time=None,  # TODO: can we fill this in?
-    )
-
-    # NOTE: only getting 1 (or None) result here instead of full scalars result since
-    # response type only accepts one of each
-    activity_orm = None
-    reservation_orm = None
-
-    if len(booking.activities) > 0:
-        activity_orm = booking.activities[0]
-        details.activity_start_time = activity_orm.start_time_local
-
-        details.activity = await get_activity(
-            source_id=activity_orm.source_id,
-            source=activity_orm.source,
-        )
-
-        if details.activity:
-            if details.activity.ticket_info:
-                details.cost_breakdown = details.activity.ticket_info.cost_breakdown * activity_orm.headcount
-
-    if len(booking.reservations) > 0:
-        reservation_orm = booking.reservations[0]
-        details.restaurant_arrival_time = reservation_orm.start_time_local
-
-        details.restaurant = await get_restaurant(
-            source_id=reservation_orm.source_id,
-            source=reservation_orm.source,
-        )
-
-    return details
-
-
-@strawberry.input
-class AdminListBookingsInput:
-    account_id: UUID
+from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm
+from eave.core.shared.enums import BookingState
 
 
 async def admin_list_bookings_query(
     *,
     info: strawberry.Info[AdminGraphQLContext],
-    input: AdminListBookingsInput,
+    account_id: UUID,
 ) -> list[BookingDetailPeek]:
     async with database.async_session.begin() as db_session:
-        account = await AccountOrm.get_one(db_session, input.account_id)
+        account = await AccountOrm.get_one(db_session, account_id)
 
     booking_details = []
 
@@ -104,21 +61,79 @@ async def admin_list_bookings_query(
     return booking_details
 
 
-@strawberry.input
-class GetBookingDetailsQueryInput:
-    booking_id: UUID
+@strawberry.type
+class AdminBookingInfo:
+    id: UUID
+    accounts: list[Account]
+    activity_start_time: datetime | None
+    activity_name: str | None
+    activity_booking_link: str | None
+    restaurant_arrival_time: datetime | None
+    restaurant_name: str | None
+    restaurant_booking_link: str | None
+    state: BookingState
+    reserver_details: ReserverDetails | None
+    stripe_payment_id: UUID | None
+    survey: Survey | None
 
 
-async def admin_get_booking_details_query(
+async def admin_get_booking_info_query(
     *,
     info: strawberry.Info[AdminGraphQLContext],
-    input: GetBookingDetailsQueryInput,
-) -> BookingDetails:
+    booking_id: UUID,
+) -> AdminBookingInfo:
     async with database.async_session.begin() as session:
-        booking = await BookingOrm.get_one(session, input.booking_id)
+        booking = await BookingOrm.get_one(session, booking_id)
 
-    detail = await _get_booking_details(
-        booking=booking,
+    return AdminBookingInfo(
+        id=booking.id,
+        accounts=[Account.from_orm(account) for account in booking.accounts],
+        activity_start_time=booking.activities[0].start_time_local if booking.activities else None,
+        activity_name=booking.activities[0].name if booking.activities else None,
+        activity_booking_link=booking.activities[0].external_booking_link if booking.activities else None,
+        restaurant_name=booking.reservations[0].name if booking.reservations[0] else None,
+        restaurant_arrival_time=booking.reservations[0].start_time_local if booking.reservations else None,
+        restaurant_booking_link=booking.reservations[0].external_booking_link if booking.reservations else None,
+        state=booking.state,
+        reserver_details=ReserverDetails.from_orm(booking.reserver_details) if booking.reserver_details else None,
+        stripe_payment_id=booking.stripe_payment_intent_reference_id,
+        survey=Survey.from_orm(booking.outing.survey) if booking.outing and booking.outing.survey else None,
     )
 
-    return detail
+
+async def admin_get_booking_activity_query(
+    *,
+    info: strawberry.Info[AdminGraphQLContext],
+    booking_id: UUID,
+) -> Activity | None:
+    async with database.async_session.begin() as session:
+        booking = await BookingOrm.get_one(session, booking_id)
+
+    activity = None
+    if len(booking.activities) > 0:
+        activity_orm = booking.activities[0]
+        activity = await get_activity(
+            source_id=activity_orm.source_id,
+            source=activity_orm.source,
+        )
+
+    return activity
+
+
+async def admin_get_booking_restaurant_query(
+    *,
+    info: strawberry.Info[AdminGraphQLContext],
+    booking_id: UUID,
+) -> Restaurant | None:
+    async with database.async_session.begin() as session:
+        booking = await BookingOrm.get_one(session, booking_id)
+
+    restaurant = None
+    if len(booking.reservations) > 0:
+        reservation_orm = booking.reservations[0]
+        restaurant = await get_restaurant(
+            source_id=reservation_orm.source_id,
+            source=reservation_orm.source,
+        )
+
+    return restaurant

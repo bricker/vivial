@@ -20,6 +20,12 @@ export type Scalars = {
   UUID: { input: string; output: string; }
 };
 
+export type Account = {
+  __typename?: 'Account';
+  email: Scalars['String']['output'];
+  id: Scalars['UUID']['output'];
+};
+
 export type Activity = {
   __typename?: 'Activity';
   categoryGroup?: Maybe<ActivityCategoryGroup>;
@@ -74,12 +80,51 @@ export type Address = {
   zipCode?: Maybe<Scalars['String']['output']>;
 };
 
-export type AdminListBookingsInput = {
-  accountId: Scalars['UUID']['input'];
+export type AdminBookingInfo = {
+  __typename?: 'AdminBookingInfo';
+  accounts: Array<Account>;
+  activityBookingLink?: Maybe<Scalars['String']['output']>;
+  activityName?: Maybe<Scalars['String']['output']>;
+  activityStartTime?: Maybe<Scalars['DateTime']['output']>;
+  id: Scalars['UUID']['output'];
+  reserverDetails?: Maybe<ReserverDetails>;
+  restaurantArrivalTime?: Maybe<Scalars['DateTime']['output']>;
+  restaurantBookingLink?: Maybe<Scalars['String']['output']>;
+  restaurantName?: Maybe<Scalars['String']['output']>;
+  state: BookingState;
+  stripePaymentId?: Maybe<Scalars['UUID']['output']>;
+  survey?: Maybe<Survey>;
 };
 
-export type AdminReserverDetailsQueryInput = {
-  reserverDetailsId: Scalars['UUID']['input'];
+export type AdminUpdateBookingFailure = {
+  __typename?: 'AdminUpdateBookingFailure';
+  failureReason: AdminUpdateBookingFailureReason;
+  validationErrors?: Maybe<Array<ValidationError>>;
+};
+
+export enum AdminUpdateBookingFailureReason {
+  ActivitySourceNotFound = 'ACTIVITY_SOURCE_NOT_FOUND',
+  BookingNotFound = 'BOOKING_NOT_FOUND',
+  ValidationErrors = 'VALIDATION_ERRORS'
+}
+
+export type AdminUpdateBookingInput = {
+  activityHeadcount?: InputMaybe<Scalars['Int']['input']>;
+  activitySource?: InputMaybe<ActivitySource>;
+  activitySourceId?: InputMaybe<Scalars['String']['input']>;
+  activityStartTimeUtc?: InputMaybe<Scalars['DateTime']['input']>;
+  bookingId: Scalars['UUID']['input'];
+  restaurantHeadcount?: InputMaybe<Scalars['Int']['input']>;
+  restaurantSource?: InputMaybe<RestaurantSource>;
+  restaurantSourceId?: InputMaybe<Scalars['String']['input']>;
+  restaurantStartTimeUtc?: InputMaybe<Scalars['DateTime']['input']>;
+};
+
+export type AdminUpdateBookingResult = AdminUpdateBookingFailure | AdminUpdateBookingSuccess;
+
+export type AdminUpdateBookingSuccess = {
+  __typename?: 'AdminUpdateBookingSuccess';
+  booking: Booking;
 };
 
 export type AdminUpdateReserverDetailsFailure = {
@@ -125,18 +170,6 @@ export type BookingDetailPeek = {
   state: BookingState;
 };
 
-export type BookingDetails = {
-  __typename?: 'BookingDetails';
-  activity?: Maybe<Activity>;
-  activityStartTime?: Maybe<Scalars['DateTime']['output']>;
-  costBreakdown: CostBreakdown;
-  drivingTime?: Maybe<Scalars['String']['output']>;
-  id: Scalars['UUID']['output'];
-  restaurant?: Maybe<Restaurant>;
-  restaurantArrivalTime?: Maybe<Scalars['DateTime']['output']>;
-  survey?: Maybe<Survey>;
-};
-
 export enum BookingState {
   Booked = 'BOOKED',
   Canceled = 'CANCELED',
@@ -158,10 +191,6 @@ export type GeoPoint = {
   lon: Scalars['Float']['output'];
 };
 
-export type GetBookingDetailsQueryInput = {
-  bookingId: Scalars['UUID']['input'];
-};
-
 export type Location = {
   __typename?: 'Location';
   address: Address;
@@ -172,13 +201,13 @@ export type Location = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  adminUpdateBooking: UpdateBookingResult;
+  adminUpdateBooking: AdminUpdateBookingResult;
   adminUpdateReserverDetails: AdminUpdateReserverDetailsResult;
 };
 
 
 export type MutationAdminUpdateBookingArgs = {
-  input: UpdateBookingInput;
+  input: AdminUpdateBookingInput;
 };
 
 
@@ -210,24 +239,36 @@ export type Photos = {
 
 export type Query = {
   __typename?: 'Query';
-  adminBooking?: Maybe<BookingDetails>;
+  adminBooking?: Maybe<AdminBookingInfo>;
+  adminBookingActivityDetail?: Maybe<Activity>;
+  adminBookingRestaurantDetail?: Maybe<Restaurant>;
   adminBookings: Array<BookingDetailPeek>;
   adminReserverDetails?: Maybe<ReserverDetails>;
 };
 
 
 export type QueryAdminBookingArgs = {
-  input: GetBookingDetailsQueryInput;
+  bookingId: Scalars['UUID']['input'];
+};
+
+
+export type QueryAdminBookingActivityDetailArgs = {
+  bookingId: Scalars['UUID']['input'];
+};
+
+
+export type QueryAdminBookingRestaurantDetailArgs = {
+  bookingId: Scalars['UUID']['input'];
 };
 
 
 export type QueryAdminBookingsArgs = {
-  input: AdminListBookingsInput;
+  accountId: Scalars['UUID']['input'];
 };
 
 
 export type QueryAdminReserverDetailsArgs = {
-  input: AdminReserverDetailsQueryInput;
+  reserverDetailsId: Scalars['UUID']['input'];
 };
 
 export type ReserverDetails = {
@@ -280,37 +321,6 @@ export type TicketInfo = {
   notes?: Maybe<Scalars['String']['output']>;
 };
 
-export type UpdateBookingFailure = {
-  __typename?: 'UpdateBookingFailure';
-  failureReason: UpdateBookingFailureReason;
-  validationErrors?: Maybe<Array<ValidationError>>;
-};
-
-export enum UpdateBookingFailureReason {
-  ActivitySourceNotFound = 'ACTIVITY_SOURCE_NOT_FOUND',
-  BookingNotFound = 'BOOKING_NOT_FOUND',
-  ValidationErrors = 'VALIDATION_ERRORS'
-}
-
-export type UpdateBookingInput = {
-  activityHeadcount?: InputMaybe<Scalars['Int']['input']>;
-  activitySource?: InputMaybe<ActivitySource>;
-  activitySourceId?: InputMaybe<Scalars['String']['input']>;
-  activityStartTimeUtc?: InputMaybe<Scalars['DateTime']['input']>;
-  bookingId: Scalars['UUID']['input'];
-  restaurantHeadcount?: InputMaybe<Scalars['Int']['input']>;
-  restaurantSource?: InputMaybe<RestaurantSource>;
-  restaurantSourceId?: InputMaybe<Scalars['String']['input']>;
-  restaurantStartTimeUtc?: InputMaybe<Scalars['DateTime']['input']>;
-};
-
-export type UpdateBookingResult = UpdateBookingFailure | UpdateBookingSuccess;
-
-export type UpdateBookingSuccess = {
-  __typename?: 'UpdateBookingSuccess';
-  booking: Booking;
-};
-
 export type ValidationError = {
   __typename?: 'ValidationError';
   field: Scalars['String']['output'];
@@ -318,8 +328,6 @@ export type ValidationError = {
 };
 
 export type AddressFieldsFragment = { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string };
-
-export type BookingDetailsFieldsFragment = { __typename: 'BookingDetails', id: string, activityStartTime?: string | null, restaurantArrivalTime?: string | null, drivingTime?: string | null, survey?: { __typename: 'Survey', id: string, budget: OutingBudget, headcount: number, startTime: string, searchRegions: Array<{ __typename: 'SearchRegion', id: string, name: string }> } | null, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, activity?: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description?: string | null, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, categoryGroup?: { __typename: 'ActivityCategoryGroup', id: string, name: string, activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> } | null, ticketInfo?: { __typename: 'TicketInfo', name?: string | null, notes?: string | null, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number } } | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } } | null, restaurant?: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } } | null };
 
 export type BookingFieldsFragment = { __typename: 'Booking', id: string, state: BookingState, reserverDetails?: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string } | null };
 
@@ -330,11 +338,11 @@ export type LocationFieldsFragment = { __typename: 'Location', directionsUri?: s
 export type PhotoFieldsFragment = { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> };
 
 export type UpdateBookingMutationVariables = Exact<{
-  input: UpdateBookingInput;
+  input: AdminUpdateBookingInput;
 }>;
 
 
-export type UpdateBookingMutation = { __typename: 'Mutation', adminUpdateBooking: { __typename: 'UpdateBookingFailure', failureReason: UpdateBookingFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateBookingSuccess', booking: { __typename: 'Booking', id: string, state: BookingState, reserverDetails?: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string } | null } } };
+export type UpdateBookingMutation = { __typename: 'Mutation', adminUpdateBooking: { __typename: 'AdminUpdateBookingFailure', failureReason: AdminUpdateBookingFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'AdminUpdateBookingSuccess', booking: { __typename: 'Booking', id: string, state: BookingState, reserverDetails?: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string } | null } } };
 
 export type UpdateReserverDetailsMutationVariables = Exact<{
   input: AdminUpdateReserverDetailsInput;
@@ -343,22 +351,22 @@ export type UpdateReserverDetailsMutationVariables = Exact<{
 
 export type UpdateReserverDetailsMutation = { __typename: 'Mutation', adminUpdateReserverDetails: { __typename: 'AdminUpdateReserverDetailsFailure', failureReason: AdminUpdateReserverDetailsFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'AdminUpdateReserverDetailsSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string } } };
 
-export type BookingDetailsQueryVariables = Exact<{
-  input: GetBookingDetailsQueryInput;
+export type AdminBookingInfoQueryVariables = Exact<{
+  bookingId: Scalars['UUID']['input'];
 }>;
 
 
-export type BookingDetailsQuery = { __typename: 'Query', adminBooking?: { __typename: 'BookingDetails', id: string, activityStartTime?: string | null, restaurantArrivalTime?: string | null, drivingTime?: string | null, survey?: { __typename: 'Survey', id: string, budget: OutingBudget, headcount: number, startTime: string, searchRegions: Array<{ __typename: 'SearchRegion', id: string, name: string }> } | null, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number }, activity?: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description?: string | null, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, categoryGroup?: { __typename: 'ActivityCategoryGroup', id: string, name: string, activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> } | null, ticketInfo?: { __typename: 'TicketInfo', name?: string | null, notes?: string | null, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number } } | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } } | null, restaurant?: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } } | null } | null };
+export type AdminBookingInfoQuery = { __typename: 'Query', adminBooking?: { __typename: 'AdminBookingInfo', id: string, activityStartTime?: string | null, activityName?: string | null, activityBookingLink?: string | null, restaurantArrivalTime?: string | null, restaurantName?: string | null, restaurantBookingLink?: string | null, state: BookingState, stripePaymentId?: string | null, accounts: Array<{ __typename: 'Account', id: string, email: string }>, reserverDetails?: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string } | null, survey?: { __typename: 'Survey', id: string, headcount: number, budget: OutingBudget, startTime: string, searchRegions: Array<{ __typename: 'SearchRegion', id: string, name: string }> } | null } | null, adminBookingActivityDetail?: { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description?: string | null, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, categoryGroup?: { __typename: 'ActivityCategoryGroup', id: string, name: string, activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> } | null, ticketInfo?: { __typename: 'TicketInfo', name?: string | null, notes?: string | null, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number } } | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } } | null, adminBookingRestaurantDetail?: { __typename: 'Restaurant', sourceId: string, source: RestaurantSource, name: string, reservable: boolean, rating: number, primaryTypeName: string, websiteUri?: string | null, description: string, parkingTips?: string | null, customerFavorites?: string | null, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } } | null };
 
 export type ListBookedOutingsQueryVariables = Exact<{
-  input: AdminListBookingsInput;
+  accountId: Scalars['UUID']['input'];
 }>;
 
 
 export type ListBookedOutingsQuery = { __typename: 'Query', adminBookings: Array<{ __typename: 'BookingDetailPeek', id: string, activityStartTime?: string | null, restaurantArrivalTime?: string | null, activityName?: string | null, restaurantName?: string | null, photoUri?: string | null, state: BookingState }> };
 
 export type ReserverDetailsQueryVariables = Exact<{
-  input: AdminReserverDetailsQueryInput;
+  reserverDetailsId: Scalars['UUID']['input'];
 }>;
 
 
@@ -378,6 +386,20 @@ export class TypedDocumentString<TResult, TVariables>
     return this.value;
   }
 }
+export const BookingFieldsFragmentDoc = new TypedDocumentString(`
+    fragment BookingFields on Booking {
+  __typename
+  id
+  state
+  reserverDetails {
+    __typename
+    id
+    firstName
+    lastName
+    phoneNumber
+  }
+}
+    `, {"fragmentName":"BookingFields"}) as unknown as TypedDocumentString<BookingFieldsFragment, unknown>;
 export const CostBreakdownFieldsFragmentDoc = new TypedDocumentString(`
     fragment CostBreakdownFields on CostBreakdown {
   __typename
@@ -439,178 +461,19 @@ export const PhotoFieldsFragmentDoc = new TypedDocumentString(`
   attributions
 }
     `, {"fragmentName":"PhotoFields"}) as unknown as TypedDocumentString<PhotoFieldsFragment, unknown>;
-export const BookingDetailsFieldsFragmentDoc = new TypedDocumentString(`
-    fragment BookingDetailsFields on BookingDetails {
-  __typename
-  id
-  activityStartTime
-  restaurantArrivalTime
-  survey {
-    __typename
-    id
-    budget
-    headcount
-    searchRegions {
-      __typename
-      id
-      name
-    }
-    startTime
-  }
-  drivingTime
-  costBreakdown {
-    __typename
-    ...CostBreakdownFields
-  }
-  activity {
-    __typename
-    categoryGroup {
-      __typename
-      id
-      name
-      activityCategories {
-        __typename
-        id
-        name
-        isDefault
-      }
-    }
-    sourceId
-    source
-    name
-    description
-    websiteUri
-    doorTips
-    insiderTips
-    parkingTips
-    ticketInfo {
-      __typename
-      name
-      notes
-      costBreakdown {
-        __typename
-        ...CostBreakdownFields
-      }
-    }
-    venue {
-      __typename
-      name
-      location {
-        __typename
-        ...LocationFields
-      }
-    }
-    photos {
-      __typename
-      coverPhoto {
-        __typename
-        ...PhotoFields
-      }
-      supplementalPhotos {
-        __typename
-        ...PhotoFields
-      }
-    }
-  }
-  restaurant {
-    __typename
-    sourceId
-    source
-    name
-    reservable
-    rating
-    primaryTypeName
-    websiteUri
-    description
-    parkingTips
-    customerFavorites
-    location {
-      __typename
-      ...LocationFields
-    }
-    photos {
-      __typename
-      coverPhoto {
-        __typename
-        ...PhotoFields
-      }
-      supplementalPhotos {
-        __typename
-        ...PhotoFields
-      }
-    }
-  }
-}
-    fragment AddressFields on Address {
-  __typename
-  address1
-  address2
-  city
-  state
-  zipCode
-  country
-  formattedMultiline
-  formattedSingleline
-}
-fragment CostBreakdownFields on CostBreakdown {
-  __typename
-  baseCostCents
-  feeCents
-  taxCents
-  totalCostCents
-}
-fragment LocationFields on Location {
-  __typename
-  directionsUri
-  coordinates {
-    __typename
-    lat
-    lon
-  }
-  address {
-    __typename
-    ...AddressFields
-  }
-  searchRegion {
-    __typename
-    id
-    name
-  }
-}
-fragment PhotoFields on Photo {
-  __typename
-  id
-  src
-  alt
-  attributions
-}`, {"fragmentName":"BookingDetailsFields"}) as unknown as TypedDocumentString<BookingDetailsFieldsFragment, unknown>;
-export const BookingFieldsFragmentDoc = new TypedDocumentString(`
-    fragment BookingFields on Booking {
-  __typename
-  id
-  state
-  reserverDetails {
-    __typename
-    id
-    firstName
-    lastName
-    phoneNumber
-  }
-}
-    `, {"fragmentName":"BookingFields"}) as unknown as TypedDocumentString<BookingFieldsFragment, unknown>;
 export const UpdateBookingDocument = new TypedDocumentString(`
-    mutation UpdateBooking($input: UpdateBookingInput!) {
+    mutation UpdateBooking($input: AdminUpdateBookingInput!) {
   __typename
   adminUpdateBooking(input: $input) {
     __typename
-    ... on UpdateBookingSuccess {
+    ... on AdminUpdateBookingSuccess {
       __typename
       booking {
         __typename
         ...BookingFields
       }
     }
-    ... on UpdateBookingFailure {
+    ... on AdminUpdateBookingFailure {
       __typename
       failureReason
       validationErrors {
@@ -658,48 +521,46 @@ export const UpdateReserverDetailsDocument = new TypedDocumentString(`
   }
 }
     `) as unknown as TypedDocumentString<UpdateReserverDetailsMutation, UpdateReserverDetailsMutationVariables>;
-export const BookingDetailsDocument = new TypedDocumentString(`
-    query BookingDetails($input: GetBookingDetailsQueryInput!) {
+export const AdminBookingInfoDocument = new TypedDocumentString(`
+    query AdminBookingInfo($bookingId: UUID!) {
   __typename
-  adminBooking(input: $input) {
-    __typename
-    ...BookingDetailsFields
-  }
-}
-    fragment AddressFields on Address {
-  __typename
-  address1
-  address2
-  city
-  state
-  zipCode
-  country
-  formattedMultiline
-  formattedSingleline
-}
-fragment BookingDetailsFields on BookingDetails {
-  __typename
-  id
-  activityStartTime
-  restaurantArrivalTime
-  survey {
+  adminBooking(bookingId: $bookingId) {
     __typename
     id
-    budget
-    headcount
-    searchRegions {
+    accounts {
       __typename
       id
-      name
+      email
     }
-    startTime
+    activityStartTime
+    activityName
+    activityBookingLink
+    restaurantArrivalTime
+    restaurantName
+    restaurantBookingLink
+    state
+    reserverDetails {
+      __typename
+      id
+      firstName
+      lastName
+      phoneNumber
+    }
+    stripePaymentId
+    survey {
+      __typename
+      id
+      headcount
+      budget
+      startTime
+      searchRegions {
+        __typename
+        id
+        name
+      }
+    }
   }
-  drivingTime
-  costBreakdown {
-    __typename
-    ...CostBreakdownFields
-  }
-  activity {
+  adminBookingActivityDetail(bookingId: $bookingId) {
     __typename
     categoryGroup {
       __typename
@@ -749,7 +610,7 @@ fragment BookingDetailsFields on BookingDetails {
       }
     }
   }
-  restaurant {
+  adminBookingRestaurantDetail(bookingId: $bookingId) {
     __typename
     sourceId
     source
@@ -777,6 +638,17 @@ fragment BookingDetailsFields on BookingDetails {
       }
     }
   }
+}
+    fragment AddressFields on Address {
+  __typename
+  address1
+  address2
+  city
+  state
+  zipCode
+  country
+  formattedMultiline
+  formattedSingleline
 }
 fragment CostBreakdownFields on CostBreakdown {
   __typename
@@ -809,11 +681,11 @@ fragment PhotoFields on Photo {
   src
   alt
   attributions
-}`) as unknown as TypedDocumentString<BookingDetailsQuery, BookingDetailsQueryVariables>;
+}`) as unknown as TypedDocumentString<AdminBookingInfoQuery, AdminBookingInfoQueryVariables>;
 export const ListBookedOutingsDocument = new TypedDocumentString(`
-    query ListBookedOutings($input: AdminListBookingsInput!) {
+    query ListBookedOutings($accountId: UUID!) {
   __typename
-  adminBookings(input: $input) {
+  adminBookings(accountId: $accountId) {
     __typename
     id
     activityStartTime
@@ -826,9 +698,9 @@ export const ListBookedOutingsDocument = new TypedDocumentString(`
 }
     `) as unknown as TypedDocumentString<ListBookedOutingsQuery, ListBookedOutingsQueryVariables>;
 export const ReserverDetailsDocument = new TypedDocumentString(`
-    query ReserverDetails($input: AdminReserverDetailsQueryInput!) {
+    query ReserverDetails($reserverDetailsId: UUID!) {
   __typename
-  adminReserverDetails(input: $input) {
+  adminReserverDetails(reserverDetailsId: $reserverDetailsId) {
     __typename
     id
     firstName

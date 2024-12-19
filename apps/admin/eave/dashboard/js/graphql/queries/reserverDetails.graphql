@@ -1,5 +1,5 @@
-query ReserverDetails($input: AdminReserverDetailsQueryInput!) {
-  adminReserverDetails(input: $input) {
+query ReserverDetails($reserverDetailsId: UUID!) {
+  adminReserverDetails(reserverDetailsId: $reserverDetailsId) {
     id
     firstName
     lastName

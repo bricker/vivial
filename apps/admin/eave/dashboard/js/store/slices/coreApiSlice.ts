@@ -2,9 +2,9 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { CORE_API_INTERNAL_BASE } from "../../util/http";
 
 import {
-  BookingDetailsDocument,
-  BookingDetailsQuery,
-  BookingDetailsQueryVariables,
+  AdminBookingInfoDocument,
+  AdminBookingInfoQuery,
+  AdminBookingInfoQueryVariables,
   ListBookedOutingsDocument,
   ListBookedOutingsQuery,
   ListBookedOutingsQueryVariables,
@@ -39,9 +39,9 @@ export const coreApiSlice = createApi({
       },
     }),
 
-    getBookingDetials: builder.query<BookingDetailsQuery, BookingDetailsQueryVariables>({
+    getBookingInfo: builder.query<AdminBookingInfoQuery, AdminBookingInfoQueryVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
-        const data = await executeOperation({ query: BookingDetailsDocument, variables });
+        const data = await executeOperation({ query: AdminBookingInfoDocument, variables });
         return { data };
       },
     }),
@@ -62,7 +62,7 @@ export const {
   // Admin Core API GraphQL Query Hooks
   useGetReserverDetailsQuery,
   useListBookedOutingsQuery,
-  useGetBookingDetialsQuery,
+  useGetBookingInfoQuery,
 
   // Admin Core API GraphQL Mutation Hooks
   useUpdateBookingMutation,

@@ -7,18 +7,13 @@ from eave.core.graphql.types.reserver_details import ReserverDetails
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 
 
-@strawberry.input
-class AdminReserverDetailsQueryInput:
-    reserver_details_id: UUID
-
-
 async def admin_reserver_details_query(
     *,
     info: strawberry.Info[AdminGraphQLContext],
-    input: AdminReserverDetailsQueryInput,
+    reserver_details_id: UUID,
 ) -> ReserverDetails | None:
     async with database.async_session.begin() as session:
-        lookup = ReserverDetailsOrm.select().where(ReserverDetailsOrm.id == input.reserver_details_id)
+        lookup = ReserverDetailsOrm.select().where(ReserverDetailsOrm.id == reserver_details_id)
         details = await session.scalar(lookup)
 
     if details:

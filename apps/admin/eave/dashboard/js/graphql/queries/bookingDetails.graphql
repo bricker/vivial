@@ -1,5 +1,0 @@
-query BookingDetails($input: GetBookingDetailsQueryInput!) {
-  adminBooking(input: $input) {
-    ...BookingDetailsFields
-  }
-}
