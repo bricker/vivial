@@ -1,7 +1,9 @@
-import { useGetBookingDetialsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { ActivitySource, RestaurantSource } from "$eave-dashboard/js/graphql/generated/graphql";
+import { useGetBookingDetialsQuery, useUpdateBookingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { CircularProgress } from "@mui/material";
-import React from "react";
+import React, { useCallback, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import LoadingButton from "../../Buttons/LoadingButton";
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -13,12 +15,51 @@ function formatCents(cents: number): string {
 }
 
 const BookingEditPage = () => {
+  const [newActivitySource, setNewActivitySource] = useState<ActivitySource | null | undefined>(undefined);
+  const [newRestaurantSource, setNewRestaurantSource] = useState<RestaurantSource | null | undefined>(undefined);
+  const [newActivitySourceId, setNewActivitySourceId] = useState<string | null | undefined>(undefined);
+  const [newRestaurantSourceId, setNewRestaurantSourceId] = useState<string | null | undefined>(undefined);
+  const [newActivityStartTime, setNewActivityStartTime] = useState<Date | null | undefined>(undefined);
+  const [newRestaurantStartTime, setNewRestaurantStartTime] = useState<Date | null | undefined>(undefined);
+  const [newActivityHeadcount, setNewActivityHeadcount] = useState<number | undefined>(undefined);
+  const [newRestaurantHeadcount, setNewRestaurantHeadcount] = useState<number | undefined>(undefined);
   const params = useParams();
   const bookingId = params["bookingId"];
   if (!bookingId) {
     return <h1 style={{ color: "red" }}>Booking ID is required. please add it as a path parameter</h1>;
   }
-  const { data: bookingInfo, isLoading } = useGetBookingDetialsQuery({ input: { bookingId } });
+  const { data: bookingInfo, isLoading: bookingIsLoading } = useGetBookingDetialsQuery({ input: { bookingId } });
+  const [updateBooking, { isLoading: updateBookingIsLoading }] = useUpdateBookingMutation();
+
+  const handleUpdateBooking = useCallback(() => {
+    updateBooking({
+      input: {
+        bookingId,
+        activitySource: newActivitySource,
+        activitySourceId: newActivitySourceId,
+        restaurantSource: newRestaurantSource,
+        restaurantSourceId: newRestaurantSourceId,
+        activityStartTimeUtc: newActivityStartTime?.toUTCString(),
+        restaurantStartTimeUtc: newRestaurantStartTime?.toUTCString(),
+        activityHeadcount: newActivityHeadcount,
+        restaurantHeadcount: newRestaurantHeadcount,
+      },
+    });
+  }, [
+    newActivitySource,
+    newRestaurantSource,
+    newActivitySourceId,
+    newRestaurantSourceId,
+    newRestaurantStartTime,
+    newActivityStartTime,
+    newActivityHeadcount,
+    newRestaurantHeadcount,
+  ]);
+
+  // TODO: ability to update/delete aspects of booking
+  // TODO: booking fetch shouldnt explode if remote data disappears...
+  //       separate activity + restaurant fetching from core booking info fetch?
+  // TODO: fetch reserver info
   return (
     <div>
       <h1>Booking {bookingId}</h1>
@@ -29,6 +70,23 @@ const BookingEditPage = () => {
             <p>account id: todo</p>
             <p>First name: todo</p>
             <p>Last name: todo</p>
+          </div>
+
+          <h2>Survey details:</h2>
+          <div>
+            {bookingInfo.adminBooking.survey ? (
+              <div>
+                <p>headcount: {bookingInfo.adminBooking.survey.headcount}</p>
+                <p>budget: {bookingInfo.adminBooking.survey.budget}</p>
+                <p>
+                  open to following regions:{" "}
+                  {bookingInfo.adminBooking.survey.searchRegions.map((r) => r.name).join(", ")}
+                </p>
+                <p>at time: {bookingInfo.adminBooking.survey.startTime}</p>
+              </div>
+            ) : (
+              "[None]"
+            )}
           </div>
 
           <h2>Activity info:</h2>
@@ -112,10 +170,14 @@ const BookingEditPage = () => {
               Stripe link: <Link to={"#"}>todo</Link>
             </p>
           </div>
+
+          <LoadingButton loading={updateBookingIsLoading} onClick={handleUpdateBooking}>
+            Update Booking
+          </LoadingButton>
         </div>
       ) : bookingInfo ? (
         <h2 style={{ color: "red" }}>Booking not found</h2>
-      ) : isLoading ? (
+      ) : bookingIsLoading ? (
         <CircularProgress />
       ) : (
         <h2 style={{ color: "red" }}>ERROR: failed to get booking</h2>
