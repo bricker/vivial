@@ -62,7 +62,7 @@ const DateItineraryPage = () => {
     }
   }, [preferencesData]);
 
-  if (!outing || outingDataLoading || preferencesLoading) {
+  if (outingDataLoading || preferencesLoading) {
     return <LoadingView />;
   }
 

@@ -13,15 +13,15 @@ const Section = styled(ExpandableSection)(() => ({
 
 const ActivitySection = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
+  const [expanded, setExpanded] = useState(false);
+
+  const toggleExpand = useCallback(() => {
+    setExpanded(!expanded);
+  }, [expanded]);
 
   if (!outing || !outing.activityPlan) {
     return null;
   }
-
-  const [expanded, setExpanded] = useState(false);
-  const toggleExpand = useCallback(() => {
-    setExpanded(!expanded);
-  }, [expanded]);
 
   return (
     <Section onExpand={toggleExpand} expanded={expanded}>
