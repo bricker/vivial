@@ -5,19 +5,26 @@ import BaseSkeleton from "@mui/material/Skeleton";
 import React from "react";
 
 const ViewContainer = styled("div")(({ theme }) => ({
-  padding: "24px 16px",
   [theme.breakpoints.up(Breakpoint.Medium)]: {
     padding: "112px 104px",
     textAlign: "center",
   },
 }));
 
-const Skeleton = styled(BaseSkeleton)(() => ({
-  marginBottom: 16,
-  borderRadius: "14.984px",
-  "&:last-of-type": {
-    marginBottom: 0,
-  },
+const LogisticsSkeleton = styled(BaseSkeleton)(() => ({
+  marginBottom: 47,
+}));
+
+const RestaurantSkeleton = styled(BaseSkeleton)(() => ({
+  padding: "0px 16px",
+  borderRadius: 15,
+  marginBottom: 103,
+}));
+
+const ActivitySkeleton = styled(BaseSkeleton)(() => ({
+  padding: "0px 16px",
+  borderRadius: 15,
+  marginBottom: 52,
 }));
 
 const LoadingView = () => {
@@ -30,10 +37,12 @@ const LoadingView = () => {
     );
   }
   return (
-    <ViewContainer>
-      <Skeleton variant="rectangular" width="100%" height={218} />
-      <Skeleton variant="rectangular" width="100%" height={332} />
-    </ViewContainer>
+    <>
+      <LogisticsSkeleton variant="rectangular" width="100%" height={181} />
+      <RestaurantSkeleton variant="rectangular" width="100%" height={139} />
+      <ActivitySkeleton variant="rectangular" width="100%" height={139} />
+      <BaseSkeleton variant="rectangular" width="100%" height={319} />
+    </>
   );
 };
 
