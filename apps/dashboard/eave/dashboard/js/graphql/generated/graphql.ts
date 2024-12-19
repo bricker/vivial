@@ -193,6 +193,7 @@ export type BookingDetails = {
   searchRegions: Array<SearchRegion>;
   startTime: Scalars['DateTime']['output'];
   state: BookingState;
+  survey?: Maybe<Survey>;
 };
 
 export enum BookingState {
@@ -408,7 +409,6 @@ export type PlanOutingFailure = {
 };
 
 export enum PlanOutingFailureReason {
-  SearchAreaIdsEmpty = 'SEARCH_AREA_IDS_EMPTY',
   StartTimeTooLate = 'START_TIME_TOO_LATE',
   StartTimeTooSoon = 'START_TIME_TOO_SOON'
 }

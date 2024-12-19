@@ -231,6 +231,7 @@ async def initiate_booking_mutation(
     return InitiateBookingSuccess(
         booking=BookingDetails(
             id=booking_orm.id,  # Warning: This is NULL until the Booking object is persisted!
+            survey=None,
             state=booking_orm.state,
             activity_plan=activity_plan,
             reservation=reservation,

@@ -55,6 +55,7 @@ async def _get_booking_details(
     return BookingDetails(
         id=booking_orm.id,
         state=booking_orm.state,
+        survey=None,
         activity_plan=activity_plan,
         reservation=reservation,
     )

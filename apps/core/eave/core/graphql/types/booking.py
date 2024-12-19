@@ -1,15 +1,10 @@
-import random
 from datetime import datetime
 from uuid import UUID
 
 import strawberry
 
-from eave.core.graphql.types.activity import ActivityPlan
-from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.outing import Outing
 from eave.core.graphql.types.reserver_details import ReserverDetails
-from eave.core.graphql.types.restaurant import Reservation
-from eave.core.graphql.types.search_region import SearchRegion
 from eave.core.orm.booking import BookingOrm
 from eave.core.shared.enums import BookingState
 
