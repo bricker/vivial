@@ -194,26 +194,26 @@ class OutingPlanner:
         ]
 
         # CASE 1: Recommend an Eventbrite event.
-        # query = EventbriteEventOrm.select(
-        #     time_range_contains=start_time_local,
-        #     up_to_cost_cents=self.survey.budget.upper_limit_cents,
-        #     within_areas=within_areas,
-        #     vivial_activity_category_ids=[cat.id for cat in self.group_activity_category_preferences],
-        # ).order_by(func.random())
+        query = EventbriteEventOrm.select(
+            time_range_contains=start_time_local,
+            up_to_cost_cents=self.survey.budget.upper_limit_cents,
+            within_areas=within_areas,
+            vivial_activity_category_ids=[cat.id for cat in self.group_activity_category_preferences],
+        ).order_by(func.random())
 
-        # async with eave.core.database.async_session.begin() as db_session:
-        #     results = await db_session.scalars(query)
+        async with eave.core.database.async_session.begin() as db_session:
+            results = await db_session.scalars(query)
 
-        #     for event_orm in results:
-        #         try:
-        #             if activity := await get_eventbrite_activity(
-        #                 self.eventbrite_client, event_id=event_orm.eventbrite_event_id
-        #             ):
-        #                 self.activity = activity
-        #                 return activity
-        #         except Exception as e:
-        #             LOGGER.exception(e)
-        #             continue
+            for event_orm in results:
+                try:
+                    if activity := await get_eventbrite_activity(
+                        self.eventbrite_client, event_id=event_orm.eventbrite_event_id
+                    ):
+                        self.activity = activity
+                        return activity
+                except Exception as e:
+                    LOGGER.exception(e)
+                    continue
 
         # CASE 2: Recommend an "evergreen" activity from our manually curated database.
         # for search_area_id in self.constraints.search_area_ids:
@@ -242,8 +242,8 @@ class OutingPlanner:
         # If it's night time, then send them to either an ice cream shop or a bar, depending on the group preferences.
         # Reminder that here we're recommending _activities_ not restaurants.
         place_type = "ice_cream_shop"
-        # if is_evening and self.group_open_to_bars:
-        #     place_type = "bar"
+        if is_evening and self.group_open_to_bars:
+            place_type = "bar"
 
         for search_area_id in self.survey.search_area_ids:
             region = SearchRegionOrm.one_or_exception(search_region_id=search_area_id)
