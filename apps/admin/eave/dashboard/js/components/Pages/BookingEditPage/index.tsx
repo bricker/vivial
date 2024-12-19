@@ -167,7 +167,7 @@ const BookingEditPage = () => {
               <p style={{ fontWeight: "bold" }}>{formatCents(bookingInfo.adminBooking.costBreakdown.totalCostCents)}</p>
             </div>
             <p>
-              Stripe link: <Link to={"#"}>todo</Link>
+              Stripe link: <Link to={`https://dashboard.stripe.com/payments/${"todo payment id"}`}>todo</Link>
             </p>
           </div>
 
