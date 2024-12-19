@@ -1,7 +1,7 @@
+import ExternalLink from "$eave-dashboard/js/components/Links/ExternalLink";
 import { AdminBookingInfo, Restaurant } from "$eave-dashboard/js/graphql/generated/graphql";
 import { CircularProgress } from "@mui/material";
 import React from "react";
-import { Link } from "react-router-dom";
 
 const RestaurantView = ({
   data,
@@ -16,15 +16,15 @@ const RestaurantView = ({
   return (
     <div>
       <h2>Restaurant info</h2>
+      <h3>Core internal details:</h3>
       {data ? (
         <div>
-          <h3>Core internal info</h3>
           <b>Name: {data.restaurantName}</b>
           <p>at time: {data.restaurantArrivalTime}</p>
           <p>
             Reserve at:{" "}
             {data.restaurantBookingLink ? (
-              <Link to={data.restaurantBookingLink}>{data.restaurantBookingLink}</Link>
+              <ExternalLink to={data.restaurantBookingLink}>{data.restaurantBookingLink}</ExternalLink>
             ) : (
               "[no booking URL]"
             )}{" "}
@@ -35,9 +35,9 @@ const RestaurantView = ({
       ) : (
         fallback
       )}
+      <h3>Extra details:</h3>
       {detailData ? (
         <div>
-          <h3>Extra details:</h3>
           {/* <p>{detailData.description}</p> */}
           {detailData.reservable && <b>Reservation possible; Please reserve.</b>}
           <p>

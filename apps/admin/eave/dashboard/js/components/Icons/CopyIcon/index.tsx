@@ -1,7 +1,7 @@
 import React from "react";
 import { IconProps } from "../types";
 
-const CopyIcon = ({ width = 24, height = 24, color = "#000" }: IconProps) => {
+const CopyIcon = ({ width = 24, height = 24, color = "#ddd" }: IconProps) => {
   return (
     <svg width={width} height={width} viewBox={`0 0 ${width} ${height}`} fill="none" xmlns="http://www.w3.org/2000/svg">
       <g id="Edit / Copy">

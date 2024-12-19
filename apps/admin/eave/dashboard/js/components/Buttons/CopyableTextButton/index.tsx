@@ -4,7 +4,7 @@ import CopyIcon from "../../Icons/CopyIcon";
 
 const CopyableTextButton = ({ text }: { text: string }) => {
   return (
-    <Button variant="outlined" endIcon={<CopyIcon />}>
+    <Button onClick={() => navigator.clipboard.writeText(text)} variant="outlined" endIcon={<CopyIcon />}>
       {text}
     </Button>
   );

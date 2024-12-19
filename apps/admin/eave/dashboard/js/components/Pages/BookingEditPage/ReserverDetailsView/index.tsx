@@ -28,7 +28,7 @@ const ReserverDetailsView = ({
           <div>
             <h4>Participating accounts:</h4>
             {data.accounts.map((account) => (
-              <div>
+              <div key={account.id}>
                 <p>
                   account id: <CopyableTextButton text={account.id} />
                 </p>

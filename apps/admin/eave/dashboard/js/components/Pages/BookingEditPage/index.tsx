@@ -1,6 +1,6 @@
 import { ActivitySource, RestaurantSource } from "$eave-dashboard/js/graphql/generated/graphql";
 import { useGetBookingInfoQuery, useUpdateBookingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
-import { CircularProgress } from "@mui/material";
+import { styled } from "@mui/material";
 import React, { useCallback, useState } from "react";
 import { useParams } from "react-router-dom";
 import ActivityView from "./ActivityView";
@@ -8,6 +8,10 @@ import CostBreakdownView from "./CostBreakdownView";
 import ReserverDetailsView from "./ReserverDetailsView";
 import RestaurantView from "./RestaurantView";
 import SurveyView from "./SurveyView";
+
+const PageContainer = styled("div")(() => ({
+  padding: 24,
+}));
 
 const BookingEditPage = () => {
   const [newActivitySource, setNewActivitySource] = useState<ActivitySource | null | undefined>(undefined);
@@ -53,7 +57,7 @@ const BookingEditPage = () => {
 
   // TODO: ability to update/delete aspects of booking
   return (
-    <div>
+    <PageContainer>
       <h1>Booking {bookingId}</h1>
       <div>
         <ReserverDetailsView data={bookingInfo?.adminBooking} isLoading={bookingIsLoading} />
@@ -75,6 +79,7 @@ const BookingEditPage = () => {
         <CostBreakdownView
           data={bookingInfo?.adminBookingActivityDetail?.ticketInfo?.costBreakdown}
           stripePaymentIntentId={bookingInfo?.adminBooking?.stripePaymentId}
+          bookingState={bookingInfo?.adminBooking?.state}
           isLoading={bookingIsLoading}
         />
 
@@ -82,14 +87,8 @@ const BookingEditPage = () => {
             Update Booking
           </LoadingButton> */}
       </div>
-      {bookingInfo ? (
-        <h2 style={{ color: "red" }}>Booking not found</h2>
-      ) : bookingIsLoading ? (
-        <CircularProgress />
-      ) : (
-        <h2 style={{ color: "red" }}>ERROR: failed to get booking</h2>
-      )}
-    </div>
+      {!bookingIsLoading && !bookingInfo?.adminBooking && <h2 style={{ color: "red" }}>ERROR: failed to get booking</h2>}
+    </PageContainer>
   );
 };
 

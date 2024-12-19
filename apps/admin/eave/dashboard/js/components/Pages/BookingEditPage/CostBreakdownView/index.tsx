@@ -1,7 +1,7 @@
+import ExternalLink from "$eave-dashboard/js/components/Links/ExternalLink";
 import { CostBreakdown } from "$eave-dashboard/js/graphql/generated/graphql";
-import { CircularProgress } from "@mui/material";
+import { Button, CircularProgress } from "@mui/material";
 import React from "react";
-import { Link } from "react-router-dom";
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -15,10 +15,12 @@ function formatCents(cents: number): string {
 const CostBreakdownView = ({
   data,
   stripePaymentIntentId,
+  bookingState,
   isLoading,
 }: {
   data: CostBreakdown | undefined;
   stripePaymentIntentId: string | undefined | null;
+  bookingState: string | undefined | null;
   isLoading: boolean;
 }) => {
   return (
@@ -28,16 +30,21 @@ const CostBreakdownView = ({
         <CircularProgress />
       ) : (
         <div>
+          <b>Booking State: {bookingState}</b>
           <p>Event costs: {formatCents(data?.baseCostCents || 0)}</p>
           <p>Taxes: {formatCents(data?.taxCents || 0)}</p>
           <p>Fees: {formatCents(data?.feeCents || 0)}</p>
-          <p style={{ fontWeight: "bold" }}>TOTAL: {formatCents(data?.totalCostCents || 0)}</p>
+          <b>TOTAL: {formatCents(data?.totalCostCents || 0)}</b>
 
-          {stripePaymentIntentId ? (
-            <Link to={`https://dashboard.stripe.com/payments/${stripePaymentIntentId}`}>Accept payment on Stripe</Link>
-          ) : (
-            "[No stripe payment intent found]"
-          )}
+          <p>
+            {stripePaymentIntentId ? (
+              <ExternalLink to={`https://dashboard.stripe.com/payments/${stripePaymentIntentId}`}>
+                <Button variant="contained">Accept payment on Stripe</Button>
+              </ExternalLink>
+            ) : (
+              "[No stripe payment intent found]"
+            )}
+          </p>
         </div>
       )}
     </div>

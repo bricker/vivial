@@ -1,7 +1,7 @@
+import ExternalLink from "$eave-dashboard/js/components/Links/ExternalLink";
 import { Activity, AdminBookingInfo } from "$eave-dashboard/js/graphql/generated/graphql";
 import { CircularProgress } from "@mui/material";
 import React from "react";
-import { Link } from "react-router-dom";
 
 const ActivityView = ({
   data,
@@ -13,19 +13,19 @@ const ActivityView = ({
   isLoading: boolean;
 }) => {
   const fallback = "[None]";
-  // TODO: 
+  // TODO: edit
   return (
     <div>
       <h2>Activity info</h2>
+      <h3>Core internal details:</h3>
       {data ? (
         <div>
-          <h3>Core internal details:</h3>
           <b>Name: {data.activityName}</b>
           <p>at time: {data.activityStartTime}</p>
           <p>
             Website/booking link:{" "}
             {data.activityBookingLink ? (
-              <Link to={data.activityBookingLink}>{data.activityBookingLink}</Link>
+              <ExternalLink to={data.activityBookingLink}>{data.activityBookingLink}</ExternalLink>
             ) : (
               fallback
             )}
@@ -36,9 +36,9 @@ const ActivityView = ({
       ) : (
         fallback
       )}
+      <h3>Extra details:</h3>
       {detailData ? (
         <div>
-          <h3>Extra details:</h3>
           {/* <p>
             Description:
             {detailData.description}

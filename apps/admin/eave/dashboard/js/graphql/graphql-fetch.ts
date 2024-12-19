@@ -74,7 +74,8 @@ export async function executeOperation<TResult, TVariables>({
     // The GraphQL spec says that if errors is present, is must have at least 1 error.
     // So the length check here is just for safety.
     const operationMetadata = getGraphqlOperationMetadata(query.toString());
-    throw new GraphQLExecutionError({ operationName: operationMetadata?.operationName, errors });
+    // don't throw just because there were errors, would could still have partial data
+    console.error(new GraphQLExecutionError({ operationName: operationMetadata?.operationName, errors }));
   }
 
   if (!data) {
