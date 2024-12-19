@@ -133,12 +133,7 @@ const DateSurveyPage = () => {
   const dispatch = useDispatch();
 
   const handleSubmit = useCallback(async () => {
-    const groupPreferences = getPreferenceInputs(
-      outingPreferences,
-      partnerPreferences,
-      outingPreferencesData?.activityCategoryGroups,
-      outingPreferencesData?.restaurantCategories,
-    );
+    const groupPreferences = getPreferenceInputs(outingPreferences, partnerPreferences);
     await planOuting({
       input: {
         startTime: startTime.toISOString(),
@@ -148,7 +143,7 @@ const DateSurveyPage = () => {
         searchAreaIds,
       },
     });
-  }, [outingPreferencesData, outingPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime]);
+  }, [outingPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime]);
 
   const handleSubmitPreferences = useCallback(
     async (restaurantCategories: RestaurantCategory[], activityCategories: ActivityCategory[]) => {
