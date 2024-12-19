@@ -44,7 +44,6 @@ class ConfirmBookingSuccess:
 class ConfirmBookingFailureReason(enum.Enum):
     PAYMENT_REQUIRED = enum.auto()
     BOOKING_NOT_FOUND = enum.auto()
-    INVALID_PAYMENT_INTENT = enum.auto()
     START_TIME_TOO_SOON = enum.auto()
     START_TIME_TOO_LATE = enum.auto()
 

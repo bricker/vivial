@@ -26,7 +26,7 @@ class TestConfirmBookingResolver(BaseTestCase):
 
         assert booking.state == BookingState.INITIATED
 
-        self.mock_stripe_payment_intent.amount = self.get_mock_eventbrite_ticket_class_batch_cost() * survey.headcount
+        self.mock_stripe_payment_intent.amount = self.get_mock_eventbrite_ticket_class_batch_cost() * booking.headcount
         assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 0
         assert self.get_mock("slack client").call_count == 0
 
@@ -35,10 +35,6 @@ class TestConfirmBookingResolver(BaseTestCase):
             {
                 "input": {
                     "bookingId": str(booking.id),
-                    "paymentIntent": {
-                        "id": self.mock_stripe_payment_intent.id,
-                        "clientSecret": self.mock_stripe_payment_intent.client_secret,
-                    },
                 },
             },
             account_id=account.id,
@@ -78,7 +74,7 @@ class TestConfirmBookingResolver(BaseTestCase):
 
         assert booking.state == BookingState.INITIATED
 
-        self.mock_stripe_payment_intent.amount = self.get_mock_eventbrite_ticket_class_batch_cost() * survey.headcount
+        self.mock_stripe_payment_intent.amount = self.get_mock_eventbrite_ticket_class_batch_cost() * booking.headcount
         assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 0
         assert self.get_mock("slack client").call_count == 0
 
@@ -87,10 +83,6 @@ class TestConfirmBookingResolver(BaseTestCase):
             {
                 "input": {
                     "bookingId": str(booking.id),
-                    "paymentIntent": {
-                        "id": self.mock_stripe_payment_intent.id,
-                        "clientSecret": self.mock_stripe_payment_intent.client_secret,
-                    },
                 },
             },
             account_id=account.id,
@@ -111,77 +103,6 @@ class TestConfirmBookingResolver(BaseTestCase):
 
         assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 1
         assert self.get_mock("slack client").call_count == 2  # One for parent, one for thread
-
-    async def test_confirm_booking_with_invalid_payment_intent_fields(self) -> None:
-        async with self.db_session.begin() as session:
-            account = self.make_account(session)
-            survey = self.make_survey(session, account)
-            outing = self.make_outing(session, account, survey)
-            booking = self.make_booking(session, account, outing)
-
-        response = await self.make_graphql_request(
-            "confirmBooking",
-            {
-                "input": {
-                    "bookingId": str(booking.id),
-                    "paymentIntent": {
-                        "id": "",
-                        "clientSecret": "",
-                    },
-                },
-            },
-            account_id=account.id,
-        )
-
-        result = self.parse_graphql_response(response)
-        assert result.data
-        assert not result.errors
-
-        data = result.data["viewer"]["confirmBooking"]
-        assert data["__typename"] == "ConfirmBookingFailure"
-        assert data["failureReason"] == "INVALID_PAYMENT_INTENT"
-
-        async with self.db_session.begin() as session:
-            booking_fetched = await BookingOrm.get_one(session, booking.id)
-            assert booking_fetched.state == BookingState.INITIATED
-
-    async def test_confirm_booking_with_mismatched_booking_ids(self) -> None:
-        async with self.db_session.begin() as session:
-            account = self.make_account(session)
-            survey = self.make_survey(session, account)
-            outing = self.make_outing(session, account, survey)
-            stripe_payment_intent_reference = self.make_stripe_payment_intent_reference(session, account)
-            _booking1 = self.make_booking(
-                session, account, outing, stripe_payment_intent_reference=stripe_payment_intent_reference
-            )
-            booking2 = self.make_booking(session, account, outing)
-
-        response = await self.make_graphql_request(
-            "confirmBooking",
-            {
-                "input": {
-                    "bookingId": str(booking2.id),
-                    "paymentIntent": {
-                        "id": self.mock_stripe_payment_intent.id,
-                        "clientSecret": self.mock_stripe_payment_intent.client_secret,
-                    },
-                },
-            },
-            account_id=account.id,
-        )
-
-        result = self.parse_graphql_response(response)
-        assert result.data
-        assert not result.errors
-
-        data = result.data["viewer"]["confirmBooking"]
-        assert "booking" not in data
-        assert data["__typename"] == "ConfirmBookingFailure"
-        assert data["failureReason"] == "INVALID_PAYMENT_INTENT"
-
-        async with self.db_session.begin() as session:
-            booking_fetched = await BookingOrm.get_one(session, booking2.id)
-            assert booking_fetched.state == BookingState.INITIATED
 
     async def test_confirm_booking_with_unauthorized_account_for_booking(self) -> None:
         async with self.db_session.begin() as session:
@@ -231,10 +152,6 @@ class TestConfirmBookingResolver(BaseTestCase):
             {
                 "input": {
                     "bookingId": str(booking.id),
-                    "paymentIntent": {
-                        "id": self.mock_stripe_payment_intent.id,
-                        "clientSecret": self.mock_stripe_payment_intent.client_secret,
-                    },
                 },
             },
             account_id=account.id,
@@ -289,44 +206,6 @@ class TestConfirmBookingResolver(BaseTestCase):
         assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 0
         assert self.get_mock("slack client").call_count == 2  # One for parent, one for thread
 
-    async def test_confirm_booking_without_payment_intent_payment_required(self) -> None:
-        async with self.db_session.begin() as session:
-            account = self.make_account(session)
-            survey = self.make_survey(session, account)
-            outing = self.make_outing(session, account, survey)
-            stripe_payment_intent_reference = self.make_stripe_payment_intent_reference(session, account)
-            booking = self.make_booking(
-                session, account, outing, stripe_payment_intent_reference=stripe_payment_intent_reference
-            )
-
-        assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 0
-        assert self.get_mock("slack client").call_count == 0
-
-        response = await self.make_graphql_request(
-            "confirmBooking",
-            {
-                "input": {
-                    "bookingId": str(booking.id),
-                },
-            },
-            account_id=account.id,
-        )
-
-        result = self.parse_graphql_response(response)
-        assert result.data
-        assert not result.errors
-
-        data = result.data["viewer"]["confirmBooking"]
-        assert data["__typename"] == "ConfirmBookingFailure"
-        assert data["failureReason"] == "PAYMENT_REQUIRED"
-
-        async with self.db_session.begin() as session:
-            booking_fetched = await BookingOrm.get_one(session, booking.id)
-            assert booking_fetched.state == BookingState.INITIATED
-
-        assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 0
-        assert self.get_mock("slack client").call_count == 0
-
     async def test_confirm_booking_with_outing_amount_more_than_intent_amount(self) -> None:
         async with self.db_session.begin() as session:
             account = self.make_account(session)
@@ -341,7 +220,7 @@ class TestConfirmBookingResolver(BaseTestCase):
         assert self.get_mock("slack client").call_count == 0
 
         self.mock_stripe_payment_intent.amount = (
-            self.get_mock_eventbrite_ticket_class_batch_cost() * outing.survey.headcount
+            self.get_mock_eventbrite_ticket_class_batch_cost() * booking.headcount
         ) - 1000
 
         response = await self.make_graphql_request(
@@ -349,10 +228,6 @@ class TestConfirmBookingResolver(BaseTestCase):
             {
                 "input": {
                     "bookingId": str(booking.id),
-                    "paymentIntent": {
-                        "id": self.mock_stripe_payment_intent.id,
-                        "clientSecret": self.mock_stripe_payment_intent.client_secret,
-                    },
                 },
             },
             account_id=account.id,
@@ -392,7 +267,7 @@ class TestConfirmBookingResolver(BaseTestCase):
         assert self.get_mock("slack client").call_count == 0
 
         self.mock_stripe_payment_intent.amount = (
-            self.get_mock_eventbrite_ticket_class_batch_cost() * outing.survey.headcount
+            self.get_mock_eventbrite_ticket_class_batch_cost() * booking.headcount
         ) + 1000
 
         response = await self.make_graphql_request(
@@ -400,10 +275,6 @@ class TestConfirmBookingResolver(BaseTestCase):
             {
                 "input": {
                     "bookingId": str(booking.id),
-                    "paymentIntent": {
-                        "id": self.mock_stripe_payment_intent.id,
-                        "clientSecret": self.mock_stripe_payment_intent.client_secret,
-                    },
                 },
             },
             account_id=account.id,
@@ -422,6 +293,50 @@ class TestConfirmBookingResolver(BaseTestCase):
 
         assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 1
         assert self.get_mock("slack client").call_count == 2
+
+    async def test_confirm_booking_without_payment_intent_when_payment_required(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
+            booking = self.make_booking(
+                session,
+                account,
+                outing,
+                reserver_details=reserver_details,
+                stripe_payment_intent_reference=None,
+            )
+
+        assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 0
+        assert self.get_mock("slack client").call_count == 0
+
+        assert self.get_mock_eventbrite_ticket_class_batch_cost() > 0
+
+        response = await self.make_graphql_request(
+            "confirmBooking",
+            {
+                "input": {
+                    "bookingId": str(booking.id),
+                },
+            },
+            account_id=account.id,
+        )
+
+        result = self.parse_graphql_response(response)
+        assert result.data
+        assert not result.errors
+
+        data = result.data["viewer"]["confirmBooking"]
+        assert data["__typename"] == "ConfirmBookingFailure"
+        assert data["failureReason"] == "PAYMENT_REQUIRED"
+
+        async with self.db_session.begin() as session:
+            booking_fetched = await BookingOrm.get_one(session, booking.id)
+            assert booking_fetched.state == BookingState.INITIATED
+
+        assert self.get_mock("stripe.PaymentIntent.retrieve_async").call_count == 0
+        assert self.get_mock("slack client").call_count == 0
 
     async def test_confirm_booking_from_expired_outing_fails(self) -> None:
         async with self.db_session.begin() as session:

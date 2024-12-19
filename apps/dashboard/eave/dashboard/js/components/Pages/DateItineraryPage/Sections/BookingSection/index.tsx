@@ -92,6 +92,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
           budget: outing.survey?.budget || OutingBudget.Expensive,
           headcount: outing.survey?.headcount || outing.headcount,
           groupPreferences,
+          isReroll: true,
         },
       });
     }

@@ -3,7 +3,7 @@ from typing import Self
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import ForeignKey, PrimaryKeyConstraint, Select
+from sqlalchemy import ForeignKey, Select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -35,9 +35,8 @@ class BookingStateColumnType(StrEnumColumnType[BookingState]):
 
 class BookingOrm(Base, GetOneByIdMixin):
     __tablename__ = "bookings"
-    __table_args__ = (PrimaryKeyConstraint("id"),)
 
-    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
+    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, primary_key=True)
 
     state: Mapped[BookingState] = mapped_column(
         type_=BookingStateColumnType(), server_default=BookingState.INITIATED.value
@@ -107,19 +106,40 @@ class BookingOrm(Base, GetOneByIdMixin):
         elif len(self.reservations) > 0:
             return self.reservations[0].timezone
         else:
-            return ZoneInfo("UTC")
+            raise ValueError("Invalid Booking: no activities or reservations")
 
     @property
     def start_time_utc(self) -> datetime:
-        reservations_min = min(r.start_time_utc for r in self.reservations)
-        activities_min = min(a.start_time_utc for a in self.activities)
-        return min(activities_min, reservations_min)
+        candidates: list[datetime] = []
+        candidates.extend(a.start_time_utc for a in self.activities)
+        candidates.extend(r.start_time_utc for r in self.reservations)
+
+        if len(candidates) == 0:
+            raise ValueError("Invalid Booking: no activities or reservations")
+
+        return min(candidates)
 
     @property
     def start_time_local(self) -> datetime:
-        reservations_min = min(r.start_time_local for r in self.reservations)
-        activities_min = min(a.start_time_local for a in self.activities)
-        return min(activities_min, reservations_min)
+        candidates: list[datetime] = []
+        candidates.extend(a.start_time_local for a in self.activities)
+        candidates.extend(r.start_time_local for r in self.reservations)
+
+        if len(candidates) == 0:
+            raise ValueError("Invalid Booking: no activities or reservations")
+
+        return min(candidates)
+
+    @property
+    def headcount(self) -> int:
+        candidates: list[int] = []
+        candidates.extend(a.headcount for a in self.activities)
+        candidates.extend(r.headcount for r in self.reservations)
+
+        if len(candidates) == 0:
+            raise ValueError("Invalid Booking: no activities or reservations")
+
+        return max(candidates)
 
 
 class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
@@ -129,9 +149,8 @@ class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     mutate the activity this template cloned its source data from."""
 
     __tablename__ = "booking_activity_templates"
-    __table_args__ = (PrimaryKeyConstraint("id"),)
 
-    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
+    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, primary_key=True)
     source_id: Mapped[str] = mapped_column()
     source: Mapped[ActivitySource] = mapped_column(type_=ActivitySourceColumnType())
     """ActivitySource enum value"""
@@ -186,9 +205,8 @@ class BookingReservationTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     mutate the reservation this template cloned its source data from."""
 
     __tablename__ = "booking_reservation_templates"
-    __table_args__ = (PrimaryKeyConstraint("id"),)
 
-    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
+    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, primary_key=True)
     source_id: Mapped[str] = mapped_column()
     source: Mapped[RestaurantSource] = mapped_column(type_=RestaurantSourceColumnType())
     """RestaurantSource enum value"""

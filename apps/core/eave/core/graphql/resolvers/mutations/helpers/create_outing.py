@@ -16,7 +16,7 @@ async def create_outing(
     visitor_id: str | None,
     account: AccountOrm | None,
     survey: SurveyOrm,
-    reroll: bool,
+    is_reroll: bool,
 ) -> Outing:
     plan = await OutingPlanner(
         individual_preferences=individual_preferences,
@@ -71,7 +71,7 @@ async def create_outing(
         account_id=account.id if account else None,
         visitor_id=visitor_id,
         extra_properties={
-            "reroll": reroll,
+            "reroll": is_reroll,
             "outing_id": str(outing.id),
             "restaurant_info": plan.reservation.build_analytics_properties() if plan.reservation else None,
             "activity_info": plan.activity_plan.build_analytics_properties() if plan.activity_plan else None,

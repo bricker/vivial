@@ -77,7 +77,7 @@ const ActivityViewCondensed = () => {
     return null;
   }
 
-  const startTime = new Date(outing.startTime);
+  const startTime = new Date(outing.activityPlan.startTime);
   const activity = outing.activityPlan.activity;
 
   return (

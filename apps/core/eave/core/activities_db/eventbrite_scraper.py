@@ -1,5 +1,6 @@
 # isort: off
 
+import random
 import sys
 
 from eave.stdlib.time import LOS_ANGELES_TIMEZONE
@@ -227,7 +228,10 @@ _EVENTBRITE_ORGANIZER_IDS = {
 async def get_eventbrite_events() -> None:
     client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
 
-    for organizer_id in _EVENTBRITE_ORGANIZER_IDS:
+    organizer_ids_copy = list(_EVENTBRITE_ORGANIZER_IDS)
+    random.shuffle(organizer_ids_copy)
+
+    for organizer_id in organizer_ids_copy:
         paginator = client.list_events_for_organizer(
             organizer_id=organizer_id,
             query=ListEventsQuery(
@@ -371,6 +375,16 @@ async def get_eventbrite_events() -> None:
                             db_session,
                             eventbrite_event_id=eventbrite_event_id,
                             eventbrite_organizer_id=event.get("organizer_id", organizer_id),
+                            title=event_name["text"],
+                            start_time=start_time_utc,
+                            end_time=end_time_utc,
+                            timezone=timezone,
+                            min_cost_cents=min_cost_cents,
+                            max_cost_cents=max_cost_cents,
+                            lat=float(lat),
+                            lon=float(lon),
+                            vivial_activity_category_id=vivial_category.id,
+                            vivial_activity_format_id=vivial_format.id,
                         )
                     else:
                         LOGGER.debug(

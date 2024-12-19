@@ -235,15 +235,9 @@ class TestInitiateBookingResolver(BaseTestCase):
         assert create_payment_intent_mock.call_args_list[0].kwargs["receipt_email"] == fetched_account.email
         assert create_payment_intent_mock.call_args_list[0].kwargs["capture_method"] == "manual"
 
-        # These checks are just for the typechecker
-        cost = self.mock_eventbrite_ticket_class_batch[0].get("cost")
-        fee = self.mock_eventbrite_ticket_class_batch[0].get("fee")
-        tax = self.mock_eventbrite_ticket_class_batch[0].get("tax")
-        assert cost and tax and fee
-
         assert (
             create_payment_intent_mock.call_args_list[0].kwargs["amount"]
-            == (cost["value"] + fee["value"] + tax["value"]) * outing.survey.headcount
+            == self.get_mock_eventbrite_ticket_class_batch_cost() * outing.headcount
         )
 
         create_customer_mock = self.get_mock("stripe.Customer.create_async")
