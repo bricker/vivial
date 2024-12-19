@@ -19,7 +19,6 @@ from .util.constants import PG_UUID_EXPR, OnDeleteOption
 
 class OutingOrm(Base, GetOneByIdMixin):
     __tablename__ = "outings"
-    __table_args__ = ()
 
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=PG_UUID_EXPR)
     visitor_id: Mapped[str | None] = mapped_column()
@@ -57,30 +56,39 @@ class OutingOrm(Base, GetOneByIdMixin):
         if len(self.activities) > 0:
             return self.activities[0].timezone
         elif len(self.reservations) > 0:
-            return self.activities[0].timezone
+            return self.reservations[0].timezone
         else:
-            return ZoneInfo("UTC")
+            raise ValueError("Invalid Outing: no activities or reservations")
 
     @property
     def start_time_utc(self) -> datetime:
-        reservations_min = min(r.start_time_utc for r in self.reservations)
-        activities_min = min(a.start_time_utc for a in self.activities)
-        return min(activities_min, reservations_min)
+        candidates: list[datetime] = []
+        candidates.extend(a.start_time_utc for a in self.activities)
+        candidates.extend(r.start_time_utc for r in self.reservations)
+
+        if len(candidates) == 0:
+            raise ValueError("Invalid Outing: no activities or reservations")
+
+        return min(candidates)
 
     @property
     def start_time_local(self) -> datetime:
-        reservations_min = min(r.start_time_local for r in self.reservations)
-        activities_min = min(a.start_time_local for a in self.activities)
-        return min(activities_min, reservations_min)
+        candidates: list[datetime] = []
+        candidates.extend(a.start_time_local for a in self.activities)
+        candidates.extend(r.start_time_local for r in self.reservations)
+
+        if len(candidates) == 0:
+            raise ValueError("Invalid Outing: no activities or reservations")
+
+        return min(candidates)
 
 
-class OutingActivityOrm(Base, TimedEventMixin):
+class OutingActivityOrm(Base, TimedEventMixin, GetOneByIdMixin):
     """Pivot table between `outings` and activity sources"""
 
     __tablename__ = "outing_activities"
-    __table_args__ = (PrimaryKeyConstraint("outing_id", "source_id", name="outing_activity_pivot_pk"),)
 
-    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, unique=True)
+    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, primary_key=True)
     outing_id: Mapped[UUID] = mapped_column(
         ForeignKey(f"{OutingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value)
     )
@@ -114,13 +122,12 @@ class OutingActivityOrm(Base, TimedEventMixin):
             session.add(self)
 
 
-class OutingReservationOrm(Base, TimedEventMixin):
+class OutingReservationOrm(Base, TimedEventMixin, GetOneByIdMixin):
     """Pivot table between `outings` and reservation sources"""
 
     __tablename__ = "outing_reservations"
-    __table_args__ = (PrimaryKeyConstraint("outing_id", "source_id", name="outing_reservation_pivot_pk"),)
 
-    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, unique=True)
+    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, primary_key=True)
     outing_id: Mapped[UUID] = mapped_column(
         ForeignKey(f"{OutingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value)
     )

@@ -268,7 +268,7 @@ async def get_places_nearby(
     *,
     area: GeoArea,
     included_primary_types: Sequence[str],
-) -> MutableSequence[Place]:
+) -> list[Place]:
     """
     Given a Google Places API client, use it to search for places nearby the
     given latitude and longitude that meet the given constraints.
@@ -286,7 +286,7 @@ async def get_places_nearby(
     response = await places_client.search_nearby(
         request=request, metadata=[("x-goog-fieldmask", _SEARCH_NEARBY_FIELD_MASK)]
     )
-    return response.places or []
+    return list(response.places)
 
 
 def place_will_be_open(*, place: Place, arrival_time: datetime, departure_time: datetime, timezone: ZoneInfo) -> bool:

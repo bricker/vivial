@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from uuid import UUID
 
+from google.maps.places import Place, PriceLevel
 from google.maps.places_v1 import PlacesAsyncClient
 from sqlalchemy import func
 
@@ -83,8 +84,6 @@ def _combine_restaurant_categories(individual_preferences: list[OutingPreference
     result = intersection + difference
 
     if len(result) == 0:
-        # Failsafe - This should never happen
-        LOGGER.warning("No restaurant categories could be resolved; falling back to defaults")
         result = list(RestaurantCategoryOrm.defaults())  # Already a list, copying again for safety
         random.shuffle(result)
 
@@ -123,8 +122,6 @@ def _combine_activity_categories(individual_preferences: list[OutingPreferencesI
     result = intersection + difference
 
     if len(result) == 0:
-        # Failsafe - This should never happen
-        LOGGER.warning("No activity categories could be resolved; falling back to defaults")
         result = list(ActivityCategoryOrm.defaults())  # Already a list, copying again for safety
         random.shuffle(result)
 
@@ -360,7 +357,24 @@ class OutingPlanner:
 
             random.shuffle(restaurants_nearby)
 
+            perform_lte_price_level_comparison = arrival_time_local.hour < 11
+            if perform_lte_price_level_comparison:
+                # Before 11am, most restaurants are cheaper ($$ or less).
+                # So if someone chooses $$$-$$$$, we would rarely should them a restaurant recommendation.
+                # So in this case, we sort the (already shuffled) retrieved restaurants by price level descending.
+                # We don't do this for >= 11am because we don't want to recommend McDonald's for an expensive night out.
+                restaurants_nearby.sort(key=lambda place: place.price_level.value, reverse=True) # in-place sort
+
             for restaurant in restaurants_nearby:
+                if perform_lte_price_level_comparison:
+                    # <=
+                    # If we're < 11am, then find restaurants that have price less <= the selected price level
+                    price_level_matches = restaurant.price_level <= self.survey.budget.google_places_price_level
+                else:
+                    # ==
+                    # Otherwise, find only restaurants that match the selected price livel
+                    price_level_matches = restaurant.price_level == self.survey.budget.google_places_price_level
+
                 will_be_open = place_will_be_open(
                     place=restaurant,
                     arrival_time=arrival_time_local,
@@ -370,7 +384,7 @@ class OutingPlanner:
 
                 # Select restaurants that _match_ their requested budget.
                 # So if they request an expensive date, we don't recommend McDonald's.
-                if will_be_open and restaurant.price_level == self.survey.budget.google_places_price_level:
+                if will_be_open and price_level_matches:
                     self.restaurant = await restaurant_from_google_place(self.places_client, place=restaurant)
                     return self.restaurant
 

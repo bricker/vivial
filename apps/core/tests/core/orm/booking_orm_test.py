@@ -204,9 +204,12 @@ class TestBookingOrms(BaseTestCase):
             )
             booking.reservations.append(booking_reservation_template)
 
-        assert booking.timezone == booking_activity_template1.timezone
-        assert booking.start_time_utc == booking_activity_template2.start_time_utc
-        assert booking.start_time_local == booking_activity_template2.start_time_local
+        async with self.db_session.begin() as session:
+            booking_fetched = await BookingOrm.get_one(session, uid=booking.id)
+
+        assert booking_fetched.timezone == booking_activity_template1.timezone
+        assert booking_fetched.start_time_utc == booking_activity_template2.start_time_utc
+        assert booking_fetched.start_time_local == booking_activity_template2.start_time_local
 
     async def test_booking_calculated_time_fields_without_activities(self) -> None:
         async with self.db_session.begin() as session:
@@ -248,15 +251,12 @@ class TestBookingOrms(BaseTestCase):
             )
             booking.reservations.append(booking_reservation_template)
 
-        assert booking.timezone == booking_reservation_template.timezone
-        assert booking.start_time_utc == booking_reservation_template.start_time_utc
-        assert booking.start_time_local == booking_reservation_template.start_time_local
+        async with self.db_session.begin() as session:
+            booking_fetched = await BookingOrm.get_one(session, uid=booking.id)
 
-    async def test_booking_start_time_utc(self) -> None:
-        self.fail()
-
-    async def test_booking_start_time_local(self) -> None:
-        self.fail()
+        assert booking_fetched.timezone == booking_reservation_template.timezone
+        assert booking_fetched.start_time_utc == booking_reservation_template.start_time_utc
+        assert booking_fetched.start_time_local == booking_reservation_template.start_time_local
 
     async def test_booking_account_select(self) -> None:
         async with self.db_session.begin() as session:

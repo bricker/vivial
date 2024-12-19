@@ -1,3 +1,4 @@
+from datetime import timedelta
 import os
 import random
 import unittest.mock
@@ -224,7 +225,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
                 headcount=survey.headcount,
                 source=ActivitySource.EVENTBRITE,
                 source_id=self.getdigits("eventbrite.Event.id"),
-                start_time_utc=survey.start_time_utc,
+                start_time_utc=survey.start_time_utc + timedelta(hours=2),
                 timezone=survey.timezone,
             )
         )
@@ -281,7 +282,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             session,
             booking=booking,
             name=self.anystr(),
-            start_time_utc=self.anydatetime(),
+            start_time_utc=outing.activities[0].start_time_utc,
             timezone=self.anytimezone(),
             photo_uri=self.anyurl(),
             headcount=self.anyint(min=1, max=2),
@@ -308,7 +309,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             booking=booking,
             name=self.anystr(),
             photo_uri=self.anyurl(),
-            start_time_utc=self.anydatetime(),
+            start_time_utc=outing.reservations[0].start_time_utc,
             timezone=self.anytimezone(),
             headcount=self.anyint(min=1, max=2),
             coordinates=GeoPoint(

@@ -26,6 +26,7 @@ class PlanOutingInput:
     search_area_ids: list[UUID]
     budget: OutingBudget
     headcount: int
+    is_reroll: bool = False
 
 
 @strawberry.type
@@ -83,7 +84,7 @@ async def plan_outing_mutation(
         visitor_id=visitor_id,
         account=account,
         survey=survey,
-        reroll=False,
+        is_reroll=input.is_reroll,
     )
 
     return PlanOutingSuccess(outing=outing)
