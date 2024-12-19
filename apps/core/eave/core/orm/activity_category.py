@@ -14,7 +14,7 @@ class ActivityCategoryOrm:
 
     @classmethod
     def all(cls) -> list["ActivityCategoryOrm"]:
-        return list(_ACTIVITY_CATEGORIES_TABLE)
+        return list(_ACTIVITY_CATEGORIES_TABLE) # shallow copy
 
     @classmethod
     def one_or_exception(cls, *, activity_category_id: UUID) -> "ActivityCategoryOrm":
@@ -32,6 +32,9 @@ class ActivityCategoryOrm:
     def get_by_activity_category_group_id(cls, *, activity_category_group_id: UUID) -> list["ActivityCategoryOrm"]:
         return _ACTIVITY_CATEGORIES_CATEGORY_GROUP_ID_IDX.get(activity_category_group_id, [])
 
+    @classmethod
+    def defaults(cls) -> list["ActivityCategoryOrm"]:
+        return list(_DEFAULT_ACTIVITY_CATEGORIES) # shallow copy
 
 _ACTIVITY_CATEGORIES_TABLE = (
     ActivityCategoryOrm(
@@ -684,3 +687,5 @@ def _make_category_group_id_idx() -> MappingProxyType[UUID, list[ActivityCategor
 
 
 _ACTIVITY_CATEGORIES_CATEGORY_GROUP_ID_IDX = _make_category_group_id_idx()
+
+_DEFAULT_ACTIVITY_CATEGORIES = [cat for cat in _ACTIVITY_CATEGORIES_TABLE if cat.is_default]

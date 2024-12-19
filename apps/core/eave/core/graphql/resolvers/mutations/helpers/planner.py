@@ -80,8 +80,15 @@ def _combine_restaurant_categories(individual_preferences: list[OutingPreference
 
     random.shuffle(intersection)
     random.shuffle(difference)
-    return intersection + difference
+    result = intersection + difference
 
+    if len(result) == 0:
+        # Failsafe - This should never happen
+        LOGGER.warning("No restaurant categories could be resolved; falling back to defaults")
+        result = list(RestaurantCategoryOrm.defaults()) # Already a list, copying again for safety
+        random.shuffle(result)
+
+    return result
 
 def _combine_activity_categories(individual_preferences: list[OutingPreferencesInput]) -> list[ActivityCategoryOrm]:
     """
@@ -111,7 +118,16 @@ def _combine_activity_categories(individual_preferences: list[OutingPreferencesI
 
     random.shuffle(intersection)
     random.shuffle(difference)
-    return intersection + difference
+
+    result = intersection + difference
+
+    if len(result) == 0:
+        # Failsafe - This should never happen
+        LOGGER.warning("No activity categories could be resolved; falling back to defaults")
+        result = list(ActivityCategoryOrm.defaults()) # Already a list, copying again for safety
+        random.shuffle(result)
+
+    return result
 
 
 def _combine_bar_openness(individual_preferences: list[OutingPreferencesInput]) -> bool:
@@ -185,12 +201,20 @@ class OutingPlanner:
         start_time_local = self.survey.start_time_local + timedelta(minutes=120)
         self.activity_start_time_local = start_time_local
         end_time_local = start_time_local + timedelta(minutes=90)
-        random.shuffle(self.survey.search_area_ids)
 
         within_areas = [
             SearchRegionOrm.one_or_exception(search_region_id=search_area_id).area
             for search_area_id in self.survey.search_area_ids
         ]
+
+        if len(within_areas) == 0:
+            # Failsafe - This should never happen
+            LOGGER.warning("No activity search areas categories could be resolved; falling back to defaults")
+            within_areas = [
+                region.area for region in SearchRegionOrm.all()
+            ]
+
+        random.shuffle(within_areas)
 
         # CASE 1: Recommend an Eventbrite event.
         query = EventbriteEventOrm.select(
@@ -244,12 +268,10 @@ class OutingPlanner:
         if is_evening and self.group_open_to_bars:
             place_type = "bar"
 
-        for search_area_id in self.survey.search_area_ids:
-            region = SearchRegionOrm.one_or_exception(search_region_id=search_area_id)
-
+        for search_area in within_areas:
             places_nearby = await get_places_nearby(
                 places_client=self.places_client,
-                area=region.area,
+                area=search_area,
                 included_primary_types=[place_type],
             )
 
@@ -282,7 +304,9 @@ class OutingPlanner:
         arrival_time_local = self.survey.start_time_local
         self.restaurant_arrival_time_local = arrival_time_local
         departure_time_local = arrival_time_local + timedelta(minutes=90)
-        search_areas = []
+
+        google_category_ids: list[str] = []
+        within_areas: list[GeoArea] = []
 
         # If this is a morning outing, override user restaurant preferences and show them breakfast / brunch spots.
         if is_early_morning(arrival_time_local, self.survey.timezone):
@@ -293,30 +317,40 @@ class OutingPlanner:
             random.shuffle(google_category_ids)
         else:
             # Already randomized in combiner funcs
-            google_category_ids = [
-                gcid for cat in self.group_restaurant_category_preferences for gcid in cat.google_category_ids
-            ]
+            google_category_ids = RestaurantCategoryOrm.combine_google_category_ids(self.group_restaurant_category_preferences)
 
         if len(google_category_ids) == 0:
+            # Failsafe - This should never happen
+            LOGGER.warning("No google category IDs could be resolved; falling back to defaults")
+
             # If included_primary_types is empty, this query returns everything, like car rental places and junk.
-            self.restaurant = None
-            return self.restaurant
+            # Although self.group_restaurant_category_preferences should never be empty, it's possible for there to be no google_category_ids here.
+            # That should never happen, but if it does, we don't want to show bad results, so this is a failsafe.
+            google_category_ids = RestaurantCategoryOrm.combine_google_category_ids(RestaurantCategoryOrm.defaults())
 
         # If an activity has been selected, use that as the search area.
         if self.activity:
-            search_areas = [
+            within_areas.append(
                 GeoArea(
                     center=self.activity.venue.location.coordinates,
                     rad=Distance(miles=5),
                 ),
-            ]
+            )
 
         # TODO: Sort areas by distance to the activity location.
         for search_area_id in self.survey.search_area_ids:
-            search_areas.append(SearchRegionOrm.one_or_exception(search_region_id=search_area_id).area)
+            within_areas.append(SearchRegionOrm.one_or_exception(search_region_id=search_area_id).area)
+
+        if len(within_areas) == 0:
+            # Failsafe - This should never happen
+            LOGGER.warning("No restaurant search areas categories could be resolved; falling back to defaults")
+            # If there are no search areas given (which shouldn't happen but technically could), fallback to all of them.
+            within_areas = [s.area for s in SearchRegionOrm.all()]
+
+        random.shuffle(within_areas)
 
         # Find a restaurant that meets the outing constraints.
-        for area in search_areas:
+        for area in within_areas:
             restaurants_nearby = await get_places_nearby(
                 places_client=self.places_client,
                 area=area,
