@@ -45,6 +45,7 @@ class TestOutingOrms(BaseTestCase):
 
             assert outing_fetched.id == outing.id
 
+            assert outing_fetched.survey is not None
             assert outing_fetched.survey.id == survey.id
             assert outing_fetched.survey_id == survey.id
 
@@ -143,13 +144,54 @@ class TestOutingOrms(BaseTestCase):
 
             outing.activities.append(outing_activity)
 
-
         async with self.db_session.begin() as session:
             outing_fetched = await OutingOrm.get_one(session, outing.id)
 
         assert outing_fetched.timezone == outing_activity.timezone
         assert outing_fetched.start_time_utc == outing_activity.start_time_utc
         assert outing_fetched.start_time_local == outing_activity.start_time_local
+
+    async def test_booking_calculated_headcount(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+
+            outing.activities[0].headcount = 1
+            outing.reservations[0].headcount = 2
+
+        async with self.db_session.begin() as session:
+            outing_fetched = await OutingOrm.get_one(session, uid=outing.id)
+
+        assert outing_fetched.headcount == 2
+
+    async def test_booking_calculated_headcount_swap(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+
+            outing.activities[0].headcount = 2
+            outing.reservations[0].headcount = 1
+
+        async with self.db_session.begin() as session:
+            outing_fetched = await OutingOrm.get_one(session, uid=outing.id)
+
+        assert outing_fetched.headcount == 2
+
+    async def test_booking_calculated_headcount_same(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+
+            outing.activities[0].headcount = 1
+            outing.reservations[0].headcount = 1
+
+        async with self.db_session.begin() as session:
+            outing_fetched = await OutingOrm.get_one(session, uid=outing.id)
+
+        assert outing_fetched.headcount == 1
 
     async def test_outing_without_account(self) -> None:
         async with self.db_session.begin() as session:

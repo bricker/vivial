@@ -1,6 +1,6 @@
 import enum
 import urllib.parse
-from collections.abc import MutableSequence, Sequence
+from collections.abc import Sequence
 from datetime import datetime, timedelta
 from uuid import UUID
 from zoneinfo import ZoneInfo

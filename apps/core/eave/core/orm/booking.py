@@ -3,7 +3,7 @@ from typing import Self
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import ForeignKey, PrimaryKeyConstraint, Select
+from sqlalchemy import ForeignKey, Select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -129,6 +129,17 @@ class BookingOrm(Base, GetOneByIdMixin):
             raise ValueError("Invalid Booking: no activities or reservations")
 
         return min(candidates)
+
+    @property
+    def headcount(self) -> int:
+        candidates: list[int] = []
+        candidates.extend(a.headcount for a in self.activities)
+        candidates.extend(r.headcount for r in self.reservations)
+
+        if len(candidates) == 0:
+            raise ValueError("Invalid Booking: no activities or reservations")
+
+        return max(candidates)
 
 
 class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):

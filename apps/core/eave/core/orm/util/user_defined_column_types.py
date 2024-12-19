@@ -119,6 +119,7 @@ class StrEnumColumnType[T: StrEnum](UserDefinedType, ABC):
 
         return process
 
+
 class IntEnumColumnType[T: IntEnum](UserDefinedType, ABC):
     cache_ok = True
 
@@ -155,6 +156,7 @@ class IntEnumColumnType[T: IntEnum](UserDefinedType, ABC):
                 return None
 
         return process
+
 
 class ActivitySourceColumnType(StrEnumColumnType[ActivitySource]):
     def enum_member(self, value: str) -> ActivitySource:

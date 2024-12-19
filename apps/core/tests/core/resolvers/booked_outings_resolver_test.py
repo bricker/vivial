@@ -19,7 +19,7 @@ class TestBookedOutingsResolver(BaseTestCase):
                 outing=outing,
                 accounts=[account],
                 reserver_details=reserver_details,
-                state=BookingState.CONFIRMED
+                state=BookingState.CONFIRMED,
             )
 
             booking_activity_template = BookingActivityTemplateOrm(
@@ -115,7 +115,6 @@ class TestBookedOutingsResolver(BaseTestCase):
             booking_confirmed = self.make_booking(session, account, outing=outing, reserver_details=reserver_details)
             booking_confirmed.state = BookingState.CONFIRMED
 
-
         response = await self.make_graphql_request(
             "listBookedOutings",
             {},
@@ -140,7 +139,6 @@ class TestBookedOutingsResolver(BaseTestCase):
 
             booking_initiated = self.make_booking(session, account, outing=outing, reserver_details=reserver_details)
             booking_initiated.state = BookingState.INITIATED
-
 
         response = await self.make_graphql_request(
             "listBookedOutings",

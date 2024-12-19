@@ -1,7 +1,7 @@
-from datetime import timedelta
 import os
 import random
 import unittest.mock
+from datetime import timedelta
 from http import HTTPStatus
 from typing import Any, Protocol, TypeVar
 from uuid import UUID
@@ -285,7 +285,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             start_time_utc=outing.activities[0].start_time_utc,
             timezone=self.anytimezone(),
             photo_uri=self.anyurl(),
-            headcount=self.anyint(min=1, max=2),
+            headcount=outing.survey.headcount if outing.survey else self.anyint(min=1, max=2),
             coordinates=GeoPoint(
                 lat=self.anylatitude(),
                 lon=self.anylongitude(),
@@ -311,7 +311,7 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             photo_uri=self.anyurl(),
             start_time_utc=outing.reservations[0].start_time_utc,
             timezone=self.anytimezone(),
-            headcount=self.anyint(min=1, max=2),
+            headcount=outing.survey.headcount if outing.survey else self.anyint(min=1, max=2),
             coordinates=GeoPoint(
                 lat=self.anylatitude(),
                 lon=self.anylongitude(),

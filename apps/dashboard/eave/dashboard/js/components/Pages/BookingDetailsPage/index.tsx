@@ -21,7 +21,9 @@ const BookingDetailsPage = () => {
   useEffect(() => {
     if (data?.viewer?.__typename === "AuthenticatedViewerQueries") {
       const bookingDetails = data.viewer.bookedOutingDetails;
-      dispatch(openedBookingDetails({ bookingDetails }));
+      if (bookingDetails) {
+        dispatch(openedBookingDetails({ bookingDetails }));
+      }
     }
   }, [data]);
 

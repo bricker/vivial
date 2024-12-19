@@ -2,7 +2,7 @@ from datetime import UTC, datetime
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import ForeignKey, PrimaryKeyConstraint
+from sqlalchemy import ForeignKey
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -23,10 +23,10 @@ class OutingOrm(Base, GetOneByIdMixin):
     id: Mapped[UUID] = mapped_column(primary_key=True, server_default=PG_UUID_EXPR)
     visitor_id: Mapped[str | None] = mapped_column()
 
-    survey_id: Mapped[UUID] = mapped_column(
-        ForeignKey(f"{SurveyOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value)
+    survey_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey(f"{SurveyOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL.value)
     )
-    survey: Mapped[SurveyOrm] = relationship(lazy="selectin")
+    survey: Mapped[SurveyOrm | None] = relationship(lazy="selectin")
 
     account_id: Mapped[UUID | None] = mapped_column(
         ForeignKey(f"{AccountOrm.__tablename__}.id", ondelete=OnDeleteOption.SET_NULL.value)
@@ -81,6 +81,17 @@ class OutingOrm(Base, GetOneByIdMixin):
             raise ValueError("Invalid Outing: no activities or reservations")
 
         return min(candidates)
+
+    @property
+    def headcount(self) -> int:
+        candidates: list[int] = []
+        candidates.extend(a.headcount for a in self.activities)
+        candidates.extend(r.headcount for r in self.reservations)
+
+        if len(candidates) == 0:
+            raise ValueError("Invalid Outing: no activities or reservations")
+
+        return max(candidates)
 
 
 class OutingActivityOrm(Base, TimedEventMixin, GetOneByIdMixin):

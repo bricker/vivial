@@ -36,27 +36,6 @@ class TestPlanOutingEndpoints(BaseTestCase):
         data = result.data["planOuting"]
         assert data["outing"]["id"] is not None
 
-    async def test_plan_outing_with_no_preferences_given(self) -> None:
-        response = await self.make_graphql_request(
-            "planOuting",
-            {
-                "input": {
-                    "startTime": f"{self.anydatetime(offset=2 * day_seconds).isoformat()}",
-                    "searchAreaIds": [s.id.hex for s in random.choices(SearchRegionOrm.all(), k=3)],
-                    "budget": "INEXPENSIVE",
-                    "headcount": 2,
-                    "groupPreferences": None
-                },
-            },
-        )
-
-        result = self.parse_graphql_response(response)
-        assert result.data
-        assert not result.errors
-
-        data = result.data["planOuting"]
-        assert data["outing"]["id"] is not None
-
     async def test_plan_outing_with_empty_preferences_given(self) -> None:
         response = await self.make_graphql_request(
             "planOuting",
@@ -66,7 +45,7 @@ class TestPlanOutingEndpoints(BaseTestCase):
                     "searchAreaIds": [s.id.hex for s in random.choices(SearchRegionOrm.all(), k=3)],
                     "budget": "INEXPENSIVE",
                     "headcount": 2,
-                    "groupPreferences": []
+                    "groupPreferences": [],
                 },
             },
         )

@@ -11,7 +11,6 @@ from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm, BookingReservationTemplateOrm
 from eave.core.shared.enums import BookingState
-from eave.stdlib.http_exceptions import NotFoundError
 from eave.stdlib.logging import LOGGER
 from eave.stdlib.util import unwrap
 
@@ -128,7 +127,7 @@ async def get_booking_details_query(
 
     booking_orm = account.get_booking(booking_id=input.booking_id)
     if not booking_orm or booking_orm.state != BookingState.CONFIRMED:
-        LOGGER.warning("Booking not found or invalid state", { "bookingId": str(input.booking_id) })
+        LOGGER.warning("Booking not found or invalid state", {"bookingId": str(input.booking_id)})
         return None
 
     detail = await _get_booking_details(

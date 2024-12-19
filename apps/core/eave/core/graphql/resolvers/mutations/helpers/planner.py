@@ -3,7 +3,6 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from uuid import UUID
 
-from google.maps.places import Place, PriceLevel
 from google.maps.places_v1 import PlacesAsyncClient
 from sqlalchemy import func
 
@@ -363,7 +362,7 @@ class OutingPlanner:
                 # So if someone chooses $$$-$$$$, we would rarely should them a restaurant recommendation.
                 # So in this case, we sort the (already shuffled) retrieved restaurants by price level descending.
                 # We don't do this for >= 11am because we don't want to recommend McDonald's for an expensive night out.
-                restaurants_nearby.sort(key=lambda place: place.price_level.value, reverse=True) # in-place sort
+                restaurants_nearby.sort(key=lambda place: place.price_level.value, reverse=True)  # in-place sort
 
             for restaurant in restaurants_nearby:
                 if perform_lte_price_level_comparison:

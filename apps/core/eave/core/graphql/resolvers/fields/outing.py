@@ -70,7 +70,7 @@ async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: Outi
 
     return Outing(
         id=outing_orm.id,
-        survey=Survey.from_orm(outing_orm.survey),
+        survey=Survey.from_orm(outing_orm.survey) if outing_orm.survey else None,
         activity_plan=activity_plan,
         reservation=reservation,
     )

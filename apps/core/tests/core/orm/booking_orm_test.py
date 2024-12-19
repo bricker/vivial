@@ -258,6 +258,38 @@ class TestBookingOrms(BaseTestCase):
         assert booking_fetched.start_time_utc == booking_reservation_template.start_time_utc
         assert booking_fetched.start_time_local == booking_reservation_template.start_time_local
 
+    async def test_booking_calculated_headcount(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
+            booking = self.make_booking(session, account, outing, reserver_details=reserver_details)
+
+            booking.activities[0].headcount = 1
+            booking.reservations[0].headcount = 2
+
+        async with self.db_session.begin() as session:
+            booking_fetched = await BookingOrm.get_one(session, uid=booking.id)
+
+        assert booking_fetched.headcount == 2
+
+    async def test_booking_calculated_headcount_swap(self) -> None:
+        async with self.db_session.begin() as session:
+            account = self.make_account(session)
+            survey = self.make_survey(session, account)
+            outing = self.make_outing(session, account, survey)
+            reserver_details = self.make_reserver_details(session, account)
+            booking = self.make_booking(session, account, outing, reserver_details=reserver_details)
+
+            booking.activities[0].headcount = 2
+            booking.reservations[0].headcount = 1
+
+        async with self.db_session.begin() as session:
+            booking_fetched = await BookingOrm.get_one(session, uid=booking.id)
+
+        assert booking_fetched.headcount == 2
+
     async def test_booking_account_select(self) -> None:
         async with self.db_session.begin() as session:
             accounts = [self.make_account(session) for _ in range(5)]
