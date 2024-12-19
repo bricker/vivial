@@ -52,15 +52,15 @@ export function getTicketInfo(outing: Outing): string {
       }
     }
   }
-  return "";
+  return "Activity";
 }
 
 export function getActivityCategoryInfo(activity: Activity): string {
-  if (activity.source === ActivitySource.Eventbrite || activity.source === ActivitySource.Internal) {
-    return activity.categoryGroup?.name || "";
+  if (activity.primaryTypeName) {
+    return activity.primaryTypeName;
   }
-  if (activity.source === ActivitySource.GooglePlaces) {
-    return activity.primaryTypeName || "";
+  if (activity.categoryGroup?.name) {
+    return activity.categoryGroup.name;
   }
   return "";
 }
