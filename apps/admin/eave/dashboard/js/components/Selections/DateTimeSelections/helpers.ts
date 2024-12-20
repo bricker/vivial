@@ -31,7 +31,7 @@ export function getTimeObj(selectedDay: Dayjs): TimeObj {
   };
 }
 
-export function getTimeOptions(selectedDay: Dayjs): TimeObj[] {
+export function getTimeOptions(_selectedDay: Dayjs): TimeObj[] {
   const timesBeforeSixPM = [
     { label: "6:00am", hour: 6, minute: 0 },
     { label: "6:30am", hour: 6, minute: 30 },

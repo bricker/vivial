@@ -22,7 +22,9 @@ export function formatDate(dateString?: string | Date | null): string {
 
 export function enumTypeFromValue<T extends object>(target: T, value: string): T[keyof T] | null {
   for (const [k, v] of Object.entries(target)) {
-    if (v === value) return target[k as keyof T];
+    if (v === value) {
+      return target[k as keyof T];
+    }
   }
   return null;
 }

@@ -36,9 +36,15 @@ const ActivityView = ({
   const [updateBooking, { isLoading: updateBookingIsLoading }] = useUpdateBookingMutation();
 
   useEffect(() => {
-    if (data?.activitySource) setActivitySource(data.activitySource);
-    if (data?.activitySourceId) setActivitySourceId(data.activitySourceId);
-    if (data?.activityStartTime) setActivityStartTime(new Date(data.activityStartTime));
+    if (data?.activitySource) {
+      setActivitySource(data.activitySource);
+    }
+    if (data?.activitySourceId) {
+      setActivitySourceId(data.activitySourceId);
+    }
+    if (data?.activityStartTime) {
+      setActivityStartTime(new Date(data.activityStartTime));
+    }
   }, [data]);
 
   const updateBookingWrapper = async ({

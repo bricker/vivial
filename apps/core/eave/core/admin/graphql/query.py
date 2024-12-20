@@ -9,7 +9,7 @@ from eave.core.admin.graphql.resolvers.fields.bookings import (
 )
 from eave.core.admin.graphql.resolvers.fields.reserver_details import admin_reserver_details_query
 from eave.core.graphql.types.activity import Activity
-from eave.core.graphql.types.booking import BookingDetailPeek, BookingDetails
+from eave.core.graphql.types.booking import BookingDetailPeek
 from eave.core.graphql.types.reserver_details import ReserverDetails
 from eave.core.graphql.types.restaurant import Restaurant
 

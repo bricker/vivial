@@ -22,9 +22,9 @@ from eave.stdlib import cache
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
 
+from .admin.graphql.schema import schema as internal_schema
 from .database import async_engine
 from .graphql.schema import schema
-from .admin.graphql.schema import schema as internal_schema
 
 eave.stdlib.time.set_utc()
 

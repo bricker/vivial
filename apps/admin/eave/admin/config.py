@@ -1,4 +1,3 @@
-
 from eave.stdlib.config import ConfigBase
 
 

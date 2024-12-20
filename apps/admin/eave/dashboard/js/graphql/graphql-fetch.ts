@@ -39,8 +39,7 @@ type GraphqlOperationMetadata = {
 
 export async function executeOperation<TResult, TVariables>({
   query,
-  variables,
-  allowTokenRefresh = true,
+  variables, // allowTokenRefresh = true,
 }: {
   query: TypedDocumentString<TResult, TVariables>;
   variables: TVariables;

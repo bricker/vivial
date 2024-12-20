@@ -36,9 +36,15 @@ const RestaurantView = ({
   const [updateBooking, { isLoading: updateBookingIsLoading }] = useUpdateBookingMutation();
 
   useEffect(() => {
-    if (data?.restaurantSource) setRestaurantSource(data.restaurantSource);
-    if (data?.restaurantSourceId) setRestaurantSourceId(data.restaurantSourceId);
-    if (data?.restaurantArrivalTime) setRestaurantStartTime(new Date(data.restaurantArrivalTime));
+    if (data?.restaurantSource) {
+      setRestaurantSource(data.restaurantSource);
+    }
+    if (data?.restaurantSourceId) {
+      setRestaurantSourceId(data.restaurantSourceId);
+    }
+    if (data?.restaurantArrivalTime) {
+      setRestaurantStartTime(new Date(data.restaurantArrivalTime));
+    }
   }, [data]);
 
   const updateBookingWrapper = async ({

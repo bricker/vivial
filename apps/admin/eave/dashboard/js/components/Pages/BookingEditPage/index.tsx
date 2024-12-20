@@ -25,11 +25,11 @@ const BookingEditPage = () => {
   const [error, setError] = useState("");
   const [bookingState, setBookingState] = useState(BookingState.Initiated);
   const params = useParams();
-  const bookingId = params["bookingId"];
-  if (!bookingId) {
+  const bookingIdParam = params["bookingId"];
+  if (!bookingIdParam) {
     return <h1 style={{ color: "red" }}>Booking ID is required. please add it as a path parameter</h1>;
   }
-  const { data: bookingInfo, isLoading: bookingIsLoading } = useGetBookingInfoQuery({ bookingId });
+  const { data: bookingInfo, isLoading: bookingIsLoading } = useGetBookingInfoQuery({ bookingId: bookingIdParam });
   const [updateBooking, { isLoading: updateBookingIsLoading }] = useUpdateBookingMutation();
 
   useEffect(() => {
@@ -82,18 +82,18 @@ const BookingEditPage = () => {
   const handleBookBooking = useCallback(async () => {
     const state = BookingState.Booked;
     setBookingState(state);
-    await updateBookingState({ bookingId, state });
+    await updateBookingState({ bookingId: bookingIdParam, state });
   }, []);
 
   const handleCancelBooking = useCallback(async () => {
     const state = BookingState.Canceled;
     setBookingState(state);
-    await updateBookingState({ bookingId, state });
+    await updateBookingState({ bookingId: bookingIdParam, state });
   }, []);
 
   return (
     <PageContainer>
-      <h1>Booking {bookingId}</h1>
+      <h1>Booking {bookingIdParam}</h1>
       <InfoSpacer>
         <ReserverDetailsView data={bookingInfo?.adminBooking} isLoading={bookingIsLoading} />
 

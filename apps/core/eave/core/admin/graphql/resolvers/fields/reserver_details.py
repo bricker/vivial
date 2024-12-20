@@ -1,5 +1,6 @@
-import strawberry
 from uuid import UUID
+
+import strawberry
 
 from eave.core import database
 from eave.core.admin.graphql.context import AdminGraphQLContext
