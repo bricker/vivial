@@ -143,7 +143,7 @@ app = starlette.applications.Starlette(
             CORSMiddleware,
             allow_origins=[
                 SHARED_CONFIG.eave_dashboard_base_url_public,
-                SHARED_CONFIG.eave_admin_base_url_internal,
+                SHARED_CONFIG.eave_admin_base_url_public,
             ],
             allow_methods=[
                 aiohttp.hdrs.METH_GET,

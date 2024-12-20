@@ -215,7 +215,7 @@ async def notify_slack_booking_confirmed(
                 thread_ts=slack_response.get("ts"),
                 link_names=True,
                 text=dedent(f"""
-                    Dashboard link: https://admin.internal.vivialapp.com/booking/edit/{booking.id}
+                    Dashboard link: {SHARED_CONFIG.eave_admin_base_url_public}/booking/edit/{booking.id}
 
                     *Account Info*
 

@@ -177,9 +177,9 @@ class _EaveConfig(ConfigBase):
         )  # Use "or" to cover empty string
 
     @property
-    def eave_admin_base_url_internal(self) -> str:
-        return os.getenv("EAVE_ADMIN_BASE_URL_INTERNAL") or _prefix_hostname(
-            url=self.eave_base_url_internal, prefix="admin."
+    def eave_admin_base_url_public(self) -> str:
+        return os.getenv("EAVE_ADMIN_BASE_URL_PUBLIC") or _prefix_hostname(
+            url=self.eave_base_url_public, prefix="admin."
         )  # Use "or" to cover empty string
 
     @property
