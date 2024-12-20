@@ -24,6 +24,7 @@ from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
 from eave.core.shared.geo import GeoArea, GeoPoint
+from eave.stdlib.logging import LOGGER
 
 # You must pass a field mask to the Google Places API to specify the list of fields to return in the response.
 # Reference: https://developers.google.com/maps/documentation/places/web-service/nearby-search
@@ -243,7 +244,8 @@ async def get_google_place(
             request=GetPlaceRequest(name=f"places/{place_id}"), metadata=[("x-goog-fieldmask", _PLACE_FIELD_MASK)]
         )
         return place
-    except Exception:
+    except Exception as e:
+        LOGGER.error(e)
         return None
 
 

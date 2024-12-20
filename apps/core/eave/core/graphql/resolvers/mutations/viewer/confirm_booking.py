@@ -190,7 +190,7 @@ async def _notify_slack(
 
     if len(booking.reservations) > 0:
         rez = await get_google_place(PlacesAsyncClient(), place_id=booking.reservations[0].source_id)
-        if rez.reservable:
+        if rez and rez.reservable:
             elements.append("Restaurant Reservation Required")
 
     if len(booking.activities) > 0:
