@@ -15,6 +15,7 @@ class TestInitiateBookingResolver(BaseTestCase):
     async def test_valid_initiate_booking(self) -> None:
         assert self.get_mock("stripe.PaymentIntent.create_async").call_count == 0
         assert self.get_mock("stripe.Customer.create_async").call_count == 0
+        assert self.get_mock("stripe.CustomerSession.create_async").call_count == 0
 
         async with self.db_session.begin() as session:
             assert await self.count(session, BookingOrm) == 0
@@ -22,13 +23,7 @@ class TestInitiateBookingResolver(BaseTestCase):
             survey = self.make_survey(session, account)
             outing = self.make_outing(session, account, survey)
 
-        # These checks are just for the typechecker
-        cost = self.mock_eventbrite_ticket_class_batch[0].get("cost")
-        fee = self.mock_eventbrite_ticket_class_batch[0].get("fee")
-        tax = self.mock_eventbrite_ticket_class_batch[0].get("tax")
-        assert cost and tax and fee
-
-        self.mock_stripe_payment_intent.amount = (cost["value"] + fee["value"] + tax["value"]) * survey.headcount
+        self.mock_stripe_payment_intent.amount = self.get_mock_eventbrite_ticket_class_batch_cost() * survey.headcount
 
         response = await self.make_graphql_request(
             "initiateBooking",
@@ -67,12 +62,18 @@ class TestInitiateBookingResolver(BaseTestCase):
         assert payment_intent["id"] == self.mock_stripe_payment_intent.id
         assert payment_intent["clientSecret"] == self.mock_stripe_payment_intent.client_secret
 
+        customer_session = data["customerSession"]
+        assert customer_session is not None
+        assert customer_session["clientSecret"] == self.mock_stripe_customer_session.client_secret
+
         assert self.get_mock("stripe.PaymentIntent.create_async").call_count == 1
         assert self.get_mock("stripe.Customer.create_async").call_count == 1
+        assert self.get_mock("stripe.CustomerSession.create_async").call_count == 1
 
     async def test_create_booking_free(self) -> None:
         assert self.get_mock("stripe.PaymentIntent.create_async").call_count == 0
         assert self.get_mock("stripe.Customer.create_async").call_count == 0
+        assert self.get_mock("stripe.CustomerSession.create_async").call_count == 0
 
         async with self.db_session.begin() as session:
             assert await self.count(session, BookingOrm) == 0
@@ -99,11 +100,15 @@ class TestInitiateBookingResolver(BaseTestCase):
         data = result.data["viewer"]["initiateBooking"]
         assert data["__typename"] == "InitiateBookingSuccess"
 
+        assert data["paymentIntent"] is None
+        assert data["customerSession"] is None
+
         async with self.db_session.begin() as session:
             assert await self.count(session, BookingOrm) == 1
 
         assert self.get_mock("stripe.PaymentIntent.create_async").call_count == 0
         assert self.get_mock("stripe.Customer.create_async").call_count == 0
+        assert self.get_mock("stripe.CustomerSession.create_async").call_count == 0
 
     async def test_create_booking_from_expired_outing_fails(self) -> None:
         async with self.db_session.begin() as session:
@@ -184,6 +189,11 @@ class TestInitiateBookingResolver(BaseTestCase):
             assert await self.count(session, BookingOrm) == 0
 
     async def test_successful_create_payment_intent(self) -> None:
+        assert self.get_mock("stripe.PaymentIntent.create_async").call_count == 0
+        assert self.get_mock("stripe.Customer.create_async").call_count == 0
+        assert self.get_mock("stripe.CustomerSession.create_async").call_count == 0
+        assert self.get_mock("EventbriteClient.list_ticket_classes_for_sale_for_event").call_count == 0
+
         async with self.db_session.begin() as session:
             assert await self.count(session, StripePaymentIntentReferenceOrm) == 0
 
@@ -192,9 +202,6 @@ class TestInitiateBookingResolver(BaseTestCase):
             outing = self.make_outing(session, account, survey)
 
         assert account.stripe_customer_id is None
-        assert self.get_mock("stripe.PaymentIntent.create_async").call_count == 0
-        assert self.get_mock("stripe.Customer.create_async").call_count == 0
-        assert self.get_mock("EventbriteClient.list_ticket_classes_for_sale_for_event").call_count == 0
 
         response = await self.make_graphql_request(
             "initiateBooking",
@@ -215,6 +222,8 @@ class TestInitiateBookingResolver(BaseTestCase):
         assert data["__typename"] == "InitiateBookingSuccess"
         assert data["paymentIntent"]["id"] == self.mock_stripe_payment_intent.id
         assert data["paymentIntent"]["clientSecret"] == self.mock_stripe_payment_intent.client_secret
+
+        assert data["customerSession"]["clientSecret"] == self.mock_stripe_customer_session.client_secret
 
         async with self.db_session.begin() as session:
             assert await self.count(session, StripePaymentIntentReferenceOrm) == 1
@@ -244,6 +253,10 @@ class TestInitiateBookingResolver(BaseTestCase):
         assert create_customer_mock.call_count == 1
         assert create_customer_mock.call_args_list[0].kwargs["metadata"]["vivial_account_id"] == str(account.id)
 
+        create_customer_session_mock = self.get_mock("stripe.CustomerSession.create_async")
+        assert create_customer_session_mock.call_count == 1
+        assert create_customer_session_mock.call_args_list[0].kwargs["customer"] == fetched_account.stripe_customer_id
+
     async def test_create_payment_intent_with_existing_customer_id_doesnt_create_stripe_customer_account(self) -> None:
         async with self.db_session.begin() as session:
             account = self.make_account(session)
@@ -270,7 +283,9 @@ class TestInitiateBookingResolver(BaseTestCase):
 
         assert result.data["viewer"]["initiateBooking"]["__typename"] == "InitiateBookingSuccess"
         assert self.get_mock("stripe.Customer.create_async").call_count == 0
+        assert self.get_mock("stripe.CustomerSession.create_async").call_count == 1
 
+        assert result.data["viewer"]["initiateBooking"]["customerSession"]["clientSecret"] is not None
         async with self.db_session.begin() as session:
             fetched_account = await AccountOrm.get_one(session, account.id)
 
