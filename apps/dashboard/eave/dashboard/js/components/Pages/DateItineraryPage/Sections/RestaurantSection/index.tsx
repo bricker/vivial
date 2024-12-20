@@ -13,14 +13,14 @@ const Section = styled(ExpandableSection)(() => ({
 
 const RestaurantSection = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
-  if (!outing || !outing.reservation) {
-    return null;
-  }
-
   const [expanded, setExpanded] = useState(false);
   const toggleExpand = useCallback(() => {
     setExpanded(!expanded);
   }, [expanded]);
+
+  if (!outing?.reservation) {
+    return null;
+  }
 
   return (
     <Section onExpand={toggleExpand} expanded={expanded}>

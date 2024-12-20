@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
+import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { colors } from "$eave-dashboard/js/theme/colors";
@@ -13,13 +14,14 @@ import { styled } from "@mui/material";
 import { formatBaseCost, formatFeesAndTaxes, formatTotalCost } from "$eave-dashboard/js/util/currency";
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
 
+import EditButton from "$eave-dashboard/js/components/Buttons/EditButton";
 import PrimaryButton from "$eave-dashboard/js/components/Buttons/PrimaryButton";
 import RerollButton from "$eave-dashboard/js/components/Buttons/RerollButton";
 import CheckoutFormStripeElementsProvider from "$eave-dashboard/js/components/CheckoutReservation";
 import StripeBadge from "$eave-dashboard/js/components/CheckoutReservation/StripeBadge";
 import Modal from "$eave-dashboard/js/components/Modal";
-import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
 import Typography from "@mui/material/Typography";
+import OneClickBadge from "./OneClickBadge";
 import VivialBadge from "./VivialBadge";
 
 const Section = styled("section")(({ theme }) => ({
@@ -56,6 +58,56 @@ const CostItem = styled(Typography, {
   fontWeight: bold ? 700 : 400,
 }));
 
+const OneClickBooking = styled("div")(() => ({
+  display: "flex",
+}));
+
+const OneClickDetails = styled("div")(() => ({
+  flex: 1,
+}));
+
+const OneClickInputsContainer = styled("div")(() => ({
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "flex-start",
+}));
+
+const OneClickInputs = styled("div")(() => ({
+  display: "grid",
+  gridTemplateAreas: `
+    'name nameVal'
+    'phone phoneVal'
+    'email emailVal'
+    'pay payVal'
+  `,
+  gridColumnGap: "40px",
+}));
+
+const OneClickHeader = styled(Typography)(({ theme }) => ({
+  color: theme.palette.primary.main,
+  paddingTop: 18,
+  marginBottom: 14,
+  fontSize: rem(16),
+  lineHeight: rem(19),
+  fontWeight: 600,
+}));
+
+const OneClickInputName = styled(Typography, {
+  shouldForwardProp: (prop) => prop !== "gridArea",
+})<{ gridArea: string }>(({ gridArea }) => ({
+  gridArea,
+}));
+
+const OneClickInputValue = styled(Typography, {
+  shouldForwardProp: (prop) => prop !== "gridArea",
+})<{ gridArea: string }>(({ gridArea }) => ({
+  gridArea,
+}));
+
+const OneClickEditBtn = styled(EditButton)(() => ({
+  padding: "3px 0px 16px 16px",
+}));
+
 const ActionButtons = styled("div")(() => ({
   marginTop: 24,
   display: "flex",
@@ -73,35 +125,35 @@ const Error = styled(Typography)(({ theme }) => ({
 
 const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
-  const outing = useSelector((state: RootState) => state.outing.details);
   const { isLoggedIn } = useSelector((state: RootState) => state.auth);
+  const outing = useSelector((state: RootState) => state.outing.details);
   const userPreferences = useSelector((state: RootState) => state.outing.preferenes.user);
   const partnerPreferences = useSelector((state: RootState) => state.outing.preferenes.partner);
   const [bookingOpen, setBookingOpen] = useState(false);
+
+  // BRYAN FIXME: check whether or not the user is eligible for one-click booking.
+  const [oneClickEligible, _setOneClickEligible] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  if (!outing) {
-    console.warn("No outing available in store.");
-    return null;
-  }
-
-  const activityPlan = outing.activityPlan;
-  const reservation = outing.reservation;
+  const activityPlan = outing?.activityPlan;
+  const reservation = outing?.reservation;
 
   const handleReroll = useCallback(async () => {
-    const groupPreferences = getPreferenceInputs(userPreferences, partnerPreferences);
-    await planOuting({
-      input: {
-        startTime: new Date(outing.survey?.startTime || outing.startTime).toISOString(),
-        searchAreaIds: (outing.survey?.searchRegions || outing.searchRegions).map((r) => r.id),
-        budget: outing.survey?.budget || OutingBudget.Expensive,
-        headcount: outing.survey?.headcount || outing.headcount,
-        groupPreferences,
-        isReroll: true,
-      },
-    });
+    if (outing) {
+      const groupPreferences = getPreferenceInputs(userPreferences, partnerPreferences);
+      await planOuting({
+        input: {
+          startTime: new Date(outing.survey?.startTime || outing.startTime).toISOString(),
+          searchAreaIds: (outing.survey?.searchRegions || outing.searchRegions).map((r) => r.id),
+          budget: outing.survey?.budget || OutingBudget.Expensive,
+          headcount: outing.survey?.headcount || outing.headcount,
+          groupPreferences,
+          isReroll: true,
+        },
+      });
+    }
   }, [userPreferences, partnerPreferences, outing]);
 
   const toggleBookingOpen = useCallback(() => {
@@ -110,12 +162,20 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
 
   const handleBookClick = useCallback(() => {
     if (isLoggedIn) {
-      toggleBookingOpen();
+        if (oneClickEligible) {
+          // BRYAN FIXME: submit booking.
+          console.log("oneClickBook()");
+        } else {
+          toggleBookingOpen();
+        }
     } else {
-      // This handles the auth redirect and return path
-      navigate(routePath(AppRoute.checkoutReserve, { outingId: outing.id }));
+      if (outing) {
+        // This handles the auth redirect and return path
+        navigate(routePath(AppRoute.checkoutReserve, { outingId: outing.id }));
+      }
     }
-  }, [isLoggedIn, outing]);
+  }, [isLoggedIn, outing, oneClickEligible]);
+
 
   useEffect(() => {
     if (planOutingData) {
@@ -135,6 +195,10 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
       }
     }
   }, [planOutingData]);
+
+  if (!outing) {
+    return null;
+  }
 
   return (
     <Section>
@@ -161,6 +225,28 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         <CostItem>Service Fees via Vivial ...</CostItem>
         <CostItem bold>FREE</CostItem>
       </CostBreakdown>
+      {oneClickEligible && (
+        <OneClickBooking>
+          <OneClickBadge />
+          <OneClickDetails>
+            <OneClickHeader>One click booking</OneClickHeader>
+            <OneClickInputsContainer>
+              {/* BRYAN FIXME: Add dynamic values. */}
+              <OneClickInputs>
+                <OneClickInputName gridArea="name">Name</OneClickInputName>
+                <OneClickInputValue gridArea="nameVal">Lana Nguyen</OneClickInputValue>
+                <OneClickInputName gridArea="phone">Phone #</OneClickInputName>
+                <OneClickInputValue gridArea="phoneVal">(555) 555-5555</OneClickInputValue>
+                <OneClickInputName gridArea="email">Email</OneClickInputName>
+                <OneClickInputValue gridArea="emailVal">lana@vivialapp.com</OneClickInputValue>
+                <OneClickInputName gridArea="pay">Pay with</OneClickInputName>
+                <OneClickInputValue gridArea="payVal">Visa *1234</OneClickInputValue>
+              </OneClickInputs>
+              <OneClickEditBtn onClick={toggleBookingOpen} />
+            </OneClickInputsContainer>
+          </OneClickDetails>
+        </OneClickBooking>
+      )}
       {!viewOnly && (
         <>
           <ActionButtons>

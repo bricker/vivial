@@ -218,7 +218,10 @@ const DateSurveyPage = () => {
   useEffect(() => {
     const viewer = outingPreferencesData?.viewer;
     if (viewer?.__typename === "AuthenticatedViewerQueries") {
-      setOutingPreferences(viewer.outingPreferences);
+      const preferences = viewer.outingPreferences;
+      if (preferences.activityCategories || preferences.restaurantCategories) {
+        setOutingPreferences(preferences);
+      }
     }
   }, [outingPreferencesData]);
 
@@ -274,11 +277,13 @@ const DateSurveyPage = () => {
                 editable={!outingPreferences}
                 onClickEdit={() => setOutingPreferencesOpen(true)}
               />
-              <EditPreferencesOption
-                label="Add partner preferences (optional)"
-                editable={!partnerPreferences}
-                onClickEdit={() => setPartnerPreferencesOpen(true)}
-              />
+              {headcount === 2 && (
+                <EditPreferencesOption
+                  label="Add partner preferences (optional)"
+                  editable={!partnerPreferences}
+                  onClickEdit={() => setPartnerPreferencesOpen(true)}
+                />
+              )}
             </>
           )}
         </CopyContainer>

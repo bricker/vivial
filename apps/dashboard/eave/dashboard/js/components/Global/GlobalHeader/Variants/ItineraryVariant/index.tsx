@@ -23,16 +23,18 @@ const Cost = styled("span")(() => ({
 
 const ItineraryVariant = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
-  if (!outing) {
-    console.warn("No outing available in store.");
-    return null;
-  }
   const navigate = useNavigate();
 
   const handleBook = useCallback(() => {
-    const reservePath = routePath(AppRoute.checkoutReserve, { outingId: outing.id });
-    navigate(reservePath);
+    if (outing?.id) {
+      const reservePath = routePath(AppRoute.checkoutReserve, { outingId: outing.id });
+      navigate(reservePath);
+    }
   }, [outing]);
+
+  if (!outing) {
+    return null;
+  }
 
   return (
     <Header>
