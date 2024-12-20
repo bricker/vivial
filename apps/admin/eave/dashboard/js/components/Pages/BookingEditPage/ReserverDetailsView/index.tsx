@@ -1,4 +1,5 @@
 import CopyableTextButton from "$eave-dashboard/js/components/Buttons/CopyableTextButton";
+import Paper from "$eave-dashboard/js/components/Paper";
 import { AdminBookingInfo } from "$eave-dashboard/js/graphql/generated/graphql";
 import { CircularProgress } from "@mui/material";
 import React from "react";
@@ -12,7 +13,7 @@ const ReserverDetailsView = ({
 }) => {
   const fallback = "[none]";
   return (
-    <div>
+    <Paper>
       <h2>Reserver info:</h2>
       {data ? (
         <>
@@ -44,7 +45,7 @@ const ReserverDetailsView = ({
       ) : (
         fallback
       )}
-    </div>
+    </Paper>
   );
 };
 

@@ -1,4 +1,5 @@
 import ExternalLink from "$eave-dashboard/js/components/Links/ExternalLink";
+import Paper from "$eave-dashboard/js/components/Paper";
 import { CostBreakdown } from "$eave-dashboard/js/graphql/generated/graphql";
 import { Button, CircularProgress } from "@mui/material";
 import React from "react";
@@ -24,7 +25,7 @@ const CostBreakdownView = ({
   isLoading: boolean;
 }) => {
   return (
-    <div>
+    <Paper>
       <h2>Cost info:</h2>
       {isLoading ? (
         <CircularProgress />
@@ -47,7 +48,7 @@ const CostBreakdownView = ({
           </p>
         </div>
       )}
-    </div>
+    </Paper>
   );
 };
 

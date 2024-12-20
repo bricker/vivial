@@ -1,7 +1,8 @@
 import { AdminUpdateBookingFailureReason, BookingState } from "$eave-dashboard/js/graphql/generated/graphql";
 import { useGetBookingInfoQuery, useUpdateBookingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { colors } from "$eave-dashboard/js/theme/colors";
 import { styled } from "@mui/material";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import LoadingButton from "../../Buttons/LoadingButton";
 import ActivityView from "./ActivityView";
@@ -14,8 +15,15 @@ const PageContainer = styled("div")(() => ({
   padding: 24,
 }));
 
+const InfoSpacer = styled("div")(() => ({
+  display: "flex",
+  flexDirection: "column",
+  gap: 16,
+}));
+
 const BookingEditPage = () => {
   const [error, setError] = useState("");
+  const [bookingState, setBookingState] = useState(BookingState.Initiated);
   const params = useParams();
   const bookingId = params["bookingId"];
   if (!bookingId) {
@@ -24,7 +32,13 @@ const BookingEditPage = () => {
   const { data: bookingInfo, isLoading: bookingIsLoading } = useGetBookingInfoQuery({ bookingId });
   const [updateBooking, { isLoading: updateBookingIsLoading }] = useUpdateBookingMutation();
 
-  const setBookingState = async ({ bookingId, state }: { bookingId: string; state: BookingState }) => {
+  useEffect(() => {
+    if (bookingInfo?.adminBooking?.state) {
+      setBookingState(bookingInfo.adminBooking.state);
+    }
+  }, [bookingInfo]);
+
+  const updateBookingState = async ({ bookingId, state }: { bookingId: string; state: BookingState }) => {
     setError("");
 
     const resp = await updateBooking({
@@ -66,17 +80,21 @@ const BookingEditPage = () => {
   };
 
   const handleBookBooking = useCallback(async () => {
-    await setBookingState({ bookingId, state: BookingState.Booked });
+    const state = BookingState.Booked;
+    setBookingState(state);
+    await updateBookingState({ bookingId, state });
   }, []);
 
   const handleCancelBooking = useCallback(async () => {
-    await setBookingState({ bookingId, state: BookingState.Canceled });
+    const state = BookingState.Canceled;
+    setBookingState(state);
+    await updateBookingState({ bookingId, state });
   }, []);
 
   return (
     <PageContainer>
       <h1>Booking {bookingId}</h1>
-      <div>
+      <InfoSpacer>
         <ReserverDetailsView data={bookingInfo?.adminBooking} isLoading={bookingIsLoading} />
 
         <SurveyView data={bookingInfo?.adminBooking?.survey} isLoading={bookingIsLoading} />
@@ -96,19 +114,23 @@ const BookingEditPage = () => {
         <CostBreakdownView
           data={bookingInfo?.adminBookingActivityDetail?.ticketInfo?.costBreakdown}
           stripePaymentIntentId={bookingInfo?.adminBooking?.stripePaymentId}
-          bookingState={bookingInfo?.adminBooking?.state}
+          bookingState={bookingState}
           isLoading={bookingIsLoading}
         />
 
         <div style={{ display: "flex", justifyContent: "space-around" }}>
-          <LoadingButton color="secondary" loading={updateBookingIsLoading} onClick={handleCancelBooking}>
-            Cancel Booking
+          <LoadingButton
+            sx={{ backgroundColor: colors.midGreySecondaryField }}
+            loading={updateBookingIsLoading}
+            onClick={handleCancelBooking}
+          >
+            Mark as Canceled
           </LoadingButton>
           <LoadingButton loading={updateBookingIsLoading} onClick={handleBookBooking}>
             Mark as Booked
           </LoadingButton>
         </div>
-      </div>
+      </InfoSpacer>
       {!bookingIsLoading && !bookingInfo?.adminBooking && (
         <h2 style={{ color: "red" }}>ERROR: failed to get booking</h2>
       )}

@@ -1,3 +1,4 @@
+import Paper from "$eave-dashboard/js/components/Paper";
 import { Survey } from "$eave-dashboard/js/graphql/generated/graphql";
 import { CircularProgress } from "@mui/material";
 import React from "react";
@@ -5,7 +6,7 @@ import { formatDate } from "../helper";
 
 const SurveyView = ({ data, isLoading }: { data: Survey | undefined | null; isLoading: boolean }) => {
   return (
-    <div>
+    <Paper>
       <h2>Survey details:</h2>
       {data ? (
         <div>
@@ -19,7 +20,7 @@ const SurveyView = ({ data, isLoading }: { data: Survey | undefined | null; isLo
       ) : (
         "[None]"
       )}
-    </div>
+    </Paper>
   );
 };
 
