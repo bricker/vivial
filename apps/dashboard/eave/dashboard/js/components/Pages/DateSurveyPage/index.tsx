@@ -279,7 +279,7 @@ const DateSurveyPage = () => {
               />
               {headcount === 2 && (
                 <EditPreferencesOption
-                  label="Add partner preferences (optional)"
+                  label="Partner preferences (optional)"
                   editable={!partnerPreferences}
                   onClickEdit={() => setPartnerPreferencesOpen(true)}
                 />
