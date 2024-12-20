@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import { OutingBudget, type PaymentCard, type PaymentMethod } from "$eave-dashboard/js/graphql/generated/graphql";
+import { OutingBudget, type PaymentMethod } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { colors } from "$eave-dashboard/js/theme/colors";
@@ -15,10 +15,8 @@ import { formatBaseCost, formatFeesAndTaxes, formatTotalCost } from "$eave-dashb
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
 
 import EditButton from "$eave-dashboard/js/components/Buttons/EditButton";
-import PrimaryButton from "$eave-dashboard/js/components/Buttons/PrimaryButton";
 import RerollButton from "$eave-dashboard/js/components/Buttons/RerollButton";
 import CheckoutFormStripeElementsProvider from "$eave-dashboard/js/components/CheckoutReservation";
-import StripeBadge from "$eave-dashboard/js/components/CheckoutReservation/StripeBadge";
 import Modal from "$eave-dashboard/js/components/Modal";
 import Typography from "@mui/material/Typography";
 import OneClickBadge from "./OneClickBadge";
