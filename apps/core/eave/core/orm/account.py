@@ -1,3 +1,4 @@
+from functools import lru_cache
 import hashlib
 import hmac
 import os
@@ -10,6 +11,7 @@ from sqlalchemy import PrimaryKeyConstraint, Select, func, select
 from sqlalchemy.dialects.postgresql import TIMESTAMP
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+import stripe
 
 from eave.core.orm.account_bookings_join_table import ACCOUNT_BOOKINGS_JOIN_TABLE
 from eave.core.orm.util.mixins import GetOneByIdMixin
@@ -139,3 +141,9 @@ class AccountOrm(Base, GetOneByIdMixin):
             password_key = _derive_password_key(plaintext_password=plaintext_password, salt=salt)
             self.password_key_salt = salt.hex()
             self.password_key = password_key
+
+    def get_default_reserver_details(self) -> "ReserverDetailsOrm | None":
+        if len(self.reserver_details) > 0:
+            return self.reserver_details[0]
+        else:
+            return None
