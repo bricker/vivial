@@ -24,6 +24,7 @@ export type Account = {
   __typename?: 'Account';
   email: Scalars['String']['output'];
   id: Scalars['UUID']['output'];
+  stripeCustomerId?: Maybe<Scalars['String']['output']>;
 };
 
 export type Activity = {
@@ -149,9 +150,11 @@ export type AuthenticatedViewerMutationsUpdateReserverDetailsAccountArgs = {
 
 export type AuthenticatedViewerQueries = {
   __typename?: 'AuthenticatedViewerQueries';
+  account: Account;
   bookedOutingDetails?: Maybe<BookingDetails>;
   bookedOutings: Array<BookingDetailPeek>;
   outingPreferences: OutingPreferences;
+  paymentMethods: Array<PaymentMethod>;
   reserverDetails: Array<ReserverDetails>;
 };
 
@@ -282,7 +285,7 @@ export type InitiateBookingFailure = {
 };
 
 export enum InitiateBookingFailureReason {
-  BookingConfirmed = 'BOOKING_CONFIRMED',
+  BookingAlreadyConfirmed = 'BOOKING_ALREADY_CONFIRMED',
   PaymentIntentFailed = 'PAYMENT_INTENT_FAILED',
   StartTimeTooLate = 'START_TIME_TOO_LATE',
   StartTimeTooSoon = 'START_TIME_TOO_SOON',
@@ -290,7 +293,9 @@ export enum InitiateBookingFailureReason {
 }
 
 export type InitiateBookingInput = {
+  autoConfirm?: Scalars['Boolean']['input'];
   outingId: Scalars['UUID']['input'];
+  paymentMethodId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type InitiateBookingResult = InitiateBookingFailure | InitiateBookingSuccess;
@@ -390,9 +395,23 @@ export type OutingPreferencesInput = {
   restaurantCategoryIds: Array<Scalars['UUID']['input']>;
 };
 
+export type PaymentCard = {
+  __typename?: 'PaymentCard';
+  brand: Scalars['String']['output'];
+  expMonth: Scalars['Int']['output'];
+  expYear: Scalars['Int']['output'];
+  last4: Scalars['String']['output'];
+};
+
 export type PaymentIntent = {
   __typename?: 'PaymentIntent';
   clientSecret: Scalars['String']['output'];
+  id: Scalars['String']['output'];
+};
+
+export type PaymentMethod = {
+  __typename?: 'PaymentMethod';
+  card?: Maybe<PaymentCard>;
   id: Scalars['String']['output'];
 };
 
@@ -678,7 +697,7 @@ export type ViewerMutations = AuthenticatedViewerMutations | UnauthenticatedView
 
 export type ViewerQueries = AuthenticatedViewerQueries | UnauthenticatedViewer;
 
-export type AccountFieldsFragment = { __typename: 'Account', id: string, email: string };
+export type AccountFieldsFragment = { __typename: 'Account', id: string, email: string, stripeCustomerId?: string | null };
 
 export type ActivityFieldsFragment = { __typename: 'Activity', sourceId: string, source: ActivitySource, name: string, description?: string | null, websiteUri?: string | null, doorTips?: string | null, insiderTips?: string | null, parkingTips?: string | null, primaryTypeName?: string | null, categoryGroup?: { __typename: 'ActivityCategoryGroup', id: string, name: string, activityCategories: Array<{ __typename: 'ActivityCategory', id: string, name: string, isDefault: boolean }> } | null, ticketInfo?: { __typename: 'TicketInfo', name?: string | null, notes?: string | null, costBreakdown: { __typename: 'CostBreakdown', baseCostCents: number, feeCents: number, taxCents: number, totalCostCents: number } } | null, venue: { __typename: 'ActivityVenue', name: string, location: { __typename: 'Location', directionsUri?: string | null, coordinates: { __typename: 'GeoPoint', lat: number, lon: number }, address: { __typename: 'Address', address1?: string | null, address2?: string | null, city?: string | null, state?: string | null, zipCode?: string | null, country?: string | null, formattedMultiline: string, formattedSingleline: string }, searchRegion: { __typename: 'SearchRegion', id: string, name: string } } }, photos: { __typename: 'Photos', coverPhoto?: { __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> } | null, supplementalPhotos: Array<{ __typename: 'Photo', id: string, src: string, alt?: string | null, attributions: Array<string> }> } };
 
@@ -746,7 +765,7 @@ export type LoginMutationVariables = Exact<{
 }>;
 
 
-export type LoginMutation = { __typename: 'Mutation', login: { __typename: 'LoginFailure', failureReason: LoginFailureReason } | { __typename: 'LoginSuccess', account: { __typename: 'Account', id: string, email: string } } };
+export type LoginMutation = { __typename: 'Mutation', login: { __typename: 'LoginFailure', failureReason: LoginFailureReason } | { __typename: 'LoginSuccess', account: { __typename: 'Account', id: string, email: string, stripeCustomerId?: string | null } } };
 
 export type PlanOutingMutationVariables = Exact<{
   input: PlanOutingInput;
@@ -767,7 +786,7 @@ export type UpdateAccountMutationVariables = Exact<{
 }>;
 
 
-export type UpdateAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateAccount: { __typename: 'UpdateAccountFailure', failureReason: UpdateAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateAccountSuccess', account: { __typename: 'Account', id: string, email: string } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+export type UpdateAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateAccount: { __typename: 'UpdateAccountFailure', failureReason: UpdateAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateAccountSuccess', account: { __typename: 'Account', id: string, email: string, stripeCustomerId?: string | null } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 
 export type UpdateBookingMutationVariables = Exact<{
   input: UpdateBookingInput;
@@ -795,7 +814,7 @@ export type UpdateReserverDetailsAccountMutationVariables = Exact<{
 }>;
 
 
-export type UpdateReserverDetailsAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateReserverDetailsAccount: { __typename: 'UpdateReserverDetailsAccountFailure', failureReason: UpdateReserverDetailsAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateReserverDetailsAccountSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }, account: { __typename: 'Account', id: string, email: string } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+export type UpdateReserverDetailsAccountMutation = { __typename: 'Mutation', viewer: { __typename: 'AuthenticatedViewerMutations', updateReserverDetailsAccount: { __typename: 'UpdateReserverDetailsAccountFailure', failureReason: UpdateReserverDetailsAccountFailureReason, validationErrors?: Array<{ __typename: 'ValidationError', field: string }> | null } | { __typename: 'UpdateReserverDetailsAccountSuccess', reserverDetails: { __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }, account: { __typename: 'Account', id: string, email: string, stripeCustomerId?: string | null } } } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 
 export type BookingDetailsQueryVariables = Exact<{
   input: GetBookingDetailsQueryInput;
@@ -813,6 +832,11 @@ export type ListReserverDetailsQueryVariables = Exact<{ [key: string]: never; }>
 
 
 export type ListReserverDetailsQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', reserverDetails: Array<{ __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }> } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
+
+export type OneClickBookingCriteriaQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OneClickBookingCriteriaQuery = { __typename: 'Query', viewer: { __typename: 'AuthenticatedViewerQueries', reserverDetails: Array<{ __typename: 'ReserverDetails', id: string, firstName: string, lastName: string, phoneNumber: string }>, paymentMethods: Array<{ __typename: 'PaymentMethod', id: string, card?: { __typename: 'PaymentCard', brand: string, last4: string, expMonth: number, expYear: number } | null }> } | { __typename: 'UnauthenticatedViewer', authFailureReason: AuthenticationFailureReason } };
 
 export type OutingQueryVariables = Exact<{
   input: OutingInput;
@@ -850,6 +874,7 @@ export const AccountFieldsFragmentDoc = new TypedDocumentString(`
   __typename
   id
   email
+  stripeCustomerId
 }
     `, {"fragmentName":"AccountFields"}) as unknown as TypedDocumentString<AccountFieldsFragment, unknown>;
 export const SearchRegionFieldsFragmentDoc = new TypedDocumentString(`
@@ -2229,6 +2254,7 @@ export const LoginDocument = new TypedDocumentString(`
   __typename
   id
   email
+  stripeCustomerId
 }`) as unknown as TypedDocumentString<LoginMutation, LoginMutationVariables>;
 export const PlanOutingDocument = new TypedDocumentString(`
     mutation PlanOuting($input: PlanOutingInput!) {
@@ -2517,6 +2543,7 @@ export const UpdateAccountDocument = new TypedDocumentString(`
   __typename
   id
   email
+  stripeCustomerId
 }`) as unknown as TypedDocumentString<UpdateAccountMutation, UpdateAccountMutationVariables>;
 export const UpdateBookingDocument = new TypedDocumentString(`
     mutation UpdateBooking($input: UpdateBookingInput!) {
@@ -2700,6 +2727,7 @@ export const UpdateReserverDetailsAccountDocument = new TypedDocumentString(`
   __typename
   id
   email
+  stripeCustomerId
 }
 fragment ReserverDetailsFields on ReserverDetails {
   __typename
@@ -2956,6 +2984,42 @@ export const ListReserverDetailsDocument = new TypedDocumentString(`
   lastName
   phoneNumber
 }`) as unknown as TypedDocumentString<ListReserverDetailsQuery, ListReserverDetailsQueryVariables>;
+export const OneClickBookingCriteriaDocument = new TypedDocumentString(`
+    query OneClickBookingCriteria {
+  __typename
+  viewer {
+    __typename
+    ... on AuthenticatedViewerQueries {
+      __typename
+      reserverDetails {
+        __typename
+        ...ReserverDetailsFields
+      }
+      paymentMethods {
+        __typename
+        id
+        card {
+          __typename
+          brand
+          last4
+          expMonth
+          expYear
+        }
+      }
+    }
+    ... on UnauthenticatedViewer {
+      __typename
+      authFailureReason
+    }
+  }
+}
+    fragment ReserverDetailsFields on ReserverDetails {
+  __typename
+  id
+  firstName
+  lastName
+  phoneNumber
+}`) as unknown as TypedDocumentString<OneClickBookingCriteriaQuery, OneClickBookingCriteriaQueryVariables>;
 export const OutingDocument = new TypedDocumentString(`
     query Outing($input: OutingInput!) {
   __typename
