@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import { AppRoute, routePath } from "$eave-dashboard/js/routes";
+import { AppRoute, routePath, SearchParam } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
@@ -18,6 +18,9 @@ import RerollButton from "$eave-dashboard/js/components/Buttons/RerollButton";
 import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
 import Typography from "@mui/material/Typography";
 import VivialBadge from "./VivialBadge";
+import Modal from "$eave-dashboard/js/components/Modal";
+import StripeBadge from "$eave-dashboard/js/components/CheckoutReservation/StripeBadge";
+import CheckoutFormStripeElementsProvider from "$eave-dashboard/js/components/CheckoutReservation";
 
 const Section = styled("section")(({ theme }) => ({
   position: "relative",
@@ -74,7 +77,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const { isLoggedIn } = useSelector((state: RootState) => state.auth);
   const userPreferences = useSelector((state: RootState) => state.outing.preferenes.user);
   const partnerPreferences = useSelector((state: RootState) => state.outing.preferenes.partner);
-  const [, setBookingOpen] = useState(false);
+  const [bookingOpen, setBookingOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -101,22 +104,17 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
     });
   }, [userPreferences, partnerPreferences, outing]);
 
-  // const toggleBookingOpen = useCallback(() => {
-  //   setBookingOpen(!bookingOpen);
-  // }, [bookingOpen]);
+  const toggleBookingOpen = useCallback(() => {
+    setBookingOpen(!bookingOpen);
+  }, [bookingOpen]);
 
   const handleBookClick = useCallback(() => {
-    navigate(routePath(AppRoute.checkoutReserve, { outingId: outing.id }));
-
-    // if (isLoggedIn) {
-    //   toggleBookingOpen();
-    // } else {
-    //   const returnPath = encodeURIComponent(routePath(AppRoute.checkoutReserve, { outingId: outing.id }));
-    //   navigate({
-    //     pathname: AppRoute.signup,
-    //     search: `?${SearchParam.redirect}=${returnPath}`,
-    //   });
-    // }
+    if (isLoggedIn) {
+      toggleBookingOpen();
+    } else {
+      // This handles the auth redirect and return path
+      navigate(routePath(AppRoute.checkoutReserve, { outingId: outing.id }));
+    }
   }, [isLoggedIn, outing]);
 
   useEffect(() => {
@@ -174,15 +172,15 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         </>
       )}
       {errorMessage && <Error>ERROR: {errorMessage}</Error>}
-      {/* <Modal
+      <Modal
         title="Booking Info"
         onClose={toggleBookingOpen}
         open={bookingOpen}
         badge={<StripeBadge />}
         padChildren={false}
       >
-        <CheckoutReservation outingId={outing.id} />
-      </Modal> */}
+        <CheckoutFormStripeElementsProvider outingId={outing.id} />;
+      </Modal>
     </Section>
   );
 };

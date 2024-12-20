@@ -4,9 +4,11 @@ from textwrap import dedent
 from typing import Annotated
 from uuid import UUID
 
+from google.maps.places import PlacesAsyncClient
 import strawberry
 import stripe
 
+from eave.core.lib.google_places import get_google_place, get_google_places_activity
 import eave.stdlib.slack
 from eave.core import database
 from eave.core.analytics import ANALYTICS
@@ -23,7 +25,7 @@ from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm
 from eave.core.orm.search_region import SearchRegionOrm
-from eave.core.shared.enums import BookingState
+from eave.core.shared.enums import ActivitySource, BookingState
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.config import SHARED_CONFIG
 from eave.stdlib.logging import LOGGER
@@ -133,6 +135,7 @@ async def confirm_booking_mutation(
 
         booking.state = BookingState.CONFIRMED
 
+    # TODO: Move this into an offline queue
     await _notify_slack(
         booking=booking,
         account=account,
@@ -182,6 +185,23 @@ async def _notify_slack(
 ) -> None:
     total_cost_formatted = f"${"{:.2f}".format(total_cost_cents / 100)}"
 
+    msg = f"Outing Booked for {total_cost_formatted} - "
+    elements: list[str] = []
+
+    if len(booking.reservations) > 0:
+        rez = await get_google_place(PlacesAsyncClient(), place_id=booking.reservations[0].source_id)
+        if rez.reservable:
+            elements.append("Restaurant Reservation Required")
+
+    if len(booking.activities) > 0:
+        if booking.activities[0].source == ActivitySource.EVENTBRITE:
+            elements.append("Activity Tickets Required")
+
+    if len(elements) > 0:
+        msg += ", ".join(elements)
+    else:
+        msg += "no action required (probably)"
+
     try:
         channel_id = SHARED_CONFIG.eave_slack_alerts_bookings_channel_id
         slack_client = eave.stdlib.slack.get_authenticated_eave_system_slack_client()
@@ -189,26 +209,30 @@ async def _notify_slack(
         if slack_client and channel_id:
             slack_response = await slack_client.chat_postMessage(
                 channel=channel_id,
-                text=f"Outing Booked for {total_cost_formatted}",
+                text=msg,
             )
 
             # TODO: distinguish whether any action on our part is needed for one or both options?
             await slack_client.chat_postMessage(
                 channel=channel_id,
                 thread_ts=slack_response.get("ts"),
+                link_names=True,
                 text=dedent(f"""
+                    *Account Info*
+
                     - *Account ID*: `{account.id}`
                     - *Account Email*: `{account.email}`
 
-                    ---
+                    *Payment*
+
+                    - *Total Cost*: {total_cost_formatted}
+                    - *Stripe Payment Intent*: {f"https://dashboard.stripe.com/payments/{booking.stripe_payment_intent_reference.stripe_payment_intent_id}" if booking.stripe_payment_intent_reference else None}
 
                     *Reserver Details*
 
                     - *First Name*: `{reserver_details.first_name if reserver_details else "UNKNOWN"}`
                     - *Last Name*: `{reserver_details.last_name if reserver_details else "UNKNOWN"}`
                     - *Phone Number*: `{reserver_details.phone_number if reserver_details else "UNKNOWN"}`
-
-                    ---
 
                     {"\n".join([
                     f"""*Reservation*
@@ -217,10 +241,7 @@ async def _notify_slack(
                     - *Name*: {reservation.name}
                     - *Start Time*: {_pretty_time(reservation.start_time_local)}
                     - *Attendees*: {reservation.headcount}
-                    - **Booking URL*: {reservation.external_booking_link}
-
-                    ---
-
+                    - *Booking URL*: {reservation.external_booking_link}
                     """
                         for reservation in booking.reservations
                     ])}
@@ -233,23 +254,11 @@ async def _notify_slack(
                     - *Start Time*: {_pretty_time(activity.start_time_local)}
                     - *Attendees*: {activity.headcount}
                     - *Booking URL*: {activity.external_booking_link}
-
-                    ---
-
                     """
                         for activity in booking.activities
                     ])}
 
-                    ---
-
-                    - *Total Cost*: {total_cost_formatted}
-                    - *Stripe Payment Intent*: {f"https://dashboard.stripe.com/payments/{booking.stripe_payment_intent_reference.stripe_payment_intent_id}" if booking.stripe_payment_intent_reference else None}
-
-                    ---
-
                     *Internal Booking ID*: {booking.id}
-
-                    ---
 
                     @customer-support
                     """),

@@ -14,7 +14,7 @@ from eave.core.orm.util.user_defined_column_types import ActivitySourceColumnTyp
 from eave.core.shared.enums import ActivitySource
 
 from .base import Base
-from .util.constants import PG_UUID_EXPR, OnDeleteOption
+from .util.constants import CASCADE_ALL_DELETE_ORPHAN, PG_UUID_EXPR, OnDeleteOption
 
 
 class OutingOrm(Base, GetOneByIdMixin):
@@ -33,8 +33,8 @@ class OutingOrm(Base, GetOneByIdMixin):
     )
     account: Mapped[AccountOrm | None] = relationship(lazy="selectin")
 
-    activities: Mapped[list["OutingActivityOrm"]] = relationship(lazy="selectin", back_populates="outing")
-    reservations: Mapped[list["OutingReservationOrm"]] = relationship(lazy="selectin", back_populates="outing")
+    activities: Mapped[list["OutingActivityOrm"]] = relationship(lazy="selectin", back_populates="outing", cascade=CASCADE_ALL_DELETE_ORPHAN)
+    reservations: Mapped[list["OutingReservationOrm"]] = relationship(lazy="selectin", back_populates="outing", cascade=CASCADE_ALL_DELETE_ORPHAN)
 
     def __init__(
         self,

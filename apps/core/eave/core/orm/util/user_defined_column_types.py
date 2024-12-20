@@ -159,15 +159,18 @@ class IntEnumColumnType[T: IntEnum](UserDefinedType, ABC):
 
 
 class ActivitySourceColumnType(StrEnumColumnType[ActivitySource]):
+    cache_ok = True
     def enum_member(self, value: str) -> ActivitySource:
         return ActivitySource(value)
 
 
 class RestaurantSourceColumnType(StrEnumColumnType[RestaurantSource]):
+    cache_ok = True
     def enum_member(self, value: str) -> RestaurantSource:
         return RestaurantSource(value)
 
 
 class OutingBudgetColumnType(IntEnumColumnType[OutingBudget]):
+    cache_ok = True
     def enum_member(self, value: int) -> OutingBudget:
         return OutingBudget(value)

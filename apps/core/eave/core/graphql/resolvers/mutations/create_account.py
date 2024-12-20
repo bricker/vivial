@@ -110,6 +110,7 @@ async def _notify_slack(
             await slack_client.chat_postMessage(
                 channel=channel_id,
                 thread_ts=slack_response.get("ts"),
+                link_names=True,
                 text=dedent(f"""
                     - *Account ID*: `{account.id}`
                     - *Email*: `{account.email}`

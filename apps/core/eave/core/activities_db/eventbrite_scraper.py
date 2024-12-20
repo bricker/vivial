@@ -1,9 +1,7 @@
 # isort: off
 
-import random
 import sys
 
-from eave.stdlib.time import LOS_ANGELES_TIMEZONE
 
 sys.path.append(".")
 
@@ -18,6 +16,10 @@ load_standard_dotenv_files()
 import asyncio
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from pprint import pprint
+import random
+
+from aiohttp import ClientResponseError
 
 import eave.core.database
 from eave.core.config import CORE_API_APP_CONFIG
@@ -28,6 +30,10 @@ from eave.stdlib.eventbrite.client import EventbriteClient, ListEventsQuery, Ord
 from eave.stdlib.eventbrite.models.event import EventStatus
 from eave.stdlib.eventbrite.models.expansions import Expansion
 from eave.stdlib.logging import LOGGER
+from eave.stdlib.typing import JsonObject
+from eave.stdlib.time import LOS_ANGELES_TIMEZONE
+
+
 
 # These are hand-picked by Vivial staff
 _EVENTBRITE_ORGANIZER_IDS = {
@@ -224,6 +230,7 @@ _EVENTBRITE_ORGANIZER_IDS = {
     "86612512073",
 }
 
+full_analysis: dict[str, dict[str, int]] = {}
 
 async def get_eventbrite_events() -> None:
     client = EventbriteClient(api_key=CORE_API_APP_CONFIG.eventbrite_api_key)
@@ -232,6 +239,14 @@ async def get_eventbrite_events() -> None:
     random.shuffle(organizer_ids_copy)
 
     for organizer_id in organizer_ids_copy:
+        await asyncio.sleep(2)
+
+        analysis = {
+            "total_count": 0,
+        }
+
+        full_analysis[organizer_id] = analysis
+
         paginator = client.list_events_for_organizer(
             organizer_id=organizer_id,
             query=ListEventsQuery(
@@ -239,83 +254,117 @@ async def get_eventbrite_events() -> None:
                 status=EventStatus.LIVE,
                 only_public=True,
                 expand=Expansion.all(),
-            ),
+            )
         )
 
         pagenum = 0
-        async for batch in paginator:
-            pagenum += 1
-            LOGGER.debug(f"organizer {organizer_id}; pagenum {pagenum}")
+        try:
+            async for batch in paginator:
+                pagenum += 1
+                LOGGER.info(f"organizer {organizer_id}; pagenum {pagenum}")
 
-            async with eave.core.database.async_session.begin() as db_session:
                 evnum = 0
                 for event in batch:
+                    analysis["total_count"] += 1
                     evnum += 1
+
                     # FIXME: This will ignore events that may have previously been added into the database, if their settings were changed to become excluded.
 
                     if (eventbrite_event_id := event.get("id")) is None:
+                        analysis.setdefault("no_id", 0)
+                        analysis["no_id"] += 1
                         LOGGER.warning("No eventbrite event id; skipping")
                         continue
 
-                    pfx = f"[{evnum}/{len(batch)}; {eventbrite_event_id}]"
-                    LOGGER.debug(f"{pfx} processing event", {"eventbrite_organizer_id": organizer_id})
+                    pfx = f"[{organizer_id}; {evnum}/{len(batch)}; {eventbrite_event_id}]"
+                    logmeta: JsonObject = { "eventbrite_organizer_id": organizer_id, "eventbrite_event_id": eventbrite_event_id }
+
+                    LOGGER.info(f"{pfx} processing event", logmeta)
+
+                    if event.get("status") != EventStatus.LIVE:
+                        analysis.setdefault("invalid_status", 0)
+                        analysis["invalid_status"] += 1
+                        LOGGER.warning(f"{pfx} Status is not LIVE; skipping", logmeta)
+                        continue
 
                     if event.get("online_event") is True:
-                        LOGGER.debug(f"{pfx} online_event=True; skipping", {"eventbrite_event_id": eventbrite_event_id})
+                        analysis.setdefault("online_event", 0)
+                        analysis["online_event"] += 1
+                        LOGGER.info(f"{pfx} online_event=True; skipping", logmeta)
                         continue
 
                     if event.get("is_locked") is True:
-                        LOGGER.debug(f"{pfx} is_locked=True; skipping", {"eventbrite_event_id": eventbrite_event_id})
+                        analysis.setdefault("is_locked", 0)
+                        analysis["is_locked"] += 1
+                        LOGGER.info(f"{pfx} is_locked=True; skipping", logmeta)
                         continue
 
                     if event.get("show_pick_a_seat") is True:
-                        LOGGER.debug(
-                            f"{pfx} show_pick_a_seat=True skipping", {"eventbrite_event_id": eventbrite_event_id}
+                        analysis.setdefault("show_pick_a_seat", 0)
+                        analysis["show_pick_a_seat"] += 1
+                        LOGGER.info(
+                            f"{pfx} show_pick_a_seat=True skipping", logmeta
                         )
                         continue
 
                     if event.get("is_sold_out") is True:
-                        LOGGER.debug(f"{pfx} is_sold_out=True; skipping", {"eventbrite_event_id": eventbrite_event_id})
-                        continue
-
-                    if event.get("category_id") is None:
-                        LOGGER.debug(f"{pfx} category_id=None; skipping", {"eventbrite_event_id": eventbrite_event_id})
-                        continue
-
-                    if (eb_subcategory_id := event.get("subcategory_id")) is None:
-                        LOGGER.debug(
-                            f"{pfx} subcategory_id=None; skipping", {"eventbrite_event_id": eventbrite_event_id}
-                        )
-                        continue
-
-                    if (eb_format_id := event.get("format_id")) is None:
-                        LOGGER.debug(f"{pfx} format_id=None; skipping", {"eventbrite_event_id": eventbrite_event_id})
+                        analysis.setdefault("is_sold_out", 0)
+                        analysis["is_sold_out"] += 1
+                        LOGGER.info(f"{pfx} is_sold_out=True; skipping", logmeta)
                         continue
 
                     if not (event_name := event.get("name")):
+                        analysis.setdefault("no_name", 0)
+                        analysis["no_name"] += 1
                         LOGGER.warning(
-                            f"{pfx} No eventbrite event name; skipping", {"eventbrite_event_id": eventbrite_event_id}
+                            f"{pfx} No eventbrite event name; skipping", logmeta
                         )
                         continue
+
                     if (venue := event.get("venue")) is None:
+                        analysis.setdefault("no_venue", 0)
+                        analysis["no_venue"] += 1
                         LOGGER.warning(
-                            f"{pfx} No eventbrite event venue; skipping", {"eventbrite_event_id": eventbrite_event_id}
+                            f"{pfx} No eventbrite event venue; skipping", logmeta
                         )
                         continue
+
                     if (lat := venue.get("latitude")) is None:
+                        analysis.setdefault("no_lat", 0)
+                        analysis["no_lat"] += 1
                         LOGGER.warning(
-                            f"{pfx} No venue latitude; skipping", {"eventbrite_event_id": eventbrite_event_id}
+                            f"{pfx} No venue latitude; skipping", logmeta
                         )
                         continue
+
                     if (lon := venue.get("longitude")) is None:
+                        analysis.setdefault("no_lon", 0)
+                        analysis["no_lon"] += 1
                         LOGGER.warning(
-                            f"{pfx} No venue longitude; skipping", {"eventbrite_event_id": eventbrite_event_id}
+                            f"{pfx} No venue longitude; skipping", logmeta
                         )
                         continue
+
                     if (ticket_availability := event.get("ticket_availability")) is None:
+                        analysis.setdefault("no_ticket_availability", 0)
+                        analysis["no_ticket_availability"] += 1
                         LOGGER.warning(
                             f"{pfx} No eventbrite ticket_availability; skipping",
-                            {"eventbrite_event_id": eventbrite_event_id},
+                            logmeta,
+                        )
+                        continue
+
+                    if event.get("category_id") is None:
+                        analysis.setdefault("no_category_id", 0)
+                        analysis["no_category_id"] += 1
+                        LOGGER.info(f"{pfx} category_id=None; skipping", logmeta)
+                        continue
+
+                    if (eb_subcategory_id := event.get("subcategory_id")) is None:
+                        analysis.setdefault("no_subcategory_id", 0)
+                        analysis["no_subcategory_id"] += 1
+                        LOGGER.info(
+                            f"{pfx} subcategory_id=None; skipping", logmeta
                         )
                         continue
 
@@ -324,14 +373,26 @@ async def get_eventbrite_events() -> None:
                             eventbrite_subcategory_id=eb_subcategory_id
                         )
                     ):
+                        analysis.setdefault("no_category_mapping", 0)
+                        analysis["no_category_mapping"] += 1
+                        logmeta["eventbrite_subcategory_id"] = eb_subcategory_id
                         LOGGER.warning(
-                            f"{pfx} No mapped vivial category; skipping", {"eventbrite_event_id": eventbrite_event_id}
+                            f"{pfx} No mapped vivial category; skipping", logmeta
                         )
                         continue
 
+                    if (eb_format_id := event.get("format_id")) is None:
+                        analysis.setdefault("no_format_id", 0)
+                        analysis["no_format_id"] += 1
+                        LOGGER.info(f"{pfx} format_id=None; skipping", logmeta)
+                        continue
+
                     if not (vivial_format := ActivityFormatOrm.get_by_eventbrite_id(eventbrite_format_id=eb_format_id)):
+                        analysis.setdefault("no_format_mapping", 0)
+                        analysis["no_format_mapping"] += 1
+                        logmeta["eventbrite_format_id"] = eb_format_id
                         LOGGER.warning(
-                            f"{pfx} No mapped vivial format; skipping", {"eventbrite_event_id": eventbrite_event_id}
+                            f"{pfx} No mapped vivial format; skipping", logmeta
                         )
                         continue
 
@@ -339,7 +400,7 @@ async def get_eventbrite_events() -> None:
                         start_time_utc = datetime.fromisoformat(event_start["utc"])
                         start_timezone = ZoneInfo(event_start["timezone"])
                     else:
-                        LOGGER.warning(f"{pfx} No start time; skipping", {"eventbrite_event_id": eventbrite_event_id})
+                        LOGGER.warning(f"{pfx} No start time; skipping", logmeta)
                         continue
 
                     if event_end := event.get("end"):
@@ -362,19 +423,37 @@ async def get_eventbrite_events() -> None:
                     # These should never be different, but we need to choose one.
                     timezone = start_timezone or end_timezone or LOS_ANGELES_TIMEZONE
 
-                    query = EventbriteEventOrm.select(
-                        eventbrite_event_id=eventbrite_event_id,
-                    ).limit(1)
-
-                    target = (await db_session.scalars(query)).one_or_none()
-                    if not target:
-                        LOGGER.debug(
-                            f"{pfx} new event - adding to database", {"eventbrite_event_id": eventbrite_event_id}
-                        )
-                        target = EventbriteEventOrm(
-                            db_session,
+                    async with eave.core.database.async_session.begin() as db_session:
+                        query = EventbriteEventOrm.select(
                             eventbrite_event_id=eventbrite_event_id,
-                            eventbrite_organizer_id=event.get("organizer_id", organizer_id),
+                        ).limit(1)
+
+                        target = (await db_session.scalars(query)).one_or_none()
+                        if not target:
+                            LOGGER.info(
+                                f"{pfx} new event - adding to database", logmeta
+                            )
+                            target = EventbriteEventOrm(
+                                db_session,
+                                eventbrite_event_id=eventbrite_event_id,
+                                eventbrite_organizer_id=event.get("organizer_id", organizer_id),
+                                title=event_name["text"],
+                                start_time=start_time_utc,
+                                end_time=end_time_utc,
+                                timezone=timezone,
+                                min_cost_cents=min_cost_cents,
+                                max_cost_cents=max_cost_cents,
+                                lat=float(lat),
+                                lon=float(lon),
+                                vivial_activity_category_id=vivial_category.id,
+                                vivial_activity_format_id=vivial_format.id,
+                            )
+                        else:
+                            LOGGER.info(
+                                f"{pfx} existing event - updating database", logmeta
+                            )
+
+                        target.update(
                             title=event_name["text"],
                             start_time=start_time_utc,
                             end_time=end_time_utc,
@@ -386,24 +465,17 @@ async def get_eventbrite_events() -> None:
                             vivial_activity_category_id=vivial_category.id,
                             vivial_activity_format_id=vivial_format.id,
                         )
-                    else:
-                        LOGGER.debug(
-                            f"{pfx} existing event - updating database", {"eventbrite_event_id": eventbrite_event_id}
-                        )
+        except ClientResponseError as e:
+            LOGGER.exception(e)
+            await asyncio.sleep(10)
 
-                    target.update(
-                        title=event_name["text"],
-                        start_time=start_time_utc,
-                        end_time=end_time_utc,
-                        timezone=timezone,
-                        min_cost_cents=min_cost_cents,
-                        max_cost_cents=max_cost_cents,
-                        lat=float(lat),
-                        lon=float(lon),
-                        vivial_activity_category_id=vivial_category.id,
-                        vivial_activity_format_id=vivial_format.id,
-                    )
+        except Exception as e:
+            LOGGER.exception(e)
 
 
 if __name__ == "__main__":
-    asyncio.run(get_eventbrite_events())
+    try:
+        asyncio.run(get_eventbrite_events())
+    except KeyboardInterrupt:
+        pprint(full_analysis)
+        raise
