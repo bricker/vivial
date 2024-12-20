@@ -175,6 +175,9 @@ export const coreApiSlice = createApi({
     }),
 
     initiateBooking: builder.query<InitiateBookingMutation, InitiateBookingMutationVariables>({
+      // This is marked as query on purpose.
+      // On the server it's a mutation but this needs to be called when a component loads and rtk-query
+      // doesn't seem to allow that.
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: InitiateBookingDocument, variables });
         return { data };

@@ -132,7 +132,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const [bookingOpen, setBookingOpen] = useState(false);
 
   // BRYAN FIXME: check whether or not the user is eligible for one-click booking.
-  const [oneClickEligible, _setOneClickEligible] = useState(true);
+  const [oneClickEligible, _setOneClickEligible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -162,12 +162,12 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
 
   const handleBookClick = useCallback(() => {
     if (isLoggedIn) {
-        if (oneClickEligible) {
-          // BRYAN FIXME: submit booking.
-          console.log("oneClickBook()");
-        } else {
-          toggleBookingOpen();
-        }
+      if (oneClickEligible) {
+        // BRYAN FIXME: submit booking.
+        console.log("oneClickBook()");
+      } else {
+        toggleBookingOpen();
+      }
     } else {
       if (outing) {
         // This handles the auth redirect and return path
@@ -175,7 +175,6 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
       }
     }
   }, [isLoggedIn, outing, oneClickEligible]);
-
 
   useEffect(() => {
     if (planOutingData) {

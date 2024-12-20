@@ -92,8 +92,7 @@ async def initiate_booking_mutation(
             if booking_orm:
                 if booking_orm.state == BookingState.CONFIRMED:
                     # TODO: It would be nice if this redirected to the "booking confirmed" page.
-                    # return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.BOOKING_CONFIRMED)
-                    pass
+                    return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.BOOKING_CONFIRMED)
             else:
                 booking_orm = BookingOrm(
                     db_session,
