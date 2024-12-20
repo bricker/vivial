@@ -11,6 +11,7 @@ from eave.core.graphql.types.booking import (
     Booking,
 )
 from eave.core.lib.event_helpers import get_activity, get_restaurant
+from eave.core.mail import BookingConfirmationData, EventItem, send_booking_confirmation_email
 from eave.core.orm.base import InvalidRecordError
 from eave.core.orm.booking import BookingOrm
 from eave.core.shared.enums import ActivitySource, BookingState, RestaurantSource
@@ -142,6 +143,36 @@ async def admin_update_booking_mutation(
             failure_reason=AdminUpdateBookingFailureReason.VALIDATION_ERRORS,
             validation_errors=e.validation_errors,
         )
+
+    if input.state == BookingState.BOOKED:
+        booking_date = booking.outing.survey.start_time_local if booking.outing and booking.outing.survey else None
+        if not booking_date:
+            date_options = [r.start_time_local for r in booking.reservations] + [
+                a.start_time_local for a in booking.activities
+            ]
+            if len(date_options) > 0:
+                booking_date = date_options[0]
+        if booking_date:
+            send_booking_confirmation_email(
+                to_emails=[account.email for account in booking.accounts],
+                data=BookingConfirmationData(
+                    booking_date=booking_date.strftime("%B %d, %Y"),
+                    activities=[
+                        EventItem(
+                            time=booked_activity.start_time_local.strftime("%-I:%M%p").lower(),
+                            name=booked_activity.name,
+                        )
+                        for booked_activity in booking.activities
+                    ],
+                    restaurants=[
+                        EventItem(
+                            time=booked_restaurant.start_time_local.strftime("%-I:%M%p").lower(),
+                            name=booked_restaurant.name,
+                        )
+                        for booked_restaurant in booking.reservations
+                    ],
+                ),
+            )
 
     return AdminUpdateBookingSuccess(
         booking=Booking.from_orm(booking),
