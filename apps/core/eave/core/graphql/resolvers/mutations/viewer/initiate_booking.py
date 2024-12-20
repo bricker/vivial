@@ -142,7 +142,6 @@ async def initiate_booking_mutation(
                     source_id=reservation_orm.source_id,
                 )
 
-
                 if restaurant:
                     booking_reservation_orm = BookingReservationTemplateOrm(
                         db_session,
