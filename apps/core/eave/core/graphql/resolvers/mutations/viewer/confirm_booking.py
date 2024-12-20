@@ -143,7 +143,6 @@ async def confirm_booking_mutation(
     await notify_slack_booking_confirmed(
         booking=booking_orm,
         account=account_orm,
-        reserver_details=booking_orm.reserver_details,
         total_cost_cents=booking_total_cost_cents,
     )
 
@@ -172,10 +171,10 @@ async def notify_slack_booking_confirmed(
     *,
     booking: BookingOrm,
     account: AccountOrm,
-    reserver_details: ReserverDetailsOrm | None,
     total_cost_cents: int,
 ) -> None:
     total_cost_formatted = f"${"{:.2f}".format(total_cost_cents / 100)}"
+    reserver_details = booking.reserver_details
 
     msg = f"Outing Booked for {total_cost_formatted} - "
     elements: list[str] = []

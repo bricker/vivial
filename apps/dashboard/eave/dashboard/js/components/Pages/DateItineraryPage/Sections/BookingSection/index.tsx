@@ -28,6 +28,7 @@ import { storeReserverDetails } from "$eave-dashboard/js/store/slices/reserverDe
 import { storePaymentMethods } from "$eave-dashboard/js/store/slices/paymentMethodsSlice";
 import { capitalize } from "$eave-dashboard/js/util/string";
 import { setBookingDetails } from "$eave-dashboard/js/store/slices/bookingSlice";
+import LoadingButton from "$eave-dashboard/js/components/Buttons/LoadingButton";
 
 const Section = styled("section")(({ theme }) => ({
   position: "relative",
@@ -118,7 +119,7 @@ const ActionButtons = styled("div")(() => ({
   display: "flex",
 }));
 
-const BookButton = styled(PrimaryButton)(() => ({
+const BookButton = styled(LoadingButton)(() => ({
   marginLeft: 17.5,
 }));
 
@@ -142,6 +143,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const { paymentMethods } = useSelector((state: RootState) => state.paymentMethods);
 
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [bookButtonLoading, setBookButtonLoading] = useState(false);
 
   const [oneClickEligible, setOneClickEligible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -209,6 +211,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
     if (outing) {
       if (isLoggedIn) {
         if (oneClickEligible && paymentMethods && paymentMethods[0]) {
+          setBookButtonLoading(true);
           const { data: initiateAndConfirmBookingData, error: initiateAndConfirmBookingError } = await initiateAndConfirmBooking({
             input: {
               outingId: outing.id,
@@ -220,6 +223,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
           if (initiateAndConfirmBookingError || !initiateAndConfirmBookingData) {
             // fallback to opening the booking modal
             toggleBookingOpen();
+            setBookButtonLoading(false);
           } else {
             const viewer = initiateAndConfirmBookingData.viewer;
             switch (viewer.__typename) {
@@ -234,11 +238,13 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
                   }
                   case "InitiateBookingFailure": {
                     console.error(`failure: ${initiateBookingResult.failureReason}`);
+                    setBookButtonLoading(false);
                     toggleBookingOpen();
                     return;
                   }
                   default: {
                     console.error("Unexpected graphql response type");
+                    setBookButtonLoading(false);
                     toggleBookingOpen();
                   }
                 }
@@ -251,6 +257,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
               }
               default: {
                 console.error("Unexpected graphql response type");
+                setBookButtonLoading(false);
                 toggleBookingOpen();
               }
             }
@@ -310,7 +317,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
               <OneClickInputName gridArea="email">Email</OneClickInputName>
               <OneClickInputValue gridArea="emailVal">{account.email}</OneClickInputValue>
               <OneClickInputName gridArea="pay">Pay with</OneClickInputName>
-              <OneClickInputValue gridArea="payVal">{capitalize(defaultPaymentMethod.card.brand)} *{defaultPaymentMethod.last4}</OneClickInputValue>
+              <OneClickInputValue gridArea="payVal">{capitalize(defaultPaymentMethod.card.brand)} *{defaultPaymentMethod.card.last4}</OneClickInputValue>
             </OneClickInputs>
             <OneClickEditBtn onClick={toggleBookingOpen} />
           </OneClickInputsContainer>
@@ -351,22 +358,24 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         <>
           <ActionButtons>
             <RerollButton onReroll={handleReroll} loading={planOutingLoading} />
-            <BookButton onClick={handleBookClick} fullWidth>
+            <BookButton onClick={handleBookClick} fullWidth loading={bookButtonLoading}>
               Book
             </BookButton>
           </ActionButtons>
         </>
       )}
       {errorMessage && <Error>ERROR: {errorMessage}</Error>}
-      <Modal
-        title="Booking Info"
-        onClose={toggleBookingOpen}
-        open={bookingOpen}
-        // badge={<StripeBadge />} // Avoid a double stripe badge
-        padChildren={false}
-      >
-        <CheckoutFormStripeElementsProvider outingId={outing.id} />;
-      </Modal>
+      {bookingOpen && (
+        <Modal
+          title="Booking Info"
+          onClose={toggleBookingOpen}
+          open={bookingOpen}
+          // badge={<StripeBadge />} // Avoid a double stripe badge
+          padChildren={false}
+        >
+          <CheckoutFormStripeElementsProvider outingId={outing.id} />;
+        </Modal>
+      )}
     </Section>
   );
 };

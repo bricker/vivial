@@ -8,7 +8,7 @@ import stripe
 from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.resolvers.mutations.viewer.confirm_booking import fire_analytics_booking_confirmed
+from eave.core.graphql.resolvers.mutations.viewer.confirm_booking import fire_analytics_booking_confirmed, notify_slack_booking_confirmed
 from eave.core.graphql.types.activity import ActivityPlan
 from eave.core.graphql.types.booking import (
     BookingDetails,
@@ -203,9 +203,14 @@ async def initiate_booking_mutation(
 
             if input.auto_confirm:
                 stripe_payment_create_params.update({
-                    "confirmation_method": "automatic",
+                    # Note: this is necessary because we have some payment methods enabled in the dashboard that require
+                    # redirects, but currently we only accept credit cards, which do not require a redirect.
+                    # Without this, Stripe won't allow auto-confirm.
+                    "automatic_payment_methods": {
+                        "enabled": True,
+                        "allow_redirects": "never",
+                    },
                     "confirm": True,
-                    # "confirmation_token": input.confirmation_token,
                 })
 
             if input.payment_method_id:
@@ -270,6 +275,7 @@ async def initiate_booking_mutation(
 
     if input.auto_confirm:
         fire_analytics_booking_confirmed(booking=booking_orm, account_id=account_orm.id, visitor_id=visitor_id, total_cost_cents=booking_total_cost_cents)
+        await notify_slack_booking_confirmed(account=account_orm, booking=booking_orm, total_cost_cents=booking_total_cost_cents)
     else:
         fire_analytics_booking_initiated(booking=booking_orm, reservation=reservation, activity_plan=activity_plan, account_id=account_orm.id, visitor_id=visitor_id)
 
