@@ -32,6 +32,7 @@ const RowTitle = styled("div")(({ theme }) => ({
 
 const RowButtons = styled("div")(() => ({
   display: "flex",
+  flexWrap: "wrap",
 }));
 
 const SelectButton = styled(HighlightButton)(() => ({

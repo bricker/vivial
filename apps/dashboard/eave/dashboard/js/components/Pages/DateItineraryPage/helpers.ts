@@ -25,6 +25,9 @@ export function getTicketInfo(outing: Outing): string {
   const activity = outing.activityPlan?.activity;
   if (activity) {
     if (activity.source === ActivitySource.Eventbrite) {
+      if (outing.headcount === 1) {
+        return `${outing.headcount} Ticket`;
+      }
       return `${outing.headcount} Tickets`;
     }
     if (activity.source === ActivitySource.GooglePlaces) {
