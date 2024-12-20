@@ -16,12 +16,6 @@ export function getMaxDate(): Dayjs {
 export function getMinDate(): Dayjs {
   const now = new Date();
   const minDate = new Date(now);
-  const sixPM = 18;
-  if (now.getHours() < sixPM) {
-    minDate.setDate(now.getDate() + 1);
-  } else {
-    minDate.setDate(now.getDate() + 2);
-  }
   return dayjs(minDate);
 }
 
@@ -72,10 +66,5 @@ export function getTimeOptions(selectedDay: Dayjs): TimeObj[] {
     { label: "8:00pm", hour: 20, minute: 0 },
     { label: "8:30pm", hour: 20, minute: 30 },
   ];
-  const baseSelectedDay = getBaseDay(selectedDay);
-  const baseMinDay = getBaseDay(getMinDate());
-  if (baseSelectedDay.toString() === baseMinDay.toString()) {
-    return timesAfterSixPM;
-  }
   return timesBeforeSixPM.concat(timesAfterSixPM);
 }

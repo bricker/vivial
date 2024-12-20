@@ -2,7 +2,6 @@ import { styled } from "@mui/material";
 import { DateCalendar } from "@mui/x-date-pickers";
 import dayjs, { Dayjs } from "dayjs";
 import React, { useCallback, useState } from "react";
-import { colors } from "../../../theme/colors";
 
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
@@ -20,8 +19,9 @@ interface DateTimeSelectionsProps {
 const DateTimeContainer = styled("div")(() => ({
   display: "flex",
   flexDirection: "column",
-  alignItems: "center",
-  width: "100%",
+  alignItems: "flex-start",
+  padding: 16,
+  // width: "100%",
 }));
 
 const TimeRow = styled("div")(() => ({
@@ -88,7 +88,6 @@ const SubmitButton = styled(Button)(() => ({
   maxWidth: 264, // aligns with MUI calendar
 }));
 
-
 const DateTimeSelections = ({ cta, startDateTime, onSubmit }: DateTimeSelectionsProps) => {
   const defaultValue = dayjs(startDateTime);
   const [selectedDay, setSelectedDay] = useState(defaultValue);
@@ -143,7 +142,7 @@ const DateTimeSelections = ({ cta, startDateTime, onSubmit }: DateTimeSelections
         maxDate={getMaxDate()}
         disablePast
       />
-      <SubmitButton onClick={handleSubmit} fullWidth>
+      <SubmitButton variant="contained" onClick={handleSubmit} fullWidth>
         {cta}
       </SubmitButton>
     </DateTimeContainer>
