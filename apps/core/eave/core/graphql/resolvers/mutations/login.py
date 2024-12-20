@@ -50,9 +50,5 @@ async def login_mutation(*, info: strawberry.Info[GraphQLContext], input: LoginI
         except InvalidPasswordError:
             return LoginFailure(failure_reason=LoginFailureReason.INVALID_CREDENTIALS)
 
-        account = Account(
-            id=account_orm.id,
-            email=account_orm.email,
-        )
-
+        account = Account.from_orm(account_orm)
         return LoginSuccess(account=account)

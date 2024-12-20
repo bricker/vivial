@@ -8,7 +8,10 @@ import stripe
 from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
-from eave.core.graphql.resolvers.mutations.viewer.confirm_booking import fire_analytics_booking_confirmed, notify_slack_booking_confirmed
+from eave.core.graphql.resolvers.mutations.viewer.confirm_booking import (
+    fire_analytics_booking_confirmed,
+    notify_slack_booking_confirmed,
+)
 from eave.core.graphql.types.activity import ActivityPlan
 from eave.core.graphql.types.booking import (
     BookingDetails,
@@ -35,6 +38,7 @@ class InitiateBookingInput:
     outing_id: UUID
     auto_confirm: bool = False
     payment_method_id: str | None = None
+
 
 @strawberry.type
 class InitiateBookingSuccess:
@@ -202,21 +206,25 @@ async def initiate_booking_mutation(
             }
 
             if input.auto_confirm:
-                stripe_payment_create_params.update({
-                    # Note: this is necessary because we have some payment methods enabled in the dashboard that require
-                    # redirects, but currently we only accept credit cards, which do not require a redirect.
-                    # Without this, Stripe won't allow auto-confirm.
-                    "automatic_payment_methods": {
-                        "enabled": True,
-                        "allow_redirects": "never",
-                    },
-                    "confirm": True,
-                })
+                stripe_payment_create_params.update(
+                    {
+                        # Note: this is necessary because we have some payment methods enabled in the dashboard that require
+                        # redirects, but currently we only accept credit cards, which do not require a redirect.
+                        # Without this, Stripe won't allow auto-confirm.
+                        "automatic_payment_methods": {
+                            "enabled": True,
+                            "allow_redirects": "never",
+                        },
+                        "confirm": True,
+                    }
+                )
 
             if input.payment_method_id:
-                stripe_payment_create_params.update({
-                    "payment_method": input.payment_method_id,
-                })
+                stripe_payment_create_params.update(
+                    {
+                        "payment_method": input.payment_method_id,
+                    }
+                )
 
             stripe_payment_intent = await stripe.PaymentIntent.create_async(**stripe_payment_create_params)
 
@@ -274,10 +282,23 @@ async def initiate_booking_mutation(
         )
 
     if input.auto_confirm:
-        fire_analytics_booking_confirmed(booking=booking_orm, account_id=account_orm.id, visitor_id=visitor_id, total_cost_cents=booking_total_cost_cents)
-        await notify_slack_booking_confirmed(account=account_orm, booking=booking_orm, total_cost_cents=booking_total_cost_cents)
+        fire_analytics_booking_confirmed(
+            booking=booking_orm,
+            account_id=account_orm.id,
+            visitor_id=visitor_id,
+            total_cost_cents=booking_total_cost_cents,
+        )
+        await notify_slack_booking_confirmed(
+            account=account_orm, booking=booking_orm, total_cost_cents=booking_total_cost_cents
+        )
     else:
-        fire_analytics_booking_initiated(booking=booking_orm, reservation=reservation, activity_plan=activity_plan, account_id=account_orm.id, visitor_id=visitor_id)
+        fire_analytics_booking_initiated(
+            booking=booking_orm,
+            reservation=reservation,
+            activity_plan=activity_plan,
+            account_id=account_orm.id,
+            visitor_id=visitor_id,
+        )
 
     return InitiateBookingSuccess(
         booking=BookingDetails(
@@ -291,7 +312,15 @@ async def initiate_booking_mutation(
         customer_session=graphql_customer_session,
     )
 
-def fire_analytics_booking_initiated(*, booking: BookingOrm, reservation: Reservation | None, activity_plan: ActivityPlan | None, account_id: UUID, visitor_id: str | None) -> None:
+
+def fire_analytics_booking_initiated(
+    *,
+    booking: BookingOrm,
+    reservation: Reservation | None,
+    activity_plan: ActivityPlan | None,
+    account_id: UUID,
+    visitor_id: str | None,
+) -> None:
     ANALYTICS.track(
         event_name="booking_initiated",
         account_id=account_id,
@@ -301,6 +330,8 @@ def fire_analytics_booking_initiated(*, booking: BookingOrm, reservation: Reserv
             "outing_id": str(booking.outing.id) if booking.outing else None,
             "restaurant_info": reservation.build_analytics_properties() if reservation else None,
             "activity_info": activity_plan.build_analytics_properties() if activity_plan else None,
-            "survey_info": Survey.from_orm(booking.outing.survey).build_analytics_properties() if booking.outing and booking.outing.survey else None,
+            "survey_info": Survey.from_orm(booking.outing.survey).build_analytics_properties()
+            if booking.outing and booking.outing.survey
+            else None,
         },
     )

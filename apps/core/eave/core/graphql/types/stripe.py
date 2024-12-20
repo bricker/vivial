@@ -1,8 +1,5 @@
-import enum
 import strawberry
 import stripe
-
-from eave.stdlib.matched_str_enum import MatchedStrEnum
 
 
 @strawberry.type
@@ -15,12 +12,14 @@ class PaymentIntent:
 class CustomerSession:
     client_secret: str
 
+
 @strawberry.type
 class PaymentCard:
     brand: str
     last4: str
     exp_month: int
     exp_year: int
+
 
 @strawberry.type
 class PaymentMethod:
@@ -36,5 +35,7 @@ class PaymentMethod:
                 last4=stripe_payment_method.card.last4,
                 exp_month=stripe_payment_method.card.exp_month,
                 exp_year=stripe_payment_method.card.exp_year,
-            ) if stripe_payment_method.card else None,
+            )
+            if stripe_payment_method.card
+            else None,
         )

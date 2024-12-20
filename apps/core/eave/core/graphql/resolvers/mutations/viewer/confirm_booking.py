@@ -8,7 +8,6 @@ import strawberry
 import stripe
 from google.maps.places import PlacesAsyncClient
 
-from eave.core.graphql.types.survey import Survey
 import eave.stdlib.slack
 from eave.core import database
 from eave.core.analytics import ANALYTICS
@@ -17,6 +16,7 @@ from eave.core.graphql.resolvers.mutations.helpers.create_outing import get_tota
 from eave.core.graphql.types.booking import (
     Booking,
 )
+from eave.core.graphql.types.survey import Survey
 from eave.core.graphql.validators.time_bounds_validator import (
     start_time_too_far_away,
     start_time_too_soon,
@@ -24,8 +24,6 @@ from eave.core.graphql.validators.time_bounds_validator import (
 from eave.core.lib.google_places import get_google_place
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
-from eave.core.orm.reserver_details import ReserverDetailsOrm
-from eave.core.orm.search_region import SearchRegionOrm
 from eave.core.shared.enums import ActivitySource, BookingState
 from eave.core.shared.errors import ValidationError
 from eave.stdlib.config import SHARED_CONFIG
@@ -137,7 +135,9 @@ async def confirm_booking_mutation(
 
         booking_orm.state = BookingState.CONFIRMED
 
-    fire_analytics_booking_confirmed(booking=booking_orm, account_id=account_orm.id, visitor_id=visitor_id, total_cost_cents=booking_total_cost_cents)
+    fire_analytics_booking_confirmed(
+        booking=booking_orm, account_id=account_orm.id, visitor_id=visitor_id, total_cost_cents=booking_total_cost_cents
+    )
 
     # TODO: Move this into an offline queue
     await notify_slack_booking_confirmed(
@@ -150,7 +150,10 @@ async def confirm_booking_mutation(
         booking=Booking.from_orm(booking_orm),
     )
 
-def fire_analytics_booking_confirmed(*, booking: BookingOrm, account_id: UUID, visitor_id: str | None, total_cost_cents: int) -> None:
+
+def fire_analytics_booking_confirmed(
+    *, booking: BookingOrm, account_id: UUID, visitor_id: str | None, total_cost_cents: int
+) -> None:
     ANALYTICS.track(
         event_name="booking_complete",
         account_id=account_id,
@@ -163,9 +166,12 @@ def fire_analytics_booking_confirmed(*, booking: BookingOrm, account_id: UUID, v
                     "total_cents": total_cost_cents,
                 },
             },
-            "survey_info": Survey.from_orm(booking.outing.survey).build_analytics_properties() if booking.outing and booking.outing.survey else None,
+            "survey_info": Survey.from_orm(booking.outing.survey).build_analytics_properties()
+            if booking.outing and booking.outing.survey
+            else None,
         },
     )
+
 
 async def notify_slack_booking_confirmed(
     *,
