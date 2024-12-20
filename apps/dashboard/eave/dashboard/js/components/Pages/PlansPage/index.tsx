@@ -91,11 +91,11 @@ const BookingDetailsContainer = styled("div")(() => ({
 }));
 
 const NewDateCta = () => {
-  // TODO: impl button
+  const navigate = useNavigate();
   return (
     <CtaContainer>
       <CenteredText variant="subtitle2">😢 No upcoming plans. Let's fix that</CenteredText>
-      <PrimaryButton onClick={() => {}} fullWidth>
+      <PrimaryButton onClick={() => navigate("/")} fullWidth>
         🎲 New date
       </PrimaryButton>
     </CtaContainer>
