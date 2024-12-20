@@ -4,8 +4,8 @@ import { authSlice } from "./slices/authSlice";
 import { bookingSlice } from "./slices/bookingSlice";
 import { coreApiSlice } from "./slices/coreApiSlice";
 import { outingSlice } from "./slices/outingSlice";
-import { reserverDetailsSlice } from "./slices/reserverDetailsSlice";
 import { paymentMethodsSlice } from "./slices/paymentMethodsSlice";
+import { reserverDetailsSlice } from "./slices/reserverDetailsSlice";
 
 const listenerMiddleware = createListenerMiddleware();
 const reducer = {
