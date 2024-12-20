@@ -4,6 +4,8 @@ import EditIcon from "$eave-dashboard/js/components/Icons/EditIcon";
 import TrashIcon from "$eave-dashboard/js/components/Icons/TrashIcon";
 import Input from "$eave-dashboard/js/components/Inputs/Input";
 import ExternalLink from "$eave-dashboard/js/components/Links/ExternalLink";
+import Paper from "$eave-dashboard/js/components/Paper";
+import DateTimeSelections from "$eave-dashboard/js/components/Selections/DateTimeSelections";
 import {
   Activity,
   ActivitySource,
@@ -13,7 +15,7 @@ import {
 import { useUpdateBookingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { Button, CircularProgress } from "@mui/material";
 import React, { useCallback, useEffect, useState } from "react";
-import { enumKeyFromType, enumTypeFromValue, formatDateString } from "../helper";
+import { enumKeyFromType, enumTypeFromValue, formatDate } from "../helper";
 
 const ActivityView = ({
   data,
@@ -27,33 +29,38 @@ const ActivityView = ({
   const [isEditing, setIsEditing] = useState(false);
   const [activitySourceId, setActivitySourceId] = useState("(unset)");
   const [activitySource, setActivitySource] = useState<ActivitySource | "">("");
+  const [activityStartTime, setActivityStartTime] = useState<Date | undefined>(undefined);
   const [error, setError] = useState("");
   const fallback = "[None]";
 
   const [updateBooking, { isLoading: updateBookingIsLoading }] = useUpdateBookingMutation();
 
   useEffect(() => {
-    if (data?.activitySourceId) {
-      setActivitySourceId(data.activitySourceId);
-    }
-    if (data?.activitySource) {
-      setActivitySource(data.activitySource);
-    }
+    if (data?.activitySource) setActivitySource(data.activitySource);
+    if (data?.activitySourceId) setActivitySourceId(data.activitySourceId);
+    if (data?.activityStartTime) setActivityStartTime(new Date(data.activityStartTime));
   }, [data]);
 
   const updateBookingWrapper = async ({
     bookingId,
     newActivitySource,
     newActivitySourceId,
+    newActivityStartTime,
   }: {
     bookingId: string;
     newActivitySource?: ActivitySource | null;
     newActivitySourceId?: string | null;
+    newActivityStartTime?: string;
   }) => {
     setError("");
 
     const resp = await updateBooking({
-      input: { bookingId, activitySource: newActivitySource, activitySourceId: newActivitySourceId },
+      input: {
+        bookingId,
+        activitySource: newActivitySource,
+        activitySourceId: newActivitySourceId,
+        activityStartTimeUtc: newActivityStartTime,
+      },
     });
 
     switch (resp.data?.adminUpdateBooking?.__typename) {
@@ -106,20 +113,32 @@ const ActivityView = ({
 
   const handleUpdateClick = useCallback(async () => {
     const bookingId = data?.id;
+    const newActivitySource = activitySource !== data?.activitySource ? activitySource || undefined : undefined;
+    const newActivitySourceId = activitySourceId !== data?.activitySourceId ? activitySourceId : undefined;
+    const newActivityStartTime =
+      activityStartTime?.toISOString() !== data?.activityStartTime ? activityStartTime?.toISOString() : undefined;
     if (bookingId) {
       await updateBookingWrapper({
         bookingId,
-        newActivitySource: activitySource || undefined,
-        newActivitySourceId: activitySourceId,
+        newActivitySource,
+        newActivitySourceId,
+        newActivityStartTime,
       });
     }
-  }, [data, activitySource, activitySourceId]);
+  }, [data, activitySource, activitySourceId, activityStartTime]);
+
+  const bookingActivityExists =
+    data?.activityBookingLink ||
+    data?.activityName ||
+    data?.activitySource ||
+    data?.activitySourceId ||
+    data?.activityStartTime;
 
   return (
-    <div>
+    <Paper>
       <h2>Activity info</h2>
       <h3>Core internal details:</h3>
-      {data ? (
+      {bookingActivityExists ? (
         <div>
           <div>
             {isEditing ? (
@@ -131,7 +150,19 @@ const ActivityView = ({
             )}
           </div>
           <b>Name: {data.activityName}</b>
-          <p>at time: {formatDateString(data.activityStartTime)}</p>
+          {activityStartTime && (
+            <div>
+              {isEditing ? (
+                <DateTimeSelections
+                  cta="Save"
+                  startDateTime={activityStartTime}
+                  onSubmit={(newDate) => setActivityStartTime(newDate)}
+                />
+              ) : (
+                <p>at time: {formatDate(activityStartTime)}</p>
+              )}
+            </div>
+          )}
           <p>
             Website/booking link:{" "}
             {data.activityBookingLink ? (
@@ -205,7 +236,7 @@ const ActivityView = ({
       ) : (
         fallback
       )}
-    </div>
+    </Paper>
   );
 };
 

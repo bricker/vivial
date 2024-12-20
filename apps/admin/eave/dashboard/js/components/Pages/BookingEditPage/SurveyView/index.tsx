@@ -1,7 +1,7 @@
 import { Survey } from "$eave-dashboard/js/graphql/generated/graphql";
 import { CircularProgress } from "@mui/material";
 import React from "react";
-import { formatDateString } from "../helper";
+import { formatDate } from "../helper";
 
 const SurveyView = ({ data, isLoading }: { data: Survey | undefined | null; isLoading: boolean }) => {
   return (
@@ -12,7 +12,7 @@ const SurveyView = ({ data, isLoading }: { data: Survey | undefined | null; isLo
           <p>headcount: {data.headcount}</p>
           <p>budget: {data.budget}</p>
           <p>open to following regions: {data.searchRegions.map((r) => r.name).join(", ")}</p>
-          <p>at time: {formatDateString(data.startTime)}</p>
+          <p>at time: {formatDate(data.startTime)}</p>
         </div>
       ) : isLoading ? (
         <CircularProgress />

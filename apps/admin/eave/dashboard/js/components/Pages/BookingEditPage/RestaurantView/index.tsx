@@ -2,7 +2,7 @@ import ExternalLink from "$eave-dashboard/js/components/Links/ExternalLink";
 import { AdminBookingInfo, Restaurant } from "$eave-dashboard/js/graphql/generated/graphql";
 import { CircularProgress } from "@mui/material";
 import React from "react";
-import { formatDateString } from "../helper";
+import { formatDate } from "../helper";
 
 const RestaurantView = ({
   data,
@@ -21,7 +21,7 @@ const RestaurantView = ({
       {data ? (
         <div>
           <b>Name: {data.restaurantName}</b>
-          <p>at time: {formatDateString(data.restaurantArrivalTime)}</p>
+          <p>at time: {formatDate(data.restaurantArrivalTime)}</p>
           <p>
             Reserve at:{" "}
             {data.restaurantBookingLink ? (

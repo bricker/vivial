@@ -8,7 +8,7 @@ const timeFormatter = new Intl.DateTimeFormat("en-US", {
   hour12: true,
 });
 
-export function formatDateString(dateString?: string | null): string {
+export function formatDate(dateString?: string | Date | null): string {
   if (!dateString) {
     return "N/A";
   }
