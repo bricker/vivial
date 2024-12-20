@@ -374,6 +374,18 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             side_effect=_mock_customer_create_async,
         )
 
+        self.mock_stripe_customer_session = stripe.CustomerSession()
+        self.mock_stripe_customer_session.client_secret = self.anystr("stripe.CustomerSession.client_secret")
+
+        async def _mock_customer_session_create_async(**kwargs: Any) -> stripe.CustomerSession:
+            return self.mock_stripe_customer_session
+
+        self.patch(
+            name="stripe.CustomerSession.create_async",
+            patch=unittest.mock.patch("stripe.CustomerSession.create_async"),
+            side_effect=_mock_customer_session_create_async,
+        )
+
     mock_google_place: Place
     mock_google_places_photo_media: PhotoMedia
 

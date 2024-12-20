@@ -15,7 +15,7 @@ import LoadingView from "../DateItineraryPage/Views/LoadingView";
 const BookingDetailsPage = () => {
   const dispatch = useDispatch();
   const params = useParams();
-  const bookingId = params["bookingId"] || "";
+  const bookingId = params["bookingId"]!;
   const { data, isLoading } = useGetBookingDetailsQuery({ input: { bookingId } });
 
   useEffect(() => {

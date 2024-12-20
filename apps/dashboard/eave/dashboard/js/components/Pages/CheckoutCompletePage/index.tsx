@@ -1,6 +1,7 @@
 import { AppRoute } from "$eave-dashboard/js/routes";
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
-import { useConfirmBookingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { setBookingDetails } from "$eave-dashboard/js/store/slices/bookingSlice";
+import { useGetBookingDetailsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 import { CircularProgress, Divider, Typography, styled } from "@mui/material";
@@ -8,6 +9,7 @@ import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import HighlightButton from "../../Buttons/HighlightButton";
+import CenteringContainer from "../../CenteringContainer";
 import CalendarCheckIcon from "../../Icons/CalendarCheckIcon";
 import LogoPill, { LogoPillAttributes, logos } from "../../LogoPill";
 import Paper from "../../Paper";
@@ -102,71 +104,60 @@ const confirmationOptions: ConfirmationOptionDetail[] = [
 ];
 
 const CheckoutCompletePage = () => {
-  const params = useParams();
-  const bookingId = params["bookingId"];
-
-  if (!bookingId) {
-    console.error("Invalid booking ID");
-    return null;
-  }
-
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const [confirmBooking, { isLoading: confirmBookingIsLoading, data: confirmBookingData, error: confirmBookingError }] =
-    useConfirmBookingMutation();
+  const params = useParams();
+  const bookingId = params["bookingId"]!;
 
+  const {
+    isLoading: getBookingDetailsIsLoading,
+    data: getBookingDetailsData,
+    error: getBookingDetailsError,
+  } = useGetBookingDetailsQuery({
+    input: { bookingId },
+  });
+
+  useEffect(() => {
+    if (getBookingDetailsData?.viewer.__typename === "AuthenticatedViewerQueries") {
+      const bookingDetails = getBookingDetailsData.viewer.bookedOutingDetails;
+      if (bookingDetails) {
+        dispatch(setBookingDetails({ bookingDetails }));
+        console.debug(bookingDetails);
+      }
+    }
+  }, [getBookingDetailsData]);
+
+  // These are passed by Stripe for redirects. For card payments, there is no redirect.
+  // Also we don't use these. This is just here for reference.
   // const paymentIntentId = searchParams.get(SearchParam.stripePaymentIntentId);
   // const clientSecret = searchParams.get(SearchParam.stripePaymentIntentClientSecret);
   // const redirectStatus = searchParams.get(SearchParam.stripeRedirectStatus);
 
-  useEffect(() => {
-    void confirmBooking({
-      input: {
-        bookingId: bookingId,
-      },
-    });
-  }, []);
-
-  if (confirmBookingIsLoading) {
+  if (getBookingDetailsIsLoading) {
     return (
-      <>
+      <CenteringContainer>
         <CircularProgress color="secondary" />
-      </>
+      </CenteringContainer>
     );
   }
 
-  if (confirmBookingError) {
+  if (getBookingDetailsError) {
     // TODO: Better error handling
     // 500 error
     console.error("Unexected Graphql result");
     return null;
   }
 
-  if (!confirmBookingData) {
+  if (!getBookingDetailsData) {
     // TODO: Better error handling
     console.error("confirmBooking data error");
     return null;
   }
 
-  switch (confirmBookingData.viewer.__typename) {
-    case "AuthenticatedViewerMutations": {
-      const resp = confirmBookingData.viewer.confirmBooking;
-      switch (resp?.__typename) {
-        case "ConfirmBookingSuccess":
-          break;
-        case "ConfirmBookingFailure":
-          switch (resp.failureReason) {
-            default:
-              console.warn("Unhandled case for CreateBookingFailure", resp.failureReason);
-              break;
-          }
-          return;
-        default:
-          console.error("Unexected Graphql result");
-          return;
-      }
-      // allow success case to continue execution
+  switch (getBookingDetailsData.viewer.__typename) {
+    case "AuthenticatedViewerQueries": {
+      // Handled in useEffect above
       break;
     }
     case "UnauthenticatedViewer":

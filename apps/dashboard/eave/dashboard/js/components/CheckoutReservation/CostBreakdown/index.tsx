@@ -1,7 +1,7 @@
 import { Outing, type BookingDetails } from "$eave-dashboard/js/graphql/generated/graphql";
 import { formatBaseCost, formatFeesAndTaxes, formatTotalCost } from "$eave-dashboard/js/util/currency";
 import { Divider, Typography, styled } from "@mui/material";
-import React from "react";
+import React, { Fragment } from "react";
 
 const FREE = "FREE";
 
@@ -50,7 +50,7 @@ const LineItemText = styled(Typography)<{ bold?: boolean }>(({ bold }) => ({
   fontWeight: bold ? "bold" : "inherit",
 }));
 
-type Breakdown = { costName: string; costValue: string };
+type Breakdown = { key: string; costName: string; costValue: string };
 
 /**
  * Build an array of cost breakdowns.
@@ -62,6 +62,7 @@ function buildBreakdowns(outing: Outing | BookingDetails): Breakdown[] {
 
   if (outing.reservation) {
     breakdown.push({
+      key: "reservation",
       costName: outing.reservation.restaurant.name,
       costValue: formatBaseCost(outing.reservation.costBreakdown),
     });
@@ -69,6 +70,7 @@ function buildBreakdowns(outing: Outing | BookingDetails): Breakdown[] {
 
   if (outing.activityPlan) {
     breakdown.push({
+      key: "activity",
       costName: outing.activityPlan.activity.name,
       costValue: formatBaseCost(outing.activityPlan.costBreakdown),
     });
@@ -77,12 +79,14 @@ function buildBreakdowns(outing: Outing | BookingDetails): Breakdown[] {
   const feesAndTaxesCents = outing.costBreakdown.feeCents + outing.costBreakdown.taxCents;
   if (feesAndTaxesCents > 0) {
     breakdown.push({
+      key: "taxesAndFees",
       costName: "3rd party Service Fees & Taxes",
       costValue: formatFeesAndTaxes(outing.costBreakdown),
     });
   }
 
   breakdown.push({
+    key: "vivialFees",
     costName: "Service Fees via Vivial",
     costValue: FREE,
   });
@@ -106,11 +110,11 @@ const CostBreakdown = ({ outing }: { outing: Outing | BookingDetails }) => {
         <BreakdownContainer>
           <LineItemContainer>
             {breakdown.map((charge) => (
-              <>
+              <Fragment key={charge.key}>
                 <LineItemText>{charge.costName}</LineItemText>
                 <LineItemText>...</LineItemText>
                 <LineItemText bold={charge.costValue === FREE}>{charge.costValue}</LineItemText>
-              </>
+              </Fragment>
             ))}
           </LineItemContainer>
         </BreakdownContainer>

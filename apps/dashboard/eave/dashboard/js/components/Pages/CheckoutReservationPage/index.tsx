@@ -1,24 +1,11 @@
-import { AppRoute } from "$eave-dashboard/js/routes";
-import React, { useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import CheckoutReservation from "../../CheckoutReservation";
+import React from "react";
+import { useParams } from "react-router-dom";
+import CheckoutFormStripeElementsProvider from "../../CheckoutReservation";
 
 const CheckoutReservationPage = () => {
-  const navigate = useNavigate();
   const params = useParams();
-  const outingId = params["outingId"];
-
-  useEffect(() => {
-    if (!outingId) {
-      navigate(AppRoute.root);
-    }
-  }, [outingId]);
-
-  if (!outingId) {
-    return null;
-  }
-
-  return <CheckoutReservation outingId={outingId} showStripeBadge showCostBreakdown />;
+  const outingId = params["outingId"]!;
+  return <CheckoutFormStripeElementsProvider outingId={outingId} />;
 };
 
 export default CheckoutReservationPage;

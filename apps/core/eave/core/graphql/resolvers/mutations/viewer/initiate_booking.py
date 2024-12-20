@@ -13,8 +13,8 @@ from eave.core.graphql.types.booking import (
     BookingDetails,
 )
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
-from eave.core.graphql.types.payment_intent import PaymentIntent
 from eave.core.graphql.types.restaurant import Reservation
+from eave.core.graphql.types.stripe import CustomerSession, PaymentIntent
 from eave.core.graphql.types.survey import Survey
 from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
 from eave.core.lib.event_helpers import get_activity, get_restaurant
@@ -38,10 +38,12 @@ class InitiateBookingInput:
 class InitiateBookingSuccess:
     booking: BookingDetails
     payment_intent: PaymentIntent | None
+    customer_session: CustomerSession | None
 
 
 @strawberry.enum
 class InitiateBookingFailureReason(enum.Enum):
+    BOOKING_CONFIRMED = enum.auto()
     PAYMENT_INTENT_FAILED = enum.auto()
     VALIDATION_ERRORS = enum.auto()
     START_TIME_TOO_SOON = enum.auto()
@@ -83,14 +85,23 @@ async def initiate_booking_mutation(
 
     try:
         async with database.async_session.begin() as db_session:
-            booking_orm = BookingOrm(
-                db_session,
-                accounts=[account_orm],
-                reserver_details=None,  # At this point, the client hasn't given us this information.
-                outing=outing_orm,
-                stripe_payment_intent_reference=None,  # Not created yet
-                state=BookingState.INITIATED,
-            )
+            # If a booking with account and outing ID already exists, use it.
+            # This prevents us from creating a bunch of duplicate bookings with Initiated state.
+            booking_orm = next((b for b in account_orm.bookings if b.outing_id == input.outing_id), None)
+
+            if booking_orm:
+                if booking_orm.state == BookingState.CONFIRMED:
+                    # TODO: It would be nice if this redirected to the "booking confirmed" page.
+                    return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.BOOKING_CONFIRMED)
+            else:
+                booking_orm = BookingOrm(
+                    db_session,
+                    accounts=[account_orm],
+                    reserver_details=None,  # At this point, the client hasn't given us this information.
+                    outing=outing_orm,
+                    stripe_payment_intent_reference=None,  # Not created yet
+                    state=BookingState.INITIATED,
+                )
 
             if len(outing_orm.activities) > 0:
                 outing_activity_orm = outing_orm.activities[0]  # We only support one activity currently.
@@ -114,7 +125,7 @@ async def initiate_booking_mutation(
                         photo_uri=activity.photos.cover_photo.src if activity.photos.cover_photo else None,
                     )
 
-                    booking_orm.activities.append(booking_activity_orm)
+                    booking_orm.activities = [booking_activity_orm]
 
                     activity_plan = ActivityPlan(
                         activity=activity,
@@ -146,7 +157,7 @@ async def initiate_booking_mutation(
                     photo_uri=restaurant.photos.cover_photo.src if restaurant.photos.cover_photo else None,
                 )
 
-                booking_orm.reservations.append(booking_reservation_orm)
+                booking_orm.reservations = [booking_reservation_orm]
 
                 reservation = Reservation(
                     arrival_time=booking_reservation_orm.start_time_local,
@@ -157,7 +168,7 @@ async def initiate_booking_mutation(
                 total_cost_breakdown += reservation.calculate_cost_breakdown()
 
         if total_cost_breakdown.calculate_total_cost_cents() > 0:
-            if account_orm.stripe_customer_id is None:
+            if not account_orm.stripe_customer_id:
                 stripe_customer = await stripe.Customer.create_async(
                     email=account_orm.email,
                     metadata={
@@ -204,8 +215,27 @@ async def initiate_booking_mutation(
             graphql_payment_intent = PaymentIntent(
                 id=stripe_payment_intent.id, client_secret=stripe_payment_intent.client_secret
             )
+
+            stripe_customer_session = await stripe.CustomerSession.create_async(
+                customer=account_orm.stripe_customer_id,
+                components={
+                    "payment_element": {
+                        "enabled": True,
+                        "features": {
+                            "payment_method_save": "enabled",
+                            "payment_method_save_usage": "on_session",
+                            "payment_method_redisplay": "enabled",
+                            "payment_method_remove": "enabled",
+                        },
+                    },
+                },
+            )
+
+            graphql_customer_session = CustomerSession(client_secret=stripe_customer_session.client_secret)
+
         else:
             graphql_payment_intent = None
+            graphql_customer_session = None
 
     except InvalidRecordError as e:
         LOGGER.exception(e)
@@ -237,4 +267,5 @@ async def initiate_booking_mutation(
             reservation=reservation,
         ),
         payment_intent=graphql_payment_intent,
+        customer_session=graphql_customer_session,
     )

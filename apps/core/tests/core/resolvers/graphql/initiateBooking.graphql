@@ -15,6 +15,10 @@ mutation InitiateBooking($input: InitiateBookingInput!) {
             id
             clientSecret
           }
+
+          customerSession {
+            clientSecret
+          }
         }
 
         ... on InitiateBookingFailure {

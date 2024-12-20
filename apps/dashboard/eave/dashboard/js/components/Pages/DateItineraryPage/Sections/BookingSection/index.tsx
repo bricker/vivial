@@ -17,7 +17,7 @@ import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
 import EditButton from "$eave-dashboard/js/components/Buttons/EditButton";
 import PrimaryButton from "$eave-dashboard/js/components/Buttons/PrimaryButton";
 import RerollButton from "$eave-dashboard/js/components/Buttons/RerollButton";
-import CheckoutReservation from "$eave-dashboard/js/components/CheckoutReservation";
+import CheckoutFormStripeElementsProvider from "$eave-dashboard/js/components/CheckoutReservation";
 import StripeBadge from "$eave-dashboard/js/components/CheckoutReservation/StripeBadge";
 import Modal from "$eave-dashboard/js/components/Modal";
 import Typography from "@mui/material/Typography";
@@ -125,13 +125,14 @@ const Error = styled(Typography)(({ theme }) => ({
 
 const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
+  const { isLoggedIn } = useSelector((state: RootState) => state.auth);
   const outing = useSelector((state: RootState) => state.outing.details);
   const userPreferences = useSelector((state: RootState) => state.outing.preferenes.user);
   const partnerPreferences = useSelector((state: RootState) => state.outing.preferenes.partner);
   const [bookingOpen, setBookingOpen] = useState(false);
 
   // BRYAN FIXME: check whether or not the user is eligible for one-click booking.
-  const [oneClickEligible, _setOneClickEligible] = useState(true);
+  const [oneClickEligible, _setOneClickEligible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -160,15 +161,20 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   }, [bookingOpen]);
 
   const handleBookClick = useCallback(() => {
-    if (outing) {
+    if (isLoggedIn) {
       if (oneClickEligible) {
         // BRYAN FIXME: submit booking.
         console.log("oneClickBook()");
       } else {
+        toggleBookingOpen();
+      }
+    } else {
+      if (outing) {
+        // This handles the auth redirect and return path
         navigate(routePath(AppRoute.checkoutReserve, { outingId: outing.id }));
       }
     }
-  }, [outing, oneClickEligible]);
+  }, [isLoggedIn, outing, oneClickEligible]);
 
   useEffect(() => {
     if (planOutingData) {
@@ -258,7 +264,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         badge={<StripeBadge />}
         padChildren={false}
       >
-        <CheckoutReservation outingId={outing.id} />
+        <CheckoutFormStripeElementsProvider outingId={outing.id} />;
       </Modal>
     </Section>
   );
