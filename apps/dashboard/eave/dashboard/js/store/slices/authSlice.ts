@@ -1,10 +1,6 @@
 import { getVisitorId, identify } from "$eave-dashboard/js/analytics/segment";
+import type { Account } from "$eave-dashboard/js/graphql/generated/graphql";
 import { createSlice } from "@reduxjs/toolkit";
-
-interface Account {
-  id: string;
-  email: string;
-}
 
 export interface AuthState {
   isLoggedIn: boolean | null;

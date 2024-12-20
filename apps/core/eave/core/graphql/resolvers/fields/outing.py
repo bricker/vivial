@@ -2,6 +2,7 @@ from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 import strawberry
+import stripe
 
 from eave.core import database
 from eave.core.graphql.context import GraphQLContext
@@ -12,6 +13,7 @@ from eave.core.graphql.types.outing import (
 from eave.core.graphql.types.restaurant import Reservation
 from eave.core.graphql.types.survey import Survey
 from eave.core.lib.event_helpers import get_activity, get_restaurant
+from eave.core.orm.account import AccountOrm
 from eave.core.orm.outing import OutingOrm
 
 
@@ -21,6 +23,8 @@ class OutingInput:
 
 
 async def get_outing_query(*, info: strawberry.Info[GraphQLContext], input: OutingInput) -> Outing | None:
+    account_id = info.context.get("authenticated_account_id")
+
     async with database.async_session.begin() as db_session:
         outing_orm = await OutingOrm.get_one(db_session, input.id)
 
