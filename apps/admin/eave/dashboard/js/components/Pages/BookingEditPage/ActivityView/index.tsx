@@ -236,10 +236,10 @@ const ActivityView = ({
           </p> */}
           <p>
             Location: {detailData.venue.name}
-            {detailData.venue.location.address.formattedMultiline}
+            {detailData.venue.location.address.formattedSingleline}
           </p>
           <p>{`(in region: ${detailData.venue.location.searchRegion.name})`}</p>
-          <p>Category: {detailData.categoryGroup?.name}</p>
+          <p>Category: {detailData.categoryGroup?.name || fallback}</p>
         </div>
       ) : isLoading ? (
         <CircularProgress />

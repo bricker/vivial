@@ -7,13 +7,14 @@ from eave.core import database
 from eave.core.admin.graphql.context import AdminGraphQLContext
 from eave.core.graphql.types.account import Account
 from eave.core.graphql.types.activity import Activity
-from eave.core.graphql.types.booking import BookingDetailPeek
+from eave.core.graphql.types.booking import BookingDetailPeek, BookingDetails
+from eave.core.graphql.types.pricing import CostBreakdown
 from eave.core.graphql.types.reserver_details import ReserverDetails
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.graphql.types.survey import Survey
 from eave.core.lib.event_helpers import get_activity, get_restaurant
 from eave.core.orm.account import AccountOrm
-from eave.core.orm.booking import BookingOrm
+from eave.core.orm.booking import BookingActivityTemplateOrm, BookingOrm
 from eave.core.shared.enums import ActivitySource, BookingState, RestaurantSource
 
 
@@ -76,7 +77,7 @@ class AdminBookingInfo:
     restaurant_source_id: str | None
     state: BookingState
     reserver_details: ReserverDetails | None
-    stripe_payment_id: UUID | None
+    stripe_payment_id: str | None
     survey: Survey | None
 
 
@@ -103,7 +104,9 @@ async def admin_get_booking_info_query(
         restaurant_source_id=None,
         state=booking.state,
         reserver_details=ReserverDetails.from_orm(booking.reserver_details) if booking.reserver_details else None,
-        stripe_payment_id=booking.stripe_payment_intent_reference_id,
+        stripe_payment_id=booking.stripe_payment_intent_reference.stripe_payment_intent_id
+        if booking.stripe_payment_intent_reference
+        else None,
         survey=Survey.from_orm(booking.outing.survey) if booking.outing and booking.outing.survey else None,
     )
 

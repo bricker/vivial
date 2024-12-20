@@ -96,7 +96,7 @@ export type AdminBookingInfo = {
   restaurantSource?: Maybe<RestaurantSource>;
   restaurantSourceId?: Maybe<Scalars['String']['output']>;
   state: BookingState;
-  stripePaymentId?: Maybe<Scalars['UUID']['output']>;
+  stripePaymentId?: Maybe<Scalars['String']['output']>;
   survey?: Maybe<Survey>;
 };
 

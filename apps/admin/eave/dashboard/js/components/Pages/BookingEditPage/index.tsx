@@ -116,6 +116,7 @@ const BookingEditPage = () => {
           stripePaymentIntentId={bookingInfo?.adminBooking?.stripePaymentId}
           bookingState={bookingState}
           isLoading={bookingIsLoading}
+          multiplier={bookingInfo?.adminBooking?.survey?.headcount || 1}
         />
 
         <div style={{ display: "flex", justifyContent: "space-around" }}>

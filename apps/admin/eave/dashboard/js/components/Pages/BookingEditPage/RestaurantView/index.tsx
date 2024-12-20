@@ -235,7 +235,7 @@ const RestaurantView = ({
 
           <p>
             Location:
-            {detailData.location.address.formattedMultiline}
+            {detailData.location.address.formattedSingleline}
           </p>
           <p>{`(in region: ${detailData.location.searchRegion.name})`}</p>
         </div>

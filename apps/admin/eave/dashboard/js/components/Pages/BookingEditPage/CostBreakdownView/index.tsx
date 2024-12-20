@@ -18,12 +18,18 @@ const CostBreakdownView = ({
   stripePaymentIntentId,
   bookingState,
   isLoading,
+  multiplier,
 }: {
   data: CostBreakdown | undefined;
   stripePaymentIntentId: string | undefined | null;
   bookingState: string | undefined | null;
   isLoading: boolean;
+  multiplier: number;
 }) => {
+  const eventCost = (data?.baseCostCents || 0) * multiplier;
+  const taxesCost = (data?.taxCents || 0) * multiplier;
+  const feesCost = (data?.feeCents || 0) * multiplier;
+  const totalCost = (data?.totalCostCents || 0) * multiplier;
   return (
     <Paper>
       <h2>Cost info:</h2>
@@ -32,10 +38,10 @@ const CostBreakdownView = ({
       ) : (
         <div>
           <b>Booking State: {bookingState}</b>
-          <p>Event costs: {formatCents(data?.baseCostCents || 0)}</p>
-          <p>Taxes: {formatCents(data?.taxCents || 0)}</p>
-          <p>Fees: {formatCents(data?.feeCents || 0)}</p>
-          <b>TOTAL: {formatCents(data?.totalCostCents || 0)}</b>
+          <p>Event costs: {formatCents(eventCost)}</p>
+          <p>Taxes: {formatCents(taxesCost)}</p>
+          <p>Fees: {formatCents(feesCost)}</p>
+          <b>TOTAL: {formatCents(totalCost)}</b>
 
           <p>
             {stripePaymentIntentId ? (
