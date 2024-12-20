@@ -25,12 +25,9 @@ const DrivingTime = styled(Typography)(() => ({
 
 const DistanceSection = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
-  if (!outing) {
-    return null;
-  }
+  const drivingTimeMinutes = outing?.drivingTimeMinutes;
 
-  const drivingTimeMinutes = outing.drivingTimeMinutes;
-  if (drivingTimeMinutes === null) {
+  if (!outing || drivingTimeMinutes === null) {
     // Use null comparison so that `0 minutes` is still rendered
     return null;
   }
