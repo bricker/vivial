@@ -62,6 +62,7 @@ const ActivityView = ({
         activityStartTimeUtc: newActivityStartTime,
       },
     });
+    console.log(resp);
 
     switch (resp.data?.adminUpdateBooking?.__typename) {
       case "AdminUpdateBookingSuccess": {
@@ -113,8 +114,12 @@ const ActivityView = ({
 
   const handleUpdateClick = useCallback(async () => {
     const bookingId = data?.id;
-    const newActivitySource = activitySource !== data?.activitySource ? activitySource || undefined : undefined;
     const newActivitySourceId = activitySourceId !== data?.activitySourceId ? activitySourceId : undefined;
+    let newActivitySource = undefined;
+    if (newActivitySourceId) {
+      // only set new source if source ID was also set
+      newActivitySource = activitySource || undefined;
+    }
     const newActivityStartTime =
       activityStartTime?.toISOString() !== data?.activityStartTime ? activityStartTime?.toISOString() : undefined;
     if (bookingId) {

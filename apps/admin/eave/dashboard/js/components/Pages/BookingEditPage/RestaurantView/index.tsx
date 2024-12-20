@@ -113,8 +113,12 @@ const RestaurantView = ({
 
   const handleUpdateClick = useCallback(async () => {
     const bookingId = data?.id;
-    const newRestaurantSource = restaurantSource !== data?.restaurantSource ? restaurantSource || undefined : undefined;
     const newRestaurantSourceId = restaurantSourceId !== data?.restaurantSourceId ? restaurantSourceId : undefined;
+    let newRestaurantSource = undefined;
+    if (newRestaurantSourceId) {
+      // only send source if a new ID has also been set
+      newRestaurantSource = restaurantSource || undefined;
+    }
     const newRestaurantStartTime =
       restaurantStartTime?.toISOString() !== data?.restaurantArrivalTime
         ? restaurantStartTime?.toISOString()
