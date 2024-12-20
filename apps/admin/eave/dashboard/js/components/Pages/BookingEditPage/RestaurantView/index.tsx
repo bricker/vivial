@@ -233,10 +233,8 @@ const RestaurantView = ({
         <div>
           {detailData.reservable && <b>Reservation possible; Please reserve.</b>}
 
-          <p>
-            Location:
-            {detailData.location.address.formattedSingleline}
-          </p>
+          <p>Location:</p>
+          <p>{detailData.location.address.formattedSingleline}</p>
           <p>{`(in region: ${detailData.location.searchRegion.name})`}</p>
         </div>
       ) : isLoading ? (

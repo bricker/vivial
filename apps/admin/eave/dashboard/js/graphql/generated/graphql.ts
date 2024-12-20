@@ -35,6 +35,7 @@ export type Activity = {
   name: Scalars['String']['output'];
   parkingTips?: Maybe<Scalars['String']['output']>;
   photos: Photos;
+  primaryTypeName?: Maybe<Scalars['String']['output']>;
   source: ActivitySource;
   sourceId: Scalars['String']['output'];
   ticketInfo?: Maybe<TicketInfo>;

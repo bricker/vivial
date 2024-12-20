@@ -234,10 +234,8 @@ const ActivityView = ({
             Description:
             {detailData.description}
           </p> */}
-          <p>
-            Location: {detailData.venue.name}
-            {detailData.venue.location.address.formattedSingleline}
-          </p>
+          <p>Location: {detailData.venue.name}</p>
+          <p>{detailData.venue.location.address.formattedSingleline}</p>
           <p>{`(in region: ${detailData.venue.location.searchRegion.name})`}</p>
           <p>Category: {detailData.categoryGroup?.name || fallback}</p>
         </div>
