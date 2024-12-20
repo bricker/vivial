@@ -73,12 +73,13 @@ const ActivityDesc = styled(Typography)(({ theme }) => ({
 
 const ActivityViewCondensed = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
-  if (!outing || !outing.activityPlan) {
+  const activityPlan = outing?.activityPlan;
+  const startTime = activityPlan ? new Date(activityPlan.startTime) : new Date();
+  const activity = activityPlan?.activity;
+
+  if (!outing || !activity) {
     return null;
   }
-
-  const startTime = new Date(outing.activityPlan.startTime);
-  const activity = outing.activityPlan.activity;
 
   return (
     <ViewContainer>
