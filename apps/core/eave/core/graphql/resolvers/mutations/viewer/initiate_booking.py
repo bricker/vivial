@@ -13,8 +13,8 @@ from eave.core.graphql.types.booking import (
     BookingDetails,
 )
 from eave.core.graphql.types.cost_breakdown import CostBreakdown
-from eave.core.graphql.types.stripe import CustomerSession, PaymentIntent
 from eave.core.graphql.types.restaurant import Reservation
+from eave.core.graphql.types.stripe import CustomerSession, PaymentIntent
 from eave.core.graphql.types.survey import Survey
 from eave.core.graphql.validators.time_bounds_validator import start_time_too_far_away, start_time_too_soon
 from eave.core.lib.event_helpers import get_activity, get_restaurant
@@ -39,6 +39,7 @@ class InitiateBookingSuccess:
     booking: BookingDetails
     payment_intent: PaymentIntent | None
     customer_session: CustomerSession | None
+
 
 @strawberry.enum
 class InitiateBookingFailureReason(enum.Enum):
@@ -231,9 +232,7 @@ async def initiate_booking_mutation(
                 },
             )
 
-            graphql_customer_session = CustomerSession(
-                client_secret=stripe_customer_session.client_secret
-            )
+            graphql_customer_session = CustomerSession(client_secret=stripe_customer_session.client_secret)
 
         else:
             graphql_payment_intent = None

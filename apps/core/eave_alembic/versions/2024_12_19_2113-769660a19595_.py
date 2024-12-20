@@ -6,11 +6,10 @@ Create Date: 2024-12-19 21:13:27.914360
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 from eave.core.orm.util.user_defined_column_types import OutingBudgetColumnType
-
 
 # revision identifiers, used by Alembic.
 revision = "769660a19595"
@@ -27,10 +26,7 @@ def upgrade() -> None:
     op.drop_constraint("outings_survey_id_fkey", "outings", type_="foreignkey")
     op.create_foreign_key(None, "outings", "surveys", ["survey_id"], ["id"], ondelete="SET NULL")
 
-    op.drop_column(
-        table_name="surveys",
-        column_name="budget"
-    )
+    op.drop_column(table_name="surveys", column_name="budget")
 
     op.add_column(
         "surveys",

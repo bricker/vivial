@@ -1,5 +1,6 @@
 import { AppRoute } from "$eave-dashboard/js/routes";
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
+import { setBookingDetails } from "$eave-dashboard/js/store/slices/bookingSlice";
 import { useGetBookingDetailsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { imageUrl } from "$eave-dashboard/js/util/asset";
@@ -8,11 +9,10 @@ import React, { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import HighlightButton from "../../Buttons/HighlightButton";
+import CenteringContainer from "../../CenteringContainer";
 import CalendarCheckIcon from "../../Icons/CalendarCheckIcon";
 import LogoPill, { LogoPillAttributes, logos } from "../../LogoPill";
 import Paper from "../../Paper";
-import CenteringContainer from "../../CenteringContainer";
-import { setBookingDetails } from "$eave-dashboard/js/store/slices/bookingSlice";
 
 const PageContainer = styled("div")(() => ({
   padding: "24px 16px",
@@ -110,10 +110,13 @@ const CheckoutCompletePage = () => {
   const params = useParams();
   const bookingId = params["bookingId"]!;
 
-  const { isLoading: getBookingDetailsIsLoading, data: getBookingDetailsData, error: getBookingDetailsError } =
-    useGetBookingDetailsQuery({
-      input: { bookingId },
-    });
+  const {
+    isLoading: getBookingDetailsIsLoading,
+    data: getBookingDetailsData,
+    error: getBookingDetailsError,
+  } = useGetBookingDetailsQuery({
+    input: { bookingId },
+  });
 
   useEffect(() => {
     if (getBookingDetailsData?.viewer.__typename === "AuthenticatedViewerQueries") {

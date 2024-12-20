@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
-import { AppRoute, routePath, SearchParam } from "$eave-dashboard/js/routes";
+import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
@@ -15,12 +15,12 @@ import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
 
 import PrimaryButton from "$eave-dashboard/js/components/Buttons/PrimaryButton";
 import RerollButton from "$eave-dashboard/js/components/Buttons/RerollButton";
+import CheckoutFormStripeElementsProvider from "$eave-dashboard/js/components/CheckoutReservation";
+import StripeBadge from "$eave-dashboard/js/components/CheckoutReservation/StripeBadge";
+import Modal from "$eave-dashboard/js/components/Modal";
 import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
 import Typography from "@mui/material/Typography";
 import VivialBadge from "./VivialBadge";
-import Modal from "$eave-dashboard/js/components/Modal";
-import StripeBadge from "$eave-dashboard/js/components/CheckoutReservation/StripeBadge";
-import CheckoutFormStripeElementsProvider from "$eave-dashboard/js/components/CheckoutReservation";
 
 const Section = styled("section")(({ theme }) => ({
   position: "relative",

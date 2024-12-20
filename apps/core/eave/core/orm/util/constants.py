@@ -18,4 +18,5 @@ class OnDeleteOption(StrEnum):
     RESTRICT = "RESTRICT"
     NO_ACTION = "NO ACTION"
 
+
 CASCADE_ALL_DELETE_ORPHAN = "all, delete-orphan"

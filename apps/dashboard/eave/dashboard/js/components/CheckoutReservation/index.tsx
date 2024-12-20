@@ -6,6 +6,7 @@ import {
 import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
+import { setBookingDetails } from "$eave-dashboard/js/store/slices/bookingSlice";
 import {
   useConfirmBookingMutation,
   useInitiateBookingQuery,
@@ -14,26 +15,25 @@ import {
   useUpdateReserverDetailsMutation,
 } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { storeReserverDetails } from "$eave-dashboard/js/store/slices/reserverDetailsSlice";
+import { colors } from "$eave-dashboard/js/theme/colors";
+import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
 import { Breakpoint } from "$eave-dashboard/js/theme/helpers/breakpoint";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
+import { myWindow } from "$eave-dashboard/js/types/window";
 import { CircularProgress, Typography, styled } from "@mui/material";
 import { Elements, useElements, useStripe } from "@stripe/react-stripe-js";
+import { loadStripe, type Appearance, type CssFontSource, type CustomFontSource } from "@stripe/stripe-js";
 import React, { FormEvent, useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import LoadingButton from "../Buttons/LoadingButton";
+import CenteringContainer from "../CenteringContainer";
 import InputError from "../Inputs/InputError";
 import LogoPill, { logos } from "../LogoPill";
 import Paper from "../Paper";
 import CostBreakdown from "./CostBreakdown";
 import PaymentForm from "./PaymentForm";
 import ReservationDetailsForm, { ReserverFormFields } from "./ReservationDetailsForm";
-import { useNavigate } from "react-router-dom";
-import CenteringContainer from "../CenteringContainer";
-import { setBookingDetails } from "$eave-dashboard/js/store/slices/bookingSlice";
-import { loadStripe, type Appearance, type CssFontSource, type CustomFontSource } from "@stripe/stripe-js";
-import { myWindow } from "$eave-dashboard/js/types/window";
-import { fontFamilies } from "$eave-dashboard/js/theme/fonts";
-import { colors } from "$eave-dashboard/js/theme/colors";
 
 const AltPageContainer = styled("div")(() => ({
   padding: "24px 16px",
@@ -125,8 +125,7 @@ const CheckoutForm = ({
   const { data: reserverDetailsData, isLoading: listDetailsIsLoading } = useListReserverDetailsQuery({});
   const [updateReserverDetails, { isLoading: updateDetailsIsLoading }] = useUpdateReserverDetailsMutation();
   const [submitReserverDetails, { isLoading: submitDetailsIsLoading }] = useSubmitReserverDetailsMutation();
-  const [confirmBooking, { isLoading: confirmBookingIsLoading, data: confirmBookingData, error: confirmBookingError }] =
-    useConfirmBookingMutation();
+  const [confirmBooking, { isLoading: confirmBookingIsLoading }] = useConfirmBookingMutation();
 
   const [internalReserverDetailError, setInternalReserverDetailError] = useState<string | undefined>(undefined);
   const [externalReserverDetailError, setExternalReserverDetailError] = useState<string | undefined>(undefined);
@@ -343,13 +342,53 @@ const CheckoutForm = ({
           }
         }
 
-        await confirmBooking({
+        const { data: confirmBookingData, error: confirmBookingError } = await confirmBooking({
           input: {
             bookingId: localBookingDetails!.id,
-          }
+          },
         });
 
-        navigate(returnPath);
+        if (confirmBookingError || !confirmBookingData) {
+          console.error(confirmBookingError);
+          setInternalReserverDetailError("There was an error during booking.");
+          setSubmissionIsLoading(false);
+          return;
+        }
+
+        switch (confirmBookingData.viewer.__typename) {
+          case "AuthenticatedViewerMutations": {
+            switch (confirmBookingData.viewer.confirmBooking.__typename) {
+              case "ConfirmBookingSuccess": {
+                navigate(returnPath);
+                break;
+              }
+              case "ConfirmBookingFailure": {
+                console.error(`failure: ${confirmBookingData.viewer.confirmBooking.failureReason}`);
+                setInternalReserverDetailError("There was an error during booking.");
+                setSubmissionIsLoading(false);
+                return;
+              }
+              default: {
+                console.error("unexpected graphql response");
+                setInternalReserverDetailError("There was an error during booking.");
+                setSubmissionIsLoading(false);
+                return;
+              }
+            }
+            break;
+          }
+          case "UnauthenticatedViewer": {
+            dispatch(loggedOut());
+            window.location.assign(AppRoute.logout);
+            return;
+          }
+          default: {
+            console.error("unexpected graphql response");
+            setInternalReserverDetailError("There was an error during booking.");
+            setSubmissionIsLoading(false);
+            return;
+          }
+        }
       } catch (e) {
         // network error
         console.error(e);
@@ -386,9 +425,7 @@ const CheckoutForm = ({
             showStripeBadge={showStripeBadge && requiresPayment}
           />
 
-          {requiresPayment && (
-            <PaymentForm/>
-          )}
+          {requiresPayment && <PaymentForm />}
 
           {error && (
             <InputErrorContainer>
@@ -440,14 +477,21 @@ const stripeElementsAppearance: Appearance = {
 const CheckoutFormStripeElementsProvider = ({ outingId }: { outingId: string }) => {
   const dispatch = useDispatch();
 
-  const { data: initiateBookingData, isLoading: initiateBookingIsLoading, error: initiateBookingError } = useInitiateBookingQuery({
+  const {
+    data: initiateBookingData,
+    isLoading: initiateBookingIsLoading,
+    error: initiateBookingError,
+  } = useInitiateBookingQuery({
     input: {
-      outingId
-    }
+      outingId,
+    },
   });
 
   useEffect(() => {
-    if (initiateBookingData?.viewer.__typename === "AuthenticatedViewerMutations" && initiateBookingData.viewer.initiateBooking.__typename === "InitiateBookingSuccess") {
+    if (
+      initiateBookingData?.viewer.__typename === "AuthenticatedViewerMutations" &&
+      initiateBookingData.viewer.initiateBooking.__typename === "InitiateBookingSuccess"
+    ) {
       dispatch(setBookingDetails({ bookingDetails: initiateBookingData.viewer.initiateBooking.booking }));
     }
   }, [initiateBookingData]);
@@ -511,15 +555,17 @@ const CheckoutFormStripeElementsProvider = ({ outingId }: { outingId: string }) 
     fonts = [{ cssSrc: fontUrl }];
   }
 
-
   const clientSecret = initiateBookingData.viewer.initiateBooking.paymentIntent?.clientSecret;
   const customerSessionClientSecret = initiateBookingData.viewer.initiateBooking.customerSession?.clientSecret;
 
   return (
-    <Elements stripe={stripePromise} options={{ clientSecret, customerSessionClientSecret, appearance: stripeElementsAppearance, fonts: fonts }}>
+    <Elements
+      stripe={stripePromise}
+      options={{ clientSecret, customerSessionClientSecret, appearance: stripeElementsAppearance, fonts: fonts }}
+    >
       <CheckoutForm showStripeBadge showCostBreakdown />
     </Elements>
   );
-}
+};
 
 export default CheckoutFormStripeElementsProvider;

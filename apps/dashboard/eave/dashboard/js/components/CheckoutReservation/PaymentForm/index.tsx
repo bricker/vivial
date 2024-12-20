@@ -8,7 +8,6 @@ const PaymentContainer = styled("div")(() => ({
   gap: 8,
 }));
 
-
 const CollapsingContainer = styled("div")(() => ({
   display: "flex",
   flexDirection: "column",

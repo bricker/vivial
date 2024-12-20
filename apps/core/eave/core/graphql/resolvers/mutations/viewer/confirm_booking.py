@@ -4,11 +4,10 @@ from textwrap import dedent
 from typing import Annotated
 from uuid import UUID
 
-from google.maps.places import PlacesAsyncClient
 import strawberry
 import stripe
+from google.maps.places import PlacesAsyncClient
 
-from eave.core.lib.google_places import get_google_place, get_google_places_activity
 import eave.stdlib.slack
 from eave.core import database
 from eave.core.analytics import ANALYTICS
@@ -21,6 +20,7 @@ from eave.core.graphql.validators.time_bounds_validator import (
     start_time_too_far_away,
     start_time_too_soon,
 )
+from eave.core.lib.google_places import get_google_place
 from eave.core.orm.account import AccountOrm
 from eave.core.orm.booking import BookingOrm
 from eave.core.orm.reserver_details import ReserverDetailsOrm

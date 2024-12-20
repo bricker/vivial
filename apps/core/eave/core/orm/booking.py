@@ -30,6 +30,7 @@ from .util.constants import CASCADE_ALL_DELETE_ORPHAN, PG_UUID_EXPR, OnDeleteOpt
 
 class BookingStateColumnType(StrEnumColumnType[BookingState]):
     cache_ok = True
+
     def enum_member(self, value: str) -> BookingState:
         return BookingState[value]
 
@@ -64,7 +65,9 @@ class BookingOrm(Base, GetOneByIdMixin):
         secondary=ACCOUNT_BOOKINGS_JOIN_TABLE, lazy="selectin", back_populates="bookings"
     )
 
-    activities: Mapped[list["BookingActivityTemplateOrm"]] = relationship(lazy="selectin", back_populates="booking", cascade=CASCADE_ALL_DELETE_ORPHAN)
+    activities: Mapped[list["BookingActivityTemplateOrm"]] = relationship(
+        lazy="selectin", back_populates="booking", cascade=CASCADE_ALL_DELETE_ORPHAN
+    )
     reservations: Mapped[list["BookingReservationTemplateOrm"]] = relationship(
         lazy="selectin", back_populates="booking", cascade=CASCADE_ALL_DELETE_ORPHAN
     )
@@ -165,7 +168,10 @@ class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     booking_id: Mapped[UUID] = mapped_column(
         ForeignKey(f"{BookingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value), index=True
     )
-    booking: Mapped[BookingOrm] = relationship(lazy="selectin", back_populates="activities",)
+    booking: Mapped[BookingOrm] = relationship(
+        lazy="selectin",
+        back_populates="activities",
+    )
 
     def __init__(
         self,

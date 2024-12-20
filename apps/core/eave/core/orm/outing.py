@@ -33,8 +33,12 @@ class OutingOrm(Base, GetOneByIdMixin):
     )
     account: Mapped[AccountOrm | None] = relationship(lazy="selectin")
 
-    activities: Mapped[list["OutingActivityOrm"]] = relationship(lazy="selectin", back_populates="outing", cascade=CASCADE_ALL_DELETE_ORPHAN)
-    reservations: Mapped[list["OutingReservationOrm"]] = relationship(lazy="selectin", back_populates="outing", cascade=CASCADE_ALL_DELETE_ORPHAN)
+    activities: Mapped[list["OutingActivityOrm"]] = relationship(
+        lazy="selectin", back_populates="outing", cascade=CASCADE_ALL_DELETE_ORPHAN
+    )
+    reservations: Mapped[list["OutingReservationOrm"]] = relationship(
+        lazy="selectin", back_populates="outing", cascade=CASCADE_ALL_DELETE_ORPHAN
+    )
 
     def __init__(
         self,

@@ -18,6 +18,7 @@ REFRESH_TOKEN_COOKIE_NAME = f"{AUTH_COOKIE_PREFIX}refresh_token"
 
 ACCESS_TOKEN_MAX_AGE_MINUTES = 30
 
+
 def set_new_auth_cookies(*, response: Response, account_id: UUID) -> None:
     jwt_id = str(uuid4())
 

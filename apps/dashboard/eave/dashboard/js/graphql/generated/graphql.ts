@@ -282,6 +282,7 @@ export type InitiateBookingFailure = {
 };
 
 export enum InitiateBookingFailureReason {
+  BookingConfirmed = 'BOOKING_CONFIRMED',
   PaymentIntentFailed = 'PAYMENT_INTENT_FAILED',
   StartTimeTooLate = 'START_TIME_TOO_LATE',
   StartTimeTooSoon = 'START_TIME_TOO_SOON',
