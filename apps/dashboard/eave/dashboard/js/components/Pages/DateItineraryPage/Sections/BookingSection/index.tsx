@@ -1,4 +1,8 @@
-import { useGetOneClickBookingCriteriaQuery, useInitiateAndConfirmBookingMutation, usePlanOutingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import {
+  useGetOneClickBookingCriteriaQuery,
+  useInitiateAndConfirmBookingMutation,
+  usePlanOutingMutation,
+} from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
 import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -15,18 +19,18 @@ import { formatBaseCost, formatFeesAndTaxes, formatTotalCost } from "$eave-dashb
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
 
 import EditButton from "$eave-dashboard/js/components/Buttons/EditButton";
+import LoadingButton from "$eave-dashboard/js/components/Buttons/LoadingButton";
 import RerollButton from "$eave-dashboard/js/components/Buttons/RerollButton";
 import CheckoutFormStripeElementsProvider from "$eave-dashboard/js/components/CheckoutReservation";
 import Modal from "$eave-dashboard/js/components/Modal";
+import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
+import { setBookingDetails } from "$eave-dashboard/js/store/slices/bookingSlice";
+import { storePaymentMethods } from "$eave-dashboard/js/store/slices/paymentMethodsSlice";
+import { storeReserverDetails } from "$eave-dashboard/js/store/slices/reserverDetailsSlice";
+import { capitalize } from "$eave-dashboard/js/util/string";
 import Typography from "@mui/material/Typography";
 import OneClickBadge from "./OneClickBadge";
 import VivialBadge from "./VivialBadge";
-import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
-import { storeReserverDetails } from "$eave-dashboard/js/store/slices/reserverDetailsSlice";
-import { storePaymentMethods } from "$eave-dashboard/js/store/slices/paymentMethodsSlice";
-import { capitalize } from "$eave-dashboard/js/util/string";
-import { setBookingDetails } from "$eave-dashboard/js/store/slices/bookingSlice";
-import LoadingButton from "$eave-dashboard/js/components/Buttons/LoadingButton";
 
 const Section = styled("section")(({ theme }) => ({
   position: "relative",
@@ -155,7 +159,7 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
 
   // We only want to run this if the user is logged in.
   const { data: oneClickBookingCriteriaData } = useGetOneClickBookingCriteriaQuery({}, { skip: !isLoggedIn });
-  const [initiateAndConfirmBooking,] = useInitiateAndConfirmBookingMutation();
+  const [initiateAndConfirmBooking] = useInitiateAndConfirmBookingMutation();
 
   useEffect(() => {
     if (!oneClickBookingCriteriaData) {
@@ -164,7 +168,9 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
     }
     switch (oneClickBookingCriteriaData.viewer.__typename) {
       case "AuthenticatedViewerQueries": {
-        const eligible = oneClickBookingCriteriaData.viewer.reserverDetails.length > 0 && oneClickBookingCriteriaData.viewer.paymentMethods.length > 0;
+        const eligible =
+          oneClickBookingCriteriaData.viewer.reserverDetails.length > 0 &&
+          oneClickBookingCriteriaData.viewer.paymentMethods.length > 0;
         setOneClickEligible(eligible);
 
         if (eligible) {
@@ -210,13 +216,14 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
       if (isLoggedIn) {
         if (oneClickEligible && paymentMethods && paymentMethods[0]) {
           setBookButtonLoading(true);
-          const { data: initiateAndConfirmBookingData, error: initiateAndConfirmBookingError } = await initiateAndConfirmBooking({
-            input: {
-              outingId: outing.id,
-              autoConfirm: true,
-              paymentMethodId: paymentMethods[0].id
-            }
-          });
+          const { data: initiateAndConfirmBookingData, error: initiateAndConfirmBookingError } =
+            await initiateAndConfirmBooking({
+              input: {
+                outingId: outing.id,
+                autoConfirm: true,
+                paymentMethodId: paymentMethods[0].id,
+              },
+            });
 
           if (initiateAndConfirmBookingError || !initiateAndConfirmBookingData) {
             // fallback to opening the booking modal
@@ -309,19 +316,23 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
           <OneClickInputsContainer>
             <OneClickInputs>
               <OneClickInputName gridArea="name">Name</OneClickInputName>
-              <OneClickInputValue gridArea="nameVal">{reserverDetails.firstName} {reserverDetails.lastName}</OneClickInputValue>
+              <OneClickInputValue gridArea="nameVal">
+                {reserverDetails.firstName} {reserverDetails.lastName}
+              </OneClickInputValue>
               <OneClickInputName gridArea="phone">Phone #</OneClickInputName>
               <OneClickInputValue gridArea="phoneVal">{reserverDetails.phoneNumber}</OneClickInputValue>
               <OneClickInputName gridArea="email">Email</OneClickInputName>
               <OneClickInputValue gridArea="emailVal">{account.email}</OneClickInputValue>
               <OneClickInputName gridArea="pay">Pay with</OneClickInputName>
-              <OneClickInputValue gridArea="payVal">{capitalize(defaultPaymentMethod.card.brand)} *{defaultPaymentMethod.card.last4}</OneClickInputValue>
+              <OneClickInputValue gridArea="payVal">
+                {capitalize(defaultPaymentMethod.card.brand)} *{defaultPaymentMethod.card.last4}
+              </OneClickInputValue>
             </OneClickInputs>
             <OneClickEditBtn onClick={toggleBookingOpen} />
           </OneClickInputsContainer>
         </OneClickDetails>
       </OneClickBooking>
-    )
+    );
   }
 
   return (

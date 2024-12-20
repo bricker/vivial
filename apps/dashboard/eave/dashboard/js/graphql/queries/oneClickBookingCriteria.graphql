@@ -1,6 +1,6 @@
 query OneClickBookingCriteria {
   viewer {
-    ...on AuthenticatedViewerQueries {
+    ... on AuthenticatedViewerQueries {
       reserverDetails {
         ...ReserverDetailsFields
       }
@@ -16,7 +16,7 @@ query OneClickBookingCriteria {
       }
     }
 
-    ...on UnauthenticatedViewer {
+    ... on UnauthenticatedViewer {
       __typename
       authFailureReason
     }
