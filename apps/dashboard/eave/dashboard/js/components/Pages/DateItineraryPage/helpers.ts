@@ -26,7 +26,7 @@ export function getTicketInfo(outing: Outing): string {
   if (activity) {
     if (activity.source === ActivitySource.Eventbrite) {
       if (outing.headcount === 1) {
-        return `${outing.headcount} Ticket`
+        return `${outing.headcount} Ticket`;
       }
       return `${outing.headcount} Tickets`;
     }
