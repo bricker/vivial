@@ -18,14 +18,15 @@ const RestaurantSection = () => {
     setExpanded(!expanded);
   }, [expanded]);
 
-  if (outing?.restaurant) {
-    return (
-      <Section onExpand={toggleExpand} expanded={expanded}>
-        {expanded ? <RestaurantViewExpanded /> : <RestaurantViewCondensed />}
-      </Section>
-    );
+  if (!outing?.reservation) {
+    return null;
   }
-  return null;
+
+  return (
+    <Section onExpand={toggleExpand} expanded={expanded}>
+      {expanded ? <RestaurantViewExpanded /> : <RestaurantViewCondensed />}
+    </Section>
+  );
 };
 
 export default RestaurantSection;

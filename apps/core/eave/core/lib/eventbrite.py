@@ -1,8 +1,8 @@
 from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
 from eave.core.graphql.types.address import GraphQLAddress
+from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
-from eave.core.graphql.types.pricing import CostBreakdown
 from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.lib.address import format_address
 from eave.core.lib.google_places import google_maps_directions_url
@@ -106,7 +106,7 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
             if (tax := ticket_class.get("tax")) is not None:
                 cost_breakdown.tax_cents = tax["value"]
 
-            if cost_breakdown.total_cost_cents_internal > max_pricing.total_cost_cents_internal:
+            if cost_breakdown.calculate_total_cost_cents() > max_pricing.calculate_total_cost_cents():
                 max_pricing = cost_breakdown
                 chosen_ticket_class = ticket_class
 
@@ -182,6 +182,7 @@ async def activity_from_eventbrite_event(eventbrite_client: EventbriteClient, *,
         door_tips=None,
         insider_tips=None,
         parking_tips=None,
+        primary_type_name=None,
         category_group=ActivityCategoryGroup.from_orm(vivial_activity_category_group)
         if vivial_activity_category_group
         else None,

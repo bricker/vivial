@@ -6,9 +6,9 @@ from eave.core import database
 from eave.core.config import CORE_API_APP_CONFIG
 from eave.core.graphql.types.activity import Activity, ActivityCategoryGroup, ActivityVenue
 from eave.core.graphql.types.address import GraphQLAddress
+from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.location import Location
 from eave.core.graphql.types.photos import Photo, Photos
-from eave.core.graphql.types.pricing import CostBreakdown
 from eave.core.graphql.types.restaurant import Restaurant
 from eave.core.graphql.types.ticket_info import TicketInfo
 from eave.core.lib.address import format_address
@@ -63,6 +63,7 @@ async def get_internal_activity(*, event_id: str) -> Activity | None:
         door_tips=None,
         insider_tips=None,
         parking_tips=None,
+        primary_type_name=None,
         category_group=ActivityCategoryGroup.from_orm(category_group) if category_group else None,
     )
 

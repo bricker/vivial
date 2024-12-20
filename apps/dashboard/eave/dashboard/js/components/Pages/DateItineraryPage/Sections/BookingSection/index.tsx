@@ -1,22 +1,27 @@
-import { useGetOutingPreferencesQuery, usePlanOutingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
+import { usePlanOutingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { plannedOuting } from "$eave-dashboard/js/store/slices/outingSlice";
 import React, { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
+import { OutingBudget } from "$eave-dashboard/js/graphql/generated/graphql";
 import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 import { colors } from "$eave-dashboard/js/theme/colors";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
 import { styled } from "@mui/material";
 
-import { getBaseCost, getFees, getTotalCost } from "$eave-dashboard/js/util/currency";
+import { formatBaseCost, formatFeesAndTaxes, formatTotalCost } from "$eave-dashboard/js/util/currency";
 import { getPreferenceInputs } from "$eave-dashboard/js/util/preferences";
-import { getRegionIds } from "$eave-dashboard/js/util/region";
 
+import EditButton from "$eave-dashboard/js/components/Buttons/EditButton";
 import PrimaryButton from "$eave-dashboard/js/components/Buttons/PrimaryButton";
 import RerollButton from "$eave-dashboard/js/components/Buttons/RerollButton";
+import CheckoutFormStripeElementsProvider from "$eave-dashboard/js/components/CheckoutReservation";
+import StripeBadge from "$eave-dashboard/js/components/CheckoutReservation/StripeBadge";
+import Modal from "$eave-dashboard/js/components/Modal";
 import Typography from "@mui/material/Typography";
+import OneClickBadge from "./OneClickBadge";
 import VivialBadge from "./VivialBadge";
 
 const Section = styled("section")(({ theme }) => ({
@@ -53,6 +58,56 @@ const CostItem = styled(Typography, {
   fontWeight: bold ? 700 : 400,
 }));
 
+const OneClickBooking = styled("div")(() => ({
+  display: "flex",
+}));
+
+const OneClickDetails = styled("div")(() => ({
+  flex: 1,
+}));
+
+const OneClickInputsContainer = styled("div")(() => ({
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "flex-start",
+}));
+
+const OneClickInputs = styled("div")(() => ({
+  display: "grid",
+  gridTemplateAreas: `
+    'name nameVal'
+    'phone phoneVal'
+    'email emailVal'
+    'pay payVal'
+  `,
+  gridColumnGap: "40px",
+}));
+
+const OneClickHeader = styled(Typography)(({ theme }) => ({
+  color: theme.palette.primary.main,
+  paddingTop: 18,
+  marginBottom: 14,
+  fontSize: rem(16),
+  lineHeight: rem(19),
+  fontWeight: 600,
+}));
+
+const OneClickInputName = styled(Typography, {
+  shouldForwardProp: (prop) => prop !== "gridArea",
+})<{ gridArea: string }>(({ gridArea }) => ({
+  gridArea,
+}));
+
+const OneClickInputValue = styled(Typography, {
+  shouldForwardProp: (prop) => prop !== "gridArea",
+})<{ gridArea: string }>(({ gridArea }) => ({
+  gridArea,
+}));
+
+const OneClickEditBtn = styled(EditButton)(() => ({
+  padding: "3px 0px 16px 16px",
+}));
+
 const ActionButtons = styled("div")(() => ({
   marginTop: 24,
   display: "flex",
@@ -70,126 +125,149 @@ const Error = styled(Typography)(({ theme }) => ({
 
 const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
   const [planOuting, { data: planOutingData, isLoading: planOutingLoading }] = usePlanOutingMutation();
-  const { data: outingPreferencesData } = useGetOutingPreferencesQuery({});
-  const outing = useSelector((state: RootState) => state.outing.details);
   const { isLoggedIn } = useSelector((state: RootState) => state.auth);
+  const outing = useSelector((state: RootState) => state.outing.details);
   const userPreferences = useSelector((state: RootState) => state.outing.preferenes.user);
   const partnerPreferences = useSelector((state: RootState) => state.outing.preferenes.partner);
-  const [, setBookingOpen] = useState(false);
+  const [bookingOpen, setBookingOpen] = useState(false);
+
+  // BRYAN FIXME: check whether or not the user is eligible for one-click booking.
+  const [oneClickEligible, _setOneClickEligible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const hasCost = !!outing?.costBreakdown?.totalCostCents;
-  const activity = outing?.activity;
-  const restaurant = outing?.restaurant;
+  const activityPlan = outing?.activityPlan;
+  const reservation = outing?.reservation;
 
   const handleReroll = useCallback(async () => {
     if (outing) {
-      const groupPreferences = getPreferenceInputs(
-        userPreferences,
-        partnerPreferences,
-        outingPreferencesData?.activityCategoryGroups,
-        outingPreferencesData?.restaurantCategories,
-      );
+      const groupPreferences = getPreferenceInputs(userPreferences, partnerPreferences);
       await planOuting({
         input: {
-          startTime: new Date(outing.restaurantArrivalTime || "").toISOString(),
-          searchAreaIds: getRegionIds(outing),
-          budget: outing.survey!.budget, // FIXME: survey can be null
-          headcount: outing.survey!.headcount, // FIXME: survey can be null
+          startTime: new Date(outing.survey?.startTime || outing.startTime).toISOString(),
+          searchAreaIds: (outing.survey?.searchRegions || outing.searchRegions).map((r) => r.id),
+          budget: outing.survey?.budget || OutingBudget.Expensive,
+          headcount: outing.survey?.headcount || outing.headcount,
           groupPreferences,
+          isReroll: true,
         },
       });
     }
-  }, [outingPreferencesData, userPreferences, partnerPreferences, outing]);
+  }, [userPreferences, partnerPreferences, outing]);
 
-  // const toggleBookingOpen = useCallback(() => {
-  //   setBookingOpen(!bookingOpen);
-  // }, [bookingOpen]);
+  const toggleBookingOpen = useCallback(() => {
+    setBookingOpen(!bookingOpen);
+  }, [bookingOpen]);
 
   const handleBookClick = useCallback(() => {
-    if (!outing) {
-      console.warn("No outing");
-      return;
+    if (isLoggedIn) {
+      if (oneClickEligible) {
+        // BRYAN FIXME: submit booking.
+        console.log("oneClickBook()");
+      } else {
+        toggleBookingOpen();
+      }
+    } else {
+      if (outing) {
+        // This handles the auth redirect and return path
+        navigate(routePath(AppRoute.checkoutReserve, { outingId: outing.id }));
+      }
     }
-
-    navigate(routePath(AppRoute.checkoutReserve, { outingId: outing.id }));
-
-    // if (isLoggedIn) {
-    //   toggleBookingOpen();
-    // } else {
-    //   const returnPath = encodeURIComponent(routePath(AppRoute.checkoutReserve, { outingId: outing.id }));
-    //   navigate({
-    //     pathname: AppRoute.signup,
-    //     search: `?${SearchParam.redirect}=${returnPath}`,
-    //   });
-    // }
-  }, [isLoggedIn, outing]);
+  }, [isLoggedIn, outing, oneClickEligible]);
 
   useEffect(() => {
     if (planOutingData) {
-      if (planOutingData.planOuting?.__typename === "PlanOutingSuccess") {
-        const newOuting = planOutingData.planOuting.outing;
-        setBookingOpen(false);
-        dispatch(plannedOuting({ outing: newOuting }));
-        navigate(`${AppRoute.itinerary}/${newOuting.id}`);
-      } else {
-        setErrorMessage("There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.");
+      switch (planOutingData.planOuting?.__typename) {
+        case "PlanOutingSuccess": {
+          const newOuting = planOutingData.planOuting.outing;
+          setBookingOpen(false);
+          dispatch(plannedOuting({ outing: newOuting }));
+          navigate(routePath(AppRoute.itinerary, { outingId: newOuting.id }));
+          break;
+        }
+        default: {
+          setErrorMessage(
+            "There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.",
+          );
+        }
       }
     }
   }, [planOutingData]);
 
-  if (outing) {
-    return (
-      <Section>
-        <VivialBadge />
-        <Header>
-          <Typography variant="inherit">Total Costs</Typography>
-          <Typography variant="inherit">{getTotalCost(outing)}</Typography>
-        </Header>
-        <CostBreakdown>
-          {restaurant && restaurant.reservable && (
-            <>
-              <CostItem>{restaurant.name} Reservations ...</CostItem>
-              <CostItem>$0.00</CostItem>
-            </>
-          )}
-          {activity && hasCost && (
-            <>
-              <CostItem>{activity.name} Tickets ...</CostItem>
-              <CostItem>{getBaseCost(outing)}</CostItem>
-              <CostItem>Service Fees & Taxes via Eventbrite ...</CostItem>
-              <CostItem>{getFees(outing)}</CostItem>
-            </>
-          )}
-          <CostItem>Service Fees via Vivial ...</CostItem>
-          <CostItem bold>FREE</CostItem>
-        </CostBreakdown>
-        {!viewOnly && (
+  if (!outing) {
+    return null;
+  }
+
+  return (
+    <Section>
+      <VivialBadge />
+      <Header>
+        <Typography variant="inherit">Total Costs</Typography>
+        <Typography variant="inherit">{formatTotalCost(outing.costBreakdown)}</Typography>
+      </Header>
+      <CostBreakdown>
+        {reservation && reservation.restaurant.reservable && (
           <>
-            <ActionButtons>
-              <RerollButton onReroll={handleReroll} loading={planOutingLoading} />
-              <BookButton onClick={handleBookClick} fullWidth>
-                Book
-              </BookButton>
-            </ActionButtons>
+            <CostItem>{reservation.restaurant.name} Reservations ...</CostItem>
+            <CostItem>{formatTotalCost(reservation.costBreakdown)}</CostItem>
           </>
         )}
-        {errorMessage && <Error>ERROR: {errorMessage}</Error>}
-        {/* <Modal
-          title="Booking Info"
-          onClose={toggleBookingOpen}
-          open={bookingOpen}
-          badge={<StripeBadge />}
-          padChildren={false}
-        >
-          <CheckoutReservation outingId={outing.id} />
-        </Modal> */}
-      </Section>
-    );
-  }
-  return null;
+        {activityPlan && activityPlan.costBreakdown.totalCostCents > 0 && (
+          <>
+            <CostItem>{activityPlan.activity.name} Tickets ...</CostItem>
+            <CostItem>{formatBaseCost(activityPlan.costBreakdown)}</CostItem>
+            <CostItem>Service Fees & Taxes via Eventbrite ...</CostItem>
+            <CostItem>{formatFeesAndTaxes(activityPlan.costBreakdown)}</CostItem>
+          </>
+        )}
+        <CostItem>Service Fees via Vivial ...</CostItem>
+        <CostItem bold>FREE</CostItem>
+      </CostBreakdown>
+      {oneClickEligible && (
+        <OneClickBooking>
+          <OneClickBadge />
+          <OneClickDetails>
+            <OneClickHeader>One click booking</OneClickHeader>
+            <OneClickInputsContainer>
+              {/* BRYAN FIXME: Add dynamic values. */}
+              <OneClickInputs>
+                <OneClickInputName gridArea="name">Name</OneClickInputName>
+                <OneClickInputValue gridArea="nameVal">Lana Nguyen</OneClickInputValue>
+                <OneClickInputName gridArea="phone">Phone #</OneClickInputName>
+                <OneClickInputValue gridArea="phoneVal">(555) 555-5555</OneClickInputValue>
+                <OneClickInputName gridArea="email">Email</OneClickInputName>
+                <OneClickInputValue gridArea="emailVal">lana@vivialapp.com</OneClickInputValue>
+                <OneClickInputName gridArea="pay">Pay with</OneClickInputName>
+                <OneClickInputValue gridArea="payVal">Visa *1234</OneClickInputValue>
+              </OneClickInputs>
+              <OneClickEditBtn onClick={toggleBookingOpen} />
+            </OneClickInputsContainer>
+          </OneClickDetails>
+        </OneClickBooking>
+      )}
+      {!viewOnly && (
+        <>
+          <ActionButtons>
+            <RerollButton onReroll={handleReroll} loading={planOutingLoading} />
+            <BookButton onClick={handleBookClick} fullWidth>
+              Book
+            </BookButton>
+          </ActionButtons>
+        </>
+      )}
+      {errorMessage && <Error>ERROR: {errorMessage}</Error>}
+      <Modal
+        title="Booking Info"
+        onClose={toggleBookingOpen}
+        open={bookingOpen}
+        badge={<StripeBadge />}
+        padChildren={false}
+      >
+        <CheckoutFormStripeElementsProvider outingId={outing.id} />;
+      </Modal>
+    </Section>
+  );
 };
 
 export default BookingSection;

@@ -4,7 +4,7 @@ import {
   type OutingPreferences,
   type RestaurantCategory,
 } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute, DateSurveyPageVariant, SearchParam } from "$eave-dashboard/js/routes";
+import { AppRoute, DateSurveyPageVariant, SearchParam, routePath } from "$eave-dashboard/js/routes";
 import { RootState } from "$eave-dashboard/js/store";
 
 import {
@@ -133,12 +133,7 @@ const DateSurveyPage = () => {
   const dispatch = useDispatch();
 
   const handleSubmit = useCallback(async () => {
-    const groupPreferences = getPreferenceInputs(
-      outingPreferences,
-      partnerPreferences,
-      outingPreferencesData?.activityCategoryGroups,
-      outingPreferencesData?.restaurantCategories,
-    );
+    const groupPreferences = getPreferenceInputs(outingPreferences, partnerPreferences);
     await planOuting({
       input: {
         startTime: startTime.toISOString(),
@@ -148,7 +143,7 @@ const DateSurveyPage = () => {
         searchAreaIds,
       },
     });
-  }, [outingPreferencesData, outingPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime]);
+  }, [outingPreferences, partnerPreferences, budget, headcount, searchAreaIds, startTime]);
 
   const handleSubmitPreferences = useCallback(
     async (restaurantCategories: RestaurantCategory[], activityCategories: ActivityCategory[]) => {
@@ -207,7 +202,7 @@ const DateSurveyPage = () => {
             partner: partnerPreferences,
           }),
         );
-        navigate(`${AppRoute.itinerary}/${outing.id}`);
+        navigate(routePath(AppRoute.itinerary, { outingId: outing.id }));
       } else {
         setErrorMessage("There was an issue planning your outing. Reach out to friends@vivialapp.com for assistance.");
       }
@@ -223,9 +218,19 @@ const DateSurveyPage = () => {
   useEffect(() => {
     const viewer = outingPreferencesData?.viewer;
     if (viewer?.__typename === "AuthenticatedViewerQueries") {
-      setOutingPreferences(viewer.outingPreferences);
+      const preferences = viewer.outingPreferences;
+      if (preferences.activityCategories || preferences.restaurantCategories) {
+        setOutingPreferences(preferences);
+      }
     }
   }, [outingPreferencesData]);
+
+  useEffect(() => {
+    const redirectPath = searchParams.get(SearchParam.redirect);
+    if (redirectPath) {
+      navigate(redirectPath);
+    }
+  }, [searchParams]);
 
   if (searchRegionsAreLoading) {
     return <LoadingView />;
@@ -272,11 +277,13 @@ const DateSurveyPage = () => {
                 editable={!outingPreferences}
                 onClickEdit={() => setOutingPreferencesOpen(true)}
               />
-              <EditPreferencesOption
-                label="Add partner preferences (optional)"
-                editable={!partnerPreferences}
-                onClickEdit={() => setPartnerPreferencesOpen(true)}
-              />
+              {headcount === 2 && (
+                <EditPreferencesOption
+                  label="Add partner preferences (optional)"
+                  editable={!partnerPreferences}
+                  onClickEdit={() => setPartnerPreferencesOpen(true)}
+                />
+              )}
             </>
           )}
         </CopyContainer>

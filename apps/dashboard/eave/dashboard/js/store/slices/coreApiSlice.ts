@@ -93,13 +93,6 @@ export const coreApiSlice = createApi({
       },
     }),
 
-    getBookingDetials: builder.query<BookingDetailsQuery, BookingDetailsQueryVariables>({
-      async queryFn(variables, _api, _extraOptions, _baseQuery) {
-        const data = await executeOperation({ query: BookingDetailsDocument, variables });
-        return { data };
-      },
-    }),
-
     getOuting: builder.query<OutingQuery, OutingQueryVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: OutingDocument, variables });
@@ -175,12 +168,16 @@ export const coreApiSlice = createApi({
 
     planOuting: builder.mutation<PlanOutingMutation, PlanOutingMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        console.info("Planning outing with the following inputs:", variables.input);
         const data = await executeOperation({ query: PlanOutingDocument, variables });
         return { data };
       },
     }),
 
-    initiateBooking: builder.mutation<InitiateBookingMutation, InitiateBookingMutationVariables>({
+    initiateBooking: builder.query<InitiateBookingMutation, InitiateBookingMutationVariables>({
+      // This is marked as query on purpose.
+      // On the server it's a mutation but this needs to be called when a component loads and rtk-query
+      // doesn't seem to allow that.
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: InitiateBookingDocument, variables });
         return { data };
@@ -218,9 +215,9 @@ export const {
   useLoginMutation,
   useUpdateReserverDetailsAccountMutation,
   useUpdateAccountMutation,
-  useInitiateBookingMutation,
-  useUpdateBookingMutation,
+  useInitiateBookingQuery, // This is actually a mutation...
   useConfirmBookingMutation,
+  useUpdateBookingMutation,
   useUpdateReserverDetailsMutation,
   useSubmitReserverDetailsMutation,
   useUpdateOutingPreferencesMutation,

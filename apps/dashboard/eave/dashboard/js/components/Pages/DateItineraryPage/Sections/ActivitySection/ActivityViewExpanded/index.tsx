@@ -13,7 +13,7 @@ import BaseActivityBadge from "../ActivityBadge";
 
 import { imageUrl } from "$eave-dashboard/js/util/asset";
 import { getTimeOfDay } from "$eave-dashboard/js/util/date";
-import { getImgUrls } from "../../../helpers";
+import { getActivityVenueName, getImgUrls, getTicketInfo } from "../../../helpers";
 
 const ViewContainer = styled("div")(() => ({
   position: "relative",
@@ -87,30 +87,28 @@ const EventbriteLogo = styled("img")(() => ({
 
 const ActivityViewExpanded = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
-  if (!outing) {
+  const startTime = outing?.activityPlan ? new Date(outing.activityPlan?.startTime) : new Date();
+  const activity = outing?.activityPlan?.activity;
+  const address = activity?.venue.location.address;
+  const directionsUri = activity?.venue.location.directionsUri;
+
+  if (!outing || !activity) {
     return null;
   }
-  const startTime = new Date(outing.activityStartTime || "");
-  const activity = outing.activity;
-  if (!activity) {
-    return null;
-  }
-  const address = activity.venue.location.address;
-  const directionsUri = activity.venue.location.directionsUri;
 
   return (
     <ViewContainer>
-      <ActivityBadge categoryGroupId={activity.categoryGroup?.id} />
+      <ActivityBadge activity={activity} />
       <CarouselContainer>
         <ImageCarousel imgUrls={getImgUrls(activity.photos)} />
       </CarouselContainer>
       <InfoContainer>
         <EventInfo>
           <TimeAndTickets>
-            {getTimeOfDay(startTime, false)} | {outing.survey && `${outing.survey.headcount} Tickets`}
+            {getTimeOfDay(startTime, false)} | {getTicketInfo(outing)}
           </TimeAndTickets>
           <ActivityName>{activity.name}</ActivityName>
-          <VenueInfo>{activity.venue.name}</VenueInfo>
+          <VenueInfo>{getActivityVenueName(activity)}</VenueInfo>
           {address && (
             <>
               <VenueInfo>

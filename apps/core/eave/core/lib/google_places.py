@@ -1,6 +1,6 @@
 import enum
 import urllib.parse
-from collections.abc import MutableSequence, Sequence
+from collections.abc import Sequence
 from datetime import datetime, timedelta
 from uuid import UUID
 from zoneinfo import ZoneInfo
@@ -87,6 +87,7 @@ async def activity_from_google_place(places_client: PlacesAsyncClient, *, place:
         door_tips=None,
         insider_tips=None,
         parking_tips=None,
+        primary_type_name=place.primary_type_display_name.text,
         category_group=ActivityCategoryGroup.from_orm(
             # NOTE: assumes all google places activities will be a food/drink thing
             ActivityCategoryGroupOrm.one_or_exception(
@@ -275,7 +276,7 @@ async def get_places_nearby(
     *,
     area: GeoArea,
     included_primary_types: Sequence[str],
-) -> MutableSequence[Place]:
+) -> list[Place]:
     """
     Given a Google Places API client, use it to search for places nearby the
     given latitude and longitude that meet the given constraints.
@@ -293,7 +294,7 @@ async def get_places_nearby(
     response = await places_client.search_nearby(
         request=request, metadata=[("x-goog-fieldmask", _SEARCH_NEARBY_FIELD_MASK)]
     )
-    return response.places or []
+    return list(response.places)
 
 
 def place_will_be_open(*, place: Place, arrival_time: datetime, departure_time: datetime, timezone: ZoneInfo) -> bool:

@@ -82,16 +82,12 @@ const RestaurantType = styled(Typography)(({ theme }) => ({
 
 const RestaurantViewCondensed = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
-  if (!outing) {
+  if (!outing || !outing.reservation) {
     return null;
   }
 
-  const arrivalTime = new Date(outing.restaurantArrivalTime || "");
-  const restaurant = outing.restaurant;
-
-  if (!restaurant) {
-    return null;
-  }
+  const arrivalTime = new Date(outing.reservation.arrivalTime);
+  const restaurant = outing.reservation.restaurant;
 
   return (
     <ViewContainer>
@@ -103,7 +99,9 @@ const RestaurantViewCondensed = () => {
               <Time>{getTimeOfDay(arrivalTime, false)}</Time>
               <TooltipButton info={RESERVATION_WARNING} iconColor={colors.lightOrangeAccent} />
             </TimeInfo>
-            {outing.survey && <TableInfo>Table for {outing.survey.headcount}</TableInfo>}
+            {outing.reservation.restaurant.reservable && (
+              <TableInfo>Table for {outing.reservation.headcount}</TableInfo>
+            )}
           </TimeAndTableInfo>
         </CopyContainer>
         <div>

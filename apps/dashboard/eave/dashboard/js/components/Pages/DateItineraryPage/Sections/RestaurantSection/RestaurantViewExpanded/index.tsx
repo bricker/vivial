@@ -96,53 +96,56 @@ const RestaurantDesc = styled(Typography)(({ theme }) => ({
 
 const RestaurantViewExpanded = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
-  const arrivalTime = new Date(outing?.restaurantArrivalTime || "");
-  const restaurant = outing?.restaurant;
-  const address = restaurant?.location?.address;
-  const directionsUri = restaurant?.location.directionsUri;
 
-  if (restaurant) {
-    return (
-      <ViewContainer>
-        <RestaurantBadge />
-        <CarouselContainer>
-          <ImageCarousel imgUrls={getImgUrls(restaurant.photos)} />
-        </CarouselContainer>
-        <InfoContainer>
-          <ReservationInfo>
-            <TimeAndTableInfo>
-              <TimeAndTable>
-                {getTimeOfDay(arrivalTime, false)} | {outing.survey && `Table for ${outing.survey.headcount}`}
-              </TimeAndTable>
-              <TooltipButton info={RESERVATION_WARNING} iconColor={colors.lightOrangeAccent} iconLarge />
-            </TimeAndTableInfo>
-            <RestaurantName>{restaurant.name}</RestaurantName>
-            {address && (
-              <div>
-                <RestaurantAddress>
-                  {address.address1} {address.address2}
-                </RestaurantAddress>
-                <RestaurantAddress>
-                  {[address.city, address.state, address.zipCode].filter((k) => k).join(", ")}
-                </RestaurantAddress>
-              </div>
-            )}
-          </ReservationInfo>
-          <ExtraInfo>
-            <RestaurantRating rating={restaurant.rating} />
-            <RestaurantType>{restaurant.primaryTypeName}</RestaurantType>
-            {directionsUri && <DirectionsButton uri={directionsUri} />}
-          </ExtraInfo>
-        </InfoContainer>
-        <RestaurantDesc>{restaurant.description}</RestaurantDesc>
-        {restaurant.parkingTips && <RestaurantDesc>🚘 Parking Tips: {restaurant.parkingTips}</RestaurantDesc>}
-        {restaurant.customerFavorites && (
-          <RestaurantDesc>🍲 Customer favorites: {restaurant.customerFavorites}</RestaurantDesc>
-        )}
-      </ViewContainer>
-    );
+  if (!outing || !outing.reservation) {
+    return null;
   }
-  return null;
+
+  const restaurant = outing.reservation.restaurant;
+  const arrivalTime = new Date(outing.reservation.arrivalTime);
+  const address = restaurant.location.address;
+  const directionsUri = restaurant.location.directionsUri;
+
+  return (
+    <ViewContainer>
+      <RestaurantBadge />
+      <CarouselContainer>
+        <ImageCarousel imgUrls={getImgUrls(restaurant.photos)} />
+      </CarouselContainer>
+      <InfoContainer>
+        <ReservationInfo>
+          <TimeAndTableInfo>
+            <TimeAndTable>
+              {getTimeOfDay(arrivalTime, false)}
+              {outing.reservation.restaurant.reservable ? `| Table for ${outing.reservation.headcount}` : null}
+            </TimeAndTable>
+            <TooltipButton info={RESERVATION_WARNING} iconColor={colors.lightOrangeAccent} iconLarge />
+          </TimeAndTableInfo>
+          <RestaurantName>{restaurant.name}</RestaurantName>
+          {address && (
+            <div>
+              <RestaurantAddress>
+                {address.address1} {address.address2}
+              </RestaurantAddress>
+              <RestaurantAddress>
+                {[address.city, address.state, address.zipCode].filter((k) => k).join(", ")}
+              </RestaurantAddress>
+            </div>
+          )}
+        </ReservationInfo>
+        <ExtraInfo>
+          <RestaurantRating rating={restaurant.rating} />
+          <RestaurantType>{restaurant.primaryTypeName}</RestaurantType>
+          {directionsUri && <DirectionsButton uri={directionsUri} />}
+        </ExtraInfo>
+      </InfoContainer>
+      <RestaurantDesc>{restaurant.description}</RestaurantDesc>
+      {restaurant.parkingTips && <RestaurantDesc>🚘 Parking Tips: {restaurant.parkingTips}</RestaurantDesc>}
+      {restaurant.customerFavorites && (
+        <RestaurantDesc>🍲 Customer favorites: {restaurant.customerFavorites}</RestaurantDesc>
+      )}
+    </ViewContainer>
+  );
 };
 
 export default RestaurantViewExpanded;

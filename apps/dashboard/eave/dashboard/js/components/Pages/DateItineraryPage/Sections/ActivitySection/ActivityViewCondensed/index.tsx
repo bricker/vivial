@@ -4,6 +4,7 @@ import { getTimeOfDay } from "$eave-dashboard/js/util/date";
 import { styled } from "@mui/material";
 import React from "react";
 import { useSelector } from "react-redux";
+import { getActivityCategoryInfo, getActivityVenueName, getTicketInfo } from "../../../helpers";
 
 import Typography from "@mui/material/Typography";
 import ActivityBadge from "../ActivityBadge";
@@ -72,14 +73,11 @@ const ActivityDesc = styled(Typography)(({ theme }) => ({
 
 const ActivityViewCondensed = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
-  if (!outing) {
-    return null;
-  }
+  const activityPlan = outing?.activityPlan;
+  const startTime = activityPlan ? new Date(activityPlan.startTime) : new Date();
+  const activity = activityPlan?.activity;
 
-  const startTime = new Date(outing.activityStartTime || "");
-  const activity = outing.activity;
-
-  if (!activity) {
+  if (!outing || !activity) {
     return null;
   }
 
@@ -87,15 +85,15 @@ const ActivityViewCondensed = () => {
     <ViewContainer>
       <div>
         <CopyContainer>
-          <ActivityBadge categoryGroupId={activity.categoryGroup?.id} />
+          <ActivityBadge activity={activity} />
           <TimeAndTicketInfo>
             <Time>{getTimeOfDay(startTime, false)}</Time>
-            {outing.survey && <Tickets>{outing.survey.headcount} Tickets</Tickets>}
+            <Tickets>{getTicketInfo(outing)}</Tickets>
           </TimeAndTicketInfo>
         </CopyContainer>
         <ActivityName>{activity.name}</ActivityName>
-        <ActivityDesc>{activity.venue.name}</ActivityDesc>
-        {activity.categoryGroup && <ActivityDesc>{activity.categoryGroup.name}</ActivityDesc>}
+        <ActivityDesc>{getActivityVenueName(activity)}</ActivityDesc>
+        <ActivityDesc>{getActivityCategoryInfo(activity)}</ActivityDesc>
       </div>
       {activity.photos.coverPhoto && (
         <ImgContainer>

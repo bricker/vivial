@@ -37,4 +37,4 @@ class BookingDetailPeek:
 
 @strawberry.type
 class BookingDetails(Outing):
-    pass
+    state: BookingState

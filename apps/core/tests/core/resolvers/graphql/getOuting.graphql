@@ -18,13 +18,86 @@ query Outing($input: OutingInput!) {
       budget
       headcount
     }
-    activity {
-      sourceId
-      source
-      name
-      description
-      venue {
+    activityPlan {
+      startTime
+      headcount
+      costBreakdown {
+        totalCostCents
+      }
+      activity {
+        sourceId
+        source
         name
+        description
+        venue {
+          name
+          location {
+            directionsUri
+            coordinates {
+              lat
+              lon
+            }
+            address {
+              address1
+              address2
+              city
+              state
+              zipCode
+              country
+              formattedMultiline
+              formattedSingleline
+            }
+          }
+        }
+        photos {
+          coverPhoto {
+            id
+            src
+            alt
+            attributions
+          }
+          supplementalPhotos {
+            id
+            src
+            alt
+            attributions
+          }
+        }
+        ticketInfo {
+          name
+          notes
+          costBreakdown {
+            baseCostCents
+            feeCents
+            taxCents
+            totalCostCents
+          }
+        }
+        websiteUri
+        doorTips
+        insiderTips
+        parkingTips
+        categoryGroup {
+          id
+          name
+          activityCategories {
+            id
+            name
+            isDefault
+          }
+        }
+      }
+    }
+
+    reservation {
+      arrivalTime
+      headcount
+      costBreakdown {
+        totalCostCents
+      }
+      restaurant {
+        sourceId
+        source
         location {
           directionsUri
           coordinates {
@@ -42,90 +115,31 @@ query Outing($input: OutingInput!) {
             formattedSingleline
           }
         }
-      }
-      photos {
-        coverPhoto {
-          id
-          src
-          alt
-          attributions
+        photos {
+          coverPhoto {
+            id
+            src
+            alt
+            attributions
+          }
+          supplementalPhotos {
+            id
+            src
+            alt
+            attributions
+          }
         }
-        supplementalPhotos {
-          id
-          src
-          alt
-          attributions
-        }
-      }
-      ticketInfo {
         name
-        notes
-        costBreakdown {
-          baseCostCents
-          feeCents
-          taxCents
-          totalCostCents
-        }
-      }
-      websiteUri
-      doorTips
-      insiderTips
-      parkingTips
-      categoryGroup {
-        id
-        name
-        activityCategories {
-          id
-          name
-          isDefault
-        }
+        description
+        websiteUri
+        primaryTypeName
+        rating
+        reservable
+        parkingTips
+        customerFavorites
       }
     }
-    activityStartTime
-    restaurant {
-      sourceId
-      source
-      location {
-        directionsUri
-        coordinates {
-          lat
-          lon
-        }
-        address {
-          address1
-          address2
-          city
-          state
-          zipCode
-          country
-          formattedMultiline
-          formattedSingleline
-        }
-      }
-      photos {
-        coverPhoto {
-          id
-          src
-          alt
-          attributions
-        }
-        supplementalPhotos {
-          id
-          src
-          alt
-          attributions
-        }
-      }
-      name
-      description
-      websiteUri
-      primaryTypeName
-      rating
-      reservable
-      parkingTips
-      customerFavorites
-    }
-    restaurantArrivalTime
-    drivingTime
+
+    drivingTimeMinutes
   }
 }

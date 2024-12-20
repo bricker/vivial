@@ -14,18 +14,20 @@ const Section = styled(ExpandableSection)(() => ({
 const ActivitySection = () => {
   const outing = useSelector((state: RootState) => state.outing.details);
   const [expanded, setExpanded] = useState(false);
+
   const toggleExpand = useCallback(() => {
     setExpanded(!expanded);
   }, [expanded]);
 
-  if (outing?.activity) {
-    return (
-      <Section onExpand={toggleExpand} expanded={expanded}>
-        {expanded ? <ActivityViewExpanded /> : <ActivityViewCondensed />}
-      </Section>
-    );
+  if (!outing?.activityPlan) {
+    return null;
   }
-  return null;
+
+  return (
+    <Section onExpand={toggleExpand} expanded={expanded}>
+      {expanded ? <ActivityViewExpanded /> : <ActivityViewCondensed />}
+    </Section>
+  );
 };
 
 export default ActivitySection;

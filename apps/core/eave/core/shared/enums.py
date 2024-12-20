@@ -19,12 +19,12 @@ class RestaurantSource(MatchedStrEnum):
 
 
 @strawberry.enum
-class OutingBudget(MatchedStrEnum):
-    FREE = enum.auto()
-    INEXPENSIVE = enum.auto()
-    MODERATE = enum.auto()
-    EXPENSIVE = enum.auto()
-    VERY_EXPENSIVE = enum.auto()
+class OutingBudget(enum.IntEnum):
+    FREE = 1
+    INEXPENSIVE = 2
+    MODERATE = 3
+    EXPENSIVE = 4
+    VERY_EXPENSIVE = 5
 
     @property
     def upper_limit_cents(self) -> int | None:

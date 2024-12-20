@@ -1,7 +1,7 @@
 import dataclasses
 import json
 from abc import ABC, abstractmethod
-from enum import StrEnum
+from enum import IntEnum, StrEnum
 from typing import Any, Literal
 from zoneinfo import ZoneInfo
 
@@ -120,16 +120,60 @@ class StrEnumColumnType[T: StrEnum](UserDefinedType, ABC):
         return process
 
 
+class IntEnumColumnType[T: IntEnum](UserDefinedType, ABC):
+    cache_ok = True
+
+    @abstractmethod
+    def enum_member(self, value: int) -> T: ...
+
+    def get_col_spec(self) -> Literal["smallint"]:
+        return "smallint"
+
+    def bind_processor(self, dialect: Dialect) -> _BindProcessorType[T] | None:
+        def process(value: T | None) -> int | None:
+            try:
+                if value:
+                    return value.value
+                else:
+                    return None
+            except Exception as e:
+                LOGGER.exception(e)
+                return None
+
+        return process
+
+    def result_processor(self, dialect: Dialect, coltype: object) -> _ResultProcessorType[T] | None:
+        def process(value: int) -> T | None:
+            try:
+                if value:
+                    # For asyncpg, `value` is a asyncpg.Record. Basically it's a tuple.
+                    # It's typed as "Any" because Record is defined in C and not available to the typing system.
+                    return self.enum_member(value)
+                else:
+                    return None
+            except Exception as e:
+                LOGGER.exception(e)
+                return None
+
+        return process
+
+
 class ActivitySourceColumnType(StrEnumColumnType[ActivitySource]):
+    cache_ok = True
+
     def enum_member(self, value: str) -> ActivitySource:
-        return ActivitySource[value]
+        return ActivitySource(value)
 
 
 class RestaurantSourceColumnType(StrEnumColumnType[RestaurantSource]):
+    cache_ok = True
+
     def enum_member(self, value: str) -> RestaurantSource:
-        return RestaurantSource[value]
+        return RestaurantSource(value)
 
 
-class OutingBudgetColumnType(StrEnumColumnType[OutingBudget]):
-    def enum_member(self, value: str) -> OutingBudget:
-        return OutingBudget[value]
+class OutingBudgetColumnType(IntEnumColumnType[OutingBudget]):
+    cache_ok = True
+
+    def enum_member(self, value: int) -> OutingBudget:
+        return OutingBudget(value)

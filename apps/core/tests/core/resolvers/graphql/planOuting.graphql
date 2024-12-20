@@ -7,19 +7,37 @@ mutation PlanOuting($input: PlanOutingInput!) {
           headcount
           budget
         }
-        activity {
-          sourceId
-          source
-          name
+        activityPlan {
+          costBreakdown {
+            baseCostCents
+            feeCents
+            taxCents
+            totalCostCents
+          }
+          headcount
+          startTime
+          activity {
+            sourceId
+            source
+            name
+          }
         }
-        activityStartTime
-        restaurant {
-          sourceId
-          source
-          name
+
+        reservation {
+          arrivalTime
+          headcount
+          costBreakdown {
+            totalCostCents
+            feeCents
+            baseCostCents
+            taxCents
+          }
+          restaurant {
+            sourceId
+            source
+            name
+          }
         }
-        restaurantArrivalTime
-        drivingTime
       }
     }
     ... on PlanOutingFailure {

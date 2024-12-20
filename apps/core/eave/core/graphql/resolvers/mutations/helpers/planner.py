@@ -8,9 +8,10 @@ from sqlalchemy import func
 
 import eave.core.database
 from eave.core.config import CORE_API_APP_CONFIG
-from eave.core.graphql.types.activity import Activity
+from eave.core.graphql.types.activity import Activity, ActivityPlan
+from eave.core.graphql.types.cost_breakdown import CostBreakdown
 from eave.core.graphql.types.outing import OutingPreferencesInput
-from eave.core.graphql.types.restaurant import Restaurant
+from eave.core.graphql.types.restaurant import Reservation, Restaurant
 from eave.core.lib.eventbrite import get_eventbrite_activity
 from eave.core.lib.google_places import (
     activity_from_google_place,
@@ -44,11 +45,9 @@ _BRUNCH_GOOGLE_RESTAURANT_CATEGORY_IDS = (
 
 @dataclass(kw_only=True)
 class PlannerResult:
-    activity: Activity | None
-    activity_start_time: datetime | None
-    restaurant: Restaurant | None
-    restaurant_arrival_time: datetime | None
-    driving_time: str | None
+    cost_breakdown: CostBreakdown
+    activity_plan: ActivityPlan | None
+    reservation: Reservation | None
 
 
 def _combine_restaurant_categories(individual_preferences: list[OutingPreferencesInput]) -> list[RestaurantCategoryOrm]:
@@ -81,7 +80,13 @@ def _combine_restaurant_categories(individual_preferences: list[OutingPreference
 
     random.shuffle(intersection)
     random.shuffle(difference)
-    return intersection + difference
+    result = intersection + difference
+
+    if len(result) == 0:
+        result = list(RestaurantCategoryOrm.defaults())  # Already a list, copying again for safety
+        random.shuffle(result)
+
+    return result
 
 
 def _combine_activity_categories(individual_preferences: list[OutingPreferencesInput]) -> list[ActivityCategoryOrm]:
@@ -112,7 +117,14 @@ def _combine_activity_categories(individual_preferences: list[OutingPreferencesI
 
     random.shuffle(intersection)
     random.shuffle(difference)
-    return intersection + difference
+
+    result = intersection + difference
+
+    if len(result) == 0:
+        result = list(ActivityCategoryOrm.defaults())  # Already a list, copying again for safety
+        random.shuffle(result)
+
+    return result
 
 
 def _combine_bar_openness(individual_preferences: list[OutingPreferencesInput]) -> bool:
@@ -186,16 +198,22 @@ class OutingPlanner:
         start_time_local = self.survey.start_time_local + timedelta(minutes=120)
         self.activity_start_time_local = start_time_local
         end_time_local = start_time_local + timedelta(minutes=90)
-        random.shuffle(self.survey.search_area_ids)
 
         within_areas = [
             SearchRegionOrm.one_or_exception(search_region_id=search_area_id).area
             for search_area_id in self.survey.search_area_ids
         ]
 
+        if len(within_areas) == 0:
+            # Failsafe - This should never happen
+            LOGGER.warning("No activity search areas categories could be resolved; falling back to defaults")
+            within_areas = [region.area for region in SearchRegionOrm.all()]
+
+        random.shuffle(within_areas)
+
         # CASE 1: Recommend an Eventbrite event.
         query = EventbriteEventOrm.select(
-            time_range_contains=start_time_local,
+            start_time=start_time_local,
             up_to_cost_cents=self.survey.budget.upper_limit_cents,
             within_areas=within_areas,
             vivial_activity_category_ids=[cat.id for cat in self.group_activity_category_preferences],
@@ -245,12 +263,10 @@ class OutingPlanner:
         if is_evening and self.group_open_to_bars:
             place_type = "bar"
 
-        for search_area_id in self.survey.search_area_ids:
-            region = SearchRegionOrm.one_or_exception(search_region_id=search_area_id)
-
+        for search_area in within_areas:
             places_nearby = await get_places_nearby(
                 places_client=self.places_client,
-                area=region.area,
+                area=search_area,
                 included_primary_types=[place_type],
             )
 
@@ -283,7 +299,9 @@ class OutingPlanner:
         arrival_time_local = self.survey.start_time_local
         self.restaurant_arrival_time_local = arrival_time_local
         departure_time_local = arrival_time_local + timedelta(minutes=90)
-        search_areas = []
+
+        google_category_ids: list[str] = []
+        within_areas: list[GeoArea] = []
 
         # If this is a morning outing, override user restaurant preferences and show them breakfast / brunch spots.
         if is_early_morning(arrival_time_local, self.survey.timezone):
@@ -294,25 +312,42 @@ class OutingPlanner:
             random.shuffle(google_category_ids)
         else:
             # Already randomized in combiner funcs
-            google_category_ids = [
-                gcid for cat in self.group_restaurant_category_preferences for gcid in cat.google_category_ids
-            ]
+            google_category_ids = RestaurantCategoryOrm.combine_google_category_ids(
+                self.group_restaurant_category_preferences
+            )
+
+        if len(google_category_ids) == 0:
+            # Failsafe - This should never happen
+            LOGGER.warning("No google category IDs could be resolved; falling back to defaults")
+
+            # If included_primary_types is empty, this query returns everything, like car rental places and junk.
+            # Although self.group_restaurant_category_preferences should never be empty, it's possible for there to be no google_category_ids here.
+            # That should never happen, but if it does, we don't want to show bad results, so this is a failsafe.
+            google_category_ids = RestaurantCategoryOrm.combine_google_category_ids(RestaurantCategoryOrm.defaults())
 
         # If an activity has been selected, use that as the search area.
         if self.activity:
-            search_areas = [
+            within_areas.append(
                 GeoArea(
                     center=self.activity.venue.location.coordinates,
                     rad=Distance(miles=5),
                 ),
-            ]
+            )
 
         # TODO: Sort areas by distance to the activity location.
         for search_area_id in self.survey.search_area_ids:
-            search_areas.append(SearchRegionOrm.one_or_exception(search_region_id=search_area_id).area)
+            within_areas.append(SearchRegionOrm.one_or_exception(search_region_id=search_area_id).area)
+
+        if len(within_areas) == 0:
+            # Failsafe - This should never happen
+            LOGGER.warning("No restaurant search areas categories could be resolved; falling back to defaults")
+            # If there are no search areas given (which shouldn't happen but technically could), fallback to all of them.
+            within_areas = [s.area for s in SearchRegionOrm.all()]
+
+        random.shuffle(within_areas)
 
         # Find a restaurant that meets the outing constraints.
-        for area in search_areas:
+        for area in within_areas:
             restaurants_nearby = await get_places_nearby(
                 places_client=self.places_client,
                 area=area,
@@ -321,7 +356,24 @@ class OutingPlanner:
 
             random.shuffle(restaurants_nearby)
 
+            perform_lte_price_level_comparison = arrival_time_local.hour < 11
+            if perform_lte_price_level_comparison:
+                # Before 11am, most restaurants are cheaper ($$ or less).
+                # So if someone chooses $$$-$$$$, we would rarely should them a restaurant recommendation.
+                # So in this case, we sort the (already shuffled) retrieved restaurants by price level descending.
+                # We don't do this for >= 11am because we don't want to recommend McDonald's for an expensive night out.
+                restaurants_nearby.sort(key=lambda place: place.price_level.value, reverse=True)  # in-place sort
+
             for restaurant in restaurants_nearby:
+                if perform_lte_price_level_comparison:
+                    # <=
+                    # If we're < 11am, then find restaurants that have price less <= the selected price level
+                    price_level_matches = restaurant.price_level <= self.survey.budget.google_places_price_level
+                else:
+                    # ==
+                    # Otherwise, find only restaurants that match the selected price livel
+                    price_level_matches = restaurant.price_level == self.survey.budget.google_places_price_level
+
                 will_be_open = place_will_be_open(
                     place=restaurant,
                     arrival_time=arrival_time_local,
@@ -331,7 +383,7 @@ class OutingPlanner:
 
                 # Select restaurants that _match_ their requested budget.
                 # So if they request an expensive date, we don't recommend McDonald's.
-                if will_be_open and restaurant.price_level == self.survey.budget.google_places_price_level:
+                if will_be_open and price_level_matches:
                     self.restaurant = await restaurant_from_google_place(self.places_client, place=restaurant)
                     return self.restaurant
 
@@ -346,10 +398,33 @@ class OutingPlanner:
         """
         await self.plan_activity()
         await self.plan_restaurant()
+
+        total_cost_breakdown = CostBreakdown()
+
+        if self.activity and self.activity_start_time_local:
+            activity_plan = ActivityPlan(
+                activity=self.activity,
+                start_time=self.activity_start_time_local,
+                headcount=self.survey.headcount,
+            )
+
+            total_cost_breakdown += activity_plan.calculate_cost_breakdown()
+        else:
+            activity_plan = None
+
+        if self.restaurant and self.restaurant_arrival_time_local:
+            reservation = Reservation(
+                restaurant=self.restaurant,
+                arrival_time=self.restaurant_arrival_time_local,
+                headcount=self.survey.headcount,
+            )
+
+            total_cost_breakdown += reservation.calculate_cost_breakdown()
+        else:
+            reservation = None
+
         return PlannerResult(
-            activity=self.activity,
-            activity_start_time=self.activity_start_time_local,
-            restaurant=self.restaurant,
-            restaurant_arrival_time=self.restaurant_arrival_time_local,
-            driving_time=None,
+            cost_breakdown=total_cost_breakdown,
+            activity_plan=activity_plan,
+            reservation=reservation,
         )

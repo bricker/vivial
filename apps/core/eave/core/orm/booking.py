@@ -3,7 +3,7 @@ from typing import Self
 from uuid import UUID
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import ForeignKey, PrimaryKeyConstraint, Select
+from sqlalchemy import ForeignKey, Select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -25,19 +25,20 @@ from eave.core.shared.geo import GeoPoint
 from eave.stdlib.typing import NOT_SET
 
 from .base import Base
-from .util.constants import PG_UUID_EXPR, OnDeleteOption
+from .util.constants import CASCADE_ALL_DELETE_ORPHAN, PG_UUID_EXPR, OnDeleteOption
 
 
 class BookingStateColumnType(StrEnumColumnType[BookingState]):
+    cache_ok = True
+
     def enum_member(self, value: str) -> BookingState:
         return BookingState[value]
 
 
 class BookingOrm(Base, GetOneByIdMixin):
     __tablename__ = "bookings"
-    __table_args__ = (PrimaryKeyConstraint("id"),)
 
-    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
+    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, primary_key=True)
 
     state: Mapped[BookingState] = mapped_column(
         type_=BookingStateColumnType(), server_default=BookingState.INITIATED.value
@@ -64,9 +65,11 @@ class BookingOrm(Base, GetOneByIdMixin):
         secondary=ACCOUNT_BOOKINGS_JOIN_TABLE, lazy="selectin", back_populates="bookings"
     )
 
-    activities: Mapped[list["BookingActivityTemplateOrm"]] = relationship(lazy="selectin", back_populates="booking")
+    activities: Mapped[list["BookingActivityTemplateOrm"]] = relationship(
+        lazy="selectin", back_populates="booking", cascade=CASCADE_ALL_DELETE_ORPHAN
+    )
     reservations: Mapped[list["BookingReservationTemplateOrm"]] = relationship(
-        lazy="selectin", back_populates="booking"
+        lazy="selectin", back_populates="booking", cascade=CASCADE_ALL_DELETE_ORPHAN
     )
 
     def __init__(
@@ -100,6 +103,48 @@ class BookingOrm(Base, GetOneByIdMixin):
 
         return query
 
+    @property
+    def timezone(self) -> ZoneInfo:
+        if len(self.activities) > 0:
+            return self.activities[0].timezone
+        elif len(self.reservations) > 0:
+            return self.reservations[0].timezone
+        else:
+            raise ValueError("Invalid Booking: no activities or reservations")
+
+    @property
+    def start_time_utc(self) -> datetime:
+        candidates: list[datetime] = []
+        candidates.extend(a.start_time_utc for a in self.activities)
+        candidates.extend(r.start_time_utc for r in self.reservations)
+
+        if len(candidates) == 0:
+            raise ValueError("Invalid Booking: no activities or reservations")
+
+        return min(candidates)
+
+    @property
+    def start_time_local(self) -> datetime:
+        candidates: list[datetime] = []
+        candidates.extend(a.start_time_local for a in self.activities)
+        candidates.extend(r.start_time_local for r in self.reservations)
+
+        if len(candidates) == 0:
+            raise ValueError("Invalid Booking: no activities or reservations")
+
+        return min(candidates)
+
+    @property
+    def headcount(self) -> int:
+        candidates: list[int] = []
+        candidates.extend(a.headcount for a in self.activities)
+        candidates.extend(r.headcount for r in self.reservations)
+
+        if len(candidates) == 0:
+            raise ValueError("Invalid Booking: no activities or reservations")
+
+        return max(candidates)
+
 
 class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     """Editable template for a booked activity.
@@ -108,9 +153,8 @@ class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     mutate the activity this template cloned its source data from."""
 
     __tablename__ = "booking_activity_templates"
-    __table_args__ = (PrimaryKeyConstraint("id"),)
 
-    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
+    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, primary_key=True)
     source_id: Mapped[str] = mapped_column()
     source: Mapped[ActivitySource] = mapped_column(type_=ActivitySourceColumnType())
     """ActivitySource enum value"""
@@ -124,7 +168,10 @@ class BookingActivityTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     booking_id: Mapped[UUID] = mapped_column(
         ForeignKey(f"{BookingOrm.__tablename__}.id", ondelete=OnDeleteOption.CASCADE.value), index=True
     )
-    booking: Mapped[BookingOrm] = relationship(lazy="selectin", back_populates="activities")
+    booking: Mapped[BookingOrm] = relationship(
+        lazy="selectin",
+        back_populates="activities",
+    )
 
     def __init__(
         self,
@@ -165,9 +212,8 @@ class BookingReservationTemplateOrm(Base, TimedEventMixin, CoordinatesMixin):
     mutate the reservation this template cloned its source data from."""
 
     __tablename__ = "booking_reservation_templates"
-    __table_args__ = (PrimaryKeyConstraint("id"),)
 
-    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR)
+    id: Mapped[UUID] = mapped_column(server_default=PG_UUID_EXPR, primary_key=True)
     source_id: Mapped[str] = mapped_column()
     source: Mapped[RestaurantSource] = mapped_column(type_=RestaurantSourceColumnType())
     """RestaurantSource enum value"""

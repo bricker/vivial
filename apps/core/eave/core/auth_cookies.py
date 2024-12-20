@@ -16,6 +16,8 @@ AUTH_COOKIE_PREFIX = f"{VIVIAL_COOKIE_PREFIX}auth."
 ACCESS_TOKEN_COOKIE_NAME = f"{AUTH_COOKIE_PREFIX}access_token"
 REFRESH_TOKEN_COOKIE_NAME = f"{AUTH_COOKIE_PREFIX}refresh_token"
 
+ACCESS_TOKEN_MAX_AGE_MINUTES = 30
+
 
 def set_new_auth_cookies(*, response: Response, account_id: UUID) -> None:
     jwt_id = str(uuid4())
@@ -26,7 +28,7 @@ def set_new_auth_cookies(*, response: Response, account_id: UUID) -> None:
         audience=JWT_AUDIENCE,
         subject=str(account_id),
         jwt_id=jwt_id,
-        max_age_minutes=10,
+        max_age_minutes=ACCESS_TOKEN_MAX_AGE_MINUTES,
     )
 
     refresh_token = create_jws(

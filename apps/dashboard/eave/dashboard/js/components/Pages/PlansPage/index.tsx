@@ -1,5 +1,5 @@
 import { BookingDetailPeek } from "$eave-dashboard/js/graphql/generated/graphql";
-import { AppRoute } from "$eave-dashboard/js/routes";
+import { AppRoute, routePath } from "$eave-dashboard/js/routes";
 import { loggedOut } from "$eave-dashboard/js/store/slices/authSlice";
 import { useListBookedOutingsQuery } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { rem } from "$eave-dashboard/js/theme/helpers/rem";
@@ -91,11 +91,11 @@ const BookingDetailsContainer = styled("div")(() => ({
 }));
 
 const NewDateCta = () => {
-  // TODO: impl button
+  const navigate = useNavigate();
   return (
     <CtaContainer>
       <CenteredText variant="subtitle2">😢 No upcoming plans. Let's fix that</CenteredText>
-      <PrimaryButton onClick={() => {}} fullWidth>
+      <PrimaryButton onClick={() => navigate("/")} fullWidth>
         🎲 New date
       </PrimaryButton>
     </CtaContainer>
@@ -115,7 +115,7 @@ const BookingDetails = ({ booking }: { booking: BookingDetailPeek }) => {
     dateDay,
   );
   return (
-    <DetailsPaper onClick={() => navigate(`${AppRoute.plans}/${booking.id}`)}>
+    <DetailsPaper onClick={() => navigate(routePath(AppRoute.planDetails, { bookingId: booking.id }))}>
       <BookingContainer>
         <BookingDetailsContainer>
           <DetailsTitle variant="subtitle2">{formattedDay}</DetailsTitle>
