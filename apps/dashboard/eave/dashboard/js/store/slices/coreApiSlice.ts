@@ -11,6 +11,7 @@ import {
   ListBookedOutingsQueryVariables,
   ListReserverDetailsDocument,
   LoginDocument,
+  OneClickBookingCriteriaDocument,
   OutingDocument,
   OutingPreferencesDocument,
   OutingQuery,
@@ -41,6 +42,8 @@ import {
   type ListReserverDetailsQueryVariables,
   type LoginMutation,
   type LoginMutationVariables,
+  type OneClickBookingCriteriaQuery,
+  type OneClickBookingCriteriaQueryVariables,
   type OutingPreferencesQuery,
   type OutingPreferencesQueryVariables,
   type PlanOutingMutation,
@@ -103,6 +106,13 @@ export const coreApiSlice = createApi({
     getBookingDetails: builder.query<BookingDetailsQuery, BookingDetailsQueryVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: BookingDetailsDocument, variables });
+        return { data };
+      },
+    }),
+
+    getOneClickBookingCriteria: builder.query<OneClickBookingCriteriaQuery, OneClickBookingCriteriaQueryVariables>({
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: OneClickBookingCriteriaDocument, variables });
         return { data };
       },
     }),
@@ -184,6 +194,16 @@ export const coreApiSlice = createApi({
       },
     }),
 
+    initiateAndConfirmBooking: builder.mutation<InitiateBookingMutation, InitiateBookingMutationVariables>({
+      // This is marked as query on purpose.
+      // On the server it's a mutation but this needs to be called when a component loads and rtk-query
+      // doesn't seem to allow that.
+      async queryFn(variables, _api, _extraOptions, _baseQuery) {
+        const data = await executeOperation({ query: InitiateBookingDocument, variables });
+        return { data };
+      },
+    }),
+
     updateBooking: builder.mutation<UpdateBookingMutation, UpdateBookingMutationVariables>({
       async queryFn(variables, _api, _extraOptions, _baseQuery) {
         const data = await executeOperation({ query: UpdateBookingDocument, variables });
@@ -208,6 +228,7 @@ export const {
   useGetOutingPreferencesQuery,
   useGetOutingQuery,
   useGetBookingDetailsQuery,
+  useGetOneClickBookingCriteriaQuery,
 
   // Core API GraphQL Mutation Hooks
   usePlanOutingMutation,
@@ -215,7 +236,8 @@ export const {
   useLoginMutation,
   useUpdateReserverDetailsAccountMutation,
   useUpdateAccountMutation,
-  useInitiateBookingQuery, // This is actually a mutation...
+  useInitiateAndConfirmBookingMutation,
+  useInitiateBookingQuery, // This is actually a mutation but we need to make it available as a query so we can run it on component load
   useConfirmBookingMutation,
   useUpdateBookingMutation,
   useUpdateReserverDetailsMutation,

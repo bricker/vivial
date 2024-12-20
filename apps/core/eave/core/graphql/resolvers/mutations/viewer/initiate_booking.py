@@ -8,6 +8,10 @@ import stripe
 from eave.core import database
 from eave.core.analytics import ANALYTICS
 from eave.core.graphql.context import GraphQLContext
+from eave.core.graphql.resolvers.mutations.viewer.confirm_booking import (
+    fire_analytics_booking_confirmed,
+    notify_slack_booking_confirmed,
+)
 from eave.core.graphql.types.activity import ActivityPlan
 from eave.core.graphql.types.booking import (
     BookingDetails,
@@ -32,6 +36,8 @@ from eave.stdlib.util import unwrap
 @strawberry.input
 class InitiateBookingInput:
     outing_id: UUID
+    auto_confirm: bool = False
+    payment_method_id: str | None = None
 
 
 @strawberry.type
@@ -43,7 +49,7 @@ class InitiateBookingSuccess:
 
 @strawberry.enum
 class InitiateBookingFailureReason(enum.Enum):
-    BOOKING_CONFIRMED = enum.auto()
+    BOOKING_ALREADY_CONFIRMED = enum.auto()
     PAYMENT_INTENT_FAILED = enum.auto()
     VALIDATION_ERRORS = enum.auto()
     START_TIME_TOO_SOON = enum.auto()
@@ -92,12 +98,14 @@ async def initiate_booking_mutation(
             if booking_orm:
                 if booking_orm.state == BookingState.CONFIRMED:
                     # TODO: It would be nice if this redirected to the "booking confirmed" page.
-                    return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.BOOKING_CONFIRMED)
+                    return InitiateBookingFailure(failure_reason=InitiateBookingFailureReason.BOOKING_ALREADY_CONFIRMED)
             else:
+                default_reserver_details = account_orm.get_default_reserver_details()
+
                 booking_orm = BookingOrm(
                     db_session,
                     accounts=[account_orm],
-                    reserver_details=None,  # At this point, the client hasn't given us this information.
+                    reserver_details=default_reserver_details,
                     outing=outing_orm,
                     stripe_payment_intent_reference=None,  # Not created yet
                     state=BookingState.INITIATED,
@@ -167,7 +175,9 @@ async def initiate_booking_mutation(
 
                 total_cost_breakdown += reservation.calculate_cost_breakdown()
 
-        if total_cost_breakdown.calculate_total_cost_cents() > 0:
+        booking_total_cost_cents = total_cost_breakdown.calculate_total_cost_cents()
+
+        if booking_total_cost_cents > 0:
             if not account_orm.stripe_customer_id:
                 stripe_customer = await stripe.Customer.create_async(
                     email=account_orm.email,
@@ -183,17 +193,40 @@ async def initiate_booking_mutation(
                     db_session.add(account_orm)
                     account_orm.stripe_customer_id = stripe_customer.id
 
-            stripe_payment_intent = await stripe.PaymentIntent.create_async(
-                currency="usd",
-                amount=total_cost_breakdown.calculate_total_cost_cents(),
-                capture_method="manual",
-                receipt_email=account_orm.email,
-                setup_future_usage="on_session",
-                customer=account_orm.stripe_customer_id,
-                metadata={
+            stripe_payment_create_params: stripe.PaymentIntent.CreateParams = {
+                "currency": "usd",
+                "amount": total_cost_breakdown.calculate_total_cost_cents(),
+                "capture_method": "manual",
+                "receipt_email": account_orm.email,
+                "setup_future_usage": "on_session",
+                "customer": account_orm.stripe_customer_id,
+                "metadata": {
                     "vivial_booking_id": str(booking_orm.id),
                 },
-            )
+            }
+
+            if input.auto_confirm:
+                stripe_payment_create_params.update(
+                    {
+                        # Note: this is necessary because we have some payment methods enabled in the dashboard that require
+                        # redirects, but currently we only accept credit cards, which do not require a redirect.
+                        # Without this, Stripe won't allow auto-confirm.
+                        "automatic_payment_methods": {
+                            "enabled": True,
+                            "allow_redirects": "never",
+                        },
+                        "confirm": True,
+                    }
+                )
+
+            if input.payment_method_id:
+                stripe_payment_create_params.update(
+                    {
+                        "payment_method": input.payment_method_id,
+                    }
+                )
+
+            stripe_payment_intent = await stripe.PaymentIntent.create_async(**stripe_payment_create_params)
 
             if not stripe_payment_intent.client_secret:
                 LOGGER.error("Missing client secret from Stripe Payment Intent response")
@@ -237,26 +270,35 @@ async def initiate_booking_mutation(
             graphql_payment_intent = None
             graphql_customer_session = None
 
+        if input.auto_confirm:
+            async with database.async_session.begin() as db_session:
+                db_session.add(booking_orm)
+                booking_orm.state = BookingState.CONFIRMED
+
     except InvalidRecordError as e:
         LOGGER.exception(e)
         return InitiateBookingFailure(
             failure_reason=InitiateBookingFailureReason.VALIDATION_ERRORS, validation_errors=e.validation_errors
         )
 
-    ANALYTICS.track(
-        event_name="booking_initiated",
-        account_id=account_id,
-        visitor_id=visitor_id,
-        extra_properties={
-            "booking_id": str(booking_orm.id),
-            "outing_id": str(input.outing_id),
-            "restaurant_info": reservation.build_analytics_properties() if reservation else None,
-            "activity_info": activity_plan.build_analytics_properties() if activity_plan else None,
-            "survey_info": Survey.from_orm(outing_orm.survey).build_analytics_properties()
-            if outing_orm.survey
-            else None,
-        },
-    )
+    if input.auto_confirm:
+        fire_analytics_booking_confirmed(
+            booking=booking_orm,
+            account_id=account_orm.id,
+            visitor_id=visitor_id,
+            total_cost_cents=booking_total_cost_cents,
+        )
+        await notify_slack_booking_confirmed(
+            account=account_orm, booking=booking_orm, total_cost_cents=booking_total_cost_cents
+        )
+    else:
+        fire_analytics_booking_initiated(
+            booking=booking_orm,
+            reservation=reservation,
+            activity_plan=activity_plan,
+            account_id=account_orm.id,
+            visitor_id=visitor_id,
+        )
 
     return InitiateBookingSuccess(
         booking=BookingDetails(
@@ -268,4 +310,28 @@ async def initiate_booking_mutation(
         ),
         payment_intent=graphql_payment_intent,
         customer_session=graphql_customer_session,
+    )
+
+
+def fire_analytics_booking_initiated(
+    *,
+    booking: BookingOrm,
+    reservation: Reservation | None,
+    activity_plan: ActivityPlan | None,
+    account_id: UUID,
+    visitor_id: str | None,
+) -> None:
+    ANALYTICS.track(
+        event_name="booking_initiated",
+        account_id=account_id,
+        visitor_id=visitor_id,
+        extra_properties={
+            "booking_id": str(booking.id),
+            "outing_id": str(booking.outing.id) if booking.outing else None,
+            "restaurant_info": reservation.build_analytics_properties() if reservation else None,
+            "activity_info": activity_plan.build_analytics_properties() if activity_plan else None,
+            "survey_info": Survey.from_orm(booking.outing.survey).build_analytics_properties()
+            if booking.outing and booking.outing.survey
+            else None,
+        },
     )

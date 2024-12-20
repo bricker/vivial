@@ -15,7 +15,7 @@ import * as types from './graphql';
  * Learn more about it here: https://the-guild.dev/graphql/codegen/plugins/presets/preset-client#reducing-bundle-size
  */
 const documents = {
-    "fragment AccountFields on Account {\n  id\n  email\n}": types.AccountFieldsFragmentDoc,
+    "fragment AccountFields on Account {\n  id\n  email\n  stripeCustomerId\n}": types.AccountFieldsFragmentDoc,
     "fragment ActivityFields on Activity {\n  categoryGroup {\n    id\n    name\n    activityCategories {\n      ...ActivityCategoryFields\n    }\n  }\n  sourceId\n  source\n  name\n  description\n  websiteUri\n  doorTips\n  insiderTips\n  parkingTips\n  primaryTypeName\n  ticketInfo {\n    name\n    notes\n    costBreakdown {\n      ...CostBreakdownFields\n    }\n  }\n  venue {\n    name\n    location {\n      ...LocationFields\n    }\n  }\n  photos {\n    ...PhotosFields\n  }\n}": types.ActivityFieldsFragmentDoc,
     "fragment ActivityPlanFields on ActivityPlan {\n  startTime\n  headcount\n  costBreakdown {\n    ...CostBreakdownFields\n  }\n  activity {\n    ...ActivityFields\n  }\n}": types.ActivityPlanFieldsFragmentDoc,
     "fragment AddressFields on Address {\n  address1\n  address2\n  city\n  state\n  zipCode\n  country\n  formattedMultiline\n  formattedSingleline\n}": types.AddressFieldsFragmentDoc,
@@ -45,6 +45,7 @@ const documents = {
     "query BookingDetails($input: GetBookingDetailsQueryInput!) {\n  viewer {\n    __typename\n    ... on AuthenticatedViewerQueries {\n      __typename\n      bookedOutingDetails(input: $input) {\n        ...BookingDetailsFields\n      }\n    }\n    ... on UnauthenticatedViewer {\n      authFailureReason\n    }\n  }\n}": types.BookingDetailsDocument,
     "query ListBookedOutings {\n  viewer {\n    __typename\n    ... on AuthenticatedViewerQueries {\n      __typename\n      bookedOutings {\n        id\n        activityStartTime\n        restaurantArrivalTime\n        activityName\n        restaurantName\n        photoUri\n        state\n      }\n    }\n    ... on UnauthenticatedViewer {\n      __typename\n      authFailureReason\n    }\n  }\n}": types.ListBookedOutingsDocument,
     "query ListReserverDetails {\n  viewer {\n    __typename\n    ... on AuthenticatedViewerQueries {\n      __typename\n      reserverDetails {\n        ...ReserverDetailsFields\n      }\n    }\n    ... on UnauthenticatedViewer {\n      __typename\n      authFailureReason\n    }\n  }\n}": types.ListReserverDetailsDocument,
+    "query OneClickBookingCriteria {\n  viewer {\n    ... on AuthenticatedViewerQueries {\n      reserverDetails {\n        ...ReserverDetailsFields\n      }\n      paymentMethods {\n        id\n        card {\n          brand\n          last4\n          expMonth\n          expYear\n        }\n      }\n    }\n    ... on UnauthenticatedViewer {\n      __typename\n      authFailureReason\n    }\n  }\n}": types.OneClickBookingCriteriaDocument,
     "query Outing($input: OutingInput!) {\n  outing(input: $input) {\n    ...OutingFields\n  }\n}": types.OutingDocument,
     "query OutingPreferences {\n  activityCategoryGroups {\n    ...ActivityCategoryGroupFields\n  }\n  restaurantCategories {\n    ...RestaurantCategoryFields\n  }\n  viewer {\n    __typename\n    ... on AuthenticatedViewerQueries {\n      __typename\n      outingPreferences {\n        ...OutingPreferencesFields\n      }\n    }\n    ... on UnauthenticatedViewer {\n      __typename\n      authFailureReason\n    }\n  }\n}": types.OutingPreferencesDocument,
     "query SearchRegions {\n  searchRegions {\n    ...SearchRegionFields\n  }\n}": types.SearchRegionsDocument,
@@ -53,7 +54,7 @@ const documents = {
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "fragment AccountFields on Account {\n  id\n  email\n}"): typeof import('./graphql').AccountFieldsFragmentDoc;
+export function graphql(source: "fragment AccountFields on Account {\n  id\n  email\n  stripeCustomerId\n}"): typeof import('./graphql').AccountFieldsFragmentDoc;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -170,6 +171,10 @@ export function graphql(source: "query ListBookedOutings {\n  viewer {\n    __ty
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "query ListReserverDetails {\n  viewer {\n    __typename\n    ... on AuthenticatedViewerQueries {\n      __typename\n      reserverDetails {\n        ...ReserverDetailsFields\n      }\n    }\n    ... on UnauthenticatedViewer {\n      __typename\n      authFailureReason\n    }\n  }\n}"): typeof import('./graphql').ListReserverDetailsDocument;
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "query OneClickBookingCriteria {\n  viewer {\n    ... on AuthenticatedViewerQueries {\n      reserverDetails {\n        ...ReserverDetailsFields\n      }\n      paymentMethods {\n        id\n        card {\n          brand\n          last4\n          expMonth\n          expYear\n        }\n      }\n    }\n    ... on UnauthenticatedViewer {\n      __typename\n      authFailureReason\n    }\n  }\n}"): typeof import('./graphql').OneClickBookingCriteriaDocument;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

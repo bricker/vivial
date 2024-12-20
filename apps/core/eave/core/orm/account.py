@@ -139,3 +139,9 @@ class AccountOrm(Base, GetOneByIdMixin):
             password_key = _derive_password_key(plaintext_password=plaintext_password, salt=salt)
             self.password_key_salt = salt.hex()
             self.password_key = password_key
+
+    def get_default_reserver_details(self) -> "ReserverDetailsOrm | None":
+        if len(self.reserver_details) > 0:
+            return self.reserver_details[0]
+        else:
+            return None
