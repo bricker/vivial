@@ -1,8 +1,9 @@
-import { ActivitySource, RestaurantSource } from "$eave-dashboard/js/graphql/generated/graphql";
+import { AdminUpdateBookingFailureReason, BookingState } from "$eave-dashboard/js/graphql/generated/graphql";
 import { useGetBookingInfoQuery, useUpdateBookingMutation } from "$eave-dashboard/js/store/slices/coreApiSlice";
 import { styled } from "@mui/material";
 import React, { useCallback, useState } from "react";
 import { useParams } from "react-router-dom";
+import LoadingButton from "../../Buttons/LoadingButton";
 import ActivityView from "./ActivityView";
 import CostBreakdownView from "./CostBreakdownView";
 import ReserverDetailsView from "./ReserverDetailsView";
@@ -14,14 +15,7 @@ const PageContainer = styled("div")(() => ({
 }));
 
 const BookingEditPage = () => {
-  const [newActivitySource, setNewActivitySource] = useState<ActivitySource | null | undefined>(undefined);
-  const [newRestaurantSource, setNewRestaurantSource] = useState<RestaurantSource | null | undefined>(undefined);
-  const [newActivitySourceId, setNewActivitySourceId] = useState<string | null | undefined>(undefined);
-  const [newRestaurantSourceId, setNewRestaurantSourceId] = useState<string | null | undefined>(undefined);
-  const [newActivityStartTime, setNewActivityStartTime] = useState<Date | null | undefined>(undefined);
-  const [newRestaurantStartTime, setNewRestaurantStartTime] = useState<Date | null | undefined>(undefined);
-  const [newActivityHeadcount, setNewActivityHeadcount] = useState<number | undefined>(undefined);
-  const [newRestaurantHeadcount, setNewRestaurantHeadcount] = useState<number | undefined>(undefined);
+  const [error, setError] = useState("");
   const params = useParams();
   const bookingId = params["bookingId"];
   if (!bookingId) {
@@ -30,32 +24,55 @@ const BookingEditPage = () => {
   const { data: bookingInfo, isLoading: bookingIsLoading } = useGetBookingInfoQuery({ bookingId });
   const [updateBooking, { isLoading: updateBookingIsLoading }] = useUpdateBookingMutation();
 
-  const handleUpdateBooking = useCallback(() => {
-    updateBooking({
-      input: {
-        bookingId,
-        activitySource: newActivitySource,
-        activitySourceId: newActivitySourceId,
-        restaurantSource: newRestaurantSource,
-        restaurantSourceId: newRestaurantSourceId,
-        activityStartTimeUtc: newActivityStartTime?.toUTCString(),
-        restaurantStartTimeUtc: newRestaurantStartTime?.toUTCString(),
-        activityHeadcount: newActivityHeadcount,
-        restaurantHeadcount: newRestaurantHeadcount,
-      },
-    });
-  }, [
-    newActivitySource,
-    newRestaurantSource,
-    newActivitySourceId,
-    newRestaurantSourceId,
-    newRestaurantStartTime,
-    newActivityStartTime,
-    newActivityHeadcount,
-    newRestaurantHeadcount,
-  ]);
+  const setBookingState = async ({ bookingId, state }: { bookingId: string; state: BookingState }) => {
+    setError("");
 
-  // TODO: ability to update/delete aspects of booking
+    const resp = await updateBooking({
+      input: { bookingId, state },
+    });
+
+    switch (resp.data?.adminUpdateBooking?.__typename) {
+      case "AdminUpdateBookingSuccess": {
+        // yay we done it
+        break;
+      }
+      case "AdminUpdateBookingFailure": {
+        switch (resp.data.adminUpdateBooking.failureReason) {
+          case AdminUpdateBookingFailureReason.ActivitySourceNotFound:
+            setError("New activity indicated by source + source ID was not found");
+            break;
+          case AdminUpdateBookingFailureReason.BookingNotFound:
+            setError("The booking can no longer be found");
+            break;
+          case AdminUpdateBookingFailureReason.ValidationErrors:
+            setError(
+              `Validation failed for following: ${resp.data.adminUpdateBooking.validationErrors
+                ?.map((e) => e.field)
+                .join(", ")}`,
+            );
+            break;
+          default:
+            setError(`unhandled AdminUpdateBookingFailureReason: ${resp.data.adminUpdateBooking.failureReason}`);
+            break;
+        }
+        break;
+      }
+      default:
+        // some kind of error?
+        if (resp.error) {
+          setError(JSON.stringify(resp.error));
+        }
+    }
+  };
+
+  const handleBookBooking = useCallback(async () => {
+    await setBookingState({ bookingId, state: BookingState.Booked });
+  }, []);
+
+  const handleCancelBooking = useCallback(async () => {
+    await setBookingState({ bookingId, state: BookingState.Canceled });
+  }, []);
+
   return (
     <PageContainer>
       <h1>Booking {bookingId}</h1>
@@ -83,11 +100,19 @@ const BookingEditPage = () => {
           isLoading={bookingIsLoading}
         />
 
-        {/* <LoadingButton loading={updateBookingIsLoading} onClick={handleUpdateBooking}>
-            Update Booking
-          </LoadingButton> */}
+        <div style={{ display: "flex", justifyContent: "space-around" }}>
+          <LoadingButton color="secondary" loading={updateBookingIsLoading} onClick={handleCancelBooking}>
+            Cancel Booking
+          </LoadingButton>
+          <LoadingButton loading={updateBookingIsLoading} onClick={handleBookBooking}>
+            Mark as Booked
+          </LoadingButton>
+        </div>
       </div>
-      {!bookingIsLoading && !bookingInfo?.adminBooking && <h2 style={{ color: "red" }}>ERROR: failed to get booking</h2>}
+      {!bookingIsLoading && !bookingInfo?.adminBooking && (
+        <h2 style={{ color: "red" }}>ERROR: failed to get booking</h2>
+      )}
+      {error && <h2 style={{ color: "red" }}>ERROR: {error}</h2>}
     </PageContainer>
   );
 };

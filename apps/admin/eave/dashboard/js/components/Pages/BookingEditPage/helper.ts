@@ -19,3 +19,14 @@ export function formatDateString(dateString?: string | null): string {
     return "[invalid date]";
   }
 }
+
+export function enumTypeFromValue<T extends object>(target: T, value: string): T[keyof T] | null {
+  for (const [k, v] of Object.entries(target)) {
+    if (v === value) return target[k as keyof T];
+  }
+  return null;
+}
+
+export function enumKeyFromType<T extends object>(target: T, value: T[keyof T]): keyof T | null {
+  return Object.entries(target).find(([_, v]) => v === value)?.[0] as keyof T | null;
+}

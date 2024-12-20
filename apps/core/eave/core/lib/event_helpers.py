@@ -92,7 +92,7 @@ async def get_restaurant(
     *,
     source: RestaurantSource,
     source_id: str,
-) -> Restaurant:
+) -> Restaurant | None:
     places_client = PlacesAsyncClient()
 
     match source:

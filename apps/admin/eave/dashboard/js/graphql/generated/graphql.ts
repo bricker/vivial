@@ -122,6 +122,7 @@ export type AdminUpdateBookingInput = {
   restaurantSource?: InputMaybe<RestaurantSource>;
   restaurantSourceId?: InputMaybe<Scalars['String']['input']>;
   restaurantStartTimeUtc?: InputMaybe<Scalars['DateTime']['input']>;
+  state?: InputMaybe<BookingState>;
 };
 
 export type AdminUpdateBookingResult = AdminUpdateBookingFailure | AdminUpdateBookingSuccess;

@@ -135,26 +135,27 @@ async def initiate_booking_mutation(
                     source_id=reservation_orm.source_id,
                 )
 
-                if not booking_details_restaurant:
-                    booking_details_restaurant = reservation
-                    booking_details_restaurant_arrival_time = reservation_orm.start_time_local
+                if reservation:
+                    if not booking_details_restaurant:
+                        booking_details_restaurant = reservation
+                        booking_details_restaurant_arrival_time = reservation_orm.start_time_local
 
-                booking.reservations.append(
-                    BookingReservationTemplateOrm(
-                        db_session,
-                        booking=booking,
-                        source=reservation_orm.source,
-                        source_id=reservation_orm.source_id,
-                        name=reservation.name,
-                        start_time_utc=reservation_orm.start_time_utc,
-                        timezone=reservation_orm.timezone,
-                        headcount=reservation_orm.headcount,
-                        external_booking_link=reservation.website_uri,
-                        address=reservation.location.address.to_address(),
-                        coordinates=reservation.location.coordinates,
-                        photo_uri=reservation.photos.cover_photo.src if reservation.photos.cover_photo else None,
+                    booking.reservations.append(
+                        BookingReservationTemplateOrm(
+                            db_session,
+                            booking=booking,
+                            source=reservation_orm.source,
+                            source_id=reservation_orm.source_id,
+                            name=reservation.name,
+                            start_time_utc=reservation_orm.start_time_utc,
+                            timezone=reservation_orm.timezone,
+                            headcount=reservation_orm.headcount,
+                            external_booking_link=reservation.website_uri,
+                            address=reservation.location.address.to_address(),
+                            coordinates=reservation.location.coordinates,
+                            photo_uri=reservation.photos.cover_photo.src if reservation.photos.cover_photo else None,
+                        )
                     )
-                )
 
         if booking_details_cost_breakdown.total_cost_cents_internal > 0:
             if account_orm.stripe_customer_id is None:

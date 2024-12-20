@@ -236,10 +236,14 @@ async def get_google_place(
     places_client: PlacesAsyncClient,
     *,
     place_id: str,
-) -> Place:
-    return await places_client.get_place(
-        request=GetPlaceRequest(name=f"places/{place_id}"), metadata=[("x-goog-fieldmask", _PLACE_FIELD_MASK)]
-    )
+) -> Place | None:
+    try:
+        place = await places_client.get_place(
+            request=GetPlaceRequest(name=f"places/{place_id}"), metadata=[("x-goog-fieldmask", _PLACE_FIELD_MASK)]
+        )
+        return place
+    except Exception:
+        return None
 
 
 async def get_google_places_activity(places_client: PlacesAsyncClient, *, event_id: str) -> Activity | None:
@@ -247,16 +251,20 @@ async def get_google_places_activity(places_client: PlacesAsyncClient, *, event_
         places_client=places_client,
         place_id=event_id,
     )
+    if not place:
+        return None
 
     activity = await activity_from_google_place(places_client, place=place)
     return activity
 
 
-async def get_google_places_restaurant(places_client: PlacesAsyncClient, *, restaurant_id: str) -> Restaurant:
+async def get_google_places_restaurant(places_client: PlacesAsyncClient, *, restaurant_id: str) -> Restaurant | None:
     place = await get_google_place(
         places_client=places_client,
         place_id=restaurant_id,
     )
+    if not place:
+        return None
 
     restaurant = await restaurant_from_google_place(places_client=places_client, place=place)
     return restaurant
