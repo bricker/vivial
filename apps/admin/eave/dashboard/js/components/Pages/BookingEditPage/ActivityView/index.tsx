@@ -171,7 +171,6 @@ const ActivityView = ({
               fallback
             )}
           </p>
-          {/* <Input contentEditable={isEditing} value={`Source: ${data.activitySource}`} /> */}
           <EnumDropdown
             enumType={ActivitySource}
             label="Activity Source"

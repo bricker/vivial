@@ -109,6 +109,7 @@ export type AdminUpdateBookingFailure = {
 export enum AdminUpdateBookingFailureReason {
   ActivitySourceNotFound = 'ACTIVITY_SOURCE_NOT_FOUND',
   BookingNotFound = 'BOOKING_NOT_FOUND',
+  RestaurantSourceNotFound = 'RESTAURANT_SOURCE_NOT_FOUND',
   ValidationErrors = 'VALIDATION_ERRORS'
 }
 
