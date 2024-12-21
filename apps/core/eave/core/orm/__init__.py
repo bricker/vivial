@@ -5,9 +5,9 @@
 
 from . import (
     account,
-    activity,
     booking,
     eventbrite_event,
+    evergreen_activity,
     image,
     outing,
     outing_preferences,

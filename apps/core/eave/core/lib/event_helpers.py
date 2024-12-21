@@ -18,7 +18,7 @@ from eave.core.lib.google_places import (
     get_google_places_restaurant,
     google_maps_directions_url,
 )
-from eave.core.orm.activity import ActivityOrm
+from eave.core.orm.evergreen_activity import EvergreenActivityOrm
 from eave.core.orm.activity_category import ActivityCategoryOrm
 from eave.core.orm.activity_category_group import ActivityCategoryGroupOrm
 from eave.core.shared.enums import ActivitySource, RestaurantSource
@@ -27,7 +27,7 @@ from eave.stdlib.eventbrite.client import EventbriteClient
 
 async def get_internal_activity(*, event_id: str) -> Activity | None:
     async with database.async_session.begin() as db_session:
-        activity_orm = await ActivityOrm.get_one(db_session, uid=uuid.UUID(event_id))
+        activity_orm = await EvergreenActivityOrm.get_one(db_session, uid=uuid.UUID(event_id))
         images = activity_orm.images
 
     category_group = None

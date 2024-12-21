@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+set -eu
+
+source "${EAVE_HOME}"/develop/functions.bash
+
+(
+	cd "$(e.parentpath)"
+	python-activate-venv
+	python eave/core/activities_db/eventbrite_scraper.py
+)

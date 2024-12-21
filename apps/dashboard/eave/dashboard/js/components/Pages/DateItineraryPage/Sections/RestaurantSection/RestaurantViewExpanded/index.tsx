@@ -117,7 +117,7 @@ const RestaurantViewExpanded = () => {
           <TimeAndTableInfo>
             <TimeAndTable>
               {getTimeOfDay(arrivalTime, false)}
-              {outing.reservation.restaurant.reservable ? `| Table for ${outing.reservation.headcount}` : null}
+              {outing.reservation.restaurant.reservable ? ` | Table for ${outing.reservation.headcount}` : null}
             </TimeAndTable>
             <TooltipButton info={RESERVATION_WARNING} iconColor={colors.lightOrangeAccent} iconLarge />
           </TimeAndTableInfo>

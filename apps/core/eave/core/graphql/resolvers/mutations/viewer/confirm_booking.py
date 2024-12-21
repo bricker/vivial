@@ -199,6 +199,8 @@ async def notify_slack_booking_confirmed(
     else:
         msg += "no action required (probably)"
 
+    msg += " @customer-support"
+
     try:
         channel_id = SHARED_CONFIG.eave_slack_alerts_bookings_channel_id
         slack_client = eave.stdlib.slack.get_authenticated_eave_system_slack_client()
@@ -206,6 +208,7 @@ async def notify_slack_booking_confirmed(
         if slack_client and channel_id:
             slack_response = await slack_client.chat_postMessage(
                 channel=channel_id,
+                link_names=True,
                 text=msg,
             )
 
@@ -256,8 +259,6 @@ async def notify_slack_booking_confirmed(
                     ])}
 
                     *Internal Booking ID*: {booking.id}
-
-                    @customer-support
                     """),
             )
     except Exception as e:

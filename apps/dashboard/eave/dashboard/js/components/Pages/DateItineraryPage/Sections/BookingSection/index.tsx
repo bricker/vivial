@@ -361,10 +361,10 @@ const BookingSection = ({ viewOnly }: { viewOnly?: boolean }) => {
         <CostItem bold>FREE</CostItem>
       </CostBreakdown>
 
-      {oneClickUI}
-
       {!viewOnly && (
         <>
+          {oneClickUI}
+
           <ActionButtons>
             <RerollButton onReroll={handleReroll} loading={planOutingLoading} />
             <BookButton onClick={handleBookClick} fullWidth loading={bookButtonLoading}>

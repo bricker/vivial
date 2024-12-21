@@ -1,15 +1,31 @@
+from sqlalchemy.dialects.postgresql import Range
 from eave.core.lib.address import Address
-from eave.core.orm.activity import ActivityOrm
+from eave.core.orm.evergreen_activity import EvergreenActivityOrm, WeeklySchedule
 from eave.core.orm.image import ImageOrm
 from eave.core.shared.geo import GeoPoint
 
 from ..base import BaseTestCase
 
 
-class TestActivityOrm(BaseTestCase):
+class TestEvergreenActivityOrm(BaseTestCase):
+    def make_evergreen_activity(self, session) -> EvergreenActivityOrm:
+        activity = EvergreenActivityOrm(
+            session,
+            title=self.anystr("title"),
+            description=self.anystr("description"),
+            coordinates=self.anycoordinates(),
+            is_bookable=self.anybool("is_bookable"),
+            booking_url=self.anyurl("booking_url"),
+            activity_category_id=self.anyuuid("category_id"),
+            duration_minutes=self.anyint("duration_minutes"),
+            availability=[],
+            address=self.anyaddress()
+        )
+        return activity
+
     async def test_new_activity_record(self) -> None:
         async with self.db_session.begin() as session:
-            activity = ActivityOrm(
+            activity = EvergreenActivityOrm(
                 session,
                 title=self.anystr("title"),
                 description=self.anystr("description"),
@@ -21,7 +37,7 @@ class TestActivityOrm(BaseTestCase):
                 booking_url=self.anyurl("booking_url"),
                 activity_category_id=self.anyuuid("category_id"),
                 duration_minutes=self.anyint("duration_minutes"),
-                availability=self.anystr("availability"),
+                availability=[],
                 address=Address(
                     address1=self.anystr("address.address1"),
                     address2=self.anystr("address.address2"),
@@ -33,7 +49,7 @@ class TestActivityOrm(BaseTestCase):
             )
 
         async with self.db_session.begin() as session:
-            obj = await ActivityOrm.get_one(session, activity.id)
+            obj = await EvergreenActivityOrm.get_one(session, activity.id)
 
             assert obj.title == self.getstr("title")
             assert obj.description == self.getstr("description")
@@ -54,30 +70,30 @@ class TestActivityOrm(BaseTestCase):
             assert obj.address.state == self.getusstate("address.state")
             assert obj.address.zip_code == self.getdigits("address.zip")
 
+    async def test_activity_search_by_availability_with_no_availability(self) -> None:
+        async with self.db_session.begin() as session:
+            activity = self.make_evergreen_activity(session)
+            activity.availability = []
+
+        async with self.db_session.begin() as session:
+            results = (await session.scalars(EvergreenActivityOrm.select(business_hours_contains=1200))).all()
+
+        assert len(results) == 0
+
+    async def test_activity_search_by_availability_with_monday_availability(self) -> None:
+        async with self.db_session.begin() as session:
+            activity = self.make_evergreen_activity(session)
+            activity.availability = [Range(10*60, 17*60)]
+
+        async with self.db_session.begin() as session:
+            results = (await session.scalars(EvergreenActivityOrm.select(business_hours_contains=12*60))).all()
+
+        assert len(results) == 1
+
+
     async def test_activity_images(self) -> None:
         async with self.db_session.begin() as session:
-            activity_orm = ActivityOrm(
-                session,
-                title=self.anystr("title"),
-                description=self.anystr("description"),
-                coordinates=GeoPoint(
-                    lat=self.anylatitude("lat"),
-                    lon=self.anylongitude("lon"),
-                ),
-                is_bookable=self.anybool("is_bookable"),
-                booking_url=self.anyurl("booking_url"),
-                activity_category_id=self.anyuuid("category_id"),
-                duration_minutes=self.anyint("duration_minutes"),
-                availability=self.anystr("availability"),
-                address=Address(
-                    address1=self.anystr("address.address1"),
-                    address2=self.anystr("address.address2"),
-                    city=self.anystr("address.city"),
-                    country=self.anystr("address.country"),
-                    state=self.anyusstate("address.state"),
-                    zip_code=self.anydigits("address.zip", length=5),
-                ),
-            )
+            activity_orm = self.make_evergreen_activity(session)
 
             images = [
                 ImageOrm(
@@ -95,7 +111,7 @@ class TestActivityOrm(BaseTestCase):
             activity_orm.images = images
 
         async with self.db_session.begin() as session:
-            activity_orm_fetched = await ActivityOrm.get_one(session, activity_orm.id)
+            activity_orm_fetched = await EvergreenActivityOrm.get_one(session, activity_orm.id)
             assert len(activity_orm_fetched.images) == 2
 
             assert activity_orm_fetched.images[0].src == self.geturl("image src 1")

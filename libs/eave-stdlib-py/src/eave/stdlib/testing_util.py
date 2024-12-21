@@ -377,7 +377,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         data = f"{name}+{uuid.uuid4().hex}@gmail.com"
         self.testdata[name] = data
-        return data
+        return self.getemail(name)
 
     def getemail(self, name: str) -> str:
         return self.getstr(name)
@@ -387,7 +387,7 @@ class UtilityBaseTestCase(unittest.IsolatedAsyncioTestCase):
 
         data = f"({self.anydigits(length=3)})-{self.anydigits(length=3)}-{self.anydigits(length=4)}"
         self.testdata[name] = data
-        return data
+        return self.getphonenumber(name)
 
     def getphonenumber(self, name: str) -> str:
         return self.getstr(name)

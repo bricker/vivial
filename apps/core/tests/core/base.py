@@ -138,6 +138,38 @@ class BaseTestCase(eave.stdlib.testing_util.UtilityBaseTestCase):
             count = 0
         return count
 
+    def anyaddress(self, name: str | None = None) -> Address:
+        name = self._make_testdata_name(name)
+
+        data = Address(
+            address1=self.anystr(),
+            address2=self.anystr(),
+            city=self.anystr(),
+            country=self.anystr(),
+            state=self.anyusstate(),
+            zip_code=self.anydigits(length=5),
+        )
+
+        self.testdata[name] = data
+        return self.getaddress(name)
+
+    def getaddress(self, name: str) -> Address:
+        return self.testdata[name]
+
+    def anycoordinates(self, name: str | None = None) -> GeoPoint:
+        name = self._make_testdata_name(name)
+
+        data = GeoPoint(
+            lat=self.anylatitude("lat"),
+            lon=self.anylongitude("lon"),
+        )
+
+        self.testdata[name] = data
+        return self.getcoordinates(name)
+
+    def getcoordinates(self, name: str) -> GeoPoint:
+        return self.testdata[name]
+
     def parse_graphql_response(self, response: Response) -> ExecutionResult:
         j = response.json()
 
